@@ -1,0 +1,77 @@
+.descr {
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    padding-bottom: 20px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+    grid-auto-rows: 800px;
+    grid-auto-flow: dense;
+}
+
+.plot {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    grid-column-start: span 3;
+}
+
+.frame {
+    height: 100%;
+    width: 100%;
+}
+
+.table  {
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.table th {
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 10px 5px;
+    border-style: solid;
+    border-width: 1px;
+    overflow: hidden;
+    word-break: normal;
+    border-color: black;
+    text-align: center;
+    background-color: rgb(161, 195, 209);
+}
+
+.table td {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    padding: 5px 10px;
+    border-style: solid;
+    border-width: 1px;
+    overflow: hidden;
+    word-break:normal ;
+    border-color:black;
+    background-color: rgb(237, 250, 255);
+}
+
+.table .td-colname {
+    font-size: 15px;
+    font-weight: bold;
+    text-align: left;
+}
+
+.table .td-value {
+    text-align: left;
+}
+
+.table .td-funcname {
+    text-align: left;
+}
+
+abbr, acronym
+{
+    cursor: help;
+    border-bottom: 1px dotted;
+    text-decoration: none;
+}
