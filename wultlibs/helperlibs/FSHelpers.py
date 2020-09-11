@@ -1,0 +1,466 @@
+# -*- coding: utf-8 -*-
+# vim: ts=4 sw=4 tw=100 et ai si
+#
+# Copyright (C) 2019-2020 Intel Corporation
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+
+"""
+This module contains misc. helper functions related to file-system operations.
+"""
+
+import logging
+import os
+import shutil
+import sys
+from collections import namedtuple
+from pathlib import Path
+from wultlibs.helperlibs import Procs, Trivial
+from wultlibs.helperlibs.Exceptions import Error, ErrorNotFound
+
+# Default debugfs mount point.
+DEBUGFS_MOUNT_POINT = Path("/sys/kernel/debug")
+
+# A unique object used as the default value for the 'default' key in some functions.
+_RAISE = object()
+
+_LOG = logging.getLogger("main")
+
+def get_homedir(proc=None):
+    """
+    Return home directory path. By default returns current user's local home directory path.
+    If the 'procs' argument contains a connected "SSH" object, then this function returns home
+    directory path of the connected user on the remote host.
+    """
+
+    if proc and proc.is_remote:
+        return Path(proc.run_verify("echo $HOME", shell=True)[0].strip())
+    return Path("~").expanduser()
+
+def move_copy_link(src: Path, dst: Path, action: str = "symlink", exist_ok: bool = False):
+    """
+    Moves, copy. or link the 'src' file or directory to 'dst' depending on the 'action' contents
+    ('move', 'copy', 'symlink').
+    """
+
+    if dst.exists():
+        if exist_ok:
+            return
+        raise Error(f"cannot {action} '{src}' to '{dst}', the destination path already exists")
+
+    # Type cast in shutil.move() can be removed when python is fixed. See
+    # https://bugs.python.org/issue32689
+    try:
+        if action == "move":
+            if src.is_dir():
+                dst.mkdir(parents=True, exist_ok=True)
+                for item in src.iterdir():
+                    shutil.move(str(item), dst)
+            else:
+                shutil.move(str(src), dst)
+        elif action == "copy":
+            if src.is_dir():
+                if src.resolve() in dst.resolve().parents:
+                    raise Error(f"cannot do recursive copy from '{src}' to '{dst}'")
+                shutil.copytree(src, dst)
+            else:
+                shutil.copyfile(src, dst)
+        elif action == "symlink":
+            if not dst.is_dir():
+                dstdir = dst.parent
+            else:
+                dstdir = dst
+            os.symlink(os.path.relpath(src.resolve(), dstdir.resolve()), dst)
+        else:
+            raise Error(f"unrecognized action '{action}'")
+    except (OSError, shutil.Error) as err:
+        raise Error(f"cannot {action} '{src}' to '{dst}':\n{err}")
+
+def search_for_app_data(appname, subpath: Path, pre: str = None, pathdescr: str = None,
+                        default=_RAISE):
+    """
+    Search for application 'appname' data. The data are searched for
+    in 'subpath' sub-path of the following directories (and in the following order):
+      * in the directory the of the running process (sys.argv[0])
+      * the the directories in the 'pre' list, if it was specified
+      * in the directory specified by the f'{appname}_DATA_PATH' environment variable
+      * $HOME/.local/share/<appname>/, if it exists
+      * /usr/local/share/<appname>/, if it exists
+      * /usr/share/<appname>/, if it exists
+
+    By default this function raises an exception if 'subpath' was not found. The'default' argument
+    can be used as an return value instead of raising an error.
+    The 'pathdescr' argument is a human-readable description of 'subpath', which will be used in the
+    error message if error is raised.
+    """
+
+    searched = []
+    paths = pre
+    if not paths:
+        paths = []
+
+    paths.append(Path(sys.argv[0]).parent)
+
+    path = os.environ.get(f"{appname}_DATA_PATH".upper())
+    if path:
+        paths.append(Path(path))
+
+    for path in paths:
+        path /= subpath
+        if path.exists():
+            return path
+        searched.append(path)
+
+    path = Path("~").expanduser() / Path(f".local/share/{appname}/{subpath}")
+    if path.exists():
+        return path
+
+    searched.append(path)
+
+    for path in (Path(f"/usr/local/share/{appname}"), Path(f"/usr/share/{appname}")):
+        path /= subpath
+        if path.exists():
+            return path
+        searched.append(path)
+
+    if not pathdescr:
+        pathdescr = f"'{subpath}'"
+    searched = [str(s) for s in searched]
+    dirs = " * " + "\n * ".join(searched)
+
+    if default is _RAISE:
+        raise Error(f"cannot find {pathdescr}, searched in the following directories on local "
+                    f"host:\n{dirs}")
+    return default
+
+def get_mtime(path: Path, proc=None):
+    """Returns file or directory mtime."""
+
+    if not proc:
+        return path.stat().st_mtime
+
+    cmd = f"stat -c %Y -- {path}"
+    mtime = proc.run_verify(cmd)[0].strip()
+    if not Trivial.is_float(mtime):
+        raise Error(f"got erroneous mtime of '{path}'{proc.hostmsg}:\n{mtime}")
+    return float(mtime)
+
+def mount_points(proc=None):
+    """
+    This generator parses '/proc/mounts' and for each mount point yields the following named tuples:
+      * device - name of the mounted device
+      * mntpoint - mount point
+      * fstype - file-system type
+      * options - list of options
+
+    By default this function operates on the local host, but the 'proc' argument can be used to pass
+    a connected 'SSH' object in which case this function will operate on the remote host.
+    """
+
+    mounts_file = "/proc/mounts"
+    mntinfo = namedtuple("mntinfo", ["device", "mntpoint", "fstype", "options"])
+
+    if not proc:
+        proc = Procs.Proc()
+
+    try:
+        with proc.open(mounts_file, "r") as fobj:
+            contents = fobj.read()
+    except OSError as err:
+        raise Error(f"cannot read '{mounts_file}': {err}")
+
+    for line in contents.splitlines():
+        if not line:
+            continue
+
+        device, mntpoint, fstype, options, _ = line.split(maxsplit=4)
+        yield mntinfo(device, mntpoint, fstype, options.split(","))
+
+def mount_debugfs(mnt: Path = None, proc=None):
+    """
+    Mount the debugfs file-system to 'mnt' on the host. By default it is mounted to
+    'DEBUGFS_MOUNT_POINT'. The 'proc' argument defines the host to mount debugfs on (default is the
+    local host). Returns the mount point path.
+    """
+
+    if not mnt:
+        mnt = DEBUGFS_MOUNT_POINT
+    else:
+        try:
+            mnt = Path(os.path.realpath(mnt)).resolve()
+        except OSError as err:
+            raise Error(f"cannot resolve path '{mnt}': {err}")
+
+    for mntinfo in mount_points(proc=proc):
+        if mntinfo.fstype == "debugfs" and Path(mntinfo.mntpoint) == mnt:
+            # Already mounted.
+            return mnt
+
+    proc.run_verify(f"mount -t debugfs none '{mnt}'")
+    return mnt
+
+def mktemp(prefix: str = None, tmpdir: Path = None, proc=None):
+    """
+    Create a temporary directory by running the 'mktemp' tool. The 'prefix' argument can be used to
+    specify the temporary directory name prefix. The 'tmpdir' argument path to the base directory
+    where the temporary directory should be created.
+
+    By default this function operates on the local host, but the 'proc' argument can be used to pass
+    a connected 'SSH' object in which case this function will operate on the remote host.
+    """
+
+    if not proc:
+        proc = Procs.Proc()
+
+    cmd = "mktemp -d -t '"
+    if prefix:
+        cmd += prefix
+    cmd += "XXXXXX'"
+    if tmpdir:
+        cmd += " -p '{tmpdir}'"
+    path, _ = proc.run_verify(cmd)
+
+    path = path.strip()
+    if not path:
+        raise Error(f"cannot create a temporary directory{proc.hostmsg}, the following command "
+                    f"returned an empty string:\n{cmd}")
+    _LOG.debug("created a temporary directory '%s'%s", path, proc.hostmsg)
+    return Path(path)
+
+def shell_test(path: Path, opt: str, proc=None):
+    """
+    Run a shell test against path 'path'. The 'opt' argument specifies the the 'test' command
+    options. For example, pass '-f' to run 'test -f' which returns 0 if 'path' exists and is a
+    regular file and 1 otherwise.
+
+    By default this function operates on the local host, but the 'proc' argument can be used to pass
+    a connected 'SSH' object in which case this function will operate on the remote host.
+    """
+
+    if not proc:
+        proc = Procs.Proc()
+
+    cmd = f"test {opt} '{path}'"
+    stdout, stderr, exitcode = proc.run(cmd)
+    if stdout or stderr or exitcode not in (0, 1):
+        raise Error(proc.cmd_failed_msg(cmd, stdout, stderr, exitcode))
+
+    return exitcode == 0
+
+def mkdir(dirpath: Path, parents: bool = False, default=_RAISE, proc=None):
+    """
+    Create a directory. If 'parents' is 'True', the parent directories are created as well. If the
+    directory already exists, this function returns 'default' or raises an exception if 'default'
+    was not provided.
+
+    By default this function operates on the local host, but the 'proc' argument can be used to pass
+    a connected 'SSH' object in which case this function will operate on the remote host.
+    """
+
+    if not proc:
+        proc = Procs.Proc()
+
+    if shell_test(dirpath, "-e", proc=proc):
+        if default is _RAISE:
+            raise Error(f"path '{dirpath}' already exists{proc.hostmsg}")
+        return default
+
+    if proc.is_remote:
+        cmd = "mkdir"
+        if parents:
+            cmd += " -p"
+        cmd += f" -- '{dirpath}'"
+        proc.run_verify(cmd)
+    else:
+        try:
+            dirpath.mkdir(parents=parents, exist_ok=False)
+        except OSError as err:
+            raise Error(f"failed to create directory '{dirpath}':\n{err}")
+
+    return default
+
+def exists(path: Path, proc=None):
+    """
+    Return 'True' if path 'path' exists on the host defined by 'proc' (local host by default).
+    """
+
+    if proc and proc.is_remote:
+        return shell_test(path, "-e", proc=proc)
+
+    try:
+        return path.exists()
+    except OSError as err:
+        raise Error(f"failed to check if '{path}' exists on the local host: {err}")
+
+def isfile(path: Path, proc=None):
+    """
+    Return 'True' if path 'path' exists an it is a regular file. The check is don on the host
+    defined by 'proc' (local host by default).
+    """
+
+    if proc and proc.is_remote:
+        return shell_test(path, "-f", proc=proc)
+
+    try:
+        return path.is_file()
+    except OSError as err:
+        raise Error(f"failed to check if '{path}' exists and it is a regular file on the local "
+                    f"host: {err}")
+
+def isdir(path: Path, proc=None):
+    """
+    Return 'True' if path 'path' exists an it is a directory. The check is don on the host
+    defined by 'proc' (local host by default).
+    """
+
+    if proc and proc.is_remote:
+        return shell_test(path, "-d", proc=proc)
+
+    try:
+        return path.is_dir()
+    except OSError as err:
+        raise Error(f"failed to check if '{path}' exists and it is a directory on local host: "
+                    f"{err}")
+
+def isexe(path: Path, proc=None):
+    """
+    Return 'True' if path 'path' exists an it is an executable file. The check is don on the host
+    defined by 'proc' (local host by default).
+    """
+
+    if proc and proc.is_remote:
+        return shell_test(path, "-x", proc=proc)
+
+    try:
+        return path.is_file() and os.access(path, os.X_OK)
+    except OSError as err:
+        raise Error(f"failed to check if '{path}' exists and it is an executable file on the local "
+                    f"host: {err}")
+
+def which(program: str, default=_RAISE, proc=None):
+    """
+    Find full path of a program by searching it in '$PATH'. Return the full path if the program was
+    found, otherwise retruns 'default' or rises an exception if the 'default' value was not
+    provided.
+
+    By default this function operates on the local host, but the 'proc' argument can be used to pass
+    a connected 'SSH' object in which case this function will operate on the remote host.
+    """
+
+    if proc and proc.is_remote:
+        cmd = f"which -- '{program}'"
+        stdout, stderr, exitcode = proc.run(cmd)
+        if not exitcode:
+            # Which could return several paths. They may contain aliases. Refrain from using
+            # '--skip-alias' to make sure we work with older 'which' programs too.
+            for line in stdout.strip().splitlines():
+                line = line.strip()
+                if not line.startswith("alias"):
+                    return Path(line)
+            if default is _RAISE:
+                raise ErrorNotFound(f"program '{program}' was not found in $PATH{proc.hostmsg})")
+            return default
+
+        # The 'which' tool exits with status 1 when the program is not found. Any other error code
+        # is an real failure that we always want to report.
+        if exitcode != 1:
+            raise Error(proc.cmd_failed_msg(cmd, stdout, stderr, exitcode))
+
+        if default is _RAISE:
+            raise ErrorNotFound(proc.cmd_failed_msg(cmd, stdout, stderr, exitcode))
+        return default
+
+    program = Path(program)
+    if Path(program).is_file() and os.access(program, os.X_OK):
+        return program
+
+    envpaths = os.environ["PATH"]
+    for path in envpaths.split(os.pathsep):
+        path = path.strip('"')
+        candidate = Path(f"{path}/{program}")
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return candidate
+
+    if default is _RAISE:
+        raise ErrorNotFound(f"program '{program}' was not found in $PATH ({envpaths})")
+    return default
+
+def lsdir(path: Path, must_exist: bool = True, proc=None):
+    """
+    For each directory entry in 'path', yield the ('name', 'path', 'type') tuple, where 'name' is
+    the direntry name, 'path' is full directory entry path, and 'type' is the file type indicator
+    (see 'ls -F' for details).
+
+    If 'path' does not exist, this function raises an exception. However, this behavior can be
+    changed with the 'must_exist' argument. If 'must_exist' is 'False, this function just returns
+    and does not yield anything.
+
+    By default this function operates on the local host, but the 'proc' argument can be used to pass
+    a connected 'SSH' object in which case this function will operate on the remote host.
+    """
+
+    if not proc:
+        proc = Procs.Proc()
+
+    if not must_exist and not exists(path, proc=proc):
+        return
+
+    stdout, _ = proc.run_verify(f"ls -c -1 --file-type -- '{path}'", join=False)
+    if not stdout:
+        return
+
+    for entry in (entry.strip() for entry in stdout):
+        ftype = ""
+        if entry[-1] in "/=>@|":
+            ftype = entry[-1]
+            entry = entry[:-1]
+        yield (entry, Path(f"{path}/{entry}"), ftype)
+
+def abspath(path: Path, must_exist: bool = True, proc=None):
+    """
+    Returns absolute real path for 'path' on the host define by 'proc'. All the components of the
+    path should exist by default, otherwise this function raises and exception. But if 'must_exist'
+    is 'False', then it is acceptable for the components of the path not to exist.
+
+    By default this function operates on the local host, but the 'proc' argument can be used to pass
+    a connected 'SSH' object in which case this function will operate on the remote host.
+    """
+
+    if not proc or not proc.is_remote:
+        try:
+            rpath = path.resolve()
+        except OSError as err:
+            raise Error(f"failed to get real path for '{path}': {err}")
+        if must_exist and not rpath.exists():
+            raise Error(f"path '{rpath}' does not exist")
+        return rpath
+
+    if must_exist:
+        opt = "-e"
+    else:
+        opt = "-m"
+
+    stdout, _ = proc.run_verify(f"readlink {opt} -- {path}")
+    return Path(stdout.strip())
+
+def read(path, default=_RAISE, proc=None):
+    """
+    Read file 'path'. If it fails return 'default' or rise an exception if the 'default' value
+    was not provided. By default this function operates on the local host, but the 'proc' argument
+    can be used to pass a connected 'SSH' object in which case this function will operate on the
+    remote host.
+    """
+
+    if not proc:
+        proc = Procs.Proc()
+
+    try:
+        with proc.open(path, "r") as fobj:
+            val = fobj.read().strip()
+    except Error as err:
+        if default is _RAISE:
+            raise Error(f"failed to read file '{path}'{proc.hostmsg}:\n{err}")
+        return default
+
+    return val

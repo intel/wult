@@ -1,0 +1,278 @@
+# -*- coding: utf-8 -*-
+# vim: ts=4 sw=4 tw=100 et ai si
+#
+# Copyright (C) 2016-2020 Intel Corporation
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+
+"""
+This module provides an API to get CPU information.
+"""
+
+from itertools import groupby
+from collections import OrderedDict
+from wultlibs.helperlibs.Exceptions import Error # pylint: disable=unused-import
+from wultlibs.helperlibs import Procs, Trivial
+
+LEVELS = ("pkg", "node", "core", "cpu")
+
+class CPUInfo:
+    """
+    Provide information about the CPU of a local or remote host.
+    """
+
+    def _get_lscpu(self):
+        """Return the 'lscpu' output."""
+
+        if self._lscpu_cache:
+            return self._lscpu_cache
+
+        # Note, we could just walk sysfs, but 'lscpu' seems a bit more convenient.
+        cmd = "lscpu --all -p=socket,node,core,cpu,online"
+        self._lscpu_cache, _ = self._proc.run_verify(cmd, join=False)
+        return self._lscpu_cache
+
+    def _get_level(self, start, end, nums=None):
+        """
+        Returns list of level 'end' values belonging to level 'start' for each ID in 'nums'. Returns
+        all values if 'nums' is None or "all". Offline CPUs are ignored.
+        """
+
+        if start not in LEVELS or end not in LEVELS:
+            levels = ", ".join(LEVELS)
+            raise Error(f"bad levels '{start}','{end}', use: {levels}")
+
+        start_idx = LEVELS.index(start)
+        end_idx = LEVELS.index(end)
+        if start_idx > end_idx:
+            raise Error(f"bad level order, cannot get {end}s from level '{start}'")
+
+        items = {}
+        for line in self._get_lscpu():
+            if line.startswith("#"):
+                continue
+            # Each line has comma-separated integers for socket, node, core and cpu. For example:
+            # 1,1,9,61,Y. In case of offline CPU, the final element is going to be "N".
+            line = line.strip().split(",")
+            if line[-1] != "Y":
+                # Skip non-online CPUs.
+                continue
+            line = [int(val) for val in line[0:-1]]
+            if line[start_idx] in items.keys():
+                items[line[start_idx]].append(line[end_idx])
+            else:
+                items[line[start_idx]] = [line[end_idx]]
+
+        # So now 'items' is a dictionary with keys being the 'start' level elements and values being
+        # lists of the 'end' level elements.
+        # For example, suppose we are looking for CPUs in packages, and the system has 2 packages,
+        # each containing 8 CPUs. The 'items' dictionary will look like this:
+        # items[0] = {0, 2, 4, 6, 8, 10, 12, 14}
+        # items[1] = {1, 3, 6, 7, 9, 11, 13, 15}
+        # In this example, package 0 includes CPUs with even numbers, and package 1 includes CPUs
+        # with odd numbers.
+
+        if not nums or nums == "all":
+            nums = list(items.keys())
+
+        result = []
+        for num in nums:
+            if not Trivial.is_int(num):
+                raise Error(f"bad {start} number '{num}', should be an integer")
+            num = int(num)
+            if num not in items:
+                items_str = ", ".join(str(key) for key in items)
+                raise Error(f"{start} {num} does not exist{self._proc.hostmsg}, use: {items_str}")
+            result += items[num]
+
+        return Trivial.list_dedup(result)
+
+    def get_cpus(self, lvl="cpu", nums=None):
+        """
+        Returns list of online CPU numbers belonging to level 'lvl' for each ID in 'nums'. The 'lvl'
+        argument is one of the level names  defined in 'LEVELS'.
+
+        For example, when 'lvl' is 'pkg' and 'nums' is '(1,3)', this function returns list of CPU
+        numbers in packages number 1 and 3. If 'lvl' is 'core', and 'nums' is '(4,)', this function
+        returns list of CPU numbers in core 4.
+
+        Note, 'num' is allowed contain both integer and string type numbers. For example, both are
+        OK: '(0, 2)' and '("0", "2")'. Returns all CPU numbers if 'nums' is None or "all".
+
+        This function ignores offline CPUs and does not include them into the list.
+        """
+
+        return self._get_level(lvl, "cpu", nums)
+
+    def get_cores(self, lvl="pkg", nums=None):
+        """
+        Returns list of core numbers, where at least one online CPU. 'nums' argument is same as
+        in 'get_cpus()'.
+        """
+
+        return self._get_level(lvl, "core", nums)
+
+    def get_packages(self, nums=None):
+        """
+        Returns list of package numbers, where at least one online CPU. 'nums' argument is same as
+        in 'get_cpus()'.
+        """
+
+        return self._get_level("pkg", "pkg", nums)
+
+    def _add_nums(self, nums):
+        """Add numbers from 'lscpu' to the CPU geometry dictionary."""
+
+        item = self.cpugeom[LEVELS[0] + "s"]
+        for idx, lvl in enumerate(LEVELS[:-1]):
+            last_level = False
+            if idx == len(LEVELS) - 2:
+                last_level = True
+
+            num = int(nums[lvl])
+            if num not in item:
+                self.cpugeom[lvl + "cnt"] += 1
+                if last_level:
+                    item[num] = []
+                else:
+                    item[num] = OrderedDict()
+
+            if last_level:
+                lvl = LEVELS[-1]
+                item[num].append(int(nums[lvl]))
+                self.cpugeom[lvl + "cnt"] += 1
+
+            item = item[num]
+
+    def _flatten_to_level(self, items, idx):
+        """Flatten the multi-level 'items' dictionary down to level 'idx'."""
+
+        if idx == 0:
+            return items
+
+        result = OrderedDict()
+        for item in items.values():
+            add_items = self._flatten_to_level(item, idx - 1)
+            if isinstance(add_items, list):
+                if not result:
+                    result = []
+                result += add_items
+            else:
+                result.update(add_items)
+
+        return result
+
+    def get_cpu_geometry(self):
+        """
+        Get CPU geometry information. The resulting geometry dictionary is returnd and also saved in
+        'self.cpugeom'. Note, if this method was already called before, it will return the cached
+        geometry dircionary ('self.cpugeom').
+        """
+
+        if self.cpugeom:
+            return self.cpugeom
+
+        # All the level we are dealing with. The resulting dictionary will include a key for evey
+        # level with a dictionary conatainging the partial hiararchy. The lowest level is always a
+        # list though.
+        self.cpugeom = cpugeom = OrderedDict()
+        for lvl in LEVELS:
+            for pfx in ("", "off"):
+                if pfx == "off" and lvl != LEVELS[-1]:
+                    continue
+                cpugeom[pfx + lvl + "s"] = OrderedDict()
+                cpugeom[pfx + lvl + "s_sorted"] = []
+                cpugeom[pfx + lvl + "s_grouped"] = []
+                cpugeom[pfx + lvl + "_ranges"] = []
+
+        # Count of packages, NUMA nodes, cores, etc.
+        for lvl in LEVELS:
+            cpugeom[lvl + "cnt"] = 0
+
+        # List of offline CPUs. Note, Linux does not provide topology information for offline CPUs,
+        # so we only have the CPU numbers.
+        cpugeom["offcpus"] = []
+        # Offline CPUs count.
+        cpugeom["offcpucnt"] = 0
+
+        # Parse the 'lscpu' output.
+        for line in self._get_lscpu():
+            if line.startswith("#"):
+                continue
+
+            split_line = line.strip().split(",")
+            nums = {key : split_line[idx] for idx, key in enumerate(LEVELS)}
+            if split_line[-1] != "Y":
+                cpugeom["offcpucnt"] += 1
+                cpugeom["offcpus"].append(int(nums["cpu"]))
+                continue
+
+            self._add_nums(nums)
+
+        # Now we have the full hierarcy (in 'cpugeom["pkgs"]'). Create partial hierarchies
+        # ('cpugom["nodes"]', etc).
+        for lvlidx, lvl in enumerate(LEVELS[1:]):
+            cpugeom[lvl + "s"] = self._flatten_to_level(cpugeom[LEVELS[0] + "s"], lvlidx + 1)
+
+        # Sort CPU lists by CPU number.
+        for lvl in LEVELS:
+            cpugeom[lvl + "s_sorted"] = sorted(cpugeom[lvl + "s"])
+        cpugeom["offcpus_sorted"] = sorted(cpugeom["offcpus"])
+
+        # Group consequative CPU numbers into ranges. The end result is list of lists of consequtive
+        # CPU numbers. Do the same for packages, nodes and all the other levels.
+        for lvl in LEVELS:
+            # This is the grouping function that subtracts list index from CPU number.
+            keyfunc = lambda elt: int(elt[1]) - elt[0]
+            for pfx in ("", "off"):
+                if pfx == "off" and lvl != LEVELS[-1]:
+                    continue
+                for _, grp in groupby(enumerate(cpugeom[pfx + lvl + "s_sorted"]), keyfunc):
+                    cpugeom[pfx + lvl + "s_grouped"].append([elt[1] for elt in grp])
+                for cpus in cpugeom[pfx + lvl + "s_grouped"]:
+                    if len(cpus) == 1:
+                        cpugeom[pfx + lvl + "_ranges"].append(str(cpus[0]))
+                    else:
+                        cpugeom[pfx + lvl + "_ranges"].append(f"{cpus[0]}-{cpus[-1]}")
+
+        for lvl1 in LEVELS[1:]:
+            for lvl2 in LEVELS[:-1]:
+                if lvl1 == lvl2:
+                    continue
+                key = lvl1 + "s_per_" + lvl2
+                lvl1_key = lvl1 + "cnt"
+                lvl2_key = lvl2 + "cnt"
+                try:
+                    cpugeom[key] = int(cpugeom[lvl1_key] / cpugeom[lvl2_key])
+                except ZeroDivisionError:
+                    cpugeom[key] = 0
+
+        return cpugeom
+
+    def __init__(self, proc=None):
+        """
+        The class constructor. The 'proc' argument is a 'Proc' or 'SSH' object that defines the
+        host to create a class instance for (default is the local host). This object will keep a
+        'proc' reference and use it in various methods.
+        """
+
+        if not proc:
+            proc = Procs.Proc()
+        self._proc = proc
+
+        self.cpugeom = None
+        self._lscpu_cache = None
+
+    def close(self):
+        """Uninitialize the class object."""
+        if getattr(self, "_proc", None):
+            self._proc = None
+
+    def __enter__(self):
+        """Enter the runtime context."""
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Exit the runtime context."""
+        self.close()

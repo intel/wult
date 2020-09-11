@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<p><a href="index.html">Back</a></p>
+<h2>{{ colname }}</h2>
+
+{#
+ # The statistics table.
+ #}
+{% include "statstbl.html" %}
+
+{#
+ # The diagrams.
+ #}
+{% include "diags.html" %}
+
+</body>
+</html>

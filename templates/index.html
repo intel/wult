@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1>{{ toolname | capitalize}} report</h1>
+
+{# The report description. #}
+{% if title_descr %}
+<p class="title_descr">{{ title_descr }}</p>
+{% endif %}
+
+{#
+ # The summary table.
+ #}
+{% include "sumtbl.html" %}
+
+{#
+ # The links.
+ #}
+{% if links_tbl %}
+    <h2>Other metrics</h2>
+    <table class="table" width="{{ [(sum_tbl | length)*20, 100] | min }}%">
+    {% for val in links_tbl.values() %}
+        <tr>
+        <td class="td-colname">{{ val["hlink"] | safe}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+{% endif %}
+
+<h2>{{ colname }}</h2>
+
+{#
+ # The statistics table.
+ #}
+{% include "statstbl.html" %}
+
+{#
+ # The diagrams.
+ #}
+{% include "diags.html" %}
+
+</body>
+</html>

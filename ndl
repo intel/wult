@@ -1,0 +1,437 @@
+#!/usr/bin/python3
+#
+# -*- coding: utf-8 -*-
+# vim: ts=4 sw=4 tw=100 et ai si
+#
+# Copyright (C) 2019-2020 Intel Corporation
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+
+"""ndl - a tool for measuring network drop latency."""
+
+import sys
+from pathlib import Path
+
+try:
+    import argcomplete
+except ImportError:
+    # We can live without argcomplete, we only lose tab completions.
+    argcomplete = None
+
+from wultlibs import DeployHelpers, Helpers, NdlHTMLReport, NdlRunner, RORawResult, WORawResult
+from wultlibs.helperlibs import Logging, ArgParse, Trivial, ReportID, YAML
+from wultlibs.helperlibs.Exceptions import Error
+
+VERSION = "1.3.4"
+OWN_NAME = "ndl"
+
+# Regular expressions for the datapoint CSV file columns names that should show up in the hover
+# text of the scatter plot (all the core and package C-state residency columns).
+HOVER_COLNAME_REGEXS = [r"[PC]C.+%"]
+
+LOG = Logging.main_log
+Logging.setup_loggers(OWN_NAME)
+
+def parse_arguments():
+    """A helper function which parses the input arguments."""
+
+    text = sys.modules[__name__].__doc__
+    parser = ArgParse.ArgsParser(description=text, prog=OWN_NAME, ver=VERSION)
+
+    text = "Force coloring of the text output."
+    parser.add_argument("--force-color", action="store_true", help=text)
+    subparsers = parser.add_subparsers(title="commands", metavar="")
+    subparsers.required = True
+
+    #
+    # Create parsers for the "deploy" command.
+    #
+    text = f"Compile and deploy {OWN_NAME} tools and drivers."
+    descr = """Compile and deploy {OWN_NAME} drivers and helpers on local or remote host. This
+               command has many options, but they are very rarely useful and most probably you do
+               not need them."""
+    subpars = subparsers.add_parser("deploy", help=text, description=descr)
+    DeployHelpers.add_cmdline_arguments(subpars, "ndl", drivers=True, helpers=True,
+                                        argcomplete=argcomplete)
+    subpars.set_defaults(func=deploy_command)
+
+    #
+    # Create parsers for the "start" command.
+    #
+    text = "Start the measurements."
+    descr = """Start measuring and recording network drop latency."""
+    subpars = subparsers.add_parser("start", help=text, description=descr)
+    subpars.set_defaults(func=start_command)
+
+    Helpers.add_ssh_options(subpars, argcomplete)
+
+    text = f"""Path to {OWN_NAME} helper tools. The default is the path defined by the
+               {OWN_NAME.upper()}_HELPERSPATH environment variable. If it is not defined, the
+               default path is '$HOME/{DeployHelpers.HELPERS_LOCAL_DIR}/bin', where '$HOME' is home
+               directory path of the 'USERNAME' user on the 'HOSTNAME' system (see '--host' and
+               '--username' options)."""
+    arg = subpars.add_argument("--helpers-path", metavar="HELPERSPATH", type=Path, help=text)
+    if argcomplete:
+        arg.completer = argcomplete.completers.DirectoriesCompleter()
+
+    text = f"""Collect C-state statistics for every measurement cycle and save them in the output
+               CSV file. In order to do so, this tool runs 'turbostat' in the background, and
+               'turbostat' provides C-state statistics. Use "off" to disable C-state statistics
+               collection (default), "on" to enable it, and "auto" to enable it only if the
+               'turbostat' tool is found on the SUT."""
+    subpars.add_argument("--cstate-stats", choices=["on", "off", "auto"], default="off", help=text)
+
+    text = """How many datapoints should the test result include, default is 1000000. Note, in case
+              a pre-existing test result is continued (see '--continue'), the pre-existing
+              datapoints are taken into account. For example, if the test result already has 6000
+              datapoints and '-c 10000' is used, the tool will collect 4000 datapoints and exit.
+              Warning: collecting too many datapoints may result in a very large test result file,
+              which will be difficult to process later, because that would require a lot of
+              memory."""
+    subpars.add_argument("-c", "--datapoints", default=1000000, metavar="COUNT", dest="dpcnt",
+                         help=text)
+
+    text = """If the output directory already contains the datapoints CSV file, do not override it
+              (default behavior), but continue appending more datapoints instead."""
+    subpars.add_argument("--continue", dest="cont", action="store_true", help=text)
+
+    text = """Path to the directory to store the results at."""
+    arg = subpars.add_argument("-o", "--outdir", type=Path, help=text)
+    if argcomplete:
+        arg.completer = argcomplete.completers.DirectoriesCompleter()
+
+    text = f"""Any string which may serve as an identifier of this run. By default report ID is "
+               the current date, prefixed with the remote host name in case the '-H' option was
+               used: [hostname-]YYYYMMDD. For example, "20150323" is a report ID for a run made on
+               March 23, 2015. The allowed characters are: {ReportID.get_charset_descr()}."""
+    subpars.add_argument("--reportid", help=text)
+
+    text = """The launch distance in microseconds. This tool works by scheduling a delayed network
+              packet, then sleeping and waiting for the packet to be sent. This step is referred to
+              as a "measurement cycle" and it is usually repeated many times. The launch distance
+              defines how far in the future the delayed network packets are scheduled. By
+              default this tool randomly selects launch distance in range of [5000, 50000] μs (same
+              as '--ldist 5000,50000'). Specify a comma-separated range or a single value if you want
+              launch distance to be precisely that value all the time. Note, too low values may
+              cause failures or prevent the SUT from reaching deep C-states. The optimal value is
+              system-specific."""
+    subpars.add_argument("-l", "--ldist", default="5000,50000", help=text)
+
+    text = """The post-measurement trigger. Please, provide path to an executable on the SUT that
+              should be executed after a datapoint had been collected. The next measurement cycle
+              will start only after the trigger program finishes. This option exists for debugging
+              and troubleshooting purposes. Note, the specified program will be executed as
+              'POST_TRIGGER --latency <value>', where '<value>' is the last observed network drop
+              latency in nanoseconds."""
+    subpars.add_argument("--post-trigger", metavar="POST_TRIGGER", type=Path, help=text)
+
+    text = """By default, the post trigger is executed for every datapoint, but this option allows
+              for setting the network drop latency threshold - the trigger program will be executed
+              only when latency exceeds the threshold. The threshold should be an integer amount of
+              nanoseconds."""
+    subpars.add_argument("--post-trigger-threshold", help=text)
+
+    text = """Generate an HTML report for collected results (same as calling 'report' command with
+              default arguments)."""
+    subpars.add_argument("--report", action="store_true", help=text)
+
+    text = """The network interface backed by the NIC to use for latency measurements. Today only
+              Intel I210 and I211 NICs are supported. Please, specify NIC's network interface name
+              (e.g., eth0)."""
+    subpars.add_argument("ifname", help=text)
+
+    #
+    # Create parsers for the "report" command.
+    #
+    text = "Create an HTML report."
+    descr = f"""Create an HTML report for one or multiple test results."""
+    subpars = subparsers.add_parser("report", help=text, description=descr)
+    subpars.set_defaults(func=report_command)
+
+    text = f"""Path to the directory to store the report at. By default the report is stored in the
+               '{OWN_NAME}-report-<reportid>' sub-directory of the current working directory, where
+               '<reportid>' is report ID of {OWN_NAME} test result (the first one if there are
+               multiple)."""
+    subpars.add_argument("-o", "--outdir", type=Path, help=text)
+
+    text = """The row filter, same as '--rfilt' in the 'filter' command."""
+    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=text)
+
+    text = """The row selector, same as '--rsel' in the 'filter' command."""
+    subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=text)
+
+    text = """Even up datapoints count before generating the report. This option is useful when
+              generating a report for many test results (a diff). If the test results contain
+              different count of datapoints (rows count in the CSV file), the resulting histograms
+              may look a little bit misleading. This option evens up datapoints count in the test
+              results. It just finds the test result with the minimum count of datapoints and
+              ignores the extra datapoints in the other test results."""
+    subpars.add_argument("--even-up-dp-count", action="store_true", help=text, dest="even_dpcnt")
+
+    text = """The report title description - any text describing this report as whole, or path to a
+              file containing the overall report description. For example, if the report compares
+              platform A and platform B, the description could be something like 'platform A vs B
+              comparison'. This text will be included into the very beginning of the resulting HTML
+              report."""
+    subpars.add_argument("--title-descr", help=text)
+
+    text = f"""The generated report includes references to the test results. By default, these
+               references are symlinks to the raw result directories. However, this makes the
+               generated report be not relocatable. Use this option to make the report relocatable
+               in expence of increased disk space consumption - this tool will make a copy of the
+               test results."""
+    subpars.add_argument("--relocatable", action="store_true", help=text)
+
+    text = """Print the list of the available column names and exit."""
+    subpars.add_argument("--list-columns", action="store_true", help=text)
+
+    text = f"""{OWN_NAME} test result path to create the report for."""
+    subpars.add_argument("respaths", nargs="+", type=Path, help=text)
+
+    #
+    # Create parsers for the "filter" command.
+    #
+    text = "Filter datapoints out of a test result."
+    descr = """Filter datapoints out of a test result by removing CSV rows and columns according to
+               specified criteria. The criteria is specified using the row and column filter and
+               selector options ('--rsel', '--cfilt', etc). The options may be specified multiple
+               times."""
+    subpars = subparsers.add_parser("filter", help=text, description=descr)
+    subpars.set_defaults(func=filter_command)
+
+    text = """The row filter: remove all the rows satisfying the filter expression. Here is an
+              example of an expression: '(RTD < 10000) | (PC6%% < 1)'. This row filter expression
+              will remove all rows with 'RTD' smaller than 10000 nanoseconds or package C6 residency
+              smaller than 1%%. The detailed row filter expression syntax can be found in the
+              documentation for the 'eval()' function of Python 'pandas' module. You can use column
+              names in the expression, or the special word 'index' for the row number. Value '0' is
+              the header, value '0' is the first row, and so on. For example, expression
+              'index >= 10' will get rid of all datarows except for the first 10 ones."""
+    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=text)
+
+    text = """The row selector: remove all rows except for those satisfying the selector expression.
+              In other words, the selector is just an inverse filter: '--rsel expr' is the same as
+              '--rsel "not (expr)"'."""
+    subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=text)
+
+    text = """The columns filter: remove all column specified in the filter. The columns filter is
+              just a comma-separated list of the CSV file column names or python style regular
+              expressions matching the names. Use '--list-columns' to get the list of the available
+              column names."""
+    subpars.add_argument("--cfilt", action=ArgParse.OrderedArg, help=text)
+
+    text = """The columns selector: remove all column except for those specified in the selector.
+              The syntax is the same as for '--cfilt'."""
+    subpars.add_argument("--csel", action=ArgParse.OrderedArg, help=text)
+
+    text = """By default the resulting CSV lines are printed to the standard output. But this option
+              can be used to specify the output directly to store the result at. This will create a
+              filtered version of the input test result."""
+    subpars.add_argument("-o", "--outdir", type=Path, help=text)
+
+    text = "Print the list of the available column names and exit."
+    subpars.add_argument("--list-columns", action="store_true", help=text)
+
+    text = f"Report ID of the filtered version of the result (can only be used with '--outdir')."
+    subpars.add_argument("--reportid", help=text)
+
+    text = f"The {OWN_NAME} test result path to filter."
+    subpars.add_argument("respath", type=Path, help=text)
+
+    #
+    # Create parsers for the "stats" command.
+    #
+    text = f"Calculate statistics for a {OWN_NAME} test result."
+    descr = f"""Calculates various statistics for a {OWN_NAME} test results and prints them."""
+    subpars = subparsers.add_parser("stats", help=text, description=descr)
+    subpars.set_defaults(func=stats_command)
+
+    text = """The row filter, same as '--rfilt' in the 'filter' command."""
+    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=text)
+
+    text = """The row selector, same as '--rsel' in the 'filter' command."""
+    subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=text)
+
+    text = """The column filter, same as '--cfilt' in the 'filter' command."""
+    subpars.add_argument("--cfilt", action=ArgParse.OrderedArg, help=text)
+
+    text = """The column selector, same as '--csel' in the 'filter' command."""
+    subpars.add_argument("--csel", action=ArgParse.OrderedArg, help=text)
+
+    text = """Comma-separated list of statistic functions to calculate. By default all generally
+              interesting functions are calculated (each column name is associated with a list of
+              functions that make sense for this column). Use '--list-funcs' to get the list of
+              supported functions."""
+    subpars.add_argument("-f", "--funcs", help=text)
+
+    text = """Print the list of the available statistic functions."""
+    subpars.add_argument("--list-funcs", action="store_true", help=text)
+
+    text = f"""The {OWN_NAME} test result path to calculate statistics for."""
+    subpars.add_argument("respath", type=Path, help=text)
+
+    if argcomplete:
+        argcomplete.autocomplete(parser)
+    return parser.parse_args()
+
+def start_command(args):
+    """Implements the 'start' command."""
+
+    proc = Helpers.get_proc(args, args.hostname)
+
+    if not args.reportid and proc.is_remote:
+        prefix = proc.hostname
+    else:
+        prefix = None
+    args.reportid = ReportID.format_reportid(prefix=prefix, reportid=args.reportid,
+                                             strftime=f"{OWN_NAME}-%Y%m%d")
+
+    if not args.outdir:
+        args.outdir = Path(f"./{args.reportid}")
+
+    # Figure out the helper path.
+    if not args.helpers_path:
+        args.helpers_path = DeployHelpers.get_helpers_deploy_path(proc, OWN_NAME) / "bin"
+
+    ndlrunner_bin = args.helpers_path / "ndlrunner"
+
+    if DeployHelpers.is_deploy_needed(proc, OWN_NAME, helperpath=ndlrunner_bin):
+        msg = f"'{OWN_NAME}' helpers and/or drivers are not up-to-date{proc.hostmsg}, " \
+              f"please run: {OWN_NAME} deploy"
+        if proc.is_remote:
+            msg += f" -H {proc.hostname}"
+        LOG.warning(msg)
+
+    if args.cstate_stats == "on":
+        cstats = True
+    elif args.cstate_stats == "off":
+        cstats = False
+    else:
+        cstats = None
+
+    with WORawResult.NdlWORawResult(args.reportid, args.outdir, VERSION, cont=args.cont) as res:
+        with NdlRunner.NdlRunner(proc, args.ifname, res, ndlrunner_bin, cstats,
+                                 ldist=args.ldist) as runner:
+            runner.prepare()
+            if args.post_trigger:
+                runner.set_post_trigger(args.post_trigger, thresh=args.post_trigger_threshold)
+            runner.run(dpcnt=args.dpcnt)
+
+    if not args.report:
+        return
+
+    rsts = RORawResult.RORawResult(args.outdir)
+    rep = NdlHTMLReport.NdlHTMLReport([rsts], args.outdir, title_descr=args.reportid)
+    rep.relocatable = False
+    rep.set_hover_colnames(HOVER_COLNAME_REGEXS)
+    rep.generate()
+
+def filter_command(args):
+    """Implements the 'filter' command."""
+
+    res = RORawResult.RORawResult(args.respath)
+
+    if args.list_columns:
+        for colname in res.colnames:
+            LOG.info("%s: %s", colname, res.defs.info[colname]["title"])
+        return
+
+    if not getattr(args, "oargs", None):
+        raise Error("please, specify at least one reduction criteria.")
+    if args.reportid and not args.outdir:
+        raise Error("'--reportid' can be used only with '-o'/'--outdir'")
+
+    Helpers.apply_filters(args, res)
+
+    if not args.outdir:
+        res.df.to_csv(sys.stdout, index=False, header=True)
+    else:
+        res.save(args.outdir, reportid=args.reportid)
+
+def stats_command(args):
+    """Implements the 'stats' command."""
+
+    if args.list_funcs:
+        for name, descr in RORawResult.get_stat_funcs():
+            LOG.info("%s: %s", name, descr)
+        return
+
+    if args.funcs:
+        funcnames = Trivial.split_csv_line(args.funcs)
+        all_funcs = True
+    else:
+        funcnames = None
+        all_funcs = False
+
+    res = RORawResult.RORawResult(args.respath)
+    Helpers.apply_filters(args, res)
+
+    res.calc_stats(funcnames=funcnames, all_funcs=all_funcs)
+
+    LOG.info("Datapoints count: %d", len(res.df))
+    YAML.dump(res.cstats, sys.stdout, float_format="%.2f")
+
+def report_command(args):
+    """Implements the 'report' command."""
+
+    rsts = []
+
+    for respath in args.respaths:
+        res = RORawResult.RORawResult(respath)
+        rsts.append(res)
+
+        if args.list_columns:
+            LOG.info("Column names in '%s':", respath)
+            for colname in res.colnames:
+                LOG.info("  * %s: %s", colname, res.defs.info[colname]["title"])
+
+    if args.list_columns:
+        return
+
+    for res in rsts:
+        Helpers.apply_filters(args, res)
+
+    if args.even_dpcnt:
+        Helpers.even_up_dpcnt(rsts)
+
+    if args.outdir is None:
+        args.outdir = ReportID.format_reportid(prefix=f"{OWN_NAME}-report",
+                                               reportid=rsts[0].reportid)
+
+    rep = NdlHTMLReport.NdlHTMLReport(rsts, args.outdir, title_descr=args.title_descr)
+    rep.relocatable = args.relocatable
+    rep.set_hover_colnames(HOVER_COLNAME_REGEXS)
+    rep.generate()
+
+def deploy_command(args):
+    """Implements the 'deploy' command."""
+
+    try:
+        DeployHelpers.prepare_args(args, "ndl", "5.1-rc1")
+        DeployHelpers.build(args)
+        DeployHelpers.deploy(args)
+    finally:
+        DeployHelpers.remove_tmpdir(args, args.bhost)
+
+def main():
+    """Script entry point."""
+
+    args = parse_arguments()
+
+    if getattr(args, "func", None):
+        args.func(args)
+    else:
+        LOG.error("please, run '%s -h' for help.", OWN_NAME)
+        raise SystemExit(1)
+
+    return 0
+
+# The script entry point.
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        LOG.info("\nInterrupted, exiting")
+    except Error as err:
+        Logging.error_out(err)

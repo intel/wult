@@ -1,0 +1,22 @@
+{#
+ # The summary table.
+ #}
+<table class="table" width="{{ [(sum_tbl | length)*20, 100] | min }}%">
+
+{# The table heading. #}
+<tr>
+{% for key in sum_tbl %}
+    <th>{{ key }}</th>
+{% endfor %}
+</tr>
+
+{# The table body. #}
+{% for key, val in sum_tbl["Title"].items() %}
+    <tr>
+    <td class="td-colname">{{ val }}</td>
+    {% for key1, val1 in sum_tbl.items() if key1 != "Title" %}
+        <td class="td-value">{{ val1[key] | safe}}</td>
+    {% endfor %}
+    </tr>
+{% endfor %}
+</table>

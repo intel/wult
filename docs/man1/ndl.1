@@ -1,0 +1,365 @@
+.TH NDL 1
+
+.SH NAME
+
+ndl - a tool for measuring network drop latency.
+
+.SH SYNOPSIS
+
+.nf
+ndl COMMAND [OPTIONS] IFNAME|RESPATH
+.fi
+
+.SH DESCRIPTION
+Ndl is a tool for measuring network drop latency (the longest delay observed by the NIC when it
+tries to read from RAM while the CPU is in a C-state). The tool utilizes a couple of nice features
+of the I210 Intel Gigabit Ethernet chip, so it only works on platforms equipped with an I210 NIC.
+
+Here is how ndl works at high level.
+.RS
+1. Schedule a delayed network packet to be sent in the future.
+.br
+2. Let the system be idle and enter a C-state.
+.br
+3. When I210 starts sending a delayed packet, it will first fetch the packet data from the host
+   memory using the DMA mechanism.
+.br
+4. I210 will measure every DMA read transaction and remember the longest one, which is going to be
+   the first transaction that woke up the host memory subsystem. The longest transaction time is the
+   NDL.
+.br
+5. The ndl tool reads the NDL value from the NIC and repeats the experiment.
+.RE
+
+The command-line interface is based on commands and each command supports the -h option, which can
+be used for quick help.
+
+Ndl is a debugging and tracing tool and should not be used in production environment.
+
+.SH OPTIONS
+.B -h
+.RS
+Show help message and exit. This option is context-dependent and it provides quick help on how to
+use a command.
+.RE
+.B -q
+.RS
+Be quiet.
+.RE
+.B -d
+.RS
+Print debugging information.
+.RE
+.B --version
+.RS
+Print version and exit.
+.RE
+.B --force-color
+.RS
+Force coloring of the text output.
+.RE
+
+.B SSH OPTIONS
+.RS
+Ndl can work in local and remote modes. In the former case, users execute ndl on the same system
+that is being measured (the SUT - System Under Test). The measurement results are stored on the SUT.
+In the latter case, users execute ndl on the controller system, but it measures a remote SUT. Ndl
+uses the SSH protocol to connect to the SUT, control the measurements, and collect the results,
+which are stored on the controller. A single controller may run many instances of ndl measuring
+different SUTs simultaneously.
+
+The following options are accepted by ndl commands, which can be executed remotely.
+
+.B {-H | --host} HOSTNAME
+.RS
+Name of the host to run on (default is the local host).
+.RE
+.B {-U | --username} USERNAME
+.RS
+Name of the user to use for logging into the SUT over SSH. The default user name is \'root\'.
+.RE
+.B -K PRIVKEY, --priv-key PRIVKEY
+.RS
+Path to the private SSH key that should be used for logging into the SUT. By default the key is
+automatically found from standard paths like \'~/.ssh\'.
+.RE
+.B {-T | --timeout} TIMEOUT
+.RS
+SSH connect timeout in seconds, default is 8.
+.RE
+.RE
+
+.B Supported commands
+.RS
+.B deploy [SSH OPTIONS]
+.RS
+Compile and deploy ndl drivers and helpers on local or remote host. This command has many options,
+but they are very rarely useful and most probably you do not need them.
+
+.B --drivers-src DRVSRC
+.RS
+Path to ndl drivers sources to build and deploy. By default the drivers are searched for in the
+following directories (and in the following order) on the local host:
+.nf
+/opt/powerlab/bin/drivers/idle/ndl,
+$NDL_DATA_PATH/drivers/idle/ndl (if \'NDL_DATA_PATH\' environment variable is defined),
+$HOME/.local/share/wult/drivers/idle/ndl,
+/usr/local/share/wult/drivers/idle/ndl,
+/usr/share/wult/drivers/idle/ndl.
+.fi
+.RE
+.B --helpers-src HELPERSRC
+.RS
+Path to ndl helpers directory to build and deploy. By default the helpers to build are searched for
+in the following directories (and in the following order) on the local host:
+.nf
+/opt/powerlab/bin/helpers/ndl,
+$NDL_DATA_PATH/helpers/ndl (if \'NDL_DATA_PATH\' environment variable is defined),
+$HOME/.local/share/wult/helpers/ndl,
+/usr/local/share/wult/helpers/ndl,
+/usr/share/wult/helpers/ndl.
+.fi
+.RE
+.B --helpers-path HELPERSPATH
+.RS
+Path to the directory to deploy ndl helper tools to. The default is the path defined by the
+NDL_HELPERSPATH environment variable. If it is not defined, the default path is
+\'$HOME/.local/bin\', where \'$HOME\' is the home directory of user \'USERNAME\' on host \'IHOST\'
+(see \'--host\' and \'--username\' options).
+.RE
+.B {-H | --host} IHOST
+.RS
+Name of the host helpers and drivers have to be deployed to (local host by default). In order to
+deploy to a remote host this program will log into it using the \'SSH\' protocol.
+.RE
+.B --build-host BHOST
+.RS
+Name of the host helpers and drivers have to be built on. By default they are built IHOST, but this
+option can be used to build on the local host (use \'--build-host localhost\').
+.RE
+.B --kernel-src KSRC
+.RS
+Path to the Linux kernel sources to build the drivers against. The default is
+\'/lib/modules/$(uname -r)/build\'. This is the path on the system the drivers are going to be build
+on (BHOST).
+.RE
+.B --kmod-path KMODPATH
+.RS
+Where the ndl drivers should be deploy to (IHOST). The default is \'/lib/modules/<kver>\', where
+\'<kver>\' is version of the kernel in KSRC.
+.RE
+.RE
+
+.B start [OPTIONS] [SSH OPTIONS] IFNAME
+.RS
+Start measuring and recording network drop latency.
+
+IFNAME is the network interface backed by the NIC to use for latency measurements. Today only
+Intel I210 and I211 NICs are supported. Please, specify NIC's network interface name (e.g., eth0).
+
+.B --helpers-path HELPERSPATH
+.RS
+Path to ndl helper tools. The default is the path defined by the \'NDL_HELPERSPATH\' environment
+variable. If it is not defined, the default path is \'$HOME/.local/bin\', where \'$HOME\' is home
+directory path of the \'USERNAME\' user on the \'HOSTNAME\' system (see \'--host\' and
+\'--username\' options).
+.RE
+.B --cstate-stats {on,off,auto}
+.RS
+Collect C-state statistics for every measurement cycle and save them in the output CSV file. In
+order to do so, this tool runs \'turbostat\' in the background, and \'turbostat\' provides C-state
+statistics. Use "off" to disable C-state statistics collection (default), "on" to enable it, and
+"auto" to enable it only if the \'turbostat\' tool is found on the SUT.
+.RE
+.B {-c | --datapoints} COUNT
+.RS
+How many datapoints should the test result include, default is 1000000. Note, in case a pre-existing
+test result is continued (see \'--continue\'), the pre-existing datapoints are taken into account.
+For example, if the test result already has 6000 datapoints and \'-c 10000\' is used, the tool will
+collect 4000 datapoints and exit. Warning: collecting too many datapoints may result in a very large
+test result file, which will be difficult to process later, because that would require a lot of
+memory.
+.RE
+.B --continue
+.RS
+If the output directory already contains the datapoints CSV file, do not override it (default
+behavior), but continue appending more datapoints instead.
+.RE
+.B {-o | --outdir} OUTDIR
+.RS
+Path to the directory to store the results at.
+.RE
+.B --reportid REPORTID
+.RS
+Any string which may serve as an identifier of this run. By default report ID is the current date,
+prefixed with the remote host name in case the \'-H\' option was used: [hostname-]YYYYMMDD. For
+example, "20150323" is a report ID for a run made on March 23, 2015. The allowed characters are:
+ACSII alphanumeric, \'-\', \'.\', \',\', \'_\', and \'~\'.
+.RE
+.B {-l | --ldist} LDIST
+.RS
+The launch distance in microseconds. This tool works by scheduling a delayed network packet, then
+sleeping and waiting for the packet to be sent. This step is referred to as a "measurement cycle"
+and it is usually repeated many times. The launch distance defines how far in the future the
+delayed network packets are scheduled. By default this tool randomly selects launch distance in
+range of [5000, 50000] μs (same as \'--ldist 5000,50000\'). Specify a comma-separated range or a
+single value if you want launch distance to be precisely that value all the time. Note, too low
+values may cause failures or prevent the SUT from reaching deep C-states. The optimal value is
+system-specific.
+.RE
+.B --post-trigger POST_TRIGGER
+.RS
+The post-measurement trigger. Please, provide path to an executable on the SUT that should be
+executed after a datapoint had been collected. The next measurement cycle will start only after the
+trigger program finishes. This option exists for debugging and troubleshooting purposes. Note, the
+specified program will be executed as \'POST_TRIGGER --latency <value>\', where \'<value>\' is the
+last observed network drop latency in nanoseconds.
+.RE
+.B --post-trigger-threshold POST_TRIGGER_THRESHOLD
+.RS
+By default, the post trigger is executed for every datapoint, but this option allows for setting the
+network drop latency threshold - the trigger program will be executed only when latency exceeds the
+threshold. The threshold should be an integer amount of nanoseconds.
+.RE
+.B --report
+.RS
+Generate an HTML report for collected results (same as calling 'report' command with default
+arguments)."""
+.RE
+.RE
+
+.B report [OPTIONS] RESPATH
+.RS
+Create an HTML report for one or multiple test results.
+
+RESPATH is ndl test result path to create the report for.
+
+.B {-o | --outdir} OUTDIR
+.RS
+Path to the directory to store the report at. By default the report is stored in the
+\'ndl-report-<reportid>\' sub-directory of the current working directory, where \'<reportid>\' is
+report ID of ndl test result (the first one if there are multiple).
+.RE
+.B --rfilt RFILT
+.RS
+The row filter, same as \'--rfilt\' in the \'filter\' command.
+.RE
+.B --rsel RSEL
+.RS
+The row selector, same as \'--rsel\' in the \'filter\' command.
+.RE
+.B --even-up-dp-count
+.RS
+Even up datapoints count before generating the report. This option is useful when generating a
+report for many test results (a diff). If the test results contain different count of datapoints
+(rows count in the CSV file), the resulting histograms may look a little bit misleading. This option
+evens up datapoints count in the test results. It just finds the test result with the minimum count
+of datapoints and ignores the extra datapoints in the other test results.
+.RE
+.B --title-descr TITLE_DESCR
+.RS
+The report title description - any text describing this report as whole, or path to a file
+containing the overall report description. For example, if the report compares platform A and
+platform B, the description could be something like \'platform A vs B comparison\'. This text will be
+included into the very beginning of the resulting HTML report.
+.RE
+.B --relocatable
+.RS
+The generated report includes references to the test results. By default, these references are
+symlinks to the raw result directories. However, this makes the generated report be not relocatable.
+Use this option to make the report relocatable in expence of increased disk space consumption - this
+tool will make a copy of the test results.
+.RE
+.B --list-columns
+.RS
+Print the list of the available column names and exit.
+.RE
+.RE
+
+.B filter [OPTIONS] RESPATH
+.RS
+Filter datapoints out of a test result by removing CSV rows and columns according to specified
+criteria. The criteria is specified using the row and column filter and selector options
+(\'--rsel\', \'--cfilt\', etc). The options may be specified multiple times.
+
+The RESPATH is ndl test results path to filter.
+
+.B --rfilt RFILT
+.RS
+The row filter: remove all the rows satisfying the filter expression. Here is an example of an
+expression: \'(RTD < 10000) | (PC6% < 1)\'. This row filter expression will remove all rows with
+\'RTD\' smaller than 10000 nanoseconds or package C6 residency smaller than 1%. The detailed row
+filter expression syntax can be found in the documentation for the \'eval()\' function of Python
+\'pandas\' module. You can use column names in the expression, or the special word \'index\' for the
+row number. Value \'0\' is the header, value \'1\' is the first row, and so on. For example,
+expression \'index >= 10\' will get rid of all datarows except for the first 10 ones.
+.RE
+.B --rsel RSEL
+.RS
+The row selector: remove all rows except for those satisfying the selector expression. In other
+words, the selector is just an inverse filter: \'--rsel expr\' is the same as
+\'--rsel "not (expr)"\'.
+.RE
+.B --cfilt CFILT
+.RS
+The columns filter: remove all columns specified in the filter. The columns filter is just a
+comma-separated list of the CSV file column names or python style regular expressions matching the
+names. Use \'--list-columns\' to get the list of the available column names.
+.RE
+.B --csel CSEL
+.RS
+The columns selector: remove all column except for those specified in the selector. The syntax is
+the same as for \'--cfilt\'.
+.RE
+.B {-o | --outdir} OUTDIR
+.RS
+By default the resulting CSV lines are printed to the standard output. But this option can be used
+to specify the output directly to store the result at. This will create a filtered version of the
+input test result.
+.RE
+.B --list-columns
+.RS
+Print the list of the available column names and exit.
+.RE
+.B --reportid REPORTID
+.RS
+Report ID of the filtered version of the result (can only be used with \'--outdir\').
+.RE
+.RE
+
+.B stats [OPTIONS] RESPATH
+.RS
+Calculates various statistics for a ndl test results and prints them.
+
+RESPATH is ndl test result path to calculate statistics for.
+
+.B --rfilt RFILT
+.RS
+The row filter, same as \'--rfilt\' in the \'filter\' command.
+.RE
+.B --rsel RSEL
+.RS
+The row selector, same as \'--rsel\' in the \'filter\' command.
+.RE
+.B --cfilt CFILT
+.RS
+The column filter, same as \'--cfilt\' in the \'filter\' command.
+.RE
+.B --csel CSEL
+.RS
+The column selector, same as \'--csel\' in the \'filter\' command.
+.RE
+.B {-f | --funcs} FUNCS
+.RS
+Comma-separated list of statistic functions to calculate. By default all the default functions are
+calculated (each column name is associated with a list of default functions that generally makes
+sense for this column). Use \'--list-funcs\' to get the list of supported functions.
+.RE
+.B --list-funcs
+.RS
+Print the list of the available statistic functions.
+.RE
+.RE
+
+.SH AUTHOR
+Artem Bityutskiy <artem.bityutskiy@linux.intel.com>

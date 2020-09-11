@@ -1,0 +1,36 @@
+Source: wult
+Section: utils
+Priority: optional
+Maintainer: Artem Bityutskiy <artem.bityutskiy@intel.com>
+Build-Depends: debhelper (>= 9),
+               dh-python,
+               python3-all (>= 3.6),
+               python3-setuptools
+Standards-Version: 3.9.8
+Homepage: https://intelpedia.intel.com/ServerPowerLab/Wult
+X-Python3-Version: >= 3.6
+
+Package: wult
+Architecture: all
+Multi-Arch: foreign
+Depends: python3:any (>= 3.6~),
+         python3-colorama,
+         python3-paramiko,
+         python3-argcomplete,
+         python3-yaml,
+         ${misc:Depends},
+         ${python3:Depends},
+         kmod,
+         network-manager,
+         util-linux (>= 2.20~),
+         procps,
+         rsync,
+         systemd,
+         pciutils
+Description: Tool for measuring C-state latency in Linux.
+ The name Wult comes from "Wake Up Latency Tracer". Wult measures C-state
+ latency by scheduling a delayed interrupt at a known time in the future, so it
+ relies on devices allowing for delayed interrupts. Today wult can use LAPIC as
+ the source of delayed interrupts, as well as I210 PCIe Gigabit Ethernet
+ adapter. However, other devices could be supported as well, for example other
+ Intel Ethernet adapters.

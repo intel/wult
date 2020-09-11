@@ -1,0 +1,66 @@
+# -*- coding: utf-8 -*-
+# vim: ts=4 sw=4 tw=100 et ai si
+#
+# Definitions for ndl CSV file.
+
+RTD:
+    title: "Round Trip Delay"
+    descr: >-
+        This is time it takes the I210 PCIe device to read 64-bytes from the host memory. This time
+        is measured by the Intel I210 network card - every time it reads data from the host memory,
+        to performs 64-byte DMA transaction over the PCIe link, and measures every transaction's
+        delay.  The longest transaction is then stored in the RR2DCDELAY register (stands for "Read
+        Request To Data Completion Delay"). This register is zeroed every time it is read, so it
+        contains the longs DMA transaction delay since the last read. Ndl just periodically
+        schedules delayed network packets, let the system be idle just waiting for the I210 to
+        handle the delayed packets. When I210 starts handling the delayed packet, it will be reading
+        packet data form memory and measure the read transactions' delays. If at that time the host
+        is in a deep C-state, the first transaction will wake it up and will be the longest
+        transaction, and its delay will be available in the RR2DCDELAY register. Ndl reads
+        this register, stores the read value as "RTD" (easier to pronounce), and repeats the
+        experiment.
+    type: "int"
+    unit: "nanosecond"
+    short_unit: "ns"
+    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
+    optional: False
+LDist:
+    title: "Launch Distance"
+    descr: >-
+        How far in the future ndl scheduled the delayed network packet.
+    type: "int"
+    unit: "nanosecond"
+    short_unit: "ns"
+    default_funcs: ["min", "max"]
+    optional: False
+CC0%:
+    title: "Busy percent"
+    descr: >-
+        Percent of the time spent in the C0 state over the duration of the measurement cycle. This
+        is an aggregated value across all cores.
+    type: "float"
+    unit: "%"
+    short_unit: "%"
+    default_funcs: "all"
+    optional: False
+CCx%:
+    title: "The CCx core C-state residency"
+    descr: >-
+        Percent of the time spent in the CCx core C-state state over the duration of the measurement
+        cycle. This is an aggregated value across all cores. Measured with the 'turbostat' tool.
+    type: "float"
+    unit: "%"
+    short_unit: "%"
+    default_funcs: "all"
+    optional: True
+PCx%:
+    title: "The PCx package C-state residency"
+    descr: >-
+        Percent of the time spent in the PCx package C-state state over the duration of the
+        measurement cycle. This is an aggregated value across all CPU packages (sockets). Measured
+        with the 'turbostat' tool.
+    type: "float"
+    unit: "%"
+    short_unit: "%"
+    default_funcs: "all"
+    optional: True
