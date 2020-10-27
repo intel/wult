@@ -108,7 +108,7 @@ def apply_filters(args, res):
     """
 
     def do_filter(res, ops):
-        """Apply the reduction operations in 'ops' to wult test result 'res'."""
+        """Apply filter operations in 'ops' to wult test result 'res'."""
 
         res.clear_filts()
         for name, expr in ops.items():
