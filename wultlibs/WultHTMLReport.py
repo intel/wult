@@ -51,7 +51,7 @@ class WultHTMLReport(_HTMLReportBase.HTMLReportBase):
         args = {"xaxes": xaxes, "yaxes": yaxes, "hist": hist, "chist": chist}
 
         for name, default in zip(args, (DEFAULT_XAXES, DEFAULT_YAXES, DEFAULT_HIST, DEFAULT_CHIST)):
-            if not args[name]:
+            if args[name] is None:
                 args[name] = default.split(",")
 
         super().__init__(rsts, outdir, title_descr=title_descr, xaxes=args["xaxes"],

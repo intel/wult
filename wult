@@ -231,13 +231,14 @@ def parse_arguments():
 
     text = f"""A comma-separated list of CSV column names (or python style regular expressions
                matching the names) to add a histogram for, default is '{get_axes_default("hist")}'.
-               Use '--list-columns' to get the list of the available column names."""
+               Use '--list-columns' to get the list of the available column names. Use value 'none'
+               to disable cumulative histograms."""
     subpars.add_argument("--hist", help=text)
 
     text = f"""A comma-separated list of CSV column names (or python style regular expressions
                matching the names) to add a cumulative distribution for, default is
                '{get_axes_default("chist")}'. Use '--list-columns' to get the list of the available
-               column names."""
+               column names. Use value 'none' to disable cumulative histograms."""
     subpars.add_argument("--chist", help=text)
 
     text = """The report title description - any text describing this report as whole, or path to a

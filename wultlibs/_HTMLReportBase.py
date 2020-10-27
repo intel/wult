@@ -652,9 +652,13 @@ class HTMLReportBase:
         """
 
         for name in ("xaxes", "yaxes", "hist", "chist"):
-            if getattr(self, name, None):
-                # Convert list of regular expressions into list of names.
-                colnames = self._refres.find_colnames(getattr(self, name))
+            val = getattr(self, name, None)
+            if val is not None:
+                if val in ("none", ""):
+                    colnames = []
+                else:
+                    # Convert list of regular expressions into list of names.
+                    colnames = self._refres.find_colnames(getattr(self, name))
                 setattr(self, name, colnames)
             else:
                 # Set the default values.
@@ -682,6 +686,14 @@ class HTMLReportBase:
                     _LOG.warning("dropping column '%s' from '%s' because it is not present in one "
                                  "of the results", colname, name)
                 setattr(self, name, colnames)
+
+        # Verify that we have at least one X-column and Y-column.
+        if not self.xaxes or not self.yaxes:
+            if not self.xaxes:
+                name = "X"
+            else:
+                name = "Y"
+            raise Error(f"the {name} axis column list is empty")
 
     def _validate_init_args(self):
         """Validate the class constructor input arguments."""
@@ -750,9 +762,11 @@ class HTMLReportBase:
           * yaxes - list of datapoints CSV file column names to use on the Y axis. Default is
                     'WakeLatency'. Default is the second column in the datapoints CSV file.
           * hist - list of datapoints CSV file column names to create a histogram for. Default is
-                   the first column in the datapoints CSV file.
+                   the first column in the datapoints CSV file. And empty string or "none" can be
+                   used to disable histograms.
           * chist - list of datapoints CSV file column names to create a cumulative histogram for.
-                    Default is he first column in the datapoints CSV file.
+                    Default is he first column in the datapoints CSV file. And empty string or
+                    "none" can be used to disable cumulative histograms.
         """
 
         self.rsts = rsts
