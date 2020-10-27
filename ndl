@@ -111,7 +111,7 @@ def parse_arguments():
               packet, then sleeping and waiting for the packet to be sent. This step is referred to
               as a "measurement cycle" and it is usually repeated many times. The launch distance
               defines how far in the future the delayed network packets are scheduled. By
-              default this tool randomly selects launch distance in range of [5000, 50000] μs (same
+              default this tool randomly selects launch distance in range of [5000, 50000] us (same
               as '--ldist 5000,50000'). Specify a comma-separated range or a single value if you want
               launch distance to be precisely that value all the time. Note, too low values may
               cause failures or prevent the SUT from reaching deep C-states. The optimal value is

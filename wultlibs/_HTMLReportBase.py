@@ -115,7 +115,7 @@ class HTMLReportBase:
 
                 if defs.get("unit") == "nanosecond":
                     # Convert nanoseconds to microseconds.
-                    unit = "μs"
+                    unit = "us"
                 else:
                     unit = defs.get("short_unit", "")
 
