@@ -72,10 +72,10 @@ The C-state latency measurements vary depending on the source of the delayed int
 these also as "*nic*" and "*timer*" (or "*tdt*") measurement methods. More on "timer" vs "nic" is
 in `this section <#irq-source>`_.
 
+.. _usage-models:
+
 2 Usage models
 ==============
-
-.. _usage-models:
 
 There are 2 *wult* usage models - **local** and **remote**.
 
@@ -90,10 +90,10 @@ There are 2 *wult* usage models - **local** and **remote**.
 In case of local usage model, the user runs *wult* on the SUT. *Wult* measures the SUT and stores
 the measurement results on the SUT.
 
+.. _remote-usage-model:
+
 2.2 Remote usage
 ----------------
-
-.. _remote-usage-model:
 
 .. image:: images/wult-remote-usage-model.jpg
     :alt: Example of remote wult usage.
@@ -130,10 +130,10 @@ network and the user is logged in via a physically attached keyboard and monitor
 In the right picture the SUT is connected to a LAN with another NIC, but it has a separate NIC is
 dedicated to *wult*. The user is logged in via SSH.
 
+.. _irq-source:
+
 4 Interrupt source
 ==================
-
-.. _irq-source:
 
 Measuring C-state wake latency is based on delayed interrupts, and today *wult* supports
 two delayed interrupt sources: *nic* and *timer*.
