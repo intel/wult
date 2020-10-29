@@ -13,6 +13,7 @@ SITEURL = "https://intel.github.io/wult"
 
 MENUITEMS = (
     ("Overview", "/wult/index.html"),
-    ("User Guide", "/wult/pages/user-guide.html"),
+    ("Install", "/wult/pages/install-guide.html"),
+    ("Use", "/wult/pages/user-guide.html"),
     ("Ndl", "/wult/pages/ndl.html"),
 )

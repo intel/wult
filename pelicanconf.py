@@ -32,6 +32,7 @@ SYNTAX_THEME = "github"
 
 MENUITEMS = (
     ("Overview", "/index.html"),
-    ("User Guide", "/pages/user-guide.html"),
+    ("Install", "/pages/install-guide.html"),
+    ("Use", "/pages/user-guide.html"),
     ("Ndl", "/pages/ndl.html"),
 )

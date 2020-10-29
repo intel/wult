@@ -10,10 +10,13 @@ Ndl
 Overview
 ========
 
-*Ndl* is a very specific tool and we did not document it that much. But from the usage perspective
-it is very similar to *wult* - supports similar commands and provides similar data analysis
-capabilities. It also comes with a man page and the help text. Please, feel free to ask questions by
-filing GitHub issues or e-mailing Artem Bityutskiy <dedekind1@gmail.com>.
+*Ndl* is a another tool that comes with the wult project. It is a very specific tool and we did not
+document it that much, because we expect very limited audience for this tool.
+
+From the usage perspective, *ndl* it is very similar to *wult* - it supports similar commands and
+provides similar data analysis capabilities. It also comes with a man page and the help text.
+Please, feel free to ask questions by filing GitHub issues (preferred) or sending an e-mail to
+Artem Bityutskiy <dedekind1@gmail.com>.
 
 Principle of operation
 ======================

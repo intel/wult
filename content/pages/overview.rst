@@ -19,8 +19,8 @@ C-state latency in Linux. The project provides 2 tools:
 **Important note**: both *wult* and ndl are research, debugging and tracing tools which require
 superuser privileges and must not be used in production environment.
 
-The documentation for this project is scarce and imperfect, but we are improving it over time.
-Feel free to make specific requests or ask questions by filing GitHub issues or e-mailing
+The documentation for this project is imperfect, but we are improving it over time. Feel free to
+make specific requests or ask questions by filing GitHub issues (preferred) or sending an e-mail to
 Artem Bityutskiy <dedekind1@gmail.com>.
 
 1 Wult presentation
@@ -79,10 +79,10 @@ in `this section <#irq-source>`_.
 
 There are 2 *wult* usage models - **local** and **remote**.
 
+.. _local-usage-model:
+
 2.1 Local usage
 ---------------
-
-.. _local-usage-model:
 
 .. image:: images/wult-local-usage-model.jpg
     :alt: Examples of local wult usage.
@@ -181,6 +181,8 @@ certain value.
 
 Both NIC and timer methods measure CPU C-state latency, and they may produce similar or different
 result depending various factors. Let's look at some of them.
+
+.. _c-state-prewake:
 
 4.3.1 C-state pre-wake
 ++++++++++++++++++++++

@@ -7,194 +7,169 @@ User Guide
 
 .. contents:: Table of Contents
 
-1 Installation
-==============
+This user guide provides basic *wult* command-line usage instructions. However, there are advanced
+commands and options which are not described in this guide. Please, use the '--help' option for more
+information. Wult also comes with the man page, but generally, the '--help' contents tends to be
+more verbose.
 
-*Wult* is a Python 3 project, but it comes with kernel drivers. Therefore, the basic installation
-sequence is:
+Feel free to ask questions by filing GitHub issues (preferred) or sending an e-mail to
+Artem Bityutskiy <dedekind1@gmail.com>.
 
-#. Install *wult* using *pip* (standard Python project installation tool).
-#. Install the drivers.
+1. Local vs Remote usage
+========================
 
-**Important**: *Wult* is a research and debug tool, it loads its own drivers and requires root
-privileges. Do not use it on a production system, use it only in a lab environment.
+In case of the `local usage model <../index.html#local-usage-model>`_, *wult* has to be run on the
+SUT as 'root'. In case of `remote usage model <../index.html#remote-usage-model>`_, *wult* should be
+run on the controller under unprivileged user, but the user should have passwordless root SSH login
+from the controller to the SUT (more info in `this <install-guide.html#passwordless-ssh>`_ section).
 
-*Wult* installation procedure will vary a little bit depending on whether you prefer the local or
-remote usage models (`details here <../index.html#usage-models>`_). In the former case, you install *wult* on the
-SUT (System Under Test). Rn the latter case you install it on the controller. The drivers are
-deployed to the SUT. It is also OK to have both setups at the same time.
+The command line arguments for the both cases is the same, except for the '-H SUTNAME' option in the
+remote usage case, which specifies the SUT host name to connect to.
 
-From now on assume the remote usage model. In case of local usage model the "SUT" and "controller"
-are the same system. Here are the main installation steps.
+2. Scan for supported devices
+=============================
 
-#. Configure the systems (SUT and controller).
-#. Install the dependencies on the SUT and the controller.
-#. Install *wult* project using *pip* to the controller.
-#. Deploy *wult* drivers to the SUT.
+Start with scanning for supported delayed interrupt source devices. Run the following command on the
+SUT in case of the local usage model: ::
 
-1.1 Configure the systems
--------------------------
+ sudo wult scan
 
-First of all, make sure you have root or '*sudo*' permissions on both the SUT and the controller.
+or the following command in case of the remote usage model: ::
 
-1.1.1 Passwordless SUT login
-++++++++++++++++++++++++++++
+ wult scan -H SUTNAME
 
-This is only needed for the remote usage model. Skip this step in case of the local usage model
+From this point onward, we'll assume the reader already figured out the local vs remote usage mode
+difference, and we'll just recommend to run: ::
 
-In case of the remote usage model, you need to configure passwordless root SSH login from the
-controller to the SUT. You are going to run *wult* as a regular user on the controller, but it will
-SSH into the SUT as 'root'. Please, use online documentation to find out how to do this for your
-Linux distribution, but here is one way of doing this (worked on Fedora and Ubuntu).
+ wult scan
 
-Configure the SSH server on the SUT to allow for root login by enabling the "PermitRootLogin"
-option. Then restart the SSH server. ::
+Here is an example output of 'wult scan': ::
 
- sudo sh -c 'echo "PermitRootLogin yes" >> /etc/ssh/sshd_config'
- sudo systemctl restart sshd
+ Compatible device(s):
+  * Device ID: tdt
+    - Alias: timer
+    - Description: TSC deadline timer on CPU0
+  * Device ID: 0000:01:00.0
+    - Alias: enp1s0
+    - Description: Intel I210 (copper). PCI address 0000:01:00.0, Vendor ID 8086, Device ID 0000:01:00.0.
+  * Device ID: 0000:31:00.0
+    - Alias: enp2s0
+    - Description: Intel I210 (copper). PCI address 0000:31:00.0, Vendor ID 8086, Device ID 0000:31:00.0.
 
-You'll need user SSH keys on the controller. If you do not have them, generate a new SSH key pair on
-the controller. For example, this command (executed as under your user on the controller) will
-generate a pair of RSA keys - "sut" (private key) and "sut.pub" (public key): ::
+The output lists 3 devices that can be used as delayed interrupt sources for *wult*:
 
- cd ~/.ssh
- ssh-keygen -t rsa -f sut
+* *tdt* - the TCS deadline timer. It was detected on CPU0, but usually if it is present on one CPU,
+  then all CPUs have it. You can use both "tdt" and "timer" (alias) to specify this device.
+* *0000:01:00.0* - this is the PCI address of the I210 NIC. This NIC is also available under the
+  "enp1s0" name, which is actually the Linux network interface name.
+* *0000:31:00.0* - another I210 NIC (the "enp2s0" network interface.
 
-And the last step is to configure the controller to use the "~/.ssh/sut" private key when
-authenticating to the SUT. You can run something like this on the controller: ::
+The "tdt" devices should always be OK to use for running *wult*. In case of the NIC, only an unused
+NIC can be used for running *wult*. What does "unused" mean? Well, it means you do not use this
+interface for networking and it is in the "down" state (you can bring it down using 'NetworkManager'
+or the 'ip' command).
 
- cat <<EOF >> ~/.ssh/config
- Host SUTNAME
-     IdentityFile ~/.ssh/sut
- EOF
+3. Start the measurements
+=========================
 
-Now you should be able to log in to the SUT as root without typing the password. Test it by running
-the following on the controller: ::
+Before you start *wult*, you should know which delayed interrupt device you are going to use (see
+'wult scan'). Please, make sure to go through `this section <#irq-source>`_ so that you understand
+various important settings like PCIe ASPM for the "nic" method.
 
- ssh root@SUTNAME
+The basic way to start *wult* is by running 'wult start DeviceID', and 'DeviceID's are provided by
+'wult scan'. For example, to run *wult* with the TSC deadline timer, use: ::
 
-1.2 Install dependencies
-------------------------
+ wult start tdt
 
-*Wult* has several dependencies. First of all, you'll need the sources of the running kernel sources
-must be installed on the SUT. You'll also need the tools necessary for compiling kernel drivers on
-the SUT: gcc, make, etc. The controller must have python version 3.6 or higher installed.
+This command will collect 1000000 datapoints and save them in current directory in a sub-directory
+like "wult-tdt-<date>". Here are the main options you should probably use as well.
 
-1.2.1 Kernel sources
-++++++++++++++++++++
+* '-c' - count of datapoints to collect.
+* '--reportid' - report ID of the result. Use a short, but descriptive string to describe the test
+  run.
+* '-o' - the output directory path.
+* '--cpunum' - the CPU to measure the C-state latency on.
 
-*Wult* comes with kernel drivers which have to be built for the kernel running on the SUT. The
-drivers are built on the SUT, therefore you should install kernel sources on the SUT. Note, just
-user-space headers is not enough, you should install the actual kernel sources.
+There are more options, use 'wult start -h' for help. Here is an example: ::
 
-On Fedora and Ubuntu, the sources are typically located in "/lib/modules/<kernel_version>/build".
-The "<kernel_version>" part must match the kernel running on the SUT. In other words, it has to me
-the same as what the "uname -r" command prints when you run it on the SUT.
+ $ wult start -c 10000 --reportid all-cstates-enabled tdt
+ Compatible device 'TSC deadline timer':
+  * Device ID: tdt
+    - TSC deadline timer on CPU0
+ Binding device 'tdt' to driver 'wult_timer'
+ Start measuring CPU 0, collecting 10000 datapoints
+ Datapoints: 10000, max. latency: 407051 ns, rate: 472.15 datapoints/sec
+ Finished measuring CPU 0
 
-Unless you are an advanced user, you probably run a stock OS kernel on the SUT. In this case, it is
-enough to just install the kernel sources package provided by the OS, e.g.:
-* Fedora: 'kernel-devel' package
-* Ubuntu: 'linux-source' package
+ $ ls all-cstates-enabled/
+ datapoints.csv  info.yml
 
-If you are an advanced user, you can provide the sources path to the 'wult deploy' command when you
-actually build the kernel modules.
+*Wult* collected 10000 datapoints and stored the result in 'all-cstates-enabled' (same as ReportID,
+because '-o' was not used). The next step is to generate an HTML report out of the raw result in
+'all-cstates-enabled' (or we could use the '--report' option with 'wult start', then it would also
+generate the HTML report).
 
-1.2.2 OS packages
-+++++++++++++++++
+4. Generate HTML report
+=======================
 
-There are bunch of other packages that will be needed when using *wult*.
+The 'wult start' command collects the measurement and saves them in the 'datapoints.csv' file, along
+with some additional metadata in the 'info.yml' file. Now what you can do with these raw results?
+Well, you can quickly inspect the results using 'wult stats', or generate an HTML report using
+'wult report'. Here is how to generate an HTML report for the raw results in
+'all-cstates-enabled': ::
 
-**Fedora**
+ wult report all-cstates-enabled
 
-Here are the packages that will be needed on the SUT (tested in Fedora 28-32). ::
+The result will be in the 'wult-report-all-cstates-enabled' directory. Use '-o' option to specify
+where you want the resulting HTML report to be stored.
 
- sudo dnf install -y tar bison flex make gcc elfutils-libelf-devel rsync
- sudo dnf install -y libffi-devel redhat-rpm-config openssl-devel
- sudo dnf install -y kernel-devel
+Note, you can generate a diff - a single HTML report for multiple raw results. Diffs make it easier
+to compare test results. Just give 'wult report' multiple test results to generate a diff.
 
-Here are the packages that will be needed on the controller. ::
+4.1. Advanced example
+---------------------
 
- sudo dnf install -y git python3 python3-devel python3-pip python3-numpy
- sudo dnf install -y python3-colorama python3-yaml python3-pandas
- sudo dnf install -y  python3-paramiko python3-jinja2 rsync
+This section describes how `this diff <../results/ivt-c6-hfm-nic-vs-tdt/index.html>`_ was generated.
+The diff compares *nic* and *tdt* results for the same system (details
+`here <../index.html#_c-state-prewake>`_).
 
-**Ubuntu**
+We had two raw test results: ::
 
-Here are the packages that will be needed on the SUT. ::
+ $ ls
+ ivt-nic-c6-hfm-noaspm  ivt-tdt-c6-hfm-noaspm
 
- sudo apt install -y bison flex libelf-dev libssl-dev
- sudo apt-get source linux-source
+First is for the *nic* method, second is for the *tdt* method. We started with a default
+'wult report' options: ::
 
-Here are the packages that will be needed on the controller. ::
+ $ wult report -o ivt-c6-hfm-nic-vs-tdt ivt-nic-c6-hfm-noaspm ivt-tdt-c6-hfm-noaspm
 
- sudo apt install -y git python3-pip python3-numpy python3-plotly
- sudo apt install -y python3-colorama python3-yaml python3-pandas
- sudo apt install -y python3-paramiko python3-jinja2 rsync
+ $ du -sh ivt-c6-hfm-nic-vs-tdt/
+ 406M	ivt-c6-hfm-nic-vs-tdt/
 
-**Notes**
+This resulted in a 406M HTML report, which is too large to publish in GitHub web pages.
 
-#. If you do not install python projects like "numpy" by installing the corresponding "python3-\*" OS
-   packages, they will be pulled by the "pip" tool later when you install *wult*.
-#. The "git" package is required to make it possible installing *wult* python projects directly from
-   their git repository (see below). Otherwise it is not necessary.
+Each raw result contained 1000000 datapoints, which is quite a lot. So we decided to use only 10000
+datapoints out of 1M. ::
 
-1.3 Install wult
-----------------
+ $ rm -r ivt-c6-hfm-nic-vs-tdt
+ $ wult report -o ivt-c6-hfm-nic-vs-tdt --rsel 'index < 10000' ivt-nic-c6-hfm-noaspm ivt-tdt-c6-hfm-noaspm
 
-*Wult* is written in python version 3 and the easiest way of installing it is by using the "pip3" tool.
-Advanced users can chose any other way of using/installing python code, e.g., just clone the git
-repositories and configure "PYTHONPATH". But there will be more caveats in this case.
+ $ du -sh ivt-c6-hfm-nic-vs-tdt
+ 82M	ivt-c6-hfm-nic-vs-tdt
 
-Here is how to install *wult* directly from the git repository using the "pip3" tool. To install to
-your home directory, run: ::
+ $ ls ivt-c6-hfm-nic-vs-tdt/
+ CC0_pcnt.html  CC1_pcnt.html  CC3_pcnt.html  CC6_pcnt.html  index.html  LDist.html
+ PC2_pcnt.html  PC3_pcnt.html  PC6_pcnt.html  plots  raw-ivt-nic-c6-hfm-aspm
+ raw-ivt-tdt-c6-hfm-noaspm  SilentTime.html  style.css
 
- pip3 install --user git+https://github.com/intel/wult.git@release
+The new diff was 82M, still a little too big. Besides, it contained too many scatter-plots, which
+could overwhelm a non-expert. So we decided to strip the C-state scatter-plots and leave only
+the wake latency scatter-plot and histogram. ::
 
-To install to the system, run: ::
+ $ wult report -o ivt-c6-hfm-nic-vs-tdt --rsel 'index < 10000' --yaxes WakeLatency \
+               --hist WakeLatency --chist none ivt-nic-c6-hfm-noaspm ivt-tdt-c6-hfm-noaspm
 
- sudo -H pip3 install git+https://github.com/intel/wult.git@release
+ $ du -sh ivt-c6-hfm-nic-vs-tdt
+ 11M	ivt-c6-hfm-nic-vs-tdt
 
-This will install *wult* from the "release" branch of the git repository. The "release" branch
-contains more stable code. To install the latest code, use the "master" branch instead.
-
-1.4 Deploy wult drivers
------------------------
-
-When you install *wult*, you will also install the sources of *wult* driver. The next, and final step
-is to build and deploy these drivers to the SUT. Use the "wult deploy" command to do this.
-
-In case of the local usage model, run the "wult deploy" command on the SUT as "root". ::
-
- sudo wult deploy
-
-In case of the remote usage model, run the following command on the controller (as a user, no as
-root). ::
-
- wult deploy -H SUTNAME
-
-If you configured passwordless SSH authentication correctly (see above), this command will SSH to
-the SUT (network host name is 'SUTNAME'), copy *wult* driver sources from the controller to the SUT,
-build them on the SUT, then deploy them to the SUT.
-
-Please, check 'wult deploy -h' for advanced usage options.
-
-2 Update
-========
-
-If you installed *wult* using the 'pip' tool, you can use 'pip' to update it as well.
-Here is how to update *wult* in case you installed it to your home directory. ::
-
- pip3 install --user --upgrade git+https://github.com/intel/wult.git@release
-
-And in case you installed it to the system. ::
-
- sudo -H pip3 install --upgrade git+https://github.com/intel/wult.git@release
-
-**Important**: you have to re-deploy wult drivers after the update.
-`Local usage model <../index.html#local-usage-model>`_: ::
-
- sudo wult deploy
-
-`Remote usage model <../index.html#remote-usage-model>`_: ::
-
- wult deploy -H SUTNAME
+This 11M diff looked fine and we added it to the web site, as an example.
