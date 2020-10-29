@@ -20,7 +20,7 @@ sequence is:
 privileges. Do not use it on a production system, use it only in a lab environment.
 
 *Wult* installation procedure will vary a little bit depending on whether you prefer the local or
-remote usage models (`details here <index.html#usage-models>`_). In the former case, you install *wult* on the
+remote usage models (`details here <../index.html#usage-models>`_). In the former case, you install *wult* on the
 SUT (System Under Test). Rn the latter case you install it on the controller. The drivers are
 deployed to the SUT. It is also OK to have both setups at the same time.
 
@@ -191,10 +191,10 @@ And in case you installed it to the system. ::
  sudo -H pip3 install --upgrade git+https://github.com/intel/wult.git@release
 
 **Important**: you have to re-deploy wult drivers after the update.
-`Local usage model <index.html#local-usage-model>`_: ::
+`Local usage model <../index.html#local-usage-model>`_: ::
 
  sudo wult deploy
 
-`Remote usage model <index.html#remote-usage-model>`_: ::
+`Remote usage model <../index.html#remote-usage-model>`_: ::
 
  wult deploy -H SUTNAME

@@ -21,7 +21,7 @@ AUTHOR_FEED_ATOM = None
 AUTHOR_FEED_RSS = None
 
 DEFAULT_PAGINATION = False
-RELATIVE_URLS = False
+RELATIVE_URLS = True
 
 THEME="../pelican-themes/fresh"
 
