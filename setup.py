@@ -70,8 +70,17 @@ setup(
                get_data_files("share/wult/css", "css"),
     scripts=_TOOLNAMES,
     packages=find_packages(),
-    license='GPLv2',
     install_requires=["plotly>=4", "jinja2", "numpy", "pandas", "paramiko", "pyyml"],
     long_description="""This package provides wult - a Linux command-line tool for measuring Intel
-                        CPU C-state wake latency."""
+                        CPU C-state wake latency.""",
+	classifiers=[
+		"Intended Audience :: Developers",
+        "Intended Audience :: Science/Research"
+        "Topic :: System :: Hardware",
+		"Topic :: System :: Operating System Kernels :: Linux",
+		"License :: OSI Approved :: BSD License",
+		"License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+		"Programming Language :: Python :: 3 :: Only",
+		"Development Status :: 3 - Beta",
+	],
 )
