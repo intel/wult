@@ -399,6 +399,11 @@ def scan_devices(proc):
      * descr - short device description
     """
 
+    for devid in _TSCDeadlineTimer.supported_devices:
+        with contextlib.suppress(Error):
+            with _TSCDeadlineTimer(devid, 0, proc) as timerdev:
+                yield timerdev.info["devid"], timerdev.info["descr"]
+
     for pci_info in LsPCI.LsPCI(proc).get_devices():
         devid = pci_info["devid"]
         if _IntelI210.supported_devices.get(devid):
@@ -409,8 +414,3 @@ def scan_devices(proc):
         descr += f". PCI address {pci_info['pciaddr']}, Vendor ID {pci_info['vendorid']}, " \
                  f"Device ID {pci_info['devid']}."
         yield pci_info['pciaddr'], descr
-
-    for devid in _TSCDeadlineTimer.supported_devices:
-        with contextlib.suppress(Error):
-            with _TSCDeadlineTimer(devid, 0, proc) as timerdev:
-                yield timerdev.info["devid"], timerdev.info["descr"]
