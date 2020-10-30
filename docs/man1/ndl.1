@@ -2,7 +2,7 @@
 
 .SH NAME
 
-ndl - a tool for measuring network drop latency.
+ndl - a tool for measuring memory access latency observed by a network card.
 
 .SH SYNOPSIS
 
@@ -11,9 +11,10 @@ ndl COMMAND [OPTIONS] IFNAME|RESPATH
 .fi
 
 .SH DESCRIPTION
-Ndl is a tool for measuring network drop latency (the longest delay observed by the NIC when it
-tries to read from RAM while the CPU is in a C-state). The tool utilizes a couple of nice features
-of the I210 Intel Gigabit Ethernet chip, so it only works on platforms equipped with an I210 NIC.
+Ndl is a tool for measuring the longest delay observed by a NIC when it tries
+to read data from RAM while the CPU is in a C-state. The tool utilizes a couple
+of nice features of the Intel I210 Gigabit Ethernet chip, so it only works on
+platforms equipped with an I210 NIC.
 
 Here is how ndl works at high level.
 .RS
@@ -152,7 +153,7 @@ Where the ndl drivers should be deploy to (IHOST). The default is \'/lib/modules
 
 .B start [OPTIONS] [SSH OPTIONS] IFNAME
 .RS
-Start measuring and recording network drop latency.
+Start measuring and recording the latency data.
 
 IFNAME is the network interface backed by the NIC to use for latency measurements. Today only
 Intel I210 and I211 NICs are supported. Please, specify NIC's network interface name (e.g., eth0).
@@ -213,13 +214,13 @@ The post-measurement trigger. Please, provide path to an executable on the SUT t
 executed after a datapoint had been collected. The next measurement cycle will start only after the
 trigger program finishes. This option exists for debugging and troubleshooting purposes. Note, the
 specified program will be executed as \'POST_TRIGGER --latency <value>\', where \'<value>\' is the
-last observed network drop latency in nanoseconds.
+last observed RTD (round-trip delay) in nanoseconds.
 .RE
 .B --post-trigger-threshold POST_TRIGGER_THRESHOLD
 .RS
 By default, the post trigger is executed for every datapoint, but this option allows for setting the
-network drop latency threshold - the trigger program will be executed only when latency exceeds the
-threshold. The threshold should be an integer amount of nanoseconds.
+RDT threshold - the trigger program will be executed only when latency exceeds
+the threshold. The threshold should be an integer amount of nanoseconds.
 .RE
 .B --report
 .RS

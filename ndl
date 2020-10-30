@@ -8,7 +8,7 @@
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
-"""ndl - a tool for measuring network drop latency."""
+"""ndl - a tool for measuring memory access latency observed by a network card."""
 
 import sys
 from pathlib import Path
@@ -60,7 +60,7 @@ def parse_arguments():
     # Create parsers for the "start" command.
     #
     text = "Start the measurements."
-    descr = """Start measuring and recording network drop latency."""
+    descr = """Start measuring and recording the latency data."""
     subpars = subparsers.add_parser("start", help=text, description=descr)
     subpars.set_defaults(func=start_command)
 
@@ -122,14 +122,13 @@ def parse_arguments():
               should be executed after a datapoint had been collected. The next measurement cycle
               will start only after the trigger program finishes. This option exists for debugging
               and troubleshooting purposes. Note, the specified program will be executed as
-              'POST_TRIGGER --latency <value>', where '<value>' is the last observed network drop
-              latency in nanoseconds."""
+              'POST_TRIGGER --latency <value>', where '<value>' is the last observed RTD in
+              nanoseconds."""
     subpars.add_argument("--post-trigger", metavar="POST_TRIGGER", type=Path, help=text)
 
     text = """By default, the post trigger is executed for every datapoint, but this option allows
-              for setting the network drop latency threshold - the trigger program will be executed
-              only when latency exceeds the threshold. The threshold should be an integer amount of
-              nanoseconds."""
+              for setting the RTD threshold - the trigger program will be executed only when latency
+              exceeds the threshold. The threshold should be an integer amount of nanoseconds."""
     subpars.add_argument("--post-trigger-threshold", help=text)
 
     text = """Generate an HTML report for collected results (same as calling 'report' command with

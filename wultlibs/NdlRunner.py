@@ -7,8 +7,8 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module implements the main ndl functionality - runs network drop latency measurement
-experiments prints the results.
+This module implements the main ndl functionality - runs the measurement experiments and saves the
+result.
 """
 
 import datetime
@@ -25,7 +25,7 @@ from wultlibs import Helpers, _ProgressLine, _Nmcli, _NetIface, _ETFQdisc
 _LOG = logging.getLogger("main")
 
 class NdlRunner:
-    """Run network drop latency measurement experiments."""
+    """Run the latency measurements."""
 
     def _run_post_trigger(self, rtd):
         """Run the post-trigger program."""
@@ -192,7 +192,7 @@ class NdlRunner:
         if not dpcnt:
             return
 
-        _LOG.info("Start measuring network drop latency%s, collecting %d datapoints",
+        _LOG.info("Start measuring RTD%s, collecting %d datapoints",
                   self._proc.hostmsg, dpcnt)
 
         self._start_ndlrunner()
@@ -206,7 +206,7 @@ class NdlRunner:
 
         self._stop_ndlrunner()
 
-        _LOG.info("Finished measuring network drop latency%s", self._proc.hostmsg)
+        _LOG.info("Finished measuring RTD%s", self._proc.hostmsg)
 
     def prepare(self):
         """Prepare to start measurements."""
