@@ -121,7 +121,7 @@ The important thing, however, is that you should not use this NIC for anything e
 dedicated to *wult*. It is OK to have multiple I210 adapters on you system, as long as one of them
 is dedicated to *wult*. Here are two example SUT configurations.
 
-.. image:: images/wult-hw-setup.jp
+.. image:: images/wult-hw-setup.jpg
     :alt: Example wult HW setup for the "nic" measurement method.
 
 In the left picture the SUT has only one NIC dedicated to *wult*. The SUT is not connected to any
