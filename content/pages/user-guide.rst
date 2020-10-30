@@ -73,8 +73,8 @@ or the 'ip' command).
 =========================
 
 Before you start *wult*, you should know which delayed interrupt device you are going to use (see
-'wult scan'). Please, make sure to go through `this section <#irq-source>`_ so that you understand
-various important settings like PCIe ASPM for the "nic" method.
+'wult scan'). Please, make sure to go through `this section <../index.html#irq-source>`_ so that you
+understand various important settings like PCIe ASPM for the "nic" method.
 
 The basic way to start *wult* is by running 'wult start DeviceID', and 'DeviceID's are provided by
 'wult scan'. For example, to run *wult* with the TSC deadline timer, use: ::
@@ -131,7 +131,7 @@ to compare test results. Just give 'wult report' multiple test results to genera
 
 This section describes how `this diff <../results/ivt-c6-hfm-nic-vs-tdt/index.html>`_ was generated.
 The diff compares *nic* and *tdt* results for the same system (details
-`here <../index.html#_c-state-prewake>`_).
+`here <../index.html#c-state-prewake>`_).
 
 We had two raw test results: ::
 
