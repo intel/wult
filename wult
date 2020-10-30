@@ -489,9 +489,11 @@ def scan_command(args):
     proc = Helpers.get_proc(args, args.hostname)
 
     msg = ""
-    for devid, descr in Devices.scan_devices(proc):
-        msg += f" * Device ID: {devid}\n" \
-               f"   - Description: {descr}\n"
+    for devid, alias, descr in Devices.scan_devices(proc):
+        msg += f" * Device ID: {devid}\n"
+        if alias:
+            msg += f"   - Alias: {alias}\n"
+        msg += f"   - Description: {descr}\n"
 
     if not msg:
         LOG.info("No %s compatible devices found", OWN_NAME)

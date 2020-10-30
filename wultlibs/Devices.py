@@ -395,22 +395,31 @@ def scan_devices(proc):
     """
     Scan the host defined by 'proc' for compatible wult delayed event devices. Yields tuples of the
     following elements:
-     * devid - device ID of the found compatible delayed event devices
+     * devid - device ID of the found compatible delayed event device
+     * alias - device ID aliase for the delayed event device ('None' if there are no aliases). Alias
+               is just another device ID for the same device.
      * descr - short device description
     """
 
     for devid in _TSCDeadlineTimer.supported_devices:
         with contextlib.suppress(Error):
             with _TSCDeadlineTimer(devid, 0, proc) as timerdev:
-                yield timerdev.info["devid"], timerdev.info["descr"]
+                yield timerdev.info["devid"], "timer", timerdev.info["descr"]
 
     for pci_info in LsPCI.LsPCI(proc).get_devices():
-        devid = pci_info["devid"]
-        if _IntelI210.supported_devices.get(devid):
-            descr = _IntelI210.supported_devices.get(devid)
-        else:
+        pci_id = pci_info["devid"]
+        if not _IntelI210.supported_devices.get(pci_id):
             continue
 
+        devid = pci_info['pciaddr']
+
+        # Find out the Linux network interface name for this NIC, if any.
+        ifname = None
+        with contextlib.suppress(Error):
+            with _NetIface.NetIface(devid, proc=proc) as netif:
+                ifname = netif.ifname
+
+        descr = _IntelI210.supported_devices.get(pci_id)
         descr += f". PCI address {pci_info['pciaddr']}, Vendor ID {pci_info['vendorid']}, " \
-                 f"Device ID {pci_info['devid']}."
-        yield pci_info['pciaddr'], descr
+                 f"Device ID {devid}."
+        yield devid, ifname, descr
