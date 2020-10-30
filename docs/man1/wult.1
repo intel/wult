@@ -128,8 +128,8 @@ Scan for compatible device.
 Load wult drivers and exit without starting the measurements.
 
 DEVID is ID of the device to use for measuring the latency. For example, it can be a PCI address of
-the Intel I210 device, or "tsc-deadline-timer" for the TSC deadline timer block of the CPU. Use the
-\'scan\' command to get supported devices.
+the Intel I210 device, or "tdt" for the TSC deadline timer block of the CPU.
+Use the \'scan\' command to get supported devices.
 
 This command exists for debugging and troubleshooting purposes. Please, do not use for other
 reasons. keep in mind that if the the specified \'devid\' device was bound to some driver (e.g., a

@@ -358,7 +358,7 @@ class _TSCDeadlineTimer(_TimerBase):
     events.
     """
 
-    supported_devices = {'tsc-deadline-timer' : 'TSC deadline timer'}
+    supported_devices = {'tdt' : 'TSC deadline timer'}
     _clkname = "lapic-deadline"
 
 def WultDevice(devid, cpunum, proc, force=False):
@@ -368,6 +368,8 @@ def WultDevice(devid, cpunum, proc, force=False):
     """
 
     # The "timer" device ID is an alias for "any timer type".
+    # Note: we used to support LAPIC timers and the "timer" name meant "any timer" at that point.
+    # But we removed LAPIC timers support later.
     if devid == "timer":
         failed = []
         for cls in [_TSCDeadlineTimer]:

@@ -3,5 +3,5 @@ reportid: testdata
 toolname: wult
 toolver: 1.7.2
 cpunum: 0
-devid: tsc-deadline-timer
+devid: tdt
 devdescr: TSC deadline timer on CPU0
