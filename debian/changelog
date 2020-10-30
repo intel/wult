@@ -1,3 +1,11 @@
+wult (1.8.8) unstable; urgency=low
+
+  * wult: add '--hist none' and '--chist none' support.
+  * wult: improve 'wult scan' to print aliases.
+  * wult: renamed 'tsc-deadline-timer' method to shorted 'tdt'.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 30 Oct 2020 20:37:07 +0200
+
 wult (1.8.7) unstable; urgency=low
 
   * wult: first release.
