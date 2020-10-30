@@ -450,7 +450,10 @@ def report_command(args):
     for name in ("xaxes", "yaxes", "hist", "chist"):
         val = getattr(args, name)
         if val:
-            setattr(args, name, Trivial.split_csv_line(val))
+            if val == "none":
+                setattr(args, name, "")
+            else:
+                setattr(args, name, Trivial.split_csv_line(val))
 
     rsts = []
     for respath in args.respaths:

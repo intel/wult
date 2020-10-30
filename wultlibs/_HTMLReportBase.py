@@ -654,11 +654,11 @@ class HTMLReportBase:
         for name in ("xaxes", "yaxes", "hist", "chist"):
             val = getattr(self, name, None)
             if val is not None:
-                if val in ("none", ""):
-                    colnames = []
-                else:
+                if val:
                     # Convert list of regular expressions into list of names.
                     colnames = self._refres.find_colnames(getattr(self, name))
+                else:
+                    colnames = []
                 setattr(self, name, colnames)
             else:
                 # Set the default values.
@@ -762,11 +762,11 @@ class HTMLReportBase:
           * yaxes - list of datapoints CSV file column names to use on the Y axis. Default is
                     'WakeLatency'. Default is the second column in the datapoints CSV file.
           * hist - list of datapoints CSV file column names to create a histogram for. Default is
-                   the first column in the datapoints CSV file. And empty string or "none" can be
-                   used to disable histograms.
+                   the first column in the datapoints CSV file. And empty string can be used to
+                   disable histograms.
           * chist - list of datapoints CSV file column names to create a cumulative histogram for.
-                    Default is he first column in the datapoints CSV file. And empty string or
-                    "none" can be used to disable cumulative histograms.
+                    Default is he first column in the datapoints CSV file. And empty string can be
+                    used to disable cumulative histograms.
         """
 
         self.rsts = rsts
