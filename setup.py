@@ -11,14 +11,10 @@
 
 import re
 import os
-import sys
 from pathlib import Path
 from setuptools import setup, find_packages
 
 _TOOLNAMES = ["wult", "ndl"]
-
-if sys.version_info < (3, 6):
-    raise SystemExit("Error: wult: this project requires python version 3.6 or higher.")
 
 def get_version():
     """Get the project version number."""
@@ -62,6 +58,7 @@ setup(
     description="Wake up LAtency Tracer tool",
     author="Artem Bityutskiy",
     author_email="artem.bityutskiy@linux.intel.com",
+    python_requires=">=3.6",
     version=get_version(),
     data_files=get_data_files("share/wult/drivers", "drivers") + \
                get_data_files("share/wult/helpers", "helpers") + \
