@@ -23,11 +23,13 @@ except ImportError:
     colorama = None
 from wultlibs.helperlibs.Exceptions import Error # pylint: disable=unused-import
 
-# Define log levels. Add the "ERRINFO" log lovel which is the same as "ERROR", but not prefixed.
 INFO = logging.INFO
 DEBUG = logging.DEBUG
 WARNING = logging.WARNING
+# Same as "WARNING", but adds a "notice:" prefix.
+NOTICE = logging.WARNING + 1
 ERROR = logging.ERROR
+# Add the "ERRINFO" log lovel which is the same as "ERROR", but not prefixed.
 ERRINFO = logging.ERROR + 1
 CRITICAL = logging.CRITICAL
 
@@ -142,7 +144,8 @@ class _MyFormatter(logging.Formatter):
 
         self.myfmt = {}
 
-        for lvl, pfx in ((WARNING, "warning"), (ERROR, "error"), (CRITICAL, "critical error")):
+        for lvl, pfx in ((WARNING, "warning"), (ERROR, "error"), (CRITICAL, "critical error"),
+                         (NOTICE, "notice")):
             self.myfmt[lvl] = self._prefix + _start(lvl) + pfx + _end(lvl) + ": %(message)s"
         # Prefix debug messages with a green-colored time-stamp, module name and line number.
         lvl = DEBUG
@@ -223,7 +226,7 @@ def setup_logger(name=None, prefix=None, loglevel=None, colored=None):
     if colored:
         colors[DEBUG] = colorama.Fore.GREEN
         colors[WARNING] = colorama.Fore.YELLOW
-        colors[ERROR] = colors[CRITICAL] = colorama.Fore.RED
+        colors[ERROR] = colors[CRITICAL] = colors[NOTICE] = colorama.Fore.RED
 
     formatter = _MyFormatter(prefix=prefix, colors=colors)
 
@@ -232,7 +235,7 @@ def setup_logger(name=None, prefix=None, loglevel=None, colored=None):
 
     where = logging.StreamHandler(sys.stderr)
     where.setFormatter(formatter)
-    where.addFilter(_MyFilter([WARNING, DEBUG, ERROR, ERRINFO, CRITICAL]))
+    where.addFilter(_MyFilter([DEBUG, WARNING, NOTICE, ERROR, ERRINFO, CRITICAL]))
     logger.addHandler(where)
 
     where = logging.StreamHandler(sys.stdout)
