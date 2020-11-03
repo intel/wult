@@ -7,6 +7,7 @@
 #ifndef _WULT_COMPAT_H_
 #define _WULT_COMPAT_H_
 
+#include <linux/version.h>
 #include <asm/intel-family.h>
 
 /*
@@ -59,6 +60,11 @@
 
 #ifndef INTEL_FAM6_ATOM_SILVERMONT_D
 #define INTEL_FAM6_ATOM_SILVERMONT_D 0x4D
+#endif
+
+/* Synthetic events support was added in v5.6 */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 6, 0)
+#define COMPAT_USE_TRACE_PRINTK
 #endif
 
 #endif /* _WULT_COMPAT_H_ */

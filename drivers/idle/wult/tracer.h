@@ -8,18 +8,27 @@
 #define _WULT_TRACER_H_
 
 #include <linux/tracepoint.h>
+#include <linux/trace_events.h>
 #include "compat.h"
 #include "cstates.h"
 
+/* Name of the tracepoint we hook to. */
+#define TRACEPOINT_NAME "cpu_idle"
+
+#ifdef COMPAT_USE_TRACE_PRINTK
 /* Format string for the common part of trace output. */
-#define COMMON_TRACE_FMT DRIVER_NAME ": SilentTime=%llu WakeLatency=%llu " \
-	                 "LDist=%llu ReqCState=%u TotCyc=%llu CC0Cyc=%llu"
+#define COMMON_TRACE_FMT "SilentTime=%llu WakeLatency=%llu LDist=%llu " \
+	                 "ReqCState=%u TotCyc=%llu CC0Cyc=%llu"
 
 /* Size of the measurement data output buffer */
 #define OUTBUF_SIZE 4096
-
-/* Name of the tracepoint we hook to. */
-#define TRACEPOINT_NAME "cpu_idle"
+#else
+/*
+ * Name of the wult synthetic event which is used for sending measurement data
+ * to user-space.
+ */
+#define WULT_TRACE_EVENT_NAME "wult_cpu_idle"
+#endif
 
 struct wult_info;
 
@@ -43,8 +52,13 @@ struct wult_tracer_info {
 	u32 nmi, smi;
 	/* Whether the last measurement data is valid. */
 	bool data_valid;
+#ifdef COMPAT_USE_TRACE_PRINTK
 	/* The measurement data output buffer. */
 	char *outbuf;
+#else
+	/* The wult trace event file. */
+	struct trace_event_file *event_file;
+#endif
 };
 
 int wult_tracer_init(struct wult_info *wi);
