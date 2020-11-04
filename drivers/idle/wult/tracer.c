@@ -97,8 +97,8 @@ int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist)
 
 	err = wi->wdi->ops->arm(wi->wdi, ldist);
 	if (err) {
-		wult_trerr("failed to arm a dleayed event %llu nsec away, error %d",
-			   *ldist, err);
+		wult_err("failed to arm a dleayed event %llu nsec away, error %d",
+			 *ldist, err);
 		return err;
 	}
 
@@ -159,7 +159,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 	return 0;
 
 out_too_small:
-	wult_trerr("the measurement data buffer is too small");
+	wult_err("the measurement data buffer is too small");
 	return -EINVAL;
 }
 #else

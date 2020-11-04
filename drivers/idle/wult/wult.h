@@ -43,11 +43,6 @@
 /* Debug messages. */
 #define wult_dbg(fmt, ...) \
 	pr_debug(DRIVER_NAME ": " fmt "\n", ##__VA_ARGS__)
-/* Error messages echoed to the trace buffer. */
-#define wult_trerr(fmt, ...) do { \
-	pr_err(DRIVER_NAME ": " fmt "\n", ##__VA_ARGS__); \
-	trace_printk(DRIVER_NAME ": error: " fmt "\n", ##__VA_ARGS__); \
-} while(0)
 
 /*
  * Wult delayed event device can include some of its data into the trace. This

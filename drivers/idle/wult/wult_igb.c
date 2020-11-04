@@ -54,8 +54,8 @@ static irqreturn_t interrupt_handler(int irq, void *data)
 	tsicr = read32(nic, I210_TSICR);
 
 	if (!(icr & I210_Ixx_TIME_SYNC) || !(tsicr & I210_TSIxx_TT0)) {
-		wult_trerr("spurious interrupt, ICR %#x, EICR %#x, TSICR %#x",
-			   icr, eicr, tsicr);
+		WARN_ONCE(1, "spurious interrupt, ICR %#x, EICR %#x, TSICR %#x",
+			  icr, eicr, tsicr);
 		return IRQ_HANDLED;
 	}
 

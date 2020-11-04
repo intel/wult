@@ -181,23 +181,23 @@ static int armer_kthread(void *data)
 			break;
 
 		if (smp_processor_id() != wi.cpunum) {
-			wult_trerr("armer thread runs on CPU%u instead of CPU%u",
-				   smp_processor_id(), wi.cpunum);
+			wult_err("armer thread runs on CPU%u instead of CPU%u",
+				 smp_processor_id(), wi.cpunum);
 			goto error;
 		}
 
 		event_cpu = READ_ONCE(wi.event_cpu);
 		if (event_cpu != wi.cpunum && ++wrong_cpu_cnt > 128) {
-			wult_trerr("delayed event happened on CPU%u instead of CPU%u %u times, stop measuring",
-				   event_cpu, wi.cpunum, wrong_cpu_cnt);
+			wult_err("delayed event happened on CPU%u instead of CPU%u %u times, stop measuring",
+				 event_cpu, wi.cpunum, wrong_cpu_cnt);
 			goto error;
 		}
 
 		events_happened = atomic_read(&wi.events_happened);
 		events_armed = atomic_read(&wi.events_armed);
 		if (events_armed != events_happened) {
-			wult_trerr("events count mismatch: armed %u, got %u",
-				   events_armed, events_happened);
+			wult_err("events count mismatch: armed %u, got %u",
+				 events_armed, events_happened);
 			goto error;
 		}
 
@@ -213,8 +213,7 @@ static int armer_kthread(void *data)
 			 atomic_read(&wi.events_happened) != events_happened,
 			 msecs_to_jiffies(timeout));
 		if (err == 0 && wult_is_enabled()) {
-			wult_trerr("delayed event timed out, waited %ums",
-				   timeout);
+			wult_err("delayed event timed out, waited %ums", timeout);
 			goto error;
 		}
 
