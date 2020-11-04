@@ -45,7 +45,6 @@ class WultRunner:
           o vals - list of datapoint values.
         """
 
-        pfx = "wult: "
         yield_time = time.time()
 
         for line in self._ftrace.getlines():
@@ -53,15 +52,10 @@ class WultRunner:
                 raise ErrorTimeOut(f"no wult data in trace buffer for {self._timeout} seconds"
                                    f"{self._proc.hostmsg}. Last seen non-wult line:\n{line.msg}")
 
-            if not line.msg.startswith(pfx):
-                _LOG.debug("unexpected line in ftrace buffer%s:\n%s\nExpected a line starting with "
-                           "'%s' prefix instead", self._proc.hostmsg, line.msg, pfx)
-                continue
-
             # Wult output format should be: name1=val1 name2=val2, and so on. Parse the line and get
             # the list of (name, val) pairs: [(name1, val1), (name2, val2), ... ].
             try:
-                pairs = [pair.split("=") for pair in line.msg[len(pfx):].split()]
+                pairs = [pair.split("=") for pair in line.msg.split()]
                 names, vals = zip(*pairs)
                 if len(names) != len(vals):
                     raise ValueError
