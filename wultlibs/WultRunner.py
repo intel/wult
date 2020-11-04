@@ -207,6 +207,11 @@ class WultRunner:
         resolution = self._ep.get_resolution()
         _LOG.debug("delayed event resolution %dns", resolution)
 
+        # Save the delayed event device information to the output file.
+        self._res.info["devid"] = self._ep.dev.info["devid"]
+        self._res.info["devdescr"] = self._ep.dev.info["descr"]
+        self._res.info["resolution"] = resolution
+
         errmsg = None
         if resolution > 1:
             errmsg = f"delayed event device {self._res.info['devid']} has poor resolution of " \
@@ -214,16 +219,11 @@ class WultRunner:
 
         if errmsg:
             if resolution > 100:
-                if "timer" in self._res.info["devid"]:
+                if "timer" in self._res.info["devdescr"]:
                     errmsg += f"\nMake sure your kernel has high resolution timers enabled " \
                               f"(CONFIG_HIGH_RES_TIMERS)"
                 raise Error(errmsg)
             _LOG.warning(errmsg)
-
-        # Save the delayed event device information to the output file.
-        self._res.info["devid"] = self._ep.dev.info["devid"]
-        self._res.info["devdescr"] = self._ep.dev.info["descr"]
-        self._res.info["resolution"] = resolution
 
     def set_post_trigger(self, path, trange=None):
         """
