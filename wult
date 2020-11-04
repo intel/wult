@@ -21,7 +21,7 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
 
-from wultlibs.helperlibs import Logging, ArgParse, ReportID, Trivial, YAML
+from wultlibs.helperlibs import Logging, ArgParse, ReportID, Trivial, YAML, KernelVersion
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs import DeployHelpers, Devices, EventsProvider, Helpers, RORawResult, WultHTMLReport
 from wultlibs import WultRunner, WORawResult
@@ -349,6 +349,20 @@ def parse_arguments():
         argcomplete.autocomplete(parser)
     return parser.parse_args()
 
+def warn_trace_printk(proc):
+    """
+    Kernels before v5.6 did not have in-kernel synthetic trace event creation capabilities, so in
+    that case 'wult' driver uses 'trace_printk()' to deliver the measurement results. But this is a
+    debugging capability and should not be used for anything else. For now, we support pre-5.6
+    kernels and 'trace_printk()', but we would like to remove the support. This function warns the
+    user about the upcoming change.
+    """
+
+    kver = KernelVersion.get_kver(proc=proc)
+    if KernelVersion.kver_lt(kver, "5.6"):
+        LOG.warning(f"version of the kernel{proc.hostmsg} is {kver}, and soon it won't be "
+                    f"supported.\nPlease, switch to kernel version 5.6 or newer.")
+
 def start_command(args):
     """Implements the 'start' command."""
 
@@ -356,6 +370,8 @@ def start_command(args):
         raise Error("specify post trigger program to run")
 
     proc = Helpers.get_proc(args, args.hostname)
+
+    warn_trace_printk(proc)
 
     if DeployHelpers.is_deploy_needed(proc, OWN_NAME):
         msg = f"'{OWN_NAME}' drivers are not up-to-date{proc.hostmsg}', " \
