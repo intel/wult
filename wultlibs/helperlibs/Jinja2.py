@@ -21,7 +21,7 @@ def build_jenv(templdir, scheme=0, **kwargs):
     Build a bare minimum Jinja2 environment for templates in the 'templdir' directory. No globals or
     filters are added to the environment.
 
-    The 'scheme' argent selects the Jinja2 delimeters scheme #0 or #1. Scheme #0 uses the normal
+    The 'scheme' argument selects the Jinja2 delimeters scheme #0 or #1. Scheme #0 uses the normal
     default Jinja2 delimeters like "{{" and "{%". Scheme #1 uses alternative delimeters, which can
     be useful for rendering a single template twice. Here are the scheme #1 delimeters.
        * "<% %>" for block start/end.
