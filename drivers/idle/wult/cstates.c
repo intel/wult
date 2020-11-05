@@ -140,6 +140,7 @@ static int intel_cstate_init(struct wult_cstates_info *csinfo)
 	case INTEL_FAM6_ICELAKE_L:
 	case INTEL_FAM6_TIGERLAKE:
 	case INTEL_FAM6_TIGERLAKE_L:
+	case INTEL_FAM6_SAPPHIRERAPIDS_X:
 	case INTEL_FAM6_COMETLAKE:
 	case INTEL_FAM6_COMETLAKE_L:
 		break;

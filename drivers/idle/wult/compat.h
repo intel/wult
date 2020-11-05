@@ -10,6 +10,11 @@
 #include <linux/version.h>
 #include <asm/intel-family.h>
 
+/* This was added in v5.8 */
+#ifndef INTEL_FAM6_SAPPHIRERAPIDS_X
+#define INTEL_FAM6_SAPPHIRERAPIDS_X 0x8F
+#endif
+
 /*
  * Some Icelake macros were added in v5.2, but then there was a rename in v5.4
  * (INTEL_FAM6_ICELAKE_DESKTOP -> INTEL_FAM6_ICELAKE_D).
