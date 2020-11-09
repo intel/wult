@@ -309,7 +309,7 @@ static int wult_synth_event_init(struct wult_info *wi)
 	struct wult_trace_data_info *p, *tdata;
 	struct cstate_info *csi;
 	struct dynevent_cmd cmd;
-	char *cmd_buf;
+	char *cmd_buf, name_buf[64], name_len;
 	int err;
 
 	cmd_buf = kzalloc(MAX_DYNEVENT_CMD_LEN, GFP_KERNEL);
@@ -327,7 +327,13 @@ static int wult_synth_event_init(struct wult_info *wi)
 
 	/* Add C-states fields. */
 	for_each_cstate(&ti->csinfo, csi) {
-		err = synth_event_add_field(&cmd, "u64", csi->name);
+		name_len = snprintf(name_buf, 64, "%sCyc", csi->name);
+		if (name_len >= sizeof(name_buf)) {
+			err = -EINVAL;
+			goto out_free;
+		}
+
+		err = synth_event_add_field(&cmd, "u64", name_buf);
 		if (err)
 			goto out_free;
 	}
