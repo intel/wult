@@ -23,6 +23,8 @@ def validate_ldist(ldist):
 
     for idx, val in enumerate(ldst):
         ldst[idx] = Trivial.str_to_num(val, default=None)
+        if ldst[idx] is None:
+            raise Error(f"bad launch distance '{ldist}', should be an integer")
         if ldst[idx] <= 0:
             raise Error(f"bad launch distance value '{ldst[idx]}', should be greater than zero")
 
