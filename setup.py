@@ -24,6 +24,5 @@ setup(
         "Topic :: System :: Hardware",
 		"Topic :: System :: Operating System Kernels :: Linux",
 		"License :: OSI Approved :: BSD License",
-		"License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
 	],
 )
