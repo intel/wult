@@ -309,14 +309,14 @@ static int wult_synth_event_init(struct wult_info *wi)
 	struct wult_trace_data_info *p, *tdata;
 	struct cstate_info *csi;
 	struct dynevent_cmd cmd;
-	char *buf;
+	char *cmd_buf;
 	int err;
 
-	buf = kzalloc(MAX_DYNEVENT_CMD_LEN, GFP_KERNEL);
-	if (!buf)
+	cmd_buf = kzalloc(MAX_DYNEVENT_CMD_LEN, GFP_KERNEL);
+	if (!cmd_buf)
 		return -ENOMEM;
 
-	synth_event_cmd_init(&cmd, buf, MAX_DYNEVENT_CMD_LEN);
+	synth_event_cmd_init(&cmd, cmd_buf, MAX_DYNEVENT_CMD_LEN);
 
 	/* Add the common fields. */
 	err = synth_event_gen_cmd_array_start(&cmd, WULT_TRACE_EVENT_NAME,
@@ -361,7 +361,7 @@ static int wult_synth_event_init(struct wult_info *wi)
 	return err;
 
 out_free:
-	kfree(buf);
+	kfree(cmd_buf);
 	return err;
 }
 
