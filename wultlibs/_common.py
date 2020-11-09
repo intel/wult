@@ -19,25 +19,25 @@ def validate_ldist(ldist):
     nanoseconds, as list of one or two integers.
     """
 
-    ldist = Trivial.split_csv_line(ldist)
+    ldst = Trivial.split_csv_line(ldist)
 
-    for idx, val in enumerate(ldist):
-        ldist[idx] = Trivial.str_to_num(val, default=None)
-        if ldist[idx] <= 0:
-            raise Error(f"bad launch distance value '{ldist[idx]}', should be greater than zero")
+    for idx, val in enumerate(ldst):
+        ldst[idx] = Trivial.str_to_num(val, default=None)
+        if ldst[idx] <= 0:
+            raise Error(f"bad launch distance value '{ldst[idx]}', should be greater than zero")
 
-    ldist_str = ", ".join([str(val) for val in ldist])
-    if len(ldist) > 2:
-        raise Error(f"bad launch distance range '{ldist_str}', it should include 2 numbers")
-    if len(ldist) == 2 and ldist[1] - ldist[0] < 0:
-        raise Error(f"bad launch distance range '{ldist_str}', first number cannot be "
+    ldst_str = ", ".join([str(val) for val in ldst])
+    if len(ldst) > 2:
+        raise Error(f"bad launch distance range '{ldst_str}', it should include 2 numbers")
+    if len(ldst) == 2 and ldst[1] - ldst[0] < 0:
+        raise Error(f"bad launch distance range '{ldst_str}', first number cannot be "
                     f"greater than the second number")
 
     # Return launch distance as nanoseconds.
-    for idx, val in enumerate(ldist):
-        ldist[idx] = val * 1000
+    for idx, val in enumerate(ldst):
+        ldst[idx] = val * 1000
 
-    return ldist
+    return ldst
 
 def validate_cpunum(cpunum, proc=None):
     """
