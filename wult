@@ -360,8 +360,8 @@ def warn_trace_printk(proc):
 
     kver = KernelVersion.get_kver(proc=proc)
     if KernelVersion.kver_lt(kver, "5.6"):
-        LOG.warning(f"version of the kernel{proc.hostmsg} is {kver}, and soon it won't be "
-                    f"supported.\nPlease, switch to kernel version 5.6 or newer.")
+        LOG.warning("version of the kernel%s is %s, and soon it won't be supported.\nPlease, " \
+                    "switch to kernel version 5.6 or newer.", proc.hostmsg, kver)
 
 def start_command(args):
     """Implements the 'start' command."""
