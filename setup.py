@@ -12,7 +12,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="wult",
+    name="wult-web",
     description="Dummy package to bring pelican dependencies.",
     author="Artem Bityutskiy",
     author_email="artem.bityutskiy@linux.intel.com",
