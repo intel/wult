@@ -114,8 +114,8 @@ static const struct file_operations dfs_ops_enabled = {
 	.llseek = default_llseek,
 };
 
-static ssize_t dfs_read_misc_file(struct file *file, char __user *user_buf,
-				  size_t count, loff_t *ppos)
+static ssize_t dfs_read_u64_file(struct file *file, char __user *user_buf,
+				 size_t count, loff_t *ppos)
 {
 	struct dentry *dent = file->f_path.dentry;
 	struct wult_device_info *wdi = wi.wdi;
@@ -146,9 +146,9 @@ out:
 	return res;
 }
 
-/* Wult debugfs operations for rest of the files. */
-static const struct file_operations dfs_ops_misc = {
-	.read = dfs_read_misc_file,
+/* Wult debugfs operations for R/O files backed by an u64 variable. */
+static const struct file_operations dfs_ops_u64 = {
+	.read = dfs_read_u64_file,
 	.open = simple_open,
 	.llseek = default_llseek,
 };
@@ -164,11 +164,11 @@ int wult_dfs_create(void)
 	debugfs_create_file(LDIST_TO_DFS_NAME, 0644, wi.dfsroot, &wi.ldist_to,
 			    &dfs_ops_ldist_to);
 	debugfs_create_file(LDIST_MIN_DFS_NAME, 0444, wi.dfsroot, &wi,
-			    &dfs_ops_misc);
+			    &dfs_ops_u64);
 	debugfs_create_file(LDIST_MAX_DFS_NAME, 0444, wi.dfsroot, &wi,
-			    &dfs_ops_misc);
+			    &dfs_ops_u64);
 	debugfs_create_file(LDIST_RES_DFS_NAME, 0444, wi.dfsroot, &wi,
-			    &dfs_ops_misc);
+			    &dfs_ops_u64);
 	debugfs_create_file(ENABLED_DFS_NAME, 0644, wi.dfsroot, &wi.enabled,
 			    &dfs_ops_enabled);
 
