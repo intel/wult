@@ -61,16 +61,21 @@ struct wult_device_info;
  * Note, wult will call these operations only on the measured CPU.
  */
 struct wult_device_ops {
-	/* Read time after idle in nanoseconds. */
+	/*
+	 * Read time after idle in delayed event driver units (may be
+	 * nanoseconds or something else, like CPU cycles count).
+	 */
 	u64 (*get_time_after_idle)(struct wult_device_info *wdi);
-	/* Read time before idle in nanoseconds. */
+	/* Read time before idle in delayed event driver units. */
 	u64 (*get_time_before_idle)(struct wult_device_info *wdi);
 	/* Arm a delayed timer 'ldist' nanoseconds away. */
 	int (*arm)(struct wult_device_info *wdi, u64 *ldist);
 	/* Checks whether the delayed event has happened. */
 	bool (*event_has_happened)(struct wult_device_info *wdi);
-	/* Returns the launch time in nanoseconds. */
+	/* Returns the launch time in delayed event driver units. */
 	u64 (*get_launch_time)(struct wult_device_info *wdi);
+	/* Convert delayed event driver units to nanoseconds. */
+	u64 (*time_to_ns)(struct wult_device_info *wdi, u64 time);
 	/* Return trace data for the last measurement. */
 	struct wult_trace_data_info *
 			(*get_trace_data)(struct wult_device_info *wdi);
@@ -95,8 +100,6 @@ struct wult_device_info {
 	u64 ldist_min, ldist_max;
 	/* The launch distance resolution, nanoseconds. */
 	u32 ldist_gran;
-	/* Whether device provides time in cycles or nanoseconds. */
-	bool unit_is_ns;
 	/* The delayed event device driver operations. */
 	const struct wult_device_ops *ops;
 	/* Name of the delayed event device. */

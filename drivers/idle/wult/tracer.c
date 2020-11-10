@@ -103,6 +103,7 @@ int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist)
 #ifdef COMPAT_USE_TRACE_PRINTK
 int wult_tracer_send_data(struct wult_info *wi)
 {
+	truct wult_device_info *wdi = wi->wdi;
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_trace_data_info *tdata = NULL;
 	struct cstate_info *csi;
@@ -114,17 +115,17 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 	ti->data_valid = false;
 
-	if (wi->wdi->ops->get_trace_data) {
-		tdata = wi->wdi->ops->get_trace_data(wi->wdi);
+	if (wdi->ops->get_trace_data) {
+		tdata = wdi->ops->get_trace_data(wdi);
 		if (IS_ERR(tdata))
 			return PTR_ERR(tdata);
 	}
 
 	silent_time = ti->ltime - ti->ts1;
 	wake_latency = ti->ts2 - ti->ltime;
-	if (!wi->wdi->unit_is_ns) {
-		silent_time = wult_cyc2ns(wi->wdi, silent_time);
-		wake_latency = wult_cyc2ns(wi->wdi, wake_latency);
+	if (wdi->ops->time_to_ns) {
+		silent_time = wdi->ops->time_to_ns(wdi, silent_time);
+		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
 	}
 
 	cnt += snprintf(ti->outbuf, OUTBUF_SIZE, COMMON_TRACE_FMT,
@@ -159,6 +160,7 @@ out_too_small:
 #else
 int wult_tracer_send_data(struct wult_info *wi)
 {
+	struct wult_device_info *wdi = wi->wdi;
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_trace_data_info *tdata = NULL;
 	struct synth_event_trace_state trace_state;
@@ -171,8 +173,8 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 	ti->data_valid = false;
 
-	if (wi->wdi->ops->get_trace_data) {
-		tdata = wi->wdi->ops->get_trace_data(wi->wdi);
+	if (wdi->ops->get_trace_data) {
+		tdata = wdi->ops->get_trace_data(wdi);
 		if (IS_ERR(tdata))
 			return PTR_ERR(tdata);
 	}
@@ -183,9 +185,9 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 	silent_time = ti->ltime - ti->ts1;
 	wake_latency = ti->ts2 - ti->ltime;
-	if (!wi->wdi->unit_is_ns) {
-		silent_time = wult_cyc2ns(wi->wdi, silent_time);
-		wake_latency = wult_cyc2ns(wi->wdi, wake_latency);
+	if (wdi->ops->time_to_ns) {
+		silent_time = wdi->ops->time_to_ns(wdi, silent_time);
+		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
 	}
 
 	/* Add values of the common fields. */

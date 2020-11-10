@@ -109,6 +109,11 @@ static u64 get_launch_time(struct wult_device_info *wdi)
 	return wdi_to_wt(wdi)->deadline_before;
 }
 
+static u64 time_to_ns(struct wult_device_info *wdi, u64 time)
+{
+	return wult_cyc2ns(wdi, time);
+}
+
 static int init_device(struct wult_device_info *wdi, int cpunum)
 {
 	struct wult_timer *wt = wdi_to_wt(wdi);
@@ -120,7 +125,6 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 
 	/* TODO: ensure that hrtimers are backed by the TSC dealine timer. */
 
-	wdi->unit_is_ns = false;
 	hrtimer_init(&wt->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL_PINNED);
 	wt->timer.function = &timer_interrupt;
 	return 0;
@@ -139,6 +143,7 @@ static struct wult_device_ops wult_timer_ops = {
 	.arm = arm_event,
 	.event_has_happened = event_has_happened,
 	.get_launch_time = get_launch_time,
+	.time_to_ns = time_to_ns,
 	.init = init_device,
 	.exit = exit_device,
 };

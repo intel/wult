@@ -287,8 +287,6 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 	struct network_adapter *nic = wdi_to_nic(wdi);
 	int err, vector;
 
-	wdi->unit_is_ns = true;
-
 	err = nic_reset(nic);
 	if (err)
 		return err;
