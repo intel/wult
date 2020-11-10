@@ -97,6 +97,11 @@ def parse_arguments():
 
     subpars.add_argument("--no-unload", action="store_true", help=text)
 
+    text = f"""By default {OWN_NAME} refuses to load network card drivers if its Linux network
+               interface is in an active state, such as "up". Use '--force' to disable this safety
+               mechanism. Use '--force' option with caution."""
+    subpars.add_argument("--force", action="store_true", help=text)
+
     text = "The device ID, same as in the 'start' command."""
     subpars.add_argument("devid", help=text)
 
@@ -524,7 +529,7 @@ def load_command(args):
     """Implements the 'load' command."""
 
     proc = Helpers.get_proc(args, args.hostname)
-    with EventsProvider.EventsProvider(args.devid, 0, proc) as ep:
+    with EventsProvider.EventsProvider(args.devid, 0, proc, force=args.force) as ep:
         ep.unload = not args.no_unload
         ep.prepare()
         LOG.info("Loaded the '%s' wult delayed event driver", ep.dev.drvname)
