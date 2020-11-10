@@ -17,16 +17,6 @@ from wultlibs.helperlibs import ArgParse, FSHelpers, Procs, Trivial
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.sysconfiglibs import CPUInfo
 
-# CPU model numbers.
-_INTEL_FAM6_ICELAKE_X = 0x6A
-
-# Mapping CPU model number to description.
-_CPU_DESCR = {_INTEL_FAM6_ICELAKE_X: "Icelake Xeon"}
-
-# Package C-state limits are platform specific.
-_PKG_CST_LIMIT_MAP = {_INTEL_FAM6_ICELAKE_X:
-                      {"PC0": 0, "PC2": 1, "PC6N":2, "PC6R": 3, "UNLIMITED": 7}}
-
 _LOG = logging.getLogger("main")
 
 class CPUIdle:
