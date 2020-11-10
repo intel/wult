@@ -37,11 +37,11 @@ static inline unsigned int get_smi_count(void)
 	return smicnt;
 }
 
-static inline bool event_is_pending(struct wult_info *wi)
+static inline bool event_has_happened(struct wult_info *wi)
 {
-	if (!wi->wdi->ops->event_is_pending)
+	if (!wi->wdi->ops->event_has_happened)
 		return true;
-	return wi->wdi->ops->event_is_pending(wi->wdi);
+	return wi->wdi->ops->event_has_happened(wi->wdi);
 }
 
 /* Get measurement data before idle .*/
@@ -64,7 +64,7 @@ static void after_idle(struct wult_info *wi)
 
 	ti->ts2 = wi->wdi->ops->get_time_after_idle(wi->wdi);
 
-	if (!event_is_pending(wi))
+	if (!event_has_happened(wi))
 		/* It is not the delayed event we armed that woke us up. */
 		return;
 

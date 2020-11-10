@@ -67,8 +67,8 @@ struct wult_device_ops {
 	u64 (*get_time_before_idle)(struct wult_device_info *wdi);
 	/* Arm a delayed timer 'ldist' nanoseconds away. */
 	int (*arm)(struct wult_device_info *wdi, u64 *ldist);
-	/* Checks whether there is a pending event. */
-	bool (*event_is_pending)(struct wult_device_info *wdi);
+	/* Checks whether the delayed event has happened. */
+	bool (*event_has_happened)(struct wult_device_info *wdi);
 	/* Returns the launch time in nanoseconds. */
 	u64 (*get_launch_time)(struct wult_device_info *wdi);
 	/* Return trace data for the last measurement. */

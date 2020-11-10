@@ -77,7 +77,7 @@ static int arm_event(struct wult_device_info *wdi, u64 *ldist)
 	return 0;
 }
 
-static bool event_is_pending(struct wult_device_info *wdi)
+static bool event_has_happened(struct wult_device_info *wdi)
 {
 	u64 deadline;
 	struct wult_timer *wt = wdi_to_wt(wdi);
@@ -137,7 +137,7 @@ static struct wult_device_ops wult_timer_ops = {
 	.get_time_before_idle = get_time_before_idle,
 	.get_time_after_idle = get_time_after_idle,
 	.arm = arm_event,
-	.event_is_pending = event_is_pending,
+	.event_has_happened = event_has_happened,
 	.get_launch_time = get_launch_time,
 	.init = init_device,
 	.exit = exit_device,

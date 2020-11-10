@@ -145,7 +145,7 @@ static int arm_irq(struct wult_device_info *wdi, u64 *ldist)
 	return 0;
 }
 
-static bool event_is_pending(struct wult_device_info *wdi)
+static bool event_has_happened(struct wult_device_info *wdi)
 {
 
 	struct network_adapter *nic = wdi_to_nic(wdi);
@@ -336,7 +336,7 @@ static const struct wult_device_ops wult_igb_ops = {
 	.get_time_before_idle = get_time_before_idle,
 	.get_time_after_idle = get_time_after_idle,
 	.arm = arm_irq,
-	.event_is_pending = event_is_pending,
+	.event_has_happened = event_has_happened,
 	.get_launch_time = get_launch_time,
 	.get_trace_data = get_trace_data,
 	.init = init_device,
