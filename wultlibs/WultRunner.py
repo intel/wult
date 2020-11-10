@@ -13,6 +13,7 @@ saves the results.
 
 import time
 import logging
+import contextlib
 from pathlib import Path
 from wultlibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from wultlibs.helperlibs import Dmesg, FSHelpers, Trivial
@@ -184,6 +185,15 @@ class WultRunner:
 
         _LOG.info("Finished measuring CPU %d%s", self._res.cpunum, self._proc.hostmsg)
 
+    def _get_cmdline(self):
+        """Get kernel boot parameters."""
+
+        try:
+            with self._proc.open("/proc/cmdline", "r") as fobj:
+                return fobj.read().strip()
+        except Error:
+            raise Error(f"failed to read cmdline parameters{self._proc.hostmsg}")
+
     def prepare(self):
         """Prepare for starting the measurements."""
 
@@ -216,6 +226,13 @@ class WultRunner:
                 if "timer" in self._res.info["devdescr"]:
                     errmsg += f"\nMake sure your kernel has high resolution timers enabled " \
                               f"(CONFIG_HIGH_RES_TIMERS)"
+
+                    with contextlib.suppress(Error):
+                        cmdline = self._get_cmdline()
+                        if "highres=off" in cmdline:
+                            errmsg += f"\nYour system uses the 'highres=off' kernel boot " \
+                                      f"parameter, try removing it"
+
                 raise Error(errmsg)
             _LOG.warning(errmsg)
 
@@ -268,8 +285,7 @@ class WultRunner:
         if drvname == "none":
             errmsg = f"no idle driver in use{self._proc.hostmsg}"
             try:
-                with self._proc.open("/proc/cmdline", "r") as fobj:
-                    cmdline = fobj.read().strip()
+                cmdline = self._get_cmdline()
             except Error:
                 raise Error(errmsg)
 
