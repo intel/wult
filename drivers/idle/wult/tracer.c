@@ -37,13 +37,6 @@ static inline unsigned int get_smi_count(void)
 	return smicnt;
 }
 
-static inline bool event_has_happened(struct wult_info *wi)
-{
-	if (!wi->wdi->ops->event_has_happened)
-		return true;
-	return wi->wdi->ops->event_has_happened(wi->wdi);
-}
-
 /* Get measurement data before idle .*/
 static void before_idle(struct wult_info *wi, int req_cstate)
 {
@@ -61,14 +54,15 @@ static void before_idle(struct wult_info *wi, int req_cstate)
 static void after_idle(struct wult_info *wi)
 {
 	struct wult_tracer_info *ti = &wi->ti;
+	struct wult_device_info *wdi = wi->wdi;
 
-	ti->ts2 = wi->wdi->ops->get_time_after_idle(wi->wdi);
+	ti->ts2 = wdi->ops->get_time_after_idle(wdi);
 
-	if (!event_has_happened(wi))
+	if (!wdi->ops->event_has_happened(wi->wdi))
 		/* It is not the delayed event we armed that woke us up. */
 		return;
 
-	ti->ltime = wi->wdi->ops->get_launch_time(wi->wdi);
+	ti->ltime = wdi->ops->get_launch_time(wdi);
 
 	/* Check if the expected IRQ time is within the sleep time. */
 	if (ti->ltime <= ti->ts1 || ti->ltime >= ti->ts2)
