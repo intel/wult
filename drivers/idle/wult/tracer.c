@@ -42,7 +42,7 @@ static void before_idle(struct wult_info *wi, int req_cstate)
 {
 	struct wult_tracer_info *ti = &wi->ti;
 
-	ti->data_valid = false;
+	ti->got_measurements = false;
 	ti->smi = get_smi_count();
 	ti->nmi = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 	ti->req_cstate = req_cstate;
@@ -77,7 +77,7 @@ static void after_idle(struct wult_info *wi)
 		return;
 
 	wult_cstates_calc(&ti->csinfo);
-	ti->data_valid = true;
+	ti->got_measurements = true;
 }
 
 /*
@@ -110,10 +110,10 @@ int wult_tracer_send_data(struct wult_info *wi)
 	u64 silent_time, wake_latency;
 	int cnt = 0;
 
-	if (!ti->data_valid)
+	if (!ti->got_measurements)
 		return 0;
 
-	ti->data_valid = false;
+	ti->got_measurements = false;
 
 	if (wdi->ops->get_trace_data) {
 		tdata = wdi->ops->get_trace_data(wdi);
@@ -168,10 +168,10 @@ int wult_tracer_send_data(struct wult_info *wi)
 	u64 silent_time, wake_latency;
 	int err;
 
-	if (!ti->data_valid)
+	if (!ti->got_measurements)
 		return 0;
 
-	ti->data_valid = false;
+	ti->got_measurements = false;
 
 	if (wdi->ops->get_trace_data) {
 		tdata = wdi->ops->get_trace_data(wdi);

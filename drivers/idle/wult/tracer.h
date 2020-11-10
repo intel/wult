@@ -50,8 +50,8 @@ struct wult_tracer_info {
 	struct tracepoint *tp;
 	/* NMI and SMI interrupt counters. */
 	u32 nmi, smi;
-	/* Whether the last measurement data is valid. */
-	bool data_valid;
+	/* Whether the tracer have new any measurement data. */
+	bool got_measurements;
 #ifdef COMPAT_USE_TRACE_PRINTK
 	/* The measurement data output buffer. */
 	char *outbuf;
