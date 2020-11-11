@@ -69,17 +69,6 @@ DEFINE_DEBUGFS_ATTRIBUTE(dfs_ops_ldist_from, dfs_ldist_get, dfs_ldist_from_set,
 DEFINE_DEBUGFS_ATTRIBUTE(dfs_ops_ldist_to, dfs_ldist_get, dfs_ldist_to_set,
 		         "%llu\n");
 
-static ssize_t dfs_read_enabled_file(struct file *file, char __user *user_buf,
-				     size_t count, loff_t *ppos)
-{
-	ssize_t res;
-
-	spin_lock(&wi.enable_lock);
-	res = debugfs_read_file_bool(file, user_buf, count, ppos);
-	spin_unlock(&wi.enable_lock);
-	return res;
-}
-
 static ssize_t dfs_write_enabled_file(struct file *file,
 				      const char __user *user_buf, size_t count,
 				      loff_t *ppos)
@@ -108,7 +97,7 @@ out_unlock:
 
 /* Wult debugfs operations for the 'enabled' file. */
 static const struct file_operations dfs_ops_enabled = {
-	.read = dfs_read_enabled_file,
+	.read = debugfs_read_file_bool,
 	.write = dfs_write_enabled_file,
 	.open = simple_open,
 	.llseek = default_llseek,
