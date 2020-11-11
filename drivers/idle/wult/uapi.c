@@ -129,29 +129,29 @@ static const struct file_operations dfs_ops_u64 = {
 	.llseek = default_llseek,
 };
 
-int wult_uapi_device_register(void)
+int wult_uapi_device_register(struct wult_info *wi)
 {
-	wi.dfsroot = debugfs_create_dir(DRIVER_NAME, NULL);
-	if (IS_ERR(wi.dfsroot))
-		return PTR_ERR(wi.dfsroot);
+	wi->dfsroot = debugfs_create_dir(DRIVER_NAME, NULL);
+	if (IS_ERR(wi->dfsroot))
+		return PTR_ERR(wi->dfsroot);
 
-	debugfs_create_file(LDIST_FROM_DFS_NAME, 0644, wi.dfsroot,
-			    &wi.ldist_from, &dfs_ops_ldist_from);
-	debugfs_create_file(LDIST_TO_DFS_NAME, 0644, wi.dfsroot, &wi.ldist_to,
+	debugfs_create_file(LDIST_FROM_DFS_NAME, 0644, wi->dfsroot,
+			    &wi->ldist_from, &dfs_ops_ldist_from);
+	debugfs_create_file(LDIST_TO_DFS_NAME, 0644, wi->dfsroot, &wi->ldist_to,
 			    &dfs_ops_ldist_to);
-	debugfs_create_file(LDIST_MIN_DFS_NAME, 0444, wi.dfsroot, &wi,
+	debugfs_create_file(LDIST_MIN_DFS_NAME, 0444, wi->dfsroot, wi,
 			    &dfs_ops_u64);
-	debugfs_create_file(LDIST_MAX_DFS_NAME, 0444, wi.dfsroot, &wi,
+	debugfs_create_file(LDIST_MAX_DFS_NAME, 0444, wi->dfsroot, wi,
 			    &dfs_ops_u64);
-	debugfs_create_file(LDIST_RES_DFS_NAME, 0444, wi.dfsroot, &wi,
+	debugfs_create_file(LDIST_RES_DFS_NAME, 0444, wi->dfsroot, wi,
 			    &dfs_ops_u64);
-	debugfs_create_file(ENABLED_DFS_NAME, 0644, wi.dfsroot, &wi.enabled,
+	debugfs_create_file(ENABLED_DFS_NAME, 0644, wi->dfsroot, &wi->enabled,
 			    &dfs_ops_enabled);
 
 	return 0;
 }
 
-void wult_uapi_device_unregister(void)
+void wult_uapi_device_unregister(struct wult_info *wi)
 {
-	debugfs_remove_recursive(wi.dfsroot);
+	debugfs_remove_recursive(wi->dfsroot);
 }
