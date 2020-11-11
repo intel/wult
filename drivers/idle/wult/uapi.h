@@ -26,7 +26,7 @@
 /* Name of debugfs file for starting and stopping the measurements. */
 #define ENABLED_DFS_NAME "enabled"
 
-int wult_dfs_create(void);
-void wult_dfs_remove(void);
+int wult_uapi_device_register(void);
+void wult_uapi_device_unregister(void);
 
 #endif

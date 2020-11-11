@@ -299,7 +299,7 @@ int wult_register(struct wult_device_info *wdi)
 		goto err_tracer;
 	}
 
-	err = wult_dfs_create();
+	err = wult_uapi_device_register();
 	if (err) {
 		wult_err("failed to create debugfs files, error %d", err);
 		goto err_kthread;
@@ -326,7 +326,7 @@ void wult_unregister(void)
 {
 	wult_msg("unregistering device '%s'", wi.wdi->devname);
 
-	wult_dfs_remove();
+	wult_uapi_device_unregister();
 	wult_disable();
 	kthread_stop(wi.armer);
 	wult_tracer_exit(&wi);

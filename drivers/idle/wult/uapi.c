@@ -153,7 +153,7 @@ static const struct file_operations dfs_ops_u64 = {
 	.llseek = default_llseek,
 };
 
-int wult_dfs_create(void)
+int wult_uapi_device_register(void)
 {
 	wi.dfsroot = debugfs_create_dir(DRIVER_NAME, NULL);
 	if (IS_ERR(wi.dfsroot))
@@ -175,7 +175,7 @@ int wult_dfs_create(void)
 	return 0;
 }
 
-void wult_dfs_remove(void)
+void wult_uapi_device_unregister(void)
 {
 	debugfs_remove_recursive(wi.dfsroot);
 }
