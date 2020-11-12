@@ -42,16 +42,19 @@ struct wult_info wi;
  */
 static DEFINE_MUTEX(wi_mutex);
 
-/* Disable the measurements. */
-int wult_enable_nolock(void)
+/* Enable the measurements. */
+int wult_enable(void)
 {
-	int err;
+	int err = 0;
 
-	wult_dbg("enabling");
+	spin_lock(&wi.enable_lock);
+	if (wi.enabled)
+		goto out_unlock;
+
 	err = wult_tracer_enable(&wi);
 	if (err) {
 		wult_err("failed to enable the tracer, error %d", err);
-		return err;
+		goto out_unlock;
 	}
 
 	wi.enabled = true;
@@ -59,22 +62,19 @@ int wult_enable_nolock(void)
 	atomic_set(&wi.events_happened, 0);
 	wake_up(&wi.armer_wq);
 
-	return 0;
-}
-
-void wult_disable_nolock(void)
-{
-	wult_dbg("disabling");
-	wi.enabled = false;
-	wult_tracer_disable(&wi);
+out_unlock:
+	spin_unlock(&wi.enable_lock);
+	return err;
 }
 
 /* Disable the measurements. */
 void wult_disable(void)
 {
 	spin_lock(&wi.enable_lock);
-	if (wi.enabled)
-		wult_disable_nolock();
+	if (wi.enabled) {
+		wult_tracer_disable(&wi);
+		wi.enabled = false;
+	}
 	spin_unlock(&wi.enable_lock);
 }
 

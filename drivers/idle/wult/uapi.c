@@ -74,25 +74,12 @@ static ssize_t dfs_write_enabled_file(struct file *file,
 				      loff_t *ppos)
 {
 	int err;
-	bool enabled_prev;
 
-	spin_lock(&wi.enable_lock);
-	enabled_prev = wi.enabled;
+	err = wult_enable();
+	if (err)
+		return err;
 
-	err = debugfs_write_file_bool(file, user_buf, count, ppos);
-	if (err < 0)
-		goto out_unlock;
-
-	if (wi.enabled != enabled_prev) {
-		if (wi.enabled)
-			err = wult_enable_nolock();
-		else
-			wult_disable_nolock();
-	}
-
-out_unlock:
-	spin_unlock(&wi.enable_lock);
-	return err;
+	return debugfs_write_file_bool(file, user_buf, count, ppos);
 }
 
 /* Wult debugfs operations for the 'enabled' file. */

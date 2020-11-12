@@ -171,8 +171,7 @@ static inline u64 wult_cyc2ns(struct wult_device_info *wdi, u64 cyc)
 }
 
 /* Only for wult framework use, not for delayed event drivers. */
-int wult_enable_nolock(void);
+int wult_enable(void);
 void wult_disable(void);
-void wult_disable_nolock(void);
 
 #endif
