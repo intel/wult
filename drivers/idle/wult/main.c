@@ -34,7 +34,7 @@
 static unsigned int cpunum;
 
 /* The wult driver information object. */
-struct wult_info wi;
+static struct wult_info wi;
 
 /*
  * This mutex protect 'wi.pdev' and serializes delayed event driver
