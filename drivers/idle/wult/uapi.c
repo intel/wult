@@ -94,7 +94,7 @@ static ssize_t dfs_read_u64_file(struct file *file, char __user *user_buf,
 				 size_t count, loff_t *ppos)
 {
 	struct dentry *dent = file->f_path.dentry;
-	struct wult_device_info *wdi = wi.wdi;
+	struct wult_info *wi;
 	char buf[32];
 	int err, len;
 	ssize_t res;
@@ -104,12 +104,13 @@ static ssize_t dfs_read_u64_file(struct file *file, char __user *user_buf,
 	if (err)
 		return err;
 
+	wi = file->private_data;
 	if (!strcmp(dent->d_name.name, LDIST_MIN_DFS_NAME)) {
-		val = wdi->ldist_min;
+		val = wi->wdi->ldist_min;
 	} else if (!strcmp(dent->d_name.name, LDIST_MAX_DFS_NAME)) {
-		val = wdi->ldist_max;
+		val = wi->wdi->ldist_max;
 	} else if (!strcmp(dent->d_name.name, LDIST_RES_DFS_NAME)) {
-		val = wdi->ldist_gran;
+		val = wi->wdi->ldist_gran;
 	} else {
 		res = -EINVAL;
 		goto out;
