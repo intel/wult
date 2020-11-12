@@ -12,18 +12,19 @@
 #include "uapi.h"
 #include "wult.h"
 
-extern struct wult_info wi;
-
-static int dfs_ldist_get(void *data, u64 *val)
+static int dfs_ldist_from_get(void *data, u64 *val)
 {
-	*val = atomic64_read(data);
+	struct wult_info *wi = data;
+
+	*val = atomic64_read(&wi->ldist_from);
 	return 0;
 }
 
 static int dfs_ldist_from_set(void *data, u64 val)
 {
-	struct wult_device_info *wdi = wi.wdi;
-	u64 ldist_from = atomic64_read(data);
+	struct wult_info *wi = data;
+	struct wult_device_info *wdi = wi->wdi;
+	u64 ldist_from = atomic64_read(&wi->ldist_from);
 
 	if (ldist_from < wdi->ldist_min || ldist_from > wdi->ldist_max) {
 		wult_err("'%s' %llu is out of range, should be within [%llu, %llu]",
@@ -38,14 +39,23 @@ static int dfs_ldist_from_set(void *data, u64 val)
 		return -EINVAL;
 	}
 
-	atomic64_set(data, val);
+	atomic64_set(&wi->ldist_from, val);
+	return 0;
+}
+
+static int dfs_ldist_to_get(void *data, u64 *val)
+{
+	struct wult_info *wi = data;
+
+	*val = atomic64_read(&wi->ldist_to);
 	return 0;
 }
 
 static int dfs_ldist_to_set(void *data, u64 val)
 {
-	struct wult_device_info *wdi = wi.wdi;
-	u64 ldist_to = atomic64_read(data);
+	struct wult_info *wi = data;
+	struct wult_device_info *wdi = wi->wdi;
+	u64 ldist_to = atomic64_read(&wi->ldist_to);
 
 	if (ldist_to < wdi->ldist_min || ldist_to > wdi->ldist_max) {
 		wult_err("'%s' %llu is out of range, should be within [%llu, %llu]",
@@ -59,15 +69,15 @@ static int dfs_ldist_to_set(void *data, u64 val)
 		return -EINVAL;
 	}
 
-	atomic64_set(data, val);
+	atomic64_set(&wi->ldist_to, val);
 	return 0;
 }
 
 /* Wult debugfs operations for the lauch distance limit files. */
-DEFINE_DEBUGFS_ATTRIBUTE(dfs_ops_ldist_from, dfs_ldist_get, dfs_ldist_from_set,
-		         "%llu\n");
-DEFINE_DEBUGFS_ATTRIBUTE(dfs_ops_ldist_to, dfs_ldist_get, dfs_ldist_to_set,
-		         "%llu\n");
+DEFINE_DEBUGFS_ATTRIBUTE(dfs_ops_ldist_from, dfs_ldist_from_get,
+			 dfs_ldist_from_set, "%llu\n");
+DEFINE_DEBUGFS_ATTRIBUTE(dfs_ops_ldist_to, dfs_ldist_to_get,
+			 dfs_ldist_to_set, "%llu\n");
 
 static ssize_t dfs_write_enabled_file(struct file *file,
 				      const char __user *user_buf, size_t count,
@@ -136,9 +146,9 @@ int wult_uapi_device_register(struct wult_info *wi)
 	if (IS_ERR(wi->dfsroot))
 		return PTR_ERR(wi->dfsroot);
 
-	debugfs_create_file(LDIST_FROM_DFS_NAME, 0644, wi->dfsroot,
-			    &wi->ldist_from, &dfs_ops_ldist_from);
-	debugfs_create_file(LDIST_TO_DFS_NAME, 0644, wi->dfsroot, &wi->ldist_to,
+	debugfs_create_file(LDIST_FROM_DFS_NAME, 0644, wi->dfsroot, wi,
+			    &dfs_ops_ldist_from);
+	debugfs_create_file(LDIST_TO_DFS_NAME, 0644, wi->dfsroot, wi,
 			    &dfs_ops_ldist_to);
 	debugfs_create_file(LDIST_MIN_DFS_NAME, 0444, wi->dfsroot, wi,
 			    &dfs_ops_u64);
