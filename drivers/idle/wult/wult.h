@@ -174,6 +174,5 @@ static inline u64 wult_cyc2ns(struct wult_device_info *wdi, u64 cyc)
 int wult_enable_nolock(void);
 void wult_disable(void);
 void wult_disable_nolock(void);
-bool wult_is_enabled(void);
 
 #endif

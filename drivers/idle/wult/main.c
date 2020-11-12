@@ -78,16 +78,6 @@ void wult_disable(void)
 	spin_unlock(&wi.enable_lock);
 }
 
-bool wult_is_enabled(void)
-{
-	bool enabled;
-
-	spin_lock(&wi.enable_lock);
-	enabled = wi.enabled;
-	spin_unlock(&wi.enable_lock);
-	return enabled;
-}
-
 /*
  * The delayed event device driver should call this function from its event
  * (interrupt) handler.
@@ -174,8 +164,7 @@ static int armer_kthread(void *data)
 
 	while (!kthread_should_stop()) {
 		/* Sleep until we are enabled or asked to exit. */
-		wait_event(wi.armer_wq,
-			   wult_is_enabled() || kthread_should_stop());
+		wait_event(wi.armer_wq, wi.enabled || kthread_should_stop());
 
 		if (kthread_should_stop())
 			break;
@@ -212,7 +201,7 @@ static int armer_kthread(void *data)
 		err = wait_event_timeout(wi.armer_wq,
 			 atomic_read(&wi.events_happened) != events_happened,
 			 msecs_to_jiffies(timeout));
-		if (err == 0 && wult_is_enabled()) {
+		if (err == 0 && wi.enabled) {
 			wult_err("delayed event timed out, waited %ums", timeout);
 			goto error;
 		}
