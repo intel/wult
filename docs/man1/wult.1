@@ -134,6 +134,19 @@ Use the \'scan\' command to get supported devices.
 This command exists for debugging and troubleshooting purposes. Please, do not use for other
 reasons. keep in mind that if the the specified \'devid\' device was bound to some driver (e.g., a
 network driver), it will be unbinded and with this option It won't be binded back.
+
+.B --no-unload
+.RS
+This command exists for debugging and troubleshooting purposes. Please, do not use for other reasons.
+keep in mind that if the the specified \'devid\' device was bound to some driver (e.g., a network
+driver), it will be unbinded and with this option it won't be binded back.
+.RE
+.B --force
+.RS
+By default wult refuses to load network card drivers if its Linux network interface is in an active
+state, such as "up". Use '--force' to disable this safety mechanism. Use '--force' option with
+caution.
+.RE
 .RE
 
 .B start [OPTIONS] [SSH OPTIONS] DEVID
@@ -141,6 +154,7 @@ network driver), it will be unbinded and with this option It won't be binded bac
 Start measuring and recording C-state latency.
 
 DEVID argument is same as in \'load\' command.
+
 .B {-c | --count} COUNT
 .RS
 How many datapoints should the test result include, default is 1000000. Note, in case a pre-existing
@@ -190,6 +204,27 @@ While normally wult kernel modules are unloaded after the measurements are done,
 the modules will stay loaded into the kernel. Keep in mind that if the the specified \'devid\'
 device was bound to some driver (e.g., a network driver), it will be unbinded and with this option
 it won't be binded back.
+.RE
+.B --post-trigger POST_TRIGGER
+.RS
+The post-measurement trigger. Please, provide path to an executable on the SUT that should be
+executed after a datapoint had been collected. The next measurement cycle will start only after the
+trigger program finishes. This option exists for debugging and troubleshooting purposes. Note, the
+specified program will be executed as \'POST_TRIGGER --latency <value>\', where \'<value>\' is the
+last observed wake latency in nanoseconds.
+.RE
+.B --post-trigger-range POST_TRIGGER_RANGE
+.RS
+By default, the post trigger is executed for every datapoint, but this option allows for setting the
+wake latency trigger range - the trigger program will be executed only when observed latency is in
+the range (inclusive). Specify a comma-separated range in nanoseconds (e.g \'--post-trigger-range
+50000,60000\').
+.RE
+.B --force
+.RS
+By default {OWN_NAME} does not accept network card as a measurement device if its Linux network
+interface is in an active state, such as "up". Use '--force' to disable this safety mechanism. Use
+\'--force\' option with caution.
 .RE
 .B --report
 .RS
