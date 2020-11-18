@@ -180,12 +180,6 @@ class _MyFilter(logging.Filter):
             return True
         return False
 
-def _flush_stdout_stderr():
-    """Flush the 'stdout' and 'stderr' streams."""
-
-    sys.stdout.flush()
-    sys.stderr.flush()
-
 def _notice(logger, fmt, *args):
     """Just a convenient 'notice()' method for the logger."""
     logger.log(NOTICE, fmt, *args)
@@ -248,9 +242,7 @@ def setup_logger(name=None, prefix=None, loglevel=None, colored=None):
     where.addFilter(_MyFilter([INFO]))
     logger.addHandler(where)
 
-    logger.flush = _flush_stdout_stderr
     logger.notice = types.MethodType(_notice, logger)
-
     return logger
 
 def setup_loggers(owname=None):
