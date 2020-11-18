@@ -224,8 +224,9 @@ def setup_logger(name=None, prefix=None, loglevel=None, colored=None):
     colors = {}
     if colored:
         colors[DEBUG] = colorama.Fore.GREEN
-        colors[WARNING] = colorama.Fore.YELLOW
-        colors[ERROR] = colors[CRITICAL] = colors[NOTICE] = colorama.Fore.RED
+        colors[WARNING] = colorama.Fore.YELLOW + colorama.Style.BRIGHT
+        colors[ERROR] = colors[CRITICAL] = colors[NOTICE] = \
+                                                     colorama.Fore.RED + colorama.Style.BRIGHT
 
     formatter = _MyFormatter(prefix=prefix, colors=colors)
 
