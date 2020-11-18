@@ -13,6 +13,7 @@ This module contains helper functions related to logging.
 import re
 import sys
 import json
+import types
 import logging
 import traceback
 from pathlib import Path
@@ -185,6 +186,10 @@ def _flush_stdout_stderr():
     sys.stdout.flush()
     sys.stderr.flush()
 
+def _notice(logger, fmt, *args):
+    """Just a convenient 'notice()' method for the logger."""
+    logger.log(NOTICE, fmt, *args)
+
 def setup_logger(name=None, prefix=None, loglevel=None, colored=None):
     """
     Setup and return a logger.
@@ -244,6 +249,8 @@ def setup_logger(name=None, prefix=None, loglevel=None, colored=None):
     logger.addHandler(where)
 
     logger.flush = _flush_stdout_stderr
+    logger.notice = types.MethodType(_notice, logger)
+
     return logger
 
 def setup_loggers(owname=None):
