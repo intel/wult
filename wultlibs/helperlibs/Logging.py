@@ -24,11 +24,12 @@ except ImportError:
     colorama = None
 from wultlibs.helperlibs.Exceptions import Error # pylint: disable=unused-import
 
+# Unlike all other log levels, 'INFO' does not add any prefix.
 INFO = logging.INFO
+# Same as 'INFO', but adds a "notice:" prefix.
+NOTICE = logging.INFO + 1
 DEBUG = logging.DEBUG
 WARNING = logging.WARNING
-# Same as "WARNING", but adds a "notice:" prefix.
-NOTICE = logging.WARNING + 1
 ERROR = logging.ERROR
 # Add the "ERRINFO" log lovel which is the same as "ERROR", but not prefixed.
 ERRINFO = logging.ERROR + 1
@@ -225,8 +226,8 @@ def setup_logger(name=None, prefix=None, loglevel=None, colored=None):
     if colored:
         colors[DEBUG] = colorama.Fore.GREEN
         colors[WARNING] = colorama.Fore.YELLOW + colorama.Style.BRIGHT
-        colors[ERROR] = colors[CRITICAL] = colors[NOTICE] = \
-                                                     colorama.Fore.RED + colorama.Style.BRIGHT
+        colors[NOTICE] = colorama.Fore.CYAN + colorama.Style.BRIGHT
+        colors[ERROR] = colors[CRITICAL] = colorama.Fore.RED + colorama.Style.BRIGHT
 
     formatter = _MyFormatter(prefix=prefix, colors=colors)
 
