@@ -80,7 +80,7 @@ def parse_arguments():
     subpars = subparsers.add_parser("scan", help=text, description=descr)
     subpars.set_defaults(func=scan_command)
 
-    Helpers.add_ssh_options(subpars, argcomplete)
+    ToolsCommon.add_ssh_options(subpars, argcomplete)
 
     #
     # Create parsers for the "load" command.
@@ -105,7 +105,7 @@ def parse_arguments():
     text = "The device ID, same as in the 'start' command."""
     subpars.add_argument("devid", help=text)
 
-    Helpers.add_ssh_options(subpars, argcomplete)
+    ToolsCommon.add_ssh_options(subpars, argcomplete)
 
     #
     # Create parsers for the "start" command.
@@ -115,7 +115,7 @@ def parse_arguments():
     subpars = subparsers.add_parser("start", help=text, description=descr)
     subpars.set_defaults(func=start_command)
 
-    Helpers.add_ssh_options(subpars, argcomplete)
+    ToolsCommon.add_ssh_options(subpars, argcomplete)
 
     text = """How many datapoints should the test result include, default is 1000000. Note, in case
               a pre-existing test result is continued (see '--continue'), the pre-existing

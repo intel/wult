@@ -64,7 +64,7 @@ def parse_arguments():
     subpars = subparsers.add_parser("start", help=text, description=descr)
     subpars.set_defaults(func=start_command)
 
-    Helpers.add_ssh_options(subpars, argcomplete)
+    ToolsCommon.add_ssh_options(subpars, argcomplete)
 
     text = f"""Path to {OWN_NAME} helper tools. The default is the path defined by the
                {OWN_NAME.upper()}_HELPERSPATH environment variable. If it is not defined, the

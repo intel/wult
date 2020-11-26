@@ -12,30 +12,10 @@ Miscellaneous helper functions shared by various tools and modules.
 
 import logging
 from collections import OrderedDict
-from pathlib import Path
 from wultlibs.helperlibs import Trivial
 from wultlibs.helperlibs.Exceptions import Error
 
 _LOG = logging.getLogger("main")
-
-def add_ssh_options(parser, argcomplete=None):
-    """
-    Add the '--host', '--timeout' and other SSH-related options to argument parser object 'parser'.
-    """
-
-    text = "Name of the host to run on (default is the local host)."
-    parser.add_argument("-H", "--host", help=text, default="localhost", dest="hostname")
-    text = """Name of the user to use for logging into the remote host over SSH. The default user
-              name is 'root'."""
-    parser.add_argument("-U", "--username", dest="username", default="root", metavar="USERNAME",
-                        help=text)
-    text = """Path to the private SSH key that should be used for logging into the SUT. By default
-              the key is automatically found from standard paths like '~/.ssh'."""
-    arg = parser.add_argument("-K", "--priv-key", dest="privkey", type=Path, help=text)
-    if argcomplete:
-        arg.completer = argcomplete.completers.FilesCompleter()
-    text = """SSH connect timeout in seconds, default is 8."""
-    parser.add_argument("-T", "--timeout", default=8, help=text)
 
 def get_dpcnt(res, dpcnt):
     """
