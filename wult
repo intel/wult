@@ -542,7 +542,7 @@ def deploy_command(args):
         ToolsCommon.build(args)
         ToolsCommon.deploy(args)
     finally:
-        ToolsCommon.remove_tmpdir(args, args.bhost)
+        ToolsCommon.remove_deploy_tmpdir(args, args.bhost)
 
 def main():
     """Script entry point."""

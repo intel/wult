@@ -236,7 +236,7 @@ def is_deploy_needed(proc, toolname, helperpath=None):
 
     return False
 
-def remove_tmpdir(args, hostname):
+def remove_deploy_tmpdir(args, hostname):
     """Remove temporary files on host 'hostname'"""
 
     if args.tmpdir:
