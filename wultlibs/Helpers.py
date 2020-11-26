@@ -13,21 +13,10 @@ Miscellaneous helper functions shared by various tools and modules.
 import logging
 from collections import OrderedDict
 from pathlib import Path
-from wultlibs.helperlibs import Procs, SSH, Trivial
+from wultlibs.helperlibs import Trivial
 from wultlibs.helperlibs.Exceptions import Error
 
 _LOG = logging.getLogger("main")
-
-def get_proc(args, hostname):
-    """
-    Returns and "SSH" object or the 'Procs' object depending on 'hostname'.
-    """
-
-    if hostname == "localhost":
-        return Procs.Proc()
-
-    return SSH.SSH(hostname=hostname, username=args.username, privkeypath=args.privkey,
-                   timeout=args.timeout)
 
 def add_ssh_options(parser, argcomplete=None):
     """

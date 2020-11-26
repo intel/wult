@@ -277,7 +277,7 @@ def parse_arguments():
 def start_command(args):
     """Implements the 'start' command."""
 
-    proc = Helpers.get_proc(args, args.hostname)
+    proc = ToolsCommon.get_proc(args, args.hostname)
 
     if not args.reportid and proc.is_remote:
         prefix = proc.hostname

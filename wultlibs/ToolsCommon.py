@@ -19,15 +19,25 @@ import sys
 import contextlib
 import time
 from pathlib import Path
-from wultlibs.helperlibs import Logging, Trivial, FSHelpers, KernelVersion, Procs
+from wultlibs.helperlibs import Logging, Trivial, FSHelpers, KernelVersion, Procs, SSH
 from wultlibs.helperlibs.Exceptions import Error
-from wultlibs import Helpers
 
 HELPERS_LOCAL_DIR = Path(".local")
 _DRV_SRC_SUBPATH = Path("drivers/idle")
 _HELPERS_SRC_SUBPATH = Path("helpers")
 
 _LOG = Logging.main_log
+
+def get_proc(args, hostname):
+    """
+    Returns and "SSH" object or the 'Procs' object depending on 'hostname'.
+    """
+
+    if hostname == "localhost":
+        return Procs.Proc()
+
+    return SSH.SSH(hostname=hostname, username=args.username, privkeypath=args.privkey,
+                   timeout=args.timeout)
 
 def add_cmdline_arguments(parser, toolname, drivers=True, helpers=True, argcomplete=None):
     """
@@ -230,7 +240,7 @@ def remove_tmpdir(args, hostname):
     """Remove temporary files on host 'hostname'"""
 
     if args.tmpdir:
-        with contextlib.closing(Helpers.get_proc(args, hostname)) as proc:
+        with contextlib.closing(get_proc(args, hostname)) as proc:
             proc.run_verify(f"rm -rf -- '{args.tmpdir}'")
 
 def prepare_args(args, toolname, minkver):
@@ -285,7 +295,7 @@ def prepare_args(args, toolname, minkver):
         if not args.helpersrc.is_dir():
             raise Error(f"path '{args.helpersrc}' does not exist or it is not a directory")
 
-    with contextlib.closing(Helpers.get_proc(args, args.bhost)) as proc:
+    with contextlib.closing(get_proc(args, args.bhost)) as proc:
         if not FSHelpers.which("make", default=None, proc=proc):
             raise Error(f"please, install the 'make' tool{proc.hostmsg}")
 
@@ -326,7 +336,7 @@ def prepare_args(args, toolname, minkver):
             args.helpersrc = args.tmpdir / "helpers"
             _LOG.info("Helpers will be compiled on host '%s'", proc.hostname)
 
-    with contextlib.closing(Helpers.get_proc(args, args.ihost)) as proc:
+    with contextlib.closing(get_proc(args, args.ihost)) as proc:
         if not args.kmodpath:
             args.kmodpath = Path(f"/lib/modules/{args.kver}")
         if not FSHelpers.isdir(args.kmodpath, proc=proc):
@@ -352,7 +362,7 @@ def _log_cmd_output(args, stdout, stderr):
 def build(args):
     """Build drivers and helpers."""
 
-    with contextlib.closing(Helpers.get_proc(args, args.bhost)) as proc:
+    with contextlib.closing(get_proc(args, args.bhost)) as proc:
         if hasattr(args, "drvsrc"):
             _LOG.info("Compiling the drivers%s", proc.hostmsg)
             cmd = f"make -C '{args.drvsrc}' KSRC='{args.ksrc}'"
@@ -369,8 +379,8 @@ def build(args):
 def deploy(args):
     """Deploy helpers and drivers."""
 
-    with contextlib.closing(Helpers.get_proc(args, args.ihost)) as iproc, \
-         contextlib.closing(Helpers.get_proc(args, args.bhost)) as bproc:
+    with contextlib.closing(get_proc(args, args.ihost)) as iproc, \
+         contextlib.closing(get_proc(args, args.bhost)) as bproc:
         remotesrc = args.bhost != "localhost"
         remotedst = args.ihost != "localhost"
 

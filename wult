@@ -374,7 +374,7 @@ def start_command(args):
     if args.post_trigger_range and not args.post_trigger:
         raise Error("specify post trigger program to run")
 
-    proc = Helpers.get_proc(args, args.hostname)
+    proc = ToolsCommon.get_proc(args, args.hostname)
 
     warn_trace_printk(proc)
 
@@ -510,7 +510,7 @@ def report_command(args):
 def scan_command(args):
     """Implements the 'scan' command."""
 
-    proc = Helpers.get_proc(args, args.hostname)
+    proc = ToolsCommon.get_proc(args, args.hostname)
 
     msg = ""
     for devid, alias, descr in Devices.scan_devices(proc):
@@ -528,7 +528,7 @@ def scan_command(args):
 def load_command(args):
     """Implements the 'load' command."""
 
-    proc = Helpers.get_proc(args, args.hostname)
+    proc = ToolsCommon.get_proc(args, args.hostname)
     with EventsProvider.EventsProvider(args.devid, 0, proc, force=args.force) as ep:
         ep.unload = not args.no_unload
         ep.prepare()
