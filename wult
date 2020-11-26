@@ -23,7 +23,7 @@ except ImportError:
 
 from wultlibs.helperlibs import Logging, ArgParse, ReportID, Trivial, YAML, KernelVersion
 from wultlibs.helperlibs.Exceptions import Error
-from wultlibs import DeployHelpers, Devices, EventsProvider, Helpers, RORawResult, WultHTMLReport
+from wultlibs import ToolsCommon, Devices, EventsProvider, Helpers, RORawResult, WultHTMLReport
 from wultlibs import WultRunner, WORawResult
 
 VERSION = "1.8.8"
@@ -68,8 +68,8 @@ def parse_arguments():
     descr = f"""Compile and deploy {OWN_NAME} drivers on local or remote host. This command has many
                 options, but they are very rarely useful and most probably you do not need them."""
     subpars = subparsers.add_parser("deploy", help=text, description=descr)
-    DeployHelpers.add_cmdline_arguments(subpars, "wult", drivers=True, helpers=False,
-                                        argcomplete=argcomplete)
+    ToolsCommon.add_cmdline_arguments(subpars, "wult", drivers=True, helpers=False,
+                                      argcomplete=argcomplete)
     subpars.set_defaults(func=deploy_command)
 
     #
@@ -378,7 +378,7 @@ def start_command(args):
 
     warn_trace_printk(proc)
 
-    if DeployHelpers.is_deploy_needed(proc, OWN_NAME):
+    if ToolsCommon.is_deploy_needed(proc, OWN_NAME):
         msg = f"'{OWN_NAME}' drivers are not up-to-date{proc.hostmsg}', " \
               f"please run: {OWN_NAME} deploy"
         if proc.is_remote:
@@ -538,11 +538,11 @@ def deploy_command(args):
     """Implements the 'deploy' command."""
 
     try:
-        DeployHelpers.prepare_args(args, "wult", "4.19-rc1")
-        DeployHelpers.build(args)
-        DeployHelpers.deploy(args)
+        ToolsCommon.prepare_args(args, "wult", "4.19-rc1")
+        ToolsCommon.build(args)
+        ToolsCommon.deploy(args)
     finally:
-        DeployHelpers.remove_tmpdir(args, args.bhost)
+        ToolsCommon.remove_tmpdir(args, args.bhost)
 
 def main():
     """Script entry point."""

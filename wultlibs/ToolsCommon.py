@@ -7,8 +7,9 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-Miscellaneous helper functions for project deployment, and deploy validation. Many, but not all,
-functions in this module require the 'args' object which represents the command-line arguments.
+This module contains miscellaneous functions used by the 'wult' and 'ndl' tools. There is really no
+single clear purpose this module serves, it is just a collection of shared code. Many functions in
+this module require the  'args' object which represents the command-line arguments.
 """
 
 # pylint: disable=no-member
@@ -367,7 +368,6 @@ def build(args):
 
 def deploy(args):
     """Deploy helpers and drivers."""
-
 
     with contextlib.closing(Helpers.get_proc(args, args.ihost)) as iproc, \
          contextlib.closing(Helpers.get_proc(args, args.bhost)) as bproc:

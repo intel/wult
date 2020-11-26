@@ -19,7 +19,7 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
 
-from wultlibs import DeployHelpers, Helpers, NdlHTMLReport, NdlRunner, RORawResult, WORawResult
+from wultlibs import ToolsCommon, Helpers, NdlHTMLReport, NdlRunner, RORawResult, WORawResult
 from wultlibs.helperlibs import Logging, ArgParse, Trivial, ReportID, YAML
 from wultlibs.helperlibs.Exceptions import Error
 
@@ -52,8 +52,8 @@ def parse_arguments():
                command has many options, but they are very rarely useful and most probably you do
                not need them."""
     subpars = subparsers.add_parser("deploy", help=text, description=descr)
-    DeployHelpers.add_cmdline_arguments(subpars, "ndl", drivers=True, helpers=True,
-                                        argcomplete=argcomplete)
+    ToolsCommon.add_cmdline_arguments(subpars, "ndl", drivers=True, helpers=True,
+                                      argcomplete=argcomplete)
     subpars.set_defaults(func=deploy_command)
 
     #
@@ -68,7 +68,7 @@ def parse_arguments():
 
     text = f"""Path to {OWN_NAME} helper tools. The default is the path defined by the
                {OWN_NAME.upper()}_HELPERSPATH environment variable. If it is not defined, the
-               default path is '$HOME/{DeployHelpers.HELPERS_LOCAL_DIR}/bin', where '$HOME' is home
+               default path is '$HOME/{ToolsCommon.HELPERS_LOCAL_DIR}/bin', where '$HOME' is home
                directory path of the 'USERNAME' user on the 'HOSTNAME' system (see '--host' and
                '--username' options)."""
     arg = subpars.add_argument("--helpers-path", metavar="HELPERSPATH", type=Path, help=text)
@@ -291,11 +291,11 @@ def start_command(args):
 
     # Figure out the helper path.
     if not args.helpers_path:
-        args.helpers_path = DeployHelpers.get_helpers_deploy_path(proc, OWN_NAME) / "bin"
+        args.helpers_path = ToolsCommon.get_helpers_deploy_path(proc, OWN_NAME) / "bin"
 
     ndlrunner_bin = args.helpers_path / "ndlrunner"
 
-    if DeployHelpers.is_deploy_needed(proc, OWN_NAME, helperpath=ndlrunner_bin):
+    if ToolsCommon.is_deploy_needed(proc, OWN_NAME, helperpath=ndlrunner_bin):
         msg = f"'{OWN_NAME}' helpers and/or drivers are not up-to-date{proc.hostmsg}, " \
               f"please run: {OWN_NAME} deploy"
         if proc.is_remote:
@@ -407,11 +407,11 @@ def deploy_command(args):
     """Implements the 'deploy' command."""
 
     try:
-        DeployHelpers.prepare_args(args, "ndl", "5.1-rc1")
-        DeployHelpers.build(args)
-        DeployHelpers.deploy(args)
+        ToolsCommon.prepare_args(args, "ndl", "5.1-rc1")
+        ToolsCommon.build(args)
+        ToolsCommon.deploy(args)
     finally:
-        DeployHelpers.remove_tmpdir(args, args.bhost)
+        ToolsCommon.remove_tmpdir(args, args.bhost)
 
 def main():
     """Script entry point."""
