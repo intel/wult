@@ -22,6 +22,8 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "SilentTime" },
 	{ .type = "u64", .name = "WakeLatency" },
 	{ .type = "u64", .name = "LDist" },
+	{ .type = "u64", .name = "SMI" },
+	{ .type = "u64", .name = "NMI" },
 	{ .type = "unsigned int", .name = "ReqCState" },
 	{ .type = "u64", .name = "TotCyc" },
 	{ .type = "u64", .name = "CC0Cyc" },
@@ -43,8 +45,6 @@ static void before_idle(struct wult_info *wi, int req_cstate)
 	struct wult_tracer_info *ti = &wi->ti;
 
 	ti->got_measurements = false;
-	ti->smi = get_smi_count();
-	ti->nmi = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 	ti->req_cstate = req_cstate;
 	wult_cstates_read_before(&ti->csinfo);
 	ti->ts1 = wi->wdi->ops->get_time_before_idle(wi->wdi);
@@ -70,11 +70,8 @@ static void after_idle(struct wult_info *wi)
 
 	wult_cstates_read_after(&ti->csinfo);
 
-	/* Check if NMI or SMI occurred. */
-	if (ti->nmi != per_cpu(irq_stat, wi->cpunum).__nmi_count)
-		return;
-	if (ti->smi != get_smi_count())
-		return;
+	ti->smi = get_smi_count();
+	ti->nmi = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 
 	wult_cstates_calc(&ti->csinfo);
 	ti->got_measurements = true;
@@ -129,8 +126,8 @@ int wult_tracer_send_data(struct wult_info *wi)
 	}
 
 	cnt += snprintf(ti->outbuf, OUTBUF_SIZE, COMMON_TRACE_FMT,
-			silent_time, wake_latency, ti->ldist, ti->req_cstate,
-			ti->csinfo.tsc, ti->csinfo.mperf);
+			silent_time, wake_latency, ti->ldist, ti->smi, ti->nmi,
+			ti->req_cstate, ti->csinfo.tsc, ti->csinfo.mperf);
 	if (cnt >= OUTBUF_SIZE)
 		goto out_too_small;
 
@@ -198,6 +195,12 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->ldist, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->smi, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->nmi, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->req_cstate, &trace_state);
