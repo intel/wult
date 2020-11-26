@@ -538,7 +538,7 @@ def deploy_command(args):
     """Implements the 'deploy' command."""
 
     try:
-        ToolsCommon.prepare_args(args, "wult", "4.19-rc1")
+        ToolsCommon.deploy_prepare(args, "wult", "4.19-rc1")
         ToolsCommon.build(args)
         ToolsCommon.deploy(args)
     finally:

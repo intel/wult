@@ -243,10 +243,10 @@ def remove_deploy_tmpdir(args, hostname):
         with contextlib.closing(get_proc(args, hostname)) as proc:
             proc.run_verify(f"rm -rf -- '{args.tmpdir}'")
 
-def prepare_args(args, toolname, minkver):
+def deploy_prepare(args, toolname, minkver):
     """
-    Validate command-line arguments and prepare for builing the helpers and drivers. The arguments
-    are as follows.
+    Validate command-line arguments of the "deploy" command and prepare for builing the helpers and
+    drivers. The arguments are as follows.
       o args - the command line arguments.
       o toolname - name of the tool being deployed (e.g., 'ndl').
       o minkver - the minimum required version number.

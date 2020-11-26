@@ -407,7 +407,7 @@ def deploy_command(args):
     """Implements the 'deploy' command."""
 
     try:
-        ToolsCommon.prepare_args(args, "ndl", "5.1-rc1")
+        ToolsCommon.deploy_prepare(args, "ndl", "5.1-rc1")
         ToolsCommon.build(args)
         ToolsCommon.deploy(args)
     finally:
