@@ -103,7 +103,7 @@ int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist)
 #ifdef COMPAT_USE_TRACE_PRINTK
 int wult_tracer_send_data(struct wult_info *wi)
 {
-	truct wult_device_info *wdi = wi->wdi;
+	struct wult_device_info *wdi = wi->wdi;
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_trace_data_info *tdata = NULL;
 	struct cstate_info *csi;
