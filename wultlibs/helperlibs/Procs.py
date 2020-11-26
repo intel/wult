@@ -24,9 +24,9 @@ import logging
 import threading
 import contextlib
 import subprocess
-from wultlibs.helperlibs import _common, WrapExceptions
-from wultlibs.helperlibs._common import ProcResult, cmd_failed_msg # pylint: disable=unused-import
-from wultlibs.helperlibs._common import TIMEOUT
+from wultlibs.helperlibs import _Common, WrapExceptions
+from wultlibs.helperlibs._Common import ProcResult, cmd_failed_msg # pylint: disable=unused-import
+from wultlibs.helperlibs._Common import TIMEOUT
 from wultlibs.helperlibs.Exceptions import Error, ErrorTimeOut, ErrorPermissionDenied
 
 _LOG = logging.getLogger("main")
@@ -66,7 +66,7 @@ def _stream_fetcher(streamid, proc, by_line):
                 continue
 
             if by_line:
-                data, partial = _common.extract_full_lines(partial + data)
+                data, partial = _Common.extract_full_lines(partial + data)
             if proc._debug_:
                 if data:
                     proc._dbg_("stream %d: full line: %s", streamid, data[-1])
@@ -224,13 +224,13 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
 
 def _cmd_failed_msg(proc, stdout, stderr, exitcode, startmsg=None, timeout=None):
     """
-    A wrapper over '_common.cmd_failed_msg()'. The optional 'timeout' argument specifies the
+    A wrapper over '_Common.cmd_failed_msg()'. The optional 'timeout' argument specifies the
     timeout that was used for the command.
     """
 
     if timeout is None:
         timeout = proc.timeout
-    return _common.cmd_failed_msg(proc.cmd, stdout, stderr, exitcode, hostname=proc.hostname,
+    return _Common.cmd_failed_msg(proc.cmd, stdout, stderr, exitcode, hostname=proc.hostname,
                                   startmsg=startmsg, timeout=timeout)
 
 def _close(proc):
@@ -418,7 +418,7 @@ def run(command, timeout=None, capture_output=True, mix_output=False, join=True,
                                timeout=timeout, by_line=by_line, join=join)
 
     if result.exitcode is None:
-        msg = _common.cmd_failed_msg(command, *tuple(result), timeout=timeout)
+        msg = _Common.cmd_failed_msg(command, *tuple(result), timeout=timeout)
         raise ErrorTimeOut(msg)
 
     if output_fobjs[0]:
@@ -441,7 +441,7 @@ def run_verify(command, timeout=None, capture_output=True, mix_output=False, joi
     if result.exitcode == 0:
         return (result.stdout, result.stderr)
 
-    raise Error(_common.cmd_failed_msg(command, *tuple(result), timeout=timeout))
+    raise Error(_Common.cmd_failed_msg(command, *tuple(result), timeout=timeout))
 
 def rsync(src, dst, opts="rlptD", remotesrc=False, remotedst=True):
     # pylint: disable=unused-argument

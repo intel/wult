@@ -30,9 +30,9 @@ import threading
 from pathlib import Path
 import contextlib
 import paramiko
-from wultlibs.helperlibs import _common, Procs, WrapExceptions
-from wultlibs.helperlibs._common import ProcResult, cmd_failed_msg # pylint: disable=unused-import
-from wultlibs.helperlibs._common import TIMEOUT
+from wultlibs.helperlibs import _Common, Procs, WrapExceptions
+from wultlibs.helperlibs._Common import ProcResult, cmd_failed_msg # pylint: disable=unused-import
+from wultlibs.helperlibs._Common import TIMEOUT
 from wultlibs.helperlibs.Exceptions import Error, ErrorPermissionDenied, ErrorTimeOut, ErrorConnect
 
 _LOG = logging.getLogger("main")
@@ -86,7 +86,7 @@ def _stream_fetcher(streamid, chan, by_line):
             chan._dbg_("stream %d: read data: %s", streamid, data)
 
             if by_line:
-                data, partial = _common.extract_full_lines(partial + data)
+                data, partial = _Common.extract_full_lines(partial + data)
             if chan._debug_:
                 if data:
                     chan._dbg_("stream %d: full line: %s", streamid, data[-1])
@@ -266,13 +266,13 @@ def _poll_(chan):
 
 def _cmd_failed_msg_(chan, stdout, stderr, exitcode, startmsg=None, timeout=None):
     """
-    A wrapper over '_common.cmd_failed_msg()'. The optional 'timeout' argument specifies the
+    A wrapper over '_Common.cmd_failed_msg()'. The optional 'timeout' argument specifies the
     timeout that was used for the command.
     """
 
     if timeout is None:
         timeout = chan.timeout
-    return _common.cmd_failed_msg(chan.cmd, stdout, stderr, exitcode, hostname=chan.hostname,
+    return _Common.cmd_failed_msg(chan.cmd, stdout, stderr, exitcode, hostname=chan.hostname,
                                   startmsg=startmsg, timeout=timeout)
 
 def _close_(chan):
@@ -584,9 +584,9 @@ class SSH:
         self._scp(f"\"{local_path}\"", f"{self.hostname}:'\"{remote_path}\"'")
 
     def cmd_failed_msg(self, command, stdout, stderr, exitcode, startmsg=None, timeout=None):
-        """A simple wrapper around '_common.cmd_failed_msg()'."""
+        """A simple wrapper around '_Common.cmd_failed_msg()'."""
 
-        return _common.cmd_failed_msg(command, stdout, stderr, exitcode, hostname=self.hostname,
+        return _Common.cmd_failed_msg(command, stdout, stderr, exitcode, hostname=self.hostname,
                                       startmsg=startmsg, timeout=timeout)
 
     def __new__(cls, *_, **kwargs):
