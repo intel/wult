@@ -19,6 +19,7 @@ import sys
 import contextlib
 import time
 from pathlib import Path
+from collections import OrderedDict
 from wultlibs.helperlibs import Logging, Trivial, FSHelpers, KernelVersion, Procs, SSH
 from wultlibs.helperlibs.Exceptions import Error
 
@@ -88,6 +89,37 @@ def even_up_dpcnt(rsts):
         dpcnt = len(res.df.index)
         if dpcnt > min_dpcnt:
             res.df = res.df.truncate(after=min_dpcnt-1)
+
+def apply_filters(args, res):
+    """
+    This is a helper function for the following command-line options: '--rsel', '--rfilt', '--csel',
+    '--cfilt'. The 'args' argument should be an 'helperlibs.ArgParse' object, where all the above
+    mentioned options are represented by the 'oargs' (ordered arguments) field. The 'res' argument
+    is a 'RORawResult' object.
+    """
+
+    def do_filter(res, ops):
+        """Apply filter operations in 'ops' to wult test result 'res'."""
+
+        res.clear_filts()
+        for name, expr in ops.items():
+            if name.startswith("c"):
+                expr = Trivial.split_csv_line(expr)
+            getattr(res, f"set_{name}")(expr)
+        res.load_df()
+
+    if not getattr(args, "oargs", None):
+        return
+
+    ops = OrderedDict()
+    for name, expr in args.oargs:
+        if name in ops:
+            do_filter(res, ops)
+            ops = OrderedDict()
+        ops[name] = expr
+
+    if ops:
+        do_filter(res, ops)
 
 def add_deploy_cmdline_args(parser, toolname, drivers=True, helpers=True, argcomplete=None):
     """

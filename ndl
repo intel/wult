@@ -19,7 +19,7 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
 
-from wultlibs import ToolsCommon, Helpers, NdlHTMLReport, NdlRunner, RORawResult, WORawResult
+from wultlibs import ToolsCommon, NdlHTMLReport, NdlRunner, RORawResult, WORawResult
 from wultlibs.helperlibs import Logging, ArgParse, Trivial, ReportID, YAML
 from wultlibs.helperlibs.Exceptions import Error
 
@@ -341,7 +341,7 @@ def filter_command(args):
     if args.reportid and not args.outdir:
         raise Error("'--reportid' can be used only with '-o'/'--outdir'")
 
-    Helpers.apply_filters(args, res)
+    ToolsCommon.apply_filters(args, res)
 
     if not args.outdir:
         res.df.to_csv(sys.stdout, index=False, header=True)
@@ -364,7 +364,7 @@ def stats_command(args):
         all_funcs = False
 
     res = RORawResult.RORawResult(args.respath)
-    Helpers.apply_filters(args, res)
+    ToolsCommon.apply_filters(args, res)
 
     res.calc_stats(funcnames=funcnames, all_funcs=all_funcs)
 
@@ -389,7 +389,7 @@ def report_command(args):
         return
 
     for res in rsts:
-        Helpers.apply_filters(args, res)
+        ToolsCommon.apply_filters(args, res)
 
     if args.even_dpcnt:
         ToolsCommon.even_up_dpcnt(rsts)

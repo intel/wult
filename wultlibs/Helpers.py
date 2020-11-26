@@ -11,7 +11,6 @@ Miscellaneous helper functions shared by various tools and modules.
 """
 
 import logging
-from collections import OrderedDict
 from wultlibs.helperlibs import Trivial
 from wultlibs.helperlibs.Exceptions import Error
 
@@ -36,34 +35,3 @@ def get_dpcnt(res, dpcnt):
         return 0
 
     return dpcnt
-
-def apply_filters(args, res):
-    """
-    This is a helper function for the following command-line options: '--rsel', '--rfilt', '--csel',
-    '--cfilt'. The 'args' argument should be an 'helperlibs.ArgParse' object, where all the above
-    mentioned options are represented by the 'oargs' (ordered arguments) field. The 'res' argument
-    is a 'RORawResult' object.
-    """
-
-    def do_filter(res, ops):
-        """Apply filter operations in 'ops' to wult test result 'res'."""
-
-        res.clear_filts()
-        for name, expr in ops.items():
-            if name.startswith("c"):
-                expr = Trivial.split_csv_line(expr)
-            getattr(res, f"set_{name}")(expr)
-        res.load_df()
-
-    if not getattr(args, "oargs", None):
-        return
-
-    ops = OrderedDict()
-    for name, expr in args.oargs:
-        if name in ops:
-            do_filter(res, ops)
-            ops = OrderedDict()
-        ops[name] = expr
-
-    if ops:
-        do_filter(res, ops)

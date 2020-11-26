@@ -23,7 +23,7 @@ except ImportError:
 
 from wultlibs.helperlibs import Logging, ArgParse, ReportID, Trivial, YAML, KernelVersion
 from wultlibs.helperlibs.Exceptions import Error
-from wultlibs import ToolsCommon, Devices, EventsProvider, Helpers, RORawResult, WultHTMLReport
+from wultlibs import ToolsCommon, Devices, EventsProvider, RORawResult, WultHTMLReport
 from wultlibs import WultRunner, WORawResult
 
 VERSION = "1.8.8"
@@ -429,7 +429,7 @@ def filter_command(args):
     if args.reportid and not args.outdir:
         raise Error("'--reportid' can be used only with '-o'/'--outdir'")
 
-    Helpers.apply_filters(args, res)
+    ToolsCommon.apply_filters(args, res)
 
     if not args.outdir:
         res.df.to_csv(sys.stdout, index=False, header=True)
@@ -452,7 +452,7 @@ def stats_command(args):
         all_funcs = False
 
     res = RORawResult.RORawResult(args.respath)
-    Helpers.apply_filters(args, res)
+    ToolsCommon.apply_filters(args, res)
 
     non_numeric = res.get_non_numeric_colnames()
     if non_numeric and (args.csel or args.cfilt):
@@ -490,7 +490,7 @@ def report_command(args):
         return
 
     for res in rsts:
-        Helpers.apply_filters(args, res)
+        ToolsCommon.apply_filters(args, res)
 
     if args.even_dpcnt:
         ToolsCommon.even_up_dpcnt(rsts)
