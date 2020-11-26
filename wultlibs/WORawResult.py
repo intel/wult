@@ -11,7 +11,7 @@ This module provides API for creating raw wult test results.
 """
 
 from wultlibs.helperlibs.Exceptions import Error
-from wultlibs import _WORawResultBase, _common
+from wultlibs import _WORawResultBase, _Common
 from wultlibs._WORawResultBase import FORMAT_VERSION # pylint: disable=unused-import
 
 class WultWORawResult(_WORawResultBase.WORawResultBase):
@@ -39,7 +39,7 @@ class WultWORawResult(_WORawResultBase.WORawResultBase):
 
         super().__init__(reportid, outdir, cont=cont)
 
-        self.cpunum = _common.validate_cpunum(cpunum)
+        self.cpunum = _Common.validate_cpunum(cpunum)
 
         self.info["toolname"] = "wult"
         self.info["toolver"] = toolver

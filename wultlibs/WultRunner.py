@@ -18,7 +18,7 @@ from pathlib import Path
 from wultlibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from wultlibs.helperlibs import Dmesg, FSHelpers, Trivial
 from wultlibs.sysconfiglibs import CPUIdle, Systemctl
-from wultlibs import _common, EventsProvider, Helpers, Defs, _FTrace, _ProgressLine
+from wultlibs import _Common, EventsProvider, Helpers, Defs, _FTrace, _ProgressLine
 
 _LOG = logging.getLogger("main")
 
@@ -337,9 +337,9 @@ class WultRunner:
         self._post_trigger = None
         self._post_trigger_range = []
 
-        _common.validate_cpunum(res.cpunum, proc=proc)
+        _Common.validate_cpunum(res.cpunum, proc=proc)
         if self._ldist:
-            self._ldist = _common.validate_ldist(self._ldist)
+            self._ldist = _Common.validate_ldist(self._ldist)
         self._validate_sut()
 
         self._progress = _ProgressLine.ProgressLine(period=1)

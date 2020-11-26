@@ -16,7 +16,7 @@ import re
 import logging
 import contextlib
 from collections import OrderedDict
-from wultlibs import _common
+from wultlibs import _Common
 from wultlibs.helperlibs import Trivial, FSHelpers, KernelModule, KernelVersion, ProcHelpers
 from wultlibs.helperlibs import TurbostatParser
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
@@ -362,7 +362,7 @@ class NdlRunner:
         if not self._ldist:
             self._ldist = "5000, 10000"
 
-        self._ldist = _common.validate_ldist(self._ldist)
+        self._ldist = _Common.validate_ldist(self._ldist)
 
         # Validate the 'ndlrunner' helper path.
         if not FSHelpers.isexe(self._ndlrunner_bin, proc=self._proc):
