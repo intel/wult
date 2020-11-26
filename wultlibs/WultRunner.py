@@ -18,7 +18,7 @@ from pathlib import Path
 from wultlibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from wultlibs.helperlibs import Dmesg, FSHelpers, Trivial
 from wultlibs.sysconfiglibs import CPUIdle, Systemctl
-from wultlibs import _Common, EventsProvider, Helpers, Defs, _FTrace, _ProgressLine
+from wultlibs import _Common, EventsProvider, Defs, _FTrace, _ProgressLine
 
 _LOG = logging.getLogger("main")
 
@@ -159,7 +159,7 @@ class WultRunner:
           * dpcnt - count of datapoints to collect.
         """
 
-        dpcnt = Helpers.get_dpcnt(self._res, dpcnt)
+        dpcnt = _Common.get_dpcnt(self._res, dpcnt)
         if not dpcnt:
             return
 

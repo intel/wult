@@ -16,11 +16,10 @@ import re
 import logging
 import contextlib
 from collections import OrderedDict
-from wultlibs import _Common
 from wultlibs.helperlibs import Trivial, FSHelpers, KernelModule, KernelVersion, ProcHelpers
 from wultlibs.helperlibs import TurbostatParser
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
-from wultlibs import Helpers, _ProgressLine, _Nmcli, _NetIface, _ETFQdisc
+from wultlibs import _Common, _ProgressLine, _Nmcli, _NetIface, _ETFQdisc
 
 _LOG = logging.getLogger("main")
 
@@ -188,7 +187,7 @@ class NdlRunner:
           * dpcnt - count of datapoints to collect.
         """
 
-        dpcnt = Helpers.get_dpcnt(self._res, dpcnt)
+        dpcnt = _Common.get_dpcnt(self._res, dpcnt)
         if not dpcnt:
             return
 
