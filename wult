@@ -493,7 +493,7 @@ def report_command(args):
         Helpers.apply_filters(args, res)
 
     if args.even_dpcnt:
-        Helpers.even_up_dpcnt(rsts)
+        ToolsCommon.even_up_dpcnt(rsts)
 
     if args.outdir is None:
         args.outdir = ReportID.format_reportid(prefix=f"{OWN_NAME}-report",

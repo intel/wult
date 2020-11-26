@@ -58,6 +58,37 @@ def add_ssh_options(parser, argcomplete=None):
     text = """SSH connect timeout in seconds, default is 8."""
     parser.add_argument("-T", "--timeout", default=8, help=text)
 
+def even_up_dpcnt(rsts):
+    """
+    This is a helper function for the '--even-up-datapoints' option. It takes a list of
+    'RORawResult' objects ('rsts') and truncates them to the size of the smallest test result, where
+    "size" is defined as the count of rows in the CSV file.
+    """
+
+    # Find test with the smallest CSV file. It should be a good approximation for the smallest test
+    # result, ant it will be corrected as we go.
+    min_size = min_res = None
+    for res in rsts:
+        size = res.dp_path.stat().st_size
+        if min_size is None or size < min_size:
+            min_size = size
+            min_res = res
+
+    min_res.load_df()
+    min_dpcnt = len(min_res.df.index)
+
+    # Load only 'min_dpcnt' datapoints for every test result, correcting 'min_dpcnt' as we go.
+    for res in rsts:
+        res.load_df(nrows=min_dpcnt)
+        min_dpcnt = min(min_dpcnt, len(res.df.index))
+
+    # And in case our initial 'min_dpcnt' estimation was incorrect, truncate all the results to the
+    # final 'min_dpcnt'.
+    for res in rsts:
+        dpcnt = len(res.df.index)
+        if dpcnt > min_dpcnt:
+            res.df = res.df.truncate(after=min_dpcnt-1)
+
 def add_deploy_cmdline_args(parser, toolname, drivers=True, helpers=True, argcomplete=None):
     """
     Add command-line arguments for the 'deploy' command. The input arguments are as follows.
