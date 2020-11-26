@@ -39,9 +39,9 @@ def get_proc(args, hostname):
     return SSH.SSH(hostname=hostname, username=args.username, privkeypath=args.privkey,
                    timeout=args.timeout)
 
-def add_cmdline_arguments(parser, toolname, drivers=True, helpers=True, argcomplete=None):
+def add_deploy_cmdline_args(parser, toolname, drivers=True, helpers=True, argcomplete=None):
     """
-    Add common command-line arguments. The arguments are as follows.
+    Add command-line arguments for the 'deploy' command. The input arguments are as follows.
       o parse - the 'argparse' parser to add common argumets to.
       o toolname - name of the tool the command line arguments belong to.
       o drivers - whether the tool comes with out of tree drivers.

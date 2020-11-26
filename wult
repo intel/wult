@@ -68,8 +68,8 @@ def parse_arguments():
     descr = f"""Compile and deploy {OWN_NAME} drivers on local or remote host. This command has many
                 options, but they are very rarely useful and most probably you do not need them."""
     subpars = subparsers.add_parser("deploy", help=text, description=descr)
-    ToolsCommon.add_cmdline_arguments(subpars, "wult", drivers=True, helpers=False,
-                                      argcomplete=argcomplete)
+    ToolsCommon.add_deploy_cmdline_args(subpars, "wult", drivers=True, helpers=False,
+                                        argcomplete=argcomplete)
     subpars.set_defaults(func=deploy_command)
 
     #
