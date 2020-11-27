@@ -525,13 +525,18 @@ class RORawResult(_RawResultBase.RawResultBase):
         raise Error(f"failed to figure out which '{toolname}' tool version has created test result "
                     f"at '{self.dp_path}'")
 
-    def __init__(self, dirpath):
+    def __init__(self, dirpath, reportid=None):
         """
         The class constructor. The arguments are as follows.
           * dirpath - path to the directory containing the raw test result to open.
+          * reportid - override the report ID of the raw test result: the 'reportid' string will be
+                       used instead of the report ID stored in 'dirpath/info.yml'. Note, the
+                       provided report ID is not verified, so the caller has to make sure is a sane
+                       string.
 
-        Note, the constructor does not load the test result data into the memory. Use 'load_df()'
-        for that.
+        Note, the constructor does not load the potentially huge test result data into the memory.
+        It only loads the 'info.yml' file and figures out the colum names list. The data are loaded
+        "on-demand" by the 'load_df()' and other methods.
         """
 
         super().__init__(dirpath)
@@ -554,6 +559,9 @@ class RORawResult(_RawResultBase.RawResultBase):
         self.colnames_set = set()
 
         self.info = YAML.load(self.info_path)
+        if reportid:
+            # Note, we do not verify it here, the caller is supposed to verify.
+            self.info["reportid"] = reportid
         if "reportid" not in self.info:
             raise ErrorNotSupported(f"no 'reportid' key found in {self.info_path}")
         self.reportid = self.info["reportid"]
