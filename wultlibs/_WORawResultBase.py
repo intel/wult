@@ -11,7 +11,6 @@ This module base class for wirte-only raw test result classes.
 """
 
 import os
-from collections import OrderedDict
 from wultlibs.helperlibs import YAML
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs import _CSV, _RawResultBase
@@ -88,13 +87,11 @@ class WORawResultBase(_RawResultBase.RawResultBase):
 
         super().__init__(outdir)
 
-        # This dictionary represents the info file.
-        self.info = OrderedDict()
         # The writable CSV file object.
         self.csv = None
         self._cont = cont
-
         self.reportid = reportid
+
         self._init_outdir()
 
         self.info["format_version"] = FORMAT_VERSION

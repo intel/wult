@@ -550,8 +550,6 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self.df = None
         self.cstats = None
-        self.info = None
-        self.reportid = None
         self.colnames = []
         self.colnames_set = set()
 
