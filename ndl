@@ -54,7 +54,7 @@ def parse_arguments():
     subpars = subparsers.add_parser("deploy", help=text, description=descr)
     ToolsCommon.add_deploy_cmdline_args(subpars, "ndl", drivers=True, helpers=True,
                                         argcomplete=argcomplete)
-    subpars.set_defaults(func=deploy_command)
+    subpars.set_defaults(func=ToolsCommon.deploy_command)
 
     #
     # Create parsers for the "start" command.
@@ -272,7 +272,12 @@ def parse_arguments():
 
     if argcomplete:
         argcomplete.autocomplete(parser)
-    return parser.parse_args()
+
+    args = parser.parse_args()
+    args.toolname = OWN_NAME
+    args.minkver = "5.1-rc1"
+
+    return args
 
 def start_command(args):
     """Implements the 'start' command."""
@@ -360,16 +365,6 @@ def report_command(args):
     rep.relocatable = args.relocatable
     rep.set_hover_colnames(HOVER_COLNAME_REGEXS)
     rep.generate()
-
-def deploy_command(args):
-    """Implements the 'deploy' command."""
-
-    try:
-        ToolsCommon.deploy_prepare(args, "ndl", "5.1-rc1")
-        ToolsCommon.build(args)
-        ToolsCommon.deploy(args)
-    finally:
-        ToolsCommon.remove_deploy_tmpdir(args, args.bhost)
 
 def main():
     """Script entry point."""

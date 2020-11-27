@@ -70,7 +70,7 @@ def parse_arguments():
     subpars = subparsers.add_parser("deploy", help=text, description=descr)
     ToolsCommon.add_deploy_cmdline_args(subpars, "wult", drivers=True, helpers=False,
                                         argcomplete=argcomplete)
-    subpars.set_defaults(func=deploy_command)
+    subpars.set_defaults(func=ToolsCommon.deploy_command)
 
     #
     # Create parsers for the "scan" command.
@@ -352,7 +352,12 @@ def parse_arguments():
 
     if argcomplete:
         argcomplete.autocomplete(parser)
-    return parser.parse_args()
+
+    args = parser.parse_args()
+    args.toolname = OWN_NAME
+    args.minkver = "4.19-rc1"
+
+    return args
 
 def warn_trace_printk(proc):
     """
@@ -483,16 +488,6 @@ def load_command(args):
         ep.unload = not args.no_unload
         ep.prepare()
         LOG.info("Loaded the '%s' wult delayed event driver", ep.dev.drvname)
-
-def deploy_command(args):
-    """Implements the 'deploy' command."""
-
-    try:
-        ToolsCommon.deploy_prepare(args, "wult", "4.19-rc1")
-        ToolsCommon.build(args)
-        ToolsCommon.deploy(args)
-    finally:
-        ToolsCommon.remove_deploy_tmpdir(args, args.bhost)
 
 def main():
     """Script entry point."""

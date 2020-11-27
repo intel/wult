@@ -369,14 +369,7 @@ def is_deploy_needed(proc, toolname, helperpath=None):
 
     return False
 
-def remove_deploy_tmpdir(args, hostname):
-    """Remove temporary files on host 'hostname'"""
-
-    if args.tmpdir:
-        with contextlib.closing(get_proc(args, hostname)) as proc:
-            proc.run_verify(f"rm -rf -- '{args.tmpdir}'")
-
-def deploy_prepare(args, toolname, minkver):
+def _deploy_prepare(args, toolname, minkver):
     """
     Validate command-line arguments of the "deploy" command and prepare for builing the helpers and
     drivers. The arguments are as follows.
@@ -492,7 +485,7 @@ def _log_cmd_output(args, stdout, stderr):
         if stderr:
             _LOG.log(Logging.ERRINFO, stderr)
 
-def build(args):
+def _build(args):
     """Build drivers and helpers."""
 
     with contextlib.closing(get_proc(args, args.bhost)) as proc:
@@ -509,7 +502,7 @@ def build(args):
             stdout, stderr = proc.run_verify(f"make -C '{args.helpersrc}'")
             _log_cmd_output(args, stdout, stderr)
 
-def deploy(args):
+def _deploy(args):
     """Deploy helpers and drivers."""
 
     with contextlib.closing(get_proc(args, args.ihost)) as iproc, \
@@ -549,3 +542,20 @@ def deploy(args):
             # to the file-system (e.g., what 'depmod' modified). This may lead to subsequent boot
             # problems. So sync the file-system now.
             iproc.run_verify("sync")
+
+def _remove_deploy_tmpdir(args):
+    """Remove temporary files on the build host ('args.bhost')."""
+
+    if getattr(args, "tmpdir", None):
+        with contextlib.closing(get_proc(args, args.bhost)) as proc:
+            proc.run_verify(f"rm -rf -- '{args.tmpdir}'")
+
+def deploy_command(args):
+    """Implements the 'deploy' command for the 'wult' and 'ndl' tools."""
+
+    try:
+        _deploy_prepare(args, args.toolname, args.minkver)
+        _build(args)
+        _deploy(args)
+    finally:
+        _remove_deploy_tmpdir(args)
