@@ -275,7 +275,7 @@ def parse_arguments():
                 selector options ('--rsel', '--cfilt', etc). The options may be specified multiple
                 times."""
     subpars = subparsers.add_parser("filter", help=text, description=descr)
-    subpars.set_defaults(func=filter_command)
+    subpars.set_defaults(func=ToolsCommon.filter_command)
 
     text = """The row filter: remove all the rows satisfying the filter expression. Here is an
               example of an expression: '(WakeLatency < 10000) | (PC6%% < 1)'. This row filter
@@ -413,28 +413,6 @@ def start_command(args):
     rep.relocatable = False
     rep.set_hover_colnames(HOVER_COLNAME_REGEXS)
     rep.generate()
-
-def filter_command(args):
-    """Implements the 'filter' command."""
-
-    res = RORawResult.RORawResult(args.respath)
-
-    if args.list_columns:
-        for colname in res.colnames:
-            LOG.info("%s: %s", colname, res.defs.info[colname]["title"])
-        return
-
-    if not getattr(args, "oargs", None):
-        raise Error("please, specify at least one reduction criteria.")
-    if args.reportid and not args.outdir:
-        raise Error("'--reportid' can be used only with '-o'/'--outdir'")
-
-    ToolsCommon.apply_filters(args, res)
-
-    if not args.outdir:
-        res.df.to_csv(sys.stdout, index=False, header=True)
-    else:
-        res.save(args.outdir, reportid=args.reportid)
 
 def stats_command(args):
     """Implements the 'stats' command."""

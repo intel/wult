@@ -16,12 +16,13 @@ this module require the  'args' object which represents the command-line argumen
 
 import os
 import sys
-import contextlib
 import time
+import contextlib
 from pathlib import Path
 from collections import OrderedDict
 from wultlibs.helperlibs import Logging, Trivial, FSHelpers, KernelVersion, Procs, SSH
 from wultlibs.helperlibs.Exceptions import Error
+from wultlibs import RORawResult
 
 HELPERS_LOCAL_DIR = Path(".local")
 _DRV_SRC_SUBPATH = Path("drivers/idle")
@@ -120,6 +121,28 @@ def apply_filters(args, res):
 
     if ops:
         do_filter(res, ops)
+
+def filter_command(args):
+    """Implements the 'filter' command for the 'wult' and 'ndl' tools."""
+
+    res = RORawResult.RORawResult(args.respath)
+
+    if args.list_columns:
+        for colname in res.colnames:
+            _LOG.info("%s: %s", colname, res.defs.info[colname]["title"])
+        return
+
+    if not getattr(args, "oargs", None):
+        raise Error("please, specify at least one reduction criteria.")
+    if args.reportid and not args.outdir:
+        raise Error("'--reportid' can be used only with '-o'/'--outdir'")
+
+    apply_filters(args, res)
+
+    if not args.outdir:
+        res.df.to_csv(sys.stdout, index=False, header=True)
+    else:
+        res.save(args.outdir, reportid=args.reportid)
 
 def add_deploy_cmdline_args(parser, toolname, drivers=True, helpers=True, argcomplete=None):
     """
