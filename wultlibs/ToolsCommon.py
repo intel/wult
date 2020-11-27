@@ -172,6 +172,25 @@ def stats_command(args):
     _LOG.info("Datapoints count: %d", len(res.df))
     YAML.dump(res.cstats, sys.stdout, float_format="%.2f")
 
+def report_command_open_raw_results(args):
+    """
+    Opens the input raw test results for the 'report' command of the 'wult' and 'ndl' tools. Returns
+    the list of 'RORawResult' objects. At the same time, implements the '--list-columns' option by
+    printing the column names for each input raw result.
+    """
+
+    rsts = []
+    for respath in args.respaths:
+        res = RORawResult.RORawResult(respath)
+        rsts.append(res)
+
+        if args.list_columns:
+            _LOG.info("Column names in '%s':", respath)
+            for colname in res.colnames:
+                _LOG.info("  * %s: %s", colname, res.defs.info[colname]["title"])
+
+    return rsts
+
 def add_deploy_cmdline_args(parser, toolname, drivers=True, helpers=True, argcomplete=None):
     """
     Add command-line arguments for the 'deploy' command. The input arguments are as follows.

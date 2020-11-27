@@ -431,15 +431,7 @@ def report_command(args):
             else:
                 setattr(args, name, Trivial.split_csv_line(val))
 
-    rsts = []
-    for respath in args.respaths:
-        res = RORawResult.RORawResult(respath)
-        rsts.append(res)
-
-        if args.list_columns:
-            LOG.info("Column names in '%s':", respath)
-            for colname in res.colnames:
-                LOG.info("  * %s: %s", colname, res.defs.info[colname]["title"])
+    rsts = ToolsCommon.report_command_open_raw_results(args)
 
     if args.list_columns:
         return
