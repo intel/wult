@@ -1,3 +1,6 @@
+.\" -*- coding: utf-8 -*-
+.\" vim: ts=4 sw=4 tw=100 et ai si
+
 .TH NDL 1
 
 .SH NAME
@@ -11,10 +14,9 @@ ndl COMMAND [OPTIONS] IFNAME|RESPATH
 .fi
 
 .SH DESCRIPTION
-Ndl is a tool for measuring the longest delay observed by a NIC when it tries
-to read data from RAM while the CPU is in a C-state. The tool utilizes a couple
-of nice features of the Intel I210 Gigabit Ethernet chip, so it only works on
-platforms equipped with an I210 NIC.
+Ndl is a tool for measuring the longest delay observed by a NIC when it tries to read data from RAM
+while the CPU is in a C-state. The tool utilizes a couple of nice features of the Intel I210 Gigabit
+Ethernet chip, so it only works on platforms equipped with an I210 NIC.
 
 Here is how ndl works at high level.
 .RS
