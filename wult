@@ -21,7 +21,7 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
 
-from wultlibs.helperlibs import Logging, ArgParse, ReportID, Trivial, YAML, KernelVersion
+from wultlibs.helperlibs import Logging, ArgParse, ReportID, Trivial, KernelVersion
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs import ToolsCommon, Devices, EventsProvider, RORawResult, WultHTMLReport
 from wultlibs import WultRunner, WORawResult
@@ -324,7 +324,7 @@ def parse_arguments():
     text = f"Calculate statistics for a {OWN_NAME} test result."
     descr = f"""Calculates various statistics for a {OWN_NAME} test results and prints them."""
     subpars = subparsers.add_parser("stats", help=text, description=descr)
-    subpars.set_defaults(func=stats_command)
+    subpars.set_defaults(func=ToolsCommon.stats_command)
 
     text = """The row filter, same as '--rfilt' in the 'filter' command."""
     subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=text)
@@ -413,34 +413,6 @@ def start_command(args):
     rep.relocatable = False
     rep.set_hover_colnames(HOVER_COLNAME_REGEXS)
     rep.generate()
-
-def stats_command(args):
-    """Implements the 'stats' command."""
-
-    if args.list_funcs:
-        for name, descr in RORawResult.get_stat_funcs():
-            LOG.info("%s: %s", name, descr)
-        return
-
-    if args.funcs:
-        funcnames = Trivial.split_csv_line(args.funcs)
-        all_funcs = True
-    else:
-        funcnames = None
-        all_funcs = False
-
-    res = RORawResult.RORawResult(args.respath)
-    ToolsCommon.apply_filters(args, res)
-
-    non_numeric = res.get_non_numeric_colnames()
-    if non_numeric and (args.csel or args.cfilt):
-        non_numeric = ", ".join(non_numeric)
-        LOG.warning("skipping non-numeric column(s): %s", non_numeric)
-
-    res.calc_stats(funcnames=funcnames, all_funcs=all_funcs)
-
-    LOG.info("Datapoints count: %d", len(res.df))
-    YAML.dump(res.cstats, sys.stdout, float_format="%.2f")
 
 def report_command(args):
     """Implements the 'report' command."""

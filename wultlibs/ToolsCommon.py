@@ -20,7 +20,7 @@ import time
 import contextlib
 from pathlib import Path
 from collections import OrderedDict
-from wultlibs.helperlibs import Logging, Trivial, FSHelpers, KernelVersion, Procs, SSH
+from wultlibs.helperlibs import Logging, Trivial, FSHelpers, KernelVersion, Procs, SSH, YAML
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs import RORawResult
 
@@ -143,6 +143,34 @@ def filter_command(args):
         res.df.to_csv(sys.stdout, index=False, header=True)
     else:
         res.save(args.outdir, reportid=args.reportid)
+
+def stats_command(args):
+    """Implements the 'stats' command  for the 'wult' and 'ndl' tools."""
+
+    if args.list_funcs:
+        for name, descr in RORawResult.get_stat_funcs():
+            _LOG.info("%s: %s", name, descr)
+        return
+
+    if args.funcs:
+        funcnames = Trivial.split_csv_line(args.funcs)
+        all_funcs = True
+    else:
+        funcnames = None
+        all_funcs = False
+
+    res = RORawResult.RORawResult(args.respath)
+    apply_filters(args, res)
+
+    non_numeric = res.get_non_numeric_colnames()
+    if non_numeric and (args.csel or args.cfilt):
+        non_numeric = ", ".join(non_numeric)
+        _LOG.warning("skipping non-numeric column(s): %s", non_numeric)
+
+    res.calc_stats(funcnames=funcnames, all_funcs=all_funcs)
+
+    _LOG.info("Datapoints count: %d", len(res.df))
+    YAML.dump(res.cstats, sys.stdout, float_format="%.2f")
 
 def add_deploy_cmdline_args(parser, toolname, drivers=True, helpers=True, argcomplete=None):
     """
