@@ -21,6 +21,7 @@ import contextlib
 from pathlib import Path
 from collections import OrderedDict
 from wultlibs.helperlibs import Logging, Trivial, FSHelpers, KernelVersion, Procs, SSH, YAML
+from wultlibs.helperlibs import ReportID
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs import RORawResult
 
@@ -179,9 +180,26 @@ def report_command_open_raw_results(args):
     printing the column names for each input raw result.
     """
 
+    if args.reportids:
+        reportids = Trivial.split_csv_line(args.reportids)
+    else:
+        reportids = []
+
+    if len(reportids) > len(args.respaths):
+        raise Error(f"there are {len(reportids)} report IDs to assign to {len(args.respaths)} "
+                    f"input test results. Please, provide {len(args.respaths)} or less report IDs.")
+
+    # Append the required amount of 'None's to make the 'reportids' list be of the same length as
+    # the 'args.respaths' list.
+    reportids += [None] * (len(args.respaths) - len(reportids))
+
     rsts = []
-    for respath in args.respaths:
-        res = RORawResult.RORawResult(respath)
+    for respath, reportid in zip(args.respaths, reportids):
+        if reportid:
+            additional_chars = getattr(args, "reportid_additional_chars", None)
+            ReportID.validate_reportid(reportid, additional_chars=additional_chars)
+
+        res = RORawResult.RORawResult(respath, reportid=reportid)
         rsts.append(res)
 
         if args.list_columns:

@@ -257,6 +257,16 @@ report for many test results (a diff). If the test results contain different cou
 evens up datapoints count in the test results. It just finds the test result with the minimum count
 of datapoints and ignores the extra datapoints in the other test results.
 .RE
+.B --reportids REPORTIDS
+.RS
+Every input raw result comes with a report ID. This report ID is basically a short name for the test
+result, and it used in the HTML report to refer to the test result. However, sometimes it is helpful
+to temporarily override the report IDs just for the HTML report, and this is what the
+\'--reportids\' option does. Please, specify a comma-separated list of report IDs for every input
+raw test result.  The first report ID will be used for the first raw rest result, the second report
+ID will be used for the second raw test result, and so on. Please, refer to the \'--reportid\'
+option description in the \'start\' command for more information about the report ID.
+.RE
 .B --title-descr TITLE_DESCR
 .RS
 The report title description - any text describing this report as whole, or path to a file
