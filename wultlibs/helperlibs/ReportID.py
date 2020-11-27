@@ -55,7 +55,7 @@ def format_reportid(prefix=None, separator="-", reportid=None, strftime="%Y%m%d-
 
     return validate_reportid(result, additional_chars=additional_chars)
 
-def validate_reportid(reportid, additional_chars="", default=_RAISE):
+def validate_reportid(reportid, additional_chars=None, default=_RAISE):
     """
     We limit the characters which can be used in report IDs to those which are safe to use in URLs,
     and this function validates a report ID in 'reportid' against the allowed set of characters. The
@@ -71,6 +71,9 @@ def validate_reportid(reportid, additional_chars="", default=_RAISE):
             raise Error(f"too long run ID ({len(reportid)} characters), the maximum allowed length "
                         f"is {MAX_REPORID_LEN} characters")
         return default
+
+    if not additional_chars:
+        additional_chars = ""
 
     chars = SPECIAL_CHARS + additional_chars
     if not re.match(rf"^[A-Za-z0-9{chars}]+$", reportid):
