@@ -277,6 +277,9 @@ def parse_arguments():
 def start_command(args):
     """Implements the 'start' command."""
 
+    if args.post_trigger_threshold and not args.post_trigger:
+        raise Error("specify post trigger program to run")
+
     proc = ToolsCommon.get_proc(args, args.hostname)
 
     if not args.reportid and proc.is_remote:
