@@ -67,6 +67,29 @@ class WultRunner:
             yield_time = time.time()
             yield names, vals
 
+    def _get_datapoint_dict(self, rawdp):
+        """Return the raw data provided by the kernel driver as a dictionary."""
+
+        return dict(zip(self._rawhdr, [int(elt) for elt in rawdp]))
+
+    def _smi_nmi_happened(self, dp):
+        """
+        Compare SMI and NMI counters in datapoint 'dp' against values in previous datapoint. Return
+        'True' if either of the values differ, otherwise return 'False'.
+        """
+
+        smi_nmi_happened = False
+        for what in ("NMI", "SMI"):
+            if what not in dp:
+                continue
+
+            var = f"_{what}_cnt"
+            if dp[what] != getattr(self, var):
+                smi_nmi_happened = True
+                setattr(self, var, dp[what])
+
+        return smi_nmi_happened
+
     def _process_datapoint(self, rawdp):
         """
         Process a raw datapoint and return it as dictionary. The "raw" part in this contents means
@@ -74,7 +97,7 @@ class WultRunner:
         amend and extend it.
         """
 
-        dp = dict(zip(self._res.csv.hdr, [int(elt) for elt in rawdp]))
+        dp = self._get_datapoint_dict(rawdp)
 
         # Add the C-state percentages.
         for cscyc_colname, csres_colname in self._cs_colnames:
@@ -88,6 +111,10 @@ class WultRunner:
             # Supposedly an bad C-state index.
             raise Error(f"bad C-state index '{dp['ReqCState']}' coming from the following FTrace "
                         f"line:\n  {self._ftrace.raw_line}")
+
+        if self._smi_nmi_happened(dp):
+            _LOG.warning("SMI and/or NMI happened%s, ignoring datapoint", self._proc.hostmsg)
+            return None
 
         return dp
 
@@ -114,15 +141,25 @@ class WultRunner:
         datapoints = self._get_datapoints()
         rawhdr, rawdp = next(datapoints)
 
+        self._rawhdr = list(rawhdr)
+
+        # We cannot check if an NMI/SMI happened for the first datapoint, so use it to get SMI/NMI
+        # counters, but do not save it. These counters will be used to detect SMI/NMI for the
+        # subsequent datapoints.
+        dp = self._get_datapoint_dict(rawdp)
+        self._NMI_cnt = dp.get("NMI")
+        self._SMI_cnt = dp.get("SMI")
+
+        # SMI/NMI are not saved to CSV file, remove them from the header.
+        rawhdr = [col for col in rawhdr if col not in ("NMI", "SMI")]
+
         # Now 'rawhdr' contains information about C-state of the measured platform, save it for
         # later use.
         self._cs_colnames = list(Defs.get_cs_colnames(rawhdr))
-        self._rawhdr = list(rawhdr)
 
         # The raw CSV header (the one that comes from the trace buffer) does not include C-state
         # residency, it only provides the C-state cycle counters. We'll be calculating residencies
         # later and include them too, so extend the raw CSV header.
-        rawhdr = list(rawhdr)
         for _, csres_colname in self._cs_colnames:
             rawhdr.append(csres_colname)
         self._res.csv.add_header(rawhdr)
@@ -130,6 +167,9 @@ class WultRunner:
         for rawhdr, rawdp in datapoints:
             self._validate_datapoint(rawhdr, rawdp)
             dp = self._process_datapoint(rawdp)
+            if not dp:
+                continue
+
             # Add the data to the CSV file.
             self._res.csv.add_row([dp[key] for key in self._res.csv.hdr])
 
@@ -328,6 +368,8 @@ class WultRunner:
         self._ftrace = None
         self._timeout = 10
         self._rawhdr = None
+        self._NMI_cnt = None
+        self._SMI_cnt = None
         self._cs_colnames = None
         self._progress = None
         self._cstates = {}
