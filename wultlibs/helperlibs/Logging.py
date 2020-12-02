@@ -185,7 +185,8 @@ def _notice(logger, fmt, *args):
     """Just a convenient 'notice()' method for the logger."""
     logger.log(NOTICE, fmt, *args)
 
-def setup_logger(name=None, prefix=None, loglevel=None, colored=None):
+def setup_logger(name=None, prefix=None, loglevel=None, colored=None, info_stream=sys.stdout,
+                 error_stream=sys.stderr):
     """
     Setup and return a logger.
       * name - name of the logger to setup, default is "main" ('main_log').
@@ -234,12 +235,12 @@ def setup_logger(name=None, prefix=None, loglevel=None, colored=None):
     # Remove existing handlers.
     logger.handlers = []
 
-    where = logging.StreamHandler(sys.stderr)
+    where = logging.StreamHandler(error_stream)
     where.setFormatter(formatter)
     where.addFilter(_MyFilter([DEBUG, WARNING, NOTICE, ERROR, ERRINFO, CRITICAL]))
     logger.addHandler(where)
 
-    where = logging.StreamHandler(sys.stdout)
+    where = logging.StreamHandler(info_stream)
     where.setFormatter(formatter)
     where.addFilter(_MyFilter([INFO]))
     logger.addHandler(where)
