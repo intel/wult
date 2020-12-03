@@ -18,7 +18,7 @@ from wultlibs.helperlibs import FSHelpers, KernelModule, Trivial
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs import Devices
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 class EventsProvider:
     """

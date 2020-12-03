@@ -21,7 +21,7 @@ from collections import namedtuple
 from wultlibs.helperlibs import FSHelpers, Procs, Trivial
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 # A unique object used as the default value for the 'default' keyword argument in various
 # functions.

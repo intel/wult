@@ -11,6 +11,7 @@
 """ndl - a tool for measuring memory access latency observed by a network card."""
 
 import sys
+import logging
 from pathlib import Path
 
 try:
@@ -30,8 +31,8 @@ OWN_NAME = "ndl"
 # text of the scatter plot (all the core and package C-state residency columns).
 HOVER_COLNAME_REGEXS = [r"[PC]C.+%"]
 
-LOG = Logging.main_log
-Logging.setup_loggers(OWN_NAME)
+LOG = logging.getLogger()
+Logging.setup_logger(OWN_NAME)
 
 def parse_arguments():
     """A helper function which parses the input arguments."""
@@ -387,4 +388,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         LOG.info("\nInterrupted, exiting")
     except Error as err:
-        Logging.error_out(err)
+        LOG.error_out(err)

@@ -13,6 +13,7 @@ wult - a tool for measuring C-state latency.
 """
 
 import sys
+import logging
 from pathlib import Path
 
 try:
@@ -40,8 +41,8 @@ REPORTID_CHARS_DESCR = ReportID.get_charset_descr(additional_chars=REPORTID_ADDI
 # columns.
 HOVER_COLNAME_REGEXS = [".*Latency", ".*Delay", "LDist", "ReqCState", r"[PC]C.+%"]
 
-LOG = Logging.main_log
-Logging.setup_loggers(OWN_NAME)
+LOG = logging.getLogger()
+Logging.setup_logger(OWN_NAME)
 
 def get_axes_default(name):
     """Returns the default CSV column names for X- or Y-axes, as well as histograms."""
@@ -512,4 +513,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         LOG.info("Interrupted, exiting")
     except Error as err:
-        Logging.error_out(err)
+        LOG.error_out(err)

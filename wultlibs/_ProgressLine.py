@@ -14,7 +14,7 @@ import sys
 import time
 import logging
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 class ProgressLine:
     """This class implements the measurement progress line."""

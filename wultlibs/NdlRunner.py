@@ -21,7 +21,7 @@ from wultlibs.helperlibs import TurbostatParser
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs import _Common, _ProgressLine, _Nmcli, _NetIface, _ETFQdisc
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 class NdlRunner:
     """Run the latency measurements."""

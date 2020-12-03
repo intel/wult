@@ -26,7 +26,7 @@ from wultlibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupport
 # All the possible wult device driver names.
 DRVNAMES = set()
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 class _WultDeviceBase(ABC):
     """

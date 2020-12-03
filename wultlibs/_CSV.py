@@ -15,7 +15,7 @@ import logging
 from pathlib import Path
 from wultlibs.helperlibs.Exceptions import Error
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 class WritableCSV:
     """This class represents a write-only CSV file."""

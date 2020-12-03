@@ -28,7 +28,7 @@ A kernel function trace buffer line.
   o func - name of the kernel function where the trace happened.
 """
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 class FTrace:
     """This class represents the Linux function trace buffer."""

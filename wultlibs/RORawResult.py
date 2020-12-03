@@ -21,7 +21,7 @@ from wultlibs.helperlibs import YAML, Trivial
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
 from wultlibs import Defs, _RawResultBase
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 # Statistic function names and titles.
 _STAT_FUNCNAMES = {"min"       : "the minimum value",

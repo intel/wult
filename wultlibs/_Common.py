@@ -13,7 +13,7 @@ from wultlibs.helperlibs import Trivial
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.sysconfiglibs import CPUInfo
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 def validate_ldist(ldist):
     """

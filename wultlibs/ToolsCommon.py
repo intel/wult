@@ -17,6 +17,7 @@ this module require the  'args' object which represents the command-line argumen
 import os
 import sys
 import time
+import logging
 import contextlib
 from pathlib import Path
 from collections import OrderedDict
@@ -29,7 +30,7 @@ HELPERS_LOCAL_DIR = Path(".local")
 _DRV_SRC_SUBPATH = Path("drivers/idle")
 _HELPERS_SRC_SUBPATH = Path("helpers")
 
-_LOG = Logging.main_log
+_LOG = logging.getLogger()
 
 def get_proc(args, hostname):
     """

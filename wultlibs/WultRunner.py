@@ -20,7 +20,7 @@ from wultlibs.helperlibs import Dmesg, FSHelpers, Trivial
 from wultlibs.sysconfiglibs import CPUIdle, Systemctl
 from wultlibs import _Common, EventsProvider, Defs, _FTrace, _ProgressLine
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 # Maximum count of unexpected lines in the trace buffer we tolerate.
 _MAX_FTRACE_BAD_LINES = 10

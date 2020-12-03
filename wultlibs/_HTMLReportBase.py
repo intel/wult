@@ -23,7 +23,7 @@ from wultlibs.helperlibs import Trivial, FSHelpers, Jinja2
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs import RORawResult
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 # List of diagram markers that we use in scatter plots.
 _SCATTERPLOT_MARKERS = ['circle', 'square', 'diamond', 'cross', 'triangle-up', 'pentagon']

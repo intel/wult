@@ -17,7 +17,7 @@ from wultlibs.helperlibs import FSHelpers, ProcHelpers
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs import _NetIface
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 class ETFQdisc():
     """
