@@ -14,7 +14,7 @@ import types
 import logging
 from wultlibs.helperlibs.Exceptions import Error
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 class WrapExceptions:
     """This class allows for wrapping objects in order to intercept their exceptions."""

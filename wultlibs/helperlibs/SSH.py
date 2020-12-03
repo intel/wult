@@ -35,7 +35,7 @@ from wultlibs.helperlibs._Common import ProcResult, cmd_failed_msg # pylint: dis
 from wultlibs.helperlibs._Common import TIMEOUT
 from wultlibs.helperlibs.Exceptions import Error, ErrorPermissionDenied, ErrorTimeOut, ErrorConnect
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 # Paramiko is a bit too noisy, lower its log level.
 logging.getLogger("paramiko").setLevel(logging.WARNING)

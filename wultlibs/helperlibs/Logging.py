@@ -35,10 +35,7 @@ ERROR = logging.ERROR
 ERRINFO = logging.ERROR + 1
 CRITICAL = logging.CRITICAL
 
-# The default logging object.
-main_log = logging.getLogger("main")
-
-def error_traceback(msgformat, *args):
+def _error_traceback(logger, msgformat, *args):
     """Print an error message occurred along with the traceback."""
 
     tback = []
@@ -63,34 +60,38 @@ def error_traceback(msgformat, *args):
         if colorama:
             dim = colorama.Style.RESET_ALL + colorama.Style.DIM
             undim = colorama.Style.RESET_ALL
-        main_log.log(ERRINFO, "--- Debug trace starts here ---")
+        logger.log(ERRINFO, "--- Debug trace starts here ---")
         tb = "\n".join(tback)
-        main_log.log(ERRINFO, "%sAn error occurred, here is the traceback:\n%s%s", dim, tb, undim)
-        main_log.log(ERRINFO, "--- Debug trace ends here ---\n")
+        logger.log(ERRINFO, "%sAn error occurred, here is the traceback:\n%s%s", dim, tb, undim)
+        logger.log(ERRINFO, "--- Debug trace ends here ---\n")
 
     if args:
         errmsg = msgformat % args
     else:
         errmsg = str(msgformat)
-    main_log.error(errmsg)
+    logger.error(errmsg)
 
-def error_out(msgformat, *args, print_tb=False):
+def _error_out(logger, msgformat, *args, print_tb=False):
     """
     Print an error message and terminate program execution. The optional 'print_tb' agument
     controls whether the stack trace should also be printed. Note, however, if debugging is enabled,
     the stack trace is printed out regardless of 'print_tb' value.
     """
 
-    if print_tb or main_log.getEffectiveLevel() == DEBUG:
-        error_traceback(str(msgformat) + "\n", *args)
+    if print_tb or logger.getEffectiveLevel() == DEBUG:
+        _error_traceback(logger, str(msgformat) + "\n", *args)
     else:
         if args:
             errmsg = msgformat % args
         else:
             errmsg = str(msgformat)
-        main_log.error(errmsg)
+        logger.error(errmsg)
 
     raise SystemExit(1)
+
+def _notice(logger, fmt, *args):
+    """Just a convenient 'notice()' method for the logger."""
+    logger.log(NOTICE, fmt, *args)
 
 def json_dumps(data, *args, **kwargs):
     """
@@ -181,15 +182,11 @@ class _MyFilter(logging.Filter):
             return True
         return False
 
-def _notice(logger, fmt, *args):
-    """Just a convenient 'notice()' method for the logger."""
-    logger.log(NOTICE, fmt, *args)
-
 def setup_logger(name=None, prefix=None, loglevel=None, colored=None, info_stream=sys.stdout,
                  error_stream=sys.stderr):
     """
     Setup and return a logger.
-      * name - name of the logger to setup, default is "main" ('main_log').
+      * name - name of the logger to setup.
       * prefix - usually the program name, but can be any prefix that will be used for "WARNING",
                  "ERROR" and "CRITICAL" log level messages. No prefix is used by default.
       * loglevel - the default log level. If not provided, this function initializes it depending on
@@ -198,9 +195,6 @@ def setup_logger(name=None, prefix=None, loglevel=None, colored=None, info_strea
                   automatically figures out the coloring by checking if the output file descriptors
                   are TTYs and whether the '--force-color" command line option is used.
     """
-
-    if not name:
-        name = "main"
 
     if not loglevel:
         # Change log level names.
@@ -246,6 +240,8 @@ def setup_logger(name=None, prefix=None, loglevel=None, colored=None, info_strea
     logger.addHandler(where)
 
     logger.notice = types.MethodType(_notice, logger)
+    logger.error_out = types.MethodType(_error_out, logger)
+
     return logger
 
 def setup_loggers(owname=None):
@@ -255,7 +251,8 @@ def setup_loggers(owname=None):
     command line option was used. The 'owname' argument should contain the name of the script.
     """
 
-    setup_logger(name="main", prefix=owname + ": ")
+    prefix = f"{owname}: " if owname else ""
+    setup_logger(name=owname, prefix=prefix)
 
 class LoggingFileObject:
     """

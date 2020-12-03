@@ -20,7 +20,7 @@ import time
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import Procs, Trivial
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 def _get_pid():
     """Return current process ID."""

@@ -25,7 +25,7 @@ DEBUGFS_MOUNT_POINT = Path("/sys/kernel/debug")
 # A unique object used as the default value for the 'default' key in some functions.
 _RAISE = object()
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 def get_homedir(proc=None):
     """

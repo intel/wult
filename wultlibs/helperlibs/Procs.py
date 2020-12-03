@@ -29,7 +29,7 @@ from wultlibs.helperlibs._Common import ProcResult, cmd_failed_msg # pylint: dis
 from wultlibs.helperlibs._Common import TIMEOUT
 from wultlibs.helperlibs.Exceptions import Error, ErrorTimeOut, ErrorPermissionDenied
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 # This attribute helpes making the API of this module similar to the API of the 'SSH' module.
 hostname = "localhost"

@@ -17,7 +17,7 @@ import yaml
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import Jinja2
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 def dump(data, path, float_format=None, skip_none=False):
     """

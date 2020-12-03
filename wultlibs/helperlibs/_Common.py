@@ -15,7 +15,7 @@ import logging
 import re
 from collections import namedtuple
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 # The default command timeout in seconds
 TIMEOUT = 4 * 60 * 60

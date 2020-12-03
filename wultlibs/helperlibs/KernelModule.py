@@ -14,7 +14,7 @@ import logging
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import Dmesg
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 # The drivers supported by this module.
 DRIVERS = {}

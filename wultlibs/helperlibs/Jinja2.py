@@ -14,7 +14,7 @@ import logging
 import jinja2
 from wultlibs.helperlibs.Exceptions import Error
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 def build_jenv(templdir, scheme=0, **kwargs):
     """

@@ -17,7 +17,7 @@ import difflib
 import logging
 from wultlibs.helperlibs.Exceptions import Error
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 # A unique object used as the default value for the 'default' key in some functions.
 _RAISE = object()
