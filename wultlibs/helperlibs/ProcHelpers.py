@@ -209,10 +209,8 @@ def kill_processes(regex: str, sig: str = "SIGTERM", log: bool = False, name: st
     if not procs:
         return []
 
-    if name:
-        name += " "
-    else:
-        name = "the following process(es) "
+    if not name:
+        name = "the following process(es)"
 
     pids = [pid for pid, _ in procs]
     if log:
