@@ -17,7 +17,7 @@ from wultlibs.helperlibs import ArgParse, FSHelpers, Procs, Trivial
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.sysconfiglibs import CPUInfo
 
-_LOG = logging.getLogger("main")
+_LOG = logging.getLogger()
 
 class CPUIdle:
     """This class provides API to the "cpuidle" Linux sybsystem."""
