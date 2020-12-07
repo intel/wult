@@ -195,6 +195,9 @@ def setup_logger(prefix=None, loglevel=None, colored=None, info_stream=sys.stdou
                   are TTYs and whether the '--force-color" command line option is used.
     """
 
+    if prefix:
+        prefix = f"{prefix}: "
+
     if not loglevel:
         # Change log level names.
         if "-q" in sys.argv:
@@ -242,16 +245,6 @@ def setup_logger(prefix=None, loglevel=None, colored=None, info_stream=sys.stdou
     logger.error_out = types.MethodType(_error_out, logger)
 
     return logger
-
-def setup_loggers(owname=None):
-    """
-    Setup the default loggers. This function initializes the log level depending on the whether '-d'
-    and '-q' command line options were used. It also forces color output if the '--force-color'
-    command line option was used. The 'owname' argument should contain the name of the script.
-    """
-
-    prefix = f"{owname}: " if owname else ""
-    setup_logger(prefix=prefix)
 
 class LoggingFileObject:
     """
