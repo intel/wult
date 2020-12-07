@@ -182,11 +182,10 @@ class _MyFilter(logging.Filter):
             return True
         return False
 
-def setup_logger(name=None, prefix=None, loglevel=None, colored=None, info_stream=sys.stdout,
+def setup_logger(prefix=None, loglevel=None, colored=None, info_stream=sys.stdout,
                  error_stream=sys.stderr):
     """
     Setup and return a logger.
-      * name - name of the logger to setup.
       * prefix - usually the program name, but can be any prefix that will be used for "WARNING",
                  "ERROR" and "CRITICAL" log level messages. No prefix is used by default.
       * loglevel - the default log level. If not provided, this function initializes it depending on
@@ -213,7 +212,7 @@ def setup_logger(name=None, prefix=None, loglevel=None, colored=None, info_strea
         else:
             colored = sys.stdout.isatty() and sys.stderr.isatty()
 
-    logger = logging.getLogger(name)
+    logger = logging.getLogger()
     logger.colored = colored
     logger.setLevel(loglevel)
 
@@ -252,7 +251,7 @@ def setup_loggers(owname=None):
     """
 
     prefix = f"{owname}: " if owname else ""
-    setup_logger(name=owname, prefix=prefix)
+    setup_logger(prefix=prefix)
 
 class LoggingFileObject:
     """
@@ -282,17 +281,14 @@ class LoggingFileObject:
         if self._buf:
             self._logger.log(self._level, self._buf)
 
-    def __init__(self, level, name=None, prefix=""):
+    def __init__(self, level, prefix=""):
         """
         Initialize a class instance. The 'level' argument is the logging level to use when sending
-        full lines down to the logging object. The 'name' argument is name of the logger to use.
-        Default is "file_logger". The 'prefix' argument can be used to prefix all the lines written
-        to this file object.
+        full lines down to the logging object. The 'prefix' argument can be used to prefix all the
+        lines written to this file object.
         """
 
         self._level = level
         self._prefix = prefix
         self._buf = ""
-        if not name:
-            name = "file_logger"
-        self._logger = setup_logger(name=name)
+        self._logger = setup_logger()
