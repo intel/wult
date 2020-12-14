@@ -48,6 +48,10 @@ def _stream_fetcher(streamid, proc, by_line):
     try:
         decoder = codecs.getincrementaldecoder('utf8')(errors="surrogateescape")
         while not proc._threads_exit_:
+            if not stream:
+                proc._dbg_("stream %d: stream is closed", streamid)
+                break
+
             data = None
             try:
                 data = stream.read(4096)
@@ -167,6 +171,7 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
         proc._queue_ = queue.Queue()
         for streamid in (0, 1):
             if proc._streams_[streamid]:
+                assert proc._threads_[streamid] is None
                 proc._threads_[streamid] = threading.Thread(target=_stream_fetcher,
                                                             name='Procs-stream-fetcher',
                                                             args=(streamid, proc, by_line),

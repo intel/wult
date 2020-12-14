@@ -68,6 +68,11 @@ def _stream_fetcher(streamid, chan, by_line):
     decoder = codecs.getincrementaldecoder('utf8')(errors="surrogateescape")
     try:
         while not chan._threads_exit_:
+            if not read_func:
+                chan._dbg_("stream %d: stream is closed", streamid)
+                break
+
+            data = None
             try:
                 data = read_func(4096)
             except socket.timeout:
@@ -158,7 +163,7 @@ def _wait_for_cmd_(chan, timeout=None, capture_output=True, output_fobjs=(None, 
     default it is 1 hour. If 'timeout' is '0', then this function will just check process status,
     grab its output, if any, and return immeadiately.
 
-    Note, this function saves the used timeout in 'proc.timeout' attribute upon exit.
+    Note, this function saves the used timeout in 'chan.timeout' attribute upon exit.
 
     The 'capture_output' parameter controls whether the output of the command should be collected or
     not. If it is not 'True', the output will simply be discarded and this function will return
@@ -198,12 +203,13 @@ def _wait_for_cmd_(chan, timeout=None, capture_output=True, output_fobjs=(None, 
     if not chan._queue_:
         chan._queue_ = queue.Queue()
         for streamid in (0, 1):
-            assert chan._threads_[streamid] is None
-            chan._threads_[streamid] = threading.Thread(target=_stream_fetcher,
-                                                        name='SSH-stream-fetcher',
-                                                        args=(streamid, chan, by_line),
-                                                        daemon=True)
-            chan._threads_[streamid].start()
+            if chan._streams_[streamid]:
+                assert chan._threads_[streamid] is None
+                chan._threads_[streamid] = threading.Thread(target=_stream_fetcher,
+                                                            name='SSH-stream-fetcher',
+                                                            args=(streamid, chan, by_line),
+                                                            daemon=True)
+                chan._threads_[streamid].start()
 
     output = ([], [])
     exitcode = None
