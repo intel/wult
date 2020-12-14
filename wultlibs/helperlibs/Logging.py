@@ -12,11 +12,9 @@ This module contains helper functions related to logging.
 
 import re
 import sys
-import json
 import types
 import logging
 import traceback
-from pathlib import Path
 try:
     # It is OK if 'colorama' is not available, we only lose message coloring.
     import colorama
@@ -92,21 +90,6 @@ def _error_out(logger, msgformat, *args, print_tb=False):
 def _notice(logger, fmt, *args):
     """Just a convenient 'notice()' method for the logger."""
     logger.log(NOTICE, fmt, *args)
-
-def json_dumps(data, *args, **kwargs):
-    """
-    Same as 'json.dumps()', but does not fail on 'pathlib.Path' types.
-    """
-
-    class _Encoder(json.JSONEncoder):
-        """Json encoder class."""
-        def default(self, obj): # pylint: disable=arguments-differ,method-hidden
-            """Translate various types to string."""
-            if isinstance(obj, Path):
-                return str(obj)
-            return super().default(obj)
-
-    return json.dumps(data, *args, **kwargs, cls=_Encoder)
 
 class _MyFormatter(logging.Formatter):
     """
