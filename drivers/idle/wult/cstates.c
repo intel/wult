@@ -38,16 +38,10 @@ void wult_cstates_read_after(struct wult_cstates_info *csinfo)
 		csi->cyc2 = __rdmsr(csi->msr);
 }
 
-static inline struct cstate_info *find_cc1_info(struct wult_cstates_info *csinfo)
-{
-	return &csinfo->cstates[0];
-}
-
 /* Calculates the delta between 2 C-state statistics snapshots. */
 void wult_cstates_calc(struct wult_cstates_info *csinfo)
 {
-	struct cstate_info *csi, *cc1_csi;
-	u64 cyc;
+	struct cstate_info *csi;
 
 	csinfo->tsc = csinfo->tsc2 - csinfo->tsc1;
 	csinfo->mperf = csinfo->mperf2 - csinfo->mperf1;
@@ -55,17 +49,6 @@ void wult_cstates_calc(struct wult_cstates_info *csinfo)
 	/* Read the C-state counters and calculate the delta. */
 	for_each_cstate_msr(csinfo, csi)
 		csi->cyc = csi->cyc2 - csi->cyc1;
-
-	cc1_csi = find_cc1_info(csinfo);
-	if (!cc1_csi->msr) {
-		/* Calculate CC1 residency since there is no MSR for it. */
-		cyc = 0;
-		for_each_cstate_msr(csinfo, csi)
-			if (csi->core)
-				cyc += csi->cyc;
-		cyc += csinfo->mperf;
-		cc1_csi->cyc = csinfo->tsc - cyc;
-	}
 }
 
 static struct cstate_info intel_cstates[] = {
@@ -103,20 +86,6 @@ static int intel_cstate_init(struct wult_cstates_info *csinfo)
 			csi->msr = 0;
 			csi->absent = true;
 		}
-
-	/*
-	 * CC1 is treated differently, because we can derive it. Figure out if
-	 * the C1 residency MSR is provided by the platform.
-	 */
-	csi = find_cc1_info(csinfo);
-	if (csi->absent) {
-		/*
-		 * Reading the MSR caused an exception, clearly it is not
-		 * supported, so we'll need to derive it.
-		 */
-		csi->absent = false;
-		return 0;
-	}
 
 	/*
 	 * The CC1 residency MSR exists in Atoms starting from Silvermont, and
