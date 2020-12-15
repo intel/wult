@@ -6,7 +6,6 @@
 
 #include <linux/cpu.h>
 #include <linux/errno.h>
-#include <asm/intel-family.h>
 #include <asm/msr.h>
 #include "compat.h"
 #include "cstates.h"
@@ -86,38 +85,6 @@ static int intel_cstate_init(struct wult_cstates_info *csinfo)
 			csi->msr = 0;
 			csi->absent = true;
 		}
-
-	/*
-	 * The CC1 residency MSR exists in Atoms starting from Silvermont, and
-	 * on big core platforms starting from IceLake.
-	 */
-	switch (boot_cpu_data.x86_model) {
-	case INTEL_FAM6_ATOM_SILVERMONT:
-	case INTEL_FAM6_ATOM_SILVERMONT_D:
-	case INTEL_FAM6_ATOM_AIRMONT:
-	case INTEL_FAM6_ATOM_AIRMONT_NP:
-	case INTEL_FAM6_ATOM_GOLDMONT:
-	case INTEL_FAM6_ATOM_GOLDMONT_D:
-	case INTEL_FAM6_ATOM_GOLDMONT_PLUS:
-	case INTEL_FAM6_ATOM_TREMONT:
-	case INTEL_FAM6_ATOM_TREMONT_D:
-	case INTEL_FAM6_XEON_PHI_KNL:
-	case INTEL_FAM6_XEON_PHI_KNM:
-	case INTEL_FAM6_ICELAKE_X:
-	case INTEL_FAM6_ICELAKE_D:
-	case INTEL_FAM6_ICELAKE:
-	case INTEL_FAM6_ICELAKE_L:
-	case INTEL_FAM6_TIGERLAKE:
-	case INTEL_FAM6_TIGERLAKE_L:
-	case INTEL_FAM6_SAPPHIRERAPIDS_X:
-	case INTEL_FAM6_COMETLAKE:
-	case INTEL_FAM6_COMETLAKE_L:
-		break;
-	default:
-		csi->msr = 0;
-	}
-
-	wult_msg("CC1 residency MSR status: %ssupported", csi->msr ? "" : "not ");
 
 	return 0;
 }
