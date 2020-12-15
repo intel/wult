@@ -99,6 +99,12 @@ class WultRunner:
 
         dp = self._get_datapoint_dict(rawdp)
 
+        # Some Intel chips do not have CC1 hardware counter, but we can calculate it as "total
+        # cycles" - "cycles in all C-states".
+        if "CC1Cyc" not in dp:
+            cyc = sum([dp[cst] for cst in dp if cst.startswith("CC")])
+            dp["CC1Cyc"] = dp["TotCyc"] - cyc
+
         # Add the C-state percentages.
         for cscyc_colname, csres_colname in self._cs_colnames:
             csres = dp[cscyc_colname] / dp["TotCyc"] * 100.0
@@ -152,6 +158,11 @@ class WultRunner:
 
         # SMI/NMI are not saved to CSV file, remove them from the header.
         rawhdr = [col for col in rawhdr if col not in ("NMI", "SMI")]
+
+        # Driver will send CC1 counter value only if it is supported by hardware. If it is missing,
+        # we will calculate it later. Add it to the header here, after CC0 cycle count.
+        if "CC1Cyc" not in rawhdr:
+            rawhdr.insert(rawhdr.index("CC0Cyc") + 1, "CC1Cyc")
 
         # Now 'rawhdr' contains information about C-state of the measured platform, save it for
         # later use.
