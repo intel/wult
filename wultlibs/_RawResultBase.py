@@ -13,6 +13,7 @@ A raw test result is a directory containing the following files.
  * datapoints.csv - a CSV file named 'datapoints.csv' which keeps all the datapoints (one datapoint
                     per row). This file may be very large.
  * info.yml - a YAML file containing miscellaneous test information, such as the report ID.
+ * logs - optional directory containing wult run logs.
  * stats - optional directory containing various statistics, such as 'lscpu'.
  * description.txt - optional file containing free-form descritpion of this test result.
 """
@@ -46,6 +47,7 @@ class RawResultBase:
 
         self.dp_path = self.dirpath.joinpath("datapoints.csv")
         self.info_path = self.dirpath.joinpath("info.yml")
+        self.logs_path = self.dirpath.joinpath("logs")
         self.stats_path = self.dirpath.joinpath("stats")
         self.descr_path = self.dirpath.joinpath("description.txt")
 
@@ -54,5 +56,7 @@ class RawResultBase:
             if path.exists() and not path.is_file():
                 raise Error(f"path '{path}' exists, but it is not a regular file")
 
-        if self.stats_path.exists() and not self.stats_path.is_dir():
-            raise Error(f"path '{self.stats_path}' exists, but it is not a directory")
+        for name in ("logs_path", "stats_path"):
+            path = getattr(self, name)
+            if path.exists() and not path.is_dir():
+                raise Error(f"path '{path}' exists, but it is not a directory")
