@@ -415,6 +415,14 @@ def start_command(args):
 
     with WORawResult.WultWORawResult(args.reportid, args.outdir, VERSION, args.cpunum,
                                      cont=args.cont) as res:
+        # Configure the logger to print to both the console and the log file.
+        try:
+            res.logs_path.mkdir(exist_ok=True)
+        except OSError as err:
+            raise Error("cannot create log directory '{res.logs_path}': {err}")
+        logfile = res.logs_path / "wult.log.txt"
+        Logging.setup_logger(OWN_NAME, info_logfile=logfile, error_logfile=logfile)
+
         with WultRunner.WultRunner(proc, args.devid, res, args.ldist, args.force) as runner:
             runner.unload = not args.no_unload
             if args.post_trigger:
