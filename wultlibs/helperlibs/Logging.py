@@ -200,7 +200,7 @@ def setup_logger(prefix=None, loglevel=None, colored=None, info_stream=sys.stdou
         elif "--force-color" in sys.argv:
             colored = True
         else:
-            colored = sys.stdout.isatty() and sys.stderr.isatty()
+            colored = info_stream.isatty() and error_stream.isatty()
 
     logger = logging.getLogger()
     logger.colored = colored
