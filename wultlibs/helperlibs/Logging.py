@@ -176,6 +176,10 @@ def setup_logger(prefix=None, loglevel=None, colored=None, info_stream=sys.stdou
       * colored - whether the output should be colored or not. By default this function
                   automatically figures out the coloring by checking if the output file descriptors
                   are TTYs and whether the '--force-color" command line option is used.
+      * info_stream - stream where logs with "INFO" level will be directed at. Default is
+                      'sys.stdout'.
+      * error_stream - same as 'info_stream', but will be used for all other logging levels. Default
+                       is 'sys.stderr'.
     """
 
     if prefix:
