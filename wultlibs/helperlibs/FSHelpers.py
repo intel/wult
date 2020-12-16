@@ -295,7 +295,7 @@ def exists(path: Path, proc=None):
 
 def isfile(path: Path, proc=None):
     """
-    Return 'True' if path 'path' exists an it is a regular file. The check is don on the host
+    Return 'True' if path 'path' exists an it is a regular file. The check is done on the host
     defined by 'proc' (local host by default).
     """
 
@@ -310,7 +310,7 @@ def isfile(path: Path, proc=None):
 
 def isdir(path: Path, proc=None):
     """
-    Return 'True' if path 'path' exists an it is a directory. The check is don on the host
+    Return 'True' if path 'path' exists an it is a directory. The check is done on the host
     defined by 'proc' (local host by default).
     """
 
@@ -325,7 +325,7 @@ def isdir(path: Path, proc=None):
 
 def isexe(path: Path, proc=None):
     """
-    Return 'True' if path 'path' exists an it is an executable file. The check is don on the host
+    Return 'True' if path 'path' exists an it is an executable file. The check is done on the host
     defined by 'proc' (local host by default).
     """
 
