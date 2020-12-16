@@ -30,7 +30,7 @@ from wultlibs.reportlibs import WultHTMLReport
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs.pepclibs import CPUIdle, CPUInfo
 from wultlibs.pepclibs.msr import PowerCtl
-from wultlibs import ToolsCommon, Devices, EventsProvider, WultRunner
+from wultlibs import ToolsCommon, Devices, EventsProvider, WultRunner, WultStatsCollect
 
 VERSION = "1.9.1"
 OWN_NAME = "wult"
@@ -134,6 +134,29 @@ def build_arguments_parser():
 
     text = ToolsCommon.get_start_reportid_descr(REPORTID_CHARS_DESCR)
     subpars.add_argument("--reportid", help=text)
+
+    text = """Comma-separated list of statistics to collect. The statistics are collected in
+              parallel with measuring C-state latency. They are stored in the the "stats"
+              sub-directory of the output directory. By default statistics collection is disabled.
+              Use 'all' to collect all possible statistics. If you know exactly what statistics you
+              need, specify the comma-separated list of statistics to collect.  For example, use
+              'turbostat,acpower' if you need only turbostat and AC power meter statistics. You can
+              also specify the statistics you do not want to be collected by pre-pending the '!'
+              symbol. For example, 'stats: all,!turbostat' would mean: collect all the statistics
+              supported by the SUT, except for 'turbostat'.  Use the '--list-stats' option to get
+              more information about available statistics."""
+    subpars.add_argument("--stats", default="none", help=text)
+
+    text = """The intervals for statistics. Statistics collection is based on doing periodic
+              snapshots of data. For example, by default the 'acpower' statistics collector reads
+              SUT power consumption for the last second every second, and 'turbostat' default
+              interval is 5 seconds. Use 'acpower:5,turbostat:10' to increase the intervals to 5 and
+              10 seconds correspondingly.  Use the '--list-stats' to get the default interval
+              values."""
+    subpars.add_argument("--stats-intervals", help=text)
+
+    text = f"""Print information about the statistics '{OWN_NAME}' can collect and exit."""
+    subpars.add_argument("--list-stats", action="store_true", help=text)
 
     text = f"""This tool works by scheduling a delayed event, then sleeping and waiting for it to
                 happen. This step is referred to as a "measurement cycle" and it is usually repeated
@@ -312,11 +335,32 @@ def check_settings(proc, dev, csinfo, lscpu_info, cpunum, devid):
             if powerctl.feature_enabled("c1e_autopromote", cpunum):
                 LOG.notice("C1E autopromote is enabled, all C1 requests are converted to C1E.")
 
+def list_stats():
+    """Print information about statistics."""
+
+    if not WultStatsCollect.STATS_INFO:
+        raise Error("statistics collection is not supported on your system")
+
+    for stname, stinfo in WultStatsCollect.STATS_INFO.items():
+        LOG.info("* %s", stname)
+        LOG.info("  - Default interval: %.1fs", stinfo["interval"])
+        LOG.info("  - %s", stinfo["description"])
+
 def start_command(args):
     """Implements the 'start' command."""
 
     if args.trange and not args.post_trigger:
         raise Error("specify post trigger program to run")
+
+    if args.list_stats:
+        list_stats()
+        return
+
+    stconf = None
+    if args.stats and args.stats != "none":
+        if not WultStatsCollect.STATS_NAMES:
+            raise Error("statistics collection is not supported on your system")
+        stconf = WultStatsCollect.parse_stats(args.stats, args.stats_intervals)
 
     proc = ToolsCommon.get_proc(args, args.hostname)
 
@@ -370,7 +414,7 @@ def start_command(args):
             check_settings(proc, dev, csinfo, lscpu_info, args.cpunum, args.devid)
 
             with WultRunner.WultRunner(proc, dev, res, ldist=args.ldist, csinfo=csinfo,
-                                       lscpu_info=lscpu_info) as runner:
+                                       lscpu_info=lscpu_info, stconf=stconf) as runner:
                 runner.unload = not args.no_unload
                 if args.post_trigger:
                     runner.set_post_trigger(args.post_trigger, trange=args.trange)
