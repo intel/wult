@@ -104,6 +104,16 @@ CCxCyc:
     short_unit: "cyc"
     default_funcs: "all"
     optional: True
+DerivedCC1Cyc:
+    title: "The derived CC1 core C-state cycle count"
+    descr: >-
+        Derived count of CPU cycles spent spent in the CC1 core C-state state over the idle
+        period. The value is calculated as "total cycles" - "cycles in all other C-states".
+    type: "int"
+    unit: "CPU cycles"
+    short_unit: "cyc"
+    default_funcs: "all"
+    optional: True
 PCxCyc:
     title: "The PCx package C-state cycles count"
     descr: >-
