@@ -11,9 +11,10 @@ This module contains common bits and pieces shared between different modules in 
 supposed to be imported directly by users.
 """
 
-import logging
 import re
+import logging
 from collections import namedtuple
+from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
 
@@ -22,38 +23,6 @@ TIMEOUT = 4 * 60 * 60
 
 # Results of a the process execution.
 ProcResult = namedtuple("proc_result", ["stdout", "stderr", "exitcode"])
-
-def _duration(seconds, s=True, ms=False):
-    """
-    Transform duration in seconds to the human-readable format. The 's' and 'ms' arguments control
-    whether seconds/milliseconds should be printed or not.
-    """
-
-    if not isinstance(seconds, int):
-        msecs = int((float(seconds) - int(seconds)) * 1000)
-    else:
-        msecs = 0
-
-    (mins, secs) = divmod(int(seconds), 60)
-    (hours, mins) = divmod(mins, 60)
-    (days, hours) = divmod(hours, 24)
-
-    result = ""
-    if days:
-        result += "%d days " % days
-    if hours:
-        result += "%dh " % hours
-    if mins:
-        result += "%dm " % mins
-    if s or seconds < 60:
-        if ms or seconds < 1 or (msecs and seconds < 10):
-            result += "%f" % (secs + float(msecs) / 1000)
-            result = result.rstrip("0").rstrip(".")
-            result += "s"
-        else:
-            result += "%ds " % secs
-
-    return result.strip()
 
 def cmd_failed_msg(command, stdout, stderr, exitcode, hostname=None, startmsg=None, timeout=None):
     """
@@ -78,7 +47,7 @@ def cmd_failed_msg(command, stdout, stderr, exitcode, hostname=None, startmsg=No
         exitcode_msg = "failed with exit code %s" % exitcode
     elif timeout is not None:
         exitcode_msg = "did not finish within %s seconds (%s)" \
-                       % (timeout, _duration(timeout))
+                       % (timeout, Human.duration(timeout))
     else:
         exitcode_msg = "failed, but no exit code is available, this is a bug!"
 
