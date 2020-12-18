@@ -10,7 +10,6 @@
 This module contains helper functions related to logging.
 """
 
-import re
 import sys
 import types
 import logging
@@ -252,43 +251,3 @@ def setup_logger(prefix=None, loglevel=None, colored=None, info_stream=sys.stdou
     logger.error_out = types.MethodType(_error_out, logger)
 
     return logger
-
-class LoggingFileObject:
-    """
-    This class implements a "write-only" file-like object on top of the logging object.
-    It buffers the data and sends full lines down to the logger.
-    """
-
-    def write(self, data):
-        """
-        Send full lines down to the logging object, and buffer the rest of the data which do not
-        constitute a full line.
-        """
-
-        for line_match in re.finditer("(.*)\n|(.+$)", self._buf + data):
-            if line_match.group(2):
-                self._buf = line_match.group(2)
-                return len(data)
-
-            self._logger.log(self._level, self._prefix + line_match.group(1))
-
-        self._buf = ""
-        return 0
-
-    def flush(self):
-        """Send all the buffered data down to the logging object."""
-
-        if self._buf:
-            self._logger.log(self._level, self._buf)
-
-    def __init__(self, level, prefix=""):
-        """
-        Initialize a class instance. The 'level' argument is the logging level to use when sending
-        full lines down to the logging object. The 'prefix' argument can be used to prefix all the
-        lines written to this file object.
-        """
-
-        self._level = level
-        self._prefix = prefix
-        self._buf = ""
-        self._logger = setup_logger()
