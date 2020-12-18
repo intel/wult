@@ -10,10 +10,19 @@
 This module contains common trivial helpers.
 """
 
+import os
 from wultlibs.helperlibs.Exceptions import Error
 
 # A unique object used as the default value for the 'default' key in some functions.
 _RAISE = object()
+
+def get_pid():
+    """Return current process ID."""
+
+    try:
+        return os.getpid()
+    except OSError as err:
+        raise Error("cannot get own PID:\n%s" % err)
 
 def str_to_num(snum, default=_RAISE):
     """
