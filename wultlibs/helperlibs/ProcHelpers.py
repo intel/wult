@@ -22,14 +22,6 @@ from wultlibs.helperlibs import Procs, Trivial
 
 _LOG = logging.getLogger()
 
-def _get_pid():
-    """Return current process ID."""
-
-    try:
-        return os.getpid()
-    except OSError as err:
-        raise Error("cannot get own PID:\n%s" % err)
-
 def _is_sigterm(sig: str):
     """Return 'True' if sig' is the 'SIGTERM' signal."""
     return sig == "15" or sig.endswith("TERM")
@@ -173,7 +165,7 @@ def find_processes(regex: str, proc=None):
     for line in stdout[1:]:
         pid, comm = line.strip().split(" ", 1)
         pid = int(pid)
-        if proc.hostname == "localhost" and pid == _get_pid():
+        if proc.hostname == "localhost" and pid == Trivial.get_pid():
             continue
         if re.search(regex, comm):
             procs.append((int(pid), comm))
