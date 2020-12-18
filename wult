@@ -39,7 +39,7 @@ REPORTID_CHARS_DESCR = ReportID.get_charset_descr(additional_chars=REPORTID_ADDI
 # Regular expressions for the datapoint CSV file columns names that should show up in the hover
 # text of the scatter plot. The middle element selects all the core and package C-state residency
 # columns.
-HOVER_COLNAME_REGEXS = [".*Latency", ".*Delay", "LDist", "ReqCState", r"[PC]C.+%"]
+HOVER_COLNAME_REGEXS = [".*Latency", ".*Delay", "LDist", "ReqCState", r"(Derived)?[PC]C.+%"]
 
 LOG = logging.getLogger()
 Logging.setup_logger(OWN_NAME)
