@@ -248,11 +248,11 @@ def shell_test(path: Path, opt: str, proc=None):
 
     return exitcode == 0
 
-def mkdir(dirpath: Path, parents: bool = False, default=_RAISE, proc=None):
+def mkdir(dirpath: Path, parents: bool = False, exist_ok: bool = False, proc=None):
     """
     Create a directory. If 'parents' is 'True', the parent directories are created as well. If the
-    directory already exists, this function returns 'default' or raises an exception if 'default'
-    was not provided.
+    directory already exists, this function raises an exception if 'exist_ok' is 'True', and it
+    returns without an error if 'exist_ok' is 'False'.
 
     By default this function operates on the local host, but the 'proc' argument can be used to pass
     a connected 'SSH' object in which case this function will operate on the remote host.
@@ -262,9 +262,9 @@ def mkdir(dirpath: Path, parents: bool = False, default=_RAISE, proc=None):
         proc = Procs.Proc()
 
     if shell_test(dirpath, "-e", proc=proc):
-        if default is _RAISE:
-            raise Error(f"path '{dirpath}' already exists{proc.hostmsg}")
-        return default
+        if exist_ok:
+            return
+        raise Error(f"path '{dirpath}' already exists{proc.hostmsg}")
 
     if proc.is_remote:
         cmd = "mkdir"
@@ -274,11 +274,9 @@ def mkdir(dirpath: Path, parents: bool = False, default=_RAISE, proc=None):
         proc.run_verify(cmd)
     else:
         try:
-            dirpath.mkdir(parents=parents, exist_ok=False)
+            dirpath.mkdir(parents=parents, exist_ok=exist_ok)
         except OSError as err:
             raise Error(f"failed to create directory '{dirpath}':\n{err}")
-
-    return default
 
 def exists(path: Path, proc=None):
     """
