@@ -560,7 +560,7 @@ def _deploy(args):
 
         if hasattr(args, "drvsrc"):
             dstdir = args.kmodpath.joinpath(_DRV_SRC_SUBPATH)
-            FSHelpers.mkdir(dstdir, parents=True, default=None, proc=iproc)
+            FSHelpers.mkdir(dstdir, parents=True, exist_ok=True, proc=iproc)
 
             for name in _get_deployables(args.drvsrc, bproc):
                 installed_module = _get_module_path(iproc, name)
