@@ -16,6 +16,16 @@ from wultlibs.helperlibs.Exceptions import Error
 # A unique object used as the default value for the 'default' key in some functions.
 _RAISE = object()
 
+def is_root():
+    """
+    Return 'True' if the current process has the superuser (root) privileges and 'False' otherwise.
+    """
+
+    try:
+        return os.getuid() == 0 or os.geteuid() == 0
+    except OSError as err:
+        raise Error("failed to get process UID:\n%s" % err)
+
 def get_pid():
     """Return current process ID."""
 
