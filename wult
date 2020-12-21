@@ -301,7 +301,7 @@ def parse_arguments():
 
     text = """The row selector: remove all rows except for those satisfying the selector expression.
               In other words, the selector is just an inverse filter: '--rsel expr' is the same as
-              '--rsel "not (expr)"'."""
+              '--rfilt "not (expr)"'."""
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=text)
 
     text = """The columns filter: remove all column specified in the filter. The columns filter is
