@@ -30,6 +30,23 @@ def _is_sigkill(sig: str):
     """Return 'True' if sig' is the 'SIGKILL' signal."""
     return sig == "15" or sig.endswith("KILL")
 
+def is_root(proc=None):
+    """
+    If 'proc' is 'None' or a 'Proc' object, return 'True' if current process' user name is 'root'
+    and 'False' if current process' user name is not 'root'. If 'proc' is an 'SSH' object, returns
+    'True' if the SSH user has 'root' permissions on the remote host, otherwise returns 'False'.
+    """
+
+    if not proc or not proc.is_remote:
+        return Trivial.is_root()
+
+    stdout, _ = proc.run_verify("id -u")
+    stdout = stdout.strip()
+    if not Trivial.is_int(stdout):
+        raise Error("unexpected output from 'id -u' command, expected an integer, got:\n{stdout}")
+
+    return int(stdout) == 0
+
 def kill_pids(pids, sig: str = "SIGTERM", kill_children: bool = False, must_die: bool = False,
               proc=None):
     """
