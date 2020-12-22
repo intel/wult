@@ -475,6 +475,9 @@ class HTMLReportBase:
         """Generate the scatter plots."""
 
         for xcolname, ycolname in itertools.product(self.xaxes, self.yaxes):
+            if xcolname == ycolname:
+                continue
+
             _LOG.info("Generating scatter plot: %s vs %s.", xcolname, ycolname)
 
             pinfo = self._add_pinfo(xcolname, ycolname, is_hist=False)
