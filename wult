@@ -223,12 +223,12 @@ def parse_arguments():
               ignores the extra datapoints in the other test results."""
     subpars.add_argument("--even-up-dp-count", action="store_true", help=text, dest="even_dpcnt")
 
-    text = f"""A comma-separated list of CSV column names names (or python style regular expressions
+    text = f"""A comma-separated list of CSV column names (or python style regular expressions
                matching the names) to use on X-axes, default is '{get_axes_default("xaxes")}'. Use
                '--list-columns' to get the list of the available column names."""
     subpars.add_argument("-x", "--xaxes", help=text)
 
-    text = f"""A comma-separated list of CSV column names names (or python style regular expressions
+    text = f"""A comma-separated list of CSV column names (or python style regular expressions
                matching the names) to use on the Y-axes. If multiple CSV column names are specified
                for the X- or Y-axes, then the report will include all the X- and Y-axes combination.
                The default is '{get_axes_default("yaxes")}'. Use '--list-columns' to get the list of
