@@ -69,7 +69,6 @@ class WultRunner:
 
     def _get_datapoint_dict(self, rawdp):
         """Return the raw data provided by the kernel driver as a dictionary."""
-
         return dict(zip(self._rawhdr, [int(elt) for elt in rawdp]))
 
     def _smi_nmi_happened(self, dp):
