@@ -16,10 +16,17 @@ from wultlibs.helperlibs import Trivial
 
 # The default regular expressions for the CSV file column names which are used for X-axes, Y-axes
 # and historgrams.
-DEFAULT_XAXES = "SilentTime"
-DEFAULT_YAXES = r".*Latency,.*Delay,(Derived)?[PC]C.+%"
+DEFAULT_XAXES = "SilentTime,LDist"
+DEFAULT_YAXES = r".*Latency,.*Delay,(Derived)?[PC]C.+%,SilentTime"
 DEFAULT_HIST = f"{DEFAULT_YAXES},LDist,SilentTime"
 DEFAULT_CHIST = r".*Latency"
+# All diagrams and histograms with the combinations of EXCLUDE_XAXES and EXCLUDE_YAXES will not be
+# included to the report. By default this will be all "Whatever vs LDist" diagram, except for
+# "SilentTime vs LDist". The reason is that 'SilentTime' and 'LDist' are highly correlated, and it
+# is enough to include "Whatever vs SilentTime", and "Whatever vs LDist" will just cluttering the
+# report. But "SilentTime vs LDist" is almost always useful and it shows how the two are correlated.
+EXCLUDE_XAXES = "LDist"
+EXCLUDE_YAXES = r"(?!SilentTime)"
 
 class WultHTMLReport(_HTMLReportBase.HTMLReportBase):
     """This module provides API for generating HTML reports for wult test results."""
@@ -55,7 +62,8 @@ class WultHTMLReport(_HTMLReportBase.HTMLReportBase):
                 args[name] = default.split(",")
 
         super().__init__(rsts, outdir, title_descr=title_descr, xaxes=args["xaxes"],
-                         yaxes=args["yaxes"], hist=args["hist"], chist=args["chist"])
+                         yaxes=args["yaxes"], hist=args["hist"], chist=args["chist"],
+                         exclude_xaxes=EXCLUDE_XAXES, exclude_yaxes=EXCLUDE_YAXES)
 
         # Column names representing C-state cycles.
         self._cs_cyc_colnames = set()
