@@ -474,10 +474,15 @@ class HTMLReportBase:
     def _generate_scatter_plots(self):
         """Generate the scatter plots."""
 
-        for xcolname, ycolname in itertools.product(self.xaxes, self.yaxes):
-            if xcolname == ycolname:
-                continue
+        plot_axes = [(x, y) for x, y in itertools.product(self.xaxes, self.yaxes) if x != y]
 
+        if self.exclude_xaxes and self.exclude_yaxes:
+            x_axes = self._refres.find_colnames([self.exclude_xaxes])
+            y_axes = self._refres.find_colnames([self.exclude_yaxes])
+            exclude_axes = list(itertools.product(x_axes, y_axes))
+            plot_axes = [axes for axes in plot_axes if axes not in exclude_axes]
+
+        for xcolname, ycolname in plot_axes:
             _LOG.info("Generating scatter plot: %s vs %s.", xcolname, ycolname)
 
             pinfo = self._add_pinfo(xcolname, ycolname, is_hist=False)
@@ -750,7 +755,7 @@ class HTMLReportBase:
                 self.outdir = self.outdir.joinpath("html-report")
 
     def __init__(self, rsts, outdir, title_descr=None, xaxes=None, yaxes=None, hist=None,
-                 chist=None):
+                 chist=None, exclude_xaxes=None, exclude_yaxes=None):
         """
         The class constructor. The arguments are as follows.
           * rsts - list of 'RORawResult' objects representing the raw test results to generate the
@@ -770,6 +775,12 @@ class HTMLReportBase:
           * chist - list of, or regular expression matching to, datapoints CSV file column names to
                     create a cumulative histogram for. Default is he first column in the datapoints
                     CSV file. And empty string can be used to disable cumulative histograms.
+          * exclude_xaxes - by default all diagrams of X- vs Y-axes combinations will be created.
+                            The 'exclude_xaxes' is a list of, or regular expression matching to, CSV
+                            file column names. It is used for X axis. All combinations matching to
+                            'exclude_xaxes' and 'exclude_yaxes' will be excluded from the created
+                            report.
+          * exclude_yaxes - same as 'exclude_xaxes', but for Y-axes.
         """
 
         self.rsts = rsts
@@ -779,6 +790,13 @@ class HTMLReportBase:
         self.yaxes = yaxes
         self.hist = hist
         self.chist = chist
+        self.exclude_xaxes = exclude_xaxes
+        self.exclude_yaxes = exclude_yaxes
+
+        if (self.exclude_xaxes and not self.exclude_yaxes) or \
+           (self.exclude_yaxes and not self.exclude_xaxes):
+            raise Error("'exclude_xaxes' and 'exclude_yaxes' must both be 'None' or both not be "
+                        "'None'")
 
         # Users can change this to make the reports relocatable. In this case the statistics and
         # other stuff will be copied from the test result directories to the output directory. By
