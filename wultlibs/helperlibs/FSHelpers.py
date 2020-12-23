@@ -10,10 +10,10 @@
 This module contains misc. helper functions related to file-system operations.
 """
 
-import logging
 import os
-import shutil
 import sys
+import shutil
+import logging
 from collections import namedtuple
 from pathlib import Path
 from wultlibs.helperlibs import Procs, Trivial
@@ -277,6 +277,24 @@ def mkdir(dirpath: Path, parents: bool = False, exist_ok: bool = False, proc=Non
             dirpath.mkdir(parents=parents, exist_ok=exist_ok)
         except OSError as err:
             raise Error(f"failed to create directory '{dirpath}':\n{err}")
+
+def rm_minus_rf(path: Path, proc=None):
+    """
+    Remove 'path' using 'rm -rf' on the host definec by 'Proc' (local host by default). If 'path' is
+    a symlink, the link is removed, but the target of the link is not removed.
+    """
+
+    if proc and proc.is_remote:
+        proc.run_verify(f"rm -rf -- {path}")
+        return
+
+    try:
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
+    except (OSError, shutil.Error) as err:
+        raise Error(f"failed to remove {path}: {err}")
 
 def exists(path: Path, proc=None):
     """
