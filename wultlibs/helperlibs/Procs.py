@@ -341,6 +341,8 @@ def run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=None
     except OSError as err:
         raise Error("cannot open file '%s': %s" % (fname, err))
 
+    if shell:
+        command = " exec stdbuf -i0 -o0 -e0 -- " + command
     cmd = _split_command(command, shell)
 
     try:
