@@ -303,28 +303,9 @@ def _split_command(cmd, shell):
             return shlex.split(cmd)
     return cmd
 
-def run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=None, env=None,
-              shell=False, newgrp=False):
-    """
-    A helper function to run an external command asynchronously. The 'command' argument should be a
-    string containing the command to run. The 'stdin', 'stdout', and 'stderr' parameters can be one
-    of:
-        * an open file descriptor (a positive integer)
-        * a file object
-        * file path (in case of stdout and stderr the file will be created if it does not exist)
-
-    The 'bufsize', 'cwd','env' and 'shell' arguments are the same as in 'Popen()'.
-
-    If the 'newgrp' argument is 'True', then new process gets new session ID.
-
-    Returns the 'Popen' object of the executed process.
-    """
-
-    if cwd:
-        cwd_msg = "\nWorking directory: %s" % cwd
-    else:
-        cwd_msg = ""
-    _LOG.debug("running the following local command asynchronously:\n%s%s", command, cwd_msg)
+def _do_run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=None, env=None,
+                  shell=False, newgrp=False):
+    """Implements 'run_async()'."""
 
     try:
         if stdin and isinstance(stdin, str):
@@ -352,6 +333,32 @@ def run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=None
         raise Error("the following command failed with error '%s':\n%s" % (err, command))
 
     return _add_custom_fields(proc, cmd)
+
+def run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=None, env=None,
+              shell=False, newgrp=False):
+    """
+    A helper function to run an external command asynchronously. The 'command' argument should be a
+    string containing the command to run. The 'stdin', 'stdout', and 'stderr' parameters can be one
+    of:
+        * an open file descriptor (a positive integer)
+        * a file object
+        * file path (in case of stdout and stderr the file will be created if it does not exist)
+
+    The 'bufsize', 'cwd','env' and 'shell' arguments are the same as in 'Popen()'.
+
+    If the 'newgrp' argument is 'True', then new process gets new session ID.
+
+    Returns the 'Popen' object of the executed process.
+    """
+
+    if cwd:
+        cwd_msg = "\nWorking directory: %s" % cwd
+    else:
+        cwd_msg = ""
+    _LOG.debug("running the following local command asynchronously:\n%s%s", command, cwd_msg)
+
+    return _do_run_async(command, stdin=stdin, stdout=stdout, stderr=stderr, bufsize=bufsize,
+                         cwd=cwd, env=env, shell=shell, newgrp=newgrp)
 
 def run(command, timeout=None, capture_output=True, mix_output=False, join=True,
         output_fobjs=(None, None), bufsize=0, cwd=None, env=None, shell=False, newgrp=False):
@@ -402,20 +409,14 @@ def run(command, timeout=None, capture_output=True, mix_output=False, join=True,
         cwd_msg = ""
     _LOG.debug("running the following local command:\n%s%s", command, cwd_msg)
 
-    cmd = _split_command(command, shell)
+    stdout = subprocess.PIPE
+    if mix_output:
+        stderr = subprocess.STDOUT
+    else:
+        stderr = subprocess.PIPE
 
-    try:
-        stdout = subprocess.PIPE
-        if mix_output:
-            stderr = subprocess.STDOUT
-        else:
-            stderr = subprocess.PIPE
-        proc = subprocess.Popen(cmd, stdout=stdout, stderr=stderr, bufsize=bufsize, cwd=cwd,
-                                env=env, shell=shell, start_new_session=newgrp)
-    except OSError as err:
-        raise Error("the following command failed with error '%s':\n%s" % (err, command))
-
-    proc = _add_custom_fields(proc, cmd)
+    proc = _do_run_async(command, stdout=stdout, stderr=stderr, bufsize=bufsize, cwd=cwd, env=env,
+                         shell=shell, newgrp=newgrp)
 
     if join:
         by_line = False
