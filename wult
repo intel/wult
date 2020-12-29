@@ -419,7 +419,7 @@ def start_command(args):
         try:
             res.logs_path.mkdir(exist_ok=True)
         except OSError as err:
-            raise Error("cannot create log directory '{res.logs_path}': {err}")
+            raise Error(f"cannot create log directory '{res.logs_path}': {err}")
         logfile = res.logs_path / "wult.log.txt"
         Logging.setup_logger(OWN_NAME, info_logfile=logfile, error_logfile=logfile)
 
