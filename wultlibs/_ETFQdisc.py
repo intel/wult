@@ -91,10 +91,14 @@ class ETFQdisc():
         _LOG.debug("setting up ETF qdisc with handover delta %d nanoseconds", self._handover_delta)
 
         stdout, _ = self._proc.run_verify("%s -V" % self._tc_bin)
-        match = re.match(r"^tc utility, iproute2-ss(\d+)$", stdout.strip())
+        match = re.match(r"^tc utility, iproute2-(ss)?(\d.*)$", stdout.strip())
         if not match:
             raise Error(f"failed to parse version number of the 'tc' tool{self._proc.hostmsg}")
-        if int(match.group(1)) < 181023:
+
+        # 'tc' version numbering changed from date based (e.g. "tc utility, iproute2-ss180129") to
+        # regular version numbering corresponding to kernel version (e.g. "tc utility,
+        # iproute2-5.8.0") Any version with new style is new enough.
+        if match.group(1) == "ss" and int(match.group(2)) < 181023:
             raise Error(self._old_tc_err_msg)
 
         self.reset_root_qdisc()
