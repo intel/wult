@@ -760,16 +760,16 @@ class HTMLReportBase:
           *               The description will be put at the top part of the HTML report. It should
           *               describe the report in general (e.g., it compares platform A to platform
           *               B). By default no title description is added to the HTML report.
-          * xaxes - list of datapoints CSV file column names to use on the X axis. Default is the
-                    first column in the datapoints CSV file.
-          * yaxes - list of datapoints CSV file column names to use on the Y axis. Default is
-                    'WakeLatency'. Default is the second column in the datapoints CSV file.
-          * hist - list of datapoints CSV file column names to create a histogram for. Default is
-                   the first column in the datapoints CSV file. And empty string can be used to
-                   disable histograms.
-          * chist - list of datapoints CSV file column names to create a cumulative histogram for.
-                    Default is he first column in the datapoints CSV file. And empty string can be
-                    used to disable cumulative histograms.
+          * xaxes - list of, or regular expression matching to, datapoints CSV file column names to
+                    use on the X axis. Default is the first column in the datapoints CSV file.
+          * yaxes - list of, or regular expression matching to, datapoints CSV file column names to
+                    use on the Y axis. Default is the second column in the datapoints CSV file.
+          * hist - list of, or regular expression matching to, datapoints CSV file column names to
+                   create a histogram for. Default is the first column in the datapoints CSV file.
+                   And empty string can be used to disable histograms.
+          * chist - list of, or regular expression matching to, datapoints CSV file column names to
+                    create a cumulative histogram for. Default is he first column in the datapoints
+                    CSV file. And empty string can be used to disable cumulative histograms.
         """
 
         self.rsts = rsts
