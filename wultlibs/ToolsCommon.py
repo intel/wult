@@ -107,7 +107,10 @@ def even_up_dpcnt(rsts):
     # result, ant it will be corrected as we go.
     min_size = min_res = None
     for res in rsts:
-        size = res.dp_path.stat().st_size
+        try:
+            size = res.dp_path.stat().st_size
+        except OSError as err:
+            raise Error(f"'stat()' failed for '{res.dp_path}': {err}")
         if min_size is None or size < min_size:
             min_size = size
             min_res = res
