@@ -237,7 +237,7 @@ class CPUIdle:
                       C-state names and C-state indexes. It can be both a list or a string
                       containing a comma-separated list. 'None' and 'all' mean "all C-states"
                       (default).
-          * ordered - if 'True', the yielded C-stats will be ordered so that smaller CPU numbers
+          * ordered - if 'True', the yielded C-states will be ordered so that smaller CPU numbers
                       will go first, and for each CPU number shallower C-states will go first.
         """
 
