@@ -330,12 +330,13 @@ def parse_arguments():
     subpars.add_argument("respath", type=Path, help=text)
 
     #
-    # Create parsers for the "stats" command.
+    # Create parsers for the "calc" command.
     #
-    text = f"Calculate statistics for a {OWN_NAME} test result."
-    descr = f"""Calculates various statistics for a {OWN_NAME} test results and prints them."""
-    subpars = subparsers.add_parser("stats", help=text, description=descr)
-    subpars.set_defaults(func=ToolsCommon.stats_command)
+    text = f"Calculate summary functions for a {OWN_NAME} test result."
+    descr = f"""Calculates various summary functions for a {OWN_NAME} test result (e.g., the median
+                value for one of the CSV columns)."""
+    subpars = subparsers.add_parser("calc", help=text, description=descr)
+    subpars.set_defaults(func=ToolsCommon.calc_command)
 
     text = """The row filter, same as '--rfilt' in the 'filter' command."""
     subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=text)
@@ -349,16 +350,16 @@ def parse_arguments():
     text = """The column selector, same as '--csel' in the 'filter' command."""
     subpars.add_argument("--csel", action=ArgParse.OrderedArg, help=text)
 
-    text = """Comma-separated list of statistic functions to calculate. By default all generally
+    text = """Comma-separated list of summary functions to calculate. By default all generally
               interesting functions are calculated (each column name is associated with a list of
               functions that make sense for this column). Use '--list-funcs' to get the list of
               supported functions."""
     subpars.add_argument("-f", "--funcs", help=text)
 
-    text = """Print the list of the available statistic functions."""
+    text = """Print the list of the available summary functions."""
     subpars.add_argument("--list-funcs", action="store_true", help=text)
 
-    text = f"""The {OWN_NAME} test result path to calculate statistics for."""
+    text = f"""The {OWN_NAME} test result path to calculate summary functions for."""
     subpars.add_argument("respath", type=Path, help=text)
 
     if argcomplete:

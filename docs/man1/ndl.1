@@ -333,11 +333,11 @@ Report ID of the filtered version of the result (can only be used with \'--outdi
 .RE
 .RE
 
-.B stats [OPTIONS] RESPATH
+.B calc [OPTIONS] RESPATH
 .RS
-Calculates various statistics for a ndl test results and prints them.
+Calculate summary functions for an ndl test result.
 
-RESPATH is ndl test result path to calculate statistics for.
+RESPATH is an ndl test result path to calculate summary functions for.
 
 .B --rfilt RFILT
 .RS
@@ -357,13 +357,13 @@ The column selector, same as \'--csel\' in the \'filter\' command.
 .RE
 .B {-f | --funcs} FUNCS
 .RS
-Comma-separated list of statistic functions to calculate. By default all the default functions are
-calculated (each column name is associated with a list of default functions that generally makes
-sense for this column). Use \'--list-funcs\' to get the list of supported functions.
+Comma-separated list of summary function names to calculate. By default all generally interesting
+functions are calculated (each column name is associated with a list of functions that make sense
+for this column). Use \'--list-funcs\' to get the list of supported.
 .RE
 .B --list-funcs
 .RS
-Print the list of the available statistic functions.
+Print the list of the available summary functions.
 .RE
 .RE
 

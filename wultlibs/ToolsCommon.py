@@ -146,8 +146,8 @@ def filter_command(args):
     else:
         res.save(args.outdir, reportid=args.reportid)
 
-def stats_command(args):
-    """Implements the 'stats' command  for the 'wult' and 'ndl' tools."""
+def calc_command(args):
+    """Implements the 'calc' command  for the 'wult' and 'ndl' tools."""
 
     if args.list_funcs:
         for name, descr in RORawResult.get_smry_funcs():
