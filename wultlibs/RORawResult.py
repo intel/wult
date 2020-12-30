@@ -23,23 +23,23 @@ from wultlibs import Defs, _RawResultBase
 
 _LOG = logging.getLogger()
 
-# Statistic function names and titles.
-_STAT_FUNCNAMES = {"min"       : "the minimum value",
-                   "min_index" : "index of the minimum value",
-                   "max"       : "the maximum value",
-                   "max_index" : "index of the maximum value",
-                   "avg"       : "the average value",
-                   "med"       : "the median value",
-                   "std"       : "standard deviation",
-                   "N%"        : "N-th percentile, 0 < N < 100",
-                   "nzcnt"     : "datapoints with non-zero value"}
+# Summary function names and titles.
+_SMRY_FUNCS = {"min"       : "the minimum value",
+               "min_index" : "index of the minimum value",
+               "max"       : "the maximum value",
+               "max_index" : "index of the maximum value",
+               "avg"       : "the average value",
+               "med"       : "the median value",
+               "std"       : "standard deviation",
+               "N%"        : "N-th percentile, 0 < N < 100",
+               "nzcnt"     : "datapoints with non-zero value"}
 
-def get_stat_funcs():
+def get_smry_funcs():
     """
-    Yields all the supported statistic function names along with short description as a tuple.
+    Yields all the supported summary function names along with short description as a tuple.
     """
 
-    for funcname, descr in _STAT_FUNCNAMES.items():
+    for funcname, descr in _SMRY_FUNCS.items():
         yield funcname, descr
 
 def _get_percentile(funcname):
@@ -54,18 +54,18 @@ def _get_percentile(funcname):
                     f"(0, 100)")
     return percent
 
-def get_stat_func_descr(funcname):
-    """Returns description for a statistic function 'funcname'."""
+def get_smry_func_descr(funcname):
+    """Returns description for a summary function 'funcname'."""
 
-    if funcname in _STAT_FUNCNAMES:
-        return _STAT_FUNCNAMES[funcname]
+    if funcname in _SMRY_FUNCS:
+        return _SMRY_FUNCS[funcname]
 
     if "%" in funcname:
         percent = _get_percentile(funcname)
         return f"{percent}-th percentile"
 
-    funcnames = ", ".join([fname for fname, _ in get_stat_funcs()])
-    raise Error(f"unknown statistics function name '{funcname}', supported names are:\n{funcnames}")
+    funcnames = ", ".join([fname for fname, _ in get_smry_funcs()])
+    raise Error(f"unknown function name '{funcname}', supported names are:\n{funcnames}")
 
 class RORawResult(_RawResultBase.RawResultBase):
     """This class represents a read-only raw test result."""
@@ -228,7 +228,7 @@ class RORawResult(_RawResultBase.RawResultBase):
 
             # We do not the description, calling this method just to let it validate the function
             # name.
-            get_stat_func_descr(funcname)
+            get_smry_func_descr(funcname)
 
             fname = funcname
             if fname.endswith("%"):
@@ -323,7 +323,7 @@ class RORawResult(_RawResultBase.RawResultBase):
             raise ErrorNotFound(msg)
 
         if not funcnames:
-            funcnames = list(_STAT_FUNCNAMES.keys())
+            funcnames = list(_SMRY_FUNCS.keys())
 
         # Turn 'N%' into 99%, 99.9%, 99.99%, and 99.999%.
         fnames = []

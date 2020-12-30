@@ -128,7 +128,7 @@ class HTMLReportBase:
                 title_dict["funcs"] = OrderedDict()
                 for funcname in self._stats_funcs:
                     if funcname in self.rsts[0].cstats[colname]:
-                        title_dict["funcs"][funcname] = RORawResult.get_stat_func_descr(funcname)
+                        title_dict["funcs"][funcname] = RORawResult.get_smry_func_descr(funcname)
 
                 # Now fill the values for each result.
                 for res in self.rsts:

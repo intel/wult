@@ -150,7 +150,7 @@ def stats_command(args):
     """Implements the 'stats' command  for the 'wult' and 'ndl' tools."""
 
     if args.list_funcs:
-        for name, descr in RORawResult.get_stat_funcs():
+        for name, descr in RORawResult.get_smry_funcs():
             _LOG.info("%s: %s", name, descr)
         return
 
