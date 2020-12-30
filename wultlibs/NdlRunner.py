@@ -11,13 +11,10 @@ This module implements the main ndl functionality - runs the measurement experim
 result.
 """
 
-import datetime
-import re
 import logging
 import contextlib
 from collections import OrderedDict
 from wultlibs.helperlibs import Trivial, FSHelpers, KernelModule, KernelVersion, ProcHelpers
-from wultlibs.helperlibs import TurbostatParser
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs import _Common, _ProgressLine, _Nmcli, _NetIface, _ETFQdisc
 
@@ -82,22 +79,6 @@ class NdlRunner:
             raise Error(f"{msg}\nExpected a line with the following prefix instead:\n{prefix}")
         return line[len(prefix):]
 
-    def _get_ts_data(self, dp):
-        """
-        Read the next turbostat data line from the 'ndlrunner' helper, parse it, and save the
-        result in the 'dp' dictionary.
-        """
-
-        line = self._get_line(prefix="tsdata")
-        tsdata = (self._ts_heading, line)
-        parser = TurbostatParser.TurbostatParser(lines=iter(tsdata), cols_regex=self._ts_heading)
-        tsdata = next(parser.next())
-
-        # Convert turbostat data into a CSV line.
-        for key, val in tsdata["totals"].items():
-            if key in self._colmap:
-                dp[self._colmap[key]] = val
-
     def _get_latency(self, dp):
         """
         Read the next latency data line from the 'ndlrunner' helper, parse it, and save the result
@@ -128,17 +109,9 @@ class NdlRunner:
 
         self._ndl_lines = self._get_lines()
 
-        # If turbostat data collection is enabled, the first line will be the table heading.
-        if self._run_ts:
-            self._ts_heading = self._get_line(prefix="tsheading")
-
         while True:
             dp = OrderedDict()
-
             self._get_latency(dp)
-            if self._run_ts:
-                self._get_ts_data(dp)
-
             yield dp
 
     def _start_ndlrunner(self):
@@ -150,9 +123,6 @@ class NdlRunner:
 
         ldist_str = ",".join([str(val) for val in self._ldist])
         cmd = f"{self._ndlrunner_bin} -l {ldist_str} "
-        if self._run_ts:
-            col_filter = ",".join(self._colmap.keys())
-            cmd += f"-t {self._ts_bin} -f {col_filter} "
         cmd += f"{self._ifname}"
 
         self._ndlrunner = self._proc.run_async(cmd, shell=True)
@@ -287,74 +257,6 @@ class NdlRunner:
                             f"amount of nanoseconds")
             self._post_trigger_thresh = int(thresh)
 
-    def _build_colmap(self):
-        """Build and return the turbostat -> CSV column names map."""
-
-        self._colmap = {}
-
-        # Build the turbostat -> CSV column names map.
-        cmd = f"{self._ts_bin} -l"
-        stdout, _ = self._proc.run_verify(cmd)
-        for key in Trivial.split_csv_line(stdout):
-            if key == "Busy%":
-                self._colmap[key] = "CC0%"
-            elif key.startswith("CPU%c"):
-                self._colmap[key] = f"CC{key[5:]}%"
-            elif key.startswith("Pkg%pc"):
-                self._colmap[key] = f"PC{key[6:]}%"
-
-    def _get_turbostat_version(self):
-        """Returns turbostat version string."""
-
-        cmd = f"{self._ts_bin} -v"
-        _, stderr = self._proc.run_verify(cmd)
-        matchobj = re.match(r".+ (\d\d\.\d\d\.\d\d) .+", stderr)
-        if not matchobj:
-            raise Error(f"failed to get turbostat version.\nExecuted: {cmd}{self._proc.hostmsg}\n"
-                        f"Got: {stderr}")
-
-        return matchobj.group(1)
-
-    def _cstate_stats_init(self):
-        """Initialize information related to C-state statistics and the 'turbostat' tool."""
-
-        if self._run_ts is False:
-            if not self._ts_bin:
-                return
-            raise Error("path to 'turbostat' tool given, but C-state statistics collection is "
-                        "disabled")
-
-        if not self._ts_bin:
-            self._ts_bin = FSHelpers.which("turbostat", default=None, proc=self._proc)
-
-        if not self._ts_bin:
-            msg = f"cannot collect C-state statistics: the 'turbostat' tool was not found" \
-                  f"{self._proc.hostmsg}"
-            if self._run_ts is True:
-                raise ErrorNotSupported(msg)
-
-            self._run_ts = False
-            _LOG.info(msg)
-            return
-
-        # Make sure turbostat version is '19.08.31' or newer. Turbostat versions are dates (e.g.,
-        # version '19.03.20' is Mar 20 2019), so we can use the 'datetime' module to compare the
-        # versions.
-        version = self._get_turbostat_version()
-        vdate = (int(val) for val in version.split("."))
-        if datetime.datetime(*vdate) < datetime.datetime(19, 8, 31):
-            msg = f"cannot collect C-state statistics: too old turbostat version '{version}', " \
-                  f"use turbostat version '19.08.31' or newer\n(checked {self._ts_bin}" \
-                  f"{self._proc.hostmsg}"
-            if self._run_ts:
-                raise ErrorNotSupported(msg)
-
-            self._run_ts = False
-            _LOG.info(msg)
-        else:
-            self._run_ts = True
-            self._build_colmap()
-
     def _verify_input_args(self):
         """Verify and adjust the constructor input arguments."""
 
@@ -384,17 +286,13 @@ class NdlRunner:
             ProcHelpers.kill_pids(ndlrunner.pid, kill_children=True, must_die=False,
                                   proc=self._proc)
 
-    def __init__(self, proc, ifname, res, ndlrunner_bin, cstats=None, ts_bin=None, ldist=None):
+    def __init__(self, proc, ifname, res, ndlrunner_bin, ldist=None):
         """
         The class constructor. The arguments are as follows.
           * proc - the 'Proc' or 'SSH' object that defines the host to run the measurements on.
           * ifname - the network interface name to use for measuring the latency.
           * res - the 'WORawResult' object to store the results at.
           * ndlrunner_bin - path to the 'ndlrunner' helper.
-          * cstats - True: collect C-state statistics, fail if 'turbostat' not found.
-                     None: collect C-state statistics, only if 'turbostat' is found.
-                     False: do not collect C-state statistics.
-          * ts_bin - path to the 'turbostat' tool, default is just "turbostat".
           * ldist - for how far in the future the delayed network packets should be scheduled in
                     microseconds. Default is [5000, 10000] microseconds.
         """
@@ -403,16 +301,12 @@ class NdlRunner:
         self._ifname = ifname
         self._res = res
         self._ndlrunner_bin = ndlrunner_bin
-        self._run_ts = cstats
-        self._ts_bin = ts_bin
         self._ldist = ldist
-        self._ts_heading = ""
 
         self._ndl_lines = None
         self._drv = None
         self._rtd_path = None
         self._ndlrunner = None
-        self._colmap = None
         self._progress = None
         self._max_rtd = 0
         self._post_trigger = None
@@ -422,7 +316,6 @@ class NdlRunner:
         self._netif = None
 
         self._verify_input_args()
-        self._cstate_stats_init()
 
         self._progress = _ProgressLine.ProgressLine(period=1)
         self._drv = KernelModule.KernelModule(proc, "ndl")

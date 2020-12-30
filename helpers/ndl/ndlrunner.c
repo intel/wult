@@ -47,9 +47,9 @@
 #define PACKET_SIZE (sizeof(uint64_t) + sizeof(MAGIC))
 
 /*
- * Size of the buffer for reading commands from standard output and the 'turbostat' data.
+ * Size of the buffer for reading commands from standard output.
  */
-#define TURBOSTAT_BUF_SIZE 512
+#define CMD_BUF_SIZE 512
 
 /*
  * How many times in a row we allow the RTD register to contain zero. If it is always zero, this
@@ -75,8 +75,6 @@
 #define CMD_EXIT 1
 
 static const char *ifname;
-static const char *tspath;
-static const char *tsfilter;
 static unsigned long long dpcnt = 1;
 static unsigned long long launch_distance;
 static unsigned long long launch_range;
@@ -345,10 +343,6 @@ static void print_help(void)
 	printf("  -p, --port - UDP port number to use (default is a random port)\n");
 	printf("  -c, --count - number of test iterations. By default runs until stopped by\n");
 	printf("		typing 'q'.\n");
-	printf("  -t, --tspath - path to 'turbostat' executable\n");
-	printf("  -f, --tsfilter - comma-separated list of column names for turbostat to\n");
-	printf("		   print. Only requested columns are printed. Valid column\n");
-	printf("		   names can be shown by running 'turbostat -l'.\n");
 	printf("  -T, --tai-offset - print TAI time vs. real time offset in seconds and exit\n");
 	printf("  -v, --verbose - be verbose\n");
 	printf("  -h, --help - show this help message and exit\n");
@@ -359,10 +353,6 @@ static int validate_options(int argc, char * const *argv)
 {
 	if (!launch_distance) {
 		errmsg("please, specify either the launch distance");
-		return -1;
-	}
-	if (tspath && access(tspath, X_OK)) {
-		syserrmsg("turbostat path '%s' does not exist or not executable", tspath);
 		return -1;
 	}
 
@@ -376,8 +366,6 @@ static int parse_options(int argc, char * const *argv)
 		{"ldist",		required_argument, 0, 'l'},
 		{"port",		required_argument, 0, 'p'},
 		{"count",		required_argument, 0, 'c'},
-		{"tspath",		required_argument, 0, 't'},
-		{"tsfilter",		required_argument, 0, 'f'},
 		{"tai-offset",		no_argument, 0, 'T'},
 		{"verbose",		no_argument, 0, 'v'},
 		{"help",		no_argument, 0, 'h'},
@@ -401,12 +389,6 @@ static int parse_options(int argc, char * const *argv)
 			case 'c':
 				dpcnt = strtoll_or_die(optarg, "number of datapoints");
 				loop_forever = 0;
-				break;
-			case 't':
-				tspath = optarg;
-				break;
-			case 'f':
-				tsfilter = optarg;
 				break;
 			case 'T':
 				print_tai_offset();
@@ -438,112 +420,6 @@ static int parse_options(int argc, char * const *argv)
 
 	ifname = argv[optind];
 
-	return 0;
-}
-
-static int start_turbostat(const char *tspath, const char *tsfilter, int *pipes)
-{
-	int tsread[2];
-	int tswrite[2];
-	pid_t pid;
-
-	if (pipe(tsread) || pipe(tswrite)) {
-		syserrmsg("failed to create 'turbostat' pipes");
-		return -1;
-	}
-
-	if (fcntl(tsread[0], F_SETFL, O_NONBLOCK)) {
-		syserrmsg("failed to set O_NONBLOCK for 'turbostat' pipe fd:%d", tsread[0]);
-		return -1;
-	}
-
-	pid = fork();
-	if (pid < 0) {
-		syserrmsg("fork failed");
-		return -1;
-	}
-
-	if (pid == 0) {
-		close(tsread[0]);
-		close(tswrite[1]);
-		if (dup2(tsread[1], STDOUT_FILENO) < 0 || dup2(tswrite[0], STDIN_FILENO) < 0) {
-			syserrmsg("piping stdin and out for 'turbostat' failed");
-			return -1;
-		}
-		if (prctl(PR_SET_PDEATHSIG, SIGTERM)) {
-			syserrmsg("failed to set PR_SET_PDEATHSIG to SIGTERM");
-			return -1;
-		}
-		if (tsfilter)
-			execl(tspath, "turbostat", "-q", "-i", "1000000000000000000", "-S", "--show",
-			      tsfilter, NULL);
-		else
-			execl(tspath, "turbostat", "-q", "-i", "1000000000000000000", "-S", NULL);
-		syserrmsg("starting 'turbostat' failed");
-	}
-
-	close(tsread[1]);
-	close(tswrite[0]);
-	pipes[0] = tsread[0];
-	pipes[1] = tswrite[1];
-	return 0;
-}
-
-static int stop_turbostat(int *pipes)
-{
-	if (write(pipes[1], "q\n", 2) < 0) {
-		syserrmsg("writing 'quit request' to 'turbostat' pipe failed");
-		return -1;
-	}
-	return 0;
-}
-
-/* Read pipe until one line, or error, received. */
-static int read_ts_line(int *pipes, char *buf, size_t bufsize)
-{
-	ssize_t rsize;
-	char *eolptr;
-	int idx = 0;
-	time_t begin;
-
-	rsize = read(pipes[0], buf, bufsize - 1);
-	if (write(pipes[1], "\n", 1) < 0) {
-		syserrmsg("failed to send 'turbostat' a 'new line' request");
-		return -1;
-	}
-
-	bufsize -= 1;
-	buf[bufsize] = '\0';
-	begin = time(NULL);
-	while (1) {
-		rsize = read(pipes[0], &buf[idx], bufsize - idx);
-		if (rsize == -1) {
-			if (errno != EAGAIN) {
-				syserrmsg("reading 'turbostat' pipe failed");
-				return -1;
-			}
-			/* Continue reading until data is received, or 5s has elapsed. */
-			if ((time(NULL) - begin) > 5) {
-				errmsg("reading 'turbostat' output took too long");
-				return -1;
-			}
-			continue;
-		}
-		if (rsize == 0) {
-			errmsg("EOF received from 'turbostat' pipe");
-			return -1;
-		}
-		eolptr = strchr(buf, '\n');
-		if (eolptr) {
-			*eolptr = '\0';
-			break;
-		}
-		if (idx + rsize >= bufsize) {
-			errmsg("too long line received from 'turbostat'");
-			return -1;
-		}
-		idx += rsize;
-	}
 	return 0;
 }
 
@@ -626,23 +502,10 @@ int main(int argc, char * const *argv)
 	if (send_sock < 0)
 		return -1;
 
-	buf = malloc(TURBOSTAT_BUF_SIZE);
+	buf = malloc(CMD_BUF_SIZE);
 	if (!buf) {
-		syserrmsg("failed to allocate %d bytes of memory", TURBOSTAT_BUF_SIZE);
+		syserrmsg("failed to allocate %d bytes of memory", CMD_BUF_SIZE);
 		goto error_out;
-	}
-
-	if (tspath) {
-		ret = start_turbostat(tspath, tsfilter, pipes);
-		if (ret) {
-			errmsg("starting 'turbostat' failed");
-			goto error_out;
-		}
-		/* Print 'turbostat' heading after first sampling. */
-		ret = read_ts_line(pipes, buf, TURBOSTAT_BUF_SIZE);
-		if (ret)
-			goto error_out;
-		msg("tsheading: %s", buf);
 	}
 
 	/* Clear read 'RTD' by reading before measure loop */
@@ -654,18 +517,12 @@ int main(int argc, char * const *argv)
 		struct timespec req = {0, 0};
 		uint64_t ldist;
 
-		ret = get_command(buf, TURBOSTAT_BUF_SIZE);
+		ret = get_command(buf, CMD_BUF_SIZE);
 		if (ret < 0)
 			break;
 		if (ret == CMD_EXIT) {
 			ret = 0;
 			break;
-		}
-
-		if (tspath) {
-			ret = read_ts_line(pipes, buf, TURBOSTAT_BUF_SIZE);
-			if (ret)
-				break;
 		}
 
 		ldist = get_launch_distance();
@@ -705,12 +562,6 @@ int main(int argc, char * const *argv)
 		 */
 		nanosleep(&req, NULL);
 
-		if (tspath) {
-			ret = read_ts_line(pipes, buf, TURBOSTAT_BUF_SIZE);
-			if (ret)
-				break;
-		}
-
 		ret = read_rtd(&rtd);
 		if (ret)
 			break;
@@ -731,17 +582,10 @@ int main(int argc, char * const *argv)
 		zero_rtd_count = 0;
 
 		msg("datapoint: %lu, %lu", rtd, ldist);
-		if (tspath)
-			msg("tsdata: %s", buf);
 		dpcnt -= 1;
 	}
 
 error_out:
-	if (tspath) {
-		stop_turbostat(pipes);
-		close(pipes[0]);
-		close(pipes[1]);
-	}
 	if (buf)
 		free(buf);
 	close(send_sock);

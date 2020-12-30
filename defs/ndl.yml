@@ -33,34 +33,3 @@ LDist:
     short_unit: "ns"
     default_funcs: ["min", "max"]
     optional: False
-CC0%:
-    title: "Busy percent"
-    descr: >-
-        Percent of the time spent in the C0 state over the duration of the measurement cycle. This
-        is an aggregated value across all cores.
-    type: "float"
-    unit: "%"
-    short_unit: "%"
-    default_funcs: "all"
-    optional: False
-CCx%:
-    title: "The CCx core C-state residency"
-    descr: >-
-        Percent of the time spent in the CCx core C-state state over the duration of the measurement
-        cycle. This is an aggregated value across all cores. Measured with the 'turbostat' tool.
-    type: "float"
-    unit: "%"
-    short_unit: "%"
-    default_funcs: "all"
-    optional: True
-PCx%:
-    title: "The PCx package C-state residency"
-    descr: >-
-        Percent of the time spent in the PCx package C-state state over the duration of the
-        measurement cycle. This is an aggregated value across all CPU packages (sockets). Measured
-        with the 'turbostat' tool.
-    type: "float"
-    unit: "%"
-    short_unit: "%"
-    default_funcs: "all"
-    optional: True

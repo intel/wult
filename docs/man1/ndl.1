@@ -167,13 +167,6 @@ variable. If it is not defined, the default path is \'$HOME/.local/bin\', where 
 directory path of the \'USERNAME\' user on the \'HOSTNAME\' system (see \'--host\' and
 \'--username\' options).
 .RE
-.B --cstate-stats {on,off,auto}
-.RS
-Collect C-state statistics for every measurement cycle and save them in the output CSV file. In
-order to do so, this tool runs \'turbostat\' in the background, and \'turbostat\' provides C-state
-statistics. Use "off" to disable C-state statistics collection (default), "on" to enable it, and
-"auto" to enable it only if the \'turbostat\' tool is found on the SUT.
-.RE
 .B {-c | --datapoints} COUNT
 .RS
 How many datapoints should the test result include, default is 1000000. Note, in case a pre-existing
