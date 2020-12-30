@@ -127,7 +127,7 @@ class HTMLReportBase:
 
                 title_dict["funcs"] = OrderedDict()
                 for funcname in self._stats_funcs:
-                    if funcname in self.rsts[0].cstats[colname]:
+                    if funcname in self.rsts[0].smrys[colname]:
                         title_dict["funcs"][funcname] = RORawResult.get_smry_func_descr(funcname)
 
                 # Now fill the values for each result.
@@ -136,7 +136,7 @@ class HTMLReportBase:
                     res_dict["funcs"] = OrderedDict()
 
                     for funcname in title_dict["funcs"]:
-                        val = res.cstats[colname][funcname]
+                        val = res.smrys[colname][funcname]
                         fmt = "{}"
                         if defs.get("unit") == "nanosecond" and "index" not in funcname:
                             val /= 1000
@@ -573,7 +573,7 @@ class HTMLReportBase:
 
         for res in self.rsts:
             _LOG.info("Calculate statistics for '%s'", res.reportid)
-            res.calc_stats(regexs=self._stats_colnames, funcnames=self._stats_funcs)
+            res.calc_smrys(regexs=self._stats_colnames, funcnames=self._stats_funcs)
 
     def _mangle_loaded_res(self, res): # pylint: disable=no-self-use, unused-argument
         """

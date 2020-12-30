@@ -169,10 +169,10 @@ def stats_command(args):
         non_numeric = ", ".join(non_numeric)
         _LOG.warning("skipping non-numeric column(s): %s", non_numeric)
 
-    res.calc_stats(funcnames=funcnames, all_funcs=all_funcs)
+    res.calc_smrys(funcnames=funcnames, all_funcs=all_funcs)
 
     _LOG.info("Datapoints count: %d", len(res.df))
-    YAML.dump(res.cstats, sys.stdout, float_format="%.2f")
+    YAML.dump(res.smrys, sys.stdout, float_format="%.2f")
 
 def report_command_open_raw_results(args):
     """

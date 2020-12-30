@@ -212,15 +212,15 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         return result
 
-    def _calc_stats(self, colname, funcnames, all_funcs):
+    def _calc_smrys(self, colname, funcnames, all_funcs):
         """
-        Calculate statistic functions 'funcnames' for column 'colname' and return the resulting
-        dictionary.
+        Calculate summary functions 'funcnames' for column 'colname' and return the resulting
+        dictionary. Note, 'smrys' comes from "summaries".
         """
 
         fmap = {"min" : "idxmin", "min_index" : "idxmin", "max" : "idxmax", "max_index" : "idxmax",
                 "avg" : "mean", "med" : "median", "std" : "std"}
-        stats = OrderedDict()
+        smrys = OrderedDict()
 
         for funcname in funcnames:
             restype = None
@@ -240,11 +240,11 @@ class RORawResult(_RawResultBase.RawResultBase):
                     if not (funcname.endswith("%") and "N%" in coldef["default_funcs"]):
                         continue
 
-            if funcname in stats:
+            if funcname in smrys:
                 continue
 
             if funcname in fmap:
-                # Other stats can be handled in a generic way.
+                # Other summaries can be handled in a generic way.
                 datum = getattr(self.df[colname], fmap[funcname])()
             elif funcname == "nzcnt":
                 datum = (self.df[colname] != 0).sum()
@@ -267,20 +267,20 @@ class RORawResult(_RawResultBase.RawResultBase):
                 funcname = funcname[0:3]
                 if "idx" not in funcname:
                     # This makes sure that the order is the same as in 'funcnames'.
-                    stats[funcname] = None
-                stats[idx_funcname] = datum
+                    smrys[funcname] = None
+                smrys[idx_funcname] = datum
                 datum = self.df.loc[datum, colname]
 
             if not restype:
                 restype = getattr(builtins, coldef["type"])
-            stats[funcname] = restype(datum)
+            smrys[funcname] = restype(datum)
 
-        return stats
+        return smrys
 
-    def calc_stats(self, regexs=None, funcnames=None, all_funcs=False):
+    def calc_smrys(self, regexs=None, funcnames=None, all_funcs=False):
         """
-        Calculate statistics functions specified in 'funcnames' for columns matching 'regexs', and
-        save the result in 'self.cstats'. By default this method calculates the statistics for all
+        Calculate summary functions specified in 'funcnames' for columns matching 'regexs', and
+        save the result in 'self.smrys'. By default this method calculates the summaries for all
         columns in the currently loaded dataframe and uses the default functions functions.
 
         The 'regexs' argument should be a list of column names or regular expressions, which will be
@@ -290,7 +290,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         names which generally make sense for this column. By default ('all_funcs' is 'False'), this
         method uses only the default functions. If, for example, 'funcnames' specifies the 'avg'
         function, and 'avg' function is not in the default functions list for the 'SilentTime'
-        column, it will not be applied (will be skipped). So the result ('self.cstats') will not
+        column, it will not be applied (will be skipped). So the result ('self.smrys') will not
         include 'avg' for 'SilentTime'. However, if 'avg' is in the list of default functions for
         the 'WakeLatency' column, and it was specified in 'funcnames', it will be applied and will
         show up in the result.
@@ -299,7 +299,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         default functions. If 'all_funcs' is 'True', this method will calculate all the functions in
         'funcnames' for all columns without looking at the default functions list.
 
-        The result ('self.cstats') is a dictionary of dictionaries. The top level dictionary keys
+        The result ('self.smrys') is a dictionary of dictionaries. The top level dictionary keys
         are column names and the sub-dictionary keys are function names.
         """
 
@@ -316,7 +316,7 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         # Make sure we have some columns to work with.
         if not colnames:
-            msg = "no columns to calculate the statistics for"
+            msg = "no columns to calculate summary functions for"
             if all_colnames:
                 msg += ".\nThese columns were excluded because they are not numeric: "
                 msg += " ,".join(self.get_non_numeric_colnames(colnames=all_colnames))
@@ -333,11 +333,11 @@ class RORawResult(_RawResultBase.RawResultBase):
             else:
                 fnames += ["99%", "99.9%", "99.99%", "99.999%"]
 
-        self.cstats = OrderedDict()
+        self.smrys = OrderedDict()
         for colname in colnames:
-            subdict = self._calc_stats(colname, fnames, all_funcs)
+            subdict = self._calc_smrys(colname, fnames, all_funcs)
             if subdict:
-                self.cstats[colname] = subdict
+                self.smrys[colname] = subdict
 
     def _load_csv(self, **kwargs):
         """Read the datapoints CSV file into a pandas dataframe and validate it."""
@@ -554,7 +554,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         self._ignored_colnames = None
 
         self.df = None
-        self.cstats = None
+        self.smrys = None
         self.colnames = []
         self.colnames_set = set()
 
