@@ -32,6 +32,40 @@ _HELPERS_SRC_SUBPATH = Path("helpers")
 
 _LOG = logging.getLogger()
 
+# Description for the 'filter' command.
+FILT_DESCR = """Filter datapoints out of a test result by removing CSV rows and columns according to
+                specified criteria. The criteria is specified using the row and column filter and
+                selector options ('--rsel', '--cfilt', etc). The options may be specified multiple
+                times."""
+
+# Description for the '--rfilt' option of the 'filter' command.
+RFILT_DESCR = """The row filter: remove all the rows satisfying the filter expression. Here is an
+                 example of an expression: '(WakeLatency < 10000) | (PC6%% < 1)'. This row filter
+                 expression will remove all rows with 'WakeLatency' smaller than 10000 nanoseconds or
+                 package C6 residency smaller than 1%%. The detailed row filter expression syntax can
+                 be found in the documentation for the 'eval()' function of Python 'pandas' module.
+                 You can use column names in the expression, or the special word 'index' for the row
+                 number. Value '0' is the header, value '1' is the first row, and so on. For example,
+                 expression 'index >= 10' will get rid of all data rows except for the first 10
+                 ones."""
+
+# Description for the '--rsel' option of the 'filter' command.
+RSEL_DESCR = """The row selector: remove all rows except for those satisfying the selector
+                expression. In other words, the selector is just an inverse filter: '--rsel expr' is
+                the same as '--rfilt "not (expr)"'."""
+
+# Description for the '--cfilt' option of the 'filter' command.
+CFILT_DESCR = """The columns filter: remove all column specified in the filter. The columns filter
+                 is just a comma-separated list of the CSV file column names or python style regular
+                 expressions matching the names. For example expression
+                 'SilentTime,WarmupDelay,.*Cyc', would remove columns 'SilentTime', 'WarmupDelay'
+                 and all columns with 'Cyc' in the column name. Use '--list-columns' to get the list
+                 of the available column names."""
+
+# Description for the '--csel' option of the 'filter' command.
+CSEL_DESCR = """The columns selector: remove all column except for those specified in the selector.
+                The syntax is the same as for '--cfilt'."""
+
 def get_proc(args, hostname):
     """
     Returns and "SSH" object or the 'Procs' object depending on 'hostname'.

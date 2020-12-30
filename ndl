@@ -192,36 +192,20 @@ def parse_arguments():
     # Create parsers for the "filter" command.
     #
     text = "Filter datapoints out of a test result."
-    descr = """Filter datapoints out of a test result by removing CSV rows and columns according to
-               specified criteria. The criteria is specified using the row and column filter and
-               selector options ('--rsel', '--cfilt', etc). The options may be specified multiple
-               times."""
+    descr = ToolsCommon.FILT_DESCR
     subpars = subparsers.add_parser("filter", help=text, description=descr)
     subpars.set_defaults(func=ToolsCommon.filter_command)
 
-    text = """The row filter: remove all the rows satisfying the filter expression. Here is an
-              example of an expression: '(RTD < 10000) | (PC6%% < 1)'. This row filter expression
-              will remove all rows with 'RTD' smaller than 10000 nanoseconds or package C6 residency
-              smaller than 1%%. The detailed row filter expression syntax can be found in the
-              documentation for the 'eval()' function of Python 'pandas' module. You can use column
-              names in the expression, or the special word 'index' for the row number. Value '0' is
-              the header, value '0' is the first row, and so on. For example, expression
-              'index >= 10' will get rid of all datarows except for the first 10 ones."""
+    text = ToolsCommon.RFILT_DESCR
     subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=text)
 
-    text = """The row selector: remove all rows except for those satisfying the selector expression.
-              In other words, the selector is just an inverse filter: '--rsel expr' is the same as
-              '--rfilt "not (expr)"'."""
+    text = ToolsCommon.RSEL_DESCR
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=text)
 
-    text = """The columns filter: remove all column specified in the filter. The columns filter is
-              just a comma-separated list of the CSV file column names or python style regular
-              expressions matching the names. Use '--list-columns' to get the list of the available
-              column names."""
+    text = ToolsCommon.CFILT_DESCR
     subpars.add_argument("--cfilt", action=ArgParse.OrderedArg, help=text)
 
-    text = """The columns selector: remove all column except for those specified in the selector.
-              The syntax is the same as for '--cfilt'."""
+    text = ToolsCommon.CSEL_DESCR
     subpars.add_argument("--csel", action=ArgParse.OrderedArg, help=text)
 
     text = """By default the resulting CSV lines are printed to the standard output. But this option
