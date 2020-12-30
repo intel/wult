@@ -91,7 +91,7 @@ class ETFQdisc():
         _LOG.debug("setting up ETF qdisc with handover delta %d nanoseconds", self._handover_delta)
 
         stdout, _ = self._proc.run_verify("%s -V" % self._tc_bin)
-        match = re.match(r"^tc utility, iproute2-(ss)?(\d.*)$", stdout.strip())
+        match = re.match(r"^tc utility, iproute2-(ss)?(.*)$", stdout.strip())
         if not match:
             raise Error(f"failed to parse version number of the 'tc' tool{self._proc.hostmsg}")
 
