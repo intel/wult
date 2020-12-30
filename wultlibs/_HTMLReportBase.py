@@ -96,22 +96,22 @@ class HTMLReportBase:
 
         return links_tbl
 
-    def _prepare_stats_table(self, pinfos):
-        """Create the statistics table for metrics included in plots in 'pinfos' list."""
+    def _prepare_smrys_table(self, pinfos):
+        """Create the summaries table for metrics included in plots in 'pinfos' list."""
 
-        stats_tbl = OrderedDict()
-        stats_tbl["Title"] = OrderedDict()
+        smrys_tbl = OrderedDict()
+        smrys_tbl["Title"] = OrderedDict()
         for res in self.rsts:
-            stats_tbl[res.reportid] = OrderedDict()
+            smrys_tbl[res.reportid] = OrderedDict()
 
         for pinfo in pinfos:
             for colname in (pinfo["colname"], pinfo["xcolname"]):
-                if colname in stats_tbl["Title"]:
+                if colname in smrys_tbl["Title"]:
                     continue
 
-                # Each column name is represented by a row in the statistics table. Fill the "Title"
+                # Each column name is represented by a row in the summary table. Fill the "Title"
                 # column.
-                title_dict = stats_tbl["Title"][colname] = OrderedDict()
+                title_dict = smrys_tbl["Title"][colname] = OrderedDict()
                 defs = self._refdefs.info[colname]
 
                 if defs.get("unit") == "nanosecond":
@@ -132,7 +132,7 @@ class HTMLReportBase:
 
                 # Now fill the values for each result.
                 for res in self.rsts:
-                    res_dict = stats_tbl[res.reportid][colname] = OrderedDict()
+                    res_dict = smrys_tbl[res.reportid][colname] = OrderedDict()
                     res_dict["funcs"] = OrderedDict()
 
                     for funcname in title_dict["funcs"]:
@@ -153,7 +153,7 @@ class HTMLReportBase:
                                                  "are compared to this one."
                             continue
 
-                        ref_fdict = stats_tbl[self._refres.reportid][colname]["funcs"][funcname]
+                        ref_fdict = smrys_tbl[self._refres.reportid][colname]["funcs"][funcname]
                         change = val - ref_fdict["raw_val"]
                         if ref_fdict["raw_val"]:
                             percent = (change / ref_fdict["raw_val"]) * 100
@@ -163,7 +163,7 @@ class HTMLReportBase:
                         percent = "{:.1f}%".format(percent)
                         fdict["hovertext"] = f"Change: {change} ({percent})"
 
-        return stats_tbl
+        return smrys_tbl
 
     def _copy_raw_data(self):
         """Copy raw test results to the output directory."""
@@ -225,11 +225,11 @@ class HTMLReportBase:
 
         # Each column name gets its own HTML page.
         for colname, pinfos in self._pinfos.items():
-            stats_tbl = self._prepare_stats_table(pinfos)
+            smrys_tbl = self._prepare_smrys_table(pinfos)
 
             # Render the template.
             jenv = Jinja2.build_jenv(templdir, trim_blocks=True, lstrip_blocks=True)
-            jenv.globals["stats_tbl"] = stats_tbl
+            jenv.globals["smrys_tbl"] = smrys_tbl
             jenv.globals["pinfos"] = pinfos
             jenv.globals["colname"] = colname
             jenv.globals["title_descr"] = self.title_descr
