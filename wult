@@ -209,10 +209,10 @@ def parse_arguments():
                multiple)."""
     subpars.add_argument("-o", "--outdir", type=Path, help=text)
 
-    text = """The row filter, same as '--rfilt' in the 'filter' command."""
+    text = ToolsCommon.RFILT_DESCR
     subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=text)
 
-    text = """The row selector, same as '--rsel' in the 'filter' command."""
+    text = ToolsCommon.RSEL_DESCR
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=text)
 
     text = """Even up datapoints count before generating the report. This option is useful when
@@ -320,16 +320,16 @@ def parse_arguments():
     subpars = subparsers.add_parser("calc", help=text, description=descr)
     subpars.set_defaults(func=ToolsCommon.calc_command)
 
-    text = """The row filter, same as '--rfilt' in the 'filter' command."""
+    text = ToolsCommon.RFILT_DESCR
     subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=text)
 
-    text = """The row selector, same as '--rsel' in the 'filter' command."""
+    text = ToolsCommon.RSEL_DESCR
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=text)
 
-    text = """The column filter, same as '--cfilt' in the 'filter' command."""
+    text = ToolsCommon.CFILT_DESCR
     subpars.add_argument("--cfilt", action=ArgParse.OrderedArg, help=text)
 
-    text = """The column selector, same as '--csel' in the 'filter' command."""
+    text = ToolsCommon.CSEL_DESCR
     subpars.add_argument("--csel", action=ArgParse.OrderedArg, help=text)
 
     text = """Comma-separated list of summary functions to calculate. By default all generally
