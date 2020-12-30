@@ -705,6 +705,9 @@ class HTMLReportBase:
                 name = "Y"
             raise Error(f"the {name} axis column list is empty")
 
+        # Ensure '_hov_colnames' dictionary is initialized.
+        self.set_hover_colnames(())
+
     def _validate_init_args(self):
         """Validate the class constructor input arguments."""
 
@@ -828,7 +831,7 @@ class HTMLReportBase:
         # the X" and "Y" axis column names, because later plots with the same "Y" and "Y" axes will
         # go to the same HTML page.
         self._pinfos = OrderedDict()
-        # Per-test result List of column names to include into the hover text of the scatter plot.
+        # Per-test result list of column names to include into the hover text of the scatter plot.
         # By default only the x and y axis values are included.
         self._hov_colnames = {}
         # Additional columns to load, if they exist in the CSV file.
