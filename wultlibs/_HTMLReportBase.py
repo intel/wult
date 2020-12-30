@@ -126,7 +126,7 @@ class HTMLReportBase:
                 title_dict["coldescr"] = defs["descr"]
 
                 title_dict["funcs"] = OrderedDict()
-                for funcname in self._stats_funcs:
+                for funcname in self._smry_funcs:
                     if funcname in self.rsts[0].smrys[colname]:
                         title_dict["funcs"][funcname] = RORawResult.get_smry_func_descr(funcname)
 
@@ -568,12 +568,12 @@ class HTMLReportBase:
 
                 self._create_diagram(gobjs, pinfo)
 
-    def _calc_stats(self):
-        """Calculate statistics that we are going to show in the report table."""
+    def _calc_smrys(self):
+        """Calculate summaries that we are going to show in the summary table."""
 
         for res in self.rsts:
-            _LOG.info("Calculate statistics for '%s'", res.reportid)
-            res.calc_smrys(regexs=self._stats_colnames, funcnames=self._stats_funcs)
+            _LOG.debug("calculate summary functions for '%s'", res.reportid)
+            res.calc_smrys(regexs=self._smry_colnames, funcnames=self._smry_funcs)
 
     def _mangle_loaded_res(self, res): # pylint: disable=no-self-use, unused-argument
         """
@@ -582,7 +582,7 @@ class HTMLReportBase:
         """
 
         # Update columns lists in case some of the columns were removed from the loaded dataframe.
-        for name in ("_stats_colnames", "xaxes", "yaxes", "hist", "chist"):
+        for name in ("_smry_colnames", "xaxes", "yaxes", "hist", "chist"):
             colnames = []
             for colname in getattr(self, name):
                 if colname in res.df:
@@ -601,7 +601,8 @@ class HTMLReportBase:
     def _load_results(self):
         """Load the test results from the CSV file and/or apply the columns selector."""
 
-        _LOG.debug("stats colnames: %s", ", ".join(self._stats_colnames))
+        _LOG.debug("summaries will be calculated for these columns: %s",
+                   ", ".join(self._smry_colnames))
         _LOG.debug("additional colnames: %s", ", ".join(self._more_colnames))
 
         for res in self.rsts:
@@ -612,7 +613,7 @@ class HTMLReportBase:
                 if colname in res.colnames_set:
                     colnames.append(colname)
 
-            csel = Trivial.list_dedup(self._stats_colnames + colnames)
+            csel = Trivial.list_dedup(self._smry_colnames + colnames)
             res.clear_filts()
             res.set_csel(csel)
             res.load_df()
@@ -632,8 +633,8 @@ class HTMLReportBase:
         # Load the required datapoints into memory.
         self._load_results()
 
-        # Calculate datapoints statistics, like min. and max. values.
-        self._calc_stats()
+        # Calculate the summaries for the datapoints, like min. and max. values.
+        self._calc_smrys()
 
         # Generate the plots.
         self._generate_scatter_plots()
@@ -812,12 +813,13 @@ class HTMLReportBase:
         # The raw reference result information.
         self._refinfo = self._refres.info
 
-        # Names of columns in the datapoints CSV file to provide the statistics for. The statistics
-        # will show up in the statistics table included into the report.
-        self._stats_colnames = None
-        # List of functions to provide in the statistics column.
-        self._stats_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg",
-                             "min", "std")
+        # Names of columns in the datapoints CSV file to provide the summary function values for
+        # (e.g., median, 99th percentile). The summaries will show up in the summary tables (one
+        # table per metric).
+        self._smry_colnames = None
+        # List of functions to provide in the summary tables.
+        self._smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg",
+                            "min", "std")
         # The diagram/histogram transparency level. It is helpful to have some transparency in case
         # there are several test results rendered on the same diagram.
         self._opacity = 0.8 if len(self.rsts) > 1 else 1
@@ -834,15 +836,18 @@ class HTMLReportBase:
 
         self._init_colnames()
 
-        # We'll provide statistics for every column participating in at least one diagram.
-        stats_colnames = Trivial.list_dedup(self.yaxes + self.xaxes + self.hist + self.chist)
-        # Since statistics table is global, include only common columns into it.
-        self._stats_colnames = []
-        for colname in stats_colnames:
+        # We'll provide summaries for every column participating in at least one diagram.
+        smry_colnames = Trivial.list_dedup(self.yaxes + self.xaxes + self.hist + self.chist)
+        # Summary functions table includes all test results, but the results may have a bit
+        # different set of column names (e.g., they were collected with different wult versions # or
+        # using different methods, or on different systems). Therefore, include only common columns
+        # into it.
+        self._smry_colnames = []
+        for colname in smry_colnames:
             for res in rsts:
                 if colname not in res.colnames_set:
                     break
             else:
-                self._stats_colnames.append(colname)
+                self._smry_colnames.append(colname)
 
         self._validate_init_args()
