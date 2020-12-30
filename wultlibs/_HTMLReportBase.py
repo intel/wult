@@ -31,56 +31,57 @@ _SCATTERPLOT_MARKERS = ['circle', 'square', 'diamond', 'cross', 'triangle-up', '
 class HTMLReportBase:
     """This is the base class for generating HTML reports for raw test results."""
 
-    def _prepare_summary_table(self, raw_stats_paths, descr_paths):
+    def _prepare_intro_table(self, raw_stats_paths, descr_paths):
         """
-        Create the test report summary table. The 'raw_stats_paths' should be a dictionary
-        indexed by report ID and containing the raw statistics directory path. Similarly, the
-        'descr_paths' contains paths to the test result description files.
+        Create the intro table, which is the very first table in the report and it shortly
+        summarizes the entire report. The 'raw_stats_paths' should be a dictionary indexed by report
+        ID and containing the raw statistics directory path. Similarly, the 'descr_paths' contains
+        paths to the test result description files.
         """
 
-        sum_tbl = OrderedDict()
-        sum_tbl["Title"] = OrderedDict()
+        intro_tbl = OrderedDict()
+        intro_tbl["Title"] = OrderedDict()
         for res in self.rsts:
-            sum_tbl[res.reportid] = OrderedDict()
+            intro_tbl[res.reportid] = OrderedDict()
 
         # Add tool information.
         key = "tool_info"
-        sum_tbl["Title"][key] = "Data collection tool"
+        intro_tbl["Title"][key] = "Data collection tool"
         for res in self.rsts:
-            sum_tbl[res.reportid][key] = f"{res.info['toolname'].capitalize()} version " \
+            intro_tbl[res.reportid][key] = f"{res.info['toolname'].capitalize()} version " \
                                          f"{res.info['toolver']}"
 
         # Add datapoint counts.
         key = "datapoints_cnt"
-        sum_tbl["Title"][key] = "Datapoints Count"
+        intro_tbl["Title"][key] = "Datapoints Count"
         for res in self.rsts:
-            sum_tbl[res.reportid][key] = len(res.df.index)
+            intro_tbl[res.reportid][key] = len(res.df.index)
 
         # Add measurement resolution.
         for res in self.rsts:
             key = "device_resolution"
             resolution = res.info.get("resolution")
             if resolution:
-                sum_tbl["Title"][key] = "Device Resolution"
-                sum_tbl[res.reportid][key] = f"{resolution}ns"
+                intro_tbl["Title"][key] = "Device Resolution"
+                intro_tbl[res.reportid][key] = f"{resolution}ns"
 
         # Add links to the raw statistics directories.
         if raw_stats_paths:
             key = "raw_stats"
-            sum_tbl["Title"][key] = "Raw statistics"
+            intro_tbl["Title"][key] = "Raw statistics"
             for res in self.rsts:
                 path = raw_stats_paths.get(res.reportid, "Not available")
-                sum_tbl[res.reportid][key] = path
+                intro_tbl[res.reportid][key] = path
 
         # Add links to the descriptions.
         if descr_paths:
             key = "descr"
-            sum_tbl["Title"][key] = "Test description"
+            intro_tbl["Title"][key] = "Test description"
             for res in self.rsts:
                 path = descr_paths.get(res.reportid, "Not available")
-                sum_tbl[res.reportid][key] = path
+                intro_tbl[res.reportid][key] = path
 
-        return sum_tbl
+        return intro_tbl
 
     def _prepare_links_table(self):
         """Creates the links table which refers to HTML sub-pages."""
@@ -218,8 +219,8 @@ class HTMLReportBase:
         except OSError as err:
             raise Error(f"failed to copy CSS file from '{csspath}' to '{dstpath}':\n{err}")
 
-        # The summary table is only included into the main HTML page.
-        sum_tbl = self._prepare_summary_table(raw_stats_paths, descr_paths)
+        # The intro table is only included into the main HTML page.
+        intro_tbl = self._prepare_intro_table(raw_stats_paths, descr_paths)
         links_tbl = self._prepare_links_table()
 
         # Each column name gets its own HTML page.
@@ -234,11 +235,11 @@ class HTMLReportBase:
             jenv.globals["title_descr"] = self.title_descr
             jenv.globals["toolname"] = self._refinfo["toolname"]
 
-            if sum_tbl:
-                jenv.globals["sum_tbl"] = sum_tbl
+            if intro_tbl:
+                jenv.globals["intro_tbl"] = intro_tbl
                 jenv.globals["links_tbl"] = links_tbl
                 templfile = outfile = "index.html"
-                sum_tbl = None
+                intro_tbl = None
             else:
                 templfile = "metric.html"
                 outfile = links_tbl[colname]["fname"]

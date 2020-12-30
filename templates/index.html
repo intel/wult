@@ -15,14 +15,14 @@
 {#
  # The summary table.
  #}
-{% include "sumtbl.html" %}
+{% include "intro_tbl.html" %}
 
 {#
  # The links.
  #}
 {% if links_tbl %}
     <h2>Other metrics</h2>
-    <table class="table" width="{{ [(sum_tbl | length)*20, 100] | min }}%">
+    <table class="table" width="{{ [(intro_tbl | length)*20, 100] | min }}%">
     {% for val in links_tbl.values() %}
         <tr>
         <td class="td-colname">{{ val["hlink"] | safe}}</td>
