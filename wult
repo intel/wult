@@ -69,7 +69,7 @@ def parse_arguments():
     descr = f"""Compile and deploy {OWN_NAME} drivers on local or remote host. This command has many
                 options, but they are very rarely useful and most probably you do not need them."""
     subpars = subparsers.add_parser("deploy", help=text, description=descr)
-    ToolsCommon.add_deploy_cmdline_args(subpars, "wult", drivers=True, helpers=False,
+    ToolsCommon.add_deploy_cmdline_args(subpars, OWN_NAME, drivers=True, helpers=False,
                                         argcomplete=argcomplete)
     subpars.set_defaults(func=ToolsCommon.deploy_command)
 
@@ -403,7 +403,7 @@ def start_command(args):
             res.logs_path.mkdir(exist_ok=True)
         except OSError as err:
             raise Error(f"cannot create log directory '{res.logs_path}': {err}")
-        logfile = res.logs_path / "wult.log.txt"
+        logfile = res.logs_path / f"{OWN_NAME}.log.txt"
         Logging.setup_logger(OWN_NAME, info_logfile=logfile, error_logfile=logfile)
 
         with WultRunner.WultRunner(proc, args.devid, res, args.ldist, args.force) as runner:
@@ -482,7 +482,7 @@ def load_command(args):
     with EventsProvider.EventsProvider(args.devid, 0, proc, force=args.force) as ep:
         ep.unload = not args.no_unload
         ep.prepare()
-        LOG.info("Loaded the '%s' wult delayed event driver", ep.dev.drvname)
+        LOG.info("Loaded the '%s' %s delayed event driver", ep.dev.drvname, OWN_NAME)
 
 def main():
     """Script entry point."""
