@@ -10,12 +10,61 @@
 This module provides an API to get CPU information.
 """
 
+import re
 from itertools import groupby
 from collections import OrderedDict
 from wultlibs.helperlibs.Exceptions import Error # pylint: disable=unused-import
-from wultlibs.helperlibs import Procs, Trivial
+from wultlibs.helperlibs import ArgParse, Procs, Trivial
 
 LEVELS = ("pkg", "node", "core", "cpu")
+
+def get_lscpu_info(proc=None):
+    """
+    Run the 'lscpu' command on the host defined by the 'proc' argument, and return the output in
+    form of a dictionary. Thie dictionary will contain the general CPU information without the
+    topology information. By default this function returns local CPU information. However, you can
+    pass it an 'SSH' object via the 'proc' argument, in which case this function will return CPU
+    information of the host the 'SSH' object is connected to.
+    """
+
+    if not proc:
+        proc = Procs.Proc()
+
+    cpuinfo = {}
+    lscpu, _ = proc.run_verify("lscpu", join=False)
+
+    # Parse misc. information about the CPU.
+    patterns = ((r"^Architecture:\s*(.*)$", "arch"),
+                (r"^Byte Order:\s*(.*)$", "byteorder"),
+                (r"^Vendor ID:\s*(.*)$", "vendor"),
+                (r"^Socket\(s\):\s*(.*)$", "packages"),
+                (r"^CPU family:\s*(.*)$", "family"),
+                (r"^Model:\s*(.*)$", "model"),
+                (r"^Model name:\s*(.*)$", "modelname"),
+                (r"^Model name:.*@\s*(.*)GHz$", "basefreq"),
+                (r"^Stepping:\s*(.*)$", "stepping"),
+                (r"^L1d cache:\s*(.*)$", "l1d"),
+                (r"^L1i cache:\s*(.*)$", "l1i"),
+                (r"^L2 cache:\s*(.*)$", "l2"),
+                (r"^L3 cache:\s*(.*)$", "l3"),
+                (r"^Flags:\s*(.*)$", "flags"))
+
+    for line in lscpu:
+        for pattern, key in patterns:
+            match = re.match(pattern, line.strip())
+            if not match:
+                continue
+
+            val = match.group(1)
+            if Trivial.is_int(val):
+                cpuinfo[key] = int(val)
+            else:
+                cpuinfo[key] = val
+
+    if cpuinfo.get("flags"):
+        cpuinfo["flags"] = cpuinfo["flags"].split()
+
+    return cpuinfo
 
 class CPUInfo:
     """
@@ -73,14 +122,13 @@ class CPUInfo:
         # In this example, package 0 includes CPUs with even numbers, and package 1 includes CPUs
         # with odd numbers.
 
-        if not nums or nums == "all":
+        if nums is None or nums == "all":
             nums = list(items.keys())
+        else:
+            nums = ArgParse.parse_int_list(nums, ints=True)
 
         result = []
         for num in nums:
-            if not Trivial.is_int(num):
-                raise Error(f"bad {start} number '{num}', should be an integer")
-            num = int(num)
             if num not in items:
                 items_str = ", ".join(str(key) for key in items)
                 raise Error(f"{start} {num} does not exist{self._proc.hostmsg}, use: {items_str}")
@@ -120,6 +168,42 @@ class CPUInfo:
         """
 
         return self._get_level("pkg", "pkg", nums)
+
+    def get_cpu_list(self, cpus):
+        """Validate CPUs in 'cpus'. Returns CPU numbers as list of integers."""
+
+        allcpus = self.get_cpus()
+
+        if cpus is None or cpus == "all":
+            return allcpus
+
+        allcpus = set(allcpus)
+        cpus = ArgParse.parse_int_list(cpus, ints=True)
+        for cpu in cpus:
+            if cpu not in allcpus:
+                cpus_str = ", ".join([str(cpu) for cpu in sorted(allcpus)])
+                raise Error(f"CPU{cpu} is not available{self._proc.hostmsg}, available CPUs are: "
+                            f"{cpus_str}")
+
+        return cpus
+
+    def get_package_list(self, pkgs):
+        """Validate packages in 'pkgs'. Returns packages as list of integers."""
+
+        allpkgs = self.get_packages()
+
+        if pkgs is None or pkgs == "all":
+            return allpkgs
+
+        allpkgs = set(allpkgs)
+        pkgs = ArgParse.parse_int_list(pkgs, ints=True)
+        for pkg in pkgs:
+            if pkg not in allpkgs:
+                pkgs_str = ", ".join([str(pkg) for pkg in sorted(allpkgs)])
+                raise Error(f"package '{pkg}' not available{self._proc.hostmsg}, available "
+                            f"packages are: {pkgs_str}")
+
+        return pkgs
 
     def _add_nums(self, nums):
         """Add numbers from 'lscpu' to the CPU geometry dictionary."""
