@@ -7,9 +7,7 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module contains misc. handy functions that provide additional functionality on top of 'Proc'
-and 'SSH' objects. The idea here is that the helpers provided by this module can run locally via the
-'Proc' object or remotely via the 'SSH' object.
+This module contains misc. helper functions related to processes (tasks).
 """
 
 import os
