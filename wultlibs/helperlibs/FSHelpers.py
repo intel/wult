@@ -480,3 +480,30 @@ def read(path, default=_RAISE, proc=None):
         return default
 
     return val
+
+def read_int(path, default=_RAISE, proc=None):
+    """Read an integer from file 'path'. Other arguments are same as in 'read()'."""
+
+    if not proc:
+        proc = Procs.Proc()
+
+    val = read(path, default=default, proc=proc)
+    if val is default:
+        return val
+    if not Trivial.is_int(val):
+        if default is _RAISE:
+            raise Error(f"unexpected non-integer value in file '{path}'{proc.hostmsg}")
+        return default
+    return int(val)
+
+def write(path, data, proc=None):
+    """Write data 'data' into file 'path'."""
+
+    if not proc:
+        proc = Procs.Proc()
+
+    try:
+        with proc.open(path, "w") as fobj:
+            fobj.write(str(data))
+    except Error as err:
+        raise Error(f"failed to write into file '{path}'{proc.hostmsg}:\n{err}")
