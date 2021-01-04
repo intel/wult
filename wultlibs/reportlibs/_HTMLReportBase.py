@@ -116,6 +116,10 @@ class HTMLReportBase:
                 if colname in smrys_tbl["Title"]:
                     continue
 
+                # Skip non-numeric columns, as summaries are calculated only for numeric columns.
+                if not self.rsts[0].is_numeric(colname):
+                    continue
+
                 # Each column name is represented by a row in the summary table. Fill the "Title"
                 # column.
                 title_dict = smrys_tbl["Title"][colname] = {}
@@ -323,6 +327,11 @@ class HTMLReportBase:
         elif colname == "Percentile":
             axis["ticksuffix"] = "%"
 
+        if defs and not self.rsts[0].is_numeric(colname):
+            axis["type"] = "category"
+            axis["autorange"] = False
+            axis["categoryorder"] = "category ascending"
+
         return axis
 
     def _create_hover_text(self, res, df, pinfo):
@@ -424,6 +433,20 @@ class HTMLReportBase:
            values of ("low threshold", "high threshold").
         """
 
+        def _map_non_numeric(colname):
+            """
+            In order to reduce density for a non-numeric column, we need to map that column to
+            unique numbers, find datapoints to keep, and then reduce the dataframe. This function
+            does exactly that - maps a non-numeric column 'colname' to unique numbers and returns
+            the corresponding pandas series object.
+            """
+
+            if not res.is_numeric(colname):
+                num_rmap = {name : idx for idx, name in enumerate(df[colname].unique())}
+                return df[colname].map(num_rmap)
+
+            return df[colname]
+
         lo_thresh = 20
         hi_thresh = 200
         bins_cnt = 100
@@ -435,8 +458,11 @@ class HTMLReportBase:
         # be a bit more optimal than reducing the bigger original dataframe.
         df = res.df[[xcolname, ycolname]]
 
+        xdata = _map_non_numeric(xcolname)
+        ydata = _map_non_numeric(ycolname)
+
         # Crete a histogram for the columns in question.
-        hist, xbins, ybins = numpy.histogram2d(df[xcolname], df[ycolname], bins_cnt)
+        hist, xbins, ybins = numpy.histogram2d(xdata, ydata, bins_cnt)
         # Turn the histogram into a dataframe.
         hist = pandas.DataFrame(hist, dtype=int)
 
@@ -458,8 +484,8 @@ class HTMLReportBase:
         cur_hist = pandas.DataFrame(0, columns=hist.columns, index=hist.index)
 
         # Calculate bin indexes for all the X and Y values in the dataframe.
-        xindeces = numpy.digitize(df[xcolname], xbins[:-1])
-        yindeces = numpy.digitize(df[ycolname], ybins[:-1])
+        xindeces = numpy.digitize(xdata, xbins[:-1])
+        yindeces = numpy.digitize(ydata, ybins[:-1])
 
         # This is how many datapoints we are going to have in the reduced dataframe.
         reduced_datapoints_cnt = hist.values.sum()
@@ -528,6 +554,10 @@ class HTMLReportBase:
 
             xmin, xmax = (float("inf"), -float("inf"))
             for res in self.rsts:
+                # In case of non-numeric column there is only one x-value per bin.
+                if not res.is_numeric(xcolname):
+                    return {"size" : 1}
+
                 xdata = self._base_unit(res.df, xcolname)
                 xmin = min(xmin, xdata.min())
                 xmax = max(xmax, xdata.max())
