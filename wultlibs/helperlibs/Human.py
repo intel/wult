@@ -46,6 +46,41 @@ def duration(seconds, s=True, ms=False):
 
     return result.strip()
 
+
+def _tokenize(htime, specs, specs_descr, default_unit):
+    """Split human time and return the dictionary of tokens."""
+
+    if default_unit not in specs:
+        raise Error(f"bad unit '{default_unit}', supported units are: {specs_descr}")
+
+    htime = htime.strip()
+    if htime.isdigit():
+        htime += default_unit
+
+    htime = htime.strip()
+    if htime.isdigit():
+        htime += default_unit
+
+    tokens = {}
+    rest = htime.lower()
+    for spec in specs:
+        split = rest.split(spec, 1)
+        if len(split) > 1:
+            tokens[spec] = split[0]
+            rest = split[1]
+        else:
+            rest = split[0]
+
+    if rest.strip():
+        raise Error(f"failed to parse duration '{htime}'")
+
+    for spec, val in tokens.items():
+        if not Trivial.is_int(val):
+            raise Error(f"failed to parse duration '{htime}': bad amount of "
+                        f"{specs[spec]}")
+
+    return tokens
+
 # The specifiers that 'parse_duration()' accepts.
 DURATION_SPECS = {"d" : "days", "h" : "hours", "m" : "minutes", "s" : "seconds"}
 # A short 'parse_duration()' specifiers description string.
@@ -64,33 +99,31 @@ def parse_duration(htime, default_unit="s"):
     'default_unit' argument can be used to specify a different default unit.
     """
 
-    if default_unit not in DURATION_SPECS:
-        raise Error(f"bad unit '{default_unit}', supported units are: {DURATION_SPECS_DESCR}")
-
-    htime = htime.strip()
-    if htime.isdigit():
-        htime += default_unit
-
-    tokens = {}
-    rest = htime.lower()
-    for spec in DURATION_SPECS:
-        split = rest.split(spec, 1)
-        if len(split) > 1:
-            tokens[spec] = split[0]
-            rest = split[1]
-        else:
-            rest = split[0]
-
-    if rest.strip():
-        raise Error(f"failed to parse duration '{htime}'")
-
-    for spec, val in tokens.items():
-        if not Trivial.is_int(val):
-            raise Error(f"failed to parse duration '{htime}': bad amount of "
-                        f"{DURATION_SPECS[spec]}")
+    tokens = _tokenize(htime, DURATION_SPECS, DURATION_SPECS_DESCR, default_unit)
 
     days = int(tokens.get("d", 0))
     hours = int(tokens.get("h", 0))
     mins = int(tokens.get("m", 0))
     secs = int(tokens.get("s", 0))
     return days * 24 * 60 * 60 + hours * 60 * 60 + mins * 60 + secs
+
+# The specifiers that 'parse_duration_ns()' accepts.
+DURATION_NS_SPECS = {"ms" : "milliseconds", "us" : "microseconds", "ns" : "nanoseconds"}
+# A short 'parse_duration_ns()' specifiers description string.
+DURATION_NS_SPECS_DESCR = ", ".join([f"{spec} - {key}" for spec, key in DURATION_NS_SPECS.items()])
+
+def parse_duration_ns(htime, default_unit="ns"):
+    """
+    Similar to 'parse_duration()', but supports different specifiers and returns integer amount of
+    nanoseconds. The supported specifiers are:
+      * ms - milliseconds
+      * us - microseconds
+      * ns - nanoseconds
+    """
+
+    tokens = _tokenize(htime, DURATION_NS_SPECS, DURATION_NS_SPECS_DESCR, default_unit)
+
+    ms = int(tokens.get("ms", 0))
+    us = int(tokens.get("us", 0))
+    ns = int(tokens.get("ns", 0))
+    return ms * 1000 * 1000 + us * 1000 + ns

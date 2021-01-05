@@ -21,7 +21,7 @@ import logging
 import contextlib
 from pathlib import Path
 from collections import OrderedDict
-from wultlibs.helperlibs import Logging, Trivial, FSHelpers, KernelVersion, Procs, SSH, YAML
+from wultlibs.helperlibs import Logging, Trivial, FSHelpers, KernelVersion, Procs, SSH, YAML, Human
 from wultlibs.helperlibs import ReportID
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.sysconfiglibs import CPUInfo
@@ -86,14 +86,17 @@ def validate_ldist(ldist):
     launch distance range as a list of two integers in nanoseconds.
     """
 
-    ldst = Trivial.split_csv_line(ldist)
+    split_ldst = Trivial.split_csv_line(ldist)
+    ldst = [None] * len(split_ldst)
 
-    for idx, val in enumerate(ldst):
-        ldst[idx] = Trivial.str_to_num(val, default=None)
-        if ldst[idx] is None:
-            raise Error(f"bad launch distance '{ldist}', should be an integer")
+    for idx, val in enumerate(split_ldst):
+        try:
+            ldst[idx] = Human.parse_duration_ns(val, default_unit="us")
+        except Error as err:
+            raise Error(f"bad launch distance '{split_ldst[idx]}', {err}")
         if ldst[idx] <= 0:
-            raise Error(f"bad launch distance value '{ldst[idx]}', should be greater than zero")
+            raise Error(f"bad launch distance value '{split_ldst[idx]}', should be greater than "
+                        f"zero")
 
     if len(ldst) > 2:
         raise Error(f"bad launch distance range '{ldist}', it should include 2 numbers")
@@ -102,10 +105,6 @@ def validate_ldist(ldist):
                     f"greater than the second number")
     if len(ldst) == 1:
         ldst.append(ldst[0])
-
-    # Return launch distance as nanoseconds.
-    for idx, val in enumerate(ldst):
-        ldst[idx] = val * 1000
 
     return ldst
 
