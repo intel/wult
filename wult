@@ -27,7 +27,7 @@ from wultlibs.helperlibs.Exceptions import Error
 from wultlibs import ToolsCommon, Devices, EventsProvider, RORawResult, WultHTMLReport
 from wultlibs import WultRunner, WORawResult
 
-VERSION = "1.8.10"
+VERSION = "1.8.11"
 OWN_NAME = "wult"
 
 # By default 'ReportID' module does not allow for the ":" character, but it is part of the PCI
@@ -128,13 +128,13 @@ def parse_arguments():
     subpars.add_argument("-c", "--datapoints", default=1000000, metavar="COUNT", dest="dpcnt",
                          help=text)
 
-    text = """The measurement time limit, i.e., for how long the SUT should be measured. The default
-              unit is minutes, but you can use 'h', 'm', and 's' to specify hours, minutes, and
-              seconds. For example '1h25m' would be 1 hour and 25 minutes, or 10m5s would be ten
-              minutes and 5 seconds. Value '0' means "no time limit", and this is the default. If
-              this option is used along with the '--datapoints' option, then measurements will stop
-              as when either the time limit is reached, or the required amount of datapoints is
-              collected."""
+    text = f"""The measurement time limit, i.e., for how long the SUT should be measured. The
+               default unit is minutes, but you can use the following handy specifiers as well:
+               {Human.DURATION_SPECS_DESCR}. For example '1h25m' would be 1 hour and 25 minutes, or
+               10m5s would be 10 minutes and 5 seconds. Value '0' means "no time limit", and this is
+               the default. If this option is used along with the '--datapoints' option, then
+               measurements will stop as when either the time limit is reached, or the required
+               amount of datapoints is collected."""
     subpars.add_argument("--time-limit", dest="tlimit", metavar="LIMIT", help=text)
 
     text = """If the output directory already contains the datapoints CSV file, do not override it

@@ -1,6 +1,19 @@
+wult (1.8.11) unstable; urgency=low
+
+  * wult/ndl: add the '--time-limit' option.
+  * wult/ndl: support specifiers in '--ldist'.
+  * wult: support specifiers in '--post-trigger-range'.
+  * wult: support 0 in '--ldist'.
+  * ndl: removed the '--cstate-stats' option.
+  * ndl: fix parsing the 'tc' tool version number.
+  * wult/ndl: rename the 'stats' command into 'calc'.
+  * wult: add SilentTime vs LDist diagram.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 05 Jan 2021 15:50:33 +0200
+
 wult (1.8.10) unstable; urgency=low
 
-  * wult/ndl: distinguish between CC1% (HW) and DerivedCC1% (SW)
+  * wult/ndl: distinguish between CC1% (HW) and DerivedCC1% (SW).
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 30 Nov 2020 16:27:56 +0200
 
