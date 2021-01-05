@@ -16,7 +16,7 @@ import logging
 import contextlib
 from pathlib import Path
 from wultlibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from wultlibs.helperlibs import Dmesg, FSHelpers, Trivial
+from wultlibs.helperlibs import Dmesg, FSHelpers, Trivial, Human
 from wultlibs.sysconfiglibs import CPUIdle, Systemctl
 from wultlibs import _Common, EventsProvider, Defs, _FTrace, _ProgressLine
 
@@ -139,8 +139,11 @@ class WultRunner:
                         f"New datapoint data:    {newdp}\n"
                         f"New datapoint, full ftrace line: {self._ftrace.raw_line}")
 
-    def _collect(self, dpcnt):
-        """Collect datapoints and stop when the CSV file has 'dpcnt' datapoints in total."""
+    def _collect(self, dpcnt, tlimit):
+        """
+        Collect datapoints and stop when either the CSV file has 'dpcnt' datapoints in total or when
+        collection time exceeds 'tlimit' (value '0' or 'None' means "no limit").
+        """
 
         datapoints = self._get_datapoints()
         rawhdr, rawdp = next(datapoints)
@@ -171,6 +174,7 @@ class WultRunner:
             rawhdr.append(csres_colname)
         self._res.csv.add_header(rawhdr)
 
+        start_time = time.time()
         for rawhdr, rawdp in datapoints:
             self._validate_datapoint(rawhdr, rawdp)
             dp = self._process_datapoint(rawdp)
@@ -190,6 +194,9 @@ class WultRunner:
             if dpcnt <= 0:
                 break
 
+            if tlimit and time.time() - start_time > tlimit:
+                break
+
     def _get_dmesg_msgs(self, old_dmesg):
         """Return new dmesg messages if available."""
 
@@ -200,10 +207,11 @@ class WultRunner:
             return f"\nNew kernel messages{self._proc.hostmsg}:\n{new_msgs}"
         return ""
 
-    def run(self, dpcnt=1000000):
+    def run(self, dpcnt=1000000, tlimit=None):
         """
         Start the measurements. The arguments are as follows.
           * dpcnt - count of datapoints to collect.
+          * tlimit - the measurements time limit in seconds.
         """
 
         dpcnt = _Common.get_dpcnt(self._res, dpcnt)
@@ -217,14 +225,17 @@ class WultRunner:
 
         self._res.write_info()
 
-        _LOG.info("Start measuring CPU %d%s, collecting %d datapoints",
-                  self._res.cpunum, self._proc.hostmsg, dpcnt)
+        msg = f"Start measuring CPU {self._res.cpunum}{self._proc.hostmsg}, collecting {dpcnt} " \
+              f"datapoints"
+        if tlimit:
+            msg += f", time limit is {Human.duration(tlimit)}"
+        _LOG.info(msg)
 
         self._progress.start()
 
         try:
             self._ep.start()
-            self._collect(dpcnt)
+            self._collect(dpcnt, tlimit)
         except Error as err:
             raise Error(f"{err}{self._get_dmesg_msgs(old_dmesg)}")
         finally:
