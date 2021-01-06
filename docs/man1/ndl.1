@@ -176,6 +176,15 @@ collect 4000 datapoints and exit. Warning: collecting too many datapoints may re
 test result file, which will be difficult to process later, because that would require a lot of
 memory.
 .RE
+.B --time-limit
+.RS
+The measurement time limit, i.e., for how long the SUT should be measured. The default unit is
+minutes, but you can use the following handy specifiers as well: d - days, h - hours, m - minutes, s
+- seconds. For example \'1h25m\' would be 1 hour and 25 minutes, or 10m5s would be 10 minutes and 5
+seconds. Value \'0\' means "no time limit", and this is the default. If this option is used along
+with the \'--datapoints\' option, then measurements will stop as when either the time limit is
+reached, or the required amount of datapoints is collected.
+.RE
 .B --continue
 .RS
 If the output directory already contains the datapoints CSV file, do not override it (default

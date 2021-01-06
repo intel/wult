@@ -21,7 +21,7 @@ except ImportError:
     argcomplete = None
 
 from wultlibs import ToolsCommon, NdlHTMLReport, NdlRunner, RORawResult, WORawResult
-from wultlibs.helperlibs import Logging, ArgParse, ReportID
+from wultlibs.helperlibs import Logging, ArgParse, ReportID, Human
 from wultlibs.helperlibs.Exceptions import Error
 
 VERSION = "1.3.6"
@@ -81,6 +81,15 @@ def parse_arguments():
               memory."""
     subpars.add_argument("-c", "--datapoints", default=1000000, metavar="COUNT", dest="dpcnt",
                          help=text)
+
+    text = f"""The measurement time limit, i.e., for how long the SUT should be measured. The
+               default unit is minutes, but you can use the following handy specifiers as well:
+               {Human.DURATION_SPECS_DESCR}. For example '1h25m' would be 1 hour and 25 minutes, or
+               10m5s would be 10 minutes and 5 seconds. Value '0' means "no time limit", and this is
+               the default. If this option is used along with the '--datapoints' option, then
+               measurements will stop as when either the time limit is reached, or the required
+               amount of datapoints is collected."""
+    subpars.add_argument("--time-limit", dest="tlimit", metavar="LIMIT", help=text)
 
     text = """If the output directory already contains the datapoints CSV file, do not override it
               (default behavior), but continue appending more datapoints instead."""
@@ -281,6 +290,8 @@ def start_command(args):
 
     if not args.outdir:
         args.outdir = Path(f"./{args.reportid}")
+    if args.tlimit:
+        args.tlimit = Human.parse_duration(args.tlimit, default_unit="m")
 
     # Figure out the helper path.
     if not args.helpers_path:
@@ -309,7 +320,7 @@ def start_command(args):
             runner.prepare()
             if args.post_trigger:
                 runner.set_post_trigger(args.post_trigger, thresh=args.post_trigger_threshold)
-            runner.run(dpcnt=args.dpcnt)
+            runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit)
 
     if not args.report:
         return

@@ -11,10 +11,11 @@ This module implements the main ndl functionality - runs the measurement experim
 result.
 """
 
+import time
 import logging
 import contextlib
 from collections import OrderedDict
-from wultlibs.helperlibs import Trivial, FSHelpers, KernelModule, KernelVersion, ProcHelpers
+from wultlibs.helperlibs import Trivial, FSHelpers, KernelModule, KernelVersion, ProcHelpers, Human
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs import _Common, _ProgressLine, _Nmcli, _NetIface, _ETFQdisc
 
@@ -127,8 +128,11 @@ class NdlRunner:
 
         self._ndlrunner = self._proc.run_async(cmd, shell=True)
 
-    def _collect(self, dpcnt):
-        """Collect datapoints and stop when the CSV file has 'dpcnt' datapoints in total."""
+    def _collect(self, dpcnt, tlimit):
+        """
+        Collect datapoints and stop when the CSV file has 'dpcnt' datapoints in total, or when
+        collection time exceeds 'tlimit' (value '0' or 'None' means "no limit").
+        """
 
         datapoints = self._get_datapoints()
 
@@ -136,6 +140,7 @@ class NdlRunner:
         dp = next(datapoints)
         self._res.csv.add_header(dp.keys())
 
+        start_time = time.time()
         for dp in datapoints:
             self._max_rtd = max(dp["RTD"], self._max_rtd)
             _LOG.debug("launch distance: RTD %d (max %d), LDist %d",
@@ -147,29 +152,36 @@ class NdlRunner:
                 self._run_post_trigger(dp["RTD"])
 
             self._progress.update(self._res.csv.rows_cnt, self._max_rtd)
+
             dpcnt -= 1
             if dpcnt <= 0:
                 break
 
-    def run(self, dpcnt=1000000):
+            if tlimit and time.time() - start_time > tlimit:
+                break
+
+    def run(self, dpcnt=1000000, tlimit=None):
         """
         Start the measurements. The arguments are as follows.
           * dpcnt - count of datapoints to collect.
+          * tlimit - the measurements time limit in seconds.
         """
 
         dpcnt = _Common.get_dpcnt(self._res, dpcnt)
         if not dpcnt:
             return
 
-        _LOG.info("Start measuring RTD%s, collecting %d datapoints",
-                  self._proc.hostmsg, dpcnt)
+        msg = f"Start measuring RTD{self._proc.hostmsg}, collecting {dpcnt} datapoints"
+        if tlimit:
+            msg += f", time limit is {Human.duration(tlimit)}"
+        _LOG.info(msg)
 
         self._start_ndlrunner()
         self._res.write_info()
 
         self._progress.start()
         try:
-            self._collect(dpcnt)
+            self._collect(dpcnt, tlimit)
         finally:
             self._progress.update(self._res.csv.rows_cnt, self._max_rtd, final=True)
 
