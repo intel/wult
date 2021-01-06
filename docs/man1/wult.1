@@ -228,8 +228,10 @@ last observed wake latency in nanoseconds.
 .RS
 By default, the post trigger is executed for every datapoint, but this option allows for setting the
 wake latency trigger range - the trigger program will be executed only when observed latency is in
-the range (inclusive). Specify a comma-separated range in nanoseconds (e.g '--post-trigger-range
-50000,60000').
+the range (inclusive). Specify a comma-separated range, e.g '--post-trigger-range 50,600'. The
+default unit is microseconds, but you can use the following specifiers as well: ms - milliseconds,
+us - microseconds, ns - nanoseconds. For example, '--post-trigger-range 100us,1ms' would be a
+[100,1000] microseconds range.
 .RE
 .B --force
 .RS

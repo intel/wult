@@ -78,6 +78,30 @@ def get_proc(args, hostname):
     return SSH.SSH(hostname=hostname, username=args.username, privkeypath=args.privkey,
                    timeout=args.timeout)
 
+def _validate_range(rng, what):
+    """Implements 'validate_ldist()' and 'validate_trange()'."""
+
+    split_rng = Trivial.split_csv_line(rng)
+    vals = [None] * len(split_rng)
+
+    for idx, val in enumerate(split_rng):
+        try:
+            vals[idx] = Human.parse_duration_ns(val, default_unit="us")
+        except Error as err:
+            raise Error(f"bad {what} '{split_rng[idx]}', {err}")
+        if vals[idx] <= 0:
+            raise Error(f"bad {what} value '{split_rng[idx]}', should be greater than zero")
+
+    if len(vals) > 2:
+        raise Error(f"bad {what} range '{rng}', it should include 2 numbers")
+    if len(vals) == 2 and vals[1] - vals[0] < 0:
+        raise Error(f"bad {what} range '{rng}', first number cannot be greater than the second "
+                    f"number")
+    if len(vals) == 1:
+        vals.append(vals[0])
+
+    return vals
+
 def validate_ldist(ldist):
     """
     Parse and validate the launch distance range ('--ldist' option). The 'ldist' argument is a
@@ -86,27 +110,13 @@ def validate_ldist(ldist):
     launch distance range as a list of two integers in nanoseconds.
     """
 
-    split_ldst = Trivial.split_csv_line(ldist)
-    ldst = [None] * len(split_ldst)
+    return _validate_range(ldist, "launch distance")
 
-    for idx, val in enumerate(split_ldst):
-        try:
-            ldst[idx] = Human.parse_duration_ns(val, default_unit="us")
-        except Error as err:
-            raise Error(f"bad launch distance '{split_ldst[idx]}', {err}")
-        if ldst[idx] <= 0:
-            raise Error(f"bad launch distance value '{split_ldst[idx]}', should be greater than "
-                        f"zero")
 
-    if len(ldst) > 2:
-        raise Error(f"bad launch distance range '{ldist}', it should include 2 numbers")
-    if len(ldst) == 2 and ldst[1] - ldst[0] < 0:
-        raise Error(f"bad launch distance range '{ldist}', first number cannot be "
-                    f"greater than the second number")
-    if len(ldst) == 1:
-        ldst.append(ldst[0])
+def validate_trange(trange):
+    """Similar to 'validate_ldist()', but for the '--post-trigger-range' option."""
 
-    return ldst
+    return _validate_range(trange, "post-trigger range")
 
 def validate_cpunum(cpunum, proc=None):
     """

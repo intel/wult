@@ -16,7 +16,7 @@ import logging
 import contextlib
 from pathlib import Path
 from wultlibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from wultlibs.helperlibs import Dmesg, FSHelpers, Trivial, Human
+from wultlibs.helperlibs import Dmesg, FSHelpers, Human
 from wultlibs.sysconfiglibs import CPUIdle, Systemctl
 from wultlibs import _Common, EventsProvider, Defs, _FTrace, _ProgressLine
 
@@ -311,26 +311,7 @@ class WultRunner:
                         f"is not an executable file")
 
         self._post_trigger = path
-
-        if trange is not None:
-            vals = Trivial.split_csv_line(trange)
-
-            for idx, val in enumerate(vals):
-                if not Trivial.is_int(val):
-                    raise Error(f"bad post-trigger range value '{val}', should be an integer "
-                                f"amount of nanoseconds")
-                vals[idx] = Trivial.str_to_num(val, default=None)
-                if vals[idx] < 0:
-                    raise Error(f"bad post trigger range value '{vals[idx]}', should be greater or "
-                                f"equal to zero")
-
-            if len(vals) != 2:
-                raise Error(f"bad post trigger range '{trange}', it should include 2 numbers")
-            if vals[1] - vals[0] < 0:
-                raise Error(f"bad post trigger range '{trange}', first number cannot be greater "
-                            f"than the second number")
-
-            self._post_trigger_range = vals
+        self._post_trigger_range = trange
 
     def _validate_sut(self):
         """Check the SUT to insure we have everything to measure it."""
