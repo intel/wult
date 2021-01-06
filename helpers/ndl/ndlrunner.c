@@ -349,16 +349,6 @@ static void print_help(void)
 	exit(0);
 }
 
-static int validate_options(int argc, char * const *argv)
-{
-	if (!launch_distance) {
-		errmsg("please, specify either the launch distance");
-		return -1;
-	}
-
-	return 0;
-}
-
 static int parse_options(int argc, char * const *argv)
 {
 	int opt, cnt;
@@ -481,10 +471,6 @@ int main(int argc, char * const *argv)
 	char *buf;
 
 	ret = parse_options(argc, argv);
-	if (ret)
-		return -1;
-
-	ret = validate_options(argc, argv);
 	if (ret)
 		return -1;
 
