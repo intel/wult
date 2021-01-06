@@ -106,15 +106,17 @@ def parse_arguments():
                March 23, 2015. The allowed characters are: {ReportID.get_charset_descr()}."""
     subpars.add_argument("--reportid", help=text)
 
-    text = """The launch distance in microseconds. This tool works by scheduling a delayed network
-              packet, then sleeping and waiting for the packet to be sent. This step is referred to
-              as a "measurement cycle" and it is usually repeated many times. The launch distance
-              defines how far in the future the delayed network packets are scheduled. By
-              default this tool randomly selects launch distance in range of [5000, 50000] us (same
-              as '--ldist 5000,50000'). Specify a comma-separated range or a single value if you want
-              launch distance to be precisely that value all the time. Note, too low values may
-              cause failures or prevent the SUT from reaching deep C-states. The optimal value is
-              system-specific."""
+    text = f"""The launch distance in microseconds. This tool works by scheduling a delayed network
+               packet, then sleeping and waiting for the packet to be sent. This step is referred to
+               as a "measurement cycle" and it is usually repeated many times. The launch distance
+               defines how far in the future the delayed network packets are scheduled. By
+               default this tool randomly selects launch distance in range of [5000, 50000]
+               microseconds (same as '--ldist 5000,50000'). Specify a comma-separated range or a
+               single value if you want launch distance to be precisely that value all the time. The
+               default unit is microseconds, but you can use the following specifiers as well:
+               {Human.DURATION_NS_SPECS_DESCR}. For example, '--ldist 500us,100ms' would be a
+               [500,100000] microseconds range.  Note, too low values may cause failures or prevent
+               the SUT from reaching deep C-states. The optimal value is system-specific."""
     subpars.add_argument("-l", "--ldist", default="5000,50000", help=text)
 
     text = """The post-measurement trigger. Please, provide path to an executable on the SUT that

@@ -195,14 +195,14 @@ ACSII alphanumeric, \'-\', \'.\', \',\', \'_\', \'~\', and \':\'.
 .RS
 This tool works by scheduling a delayed interrupt, then sleeping and waiting for it to happen. This
 step is referred to as a "measurement cycle" and it is usually repeated many times. The launch
-distance defines how far in the future the delayed interrupt is scheduled. By default this tool
-randomly selects launch distance. Launch distance minimum and maximum values are specific to
-selected delayed event source. Specify a comma-separated range in microseconds
-(e.g \'--ldist 5000,50000\'), or a single value if you want launch distance to be precisely that
-value all the time. Too low values may cause failures or prevent the SUT from reaching deep
-C-states. Note, wult does not control when the system enters in idle state. This option controls the
-launch distance, but the moment of entering the C-state can be anywhere between the moment of arming
-the delayed interrupt and the moment it fires.
+distance defines how far in the future the delayed interrupt is sceduled. By default this tool
+randomly selects launch distance within a range. The default range is specific to selected delayed
+event source, but you can override it with this option. Specify a comma-separated range
+(e.g \'--ldist 10,5000\'), or a single value if you want launch distance to be precisely that value
+all the time. The default unit is microseconds, but you can use the following specifiers as well:
+ms - milliseconds, us - microseconds, ns - nanoseconds. For example, \'--ldist 10us,5ms\' would be a
+[10,5000] microseconds range. Too low values may cause failures or prevent the SUT from reaching
+deep C-states. The optimal values are system-specific.
 .RE
 .B --cpunum CPUNUM
 .RS

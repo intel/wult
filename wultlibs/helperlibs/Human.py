@@ -76,7 +76,7 @@ def _tokenize(htime, specs, specs_descr, default_unit):
 
     for spec, val in tokens.items():
         if not Trivial.is_int(val):
-            raise Error(f"failed to parse duration '{htime}': bad amount of "
+            raise Error(f"failed to parse duration '{htime}': non-integer amount of "
                         f"{specs[spec]}")
 
     return tokens
