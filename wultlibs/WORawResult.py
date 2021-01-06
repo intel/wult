@@ -11,7 +11,7 @@ This module provides API for creating raw wult test results.
 """
 
 from wultlibs.helperlibs.Exceptions import Error
-from wultlibs import _WORawResultBase, _Common
+from wultlibs import _WORawResultBase
 from wultlibs._WORawResultBase import FORMAT_VERSION # pylint: disable=unused-import
 
 class WultWORawResult(_WORawResultBase.WORawResultBase):
@@ -35,11 +35,9 @@ class WultWORawResult(_WORawResultBase.WORawResultBase):
           * cpunum - the to measure (Linux logical CPU number, e.g. like in '/proc/cpuinfo').
         """
 
-        self.cpunum = None
+        self.cpunum = cpunum
 
         super().__init__(reportid, outdir, cont=cont)
-
-        self.cpunum = _Common.validate_cpunum(cpunum)
 
         self.info["toolname"] = "wult"
         self.info["toolver"] = toolver

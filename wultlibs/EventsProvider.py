@@ -13,7 +13,6 @@ load, and use various delayed event devices and drivers (e.g., the I210 network 
 
 import logging
 import contextlib
-from itertools import zip_longest
 from wultlibs.helperlibs import FSHelpers, KernelModule, Trivial
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs import Devices
@@ -83,8 +82,7 @@ class EventsProvider:
         from_path = self._basedir / "ldist_from_nsec"
         to_path = self._basedir / "ldist_to_nsec"
 
-        for ldist, ldist_path in zip_longest(self._ldist, [from_path, to_path],
-                                             fillvalue=self._ldist[-1]):
+        for ldist, ldist_path in zip(self._ldist, [from_path, to_path]):
             if ldist < ldist_min or ldist > ldist_max:
                 raise Error(f"launch distance '{ldist}' is out of range, it should be in range of "
                             f"[{ldist_min},{ldist_max}]")
@@ -172,7 +170,8 @@ class EventsProvider:
           * cpunum - the measured CPU number.
           * proc - the host to operate on. This object will keep a 'proc' reference and use it in
                    various methods
-          * ldist - how far in future should the delayed event be scheduled.
+          * ldist - a pair of numbers specifying the launch distance range. The default value is
+                    specific to the delayed event driver.
           * force - initialize measurement device, even if it is already in use.
         """
 

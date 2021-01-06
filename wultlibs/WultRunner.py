@@ -365,9 +365,8 @@ class WultRunner:
           * proc - the 'Proc' or 'SSH' object that defines the host to run the measurements on.
           * devid - the device "ID", which can be a PCI address of a network interface name.
           * res - the 'WORawResult' object to store the results at.
-          * ldist - string of single, or comma-separated integers telling how far in future the
-                    delayed event should be scheduled. Default is specific to the delayed event
-                    driver.
+          * ldist - a pair of numbers specifying the launch distance range. The default value is
+                    specific to the delayed event driver.
           * force - initialize measurement device, even if it is already in use.
         """
 
@@ -397,9 +396,6 @@ class WultRunner:
         self._post_trigger = None
         self._post_trigger_range = []
 
-        _Common.validate_cpunum(res.cpunum, proc=proc)
-        if self._ldist:
-            self._ldist = _Common.validate_ldist(self._ldist)
         self._validate_sut()
 
         self._progress = _ProgressLine.ProgressLine(period=1)

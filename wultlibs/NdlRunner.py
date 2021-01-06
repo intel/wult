@@ -51,7 +51,7 @@ class NdlRunner:
     def _get_lines(self):
         """This generator to reads the 'ndlrunner' helper output and yields it line by line."""
 
-        timeout = 1 + self._ldist[-1]/1000000000
+        timeout = 1.0 + self._ldist[1]/1000000000
 
         while True:
             stdout, stderr, exitcode = self._ndlrunner.wait_for_cmd(timeout=timeout, by_line=True,
@@ -272,11 +272,6 @@ class NdlRunner:
     def _verify_input_args(self):
         """Verify and adjust the constructor input arguments."""
 
-        if not self._ldist:
-            self._ldist = "5000, 10000"
-
-        self._ldist = _Common.validate_ldist(self._ldist)
-
         # Validate the 'ndlrunner' helper path.
         if not FSHelpers.isexe(self._ndlrunner_bin, proc=self._proc):
             raise Error(f"bad 'ndlrunner' helper path '{self._ndlrunner_bin}' - does not exist"
@@ -305,8 +300,9 @@ class NdlRunner:
           * ifname - the network interface name to use for measuring the latency.
           * res - the 'WORawResult' object to store the results at.
           * ndlrunner_bin - path to the 'ndlrunner' helper.
-          * ldist - for how far in the future the delayed network packets should be scheduled in
-                    microseconds. Default is [5000, 10000] microseconds.
+          * ldist - a pair of numbers specifying the launch distance range in nanoseconds (how far
+          *         in the future the delayed network packets should be scheduled). Default is
+          *         [5000000, 50000000].
         """
 
         self._proc = proc
@@ -326,6 +322,9 @@ class NdlRunner:
         self._etfqdisc = None
         self._nmcli = None
         self._netif = None
+
+        if not self._ldist:
+            self._ldist = [5000000, 50000000]
 
         self._verify_input_args()
 

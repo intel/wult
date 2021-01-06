@@ -24,6 +24,7 @@ from collections import OrderedDict
 from wultlibs.helperlibs import Logging, Trivial, FSHelpers, KernelVersion, Procs, SSH, YAML
 from wultlibs.helperlibs import ReportID
 from wultlibs.helperlibs.Exceptions import Error
+from wultlibs.sysconfiglibs import CPUInfo
 from wultlibs import RORawResult
 
 HELPERS_LOCAL_DIR = Path(".local")
@@ -76,6 +77,61 @@ def get_proc(args, hostname):
 
     return SSH.SSH(hostname=hostname, username=args.username, privkeypath=args.privkey,
                    timeout=args.timeout)
+
+def validate_ldist(ldist):
+    """
+    Parse and validate the launch distance range ('--ldist' option). The 'ldist' argument is a
+    string of single or two comma-separated launch distance values. The values are parsed with
+    'Human.parse_duration_ns()', so they can include specifiers like 'ms' or 'us'. Returns launch
+    launch distance range as a list of two integers in nanoseconds.
+    """
+
+    ldst = Trivial.split_csv_line(ldist)
+
+    for idx, val in enumerate(ldst):
+        ldst[idx] = Trivial.str_to_num(val, default=None)
+        if ldst[idx] is None:
+            raise Error(f"bad launch distance '{ldist}', should be an integer")
+        if ldst[idx] <= 0:
+            raise Error(f"bad launch distance value '{ldst[idx]}', should be greater than zero")
+
+    if len(ldst) > 2:
+        raise Error(f"bad launch distance range '{ldist}', it should include 2 numbers")
+    if len(ldst) == 2 and ldst[1] - ldst[0] < 0:
+        raise Error(f"bad launch distance range '{ldist}', first number cannot be "
+                    f"greater than the second number")
+    if len(ldst) == 1:
+        ldst.append(ldst[0])
+
+    # Return launch distance as nanoseconds.
+    for idx, val in enumerate(ldst):
+        ldst[idx] = val * 1000
+
+    return ldst
+
+def validate_cpunum(cpunum, proc=None):
+    """
+    Validate CPU number 'cpunum'. If 'proc' is provided, then this function discovers CPU count on
+    the host associated with the 'proc' object, and verifies that 'cpunum' does not exceed the host
+    CPU count and the CPU is online. Note, 'proc' should be an 'SSH' or 'Proc' object. If 'proc' is
+    not provided, this function just checks that 'cpunum' is a positive integer number.
+    """
+
+    if not Trivial.is_int(cpunum) or int(cpunum) < 0:
+        raise Error(f"bad CPU number '{cpunum}', should be a positive integer")
+
+    cpunum = int(cpunum)
+
+    if proc:
+        with CPUInfo.CPUInfo(proc=proc) as cpuinfo:
+            cpugeom = cpuinfo.get_cpu_geometry()
+
+        if cpunum in cpugeom["offcpus"]:
+            raise Error(f"CPU '{cpunum}'{proc.hostmsg} is offline")
+        if cpunum not in cpugeom["cpus"]:
+            raise Error(f"CPU '{cpunum}' does not exist{proc.hostmsg}")
+
+    return cpunum
 
 def add_ssh_options(parser, argcomplete=None):
     """

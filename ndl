@@ -293,6 +293,8 @@ def start_command(args):
     if args.tlimit:
         args.tlimit = Human.parse_duration(args.tlimit, default_unit="m")
 
+    args.ldist = ToolsCommon.validate_ldist(args.ldist)
+
     # Figure out the helper path.
     if not args.helpers_path:
         args.helpers_path = ToolsCommon.get_helpers_deploy_path(proc, OWN_NAME) / "bin"
