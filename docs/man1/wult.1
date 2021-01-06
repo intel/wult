@@ -66,12 +66,12 @@ Name of the host to run on (default is the local host).
 .RE
 .B {-U | --username} USERNAME
 .RS
-Name of the user to use for logging into the SUT over SSH. The default user name is \'root\'.
+Name of the user to use for logging into the SUT over SSH. The default user name is 'root'.
 .RE
 .B -K PRIVKEY, --priv-key PRIVKEY
 .RS
 Path to the private SSH key that should be used for logging into the SUT. By default the key is
-automatically found from standard paths like \'~/.ssh\'.
+automatically found from standard paths like '~/.ssh'.
 .RE
 .B {-T | --timeout} TIMEOUT
 .RS
@@ -92,7 +92,7 @@ Path to wult drivers sources to build and deploy. By default the drivers are sea
 following directories (and in the following order) on the local host:
 .nf
 /opt/powerlab/bin/drivers/idle/wult,
-$WULT_DATA_PATH/drivers/idle/wult (if \'WULT_DATA_PATH\' environment variable is defined),
+$WULT_DATA_PATH/drivers/idle/wult (if 'WULT_DATA_PATH' environment variable is defined),
 $HOME/.local/share/wult/drivers/idle/wult,
 /usr/local/share/wult/drivers/idle/wult,
 /usr/share/wult/drivers/idle/wult.
@@ -101,23 +101,23 @@ $HOME/.local/share/wult/drivers/idle/wult,
 .B {-H | --host} IHOST
 .RS
 Name of the host helpers and drivers have to be deployed to (local host by default). In order to
-deploy to a remote host this program will log into it using the \'SSH\' protocol.
+deploy to a remote host this program will log into it using the 'SSH' protocol.
 .RE
 .B --build-host BHOST
 .RS
 Name of the host drivers have to be built on. By default they are built on IHOST, but this option
-can be used to build on the local host (use \'--build-host localhost\').
+can be used to build on the local host (use '--build-host localhost').
 .RE
 .B --kernel-src KSRC
 .RS
 Path to the Linux kernel sources to build the drivers against. The default is
-\'/lib/modules/$(uname -r)/build\'. This is the path on the system the drivers are going to be build
+'/lib/modules/$(uname -r)/build'. This is the path on the system the drivers are going to be build
 on (BHOST).
 .RE
 .B --kmod-path KMODPATH
 .RS
-Where the wult drivers should be deployed to (IHOST). The default is \'/lib/modules/<kver>\', where
-\'<kver>\' is version of the kernel in KSRC.
+Where the wult drivers should be deployed to (IHOST). The default is '/lib/modules/<kver>', where
+'<kver>' is version of the kernel in KSRC.
 .RE
 .RE
 
@@ -132,16 +132,16 @@ Load wult drivers and exit without starting the measurements.
 
 DEVID is ID of the device to use for measuring the latency. For example, it can be a PCI address of
 the Intel I210 device, or "tdt" for the TSC deadline timer block of the CPU.
-Use the \'scan\' command to get supported devices.
+Use the 'scan' command to get supported devices.
 
 This command exists for debugging and troubleshooting purposes. Please, do not use for other
-reasons. keep in mind that if the the specified \'devid\' device was bound to some driver (e.g., a
+reasons. keep in mind that if the the specified 'devid' device was bound to some driver (e.g., a
 network driver), it will be unbinded and with this option It won't be binded back.
 
 .B --no-unload
 .RS
 This command exists for debugging and troubleshooting purposes. Please, do not use for other reasons.
-keep in mind that if the the specified \'devid\' device was bound to some driver (e.g., a network
+keep in mind that if the the specified 'devid' device was bound to some driver (e.g., a network
 driver), it will be unbinded and with this option it won't be binded back.
 .RE
 .B --force
@@ -156,13 +156,13 @@ caution.
 .RS
 Start measuring and recording C-state latency.
 
-DEVID argument is same as in \'load\' command.
+DEVID argument is same as in 'load' command.
 
 .B {-c | --count} COUNT
 .RS
 How many datapoints should the test result include, default is 1000000. Note, in case a pre-existing
-test result is continued (see \'--continue\'), the pre-existing datapoints are taken into account.
-For example, if the test result already has 6000 datapoints and \'-c 100000\' is used, the tool will
+test result is continued (see '--continue'), the pre-existing datapoints are taken into account.
+For example, if the test result already has 6000 datapoints and '-c 100000' is used, the tool will
 collect 4000 datapoints and exit. Warning: collecting too many datapoints may result in a very large
 test result file, which will be difficult to process later, because that would require a lot of
 memory.
@@ -171,9 +171,9 @@ memory.
 .RS
 The measurement time limit, i.e., for how long the SUT should be measured. The default unit is
 minutes, but you can use the following handy specifiers as well: d - days, h - hours, m - minutes, s
-- seconds. For example \'1h25m\' would be 1 hour and 25 minutes, or 10m5s would be 10 minutes and 5
-seconds. Value \'0\' means "no time limit", and this is the default. If this option is used along
-with the \'--datapoints\' option, then measurements will stop as when either the time limit is
+- seconds. For example '1h25m' would be 1 hour and 25 minutes, or 10m5s would be 10 minutes and 5
+seconds. Value '0' means "no time limit", and this is the default. If this option is used along
+with the '--datapoints' option, then measurements will stop as when either the time limit is
 reached, or the required amount of datapoints is collected.
 .B --continue
 .RS
@@ -187,9 +187,9 @@ Path to the directory to store the results at.
 .B --reportid REPORTID
 .RS
 Any string which may serve as an identifier of this run. By default report ID is the current date,
-prefixed with the remote host name in case the \'-H\' option was used: [hostname-]YYYYMMDD. For
+prefixed with the remote host name in case the '-H' option was used: [hostname-]YYYYMMDD. For
 example, "20150323" is a report ID for a run made on March 23, 2015. The allowed characters are:
-ACSII alphanumeric, \'-\', \'.\', \',\', \'_\', \'~\', and \':\'.
+ACSII alphanumeric, '-', '.', ',', '_', '~', and ':'.
 .RE
 .B {-l | --ldist} LDIST
 .RS
@@ -198,9 +198,9 @@ step is referred to as a "measurement cycle" and it is usually repeated many tim
 distance defines how far in the future the delayed interrupt is sceduled. By default this tool
 randomly selects launch distance within a range. The default range is specific to selected delayed
 event source, but you can override it with this option. Specify a comma-separated range
-(e.g \'--ldist 10,5000\'), or a single value if you want launch distance to be precisely that value
+(e.g '--ldist 10,5000'), or a single value if you want launch distance to be precisely that value
 all the time. The default unit is microseconds, but you can use the following specifiers as well:
-ms - milliseconds, us - microseconds, ns - nanoseconds. For example, \'--ldist 10us,5ms\' would be a
+ms - milliseconds, us - microseconds, ns - nanoseconds. For example, '--ldist 10us,5ms' would be a
 [10,5000] microseconds range. Too low values may cause failures or prevent the SUT from reaching
 deep C-states. The optimal values are system-specific.
 .RE
@@ -212,7 +212,7 @@ The logical CPU number to measure, default is CPU 0.
 .RS
 This option exists for debugging and troubleshooting purposes. Please, do not use for other reasons.
 While normally wult kernel modules are unloaded after the measurements are done, with this option
-the modules will stay loaded into the kernel. Keep in mind that if the the specified \'devid\'
+the modules will stay loaded into the kernel. Keep in mind that if the the specified 'devid'
 device was bound to some driver (e.g., a network driver), it will be unbinded and with this option
 it won't be binded back.
 .RE
@@ -221,21 +221,21 @@ it won't be binded back.
 The post-measurement trigger. Please, provide path to an executable on the SUT that should be
 executed after a datapoint had been collected. The next measurement cycle will start only after the
 trigger program finishes. This option exists for debugging and troubleshooting purposes. Note, the
-specified program will be executed as \'POST_TRIGGER --latency <value>\', where \'<value>\' is the
+specified program will be executed as 'POST_TRIGGER --latency <value>', where '<value>' is the
 last observed wake latency in nanoseconds.
 .RE
 .B --post-trigger-range POST_TRIGGER_RANGE
 .RS
 By default, the post trigger is executed for every datapoint, but this option allows for setting the
 wake latency trigger range - the trigger program will be executed only when observed latency is in
-the range (inclusive). Specify a comma-separated range in nanoseconds (e.g \'--post-trigger-range
-50000,60000\').
+the range (inclusive). Specify a comma-separated range in nanoseconds (e.g '--post-trigger-range
+50000,60000').
 .RE
 .B --force
 .RS
 By default {OWN_NAME} does not accept network card as a measurement device if its Linux network
 interface is in an active state, such as "up". Use '--force' to disable this safety mechanism. Use
-\'--force\' option with caution.
+'--force' option with caution.
 .RE
 .B --report
 .RS
@@ -253,16 +253,16 @@ RESPATH is wult test result path to create the report for.
 .B {-o | --outdir} OUTDIR
 .RS
 Path to the directory to store the report at. By default the report is stored in the
-\'wult-report-<reportid>\' sub-directory of the current working directory, where \'<reportid>\' is
+'wult-report-<reportid>' sub-directory of the current working directory, where '<reportid>' is
 report ID of wult test result (the first one if there are multiple).
 .RE
 .B --rfilt RFILT
 .RS
-The row filter, same as \'--rfilt\' in the \'filter\' command.
+The row filter, same as '--rfilt' in the 'filter' command.
 .RE
 .B --rsel RSEL
 .RS
-The row selector, same as \'--rsel\' in the \'filter\' command.
+The row selector, same as '--rsel' in the 'filter' command.
 .RE
 .B --even-up-dp-count
 .RS
@@ -275,7 +275,7 @@ of datapoints and ignores the extra datapoints in the other test results.
 .B {-x | --xaxes} XAXES
 .RS
 A comma-separated list of CSV column names (or python style regular expressions matching the names)
-to use on X-axes, default is \'SilentTime\'. Use \'--list-columns\' to get the list of the available
+to use on X-axes, default is 'SilentTime'. Use '--list-columns' to get the list of the available
 column names.
 .RE
 .B {-y | --yaxes} YAXES
@@ -283,35 +283,35 @@ column names.
 A comma-separated list of CSV column names (or python style regular expressions matching the names)
 to use on the Y-axes. If multiple CSV column names are specified for the X- or Y-axes, then the
 report will include all the X- and Y-axes combination. The default is
-\'.*Latency,.*Delay,[PC]C.+%\'. Use \'--list-columns\' to get the list of the available column names.
+'.*Latency,.*Delay,[PC]C.+%'. Use '--list-columns' to get the list of the available column names.
 .RE
 .B --hist HIST
 .RS
 A comma-separated list of CSV column names (or python style regular expressions matching the names)
-to add a histogram for, default is \'.*Latency,.*Delay,[PC]C.+%,LDist,SilentTime\'. Use
-\'--list-columns\' to get the list of the available column names.
+to add a histogram for, default is '.*Latency,.*Delay,[PC]C.+%,LDist,SilentTime'. Use
+'--list-columns' to get the list of the available column names.
 .RE
 .B --chist CHIST
 .RS
 A comma-separated list of CSV column names (or python style regular expressions matching the names)
-to add a cumulative distribution for, default is \'.*Latency,.*Delay,[PC]C.+%,LDist,SilentTime\'. Use
-\'--list-columns\' to get the list of the available column names.
+to add a cumulative distribution for, default is '.*Latency,.*Delay,[PC]C.+%,LDist,SilentTime'. Use
+'--list-columns' to get the list of the available column names.
 .RE
 .B --reportids REPORTIDS
 .RS
 Every input raw result comes with a report ID. This report ID is basically a short name for the test
 result, and it used in the HTML report to refer to the test result. However, sometimes it is helpful
 to temporarily override the report IDs just for the HTML report, and this is what the
-\'--reportids\' option does. Please, specify a comma-separated list of report IDs for every input
+'--reportids' option does. Please, specify a comma-separated list of report IDs for every input
 raw test result.  The first report ID will be used for the first raw rest result, the second report
-ID will be used for the second raw test result, and so on. Please, refer to the \'--reportid\'
-option description in the \'start\' command for more information about the report ID.
+ID will be used for the second raw test result, and so on. Please, refer to the '--reportid'
+option description in the 'start' command for more information about the report ID.
 .RE
 .B --title-descr TITLE_DESCR
 .RS
 The report title description - any text describing this report as whole, or path to a file
 containing the overall report description. For example, if the report compares platform A and
-platform B, the description could be something like \'platform A vs B comparison\'. This text will be
+platform B, the description could be something like 'platform A vs B comparison'. This text will be
 included into the very beginning of the resulting HTML report.
 .RE
 .B --relocatable
@@ -331,38 +331,38 @@ Print the list of the available column names and exit.
 .RS
 Filter datapoints out of a test result by removing CSV rows and columns according to specified
 criteria. The criteria is specified using the row and column filter and selector options
-(\'--rsel\', \'--cfilt\', etc). The options may be specified multiple times.
+('--rsel', '--cfilt', etc). The options may be specified multiple times.
 
 The RESPATH is wult test results path to filter.
 
 .B --rfilt RFILT
 .RS
 The row filter: remove all the rows satisfying the filter expression. Here is an example of an
-expression: \'(WakeLatency < 10000) | (PC6% < 1)\'. This row filter expression will remove all rows
-with \'WakeLatency\' smaller than 10000 nanoseconds or package C6 residency smaller than 1%. The
-detailed row filter expression syntax can be found in the documentation for the \'eval()\' function
-of Python \'pandas\' module. You can use column names in the expression, or the special word
-\'index\' for the row number. Value \'0\' is the header, value \'1\' is the first row, and so on.
-For example, expression \'index >= 10\' will get rid of all data rows except for the first 10 ones.
+expression: '(WakeLatency < 10000) | (PC6% < 1)'. This row filter expression will remove all rows
+with 'WakeLatency' smaller than 10000 nanoseconds or package C6 residency smaller than 1%. The
+detailed row filter expression syntax can be found in the documentation for the 'eval()' function
+of Python 'pandas' module. You can use column names in the expression, or the special word
+'index' for the row number. Value '0' is the header, value '1' is the first row, and so on.
+For example, expression 'index >= 10' will get rid of all data rows except for the first 10 ones.
 .RE
 .B --rsel RSEL
 .RS
 The row selector: remove all rows except for those satisfying the selector expression. In other
-words, the selector is just an inverse filter: \'--rsel expr\' is the same as \'--rfilt
-"not (expr)"\'.
+words, the selector is just an inverse filter: '--rsel expr' is the same as '--rfilt
+"not (expr)"'.
 .RE
 .B --cfilt CFILT
 .RS
 The columns filter: remove all columns specified in the filter. The columns filter is just a
 comma-separated list of the CSV file column names or python style regular expressions matching the
-names. For example expression \'SilentTime,WarmupDelay,.*Cyc\', would remove columns \'SilentTime\',
-\'WarmupDelay\' and all columns with \'Cyc\' in the column name. Use \'--list-columns\' to get the
+names. For example expression 'SilentTime,WarmupDelay,.*Cyc', would remove columns 'SilentTime',
+'WarmupDelay' and all columns with 'Cyc' in the column name. Use '--list-columns' to get the
 list of the available column names.
 .RE
 .B --csel CSEL
 .RS
 The columns selector: remove all column except for those specified in the selector. The syntax is
-the same as for \'--cfilt\'.
+the same as for '--cfilt'.
 .RE
 .B {-o | --outdir} OUTDIR
 .RS
@@ -376,7 +376,7 @@ Print the list of the available column names and exit.
 .RE
 .B --reportid REPORTID
 .RS
-Report ID of the filtered version of the result (can only be used with \'--outdir\').
+Report ID of the filtered version of the result (can only be used with '--outdir').
 .RE
 .RE
 
@@ -388,25 +388,25 @@ RESPATH is a wult test result path to calculate summary functions for.
 
 .B --rfilt RFILT
 .RS
-The row filter, same as \'--rfilt\' in the \'filter\' command.
+The row filter, same as '--rfilt' in the 'filter' command.
 .RE
 .B --rsel RSEL
 .RS
-The row selector, same as \'--rsel\' in the \'filter\' command.
+The row selector, same as '--rsel' in the 'filter' command.
 .RE
 .B --cfilt CFILT
 .RS
-The column filter, same as \'--cfilt\' in the \'filter\' command.
+The column filter, same as '--cfilt' in the 'filter' command.
 .RE
 .B --csel CSEL
 .RS
-The column selector, same as \'--csel\' in the \'filter\' command.
+The column selector, same as '--csel' in the 'filter' command.
 .RE
 .B {-f | --funcs} FUNCS
 .RS
 Comma-separated list of summary function names to calculate. By default all generally interesting
 functions are calculated (each column name is associated with a list of functions that make sense
-for this column). Use \'--list-funcs\' to get the list of supported.
+for this column). Use '--list-funcs' to get the list of supported.
 .RE
 .B --list-funcs
 .RS
