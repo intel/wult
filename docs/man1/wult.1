@@ -17,9 +17,9 @@ wult COMMAND [OPTIONS] DEVID|RESPATH
 Wult is a command-line tool for measuring C-state latency, and the name comes from "Wake Up Latency
 Tracer".
 
-Wult measures the C-state latency by scheduling a delayed interrupt at known time in future,
+Wult measures the C-state latency by scheduling a delayed event (interrupt) at known time in future,
 entering a C-state, and waiting for the interrut to happen. Wult can use CPU's TSC deadline timer as
-a source of interrupts, as well as Intel I210 PCIe Gigabit Ethernet adapter.
+a source of delayed events, as well as Intel I210 PCIe Gigabit Ethernet adapter.
 
 The command-line interface is based on commands and each command supports the -h option, which can
 be used for quick help.
@@ -193,16 +193,17 @@ ACSII alphanumeric, '-', '.', ',', '_', '~', and ':'.
 .RE
 .B {-l | --ldist} LDIST
 .RS
-This tool works by scheduling a delayed interrupt, then sleeping and waiting for it to happen. This
+This tool works by scheduling a delayed event, then sleeping and waiting for it to happen. This
 step is referred to as a "measurement cycle" and it is usually repeated many times. The launch
-distance defines how far in the future the delayed interrupt is sceduled. By default this tool
+distance defines how far in the future the delayed event is sceduled. By default this tool
 randomly selects launch distance within a range. The default range is specific to selected delayed
 event source, but you can override it with this option. Specify a comma-separated range
 (e.g '--ldist 10,5000'), or a single value if you want launch distance to be precisely that value
 all the time. The default unit is microseconds, but you can use the following specifiers as well:
 ms - milliseconds, us - microseconds, ns - nanoseconds. For example, '--ldist 10us,5ms' would be a
-[10,5000] microseconds range. Too low values may cause failures or prevent the SUT from reaching
-deep C-states. The optimal values are system-specific.
+[10,5000] microseconds range. Too small values may cause failures or prevent the SUT from reaching
+deep C-states. If the range starts with 0, the minimum possible launch distance value allowed by the
+delayed event source will be used. The optimal launch distance range is system-specific.
 .RE
 .B --cpunum CPUNUM
 .RS

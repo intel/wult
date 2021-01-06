@@ -82,6 +82,11 @@ class EventsProvider:
         from_path = self._basedir / "ldist_from_nsec"
         to_path = self._basedir / "ldist_to_nsec"
 
+        for idx, ldist in enumerate(self._ldist):
+            if not ldist:
+                # Special case: 0 means "use the minimum possible value".
+                self._ldist[idx] = ldist_min
+
         for ldist, ldist_path in zip(self._ldist, [from_path, to_path]):
             if ldist < ldist_min or ldist > ldist_max:
                 raise Error(f"launch distance '{ldist}' is out of range, it should be in range of "

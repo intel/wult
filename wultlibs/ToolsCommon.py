@@ -89,7 +89,7 @@ def _validate_range(rng, what):
             vals[idx] = Human.parse_duration_ns(val, default_unit="us")
         except Error as err:
             raise Error(f"bad {what} '{split_rng[idx]}', {err}")
-        if vals[idx] <= 0:
+        if vals[idx] < 0:
             raise Error(f"bad {what} value '{split_rng[idx]}', should be greater than zero")
 
     if len(vals) > 2:
