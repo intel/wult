@@ -372,7 +372,7 @@ static int pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 		goto err_clear_master;
 	}
 
-	nic->wdi.ldist_min = 0;
+	nic->wdi.ldist_min = 1;
 	nic->wdi.ldist_max = I210_MAX_LDIST;
 	nic->wdi.ldist_gran = I210_RESOLUTION;
 	nic->wdi.ops = &wult_igb_ops;
