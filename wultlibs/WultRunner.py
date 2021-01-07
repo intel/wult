@@ -56,6 +56,8 @@ class WultRunner:
             # Wult output format should be: name1=val1 name2=val2, and so on. Parse the line and get
             # the list of (name, val) pairs: [(name1, val1), (name2, val2), ... ].
             try:
+                if not line.msg:
+                    raise ValueError
                 pairs = [pair.split("=") for pair in line.msg.split()]
                 names, vals = zip(*pairs)
                 if len(names) != len(vals):

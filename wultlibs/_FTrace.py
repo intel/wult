@@ -44,11 +44,9 @@ class FTraceLine():
         self.msg = None
 
         split = self.line.split(maxsplit=5)
-        if len(split) != 6:
-            raise Error(f"unexpected trace buffer line - less than 6 comma-separated "
-                        f"elements:\n{self.line}")
-        procinfo, self.cpunum, self.flags, self.timestamp, self.func, self.msg = split
-        self.procname, self.pid = procinfo.split("-")
+        if len(split) == 6:
+            procinfo, self.cpunum, self.flags, self.timestamp, self.func, self.msg = split
+            self.procname, self.pid = procinfo.split("-")
 
 class FTrace:
     """This class represents the Linux function trace buffer."""
