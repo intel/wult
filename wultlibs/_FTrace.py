@@ -64,8 +64,10 @@ class FTrace:
                     continue
                 split = line.split(maxsplit=5)
                 if len(split) != 6:
-                    raise Error(f"unexpected trace buffer line{self._proc.hostmsg} - less than 6 "
-                                f"comma-separated elements:\n{line}")
+                    stdout = "".join(stdout)
+                    raise Error(f"processing the following data from the trace buffer:\n{stdout}\n"
+                                f"Failure: unexpected trace buffer line{self._proc.hostmsg} - less "
+                                f"than 6 comma-separated elements:\n{line}")
                 procinfo, cpunum, flags, timestamp, func, msg = split
                 procname, pid = procinfo.split("-")
                 self.raw_line = line
