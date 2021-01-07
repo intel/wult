@@ -128,9 +128,12 @@ def parse_arguments():
     subpars.add_argument("--post-trigger", metavar="POST_TRIGGER", type=Path, help=text)
 
     text = """By default, the post trigger is executed for every datapoint, but this option allows
-              for setting the RTD threshold - the trigger program will be executed only when latency
-              exceeds the threshold. The threshold should be an integer amount of nanoseconds."""
-    subpars.add_argument("--post-trigger-threshold", help=text)
+              for setting the RTD range - the trigger program will be executed only when observed
+              RTD is in the range (inclusive). Specify a comma-separated range, e.g
+              '--post-trigger-range 50,600'. The default unit is microseconds, but you
+              can use the following specifiers as well: {Human.DURATION_NS_SPECS_DESCR}. For
+              example, '--post-trigger-range 100us,1ms' would be a [100,1000] microseconds range."""
+    subpars.add_argument("--post-trigger-range", metavar="TRANGE", dest="trange", help=text)
 
     text = """Generate an HTML report for collected results (same as calling 'report' command with
               default arguments)."""
@@ -278,7 +281,7 @@ def parse_arguments():
 def start_command(args):
     """Implements the 'start' command."""
 
-    if args.post_trigger_threshold and not args.post_trigger:
+    if args.trange and not args.post_trigger:
         raise Error("specify post trigger program to run")
 
     proc = ToolsCommon.get_proc(args, args.hostname)
@@ -294,6 +297,8 @@ def start_command(args):
         args.outdir = Path(f"./{args.reportid}")
     if args.tlimit:
         args.tlimit = Human.parse_duration(args.tlimit, default_unit="m")
+    if args.trange:
+        args.trange = ToolsCommon.validate_trange(args.trange)
 
     args.ldist = ToolsCommon.validate_ldist(args.ldist)
 
@@ -323,7 +328,7 @@ def start_command(args):
                                  ldist=args.ldist) as runner:
             runner.prepare()
             if args.post_trigger:
-                runner.set_post_trigger(args.post_trigger, thresh=args.post_trigger_threshold)
+                runner.set_post_trigger(args.post_trigger, trange=args.trange)
             runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit)
 
     if not args.report:

@@ -222,11 +222,13 @@ trigger program finishes. This option exists for debugging and troubleshooting p
 specified program will be executed as 'POST_TRIGGER --latency <value>', where '<value>' is the
 last observed RTD (round-trip delay) in nanoseconds.
 .RE
-.B --post-trigger-threshold POST_TRIGGER_THRESHOLD
+.B --post-trigger-range POST_TRIGGER_RANGE
 .RS
 By default, the post trigger is executed for every datapoint, but this option allows for setting the
-RDT threshold - the trigger program will be executed only when latency exceeds
-the threshold. The threshold should be an integer amount of nanoseconds.
+RTD range - the trigger program will be executed only when RTD is in the range (inclusive). Specify
+a comma-separated range, e.g '--post-trigger-range 50,600'. The default unit is microseconds, but
+you can use the following specifiers as well: ms - milliseconds, us - microseconds, ns -
+nanoseconds. For example, '--post-trigger-range 100us,1ms' would be a [100,1000] microseconds range.
 .RE
 .B --report
 .RS
