@@ -260,7 +260,7 @@ class NdlRunner:
         """
 
         if not FSHelpers.isexe(path, proc=self._proc):
-            raise Error(f"file '{path}' does not exist or it is not an executalbe file")
+            raise Error(f"file '{path}' does not exist or it is not an executable file")
 
         self._post_trigger = path
         if thresh is not None:
