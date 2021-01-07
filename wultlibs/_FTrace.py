@@ -11,25 +11,44 @@ This module provides API for dealing with Linux function trace buffer.
 """
 
 import logging
-from collections import namedtuple
 from wultlibs.helperlibs import ProcHelpers, FSHelpers
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorTimeOut
 
-# A function trace buffer line.
-FtraceLine = namedtuple("FTraceLine", ["procname", "pid", "cpunum", "flags", "timestamp", "func",
-                                       "msg"])
-FtraceLine.__doc__ = """
-A kernel function trace buffer line.
-  o procname - process name.
-  o pid - process PID.
-  o cpunum - logical CPU number.
-  o flags - trace flags.
-  o timestamp - the trace timestamp.
-  o func - name of the kernel function where the trace happened.
-  o msg - the trace buffer message.
-"""
-
 _LOG = logging.getLogger()
+
+class FTraceLine():
+    """
+    This class represents an ftrace buffer line. When an instance is created, the trace buffer line
+    is split and the following attributes become available.
+      * procname - process name.
+      * pid - process PID.
+      * cpunum - logical CPU number.
+      * flags - trace flags.
+      * timestamp - the trace timestamp.
+      * func - name of the kernel function where the trace happened.
+      * msg - the trace buffer message (comes after all the standard prefixes inlcuding process
+      *       name, PID, etc)
+      * line - full trace buffer line (includs all the standard prefixes)
+    """
+
+    def __init__(self, line):
+        """Create a class instance for trace buffer line 'line'."""
+
+        self.line = line.strip()
+        self.procname = None
+        self.pid = None
+        self.cpunum = None
+        self.flags = None
+        self.timestamp = None
+        self.func = None
+        self.msg = None
+
+        split = self.line.split(maxsplit=5)
+        if len(split) != 6:
+            raise Error(f"unexpected trace buffer line - less than 6 comma-separated "
+                        f"elements:\n{self.line}")
+        procinfo, self.cpunum, self.flags, self.timestamp, self.func, self.msg = split
+        self.procname, self.pid = procinfo.split("-")
 
 class FTrace:
     """This class represents the Linux function trace buffer."""
@@ -63,16 +82,8 @@ class FTrace:
             for line in stdout:
                 if line.startswith("#"):
                     continue
-                split = line.split(maxsplit=5)
-                if len(split) != 6:
-                    stdout = "".join(stdout)
-                    raise Error(f"processing the following data from the trace buffer:\n{stdout}\n"
-                                f"Failure: unexpected trace buffer line{self._proc.hostmsg} - less "
-                                f"than 6 comma-separated elements:\n{line}")
-                procinfo, cpunum, flags, timestamp, func, msg = split
-                procname, pid = procinfo.split("-")
-                self.raw_line = line
-                yield FtraceLine(procname, pid, cpunum, flags, timestamp, func, msg.strip())
+                self.raw_line = line.strip()
+                yield FTraceLine(line)
 
     def __init__(self, proc, timeout=30):
         """
