@@ -26,6 +26,7 @@ A kernel function trace buffer line.
   o flags - trace flags.
   o timestamp - the trace timestamp.
   o func - name of the kernel function where the trace happened.
+  o msg - the trace buffer message.
 """
 
 _LOG = logging.getLogger()
