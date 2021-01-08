@@ -78,7 +78,7 @@ PCx%:
 TotCyc:
     title: "Total CPU Cycles Count"
     descr: >-
-        Total count of CPU cycles spent in the C-state.
+        Total count of CPU cycles over the idle period.
     type: "int"
     unit: "CPU cycles"
     short_unit: "cyc"
