@@ -541,8 +541,17 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         super().__init__(dirpath)
 
-        if not self.info_path.is_file():
-            raise Error(f"'{self.info_path}' does not exist or it is not a regular file")
+        # Check few special error cases upfront in order to provide a clear error message:
+        # the info and datapoint files should exist and be non-empty.
+        for name in ("info_path", "dp_path"):
+            attr = getattr(self, name)
+            try:
+                if not attr.is_file():
+                    raise ErrorNotFound(f"'{attr}' does not exist or it is not a regular file")
+                if not attr.stat().st_size:
+                    raise Error(f"file '{attr}' is empty")
+            except OSError as err:
+                raise Error(f"failed to access '{attr}': {err}")
 
         # The row and column filters and selectors.
         self._rfilt = None
