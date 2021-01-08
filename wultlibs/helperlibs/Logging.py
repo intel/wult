@@ -57,6 +57,8 @@ def _error_traceback(logger, msgformat, *args):
         if colorama:
             dim = colorama.Style.RESET_ALL + colorama.Style.DIM
             undim = colorama.Style.RESET_ALL
+        else:
+            dim = undim = ""
         logger.log(ERRINFO, "--- Debug trace starts here ---")
         tb = "\n".join(tback)
         logger.log(ERRINFO, "%sAn error occurred, here is the traceback:\n%s%s", dim, tb, undim)
