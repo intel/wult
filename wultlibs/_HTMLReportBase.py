@@ -90,7 +90,7 @@ class HTMLReportBase:
         for colname in itertools.islice(self._pinfos, 1, None):
             links_tbl[colname] = {}
             links_tbl[colname]["name"] = f"{colname}"
-            fname = colname.replace("%", "_pcnt") + ".html"
+            fname = colname.replace("%", "_pcnt").replace("/", "-to-") + ".html"
             links_tbl[colname]["fname"] = fname
             links_tbl[colname]["hlink"] = f"<a href=\"{fname}\">{colname}</a>"
 
@@ -255,7 +255,7 @@ class HTMLReportBase:
         pinfo["fname"] = f"{pinfo['ycolname']}-vs-{pinfo['xcolname']}.html"
         # C-state residency column names contain the '%' caracter, which is not allowed in HTML page
         # file name.
-        pinfo["fname"] = pinfo["fname"].replace("%", "_pcnt")
+        pinfo["fname"] = pinfo["fname"].replace("%", "_pcnt").replace("/", "-to-")
 
         if is_hist:
             colname = xcolname
