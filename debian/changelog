@@ -1,3 +1,4 @@
+
 wult (1.8.11) unstable; urgency=low
 
   * wult/ndl: add the '--time-limit' option.
@@ -8,8 +9,10 @@ wult (1.8.11) unstable; urgency=low
   * ndl: fix parsing the 'tc' tool version number.
   * wult/ndl: rename the 'stats' command into 'calc'.
   * wult: add SilentTime vs LDist diagram.
+  * wult: do not fail when events are lost.
+  * ndl: replace '--post-trigger-threshold' with '--post-trigger-range'.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 05 Jan 2021 15:50:33 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 13 Jan 2021 15:06:05 +0200
 
 wult (1.8.10) unstable; urgency=low
 
