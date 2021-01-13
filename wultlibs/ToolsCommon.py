@@ -85,10 +85,7 @@ def _validate_range(rng, what):
     vals = [None] * len(split_rng)
 
     for idx, val in enumerate(split_rng):
-        try:
-            vals[idx] = Human.parse_duration_ns(val, default_unit="us")
-        except Error as err:
-            raise Error(f"bad {what} '{split_rng[idx]}', {err}")
+        vals[idx] = Human.parse_duration_ns(val, default_unit="us", name=what)
         if vals[idx] < 0:
             raise Error(f"bad {what} value '{split_rng[idx]}', should be greater than zero")
 

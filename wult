@@ -409,7 +409,7 @@ def start_command(args):
     if not args.outdir:
         args.outdir = Path(f"./{args.reportid}")
     if args.tlimit:
-        args.tlimit = Human.parse_duration(args.tlimit, default_unit="m")
+        args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
     if args.ldist:
         args.ldist = ToolsCommon.validate_ldist(args.ldist)
     args.cpunum = ToolsCommon.validate_cpunum(args.cpunum, proc=proc)
