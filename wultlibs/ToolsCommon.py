@@ -78,10 +78,21 @@ def get_proc(args, hostname):
     return SSH.SSH(hostname=hostname, username=args.username, privkeypath=args.privkey,
                    timeout=args.timeout)
 
-def _validate_range(rng, what):
+def _validate_range(rng, what, single_ok):
     """Implements 'validate_ldist()' and 'validate_trange()'."""
 
+    if single_ok:
+        min_len = 1
+    else:
+        min_len = 2
+
     split_rng = Trivial.split_csv_line(rng)
+
+    if len(split_rng) < min_len:
+        raise Error(f"bad {what} range '{rng}', it should include {min_len} numbers")
+    if len(split_rng) > 2:
+        raise Error(f"bad {what} range '{rng}', it should not include more than 2 numbers")
+
     vals = [None] * len(split_rng)
 
     for idx, val in enumerate(split_rng):
@@ -89,8 +100,6 @@ def _validate_range(rng, what):
         if vals[idx] < 0:
             raise Error(f"bad {what} value '{split_rng[idx]}', should be greater than zero")
 
-    if len(vals) > 2:
-        raise Error(f"bad {what} range '{rng}', it should include 2 numbers")
     if len(vals) == 2 and vals[1] - vals[0] < 0:
         raise Error(f"bad {what} range '{rng}', first number cannot be greater than the second "
                     f"number")
@@ -99,21 +108,24 @@ def _validate_range(rng, what):
 
     return vals
 
-def validate_ldist(ldist):
+def validate_ldist(ldist, single_ok=True):
     """
     Parse and validate the launch distance range ('--ldist' option). The 'ldist' argument is a
     string of single or two comma-separated launch distance values. The values are parsed with
     'Human.parse_duration_ns()', so they can include specifiers like 'ms' or 'us'. Returns launch
     launch distance range as a list of two integers in nanoseconds.
+
+    My default, 'ldist' may include a single number, but if 'single_ok' is 'False', then this
+    function will raise the exception in case there is only one number.
     """
 
-    return _validate_range(ldist, "launch distance")
+    return _validate_range(ldist, "launch distance", single_ok)
 
 
-def validate_trange(trange):
+def validate_trange(trange, single_ok=True):
     """Similar to 'validate_ldist()', but for the '--post-trigger-range' option."""
 
-    return _validate_range(trange, "post-trigger range")
+    return _validate_range(trange, "post-trigger range", single_ok)
 
 def validate_cpunum(cpunum, proc=None):
     """
