@@ -79,7 +79,7 @@ def get_proc(args, hostname):
                    timeout=args.timeout)
 
 def _validate_range(rng, what, single_ok):
-    """Implements 'validate_ldist()' and 'validate_trange()'."""
+    """Implements 'parse_ldist()' and 'parse_trange()'."""
 
     if single_ok:
         min_len = 1
@@ -108,7 +108,7 @@ def _validate_range(rng, what, single_ok):
 
     return vals
 
-def validate_ldist(ldist, single_ok=True):
+def parse_ldist(ldist, single_ok=True):
     """
     Parse and validate the launch distance range ('--ldist' option). The 'ldist' argument is a
     string of single or two comma-separated launch distance values. The values are parsed with
@@ -121,18 +121,17 @@ def validate_ldist(ldist, single_ok=True):
 
     return _validate_range(ldist, "launch distance", single_ok)
 
-
-def validate_trange(trange, single_ok=True):
-    """Similar to 'validate_ldist()', but for the '--post-trigger-range' option."""
+def parse_trange(trange, single_ok=True):
+    """Similar to 'parse_ldist()', but for the '--post-trigger-range' option."""
 
     return _validate_range(trange, "post-trigger range", single_ok)
 
-def validate_cpunum(cpunum, proc=None):
+def parse_cpunum(cpunum, proc=None):
     """
-    Validate CPU number 'cpunum'. If 'proc' is provided, then this function discovers CPU count on
-    the host associated with the 'proc' object, and verifies that 'cpunum' does not exceed the host
-    CPU count and the CPU is online. Note, 'proc' should be an 'SSH' or 'Proc' object. If 'proc' is
-    not provided, this function just checks that 'cpunum' is a positive integer number.
+    Parse and validate CPU number 'cpunum'. If 'proc' is provided, then this function discovers CPU
+    count on the host associated with the 'proc' object, and verifies that 'cpunum' does not exceed
+    the host CPU count and the CPU is online. Note, 'proc' should be an 'SSH' or 'Proc' object. If
+    'proc' is not provided, this function just checks that 'cpunum' is a positive integer number.
     """
 
     if not Trivial.is_int(cpunum) or int(cpunum) < 0:

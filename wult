@@ -411,10 +411,10 @@ def start_command(args):
     if args.tlimit:
         args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
     if args.ldist:
-        args.ldist = ToolsCommon.validate_ldist(args.ldist)
-    args.cpunum = ToolsCommon.validate_cpunum(args.cpunum, proc=proc)
+        args.ldist = ToolsCommon.parse_ldist(args.ldist)
+    args.cpunum = ToolsCommon.parse_cpunum(args.cpunum, proc=proc)
     if args.trange:
-        args.trange = ToolsCommon.validate_trange(args.trange)
+        args.trange = ToolsCommon.parse_trange(args.trange)
 
     with WORawResult.WultWORawResult(args.reportid, args.outdir, VERSION, args.cpunum,
                                      cont=args.cont) as res:
