@@ -33,6 +33,127 @@ _HELPERS_SRC_SUBPATH = Path("helpers")
 
 _LOG = logging.getLogger()
 
+# Description for the '--datapoints' option of the 'start' command.
+DATAPOINTS_DESCR = """How many datapoints should the test result include, default is 1000000. Note,
+                      in case a pre-existing test result is continued (see '--continue'), the
+                      pre-existing datapoints are taken into account. For example, if the test
+                      result already has 6000 datapoints and '-c 10000' is used, the tool will
+                      collect 4000 datapoints and exit.  Warning: collecting too many datapoints may
+                      result in a very large test result file, which will be difficult to process
+                      later, because that would require a lot of memory."""
+
+# Description for the '--time-limit' option of the 'start' command.
+TIME_LIMIT_DESCR = f"""The measurement time limit, i.e., for how long the SUT should be measured.
+                       The default unit is minutes, but you can use the following handy specifiers
+                       as well: {Human.DURATION_SPECS_DESCR}. For example '1h25m' would be 1 hour
+                       and 25 minutes, or 10m5s would be 10 minutes and 5 seconds. Value '0' means
+                       "no time limit", and this is the default. If this option is used along with
+                       the '--datapoints' option, then measurements will stop as when either the
+                       time limit is reached, or the required amount of datapoints is collected."""
+
+# Description for the '--continue' option of the 'start' command.
+CONTINUE_DESCR = """If the output directory already contains the datapoints CSV file, do not
+                    override it (default behavior), but continue appending more datapoints
+                    instead."""
+
+# Description for the '--outdir' option of the 'start' command.
+START_OUTDIR_DESCR = """Path to the directory to store the results at."""
+
+# Description for the '--reportid' option of the 'start' command.
+def get_start_reportid_descr(allowed_chars):
+    """
+    Returns description for the '--reportid' option of the 'start' command. The 'allowed_chars'
+    argument should be the allowed report ID characters description string.
+    """
+
+    descr = f"""Any string which may serve as an identifier of this run. By default report ID is the
+                current date, prefixed with the remote host name in case the '-H' option was used:
+                [hostname-]YYYYMMDD. For example, "20150323" is a report ID for a run made on March
+                23, 2015. The allowed characters are: {allowed_chars}."""
+    return descr
+
+# Description for the '--post-trigger' option of the 'start' command.
+def get_post_trigger_descr(name):
+    """
+    Returns description for the '--post-trigger' option of the 'start' command. The 'name' argument
+    should be the trigger metric name.
+    """
+
+    descr = f"""The post-measurement trigger. Please, provide path to a trigger program that should
+                be executed after a datapoint had been collected. The next measurement cycle will
+                start only after the trigger program finishes. The trigger program will be executed
+                as 'POST_TRIGGER --value <value>', where '<value>' is the last observed {name} in
+                nanoseconds. This option exists for debugging and troubleshooting purposes only."""
+    return descr
+
+# Description for the '--post-trigger-range' option of the 'start' command.
+def get_post_trigger_range_descr(name):
+    """
+    Returns description for the '--post-trigger-range' option of the 'start' command. The 'name'
+    argument should be the name of the trigger metric name..
+    """
+
+    descr = f"""By default, the post trigger is executed for every datapoint, but this option allows
+                for setting the {name} range - the trigger program will be executed only when
+                observed {name} value is in the range (inclusive). Specify a comma-separated range,
+                e.g '--post-trigger-range 50,600'. The default unit is microseconds, but you can use
+                the following specifiers as well: {Human.DURATION_NS_SPECS_DESCR}. For example,
+                '--post-trigger-range 100us,1ms' would be a [100,1000] microseconds range."""
+    return descr
+
+# Description for the '--report' option of the 'start' command.
+START_REPORT_DESCR = """Generate an HTML report for collected results (same as calling 'report'
+                        command with default arguments)."""
+
+# Description for the '--outdir' option of the 'report' command.
+def get_report_outdir_descr(toolname):
+    """
+    Returns description for the '--outdir' option of the 'report' command for the 'toolname' tool.
+    """
+
+    descr = f"""Path to the directory to store the report at. By default the report is stored in the
+                '{toolname}-report-<reportid>' sub-directory of the current working directory, where
+                '<reportid>' is report ID of {toolname} test result (the first one if there are
+                multiple)."""
+    return descr
+
+# Description for the '--even-up-dp-count' option of the 'report' command.
+EVEN_UP_DP_DESCR = """Even up datapoints count before generating the report. This option is useful
+                      when generating a report for many test results (a diff). If the test results
+                      contain different count of datapoints (rows count in the CSV file), the
+                      resulting histograms may look a little bit misleading. This option evens up
+                      datapoints count in the test results. It just finds the test result with the
+                      minimum count of datapoints and ignores the extra datapoints in the other test
+                      results."""
+
+# Description for the '--reportids' option of the 'report' command.
+REPORTIDS_DESCR = """Every input raw result comes with a report ID. This report ID is basically a
+                     short name for the test result, and it used in the HTML report to refer to the
+                     test result. However, sometimes it is helpful to temporarily override the
+                     report IDs just for the HTML report, and this is what the '--reportids' option
+                     does. Please, specify a comma-separated list of report IDs for every input raw
+                     test result. The first report ID will be used for the first raw rest result,
+                     the second report ID will be used for the second raw test result, and so on.
+                     Please, refer to the '--reportid' option description in the 'start' command for
+                     more information about the report ID."""
+
+# Description for the '--title-descr' option of the 'report' command.
+TITLE_DESCR = """The report title description - any text describing this report as whole, or path to
+                 a file containing the overall report description. For example, if the report
+                 compares platform A and platform B, the description could be something like
+                 'platform A vs B comparison'. This text will be included into the very beginning of
+                 the resulting HTML report."""
+
+# Description for the '--relocatable' option of the 'report' command.
+RELOCATABLE_DESCR = f"""The generated report includes references to the test results. By default,
+                        these references are symlinks to the raw result directories. However, this
+                        makes the generated report be not relocatable. Use this option to make the
+                        report relocatable in expence of increased disk space consumption - this
+                        tool will make a copy of the test results."""
+
+# Description for the '--list-columns' option of the 'report' and other commands.
+LIST_COLUMNS_DESCR = "Print the list of the available column names and exit."
+
 # Description for the 'filter' command.
 FILT_DESCR = """Filter datapoints out of a test result by removing CSV rows and columns according to
                 specified criteria. The criteria is specified using the row and column filter and
@@ -66,6 +187,24 @@ CFILT_DESCR = """The columns filter: remove all column specified in the filter. 
 # Description for the '--csel' option of the 'filter' command.
 CSEL_DESCR = """The columns selector: remove all column except for those specified in the selector.
                 The syntax is the same as for '--cfilt'."""
+
+# Description for the '--outdir' option of the 'filter' command.
+FILTER_OUTDIR_DESCR = """By default the resulting CSV lines are printed to the standard output. But
+                        this option can be used to specify the output directly to store the result
+                        at. This will create a filtered version of the input test result."""
+
+# Description for the '--reportid' option of the 'filter' command.
+FILTER_REPORTID_DESCR = """Report ID of the filtered version of the result (can only be used with
+                           '--outdir')."""
+
+# Description for the '--funcs' option of the 'calc' command.
+FUNCS_DESCR = """Comma-separated list of summary functions to calculate. By default all generally
+                 interesting functions are calculated (each column name is associated with a list of
+                 functions that make sense for this column). Use '--list-funcs' to get the list of
+                 supported functions."""
+
+# Description for the '--list-funcs' option of the 'calc' command.
+LIST_FUNCS_DESCR = "Print the list of the available summary functions."
 
 def get_proc(args, hostname):
     """
@@ -320,15 +459,22 @@ def report_command_open_raw_results(args):
 
     return rsts
 
-def add_deploy_cmdline_args(parser, toolname, drivers=True, helpers=True, argcomplete=None):
+def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=True,
+                            argcomplete=None):
     """
-    Add command-line arguments for the 'deploy' command. The input arguments are as follows.
-      o parse - the 'argparse' parser to add common argumets to.
+    Add the the 'deploy' command. The input arguments are as follows.
+      o subparsers - the 'argparse' subparsers to add the 'deploy' command to.
       o toolname - name of the tool the command line arguments belong to.
+      o func - the 'deploy' command handling function.
       o drivers - whether the tool comes with out of tree drivers.
       o helpers - whether the tool comes with other helper tools.
       o argcomplete - optional 'argcomplete' command-line arguments completer object.
     """
+
+    text = f"Compile and deploy {toolname} drivers."
+    descr = f"""Compile and deploy {toolname} drivers on local or remote host. This command has many
+                options, but they are very rarely useful and most probably you do not need them."""
+    parser = subparsers.add_parser("deploy", help=text, description=descr)
 
     envarname = f"{toolname.upper()}_DATA_PATH"
     searchdirs = [f"{Path(sys.argv[0]).parent}/%s/{toolname}",
@@ -406,6 +552,8 @@ def add_deploy_cmdline_args(parser, toolname, drivers=True, helpers=True, argcom
 
     text = """SSH connect timeout in seconds, default is 8."""
     parser.add_argument("-T", "--timeout", dest="timeout", help=text)
+
+    parser.set_defaults(func=func)
 
 def _get_module_path(proc, name):
     """Return path to installed module. Return 'None', if module not found."""

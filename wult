@@ -65,13 +65,8 @@ def parse_arguments():
     #
     # Create parsers for the "deploy" command.
     #
-    text = f"Compile and deploy {OWN_NAME} drivers."
-    descr = f"""Compile and deploy {OWN_NAME} drivers on local or remote host. This command has many
-                options, but they are very rarely useful and most probably you do not need them."""
-    subpars = subparsers.add_parser("deploy", help=text, description=descr)
-    ToolsCommon.add_deploy_cmdline_args(subpars, OWN_NAME, drivers=True, helpers=False,
-                                        argcomplete=argcomplete)
-    subpars.set_defaults(func=ToolsCommon.deploy_command)
+    ToolsCommon.add_deploy_cmdline_args(subparsers, OWN_NAME, ToolsCommon.deploy_command,
+                                        drivers=True, helpers=False, argcomplete=argcomplete)
 
     #
     # Create parsers for the "scan" command.
@@ -118,38 +113,18 @@ def parse_arguments():
 
     ToolsCommon.add_ssh_options(subpars, argcomplete)
 
-    text = """How many datapoints should the test result include, default is 1000000. Note, in case
-              a pre-existing test result is continued (see '--continue'), the pre-existing
-              datapoints are taken into account. For example, if the test result already has 6000
-              datapoints and '-c 100000' is used, the tool will collect 4000 datapoints and exit.
-              Warning: collecting too many datapoints may result in a very large test result file,
-              which will be difficult to process later, because that would require a lot of
-              memory."""
     subpars.add_argument("-c", "--datapoints", default=1000000, metavar="COUNT", dest="dpcnt",
-                         help=text)
+                         help=ToolsCommon.DATAPOINTS_DESCR)
+    subpars.add_argument("--time-limit", dest="tlimit", metavar="LIMIT",
+                         help=ToolsCommon.TIME_LIMIT_DESCR)
+    subpars.add_argument("--continue", dest="cont", action="store_true",
+                         help=ToolsCommon.CONTINUE_DESCR)
 
-    text = f"""The measurement time limit, i.e., for how long the SUT should be measured. The
-               default unit is minutes, but you can use the following handy specifiers as well:
-               {Human.DURATION_SPECS_DESCR}. For example '1h25m' would be 1 hour and 25 minutes, or
-               10m5s would be 10 minutes and 5 seconds. Value '0' means "no time limit", and this is
-               the default. If this option is used along with the '--datapoints' option, then
-               measurements will stop as when either the time limit is reached, or the required
-               amount of datapoints is collected."""
-    subpars.add_argument("--time-limit", dest="tlimit", metavar="LIMIT", help=text)
-
-    text = """If the output directory already contains the datapoints CSV file, do not override it
-              (default behavior), but continue appending more datapoints instead."""
-    subpars.add_argument("--continue", dest="cont", action="store_true", help=text)
-
-    text = """Path to the directory to store the results at."""
-    arg = subpars.add_argument("-o", "--outdir", type=Path, help=text)
+    arg = subpars.add_argument("-o", "--outdir", type=Path, help=ToolsCommon.START_OUTDIR_DESCR)
     if argcomplete:
         arg.completer = argcomplete.completers.DirectoriesCompleter()
 
-    text = f"""Any string which may serve as an identifier of this run. By default report ID is "
-               the current date, prefixed with the remote host name in case the '-H' option was
-               used: [hostname-]YYYYMMDD. For example, "20150323" is a report ID for a run made on
-               March 23, 2015. The allowed characters are: {REPORTID_CHARS_DESCR}."""
+    text = ToolsCommon.get_start_reportid_descr(REPORTID_CHARS_DESCR)
     subpars.add_argument("--reportid", help=text)
 
     text = f"""This tool works by scheduling a delayed event, then sleeping and waiting for it to
@@ -178,25 +153,12 @@ def parse_arguments():
                binded back."""
     subpars.add_argument("--no-unload", action="store_true", help=text)
 
-    text = """The post-measurement trigger. Please, provide path to an executable on the SUT that
-              should be executed after a datapoint had been collected. The next measurement cycle
-              will start only after the trigger program finishes. This option exists for debugging
-              and troubleshooting purposes. Note, the specified program will be executed as
-              'POST_TRIGGER --latency <value>', where '<value>' is the last observed wake latency
-              in nanoseconds."""
+    text = ToolsCommon.get_post_trigger_descr("wake latency")
     subpars.add_argument("--post-trigger", metavar="POST_TRIGGER", type=Path, help=text)
-
-    text = """By default, the post trigger is executed for every datapoint, but this option allows
-              for setting the wake latency trigger range - the trigger program will be executed
-              only when observed latency is in the range (inclusive). Specify a comma-separated
-              range, e.g '--post-trigger-range 50,600'. The default unit is microseconds, but you
-              can use the following specifiers as well: {Human.DURATION_NS_SPECS_DESCR}. For
-              example, '--post-trigger-range 100us,1ms' would be a [100,1000] microseconds range."""
+    text = ToolsCommon.get_post_trigger_range_descr("wake latency")
     subpars.add_argument("--post-trigger-range", metavar="TRANGE", dest="trange", help=text)
 
-    text = """Generate an HTML report for collected results (same as calling 'report' command with
-              default arguments)."""
-    subpars.add_argument("--report", action="store_true", help=text)
+    subpars.add_argument("--report", action="store_true", help=ToolsCommon.START_REPORT_DESCR)
 
     text = f"""By default {OWN_NAME} does not accept network card as a measurement device if its
                Linux network interface is in an active state, such as "up". Use '--force' to disable
@@ -216,25 +178,12 @@ def parse_arguments():
     subpars = subparsers.add_parser("report", help=text, description=descr)
     subpars.set_defaults(func=report_command)
 
-    text = f"""Path to the directory to store the report at. By default the report is stored in the
-               '{OWN_NAME}-report-<reportid>' sub-directory of the current working directory, where
-               '<reportid>' is report ID of {OWN_NAME} test result (the first one if there are
-               multiple)."""
-    subpars.add_argument("-o", "--outdir", type=Path, help=text)
-
-    text = ToolsCommon.RFILT_DESCR
-    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=text)
-
-    text = ToolsCommon.RSEL_DESCR
-    subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=text)
-
-    text = """Even up datapoints count before generating the report. This option is useful when
-              generating a report for many test results (a diff). If the test results contain
-              different count of datapoints (rows count in the CSV file), the report histograms may
-              look a little bit misleading. This option evens up datapoints count in the test
-              results. It just finds the test result with the minimum count of datapoints and
-              ignores the extra datapoints in the other test results."""
-    subpars.add_argument("--even-up-dp-count", action="store_true", help=text, dest="even_dpcnt")
+    subpars.add_argument("-o", "--outdir", type=Path,
+                         help=ToolsCommon.get_report_outdir_descr(OWN_NAME))
+    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_DESCR)
+    subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
+    subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
+                         help=ToolsCommon.EVEN_UP_DP_DESCR)
 
     text = f"""A comma-separated list of CSV column names (or python style regular expressions
                matching the names) to use on X-axes, default is '{get_axes_default("xaxes")}'. Use
@@ -260,32 +209,10 @@ def parse_arguments():
                column names. Use value 'none' to disable cumulative histograms."""
     subpars.add_argument("--chist", help=text)
 
-    text = """Every input raw result comes with a report ID. This report ID is basically a short
-              name for the test result, and it used in the HTML report to refer to the test result.
-              However, sometimes it is helpful to temporarily override the report IDs just for the
-              HTML report, and this is what the '--reportids' option does. Please, specify a
-              comma-separated list of report IDs for every input raw test result. The first report
-              ID will be used for the first raw rest result, the second report ID will be used for
-              the second raw test result, and so on. Please, refer to the '--reportid' option
-              description in the 'start' command for more information about the report ID."""
-    subpars.add_argument("--reportids", help=text)
-
-    text = """The report title description - any text describing this report as whole, or path to a
-              file containing the overall report description. For example, if the report compares
-              platform A and platform B, the description could be something like 'platform A vs B
-              comparison'. This text will be included into the very beginning of the resulting HTML
-              report."""
-    subpars.add_argument("--title-descr", help=text)
-
-    text = f"""The generated report includes references to the test results. By default, these
-               references are symlinks to the raw result directories. However, this makes the
-               generated report be not relocatable. Use this option to make the report relocatable
-               in expence of increased disk space consumption - this tool will make a copy of the
-               test results."""
-    subpars.add_argument("--relocatable", action="store_true", help=text)
-
-    text = """Print the list of the available column names and exit."""
-    subpars.add_argument("--list-columns", action="store_true", help=text)
+    subpars.add_argument("--reportids", help=ToolsCommon.REPORTIDS_DESCR)
+    subpars.add_argument("--title-descr", help=ToolsCommon.TITLE_DESCR)
+    subpars.add_argument("--relocatable", action="store_true", help=ToolsCommon.RELOCATABLE_DESCR)
+    subpars.add_argument("--list-columns", action="store_true", help=ToolsCommon.LIST_COLUMNS_DESCR)
 
     text = f"""One or multiple {OWN_NAME} test result paths."""
     subpars.add_argument("respaths", nargs="+", type=Path, help=text)
@@ -294,34 +221,18 @@ def parse_arguments():
     # Create parsers for the "filter" command.
     #
     text = "Filter datapoints out of a test result."
-    descr = ToolsCommon.FILT_DESCR
-    subpars = subparsers.add_parser("filter", help=text, description=descr)
+    subpars = subparsers.add_parser("filter", help=text, description=ToolsCommon.FILT_DESCR)
     subpars.set_defaults(func=ToolsCommon.filter_command)
 
-    text = ToolsCommon.RFILT_DESCR
-    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=text)
+    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_DESCR)
+    subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
+    subpars.add_argument("--cfilt", action=ArgParse.OrderedArg, help=ToolsCommon.CFILT_DESCR)
+    subpars.add_argument("--csel", action=ArgParse.OrderedArg, help=ToolsCommon.CSEL_DESCR)
+    subpars.add_argument("-o", "--outdir", type=Path, help=ToolsCommon.FILTER_OUTDIR_DESCR)
+    subpars.add_argument("--list-columns", action="store_true", help=ToolsCommon.LIST_COLUMNS_DESCR)
+    subpars.add_argument("--reportid", help=ToolsCommon.FILTER_REPORTID_DESCR)
 
-    text = ToolsCommon.RSEL_DESCR
-    subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=text)
-
-    text = ToolsCommon.CFILT_DESCR
-    subpars.add_argument("--cfilt", action=ArgParse.OrderedArg, help=text)
-
-    text = ToolsCommon.CSEL_DESCR
-    subpars.add_argument("--csel", action=ArgParse.OrderedArg, help=text)
-
-    text = """By default the resulting CSV lines are printed to the standard output. But this option
-              can be used to specify the output directly to store the result at. This will create a
-              filtered version of the input test result."""
-    subpars.add_argument("-o", "--outdir", type=Path, help=text)
-
-    text = """Print the list of the available column names and exit."""
-    subpars.add_argument("--list-columns", action="store_true", help=text)
-
-    text = """Report ID of the filtered version of the result (can only be used with '--outdir')."""
-    subpars.add_argument("--reportid", help=text)
-
-    text = f"""The {OWN_NAME} test result path to filter."""
+    text = f"The {OWN_NAME} test result path to filter."
     subpars.add_argument("respath", type=Path, help=text)
 
     #
@@ -333,26 +244,12 @@ def parse_arguments():
     subpars = subparsers.add_parser("calc", help=text, description=descr)
     subpars.set_defaults(func=ToolsCommon.calc_command)
 
-    text = ToolsCommon.RFILT_DESCR
-    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=text)
-
-    text = ToolsCommon.RSEL_DESCR
-    subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=text)
-
-    text = ToolsCommon.CFILT_DESCR
-    subpars.add_argument("--cfilt", action=ArgParse.OrderedArg, help=text)
-
-    text = ToolsCommon.CSEL_DESCR
-    subpars.add_argument("--csel", action=ArgParse.OrderedArg, help=text)
-
-    text = """Comma-separated list of summary functions to calculate. By default all generally
-              interesting functions are calculated (each column name is associated with a list of
-              functions that make sense for this column). Use '--list-funcs' to get the list of
-              supported functions."""
-    subpars.add_argument("-f", "--funcs", help=text)
-
-    text = """Print the list of the available summary functions."""
-    subpars.add_argument("--list-funcs", action="store_true", help=text)
+    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_DESCR)
+    subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
+    subpars.add_argument("--cfilt", action=ArgParse.OrderedArg, help=ToolsCommon.CFILT_DESCR)
+    subpars.add_argument("--csel", action=ArgParse.OrderedArg, help=ToolsCommon.CSEL_DESCR)
+    subpars.add_argument("-f", "--funcs", help=ToolsCommon.FUNCS_DESCR)
+    subpars.add_argument("--list-funcs", action="store_true", help=ToolsCommon.LIST_FUNCS_DESCR)
 
     text = f"""The {OWN_NAME} test result path to calculate summary functions for."""
     subpars.add_argument("respath", type=Path, help=text)
