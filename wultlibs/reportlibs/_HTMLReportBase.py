@@ -537,7 +537,19 @@ class HTMLReportBase:
                 pinfo["sp_datapoints_cnt"] = len(df.index)
 
                 text = self._create_hover_text(res, df, pinfo)
-                marker = {"size" : 4, "symbol" : next(markers), "opacity" : self._opacity}
+
+                # Non-numeric columns will have only few unique values, e.g. 'ReqState' might have
+                # "C1", "C1E" and "C6". Using dotted markers for such data will have 3 thin lines
+                # which is hard to see. Improve it by using line markers to turn lines into wider
+                # "bars".
+                if all((res.is_numeric(xcolname), res.is_numeric(ycolname))):
+                    marker_size = 4
+                    marker_symbol = next(markers)
+                else:
+                    marker_size = 30
+                    marker_symbol = "line-ns"
+
+                marker = {"size" : marker_size, "symbol" : marker_symbol, "opacity" : self._opacity}
                 try:
                     gobj = plotly.graph_objs.Scattergl(x=self._base_unit(df, xcolname),
                                                        y=self._base_unit(df, ycolname),
