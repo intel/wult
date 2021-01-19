@@ -11,7 +11,6 @@ This module provides API to NetworkManger's nmcli tool.
 """
 
 import re
-from collections import OrderedDict
 from wultlibs.helperlibs import Trivial, FSHelpers, Procs
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
 
@@ -75,7 +74,7 @@ class Nmcli:
         for ifname, managed in self._saved_managed.items():
             self._toggle_managed(ifname, managed)
 
-        self._saved_managed = OrderedDict()
+        self._saved_managed = {}
 
     def __init__(self, proc=None):
         """
@@ -89,7 +88,7 @@ class Nmcli:
             proc = Procs.Proc()
 
         self._proc = proc
-        self._saved_managed = OrderedDict()
+        self._saved_managed = {}
 
         if not FSHelpers.which("nmcli", default=None, proc=proc):
             raise ErrorNotSupported(f"the 'nmcli' tool is not installed{proc.hostmsg}")

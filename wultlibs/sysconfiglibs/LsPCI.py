@@ -9,7 +9,6 @@
 """This module can be used to get information about PCI devices in system."""
 
 import re
-from collections import OrderedDict
 from wultlibs.helperlibs.Exceptions import ErrorNotSupported, Error
 from wultlibs.helperlibs import FSHelpers, Procs
 
@@ -23,10 +22,8 @@ class LsPCI:
         not be stripped. Returns the resulting dictionary.
         """
 
-        info = OrderedDict()
-
         line = lines[0].strip().split()
-        info["pciaddr"] = line[0]
+        info = {"pciaddr" : line[0]}
 
         line = line[2].split(':')
         info["vendorid"] = line[0]

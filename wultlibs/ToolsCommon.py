@@ -20,7 +20,6 @@ import time
 import logging
 import contextlib
 from pathlib import Path
-from collections import OrderedDict
 from wultlibs.helperlibs import Logging, Trivial, FSHelpers, KernelVersion, Procs, SSH, YAML, Human
 from wultlibs.helperlibs import ReportID
 from wultlibs.helperlibs.Exceptions import Error
@@ -363,11 +362,13 @@ def apply_filters(args, res):
     if not getattr(args, "oargs", None):
         return
 
-    ops = OrderedDict()
+    # Note, the assumption is that dictionary preserves insertion order, which is trye starting from
+    # Python 3.6.
+    ops = {}
     for name, expr in args.oargs:
         if name in ops:
             do_filter(res, ops)
-            ops = OrderedDict()
+            ops = {}
         ops[name] = expr
 
     if ops:

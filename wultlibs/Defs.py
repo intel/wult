@@ -11,7 +11,6 @@ This module provides API to the datapoints CSV file definitions (AKA 'defs').
 """
 
 from pathlib import Path
-from collections import OrderedDict
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import FSHelpers, YAML
 
@@ -151,9 +150,8 @@ class Defs:
             # Already populated.
             return
 
-        info = OrderedDict()
-
         # Copy all keys one-by-one to preserve the order.
+        info = {}
         for colname, colinfo in self.vanilla_info.items():
             if not is_cs_colname(colname) or "Cx" not in colname:
                 info[colname] = colinfo

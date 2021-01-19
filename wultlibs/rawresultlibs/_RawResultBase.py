@@ -19,7 +19,6 @@ A raw test result is a directory containing the following files.
 """
 
 from pathlib import Path
-from collections import OrderedDict
 from wultlibs.helperlibs.Exceptions import Error
 
 # The latest supported raw results format version.
@@ -35,7 +34,7 @@ class RawResultBase:
 
         self.reportid = None
         # This dictionary represents the info file.
-        self.info = OrderedDict()
+        self.info = {}
 
         if not dirpath:
             raise Error("raw test results directory path was not specified")

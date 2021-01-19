@@ -14,7 +14,6 @@ import re
 import logging
 import builtins
 from pathlib import Path
-from collections import OrderedDict
 import numpy
 import pandas
 from wultlibs.helperlibs import YAML, Trivial
@@ -221,7 +220,7 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         fmap = {"min" : "idxmin", "min_index" : "idxmin", "max" : "idxmax", "max_index" : "idxmax",
                 "avg" : "mean", "med" : "median", "std" : "std"}
-        smrys = OrderedDict()
+        smrys = {}
 
         for funcname in funcnames:
             restype = None
@@ -334,7 +333,7 @@ class RORawResult(_RawResultBase.RawResultBase):
             else:
                 fnames += ["99%", "99.9%", "99.99%", "99.999%"]
 
-        self.smrys = OrderedDict()
+        self.smrys = {}
         for colname in colnames:
             subdict = self._calc_smrys(colname, fnames, all_funcs)
             if subdict:
@@ -418,7 +417,7 @@ class RORawResult(_RawResultBase.RawResultBase):
                             expressions in 'regexs' did not match.
         """
 
-        found = OrderedDict()
+        found = {}
         for regex in regexs:
             matched = False
             for colname in self.colnames:

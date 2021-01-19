@@ -12,7 +12,6 @@ This module provides helpers for dealing with YAML files.
 
 import logging
 from pathlib import Path, PosixPath
-from collections import OrderedDict
 import yaml
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import Jinja2
@@ -28,16 +27,6 @@ def dump(data, path, float_format=None, skip_none=False):
       * skip_none: do not dump keys that have 'None' values.
     """
 
-    def represent_ordereddict(dumper, data):
-        """
-        This representer provides a capability of printing OrderedDict objects as Dict objects.
-        """
-
-        vals = []
-        for key, val in data.items():
-            vals.append((dumper.represent_data(key), dumper.represent_data(val)))
-        return yaml.nodes.MappingNode("tag:yaml.org,2002:map", vals)
-
     def represent_none(dumper, _):
         """This representer makes 'yaml.dump()' use empty string for 'None' values."""
         return dumper.represent_scalar("tag:yaml.org,2002:null", "")
@@ -52,11 +41,11 @@ def dump(data, path, float_format=None, skip_none=False):
 
     def copy_skip_none(data):
         """Create a copy of the 'data' dictionary and skip 'None' values."""
-        copy = OrderedDict()
+        copy = {}
         for key, val in data.items():
             if val is None:
                 continue
-            if isinstance(val, (dict, OrderedDict)):
+            if isinstance(val, dict):
                 copy[key] = copy_skip_none(val)
             else:
                 copy[key] = val
@@ -65,7 +54,6 @@ def dump(data, path, float_format=None, skip_none=False):
     if skip_none:
         data = copy_skip_none(data)
 
-    yaml.add_representer(OrderedDict, represent_ordereddict)
     yaml.add_representer(type(None), represent_none)
     yaml.add_representer(PosixPath, represent_posixpath)
 
@@ -87,8 +75,14 @@ def _load(path, jenv, included):
     against circular includes.
     """
 
+    def path_constructor(_, node):
+        """Convert strings marked with '!path' tag to pathlib.Path objects."""
+        return Path(node.value)
+
     def dict_constructor(loader, node):
-        """Use 'OrderedDict' instead of a normal dictionary."""
+        """
+        Rename 'include' keys to be unique so they don't overwrite each other in the dictionary.
+        """
 
         # Rename 'include' keys to be unique so they don't overwrite each other in the dictionary.
         includes = 0
@@ -100,11 +94,7 @@ def _load(path, jenv, included):
             elif str(pair[0]).startswith("include_"):
                 raise Error(f"illegal key '{pair[0]}', keys beginning with 'include_' are reserved "
                             f"for internal functions")
-        return OrderedDict(pairs)
-
-    def path_constructor(_, node):
-        """Convert strings marked with '!path' tag to pathlib.Path objects."""
-        return Path(node.value)
+        return dict(pairs)
 
     yaml.SafeLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
                                     dict_constructor)
@@ -133,7 +123,7 @@ def _load(path, jenv, included):
         return {}
 
     # Handle "include" statements.
-    result = OrderedDict()
+    result = {}
     if not included:
         included = {}
 
@@ -161,9 +151,12 @@ def _load(path, jenv, included):
 
 def load(path, jenv=None):
     """
-    Load a YAML file at 'path' while preserving its order using 'OrderedDict'. This function also
-    implements including other YAML files, which is implemented using the "include" key. The
-    optional 'jenv' argument indicates that the YAML file requires a Jinja2 pass.
+    Load a YAML file at 'path' while preserving its order. This function also implements including
+    other YAML files, which is implemented using the "include" key. The optional 'jenv' argument
+    indicates that the YAML file requires a Jinja2 pass.
+
+    Note, the order of Yaml file keys is preserved because in Python 3.6+ dictinaries preserve
+    insertion order.
     """
 
     return _load(path, jenv, False)

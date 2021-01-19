@@ -15,7 +15,6 @@ import shutil
 import logging
 import itertools
 from pathlib import Path
-from collections import OrderedDict
 import numpy
 import pandas
 import plotly
@@ -47,10 +46,10 @@ class HTMLReportBase:
         test result description files.
         """
 
-        intro_tbl = OrderedDict()
-        intro_tbl["Title"] = OrderedDict()
+        intro_tbl = {}
+        intro_tbl["Title"] = {}
         for res in self.rsts:
-            intro_tbl[res.reportid] = OrderedDict()
+            intro_tbl[res.reportid] = {}
 
         # Add tool information.
         key = "tool_info"
@@ -94,7 +93,7 @@ class HTMLReportBase:
     def _prepare_links_table(self):
         """Creates the links table which refers to HTML sub-pages."""
 
-        links_tbl = OrderedDict()
+        links_tbl = {}
         for colname in itertools.islice(self._pinfos, 1, None):
             links_tbl[colname] = {}
             links_tbl[colname]["name"] = f"{colname}"
@@ -107,10 +106,10 @@ class HTMLReportBase:
     def _prepare_smrys_table(self, pinfos):
         """Create the summaries table for metrics included in plots in 'pinfos' list."""
 
-        smrys_tbl = OrderedDict()
-        smrys_tbl["Title"] = OrderedDict()
+        smrys_tbl = {}
+        smrys_tbl["Title"] = {}
         for res in self.rsts:
-            smrys_tbl[res.reportid] = OrderedDict()
+            smrys_tbl[res.reportid] = {}
 
         for pinfo in pinfos:
             for colname in (pinfo["colname"], pinfo["xcolname"]):
@@ -119,7 +118,7 @@ class HTMLReportBase:
 
                 # Each column name is represented by a row in the summary table. Fill the "Title"
                 # column.
-                title_dict = smrys_tbl["Title"][colname] = OrderedDict()
+                title_dict = smrys_tbl["Title"][colname] = {}
                 defs = self._refdefs.info[colname]
 
                 if defs.get("unit") == "nanosecond":
@@ -133,15 +132,15 @@ class HTMLReportBase:
                     title_dict["colname"] += f", {unit}"
                 title_dict["coldescr"] = defs["descr"]
 
-                title_dict["funcs"] = OrderedDict()
+                title_dict["funcs"] = {}
                 for funcname in self._smry_funcs:
                     if funcname in self.rsts[0].smrys[colname]:
                         title_dict["funcs"][funcname] = RORawResult.get_smry_func_descr(funcname)
 
                 # Now fill the values for each result.
                 for res in self.rsts:
-                    res_dict = smrys_tbl[res.reportid][colname] = OrderedDict()
-                    res_dict["funcs"] = OrderedDict()
+                    res_dict = smrys_tbl[res.reportid][colname] = {}
+                    res_dict["funcs"] = {}
 
                     for funcname in title_dict["funcs"]:
                         val = res.smrys[colname][funcname]
@@ -152,7 +151,7 @@ class HTMLReportBase:
                         if defs["type"] == "float":
                             fmt = "{:.2f}"
 
-                        fdict = res_dict["funcs"][funcname] = OrderedDict()
+                        fdict = res_dict["funcs"][funcname] = {}
                         fdict["val"] = fmt.format(val)
                         fdict["raw_val"] = val
 
@@ -836,7 +835,7 @@ class HTMLReportBase:
         # sub-dictionaries describing a single plot. The lists of sub-dictionaries are grouped by
         # the X" and "Y" axis column names, because later plots with the same "Y" and "Y" axes will
         # go to the same HTML page.
-        self._pinfos = OrderedDict()
+        self._pinfos = {}
         # Per-test result list of column names to include into the hover text of the scatter plot.
         # By default only the x and y axis values are included.
         self._hov_colnames = {}

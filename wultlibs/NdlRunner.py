@@ -14,7 +14,6 @@ result.
 import time
 import logging
 import contextlib
-from collections import OrderedDict
 from wultlibs.helperlibs import Trivial, FSHelpers, KernelModule, KernelVersion, ProcHelpers, Human
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs import _Common, _ProgressLine, _Nmcli, _NetIface, _ETFQdisc
@@ -83,10 +82,10 @@ class NdlRunner:
             raise Error(f"{msg}\nExpected a line with the following prefix instead:\n{prefix}")
         return line[len(prefix):]
 
-    def _get_latency(self, dp):
+    def _get_latency(self):
         """
-        Read the next latency data line from the 'ndlrunner' helper, parse it, and save the result
-        in the 'dp' dictionary.
+        Read the next latency data line from the 'ndlrunner' helper, parse it, and ireturn the
+        resulting dictionary.
         """
 
         line = self._get_line(prefix="datapoint")
@@ -102,8 +101,7 @@ class NdlRunner:
                 raise Error(f"{msg}\n: Expected 2 comma-separated integers, got a non-integer "
                             f"'{val}'")
 
-        dp["RTD"] = int(line[0])
-        dp["LDist"] = int(line[1])
+        return {"RTD" : int(line[0]), "LDist" : int(line[1])}
 
     def _get_datapoints(self):
         """
@@ -114,9 +112,7 @@ class NdlRunner:
         self._ndl_lines = self._get_lines()
 
         while True:
-            dp = OrderedDict()
-            self._get_latency(dp)
-            yield dp
+            yield self._get_latency()
 
     def _start_ndlrunner(self):
         """Start the 'ndlrunner' process on the measured system."""

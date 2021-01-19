@@ -12,7 +12,6 @@ This module provides an API to get CPU information.
 
 import re
 from itertools import groupby
-from collections import OrderedDict
 from wultlibs.helperlibs.Exceptions import Error # pylint: disable=unused-import
 from wultlibs.helperlibs import ArgParse, Procs, Trivial
 
@@ -220,7 +219,7 @@ class CPUInfo:
                 if last_level:
                     item[num] = []
                 else:
-                    item[num] = OrderedDict()
+                    item[num] = {}
 
             if last_level:
                 lvl = LEVELS[-1]
@@ -235,7 +234,7 @@ class CPUInfo:
         if idx == 0:
             return items
 
-        result = OrderedDict()
+        result = {}
         for item in items.values():
             add_items = self._flatten_to_level(item, idx - 1)
             if isinstance(add_items, list):
@@ -260,12 +259,12 @@ class CPUInfo:
         # All the level we are dealing with. The resulting dictionary will include a key for evey
         # level with a dictionary conatainging the partial hiararchy. The lowest level is always a
         # list though.
-        self.cpugeom = cpugeom = OrderedDict()
+        self.cpugeom = cpugeom = {}
         for lvl in LEVELS:
             for pfx in ("", "off"):
                 if pfx == "off" and lvl != LEVELS[-1]:
                     continue
-                cpugeom[pfx + lvl + "s"] = OrderedDict()
+                cpugeom[pfx + lvl + "s"] = {}
                 cpugeom[pfx + lvl + "s_sorted"] = []
                 cpugeom[pfx + lvl + "s_grouped"] = []
                 cpugeom[pfx + lvl + "_ranges"] = []
