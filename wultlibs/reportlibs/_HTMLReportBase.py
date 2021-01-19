@@ -21,7 +21,7 @@ import pandas
 import plotly
 from wultlibs.helperlibs import Trivial, FSHelpers, Jinja2
 from wultlibs.helperlibs.Exceptions import Error
-from wultlibs import RORawResult
+from wultlibs.rawresultlibs import RORawResult
 
 _LOG = logging.getLogger()
 

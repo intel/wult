@@ -20,7 +20,8 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
 
-from wultlibs import ToolsCommon, NdlRunner, RORawResult, WORawResult
+from wultlibs import ToolsCommon, NdlRunner
+from wultlibs.rawresultlibs import RORawResult, WORawResult
 from wultlibs.reportlibs import NdlHTMLReport
 from wultlibs.helperlibs import Logging, ArgParse, ReportID, Human
 from wultlibs.helperlibs.Exceptions import Error

@@ -25,8 +25,8 @@ except ImportError:
 from wultlibs.helperlibs import Logging, ArgParse, ReportID, Trivial, KernelVersion, Human
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.reportlibs import WultHTMLReport
-from wultlibs import ToolsCommon, Devices, EventsProvider, RORawResult
-from wultlibs import WultRunner, WORawResult
+from wultlibs.rawresultlibs import RORawResult, WORawResult
+from wultlibs import ToolsCommon, Devices, EventsProvider, WultRunner
 
 VERSION = "1.8.11"
 OWN_NAME = "wult"

@@ -13,8 +13,8 @@ This module base class for wirte-only raw test result classes.
 import os
 from wultlibs.helperlibs import YAML
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
-from wultlibs import _CSV, _RawResultBase
-from wultlibs._RawResultBase import FORMAT_VERSION
+from wultlibs.rawresultlibs import _CSV, _RawResultBase
+from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
 
 class WORawResultBase(_RawResultBase.RawResultBase):
     """This class represents a write-only raw test result."""

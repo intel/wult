@@ -11,8 +11,8 @@ This module provides API for creating raw wult test results.
 """
 
 from wultlibs.helperlibs.Exceptions import Error
-from wultlibs import _WORawResultBase
-from wultlibs._WORawResultBase import FORMAT_VERSION # pylint: disable=unused-import
+from wultlibs.rawresultlibs import _WORawResultBase
+from wultlibs.rawresultlibs._WORawResultBase import FORMAT_VERSION # pylint: disable=unused-import
 
 class WultWORawResult(_WORawResultBase.WORawResultBase):
     """This class represents a write-only raw wult test result."""
