@@ -24,7 +24,8 @@ except ImportError:
 
 from wultlibs.helperlibs import Logging, ArgParse, ReportID, Trivial, KernelVersion, Human
 from wultlibs.helperlibs.Exceptions import Error
-from wultlibs import ToolsCommon, Devices, EventsProvider, RORawResult, WultHTMLReport
+from wultlibs.reportlibs import WultHTMLReport
+from wultlibs import ToolsCommon, Devices, EventsProvider, RORawResult
 from wultlibs import WultRunner, WORawResult
 
 VERSION = "1.8.11"

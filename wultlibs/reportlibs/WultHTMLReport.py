@@ -11,7 +11,7 @@
 This module provides API for generating HTML reports for wult test results.
 """
 
-from wultlibs import _HTMLReportBase
+from wultlibs.reportlibs import _HTMLReportBase
 from wultlibs.helperlibs import Trivial
 
 # The default regular expressions for the CSV file column names which are used for X-axes, Y-axes

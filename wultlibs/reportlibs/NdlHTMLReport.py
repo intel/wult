@@ -11,7 +11,7 @@
 This module provides API for generating HTML reports for ndl test results.
 """
 
-from wultlibs import _HTMLReportBase
+from wultlibs.reportlibs import _HTMLReportBase
 from wultlibs.helperlibs import Trivial
 
 DEFAULT_XAXES = "LDist"
