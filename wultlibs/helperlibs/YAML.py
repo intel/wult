@@ -80,17 +80,15 @@ def dump(data, path, float_format=None, skip_none=False):
             yaml.dump(data, fobj, default_flow_style=False)
         _LOG.debug("wrote YAML file at '%s'", path)
 
-def load(path, included=None, jenv=None):
+def _load(path, jenv, included):
     """
-    Load the yaml file at 'path' while preserving its order using 'OrderedDict'. This function also
-    implements including other YAML files, which is implemented using the "include" key. The
-    'included' argument is a dictionary containing information on what files have already been
-    included before, this is used as a countermeasure against circular includes. The optional 'jenv'
-    argument indicates that the YAML file requires a Jinja2 pass.
+    Implements the 'load()' function. The additional 'included' argument is a dictionary containing
+    information on what files have already been included before, this is used as a countermeasure
+    against circular includes.
     """
 
     def dict_constructor(loader, node):
-        """Use OrderedDict instead of a normal dictionary."""
+        """Use 'OrderedDict' instead of a normal dictionary."""
 
         # Rename 'include' keys to be unique so they don't overwrite each other in the dictionary.
         includes = 0
@@ -134,7 +132,7 @@ def load(path, included=None, jenv=None):
     if not loaded:
         return {}
 
-    # Handle include-statements.
+    # Handle "include" statements.
     result = OrderedDict()
     if not included:
         included = {}
@@ -153,10 +151,19 @@ def load(path, included=None, jenv=None):
 
             if value not in included:
                 included[value] = path
-                result.update(load(value, included=included, jenv=jenv))
+                result.update(_load(value, jenv, included))
             else:
                 raise Error(f"can't include path '{value}' in YAML file '{path}' - it is already "
                             f"included in '{included[value]}'")
 
     _LOG.debug("loaded YAML file at '%s'", path)
     return result
+
+def load(path, jenv=None):
+    """
+    Load a YAML file at 'path' while preserving its order using 'OrderedDict'. This function also
+    implements including other YAML files, which is implemented using the "include" key. The
+    optional 'jenv' argument indicates that the YAML file requires a Jinja2 pass.
+    """
+
+    return _load(path, jenv, False)
