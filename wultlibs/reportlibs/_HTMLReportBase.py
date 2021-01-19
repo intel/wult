@@ -28,6 +28,14 @@ _LOG = logging.getLogger()
 # List of diagram markers that we use in scatter plots.
 _SCATTERPLOT_MARKERS = ['circle', 'square', 'diamond', 'cross', 'triangle-up', 'pentagon']
 
+def _colname_to_fname(colname):
+    """
+    Turn column name 'colname' into a file name, replacing problematic characters that browsers
+    may refuse.
+    """
+
+    return colname.replace("%", "_pcnt").replace("/", "-to-")
+
 class HTMLReportBase:
     """This is the base class for generating HTML reports for raw test results."""
 
@@ -90,7 +98,7 @@ class HTMLReportBase:
         for colname in itertools.islice(self._pinfos, 1, None):
             links_tbl[colname] = {}
             links_tbl[colname]["name"] = f"{colname}"
-            fname = colname.replace("%", "_pcnt").replace("/", "-to-") + ".html"
+            fname = _colname_to_fname(colname) + ".html"
             links_tbl[colname]["fname"] = fname
             links_tbl[colname]["hlink"] = f"<a href=\"{fname}\">{colname}</a>"
 
@@ -252,10 +260,8 @@ class HTMLReportBase:
         pinfo = {}
         pinfo["xcolname"] = xcolname
         pinfo["ycolname"] = ycolname
-        pinfo["fname"] = f"{pinfo['ycolname']}-vs-{pinfo['xcolname']}.html"
-        # C-state residency column names contain the '%' caracter, which is not allowed in HTML page
-        # file name.
-        pinfo["fname"] = pinfo["fname"].replace("%", "_pcnt").replace("/", "-to-")
+        pinfo["fname"] = _colname_to_fname(pinfo['ycolname']) + "-vs-" + \
+                         _colname_to_fname(pinfo['xcolname']) + ".html"
 
         if is_hist:
             colname = xcolname
