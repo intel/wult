@@ -431,8 +431,12 @@ class HTMLReportBase:
         _LOG.info("Reducing density for report ID '%s', diagram '%s-vs-%s'",
                   res.reportid, ycolname, xcolname)
 
+        # Create a new dataframe with just the X- and Y-columns, which we'll be reducing. It should
+        # be a bit more optimal than reducing the bigger original dataframe.
+        df = res.df[[xcolname, ycolname]]
+
         # Crete a histogram for the columns in question.
-        hist, xbins, ybins = numpy.histogram2d(res.df[xcolname], res.df[ycolname], bins_cnt)
+        hist, xbins, ybins = numpy.histogram2d(df[xcolname], df[ycolname], bins_cnt)
         # Turn the histogram into a dataframe.
         hist = pandas.DataFrame(hist, dtype=int)
 
@@ -440,7 +444,7 @@ class HTMLReportBase:
         if hist_max <= lo_thresh:
             _LOG.debug("cancel density reduction: max frequency for '%s vs %s' is %d, but scaling "
                        "threshold is %d", xcolname, ycolname, hist_max, lo_thresh)
-            return res.df
+            return df
 
         # The histogram scaling factor.
         factor = hi_thresh / hist_max
@@ -454,27 +458,28 @@ class HTMLReportBase:
         cur_hist = pandas.DataFrame(0, columns=hist.columns, index=hist.index)
 
         # Calculate bin indexes for all the X and Y values in the dataframe.
-        xindeces = numpy.digitize(res.df[xcolname], xbins[:-1])
-        yindeces = numpy.digitize(res.df[ycolname], ybins[:-1])
+        xindeces = numpy.digitize(df[xcolname], xbins[:-1])
+        yindeces = numpy.digitize(df[ycolname], ybins[:-1])
 
         # This is how many datapoints we are going to have in the reduced dataframe.
         reduced_datapoints_cnt = hist.values.sum()
         _LOG.debug("reduced datapoints count is %d", reduced_datapoints_cnt)
 
-        # Here we'll store 'res.df' indexes of the rows that will be included into the resulting
+        # Here we'll store 'df' indexes of the rows that will be included into the resulting
         # reduced dataframe.
         copy_cols = []
 
-        for col in res.df.itertuples(index=True):
-            xidx = xindeces[col.Index] - 1
-            yidx = yindeces[col.Index] - 1
+        for idx in range(0, len(df)):
+            xidx = xindeces[idx] - 1
+            yidx = yindeces[idx] - 1
 
             if cur_hist.at[xidx, yidx] >= hist.at[xidx, yidx]:
                 continue
 
             cur_hist.at[xidx, yidx] += 1
-            copy_cols.append(col.Index)
+            copy_cols.append(idx)
 
+        # Include all the colums in reduced version of the dataframe.
         return res.df.loc[copy_cols]
 
     def _generate_scatter_plots(self):
