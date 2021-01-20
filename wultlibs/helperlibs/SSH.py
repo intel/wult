@@ -791,7 +791,7 @@ class SSH:
                     raise Error(f"failed to ecode data before writing to "
                                 f"'{fobj._orig_fpath_}':\n{err}")
 
-            errmsg = "failed to write to '{fobj._orig_fpath_}': "
+            errmsg = f"failed to write to '{fobj._orig_fpath_}': "
             try:
                 return fobj._orig_fwrite_(data)
             except PermissionError as err:
