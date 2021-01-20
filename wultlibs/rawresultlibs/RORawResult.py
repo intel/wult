@@ -104,6 +104,10 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         return numeric
 
+    def is_numeric(self, colname):
+        """Returns 'True' if column 'colname' has numeric values, otherwise returns 'False'."""
+        return colname in self.get_numeric_colnames(colnames=[colname])
+
     def _mangle_eval_expr(self, expr):
         """
         Mangle a pandas python expression that we use for row filters and selectors. Some of the CSV
