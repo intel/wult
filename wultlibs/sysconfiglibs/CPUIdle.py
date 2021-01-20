@@ -15,7 +15,7 @@ import logging
 from pathlib import Path
 from wultlibs.helperlibs import ArgParse, FSHelpers, Procs, Trivial
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
-from sysconfiglibs import CPUInfo, MSR
+from wultlibs.sysconfiglibs import CPUInfo, MSR
 
 # CPU model numbers.
 _INTEL_FAM6_ICELAKE_X = 0x6A
