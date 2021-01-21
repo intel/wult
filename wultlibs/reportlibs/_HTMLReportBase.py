@@ -103,8 +103,12 @@ class HTMLReportBase:
 
         return links_tbl
 
-    def _prepare_smrys_table(self, pinfos):
-        """Create the summaries table for metrics included in plots in 'pinfos' list."""
+    def _prepare_smrys_tables(self, pinfos):
+        """
+        Summaries table includes values like average and median values for a single metric (column).
+        It "summarizes" the metric. This function creates summaries table for each metrics included
+        in 'pinfos' list.
+        """
 
         smrys_tbl = {}
         smrys_tbl["Title"] = {}
@@ -236,7 +240,7 @@ class HTMLReportBase:
 
         # Each column name gets its own HTML page.
         for colname, pinfos in self._pinfos.items():
-            smrys_tbl = self._prepare_smrys_table(pinfos)
+            smrys_tbl = self._prepare_smrys_tables(pinfos)
 
             # Render the template.
             jenv = Jinja2.build_jenv(templdir, trim_blocks=True, lstrip_blocks=True)
