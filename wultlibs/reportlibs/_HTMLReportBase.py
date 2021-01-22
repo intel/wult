@@ -474,7 +474,7 @@ class HTMLReportBase:
         if hist_max <= lo_thresh:
             _LOG.debug("cancel density reduction: max frequency for '%s vs %s' is %d, but scaling "
                        "threshold is %d", xcolname, ycolname, hist_max, lo_thresh)
-            return df
+            return res.df
 
         # The histogram scaling factor.
         factor = hi_thresh / hist_max
