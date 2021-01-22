@@ -18,7 +18,7 @@ from wultlibs.helperlibs import Trivial
 # and historgrams.
 DEFAULT_XAXES = "SilentTime,LDist"
 DEFAULT_YAXES = r".*Latency,.*Delay,(Derived)?[PC]C.+%,SilentTime,ReqCState"
-DEFAULT_HIST = f"{DEFAULT_YAXES},LDist,SilentTime"
+DEFAULT_HIST = f"{DEFAULT_YAXES},LDist"
 DEFAULT_CHIST = r".*Latency"
 # All diagrams and histograms with the combinations of EXCLUDE_XAXES and EXCLUDE_YAXES will not be
 # included to the report. By default this will be all "Whatever vs LDist" diagram, except for
