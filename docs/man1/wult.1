@@ -278,27 +278,29 @@ of datapoints and ignores the extra datapoints in the other test results.
 .B {-x | --xaxes} XAXES
 .RS
 A comma-separated list of CSV column names (or python style regular expressions matching the names)
-to use on X-axes, default is 'SilentTime'. Use '--list-columns' to get the list of the available
-column names.
+to use on X-axes, default is 'SilentTime,LDist'. Use '--list-columns' to get the list of the
+available column names.
 .RE
 .B {-y | --yaxes} YAXES
 .RS
 A comma-separated list of CSV column names (or python style regular expressions matching the names)
 to use on the Y-axes. If multiple CSV column names are specified for the X- or Y-axes, then the
-report will include all the X- and Y-axes combination. The default is
-'.*Latency,.*Delay,[PC]C.+%'. Use '--list-columns' to get the list of the available column names.
+report will include all the X- and Y-axes combination. The default
+is '.*Latency,.*Delay,(Derived)?[PC]C.+%,SilentTime,ReqCState'. Use '--list-columns' to get the list
+of the available column names.
 .RE
 .B --hist HIST
 .RS
 A comma-separated list of CSV column names (or python style regular expressions matching the names)
-to add a histogram for, default is '.*Latency,.*Delay,[PC]C.+%,LDist,SilentTime'. Use
+to add a histogram for, default
+is '.*Latency,.*Delay,(Derived)?[PC]C.+%,SilentTime,ReqCState,LDist,SilentTime'. Use
 '--list-columns' to get the list of the available column names.
 .RE
 .B --chist CHIST
 .RS
 A comma-separated list of CSV column names (or python style regular expressions matching the names)
-to add a cumulative distribution for, default is '.*Latency,.*Delay,[PC]C.+%,LDist,SilentTime'. Use
-'--list-columns' to get the list of the available column names.
+to add a cumulative distribution for, default is '.*Latency''. Use '--list-columns' to get the list
+of the available column names.
 .RE
 .B --reportids REPORTIDS
 .RS

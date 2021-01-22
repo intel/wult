@@ -265,6 +265,31 @@ report for many test results (a diff). If the test results contain different cou
 evens up datapoints count in the test results. It just finds the test result with the minimum count
 of datapoints and ignores the extra datapoints in the other test results.
 .RE
+.B {-x | --xaxes} XAXES
+.RS
+A comma-separated list of CSV column names (or python style regular expressions matching the names)
+to use on X-axes, default is 'LDist'. Use '--list-columns' to get the list of the available column
+names.
+.RE
+.B {-y | --yaxes} YAXES
+.RS
+A comma-separated list of CSV column names (or python style regular expressions matching the names)
+to use on the Y-axes. If multiple CSV column names are specified for the X- or Y-axes, then the
+report will include all the X- and Y-axes combination. The default is 'RTD'. Use '--list-columns' to
+get the list of the available column names.
+.RE
+.B --hist HIST
+.RS
+A comma-separated list of CSV column names (or python style regular expressions matching the names)
+to add a histogram for, default is 'RTD'. Use '--list-columns' to get the list of the available
+column names.
+.RE
+.B --chist CHIST
+.RS
+A comma-separated list of CSV column names (or python style regular expressions matching the names)
+to add a cumulative distribution for, default is 'RTD'. Use '--list-columns' to get the list of the
+available column names.
+.RE
 .B --reportids REPORTIDS
 .RS
 Every input raw result comes with a report ID. This report ID is basically a short name for the test
