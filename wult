@@ -185,31 +185,10 @@ def parse_arguments():
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
                          help=ToolsCommon.EVEN_UP_DP_DESCR)
-
-    text = f"""A comma-separated list of CSV column names (or python style regular expressions
-               matching the names) to use on X-axes, default is '{get_axes_default("xaxes")}'. Use
-               '--list-columns' to get the list of the available column names."""
-    subpars.add_argument("-x", "--xaxes", help=text)
-
-    text = f"""A comma-separated list of CSV column names (or python style regular expressions
-               matching the names) to use on the Y-axes. If multiple CSV column names are specified
-               for the X- or Y-axes, then the report will include all the X- and Y-axes combination.
-               The default is '{get_axes_default("yaxes")}'. Use '--list-columns' to get the list of
-               the available column names."""
-    subpars.add_argument("-y", "--yaxes", help=text)
-
-    text = f"""A comma-separated list of CSV column names (or python style regular expressions
-               matching the names) to add a histogram for, default is '{get_axes_default("hist")}'.
-               Use '--list-columns' to get the list of the available column names. Use value 'none'
-               to disable histograms."""
-    subpars.add_argument("--hist", help=text)
-
-    text = f"""A comma-separated list of CSV column names (or python style regular expressions
-               matching the names) to add a cumulative distribution for, default is
-               '{get_axes_default("chist")}'. Use '--list-columns' to get the list of the available
-               column names. Use value 'none' to disable cumulative histograms."""
-    subpars.add_argument("--chist", help=text)
-
+    subpars.add_argument("-x", "--xaxes", help=ToolsCommon.XAXES_DESCR % get_axes_default('xaxes'))
+    subpars.add_argument("-y", "--yaxes", help=ToolsCommon.YAXES_DESCR % get_axes_default('yaxes'))
+    subpars.add_argument("--hist", help=ToolsCommon.HIST_DESCR % get_axes_default('hist'))
+    subpars.add_argument("--chist", help=ToolsCommon.CHIST_DESCR % get_axes_default('chist'))
     subpars.add_argument("--reportids", help=ToolsCommon.REPORTIDS_DESCR)
     subpars.add_argument("--title-descr", help=ToolsCommon.TITLE_DESCR)
     subpars.add_argument("--relocatable", action="store_true", help=ToolsCommon.RELOCATABLE_DESCR)

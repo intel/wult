@@ -125,6 +125,30 @@ EVEN_UP_DP_DESCR = """Even up datapoints count before generating the report. Thi
                       minimum count of datapoints and ignores the extra datapoints in the other test
                       results."""
 
+# Description for the '--xaxes' option of the 'report' command.
+XAXES_DESCR = """A comma-separated list of CSV column names (or python style regular expressions
+                 matching the names) to use on X-axes, default is '%s'. Use '--list-columns' to get
+                 the list of the available column names."""
+
+# Description for the '--yaxes' option of the 'report' command.
+YAXES_DESCR = """A comma-separated list of CSV column names (or python style regular expressions
+                 matching the names) to use on the Y-axes. If multiple CSV column names are
+                 specified for the X- or Y-axes, then the report will include all the X- and Y-axes
+                 combination. The default is '%s'. Use '--list-columns' to get the list of the
+                 available column names."""
+
+# Description for the '--hist' option of the 'report' command.
+HIST_DESCR = """A comma-separated list of CSV column names (or python style regular expressions
+                matching the names) to add a histogram for, default is '%s'. Use '--list-columns' to
+                get the list of the available column names. Use value 'none' to disable histograms.
+                """
+
+# Description for the '--chist' option of the 'report' command.
+CHIST_DESCR = """A comma-separated list of CSV column names (or python style regular expressions
+                 matching the names) to add a cumulative distribution for, default is '%s'. Use
+                 '--list-columns' to get the list of the available column names. Use value 'none' to
+                 disable cumulative histograms."""
+
 # Description for the '--reportids' option of the 'report' command.
 REPORTIDS_DESCR = """Every input raw result comes with a report ID. This report ID is basically a
                      short name for the test result, and it used in the HTML report to refer to the
