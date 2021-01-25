@@ -23,7 +23,7 @@ except ImportError:
 from wultlibs import ToolsCommon, NdlRunner
 from wultlibs.rawresultlibs import RORawResult, WORawResult
 from wultlibs.reportlibs import NdlHTMLReport
-from wultlibs.helperlibs import Logging, ArgParse, ReportID, Human
+from wultlibs.helperlibs import Logging, ArgParse, ReportID, Human, Trivial
 from wultlibs.helperlibs.Exceptions import Error
 
 VERSION = "1.3.7"
@@ -31,6 +31,13 @@ OWN_NAME = "ndl"
 
 LOG = logging.getLogger()
 Logging.setup_logger(OWN_NAME)
+
+def get_axes_default(name):
+    """Returns the default CSV column names for X- or Y-axes, as well as histograms."""
+
+    names = getattr(NdlHTMLReport, f"DEFAULT_{name.upper()}")
+    # The result is used for argparse, which does not accept '%' symbols.
+    return names.replace("%", "%%")
 
 def parse_arguments():
     """A helper function which parses the input arguments."""
@@ -122,6 +129,10 @@ def parse_arguments():
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
                          help=ToolsCommon.EVEN_UP_DP_DESCR)
+    subpars.add_argument("-x", "--xaxes", help=ToolsCommon.XAXES_DESCR % get_axes_default('xaxes'))
+    subpars.add_argument("-y", "--yaxes", help=ToolsCommon.YAXES_DESCR % get_axes_default('yaxes'))
+    subpars.add_argument("--hist", help=ToolsCommon.HIST_DESCR % get_axes_default('hist'))
+    subpars.add_argument("--chist", help=ToolsCommon.CHIST_DESCR % get_axes_default('chist'))
     subpars.add_argument("--reportids", help=ToolsCommon.REPORTIDS_DESCR)
     subpars.add_argument("--title-descr", help=ToolsCommon.TITLE_DESCR)
     subpars.add_argument("--relocatable", action="store_true", help=ToolsCommon.RELOCATABLE_DESCR)
@@ -240,6 +251,15 @@ def start_command(args):
 def report_command(args):
     """Implements the 'report' command."""
 
+    # Split the comma-separated lists.
+    for name in ("xaxes", "yaxes", "hist", "chist"):
+        val = getattr(args, name)
+        if val:
+            if val == "none":
+                setattr(args, name, "")
+            else:
+                setattr(args, name, Trivial.split_csv_line(val))
+
     rsts = ToolsCommon.report_command_open_raw_results(args)
 
     if args.list_columns:
@@ -255,7 +275,9 @@ def report_command(args):
         args.outdir = ReportID.format_reportid(prefix=f"{OWN_NAME}-report",
                                                reportid=rsts[0].reportid)
 
-    rep = NdlHTMLReport.NdlHTMLReport(rsts, args.outdir, title_descr=args.title_descr)
+    rep = NdlHTMLReport.NdlHTMLReport(rsts, args.outdir, title_descr=args.title_descr,
+                                      xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
+                                      chist=args.chist)
     rep.relocatable = args.relocatable
     rep.generate()
 
