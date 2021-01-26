@@ -30,19 +30,19 @@ from common import tool
 from wultlibs.helperlibs import Exceptions
 
 def test_bad_input_data(tool):
-    """Test 'report', 'stats', and 'start' commands for bad input data."""
+    """Test 'report', 'calc', and 'start' commands for bad input data."""
 
-    for cmd in ("filter", "report", "start", "stats"):
+    for cmd in ("filter", "report", "start", "calc"):
         for args in tool.bad_paths:
             if cmd == "filter":
-                args = f"--rfilt 'index!=0' {args}"
+                args = f"--rfilt index!=0 {args}"
             with pytest.raises(Exceptions.Error):
                 tool.command(cmd, args)
 
 def test_bad_filter_names(tool):
-    """Test 'filter' and 'stats' commands for bad filter names."""
+    """Test 'filter' and 'calc' commands for bad filter names."""
 
-    for cmd in ("filter", "stats", "report"):
+    for cmd in ("filter", "calc", "report"):
         for argname in ("rfilt", "rsel", "cfilt", "csel"):
             # 'report' command don't have 'cfilt' and 'csel' arguments.
             if cmd == "report" and argname.startswith("c"):
@@ -52,8 +52,8 @@ def test_bad_filter_names(tool):
             with pytest.raises(Exceptions.Error):
                 tool.command(cmd, args)
 
-def test_stats(tool):
-    """Test 'stats' command for bad arguments."""
+def test_calc(tool):
+    """Test 'calc' command for bad arguments."""
 
     with pytest.raises(Exceptions.Error):
-        tool.command("stats", f"-f 'bad_function' {tool.good_paths[0]}")
+        tool.command("calc", f"-f 'bad_function' {tool.good_paths[0]}")
