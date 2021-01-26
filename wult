@@ -75,7 +75,7 @@ def parse_arguments():
     text = "Scan for device id."
     descr = """Scan for compatible device."""
     subpars = subparsers.add_parser("scan", help=text, description=descr)
-    subpars.set_defaults(func=scan_command)
+    subpars.set_defaults(func=ToolsCommon.scan_command)
 
     ToolsCommon.add_ssh_options(subpars, argcomplete)
 
@@ -354,24 +354,6 @@ def report_command(args):
     rep.relocatable = args.relocatable
     rep.set_hover_colnames(HOVER_COLNAME_REGEXS)
     rep.generate()
-
-def scan_command(args):
-    """Implements the 'scan' command."""
-
-    proc = ToolsCommon.get_proc(args, args.hostname)
-
-    msg = ""
-    for devid, alias, descr in Devices.scan_devices(proc, args.devtypes):
-        msg += f" * Device ID: {devid}\n"
-        if alias:
-            msg += f"   - Alias: {alias}\n"
-        msg += f"   - Description: {descr}\n"
-
-    if not msg:
-        LOG.info("No %s compatible devices found", OWN_NAME)
-        return
-
-    LOG.info("Compatible device(s)%s:\n%s", proc.hostmsg, msg.rstrip())
 
 def load_command(args):
     """Implements the 'load' command."""

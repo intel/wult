@@ -20,6 +20,7 @@ import time
 import logging
 import contextlib
 from pathlib import Path
+from wultlibs import Devices
 from wultlibs.helperlibs import Logging, Trivial, FSHelpers, KernelVersion, Procs, SSH, YAML, Human
 from wultlibs.helperlibs import ReportID
 from wultlibs.helperlibs.Exceptions import Error
@@ -397,6 +398,24 @@ def apply_filters(args, res):
 
     if ops:
         do_filter(res, ops)
+
+def scan_command(args):
+    """Implements the 'scan' command for the 'wult' and 'ndl' tools."""
+
+    proc = get_proc(args, args.hostname)
+
+    msg = ""
+    for devid, alias, descr in Devices.scan_devices(proc, args.devtypes):
+        msg += f" * Device ID: {devid}\n"
+        if alias:
+            msg += f"   - Alias: {alias}\n"
+        msg += f"   - Description: {descr}\n"
+
+    if not msg:
+        _LOG.info("No %s compatible devices found", args.toolname)
+        return
+
+    _LOG.info("Compatible device(s)%s:\n%s", proc.hostmsg, msg.rstrip())
 
 def filter_command(args):
     """Implements the 'filter' command for the 'wult' and 'ndl' tools."""

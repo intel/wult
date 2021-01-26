@@ -57,6 +57,16 @@ def parse_arguments():
                                         drivers=True, helpers=True, argcomplete=argcomplete)
 
     #
+    # Create parsers for the "scan" command.
+    #
+    text = "Scan for device id."
+    descr = """Scan for compatible device."""
+    subpars = subparsers.add_parser("scan", help=text, description=descr)
+    subpars.set_defaults(func=ToolsCommon.scan_command)
+
+    ToolsCommon.add_ssh_options(subpars, argcomplete)
+
+    #
     # Create parsers for the "start" command.
     #
     text = "Start the measurements."
@@ -184,6 +194,7 @@ def parse_arguments():
     args = parser.parse_args()
     args.toolname = OWN_NAME
     args.minkver = "5.1-rc1"
+    args.devtypes = ("i210",)
 
     return args
 
