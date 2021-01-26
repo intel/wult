@@ -241,6 +241,7 @@ def parse_arguments():
     args.toolname = OWN_NAME
     args.minkver = "4.19-rc1"
     args.reportid_additional_chars = REPORTID_ADDITIONAL_CHARS
+    args.devtypes = Devices.DEVTYPES
 
     return args
 
@@ -360,7 +361,7 @@ def scan_command(args):
     proc = ToolsCommon.get_proc(args, args.hostname)
 
     msg = ""
-    for devid, alias, descr in Devices.scan_devices(proc):
+    for devid, alias, descr in Devices.scan_devices(proc, args.devtypes):
         msg += f" * Device ID: {devid}\n"
         if alias:
             msg += f"   - Alias: {alias}\n"

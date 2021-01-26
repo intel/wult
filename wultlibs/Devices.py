@@ -26,6 +26,9 @@ from wultlibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupport
 # All the possible wult device driver names.
 DRVNAMES = set()
 
+# All supported devicetypes.
+DEVTYPES = ("i210", "tdt")
+
 _LOG = logging.getLogger()
 
 class _WultDeviceBase(ABC):
@@ -391,35 +394,43 @@ def WultDevice(devid, cpunum, proc, force=False):
     except ErrorNotSupported:
         raise ErrorNotSupported(f"unsupported device '{devid}'{proc.hostmsg}")
 
-def scan_devices(proc):
+def scan_devices(proc, devtypes=None):
     """
-    Scan the host defined by 'proc' for compatible wult delayed event devices. Yields tuples of the
-    following elements:
-     * devid - device ID of the found compatible delayed event device
-     * alias - device ID aliase for the delayed event device ('None' if there are no aliases). Alias
-               is just another device ID for the same device.
+    Scan the host defined by 'proc' for compatible devices. The 'devtypes' argument can be
+    used to limit the scan to only certain type of devices. Supported device types are 'i210' for
+    Intel i210 NIC and 'tdt' for TSC deadline timer. Scanning all devices by default.
+
+    Yields tuples of the following elements:
+     * devid - device ID of the found compatible device
+     * alias - device ID aliase for the device ('None' if there are no aliases). Alias is just
+               another device ID for the same device.
      * descr - short device description
     """
 
-    for devid in _TSCDeadlineTimer.supported_devices:
-        with contextlib.suppress(Error):
-            with _TSCDeadlineTimer(devid, 0, proc) as timerdev:
-                yield timerdev.info["devid"], "timer", timerdev.info["descr"]
+    if devtypes is None:
+        devtypes = DEVTYPES
 
-    for pci_info in LsPCI.LsPCI(proc).get_devices():
-        pci_id = pci_info["devid"]
-        if not _IntelI210.supported_devices.get(pci_id):
-            continue
+    if "tdt" in devtypes:
+        for devid in _TSCDeadlineTimer.supported_devices:
+            with contextlib.suppress(Error):
+                with _TSCDeadlineTimer(devid, 0, proc) as timerdev:
+                    yield timerdev.info["devid"], "timer", timerdev.info["descr"]
 
-        devid = pci_info['pciaddr']
+    if "i210" in devtypes:
+        for pci_info in LsPCI.LsPCI(proc).get_devices():
+            pci_id = pci_info["devid"]
+            if not _IntelI210.supported_devices.get(pci_id):
+                continue
 
-        # Find out the Linux network interface name for this NIC, if any.
-        ifname = None
-        with contextlib.suppress(Error):
-            with _NetIface.NetIface(devid, proc=proc) as netif:
-                ifname = netif.ifname
+            devid = pci_info['pciaddr']
 
-        descr = _IntelI210.supported_devices.get(pci_id)
-        descr += f". PCI address {pci_info['pciaddr']}, Vendor ID {pci_info['vendorid']}, " \
-                 f"Device ID {devid}."
-        yield devid, ifname, descr
+            # Find out the Linux network interface name for this NIC, if any.
+            ifname = None
+            with contextlib.suppress(Error):
+                with _NetIface.NetIface(devid, proc=proc) as netif:
+                    ifname = netif.ifname
+
+            descr = _IntelI210.supported_devices.get(pci_id)
+            descr += f". PCI address {pci_info['pciaddr']}, Vendor ID {pci_info['vendorid']}, " \
+                     f"Device ID {devid}."
+            yield devid, ifname, descr
