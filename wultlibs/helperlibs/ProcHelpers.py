@@ -129,7 +129,7 @@ def kill_pids(pids, sig: str = "SIGTERM", kill_children: bool = False, must_die:
     while time.time() - start_time <= timeout:
         collect_zombies(proc)
         _, _, exitcode = proc.run(f"kill -0 -- {pids_spc}")
-        if exitcode != 0:
+        if exitcode == 1:
             return
         time.sleep(0.2)
 
