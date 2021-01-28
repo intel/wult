@@ -77,6 +77,14 @@ def kver_lt(kver1, kver2):
         return _lt(rc1, rc2)
     return localver1 < localver2
 
+def kver_ge(kver1, kver2):
+    """
+    Retrun 'True' if kernel version string 'kver1' is greater or equal to kernel version string
+    'kver2' (kernel version 'kver1' is newer or equal to kernel version 'kver2').
+    """
+
+    return not kver_lt(kver1, kver2)
+
 def get_kver(split=False, proc=None):
     """
     Return version of the kernel running on the host associated with the 'proc' object. By default
