@@ -24,7 +24,7 @@ def is_root():
     try:
         return os.getuid() == 0 or os.geteuid() == 0
     except OSError as err:
-        raise Error("failed to get process UID:\n%s" % err)
+        raise Error(f"failed to get process UID: {err}")
 
 def get_pid():
     """Return current process ID."""
@@ -32,7 +32,15 @@ def get_pid():
     try:
         return os.getpid()
     except OSError as err:
-        raise Error("cannot get own PID:\n%s" % err)
+        raise Error(f"failed to get own PID: {err}")
+
+def get_pgid(pid):
+    """Return process group ID of a process with PID 'pid'."""
+
+    try:
+        return os.getpgid(pid)
+    except OSError as err:
+        raise Error(f"failed to get group ID of process with PID {pid}: {err}")
 
 def str_to_num(snum, default=_RAISE):
     """
@@ -48,7 +56,7 @@ def str_to_num(snum, default=_RAISE):
             num = float(snum)
         except (ValueError, TypeError):
             if default is _RAISE:
-                raise Error("cannot convert '%s' to a number" % str(snum))
+                raise Error(f"failed to convert '{str(snum)}' to a number")
             return default
 
     return num
