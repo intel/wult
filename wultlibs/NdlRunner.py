@@ -101,7 +101,9 @@ class NdlRunner:
                 raise Error(f"{msg}\n: Expected 2 comma-separated integers, got a non-integer "
                             f"'{val}'")
 
-        return {"RTD" : int(line[0]), "LDist" : int(line[1])}
+        # Convert nanoseconds to microseconds.
+        line = [int(val)/1000 for val in line]
+        return {"RTD" : line[0], "LDist" : line[1]}
 
     def _get_datapoints(self):
         """
@@ -142,7 +144,7 @@ class NdlRunner:
         start_time = time.time()
         for dp in datapoints:
             self._max_rtd = max(dp["RTD"], self._max_rtd)
-            _LOG.debug("launch distance: RTD %d (max %d), LDist %d",
+            _LOG.debug("launch distance: RTD %.2f (max %.2f), LDist %.2f",
                        dp["RTD"], self._max_rtd, dp["LDist"])
 
             self._res.csv.add_row(dp.values())

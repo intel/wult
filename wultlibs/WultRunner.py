@@ -122,6 +122,13 @@ class WultRunner:
             _LOG.warning("SMI and/or NMI happened%s, ignoring datapoint", self._proc.hostmsg)
             return None
 
+        # Save time in microseconds.
+        times_us = {}
+        for colname, val in dp.items():
+            if colname in self._us_colnames:
+                times_us[colname] = val / 1000
+        dp.update(times_us)
+
         return dp
 
     def _validate_datapoint(self, rawhdr, rawdp):
@@ -168,6 +175,12 @@ class WultRunner:
         # Now 'rawhdr' contains information about C-state of the measured platform, save it for
         # later use.
         self._cs_colnames = list(Defs.get_cs_colnames(rawhdr))
+
+        # Driver sends time data in nanoseconds, build list of columns which we need to convert to
+        # microseconds.
+        defs = Defs.Defs(self._res.info["toolname"])
+        self._us_colnames = [colname for colname, vals in defs.info.items() \
+                             if vals.get("unit") == "microsecond"]
 
         # The raw CSV header (the one that comes from the trace buffer) does not include C-state
         # residency, it only provides the C-state cycle counters. We'll be calculating residencies
@@ -371,6 +384,7 @@ class WultRunner:
         self._NMI_cnt = None
         self._SMI_cnt = None
         self._cs_colnames = None
+        self._us_colnames = None
         self._progress = None
         self._cstates = {}
         self._max_latency = 0

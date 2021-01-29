@@ -129,13 +129,8 @@ class HTMLReportBase:
                 title_dict = smrys_tbl["Title"][colname] = {}
                 defs = self._refdefs.info[colname]
 
-                if defs.get("unit") == "nanosecond":
-                    # Convert nanoseconds to microseconds.
-                    unit = "us"
-                else:
-                    unit = defs.get("short_unit", "")
-
                 title_dict["colname"] = colname
+                unit = defs.get("short_unit", "")
                 if unit:
                     title_dict["colname"] += f", {unit}"
                 title_dict["coldescr"] = defs["descr"]
@@ -153,9 +148,6 @@ class HTMLReportBase:
                     for funcname in title_dict["funcs"]:
                         val = res.smrys[colname][funcname]
                         fmt = "{}"
-                        if defs.get("unit") == "nanosecond" and "index" not in funcname:
-                            val /= 1000
-                            fmt = "{:.2f}"
                         if defs["type"] == "float":
                             fmt = "{:.2f}"
 
@@ -285,18 +277,17 @@ class HTMLReportBase:
 
     def _base_unit(self, df, colname):
         """
-        If the unit of column 'colname' of the 'df' datafram uses a prefix like 'nano', then return
-        the column converted into base units.
+        Convert columns with 'microsecond' units to seconds, and return the converted column.
         """
 
-        # This is not generic, but today we have to deal only with nanoseconds, so this is good
+        # This is not generic, but today we have to deal only with microseconds, so this is good
         # enough.
-        if self._refdefs.info[colname].get("unit") != "nanosecond":
+        if self._refdefs.info[colname].get("unit") != "microsecond":
             return df[colname]
 
         base_colname = f"{colname}_base"
         if base_colname not in df:
-            df[base_colname] = df[colname] / 1000000000
+            df[base_colname] = df[colname] / 1000000
         return df[base_colname]
 
     def _create_diagram_axis_info(self, axis, pinfo):
@@ -324,7 +315,7 @@ class HTMLReportBase:
                 "zerolinewidth" : 1,
                 "zerolinecolor" : "black"}
 
-        if defs.get("unit") == "nanosecond":
+        if defs.get("unit") == "microsecond":
             axis["tickformat"] = ".3s"
             axis["ticksuffix"] = "s"
             axis["hoverformat"] = ".4s"

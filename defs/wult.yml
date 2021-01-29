@@ -14,9 +14,9 @@ WakeLatency:
         a low power state (L-state), depending on whether PCIe ASPM is enabled. There may be
         multiple PCIe bridges between the NIC and the host. This pretty much depends on the platform
         configuration.
-    type: "int"
-    unit: "nanosecond"
-    short_unit: "ns"
+    type: "float"
+    unit: "microsecond"
+    short_unit: "us"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
     optional: False
 SilentTime:
@@ -24,18 +24,18 @@ SilentTime:
     descr: >-
         Time spent in a C-state before the the launch time (the moment the delayed event is
         generated). Or to put it differently, 'SilentTime' is time before idle minus launch time.
-    type: "int"
-    unit: "nanosecond"
-    short_unit: "ns"
+    type: "float"
+    unit: "microsecond"
+    short_unit: "us"
     default_funcs: ["min", "max"]
     optional: False
 LDist:
     title: "Launch Distance"
     descr: >-
         How far in the future wult scheduled the event.
-    type: "int"
-    unit: "nanosecond"
-    short_unit: "ns"
+    type: "float"
+    unit: "microsecond"
+    short_unit: "us"
     default_funcs: ["min", "max"]
     optional: False
 ReqCState:
@@ -135,9 +135,9 @@ WarmupDelay:
         status register. It is measured using TSC, and gets subtracted it from the "time after
         idle" timestamp that is read later. In other words, 'WakeLatency' does not include
         'WarmupDelay'.
-    type: "int"
-    unit: "nanosecond"
-    short_unit: "ns"
+    type: "float"
+    unit: "microsecond"
+    short_unit: "us"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
     optional: True
 LatchDelay:
@@ -150,8 +150,8 @@ LatchDelay:
         sees the 'SYSTIMR' read operation. The assumption is that it will take half of the
         'LatchDelay' for the 'SYSTIMR' read request to propagate from the CPU to the I210 NIC.
         Therefore, half of 'LatchDelay' later gets subtracted from 'WakeLatency'.
-    type: "int"
-    unit: "nanosecond"
-    short_unit: "ns"
+    type: "float"
+    unit: "microsecond"
+    short_unit: "us"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
     optional: True

@@ -19,17 +19,17 @@ RTD:
         transaction, and its delay will be available in the RR2DCDELAY register. Ndl reads
         this register, stores the read value as "RTD" (easier to pronounce), and repeats the
         experiment.
-    type: "int"
-    unit: "nanosecond"
-    short_unit: "ns"
+    type: "float"
+    unit: "microsecond"
+    short_unit: "us"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
     optional: False
 LDist:
     title: "Launch Distance"
     descr: >-
         How far in the future ndl scheduled the delayed network packet.
-    type: "int"
-    unit: "nanosecond"
-    short_unit: "ns"
+    type: "float"
+    unit: "microsecond"
+    short_unit: "us"
     default_funcs: ["min", "max"]
     optional: False
