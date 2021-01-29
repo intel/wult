@@ -393,6 +393,14 @@ class RORawResult(_RawResultBase.RawResultBase):
                 raise Error(f"no data left after applying column selector(s) to CSV file "
                             f"'{self.dp_path}'")
 
+        # Previously the CSV file had time in nanoseconds, but from version 1.1 onwards, time is
+        # saved in microseconds. Convert time to microseconds if we are dealing with old data
+        # format.
+        if self.info["format_version"] < "1.1":
+            for colname in self.colnames:
+                if self.defs.info[colname].get("unit") == "microsecond":
+                    self.df[colname] = self.df[colname] / 1000
+
     def load_df(self, **kwargs):
         """
         If the datapoints CSV file has not been read yet ('self.df' is 'None'), read it into the
