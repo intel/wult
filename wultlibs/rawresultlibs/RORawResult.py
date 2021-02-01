@@ -356,6 +356,11 @@ class RORawResult(_RawResultBase.RawResultBase):
         except Exception as err:
             raise Error(f"failed to load CSV file {self.dp_path}:\n{err}")
 
+        # Check datapoints for too few values.
+        if self.df.isnull().values.any():
+            raise Error(f"CSV file '{self.dp_path}' include datapoints with too few values (one or "
+                        f"more incomplete row).")
+
         if self.df.empty:
             raise Error(f"no data in CSV file '{self.dp_path}'")
 
