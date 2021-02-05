@@ -11,9 +11,12 @@ This module contains helper functions to read and write CPU Model Specific Regis
 has been designed and implemented for Intel CPUs.
 """
 
+import sys
 import logging
+import contextlib
 from pathlib import Path
-from wultlibs.helperlibs import Procs
+from hashlib import sha256
+from wultlibs.helperlibs import ArgParse, Procs, Logging, Trivial
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.sysconfiglibs import CPUInfo
 
@@ -58,6 +61,7 @@ PKG_CONTROL = 42
 EPP_VALID = 60
 
 _LOG = logging.getLogger()
+Logging.setup_logger(prefix="MSR.py")
 
 def bit_mask(nr):
     """Return bitmask for a bit by its number."""
@@ -80,6 +84,70 @@ class MSR:
 
         return (regsize, cpus)
 
+    @staticmethod
+    def _get_sha256(path, proc):
+        """Calculate sha256 checksum of the file 'path' on the host defined by 'proc'."""
+
+        checksum = None
+        with contextlib.suppress(Error):
+            with proc.open(path, "rb") as fobj:
+                data = fobj.read()
+                checksum = sha256(data).hexdigest()
+
+        return checksum
+
+    def _run_on_remote_host(self, method, *args):
+        """"Run MSR method 'method' on remote host."""
+
+        cmd = f"python -- {self._rpath} {method}"
+        for arg in args:
+            if Trivial.is_iterable(arg):
+                arg = ",".join([str(val) for val in arg])
+            cmd += f" {arg}"
+
+        stdout, _ = self._proc.run_verify(cmd, join=False)
+        return stdout, cmd
+
+    def _read_iter(self, address, regsize, cpus):
+        """
+        Implements the 'read_iter()' function. This implementation runs fast locally ('self._proc'
+        is the local host), but runs slowly remotely ('self._proc' is a remote host).
+        """
+
+        for cpu in cpus:
+            path = Path(f"/dev/cpu/{cpu}/msr")
+            try:
+                with self._proc.open(path, "rb") as fobj:
+                    fobj.seek(address)
+                    val = fobj.read(regsize)
+            except Error as err:
+                raise Error(f"failed to read MSR '{hex(address)}' via '{path}'{self._proc.hostmsg}:"
+                            f"\n{err}") from err
+
+            val = int.from_bytes(val, byteorder=_CPU_BYTEORDER)
+            yield (cpu, val)
+
+    def _read_iter_remote(self, address, regsize, cpus):
+        """
+        Optimized version of '_read_iter()' for the remote case. Instead of reading MSR registers
+        individually over the network, we run 'MSR.py' (ourselves!) on the remote host and parse its
+        output. This ends up being a lot faster.
+        """
+
+        result, cmd = self._run_on_remote_host("read_iter", address, regsize, cpus)
+
+        errmsg = f"ran the following command{self._proc.hostmsg}:\n{cmd}\n"
+        if len(result) != len(cpus):
+            raise Error(f"{errmsg}Expected to receive {len(cpus)} lines, but instead {len(result)} "
+                        f"lines were received")
+
+        for line in result:
+            args = ArgParse.parse_int_list(line.strip(), dedup=False)
+            if len(args) != 2:
+                raise Error(f"{errmsg}Expected lines with two integers in form of 'cpu,value', got "
+                            f"this line:\n\t{line}")
+            yield (int(args[0]), int(args[1]))
+
     def read_iter(self, address, regsize=8, cpus="all"):
         """
         Read an MSR register on one or multiple CPUs and yield tuple with CPU number and the read
@@ -93,18 +161,12 @@ class MSR:
 
         regsize, cpus = self._handle_arguments(regsize, cpus)
 
-        for cpu in cpus:
-            path = Path(f"/dev/cpu/{cpu}/msr")
-            try:
-                with self._proc.open(path, "rb") as fobj:
-                    fobj.seek(address)
-                    val = fobj.read(regsize)
-            except Error as err:
-                raise Error(f"failed to read MSR '{hex(address)}' from file '{path}'"
-                            f"{self._proc.hostmsg}:\n{err}")
+        if self._remote_run_ok:
+            reader = self._read_iter_remote(address, regsize, cpus)
+        else:
+            reader = self._read_iter(address, regsize, cpus)
 
-            val = int.from_bytes(val, byteorder=_CPU_BYTEORDER)
-            yield (cpu, val)
+        yield from reader
 
     def read(self, address, regsize=8, cpu=0):
         """
@@ -113,6 +175,21 @@ class MSR:
 
         _, msr = next(self.read_iter(address, regsize, cpu))
         return msr
+
+    def _write(self, address, val, regsize, cpus):
+        """Implements the 'write' function."""
+
+        val_bytes = val.to_bytes(regsize, byteorder=_CPU_BYTEORDER)
+        for cpu in cpus:
+            path = Path(f"/dev/cpu/{cpu}/msr")
+            try:
+                with self._proc.open(path, "wb") as fobj:
+                    fobj.seek(address)
+                    fobj.write(val_bytes)
+                    _LOG.debug("CPU%d: MSR 0x%x: wrote 0x%x", cpu, address, val)
+            except Error as err:
+                raise Error(f"failed to write MSR '{hex(address)}' via '{path}'"
+                            f"{self._proc.hostmsg}:\n{err}") from err
 
     def write(self, address, val, regsize=8, cpus="all"):
         """
@@ -127,17 +204,10 @@ class MSR:
 
         regsize, cpus = self._handle_arguments(regsize, cpus)
 
-        val_bytes = val.to_bytes(regsize, byteorder=_CPU_BYTEORDER)
-        for cpu in cpus:
-            path = Path(f"/dev/cpu/{cpu}/msr")
-            try:
-                with self._proc.open(path, "wb") as fobj:
-                    fobj.seek(address)
-                    fobj.write(val_bytes)
-                    _LOG.debug("CPU%d: MSR 0x%x: wrote 0x%x", cpu, address, val)
-            except Error as err:
-                raise Error(f"failed to write MSR '{hex(address)}' to file '{path}'"
-                            f"{self._proc.hostmsg}:\n{err}")
+        if self._remote_run_ok:
+            self._run_on_remote_host("write", address, val, regsize, cpus)
+        else:
+            self._write(address, val, regsize, cpus)
 
     def set(self, address, mask, regsize=8, cpus="all"):
         """Set 'mask' bits in MSR. Arguments are the same as in 'write()'."""
@@ -159,6 +229,26 @@ class MSR:
             if msr != new:
                 self.write(address, new, regsize, cpunum)
 
+    def _can_run_on_remote_host(self):
+        """Returns 'True' if commands can be executed on remote host, returns 'False' otherwise."""
+
+        if not self._proc.is_remote:
+            return False
+
+        cmd = "python -c 'from wultlibs.sysconfiglibs import MSR;print(MSR.__file__)'"
+        try:
+            self._rpath = self._proc.run_verify(cmd)[0].strip()
+        except Error:
+            return False
+
+        rchksum = self._get_sha256(self._rpath, self._proc)
+        lchksum = self._get_sha256(__file__, Procs.Proc())
+
+        if lchksum != rchksum or not lchksum:
+            return False
+
+        return True
+
     def __init__(self, proc=None):
         """The class constructor."""
 
@@ -166,6 +256,10 @@ class MSR:
             proc = Procs.Proc()
         self._proc = proc
         self._cpuinfo = None
+        # Path to MSR.py (ourselves) on the remote host.
+        self._rpath = None
+        # Whether it is OK to run 'MSR.py' on the remote host as an optimization.
+        self._remote_run_ok = self._can_run_on_remote_host()
 
     def close(self):
         """Uninitialize the class object."""
@@ -183,3 +277,51 @@ class MSR:
     def __exit__(self, exc_type, exc_value, traceback):
         """Exit the runtime context."""
         self.close()
+
+def get_cmdline_args(args):
+    """Parse command line arguments."""
+
+    res = []
+    for arg in args:
+        if Trivial.is_int(arg):
+            arg = int(arg)
+        else:
+            arg = ArgParse.parse_int_list(arg, ints=True, sort=True)
+        res.append(arg)
+
+    return res
+
+def main():
+    """
+    Script entry point. Some methods of this module can be used via command line by running 'python
+    MSR.py <arguments>'. We use this to improve performance when dealing with a remote host.
+    """
+
+    mname = sys.argv[1]
+    allowed_methods = ("read", "read_iter", "write", "set", "clear")
+
+    if mname not in allowed_methods:
+        msg = f"can't run method '{mname}', use one of: {','.join(allowed_methods)}"
+        _LOG.error_out(msg)
+
+    args = get_cmdline_args(sys.argv[2:])
+
+    with MSR() as msr:
+        method = getattr(msr, mname)
+        if mname == "read_iter":
+            for cpu, val in method(*args):
+                print(f"{cpu},{val}")
+        elif mname == "read":
+            print(method(*args))
+        else:
+            method(*args)
+
+# The script entry point.
+if __name__ == "__main__":
+
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        _LOG.info("Interrupted, exiting")
+    except Error as err:
+        _LOG.error_out(err)
