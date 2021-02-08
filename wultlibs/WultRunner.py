@@ -116,7 +116,7 @@ class WultRunner:
         except KeyError:
             # Supposedly an bad C-state index.
             raise Error(f"bad C-state index '{dp['ReqCState']}' coming from the following FTrace "
-                        f"line:\n  {self._ftrace.raw_line}")
+                        f"line:\n  {self._ftrace.raw_line}") from None
 
         if self._smi_nmi_happened(dp):
             _LOG.warning("SMI and/or NMI happened%s, ignoring datapoint", self._proc.hostmsg)
@@ -252,7 +252,7 @@ class WultRunner:
             self._ep.start()
             self._collect(dpcnt, tlimit)
         except Error as err:
-            raise Error(f"{err}{self._get_dmesg_msgs(old_dmesg)}")
+            raise Error(f"{err}{self._get_dmesg_msgs(old_dmesg)}") from err
         finally:
             self._progress.update(self._res.csv.rows_cnt, self._max_latency, final=True)
 
@@ -264,8 +264,8 @@ class WultRunner:
         try:
             with self._proc.open("/proc/cmdline", "r") as fobj:
                 return fobj.read().strip()
-        except Error:
-            raise Error(f"failed to read cmdline parameters{self._proc.hostmsg}")
+        except Error as err:
+            raise Error(f"failed to read cmdline parameters{self._proc.hostmsg}") from err
 
     def prepare(self):
         """Prepare for starting the measurements."""
@@ -297,14 +297,14 @@ class WultRunner:
         if errmsg:
             if resolution > 100:
                 if "timer" in self._res.info["devdescr"]:
-                    errmsg += f"\nMake sure your kernel has high resolution timers enabled " \
-                              f"(CONFIG_HIGH_RES_TIMERS)"
+                    errmsg += "\nMake sure your kernel has high resolution timers enabled " \
+                              "(CONFIG_HIGH_RES_TIMERS)"
 
                     with contextlib.suppress(Error):
                         cmdline = self._get_cmdline()
                         if "highres=off" in cmdline:
-                            errmsg += f"\nYour system uses the 'highres=off' kernel boot " \
-                                      f"parameter, try removing it"
+                            errmsg += "\nYour system uses the 'highres=off' kernel boot " \
+                                      "parameter, try removing it"
 
                 raise Error(errmsg)
             _LOG.warning(errmsg)
@@ -340,8 +340,8 @@ class WultRunner:
             errmsg = f"no idle driver in use{self._proc.hostmsg}"
             try:
                 cmdline = self._get_cmdline()
-            except Error:
-                raise Error(errmsg)
+            except Error as err:
+                raise Error(errmsg) from err
 
             idleoption = [item for item in cmdline.split() if "idle=" in item]
             if idleoption:
