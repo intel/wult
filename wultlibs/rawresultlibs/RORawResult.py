@@ -374,13 +374,15 @@ class RORawResult(_RawResultBase.RawResultBase):
         rsel = self._get_rsel()
         csel = self._get_csel()
 
+        load_csv = force_reload or self.df is None
+
         if not rsel:
-            if force_reload or self.df is None:
+            if load_csv:
                 self._load_csv(usecols=csel, **kwargs)
             csel = None
         else:
             # We cannot drop columns yet, because rows selector may refer the columns.
-            if force_reload or self.df is None:
+            if load_csv:
                 self._load_csv(**kwargs)
 
         if rsel:
@@ -401,7 +403,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         # Previously the CSV file had time in nanoseconds, but from version 1.1 onwards, time is
         # saved in microseconds. Convert time to microseconds if we are dealing with old data
         # format.
-        if self.info["format_version"] < "1.1":
+        if self.info["format_version"] < "1.1" and load_csv:
             for colname in self.df:
                 defs = self.defs.info.get(colname)
                 if defs and defs.get("unit") == "microsecond":
