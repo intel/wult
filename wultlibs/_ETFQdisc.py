@@ -13,8 +13,8 @@ discipline).
 
 import re
 import logging
-from wultlibs.helperlibs import FSHelpers, ProcHelpers
-from wultlibs.helperlibs.Exceptions import Error
+from wultlibs.helperlibs import FSHelpers, ProcHelpers, OSInfo, KernelVersion
+from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs import _NetIface
 
 _LOG = logging.getLogger()
@@ -49,13 +49,22 @@ class ETFQdisc():
             errmsg = self._proc.cmd_failed_msg(cmd, stdout, stderr, exitcode)
             errors = ("Operation not supported", "Specified qdisc not found")
             if any(err in stderr for err in errors):
-                errmsg += "\n\nEnsure your kernel has the following features enabled:\n" \
-                          "* QoS / fair queuing (CONFIG_NET_SCHED)\n"                    \
-                          "* Multi-queue priority scheduler (CONFIG_NET_SCH_MQPRIO)\n"   \
-                          "* Earliest TxTime First (CONFIG_NET_SCH_ETF)\n"               \
-                          "* Netfilter (CONFIG_NETFILTER_NETLINK)\n"                     \
-                          "And related modules, such as 'sch_etf' and 'sch_mqprio',\n"   \
+                errmsg += "\n\n"
+                pkgname = OSInfo.tool_to_package_name("sch_etf.ko", proc=self._proc)
+                if pkgname:
+                    kver = KernelVersion.get_kver(proc=self._proc)
+                    errmsg += f"Try to install package '{pkgname}'{self._proc.hostmsg}\n"      \
+                              f"Currently running kernel version is '{kver}', make sure the\n" \
+                              f"installed '{pkgname}' also has version '{kver}'.\n"
+                errmsg += "If you are running a custom kernel (as opposed to the vanilla OS\n" \
+                          "kernel), ensure your kernel has the following features enabled:\n"    \
+                          "* QoS / fair queuing (CONFIG_NET_SCHED)\n"                            \
+                          "* Multi-queue priority scheduler (CONFIG_NET_SCH_MQPRIO)\n"           \
+                          "* Earliest TxTime First (CONFIG_NET_SCH_ETF)\n"                       \
+                          "* Netfilter (CONFIG_NETFILTER_NETLINK)\n"                             \
+                          "And related modules, such as 'sch_etf' and 'sch_mqprio',\n"           \
                           "loaded if needed."
+
             elif "Unknown qdisc \"etf\"" in stderr:
                 errmsg += self._old_tc_err_msg
 
@@ -144,10 +153,18 @@ class ETFQdisc():
         self._phc2sys_proc = None
 
         self._ifname = ifname
-        self._tc_bin = FSHelpers.which(tc_bin, proc=proc)
+        self._tc_bin = FSHelpers.which(tc_bin, default=None, proc=proc)
         self._handover_delta = int(handover_delta * 1000)
-        self._phc2sys_bin = FSHelpers.which(phc2sys_bin, proc=proc)
+        self._phc2sys_bin = FSHelpers.which(phc2sys_bin, default=None, proc=proc)
         self._proc = proc
+
+        for path, name in ((self._phc2sys_bin, "phc2sys"), (self._tc_bin, "tc")):
+            if not path:
+                msg = f"failed to find tool '{name}'{self._proc.hostmsg}"
+                pkg = OSInfo.tool_to_package_name(name, proc=self._proc)
+                if pkg:
+                    msg += f"\nTry to install package '{pkg}'{self._proc.hostmsg}"
+                raise ErrorNotSupported(msg)
 
         self._netif = _NetIface.NetIface(ifname, proc=proc)
 
