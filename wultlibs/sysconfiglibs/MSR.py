@@ -297,14 +297,23 @@ def main():
     MSR.py <arguments>'. We use this to improve performance when dealing with a remote host.
     """
 
+    # Allow calls to public methods only.
     mname = sys.argv[1]
     allowed_methods = ("read", "read_iter", "write", "set", "clear")
-
     if mname not in allowed_methods:
         msg = f"can't run method '{mname}', use one of: {','.join(allowed_methods)}"
         _LOG.error_out(msg)
 
+    # Allow access only to predefined MSRs.
     args = get_cmdline_args(sys.argv[2:])
+    allowed_msrs = set()
+    for symbol in globals():
+        if symbol.startswith("MSR_"):
+            val = getattr(sys.modules[__name__], symbol)
+            allowed_msrs.add(val)
+    addr = args[0]
+    if addr not in allowed_msrs:
+        raise Error(f"access to MSR '{hex(addr)}' not allowed")
 
     with MSR() as msr:
         method = getattr(msr, mname)
