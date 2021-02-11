@@ -5,6 +5,8 @@ wult (1.8.12) unstable; urgency=low
   * ndl: add 'ndl scan' command.
   * wult: fix bug in diff report with old results.
 
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 11 Feb 2021 10:54:33 +0200
+
 wult (1.8.11) unstable; urgency=low
 
   * wult/ndl: add the '--time-limit' option.
