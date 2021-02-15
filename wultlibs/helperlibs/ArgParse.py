@@ -91,11 +91,12 @@ class ArgsParser(argparse.ArgumentParser):
 
         super().error(message)
 
-def parse_int_list(nums, ints=False):
+def parse_int_list(nums, ints=False, dedup=False):
     """
     Turn a string contaning a comma-separated list of numbers and ranges into a list of numbers and
     return it. For example, a string like "0,1-3,7" would become ["0", "1", "2", "3", "7"]. The
-    'ints' argument controls whether the resulting list should contain strings or integers.
+    'ints' argument controls whether the resulting list should contain strings or integers. The
+    'dedup' argument controls whether returned list should include dublicate values or not.
     """
 
     if nums is None:
@@ -105,8 +106,10 @@ def parse_int_list(nums, ints=False):
         nums = str(nums)
     if isinstance(nums, str):
         nums = Trivial.split_csv_line(nums)
+    if not Trivial.is_iterable(nums):
+        nums = [nums]
 
-    nums_set = set()
+    result = []
     for elts in nums:
         elts = str(elts)
         if "-" in elts:
@@ -120,15 +123,19 @@ def parse_int_list(nums, ints=False):
             if not Trivial.is_int(elt):
                 raise Error("bad number '%s', should be an integer" % elt)
 
+        elts = [int(elt) for elt in elts]
         if len(elts) > 1:
-            if int(elts[0]) > int(elts[1]):
-                raise Error("bad range %s-%s, the first number should be smaller than thesecond"
+            if elts[0] > elts[1]:
+                raise Error("bad range %d-%d, the first number should be smaller than thesecond"
                             % (elts[0], elts[1]))
-            nums_set.update([str(elt) for elt in range(int(elts[0]), int(elts[1]) + 1)])
+            result += range(elts[0], elts[1] + 1)
         else:
-            nums_set.add(elts[0])
+            result += elts
 
-    result = sorted([int(num) for num in nums_set])
+    if dedup:
+        result = Trivial.list_dedup(result)
+
+    result = sorted(result)
     if not ints:
         result = [str(num) for num in result]
     return result

@@ -306,7 +306,7 @@ class CPUIdle:
             cpus = None
         if cstates == "all":
             cstates = None
-        cpus = ArgParse.parse_int_list(cpus, ints=True)
+        cpus = ArgParse.parse_int_list(cpus, ints=True, dedup=True)
         cstates = self._normalize_cstates(cstates)
         self._do_toggle_cstates(cpus, cstates, enable, dflt_enable)
 
@@ -400,7 +400,7 @@ class CPUIdle:
         if cstates == "all":
             cstates = None
 
-        cpus = ArgParse.parse_int_list(cpus, ints=True)
+        cpus = ArgParse.parse_int_list(cpus, ints=True, dedup=True)
         cstates = self._normalize_cstates(cstates)
         for info in self._get_cstates_info(cpus, cstates, ordered):
             yield info
