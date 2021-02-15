@@ -13,7 +13,7 @@ has been designed and implemented for Intel CPUs.
 
 import logging
 from pathlib import Path
-from wultlibs.helperlibs import ArgParse, Procs, Trivial
+from wultlibs.helperlibs import Procs
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.sysconfiglibs import CPUInfo
 
@@ -74,15 +74,9 @@ class MSR:
             regsizes_str = ",".join([str(val) for val in regsizes])
             raise Error(f"invalid register size value '{regsize}', use one of: {regsizes_str}")
 
-        if cpus == "all":
-            if not self._cpuinfo:
-                self._cpuinfo = CPUInfo.CPUInfo(proc=self._proc)
-            cpus = self._cpuinfo.get_cpus()
-
-        cpus = ArgParse.parse_int_list(cpus, ints=True)
-
-        if not Trivial.is_iterable(cpus):
-            cpus = [cpus]
+        if not self._cpuinfo:
+            self._cpuinfo = CPUInfo.CPUInfo(proc=self._proc)
+        cpus = self._cpuinfo.get_cpu_list(cpus)
 
         return (regsize, cpus)
 
