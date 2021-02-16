@@ -124,7 +124,7 @@ class CPUInfo:
         if nums is None or nums == "all":
             nums = list(items.keys())
         else:
-            nums = ArgParse.parse_int_list(nums, ints=True, dedup=True)
+            nums = ArgParse.parse_int_list(nums, ints=True, dedup=True, sort=True)
 
         result = []
         for num in nums:
@@ -177,7 +177,7 @@ class CPUInfo:
             return allcpus
 
         allcpus = set(allcpus)
-        cpus = ArgParse.parse_int_list(cpus, ints=True, dedup=True)
+        cpus = ArgParse.parse_int_list(cpus, ints=True, dedup=True, sort=True)
         for cpu in cpus:
             if cpu not in allcpus:
                 cpus_str = ", ".join([str(cpu) for cpu in sorted(allcpus)])
@@ -195,7 +195,7 @@ class CPUInfo:
             return allpkgs
 
         allpkgs = set(allpkgs)
-        pkgs = ArgParse.parse_int_list(pkgs, ints=True, dedup=True)
+        pkgs = ArgParse.parse_int_list(pkgs, ints=True, dedup=True, sort=True)
         for pkg in pkgs:
             if pkg not in allpkgs:
                 pkgs_str = ", ".join([str(pkg) for pkg in sorted(allpkgs)])

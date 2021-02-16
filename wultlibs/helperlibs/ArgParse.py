@@ -91,12 +91,14 @@ class ArgsParser(argparse.ArgumentParser):
 
         super().error(message)
 
-def parse_int_list(nums, ints=False, dedup=False):
+def parse_int_list(nums, ints=False, dedup=False, sort=False):
     """
     Turn a string contaning a comma-separated list of numbers and ranges into a list of numbers and
-    return it. For example, a string like "0,1-3,7" would become ["0", "1", "2", "3", "7"]. The
-    'ints' argument controls whether the resulting list should contain strings or integers. The
-    'dedup' argument controls whether returned list should include dublicate values or not.
+    return it. For example, a string like "0,1-3,7" would become ["0", "1", "2", "3", "7"].
+    Optional arguments are:
+      * ints - controls whether the resulting list should contain strings or integers.
+      * dedup - controls whether returned list should include dublicate values or not.
+      * sort - controls whether returned list is sorted or not.
     """
 
     if nums is None:
@@ -134,8 +136,8 @@ def parse_int_list(nums, ints=False, dedup=False):
 
     if dedup:
         result = Trivial.list_dedup(result)
-
-    result = sorted(result)
+    if sort:
+        result = sorted(result)
     if not ints:
         result = [str(num) for num in result]
     return result
