@@ -109,7 +109,7 @@ def kill_pids(pids, sig: str = "SIGTERM", kill_children: bool = False, must_die:
     except Error as err:
         if not killing:
             raise Error(f"failed to send signal '{sig}' to PIDs '{pids_comma}'{proc.hostmsg}:\n"
-                        f"{err}")
+                        f"{err}") from err
         # Some error happened on the first attempt. We've seen a couple of situations when this
         # happens.
         # 1. Most often, a PID does not exist anymore, the process exited already (race condition).

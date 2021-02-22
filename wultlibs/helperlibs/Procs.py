@@ -320,7 +320,7 @@ def _do_run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=
             fname = stderr
             stderr = open(fname, "w+")
     except OSError as err:
-        raise Error("cannot open file '%s': %s" % (fname, err))
+        raise Error("cannot open file '%s': %s" % (fname, err)) from None
 
     if shell:
         command = " exec stdbuf -i0 -o0 -e0 -- " + command
@@ -330,7 +330,7 @@ def _do_run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=
         proc = subprocess.Popen(cmd, stdin=stdin, stdout=stdout, stderr=stderr, bufsize=bufsize,
                                 cwd=cwd, env=env, shell=shell, start_new_session=newgrp)
     except OSError as err:
-        raise Error("the following command failed with error '%s':\n%s" % (err, command))
+        raise Error("the following command failed with error '%s':\n%s" % (err, command)) from err
 
     return _add_custom_fields(proc, cmd)
 
@@ -463,7 +463,7 @@ def rsync(src, dst, opts="rlptD", remotesrc=False, remotedst=True):
     try:
         run_verify(cmd)
     except Error as err:
-        raise Error("failed to copy files '%s' to '%s':\n%s" % (src, dst, err))
+        raise Error("failed to copy files '%s' to '%s':\n%s" % (src, dst, err)) from err
 
 class Proc:
     """This class provides API similar to the 'SSH' class API."""
@@ -497,9 +497,9 @@ class Proc:
         try:
             fobj = open(path, mode)
         except PermissionError as err:
-            raise ErrorPermissionDenied(f"{errmsg}{err}")
+            raise ErrorPermissionDenied(f"{errmsg}{err}") from None
         except OSError as err:
-            raise Error(f"{errmsg}{err}")
+            raise Error(f"{errmsg}{err}") from None
 
         # Make sure methods of 'fobj' always raise the 'Error' exceptions.
         fobj = WrapExceptions.WrapExceptions(fobj, exceptions=_EXCEPTIONS,

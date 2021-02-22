@@ -75,7 +75,7 @@ def move_copy_link(src: Path, dst: Path, action: str = "symlink", exist_ok: bool
         else:
             raise Error(f"unrecognized action '{action}'")
     except (OSError, shutil.Error) as err:
-        raise Error(f"cannot {action} '{src}' to '{dst}':\n{err}")
+        raise Error(f"cannot {action} '{src}' to '{dst}':\n{err}") from err
 
 def search_for_app_data(appname, subpath: Path, pre: str = None, pathdescr: str = None,
                         default=_RAISE):
@@ -168,7 +168,7 @@ def mount_points(proc=None):
         with proc.open(mounts_file, "r") as fobj:
             contents = fobj.read()
     except OSError as err:
-        raise Error(f"cannot read '{mounts_file}': {err}")
+        raise Error(f"cannot read '{mounts_file}': {err}") from err
 
     for line in contents.splitlines():
         if not line:
@@ -190,7 +190,7 @@ def mount_debugfs(mnt: Path = None, proc=None):
         try:
             mnt = Path(os.path.realpath(mnt)).resolve()
         except OSError as err:
-            raise Error(f"cannot resolve path '{mnt}': {err}")
+            raise Error(f"cannot resolve path '{mnt}': {err}") from None
 
     for mntinfo in mount_points(proc=proc):
         if mntinfo.fstype == "debugfs" and Path(mntinfo.mntpoint) == mnt:
@@ -276,7 +276,7 @@ def mkdir(dirpath: Path, parents: bool = False, exist_ok: bool = False, proc=Non
         try:
             dirpath.mkdir(parents=parents, exist_ok=exist_ok)
         except OSError as err:
-            raise Error(f"failed to create directory '{dirpath}':\n{err}")
+            raise Error(f"failed to create directory '{dirpath}':\n{err}") from None
 
 def rm_minus_rf(path: Path, proc=None):
     """
@@ -294,7 +294,7 @@ def rm_minus_rf(path: Path, proc=None):
         else:
             path.unlink()
     except (OSError, shutil.Error) as err:
-        raise Error(f"failed to remove {path}: {err}")
+        raise Error(f"failed to remove {path}: {err}") from err
 
 def exists(path: Path, proc=None):
     """
@@ -307,7 +307,7 @@ def exists(path: Path, proc=None):
     try:
         return path.exists()
     except OSError as err:
-        raise Error(f"failed to check if '{path}' exists on the local host: {err}")
+        raise Error(f"failed to check if '{path}' exists on the local host: {err}") from None
 
 def isfile(path: Path, proc=None):
     """
@@ -322,7 +322,7 @@ def isfile(path: Path, proc=None):
         return path.is_file()
     except OSError as err:
         raise Error(f"failed to check if '{path}' exists and it is a regular file on the local "
-                    f"host: {err}")
+                    f"host: {err}") from None
 
 def isdir(path: Path, proc=None):
     """
@@ -337,7 +337,7 @@ def isdir(path: Path, proc=None):
         return path.is_dir()
     except OSError as err:
         raise Error(f"failed to check if '{path}' exists and it is a directory on local host: "
-                    f"{err}")
+                    f"{err}") from None
 
 def isexe(path: Path, proc=None):
     """
@@ -352,7 +352,7 @@ def isexe(path: Path, proc=None):
         return path.is_file() and os.access(path, os.X_OK)
     except OSError as err:
         raise Error(f"failed to check if '{path}' exists and it is an executable file on the local "
-                    f"host: {err}")
+                    f"host: {err}") from None
 
 def which(program: str, default=_RAISE, proc=None):
     """
@@ -447,7 +447,7 @@ def abspath(path: Path, must_exist: bool = True, proc=None):
         try:
             rpath = path.resolve()
         except OSError as err:
-            raise Error(f"failed to get real path for '{path}': {err}")
+            raise Error(f"failed to get real path for '{path}': {err}") from None
         if must_exist and not rpath.exists():
             raise Error(f"path '{rpath}' does not exist")
         return rpath
@@ -476,7 +476,7 @@ def read(path, default=_RAISE, proc=None):
             val = fobj.read().strip()
     except Error as err:
         if default is _RAISE:
-            raise Error(f"failed to read file '{path}'{proc.hostmsg}:\n{err}")
+            raise Error(f"failed to read file '{path}'{proc.hostmsg}:\n{err}") from err
         return default
 
     return val
@@ -506,4 +506,4 @@ def write(path, data, proc=None):
         with proc.open(path, "w") as fobj:
             fobj.write(str(data))
     except Error as err:
-        raise Error(f"failed to write into file '{path}'{proc.hostmsg}:\n{err}")
+        raise Error(f"failed to write into file '{path}'{proc.hostmsg}:\n{err}") from err

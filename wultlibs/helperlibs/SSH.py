@@ -50,12 +50,12 @@ def _get_username(uid=None):
         if uid is None:
             uid = os.getuid()
     except OSError as err:
-        raise Error("failed to detect user name of the current process:\n%s" % err)
+        raise Error("failed to detect user name of the current process:\n%s" % err) from None
 
     try:
         return pwd.getpwuid(uid).pw_name
     except KeyError as err:
-        raise Error("failed to get user name for UID %d:\n%s" % (uid, err))
+        raise Error("failed to get user name for UID %d:\n%s" % (uid, err)) from None
 
 def _stream_fetcher(streamid, chan, by_line):
     """
@@ -314,7 +314,7 @@ def _add_custom_fields(chan, hostname, cmd, pid):
             else:
                 fobj = chan.makefile_stderr(mode, 0)
         except _EXCEPTIONS as err:
-            raise Error(f"failed to create a file for '{name}': {err}")
+            raise Error(f"failed to create a file for '{name}': {err}") from err
 
         setattr(fobj, "_stream_name_", name)
         wrapped_fobj = WrapExceptions.WrapExceptions(fobj, exceptions=_EXCEPTIONS,
@@ -380,7 +380,7 @@ class SSH:
             chan.exec_command(command)
         except (paramiko.SSHException, socket.error) as err:
             raise Error(f"cannot execute the following command{self.hostmsg}:\n{command}\nReason: "
-                        f"{err}")
+                        f"{err}") from err
 
         # The first line of the output should contain the PID - extract it.
         if shell:
@@ -555,7 +555,7 @@ class SSH:
         try:
             proc.run_verify(f"{cmd} -- '{src}' '{dst}'")
         except proc.Error as err:
-            raise Error(f"failed to copy files '{src}' to '{dst}':\n{err}")
+            raise Error(f"failed to copy files '{src}' to '{dst}':\n{err}") from err
 
     def _scp(self, src, dst):
         """
@@ -572,7 +572,7 @@ class SSH:
         try:
             Procs.run_verify(f"{cmd} -- {src} {dst}")
         except Procs.Error as err:
-            raise Error(f"failed to copy files '{src}' to '{dst}':\n{err}")
+            raise Error(f"failed to copy files '{src}' to '{dst}':\n{err}") from err
 
     def get(self, remote_path, local_path):
         """
@@ -713,7 +713,7 @@ class SSH:
             try:
                 mode = os.stat(key_filename).st_mode
             except OSError:
-                raise Error(f"'stat()' failed for private SSH key at '{key_filename}'")
+                raise Error(f"'stat()' failed for private SSH key at '{key_filename}'") from None
 
             if not stat.S_ISREG(mode):
                 raise Error(f"private SSH key at '{key_filename}' is not a regular file")
@@ -731,10 +731,10 @@ class SSH:
                              password=self.password, allow_agent=False, look_for_keys=look_for_keys)
         except paramiko.AuthenticationException as err:
             raise ErrorConnect(f"SSH authentication failed when connecting to {printhost} as "
-                               f"'{self.username}':\n{err}")
+                               f"'{self.username}':\n{err}") from err
         except Exception as err:
             raise ErrorConnect(f"cannot establish TCP connection to {printhost} with {timeoutstr} "
-                               f"secs time-out:\n{err}")
+                               f"secs time-out:\n{err}") from err
 
         _LOG.debug("established SSH connection to %s, port %d, username '%s', timeout '%s', "
                    "priv. key '%s'", printhost, port, self.username, timeoutstr, self.privkeypath)
@@ -769,13 +769,14 @@ class SSH:
             try:
                 data = fobj._orig_fread_(size=size)
             except BaseException as err:
-                raise Error(f"failed to read from '{fobj._orig_fpath_}': {err}")
+                raise Error(f"failed to read from '{fobj._orig_fpath_}': {err}") from err
 
             if "b" not in fobj._orig_fmode_:
                 try:
                     data = data.decode("utf8")
                 except UnicodeError as err:
-                    raise Error(f"failed to decode data read from '{fobj._orig_fpath_}':\n{err}")
+                    raise Error(f"failed to decode data read from '{fobj._orig_fpath_}':\n{err}") \
+                          from None
 
             return data
 
@@ -789,15 +790,15 @@ class SSH:
                     data = data.encode("utf8")
                 except UnicodeError as err:
                     raise Error(f"failed to ecode data before writing to "
-                                f"'{fobj._orig_fpath_}':\n{err}")
+                                f"'{fobj._orig_fpath_}':\n{err}") from None
 
             errmsg = f"failed to write to '{fobj._orig_fpath_}': "
             try:
                 return fobj._orig_fwrite_(data)
             except PermissionError as err:
-                raise ErrorPermissionDenied(f"{errmsg}{err}")
+                raise ErrorPermissionDenied(f"{errmsg}{err}") from None
             except BaseException as err:
-                raise Error(f"{errmsg}{err}")
+                raise Error(f"{errmsg}{err}") from err
 
         def get_err_prefix(fobj, method):
             """Return the error message prefix."""
@@ -806,14 +807,15 @@ class SSH:
         try:
             sftp = self.ssh.open_sftp()
         except _EXCEPTIONS as err:
-            raise Error(f"failed to establish SFTP session with {self.hostname}:\n{err}")
+            raise Error(f"failed to establish SFTP session with {self.hostname}:\n{err}") from err
 
         path = str(path) # In case it is a pathlib.Path() object.
 
         try:
             fobj = sftp.file(path, mode)
         except _EXCEPTIONS as err:
-            raise Error(f"failed to open file '{path}' on {self.hostname} via SFTP:\n{err}")
+            raise Error(f"failed to open file '{path}' on {self.hostname} via SFTP:\n{err}") \
+                  from err
 
         # Save the path and the mode in the object.
         fobj._orig_fpath_ = path

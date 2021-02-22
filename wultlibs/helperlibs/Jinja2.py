@@ -46,7 +46,8 @@ def build_jenv(templdir, scheme=0, **kwargs):
                                   autoescape=jinja2.select_autoescape(['html', 'htm', 'xml']),
                                   **kwargs)
     except jinja2.TemplateError as err:
-        raise Error(f"cannot create Jija2 environment for templates in '{templdir}':\n{err}")
+        raise Error(f"cannot create Jija2 environment for templates in '{templdir}':\n{err}") \
+              from err
 
 def render_template(jenv, templpath, outfile=None):
     """
@@ -64,7 +65,7 @@ def render_template(jenv, templpath, outfile=None):
         # Jinja2 does not like pathlib.Path objects.
         contents = jenv.get_template(str(templpath)).render()
     except jinja2.TemplateError as err:
-        raise Error(f"cannot render template '{path}':\n{err}")
+        raise Error(f"cannot render template '{path}':\n{err}") from err
 
     _LOG.debug("rendered template '%s'", path)
 
@@ -73,9 +74,10 @@ def render_template(jenv, templpath, outfile=None):
             with open(outfile, "wb") as fobj:
                 fobj.write(contents.encode("utf-8"))
         except UnicodeError as err:
-            raise Error(f"failed to encode with 'utf-8' before writing to '{outfile}':\n{err}")
+            raise Error(f"failed to encode with 'utf-8' before writing to '{outfile}':\n{err}") \
+                  from None
         except OSError as err:
-            raise Error(f"failed to write to '{outfile}':\n{err}")
+            raise Error(f"failed to write to '{outfile}':\n{err}") from None
 
         _LOG.debug("saved rendered data to '%s'", outfile)
 

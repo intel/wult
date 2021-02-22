@@ -128,7 +128,7 @@ def get_kver_ktree(ktree, split=False, proc=None, makecmd=None):
         kver = proc.run_verify(cmd)[0].strip()
     except proc.Error as err:
         raise Error("cannot detect kernel version in '%s':\n%s\nMake sure kernel sources are "
-                    "configured." % (ktree, err))
+                    "configured." % (ktree, err)) from err
 
     if split:
         return split_kver(kver)

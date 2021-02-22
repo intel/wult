@@ -64,7 +64,7 @@ class ArgsParser(argparse.ArgumentParser):
             text = "Print version and exit."
             self.add_argument("--version", action="version", help=text, version=version)
 
-    def parse_args(self, *args, **kwargs): # pylint: disable=arguments-differ
+    def parse_args(self, *args, **kwargs): # pylint: disable=signature-differs
         """Verify that '-d' and '-q' are not used at the same time."""
 
         args = super().parse_args(*args, **kwargs)

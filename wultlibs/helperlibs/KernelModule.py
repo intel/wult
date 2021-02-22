@@ -56,7 +56,7 @@ class KernelModule:
             try:
                 self._proc.run_verify(cmd)
             except Error as err:
-                raise Error(f"{err}{self._get_dmesg_msgs()}")
+                raise Error(f"{err}{self._get_dmesg_msgs()}") from err
             if _LOG.getEffectiveLevel() == logging.DEBUG:
                 _LOG.debug("the following command finished: %s%s", cmd, self._get_dmesg_msgs())
         else:

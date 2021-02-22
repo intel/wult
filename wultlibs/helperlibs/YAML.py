@@ -107,14 +107,14 @@ def _load(path, jenv, included):
         try:
             fobj = contents = open(path, "r")
         except OSError as err:
-            raise Error(f"failed to open file '{path}':\n{err}")
+            raise Error(f"failed to open file '{path}':\n{err}") from None
 
     try:
         loaded = yaml.safe_load(contents)
     except (TypeError, ValueError, yaml.YAMLError) as err:
-        raise Error(f"failed to parse YAML file '{path}':\n{err}")
+        raise Error(f"failed to parse YAML file '{path}':\n{err}") from None
     except OSError as err:
-        raise Error(f"failed to read YAML file '{path}':\n{err}")
+        raise Error(f"failed to read YAML file '{path}':\n{err}") from None
     finally:
         if fobj:
             fobj.close()
@@ -134,7 +134,7 @@ def _load(path, jenv, included):
             try:
                 value = Path(value)
             except TypeError as err:
-                raise Error(f"bad include statement in YAML file at '{path}': {err}")
+                raise Error(f"bad include statement in YAML file at '{path}': {err}") from None
 
             if not value.is_absolute():
                 value = path.parent / value
