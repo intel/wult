@@ -191,6 +191,9 @@ class HTMLReportBase:
                 action = "symlink"
             FSHelpers.move_copy_link(srcpath, dstpath, action=action, exist_ok=True)
 
+            if action == "copy":
+                FSHelpers.set_default_perm(dstpath)
+
             if res.stats_path.is_dir():
                 hlink = f"<a href=\"{resrootdir}/{res.stats_path.name}\">Statistics</a>"
                 stats_path[res.reportid] = hlink

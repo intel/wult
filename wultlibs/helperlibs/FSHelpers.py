@@ -12,6 +12,7 @@ This module contains misc. helper functions related to file-system operations.
 
 import os
 import sys
+import stat
 import shutil
 import logging
 from collections import namedtuple
@@ -26,6 +27,30 @@ DEBUGFS_MOUNT_POINT = Path("/sys/kernel/debug")
 _RAISE = object()
 
 _LOG = logging.getLogger()
+
+def set_default_perm(path):
+    """
+    Set access mode for a 'path'. Mode is 666 for file and 777 for directory, and current umask
+    value is first masked out.
+    """
+
+    try:
+        curmode = os.stat(path).st_mode
+        # umask() returns existing umask, but requires new mask as an argument. Restore original
+        # mask immediately.
+        curumask = os.umask(0o022)
+        os.umask(curumask)
+
+        if stat.S_ISDIR(curmode):
+            mode = 0o0777
+        else:
+            mode = 0o0666
+
+        mode = ~curumask & mode
+        if stat.S_IMODE(curmode) != mode:
+            os.chmod(path, mode)
+    except OSError as err:
+        raise Error(f"cannot change '{path}' permissions to {oct(mode)}:\n{err}") from None
 
 def get_homedir(proc=None):
     """
