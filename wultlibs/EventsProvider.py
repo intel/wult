@@ -75,7 +75,7 @@ class EventsProvider:
                 ldist_min = fobj.read().strip()
         except Error as err:
             raise Error(f"failed to read launch distance limit from '{limit_path}'"
-                        f"{self._proc.hostmsg}:\n{err}")
+                        f"{self._proc.hostmsg}:\n{err}") from err
 
         ldist_min = Trivial.str_to_num(ldist_min)
         ldist_max = Trivial.str_to_num(ldist_max)
@@ -104,8 +104,8 @@ class EventsProvider:
             with self._proc.open(path, "r") as fobj:
                 resolution = fobj.read().strip()
         except Error as err:
-            raise Error(f"failed to read the delayed event reslolution from '{path}'"
-                        f"{self._proc.hostmsg}:\n{err}")
+            raise Error(f"failed to read the delayed event resolution from '{path}'"
+                        f"{self._proc.hostmsg}:\n{err}") from err
 
         return Trivial.str_to_num(resolution)
 
@@ -120,7 +120,7 @@ class EventsProvider:
         self._unload()
 
         # Unbind the wult delayed event device from its current driver, if any.
-        self._saved_drvname = self.dev.unbind()
+        self._saved_drvname = self.dev.unbind() # pylint: disable=assignment-from-none
         if self._saved_drvname:
             if self.unload:
                 word = "Temporarily unbinded"

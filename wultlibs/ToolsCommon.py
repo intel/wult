@@ -169,11 +169,11 @@ TITLE_DESCR = """The report title description - any text describing this report 
                  the resulting HTML report."""
 
 # Description for the '--relocatable' option of the 'report' command.
-RELOCATABLE_DESCR = f"""The generated report includes references to the test results. By default,
-                        these references are symlinks to the raw result directories. However, this
-                        makes the generated report be not relocatable. Use this option to make the
-                        report relocatable in expence of increased disk space consumption - this
-                        tool will make a copy of the test results."""
+RELOCATABLE_DESCR = """The generated report includes references to the test results. By default,
+                       these references are symlinks to the raw result directories. However, this
+                       makes the generated report be not relocatable. Use this option to make the
+                       report relocatable in expence of increased disk space consumption - this
+                       tool will make a copy of the test results."""
 
 # Description for the '--list-columns' option of the 'report' and other commands.
 LIST_COLUMNS_DESCR = "Print the list of the available column names and exit."
@@ -346,7 +346,7 @@ def even_up_dpcnt(rsts):
         try:
             size = res.dp_path.stat().st_size
         except OSError as err:
-            raise Error(f"'stat()' failed for '{res.dp_path}': {err}")
+            raise Error(f"'stat()' failed for '{res.dp_path}': {err}") from None
         if min_size is None or size < min_size:
             min_size = size
             min_res = res

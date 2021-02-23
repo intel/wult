@@ -51,6 +51,7 @@ class _WultDeviceBase(ABC):
         Unbind the device from its driver if it is bound to any driver. Returns name of the
         driver the was unbinded from (or 'None' if it was not).
         """
+        return None
 
     def _dmesg_capture(self):
         """Capture all dmesg message."""
@@ -198,7 +199,7 @@ class _PCIDevice(_WultDeviceBase):
                 try:
                     fobj.write(val)
                 except Error as err:
-                    raise Error(f"{failmsg}:\n{err}\n{self._get_new_dmesg()}")
+                    raise Error(f"{failmsg}:\n{err}\n{self._get_new_dmesg()}") from err
 
         # Verify that the device is bound to the driver.
         if not self._get_driver()[1]:
@@ -233,7 +234,7 @@ class _PCIDevice(_WultDeviceBase):
             try:
                 fobj.write(self._pci_info["pciaddr"])
             except Error as err:
-                raise Error(f"{failmsg}:\n{err}\n{self._get_new_dmesg()}")
+                raise Error(f"{failmsg}:\n{err}\n{self._get_new_dmesg()}") from err
 
         if self._get_driver()[1]:
             raise Error(f"{failmsg}:\npath '{drvpath}' still exists\n{self._get_new_dmesg()}")
@@ -354,6 +355,7 @@ class _TimerBase(_WultDeviceBase):
 
     def unbind(self):
         """No unbind for this device."""
+        return None
 
 class _TSCDeadlineTimer(_TimerBase):
     """
@@ -391,8 +393,8 @@ def WultDevice(devid, cpunum, proc, force=False):
 
     try:
         return _IntelI210(devid, cpunum, proc, force=force)
-    except ErrorNotSupported:
-        raise ErrorNotSupported(f"unsupported device '{devid}'{proc.hostmsg}")
+    except ErrorNotSupported as err:
+        raise ErrorNotSupported(f"unsupported device '{devid}'{proc.hostmsg}") from err
 
 def scan_devices(proc, devtypes=None):
     """

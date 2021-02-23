@@ -175,7 +175,7 @@ def parse_arguments():
     # Create parsers for the "report" command.
     #
     text = "Create an HTML report."
-    descr = f"""Create an HTML report for one or multiple test results."""
+    descr = """Create an HTML report for one or multiple test results."""
     subpars = subparsers.add_parser("report", help=text, description=descr)
     subpars.set_defaults(func=report_command)
 
@@ -300,7 +300,7 @@ def start_command(args):
         try:
             res.logs_path.mkdir(exist_ok=True)
         except OSError as err:
-            raise Error(f"cannot create log directory '{res.logs_path}': {err}")
+            raise Error(f"cannot create log directory '{res.logs_path}': {err}") from None
         logfile = res.logs_path / f"{OWN_NAME}.log.txt"
         Logging.setup_logger(OWN_NAME, info_logfile=logfile, error_logfile=logfile)
 
