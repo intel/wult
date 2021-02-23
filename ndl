@@ -236,6 +236,10 @@ def start_command(args):
         LOG.warning(msg)
 
     with WORawResult.NdlWORawResult(args.reportid, args.outdir, VERSION, cont=args.cont) as res:
+        dpcnt = ToolsCommon.get_dpcnt(res, args.dpcnt)
+        if not dpcnt:
+            return
+
         # Configure the logger to print to both the console and the log file.
         try:
             res.logs_path.mkdir(exist_ok=True)
@@ -249,7 +253,7 @@ def start_command(args):
             runner.prepare()
             if args.post_trigger:
                 runner.set_post_trigger(args.post_trigger, trange=args.trange)
-            runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit)
+            runner.run(dpcnt=dpcnt, tlimit=args.tlimit)
 
     if not args.report:
         return

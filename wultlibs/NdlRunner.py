@@ -16,7 +16,7 @@ import logging
 import contextlib
 from wultlibs.helperlibs import Trivial, FSHelpers, KernelModule, KernelVersion, ProcHelpers, Human
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
-from wultlibs import _Common, _ProgressLine, _Nmcli, _NetIface, _ETFQdisc
+from wultlibs import _ProgressLine, _Nmcli, _NetIface, _ETFQdisc
 
 _LOG = logging.getLogger()
 
@@ -167,10 +167,6 @@ class NdlRunner:
           * dpcnt - count of datapoints to collect.
           * tlimit - the measurements time limit in seconds.
         """
-
-        dpcnt = _Common.get_dpcnt(self._res, dpcnt)
-        if not dpcnt:
-            return
 
         msg = f"Start measuring RTD{self._proc.hostmsg}, collecting {dpcnt} datapoints"
         if tlimit:
