@@ -487,41 +487,51 @@ def calc_command(args):
     _LOG.info("Datapoints count: %d", len(res.df))
     YAML.dump(res.smrys, sys.stdout, float_format="%.2f")
 
-def report_command_open_raw_results(args):
+def open_raw_results(respaths, toolname, reportids=None, reportid_additional_chars=None):
     """
-    Opens the input raw test results for the 'report' command of the 'wult' and 'ndl' tools. Returns
-    the list of 'RORawResult' objects. At the same time, implements the '--list-columns' option by
-    printing the column names for each input raw result.
+    Opens the input raw test results, and returns the list of 'RORawResult' objects.
+      * respaths - list of paths to raw results.
+      * toolname - name of the tool opening raw results.
+      * reportids - list of reportids to override report IDs in raw results.
+      * reportid_additional_chars - string of characters allowed in report ID on top of default
+                                    characters.
     """
 
-    if args.reportids:
-        reportids = Trivial.split_csv_line(args.reportids)
+    if reportids:
+        reportids = Trivial.split_csv_line(reportids)
     else:
         reportids = []
 
-    if len(reportids) > len(args.respaths):
-        raise Error(f"there are {len(reportids)} report IDs to assign to {len(args.respaths)} "
-                    f"input test results. Please, provide {len(args.respaths)} or less report IDs.")
+    if len(reportids) > len(respaths):
+        raise Error(f"there are {len(reportids)} report IDs to assign to {len(respaths)} input "
+                    f"test results. Please, provide {len(respaths)} or less report IDs.")
 
     # Append the required amount of 'None's to make the 'reportids' list be of the same length as
-    # the 'args.respaths' list.
-    reportids += [None] * (len(args.respaths) - len(reportids))
+    # the 'respaths' list.
+    reportids += [None] * (len(respaths) - len(reportids))
 
     rsts = []
-    for respath, reportid in zip(args.respaths, reportids):
+    for respath, reportid in zip(respaths, reportids):
         if reportid:
-            additional_chars = getattr(args, "reportid_additional_chars", None)
-            ReportID.validate_reportid(reportid, additional_chars=additional_chars)
+            ReportID.validate_reportid(reportid, additional_chars=reportid_additional_chars)
 
         res = RORawResult.RORawResult(respath, reportid=reportid)
+        if toolname != res.info["toolname"]:
+            raise Error(f"cannot generate '{toolname}' report, results are collected with the"
+                        f"'{res.info['toolname']}':\n{respath}")
         rsts.append(res)
 
-        if args.list_columns:
-            _LOG.info("Column names in '%s':", respath)
-            for colname in res.colnames:
-                _LOG.info("  * %s: %s", colname, res.defs.info[colname]["title"])
-
     return rsts
+
+def list_result_columns(rsts):
+    """
+    Implements the '--list-columns' option by printing the column names for each raw result 'rsts'.
+    """
+
+    for rst in rsts:
+        _LOG.info("Column names in '%s':", rst.dirpath)
+        for colname in rst.colnames:
+            _LOG.info("  * %s: %s", colname, rst.defs.info[colname]["title"])
 
 def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=True,
                             argcomplete=None):

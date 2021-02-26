@@ -21,7 +21,7 @@ except ImportError:
     argcomplete = None
 
 from wultlibs import ToolsCommon, NdlRunner
-from wultlibs.rawresultlibs import RORawResult, WORawResult
+from wultlibs.rawresultlibs import WORawResult
 from wultlibs.reportlibs import NdlHTMLReport
 from wultlibs.helperlibs import Logging, ArgParse, ReportID, Human, Trivial
 from wultlibs.helperlibs.Exceptions import Error
@@ -258,8 +258,8 @@ def start_command(args):
     if not args.report:
         return
 
-    rsts = RORawResult.RORawResult(args.outdir)
-    rep = NdlHTMLReport.NdlHTMLReport([rsts], args.outdir, title_descr=args.reportid)
+    rsts = ToolsCommon.open_raw_results([args.outdir], args.toolname)
+    rep = NdlHTMLReport.NdlHTMLReport(rsts, args.outdir, title_descr=args.reportid)
     rep.relocatable = False
     rep.generate()
 
@@ -275,9 +275,10 @@ def report_command(args):
             else:
                 setattr(args, name, Trivial.split_csv_line(val))
 
-    rsts = ToolsCommon.report_command_open_raw_results(args)
+    rsts = ToolsCommon.open_raw_results(args.respaths, args.toolname, reportids=args.reportids)
 
     if args.list_columns:
+        ToolsCommon.list_result_columns(rsts)
         return
 
     for res in rsts:
