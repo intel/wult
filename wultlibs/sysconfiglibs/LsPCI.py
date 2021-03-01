@@ -47,6 +47,8 @@ class LsPCI:
             # Keep only device name for now, but this can be extended later.
             if key == "DeviceName":
                 info["name"] = val
+            if key == "LnkCtl":
+                info["aspm_enabled"] = "Enabled" in val
 
         # 'Lspci' does not necessarily resolves all the names.
         if "name" not in info:
@@ -60,7 +62,7 @@ class LsPCI:
         [[[[<domain>]:]<bus>]:][<slot>][.[<func>]].
         """
 
-        cmd = f"{self._lspci_bin} -D -n -v -s {devaddr}"
+        cmd = f"{self._lspci_bin} -D -n -vv -s {devaddr}"
         stdout, _ = self._proc.run_verify(cmd, join=False)
         if not stdout:
             raise Error(f"failed to get information for PCI slot: {devaddr}")
