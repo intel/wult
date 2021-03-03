@@ -1,5 +1,8 @@
 wult (1.8.13) unstable; urgency=low
+  * wult/ndl: fix permission issues for copied raw results.
   * wult/ndl: optimize remote MSR access.
+  * wult/ndl: improve error message when opening wult result with ndl.
+  * wult/ndl: check if we already have enough datapoints earlier.
 
 wult (1.8.12) unstable; urgency=low
 
