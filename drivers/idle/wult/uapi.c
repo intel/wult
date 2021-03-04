@@ -12,73 +12,6 @@
 #include "uapi.h"
 #include "wult.h"
 
-static int dfs_ldist_from_get(void *data, u64 *val)
-{
-	struct wult_info *wi = data;
-
-	*val = atomic64_read(&wi->ldist_from);
-	return 0;
-}
-
-static int dfs_ldist_from_set(void *data, u64 val)
-{
-	struct wult_info *wi = data;
-	struct wult_device_info *wdi = wi->wdi;
-	u64 ldist_from = atomic64_read(&wi->ldist_from);
-
-	if (ldist_from < wdi->ldist_min || ldist_from > wdi->ldist_max) {
-		wult_err("'%s' %llu is out of range, should be within [%llu, %llu]",
-			 LDIST_FROM_DFS_NAME, ldist_from, wdi->ldist_min,
-			 wdi->ldist_max);
-		return -EINVAL;
-	}
-
-	if (do_div(ldist_from, wdi->ldist_gran)) {
-		wult_err("'%s' must be multiple of delayed timer resolution value of %u nsec",
-			 LDIST_FROM_DFS_NAME, wdi->ldist_gran);
-		return -EINVAL;
-	}
-
-	atomic64_set(&wi->ldist_from, val);
-	return 0;
-}
-
-static int dfs_ldist_to_get(void *data, u64 *val)
-{
-	struct wult_info *wi = data;
-
-	*val = atomic64_read(&wi->ldist_to);
-	return 0;
-}
-
-static int dfs_ldist_to_set(void *data, u64 val)
-{
-	struct wult_info *wi = data;
-	struct wult_device_info *wdi = wi->wdi;
-	u64 ldist_to = atomic64_read(&wi->ldist_to);
-
-	if (ldist_to < wdi->ldist_min || ldist_to > wdi->ldist_max) {
-		wult_err("'%s' %llu is out of range, should be within [%llu, %llu]",
-			 LDIST_TO_DFS_NAME, ldist_to, wdi->ldist_min,
-			 wdi->ldist_max);
-		return -EINVAL;
-	}
-	if (do_div(ldist_to, wdi->ldist_gran)) {
-		wult_err("'%s' must be multiple of delayed timer resolution value of %u nsec",
-			 LDIST_TO_DFS_NAME, wdi->ldist_gran);
-		return -EINVAL;
-	}
-
-	atomic64_set(&wi->ldist_to, val);
-	return 0;
-}
-
-/* Wult debugfs operations for the lauch distance limit files. */
-DEFINE_DEBUGFS_ATTRIBUTE(dfs_ops_ldist_from, dfs_ldist_from_get,
-			 dfs_ldist_from_set, "%llu\n");
-DEFINE_DEBUGFS_ATTRIBUTE(dfs_ops_ldist_to, dfs_ldist_to_get,
-			 dfs_ldist_to_set, "%llu\n");
-
 static ssize_t dfs_write_enabled_file(struct file *file,
 				      const char __user *user_buf, size_t count,
 				      loff_t *ppos)
@@ -126,7 +59,7 @@ static ssize_t dfs_read_u64_file(struct file *file, char __user *user_buf,
 		goto out;
 	}
 
-	len = snprintf(buf, 32, "%llu\n", val);
+	len = snprintf(buf, ARRAY_SIZE(buf), "%llu\n", val);
 	res = simple_read_from_buffer(user_buf, count, ppos, buf, len);
 out:
 	debugfs_file_put(dent);
@@ -140,6 +73,88 @@ static const struct file_operations dfs_ops_u64 = {
 	.llseek = default_llseek,
 };
 
+static ssize_t dfs_read_atomic64_file(struct file *file, char __user *user_buf,
+				      size_t count, loff_t *ppos)
+{
+	struct dentry *dent = file->f_path.dentry;
+	struct wult_info *wi;
+	char buf[32];
+	int err, len;
+	ssize_t res;
+	u64 val;
+
+	err = debugfs_file_get(dent);
+	if (err)
+		return err;
+
+	wi = file->private_data;
+	if (!strcmp(dent->d_name.name, LDIST_FROM_DFS_NAME)) {
+		val = atomic64_read(&wi->ldist_from);
+	} else if (!strcmp(dent->d_name.name, LDIST_TO_DFS_NAME)) {
+		val = atomic64_read(&wi->ldist_to);
+	} else {
+		res = -EINVAL;
+		goto out;
+	}
+
+	len = snprintf(buf, ARRAY_SIZE(buf), "%llu\n", val);
+	res = simple_read_from_buffer(user_buf, count, ppos, buf, len);
+out:
+	debugfs_file_put(dent);
+	return res;
+}
+
+static ssize_t dfs_write_atomic64_file(struct file *file, const char __user *user_buf,
+				       size_t count, loff_t *ppos)
+{
+	struct dentry *dent = file->f_path.dentry;
+	struct wult_info *wi;
+	int err;
+	ssize_t res;
+	char buf[32];
+	atomic64_t *dest;
+	u64 val;
+
+	err = debugfs_file_get(dent);
+	if (err)
+		return err;
+
+	wi = file->private_data;
+
+	if (!strcmp(dent->d_name.name, LDIST_FROM_DFS_NAME)) {
+		dest = &wi->ldist_from;
+	} else if (!strcmp(dent->d_name.name, LDIST_TO_DFS_NAME)) {
+		dest = &wi->ldist_to;
+	} else {
+		err = -EINVAL;
+		goto out;
+	}
+
+	snprintf(buf, ARRAY_SIZE(buf), "%lld", atomic64_read(dest));
+	res = simple_write_to_buffer(buf, ARRAY_SIZE(buf), ppos, user_buf,
+			             count);
+	if (res < 0)
+		goto out;
+
+        err = kstrtoull(buf, 0, &val);
+        if (err)
+                goto out;
+
+	atomic64_set(dest, val);
+
+out:
+	debugfs_file_put(dent);
+	return res;
+}
+
+/* Wult debugfs operations for R/W files backed by an atomic64 variable. */
+static const struct file_operations dfs_ops_atomic64 = {
+	.read = dfs_read_atomic64_file,
+	.write = dfs_write_atomic64_file,
+	.open = simple_open,
+	.llseek = default_llseek,
+};
+
 int wult_uapi_device_register(struct wult_info *wi)
 {
 	wi->dfsroot = debugfs_create_dir(DRIVER_NAME, NULL);
@@ -147,9 +162,9 @@ int wult_uapi_device_register(struct wult_info *wi)
 		return PTR_ERR(wi->dfsroot);
 
 	debugfs_create_file(LDIST_FROM_DFS_NAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_ldist_from);
+			    &dfs_ops_atomic64);
 	debugfs_create_file(LDIST_TO_DFS_NAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_ldist_to);
+			    &dfs_ops_atomic64);
 	debugfs_create_file(LDIST_MIN_DFS_NAME, 0444, wi->dfsroot, wi,
 			    &dfs_ops_u64);
 	debugfs_create_file(LDIST_MAX_DFS_NAME, 0444, wi->dfsroot, wi,
