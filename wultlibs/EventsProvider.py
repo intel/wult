@@ -60,7 +60,8 @@ class EventsProvider:
         if not FSHelpers.exists(self._enable_path, proc=self._proc):
             raise Error(f"path {self._enable_path} does not exist{self._proc.hostmsg}")
 
-        self._proc.run_verify(f"echo 1 > {self._enable_path}", shell=True)
+        with self._proc.open(self._enable_path, "w") as fobj:
+            fobj.write("1")
 
     def _set_launch_distance(self):
         """Set launch distance limits to driver."""
@@ -91,10 +92,12 @@ class EventsProvider:
             if ldist < ldist_min or ldist > ldist_max:
                 raise Error(f"launch distance '{ldist}' is out of range, it should be in range of "
                             f"[{ldist_min},{ldist_max}]")
-            if not FSHelpers.exists(ldist_path, proc=self._proc):
-                raise Error(f"path i'{ldist_path}' does not exist{self._proc.hostmsg}")
-            # open()/write() doesn't work for this file when done over SSH.
-            self._proc.run_verify(f"echo {ldist} > {ldist_path}", shell=True)
+            try:
+                with self._proc.open(ldist_path, "w") as fobj:
+                    fobj.write(str(ldist))
+            except Error as err:
+                raise Error(f"can't to change launch disatance range\nfailed to open '{ldist_path}'"
+                            f"{self._proc.hostmsg} and write {ldist} to it:\n\t{err}") from err
 
     def get_resolution(self):
         """Returns resolution of the delayed event devices in nanoseconds."""
