@@ -50,7 +50,7 @@ class WrapExceptions:
                 try:
                     return getattr(self._obj, name)(*args, **kwargs)
                 except self._we_exceptions as err:
-                    raise self._get_exception(name, err)
+                    raise self._get_exception(name, err) from err
 
             return types.MethodType(wrapper, self)
 
