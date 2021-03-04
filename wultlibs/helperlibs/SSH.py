@@ -41,7 +41,7 @@ _LOG = logging.getLogger()
 logging.getLogger("paramiko").setLevel(logging.WARNING)
 
 # The exceptions to handle when dealing with paramiko.
-_EXCEPTIONS = (OSError, IOError, paramiko.SSHException, socket.error)
+_PARAMIKO_EXCEPTIONS = (OSError, IOError, paramiko.SSHException, socket.error)
 
 def _get_username(uid=None):
     """Return username of the current process or UID 'uid'."""
@@ -313,11 +313,11 @@ def _add_custom_fields(chan, hostname, cmd, pid):
                 fobj = chan.makefile(mode, 0)
             else:
                 fobj = chan.makefile_stderr(mode, 0)
-        except _EXCEPTIONS as err:
+        except _PARAMIKO_EXCEPTIONS as err:
             raise Error(f"failed to create a file for '{name}': {err}") from err
 
         setattr(fobj, "_stream_name_", name)
-        wrapped_fobj = WrapExceptions.WrapExceptions(fobj, exceptions=_EXCEPTIONS,
+        wrapped_fobj = WrapExceptions.WrapExceptions(fobj, exceptions=_PARAMIKO_EXCEPTIONS,
                                                      get_err_prefix=_get_err_prefix)
         wrapped_fobj.name = name
         setattr(chan, name, wrapped_fobj)
@@ -681,6 +681,8 @@ class SSH:
         self.password = password
         self.privkeypath = privkeypath
 
+        self._sftp = None
+
         if not self.username:
             self.username = os.getenv("USER")
             if not self.username:
@@ -742,24 +744,34 @@ class SSH:
     def close(self):
         """Close the SSH connection."""
 
+        if self._sftp:
+            sftp = self._sftp
+            self._sftp = None
+            sftp.close()
+
         if self.ssh:
             ssh = self.ssh
             self.ssh = None
             ssh.close()
+
+    def _get_sftp(self):
+        """Get an SFTP server object."""
+
+        if self._sftp:
+            return self._sftp
+
+        try:
+            self._sftp = self.ssh.open_sftp()
+        except _PARAMIKO_EXCEPTIONS as err:
+            raise Error(f"failed to establish SFTP session with {self.hostname}:\n{err}") from err
+
+        return self._sftp
 
     def open(self, path, mode):
         """
         Open a file on the remote host at 'path' using mode 'mode' (the arguments are the same as in
         the builtin Python 'open()' function).
         """
-
-        def _fclose_(fobj):
-            """The sftp file object close method that also closes the SFTP session."""
-
-            sftp = fobj._sftp_
-            fobj._sftp_ = None
-            fobj._orig_fclose_()
-            sftp.close()
 
         def _read_(fobj, size=None):
             """
@@ -804,28 +816,18 @@ class SSH:
             """Return the error message prefix."""
             return f"method '{method}()' failed for file '{fobj._orig_fpath_}'"
 
-        try:
-            sftp = self.ssh.open_sftp()
-        except _EXCEPTIONS as err:
-            raise Error(f"failed to establish SFTP session with {self.hostname}:\n{err}") from err
-
         path = str(path) # In case it is a pathlib.Path() object.
+        sftp = self._get_sftp()
 
         try:
             fobj = sftp.file(path, mode)
-        except _EXCEPTIONS as err:
+        except _PARAMIKO_EXCEPTIONS as err:
             raise Error(f"failed to open file '{path}' on {self.hostname} via SFTP:\n{err}") \
                   from err
 
         # Save the path and the mode in the object.
         fobj._orig_fpath_ = path
         fobj._orig_fmode_ = mode
-
-        # Save the SFTP session object is the file object and redefine the 'close()' method to make
-        # not only close the file, but also the SFTP session.
-        fobj._sftp_ = sftp
-        fobj._orig_fclose_ = fobj.close
-        fobj.close = types.MethodType(_fclose_, fobj)
 
         # Redefine the 'read()' and 'write()' methods to do decoding on the fly, because all files
         # are binay in case of SFTP.
@@ -836,7 +838,7 @@ class SSH:
             fobj.write = types.MethodType(_write_, fobj)
 
         # Make sure methods of 'fobj' always raise the 'Error' exception.
-        fobj = WrapExceptions.WrapExceptions(fobj, exceptions=_EXCEPTIONS,
+        fobj = WrapExceptions.WrapExceptions(fobj, exceptions=_PARAMIKO_EXCEPTIONS,
                                              get_err_prefix=get_err_prefix)
         return fobj
 
