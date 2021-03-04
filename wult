@@ -307,12 +307,17 @@ def start_command(args):
         logfile = res.logs_path / f"{OWN_NAME}.log.txt"
         Logging.setup_logger(OWN_NAME, info_logfile=logfile, error_logfile=logfile)
 
-        with WultRunner.WultRunner(proc, args.devid, res, args.ldist, args.force) as runner:
-            runner.unload = not args.no_unload
-            if args.post_trigger:
-                runner.set_post_trigger(args.post_trigger, trange=args.trange)
-            runner.prepare()
-            runner.run(dpcnt=dpcnt, tlimit=args.tlimit)
+        with Devices.WultDevice(args.devid, args.cpunum, proc, force=args.force) as dev:
+            if dev.info.get("aspm_enabled"):
+                LOG.notice("PCI ASPM is enabled for the delayed event device '%s', and this "
+                            "typically increases the measured latency.", args.devid)
+
+            with WultRunner.WultRunner(proc, dev, res, args.ldist) as runner:
+                runner.unload = not args.no_unload
+                if args.post_trigger:
+                    runner.set_post_trigger(args.post_trigger, trange=args.trange)
+                runner.prepare()
+                runner.run(dpcnt=dpcnt, tlimit=args.tlimit)
 
     if not args.report:
         return
@@ -364,10 +369,11 @@ def load_command(args):
     """Implements the 'load' command."""
 
     proc = ToolsCommon.get_proc(args, args.hostname)
-    with EventsProvider.EventsProvider(args.devid, 0, proc, force=args.force) as ep:
-        ep.unload = not args.no_unload
-        ep.prepare()
-        LOG.info("Loaded the '%s' %s delayed event driver", ep.dev.drvname, OWN_NAME)
+    with Devices.WultDevice(args.devid, 0, proc, force=args.force) as dev:
+        with EventsProvider.EventsProvider(dev, 0, proc) as ep:
+            ep.unload = not args.no_unload
+            ep.prepare()
+            LOG.info("Loaded the '%s' %s delayed event driver", ep.dev.drvname, OWN_NAME)
 
 def main():
     """Script entry point."""

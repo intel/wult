@@ -171,16 +171,15 @@ class EventsProvider:
                     _LOG.error("failed to bind device '%s' back to driver '%s':\n %s",
                                self.dev.info["devid"], self._saved_drvname, err)
 
-    def __init__(self, devid, cpunum, proc, ldist=None, force=False):
+    def __init__(self, dev, cpunum, proc, ldist=None):
         """
         Initialize a class instance for a PCI device 'devid'. The arguments are as follows.
-          * devid - the device "ID", which can be a PCI address or a network interface name.
+          * dev - the delayed event device object created by 'Devices.WultDevice()'.
           * cpunum - the measured CPU number.
           * proc - the host to operate on. This object will keep a 'proc' reference and use it in
                    various methods
           * ldist - a pair of numbers specifying the launch distance range. The default value is
                     specific to the delayed event driver.
-          * force - initialize measurement device, even if it is already in use.
         """
 
         self._cpunum = cpunum
@@ -199,7 +198,7 @@ class EventsProvider:
         # Whether kernel messages should be monitored. They are very useful if something goes wrong.
         self.dmesg = True
 
-        self.dev = Devices.WultDevice(devid, cpunum, proc, force=force)
+        self.dev = dev
 
         self._main_drv = KernelModule.KernelModule(proc, "wult")
         self._drv = KernelModule.KernelModule(proc, self.dev.drvname)

@@ -355,19 +355,17 @@ class WultRunner:
             raise Error(f"unsupported idle driver '{drvname}'{self._proc.hostmsg},\n"
                         f"only the following drivers are supported: {supported}")
 
-    def __init__(self, proc, devid, res, ldist=None, force=False):
+    def __init__(self, proc, dev, res, ldist=None):
         """
         The class constructor. The arguments are as follows.
           * proc - the 'Proc' or 'SSH' object that defines the host to run the measurements on.
-          * devid - the device "ID", which can be a PCI address of a network interface name.
+          * dev - the delayed event device object created by 'Devices.WultDevice()'.
           * res - the 'WORawResult' object to store the results at.
           * ldist - a pair of numbers specifying the launch distance range. The default value is
                     specific to the delayed event driver.
-          * force - initialize measurement device, even if it is already in use.
         """
 
         self._proc = proc
-        self._devid = devid
         self._res = res
         self._ldist = ldist
 
@@ -396,8 +394,7 @@ class WultRunner:
         self._validate_sut()
 
         self._progress = _ProgressLine.ProgressLine(period=1)
-        self._ep = EventsProvider.EventsProvider(devid, res.cpunum, proc, ldist=self._ldist,
-                                                 force=force)
+        self._ep = EventsProvider.EventsProvider(dev, res.cpunum, proc, ldist=self._ldist)
         self._ftrace = _FTrace.FTrace(proc=proc, timeout=self._timeout)
 
         cstates_present = False
