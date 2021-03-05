@@ -12,7 +12,7 @@ This module provides API for discovering Operating System information.
 
 import contextlib
 from pathlib import Path
-from powerlablibs.Exceptions import Error
+from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import Procs
 
 _COMMONPKGS = { "phc2sys" : "linuxptp" , "tc" : "iproute2" }
