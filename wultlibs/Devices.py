@@ -261,7 +261,7 @@ class _PCIDevice(_WultDeviceBase):
         self._devpath = FSHelpers.abspath(path, proc=self._proc)
         self._pci_info = LsPCI.LsPCI(proc).get_info(Path(self._devpath).name)
 
-        if self.supported_devices and self._pci_info['devid'] not in self.supported_devices:
+        if self.supported_devices and self._pci_info["devid"] not in self.supported_devices:
             supported = ["%s - %s" % (key, val) for key, val in self.supported_devices.items()]
             supported = "\n * ".join(supported)
             raise ErrorNotSupported(f"PCI device '{self._pci_info['pciaddr']}' (PCI ID "
@@ -272,7 +272,7 @@ class _PCIDevice(_WultDeviceBase):
         self.info["name"] = "Intel I210"
         self.info["devid"] = self._pci_info["pciaddr"]
         if self.supported_devices:
-            self.info["descr"] = self.supported_devices[self._pci_info['devid']]
+            self.info["descr"] = self.supported_devices[self._pci_info["devid"]]
         else:
             self.info["name"] = self._pci_info["name"]
             self.info["descr"] = self.info['name'].capitalize()
