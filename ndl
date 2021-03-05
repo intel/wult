@@ -23,7 +23,7 @@ except ImportError:
 from wultlibs import ToolsCommon, NdlRunner
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs.reportlibs import NdlHTMLReport
-from wultlibs.helperlibs import Logging, ArgParse, ReportID, Human, Trivial
+from wultlibs.helperlibs import Logging, ArgParse, ReportID, Human, Trivial, NetIface
 from wultlibs.helperlibs.Exceptions import Error
 
 VERSION = "1.3.8"
@@ -248,12 +248,17 @@ def start_command(args):
         logfile = res.logs_path / "wult.log.txt"
         Logging.setup_logger(OWN_NAME, info_logfile=logfile, error_logfile=logfile)
 
-        with NdlRunner.NdlRunner(proc, args.ifname, res, ndlrunner_bin,
-                                 ldist=args.ldist) as runner:
-            runner.prepare()
-            if args.post_trigger:
-                runner.set_post_trigger(args.post_trigger, trange=args.trange)
-            runner.run(dpcnt=dpcnt, tlimit=args.tlimit)
+        with NetIface.NetIface(args.ifname, proc=proc) as netif:
+            info = netif.get_pci_info()
+            if info.get("aspm_enabled"):
+                LOG.notice("PCI ASPM is enabled for the network interface device '%s', and this "
+                           "typically increases the measured latency.", args.ifname)
+
+            with NdlRunner.NdlRunner(proc, netif, res, ndlrunner_bin, ldist=args.ldist) as runner:
+                runner.prepare()
+                if args.post_trigger:
+                    runner.set_post_trigger(args.post_trigger, trange=args.trange)
+                runner.run(dpcnt=dpcnt, tlimit=args.tlimit)
 
     if not args.report:
         return

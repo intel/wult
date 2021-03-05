@@ -15,7 +15,6 @@ import time
 import logging
 import contextlib
 from wultlibs.helperlibs import Trivial, FSHelpers, KernelModule, KernelVersion, ProcHelpers, Human
-from wultlibs.helperlibs import NetIface
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs import _ProgressLine, _Nmcli, _ETFQdisc
 
@@ -211,7 +210,6 @@ class NdlRunner:
 
         # Ensure the interface exists and has carrier. It must be brought up before we can check the
         # carrier status.
-        self._netif = NetIface.NetIface(self._ifname, proc=self._proc)
         self._netif.up()
         self._netif.wait_for_carrier(10)
 
@@ -287,11 +285,11 @@ class NdlRunner:
             ProcHelpers.kill_pids(ndlrunner.pid, kill_children=True, must_die=False,
                                   proc=self._proc)
 
-    def __init__(self, proc, ifname, res, ndlrunner_bin, ldist=None):
+    def __init__(self, proc, netif, res, ndlrunner_bin, ldist=None):
         """
         The class constructor. The arguments are as follows.
           * proc - the 'Proc' or 'SSH' object that defines the host to run the measurements on.
-          * ifname - the network interface name to use for measuring the latency.
+          * netif - the 'NetIface' object of network device used for measurements.
           * res - the 'WORawResult' object to store the results at.
           * ndlrunner_bin - path to the 'ndlrunner' helper.
           * ldist - a pair of numbers specifying the launch distance range in nanoseconds (how far
@@ -300,10 +298,11 @@ class NdlRunner:
         """
 
         self._proc = proc
-        self._ifname = ifname
+        self._netif = netif
         self._res = res
         self._ndlrunner_bin = ndlrunner_bin
         self._ldist = ldist
+        self._ifname = netif.ifname
 
         self._ndl_lines = None
         self._drv = None
@@ -314,7 +313,6 @@ class NdlRunner:
         self._post_trigger = None
         self._etfqdisc = None
         self._nmcli = None
-        self._netif = None
         self._post_trigger_range = []
 
         if not self._ldist:
@@ -327,7 +325,7 @@ class NdlRunner:
 
         mntpath = FSHelpers.mount_debugfs(proc=proc)
         self._rtd_path = mntpath.joinpath(f"{self._drv.name}/rtd")
-        self._etfqdisc = _ETFQdisc.ETFQdisc(ifname, proc=proc)
+        self._etfqdisc = _ETFQdisc.ETFQdisc(netif, proc=proc)
 
     def close(self):
         """Stop the measurements."""
@@ -340,7 +338,6 @@ class NdlRunner:
 
         if getattr(self, "_netif", None):
             self._netif.down()
-            self._netif.close()
 
         if getattr(self, "_nmcli", None):
             self._nmcli.restore_managed()

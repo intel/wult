@@ -13,7 +13,7 @@ discipline).
 
 import re
 import logging
-from wultlibs.helperlibs import FSHelpers, ProcHelpers, OSInfo, KernelVersion, NetIface
+from wultlibs.helperlibs import FSHelpers, ProcHelpers, OSInfo, KernelVersion
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
 
 _LOG = logging.getLogger()
@@ -125,11 +125,11 @@ class ETFQdisc():
                    self._proc.hostmsg)
         self._netif.wait_for_carrier(10)
 
-    def __init__(self, ifname, tc_bin="tc", handover_delta=500000, phc2sys_bin="phc2sys",
+    def __init__(self, netif, tc_bin="tc", handover_delta=500000, phc2sys_bin="phc2sys",
                  proc=None):
         """
         Class constructor. The arguments are as follows.
-          * ifname - name of the interface to use for scheduling network packets in the future.
+          * netif - the 'NetIface' object of network device used for measurements.
           * tc_bin - path to the 'tc' tool that should be used for setting up the ETF qdisc.
           * handover_delta - the qdisc delta - the time offset in microseconds when the qdisc hands
                              the packet over to the network driver.
@@ -147,11 +147,11 @@ class ETFQdisc():
         sent at incorrect time or just dropped causing errors like "missing deadline".
         """
 
-        self._netif = None
         self._old_tc_err_msg = None
         self._phc2sys_proc = None
 
-        self._ifname = ifname
+        self._netif = netif
+        self._ifname = netif.ifname
         self._tc_bin = FSHelpers.which(tc_bin, default=None, proc=proc)
         self._handover_delta = int(handover_delta * 1000)
         self._phc2sys_bin = FSHelpers.which(phc2sys_bin, default=None, proc=proc)
@@ -164,8 +164,6 @@ class ETFQdisc():
                 if pkg:
                     msg += f"\nTry to install package '{pkg}'{self._proc.hostmsg}"
                 raise ErrorNotSupported(msg)
-
-        self._netif = NetIface.NetIface(ifname, proc=proc)
 
         self._old_tc_err_msg = f"the 'tc' tool installed{self._proc.hostmsg} is not new enough " \
                                f"and does not support the ETF qdisc.\nPlease, install 'tc' " \
@@ -189,7 +187,6 @@ class ETFQdisc():
             self._phc2sys_proc = None
 
         if getattr(self, "_netif", None):
-            self._netif.close()
             self._netif = None
 
     def __enter__(self):
