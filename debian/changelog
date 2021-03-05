@@ -3,6 +3,7 @@ wult (1.8.13) unstable; urgency=low
   * wult: fix '--ldist' option, it did not work in local mode.
   * wult: change default launch distance range from 0-4ms to 0-8ms.
   * wult/ndl: optimize remote MSR access.
+  * wult/ndl: suggest OS package names for tools that should be installed.
   * wult/ndl: improve error message when opening wult result with ndl.
   * wult/ndl: check if we already have enough datapoints earlier.
 
