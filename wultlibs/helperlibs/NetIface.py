@@ -18,6 +18,7 @@ import time
 import contextlib
 from pathlib import Path
 from collections import namedtuple
+from wultlibs.sysconfiglibs import LsPCI
 from wultlibs.helperlibs import FSHelpers, Procs, Trivial
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
 
@@ -152,6 +153,10 @@ class NetIface:
             raise ErrorNotSupported(f"the 'ip' tool is not installed{self._proc.hostmsg}.\nThis "
                                     f"tool is part of the 'iproute2' project, please install it.")
         self._ip_tool_present = True
+
+    def get_pci_info(self):
+        """Return network interface PCI information."""
+        return LsPCI.LsPCI(proc=self._proc).get_info(self.hwaddr)
 
     def up(self): # pylint: disable=invalid-name
         """Bring the network interface up."""
