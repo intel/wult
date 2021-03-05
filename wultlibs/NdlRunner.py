@@ -15,8 +15,9 @@ import time
 import logging
 import contextlib
 from wultlibs.helperlibs import Trivial, FSHelpers, KernelModule, KernelVersion, ProcHelpers, Human
+from wultlibs.helperlibs import NetIface
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
-from wultlibs import _ProgressLine, _Nmcli, _NetIface, _ETFQdisc
+from wultlibs import _ProgressLine, _Nmcli, _ETFQdisc
 
 _LOG = logging.getLogger()
 
@@ -210,7 +211,7 @@ class NdlRunner:
 
         # Ensure the interface exists and has carrier. It must be brought up before we can check the
         # carrier status.
-        self._netif = _NetIface.NetIface(self._ifname, proc=self._proc)
+        self._netif = NetIface.NetIface(self._ifname, proc=self._proc)
         self._netif.up()
         self._netif.wait_for_carrier(10)
 

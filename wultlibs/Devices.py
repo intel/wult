@@ -18,9 +18,8 @@ import contextlib
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from wultlibs import _NetIface
 from wultlibs.sysconfiglibs import LsPCI
-from wultlibs.helperlibs import FSHelpers, Dmesg
+from wultlibs.helperlibs import FSHelpers, Dmesg, NetIface
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 
 # All the possible wult device driver names.
@@ -304,7 +303,7 @@ class _IntelI210(_PCIDevice):
         name.
         """
 
-        with _NetIface.NetIface(devid, proc=proc) as netif:
+        with NetIface.NetIface(devid, proc=proc) as netif:
             # Make sure the device is not used for networking, because we are about to unbind it
             # from the driver. This check makes sure users do not lose networking by specifying
             # wrong device by a mistake.
@@ -429,7 +428,7 @@ def scan_devices(proc, devtypes=None):
             # Find out the Linux network interface name for this NIC, if any.
             ifname = None
             with contextlib.suppress(Error):
-                with _NetIface.NetIface(devid, proc=proc) as netif:
+                with NetIface.NetIface(devid, proc=proc) as netif:
                     ifname = netif.ifname
 
             descr = _IntelI210.supported_devices.get(pci_id)

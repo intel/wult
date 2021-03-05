@@ -13,9 +13,8 @@ discipline).
 
 import re
 import logging
-from wultlibs.helperlibs import FSHelpers, ProcHelpers, OSInfo, KernelVersion
+from wultlibs.helperlibs import FSHelpers, ProcHelpers, OSInfo, KernelVersion, NetIface
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
-from wultlibs import _NetIface
 
 _LOG = logging.getLogger()
 
@@ -166,7 +165,7 @@ class ETFQdisc():
                     msg += f"\nTry to install package '{pkg}'{self._proc.hostmsg}"
                 raise ErrorNotSupported(msg)
 
-        self._netif = _NetIface.NetIface(ifname, proc=proc)
+        self._netif = NetIface.NetIface(ifname, proc=proc)
 
         self._old_tc_err_msg = f"the 'tc' tool installed{self._proc.hostmsg} is not new enough " \
                                f"and does not support the ETF qdisc.\nPlease, install 'tc' " \
