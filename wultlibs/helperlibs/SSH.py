@@ -671,7 +671,7 @@ class SSH:
         self.ssh = None
         self.is_remote = True
         self.hostname = hostname
-        self.hostmsg = f" on host {hostname}"
+        self.hostmsg = f" on host '{hostname}'"
         self.connection_timeout = timeout
         if port is None:
             port = 22
