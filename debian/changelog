@@ -1,4 +1,5 @@
 wult (1.8.13) unstable; urgency=low
+  * wult/ndl: print helpful message if ASPM is enabled.
   * wult/ndl: fix permission issues for copied raw results.
   * wult: fix '--ldist' option, it did not work in local mode.
   * wult: change default launch distance range from 0-4ms to 0-8ms.
