@@ -133,6 +133,8 @@ class _MyFormatter(logging.Formatter):
 
         for lvl, pfx in ((WARNING, "warning"), (ERROR, "error"), (CRITICAL, "critical error"),
                          (NOTICE, "notice")):
+            if not self._prefix:
+                pfx = pfx.title()
             self.myfmt[lvl] = _start(lvl) + self._prefix + pfx + _end(lvl) + ": %(message)s"
         # Prefix debug messages with a green-colored time-stamp, module name and line number.
         lvl = DEBUG
