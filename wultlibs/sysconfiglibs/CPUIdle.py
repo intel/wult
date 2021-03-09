@@ -411,6 +411,21 @@ class CPUIdle:
         for info in self._get_cstates_info(cpus, cstates, ordered):
             yield info
 
+    def get_cstates_info_dict(self, cpu, cstates=None, ordered=True):
+        """
+        Returns a dictionary describing all C-states of CPU 'cpu'. C-state index is used as
+        dictionary key. The 'cstates' and 'ordered' arguments are the same as in
+        'get_cstates_info()'.
+        """
+
+        if not Trivial.is_int(cpu):
+            raise Error(f"bad CPU number '{cpu}', should be an integer")
+
+        info_dict = {}
+        for info in self.get_cstates_info(cpus=cpu, cstates=cstates, ordered=ordered):
+            info_dict[info["index"]] = info
+        return info_dict
+
     def get_cstate_info(self, cpu, cstate):
         """
         Returns information about C-state 'cstate' on CPU number 'cpu'. The C-state can be specified
