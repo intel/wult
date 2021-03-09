@@ -255,13 +255,13 @@ class CPUIdle:
             with self._proc.open(path, "r+") as fobj:
                 fobj.write(val + "\n")
         except Error as err:
-            raise Error(f"failed to {msg}:\n{err}")
+            raise Error(f"failed to {msg}:\n{err}") from err
 
         try:
             with self._proc.open(path, "r") as fobj:
                 read_val = fobj.read().strip()
         except Error as err:
-            raise Error(f"failed to {msg}:\n{err}")
+            raise Error(f"failed to {msg}:\n{err}") from err
 
         if val != read_val:
             raise Error(f"failed to {msg}:\nfile '{path}' contains '{read_val}', but should "
