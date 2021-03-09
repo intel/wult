@@ -1,4 +1,5 @@
-wult (1.8.13) unstable; urgency=low
+wult (1.8.14) unstable; urgency=low
+
   * wult/ndl: print helpful message if ASPM is enabled.
   * wult/ndl: fix permission issues for copied raw results.
   * wult: fix '--ldist' option, it did not work in local mode.
@@ -7,6 +8,14 @@ wult (1.8.13) unstable; urgency=low
   * wult/ndl: suggest OS package names for tools that should be installed.
   * wult/ndl: improve error message when opening wult result with ndl.
   * wult/ndl: check if we already have enough datapoints earlier.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 09 Mar 2021 09:52:04 +0200
+
+wult (1.8.13) unstable; urgency=low
+
+  * Same as 1.8.12, we messed up verion numbers a bit.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 09 Mar 2021 09:52:04 +0200
 
 wult (1.8.12) unstable; urgency=low
 
