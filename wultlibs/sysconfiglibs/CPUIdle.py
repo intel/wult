@@ -13,7 +13,7 @@ This module provides API for dealing with the Linux "cpuidle" subsystem.
 import re
 import logging
 from pathlib import Path
-from wultlibs.helperlibs import ArgParse, FSHelpers, Procs, Trivial
+from wultlibs.helperlibs import FSHelpers, Procs, Trivial
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs.sysconfiglibs import CPUInfo, MSR
 
@@ -237,6 +237,15 @@ class CPUIdle:
             cstates = indexes
         return cstates
 
+    def _normalize_cpus(self, cpus):
+        """
+        Some methods accept CPUs as list or range of CPUs as described in 'get_cstates_info()'.
+        Turn this userinput in 'cpus' as list of integers and return it.
+        """
+
+        cpuinfo = self._get_cpuinfo()
+        return cpuinfo.get_cpu_list(cpus)
+
     def _toggle_cstate(self, cpu, index, enable):
         """Enable or disable the 'index' C-state for CPU 'cpu'."""
 
@@ -302,12 +311,12 @@ class CPUIdle:
                           CPUs, otherwise disabled.
         """
 
-        if cpus == "all":
-            cpus = None
         if cstates == "all":
             cstates = None
-        cpus = ArgParse.parse_int_list(cpus, ints=True, dedup=True, sort=True)
+
+        cpus = self._normalize_cpus(cpus)
         cstates = self._normalize_cstates(cstates)
+
         self._do_toggle_cstates(cpus, cstates, enable, dflt_enable)
 
     def enable_cstates(self, cpus=None, cstates=None):
@@ -395,13 +404,12 @@ class CPUIdle:
                       will go first, and for each CPU number shallower C-states will go first.
         """
 
-        if cpus == "all":
-            cpus = None
         if cstates == "all":
             cstates = None
 
-        cpus = ArgParse.parse_int_list(cpus, ints=True, dedup=True, sort=True)
+        cpus = self._normalize_cpus(cpus)
         cstates = self._normalize_cstates(cstates)
+
         for info in self._get_cstates_info(cpus, cstates, ordered):
             yield info
 
