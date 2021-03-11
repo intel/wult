@@ -67,6 +67,10 @@ def bit_mask(nr):
     """Return bitmask for a bit by its number."""
     return 1 << nr
 
+def is_bit_set(val, nr):
+    """Return 'True' if bit number 'nr' is set in MSR value 'val', otherwise returns 'False'."""
+    return bit_mask(nr) & val
+
 class MSR:
     """This class provides helpers to read and write CPU Model Specific Registers."""
 
