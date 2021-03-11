@@ -87,7 +87,7 @@ TotCyc:
 CC0Cyc:
     title: "Core C-state 0 Cycles count"
     descr: >-
-        Count of CPU cycles spent spent in the CC0 (running) state over the idle period.
+        Count of CPU cycles spent in the CC0 (running) state over the idle period.
     type: "int"
     unit: "CPU cycles"
     short_unit: "cyc"
@@ -96,9 +96,9 @@ CC0Cyc:
 CCxCyc:
     title: "The CCx core C-state cycles count"
     descr: >-
-        Count of CPU cycles spent spent in the CCx core C-state state over the idle period.
-        Different platforms support different C-states. For example, Intel platforms may
-        support CC1, CC1E, CC3, CC6, etc.
+        Count of CPU cycles spent in the CCx core C-state state over the idle period. Different
+        platforms support different C-states. For example, Intel platforms may support CC1, CC1E,
+        CC3, CC6, etc.
     type: "int"
     unit: "CPU cycles"
     short_unit: "cyc"
@@ -107,8 +107,8 @@ CCxCyc:
 DerivedCC1Cyc:
     title: "The derived CC1 core C-state cycle count"
     descr: >-
-        Derived count of CPU cycles spent spent in the CC1 core C-state state over the idle
-        period. The value is calculated as "total cycles" - "cycles in all other C-states".
+        Derived count of CPU cycles spent in the CC1 core C-state state over the idle period. The
+        value is calculated as "total cycles" - "cycles in all other C-states".
     type: "int"
     unit: "CPU cycles"
     short_unit: "cyc"
@@ -117,9 +117,9 @@ DerivedCC1Cyc:
 PCxCyc:
     title: "The PCx package C-state cycles count"
     descr: >-
-        Count of CPU cycles spent spent in the PCx package C-state state over the idle period.
-        Different platforms support different C-states. For example, Intel platforms may support
-        PC3, PC6, etc.
+        Count of CPU cycles spent in the PCx package C-state state over the idle period. Different
+        platforms support different C-states. For example, Intel platforms may support PC3, PC6,
+        etc.
     type: "int"
     unit: "CPU cycles"
     short_unit: "cyc"
