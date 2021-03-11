@@ -17,7 +17,7 @@ from wultlibs.helperlibs import Trivial
 # The default regular expressions for the CSV file column names which are used for X-axes, Y-axes
 # and historgrams.
 DEFAULT_XAXES = "SilentTime,LDist"
-DEFAULT_YAXES = r".*Latency,.*Delay,(Derived)?[PC]C.+%,SilentTime,ReqCState"
+DEFAULT_YAXES = r".*Latency,.*Delay,(Derived)?[PC]C.+%,SilentTime,ReqCState,CStates.*"
 DEFAULT_HIST = f"{DEFAULT_YAXES},LDist"
 DEFAULT_CHIST = r".*Latency"
 # All diagrams and histograms with the combinations of EXCLUDE_XAXES and EXCLUDE_YAXES will not be

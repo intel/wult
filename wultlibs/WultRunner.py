@@ -17,7 +17,7 @@ import contextlib
 from pathlib import Path
 from wultlibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from wultlibs.helperlibs import Dmesg, FSHelpers, Human
-from wultlibs.sysconfiglibs import CPUIdle, Systemctl
+from wultlibs.sysconfiglibs import CPUIdle, CPUInfo, Systemctl
 from wultlibs import EventsProvider, Defs, _FTrace, _ProgressLine
 
 _LOG = logging.getLogger()
@@ -102,10 +102,17 @@ class WultRunner:
 
         dp = self._get_datapoint_dict(rawdp)
 
-        # Some Intel chips do not have CC1 hardware counter, but we can calculate it as "total
-        # cycles" - "cycles in all C-states". Include derived value to the datapoint.
+        # Inject additional information to the datapoint.
+        # CStatesCyc - combined count of CPU cycles in all non-CC0 C-states.
+        # DerivedCC1Cyc - "total cycles" - "cycles in C-states other than CC1". So basically it is a
+        #                 software-calculated CC1 cycles, which is useful to have because not every
+        #                 Intel platform has a HW CC1 counter.
         cyc = sum([dp[name] for name in dp if name.startswith("CC") and name != "CC1Cyc"])
-        dp["DerivedCC1Cyc"] = dp["TotCyc"] - cyc
+        if self._is_intel:
+            dp["DerivedCC1Cyc"] = dp["TotCyc"] - cyc
+            dp["CStatesCyc"] = dp["TotCyc"] - dp["CC0Cyc"]
+        else:
+            dp["CStatesCyc"] = dp["TotCyc"] - cyc
 
         # Add the C-state percentages.
         for cscyc_colname, csres_colname in self._cs_colnames:
@@ -173,8 +180,11 @@ class WultRunner:
         # SMI/NMI are not saved to CSV file, remove them from the header.
         rawhdr = [col for col in rawhdr if col not in ("NMI", "SMI")]
 
-        # Include the derived CC1 cycles count, "DerivedCC1Cyc", to the header.
-        rawhdr.insert(rawhdr.index("CC0Cyc") + 1, "DerivedCC1Cyc")
+        # Add the additional metrics to the raw header - we'll be injecting the values in
+        # '_process_datapoint()'.
+        if self._is_intel:
+            rawhdr.insert(rawhdr.index("CC0Cyc") + 1, "DerivedCC1Cyc")
+        rawhdr.append("CStatesCyc")
 
         # Now 'rawhdr' contains information about C-state of the measured platform, save it for
         # later use.
@@ -412,6 +422,7 @@ class WultRunner:
         if not cstates_present:
             raise Error(f"no C-states enabled on CPU {res.cpunum}")
 
+        self._is_intel = CPUInfo.get_lscpu_info(proc=proc)["vendor"] == "GenuineIntel"
         self._sysctl = Systemctl.Systemctl(proc=proc)
         self._has_irqbalance = self._sysctl.is_active("irqbalance")
 
