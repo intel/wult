@@ -224,6 +224,10 @@ class CPUIdle:
         indexes and returns this list.
         """
 
+        # 'None' will be translated to all C-states in '_get_cstates_info()'.
+        if cstates == "all":
+            cstates = None
+
         if isinstance(cstates, int):
             cstates = str(cstates)
         if cstates is not None:
@@ -310,9 +314,6 @@ class CPUIdle:
                           'cstates'/'cpus' lists. If 'True', those C-states are enabled on those
                           CPUs, otherwise disabled.
         """
-
-        if cstates == "all":
-            cstates = None
 
         cpus = self._normalize_cpus(cpus)
         cstates = self._normalize_cstates(cstates)
@@ -403,9 +404,6 @@ class CPUIdle:
           * ordered - if 'True', the yielded C-states will be ordered so that smaller CPU numbers
                       will go first, and for each CPU number shallower C-states will go first.
         """
-
-        if cstates == "all":
-            cstates = None
 
         cpus = self._normalize_cpus(cpus)
         cstates = self._normalize_cstates(cstates)
