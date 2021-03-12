@@ -181,7 +181,7 @@ class MSR:
         return msr
 
     def _write(self, address, val, regsize, cpus):
-        """Implements the 'write()' function (local case and unoptimized remote case)."""
+        """Implements the 'write' function."""
 
         val_bytes = val.to_bytes(regsize, byteorder=_CPU_BYTEORDER)
         for cpu in cpus:
@@ -213,31 +213,13 @@ class MSR:
         else:
             self._write(address, val, regsize, cpus)
 
-    def _set(self, address, mask, regsize, cpus):
-        """Implements the 'set()' function (local case and unoptimized remote case)."""
-
-        for cpunum, msr in self.read_iter(address, regsize, cpus):
-            new = msr | mask
-            if msr != new:
-                self.write(address, new, regsize, cpunum)
-
     def set(self, address, mask, regsize=8, cpus="all"):
         """Set 'mask' bits in MSR. Arguments are the same as in 'write()'."""
 
         regsize, cpus = self._handle_arguments(regsize, cpus)
 
-        if self._remote_run_ok:
-            self._run_on_remote_host("set", address, mask, regsize, cpus)
-        else:
-            self._set(address, mask, regsize, cpus)
-
-    def _clear(self, address, mask, regsize=8, cpus="all"):
-        """Implements the 'clear()' function (local case and unoptimized remote case)."""
-
-        regsize, cpus = self._handle_arguments(regsize, cpus)
-
         for cpunum, msr in self.read_iter(address, regsize, cpus):
-            new = msr & ~mask
+            new = msr | mask
             if msr != new:
                 self.write(address, new, regsize, cpunum)
 
@@ -246,10 +228,10 @@ class MSR:
 
         regsize, cpus = self._handle_arguments(regsize, cpus)
 
-        if self._remote_run_ok:
-            self._run_on_remote_host("clear", address, mask, regsize, cpus)
-        else:
-            self._clear(address, mask, regsize, cpus)
+        for cpunum, msr in self.read_iter(address, regsize, cpus):
+            new = msr & ~mask
+            if msr != new:
+                self.write(address, new, regsize, cpunum)
 
     def _can_run_on_remote_host(self):
         """Returns 'True' if commands can be executed on remote host, returns 'False' otherwise."""
