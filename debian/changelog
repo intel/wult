@@ -1,3 +1,8 @@
+wult (1.8.15) unstable; urgency=low
+
+  * wult: add new metric about combined, (all but CC0) C-state residency.
+  * wult: print helpful message about settings possibly affecting results.
+
 wult (1.8.14) unstable; urgency=low
 
   * wult/ndl: print helpful message if ASPM is enabled.
