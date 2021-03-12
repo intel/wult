@@ -19,40 +19,41 @@ from wultlibs.sysconfiglibs import CPUInfo
 
 _CPU_BYTEORDER = "little"
 
+# Platform info MSR.
 MSR_PLATFORM_INFO = 0xCE
 
-# Scaleable bus speed.
+# Scalable bus speed MSR.
 MSR_FSB_FREQ = 0xCD
 
-# C-state configuration control.
+# C-state configuration control MSR.
 MSR_PKG_CST_CONFIG_CONTROL = 0xE2
 CFG_LOCK = 15
 C1_AUTO_DEMOTION_ENABLE = 26
 MAX_PKG_C_STATE_MASK = 0xF
 
+# Feature control MSR.
 MSR_MISC_FEATURE_CONTROL = 0x1A4
 MLC_STREAMER = 0
 MLC_SPACIAL = 1
 DCU_STREAMER = 2
 DCU_IP = 3
 
-# Maximum ratio limit of turbo mode by core groups.
+# Turbo ratio limit MSR, informs about turbo frequencies for core croups.
 MSR_TURBO_RATIO_LIMIT = 0x1AD
 
-# Group size of active cores for turbo mode operation.
-MSR_TURBO_GROUP_CORECNT = 0x1AE
-
-# Energy performance bias hint.
+# Energy performance bias MSR.
 MSR_ENERGY_PERF_BIAS = 0x1B0
 
+# Power control MSR.
 MSR_POWER_CTL = 0x1FC
 C1E_ENABLE = 1
 CSTATE_PREWAKE_DISABLE = 30
 
+# PM enable MSR.
 MSR_PM_ENABLE = 0x770
 HWP_ENABLE = 0
 
-# Hardware-managed P-states control hints per CPU.
+# HWP Request MSR. Includes hardware power management control bits.
 MSR_HWP_REQUEST = 0x774
 PKG_CONTROL = 42
 EPP_VALID = 60
