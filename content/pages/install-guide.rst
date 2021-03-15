@@ -21,7 +21,7 @@ privileges. Do not use it on a production system, use it only in a lab environme
 
 *Wult* installation procedure will vary a little bit depending on whether you prefer the local or
 remote usage models (`details here <../index.html#usage-models>`_). In the former case, you install *wult* on the
-SUT (System Under Test). Rn the latter case you install it on the controller. The drivers are
+SUT (System Under Test). In the latter case you install it on the controller. The drivers are
 deployed to the SUT. It is also OK to have both setups at the same time.
 
 From now on assume the remote usage model. In case of local usage model the "SUT" and "controller"
@@ -90,7 +90,7 @@ drivers are built on the SUT, therefore you should install kernel sources on the
 user-space headers is not enough, you should install the actual kernel sources.
 
 On Fedora and Ubuntu, the sources are typically located in "/lib/modules/<kernel_version>/build".
-The "<kernel_version>" part must match the kernel running on the SUT. In other words, it has to me
+The "<kernel_version>" part must match the kernel running on the SUT. In other words, it has to be
 the same as what the "uname -r" command prints when you run it on the SUT.
 
 Unless you are an advanced user, you probably run a stock OS kernel on the SUT. In this case, it is
@@ -143,21 +143,20 @@ Here are the packages that will be needed on the controller. ::
 1.3 Install wult
 ----------------
 
-*Wult* is written in python version 3 and the easiest way of installing it is by using the "pip3" tool.
+*Wult* is written in python version 3 and the easiest way of installing it is by using the "pip" tool.
 Advanced users can chose any other way of using/installing python code, e.g., just clone the git
-repositories and configure "PYTHONPATH". But there will be more caveats in this case.
+repositories and configure "PYTHONPATH". But there will be more caveats in this case, and it is
+only recommended for advanced users.
 
-Here is how to install *wult* directly from the git repository using the "pip3" tool. To install to
+Here is how to install *wult* directly from the git repository using the "pip" tool. To install to
 your home directory, run: ::
 
- pip3 install --user git+https://github.com/intel/wult.git@release
-
-To install to the system, run: ::
-
- sudo -H pip3 install git+https://github.com/intel/wult.git@release
+ pip install --user --upgrade git+https://github.com/intel/wult.git@release
 
 This will install *wult* from the "release" branch of the git repository. The "release" branch
 contains more stable code. To install the latest code, use the "master" branch instead.
+
+If you prefer installing to the system, remove the '--user' option.
 
 1.4 Deploy wult drivers
 -----------------------
@@ -180,17 +179,23 @@ build them on the SUT, then deploy them to the SUT.
 
 Please, check 'wult deploy -h' for advanced usage options.
 
+***Note***
+
+The "wult deploy" command installs drivers only to the currently running kernel. If you reboot
+your system to a different kernel, you have to re-run "wult deploy". It is on per-kernel basis.
+
+
 2 Update
 --------
 
 If you installed *wult* using the 'pip' tool, you can use 'pip' to update it as well.
 Here is how to update *wult* in case you installed it to your home directory. ::
 
- pip3 install --user --upgrade git+https://github.com/intel/wult.git@release
+ pip install --user --upgrade git+https://github.com/intel/wult.git@release
 
 And in case you installed it to the system. ::
 
- sudo -H pip3 install --upgrade git+https://github.com/intel/wult.git@release
+ sudo -H pip install --upgrade git+https://github.com/intel/wult.git@release
 
 **Important**: you have to re-deploy wult drivers after the update.
 `Local usage model <../index.html#local-usage-model>`_: ::

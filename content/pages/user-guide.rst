@@ -24,7 +24,7 @@ run on the controller under unprivileged user, but the user should have password
 from the controller to the SUT (more info in `this <install-guide.html#passwordless-ssh>`_ section).
 
 The command line arguments for the both cases is the same, except for the '-H SUTNAME' option in the
-remote usage case, which specifies the SUT host name to connect to.
+remote usage scenario, which specifies the SUT host name to connect to.
 
 2. Scan for supported devices
 =============================
@@ -38,8 +38,8 @@ or the following command in case of the remote usage model: ::
 
  wult scan -H SUTNAME
 
-From this point onward, we'll assume the reader already figured out the local vs remote usage mode
-difference, and we'll just recommend to run: ::
+We'll assume the reader distinguishes between the local and remote usage models, so we'll just
+recommend to run the following command for simplicity: ::
 
  wult scan
 
