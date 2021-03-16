@@ -16,22 +16,15 @@ from pathlib import Path
 from wultlibs.helperlibs import FSHelpers, Procs, Trivial
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs.sysconfiglibs import CPUInfo, MSR
-
-# CPU model numbers.
-_INTEL_FAM6_ICELAKE_X = 0x6A
-_INTEL_FAM6_SKYLAKE_X = 0x55
-
-# Mapping CPU model number to description.
-_CPU_DESCR = {_INTEL_FAM6_ICELAKE_X: "Icelake Xeon",
-              _INTEL_FAM6_SKYLAKE_X: "Skylake/Cascadelake Xeon"}
+from wultlibs.sysconfiglibs.CPUInfo import CPU_DESCR as _CPU_DESCR
 
 # Skylake Xeon Package C-state limits. There are other platfrorms that have the same limits, so we
 # use this dictionary for them too.
 _SKX_PKG_CST_LIMITS = {"pc0": 0, "pc2": 1, "pc6n":2, "pc6r": 3, "unlimited": 7}
 
 # Package C-state limits are platform specific.
-_PKG_CST_LIMIT_MAP = {_INTEL_FAM6_ICELAKE_X: _SKX_PKG_CST_LIMITS,
-                      _INTEL_FAM6_SKYLAKE_X: _SKX_PKG_CST_LIMITS}
+_PKG_CST_LIMIT_MAP = {CPUInfo.INTEL_FAM6_ICELAKE_X: _SKX_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_SKYLAKE_X: _SKX_PKG_CST_LIMITS}
 
 _LOG = logging.getLogger()
 

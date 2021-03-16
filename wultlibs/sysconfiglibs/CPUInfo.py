@@ -15,6 +15,22 @@ from itertools import groupby
 from wultlibs.helperlibs.Exceptions import Error # pylint: disable=unused-import
 from wultlibs.helperlibs import ArgParse, Procs, Trivial
 
+# CPU model numbers.
+INTEL_FAM6_SPR_X = 0x8F       # Sapphire Rapids Xeon.
+INTEL_FAM6_ICELAKE_X = 0x6A   # Icelake Xeon.
+INTEL_FAM6_SKYLAKE_X = 0x55   # Skylake, Cascadelake, and Cooperlake Xeon.
+INTEL_FAM6_BROADWELL_X = 0x4F # Broadwell Xeon.
+INTEL_FAM6_HASWELL_X = 0x3F   # Haswell Xeon.
+INTEL_FAM6_IVYBRIDGE_X = 0x3E # Ivy Town Xeon.
+
+# CPU model description.
+CPU_DESCR = {INTEL_FAM6_SPR_X: "Sapphire Rapids Xeon",
+             INTEL_FAM6_ICELAKE_X: "Icelake Xeon",
+             INTEL_FAM6_SKYLAKE_X: "Skylake/Cascadelake/Cooperlake Xeon",
+             INTEL_FAM6_BROADWELL_X: "Broadwell Xeon",
+             INTEL_FAM6_HASWELL_X: "Haswell Xeon",
+             INTEL_FAM6_IVYBRIDGE_X: "Ivy Town Xeon"}
+
 LEVELS = ("pkg", "node", "core", "cpu")
 
 def get_lscpu_info(proc=None):
