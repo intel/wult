@@ -106,7 +106,7 @@ class MSR:
                     val = fobj.read(regsize)
             except Error as err:
                 raise Error(f"failed to read MSR '{hex(address)}' from file '{path}'"
-                            f"{self._proc.hostmsg}:\n{err}")
+                            f"{self._proc.hostmsg}:\n{err}") from err
 
             val = int.from_bytes(val, byteorder=_CPU_BYTEORDER)
             yield (cpu, val)
@@ -142,7 +142,7 @@ class MSR:
                     _LOG.debug("CPU%d: MSR 0x%x: wrote 0x%x", cpu, address, val)
             except Error as err:
                 raise Error(f"failed to write MSR '{hex(address)}' to file '{path}'"
-                            f"{self._proc.hostmsg}:\n{err}")
+                            f"{self._proc.hostmsg}:\n{err}") from err
 
     def set(self, address, mask, regsize=8, cpus="all"):
         """Set 'mask' bits in MSR. Arguments are the same as in 'write()'."""
