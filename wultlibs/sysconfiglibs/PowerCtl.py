@@ -19,6 +19,13 @@ from wultlibs.helperlibs.Exceptions import ErrorNotSupported
 MSR_POWER_CTL = 0x1FC
 C1E_ENABLE = 1
 CSTATE_PREWAKE_DISABLE = 30
+# Indicates whether power perf tuning algorithm controls SAPM entities. Available on ICX.
+PWR_PERF_TUNING_DISABLE_SAPM_CTRL = 32
+# Indicates whether dynamic switching is enabled in power perf tuning algorithm. Available on ICX.
+PWR_PERF_TUNING_ENABLE_DYN_SWITCHING = 33
+
+# Dynamic Load Line feature is available only on some CPUs.
+_DLL_CPUS = (CPUInfo.INTEL_FAM6_ICELAKE_X, CPUInfo.INTEL_FAM6_ICELAKE_D)
 
 class PowerCtl:
     """
@@ -65,6 +72,41 @@ class PowerCtl:
         '_toggle_bit()'.
         """
         self._toggle_bit(CSTATE_PREWAKE_DISABLE, int(not enable), cpus)
+
+    def _check_dll_support(self):
+        """
+        Check if Dynamic Load Line feature is supported by host 'self._proc'. Raise an
+        'ErrorNotSupported' if DLL is not supported.
+        """
+
+        model = self._lscpuinfo["model"]
+
+        if model not in _DLL_CPUS:
+            fmt = "%s (CPU model %#x)"
+            cpus_str = "\n* ".join([fmt % (CPUInfo.CPU_DESCR[model], model) for model in _DLL_CPUS])
+            raise ErrorNotSupported(f"dynamic load line feature is not supported"
+                                    f"{self._proc.hostmsg} - CPU '{self._lscpuinfo['vendor']}, "
+                                    f"(CPU model {hex(model)})' is not supported.\nThe supported "
+                                    f"CPUs are:\n* {cpus_str}")
+
+    def set_dll(self, enable: bool, cpus="all"):
+        """
+        Enable or disable Dynamic Load Line (DLL) for CPUs 'cpus'. The 'cpus' argument is the same
+        as in '_toggle_bit()'.
+        """
+
+        self._check_dll_support()
+        self._toggle_bit(PWR_PERF_TUNING_ENABLE_DYN_SWITCHING, int(enable), cpus)
+
+    def dll_enabled(self, cpu):
+        """
+        Returns 'True' if Dynamic Load Line feature is enabled for CPU 'cpu', otherwise returns
+        'False'.
+        """
+
+        self._check_dll_support()
+        reg_val = self._msr.read(MSR_POWER_CTL, cpu=cpu)
+        return MSR.is_bit_set(reg_val, PWR_PERF_TUNING_ENABLE_DYN_SWITCHING)
 
     def __init__(self, proc=None, lscpuinfo=None):
         """
