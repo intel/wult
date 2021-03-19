@@ -40,7 +40,7 @@ struct wult_tracer_info {
 	/* C-state information. */
 	struct wult_cstates_info csinfo;
 	/* Time before idle and after idle in cycles or nanoseconds. */
-	u64 ts1, ts2;
+	u64 tbi, tai;
 	/* Launch time. */
 	u64 ltime;
 	/* Launch distance. */

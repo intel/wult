@@ -47,7 +47,7 @@ static void before_idle(struct wult_info *wi, int req_cstate)
 	ti->got_measurements = false;
 	ti->req_cstate = req_cstate;
 	wult_cstates_read_before(&ti->csinfo);
-	ti->ts1 = wi->wdi->ops->get_time_before_idle(wi->wdi);
+	ti->tbi = wi->wdi->ops->get_time_before_idle(wi->wdi);
 }
 
 /* Get measurement data after idle .*/
@@ -56,7 +56,7 @@ static void after_idle(struct wult_info *wi)
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_device_info *wdi = wi->wdi;
 
-	ti->ts2 = wdi->ops->get_time_after_idle(wdi);
+	ti->tai = wdi->ops->get_time_after_idle(wdi);
 
 	if (!wdi->ops->event_has_happened(wi->wdi))
 		/* It is not the delayed event we armed that woke us up. */
@@ -67,7 +67,7 @@ static void after_idle(struct wult_info *wi)
 	ti->ltime = wdi->ops->get_launch_time(wdi);
 
 	/* Check if the expected IRQ time is within the sleep time. */
-	if (ti->ltime <= ti->ts1 || ti->ltime >= ti->ts2)
+	if (ti->ltime <= ti->tbi || ti->ltime >= ti->tai)
 		return;
 
 	if (atomic_read(&wi->events_armed) - atomic_read(&wi->events_happened) != 1)
@@ -122,8 +122,8 @@ int wult_tracer_send_data(struct wult_info *wi)
 			return PTR_ERR(tdata);
 	}
 
-	silent_time = ti->ltime - ti->ts1;
-	wake_latency = ti->ts2 - ti->ltime;
+	silent_time = ti->ltime - ti->tbi;
+	wake_latency = ti->tai - ti->ltime;
 	if (wdi->ops->time_to_ns) {
 		silent_time = wdi->ops->time_to_ns(wdi, silent_time);
 		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
@@ -184,8 +184,8 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		return err;
 
-	silent_time = ti->ltime - ti->ts1;
-	wake_latency = ti->ts2 - ti->ltime;
+	silent_time = ti->ltime - ti->tbi;
+	wake_latency = ti->tai - ti->ltime;
 	if (wdi->ops->time_to_ns) {
 		silent_time = wdi->ops->time_to_ns(wdi, silent_time);
 		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
