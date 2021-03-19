@@ -60,13 +60,16 @@ EPP_VALID = 60
 
 _LOG = logging.getLogger()
 
-def bit_mask(nr):
+def bit_mask(bitnr):
     """Return bitmask for a bit by its number."""
-    return 1 << nr
+    return 1 << bitnr
 
-def is_bit_set(nr, val):
-    """Return 'True' if bit number 'nr' is set in MSR value 'val', otherwise returns 'False'."""
-    return bit_mask(nr) & val
+def is_bit_set(bitnr, bitval):
+    """
+    Return 'True' if bit number 'bitnr' is set in MSR value 'bitval', otherwise returns
+    'False'.
+    """
+    return bit_mask(bitnr) & bitval
 
 class MSR:
     """This class provides helpers to read and write CPU Model Specific Registers."""
