@@ -64,7 +64,7 @@ def bit_mask(nr):
     """Return bitmask for a bit by its number."""
     return 1 << nr
 
-def is_bit_set(val, nr):
+def is_bit_set(nr, val):
     """Return 'True' if bit number 'nr' is set in MSR value 'val', otherwise returns 'False'."""
     return bit_mask(nr) & val
 

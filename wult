@@ -300,7 +300,7 @@ def check_settings(proc, dev, csinfo, cpunum, devid):
     # * The "timer" method is used.
     if devid == "timer" and "C6" in enabled_cstates:
         msr_val = _get_msr_val(MSR.MSR_POWER_CTL)
-        if not MSR.is_bit_set(msr_val, MSR.CSTATE_PREWAKE_DISABLE):
+        if not MSR.is_bit_set(MSR.CSTATE_PREWAKE_DISABLE, msr_val):
             LOG.notice("C-state prewake is enabled, and this usually hides the real latency when "
                        "using '%s' as delayed event device.", devid)
 
@@ -310,7 +310,7 @@ def check_settings(proc, dev, csinfo, cpunum, devid):
     if enabled_cstates == ["C1"]:
         if not msr_val:
             msr_val = _get_msr_val(MSR.MSR_POWER_CTL)
-        if MSR.is_bit_set(msr_val, MSR.C1E_ENABLE):
+        if MSR.is_bit_set(MSR.C1E_ENABLE, msr_val):
             LOG.notice("C1E autopromote is enabled, all C1 requests are converted to C1E.")
 
 def start_command(args):
