@@ -273,11 +273,11 @@ def check_settings(proc, dev, csinfo, cpunum, devid):
       * cpunum - the logical CPU number to measure.
     """
 
-    def _get_msr_val(address):
-        """Return value of MSR 'address'."""
+    def _get_msr_val(regaddr):
+        """Return value of MSR 'regaddr'."""
 
         with MSR.MSR(proc=proc) as msr:
-            return msr.read(address, cpu=cpunum)
+            return msr.read(regaddr, cpu=cpunum)
 
     if dev.info.get("aspm_enabled"):
         LOG.notice("PCI ASPM is enabled for the delayed event device '%s', and this "

@@ -88,11 +88,11 @@ class MSR:
 
         return (regsize, cpus)
 
-    def read_iter(self, address, regsize=8, cpus="all"):
+    def read_iter(self, regaddr, regsize=8, cpus="all"):
         """
         Read an MSR register on one or multiple CPUs and yield tuple with CPU number and the read
         result.
-          * address - address of MSR register.
+          * regaddr - address of the MSR to read.
           * regsize - size of MSR register in bytes.
           * cpus - list of CPU numbers value should be read from. It is the same as the 'cpus'
                    argument of the 'CPUIdle.get_cstates_info()' function - please, refer to the
@@ -105,27 +105,27 @@ class MSR:
             path = Path(f"/dev/cpu/{cpu}/msr")
             try:
                 with self._proc.open(path, "rb") as fobj:
-                    fobj.seek(address)
+                    fobj.seek(regaddr)
                     val = fobj.read(regsize)
             except Error as err:
-                raise Error(f"failed to read MSR '{hex(address)}' from file '{path}'"
+                raise Error(f"failed to read MSR '{hex(regaddr)}' from file '{path}'"
                             f"{self._proc.hostmsg}:\n{err}") from err
 
             val = int.from_bytes(val, byteorder=_CPU_BYTEORDER)
             yield (cpu, val)
 
-    def read(self, address, regsize=8, cpu=0):
+    def read(self, regaddr, regsize=8, cpu=0):
         """
         Read an MSR on single CPU and return read result. Arguments are same as in read_iter().
         """
 
-        _, msr = next(self.read_iter(address, regsize, cpu))
+        _, msr = next(self.read_iter(regaddr, regsize, cpu))
         return msr
 
-    def write(self, address, val, regsize=8, cpus="all"):
+    def write(self, regaddr, val, regsize=8, cpus="all"):
         """
-        Write MSR register. The arguments are as follows.
-          * address - address of MSR register.
+        Write to MSR register. The arguments are as follows.
+          * regaddr - address of the MSR to write to.
           * val - integer value to write to MSR.
           * regsize - size of MSR register in bytes.
           * cpus - list of CPU numbers write should be done at. It is the same as the 'cpus'
@@ -140,32 +140,32 @@ class MSR:
             path = Path(f"/dev/cpu/{cpu}/msr")
             try:
                 with self._proc.open(path, "wb") as fobj:
-                    fobj.seek(address)
+                    fobj.seek(regaddr)
                     fobj.write(val_bytes)
-                    _LOG.debug("CPU%d: MSR 0x%x: wrote 0x%x", cpu, address, val)
+                    _LOG.debug("CPU%d: MSR 0x%x: wrote 0x%x", cpu, regaddr, val)
             except Error as err:
-                raise Error(f"failed to write MSR '{hex(address)}' to file '{path}'"
+                raise Error(f"failed to write MSR '{hex(regaddr)}' to file '{path}'"
                             f"{self._proc.hostmsg}:\n{err}") from err
 
-    def set(self, address, mask, regsize=8, cpus="all"):
+    def set(self, regaddr, mask, regsize=8, cpus="all"):
         """Set 'mask' bits in MSR. Arguments are the same as in 'write()'."""
 
         regsize, cpus = self._handle_arguments(regsize, cpus)
 
-        for cpunum, msr in self.read_iter(address, regsize, cpus):
+        for cpunum, msr in self.read_iter(regaddr, regsize, cpus):
             new = msr | mask
             if msr != new:
-                self.write(address, new, regsize, cpunum)
+                self.write(regaddr, new, regsize, cpunum)
 
-    def clear(self, address, mask, regsize=8, cpus="all"):
+    def clear(self, regaddr, mask, regsize=8, cpus="all"):
         """Clear 'mask' bits in MSR. Arguments are the same as in 'write()'."""
 
         regsize, cpus = self._handle_arguments(regsize, cpus)
 
-        for cpunum, msr in self.read_iter(address, regsize, cpus):
+        for cpunum, msr in self.read_iter(regaddr, regsize, cpus):
             new = msr & ~mask
             if msr != new:
-                self.write(address, new, regsize, cpunum)
+                self.write(regaddr, new, regsize, cpunum)
 
     def __init__(self, proc=None):
         """The class constructor."""
