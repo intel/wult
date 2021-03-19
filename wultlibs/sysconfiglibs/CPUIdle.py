@@ -87,11 +87,11 @@ class CPUIdle:
 
         pcs_code = max(pcs_rmap)
         locked = False
-        for _, reg in msr.read_iter(MSR.MSR_PKG_CST_CONFIG_CONTROL, cpus=cpus):
+        for _, regval in msr.read_iter(MSR.MSR_PKG_CST_CONFIG_CONTROL, cpus=cpus):
             # The C-state limit value is smallest found among all CPUs and locked bit is 'True' if
             # any of the registers has locked bit set, otherwise it is 'False'.
-            pcs_code = min(pcs_code, reg & MSR.MAX_PKG_C_STATE_MASK)
-            locked = any((locked, reg & MSR.bit_mask(MSR.CFG_LOCK)))
+            pcs_code = min(pcs_code, regval & MSR.MAX_PKG_C_STATE_MASK)
+            locked = any((locked, regval & MSR.bit_mask(MSR.CFG_LOCK)))
 
             if pcs_code not in pcs_rmap:
                 known_codes = ", ".join([str(code) for code in pcs_rmap])
@@ -166,15 +166,15 @@ class CPUIdle:
                 cpus.append(core_cpus[0])
 
         with MSR.MSR(proc=self._proc) as msr:
-            for cpu, reg in msr.read_iter(MSR.MSR_PKG_CST_CONFIG_CONTROL, cpus=cpus):
-                if reg & MSR.bit_mask(MSR.CFG_LOCK):
+            for cpu, regval in msr.read_iter(MSR.MSR_PKG_CST_CONFIG_CONTROL, cpus=cpus):
+                if regval & MSR.bit_mask(MSR.CFG_LOCK):
                     raise Error(f"cannot set package C-state limit{self._proc.hostmsg} for CPU "
                                 f"'{cpu}', MSR ({MSR.MSR_PKG_CST_CONFIG_CONTROL}) is locked. "
                                 f"Sometimes, depending on the vendor, there is a BIOS knob to "
                                 f"unlock it.")
 
-                reg = (reg & ~0x07) | limit_val
-                msr.write(MSR.MSR_PKG_CST_CONFIG_CONTROL, reg, cpus=cpu)
+                regval = (regval & ~0x07) | limit_val
+                msr.write(MSR.MSR_PKG_CST_CONFIG_CONTROL, regval, cpus=cpu)
 
     def _get_cstate_indexes(self, cpu):
         """Yield tuples of of C-state indexes and sysfs paths for cpu number 'cpu'."""

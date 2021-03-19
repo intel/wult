@@ -79,7 +79,7 @@ class MSR:
 
         regsizes = (4, 8)
         if regsize not in regsizes:
-            regsizes_str = ",".join([str(val) for val in regsizes])
+            regsizes_str = ",".join([str(regsz) for regsz in regsizes])
             raise Error(f"invalid register size value '{regsize}', use one of: {regsizes_str}")
 
         if not self._cpuinfo:
@@ -106,27 +106,27 @@ class MSR:
             try:
                 with self._proc.open(path, "rb") as fobj:
                     fobj.seek(regaddr)
-                    val = fobj.read(regsize)
+                    regval = fobj.read(regsize)
             except Error as err:
                 raise Error(f"failed to read MSR '{hex(regaddr)}' from file '{path}'"
                             f"{self._proc.hostmsg}:\n{err}") from err
 
-            val = int.from_bytes(val, byteorder=_CPU_BYTEORDER)
-            yield (cpu, val)
+            regval = int.from_bytes(regval, byteorder=_CPU_BYTEORDER)
+            yield (cpu, regval)
 
     def read(self, regaddr, regsize=8, cpu=0):
         """
         Read an MSR on single CPU and return read result. Arguments are same as in read_iter().
         """
 
-        _, msr = next(self.read_iter(regaddr, regsize, cpu))
-        return msr
+        _, regval = next(self.read_iter(regaddr, regsize, cpu))
+        return regval
 
-    def write(self, regaddr, val, regsize=8, cpus="all"):
+    def write(self, regaddr, regval, regsize=8, cpus="all"):
         """
         Write to MSR register. The arguments are as follows.
           * regaddr - address of the MSR to write to.
-          * val - integer value to write to MSR.
+          * regval - integer value to write to MSR.
           * regsize - size of MSR register in bytes.
           * cpus - list of CPU numbers write should be done at. It is the same as the 'cpus'
                    argument of the 'CPUIdle.get_cstates_info()' function - please, refer to the
@@ -135,14 +135,14 @@ class MSR:
 
         regsize, cpus = self._handle_arguments(regsize, cpus)
 
-        val_bytes = val.to_bytes(regsize, byteorder=_CPU_BYTEORDER)
+        regval_bytes = regval.to_bytes(regsize, byteorder=_CPU_BYTEORDER)
         for cpu in cpus:
-            path = Path(f"/dev/cpu/{cpu}/msr")
+            path = Path(f"/dev/cpu/{cpu}/regval")
             try:
                 with self._proc.open(path, "wb") as fobj:
                     fobj.seek(regaddr)
-                    fobj.write(val_bytes)
-                    _LOG.debug("CPU%d: MSR 0x%x: wrote 0x%x", cpu, regaddr, val)
+                    fobj.write(regval_bytes)
+                    _LOG.debug("CPU%d: MSR 0x%x: wrote 0x%x", cpu, regaddr, regval)
             except Error as err:
                 raise Error(f"failed to write MSR '{hex(regaddr)}' to file '{path}'"
                             f"{self._proc.hostmsg}:\n{err}") from err
@@ -152,20 +152,20 @@ class MSR:
 
         regsize, cpus = self._handle_arguments(regsize, cpus)
 
-        for cpunum, msr in self.read_iter(regaddr, regsize, cpus):
-            new = msr | mask
-            if msr != new:
-                self.write(regaddr, new, regsize, cpunum)
+        for cpunum, regval in self.read_iter(regaddr, regsize, cpus):
+            new_regval = regval | mask
+            if regval != new_regval:
+                self.write(regaddr, new_regval, regsize, cpunum)
 
     def clear(self, regaddr, mask, regsize=8, cpus="all"):
         """Clear 'mask' bits in MSR. Arguments are the same as in 'write()'."""
 
         regsize, cpus = self._handle_arguments(regsize, cpus)
 
-        for cpunum, msr in self.read_iter(regaddr, regsize, cpus):
-            new = msr & ~mask
-            if msr != new:
-                self.write(regaddr, new, regsize, cpunum)
+        for cpunum, regval in self.read_iter(regaddr, regsize, cpus):
+            new_regval = regval & ~mask
+            if regval != new_regval:
+                self.write(regaddr, new_regval, regsize, cpunum)
 
     def __init__(self, proc=None):
         """The class constructor."""

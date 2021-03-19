@@ -273,7 +273,7 @@ def check_settings(proc, dev, csinfo, cpunum, devid):
       * cpunum - the logical CPU number to measure.
     """
 
-    def _get_msr_val(regaddr):
+    def _get_regval(regaddr):
         """Return value of MSR 'regaddr'."""
 
         with MSR.MSR(proc=proc) as msr:
@@ -293,14 +293,14 @@ def check_settings(proc, dev, csinfo, cpunum, devid):
         if info["disable"] == 0 and info["name"] != "POLL":
             enabled_cstates.append(info["name"])
 
-    msr_val = None
+    regval = None
     # Check for the following 3 conditions to be true at the same time.
     # * C6 is enabled.
     # * C6 pre-wake is enabled.
     # * The "timer" method is used.
     if devid == "timer" and "C6" in enabled_cstates:
-        msr_val = _get_msr_val(MSR.MSR_POWER_CTL)
-        if not MSR.is_bit_set(MSR.CSTATE_PREWAKE_DISABLE, msr_val):
+        regval = _get_regval(MSR.MSR_POWER_CTL)
+        if not MSR.is_bit_set(MSR.CSTATE_PREWAKE_DISABLE, regval):
             LOG.notice("C-state prewake is enabled, and this usually hides the real latency when "
                        "using '%s' as delayed event device.", devid)
 
@@ -308,9 +308,9 @@ def check_settings(proc, dev, csinfo, cpunum, devid):
     # * C1 is enabled.
     # * C1E auto-promotion is enabled.
     if enabled_cstates == ["C1"]:
-        if not msr_val:
-            msr_val = _get_msr_val(MSR.MSR_POWER_CTL)
-        if MSR.is_bit_set(MSR.C1E_ENABLE, msr_val):
+        if not regval:
+            regval = _get_regval(MSR.MSR_POWER_CTL)
+        if MSR.is_bit_set(MSR.C1E_ENABLE, regval):
             LOG.notice("C1E autopromote is enabled, all C1 requests are converted to C1E.")
 
 def start_command(args):
