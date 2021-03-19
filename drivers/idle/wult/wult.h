@@ -155,7 +155,7 @@ struct wult_info {
 
 int wult_register(struct wult_device_info *wdi);
 void wult_unregister(void);
-void wult_interrupt(void);
+void wult_interrupt(u64 tint);
 
 /*
  * Convert cycles to nanoseconds. Should be used only for time intervals within
