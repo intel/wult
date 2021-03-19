@@ -10,6 +10,7 @@
 This module contains helpers related to parsing command-line arguments.
 """
 
+import types
 import argparse
 from wultlibs.helperlibs import DamerauLevenshtein, Trivial
 from wultlibs.helperlibs.Exceptions import Error # pylint: disable=unused-import
@@ -31,6 +32,28 @@ class OrderedArg(argparse.Action):
         setattr(namespace, self.dest, values)
 
         namespace.oargs.append((self.dest, values))
+
+def _add_parser(subparsers, *args, **kwargs):
+    """
+    This function overrides the 'add_parser()' method of the 'subparsers' object. The 'subparsers'
+    object the action object returned by 'add_subparsers()'. The goal of this function is to remove
+    all newlines and extra white-spaces from the "description" keyword argument. Here is an example.
+
+    descr = "Long description\n   With newlines and white-spaces and possibly tabs."
+    subpars = subparsers.add_parser("subcommand", help="help", description=descr)
+
+    By default 'argparse' removes those newlines when the help is displayed. However, for some
+    reason when we generate man pages out of help text using the 'argparse-manpage' tool, the
+    newlines are not removed and the man page looks untidy.
+
+    So basically this is a workaround for that problem. We just override the 'add_parser()' method,
+    remove newlines and extra spaces from the description, and call the original 'add_parser()'
+    method.
+    """
+
+    if "description" in kwargs:
+        kwargs["description"] = " ".join(kwargs["description"].split())
+    return subparsers.__orig_add_parser(*args, **kwargs) # pylint: disable=protected-access
 
 class ArgsParser(argparse.ArgumentParser):
     """
@@ -73,6 +96,18 @@ class ArgsParser(argparse.ArgumentParser):
             raise Error("-q and -d cannot be used together")
 
         return args
+
+    def add_subparsers(self, *args, **kwargs):
+        """
+        Create and return the subparsers action object with a customized 'add_parser()' method.
+        Refer to '_add_parser()' for details.
+        """
+
+        subparsers = super().add_subparsers(*args, **kwargs)
+        setattr(subparsers, "__orig_add_parser", subparsers.add_parser)
+        subparsers.add_parser = types.MethodType(_add_parser, subparsers)
+
+        return subparsers
 
     def error(self, message):
         """Print the error message and exit."""
