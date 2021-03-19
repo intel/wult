@@ -40,10 +40,10 @@ def get_axes_default(name):
     # The result is used for argparse, which does not accept '%' symbols.
     return names.replace("%", "%%")
 
-def parse_arguments():
-    """A helper function which parses the input arguments."""
+def build_arguments_parser():
+    """Build and return the arguments parser object."""
 
-    text = sys.modules[__name__].__doc__
+    text = "ndl - a tool for measuring memory access latency observed by a network card."
     parser = ArgParse.ArgsParser(description=text, prog=OWN_NAME, ver=VERSION)
 
     text = "Force coloring of the text output."
@@ -193,6 +193,13 @@ def parse_arguments():
 
     if argcomplete:
         argcomplete.autocomplete(parser)
+
+    return parser
+
+def parse_arguments():
+    """Parse input arguments."""
+
+    parser = build_arguments_parser()
 
     args = parser.parse_args()
     args.toolname = OWN_NAME
