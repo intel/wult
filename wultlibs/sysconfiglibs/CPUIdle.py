@@ -34,9 +34,9 @@ class CPUIdle:
     def _get_lscpu_info(self):
         """Return the result of 'CPUInfo.get_lscpu_info()'."""
 
-        if not self._lscpu_cache:
-            self._lscpu_cache = CPUInfo.get_lscpu_info(proc=self._proc)
-        return self._lscpu_cache
+        if not self._lscpu_info:
+            self._lscpu_info = CPUInfo.get_lscpu_info(proc=self._proc)
+        return self._lscpu_info
 
     def _get_cpuinfo(self):
         """Return an instance of 'CPUInfo' class."""
@@ -437,7 +437,7 @@ class CPUIdle:
         if not proc:
             proc = Procs.Proc()
 
-        self._lscpu_cache = None
+        self._lscpu_info = None
         self._cpuinfo = None
         self._proc = proc
         self._sysfs_base = Path("/sys/devices/system/cpu")
