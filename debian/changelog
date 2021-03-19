@@ -2,6 +2,7 @@ wult (1.8.15) unstable; urgency=low
 
   * wult: add new metric about combined, (all but CC0) C-state residency.
   * wult: print helpful message about settings possibly affecting results.
+  * wult/ndl: deprecate '--continue' and add '--start-over' instead.
 
 wult (1.8.14) unstable; urgency=low
 
