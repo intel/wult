@@ -3,6 +3,7 @@ wult (1.8.15) unstable; urgency=low
   * wult: add new 'CStates%' metric for combined C-state residency.
   * wult: print helpful message about settings possibly affecting results.
   * wult/ndl: deprecate '--continue' and add '--start-over' instead.
+  * man: generate man pages using 'argparse-manpage' tool.
 
 wult (1.8.14) unstable; urgency=low
 
