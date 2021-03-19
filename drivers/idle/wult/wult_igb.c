@@ -66,7 +66,7 @@ static irqreturn_t interrupt_handler(int irq, void *data)
 static u64 get_time_before_idle(struct wult_device_info *wdi)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
-	u64 nsec, cyc1, cyc2, cyc3;
+	u64 ns, cyc1, cyc2, cyc3;
 
 	/* A "warm up" read. */
 	pci_flush_posted(nic);
@@ -75,11 +75,11 @@ static u64 get_time_before_idle(struct wult_device_info *wdi)
 	read32(nic, I210_SYSTIMR);
 	cyc2 = rdtsc_ordered();
 
-	nsec = read32(nic, I210_SYSTIML);
-	nsec += read32(nic, I210_SYSTIMH) * NSEC_PER_SEC;
+	ns = read32(nic, I210_SYSTIML);
+	ns += read32(nic, I210_SYSTIMH) * NSEC_PER_SEC;
 	cyc3 = rdtsc_ordered();
 
-	return nsec + wult_cyc2ns(wdi, (cyc2 - cyc1) / 2 + (cyc3 - cyc2));
+	return ns + wult_cyc2ns(wdi, (cyc2 - cyc1) / 2 + (cyc3 - cyc2));
 }
 
 static u64 get_time_after_idle(struct wult_device_info *wdi)
