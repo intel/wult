@@ -35,12 +35,12 @@ _LOG = logging.getLogger()
 
 # Description for the '--datapoints' option of the 'start' command.
 DATAPOINTS_DESCR = """How many datapoints should the test result include, default is 1000000. Note,
-                      in case a pre-existing test result is continued (see '--continue'), the
-                      pre-existing datapoints are taken into account. For example, if the test
-                      result already has 6000 datapoints and '-c 10000' is used, the tool will
-                      collect 4000 datapoints and exit.  Warning: collecting too many datapoints may
-                      result in a very large test result file, which will be difficult to process
-                      later, because that would require a lot of memory."""
+                      unless the '--start-over' option is used, the pre-existing datapoints are
+                      taken into account. For example, if the test result already has 6000
+                      datapoints and '-c 10000' is used, the tool will collect 4000 datapoints and
+                      exit. Warning: collecting too many datapoints may result in a very large test
+                      result file, which will be difficult to process later, because that would
+                      require a lot of memory."""
 
 # Description for the '--time-limit' option of the 'start' command.
 TIME_LIMIT_DESCR = f"""The measurement time limit, i.e., for how long the SUT should be measured.
@@ -51,10 +51,12 @@ TIME_LIMIT_DESCR = f"""The measurement time limit, i.e., for how long the SUT sh
                        the '--datapoints' option, then measurements will stop as when either the
                        time limit is reached, or the required amount of datapoints is collected."""
 
-# Description for the '--continue' option of the 'start' command.
-CONTINUE_DESCR = """If the output directory already contains the datapoints CSV file, do not
-                    override it (default behavior), but continue appending more datapoints
-                    instead."""
+# Description for the '--start-over' option of the 'start' command.
+START_OVER_DESCR = """If the output directory already contains the datapoints CSV file with some
+                      amount of datapoints in it, the default behavior is to keep them and append
+                      more datapoints if necessary. But with this option all the pre-existing
+                      datapoints will be removed as soon as the tool starts writing new
+                      datapoints."""
 
 # Description for the '--outdir' option of the 'start' command.
 START_OUTDIR_DESCR = """Path to the directory to store the results at."""
@@ -172,7 +174,7 @@ TITLE_DESCR = """The report title description - any text describing this report 
 RELOCATABLE_DESCR = """The generated report includes references to the test results. By default,
                        these references are symlinks to the raw result directories. However, this
                        makes the generated report be not relocatable. Use this option to make the
-                       report relocatable in expence of increased disk space consumption - this
+                       report relocatable in expense of increased disk space consumption - this
                        tool will make a copy of the test results."""
 
 # Description for the '--list-columns' option of the 'report' and other commands.

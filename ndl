@@ -12,6 +12,7 @@
 
 import sys
 import logging
+import argparse
 from pathlib import Path
 
 try:
@@ -89,8 +90,10 @@ def parse_arguments():
                          help=ToolsCommon.DATAPOINTS_DESCR)
     subpars.add_argument("--time-limit", dest="tlimit", metavar="LIMIT",
                          help=ToolsCommon.TIME_LIMIT_DESCR)
-    subpars.add_argument("--continue", dest="cont", action="store_true",
-                         help=ToolsCommon.CONTINUE_DESCR)
+    # This is a deprecated option. We keep it for backward compatibility. Remove it in 2022.
+    subpars.add_argument("--continue", dest="cont", action="store_true", help=argparse.SUPPRESS)
+    subpars.add_argument("--start-over", action="store_true", help=ToolsCommon.START_OVER_DESCR)
+
     arg = subpars.add_argument("-o", "--outdir", type=Path, help=ToolsCommon.START_OUTDIR_DESCR)
     if argcomplete:
         arg.completer = argcomplete.completers.DirectoriesCompleter()
@@ -235,7 +238,8 @@ def start_command(args):
             msg += f" -H {proc.hostname}"
         LOG.warning(msg)
 
-    with WORawResult.NdlWORawResult(args.reportid, args.outdir, VERSION, cont=args.cont) as res:
+    cont = not args.start_over
+    with WORawResult.NdlWORawResult(args.reportid, args.outdir, VERSION, cont=cont) as res:
         dpcnt = ToolsCommon.get_dpcnt(res, args.dpcnt)
         if not dpcnt:
             return
