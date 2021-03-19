@@ -91,9 +91,8 @@ static u64 get_time_after_idle(struct wult_device_info *wdi)
 
 	cyc1 = rdtsc_ordered();
 	/*
-	 * The first read from the NIC is sometimes exceptionally slow. Do a
-	 * 'warm up' read from the NIC, in order to make sure the subsequent
-	 * latch goes through fast.
+	 * The first read from the NIC is sometimes exceptionally slow. Measure
+	 * this "warm up" read separately.
 	 */
 	pci_flush_posted(nic);
 	cyc2 = rdtsc_ordered();
