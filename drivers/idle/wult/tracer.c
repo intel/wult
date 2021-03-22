@@ -21,6 +21,7 @@
 static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "SilentTime" },
 	{ .type = "u64", .name = "WakeLatency" },
+	{ .type = "u64", .name = "IntrLatency" },
 	{ .type = "u64", .name = "LDist" },
 	{ .type = "u64", .name = "SMI" },
 	{ .type = "u64", .name = "NMI" },
@@ -116,7 +117,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_trace_data_info *tdata = NULL;
 	struct cstate_info *csi;
-	u64 silent_time, wake_latency;
+	u64 silent_time, wake_latency, intr_latency;
 	int cnt = 0;
 
 	if (!ti->got_measurements)
@@ -132,14 +133,17 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 	silent_time = ti->ltime - ti->tbi;
 	wake_latency = ti->tai - ti->ltime;
+	intr_latency = ti->tintr - ti->ltime;
 	if (wdi->ops->time_to_ns) {
 		silent_time = wdi->ops->time_to_ns(wdi, silent_time);
 		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
+		intr_latency = wdi->ops->time_to_ns(wdi, intr_latency);
 	}
 
 	cnt += snprintf(ti->outbuf, OUTBUF_SIZE, COMMON_TRACE_FMT,
-			silent_time, wake_latency, ti->ldist, ti->smi, ti->nmi,
-			ti->req_cstate, ti->csinfo.tsc, ti->csinfo.mperf);
+			silent_time, wake_latency, intr_latency, ti->ldist,
+			ti->smi, ti->nmi, ti->req_cstate, ti->csinfo.tsc,
+			ti->csinfo.mperf);
 	if (cnt >= OUTBUF_SIZE)
 		goto out_too_small;
 
@@ -174,7 +178,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 	struct wult_trace_data_info *tdata = NULL;
 	struct synth_event_trace_state trace_state;
 	struct cstate_info *csi;
-	u64 silent_time, wake_latency;
+	u64 silent_time, wake_latency, intr_latency;
 	int err;
 
 	if (!ti->got_measurements)
@@ -194,9 +198,11 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 	silent_time = ti->ltime - ti->tbi;
 	wake_latency = ti->tai - ti->ltime;
+	intr_latency = ti->tintr - ti->ltime;
 	if (wdi->ops->time_to_ns) {
 		silent_time = wdi->ops->time_to_ns(wdi, silent_time);
 		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
+		intr_latency = wdi->ops->time_to_ns(wdi, intr_latency);
 	}
 
 	/* Add values of the common fields. */
@@ -204,6 +210,9 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(wake_latency, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(intr_latency, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->ldist, &trace_state);
