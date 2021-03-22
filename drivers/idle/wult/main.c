@@ -82,8 +82,9 @@ void wult_disable(void)
  * The delayed event device driver should call this function from its event
  * (interrupt) handler.
  */
-void wult_interrupt(u64 tint)
+void wult_interrupt(u64 tintr)
 {
+	wult_tracer_interrupt(&wi, tintr);
 	WRITE_ONCE(wi.event_cpu, smp_processor_id());
 	atomic_inc(&wi.events_happened);
 	wake_up(&wi.armer_wq);

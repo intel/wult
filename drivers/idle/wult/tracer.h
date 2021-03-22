@@ -41,6 +41,8 @@ struct wult_tracer_info {
 	struct wult_cstates_info csinfo;
 	/* Time before idle and after idle in cycles or nanoseconds. */
 	u64 tbi, tai;
+	/* Interrupt time. */
+	u64 tintr;
 	/* Launch time. */
 	u64 ltime;
 	/* Launch distance. */
@@ -71,4 +73,5 @@ void wult_tracer_disable(struct wult_info *wi);
 int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist);
 int wult_tracer_send_data(struct wult_info *wi);
 
+void wult_tracer_interrupt(struct wult_info *wi, u64 tintr);
 #endif

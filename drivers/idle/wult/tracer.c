@@ -81,6 +81,14 @@ static void after_idle(struct wult_info *wi)
 	ti->got_measurements = true;
 }
 
+/* Get measurements in the interrupt handler after idle. */
+void wult_tracer_interrupt(struct wult_info *wi, u64 tintr)
+{
+	struct wult_tracer_info *ti = &wi->ti;
+
+	ti->tintr = tintr;
+}
+
 /*
  * Arm an event 'ldist' nanoseconds from now. Returns the actual 'ldist' and
  * absolute launch time value in nanoseconds.
