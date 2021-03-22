@@ -125,21 +125,17 @@ static int delayed_event_device_init(struct wult_device_info *wdi,
 	if (err) {
 		wult_err("failed to initialize the delayed event device, error %d",
 			 err);
-		goto out_err;
+		return err;
 	}
 
 	if (wdi->ldist_gran > WULT_MAX_RESOLUTION) {
 		wult_err("device '%s' lauch distance resolution is %u ns, wich is too coarse, max is %d ns",
 			 wdi->devname, wdi->ldist_gran, WULT_MAX_RESOLUTION);
 		wi.wdi->ops->exit(wi.wdi);
-		err = -EINVAL;
-		goto out_err;
+		return -EINVAL;
 	}
 
-out_err:
-	wi.wdi->initialized = true;
-	wi.wdi->init_err = err;
-	return err;
+	return 0;
 }
 
 /*
@@ -157,7 +153,10 @@ static int armer_kthread(void *data)
 
 	/* Initialize the delayed event driver. */
 	err = delayed_event_device_init(wi.wdi, wi.cpunum);
-	/* Indicate that delayed event device initialization is complete */
+
+	/* Indicate that delayed event device initialization is complete. */
+	wi.initialized = true;
+	wi.init_err = err;
 	wake_up(&wi.armer_wq);
 	if (err)
 		return err;
@@ -282,9 +281,9 @@ int wult_register(struct wult_device_info *wdi)
 	wake_up_process(wi.armer);
 
 	/* Wait for the delayed event driver to finish initialization. */
-	wait_event(wi.armer_wq, wi.wdi->initialized);
-	if (wi.wdi->init_err) {
-		err = wi.wdi->init_err;
+	wait_event(wi.armer_wq, wi.initialized);
+	if (wi.init_err) {
+		err = wi.init_err;
 		goto err_tracer;
 	}
 

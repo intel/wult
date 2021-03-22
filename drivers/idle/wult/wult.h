@@ -89,10 +89,6 @@ struct wult_device_ops {
  * Wult delayed event device driver information.
  */
 struct wult_device_info {
-	/* Whether the device was initialized. */
-	bool initialized;
-	/* The initialization error code. */
-	int init_err;
 	/*
 	 * The launch distance range supported by the delayed event device in
 	 * nanoseconds.
@@ -143,6 +139,10 @@ struct wult_info {
 	struct wult_tracer_info ti;
 	/* The armer thread. */
 	struct task_struct *armer;
+	/* Whether the armer thread initialization is done. */
+	bool initialized;
+	/* The armer thread initialization error code. */
+	int init_err;
 	/* The wait queue for the armer thread to wait on. */
 	wait_queue_head_t armer_wq;
 	/* How many delayed events have been armed. */
