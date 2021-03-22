@@ -186,20 +186,7 @@ static int armer_kthread(void *data)
 		if (err)
 			goto error;
 
-		event_cpu = READ_ONCE(wi.event_cpu);
-		if (event_cpu != wi.cpunum && ++wrong_cpu_cnt > 128) {
-			wult_err("delayed event happened on CPU%u instead of CPU%u %u times, stop measuring",
-				 event_cpu, wi.cpunum, wrong_cpu_cnt);
-			goto error;
-		}
-
 		events_happened = atomic_read(&wi.events_happened);
-		events_armed = atomic_read(&wi.events_armed);
-		if (events_armed != events_happened) {
-			wult_err("events count mismatch: armed %u, got %u",
-				 events_armed, events_happened);
-			goto error;
-		}
 
 		ldist = pick_ldist();
 		err = wult_tracer_arm_event(&wi, &ldist);
@@ -214,6 +201,24 @@ static int armer_kthread(void *data)
 			 msecs_to_jiffies(timeout));
 		if (err == 0 && wi.enabled) {
 			wult_err("delayed event timed out, waited %ums", timeout);
+			goto error;
+		}
+
+		/* Check that the interrupt happend on the right CPU. */
+		event_cpu = READ_ONCE(wi.event_cpu);
+		if (event_cpu != wi.cpunum) {
+			if (wrong_cpu_cnt++ < 128)
+				continue;
+			wult_err("delayed event happened on CPU%u instead of CPU%u %u times, stop measuring",
+				 event_cpu, wi.cpunum, wrong_cpu_cnt);
+			goto error;
+		}
+
+		events_happened = atomic_read(&wi.events_happened);
+		events_armed = atomic_read(&wi.events_armed);
+		if (events_armed != events_happened) {
+			wult_err("events count mismatch: armed %u, got %u",
+				 events_armed, events_happened);
 			goto error;
 		}
 
