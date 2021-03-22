@@ -138,6 +138,17 @@ static int delayed_event_device_init(struct wult_device_info *wdi,
 	return 0;
 }
 
+/* Check if the armer threads runs on the correct CPU. */
+static inline int check_armer_cpunum(void)
+{
+	if (smp_processor_id() != wi.cpunum) {
+		wult_err("armer thread runs on CPU%u instead of CPU%u",
+			 smp_processor_id(), wi.cpunum);
+		return -EINVAL;
+	}
+	return 0;
+}
+
 /*
  * The armer kernel thread. The main function of this thread is to arm the
  * delayed timer.
@@ -151,15 +162,18 @@ static int armer_kthread(void *data)
 
 	wult_dbg("started on CPU%d", smp_processor_id());
 
+	err = check_armer_cpunum();
+	if (err)
+		goto init_error;
+
 	/* Initialize the delayed event driver. */
 	err = delayed_event_device_init(wi.wdi, wi.cpunum);
-
-	/* Indicate that delayed event device initialization is complete. */
-	wi.initialized = true;
-	wi.init_err = err;
-	wake_up(&wi.armer_wq);
 	if (err)
-		return err;
+		goto init_error;
+
+	/* Indicate that the initialization is complete. */
+	wi.initialized = true;
+	wake_up(&wi.armer_wq);
 
 	while (!kthread_should_stop()) {
 		/* Sleep until we are enabled or asked to exit. */
@@ -168,11 +182,9 @@ static int armer_kthread(void *data)
 		if (kthread_should_stop())
 			break;
 
-		if (smp_processor_id() != wi.cpunum) {
-			wult_err("armer thread runs on CPU%u instead of CPU%u",
-				 smp_processor_id(), wi.cpunum);
+		err = check_armer_cpunum();
+		if (err)
 			goto error;
-		}
 
 		event_cpu = READ_ONCE(wi.event_cpu);
 		if (event_cpu != wi.cpunum && ++wrong_cpu_cnt > 128) {
@@ -224,6 +236,12 @@ error:
 
 	wi.wdi->ops->exit(wi.wdi);
 	return -EINVAL;
+
+init_error:
+	wi.initialized = true;
+	wi.init_err = err;
+	wake_up(&wi.armer_wq);
+	return err;
 }
 
 /* Initialize wult device information object 'wdi'. */
