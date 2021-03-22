@@ -29,6 +29,16 @@ SilentTime:
     short_unit: "us"
     default_funcs: ["min", "max"]
     optional: False
+IntrLatency:
+    title: "Interrupt latency"
+    descr: >-
+        The time between the moment the delayed event was generated (launch time) till the moment
+        the interrupt handler of the delayed event was executed.
+    type: "float"
+    unit: "microsecond"
+    short_unit: "us"
+    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
+    optional: True
 LDist:
     title: "Launch Distance"
     descr: >-
