@@ -53,6 +53,8 @@ struct wult_tracer_info {
 	struct tracepoint *tp;
 	/* NMI and SMI interrupt counters. */
 	u32 nmi, smi;
+	/* The overhead of taking measurements after we woke up. */
+	u64 ai_overhead;
 	/* Whether the tracer have new any measurement data. */
 	bool got_measurements;
 #ifdef COMPAT_USE_TRACE_PRINTK
