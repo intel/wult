@@ -6,6 +6,7 @@ wult (1.8.15) unstable; urgency=low
   * man: generate man pages using 'argparse-manpage' tool.
   * wult: add support to configure dynamic load line feature.
   * wult: add the 'IntrLatency' metric (interrupt latency).
+  * wult: add the 'NMIWake' and 'NMIIntr' metrics (NMI counts).
 
 wult (1.8.14) unstable; urgency=low
 
