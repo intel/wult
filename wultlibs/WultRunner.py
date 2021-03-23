@@ -118,12 +118,15 @@ class WultRunner:
         # DerivedCC1Cyc - "total cycles" - "cycles in C-states other than CC1". So basically it is a
         #                 software-calculated CC1 cycles, which is useful to have because not every
         #                 Intel platform has a HW CC1 counter.
+        # IntrDelay - the interrupt delay.
         cyc = sum([dp[name] for name in dp if name.startswith("CC") and name != "CC1Cyc"])
         if self._is_intel:
             dp["DerivedCC1Cyc"] = dp["TotCyc"] - cyc
             dp["CStatesCyc"] = dp["TotCyc"] - dp["CC0Cyc"]
         else:
             dp["CStatesCyc"] = dp["TotCyc"] - cyc
+        if "IntrLatency" in dp:
+            dp["IntrDelay"] = dp["IntrLatency"] - dp["WakeLatency"]
 
         # Add the C-state percentages.
         for cscyc_colname, csres_colname in self._cs_colnames:
@@ -191,6 +194,8 @@ class WultRunner:
 
         # Add the more metrics to the raw header - we'll be injecting the values in
         # '_process_datapoint()'.
+        if "IntrLatency" in rawhdr:
+            rawhdr.insert(rawhdr.index("IntrLatency") + 1, "IntrDelay")
         if self._is_intel:
             rawhdr.insert(rawhdr.index("CC0Cyc") + 1, "DerivedCC1Cyc")
         rawhdr.append("CStatesCyc")

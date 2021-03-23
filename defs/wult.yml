@@ -39,6 +39,18 @@ IntrLatency:
     short_unit: "us"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
     optional: True
+IntrDelay:
+    title: "Interrupt delay"
+    descr: >-
+        Calculated as 'IntrLatency' - 'WakeLatency'. In other words, this is the delay from the
+        moment the CPU woke up from the C-state till the moment the CPU starts executing the delayed
+        event interrupt handler.
+    type: "float"
+    unit: "microsecond"
+    short_unit: "us"
+    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
+    optional: True
+
 LDist:
     title: "Launch Distance"
     descr: >-
