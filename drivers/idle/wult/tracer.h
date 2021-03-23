@@ -18,10 +18,10 @@
 #ifdef COMPAT_USE_TRACE_PRINTK
 /* Format string for the common part of trace output. */
 #define COMMON_TRACE_FMT "SilentTime=%llu WakeLatency=%llu IntrLatency=%llu " \
-			 "LDist=%llu SMI=%llu NMI=%llu ReqCState=%u " \
-			 "TotCyc=%llu CC0Cyc=%llu"
+			 "LDist=%llu ReqCState=%u TotCyc=%llu CC0Cyc=%llu" \
+			 "SMIWake=%llu NMIWake=%llu SMIIntr=%llu NMIIntr=%llu"
 
-/* Size of the measurement data output buffer */
+/* Size of the measurement data output buffer. */
 #define OUTBUF_SIZE 4096
 #else
 /*
@@ -51,8 +51,12 @@ struct wult_tracer_info {
 	int req_cstate;
 	/* The tracepoint we hook to. */
 	struct tracepoint *tp;
-	/* NMI and SMI interrupt counters. */
-	u32 nmi, smi;
+	/* SMI and NMI counters before idle. */
+	u32 smi_bi, nmi_bi;
+	/* SMI and NMI counters after idle. */
+	u32 smi_ai, nmi_ai;
+	/* SMI and NMI counters in the interrupt handler. */
+	u32 smi_intr, nmi_intr;
 	/* The overhead of taking measurements after we woke up. */
 	u64 ai_overhead;
 	/* Whether the tracer have new any measurement data. */

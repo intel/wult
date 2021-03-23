@@ -23,11 +23,13 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "WakeLatency" },
 	{ .type = "u64", .name = "IntrLatency" },
 	{ .type = "u64", .name = "LDist" },
-	{ .type = "u64", .name = "SMI" },
-	{ .type = "u64", .name = "NMI" },
 	{ .type = "unsigned int", .name = "ReqCState" },
 	{ .type = "u64", .name = "TotCyc" },
 	{ .type = "u64", .name = "CC0Cyc" },
+	{ .type = "u64", .name = "SMIWake" },
+	{ .type = "u64", .name = "NMIWake" },
+	{ .type = "u64", .name = "SMIIntr" },
+	{ .type = "u64", .name = "NMIIntr" },
 };
 #endif
 
@@ -47,6 +49,10 @@ static void before_idle(struct wult_info *wi, int req_cstate)
 
 	ti->got_measurements = false;
 	ti->req_cstate = req_cstate;
+
+	ti->smi_bi = get_smi_count();
+	ti->nmi_bi = per_cpu(irq_stat, wi->cpunum).__nmi_count;
+
 	wult_cstates_read_before(&ti->csinfo);
 	ti->tbi = wi->wdi->ops->get_time_before_idle(wi->wdi);
 }
@@ -77,9 +83,8 @@ static void after_idle(struct wult_info *wi)
 		/* The delayed event has already been served. */
 		return;
 
-	ti->smi = get_smi_count();
-	ti->nmi = per_cpu(irq_stat, wi->cpunum).__nmi_count;
-
+	ti->smi_ai = get_smi_count();
+	ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 	wult_cstates_calc(&ti->csinfo);
 	ti->got_measurements = true;
 
@@ -93,6 +98,8 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 tintr)
 	struct wult_tracer_info *ti = &wi->ti;
 
 	ti->tintr = tintr;
+	ti->smi_intr = get_smi_count();
+	ti->nmi_intr = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 }
 
 /*
@@ -148,8 +155,9 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 	cnt += snprintf(ti->outbuf, OUTBUF_SIZE, COMMON_TRACE_FMT,
 			silent_time, wake_latency, intr_latency, ti->ldist,
-			ti->smi, ti->nmi, ti->req_cstate, ti->csinfo.tsc,
-			ti->csinfo.mperf);
+			ti->req_cstate, ti->csinfo.tsc, ti->csinfo.mperf,
+			ti->smi_ai - ti->smi_bi, ti->nmi_ai - ti->nmi_bi,
+			ti->smi_intr - ti->smi_bi, ti->nmi_intr - ti->nmi_bi);
 	if (cnt >= OUTBUF_SIZE)
 		goto out_too_small;
 
@@ -225,12 +233,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 	err = synth_event_add_next_val(ti->ldist, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->smi, &trace_state);
-	if (err)
-		goto out_end;
-	err = synth_event_add_next_val(ti->nmi, &trace_state);
-	if (err)
-		goto out_end;
 	err = synth_event_add_next_val(ti->req_cstate, &trace_state);
 	if (err)
 		goto out_end;
@@ -238,6 +240,18 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->csinfo.mperf, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->smi_ai - ti->smi_bi, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->nmi_ai - ti->nmi_bi, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->smi_intr - ti->smi_bi, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->nmi_intr - ti->nmi_bi, &trace_state);
 	if (err)
 		goto out_end;
 
