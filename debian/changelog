@@ -5,6 +5,7 @@ wult (1.8.15) unstable; urgency=low
   * wult/ndl: deprecate '--continue' and add '--start-over' instead.
   * man: generate man pages using 'argparse-manpage' tool.
   * wult: add support to configure dynamic load line feature.
+  * wult: add the 'IntrLatency' metric (interrupt latency).
 
 wult (1.8.14) unstable; urgency=low
 
