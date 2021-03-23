@@ -137,7 +137,7 @@ class MSR:
 
         regval_bytes = regval.to_bytes(regsize, byteorder=_CPU_BYTEORDER)
         for cpu in cpus:
-            path = Path(f"/dev/cpu/{cpu}/regval")
+            path = Path(f"/dev/cpu/{cpu}/msr")
             try:
                 with self._proc.open(path, "wb") as fobj:
                     fobj.seek(regaddr)
