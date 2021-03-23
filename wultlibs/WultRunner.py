@@ -102,6 +102,17 @@ class WultRunner:
 
         dp = self._get_datapoint_dict(rawdp)
 
+        # Merge SMI and NMI counters.
+        # Note, the following counters were added in wult 1.8.14 (March 2020): SMIWake, NMIWake,
+        # SMIIntr, NMIIntr. This is why we have the 'if' statements below, which can probably be
+        # removed in the future.
+        if "NMIWake" in dp:
+            dp["NMIWake"] += dp["SMIWake"]
+            del dp["SMIWake"]
+        if "NMIIntr" in dp:
+            dp["NMIIntr"] += dp["SMIIntr"]
+            del dp["SMIIntr"]
+
         # Inject additional information to the datapoint.
         # CStatesCyc - combined count of CPU cycles in all non-CC0 C-states.
         # DerivedCC1Cyc - "total cycles" - "cycles in C-states other than CC1". So basically it is a
@@ -169,18 +180,16 @@ class WultRunner:
         rawhdr, rawdp = next(datapoints)
 
         self._rawhdr = list(rawhdr)
-
-        # We cannot check if an NMI/SMI happened for the first datapoint, so use it to get SMI/NMI
-        # counters, but do not save it. These counters will be used to detect SMI/NMI for the
-        # subsequent datapoints.
         dp = self._get_datapoint_dict(rawdp)
-        self._NMI_cnt = dp.get("NMI")
-        self._SMI_cnt = dp.get("SMI")
 
-        # SMI/NMI are not saved to CSV file, remove them from the header.
-        rawhdr = [col for col in rawhdr if col not in ("NMI", "SMI")]
+        # The driver profides SMI and NMI counters separately, so there are 4 counters. We sum them
+        # up, treating both SMI's (System Management Interrupts) and NMI's (Non-Maskable Interrupts)
+        # as NMI, becase SMI's are non-maskable too. So we turn 4 counters into 2 counters, for
+        # simplicity. Therefore, remove SMI counters from the header. We take care of the header
+        # here, the data will be taken care of in '_process_datapoint()'.
+        rawhdr = [col for col in rawhdr if not col.startswith("SMI")]
 
-        # Add the additional metrics to the raw header - we'll be injecting the values in
+        # Add the more metrics to the raw header - we'll be injecting the values in
         # '_process_datapoint()'.
         if self._is_intel:
             rawhdr.insert(rawhdr.index("CC0Cyc") + 1, "DerivedCC1Cyc")
@@ -392,8 +401,6 @@ class WultRunner:
         self._ftrace = None
         self._timeout = 10
         self._rawhdr = None
-        self._NMI_cnt = None
-        self._SMI_cnt = None
         self._cs_colnames = None
         self._us_colnames = None
         self._progress = None

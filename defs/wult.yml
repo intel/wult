@@ -145,6 +145,22 @@ PCxCyc:
     short_unit: "cyc"
     default_funcs: "all"
     optional: True
+NMIWake:
+    title: "NMI count while measuring 'WakeLatency'"
+    descr: >-
+        How many non-maskable interrupts (NMI) and system management interupts (SMI) happened while
+        measuring 'WakeLatency'. In other words, this is count of NMI/SMI after idle minus count of
+        NMI/SMI before idle.
+    type: "int"
+    optional: True
+NMIIntr:
+    title: "NMI count while measuring 'IntrLatency'"
+    descr: >-
+        How many non-maskable interrupts (NMI) and system management interupts (SMI) happened while
+        measuring 'IntrLatency'. In other words, this is count of NMI/SMI after idle minus count of
+        NMI/SMI in the delayed event interrupt handler.
+    type: "int"
+    optional: True
 WarmupDelay:
     title: "The I210 NIC link warm up delay"
     descr: >-
