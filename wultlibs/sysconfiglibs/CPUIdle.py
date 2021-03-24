@@ -23,7 +23,8 @@ from wultlibs.sysconfiglibs.CPUInfo import CPU_DESCR as _CPU_DESCR
 _SKX_PKG_CST_LIMITS = {"pc0": 0, "pc2": 1, "pc6n":2, "pc6r": 3, "unlimited": 7}
 
 # Package C-state limits are platform specific.
-_PKG_CST_LIMIT_MAP = {CPUInfo.INTEL_FAM6_ICELAKE_X: _SKX_PKG_CST_LIMITS,
+_PKG_CST_LIMIT_MAP = {CPUInfo.INTEL_FAM6_ICELAKE_D: _SKX_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_ICELAKE_X: _SKX_PKG_CST_LIMITS,
                       CPUInfo.INTEL_FAM6_SKYLAKE_X: _SKX_PKG_CST_LIMITS}
 
 _LOG = logging.getLogger()
