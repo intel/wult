@@ -303,7 +303,13 @@ class _IntelI210(_PCIDevice):
         name.
         """
 
-        with NetIface.NetIface(devid, proc=proc) as netif:
+        netif = None
+        try:
+            netif = NetIface.NetIface(devid, proc=proc)
+        except ErrorNotFound:
+            pass
+
+        if netif:
             # Make sure the device is not used for networking, because we are about to unbind it
             # from the driver. This check makes sure users do not lose networking by specifying
             # wrong device by a mistake.
@@ -315,8 +321,11 @@ class _IntelI210(_PCIDevice):
                 raise Error(f"refusing to use device '{devid}'{msg}{proc.hostmsg}: "
                             f"it is up and might be used for networking. Please, bring it down "
                             f"if you want to use it for wult measurements.")
+            hwaddr = netif.hwaddr
+        else:
+            hwaddr = devid
 
-            super().__init__(netif.hwaddr, cpunum, proc)
+        super().__init__(hwaddr, cpunum, proc)
 
 class _TimerBase(_WultDeviceBase):
     """
