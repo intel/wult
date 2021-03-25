@@ -66,7 +66,7 @@ static irqreturn_t interrupt_handler(int irq, void *data)
 
 	ns = read32(nic, I210_SYSTIML);
 	ns += read32(nic, I210_SYSTIMH) * NSEC_PER_SEC;
-	ns -= wult_cyc2ns(&nic->wdi, (cyc2 - cyc1) / 2);
+	ns -= wult_cyc2ns(&nic->wdi, cyc2 - cyc1);
 
 	wult_interrupt(ns);
 	return IRQ_HANDLED;
