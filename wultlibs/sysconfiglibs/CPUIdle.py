@@ -15,7 +15,8 @@ import logging
 from pathlib import Path
 from wultlibs.helperlibs import FSHelpers, Procs, Trivial
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
-from wultlibs.sysconfiglibs import CPUInfo, MSR
+from wultlibs.sysconfiglibs import CPUInfo
+from wultlibs.sysconfiglibs.msr import MSR
 from wultlibs.sysconfiglibs.CPUInfo import CPU_DESCR as _CPU_DESCR
 
 # Skylake Xeon Package C-state limits. There are other platfrorms that have the same limits, so we
