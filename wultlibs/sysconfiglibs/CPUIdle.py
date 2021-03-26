@@ -16,7 +16,7 @@ from pathlib import Path
 from wultlibs.helperlibs import FSHelpers, Procs, Trivial
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs.sysconfiglibs import CPUInfo
-from wultlibs.sysconfiglibs.msr import MSR
+from wultlibs.sysconfiglibs.msr import MSR, PCStateConfigCtl
 from wultlibs.sysconfiglibs.CPUInfo import CPU_DESCR as _CPU_DESCR
 
 # Skylake Xeon Package C-state limits. There are other platfrorms that have the same limits, so we
@@ -89,16 +89,17 @@ class CPUIdle:
 
         pcs_code = max(pcs_rmap)
         locked = False
-        for _, regval in msr.read_iter(MSR.MSR_PKG_CST_CONFIG_CONTROL, cpus=cpus):
+        for _, regval in msr.read_iter(PCStateConfigCtl.MSR_PKG_CST_CONFIG_CONTROL, cpus=cpus):
             # The C-state limit value is smallest found among all CPUs and locked bit is 'True' if
             # any of the registers has locked bit set, otherwise it is 'False'.
-            pcs_code = min(pcs_code, regval & MSR.MAX_PKG_C_STATE_MASK)
-            locked = any((locked, regval & MSR.bit_mask(MSR.CFG_LOCK)))
+            pcs_code = min(pcs_code, regval & PCStateConfigCtl.MAX_PKG_C_STATE_MASK)
+            locked = any((locked, regval & MSR.bit_mask(PCStateConfigCtl.CFG_LOCK)))
 
             if pcs_code not in pcs_rmap:
                 known_codes = ", ".join([str(code) for code in pcs_rmap])
                 raise Error(f"unexpected package C-state limit code '{pcs_code}' read from "
-                            f"'PKG_CST_CONFIG_CONTROL' MSR ({MSR.MSR_PKG_CST_CONFIG_CONTROL})"
+                            f"'PKG_CST_CONFIG_CONTROL' MSR "
+                            f"({PCStateConfigCtl.MSR_PKG_CST_CONFIG_CONTROL})"
                             f"{self._proc.hostmsg}, known codes are: {known_codes}")
 
         return (pcs_code, locked)
@@ -168,15 +169,16 @@ class CPUIdle:
                 cpus.append(core_cpus[0])
 
         with MSR.MSR(proc=self._proc) as msr:
-            for cpu, regval in msr.read_iter(MSR.MSR_PKG_CST_CONFIG_CONTROL, cpus=cpus):
-                if regval & MSR.bit_mask(MSR.CFG_LOCK):
+            for cpu, regval in msr.read_iter(PCStateConfigCtl.MSR_PKG_CST_CONFIG_CONTROL,
+                                             cpus=cpus):
+                if regval & MSR.bit_mask(PCStateConfigCtl.CFG_LOCK):
                     raise Error(f"cannot set package C-state limit{self._proc.hostmsg} for CPU "
-                                f"'{cpu}', MSR ({MSR.MSR_PKG_CST_CONFIG_CONTROL}) is locked. "
-                                f"Sometimes, depending on the vendor, there is a BIOS knob to "
-                                f"unlock it.")
+                                f"'{cpu}', MSR ({PCStateConfigCtl.MSR_PKG_CST_CONFIG_CONTROL}) is "
+                                f"locked. Sometimes, depending on the vendor, there is a BIOS knob "
+                                f"to unlock it.")
 
                 regval = (regval & ~0x07) | limit_val
-                msr.write(MSR.MSR_PKG_CST_CONFIG_CONTROL, regval, cpus=cpu)
+                msr.write(PCStateConfigCtl.MSR_PKG_CST_CONFIG_CONTROL, regval, cpus=cpu)
 
     def _get_cstate_indexes(self, cpu):
         """Yield tuples of of C-state indexes and sysfs paths for cpu number 'cpu'."""
