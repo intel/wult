@@ -162,6 +162,19 @@ class MSR:
             if regval != new_regval:
                 self.write(regaddr, new_regval, regsize, cpunum)
 
+    def toggle_bit(self, regaddr, bitnr, bitval, regsize=8, cpus="all"):
+        """
+        Toggle bit number 'bitnr', in MSR 'regaddr' to value 'bitval'. Other arguments are the same
+        as in 'write()'.
+        """
+
+        regsize, cpus = self._handle_arguments(regsize, cpus)
+
+        if bitval:
+            self.set(regaddr, bit_mask(bitnr), regsize=regsize, cpus=cpus)
+        else:
+            self.clear(regaddr, bit_mask(bitnr), regsize=regsize, cpus=cpus)
+
     def __init__(self, proc=None):
         """The class constructor."""
 

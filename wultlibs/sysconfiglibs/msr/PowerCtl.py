@@ -34,18 +34,6 @@ class PowerCtl:
     model-specific register found on many Intel platforms.
     """
 
-    def _toggle_bit(self, bitnr, bitval, cpus="all"):
-        """
-        Set or clear bit number 'bitnr' in POWER_CTL MSR for CPUs 'cpus'. The 'cpus' argument is the
-        same as the 'cpus' argument of the 'CPUIdle.get_cstates_info()' function - please, refer to
-        the 'CPUIdle' module for the exact format description.
-        """
-
-        if bitval:
-            self._msr.set(MSR_POWER_CTL, MSR.bit_mask(bitnr), cpus=cpus)
-        else:
-            self._msr.clear(MSR_POWER_CTL, MSR.bit_mask(bitnr), cpus=cpus)
-
     def c1e_autopromote_enabled(self, cpu):
         """
         Returns 'True' if C1E autopromotion is enabled for CPU 'cpu', otherwise returns 'False'.
@@ -56,10 +44,11 @@ class PowerCtl:
 
     def set_c1e_autopromote(self, enable: bool, cpus="all"):
         """
-        Enable or disable C1E autopromote for CPUs 'cpus'. The 'cpus' argument is the same as in
-        '_toggle_bit()'.
+        Enable or disable C1E autopromote for CPUs 'cpus'. The 'cpus' argument is the same as the
+        'cpus' argument of the 'CPUIdle.get_cstates_info()' function - please, refer to the
+        'CPUIdle' module for the exact format description.
         """
-        self._toggle_bit(C1E_ENABLE, int(enable), cpus)
+        self._msr.toggle_bit(MSR_POWER_CTL, C1E_ENABLE, int(enable), cpus=cpus)
 
     def cstate_prewake_enabled(self, cpu):
         """Returns 'True' if C-state prewake is enabled for CPU 'cpu', otherwise returns 'False'."""
@@ -70,9 +59,9 @@ class PowerCtl:
     def set_cstate_prewake(self, enable: bool, cpus="all"):
         """
         Enable or disable C-state prewake for CPUs 'cpus'. The 'cpus' argument is the same as in
-        '_toggle_bit()'.
+        'set_c1e_autopromote()'.
         """
-        self._toggle_bit(CSTATE_PREWAKE_DISABLE, int(not enable), cpus)
+        self._msr.toggle_bit(MSR_POWER_CTL, CSTATE_PREWAKE_DISABLE, int(not enable), cpus=cpus)
 
     def _check_dll_support(self):
         """
@@ -93,11 +82,12 @@ class PowerCtl:
     def set_dll(self, enable: bool, cpus="all"):
         """
         Enable or disable Dynamic Load Line (DLL) for CPUs 'cpus'. The 'cpus' argument is the same
-        as in '_toggle_bit()'.
+        as in 'set_c1e_autopromote()'.
         """
 
         self._check_dll_support()
-        self._toggle_bit(PWR_PERF_TUNING_ENABLE_DYN_SWITCHING, int(enable), cpus)
+        self._msr.toggle_bit(MSR_POWER_CTL, PWR_PERF_TUNING_ENABLE_DYN_SWITCHING, int(enable),
+                             cpus=cpus)
 
     def dll_enabled(self, cpu):
         """
