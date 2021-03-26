@@ -379,7 +379,7 @@ class WultRunner:
             raise Error(f"unsupported idle driver '{drvname}'{self._proc.hostmsg},\n"
                         f"only the following drivers are supported: {supported}")
 
-    def __init__(self, proc, dev, res, ldist=None, csinfo=None):
+    def __init__(self, proc, dev, res, ldist=None, csinfo=None, lscpu_info=None):
         """
         The class constructor. The arguments are as follows.
           * proc - the 'Proc' or 'SSH' object that defines the host to run the measurements on.
@@ -434,7 +434,9 @@ class WultRunner:
         if not cstates_present:
             raise Error(f"no C-states enabled on CPU {res.cpunum}")
 
-        self._is_intel = CPUInfo.get_lscpu_info(proc=proc)["vendor"] == "GenuineIntel"
+        if not lscpu_info:
+            lscpu_info = CPUInfo.get_lscpu_info(proc=proc)
+        self._is_intel = lscpu_info["vendor"] == "GenuineIntel"
         self._sysctl = Systemctl.Systemctl(proc=proc)
         self._has_irqbalance = self._sysctl.is_active("irqbalance")
 
