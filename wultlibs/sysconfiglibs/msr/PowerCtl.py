@@ -48,7 +48,7 @@ class PowerCtl:
         'cpus' argument of the 'CPUIdle.get_cstates_info()' function - please, refer to the
         'CPUIdle' module for the exact format description.
         """
-        self._msr.toggle_bit(MSR_POWER_CTL, C1E_ENABLE, int(enable), cpus=cpus)
+        self._msr.toggle_bit(MSR_POWER_CTL, C1E_ENABLE, enable, cpus=cpus)
 
     def cstate_prewake_enabled(self, cpu):
         """Returns 'True' if C-state prewake is enabled for CPU 'cpu', otherwise returns 'False'."""
@@ -61,7 +61,7 @@ class PowerCtl:
         Enable or disable C-state prewake for CPUs 'cpus'. The 'cpus' argument is the same as in
         'set_c1e_autopromote()'.
         """
-        self._msr.toggle_bit(MSR_POWER_CTL, CSTATE_PREWAKE_DISABLE, int(not enable), cpus=cpus)
+        self._msr.toggle_bit(MSR_POWER_CTL, CSTATE_PREWAKE_DISABLE, not enable, cpus=cpus)
 
     def _check_dll_support(self):
         """
@@ -86,8 +86,7 @@ class PowerCtl:
         """
 
         self._check_dll_support()
-        self._msr.toggle_bit(MSR_POWER_CTL, PWR_PERF_TUNING_ENABLE_DYN_SWITCHING, int(enable),
-                             cpus=cpus)
+        self._msr.toggle_bit(MSR_POWER_CTL, PWR_PERF_TUNING_ENABLE_DYN_SWITCHING, enable, cpus=cpus)
 
     def dll_enabled(self, cpu):
         """
