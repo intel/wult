@@ -14,12 +14,24 @@ This module provides API for generating HTML reports for wult test results.
 from wultlibs.reportlibs import _HTMLReportBase
 from wultlibs.helperlibs import Trivial
 
-# The default regular expressions for the CSV file column names which are used for X-axes, Y-axes
-# and historgrams.
-DEFAULT_XAXES = "SilentTime,LDist"
-DEFAULT_YAXES = r".*Latency,.*Delay,(Derived)?[PC]C.+%,SilentTime,ReqCState,CStates.*"
-DEFAULT_HIST = f"{DEFAULT_YAXES},LDist"
-DEFAULT_CHIST = r".*Latency"
+# The constants below define the diagrams and histograms that are included into a report. There are
+# 3 groups of constands - for a small report, a medium report, and large report. The former includes
+# minimum amount of diagrams/histograms, the latter includes all of them.
+DEFAULT_XAXES = MEDIUM_XAXES = "SilentTime"
+DEFAULT_YAXES = MEDIUM_YAXES = r".*Latency,.*Delay"
+DEFAULT_HIST = MEDIUM_HIST = f"{DEFAULT_YAXES}"
+DEFAULT_CHIST = MEDIUM_CHIST = r".*Latency"
+
+SMALL_XAXES = "SilentTime"
+SMALL_YAXES = r"WakeLatency,WarmupDelay,LatchDelay"
+SMALL_HIST = f"{SMALL_YAXES}"
+SMALL_CHIST = r"WakeLatency"
+
+LARGE_XAXES = "SilentTime,LDist"
+LARGE_YAXES = r".*Latency,.*Delay,(Derived)?[PC]C.+%,SilentTime,ReqCState,CStates.*"
+LARGE_HIST = f"{LARGE_YAXES},LDist"
+LARGE_CHIST = r".*Latency"
+
 # All diagrams and histograms with the combinations of EXCLUDE_XAXES and EXCLUDE_YAXES will not be
 # included to the report. By default this will be all "Whatever vs LDist" diagram, except for
 # "SilentTime vs LDist". The reason is that 'SilentTime' and 'LDist' are highly correlated, and it
