@@ -1,4 +1,4 @@
-wult (1.8.15) unstable; urgency=low
+wult (1.9.0) unstable; urgency=low
 
   * wult: add new 'CStates%' metric for combined C-state residency.
   * wult: print helpful message about settings possibly affecting results.
