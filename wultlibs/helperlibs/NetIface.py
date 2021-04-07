@@ -18,7 +18,7 @@ import time
 import contextlib
 from pathlib import Path
 from collections import namedtuple
-from wultlibs.sysconfiglibs import LsPCI
+from wultlibs.pepclibs import LsPCI
 from wultlibs.helperlibs import FSHelpers, Procs, Trivial
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
 

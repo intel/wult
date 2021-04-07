@@ -12,8 +12,8 @@ model-specific register found on many Intel platforms.
 """
 
 from wultlibs.helperlibs import Procs
-from wultlibs.sysconfiglibs import CPUInfo
-from wultlibs.sysconfiglibs.msr import MSR
+from wultlibs.pepclibs import CPUInfo
+from wultlibs.pepclibs.msr import MSR
 from wultlibs.helperlibs.Exceptions import ErrorNotSupported
 
 # Power control Model Specific Register.

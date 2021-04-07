@@ -18,7 +18,7 @@ import contextlib
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from wultlibs.sysconfiglibs import LsPCI
+from wultlibs.pepclibs import LsPCI
 from wultlibs.helperlibs import FSHelpers, Dmesg, NetIface
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 

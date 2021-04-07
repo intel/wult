@@ -24,7 +24,7 @@ from wultlibs import Devices
 from wultlibs.helperlibs import Logging, Trivial, FSHelpers, KernelVersion, Procs, SSH, YAML, Human
 from wultlibs.helperlibs import ReportID
 from wultlibs.helperlibs.Exceptions import Error
-from wultlibs.sysconfiglibs import CPUInfo
+from wultlibs.pepclibs import CPUInfo
 from wultlibs.rawresultlibs import RORawResult
 
 HELPERS_LOCAL_DIR = Path(".local")

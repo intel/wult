@@ -28,8 +28,8 @@ from wultlibs.helperlibs import Logging, ArgParse, ReportID, Trivial, KernelVers
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs.reportlibs import WultHTMLReport
 from wultlibs.rawresultlibs import WORawResult
-from wultlibs.sysconfiglibs import CPUIdle, CPUInfo
-from wultlibs.sysconfiglibs.msr import PowerCtl
+from wultlibs.pepclibs import CPUIdle, CPUInfo
+from wultlibs.pepclibs.msr import PowerCtl
 from wultlibs import ToolsCommon, Devices, EventsProvider, WultRunner
 
 VERSION = "1.9.0"

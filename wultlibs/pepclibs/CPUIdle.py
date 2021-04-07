@@ -15,7 +15,7 @@ import logging
 from pathlib import Path
 from wultlibs.helperlibs import FSHelpers, Procs, Trivial
 from wultlibs.helperlibs.Exceptions import Error
-from wultlibs.sysconfiglibs import CPUInfo
+from wultlibs.pepclibs import CPUInfo
 
 _LOG = logging.getLogger()
 

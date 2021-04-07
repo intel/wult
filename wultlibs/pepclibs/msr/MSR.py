@@ -15,7 +15,7 @@ import logging
 from pathlib import Path
 from wultlibs.helperlibs import Procs
 from wultlibs.helperlibs.Exceptions import Error
-from wultlibs.sysconfiglibs import CPUInfo
+from wultlibs.pepclibs import CPUInfo
 
 _CPU_BYTEORDER = "little"
 

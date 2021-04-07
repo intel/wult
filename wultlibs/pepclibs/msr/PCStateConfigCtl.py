@@ -12,9 +12,9 @@ model-specific register found on many Intel platforms.
 """
 
 from wultlibs.helperlibs import Procs
-from wultlibs.sysconfiglibs import CPUInfo
-from wultlibs.sysconfiglibs.msr import MSR
-from wultlibs.sysconfiglibs.CPUInfo import CPU_DESCR as _CPU_DESCR
+from wultlibs.pepclibs import CPUInfo
+from wultlibs.pepclibs.msr import MSR
+from wultlibs.pepclibs.CPUInfo import CPU_DESCR as _CPU_DESCR
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
 
 # Package C-state configuration control Model Specific Register.
