@@ -262,8 +262,8 @@ def start_command(args):
         with NetIface.NetIface(args.ifname, proc=proc) as netif:
             info = netif.get_pci_info()
             if info.get("aspm_enabled"):
-                LOG.notice("PCI ASPM is enabled for the network interface device '%s', and this "
-                           "typically increases the measured latency.", args.ifname)
+                LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "
+                           "the measured latency.", args.ifname)
 
             with NdlRunner.NdlRunner(proc, netif, res, ndlrunner_bin, ldist=args.ldist) as runner:
                 runner.prepare()
