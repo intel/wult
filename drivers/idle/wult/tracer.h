@@ -18,7 +18,7 @@
 #ifdef COMPAT_USE_TRACE_PRINTK
 /* Format string for the common part of trace output. */
 #define COMMON_TRACE_FMT "SilentTime=%llu WakeLatency=%llu IntrLatency=%llu " \
-			 "LDist=%llu ReqCState=%u TotCyc=%llu CC0Cyc=%llu" \
+			 "LDist=%llu ReqCState=%u TotCyc=%llu CC0Cyc=%llu " \
 			 "SMIWake=%llu NMIWake=%llu SMIIntr=%llu NMIIntr=%llu"
 
 /* Size of the measurement data output buffer. */
