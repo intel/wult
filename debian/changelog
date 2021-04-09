@@ -1,6 +1,18 @@
-wult (1.9.1) unstable; urgency=low
+wult (XXXXXX) unstable; urgency=low
 
   * wult: include less diagrams into report by default.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  XXXXXXXXXXXXXXXXXXXXX
+
+wult (1.9.1) unstable; urgency=low
+
+  * wult: fix regression and do not fail with pre-v5.6 kernels.
+  * wult: fix warnings for old kernels (pre-v5.3).
+  * wult: improve Icelake-D support.
+  * wult: fix a failure acception an i210 NIC by its PCI ID.
+  * wult: fix interrupt latency figures.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 09 Apr 2021 09:41:08 +0300
 
 wult (1.9.0) unstable; urgency=low
 
