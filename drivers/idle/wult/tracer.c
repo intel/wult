@@ -301,7 +301,9 @@ static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_
 			before_idle_called = false;
 		}
 	} else {
+#ifndef COMPAT_PECULIAR_TRACE_PROBE
 		WARN_ON(before_idle_called);
+#endif
 		before_idle(data, req_cstate);
 		before_idle_called = true;
 	}
