@@ -242,6 +242,14 @@ class MSR:
         else:
             self._clear(regaddr, mask, regsize, cpus)
 
+    def _toggle_bit(self, regaddr, bitnr, bitval, regsize, cpus):
+        """Implements the 'toggle_bit()' function (local case and unoptimized remote case)."""
+
+        if bitval:
+            self.set(regaddr, bit_mask(bitnr), regsize=regsize, cpus=cpus)
+        else:
+            self.clear(regaddr, bit_mask(bitnr), regsize=regsize, cpus=cpus)
+
     def toggle_bit(self, regaddr, bitnr, bitval, regsize=8, cpus="all"):
         """
         Toggle bit number 'bitnr', in MSR 'regaddr' to value 'bitval'. Other arguments are the same
@@ -250,10 +258,10 @@ class MSR:
 
         regsize, cpus = self._handle_arguments(regsize, cpus)
 
-        if bitval:
-            self.set(regaddr, bit_mask(bitnr), regsize=regsize, cpus=cpus)
+        if self._remote_run_ok:
+            self._run_on_remote_host("toggle_bit", regaddr, bitnr, bitval, regsize, cpus)
         else:
-            self.clear(regaddr, bit_mask(bitnr), regsize=regsize, cpus=cpus)
+            self._toggle_bit(regaddr, bitnr, bitval, regsize, cpus)
 
     def _can_run_on_remote_host(self):
         """Returns 'True' if commands can be executed on remote host, returns 'False' otherwise."""
@@ -329,7 +337,7 @@ def main():
 
     # Allow calls to public methods only.
     mname = sys.argv[1]
-    allowed_methods = ("read", "read_iter", "write", "set", "clear")
+    allowed_methods = ("read", "read_iter", "write", "set", "clear", "toggle_bit")
     if mname not in allowed_methods:
         msg = f"can't run method '{mname}', use one of: {','.join(allowed_methods)}"
         _LOG.error_out(msg)
