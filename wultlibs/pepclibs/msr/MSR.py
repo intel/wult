@@ -13,10 +13,8 @@ has been designed and implemented for Intel CPUs.
 
 import sys
 import logging
-import contextlib
 from pathlib import Path
-from hashlib import sha256
-from wultlibs.helperlibs import ArgParse, Procs, Logging, Trivial
+from wultlibs.helperlibs import ArgParse, Procs, Logging, Trivial, FSHelpers
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.pepclibs import CPUInfo
 
@@ -80,18 +78,6 @@ class MSR:
         cpus = self._cpuinfo.get_cpu_list(cpus)
 
         return (regsize, cpus)
-
-    @staticmethod
-    def _get_sha256(path, proc):
-        """Calculate sha256 checksum of the file 'path' on the host defined by 'proc'."""
-
-        checksum = None
-        with contextlib.suppress(Error):
-            with proc.open(path, "rb") as fobj:
-                data = fobj.read()
-                checksum = sha256(data).hexdigest()
-
-        return checksum
 
     def _run_on_remote_host(self, method, *args):
         """"Run MSR method 'method' on remote host."""
@@ -275,8 +261,8 @@ class MSR:
         except Error:
             return False
 
-        rchksum = self._get_sha256(self._rpath, self._proc)
-        lchksum = self._get_sha256(__file__, Procs.Proc())
+        rchksum = FSHelpers.get_sha256(self._rpath, default=None, proc=self._proc)
+        lchksum = FSHelpers.get_sha256(__file__, default=None, proc=Procs.Proc())
 
         if lchksum != rchksum or not lchksum:
             return False

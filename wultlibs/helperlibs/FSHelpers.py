@@ -15,8 +15,9 @@ import sys
 import stat
 import shutil
 import logging
-from collections import namedtuple
 from pathlib import Path
+from hashlib import sha256
+from collections import namedtuple
 from wultlibs.helperlibs import Procs, Trivial
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotFound
 
@@ -27,6 +28,27 @@ DEBUGFS_MOUNT_POINT = Path("/sys/kernel/debug")
 _RAISE = object()
 
 _LOG = logging.getLogger()
+
+def get_sha256(path, default=_RAISE, proc=None):
+    """
+    Calculate sha256 checksum of the file 'path' on the host defined by 'proc'. The'default'
+    argument can be used as an return value instead of raising an error.
+    """
+
+    if not proc:
+        proc = Procs.Proc()
+
+    try:
+        with proc.open(path, "rb") as fobj:
+            data = fobj.read()
+            checksum = sha256(data).hexdigest()
+    except Error as err:
+        if default is _RAISE:
+            raise Error(f"cannot calculate sha256 checksum for the file '{path}'{proc.hostmsg}:\n"
+                        f"{err}") from err
+        return default
+
+    return checksum
 
 def set_default_perm(path):
     """
