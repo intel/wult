@@ -23,13 +23,14 @@ CFG_LOCK = 15
 C1_AUTO_DEMOTION_ENABLE = 26
 MAX_PKG_C_STATE_MASK = 0xF
 
-# Skylake Xeon Package C-state limits. There are other platfrorms that have the same limits, so we
-# use this dictionary for them too.
+# Icelake Xeon Package C-state limits.
+_ICX_PKG_CST_LIMITS = {"pc0": 0, "pc2": 1, "pc6n":2, "unlimited" : 7}
+# Sky-/Cascade-/Cooper- lake Xeon Package C-state limits.
 _SKX_PKG_CST_LIMITS = {"pc0": 0, "pc2": 1, "pc6n":2, "pc6r": 3, "unlimited": 7}
 
 # Package C-state limits are platform specific.
-_PKG_CST_LIMIT_MAP = {CPUInfo.INTEL_FAM6_ICELAKE_D: _SKX_PKG_CST_LIMITS,
-                      CPUInfo.INTEL_FAM6_ICELAKE_X: _SKX_PKG_CST_LIMITS,
+_PKG_CST_LIMIT_MAP = {CPUInfo.INTEL_FAM6_ICELAKE_D: _ICX_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_ICELAKE_X: _ICX_PKG_CST_LIMITS,
                       CPUInfo.INTEL_FAM6_SKYLAKE_X: _SKX_PKG_CST_LIMITS}
 
 class PCStateConfigCtl:
