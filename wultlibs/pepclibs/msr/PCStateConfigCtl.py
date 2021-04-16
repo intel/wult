@@ -24,9 +24,11 @@ C1_AUTO_DEMOTION_ENABLE = 26
 MAX_PKG_C_STATE_MASK = 0xF
 
 # Icelake Xeon Package C-state limits.
-_ICX_PKG_CST_LIMITS = {"codes" : {"pc0": 0, "pc2": 1, "pc6n":2, "unlimited" : 7}}
+_ICX_PKG_CST_LIMITS = {"codes"   : {"pc0": 0, "pc2": 1, "pc6n":2, "unlimited" : 7},
+                       "aliases" : {"pc6": "pc6n"}}
 # Sky-/Cascade-/Cooper- lake Xeon Package C-state limits.
-_SKX_PKG_CST_LIMITS = {"codes" : {"pc0": 0, "pc2": 1, "pc6n":2, "pc6r": 3, "unlimited": 7}}
+_SKX_PKG_CST_LIMITS = {"codes"   : {"pc0": 0, "pc2": 1, "pc6n":2, "pc6r": 3, "unlimited": 7},
+                       "aliases" : {"pc6": "pc6r"}}
 
 # Package C-state limits are platform specific.
 _PKG_CST_LIMIT_MAP = {CPUInfo.INTEL_FAM6_ICELAKE_D: _ICX_PKG_CST_LIMITS,
