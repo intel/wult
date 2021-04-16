@@ -109,8 +109,7 @@ class PCStateConfigCtl:
         """
 
         self._check_cpu_pcstate_limit_support()
-
-        return _PKG_CST_LIMIT_MAP[self._lscpu_info["model"]]["codes"]
+        return _PKG_CST_LIMIT_MAP[self._lscpu_info["model"]]
 
     def get_pcstate_limit(self, pkgs="all"):
         """
