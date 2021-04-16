@@ -243,6 +243,7 @@ class MSR:
         """
 
         regsize, cpus = self._handle_arguments(regsize, cpus)
+        bitval = int(bool(bitval))
 
         if self._remote_run_ok:
             self._run_on_remote_host("toggle_bit", regaddr, bitnr, bitval, regsize, cpus)
