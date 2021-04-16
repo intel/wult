@@ -70,12 +70,20 @@ class PCStateConfigCtl:
         model = self._lscpu_info["model"]
 
         pcs_limit = str(pcs_limit)
-        limit_val = _PKG_CST_LIMIT_MAP[model]["codes"].get(pcs_limit.lower())
+        codes = _PKG_CST_LIMIT_MAP[model]["codes"]
+        aliases = _PKG_CST_LIMIT_MAP[model]["aliases"]
+
+        if pcs_limit in aliases:
+            pcs_limit = aliases[pcs_limit]
+
+        limit_val = codes.get(pcs_limit.lower())
         if limit_val is None:
-            limits_str = ", ".join(_PKG_CST_LIMIT_MAP[model]["codes"])
+            codes_str = ", ".join(codes)
+            aliases_str = ", ".join(aliases)
             raise Error(f"cannot limit package C-state{self._proc.hostmsg}, '{pcs_limit}' is "
                         f"not supported for CPU {_CPU_DESCR[model]} (CPU model {hex(model)}).\n"
-                        f"The supported package C-states are: {limits_str}")
+                        f"Supported package C-states are: {codes_str}.\n"
+                        f"Supported package C-state alias names are: {aliases_str}")
         return limit_val
 
     def _get_pcstate_limit(self, cpus, pcs_rmap):
