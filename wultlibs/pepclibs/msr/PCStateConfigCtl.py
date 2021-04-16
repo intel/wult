@@ -24,9 +24,9 @@ C1_AUTO_DEMOTION_ENABLE = 26
 MAX_PKG_C_STATE_MASK = 0xF
 
 # Icelake Xeon Package C-state limits.
-_ICX_PKG_CST_LIMITS = {"pc0": 0, "pc2": 1, "pc6n":2, "unlimited" : 7}
+_ICX_PKG_CST_LIMITS = {"codes" : {"pc0": 0, "pc2": 1, "pc6n":2, "unlimited" : 7}}
 # Sky-/Cascade-/Cooper- lake Xeon Package C-state limits.
-_SKX_PKG_CST_LIMITS = {"pc0": 0, "pc2": 1, "pc6n":2, "pc6r": 3, "unlimited": 7}
+_SKX_PKG_CST_LIMITS = {"codes" : {"pc0": 0, "pc2": 1, "pc6n":2, "pc6r": 3, "unlimited": 7}}
 
 # Package C-state limits are platform specific.
 _PKG_CST_LIMIT_MAP = {CPUInfo.INTEL_FAM6_ICELAKE_D: _ICX_PKG_CST_LIMITS,
@@ -69,9 +69,9 @@ class PCStateConfigCtl:
 
         limit_val = None
         if pcs_limit:
-            limit_val = _PKG_CST_LIMIT_MAP[model].get(pcs_limit.lower())
+            limit_val = _PKG_CST_LIMIT_MAP[model]["codes"].get(pcs_limit.lower())
             if limit_val is None:
-                limits_str = ", ".join(_PKG_CST_LIMIT_MAP[model])
+                limits_str = ", ".join(_PKG_CST_LIMIT_MAP[model]["codes"])
                 raise Error(f"cannot limit package C-state{self._proc.hostmsg}, '{pcs_limit}' is "
                             f"not supported for CPU {_CPU_DESCR[model]} (CPU model {hex(model)}).\n"
                             f"The supported package C-states are: {limits_str}")
@@ -108,7 +108,7 @@ class PCStateConfigCtl:
 
         self._check_cpu_pcstate_limit_support()
 
-        return _PKG_CST_LIMIT_MAP[self._lscpu_info["model"]]
+        return _PKG_CST_LIMIT_MAP[self._lscpu_info["model"]]["codes"]
 
     def get_pcstate_limit(self, pkgs="all"):
         """
@@ -132,7 +132,7 @@ class PCStateConfigCtl:
 
         model = self._lscpu_info["model"]
         # Get package C-state integer code -> name dictionary.
-        pcs_rmap = {code:name for name, code in _PKG_CST_LIMIT_MAP[model].items()}
+        pcs_rmap = {code:name for name, code in _PKG_CST_LIMIT_MAP[model]["codes"].items()}
 
         limits = {}
         for pkg in pkgs:
