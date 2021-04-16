@@ -69,15 +69,14 @@ class PCStateConfigCtl:
 
         model = self._lscpu_info["model"]
 
-        limit_val = None
-        if pcs_limit:
-            limit_val = _PKG_CST_LIMIT_MAP[model]["codes"].get(pcs_limit.lower())
-            if limit_val is None:
-                limits_str = ", ".join(_PKG_CST_LIMIT_MAP[model]["codes"])
-                raise Error(f"cannot limit package C-state{self._proc.hostmsg}, '{pcs_limit}' is "
-                            f"not supported for CPU {_CPU_DESCR[model]} (CPU model {hex(model)}).\n"
-                            f"The supported package C-states are: {limits_str}")
-        return int(limit_val)
+        pcs_limit = str(pcs_limit)
+        limit_val = _PKG_CST_LIMIT_MAP[model]["codes"].get(pcs_limit.lower())
+        if limit_val is None:
+            limits_str = ", ".join(_PKG_CST_LIMIT_MAP[model]["codes"])
+            raise Error(f"cannot limit package C-state{self._proc.hostmsg}, '{pcs_limit}' is "
+                        f"not supported for CPU {_CPU_DESCR[model]} (CPU model {hex(model)}).\n"
+                        f"The supported package C-states are: {limits_str}")
+        return limit_val
 
     def _get_pcstate_limit(self, cpus, pcs_rmap):
         """
