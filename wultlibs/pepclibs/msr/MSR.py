@@ -14,7 +14,7 @@ has been designed and implemented for Intel CPUs.
 import sys
 import logging
 from pathlib import Path
-from wultlibs.helperlibs import ArgParse, Procs, Logging, Trivial, FSHelpers
+from wultlibs.helperlibs import ArgParse, Procs, Logging, Trivial, FSHelpers, KernelModule
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.pepclibs import CPUInfo
 
@@ -270,6 +270,35 @@ class MSR:
 
         return True
 
+    def _check_dev_path(self):
+        """
+        Check if MSR device path exists and we are able to read/write MSR registers. Raises an error
+        if MSR access is not possible.
+        """
+
+        dev_path = Path("/dev/cpu/0/msr")
+        if FSHelpers.exists(dev_path, self._proc):
+            return
+
+        msg = f"file '{dev_path}' is not available{self._proc.hostmsg}\nIf you are running a " \
+              f"custom kernel, ensure your kernel has the module-specific register support " \
+              f"(CONFIG_X86_MSR) enabled."
+        try:
+            self._msr_drv = KernelModule.KernelModule(self._proc, "msr")
+            loaded = self._msr_drv.is_loaded()
+        except Error as err:
+            raise Error(f"{msg}\n{err}") from err
+
+        if loaded:
+            raise Error(msg)
+
+        try:
+            self._msr_drv.load()
+            self._loaded_by_us = True
+            FSHelpers.wait_for_a_file(dev_path, timeout=1, proc=self._proc)
+        except Error as err:
+            raise Error(f"{msg}\n{err}") from err
+
     def __init__(self, proc=None, cpuinfo=None):
         """
         The class constructor. The arguments are as follows.
@@ -281,6 +310,10 @@ class MSR:
             proc = Procs.Proc()
         self._proc = proc
         self._cpuinfo = cpuinfo
+
+        self._msr_drv = None
+        self._loaded_by_us = False
+        self._check_dev_path()
         # Path to MSR.py (ourselves) on the remote host.
         self._rpath = None
         # Whether it is OK to run 'MSR.py' on the remote host as an optimization.
@@ -289,6 +322,9 @@ class MSR:
     def close(self):
         """Uninitialize the class object."""
 
+        if getattr(self, "_msr_drv", None) and self._loaded_by_us:
+            self._msr_drv.unload()
+            self._msr_drv = None
         if getattr(self, "_proc", None):
             self._proc = None
         if getattr(self, "_cpuinfo", None):
