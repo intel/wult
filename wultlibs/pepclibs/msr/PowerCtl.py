@@ -23,8 +23,13 @@ CSTATE_PREWAKE_DISABLE = 30
 # Indicates whether dynamic switching is enabled in power perf tuning algorithm. Available on ICX.
 PWR_PERF_TUNING_ENABLE_DYN_SWITCHING = 33
 
-# Dynamic Load Line feature is available only on some CPUs.
-_DLL_CPUS = (CPUInfo.INTEL_FAM6_ICELAKE_X, CPUInfo.INTEL_FAM6_ICELAKE_D)
+# Map of features available only on some CPU models.
+FEATURES = { "DLL" :
+             { "name" : "Dynamic Load Line",
+               "cpumodels" : [CPUInfo.INTEL_FAM6_ICELAKE_X, CPUInfo.INTEL_FAM6_ICELAKE_D]},
+             "C-state prewake" :
+             { "name" : "C-state prewake",
+               "cpumodels" : [CPUInfo.INTEL_FAM6_ICELAKE_X, CPUInfo.INTEL_FAM6_ICELAKE_D]}}
 
 class PowerCtl:
     """
@@ -48,9 +53,29 @@ class PowerCtl:
         """
         self._msr.toggle_bit(MSR_POWER_CTL, C1E_ENABLE, enable, cpus=cpus)
 
+    def _check_feature_support(self, feature):
+        """
+        Check if CPU model of host 'self._proc' supports the feature 'feature'. The 'feature'
+        argument is one of the keys in the 'FEATURES' dictionary. Raise 'ErrorNotSupported' if the
+        feature is not supported.
+        """
+
+        model = self._lscpu_info["model"]
+        feature = FEATURES[feature]
+
+        if model not in feature["cpumodels"]:
+            fmt = "%s (CPU model %#x)"
+            cpus_str = "\n* ".join([fmt % (CPUInfo.CPU_DESCR[model], model) for model in \
+                                    feature["cpumodels"]])
+            raise ErrorNotSupported(f"The '{feature['name']}' feature is not supported"
+                                    f"{self._proc.hostmsg} - CPU '{self._lscpu_info['vendor']}, "
+                                    f"(CPU model {hex(model)})' is not supported.\nThe supported "
+                                    f"CPU models are:\n* {cpus_str}")
+
     def cstate_prewake_enabled(self, cpu):
         """Returns 'True' if C-state prewake is enabled for CPU 'cpu', otherwise returns 'False'."""
 
+        self._check_feature_support("C-state prewake")
         regval = self._msr.read(MSR_POWER_CTL, cpu=cpu)
         return not MSR.is_bit_set(CSTATE_PREWAKE_DISABLE, regval)
 
@@ -59,23 +84,9 @@ class PowerCtl:
         Enable or disable C-state prewake for CPUs 'cpus'. The 'cpus' argument is the same as in
         'set_c1e_autopromote()'.
         """
+
+        self._check_feature_support("C-state prewake")
         self._msr.toggle_bit(MSR_POWER_CTL, CSTATE_PREWAKE_DISABLE, not enable, cpus=cpus)
-
-    def _check_dll_support(self):
-        """
-        Check if Dynamic Load Line feature is supported by host 'self._proc'. Raise an
-        'ErrorNotSupported' if DLL is not supported.
-        """
-
-        model = self._lscpu_info["model"]
-
-        if model not in _DLL_CPUS:
-            fmt = "%s (CPU model %#x)"
-            cpus_str = "\n* ".join([fmt % (CPUInfo.CPU_DESCR[model], model) for model in _DLL_CPUS])
-            raise ErrorNotSupported(f"dynamic load line feature is not supported"
-                                    f"{self._proc.hostmsg} - CPU '{self._lscpu_info['vendor']}, "
-                                    f"(CPU model {hex(model)})' is not supported.\nThe supported "
-                                    f"CPUs are:\n* {cpus_str}")
 
     def set_dll(self, enable: bool, cpus="all"):
         """
@@ -83,7 +94,7 @@ class PowerCtl:
         as in 'set_c1e_autopromote()'.
         """
 
-        self._check_dll_support()
+        self._check_feature_support("DLL")
         self._msr.toggle_bit(MSR_POWER_CTL, PWR_PERF_TUNING_ENABLE_DYN_SWITCHING, enable, cpus=cpus)
 
     def dll_enabled(self, cpu):
@@ -92,7 +103,7 @@ class PowerCtl:
         'False'.
         """
 
-        self._check_dll_support()
+        self._check_feature_support("DLL")
         regval = self._msr.read(MSR_POWER_CTL, cpu=cpu)
         return MSR.is_bit_set(regval, PWR_PERF_TUNING_ENABLE_DYN_SWITCHING)
 
