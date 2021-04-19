@@ -64,6 +64,18 @@ class PowerCtl:
                                     f"(CPU model {hex(model)})' is not supported.\nThe supported "
                                     f"CPU models are:\n* {cpus_str}")
 
+    def feature_supported(self, feature):
+        """
+        Returns 'True' if feature 'feature' is supported, returns 'False' otherwise. The 'feature'
+        argument is one of the keys in the 'FEATURES' dictionary.
+        """
+
+        try:
+            self._check_feature_support(feature)
+            return True
+        except ErrorNotSupported:
+            return False
+
     def feature_enabled(self, feature, cpu):
         """
         Returns 'True' if the feature 'feature' is enabled for CPU 'cpu', otherwise returns 'False'.

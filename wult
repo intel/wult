@@ -298,7 +298,8 @@ def check_settings(proc, dev, csinfo, lscpu_info, cpunum, devid):
         # * C6 is enabled.
         # * C6 pre-wake is enabled.
         # * The "timer" method is used.
-        if devid == "timer" and "C6" in enabled_cstates:
+        if devid == "timer" and "C6" in enabled_cstates and \
+            powerctl.feature_supported("C-state prewake"):
             if powerctl.feature_enabled("C-state prewake", cpunum):
                 LOG.notice("C-state prewake is enabled, and this usually hides the real "
                            "latency when using '%s' as delayed event device.", devid)
