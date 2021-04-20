@@ -20,8 +20,6 @@ from wultlibs.helperlibs.Exceptions import ErrorNotSupported
 MSR_POWER_CTL = 0x1FC
 C1E_ENABLE = 1
 CSTATE_PREWAKE_DISABLE = 30
-# Indicates whether power perf tuning algorithm controls SAPM entities. Available on ICX.
-PWR_PERF_TUNING_DISABLE_SAPM_CTRL = 32
 # Indicates whether dynamic switching is enabled in power perf tuning algorithm. Available on ICX.
 PWR_PERF_TUNING_ENABLE_DYN_SWITCHING = 33
 
