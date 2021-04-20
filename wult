@@ -299,7 +299,7 @@ def check_settings(proc, dev, csinfo, lscpu_info, cpunum, devid):
         # * C6 pre-wake is enabled.
         # * The "timer" method is used.
         if devid == "timer" and "C6" in enabled_cstates:
-            if powerctl.cstate_prewake_enabled(cpunum):
+            if powerctl.feature_enabled("C-state prewake", cpunum):
                 LOG.notice("C-state prewake is enabled, and this usually hides the real "
                            "latency when using '%s' as delayed event device.", devid)
 
@@ -307,7 +307,7 @@ def check_settings(proc, dev, csinfo, lscpu_info, cpunum, devid):
         # * C1 is enabled.
         # * C1E auto-promotion is enabled.
         if enabled_cstates == ["C1"]:
-            if powerctl.c1e_autopromote_enabled(cpunum):
+            if powerctl.feature_enabled("C1E autopromote", cpunum):
                 LOG.notice("C1E autopromote is enabled, all C1 requests are converted to C1E.")
 
 def start_command(args):

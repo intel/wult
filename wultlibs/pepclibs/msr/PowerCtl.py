@@ -23,35 +23,27 @@ CSTATE_PREWAKE_DISABLE = 30
 # Indicates whether dynamic switching is enabled in power perf tuning algorithm. Available on ICX.
 PWR_PERF_TUNING_ENABLE_DYN_SWITCHING = 33
 
-# Map of features available only on some CPU models.
+# Map of features available on various CPU models.
 FEATURES = { "DLL" :
              { "name" : "Dynamic Load Line",
-               "cpumodels" : [CPUInfo.INTEL_FAM6_ICELAKE_X, CPUInfo.INTEL_FAM6_ICELAKE_D]},
+               "enabled" : 1,
+               "bitnr" : PWR_PERF_TUNING_ENABLE_DYN_SWITCHING,
+               "cpumodels" : [CPUInfo.INTEL_FAM6_ICELAKE_X, CPUInfo.INTEL_FAM6_ICELAKE_D] },
              "C-state prewake" :
              { "name" : "C-state prewake",
-               "cpumodels" : [CPUInfo.INTEL_FAM6_ICELAKE_X, CPUInfo.INTEL_FAM6_ICELAKE_D]}}
+               "enabled" : 0,
+               "bitnr" : CSTATE_PREWAKE_DISABLE,
+               "cpumodels" : [CPUInfo.INTEL_FAM6_ICELAKE_X, CPUInfo.INTEL_FAM6_ICELAKE_D] },
+             "C1E autopromote" :
+             { "name" : "C1E autopromote",
+               "enabled" : 1,
+               "bitnr" : C1E_ENABLE}}
 
 class PowerCtl:
     """
     This class provides API for managing settings in MSR 0x1FC (MSR_POWER_CTL). This is a
     model-specific register found on many Intel platforms.
     """
-
-    def c1e_autopromote_enabled(self, cpu):
-        """
-        Returns 'True' if C1E autopromotion is enabled for CPU 'cpu', otherwise returns 'False'.
-        """
-
-        regval = self._msr.read(MSR_POWER_CTL, cpu=cpu)
-        return MSR.is_bit_set(C1E_ENABLE, regval)
-
-    def set_c1e_autopromote(self, enable: bool, cpus="all"):
-        """
-        Enable or disable C1E autopromote for CPUs 'cpus'. The 'cpus' argument is the same as the
-        'cpus' argument of the 'CPUIdle.get_cstates_info()' function - please, refer to the
-        'CPUIdle' module for the exact format description.
-        """
-        self._msr.toggle_bit(MSR_POWER_CTL, C1E_ENABLE, enable, cpus=cpus)
 
     def _check_feature_support(self, feature):
         """
@@ -63,7 +55,7 @@ class PowerCtl:
         model = self._lscpu_info["model"]
         feature = FEATURES[feature]
 
-        if model not in feature["cpumodels"]:
+        if "cpumodels" in feature and model not in feature["cpumodels"]:
             fmt = "%s (CPU model %#x)"
             cpus_str = "\n* ".join([fmt % (CPUInfo.CPU_DESCR[model], model) for model in \
                                     feature["cpumodels"]])
@@ -72,40 +64,28 @@ class PowerCtl:
                                     f"(CPU model {hex(model)})' is not supported.\nThe supported "
                                     f"CPU models are:\n* {cpus_str}")
 
-    def cstate_prewake_enabled(self, cpu):
-        """Returns 'True' if C-state prewake is enabled for CPU 'cpu', otherwise returns 'False'."""
+    def feature_enabled(self, feature, cpu):
+        """
+        Returns 'True' if the feature 'feature' is enabled for CPU 'cpu', otherwise returns 'False'.
+        The 'feature' argument is one of the keys in 'FEATURES' dictionary.
+        """
 
-        self._check_feature_support("C-state prewake")
+        self._check_feature_support(feature)
         regval = self._msr.read(MSR_POWER_CTL, cpu=cpu)
-        return not MSR.is_bit_set(CSTATE_PREWAKE_DISABLE, regval)
+        bitval = int(bool(MSR.bit_mask(FEATURES[feature]["bitnr"]) & regval))
+        return FEATURES[feature]["enabled"] == bitval
 
-    def set_cstate_prewake(self, enable: bool, cpus="all"):
+    def set_feature(self, feature, enable: bool, cpus="all"):
         """
-        Enable or disable C-state prewake for CPUs 'cpus'. The 'cpus' argument is the same as in
-        'set_c1e_autopromote()'.
-        """
-
-        self._check_feature_support("C-state prewake")
-        self._msr.toggle_bit(MSR_POWER_CTL, CSTATE_PREWAKE_DISABLE, not enable, cpus=cpus)
-
-    def set_dll(self, enable: bool, cpus="all"):
-        """
-        Enable or disable Dynamic Load Line (DLL) for CPUs 'cpus'. The 'cpus' argument is the same
-        as in 'set_c1e_autopromote()'.
+        Enable or disable feature 'feature' for CPUs 'cpus'. The 'feature' argument is one of the
+        keys in 'FEATURES' dictionary. The 'cpus' argument is the same as the 'cpus' argument of the
+        'CPUIdle.get_cstates_info()' function - please, refer to the 'CPUIdle' module for the exact
+        format description.
         """
 
-        self._check_feature_support("DLL")
-        self._msr.toggle_bit(MSR_POWER_CTL, PWR_PERF_TUNING_ENABLE_DYN_SWITCHING, enable, cpus=cpus)
-
-    def dll_enabled(self, cpu):
-        """
-        Returns 'True' if Dynamic Load Line feature is enabled for CPU 'cpu', otherwise returns
-        'False'.
-        """
-
-        self._check_feature_support("DLL")
-        regval = self._msr.read(MSR_POWER_CTL, cpu=cpu)
-        return MSR.is_bit_set(regval, PWR_PERF_TUNING_ENABLE_DYN_SWITCHING)
+        self._check_feature_support(feature)
+        enable = FEATURES[feature]["enabled"] == enable
+        self._msr.toggle_bit(MSR_POWER_CTL, FEATURES[feature]["bitnr"], enable, cpus=cpus)
 
     def __init__(self, proc=None, lscpu_info=None):
         """
