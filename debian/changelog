@@ -1,6 +1,7 @@
 wult (XXXXXX) unstable; urgency=low
 
   * wult: include less diagrams into report by default.
+  * wult: change default launch distance range from 0-8ms to 0-4ms.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  XXXXXXXXXXXXXXXXXXXXX
 
