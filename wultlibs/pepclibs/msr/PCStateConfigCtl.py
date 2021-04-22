@@ -118,10 +118,10 @@ class PCStateConfigCtl:
         self._check_cpu_pcstate_limit_support()
         return _PKG_CST_LIMIT_MAP[self._lscpu_info["model"]]
 
-    def get_pcstate_limit(self, pkgs="all"):
+    def get_pcstate_limit(self, cpus="all"):
         """
-        Get package C-state limit for packages in 'pkgs'. Returns a dictionary with integer package
-        numbers as keys, and values also being dictionaries with the following 2 elements.
+        Get package C-state limit for CPUs 'cpus'. Returns a dictionary with integer CPU numbers
+        as keys, and values also being dictionaries with the following 2 elements.
           * limit - the package C-state limit name (small letters, e.g., pc0)
           * locked - a boolean, 'True' if the 'MSR_PKG_CST_CONFIG_CONTROL' register has the
             'CFG_LOCK' bit set, so it is impossible to change the package C-state limit, and 'False'
@@ -136,39 +136,47 @@ class PCStateConfigCtl:
         self._check_cpu_pcstate_limit_support()
 
         cpuinfo = self._get_cpuinfo()
-        pkgs = cpuinfo.get_package_list(pkgs)
-
         model = self._lscpu_info["model"]
         # Get package C-state integer code -> name dictionary.
         pcs_rmap = {code:name for name, code in _PKG_CST_LIMIT_MAP[model]["codes"].items()}
 
+        cpus = set(cpuinfo.get_cpu_list(cpus))
+        pkg_to_cpus = {}
+        for pkg in cpuinfo.get_packages():
+            pkg_cpus = cpuinfo.get_cpus(lvl="pkg", nums=[pkg])
+            if set(pkg_cpus) & cpus:
+                pkg_to_cpus[pkg] = []
+                for core in cpuinfo.get_cores(lvl="pkg", nums=[pkg]):
+                    core_cpus = cpuinfo.get_cpus(lvl="core", nums=[core])
+                    pkg_to_cpus[pkg].append(core_cpus[0])
+
         limits = {}
-        for pkg in pkgs:
+        for pkg in pkg_to_cpus:
             limits[pkg] = {}
-            cpus = cpuinfo.get_cpus(lvl="pkg", nums=[pkg])
-            pcs_code, locked = self._get_pcstate_limit(cpus, pcs_rmap)
+            pcs_code, locked = self._get_pcstate_limit(pkg_to_cpus[pkg], pcs_rmap)
             limits[pkg] = {"limit" : pcs_rmap[pcs_code], "locked" : locked}
 
         return limits
 
-    def set_pcstate_limit(self, pcs_limit, pkgs="all"):
-        """Set package C-state limit for packages in 'pkgs'."""
+    def set_pcstate_limit(self, pcs_limit, cpus="all"):
+        """Set package C-state limit for CPUs in 'cpus'."""
 
         self._check_cpu_pcstate_limit_support()
         limit_val = self._get_pcstate_limit_value(pcs_limit)
 
         cpuinfo = self._get_cpuinfo()
-        pkgs = cpuinfo.get_package_list(pkgs)
+        cpus = set(cpuinfo.get_cpu_list(cpus))
 
         # Package C-state limit has package scope, but the MSR is per-core.
-        cpus = []
-        cores = cpuinfo.get_cores(lvl="pkg", nums=pkgs)
-        for core in cores:
-            core_cpus = cpuinfo.get_cpus(lvl="core", nums=[core])
-            if core_cpus:
-                cpus.append(core_cpus[0])
+        pkg_to_cpus = []
+        for pkg in cpuinfo.get_packages():
+            pkg_cpus = cpuinfo.get_cpus(lvl="pkg", nums=[pkg])
+            if set(pkg_cpus) & cpus:
+                for core in cpuinfo.get_cores(lvl="pkg", nums=[pkg]):
+                    core_cpus = cpuinfo.get_cpus(lvl="core", nums=[core])
+                    pkg_to_cpus.append(core_cpus[0])
 
-        for cpu, regval in self._msr.read_iter(MSR_PKG_CST_CONFIG_CONTROL, cpus=cpus):
+        for cpu, regval in self._msr.read_iter(MSR_PKG_CST_CONFIG_CONTROL, cpus=pkg_to_cpus):
             if MSR.is_bit_set(CFG_LOCK, regval):
                 raise Error(f"cannot set package C-state limit{self._proc.hostmsg} for CPU "
                             f"'{cpu}', MSR ({MSR_PKG_CST_CONFIG_CONTROL}) is locked. Sometimes, "
