@@ -109,6 +109,18 @@ class PCStateConfigCtl:
 
         return (pcs_code, locked)
 
+    def pcstate_limit_supported(self):
+        """
+        Returns 'True' if the package C-state limit functionality is supported for this CPU,
+        otherwise returns 'False'.
+        """
+
+        try:
+            self._check_cpu_pcstate_limit_support()
+            return True
+        except ErrorNotSupported:
+            return False
+
     def get_available_pcstate_limits(self):
         """
         Return list of all available package C-state limits. Raises an Error if CPU model is not
