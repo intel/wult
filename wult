@@ -138,7 +138,7 @@ def build_arguments_parser():
                 happen. This step is referred to as a "measurement cycle" and it is usually repeated
                 many times. The launch distance defines how far in the future the delayed event is
                 sceduled. By default this tool randomly selects launch distance within a range. The
-                default range is [0,8ms], but you can override it with this option. Specify a
+                default range is [0,4ms], but you can override it with this option. Specify a
                 comma-separated range (e.g '--ldist 10,5000'), or a single value if you want launch
                 distance to be precisely that value all the time.  The default unit is microseconds,
                 but you can use the following specifiers as well: {Human.DURATION_NS_SPECS_DESCR}.
@@ -147,7 +147,7 @@ def build_arguments_parser():
                 range starts with 0, the minimum possible launch distance value allowed by the
                 delayed event source will be used. The optimal launch distance range is
                 system-specific."""
-    subpars.add_argument("-l", "--ldist", help=text, default="0,8000")
+    subpars.add_argument("-l", "--ldist", help=text, default="0,4000")
 
     text = """The logical CPU number to measure, default is CPU 0."""
     subpars.add_argument("--cpunum", help=text, type=int, default=0)
