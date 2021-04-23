@@ -222,6 +222,30 @@ class CPUInfo:
 
         return pkgs
 
+    def cpu_to_package(self, cpu):
+        """Returns integer package number for CPU number 'cpu'."""
+
+        for pkg in self.get_packages():
+            if cpu in self.get_cpus(lvl="pkg", nums=pkg):
+                return pkg
+
+        allcpus = self.get_cpus()
+        cpus_str = ", ".join([str(cpu) for cpu in sorted(allcpus)])
+        raise Error(f"CPU{cpu} is not available{self._proc.hostmsg}, available CPUs are:\n"
+                    f"{cpus_str}")
+
+    def cpu_to_core(self, cpu):
+        """Returns integer core number for CPU number 'cpu'."""
+
+        for core in self.get_cores():
+            if cpu in self.get_cpus(lvl="core", nums=core):
+                return core
+
+        allcpus = self.get_cpus()
+        cpus_str = ", ".join([str(cpu) for cpu in sorted(allcpus)])
+        raise Error(f"CPU{cpu} is not available{self._proc.hostmsg}, available CPUs are:\n"
+                    f"{cpus_str}")
+
     def _add_nums(self, nums):
         """Add numbers from 'lscpu' to the CPU geometry dictionary."""
 
