@@ -30,6 +30,7 @@ CSTATE_KEYS_DESCR = {
     "pcstate_limit_supported" : "Package C-state limit support",
     "pcstate_limit" : "Package C-state limit",
     "pcstate_limits" : "Available package C-state limits",
+    "c1_demotion" : "C1 demotion enabled",
 }
 
 class CPUIdle:
@@ -329,7 +330,8 @@ class CPUIdle:
             powerctl = self._get_powerctl()
             if keys.intersection(("cstate_prewake_supported", "cstate_prewake")):
                 cstate_prewake_supported = powerctl.feature_supported("cstate_prewake")
-        if keys.intersection(("pcstate_limit", "pcstate_limits", "pcstate_limit_supported")):
+        if keys.intersection(("pcstate_limit", "pcstate_limits", "pcstate_limit_supported",
+                              "c1_demotion")):
             pcstatectl = self._get_pcstatectl()
             pcstate_limit_supported = pcstatectl.pcstate_limit_supported()
             if "pcstate_limits" in keys and pcstate_limit_supported:
@@ -359,6 +361,8 @@ class CPUIdle:
                     info["pcstate_limit"] = pcstatectl.get_pcstate_limit(cpus=cpu)[pkg]
                 if "pcstate_limits" in keys:
                     info["pcstate_limits"] = pcstate_limits
+            if "c1_demotion" in keys:
+                info["c1_demotion"] = pcstatectl.c1_demotion_enabled(cpu)
 
             yield info
 
@@ -371,8 +375,12 @@ class CPUIdle:
         elif feature == "pcstate_limit":
             pcstatectl = self._get_pcstatectl()
             pcstatectl.set_pcstate_limit(val, cpus=cpus)
+        elif feature == "c1_demotion":
+            pcstatectl = self._get_pcstatectl()
+            pcstatectl.set_c1_demotion(val=="on", cpus)
         else:
-            features_str = ", ".join(("cstate_prewake", "c1e_autopromote", "pcstate_limit"))
+            features_str = ", ".join(("cstate_prewake", "c1e_autopromote", "pcstate_limit",
+                                      "c1_demotion"))
             raise Error(f"feature '{feature}' not supported, use one of the following: "
                         f"{features_str}")
 
