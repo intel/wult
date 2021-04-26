@@ -29,11 +29,29 @@ _ICX_PKG_CST_LIMITS = {"codes"   : {"pc0": 0, "pc2": 1, "pc6n":2, "unlimited" : 
 # Sky-/Cascade-/Cooper- lake Xeon Package C-state limits.
 _SKX_PKG_CST_LIMITS = {"codes"   : {"pc0": 0, "pc2": 1, "pc6n":2, "pc6r": 3, "unlimited": 7},
                        "aliases" : {"pc6": "pc6r"}}
+# Haswell/Broadwell Xeon Package C-state limits.
+_HSW_PKG_CST_LIMITS = {"codes"   : {"pc0": 0, "pc2": 1, "pc3": 2, "pc6": 3, "unlimited": 8},
+                       "aliases" : {}}
+# Ivy Town (Ivybridge Xeon) Package C-state limits.
+_IVT_PKG_CST_LIMITS = {"codes"   : {"pc0": 0, "pc2": 1, "pc6n": 2, "pc6r": 3, "unlimited": 7},
+                       "aliases" : {"pc6": "pc6r"}}
+# Denverton SoC (Goldmont Atom) Package C-state limits.
+_DNV_PKG_CST_LIMITS = {"codes"   : {"pc0": 0, "pc6": 3},
+                       "aliases" : {}}
+# Snow Ridge SoC (Tremont Atom) Package C-state limits.
+_SNR_PKG_CST_LIMITS = {"codes"   : {"pc0": 0},
+                       "aliases" : {}}
 
 # Package C-state limits are platform specific.
 _PKG_CST_LIMIT_MAP = {CPUInfo.INTEL_FAM6_ICELAKE_D: _ICX_PKG_CST_LIMITS,
                       CPUInfo.INTEL_FAM6_ICELAKE_X: _ICX_PKG_CST_LIMITS,
-                      CPUInfo.INTEL_FAM6_SKYLAKE_X: _SKX_PKG_CST_LIMITS}
+                      CPUInfo.INTEL_FAM6_SKYLAKE_X: _SKX_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_HASWELL_X: _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_BROADWELL_X: _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_BROADWELL_G: _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_IVYBRIDGE_X: _IVT_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_GOLDMONT_D: _DNV_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_TREMONT_D: _SNR_PKG_CST_LIMITS}
 
 class PCStateConfigCtl:
     """
