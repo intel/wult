@@ -16,7 +16,7 @@ from pathlib import Path
 from wultlibs.helperlibs import FSHelpers, Procs, Trivial
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.pepclibs import CPUInfo
-from wultlibs.pepclibs.msr import PowerCtl
+from wultlibs.pepclibs.msr import PowerCtl, PCStateConfigCtl
 
 _LOG = logging.getLogger()
 
@@ -27,6 +27,9 @@ CSTATE_KEYS_DESCR = {
     "cstate_prewake" : "C-state prewake enabled",
     "cstate_prewake_supported" : "C-state prewake support",
     "c1e_autopromote" : "C1E autopromote enabled",
+    "pcstate_limit_supported" : "Package C-state limit support",
+    "pcstate_limit" : "Package C-state limit",
+    "pcstate_limits" : "Available package C-state limits",
 }
 
 class CPUIdle:
@@ -45,6 +48,14 @@ class CPUIdle:
         if self._powerctl is None:
             self._powerctl = PowerCtl.PowerCtl(proc=self._proc)
         return self._powerctl
+
+    def _get_pcstatectl(self):
+        """Return an instance of 'PCStateConfigCtl' class."""
+
+        if self._pcstatectl is None:
+            cpuinfo = self._get_cpuinfo()
+            self._pcstatectl = PCStateConfigCtl.PCStateConfigCtl(proc=self._proc, cpuinfo=cpuinfo)
+        return self._pcstatectl
 
     def _get_cstate_indexes(self, cpu):
         """Yield tuples of of C-state indexes and sysfs paths for cpu number 'cpu'."""
@@ -318,9 +329,15 @@ class CPUIdle:
             powerctl = self._get_powerctl()
             if keys.intersection(("cstate_prewake_supported", "cstate_prewake")):
                 cstate_prewake_supported = powerctl.feature_supported("cstate_prewake")
+        if keys.intersection(("pcstate_limit", "pcstate_limits", "pcstate_limit_supported")):
+            pcstatectl = self._get_pcstatectl()
+            pcstate_limit_supported = pcstatectl.pcstate_limit_supported()
+            if "pcstate_limits" in keys and pcstate_limit_supported:
+                pcstate_limits = pcstatectl.get_available_pcstate_limits()
 
         cpuinfo = self._get_cpuinfo()
         for cpu in cpus:
+            pkg = cpuinfo.cpu_to_package(cpu)
             info = {}
 
             if "cpu" in keys:
@@ -328,13 +345,20 @@ class CPUIdle:
             if "core" in keys:
                 info["core"] = cpuinfo.cpu_to_core(cpu)
             if "package" in keys:
-                info["package"] = cpuinfo.cpu_to_package(cpu)
+                info["package"] = pkg
             if "cstate_prewake_supported" in keys:
                 info["cstate_prewake_supported"] = cstate_prewake_supported
             if "cstate_prewake" in keys and info.get("cstate_prewake_supported"):
                 info["cstate_prewake"] = powerctl.feature_enabled("cstate_prewake", cpu)
             if "c1e_autopromote" in keys:
                 info["c1e_autopromote"] = powerctl.feature_enabled("c1e_autopromote", cpu)
+            if "pcstate_limit_supported" in keys:
+                info["pcstate_limit_supported"] = pcstate_limit_supported
+            if info.get("pcstate_limit_supported"):
+                if "pcstate_limit" in keys:
+                    info["pcstate_limit"] = pcstatectl.get_pcstate_limit(cpus=cpu)[pkg]
+                if "pcstate_limits" in keys:
+                    info["pcstate_limits"] = pcstate_limits
 
             yield info
 
@@ -344,8 +368,11 @@ class CPUIdle:
         if feature in ("cstate_prewake", "c1e_autopromote"):
             powerctl = self._get_powerctl()
             powerctl.set_feature(feature, val=="on", cpus)
+        elif feature == "pcstate_limit":
+            pcstatectl = self._get_pcstatectl()
+            pcstatectl.set_pcstate_limit(val, cpus=cpus)
         else:
-            features_str = ", ".join(("cstate_prewake", "c1e_autopromote"))
+            features_str = ", ".join(("cstate_prewake", "c1e_autopromote", "pcstate_limit"))
             raise Error(f"feature '{feature}' not supported, use one of the following: "
                         f"{features_str}")
 
@@ -361,12 +388,17 @@ class CPUIdle:
 
         self._lscpu_info = None
         self._powerctl = None
+        self._pcstatectl = None
         self._cpuinfo = cpuinfo
         self._proc = proc
         self._sysfs_base = Path("/sys/devices/system/cpu")
 
     def close(self):
         """Uninitialize the class object."""
+
+        if getattr(self, "_pcstatectl", None):
+            self._pcstatectl.close()
+            self._pcstatectl = None
 
         if getattr(self, "_powerctl", None):
             self._powerctl.close()
