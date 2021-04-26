@@ -21,8 +21,11 @@ INTEL_FAM6_ICELAKE_X = 0x6A   # Icelake Xeon.
 INTEL_FAM6_ICELAKE_D = 0x6C   # Icelake Xeon D.
 INTEL_FAM6_SKYLAKE_X = 0x55   # Skylake, Cascadelake, and Cooperlake Xeon.
 INTEL_FAM6_BROADWELL_X = 0x4F # Broadwell Xeon.
+INTEL_FAM6_BROADWELL_G = 0x47 # Broadwell Xeon with Graphics.
 INTEL_FAM6_HASWELL_X = 0x3F   # Haswell Xeon.
 INTEL_FAM6_IVYBRIDGE_X = 0x3E # Ivy Town Xeon.
+INTEL_FAM6_GOLDMONT_D = 0x5F  # Goldmont Atom (Denverton).
+INTEL_FAM6_TREMONT_D = 0x86   # Tremont Atom (Snow Ridge).
 
 # CPU model description.
 CPU_DESCR = {INTEL_FAM6_SPR_X: "Sapphire Rapids Xeon",
@@ -30,8 +33,11 @@ CPU_DESCR = {INTEL_FAM6_SPR_X: "Sapphire Rapids Xeon",
              INTEL_FAM6_ICELAKE_D: "Icelake Xeon D",
              INTEL_FAM6_SKYLAKE_X: "Skylake/Cascadelake/Cooperlake Xeon",
              INTEL_FAM6_BROADWELL_X: "Broadwell Xeon",
+             INTEL_FAM6_BROADWELL_G: "Broadwell Xeon with Graphics",
              INTEL_FAM6_HASWELL_X: "Haswell Xeon",
-             INTEL_FAM6_IVYBRIDGE_X: "Ivy Town Xeon"}
+             INTEL_FAM6_IVYBRIDGE_X: "Ivy Town Xeon",
+             INTEL_FAM6_GOLDMONT_D: "Goldmont Atom (Denverton)",
+             INTEL_FAM6_TREMONT_D: "Tremont Atom (Snow Ridge)"}
 
 LEVELS = ("pkg", "node", "core", "cpu")
 
