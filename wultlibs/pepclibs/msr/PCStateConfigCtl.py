@@ -89,8 +89,8 @@ class PCStateConfigCtl:
     def _get_pcstate_limit(self, cpus, pcs_rmap):
         """
         Read 'PKG_CST_CONFIG_CONTROL' MSR for all CPUs 'cpus'. The 'cpus' argument is the same as
-        in 'set_c1_auto_demotion()' method. The 'pcs_rmap' is reversed dictionary with package
-        C-state code and name pairs. Returns a tuple of C-state limit value and locked bit boolean.
+        in 'set_c1_demotion()' method. The 'pcs_rmap' is reversed dictionary with package C-state
+        code and name pairs. Returns a tuple of C-state limit value and locked bit boolean.
         """
 
         pcs_code = max(pcs_rmap)
@@ -197,17 +197,17 @@ class PCStateConfigCtl:
             regval = (regval & ~0x07) | limit_val
             self._msr.write(MSR_PKG_CST_CONFIG_CONTROL, regval, cpus=cpu)
 
-    def c1_auto_demotion_enabled(self, cpu):
+    def c1_demotion_enabled(self, cpu):
         """
-        Returns 'True' if C1 auto demotion is enabled for CPU 'cpu', otherwise returns 'False'.
+        Returns 'True' if C1 demotion is enabled for CPU 'cpu', otherwise returns 'False'.
         """
 
         regval = self._msr.read(MSR_PKG_CST_CONFIG_CONTROL, cpu=cpu)
         return MSR.is_bit_set(C1_AUTO_DEMOTION_ENABLE, regval)
 
-    def set_c1_auto_demotion(self, enable: bool, cpus="all"):
+    def set_c1_demotion(self, enable: bool, cpus="all"):
         """
-        Enable or disable C1 autopromote for CPUs 'cpus'. The 'cpus' argument is the same as the
+        Enable or disable C1 demotion for CPUs 'cpus'. The 'cpus' argument is the same as the
         'cpus' argument of the 'CPUIdle.get_cstates_info()' function - please, refer to the
         'CPUIdle' module for the exact format description.
         """
