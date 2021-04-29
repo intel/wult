@@ -228,13 +228,20 @@ class PCStateConfigCtl:
             regval = (regval & ~0x07) | limit_val
             self._msr.write(MSR_PKG_CST_CONFIG_CONTROL, regval, cpus=cpu)
 
-    def c1_demotion_enabled(self, cpu):
+    def feature_enabled(self, feature, cpu):
         """
-        Returns 'True' if C1 demotion is enabled for CPU 'cpu', otherwise returns 'False'.
+        Returns 'True' if the feature 'feature' is enabled for CPU 'cpu', otherwise returns 'False'.
+        The 'feature' argument is one of the keys in 'FEATURES' dictionary. Raises an error if the
+        feature cannot be switched simply on or off.
         """
 
+        self._check_feature_support(feature)
+        if "enabled" not in FEATURES[feature]:
+            raise Error("feature '{feature}' doesn't support boolean enabled/disabled status")
+
         regval = self._msr.read(MSR_PKG_CST_CONFIG_CONTROL, cpu=cpu)
-        return MSR.is_bit_set(C1_AUTO_DEMOTION_ENABLE, regval)
+        bitval = int(bool(MSR.bit_mask(FEATURES[feature]["bitnr"]) & regval))
+        return FEATURES[feature]["enabled"] == bitval
 
     def set_c1_demotion(self, enable: bool, cpus="all"):
         """

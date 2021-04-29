@@ -366,7 +366,7 @@ class CPUIdle:
                 if "pcstate_limits" in keys:
                     info["pcstate_limits"] = pcstate_limits
             if "c1_demotion" in keys:
-                info["c1_demotion"] = pcstatectl.c1_demotion_enabled(cpu)
+                info["c1_demotion"] = pcstatectl.feature_enabled("c1_demotion", cpu)
 
             yield info
 
