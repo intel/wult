@@ -33,6 +33,10 @@ CSTATE_KEYS_DESCR = {
     "c1_demotion" : "C1 demotion enabled",
 }
 
+FEATURES = {}
+FEATURES.update(PowerCtl.FEATURES)
+FEATURES.update(PCStateConfigCtl.FEATURES)
+
 class CPUIdle:
     """This class provides API to the "cpuidle" Linux sybsystem."""
 
@@ -369,20 +373,20 @@ class CPUIdle:
     def set_feature(self, feature, val, cpus="all"):
         """Set value 'val' for feature 'feature' for CPUs 'cpus'."""
 
-        if feature in ("cstate_prewake", "c1e_autopromote"):
-            powerctl = self._get_powerctl()
-            powerctl.set_feature(feature, val=="on", cpus)
-        elif feature == "pcstate_limit":
-            pcstatectl = self._get_pcstatectl()
-            pcstatectl.set_pcstate_limit(val, cpus=cpus)
-        elif feature == "c1_demotion":
-            pcstatectl = self._get_pcstatectl()
-            pcstatectl.set_c1_demotion(val=="on", cpus)
-        else:
-            features_str = ", ".join(("cstate_prewake", "c1e_autopromote", "pcstate_limit",
-                                      "c1_demotion"))
+        if feature not in FEATURES:
+            features_str = ", ".join(set(FEATURES))
             raise Error(f"feature '{feature}' not supported, use one of the following: "
                         f"{features_str}")
+
+        if feature in PowerCtl.FEATURES:
+            powerctl = self._get_powerctl()
+            powerctl.set_feature(feature, val=="on", cpus)
+        elif feature in PCStateConfigCtl.FEATURES:
+            pcstatectl = self._get_pcstatectl()
+            if feature == "pcstate_limit":
+                pcstatectl.set_pcstate_limit(val, cpus=cpus)
+            elif feature == "c1_demotion":
+                pcstatectl.set_c1_demotion(val=="on", cpus)
 
     def __init__(self, proc=None, cpuinfo=None):
         """
