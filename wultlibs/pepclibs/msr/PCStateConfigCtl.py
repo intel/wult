@@ -140,14 +140,14 @@ class PCStateConfigCtl:
 
         return (pcs_code, locked)
 
-    def pcstate_limit_supported(self):
+    def feature_supported(self, feature):
         """
-        Returns 'True' if the package C-state limit functionality is supported for this CPU,
-        otherwise returns 'False'.
+        Returns 'True' if feature 'feature' is supported, returns 'False' otherwise. The 'feature'
+        argument is one of the keys in the 'FEATURES' dictionary.
         """
 
         try:
-            self._check_feature_support("pcstate_limit")
+            self._check_feature_support(feature)
             return True
         except ErrorNotSupported:
             return False

@@ -337,7 +337,7 @@ class CPUIdle:
         if keys.intersection(("pcstate_limit", "pcstate_limits", "pcstate_limit_supported",
                               "c1_demotion")):
             pcstatectl = self._get_pcstatectl()
-            pcstate_limit_supported = pcstatectl.pcstate_limit_supported()
+            pcstate_limit_supported = pcstatectl.feature_supported("pcstate_limit")
             if "pcstate_limits" in keys and pcstate_limit_supported:
                 pcstate_limits = pcstatectl.get_available_pcstate_limits()
 
