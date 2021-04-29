@@ -120,8 +120,8 @@ class PCStateConfigCtl:
     def _get_pcstate_limit(self, cpus, pcs_rmap):
         """
         Read 'PKG_CST_CONFIG_CONTROL' MSR for all CPUs 'cpus'. The 'cpus' argument is the same as
-        in 'set_c1_demotion()' method. The 'pcs_rmap' is reversed dictionary with package C-state
-        code and name pairs. Returns a tuple of C-state limit value and locked bit boolean.
+        in 'set_feature()' method. The 'pcs_rmap' is reversed dictionary with package C-state code
+        and name pairs. Returns a tuple of C-state limit value and locked bit boolean.
         """
 
         pcs_code = max(pcs_rmap)
@@ -201,7 +201,7 @@ class PCStateConfigCtl:
 
         return limits
 
-    def set_pcstate_limit(self, pcs_limit, cpus="all"):
+    def _set_pcstate_limit(self, pcs_limit, cpus="all"):
         """Set package C-state limit for CPUs in 'cpus'."""
 
         self._check_feature_support("pcstate_limit")
@@ -243,13 +243,32 @@ class PCStateConfigCtl:
         bitval = int(bool(MSR.bit_mask(FEATURES[feature]["bitnr"]) & regval))
         return FEATURES[feature]["enabled"] == bitval
 
-    def set_c1_demotion(self, enable: bool, cpus="all"):
+    def _set_feature_bool(self, feature, val, cpus):
         """
-        Enable or disable C1 demotion for CPUs 'cpus'. The 'cpus' argument is the same as the
-        'cpus' argument of the 'CPUIdle.get_cstates_info()' function - please, refer to the
-        'CPUIdle' module for the exact format description.
+        Enable or disable feature 'feature' for CPUs 'cpus'. Value 'val' can be boolean or
+        string "on" or "off".
         """
-        self._msr.toggle_bit(MSR_PKG_CST_CONFIG_CONTROL, C1_AUTO_DEMOTION_ENABLE, enable, cpus=cpus)
+
+        feature = FEATURES[feature]
+        if isinstance(val, str):
+            val = val == "on"
+        enable = feature["enabled"] == val
+        self._msr.toggle_bit(MSR_PKG_CST_CONFIG_CONTROL, feature["bitnr"], enable, cpus=cpus)
+
+    def set_feature(self, feature, val, cpus="all"):
+        """
+        Set feature 'feature' value to 'val' for CPUs 'cpus'. The 'feature' argument is one of the
+        keys in 'FEATURES' dictionary. The 'cpus' argument is the same as the 'cpus' argument of the
+        'CPUIdle.get_cstates_info()' function - please, refer to the 'CPUIdle' module for the exact
+        format description.
+        """
+
+        self._check_feature_support(feature)
+        if "enabled" in FEATURES[feature]:
+            self._set_feature_bool(feature, val, cpus)
+        else:
+            set_method = getattr(self, f"_set_{feature}")
+            set_method(val, cpus=cpus)
 
     def __init__(self, proc=None, cpuinfo=None, lscpu_info=None):
         """

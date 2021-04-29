@@ -383,10 +383,7 @@ class CPUIdle:
             powerctl.set_feature(feature, val=="on", cpus)
         elif feature in PCStateConfigCtl.FEATURES:
             pcstatectl = self._get_pcstatectl()
-            if feature == "pcstate_limit":
-                pcstatectl.set_pcstate_limit(val, cpus=cpus)
-            elif feature == "c1_demotion":
-                pcstatectl.set_c1_demotion(val=="on", cpus)
+            pcstatectl.set_feature(feature, val, cpus=cpus)
 
     def __init__(self, proc=None, cpuinfo=None):
         """
