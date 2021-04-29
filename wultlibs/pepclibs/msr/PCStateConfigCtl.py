@@ -53,6 +53,13 @@ _PKG_CST_LIMIT_MAP = {CPUInfo.INTEL_FAM6_ICELAKE_D: _ICX_PKG_CST_LIMITS,
                       CPUInfo.INTEL_FAM6_GOLDMONT_D: _DNV_PKG_CST_LIMITS,
                       CPUInfo.INTEL_FAM6_TREMONT_D: _SNR_PKG_CST_LIMITS}
 
+# Map of features available on various CPU models.
+FEATURES = { "pcstate_limit" : { "name" : "Package C-state limit",
+                                 "cpumodels" : list(_PKG_CST_LIMIT_MAP) },
+             "c1_demotion" : { "name" : "C1 demotion",
+                               "enabled" : 1,
+                               "bitnr" : C1_AUTO_DEMOTION_ENABLE }}
+
 class PCStateConfigCtl:
     """
     This class provides API for managing settings in MSR 0xE2 (MSR_PKG_CST_CONFIG_CONTROL). This is
@@ -66,18 +73,24 @@ class PCStateConfigCtl:
             self._cpuinfo = CPUInfo.CPUInfo(proc=self._proc)
         return self._cpuinfo
 
-    def _check_cpu_pcstate_limit_support(self):
-        """Check if the package C-state limit functionality is supported for this CPU."""
+    def _check_feature_support(self, feature):
+
+        if feature not in FEATURES:
+            features_str = ", ".join(set(FEATURES))
+            raise Error(f"feature '{feature}' not supported, use one of the following: "
+                        f"{features_str}")
 
         model = self._lscpu_info["model"]
+        feature = FEATURES[feature]
 
-        if model not in _PKG_CST_LIMIT_MAP:
+        if "cpumodels" in feature and model not in feature["cpumodels"]:
             fmt = "%s (CPU model %#x)"
-            cpulst = "\n* ".join([fmt % (_CPU_DESCR[model], model) for model in _PKG_CST_LIMIT_MAP])
-            raise ErrorNotSupported(f"package C-state limit functionality is not supported"
+            cpus_str = "\n* ".join([fmt % (CPUInfo.CPU_DESCR[model], model) for model in \
+                                    feature["cpumodels"]])
+            raise ErrorNotSupported(f"The '{feature['name']}' feature is not supported"
                                     f"{self._proc.hostmsg} - CPU '{self._lscpu_info['vendor']}, "
                                     f"(CPU model {hex(model)})' is not supported.\nThe supported "
-                                    f"CPUs are:\n* {cpulst}")
+                                    f"CPU models are:\n* {cpus_str}")
 
     def _get_pcstate_limit_value(self, pcs_limit):
         """
@@ -134,7 +147,7 @@ class PCStateConfigCtl:
         """
 
         try:
-            self._check_cpu_pcstate_limit_support()
+            self._check_feature_support("pcstate_limit")
             return True
         except ErrorNotSupported:
             return False
@@ -145,7 +158,7 @@ class PCStateConfigCtl:
         supported.
         """
 
-        self._check_cpu_pcstate_limit_support()
+        self._check_feature_support("pcstate_limit")
         return _PKG_CST_LIMIT_MAP[self._lscpu_info["model"]]
 
     def get_pcstate_limit(self, cpus="all"):
@@ -163,7 +176,7 @@ class PCStateConfigCtl:
         information.
         """
 
-        self._check_cpu_pcstate_limit_support()
+        self._check_feature_support("pcstate_limit")
 
         cpuinfo = self._get_cpuinfo()
         model = self._lscpu_info["model"]
@@ -191,7 +204,7 @@ class PCStateConfigCtl:
     def set_pcstate_limit(self, pcs_limit, cpus="all"):
         """Set package C-state limit for CPUs in 'cpus'."""
 
-        self._check_cpu_pcstate_limit_support()
+        self._check_feature_support("pcstate_limit")
         limit_val = self._get_pcstate_limit_value(pcs_limit)
 
         cpuinfo = self._get_cpuinfo()
