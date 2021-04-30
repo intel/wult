@@ -61,11 +61,21 @@ FEATURES = {
     "pcstate_limit" : {
         "name" : "Package C-state limit",
         "cpumodels" : list(_PKG_CST_LIMIT_MAP),
+        "choices" : "",
+        "scope": "package",
+        "help" : """The deepest package C-state the platform is allowed to enter. The package
+                    C-state limit is configured via MSR {hex(MSR_PKG_CST_CONFIG_CONTROL)}
+                    (MSR_PKG_CST_CONFIG_CONTROL). This model-specific register can be locked by the
+                    BIOS, in which case the package C-state limit can only be read, but cannot be
+                    modified.""",
     },
     "c1_demotion" : {
         "name" : "C1 demotion",
         "enabled" : 1,
         "bitnr" : C1_AUTO_DEMOTION_ENABLE,
+        "choices" : ["on", "off"],
+        "scope": "CPU",
+        "help" : """Allow/disallow the CPU to demote C6/C7 requests to C1.""",
     },
 }
 

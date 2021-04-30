@@ -32,12 +32,21 @@ FEATURES = {
         "name" : "C-state prewake",
         "enabled" : 0,
         "bitnr" : CSTATE_PREWAKE_DISABLE,
-        "cpumodels" : [CPUInfo.INTEL_FAM6_ICELAKE_X, CPUInfo.INTEL_FAM6_ICELAKE_D]
+        "cpumodels" : [CPUInfo.INTEL_FAM6_ICELAKE_X, CPUInfo.INTEL_FAM6_ICELAKE_D],
+        "choices" : ["on", "off"],
+        "scope": "package",
+        "help" : f"""When enabled, exit from C-state will start prior next event. This is possible
+                     only if time of next event is known, for example in case of local APIC timers.
+                     This command toggles MSR {MSR_POWER_CTL:#x}, bit {CSTATE_PREWAKE_DISABLE}.""",
     },
     "c1e_autopromote" : {
         "name" : "C1E autopromote",
         "enabled" : 1,
-        "bitnr" : C1E_ENABLE
+        "bitnr" : C1E_ENABLE,
+        "choices" : ["on", "off"],
+        "scope": "package",
+        "help" : f"""When enabled, the CPU automatically converts all C1 requests into C1E requests.
+                     This command toggles MSR {MSR_POWER_CTL:#x}, bit {C1E_ENABLE}.""",
     },
 }
 
