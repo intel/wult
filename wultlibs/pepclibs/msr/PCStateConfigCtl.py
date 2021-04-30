@@ -24,6 +24,7 @@ _LOG = logging.getLogger()
 MSR_PKG_CST_CONFIG_CONTROL = 0xE2
 CFG_LOCK = 15
 C1_AUTO_DEMOTION_ENABLE = 26
+C1_UNDEMOTION_ENABLE = 28
 MAX_PKG_C_STATE_MASK = 0xF
 
 # Icelake Xeon Package C-state limits.
@@ -76,6 +77,15 @@ FEATURES = {
         "choices" : ["on", "off"],
         "scope": "CPU",
         "help" : """Allow/disallow the CPU to demote C6/C7 requests to C1.""",
+    },
+    "c1_undemotion" : {
+        "name" : "C1 undemotion",
+        "enabled" : 1,
+        "bitnr" : C1_UNDEMOTION_ENABLE,
+        "choices" : ["on", "off"],
+        "scope": "CPU",
+        "help" : """Allow/disallow the CPU to un-demote previously demoted requests back from C1 to
+                    C6/C7.""",
     },
 }
 

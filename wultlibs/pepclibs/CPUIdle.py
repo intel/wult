@@ -31,6 +31,7 @@ CSTATE_KEYS_DESCR = {
     "pkg_cstate_limit" : "Package C-state limit",
     "pkg_cstate_limits" : "Available package C-state limits",
     "c1_demotion" : "C1 demotion enabled",
+    "c1_undemotion" : "C1 un-demotion enabled",
 }
 
 FEATURES = {}
@@ -335,7 +336,7 @@ class CPUIdle:
             if keys.intersection(("cstate_prewake_supported", "cstate_prewake")):
                 cstate_prewake_supported = powerctl.feature_supported("cstate_prewake")
         if keys.intersection(("pkg_cstate_limit", "pkg_cstate_limits", "pkg_cstate_limit_supported",
-                              "c1_demotion")):
+                              "c1_demotion", "c1_undemotion")):
             pcstatectl = self._get_pcstatectl()
             pkg_cstate_limit_supported = pcstatectl.feature_supported("pkg_cstate_limit")
             if "pkg_cstate_limits" in keys and pkg_cstate_limit_supported:
@@ -367,6 +368,8 @@ class CPUIdle:
                     info["pkg_cstate_limits"] = pkg_cstate_limits
             if "c1_demotion" in keys:
                 info["c1_demotion"] = pcstatectl.feature_enabled("c1_demotion", cpu)
+            if "c1_undemotion" in keys:
+                info["c1_undemotion"] = pcstatectl.feature_enabled("c1_undemotion", cpu)
 
             yield info
 
