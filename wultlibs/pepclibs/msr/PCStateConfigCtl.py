@@ -58,7 +58,7 @@ _PKG_CST_LIMIT_MAP = {CPUInfo.INTEL_FAM6_ICELAKE_D: _ICX_PKG_CST_LIMITS,
 
 # Map of features available on various CPU models.
 FEATURES = {
-    "pcstate_limit" : {
+    "pkg_cstate_limit" : {
         "name" : "Package C-state limit",
         "cpumodels" : list(_PKG_CST_LIMIT_MAP),
         "choices" : "",
@@ -111,7 +111,7 @@ class PCStateConfigCtl:
                                     f"(CPU model {hex(model)})' is not supported.\nThe supported "
                                     f"CPU models are:\n* {cpus_str}")
 
-    def _get_pcstate_limit_value(self, pcs_limit):
+    def _get_pkg_cstate_limit_value(self, pcs_limit):
         """
         Convert a package C-state name to integer package C-state limit value suitable for the
         'MSR_PKG_CST_CONFIG_CONTROL' register.
@@ -136,7 +136,7 @@ class PCStateConfigCtl:
                         f"Supported package C-state alias names are: {aliases_str}")
         return limit_val
 
-    def _get_pcstate_limit(self, cpus, pcs_rmap):
+    def _get_pkg_cstate_limit(self, cpus, pcs_rmap):
         """
         Read 'PKG_CST_CONFIG_CONTROL' MSR for all CPUs 'cpus'. The 'cpus' argument is the same as
         in 'set_feature()' method. The 'pcs_rmap' is reversed dictionary with package C-state code
@@ -172,16 +172,16 @@ class PCStateConfigCtl:
             _LOG.debug(err)
             return False
 
-    def get_available_pcstate_limits(self):
+    def get_available_pkg_cstate_limits(self):
         """
         Return list of all available package C-state limits. Raises an Error if CPU model is not
         supported.
         """
 
-        self._check_feature_support("pcstate_limit")
+        self._check_feature_support("pkg_cstate_limit")
         return _PKG_CST_LIMIT_MAP[self._lscpu_info["model"]]
 
-    def get_pcstate_limit(self, cpus="all"):
+    def get_pkg_cstate_limit(self, cpus="all"):
         """
         Get package C-state limit for CPUs 'cpus'. Returns a dictionary with integer CPU numbers
         as keys, and values also being dictionaries with the following 2 elements.
@@ -196,7 +196,7 @@ class PCStateConfigCtl:
         information.
         """
 
-        self._check_feature_support("pcstate_limit")
+        self._check_feature_support("pkg_cstate_limit")
 
         cpuinfo = self._get_cpuinfo()
         model = self._lscpu_info["model"]
@@ -216,16 +216,16 @@ class PCStateConfigCtl:
         limits = {}
         for pkg in pkg_to_cpus:
             limits[pkg] = {}
-            pcs_code, locked = self._get_pcstate_limit(pkg_to_cpus[pkg], pcs_rmap)
+            pcs_code, locked = self._get_pkg_cstate_limit(pkg_to_cpus[pkg], pcs_rmap)
             limits[pkg] = {"limit" : pcs_rmap[pcs_code], "locked" : locked}
 
         return limits
 
-    def _set_pcstate_limit(self, pcs_limit, cpus="all"):
+    def _set_pkg_cstate_limit(self, pcs_limit, cpus="all"):
         """Set package C-state limit for CPUs in 'cpus'."""
 
-        self._check_feature_support("pcstate_limit")
-        limit_val = self._get_pcstate_limit_value(pcs_limit)
+        self._check_feature_support("pkg_cstate_limit")
+        limit_val = self._get_pkg_cstate_limit_value(pcs_limit)
 
         cpuinfo = self._get_cpuinfo()
         cpus = set(cpuinfo.get_cpu_list(cpus))
