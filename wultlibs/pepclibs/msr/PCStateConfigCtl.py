@@ -11,11 +11,14 @@ This module provides API for managing settings in MSR 0xE2 (MSR_PKG_CST_CONFIG_C
 model-specific register found on many Intel platforms.
 """
 
+import logging
 from wultlibs.helperlibs import Procs
 from wultlibs.pepclibs import CPUInfo
 from wultlibs.pepclibs.msr import MSR
 from wultlibs.pepclibs.CPUInfo import CPU_DESCR as _CPU_DESCR
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
+
+_LOG = logging.getLogger()
 
 # Package C-state configuration control Model Specific Register.
 MSR_PKG_CST_CONFIG_CONTROL = 0xE2
@@ -149,7 +152,8 @@ class PCStateConfigCtl:
         try:
             self._check_feature_support(feature)
             return True
-        except ErrorNotSupported:
+        except ErrorNotSupported as err:
+            _LOG.debug(err)
             return False
 
     def get_available_pcstate_limits(self):

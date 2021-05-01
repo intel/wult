@@ -11,10 +11,13 @@ This module provides API for managing settings in MSR 0x1FC (MSR_POWER_CTL). Thi
 model-specific register found on many Intel platforms.
 """
 
+import logging
 from wultlibs.helperlibs import Procs
 from wultlibs.pepclibs import CPUInfo
 from wultlibs.pepclibs.msr import MSR
 from wultlibs.helperlibs.Exceptions import ErrorNotSupported
+
+_LOG = logging.getLogger()
 
 # Power control Model Specific Register.
 MSR_POWER_CTL = 0x1FC
@@ -73,7 +76,8 @@ class PowerCtl:
         try:
             self._check_feature_support(feature)
             return True
-        except ErrorNotSupported:
+        except ErrorNotSupported as err:
+            _LOG.debug(err)
             return False
 
     def feature_enabled(self, feature, cpu):
