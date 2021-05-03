@@ -57,11 +57,17 @@ _PKG_CST_LIMIT_MAP = {CPUInfo.INTEL_FAM6_ICELAKE_D: _ICX_PKG_CST_LIMITS,
                       CPUInfo.INTEL_FAM6_TREMONT_D: _SNR_PKG_CST_LIMITS}
 
 # Map of features available on various CPU models.
-FEATURES = { "pcstate_limit" : { "name" : "Package C-state limit",
-                                 "cpumodels" : list(_PKG_CST_LIMIT_MAP) },
-             "c1_demotion" : { "name" : "C1 demotion",
-                               "enabled" : 1,
-                               "bitnr" : C1_AUTO_DEMOTION_ENABLE }}
+FEATURES = {
+    "pcstate_limit" : {
+        "name" : "Package C-state limit",
+        "cpumodels" : list(_PKG_CST_LIMIT_MAP),
+    },
+    "c1_demotion" : {
+        "name" : "C1 demotion",
+        "enabled" : 1,
+        "bitnr" : C1_AUTO_DEMOTION_ENABLE,
+    },
+}
 
 class PCStateConfigCtl:
     """
