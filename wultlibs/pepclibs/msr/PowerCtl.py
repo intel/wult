@@ -27,15 +27,19 @@ CSTATE_PREWAKE_DISABLE = 30
 PWR_PERF_TUNING_ENABLE_DYN_SWITCHING = 33
 
 # Map of features available on various CPU models.
-FEATURES = {"cstate_prewake" :
-             { "name" : "C-state prewake",
-               "enabled" : 0,
-               "bitnr" : CSTATE_PREWAKE_DISABLE,
-               "cpumodels" : [CPUInfo.INTEL_FAM6_ICELAKE_X, CPUInfo.INTEL_FAM6_ICELAKE_D] },
-             "c1e_autopromote" :
-             { "name" : "C1E autopromote",
-               "enabled" : 1,
-               "bitnr" : C1E_ENABLE}}
+FEATURES = {
+    "cstate_prewake" : {
+        "name" : "C-state prewake",
+        "enabled" : 0,
+        "bitnr" : CSTATE_PREWAKE_DISABLE,
+        "cpumodels" : [CPUInfo.INTEL_FAM6_ICELAKE_X, CPUInfo.INTEL_FAM6_ICELAKE_D]
+    },
+    "c1e_autopromote" : {
+        "name" : "C1E autopromote",
+        "enabled" : 1,
+        "bitnr" : C1E_ENABLE
+    },
+}
 
 class PowerCtl:
     """
