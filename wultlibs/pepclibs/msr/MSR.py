@@ -262,8 +262,8 @@ class MSR:
         except Error:
             return False
 
-        rchksum = FSHelpers.get_sha256(self._rpath, default=None, proc=self._proc)
-        lchksum = FSHelpers.get_sha256(__file__, default=None, proc=Procs.Proc())
+        rchksum = FSHelpers.get_sha512(self._rpath, default=None, proc=self._proc)
+        lchksum = FSHelpers.get_sha512(__file__, default=None, proc=Procs.Proc())
 
         if lchksum != rchksum or not lchksum:
             return False
