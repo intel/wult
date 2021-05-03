@@ -13,12 +13,13 @@ This module contains misc. helper functions related to file-system operations.
 import os
 import sys
 import stat
+import time
 import shutil
 import logging
 from pathlib import Path
 from hashlib import sha512
 from collections import namedtuple
-from wultlibs.helperlibs import Procs, Trivial
+from wultlibs.helperlibs import Procs, Trivial, Human
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotFound
 
 # Default debugfs mount point.
@@ -554,3 +555,25 @@ def write(path, data, proc=None):
             fobj.write(str(data))
     except Error as err:
         raise Error(f"failed to write into file '{path}'{proc.hostmsg}:\n{err}") from err
+
+def wait_for_a_file(path: Path, interval: int = 1, timeout: int = 60, proc=None):
+    """
+    Wait for a file or directory defined by path 'path' to get created. This function just
+    periodically polls for the file every 'interval' seconds. If the file does not get created
+    within 'timeout' seconds, then this function fails with an exception.
+
+    By default this function operates on the local host, but the 'proc' argument can be used to pass
+    a connected 'SSH' object in which case this function will operate on the remote host.
+    """
+
+    if not proc:
+        proc = Procs.Proc()
+
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        if exists(path, proc=proc):
+            return
+        time.sleep(interval)
+
+    interval = Human.duration(timeout)
+    raise Error(f"file '{path}' did not appear{proc.hostmsg} within '{interval}'")
