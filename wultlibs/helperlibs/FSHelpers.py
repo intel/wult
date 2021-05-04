@@ -411,6 +411,21 @@ def isexe(path: Path, proc=None):
         raise Error(f"failed to check if '{path}' exists and it is an executable file on the local "
                     f"host: {err}") from None
 
+def issocket(path: Path, proc=None):
+    """
+    Return 'True' if path 'path' exists an it is a Unix socket file. The check is done on the host
+    defined by 'proc' (local host by default).
+    """
+
+    if proc and proc.is_remote:
+        return shell_test(path, "-s", proc=proc)
+
+    try:
+        return path.is_socket()
+    except OSError as err:
+        raise Error(f"failed to check if '{path}' exists and it is a Unix socket file on the local "
+                    f"host: {err}") from None
+
 def which(program: str, default=_RAISE, proc=None):
     """
     Find full path of a program by searching it in '$PATH'. Return the full path if the program was

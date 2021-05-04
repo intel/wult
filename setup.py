@@ -58,7 +58,7 @@ setup(
     description="Wake up LAtency Tracer tool",
     author="Artem Bityutskiy",
     author_email="artem.bityutskiy@linux.intel.com",
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     version=get_version(),
     data_files=get_data_files("share/wult/drivers", "drivers") + \
                get_data_files("share/wult/helpers", "helpers") + \
