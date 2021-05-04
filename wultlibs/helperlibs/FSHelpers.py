@@ -20,7 +20,7 @@ from pathlib import Path
 from hashlib import sha512
 from collections import namedtuple
 from wultlibs.helperlibs import Procs, Trivial, Human
-from wultlibs.helperlibs.Exceptions import Error, ErrorNotFound
+from wultlibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists
 
 # Default debugfs mount point.
 DEBUGFS_MOUNT_POINT = Path("/sys/kernel/debug")
@@ -92,17 +92,22 @@ def move_copy_link(src: Path, dst: Path, action: str = "symlink", exist_ok: bool
     ('move', 'copy', 'symlink').
     """
 
+    exists_err = f"cannot {action} '{src}' to '{dst}', the destination path already exists"
     if dst.exists():
         if exist_ok:
             return
-        raise Error(f"cannot {action} '{src}' to '{dst}', the destination path already exists")
+        raise ErrorExists(exists_err)
 
     # Type cast in shutil.move() can be removed when python is fixed. See
     # https://bugs.python.org/issue32689
     try:
         if action == "move":
             if src.is_dir():
-                dst.mkdir(parents=True, exist_ok=True)
+                try:
+                    dst.mkdir(parents=True, exist_ok=True)
+                except FileExistsError as err:
+                    if not exist_ok:
+                        raise ErrorExists(exists_err) from None
                 for item in src.iterdir():
                     shutil.move(str(item), dst)
             else:
@@ -309,10 +314,11 @@ def mkdir(dirpath: Path, parents: bool = False, exist_ok: bool = False, proc=Non
     if not proc:
         proc = Procs.Proc()
 
+    exists_err = f"path '{dirpath}' already exists{proc.hostmsg}"
     if shell_test(dirpath, "-e", proc=proc):
         if exist_ok:
             return
-        raise Error(f"path '{dirpath}' already exists{proc.hostmsg}")
+        raise ErrorExists(exists_err)
 
     if proc.is_remote:
         cmd = "mkdir"
@@ -323,6 +329,9 @@ def mkdir(dirpath: Path, parents: bool = False, exist_ok: bool = False, proc=Non
     else:
         try:
             dirpath.mkdir(parents=parents, exist_ok=exist_ok)
+        except FileExistsError as err:
+            if not exist_ok:
+                raise ErrorExists(exists_err) from None
         except OSError as err:
             raise Error(f"failed to create directory '{dirpath}':\n{err}") from None
 

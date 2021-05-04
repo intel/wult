@@ -31,6 +31,9 @@ class Error(Exception):
 class ErrorTimeOut(Error):
     """Something timed out."""
 
+class ErrorExists(Error):
+    """Something already exists."""
+
 class ErrorNotFound(Error):
     """Something was not found."""
 
