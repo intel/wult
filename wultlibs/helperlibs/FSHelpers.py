@@ -418,7 +418,7 @@ def issocket(path: Path, proc=None):
     """
 
     if proc and proc.is_remote:
-        return shell_test(path, "-s", proc=proc)
+        return shell_test(path, "-S", proc=proc)
 
     try:
         return path.is_socket()
