@@ -155,10 +155,10 @@ class EventsProvider:
             if getattr(self, "_drv", None):
                 with contextlib.suppress(Error):
                     self._drv.unload()
-
             if getattr(self, "_main_drv", None):
                 with contextlib.suppress(Error):
                     self._main_drv.unload()
+            self._drv = None
 
             # Bind the device back to the original driver.
             saved_drvname = getattr(self, "_saved_drvname", None)
@@ -170,6 +170,7 @@ class EventsProvider:
                 except Error as err:
                     _LOG.error("failed to bind device '%s' back to driver '%s':\n %s",
                                self.dev.info["devid"], self._saved_drvname, err)
+            self._saved_drvname = None
 
     def __init__(self, dev, cpunum, proc, ldist=None):
         """

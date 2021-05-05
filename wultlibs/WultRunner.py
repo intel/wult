@@ -453,9 +453,11 @@ class WultRunner:
 
         if getattr(self, "_ep", None):
             self._ep.close()
+            self._ep = None
 
         if getattr(self, "_ftrace", None):
             self._ftrace.close()
+            self._ftrace = None
 
         if getattr(self, "_has_irqbalance") and getattr(self, "_sysctl"):
             _LOG.info("Starting the previously stopped 'irqbalance' service")
@@ -467,6 +469,7 @@ class WultRunner:
                 # but could not start it again, probably because there is only one CPU.
                 _LOG.warning("failed to start the previously stoopped 'irqbalance' service:\n%s",
                              err)
+            self._sysctl = None
 
     def __enter__(self):
         """Enter the run-time context."""

@@ -332,16 +332,20 @@ class NdlRunner:
 
         if getattr(self, "_etfqdisc", None):
             self._etfqdisc.close()
+            self._etfqdisc = None
 
         if getattr(self, "_ndlrunner", None):
             self._stop_ndlrunner()
+            self._ndlrunner = None
 
         if getattr(self, "_netif", None):
             self._netif.down()
+            self._netif = None
 
         if getattr(self, "_nmcli", None):
             self._nmcli.restore_managed()
             self._nmcli.close()
+            self._nmcli = None
 
         if getattr(self, "_proc", None):
             self._proc = None
@@ -349,6 +353,7 @@ class NdlRunner:
         # Unload our driver.
         if getattr(self, "_drv", None):
             self._drv.unload()
+            self._drv = None
 
     def __enter__(self):
         """Enter the run-time context."""
