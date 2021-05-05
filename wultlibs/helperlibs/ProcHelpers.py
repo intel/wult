@@ -11,10 +11,11 @@ This module contains misc. helper functions related to processes (tasks).
 """
 
 import os
-import logging
-import contextlib
 import re
 import time
+import socket
+import logging
+import contextlib
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import Procs, Trivial
 
@@ -234,3 +235,32 @@ def kill_processes(regex: str, sig: str = "SIGTERM", log: bool = False, name: st
     killing = _is_sigterm(sig) or _is_sigkill(sig)
     kill_pids(pids, sig=sig, kill_children=killing, proc=proc)
     return procs
+
+def get_free_port(port_type=None, proc=None):
+    """
+    Return free TCP port. The 'port_type' parameter can be used to specify port type, the default
+    is a 'SOCK_STREAM' (TCP) port. If 'proc' is specified, the given proc object will be used to
+    fetch a free port number.
+
+    By default this function operates on the local host, but the 'proc' argument can be used to pass
+    a connected 'SSH' object in which case this function will operate on the remote host.
+    """
+
+    if not port_type:
+        port_type = socket.SOCK_STREAM
+
+    if proc:
+        cmd = f"python -c 'import socket;" \
+              f"sock = socket.socket({socket.AF_INET}, {port_type});" \
+              f"sock.bind((\"\", 0));" \
+              f"port = sock.getsockname()[1];" \
+              f"sock.close();" \
+              f"print(port)'"
+        return int(proc.run_verify(cmd, capture_output=True)[0])
+
+    sock = socket.socket(socket.AF_INET, port_type)
+    sock.bind(("", 0))
+    port = sock.getsockname()[1]
+    sock.close()
+
+    return port
