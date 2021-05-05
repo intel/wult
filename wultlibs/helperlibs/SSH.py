@@ -528,6 +528,17 @@ class SSH:
         msg = self.cmd_failed_msg(command, *tuple(result), timeout=timeout)
         raise Error(msg)
 
+    def get_ssh_opts(self):
+        """
+        Returns 'ssh' command-line tool options that are necessary to establish an SSH connection
+        similar to the current connection.
+        """
+
+        ssh_opts = f"-o \"Port={self.port}\" -o \"User={self.username}\""
+        if self.privkeypath:
+            ssh_opts += f" -o \"IdentityFile={self.privkeypath}\""
+        return ssh_opts
+
     def rsync(self, src, dst, opts="rlptD", remotesrc=True, remotedst=True):
         """
         Copy data from path 'src' to path 'dst' using 'rsync' with options specified in 'opts'. By
@@ -540,12 +551,9 @@ class SSH:
         if remotesrc and remotedst:
             proc = self
         else:
-            ssh_opts = f"-o \"Port={self.port}\" -o \"User={self.username}\""
-            if self.privkeypath:
-                ssh_opts += f" -o \"IdentityFile={self.privkeypath}\""
-
             proc = Procs.Proc()
-            cmd += f" -e 'ssh {ssh_opts}'"
+
+            cmd += f" -e 'ssh {self.get_ssh_opts()}'"
 
             if remotesrc:
                 src = f"{self.hostname}:{src}"
