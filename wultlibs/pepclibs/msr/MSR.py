@@ -7,8 +7,8 @@
 # Author: Antti Laakso <antti.laakso@linux.intel.com>
 
 """
-This module contains helper functions to read and write CPU Model Specific Registers. This module
-has been designed and implemented for Intel CPUs.
+This module provides a capability for reading and writing to read and write CPU Model Specific
+Registers. This module has been designed and implemented for Intel CPUs.
 """
 
 import sys
@@ -48,8 +48,67 @@ MSR_HWP_REQUEST = 0x774
 PKG_CONTROL = 42
 EPP_VALID = 60
 
+# This dictionary defines commandline arguments when this module is executed as a script (as opposed
+# to be imported).
+CMDLINE_ARGS = {
+    "read" : {
+        "descr" : "Read register",
+        "subargs" : {
+            "regaddr" : "Register address",
+            "regsize" : "Register size",
+            "cpu" : "CPU number",
+        },
+    },
+    "read_iter" : {
+        "descr" : "Read multiple registers",
+        "subargs" : {
+            "regaddr" : "Register address",
+            "regsize" : "Register size",
+            "cpus" : "CPU numbers",
+        },
+    },
+    "write" : {
+        "descr" : "Write registers",
+        "subargs" : {
+            "regaddr" : "Register address",
+            "regval" : "Register value",
+            "regsize" : "Register size",
+            "cpus" : "CPU numbers",
+        },
+    },
+    "set" : {
+        "descr" : "Set register bits",
+        "subargs" : {
+            "regaddr" : "Register address",
+            "mask" : "Bitmask to set",
+            "regsize" : "Register size",
+            "cpus" : "CPU numbers",
+        },
+    },
+    "clear" : {
+        "descr" : "Clear register bits",
+        "subargs" : {
+            "regaddr" : "Register address",
+            "mask" : "Bitmask to set",
+            "regsize" : "Register size",
+            "cpus" : "CPU numbers",
+        },
+    },
+    "toggle_bit" : {
+        "descr" : "Toggle single register bit",
+        "subargs" : {
+            "regaddr" : "Register address",
+            "bitnr" : "Bit number",
+            "bitval" : "Bit value",
+            "regsize" : "Register size",
+            "cpus" : "CPU numbers",
+        },
+    },
+}
+
+OWN_NAME="MSR.py"
 _LOG = logging.getLogger()
-Logging.setup_logger(prefix="MSR.py")
+Logging.setup_logger(prefix=OWN_NAME)
 
 def bit_mask(bitnr):
     """Return bitmask for a bit by its number."""
@@ -341,18 +400,36 @@ class MSR:
         """Exit the runtime context."""
         self.close()
 
-def get_cmdline_args(args):
-    """Parse command line arguments."""
+def convert_args(args):
+    """Convert commandline arguments to format suitable for methods."""
 
     res = []
-    for arg in args:
+    for argname in CMDLINE_ARGS[args.method]["subargs"]:
+        arg = getattr(args, argname)
         if Trivial.is_int(arg):
             arg = int(arg)
-        else:
+        elif arg != "all":
             arg = ArgParse.parse_int_list(arg, ints=True, sort=True)
         res.append(arg)
 
     return res
+
+def parse_arguments():
+    """A helper function which parses the input arguments."""
+
+    text = sys.modules[__name__].__doc__
+    parser = ArgParse.ArgsParser(description=text, prog=OWN_NAME)
+
+    subparsers = parser.add_subparsers(title="methods", dest="method", metavar="")
+    subparsers.required = True
+
+    for methodname, info in CMDLINE_ARGS.items():
+        subpars = subparsers.add_parser(methodname, help=info["descr"])
+        subpars.set_defaults(method=methodname)
+        for argname, descr in info["subargs"].items():
+            subpars.add_argument(argname, help=descr)
+
+    return parser.parse_args()
 
 def main():
     """
@@ -360,23 +437,17 @@ def main():
     MSR.py <arguments>'. We use this to improve performance when dealing with a remote host.
     """
 
-    # Allow calls to public methods only.
-    mname = sys.argv[1]
-    allowed_methods = ("read", "read_iter", "write", "set", "clear", "toggle_bit")
-    if mname not in allowed_methods:
-        msg = f"can't run method '{mname}', use one of: {','.join(allowed_methods)}"
-        _LOG.error_out(msg)
-
-    args = get_cmdline_args(sys.argv[2:])
+    args = parse_arguments()
     with MSR() as msr:
-        method = getattr(msr, mname)
-        if mname == "read_iter":
-            for cpu, val in method(*args):
+        args_list = convert_args(args)
+        method = getattr(msr, args.method)
+        if args.method == "read_iter":
+            for cpu, val in method(*args_list):
                 print(f"{cpu},{val}")
-        elif mname == "read":
-            print(method(*args))
+        elif args.method == "read":
+            print(method(*args_list))
         else:
-            method(*args)
+            method(*args_list)
 
 # The script entry point.
 if __name__ == "__main__":
