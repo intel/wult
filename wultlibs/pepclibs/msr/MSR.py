@@ -147,7 +147,15 @@ class MSR:
                 arg = ",".join([str(val) for val in arg])
             cmd += f" {arg}"
 
-        stdout, _ = self._proc.run_verify(cmd, join=False)
+        # Propagate debug option to remote host
+        if _LOG.getEffectiveLevel() == logging.DEBUG:
+            cmd = f"{cmd} -d"
+
+        stdout, stderr = self._proc.run_verify(cmd, join=False)
+        if _LOG.getEffectiveLevel() == logging.DEBUG:
+            print("".join(stderr), end="")
+            print("".join(stdout), end="")
+
         return stdout, cmd
 
     def _read_iter(self, regaddr, regsize, cpus):
