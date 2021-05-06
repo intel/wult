@@ -108,6 +108,8 @@ class MSR:
                             f"{self._proc.hostmsg}:\n{err}") from err
 
             regval = int.from_bytes(regval, byteorder=_CPU_BYTEORDER)
+            _LOG.debug("CPU%d: MSR 0x%x: read 0x%x", cpu, regval, regaddr)
+
             yield (cpu, regval)
 
     def _read_iter_remote(self, regaddr, regsize, cpus):
