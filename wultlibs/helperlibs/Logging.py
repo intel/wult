@@ -201,10 +201,11 @@ def setup_logger(prefix=None, loglevel=None, colored=None, info_stream=sys.stdou
         else:
             loglevel = INFO
 
+    if not colorama:
+        colored = False
+
     if colored is None:
-        if not colorama:
-            colored = False
-        elif "--force-color" in sys.argv:
+        if "--force-color" in sys.argv:
             colored = True
         else:
             colored = info_stream.isatty() and error_stream.isatty()
