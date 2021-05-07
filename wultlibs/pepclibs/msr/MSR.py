@@ -141,17 +141,21 @@ class MSR:
     def _run_on_remote_host(self, method, *args):
         """"Run MSR method 'method' on remote host."""
 
-        cmd = f"python -- {self._rpath} {method}"
+        debug_args = ""
+        # Propagate debug option to remote host
+        if _LOG.getEffectiveLevel() == logging.DEBUG:
+            debug_args += " -d"
+        if _LOG.colored:
+            debug_args += " --force-color"
+
+        cmd = f"python -- {self._rpath}{debug_args} {method}"
         for arg in args:
             if Trivial.is_iterable(arg):
                 arg = ",".join([str(val) for val in arg])
             cmd += f" {arg}"
 
-        # Propagate debug option to remote host
-        if _LOG.getEffectiveLevel() == logging.DEBUG:
-            cmd = f"{cmd} -d"
-
         stdout, stderr = self._proc.run_verify(cmd, join=False)
+
         if _LOG.getEffectiveLevel() == logging.DEBUG:
             print("".join(stderr), end="")
             print("".join(stdout), end="")
@@ -427,6 +431,9 @@ def parse_arguments():
 
     text = sys.modules[__name__].__doc__
     parser = ArgParse.ArgsParser(description=text, prog=OWN_NAME)
+
+    text = "Force coloring of the text output."
+    parser.add_argument("--force-color", action="store_true", help=text)
 
     subparsers = parser.add_subparsers(title="methods", dest="method", metavar="")
     subparsers.required = True
