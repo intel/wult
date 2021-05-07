@@ -52,7 +52,8 @@ class CPUIdle:
         """Return an instance of 'PowerCtl' class."""
 
         if self._powerctl is None:
-            self._powerctl = PowerCtl.PowerCtl(proc=self._proc)
+            cpuinfo = self._get_cpuinfo()
+            self._powerctl = PowerCtl.PowerCtl(proc=self._proc, cpuinfo=cpuinfo)
         return self._powerctl
 
     def _get_pcstatectl(self):
