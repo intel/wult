@@ -161,7 +161,7 @@ def _wait_for_cmd_(chan, timeout=None, capture_output=True, output_fobjs=(None, 
     for the command to finish. If the command does not finish, this function exits and returns
     'None' as the exit code of the command. The timeout must be a positive floating point number. By
     default it is 1 hour. If 'timeout' is '0', then this function will just check process status,
-    grab its output, if any, and return immeadiately.
+    grab its output, if any, and return immediately.
 
     Note, this function saves the used timeout in 'chan.timeout' attribute upon exit.
 
@@ -197,7 +197,7 @@ def _wait_for_cmd_(chan, timeout=None, capture_output=True, output_fobjs=(None, 
                "join: %s:", timeout, capture_output, wait_for_exit, by_line, join)
 
     if chan._exitcode_:
-        # This comman has already exited.
+        # This command has already exited.
         return ("", "", chan._exitcode_)
 
     if not chan._queue_:
@@ -454,11 +454,11 @@ class SSH:
         If the 'mix_output' argument is 'True', the standard output and error streams will be mixed
         together.
 
-        The 'output_fobjs' is a tuple which may provide 2 file-like objecs where the standard output
-        and error streams of the executed program should be echoed to. If 'mix_output' is 'True',
-        the 'output_fobjs[1]' file-like object, which corresponds to the standard error stream, will
-        be ignored and all the output will be echoed to 'output_fobjs[0]'. By default the command
-        output is not echoed anywhere.
+        The 'output_fobjs' is a tuple which may provide 2 file-like objects where the standard
+        output and error streams of the executed program should be echoed to. If 'mix_output' is
+        'True', the 'output_fobjs[1]' file-like object, which corresponds to the standard error
+        stream, will be ignored and all the output will be echoed to 'output_fobjs[0]'. By default
+        the command output is not echoed anywhere.
 
         Note, 'capture_output' and 'output_fobjs' arguments can be used at the same time. It is OK
         to echo the output to some files and capture it at the same time.
@@ -471,7 +471,7 @@ class SSH:
         The 'shell' variable is ignored, it is there only in order to make the 'SSH' APIs look
         similar to the 'Proc' API.
 
-        This function returns an named typle of (exitcode, stdout, stderr), where
+        This function returns an named tuple of (exitcode, stdout, stderr), where
           o 'stdout' is the output of the executed command to stdout
           o 'stderr' is the output of the executed command to stderr
           o 'exitcode' is the integer exit code of the executed command
@@ -670,7 +670,7 @@ class SSH:
 
         The 'hostname' argument being 'None' is a special case - this module falls-back to using the
         'Procs' module and runs all all operations locally without actually involving SSH or
-        networking. This is differrent to using 'localhost', which does involve SSH.
+        networking. This is different to using 'localhost', which does involve SSH.
 
         SECURITY NOTICE: this class and any part of it should only be used for debugging and
         development purposes. No security audit had been done. Not for production use.
@@ -809,7 +809,7 @@ class SSH:
                 try:
                     data = data.encode("utf8")
                 except UnicodeError as err:
-                    raise Error(f"failed to ecode data before writing to "
+                    raise Error(f"failed to encode data before writing to "
                                 f"'{fobj._orig_fpath_}':\n{err}") from None
 
             errmsg = f"failed to write to '{fobj._orig_fpath_}': "
@@ -838,7 +838,7 @@ class SSH:
         fobj._orig_fmode_ = mode
 
         # Redefine the 'read()' and 'write()' methods to do decoding on the fly, because all files
-        # are binay in case of SFTP.
+        # are binary in case of SFTP.
         if "b" not in mode:
             fobj._orig_fread_ = fobj.read
             fobj.read = types.MethodType(_read_, fobj)
