@@ -17,12 +17,8 @@ import sys
 import time
 import shlex
 import types
-import queue
-import errno
 import codecs
 import logging
-import threading
-import contextlib
 import subprocess
 from wultlibs.helperlibs import _Common, WrapExceptions
 from wultlibs.helperlibs._Common import ProcResult, cmd_failed_msg # pylint: disable=unused-import
@@ -31,61 +27,11 @@ from wultlibs.helperlibs.Exceptions import Error, ErrorTimeOut, ErrorPermissionD
 
 _LOG = logging.getLogger()
 
-# This attribute helpes making the API of this module similar to the API of the 'SSH' module.
+# This attribute helps making the API of this module similar to the API of the 'SSH' module.
 hostname = "localhost"
 
 # The exceptions to handle when dealing with file I/O.
 _EXCEPTIONS = (OSError, IOError, BrokenPipeError)
-
-def _stream_fetcher(streamid, proc, by_line):
-    """
-    This function runs in a separate thread. All it does is it fetches one of the output streams
-    of the executed program (either stdout or stderr) and puts the result into the queue.
-    """
-
-    partial = ""
-    stream = proc._streams_[streamid]
-    try:
-        decoder = codecs.getincrementaldecoder('utf8')(errors="surrogateescape")
-        while not proc._threads_exit_:
-            if not stream:
-                proc._dbg_("stream %d: stream is closed", streamid)
-                break
-
-            data = None
-            try:
-                data = stream.read(4096)
-            except Error as err:
-                if err.errno == errno.EAGAIN:
-                    continue
-                raise
-
-            if not data:
-                proc._dbg_("stream %d: no more data", streamid)
-                break
-
-            data = decoder.decode(data)
-            if not data:
-                proc._dbg_("stream %d: read more data", streamid)
-                continue
-
-            if by_line:
-                data, partial = _Common.extract_full_lines(partial + data)
-            if proc._debug_:
-                if data:
-                    proc._dbg_("stream %d: full line: %s", streamid, data[-1])
-                if partial:
-                    proc._dbg_("stream %d: partial line: %s", streamid, partial)
-            for line in data:
-                proc._queue_.put((streamid, line))
-    except BaseException as err: # pylint: disable=broad-except
-        _LOG.error(err)
-
-    if partial:
-        proc._queue_.put((streamid, partial))
-
-    proc._queue_.put((streamid, None))
-    proc._dbg_("stream %d: thread exists", streamid)
 
 def _wait_timeout(proc, timeout):
     """Wait for the process to finish with a timeout."""
@@ -100,20 +46,54 @@ def _wait_timeout(proc, timeout):
     proc._dbg_("_wait_timeout: exit status %d", exitcode)
     return exitcode
 
-def _consume_queue(proc, timeout):
-    """Read out the entire queue."""
+def _fetch_output(proc, timeout, capture_output, output_fobjs, by_line, output, partial, decoder):
+    """
+    This is a helper for '_wait_for_cmd()'. It fetches (possibly partial) output for the running
+    'proc' process. Returns (stdout, stderr, exitcode), just like '_wait_for_cmd()'. The full lines
+    of the output are appended to 'output', the partial output is saved in 'partial'. The 'decoder'
+    object is used for decoding the command output. The other arguments are same as in
+    '_wait_for_cmd()'.
+    """
 
-    contents = []
-    with contextlib.suppress(queue.Empty):
-        if timeout:
-            item = proc._queue_.get(timeout=timeout)
-        else:
-            item = proc._queue_.get(block=False)
-        contents.append(item)
-        # Consume the rest of the queue.
-        while not proc._queue_.empty():
-            contents.append(proc._queue_.get())
-    return contents
+    result = None
+    exitcode = None
+    proc._dbg_("_do_wait_for_cmd: run communicate(timeout=%f)", timeout)
+
+    try:
+        result = proc.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        pass
+    else:
+        exitcode = proc.poll()
+
+    if not result:
+        return ("", "", exitcode)
+
+    result = list(result)
+    for streamid in (0, 1):
+        if not result[streamid]:
+            continue
+
+        data = result[streamid] = decoder.decode(result[streamid])
+        if not data:
+            continue
+
+        proc._dbg_("_do_wait_for_cmd: stream %d: %s", streamid, data)
+
+        if by_line:
+            data, partial[streamid] = _Common.extract_full_lines(partial[streamid] + data,
+                                                                 join=True)
+
+        if partial[streamid]:
+            proc._dbg_("_do_wait_for_cmd: stream %d: partial line: %s", streamid, partial)
+
+        if capture_output:
+            output[streamid] += data
+        if output_fobjs[streamid]:
+            output_fobjs[streamid].write(data)
+
+    result.append(exitcode)
+    return result
 
 def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
                   wait_for_exit=True, by_line=True, join=True):
@@ -125,7 +105,7 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
     for the command to finish. If the command does not finish, this function exits and returns
     'None' as the exit code of the command. The timeout must be a positive floating point number. By
     default it is 1 hour. If 'timeout' is '0', then this function will just check process status,
-    grab its output, if any, and return immeadiately.
+    grab its output, if any, and return immediately.
 
     Note, this function saves the used timeout in 'proc.timeout' attribute upon exit.
 
@@ -161,71 +141,46 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
                "join: %s:", timeout, capture_output, wait_for_exit, by_line, join)
 
     if proc._exitcode_:
-        # This comman has already exited.
+        # This command has already exited.
         return ("", "", proc._exitcode_)
 
     if not proc.stdout and not proc.stderr:
         return ("", "", _wait_timeout(proc, timeout))
 
-    if not proc._queue_:
-        proc._queue_ = queue.Queue()
-        for streamid in (0, 1):
-            if proc._streams_[streamid]:
-                assert proc._threads_[streamid] is None
-                proc._threads_[streamid] = threading.Thread(target=_stream_fetcher,
-                                                            name='Procs-stream-fetcher',
-                                                            args=(streamid, proc, by_line),
-                                                            daemon=True)
-                proc._threads_[streamid].start()
-
-    output = ([], [])
     exitcode = None
+    output = ["", ""]
+    partial = ["", ""]
     start_time = time.time()
+    decoder = codecs.getincrementaldecoder('utf8')(errors="surrogateescape")
 
     while True:
-        for streamid, data in _consume_queue(proc, timeout):
-            if data is not None:
-                proc._dbg_("wait_for_cmd: got data from stream %d: %s", streamid, data)
-                if capture_output:
-                    output[streamid].append(data)
-                if output_fobjs[streamid]:
-                    output_fobjs[streamid].write(data)
-            else:
-                proc._dbg_("wait_for_cmd: stream %d closed", streamid)
-                proc._threads_[streamid].join()
-                proc._threads_[streamid] = proc._streams_[streamid] = None
-
-        if (output[0] or output[1]) and not wait_for_exit:
-            proc._dbg_("wait_for_cmd: got some output, stop waiting for more")
-            break
-
-        if timeout is not None and time.time() - start_time >= timeout:
+        tout = min(timeout - (time.time() - start_time), 1)
+        if tout <= 0:
             proc._dbg_("wait_for_cmd: stop waiting for the command - timeout")
             break
 
-        if not proc._streams_[0] and not proc._streams_[1]:
-            proc._dbg_("wait_for_cmd: both streams closed")
-            proc._queue_ = None
-            exitcode = _wait_timeout(proc, timeout)
+        stdout, stderr, exitcode = _fetch_output(proc, tout, capture_output, output_fobjs,
+                                                 by_line, output, partial, decoder)
+
+        if exitcode is not None:
+            proc._dbg_("wait_for_cmd: process exited with exit code %d", exitcode)
             break
 
-        if not timeout:
-            proc._dbg_(f"wait_for_cmd: timeout is {timeout}, exit immediately")
+        if not wait_for_exit and (stdout or stderr):
+            proc._dbg_("wait_for_cmd: got some output, stop waiting for more")
             break
 
-    stdout = stderr = ""
-    if output[0]:
-        stdout = output[0]
-        if join:
-            stdout = "".join(stdout)
-    if output[1]:
-        stderr = output[1]
-        if join:
-            stderr = "".join(stderr)
+    for streamid in (0, 1):
+        if partial[streamid]:
+            output[streamid] += partial
+
+    if not join:
+        for streamid in (0, 1):
+            output[streamid] = output[streamid].splitlines()
 
     proc._dbg_("wait_for_cmd: returning, exitcode %s", exitcode)
     proc._exitcode_ = exitcode
-    return ProcResult(stdout=stdout, stderr=stderr, exitcode=exitcode)
+    return ProcResult(stdout=output[0], stderr=output[1], exitcode=exitcode)
 
 def _cmd_failed_msg(proc, stdout, stderr, exitcode, startmsg=None, timeout=None):
     """
@@ -237,19 +192,6 @@ def _cmd_failed_msg(proc, stdout, stderr, exitcode, startmsg=None, timeout=None)
         timeout = proc.timeout
     return _Common.cmd_failed_msg(proc.cmd, stdout, stderr, exitcode, hostname=proc.hostname,
                                   startmsg=startmsg, timeout=timeout)
-
-def _close(proc):
-    """The proces close method that will signal the threads to exit."""
-
-    proc._dbg_("_close_()")
-    proc._threads_exit_ = True
-
-def _del(proc):
-    """The process object destructor which makes all threads to exit."""
-
-    proc._dbg_("_del_()")
-    proc._threads_exit_ = True
-    proc._orig_del_()
 
 def _get_err_prefix(fobj, method):
     """Return the error message prefix."""
@@ -270,12 +212,7 @@ def _add_custom_fields(proc, cmd):
                                                          get_err_prefix=_get_err_prefix)
             setattr(proc, name, wrapped_fobj)
 
-    proc._queue_ = None
-    proc._streams_ = [proc.stdout, proc.stderr]
-    proc._threads_ = [None, None]
-    proc._threads_exit_ = False
     proc._exitcode_ = None
-    proc._orig_del_ = proc.__del__
 
     # Debugging prints.
     proc._debug_ = False
@@ -286,16 +223,14 @@ def _add_custom_fields(proc, cmd):
     proc.hostname = "localhost"
     proc.cmd = cmd
     proc.timeout = TIMEOUT
-    proc.close = types.MethodType(_close, proc)
     proc._dbg_ = types.MethodType(_dbg_, proc)
     proc.cmd_failed_msg = types.MethodType(_cmd_failed_msg, proc)
     proc.wait_for_cmd = types.MethodType(_wait_for_cmd, proc)
-    proc.__del__ = types.MethodType(_del, proc)
     return proc
 
 def _split_command(cmd, shell):
     """
-    This helper splits coommand in 'cmd' depending on whether 'shell' is is 'True' or 'False.
+    This helper splits command in 'cmd' depending on whether 'shell' is is 'True' or 'False.
     """
 
     if not shell:
@@ -382,8 +317,8 @@ def run(command, timeout=None, capture_output=True, mix_output=False, join=True,
 
     If the 'newgrp' argument is 'True', then new process gets new session ID.
 
-    The 'output_fobjs' is a tuple which may provide 2 file-like objecs where the standard output and
-    error streams of the executed program should be echoed to. If 'mix_output' is 'True', the
+    The 'output_fobjs' is a tuple which may provide 2 file-like objects where the standard output
+    and error streams of the executed program should be echoed to. If 'mix_output' is 'True', the
     'output_fobjs[1]' file-like object, which corresponds to the standard error stream, will be
     ignored and all the output will be echoed to 'output_fobjs[0]'. By default the command output is
     not echoed anywhere.
@@ -455,7 +390,7 @@ def rsync(src, dst, opts="rlptD", remotesrc=False, remotedst=True):
     # pylint: disable=unused-argument
     """
     Copy data from path 'src' to path 'dst' using 'rsync' with options specified in 'opts'. The
-    'remotesrc' and 'remotedst' arguments are ingored. They only exist for compatibility with
+    'remotesrc' and 'remotedst' arguments are ignored. They only exist for compatibility with
     'SSH.rsync()'.
     """
 
@@ -472,7 +407,7 @@ class Proc:
 
     @staticmethod
     def run_async(command, cwd=None, shell=False):
-        """A version of 'run_async()' cmpatible with 'SSH.run_async()'."""
+        """A version of 'run_async()' compatible with 'SSH.run_async()'."""
 
         return run_async(command, cwd=cwd, shell=shell, stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
