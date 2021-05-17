@@ -29,7 +29,7 @@ def cmd_failed_msg(command, stdout, stderr, exitcode, hostname=None, startmsg=No
     This helper function formats an error message for a failed command 'command'. The 'stdout' and
     'stderr' arguments are what the command printed to the standard output and error streams, and
     'exitcode' is the exit status of the failed command. The 'hostname' parameter is ignored and it
-    is here only for the sake of keeping the 'Procs' API look sililar to the 'SSH' API. The
+    is here only for the sake of keeping the 'Procs' API look similar to the 'SSH' API. The
     'startmsg' parameter can be used to specify the start of the error message. The 'timeout'
     argument specifies the command timeout.
     """
@@ -71,10 +71,11 @@ def cmd_failed_msg(command, stdout, stderr, exitcode, hostname=None, startmsg=No
         result += "\n\n%s" % msg.strip()
     return result
 
-def extract_full_lines(text):
+def extract_full_lines(text, join=False):
     """
     Extract full lines from string 'text'. Return a tuple containing 2 elements - the full lines and
-    the last partial line.
+    the last partial line. If 'join' is 'False', the full lines are returned as a list of lines,
+    otherwise they are returned as a single string.
     """
 
     full, partial = [], ""
@@ -84,4 +85,6 @@ def extract_full_lines(text):
             break
         full.append(line_match.group(1))
 
+    if join:
+        full = "".join(full)
     return (full, partial)
