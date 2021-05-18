@@ -122,7 +122,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         for colname in self.colnames:
             expr = expr.replace(colname, f"self.df['{colname}']")
         # The special 'index' name represents the row number (first data row has index '0').
-        expr = re.sub("(?!')index(?!')", f"self.df.index", expr)
+        expr = re.sub("(?!')index(?!')", "self.df.index", expr)
         return expr
 
     def set_rfilt(self, rfilt):
@@ -354,7 +354,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         try:
             self.df = pandas.read_csv(self.dp_path, dtype=dtype, **kwargs)
         except Exception as err:
-            raise Error(f"failed to load CSV file {self.dp_path}:\n{err}")
+            raise Error(f"failed to load CSV file {self.dp_path}:\n{err}") from None
 
         # Check datapoints for too few values.
         if self.df.isnull().values.any():
@@ -446,7 +446,7 @@ class RORawResult(_RawResultBase.RawResultBase):
                         found[colname] = regex
                         matched = True
                 except re.error as err:
-                    raise Error(f"bad regular expression '{regex}': {err}")
+                    raise Error(f"bad regular expression '{regex}': {err}") from err
 
             if not matched:
                 colnames_str = ", ".join(self.colnames)
@@ -470,7 +470,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         try:
             colnames = list(pandas.read_csv(self.dp_path, nrows=0))
         except Exception as err:
-            raise Error(f"failed to load CSV file {self.dp_path}:\n{err}")
+            raise Error(f"failed to load CSV file {self.dp_path}:\n{err}") from None
 
         self.defs.populate_cstates(colnames)
 
@@ -496,7 +496,7 @@ class RORawResult(_RawResultBase.RawResultBase):
             try:
                 dirpath.mkdir(parents=True, exist_ok=False)
             except OSError as err:
-                raise Error(f"failed to create directory '{dirpath}':\n{err}")
+                raise Error(f"failed to create directory '{dirpath}':\n{err}") from None
         elif not dirpath.is_dir():
             raise Error(f"path '{dirpath}' exists and it is not a directory")
 
@@ -521,7 +521,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         try:
             colnames = list(pandas.read_csv(self.dp_path, nrows=0))
         except Exception as err:
-            raise Error(f"failed to load CSV file '{self.dp_path}':\n{err}")
+            raise Error(f"failed to load CSV file '{self.dp_path}':\n{err}") from None
 
         if "RTD" in colnames:
             return "ndl"
@@ -571,7 +571,7 @@ class RORawResult(_RawResultBase.RawResultBase):
                 if not attr.stat().st_size:
                     raise Error(f"file '{attr}' is empty")
             except OSError as err:
-                raise Error(f"failed to access '{attr}': {err}")
+                raise Error(f"failed to access '{attr}': {err}") from err
 
         # The row and column filters and selectors.
         self._rfilt = None

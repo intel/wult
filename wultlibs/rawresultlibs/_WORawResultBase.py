@@ -52,7 +52,7 @@ class WORawResultBase(_RawResultBase.RawResultBase):
         try:
             self.dirpath.mkdir(parents=True, exist_ok=True)
         except OSError as err:
-            raise Error(f"failed to create directory '{self.dirpath}':\n{err}")
+            raise Error(f"failed to create directory '{self.dirpath}':\n{err}") from None
 
         self.csv = _CSV.WritableCSV(self.dp_path, cont=self._cont)
 
@@ -67,7 +67,7 @@ class WORawResultBase(_RawResultBase.RawResultBase):
             try:
                 self.info_path.open("tw+", encoding="utf-8").close()
             except OSError as err:
-                raise Error(f"failed to create file '{self.info_path}':\n{err}")
+                raise Error(f"failed to create file '{self.info_path}':\n{err}") from None
 
     def write_info(self):
         """Write the 'self.info' dictionary to the 'info.yml' file."""
