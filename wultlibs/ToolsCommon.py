@@ -559,19 +559,19 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=Tr
                   f"/usr/local/share/wult/%s/{toolname}", f"/usr/share/wult/%s/{toolname}"]
 
     if drivers:
-        dirnames = [dirname % str(_DRV_SRC_SUBPATH) for dirname in searchdirs]
+        dirnames = ", ".join([dirname % str(_DRV_SRC_SUBPATH) for dirname in searchdirs])
         text = f"""Path to {toolname} drivers sources to build and deploy. By default the drivers
                    are searched for in the following directories (and in the following order) on the
-                   local host: %s.""" % ", ".join(dirnames)
+                   local host: {dirnames}."""
         arg = parser.add_argument("--drivers-src", help=text, dest="drvsrc", type=Path)
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
     if helpers:
-        dirnames = [dirname % str(_HELPERS_SRC_SUBPATH) for dirname in searchdirs]
+        dirnames = ", ".join([dirname % str(_HELPERS_SRC_SUBPATH) for dirname in searchdirs])
         text = f"""Path to {toolname} helpers directory to build and deploy. By default the helpers
                    to build are searched for in the following directories (and in the following
-                   order) on the local host: %s.""" % ", ".join(dirnames)
+                   order) on the local host: {dirnames}."""
         arg = parser.add_argument("--helpers-src", help=text, dest="helpersrc", type=Path)
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
