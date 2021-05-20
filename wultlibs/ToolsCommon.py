@@ -401,6 +401,7 @@ def apply_filters(args, res):
 
         res.clear_filts()
         for name, expr in ops.items():
+            # The '--csel' and '--cfilt' options may have comma-separated list of column names.
             if name.startswith("c"):
                 expr = Trivial.split_csv_line(expr)
             getattr(res, f"set_{name}")(expr)
