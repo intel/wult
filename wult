@@ -72,7 +72,7 @@ def build_arguments_parser():
     # Create parsers for the "deploy" command.
     #
     ToolsCommon.add_deploy_cmdline_args(subparsers, OWN_NAME, ToolsCommon.deploy_command,
-                                        drivers=True, helpers=False, argcomplete=argcomplete)
+                                        drivers=True, argcomplete=argcomplete)
 
     #
     # Create parsers for the "scan" command.

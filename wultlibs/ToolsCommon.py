@@ -535,7 +535,7 @@ def list_result_columns(rsts):
         for colname in rst.colnames:
             _LOG.info("  * %s: %s", colname, rst.defs.info[colname]["title"])
 
-def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=True,
+def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=None,
                             argcomplete=None):
     """
     Add the the 'deploy' command. The input arguments are as follows.
@@ -543,7 +543,7 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=Tr
       o toolname - name of the tool the command line arguments belong to.
       o func - the 'deploy' command handling function.
       o drivers - whether the tool comes with out of tree drivers.
-      o helpers - whether the tool comes with other helper tools.
+      o helpers - list of helpers used by or required for the tool.
       o argcomplete - optional 'argcomplete' command-line arguments completer object.
     """
 
@@ -553,10 +553,10 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=Tr
     parser = subparsers.add_parser("deploy", help=text, description=descr)
 
     envarname = f"{toolname.upper()}_DATA_PATH"
-    searchdirs = [f"{Path(sys.argv[0]).parent}/%s/{toolname}",
-                  f"${envarname}/%s/{toolname} (if '{envarname}' environment variable is defined)",
-                  f"$HOME/.local/share/wult/%s/{toolname}",
-                  f"/usr/local/share/wult/%s/{toolname}", f"/usr/share/wult/%s/{toolname}"]
+    searchdirs = [f"{Path(sys.argv[0]).parent}/%s",
+                  f"${envarname}/%s (if '{envarname}' environment variable is defined)",
+                  "$HOME/.local/share/wult/%s",
+                  "/usr/local/share/wult/%s", "/usr/share/wult/%s"]
 
     if drivers:
         dirnames = ", ".join([dirname % str(_DRV_SRC_SUBPATH) for dirname in searchdirs])
@@ -569,8 +569,10 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=Tr
 
     if helpers:
         dirnames = ", ".join([dirname % str(_HELPERS_SRC_SUBPATH) for dirname in searchdirs])
-        text = f"""Path to {toolname} helpers directory to build and deploy. By default the helpers
-                   to build are searched for in the following directories (and in the following
+        helpernames = ", ".join(helpers)
+        text = f"""Path to {toolname} helpers directory. This directory should contain the following
+                   helpers: {helpernames}. These helpers will be built and deployed. By default the
+                   helpers to build are searched for in the following paths (and in the following
                    order) on the local host: {dirnames}."""
         arg = parser.add_argument("--helpers-src", help=text, dest="helpersrc", type=Path)
         if argcomplete:
@@ -591,10 +593,10 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=Tr
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
     if helpers:
-        text = f"""Path to the directory to deploy {toolname} helper tools to. The default is the
-                   path defined by the {toolname.upper()}_HELPERSPATH environment variable. If it is
-                   not defined, the default path is '$HOME/{HELPERS_LOCAL_DIR}/bin', where '$HOME'
-                   is the home directory of user 'USERNAME' on host 'IHOST' (see '--host' and
+        text = f"""Path to the directory to deploy {toolname} helpers to. The default is the path
+                   defined by the {toolname.upper()}_HELPERSPATH environment variable. If it is not
+                   defined, the default path is '$HOME/{HELPERS_LOCAL_DIR}/bin', where '$HOME' is
+                   the home directory of user 'USERNAME' on host 'IHOST' (see '--host' and
                    '--username' options)."""
         arg = parser.add_argument("--helpers-path", metavar="HELPERSPATH", type=Path, help=text)
         if argcomplete:
@@ -630,6 +632,7 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=Tr
     parser.add_argument("-T", "--timeout", dest="timeout", help=text)
 
     parser.set_defaults(func=func)
+    parser.set_defaults(helpers=helpers)
 
 def _get_module_path(proc, name):
     """Return path to installed module. Return 'None', if module not found."""
@@ -785,13 +788,22 @@ def _deploy_prepare(args, toolname, minkver):
         if not args.drvsrc.is_dir():
             raise Error(f"path '{args.drvsrc}' does not exist or it is not a directory")
 
-    if hasattr(args, "helpersrc"):
+    if args.helpers:
         if not args.helpersrc:
+            # We assume all helpers are in the same place, so only search for the first helper path.
             args.helpersrc = FSHelpers.search_for_app_data("wult",
-                                                           _HELPERS_SRC_SUBPATH/f"{toolname}",
+                                                           _HELPERS_SRC_SUBPATH/f"{args.helpers[0]}",
                                                            pathdescr=f"{toolname} helper sources")
+            args.helpersrc = args.helpersrc.parent
+
         if not args.helpersrc.is_dir():
             raise Error(f"path '{args.helpersrc}' does not exist or it is not a directory")
+
+        # Make sure all helpers are available.
+        for helper in args.helpers:
+            helperdir = args.helpersrc / helper
+            if not helperdir.is_dir():
+                raise Error(f"path '{helperdir}' does not exist or it is not a directory")
 
     with contextlib.closing(get_proc(args, args.bhost)) as proc:
         if not FSHelpers.which("make", default=None, proc=proc):
@@ -826,7 +838,7 @@ def _deploy_prepare(args, toolname, minkver):
             args.drvsrc = args.tmpdir / "drivers"
             _LOG.info("Drivers will be compiled on host '%s'", proc.hostname)
 
-        if hasattr(args, "helpersrc"):
+        if args.helpers:
             _LOG.debug("copying the helpers to %s:\n  '%s' -> '%s'",
                        proc.hostname, args.helpersrc, args.tmpdir)
             proc.rsync(f"{args.helpersrc}/", args.tmpdir / "helpers", remotesrc=False,
@@ -843,7 +855,7 @@ def _deploy_prepare(args, toolname, minkver):
         _LOG.info("Drivers will be deployed to '%s'%s", args.kmodpath, proc.hostmsg)
         _LOG.info("Kernel modules path%s: %s", proc.hostmsg, args.kmodpath)
 
-        if hasattr(args, "helpersrc"):
+        if args.helpers:
             if not args.helpers_path:
                 args.helpers_path = get_helpers_deploy_path(proc, toolname)
             _LOG.info("Helpers will be deployed to '%s'%s", args.helpers_path, proc.hostmsg)
@@ -869,10 +881,12 @@ def _build(args):
             stdout, stderr = proc.run_verify(cmd)
             _log_cmd_output(args, stdout, stderr)
 
-        if hasattr(args, "helpersrc"):
+        if args.helpers:
             _LOG.info("Compiling the helpers%s", proc.hostmsg)
-            stdout, stderr = proc.run_verify(f"make -C '{args.helpersrc}'")
-            _log_cmd_output(args, stdout, stderr)
+            for helper in args.helpers:
+                helperpath = f"{args.helpersrc}/{helper}"
+                stdout, stderr = proc.run_verify(f"make -C '{helperpath}'")
+                _log_cmd_output(args, stdout, stderr)
 
 def _deploy(args):
     """Deploy helpers and drivers."""
@@ -882,15 +896,19 @@ def _deploy(args):
         remotesrc = args.bhost != "localhost"
         remotedst = args.ihost != "localhost"
 
-        if hasattr(args, "helpersrc"):
+        if args.helpers:
             helpersdst = args.tmpdir / "helpers_deployed"
             _LOG.debug("Deploying helpers to '%s'%s", helpersdst, bproc.hostmsg)
-            cmd = f"make -C '{args.helpersrc}' install PREFIX='{helpersdst}'"
-            stdout, stderr = bproc.run_verify(cmd)
-            _log_cmd_output(args, stdout, stderr)
 
-            iproc.rsync(str(helpersdst) + "/", args.helpers_path,
-                        remotesrc=remotesrc, remotedst=remotedst)
+            for helper in args.helpers:
+                helperpath = f"{args.helpersrc}/{helper}"
+
+                cmd = f"make -C '{helperpath}' install PREFIX='{helpersdst}'"
+                stdout, stderr = bproc.run_verify(cmd)
+                _log_cmd_output(args, stdout, stderr)
+
+                iproc.rsync(str(helpersdst) + "/", args.helpers_path,
+                            remotesrc=remotesrc, remotedst=remotedst)
 
         if hasattr(args, "drvsrc"):
             dstdir = args.kmodpath.joinpath(_DRV_SRC_SUBPATH)
