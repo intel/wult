@@ -1,7 +1,7 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: wult
 Upstream-Contact: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Source: git://git-amr-4.devtools.intel.com/otc_power_lab-wult
+Source: https://github.com/intel/wult
   .
   The initial package was put together by Juha Haapakorpi <juha.haapakorpi@intel.com>
   on Wed Apr 29 16:32:19 EEST 2020.
