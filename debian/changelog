@@ -1,5 +1,6 @@
 wult (XXXXXX) unstable; urgency=low
 
+  * wult: add statistics collection capability.
   * wult: include less diagrams into report by default.
   * wult: change default launch distance range from 0-8ms to 0-4ms.
   * wult: fix false warning about C-state prewake setting.
