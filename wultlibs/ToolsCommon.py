@@ -388,16 +388,16 @@ def even_up_dpcnt(rsts):
         if dpcnt > min_dpcnt:
             res.df = res.df.truncate(after=min_dpcnt-1)
 
-def apply_filters(args, res):
+def set_filters(args, res):
     """
     This is a helper function for the following command-line options: '--rsel', '--rfilt', '--csel',
     '--cfilt'. The 'args' argument should be an 'helperlibs.ArgParse' object, where all the above
     mentioned options are represented by the 'oargs' (ordered arguments) field. The 'res' argument
-    is a 'RORawResult' object.
+    is 'RORawResult' or 'WORawResultBase' object.
     """
 
-    def do_filter(res, ops):
-        """Apply filter operations in 'ops' to wult test result 'res'."""
+    def set_filter(res, ops):
+        """Set filter operations in 'ops' to test result 'res'."""
 
         res.clear_filts()
         for name, expr in ops.items():
@@ -405,7 +405,6 @@ def apply_filters(args, res):
             if name.startswith("c"):
                 expr = Trivial.split_csv_line(expr)
             getattr(res, f"set_{name}")(expr)
-        res.load_df()
 
     if not getattr(args, "oargs", None):
         return
@@ -415,12 +414,21 @@ def apply_filters(args, res):
     ops = {}
     for name, expr in args.oargs:
         if name in ops:
-            do_filter(res, ops)
+            set_filter(res, ops)
             ops = {}
         ops[name] = expr
 
     if ops:
-        do_filter(res, ops)
+        set_filter(res, ops)
+
+def apply_filters(args, res):
+    """
+    Same as 'set_filters()' but filters are also applied to results in 'res'. The 'res' argument is
+    'RORawResult'.
+    """
+
+    set_filters(args, res)
+    res.load_df()
 
 def scan_command(args):
     """Implements the 'scan' command for the 'wult' and 'ndl' tools."""
