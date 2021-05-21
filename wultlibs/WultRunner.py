@@ -224,7 +224,9 @@ class WultRunner:
                 continue
 
             # Add the data to the CSV file.
-            self._res.add_csv_row(dp)
+            if not self._res.add_csv_row(dp):
+                # the data point has not been added (e.g., because it did not pass raw filters).
+                continue
 
             if self._post_trigger:
                 self._run_post_trigger(dp["WakeLatency"])
