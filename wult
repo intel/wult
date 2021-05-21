@@ -343,7 +343,8 @@ def list_stats():
 
     for stname, stinfo in WultStatsCollect.STATS_INFO.items():
         LOG.info("* %s", stname)
-        LOG.info("  - Default interval: %.1fs", stinfo["interval"])
+        if stinfo.get("interval"):
+            LOG.info("  - Default interval: %.1fs", stinfo["interval"])
         LOG.info("  - %s", stinfo["description"])
 
 def start_command(args):
