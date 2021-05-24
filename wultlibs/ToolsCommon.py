@@ -631,6 +631,7 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
     parser.add_argument("-T", "--timeout", dest="timeout", help=text)
 
     parser.set_defaults(func=func)
+    parser.set_defaults(drvsrc=None)
     parser.set_defaults(helpers=helpers)
 
 def _get_module_path(proc, name):
@@ -779,7 +780,7 @@ def _deploy_prepare(args, toolname, minkver):
     if args.privkey and not args.privkey.is_dir():
         raise Error(f"path '{args.privkey}' does not exist or it is not a directory")
 
-    if hasattr(args, "drvsrc"):
+    if args.drvsrc:
         if not args.drvsrc:
             args.drvsrc = FSHelpers.search_for_app_data("wult", _DRV_SRC_SUBPATH/f"{toolname}",
                                                         pathdescr=f"{toolname} drivers sources")
@@ -830,7 +831,7 @@ def _deploy_prepare(args, toolname, minkver):
 
         args.tmpdir = FSHelpers.mktemp(prefix=f"{toolname}-", proc=proc)
 
-        if hasattr(args, "drvsrc"):
+        if args.drvsrc:
             _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'",
                        proc.hostname, args.drvsrc, args.tmpdir)
             proc.rsync(f"{args.drvsrc}/", args.tmpdir / "drivers", remotesrc=False, remotedst=True)
@@ -872,7 +873,7 @@ def _build(args):
     """Build drivers and helpers."""
 
     with contextlib.closing(get_proc(args, args.bhost)) as proc:
-        if hasattr(args, "drvsrc"):
+        if args.drvsrc:
             _LOG.info("Compiling the drivers%s", proc.hostmsg)
             cmd = f"make -C '{args.drvsrc}' KSRC='{args.ksrc}'"
             if args.debug:
@@ -909,7 +910,7 @@ def _deploy(args):
                 iproc.rsync(str(helpersdst) + "/", args.helpers_path,
                             remotesrc=remotesrc, remotedst=remotedst)
 
-        if hasattr(args, "drvsrc"):
+        if args.drvsrc:
             dstdir = args.kmodpath.joinpath(_DRV_SRC_SUBPATH)
             FSHelpers.mkdir(dstdir, parents=True, exist_ok=True, proc=iproc)
 
