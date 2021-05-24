@@ -568,18 +568,6 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
-    if helpers:
-        dirnames = ", ".join([dirname % str(_HELPERS_SRC_SUBPATH) for dirname in searchdirs])
-        helpernames = ", ".join(helpers)
-        text = f"""Path to {toolname} helpers directory. This directory should contain the following
-                   helpers: {helpernames}. These helpers will be built and deployed. By default the
-                   helpers to build are searched for in the following paths (and in the following
-                   order) on the local host: {dirnames}."""
-        arg = parser.add_argument("--helpers-src", help=text, dest="helpersrc", type=Path)
-        if argcomplete:
-            arg.completer = argcomplete.completers.DirectoriesCompleter()
-
-    if drivers:
         text = """Path to the Linux kernel sources to build the drivers against. The default is
                   '/lib/modules/$(uname -r)/build'. This is the path on the system the drivers are
                   going to be build on (BHOST)"""
@@ -594,6 +582,16 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
     if helpers:
+        dirnames = ", ".join([dirname % str(_HELPERS_SRC_SUBPATH) for dirname in searchdirs])
+        helpernames = ", ".join(helpers)
+        text = f"""Path to {toolname} helpers directory. This directory should contain the following
+                   helpers: {helpernames}. These helpers will be built and deployed. By default the
+                   helpers to build are searched for in the following paths (and in the following
+                   order) on the local host: {dirnames}."""
+        arg = parser.add_argument("--helpers-src", help=text, dest="helpersrc", type=Path)
+        if argcomplete:
+            arg.completer = argcomplete.completers.DirectoriesCompleter()
+
         text = f"""Path to the directory to deploy {toolname} helpers to. The default is the path
                    defined by the {toolname.upper()}_HELPERSPATH environment variable. If it is not
                    defined, the default path is '$HOME/{HELPERS_LOCAL_DIR}/bin', where '$HOME' is
