@@ -607,7 +607,7 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
     elif helpers:
         what = "helpers"
     else:
-        what = "helpers and drivers"
+        what = "drivers"
 
     text = f"""Name of the host {what} have to be deployed to (local host by default). In order to
                deploy to a remote host this program will log into it using the 'SSH' protocol."""
