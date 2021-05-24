@@ -563,8 +563,9 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
         dirnames = ", ".join([dirname % str(_DRV_SRC_SUBPATH) for dirname in searchdirs])
         text = f"""Path to {toolname} drivers sources to build and deploy. By default the drivers
                    are searched for in the following directories (and in the following order) on the
-                   local host: {dirnames}."""
-        arg = parser.add_argument("--drivers-src", help=text, dest="drvsrc", type=Path)
+                   local host: {dirnames}. Use value '' (empty) in in order to skip deploying the
+                   drivers."""
+        arg = parser.add_argument("--drivers-src", help=text, dest="drvsrc")
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
@@ -781,6 +782,7 @@ def _deploy_prepare(args, toolname, minkver):
         raise Error(f"path '{args.privkey}' does not exist or it is not a directory")
 
     if args.drvsrc:
+        args.drvsrc = Path(args.drvsrc)
         if not args.drvsrc:
             args.drvsrc = FSHelpers.search_for_app_data("wult", _DRV_SRC_SUBPATH/f"{toolname}",
                                                         pathdescr=f"{toolname} drivers sources")
@@ -791,8 +793,8 @@ def _deploy_prepare(args, toolname, minkver):
     if args.helpers:
         if not args.helpersrc:
             # We assume all helpers are in the same place, so only search for the first helper path.
-            args.helpersrc = FSHelpers.search_for_app_data("wult",
-                                                           _HELPERS_SRC_SUBPATH/f"{args.helpers[0]}",
+            helper_path = _HELPERS_SRC_SUBPATH/f"{args.helpers[0]}"
+            args.helpersrc = FSHelpers.search_for_app_data("wult", helper_path,
                                                            pathdescr=f"{toolname} helper sources")
             args.helpersrc = args.helpersrc.parent
 
@@ -809,29 +811,29 @@ def _deploy_prepare(args, toolname, minkver):
         if not FSHelpers.which("make", default=None, proc=proc):
             raise Error(f"please, install the 'make' tool{proc.hostmsg}")
 
-        if not args.ksrc:
-            args.kver = KernelVersion.get_kver(proc=proc)
-            if not args.ksrc:
-                args.ksrc = Path(f"/lib/modules/{args.kver}/build")
-        else:
-            args.ksrc = FSHelpers.abspath(args.ksrc, proc=proc)
-
-        if not FSHelpers.isdir(args.ksrc, proc=proc):
-            raise Error(f"kernel sources directory '{args.ksrc}' does not exist{proc.hostmsg}")
-
-        if not args.kver:
-            args.kver = KernelVersion.get_kver_ktree(args.ksrc, proc=proc)
-
-        _LOG.info("Kernel sources path: %s", args.ksrc)
-        _LOG.info("Kernel version: %s", args.kver)
-
-        if KernelVersion.kver_lt(args.kver, minkver):
-            raise Error(f"version of the kernel{proc.hostmsg} is {args.kver}, and it is not new "
-                        f"enough.\nPlease, use kernel version {minkver} or newer.")
-
         args.tmpdir = FSHelpers.mktemp(prefix=f"{toolname}-", proc=proc)
 
         if args.drvsrc:
+            if not args.ksrc:
+                args.kver = KernelVersion.get_kver(proc=proc)
+                if not args.ksrc:
+                    args.ksrc = Path(f"/lib/modules/{args.kver}/build")
+            else:
+                args.ksrc = FSHelpers.abspath(args.ksrc, proc=proc)
+
+            if not FSHelpers.isdir(args.ksrc, proc=proc):
+                raise Error(f"kernel sources directory '{args.ksrc}' does not exist{proc.hostmsg}")
+
+            if not args.kver:
+                args.kver = KernelVersion.get_kver_ktree(args.ksrc, proc=proc)
+
+            _LOG.info("Kernel sources path: %s", args.ksrc)
+            _LOG.info("Kernel version: %s", args.kver)
+
+            if KernelVersion.kver_lt(args.kver, minkver):
+                raise Error(f"version of the kernel{proc.hostmsg} is {args.kver}, and it is not "
+                            f"new enough.\nPlease, use kernel version {minkver} or newer.")
+
             _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'",
                        proc.hostname, args.drvsrc, args.tmpdir)
             proc.rsync(f"{args.drvsrc}/", args.tmpdir / "drivers", remotesrc=False, remotedst=True)
@@ -847,13 +849,15 @@ def _deploy_prepare(args, toolname, minkver):
             _LOG.info("Helpers will be compiled on host '%s'", proc.hostname)
 
     with contextlib.closing(get_proc(args, args.ihost)) as proc:
-        if not args.kmodpath:
-            args.kmodpath = Path(f"/lib/modules/{args.kver}")
-        if not FSHelpers.isdir(args.kmodpath, proc=proc):
-            raise Error(f"kernel modules directory '{args.kmodpath}' does not exist{proc.hostmsg}")
+        if args.drvsrc:
+            if not args.kmodpath:
+                args.kmodpath = Path(f"/lib/modules/{args.kver}")
+            if not FSHelpers.isdir(args.kmodpath, proc=proc):
+                raise Error(f"kernel modules directory '{args.kmodpath}' does not "
+                            f"exist{proc.hostmsg}")
 
-        _LOG.info("Drivers will be deployed to '%s'%s", args.kmodpath, proc.hostmsg)
-        _LOG.info("Kernel modules path%s: %s", proc.hostmsg, args.kmodpath)
+            _LOG.info("Drivers will be deployed to '%s'%s", args.kmodpath, proc.hostmsg)
+            _LOG.info("Kernel modules path%s: %s", proc.hostmsg, args.kmodpath)
 
         if args.helpers:
             if not args.helpers_path:
