@@ -655,7 +655,7 @@ def get_helpers_deploy_path(proc, toolname):
 
     helpers_path = os.environ.get(f"{toolname.upper()}_HELPERSPATH")
     if not helpers_path:
-        helpers_path = FSHelpers.get_homedir(proc=proc) / HELPERS_LOCAL_DIR
+        helpers_path = FSHelpers.get_homedir(proc=proc) / HELPERS_LOCAL_DIR / "bin"
     return helpers_path
 
 def _get_deployables(srcpath, proc):
@@ -911,7 +911,7 @@ def _deploy(args):
                 stdout, stderr = bproc.run_verify(cmd)
                 _log_cmd_output(args, stdout, stderr)
 
-                iproc.rsync(str(helpersdst) + "/", args.helpers_path,
+                iproc.rsync(str(helpersdst) + "/bin/", args.helpers_path,
                             remotesrc=remotesrc, remotedst=remotedst)
 
         if args.drvsrc:
