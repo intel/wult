@@ -33,9 +33,9 @@ fi
 
 
 for toolname in $TOOLS; do
-
     mkdir -p "$MODULES_DIR"
     deps="$(./$toolname --print-module-paths)"
+
     for dep in $deps; do
         cp "$dep" "$MODULES_DIR"
         cp "$toolname" __main__.py
@@ -46,7 +46,7 @@ for toolname in $TOOLS; do
         # Turn it into an executable file.
         echo '#!/usr/bin/python3' > "$toolname".standalone
         cat "$toolname".zip >> "$toolname".standalone
-        chmod u+x "$toolname".standalone
+        chmod a+x "$toolname".standalone
     done
 
 	remove_tmpfiles
