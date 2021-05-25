@@ -168,14 +168,6 @@ class RORawResult(_RawResultBase.RawResultBase):
         if regexs:
             self._csel = self.find_colnames(regexs, must_find_all=True)
 
-    def clear_filts(self):
-        """Clear all the filters and selectors for both rows and columns."""
-
-        self._rfilt = None
-        self._cfilt = None
-        self._rsel = None
-        self._csel = None
-
     def _get_rsel(self):
         """Merge row filter and selector and return the result."""
 
@@ -572,12 +564,6 @@ class RORawResult(_RawResultBase.RawResultBase):
                     raise Error(f"file '{attr}' is empty")
             except OSError as err:
                 raise Error(f"failed to access '{attr}': {err}") from err
-
-        # The row and column filters and selectors.
-        self._rfilt = None
-        self._cfilt = None
-        self._rsel = None
-        self._csel = None
 
         # Unknown columns in the CSV file.
         self._ignored_colnames = None

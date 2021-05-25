@@ -29,12 +29,26 @@ class RawResultBase:
     Base class for read-only and write-only test result classes, contains the common bits.
     """
 
+    def clear_filts(self):
+        """Clear all the filters and selectors for both rows and columns."""
+
+        self._rfilt = None
+        self._cfilt = None
+        self._rsel = None
+        self._csel = None
+
     def __init__(self, dirpath):
         """The class constructor. The 'dirpath' argument is path raw test result directory."""
 
         self.reportid = None
         # This dictionary represents the info file.
         self.info = {}
+
+        # The row and column filters and selectors.
+        self._rfilt = None
+        self._cfilt = None
+        self._rsel = None
+        self._csel = None
 
         if not dirpath:
             raise Error("raw test results directory path was not specified")
