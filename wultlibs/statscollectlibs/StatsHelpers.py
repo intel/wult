@@ -13,7 +13,7 @@ This module implements several misc. helpers for tools using 'StatsCollect'.
 # pylint: disable=protected-access
 
 import logging
-from statscollectlibs import StatsCollect
+from wultlibs.statscollectlibs import StatsCollect
 from wultlibs.helperlibs import Trivial
 from wultlibs.helperlibs.Exceptions import Error
 
