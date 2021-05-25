@@ -168,46 +168,6 @@ class RORawResult(_RawResultBase.RawResultBase):
         if regexs:
             self._csel = self.find_colnames(regexs, must_find_all=True)
 
-    def _get_rsel(self):
-        """Merge row filter and selector and return the result."""
-
-        expr = None
-
-        if self._rsel:
-            if self._rfilt:
-                expr = f"({self._rsel}) and not ({self._rfilt})"
-            else:
-                expr = self._rsel
-        else:
-            if self._rfilt:
-                expr = f"not ({self._rfilt})"
-            else:
-                expr = None
-
-        return expr
-
-    def _get_csel(self):
-        """Merge column filter and selector and return the result."""
-
-        if not self._csel and not self._cfilt:
-            return None
-
-        csel = self._csel
-        if self._csel is None:
-            csel = self.colnames
-
-        cfilt = self._cfilt
-        if self._cfilt is None:
-            cfilt = []
-
-        result = []
-        cfilt_set = set(cfilt)
-        for colname in csel:
-            if colname not in cfilt_set:
-                result.append(colname)
-
-        return result
-
     def _calc_smrys(self, colname, funcnames, all_funcs):
         """
         Calculate summary functions 'funcnames' for column 'colname' and return the resulting
@@ -364,7 +324,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         """
 
         rsel = self._get_rsel()
-        csel = self._get_csel()
+        csel = self._get_csel(self.colnames)
 
         load_csv = force_reload or self.df is None
 
