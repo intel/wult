@@ -19,6 +19,14 @@ from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
 class WORawResultBase(_RawResultBase.RawResultBase):
     """This class represents a write-only raw test result."""
 
+    def set_rfilt(self, rfilt):
+        """Save row filter value."""
+        self._rfilt = rfilt
+
+    def set_rsel(self, rsel):
+        """Save row selector value."""
+        self._rsel = rsel
+
     def _check_can_continue(self):
         """
         Verify if it is OK to continue adding more datapoints to an existing test result."""
