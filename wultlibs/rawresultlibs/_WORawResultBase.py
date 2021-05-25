@@ -79,6 +79,25 @@ class WORawResultBase(_RawResultBase.RawResultBase):
             except OSError as err:
                 raise Error(f"failed to create file '{self.info_path}':\n{err}") from None
 
+    def _get_csv_row(self, dp):
+        """
+        Form CSV row from datapoint dictionary values in 'dp'. Make C-state percentage values nicer
+        to read by saving only two most significant decimals. Returns the CSV row as a list.
+        """
+
+        row = []
+        for key in self.csv.hdr:
+            val = dp[key]
+            if "%" in key:
+                val =  f"{val:.2f}"
+            row.append(val)
+
+        return row
+
+    def add_csv_row(self, dp):
+        """Add datapoint from dictionary 'dp' to CSV file."""
+        self.csv.add_row(self._get_csv_row(dp))
+
     def write_info(self):
         """Write the 'self.info' dictionary to the 'info.yml' file."""
 
