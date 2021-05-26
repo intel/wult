@@ -1,4 +1,4 @@
-wult (XXXXXX) unstable; urgency=low
+wult (1.9.2) unstable; urgency=low
 
   * wult: add statistics collection capability.
   * wult: include less diagrams into report by default.
