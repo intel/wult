@@ -49,7 +49,8 @@ Filter datapoints out of a test result.
 \fBndl\fR \fI\,calc\/\fR
 Calculate summary functions for a ndl test result.
 .SH OPTIONS 'ndl deploy'
-usage: ndl deploy [-h] [-q] [-d] [--drivers-src DRVSRC] [--kernel-src KSRC] [--kmod-path KMODPATH] [--helpers-src HELPERSRC] [--helpers-path HELPERSPATH] [-H IHOST] [--build-host BHOST] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
+usage: ndl deploy [-h] [-q] [-d] [--drivers-src DRVSRC] [--kernel-src KSRC] [--kmod-path KMODPATH] [--helpers-src HELPERSRC] [--helpers-path HELPERSPATH]
+                  [-H IHOST] [--build-host BHOST] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
 Compile and deploy ndl drivers on local or remote host. This command has many options, but they are very rarely useful and most probably you do not need them.
 
@@ -68,12 +69,14 @@ Print debugging information.
 
 .TP
 \fB\-\-drivers\-src\fR \fI\,DRVSRC\/\fR
-Path to ndl drivers sources to build and deploy. By default the drivers are searched for in the following directories (and in the following order) on the local host: /usr/bin/drivers/idle, $NDL_DATA_PATH/drivers/idle (if 'NDL_DATA_PATH'
-environment variable is defined), $HOME/.local/share/wult/drivers/idle, /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle. Use value 'none' or '' (empty) to skip deploying the drivers.
+Path to ndl drivers sources to build and deploy. By default the drivers are searched for in the following directories (and in the following order) on the
+local host: /usr/bin/drivers/idle, $NDL_DATA_PATH/drivers/idle (if 'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/drivers/idle,
+/usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle. Use value 'none' or '' (empty) to skip deploying the drivers.
 
 .TP
 \fB\-\-kernel\-src\fR \fI\,KSRC\/\fR
-Path to the Linux kernel sources to build the drivers against. The default is '/lib/modules/$(uname \-r)/build'. This is the path on the system the drivers are going to be build on (BHOST)
+Path to the Linux kernel sources to build the drivers against. The default is '/lib/modules/$(uname \-r)/build'. This is the path on the system the drivers
+are going to be build on (BHOST)
 
 .TP
 \fB\-\-kmod\-path\fR \fI\,KMODPATH\/\fR
@@ -81,21 +84,24 @@ Where the ndl drivers should be deploy to (IHOST). The default is '/lib/modules/
 
 .TP
 \fB\-\-helpers\-src\fR \fI\,HELPERSRC\/\fR
-Path to ndl helpers directory. This directory should contain the following helpers: ndlrunner. These helpers will be built and deployed. By default the helpers to build are searched for in the following paths (and in the following
-order) on the local host: /usr/bin/helpers, $NDL_DATA_PATH/helpers (if 'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/helpers, /usr/local/share/wult/helpers, /usr/share/wult/helpers.
+Path to ndl helpers directory. This directory should contain the following helpers: ndlrunner. These helpers will be built and deployed. By default the
+helpers to build are searched for in the following paths (and in the following order) on the local host: /usr/bin/helpers, $NDL_DATA_PATH/helpers (if
+'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/helpers, /usr/local/share/wult/helpers, /usr/share/wult/helpers.
 
 .TP
 \fB\-\-helpers\-path\fR HELPERSPATH
-Path to the directory to deploy ndl helpers to. The default is the path defined by the NDL_HELPERSPATH environment variable. If it is not defined, the default path is '$HOME/.local/bin', where '$HOME' is the home directory of user
-'USERNAME' on host 'IHOST' (see '\-\-host' and '\-\-username' options).
+Path to the directory to deploy ndl helpers to. The default is the path defined by the NDL_HELPERSPATH environment variable. If it is not defined, the
+default path is '$HOME/.local/bin', where '$HOME' is the home directory of user 'USERNAME' on host 'IHOST' (see '\-\-host' and '\-\-username' options).
 
 .TP
 \fB\-H\fR \fI\,IHOST\/\fR, \fB\-\-host\fR \fI\,IHOST\/\fR
-Name of the host helpers and drivers have to be deployed to (local host by default). In order to deploy to a remote host this program will log into it using the 'SSH' protocol.
+Name of the host helpers and drivers have to be deployed to (local host by default). In order to deploy to a remote host this program will log into it
+using the 'SSH' protocol.
 
 .TP
 \fB\-\-build\-host\fR \fI\,BHOST\/\fR
-Name of the host helpers and drivers have to be built on. By default they are built on IHOST, but this option can be used to build on the local host ('use \-\-build\-host localhost').
+Name of the host helpers and drivers have to be built on. By default they are built on IHOST, but this option can be used to build on the local host ('use
+\-\-build\-host localhost').
 
 .TP
 \fB\-U\fR \fI\,USERNAME\/\fR, \fB\-\-username\fR \fI\,USERNAME\/\fR
@@ -144,15 +150,16 @@ Path to the private SSH key that should be used for logging into the SUT. By def
 SSH connect timeout in seconds, default is 8.
 
 .SH OPTIONS 'ndl start'
-usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [--helpers-path HELPERSPATH] [-c COUNT] [--time-limit LIMIT] [--start-over] [-o OUTDIR] [--reportid REPORTID] [-l LDIST] [--post-trigger POST_TRIGGER]
-                 [--post-trigger-range TRANGE] [--report]
+usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [--helpers-path HELPERSPATH] [-c COUNT] [--time-limit LIMIT]
+                 [--start-over] [-o OUTDIR] [--reportid REPORTID] [-l LDIST] [--post-trigger POST_TRIGGER] [--post-trigger-range TRANGE] [--report]
                  ifname
 
 Start measuring and recording the latency data.
 
 .TP
 \fBifname\fR
-The network interface backed by the NIC to use for latency measurements. Today only Intel I210 and I211 NICs are supported. Please, specify NIC's network interface name (e.g., eth0).
+The network interface backed by the NIC to use for latency measurements. Today only Intel I210 and I211 NICs are supported. Please, specify NIC's network
+interface name (e.g., eth0).
 
 .TP
 \fB\-h\fR
@@ -184,25 +191,27 @@ SSH connect timeout in seconds, default is 8.
 
 .TP
 \fB\-\-helpers\-path\fR HELPERSPATH
-Path to ndl helper tools. The default is the path defined by the NDL_HELPERSPATH environment variable. If it is not defined, the default path is '$HOME/.local/bin', where '$HOME' is home directory path of the 'USERNAME' user on the
-'HOSTNAME' system (see '\-\-host' and '\-\-username' options).
+Path to ndl helper tools. The default is the path defined by the NDL_HELPERSPATH environment variable. If it is not defined, the default path is
+'$HOME/.local/bin', where '$HOME' is home directory path of the 'USERNAME' user on the 'HOSTNAME' system (see '\-\-host' and '\-\-username' options).
 
 .TP
 \fB\-c\fR COUNT, \fB\-\-datapoints\fR COUNT
-How many datapoints should the test result include, default is 1000000. Note, unless the '\-\-start\-over' option is used, the pre\-existing datapoints are taken into account. For example, if the test result already has 6000 datapoints and
-'\-c 10000' is used, the tool will collect 4000 datapoints and exit. Warning: collecting too many datapoints may result in a very large test result file, which will be difficult to process later, because that would require a lot of
-memory.
+How many datapoints should the test result include, default is 1000000. Note, unless the '\-\-start\-over' option is used, the pre\-existing datapoints are
+taken into account. For example, if the test result already has 6000 datapoints and '\-c 10000' is used, the tool will collect 4000 datapoints and exit.
+Warning: collecting too many datapoints may result in a very large test result file, which will be difficult to process later, because that would require a
+lot of memory.
 
 .TP
 \fB\-\-time\-limit\fR LIMIT
-The measurement time limit, i.e., for how long the SUT should be measured. The default unit is minutes, but you can use the following handy specifiers as well: d \- days, h \- hours, m \- minutes, s \- seconds. For example '1h25m' would be
-1 hour and 25 minutes, or 10m5s would be 10 minutes and 5 seconds. Value '0' means "no time limit", and this is the default. If this option is used along with the '\-\-datapoints' option, then measurements will stop as when either the
-time limit is reached, or the required amount of datapoints is collected.
+The measurement time limit, i.e., for how long the SUT should be measured. The default unit is minutes, but you can use the following handy specifiers as
+well: d \- days, h \- hours, m \- minutes, s \- seconds. For example '1h25m' would be 1 hour and 25 minutes, or 10m5s would be 10 minutes and 5 seconds. Value
+'0' means "no time limit", and this is the default. If this option is used along with the '\-\-datapoints' option, then measurements will stop as when either
+the time limit is reached, or the required amount of datapoints is collected.
 
 .TP
 \fB\-\-start\-over\fR
-If the output directory already contains the datapoints CSV file with some amount of datapoints in it, the default behavior is to keep them and append more datapoints if necessary. But with this option all the pre\-existing datapoints
-will be removed as soon as the tool starts writing new datapoints.
+If the output directory already contains the datapoints CSV file with some amount of datapoints in it, the default behavior is to keep them and append more
+datapoints if necessary. But with this option all the pre\-existing datapoints will be removed as soon as the tool starts writing new datapoints.
 
 .TP
 \fB\-o\fR \fI\,OUTDIR\/\fR, \fB\-\-outdir\fR \fI\,OUTDIR\/\fR
@@ -210,33 +219,40 @@ Path to the directory to store the results at.
 
 .TP
 \fB\-\-reportid\fR \fI\,REPORTID\/\fR
-Any string which may serve as an identifier of this run. By default report ID is the current date, prefixed with the remote host name in case the '\-H' option was used: [hostname\-]YYYYMMDD. For example, "20150323" is a report ID for a
-run made on March 23, 2015. The allowed characters are: ACSII alphanumeric, '\-', '.', ',', '_', and '~'.
+Any string which may serve as an identifier of this run. By default report ID is the current date, prefixed with the remote host name in case the '\-H'
+option was used: [hostname\-]YYYYMMDD. For example, "20150323" is a report ID for a run made on March 23, 2015. The allowed characters are: ACSII
+alphanumeric, '\-', '.', ',', '_', and '~'.
 
 .TP
 \fB\-l\fR \fI\,LDIST\/\fR, \fB\-\-ldist\fR \fI\,LDIST\/\fR
-The launch distance in microseconds. This tool works by scheduling a delayed network packet, then sleeping and waiting for the packet to be sent. This step is referred to as a "measurement cycle" and it is usually repeated many times.
-The launch distance defines how far in the future the delayed network packets are scheduled. By default this tool randomly selects launch distance in range of [5000, 50000] microseconds (same as '\-\-ldist 5000,50000'). Specify a comma\-
-separated range or a single value if you want launch distance to be precisely that value all the time. The default unit is microseconds, but you can use the following specifiers as well: ms \- milliseconds, us \- microseconds, ns \-
-nanoseconds. For example, '\-\-ldist 500us,100ms' would be a [500,100000] microseconds range. Note, too low values may cause failures or prevent the SUT from reaching deep C\-states. The optimal value is system\-specific.
+The launch distance in microseconds. This tool works by scheduling a delayed network packet, then sleeping and waiting for the packet to be sent. This step
+is referred to as a "measurement cycle" and it is usually repeated many times. The launch distance defines how far in the future the delayed network
+packets are scheduled. By default this tool randomly selects launch distance in range of [5000, 50000] microseconds (same as '\-\-ldist 5000,50000'). Specify
+a comma\-separated range or a single value if you want launch distance to be precisely that value all the time. The default unit is microseconds, but you
+can use the following specifiers as well: ms \- milliseconds, us \- microseconds, ns \- nanoseconds. For example, '\-\-ldist 500us,100ms' would be a
+[500,100000] microseconds range. Note, too low values may cause failures or prevent the SUT from reaching deep C\-states. The optimal value is system\-
+specific.
 
 .TP
 \fB\-\-post\-trigger\fR POST_TRIGGER
-The post\-measurement trigger. Please, provide path to a trigger program that should be executed after a datapoint had been collected. The next measurement cycle will start only after the trigger program finishes. The trigger program
-will be executed as 'POST_TRIGGER \-\-value <value>', where '<value>' is the last observed RTD in nanoseconds. This option exists for debugging and troubleshooting purposes only.
+The post\-measurement trigger. Please, provide path to a trigger program that should be executed after a datapoint had been collected. The next measurement
+cycle will start only after the trigger program finishes. The trigger program will be executed as 'POST_TRIGGER \-\-value <value>', where '<value>' is the
+last observed RTD in nanoseconds. This option exists for debugging and troubleshooting purposes only.
 
 .TP
 \fB\-\-post\-trigger\-range\fR TRANGE
-By default, the post trigger is executed for every datapoint, but this option allows for setting the RTD range \- the trigger program will be executed only when observed RTD value is in the range (inclusive). Specify a comma\-separated
-range, e.g '\-\-post\-trigger\-range 50,600'. The default unit is microseconds, but you can use the following specifiers as well: ms \- milliseconds, us \- microseconds, ns \- nanoseconds. For example, '\-\-post\-trigger\-range 100us,1ms' would be
-a [100,1000] microseconds range.
+By default, the post trigger is executed for every datapoint, but this option allows for setting the RTD range \- the trigger program will be executed only
+when observed RTD value is in the range (inclusive). Specify a comma\-separated range, e.g '\-\-post\-trigger\-range 50,600'. The default unit is microseconds,
+but you can use the following specifiers as well: ms \- milliseconds, us \- microseconds, ns \- nanoseconds. For example, '\-\-post\-trigger\-range 100us,1ms'
+would be a [100,1000] microseconds range.
 
 .TP
 \fB\-\-report\fR
 Generate an HTML report for collected results (same as calling 'report' command with default arguments).
 
 .SH OPTIONS 'ndl report'
-usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--rfilt RFILT] [--rsel RSEL] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR] [--relocatable] [--list-columns]
+usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--rfilt RFILT] [--rsel RSEL] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist CHIST]
+                  [--reportids REPORTIDS] [--title-descr TITLE_DESCR] [--relocatable] [--list-columns]
                   respaths [respaths ...]
 
 Create an HTML report for one or multiple test results.
@@ -259,58 +275,69 @@ Print debugging information.
 
 .TP
 \fB\-o\fR \fI\,OUTDIR\/\fR, \fB\-\-outdir\fR \fI\,OUTDIR\/\fR
-Path to the directory to store the report at. By default the report is stored in the 'ndl\-report\-<reportid>' sub\-directory of the current working directory, where '<reportid>' is report ID of ndl test result (the first one if there are
-multiple).
+Path to the directory to store the report at. By default the report is stored in the 'ndl\-report\-<reportid>' sub\-directory of the current working
+directory, where '<reportid>' is report ID of ndl test result (the first one if there are multiple).
 
 .TP
 \fB\-\-rfilt\fR \fI\,RFILT\/\fR
-The row filter: remove all the rows satisfying the filter expression. Here is an example of an expression: '(WakeLatency < 10000) | (PC6% < 1)'. This row filter expression will remove all rows with 'WakeLatency' smaller than 10000
-nanoseconds or package C6 residency smaller than 1%. The detailed row filter expression syntax can be found in the documentation for the 'eval()' function of Python 'pandas' module. You can use column names in the expression, or the
-special word 'index' for the row number. Value '0' is the header, value '1' is the first row, and so on. For example, expression 'index >= 10' will get rid of all data rows except for the first 10 ones.
+The row filter: remove all the rows satisfying the filter expression. Here is an example of an expression: '(WakeLatency < 10000) | (PC6% < 1)'. This row
+filter expression will remove all rows with 'WakeLatency' smaller than 10000 nanoseconds or package C6 residency smaller than 1%. The detailed row filter
+expression syntax can be found in the documentation for the 'eval()' function of Python 'pandas' module. You can use column names in the expression, or the
+special word 'index' for the row number. Value '0' is the header, value '1' is the first row, and so on. For example, expression 'index >= 10' will get rid
+of all data rows except for the first 10 ones.
 
 .TP
 \fB\-\-rsel\fR \fI\,RSEL\/\fR
-The row selector: remove all rows except for those satisfying the selector expression. In other words, the selector is just an inverse filter: '\-\-rsel expr' is the same as '\-\-rfilt "not (expr)"'.
+The row selector: remove all rows except for those satisfying the selector expression. In other words, the selector is just an inverse filter: '\-\-rsel
+expr' is the same as '\-\-rfilt "not (expr)"'.
 
 .TP
 \fB\-\-even\-up\-dp\-count\fR
-Even up datapoints count before generating the report. This option is useful when generating a report for many test results (a diff). If the test results contain different count of datapoints (rows count in the CSV file), the resulting
-histograms may look a little bit misleading. This option evens up datapoints count in the test results. It just finds the test result with the minimum count of datapoints and ignores the extra datapoints in the other test results.
+Even up datapoints count before generating the report. This option is useful when generating a report for many test results (a diff). If the test results
+contain different count of datapoints (rows count in the CSV file), the resulting histograms may look a little bit misleading. This option evens up
+datapoints count in the test results. It just finds the test result with the minimum count of datapoints and ignores the extra datapoints in the other test
+results.
 
 .TP
 \fB\-x\fR \fI\,XAXES\/\fR, \fB\-\-xaxes\fR \fI\,XAXES\/\fR
-A comma\-separated list of CSV column names (or python style regular expressions matching the names) to use on X\-axes, default is 'LDist'. Use '\-\-list\-columns' to get the list of the available column names.
+A comma\-separated list of CSV column names (or python style regular expressions matching the names) to use on X\-axes, default is 'LDist'. Use '\-\-list\-
+columns' to get the list of the available column names.
 
 .TP
 \fB\-y\fR \fI\,YAXES\/\fR, \fB\-\-yaxes\fR \fI\,YAXES\/\fR
-A comma\-separated list of CSV column names (or python style regular expressions matching the names) to use on the Y\-axes. If multiple CSV column names are specified for the X\- or Y\-axes, then the report will include all the X\- and
-Y\-axes combination. The default is 'RTD'. Use '\-\-list\-columns' to get the list of the available column names.
+A comma\-separated list of CSV column names (or python style regular expressions matching the names) to use on the Y\-axes. If multiple CSV column names are
+specified for the X\- or Y\-axes, then the report will include all the X\- and Y\-axes combination. The default is 'RTD'. Use '\-\-list\-columns' to get the list
+of the available column names.
 
 .TP
 \fB\-\-hist\fR \fI\,HIST\/\fR
-A comma\-separated list of CSV column names (or python style regular expressions matching the names) to add a histogram for, default is 'RTD'. Use '\-\-list\-columns' to get the list of the available column names. Use value 'none' to
-disable histograms.
+A comma\-separated list of CSV column names (or python style regular expressions matching the names) to add a histogram for, default is 'RTD'. Use '\-\-list\-
+columns' to get the list of the available column names. Use value 'none' to disable histograms.
 
 .TP
 \fB\-\-chist\fR \fI\,CHIST\/\fR
-A comma\-separated list of CSV column names (or python style regular expressions matching the names) to add a cumulative distribution for, default is 'RTD'. Use '\-\-list\-columns' to get the list of the available column names. Use value
-'none' to disable cumulative histograms.
+A comma\-separated list of CSV column names (or python style regular expressions matching the names) to add a cumulative distribution for, default is 'RTD'.
+Use '\-\-list\-columns' to get the list of the available column names. Use value 'none' to disable cumulative histograms.
 
 .TP
 \fB\-\-reportids\fR \fI\,REPORTIDS\/\fR
-Every input raw result comes with a report ID. This report ID is basically a short name for the test result, and it used in the HTML report to refer to the test result. However, sometimes it is helpful to temporarily override the report
-IDs just for the HTML report, and this is what the '\-\-reportids' option does. Please, specify a comma\-separated list of report IDs for every input raw test result. The first report ID will be used for the first raw rest result, the
-second report ID will be used for the second raw test result, and so on. Please, refer to the '\-\-reportid' option description in the 'start' command for more information about the report ID.
+Every input raw result comes with a report ID. This report ID is basically a short name for the test result, and it used in the HTML report to refer to the
+test result. However, sometimes it is helpful to temporarily override the report IDs just for the HTML report, and this is what the '\-\-reportids' option
+does. Please, specify a comma\-separated list of report IDs for every input raw test result. The first report ID will be used for the first raw rest result,
+the second report ID will be used for the second raw test result, and so on. Please, refer to the '\-\-reportid' option description in the 'start' command
+for more information about the report ID.
 
 .TP
 \fB\-\-title\-descr\fR \fI\,TITLE_DESCR\/\fR
-The report title description \- any text describing this report as whole, or path to a file containing the overall report description. For example, if the report compares platform A and platform B, the description could be something like
-'platform A vs B comparison'. This text will be included into the very beginning of the resulting HTML report.
+The report title description \- any text describing this report as whole, or path to a file containing the overall report description. For example, if the
+report compares platform A and platform B, the description could be something like 'platform A vs B comparison'. This text will be included into the very
+beginning of the resulting HTML report.
 
 .TP
 \fB\-\-relocatable\fR
-The generated report includes references to the test results. By default, these references are symlinks to the raw result directories. However, this makes the generated report be not relocatable. Use this option to make the report
-relocatable in expense of increased disk space consumption \- this tool will make a copy of the test results.
+The generated report includes references to the test results. By default, these references are symlinks to the raw result directories. However, this makes
+the generated report be not relocatable. Use this option to make the report relocatable in expense of increased disk space consumption \- this tool will
+make a copy of the test results.
 
 .TP
 \fB\-\-list\-columns\fR
@@ -339,18 +366,22 @@ Print debugging information.
 
 .TP
 \fB\-\-rfilt\fR \fI\,RFILT\/\fR
-The row filter: remove all the rows satisfying the filter expression. Here is an example of an expression: '(WakeLatency < 10000) | (PC6% < 1)'. This row filter expression will remove all rows with 'WakeLatency' smaller than 10000
-nanoseconds or package C6 residency smaller than 1%. The detailed row filter expression syntax can be found in the documentation for the 'eval()' function of Python 'pandas' module. You can use column names in the expression, or the
-special word 'index' for the row number. Value '0' is the header, value '1' is the first row, and so on. For example, expression 'index >= 10' will get rid of all data rows except for the first 10 ones.
+The row filter: remove all the rows satisfying the filter expression. Here is an example of an expression: '(WakeLatency < 10000) | (PC6% < 1)'. This row
+filter expression will remove all rows with 'WakeLatency' smaller than 10000 nanoseconds or package C6 residency smaller than 1%. The detailed row filter
+expression syntax can be found in the documentation for the 'eval()' function of Python 'pandas' module. You can use column names in the expression, or the
+special word 'index' for the row number. Value '0' is the header, value '1' is the first row, and so on. For example, expression 'index >= 10' will get rid
+of all data rows except for the first 10 ones.
 
 .TP
 \fB\-\-rsel\fR \fI\,RSEL\/\fR
-The row selector: remove all rows except for those satisfying the selector expression. In other words, the selector is just an inverse filter: '\-\-rsel expr' is the same as '\-\-rfilt "not (expr)"'.
+The row selector: remove all rows except for those satisfying the selector expression. In other words, the selector is just an inverse filter: '\-\-rsel
+expr' is the same as '\-\-rfilt "not (expr)"'.
 
 .TP
 \fB\-\-cfilt\fR \fI\,CFILT\/\fR
-The columns filter: remove all column specified in the filter. The columns filter is just a comma\-separated list of the CSV file column names or python style regular expressions matching the names. For example expression
-'SilentTime,WarmupDelay,.*Cyc', would remove columns 'SilentTime', 'WarmupDelay' and all columns with 'Cyc' in the column name. Use '\-\-list\-columns' to get the list of the available column names.
+The columns filter: remove all column specified in the filter. The columns filter is just a comma\-separated list of the CSV file column names or python
+style regular expressions matching the names. For example expression 'SilentTime,WarmupDelay,.*Cyc', would remove columns 'SilentTime', 'WarmupDelay' and
+all columns with 'Cyc' in the column name. Use '\-\-list\-columns' to get the list of the available column names.
 
 .TP
 \fB\-\-csel\fR \fI\,CSEL\/\fR
@@ -358,7 +389,8 @@ The columns selector: remove all column except for those specified in the select
 
 .TP
 \fB\-o\fR \fI\,OUTDIR\/\fR, \fB\-\-outdir\fR \fI\,OUTDIR\/\fR
-By default the resulting CSV lines are printed to the standard output. But this option can be used to specify the output directly to store the result at. This will create a filtered version of the input test result.
+By default the resulting CSV lines are printed to the standard output. But this option can be used to specify the output directly to store the result at.
+This will create a filtered version of the input test result.
 
 .TP
 \fB\-\-list\-columns\fR
@@ -391,18 +423,22 @@ Print debugging information.
 
 .TP
 \fB\-\-rfilt\fR \fI\,RFILT\/\fR
-The row filter: remove all the rows satisfying the filter expression. Here is an example of an expression: '(WakeLatency < 10000) | (PC6% < 1)'. This row filter expression will remove all rows with 'WakeLatency' smaller than 10000
-nanoseconds or package C6 residency smaller than 1%. The detailed row filter expression syntax can be found in the documentation for the 'eval()' function of Python 'pandas' module. You can use column names in the expression, or the
-special word 'index' for the row number. Value '0' is the header, value '1' is the first row, and so on. For example, expression 'index >= 10' will get rid of all data rows except for the first 10 ones.
+The row filter: remove all the rows satisfying the filter expression. Here is an example of an expression: '(WakeLatency < 10000) | (PC6% < 1)'. This row
+filter expression will remove all rows with 'WakeLatency' smaller than 10000 nanoseconds or package C6 residency smaller than 1%. The detailed row filter
+expression syntax can be found in the documentation for the 'eval()' function of Python 'pandas' module. You can use column names in the expression, or the
+special word 'index' for the row number. Value '0' is the header, value '1' is the first row, and so on. For example, expression 'index >= 10' will get rid
+of all data rows except for the first 10 ones.
 
 .TP
 \fB\-\-rsel\fR \fI\,RSEL\/\fR
-The row selector: remove all rows except for those satisfying the selector expression. In other words, the selector is just an inverse filter: '\-\-rsel expr' is the same as '\-\-rfilt "not (expr)"'.
+The row selector: remove all rows except for those satisfying the selector expression. In other words, the selector is just an inverse filter: '\-\-rsel
+expr' is the same as '\-\-rfilt "not (expr)"'.
 
 .TP
 \fB\-\-cfilt\fR \fI\,CFILT\/\fR
-The columns filter: remove all column specified in the filter. The columns filter is just a comma\-separated list of the CSV file column names or python style regular expressions matching the names. For example expression
-'SilentTime,WarmupDelay,.*Cyc', would remove columns 'SilentTime', 'WarmupDelay' and all columns with 'Cyc' in the column name. Use '\-\-list\-columns' to get the list of the available column names.
+The columns filter: remove all column specified in the filter. The columns filter is just a comma\-separated list of the CSV file column names or python
+style regular expressions matching the names. For example expression 'SilentTime,WarmupDelay,.*Cyc', would remove columns 'SilentTime', 'WarmupDelay' and
+all columns with 'Cyc' in the column name. Use '\-\-list\-columns' to get the list of the available column names.
 
 .TP
 \fB\-\-csel\fR \fI\,CSEL\/\fR
@@ -410,8 +446,8 @@ The columns selector: remove all column except for those specified in the select
 
 .TP
 \fB\-f\fR \fI\,FUNCS\/\fR, \fB\-\-funcs\fR \fI\,FUNCS\/\fR
-Comma\-separated list of summary functions to calculate. By default all generally interesting functions are calculated (each column name is associated with a list of functions that make sense for this column). Use '\-\-list\-funcs' to get
-the list of supported functions.
+Comma\-separated list of summary functions to calculate. By default all generally interesting functions are calculated (each column name is associated with
+a list of functions that make sense for this column). Use '\-\-list\-funcs' to get the list of supported functions.
 
 .TP
 \fB\-\-list\-funcs\fR
