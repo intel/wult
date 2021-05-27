@@ -789,11 +789,12 @@ def _deploy_prepare(args, toolname, minkver):
     if args.privkey and not args.privkey.is_dir():
         raise Error(f"path '{args.privkey}' does not exist or it is not a directory")
 
-    if args.drvsrc:
-        args.drvsrc = Path(args.drvsrc)
+    if args.drvsrc != "":
         if not args.drvsrc:
             args.drvsrc = FSHelpers.search_for_app_data("wult", _DRV_SRC_SUBPATH/f"{toolname}",
                                                         pathdescr=f"{toolname} drivers sources")
+        else:
+            args.drvsrc = Path(args.drvsrc)
 
         if not args.drvsrc.is_dir():
             raise Error(f"path '{args.drvsrc}' does not exist or it is not a directory")
