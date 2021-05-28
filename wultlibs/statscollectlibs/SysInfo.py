@@ -77,7 +77,7 @@ def _collect_totals(outdir, when, proc):
     cmdinfos["dmesg"] = cmdinfo = {}
     outfile = outdir / f"dmesg.{when}.raw.txt"
     cmdinfo["outfile"] = outfile
-    cmdinfo["cmd"] = f"dmesg > '{outfile} 2>&1'"
+    cmdinfo["cmd"] = f"dmesg > '{outfile}' 2>&1"
 
     cmdinfos["journalctl"] = cmdinfo = {}
     outfile = outdir / f"journalctl-b.{when}.raw.txt"
