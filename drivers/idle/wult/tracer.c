@@ -65,7 +65,10 @@ static void after_idle(struct wult_info *wi)
 	u64 cyc1, cyc2;
 
 	ti->ovh_cyc1 = rdtsc_ordered();
-	ti->tai = wdi->ops->get_time_after_idle(wdi);
+	if (wdi->ops->get_time_after_idle)
+		ti->tai = wdi->ops->get_time_after_idle(wdi);
+	else
+		ti->tai = ti->ovh_cyc1;
 
 	if (!wdi->ops->event_has_happened(wi->wdi))
 		/* It is not the delayed event we armed that woke us up. */
