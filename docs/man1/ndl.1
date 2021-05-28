@@ -49,7 +49,7 @@ Filter datapoints out of a test result.
 \fBndl\fR \fI\,calc\/\fR
 Calculate summary functions for a ndl test result.
 .SH OPTIONS 'ndl deploy'
-usage: ndl deploy [-h] [-q] [-d] [--drivers-src DRVSRC] [--helpers-src HELPERSRC] [--kernel-src KSRC] [--kmod-path KMODPATH] [--helpers-path HELPERSPATH] [-H IHOST] [--build-host BHOST] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
+usage: ndl deploy [-h] [-q] [-d] [--drivers-src DRVSRC] [--kernel-src KSRC] [--kmod-path KMODPATH] [--helpers-src HELPERSRC] [--helpers-path HELPERSPATH] [-H IHOST] [--build-host BHOST] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
 Compile and deploy ndl drivers on local or remote host. This command has many options, but they are very rarely useful and most probably you do not need them.
 
@@ -68,13 +68,8 @@ Print debugging information.
 
 .TP
 \fB\-\-drivers\-src\fR \fI\,DRVSRC\/\fR
-Path to ndl drivers sources to build and deploy. By default the drivers are searched for in the following directories (and in the following order) on the local host: /usr/bin/drivers/idle/ndl, $NDL_DATA_PATH/drivers/idle/ndl (if
-'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/drivers/idle/ndl, /usr/local/share/wult/drivers/idle/ndl, /usr/share/wult/drivers/idle/ndl.
-
-.TP
-\fB\-\-helpers\-src\fR \fI\,HELPERSRC\/\fR
-Path to ndl helpers directory to build and deploy. By default the helpers to build are searched for in the following directories (and in the following order) on the local host: /usr/bin/helpers/ndl, $NDL_DATA_PATH/helpers/ndl (if
-'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/helpers/ndl, /usr/local/share/wult/helpers/ndl, /usr/share/wult/helpers/ndl.
+Path to ndl drivers sources to build and deploy. By default the drivers are searched for in the following directories (and in the following order) on the local host: /usr/bin/drivers/idle, $NDL_DATA_PATH/drivers/idle (if 'NDL_DATA_PATH'
+environment variable is defined), $HOME/.local/share/wult/drivers/idle, /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle. Use value 'none' or '' (empty) to skip deploying the drivers.
 
 .TP
 \fB\-\-kernel\-src\fR \fI\,KSRC\/\fR
@@ -85,8 +80,13 @@ Path to the Linux kernel sources to build the drivers against. The default is '/
 Where the ndl drivers should be deploy to (IHOST). The default is '/lib/modules/<kver>, where '<kver>' is version of the kernel in KSRC.
 
 .TP
+\fB\-\-helpers\-src\fR \fI\,HELPERSRC\/\fR
+Path to ndl helpers directory. This directory should contain the following helpers: ndlrunner. These helpers will be built and deployed. By default the helpers to build are searched for in the following paths (and in the following
+order) on the local host: /usr/bin/helpers, $NDL_DATA_PATH/helpers (if 'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/helpers, /usr/local/share/wult/helpers, /usr/share/wult/helpers.
+
+.TP
 \fB\-\-helpers\-path\fR HELPERSPATH
-Path to the directory to deploy ndl helper tools to. The default is the path defined by the NDL_HELPERSPATH environment variable. If it is not defined, the default path is '$HOME/.local/bin', where '$HOME' is the home directory of user
+Path to the directory to deploy ndl helpers to. The default is the path defined by the NDL_HELPERSPATH environment variable. If it is not defined, the default path is '$HOME/.local/bin', where '$HOME' is the home directory of user
 'USERNAME' on host 'IHOST' (see '\-\-host' and '\-\-username' options).
 
 .TP
