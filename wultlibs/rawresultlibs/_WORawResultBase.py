@@ -11,7 +11,7 @@ This module base class for wirte-only raw test result classes.
 """
 
 import os
-from wultlibs.helperlibs import YAML
+from wultlibs.helperlibs import FSHelpers, YAML
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs.rawresultlibs import _CSV, _RawResultBase
 from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
@@ -49,10 +49,12 @@ class WORawResultBase(_RawResultBase.RawResultBase):
         if self.dp_path.is_file() and self._cont:
             self._check_can_continue()
 
-        try:
-            self.dirpath.mkdir(parents=True, exist_ok=True)
-        except OSError as err:
-            raise Error(f"failed to create directory '{self.dirpath}':\n{err}") from None
+        if not self.dirpath.exists():
+            try:
+                self.dirpath.mkdir(parents=True, exist_ok=True)
+                FSHelpers.set_default_perm(self.dirpath)
+            except OSError as err:
+                raise Error(f"failed to create directory '{self.dirpath}':\n{err}") from None
 
         self.csv = _CSV.WritableCSV(self.dp_path, cont=self._cont)
 
