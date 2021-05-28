@@ -929,12 +929,16 @@ class _Collector:
         """Configure statistic collectors."""
 
         stnames = self.get_enabled_stats()
+        sysinfo = False
         if "sysinfo" in stnames:
             stnames.remove("sysinfo")
+            sysinfo = True
 
         if not stnames:
             _LOG.debug("skip starting stats-collect%s - no statistics collectors",
                        self._proc.hostmsg)
+            if sysinfo:
+                self._init_outdir(discovery=False)
             return
 
         self._init_outdir(discovery=discovery)
