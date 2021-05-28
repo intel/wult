@@ -75,7 +75,7 @@ class WultStatsCollect:
 
         # We add trailing slash to the remote directory path in order to make rsync copy the
         # contents of the remote directory, but not the directory itself.
-        self._proc.rsync(f"{routdir}/", self._outdir, remotesrc=True, remotedst=False)
+        self._proc.rsync(f"{routdir}/", self._outdir, opts="rltD", remotesrc=True, remotedst=False)
 
     def __init__(self, proc, res):
         """
