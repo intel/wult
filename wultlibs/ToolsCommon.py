@@ -571,7 +571,7 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
         dirnames = ", ".join([dirname % str(_DRV_SRC_SUBPATH) for dirname in searchdirs])
         text = f"""Path to {toolname} drivers sources to build and deploy. By default the drivers
                    are searched for in the following directories (and in the following order) on the
-                   local host: {dirnames}. Use value '' (empty) in in order to skip deploying the
+                   local host: {dirnames}. Use value 'none' or '' (empty) to skip deploying the
                    drivers."""
         arg = parser.add_argument("--drivers-src", help=text, dest="drvsrc")
         if argcomplete:
@@ -769,6 +769,8 @@ def _deploy_prepare(args, toolname, minkver):
         args.ihost = "localhost"
     if not args.bhost:
         args.bhost = args.ihost
+    if args.drvsrc == "none":
+        args.drvsrc = ""
 
     if args.ihost != args.bhost and not args.bhost == "localhost":
         raise Error("build host (--build-host) must be the local host or the same as deploy host "
