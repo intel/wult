@@ -37,6 +37,49 @@ class RawResultBase:
         self._rsel = None
         self._csel = None
 
+    def _get_rsel(self):
+        """Merge row filter and selector and return the result."""
+
+        expr = None
+
+        if self._rsel:
+            if self._rfilt:
+                expr = f"({self._rsel}) and not ({self._rfilt})"
+            else:
+                expr = self._rsel
+        else:
+            if self._rfilt:
+                expr = f"not ({self._rfilt})"
+            else:
+                expr = None
+
+        return expr
+
+    def _get_csel(self, colnames):
+        """
+        Merge column filter and selector and apply it to the list of column names in 'colnames'.
+        Return list of filtered column names.
+        """
+
+        if not self._csel and not self._cfilt:
+            return None
+
+        csel = self._csel
+        if self._csel is None:
+            csel = colnames
+
+        cfilt = self._cfilt
+        if self._cfilt is None:
+            cfilt = []
+
+        result = []
+        cfilt_set = set(cfilt)
+        for colname in csel:
+            if colname not in cfilt_set:
+                result.append(colname)
+
+        return result
+
     def __init__(self, dirpath):
         """The class constructor. The 'dirpath' argument is path raw test result directory."""
 

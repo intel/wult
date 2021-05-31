@@ -4,6 +4,7 @@ wult (1.9.2) unstable; urgency=low
   * wult: include less diagrams into report by default.
   * wult: change default launch distance range from 0-8ms to 0-4ms.
   * wult: fix false warning about C-state prewake setting.
+  * wult: add row filter and selector options '--rfilt' and '--rsel'.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 28 May 2021 17:48:43 +0300
 

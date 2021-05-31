@@ -127,6 +127,8 @@ def build_arguments_parser():
     # This is a deprecated option. We keep it for backward compatibility. Remove it in 2022.
     subpars.add_argument("--continue", dest="cont", action="store_true", help=argparse.SUPPRESS)
     subpars.add_argument("--start-over", action="store_true", help=ToolsCommon.START_OVER_DESCR)
+    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_DESCR)
+    subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
 
     arg = subpars.add_argument("-o", "--outdir", type=Path, help=ToolsCommon.START_OUTDIR_DESCR)
     if argcomplete:
@@ -408,6 +410,8 @@ def start_command(args):
             raise Error(f"cannot create log directory '{res.logs_path}': {err}") from None
         logfile = res.logs_path / f"{OWN_NAME}.log.txt"
         Logging.setup_logger(OWN_NAME, info_logfile=logfile, error_logfile=logfile)
+
+        ToolsCommon.set_filters(args, res)
 
         with Devices.WultDevice(args.devid, args.cpunum, proc, force=args.force) as dev:
             with CPUIdle.CPUIdle(proc=proc) as cpuidle:

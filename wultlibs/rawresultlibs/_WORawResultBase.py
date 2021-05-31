@@ -19,6 +19,14 @@ from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
 class WORawResultBase(_RawResultBase.RawResultBase):
     """This class represents a write-only raw test result."""
 
+    def set_rfilt(self, rfilt):
+        """Save row filter value."""
+        self._rfilt = rfilt
+
+    def set_rsel(self, rsel):
+        """Save row selector value."""
+        self._rsel = rsel
+
     def _check_can_continue(self):
         """
         Verify if it is OK to continue adding more datapoints to an existing test result."""
@@ -71,6 +79,69 @@ class WORawResultBase(_RawResultBase.RawResultBase):
             except OSError as err:
                 raise Error(f"failed to create file '{self.info_path}':\n{err}") from None
 
+    def _mangle_eval_expr(self, expr):
+        """
+        Mangle a python expression that we use for row filters and selectors. Some of the CSV
+        file column names may have symbols like '%' (e.g., in 'CC1%'), which cannot be used in
+        python expressions, and this method solves the problem.
+        """
+
+        if expr is None:
+            return None
+
+        expr = str(expr)
+
+        for colname in self.csv.hdr:
+            expr = expr.replace(colname, f"dp['{colname}']")
+        return expr
+
+    def _get_rsel(self):
+        """Get mangled and merged row selector."""
+
+        if not self._mangled_rsel:
+            rsel = super()._get_rsel()
+            self._mangled_rsel = self._mangle_eval_expr(rsel)
+        return self._mangled_rsel
+
+    def _apply_filter(self, dp):
+        """
+        Apply filters to the datapoint 'dp'. Returns datapoint 'dp' if filter expression is
+        satisfied, otherwise returns 'None'.
+        """
+
+        rsel = self._get_rsel()
+        if rsel and not eval(rsel): # pylint: disable=eval-used
+            return None
+        return dp
+
+    def _get_csv_row(self, dp):
+        """
+        Form CSV row from datapoint dictionary values in 'dp'. Make C-state percentage values nicer
+        to read by saving only two most significant decimals. Returns the CSV row as a list.
+        """
+
+        row = []
+        for key in self.csv.hdr:
+            val = dp[key]
+            if "%" in key:
+                val =  f"{val:.2f}"
+            row.append(val)
+
+        return row
+
+    def add_csv_row(self, dp):
+        """
+        Add datapoint from dictionary 'dp' to CSV file. Datapoint is added only if it fullfills
+        filter expressions. Returns 'True' if the row was added to CSV file, returns 'False'
+        otherwise.
+        """
+
+        if not self._apply_filter(dp):
+            return False
+
+        self.csv.add_row(self._get_csv_row(dp))
+        return True
+
     def write_info(self):
         """Write the 'self.info' dictionary to the 'info.yml' file."""
 
@@ -93,6 +164,7 @@ class WORawResultBase(_RawResultBase.RawResultBase):
         self.csv = None
         self._cont = cont
         self.reportid = reportid
+        self._mangled_rsel = None
 
         self._init_outdir()
 

@@ -130,8 +130,7 @@ class WultRunner:
 
         # Add the C-state percentages.
         for cscyc_colname, csres_colname in self._cs_colnames:
-            csres = dp[cscyc_colname] / dp["TotCyc"] * 100.0
-            dp[csres_colname] = f"{csres:.2f}"
+            dp[csres_colname] = dp[cscyc_colname] / dp["TotCyc"] * 100.0
 
         # Turn the C-state index into the C-state name.
         try:
@@ -225,7 +224,9 @@ class WultRunner:
                 continue
 
             # Add the data to the CSV file.
-            self._res.csv.add_row([dp[key] for key in self._res.csv.hdr])
+            if not self._res.add_csv_row(dp):
+                # the data point has not been added (e.g., because it did not pass raw filters).
+                continue
 
             if self._post_trigger:
                 self._run_post_trigger(dp["WakeLatency"])
