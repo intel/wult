@@ -186,16 +186,21 @@ FILT_DESCR = """Filter datapoints out of a test result by removing CSV rows and 
                 selector options ('--rsel', '--cfilt', etc). The options may be specified multiple
                 times."""
 
+_RFILT_DESCR_BASE = """The row filter: remove all the rows satisfying the filter expression. Here is
+                       an example of an expression: '(WakeLatency < 10000) | (PC6%% < 1)'. This row
+                       filter expression will remove all rows with 'WakeLatency' smaller than 10000
+                       nanoseconds or package C6 residency smaller than 1%%."""
+
+# Description for the '--rfilt' option of the 'start' command.
+RFILT_START_DESCR = f"""{_RFILT_DESCR_BASE} You can use any column names in the expression."""
+
 # Description for the '--rfilt' option of the 'filter' command.
-RFILT_DESCR = """The row filter: remove all the rows satisfying the filter expression. Here is an
-                 example of an expression: '(WakeLatency < 10000) | (PC6%% < 1)'. This row filter
-                 expression will remove all rows with 'WakeLatency' smaller than 10000 nanoseconds or
-                 package C6 residency smaller than 1%%. The detailed row filter expression syntax can
-                 be found in the documentation for the 'eval()' function of Python 'pandas' module.
-                 You can use column names in the expression, or the special word 'index' for the row
-                 number. Value '0' is the header, value '1' is the first row, and so on. For example,
-                 expression 'index >= 10' will get rid of all data rows except for the first 10
-                 ones."""
+RFILT_DESCR = f"""{_RFILT_DESCR_BASE} The detailed row filter expression syntax can be found in the
+                  documentation for the 'eval()' function of Python 'pandas' module. You can use
+                  column names in the expression, or the special word 'index' for the row number.
+                  Value '0' is the header, value '1' is the first row, and so on. For example,
+                  expression 'index >= 10' will get rid of all data rows except for the first 10
+                  ones."""
 
 # Description for the '--rsel' option of the 'filter' command.
 RSEL_DESCR = """The row selector: remove all rows except for those satisfying the selector

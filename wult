@@ -127,7 +127,7 @@ def build_arguments_parser():
     # This is a deprecated option. We keep it for backward compatibility. Remove it in 2022.
     subpars.add_argument("--continue", dest="cont", action="store_true", help=argparse.SUPPRESS)
     subpars.add_argument("--start-over", action="store_true", help=ToolsCommon.START_OVER_DESCR)
-    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_DESCR)
+    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_START_DESCR)
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
 
     arg = subpars.add_argument("-o", "--outdir", type=Path, help=ToolsCommon.START_OUTDIR_DESCR)
