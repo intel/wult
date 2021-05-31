@@ -339,7 +339,11 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         if rsel:
             _LOG.debug("applying rows selector: %s", rsel)
-            expr = pandas.eval(rsel)
+            try:
+                expr = pandas.eval(rsel)
+            except SyntaxError as err:
+                raise Error("failed to evaluate expression '%s'. Make sure you use correct CSV " \
+                            "column names, which are also case-sensitive.", rsel) from err
             self.df = self.df[expr].reset_index(drop=True)
             if self.df.empty:
                 raise Error(f"no data left after applying row selector(s) to CSV file "

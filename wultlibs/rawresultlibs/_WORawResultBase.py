@@ -110,8 +110,12 @@ class WORawResultBase(_RawResultBase.RawResultBase):
         """
 
         rsel = self._get_rsel()
-        if rsel and not eval(rsel): # pylint: disable=eval-used
-            return None
+        try:
+            if rsel and not eval(rsel): # pylint: disable=eval-used
+                return None
+        except SyntaxError as err:
+            raise Error("failed to evaluate expression '%s'. Make sure you use correct CSV " \
+                        "column names, which are also case-sensitive.", rsel) from err
         return dp
 
     def _get_csv_row(self, dp):
