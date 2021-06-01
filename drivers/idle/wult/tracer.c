@@ -64,9 +64,9 @@ static void after_idle(struct wult_info *wi)
 	struct wult_device_info *wdi = wi->wdi;
 	u64 cyc1, cyc2;
 
-	ti->ovh_cyc1 = rdtsc_ordered();
 	ti->tai = wdi->ops->get_time_after_idle(wdi);
 
+	cyc1 = rdtsc_ordered();
 	if (!wdi->ops->event_has_happened(wi->wdi))
 		/* It is not the delayed event we armed that woke us up. */
 		return;
@@ -88,7 +88,8 @@ static void after_idle(struct wult_info *wi)
 	wult_cstates_calc(&ti->csinfo);
 	ti->got_measurements = true;
 
-	ti->ovh_cyc2 = rdtsc_ordered();
+	cyc2 = rdtsc_ordered();
+	ti->ai_overhead = wult_cyc2ns(wdi, cyc2 - cyc1);
 }
 
 /* Get measurements in the interrupt handler after idle. */
@@ -150,8 +151,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
 		intr_latency = wdi->ops->time_to_ns(wdi, intr_latency);
 	}
-
-	intr_latency -= wult_cyc2ns(wdi, ti->ovh_cyc2 - ti->ovh_cyc1);
+	intr_latency -= ti->ai_overhead;
 
 	cnt += snprintf(ti->outbuf, OUTBUF_SIZE, COMMON_TRACE_FMT,
 			silent_time, wake_latency, intr_latency, ti->ldist,
@@ -218,7 +218,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
 		intr_latency = wdi->ops->time_to_ns(wdi, intr_latency);
 	}
-	intr_latency -= wult_cyc2ns(wdi, ti->ovh_cyc2 - ti->ovh_cyc1);
+	intr_latency -= ti->ai_overhead;
 
 	/* Add values of the common fields. */
 	err = synth_event_add_next_val(silent_time, &trace_state);

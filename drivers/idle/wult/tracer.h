@@ -57,10 +57,8 @@ struct wult_tracer_info {
 	u32 smi_ai, nmi_ai;
 	/* SMI and NMI counters in the interrupt handler. */
 	u32 smi_intr, nmi_intr;
-	/* TSC value at the beginning of 'after_idle()'. */
-	u64 ovh_cyc1;
-	/* TSC value at the end of 'after_idle()'. */
-	u64 ovh_cyc2;
+	/* The overhead of taking measurements after we woke up. */
+	u64 ai_overhead;
 	/* Whether the tracer have new any measurement data. */
 	bool got_measurements;
 #ifdef COMPAT_USE_TRACE_PRINTK
