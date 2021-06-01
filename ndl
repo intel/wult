@@ -119,6 +119,8 @@ def build_arguments_parser():
     subpars.add_argument("--post-trigger", metavar="POST_TRIGGER", type=Path, help=text)
     text = ToolsCommon.get_post_trigger_range_descr("RTD")
     subpars.add_argument("--post-trigger-range", metavar="TRANGE", dest="trange", help=text)
+    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_START_DESCR)
+    subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
 
     text = """Generate an HTML report for collected results (same as calling 'report' command with
               default arguments)."""
@@ -251,6 +253,8 @@ def start_command(args):
         dpcnt = ToolsCommon.get_dpcnt(res, args.dpcnt)
         if not dpcnt:
             return
+
+        ToolsCommon.set_filters(args, res)
 
         # Configure the logger to print to both the console and the log file.
         try:

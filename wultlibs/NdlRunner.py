@@ -143,11 +143,15 @@ class NdlRunner:
 
         start_time = time.time()
         for dp in datapoints:
+            if tlimit and time.time() - start_time > tlimit:
+                break
+
             self._max_rtd = max(dp["RTD"], self._max_rtd)
             _LOG.debug("launch distance: RTD %.2f (max %.2f), LDist %.2f",
                        dp["RTD"], self._max_rtd, dp["LDist"])
 
-            self._res.csv.add_row(dp.values())
+            if not self._res.add_csv_row(dp):
+                continue
 
             if self._post_trigger:
                 self._run_post_trigger(dp["RTD"])
@@ -156,9 +160,6 @@ class NdlRunner:
 
             dpcnt -= 1
             if dpcnt <= 0:
-                break
-
-            if tlimit and time.time() - start_time > tlimit:
                 break
 
     def run(self, dpcnt=1000000, tlimit=None):
