@@ -93,14 +93,13 @@ static u64 get_time_before_idle(struct wult_device_info *wdi)
 	return ns + wult_cyc2ns(wdi, (cyc2 - cyc1) / 2 + (cyc3 - cyc2));
 }
 
-static u64 get_time_after_idle(struct wult_device_info *wdi)
+static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
-	u64 ns, cyc1, cyc2, cyc3;
+	u64 ns, cyc2, cyc3;
 	u64 *ns1 = &tdata[0].val;
 	u64 *ns2 = &tdata[1].val;
 
-	cyc1 = rdtsc_ordered();
 	/*
 	 * The first read from the NIC is sometimes exceptionally slow. Measure
 	 * this "warm up" read separately.
@@ -118,7 +117,7 @@ static u64 get_time_after_idle(struct wult_device_info *wdi)
 	 * Save the warmup and latch delays in order to have them included in
 	 * the trace output.
 	 */
-	*ns1 = wult_cyc2ns(wdi, cyc2 - cyc1);
+	*ns1 = wult_cyc2ns(wdi, cyc2 - cyc);
 	*ns2 = wult_cyc2ns(wdi, cyc3 - cyc2);
 
 	/*

@@ -56,9 +56,9 @@ static u64 get_time_before_idle(struct wult_device_info *wdi)
 	return rdtsc_ordered();
 }
 
-static u64 get_time_after_idle(struct wult_device_info *wdi)
+static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc)
 {
-	return rdtsc_ordered();
+	return cyc;
 }
 
 static int arm_event(struct wult_device_info *wdi, u64 *ldist)
