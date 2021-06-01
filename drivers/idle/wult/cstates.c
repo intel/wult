@@ -89,20 +89,9 @@ static int intel_cstate_init(struct wult_cstates_info *csinfo)
 	return 0;
 }
 
-static struct cstate_info default_cstates[] = {
-	{.name = "CC1", .core = true},
+static struct cstate_info no_cstates[] = {
 	{NULL}
 };
-
-/*
- * C-state initialization function for unsupported x86 CPUs. Assumes there is
- * only one C-state - CC1.
- */
-static int default_cstate_init(struct wult_cstates_info *csinfo)
-{
-	csinfo->cstates = default_cstates;
-	return 0;
-}
 
 /*
  * Find out which C-states the platform supports and how to get information
@@ -110,12 +99,12 @@ static int default_cstate_init(struct wult_cstates_info *csinfo)
  */
 int wult_cstates_init(struct wult_cstates_info *csinfo)
 {
-	int err = -EINVAL;
+	int err = 0;
 
 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
 		err = intel_cstate_init(csinfo);
 	else
-		err = default_cstate_init(csinfo);
+		csinfo->cstates = no_cstates;
 
 	return err;
 }
