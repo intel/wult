@@ -85,7 +85,6 @@ static void after_idle(struct wult_info *wi)
 
 	ti->smi_ai = get_smi_count();
 	ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
-	wult_cstates_calc(&ti->csinfo);
 	ti->got_measurements = true;
 
 	cyc2 = rdtsc_ordered();
@@ -162,6 +161,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 		goto out_too_small;
 
 	/* Print the C-state cycles. */
+	wult_cstates_calc(&ti->csinfo);
 	for_each_cstate(&ti->csinfo, csi) {
 		cnt += snprintf(ti->outbuf + cnt, OUTBUF_SIZE - cnt,
 				" %sCyc=%llu", csi->name, csi->cyc);
@@ -256,6 +256,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 		goto out_end;
 
 	/* Add C-state cycle counter values. */
+	wult_cstates_calc(&ti->csinfo);
 	for_each_cstate(&ti->csinfo, csi) {
 		err = synth_event_add_next_val(csi->cyc, &trace_state);
 		if (err)
