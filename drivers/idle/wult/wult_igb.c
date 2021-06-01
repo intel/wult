@@ -48,11 +48,13 @@ static irqreturn_t interrupt_handler(int irq, void *data)
 {
 	struct network_adapter *nic = data;
 	u32 icr, eicr, tsicr;
-	u64 ns, cyc1, cyc2;
+	u64 ns, cyc1, cyc2, cyc3;
 
 	cyc1 = rdtsc_ordered();
-	read32(nic, I210_SYSTIMR);
+	pci_flush_posted(nic);
 	cyc2 = rdtsc_ordered();
+	read32(nic, I210_SYSTIMR);
+	cyc3 = rdtsc_ordered();
 
 	icr = read32(nic, I210_ICR);
 	eicr = read32(nic, I210_EICR);
@@ -66,7 +68,7 @@ static irqreturn_t interrupt_handler(int irq, void *data)
 
 	ns = read32(nic, I210_SYSTIML);
 	ns += read32(nic, I210_SYSTIMH) * NSEC_PER_SEC;
-	ns -= wult_cyc2ns(&nic->wdi, cyc2 - cyc1);
+	ns -= wult_cyc2ns(&nic->wdi, (cyc2 - cyc1) + (cyc3 - cyc2) / 2);
 
 	wult_interrupt(ns);
 	return IRQ_HANDLED;
