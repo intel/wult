@@ -218,6 +218,9 @@ class WultRunner:
 
         start_time = time.time()
         for rawhdr, rawdp in datapoints:
+            if tlimit and time.time() - start_time > tlimit:
+                break
+
             self._validate_datapoint(rawhdr, rawdp)
             dp = self._process_datapoint(rawdp)
             if not dp:
@@ -236,9 +239,6 @@ class WultRunner:
 
             dpcnt -= 1
             if dpcnt <= 0:
-                break
-
-            if tlimit and time.time() - start_time > tlimit:
                 break
 
     def _get_dmesg_msgs(self, old_dmesg):
