@@ -103,20 +103,22 @@ class WORawResultBase(_RawResultBase.RawResultBase):
             self._mangled_rsel = self._mangle_eval_expr(rsel)
         return self._mangled_rsel
 
-    def _apply_filter(self, dp):
+    def _try_filters(self, dp): # pylint: disable=unused-argument
         """
-        Apply filters to the datapoint 'dp'. Returns datapoint 'dp' if filter expression is
-        satisfied, otherwise returns 'None'.
+        Verify whether 'dp' passes the filter expression. Returns 'True' if 'dp' would not pass the
+        filters because it matches the expression. Otherwise returns 'False'.
         """
 
         rsel = self._get_rsel()
+        passed = False
         try:
-            if rsel and not eval(rsel): # pylint: disable=eval-used
-                return None
+            # The 'eval()' expressions use the datapoint argument 'dp'.
+            passed = (not rsel) or eval(rsel) # pylint: disable=eval-used
         except SyntaxError as err:
             raise Error(f"failed to evaluate expression '{rsel}'. Make sure you use correct CSV "
                         f"column names, which are also case-sensitive.") from err
-        return dp
+
+        return passed
 
     def _get_csv_row(self, dp):
         """
@@ -135,16 +137,22 @@ class WORawResultBase(_RawResultBase.RawResultBase):
 
     def add_csv_row(self, dp):
         """
-        Add datapoint from dictionary 'dp' to CSV file. Datapoint is added only if it fullfills
-        filter expressions. Returns 'True' if the row was added to CSV file, returns 'False'
-        otherwise.
+        Apply filters to the 'dp' datapoint and possibly add it to the CSV file. The 'dp' argument
+        should be a dictionary with keys being the CSV column names, and values being the column
+        value. If 'self.keep_filtered' is 'False', the datapoint is added to the CSV file only if it
+        passes the filters ('dp' does not match the filter expression). If 'self.keep_filtered' is
+        'True', the datapoint is added to the CSV file regardless of whether it passes the filters
+        or not.
+
+        The return value is the same as in 'try_filters()' function: returns 'True' if 'dp' passes
+        the filters, otherwise returns 'False'.
         """
 
-        if not self._apply_filter(dp):
-            return False
+        passed = self._try_filters(dp)
+        if passed or self.keep_filtered:
+            self.csv.add_row(self._get_csv_row(dp))
 
-        self.csv.add_row(self._get_csv_row(dp))
-        return True
+        return passed
 
     def write_info(self):
         """Write the 'self.info' dictionary to the 'info.yml' file."""
@@ -169,6 +177,7 @@ class WORawResultBase(_RawResultBase.RawResultBase):
         self._cont = cont
         self.reportid = reportid
         self._mangled_rsel = None
+        self.keep_filtered = False
 
         self._init_outdir()
 
