@@ -85,9 +85,31 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_device_info *wdi = wi->wdi;
 
-	ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
-	ti->smi_intr = get_smi_count();
-	ti->nmi_intr = per_cpu(irq_stat, wi->cpunum).__nmi_count;
+	if (ti->req_cstate) {
+		/*
+		 * Non-POLL state. In this case interrupts are disabled when
+		 * entering / exiting. The 'after_idle()' function runs before
+		 * the interrupt handler, and it has already collected most of
+		 * the statistics. Collect few more here and we are done.
+		 */
+		ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
+		ti->smi_intr = get_smi_count();
+		ti->nmi_intr = per_cpu(irq_stat, wi->cpunum).__nmi_count;
+	} else if (ti->bi_finished) {
+		/*
+		 * We interrupted the POLL idle state. In this state interrupts
+		 * are enabled, so the interrupt handler is executed before
+		 * 'after_idle()' would be executed. Therefore, for the POLL
+		 * idle case we take "time after idle" here.
+		 */
+		ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
+		wult_cstates_read_after(&ti->csinfo);
+		ti->tai = ti->tintr;
+		ti->smi_ai = ti->smi_intr = get_smi_count();
+		ti->nmi_ai = ti->nmi_intr = per_cpu(irq_stat, wi->cpunum).__nmi_count;
+		ti->ai_overhead = 0;
+		ti->got_measurements = true;
+	}
 }
 
 /*
@@ -289,17 +311,16 @@ static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_
 		/* Not the CPU we are measuring. */
 		return;
 
-	if (req_cstate == 0) {
-		/*
-		 * This is the poll-idle state, we do not measure them so far.
-		 * They are special as they do not have interrupts disabled.
-		 */
-		return;
-	}
-
 	if (req_cstate == PWR_EVENT_EXIT) {
-		if (ti->bi_finished)
-			after_idle(data);
+		/*
+		 * Invoke 'after_idle()' only if 'before_idle()' was previously
+		 * invoked and if the requested C-state was not 'POLL'. In
+		 * case of the 'POLL' state the interrupt handler collects all
+		 * the necessary information and 'after_idle()' becomes
+		 * unnecessary.
+		 */
+		if (ti->bi_finished && ti->req_cstate)
+			after_idle(wi);
 		ti->bi_finished = false;
 	} else {
 #ifndef COMPAT_PECULIAR_TRACE_PROBE
