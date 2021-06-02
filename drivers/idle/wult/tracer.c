@@ -73,12 +73,6 @@ static void after_idle(struct wult_info *wi)
 
 	wult_cstates_read_after(&ti->csinfo);
 
-	ti->ltime = wdi->ops->get_launch_time(wdi);
-
-	/* Check if the expected IRQ time is within the sleep time. */
-	if (ti->ltime <= ti->tbi || ti->ltime >= ti->tai)
-		return;
-
 	if (atomic_read(&wi->events_armed) - atomic_read(&wi->events_happened) != 1)
 		/* The delayed event has already been served. */
 		return;
@@ -128,7 +122,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_trace_data_info *tdata = NULL;
 	struct cstate_info *csi;
-	u64 silent_time, wake_latency, intr_latency;
+	u64 ltime, silent_time, wake_latency, intr_latency;
 	int cnt = 0;
 
 	if (!ti->got_measurements)
@@ -136,15 +130,21 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 	ti->got_measurements = false;
 
+	ltime = wdi->ops->get_launch_time(wdi);
+
+	/* Check if the expected IRQ time is within the sleep time. */
+	if (ltime <= ti->tbi || ltime >= ti->tai)
+		return 0;
+
 	if (wdi->ops->get_trace_data) {
 		tdata = wdi->ops->get_trace_data(wdi);
 		if (IS_ERR(tdata))
 			return PTR_ERR(tdata);
 	}
 
-	silent_time = ti->ltime - ti->tbi;
-	wake_latency = ti->tai - ti->ltime;
-	intr_latency = ti->tintr - ti->ltime;
+	silent_time = ltime - ti->tbi;
+	wake_latency = ti->tai - ltime;
+	intr_latency = ti->tintr - ltime;
 	if (wdi->ops->time_to_ns) {
 		silent_time = wdi->ops->time_to_ns(wdi, silent_time);
 		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
@@ -192,13 +192,19 @@ int wult_tracer_send_data(struct wult_info *wi)
 	struct wult_trace_data_info *tdata = NULL;
 	struct synth_event_trace_state trace_state;
 	struct cstate_info *csi;
-	u64 silent_time, wake_latency, intr_latency;
+	u64 ltime, silent_time, wake_latency, intr_latency;
 	int err;
 
 	if (!ti->got_measurements)
 		return 0;
 
 	ti->got_measurements = false;
+
+	ltime = wdi->ops->get_launch_time(wdi);
+
+	/* Check if the expected IRQ time is within the sleep time. */
+	if (ltime <= ti->tbi || ltime >= ti->tai)
+		return 0;
 
 	if (wdi->ops->get_trace_data) {
 		tdata = wdi->ops->get_trace_data(wdi);
@@ -210,9 +216,9 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		return err;
 
-	silent_time = ti->ltime - ti->tbi;
-	wake_latency = ti->tai - ti->ltime;
-	intr_latency = ti->tintr - ti->ltime;
+	silent_time = ltime - ti->tbi;
+	wake_latency = ti->tai - ltime;
+	intr_latency = ti->tintr - ltime;
 	if (wdi->ops->time_to_ns) {
 		silent_time = wdi->ops->time_to_ns(wdi, silent_time);
 		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);

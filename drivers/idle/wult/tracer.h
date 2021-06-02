@@ -43,8 +43,6 @@ struct wult_tracer_info {
 	u64 tbi, tai;
 	/* Interrupt time. */
 	u64 tintr;
-	/* Launch time. */
-	u64 ltime;
 	/* Launch distance. */
 	u64 ldist;
 	/* The requested C-state index. */
