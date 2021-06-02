@@ -426,6 +426,8 @@ def set_filters(args, res):
     if ops:
         set_filter(res, ops)
 
+    setattr(res, "keep_filtered", args.keep_filtered)
+
 def apply_filters(args, res):
     """
     Same as 'set_filters()' but filters are also applied to results in 'res'. The 'res' argument is
