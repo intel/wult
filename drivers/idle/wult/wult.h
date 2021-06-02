@@ -22,9 +22,8 @@
 /* Wult kernel thread name. */
 #define WULT_KTHREAD_NAME "wult_armer"
 
-/* The coarsest supported launch distance resolution, nanoseconds. */
-//#define WULT_MAX_RESOLUTION 1000
-#define WULT_MAX_RESOLUTION 100000000
+/* The coarsest supported launch distance granularity, nanoseconds. */
+#define WULT_MAX_LDIST_GRANULARITY 100000000
 
 /* Longest time interval allowed to be converted with 'wult_cyc2ns(). */
 #define WULT_CYC2NS_MAXSEC 2
