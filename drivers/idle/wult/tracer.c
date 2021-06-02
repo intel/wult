@@ -73,10 +73,6 @@ static void after_idle(struct wult_info *wi)
 
 	wult_cstates_read_after(&ti->csinfo);
 
-	if (atomic_read(&wi->events_armed) - atomic_read(&wi->events_happened) != 1)
-		/* The delayed event has already been served. */
-		return;
-
 	ti->smi_ai = get_smi_count();
 	ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 	ti->got_measurements = true;
