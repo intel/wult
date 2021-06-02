@@ -72,8 +72,8 @@ void wult_disable(void)
 {
 	spin_lock(&wi.enable_lock);
 	if (wi.enabled) {
-		wult_tracer_disable(&wi);
 		wi.enabled = false;
+		wult_tracer_disable(&wi);
 	}
 	spin_unlock(&wi.enable_lock);
 }
@@ -225,7 +225,10 @@ static int armer_kthread(void *data)
 		}
 
 		/* Send the last measurement data to user-space. */
-		wult_tracer_send_data(&wi);
+		spin_lock(&wi.enable_lock);
+		if (wi.enabled)
+			wult_tracer_send_data(&wi);
+		spin_unlock(&wi.enable_lock);
 	}
 
 	wult_dbg("exiting");

@@ -314,6 +314,8 @@ int wult_tracer_enable(struct wult_info *wi)
 {
 	int err;
 
+	wi->ti.got_measurements = false;
+
 	err = tracepoint_probe_register(wi->ti.tp, (void *)cpu_idle_hook, wi);
 	if (err) {
 		wult_err("failed to register the '%s' tracepoint probe, error %d",
