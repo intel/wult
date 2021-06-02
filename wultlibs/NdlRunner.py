@@ -132,7 +132,9 @@ class NdlRunner:
     def _collect(self, dpcnt, tlimit):
         """
         Collect datapoints and stop when the CSV file has 'dpcnt' datapoints in total, or when
-        collection time exceeds 'tlimit' (value '0' or 'None' means "no limit").
+        collection time exceeds 'tlimit' (value '0' or 'None' means "no limit"). Returns count of
+        collected datapoints. If the filters were configured, the returned value counts only those
+        datapoints that passed the filters.
         """
 
         datapoints = self._get_datapoints()
@@ -141,6 +143,7 @@ class NdlRunner:
         dp = next(datapoints)
         self._res.csv.add_header(dp.keys())
 
+        collected_cnt = 0
         start_time = time.time()
         for dp in datapoints:
             if tlimit and time.time() - start_time > tlimit:
@@ -153,14 +156,17 @@ class NdlRunner:
             if not self._res.add_csv_row(dp):
                 continue
 
+            collected_cnt += 1
+
             if self._post_trigger:
                 self._run_post_trigger(dp["RTD"])
 
-            self._progress.update(self._res.csv.rows_cnt, self._max_rtd)
+            self._progress.update(collected_cnt, self._max_rtd)
 
-            dpcnt -= 1
-            if dpcnt <= 0:
+            if collected_cnt >= dpcnt:
                 break
+
+        return collected_cnt
 
     def run(self, dpcnt=1000000, tlimit=None):
         """
@@ -178,10 +184,11 @@ class NdlRunner:
         self._res.write_info()
 
         self._progress.start()
+        collected_cnt = 0
         try:
-            self._collect(dpcnt, tlimit)
+            collected_cnt = self._collect(dpcnt, tlimit)
         finally:
-            self._progress.update(self._res.csv.rows_cnt, self._max_rtd, final=True)
+            self._progress.update(collected_cnt, self._max_rtd, final=True)
 
         self._stop_ndlrunner()
 
