@@ -121,6 +121,14 @@ def build_arguments_parser():
     subpars.add_argument("--post-trigger-range", metavar="TRANGE", dest="trange", help=text)
     subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_START_DESCR)
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
+    text = f"""{ToolsCommon.KEEP_FILTERED_DESCR} Here is an example. Suppose you want to collect
+               100000 datapoints where RTD is greater than 50 microseconds. In this case, you can
+               use these options: -c 100000 --rfilt="RTD > 50". The result will contain 100000
+               datapoints, all of them will have RTD bigger than 50 microseconds. But what if you do
+               not want to simply discard the other datapoints, because they are also interesting?
+               Well, add the '--keep-filtered' option. The result will contain, say, 150000
+               datapoints, 100000 of which will have RTD value greater than 50."""
+    subpars.add_argument("--keep-filtered", action="store_true", help=text)
 
     text = """Generate an HTML report for collected results (same as calling 'report' command with
               default arguments)."""

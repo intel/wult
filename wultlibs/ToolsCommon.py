@@ -207,6 +207,12 @@ RSEL_DESCR = """The row selector: remove all rows except for those satisfying th
                 expression. In other words, the selector is just an inverse filter: '--rsel expr' is
                 the same as '--rfilt "not (expr)"'."""
 
+KEEP_FILTERED_DESCR = """If the '--rfilt' / '--rsel' options are used, then the datapoints not
+                         matching the selector or matching the filter are discarded. This is the
+                         default behavior which can be changed with this option. If
+                         '--keep-filtered' has been specified, then all datapoints are saved in
+                         result."""
+
 # Description for the '--cfilt' option of the 'filter' command.
 CFILT_DESCR = """The columns filter: remove all column specified in the filter. The columns filter
                  is just a comma-separated list of the CSV file column names or python style regular

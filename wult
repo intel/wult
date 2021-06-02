@@ -129,16 +129,13 @@ def build_arguments_parser():
     subpars.add_argument("--start-over", action="store_true", help=ToolsCommon.START_OVER_DESCR)
     subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_START_DESCR)
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
-    text = """If the '--rfilt' / '--rsel' options are used, then the datapoints not matching the
-              selector or matching the filter are discarded. This is the default behavior which can
-              be changed with this option. If '--keep-filtered' has been specified, then all
-              datapoints are saved in result. Here is an example. Suppose you want to collect 100000
-              datapoints where PC6 residency is greater than 0. In this case, you can use these
-              options: -c 100000 --rfilt="PC6%% == 0". The result will contain 100000 datapoints,
-              all of them will have non-zero PC6 residency. But what if you do not want to simply
-              discard the other datapoints, because they are also interesting? Well, add the
-              '--keep-filtered' option. The result will contain, say, 150000 datapoints, 100000 of
-              which will have non-zero PC6 residency."""
+    text = f"""{ToolsCommon.KEEP_FILTERED_DESCR} Here is an example. Suppose you want to collect
+               100000 datapoints where PC6 residency is greater than 0. In this case, you can use
+               these options: -c 100000 --rfilt="PC6%% == 0". The result will contain 100000
+               datapoints, all of them will have non-zero PC6 residency. But what if you do not want
+               to simply discard the other datapoints, because they are also interesting? Well, add
+               the '--keep-filtered' option. The result will contain, say, 150000 datapoints, 100000
+               of which will have non-zero PC6 residency."""
     subpars.add_argument("--keep-filtered", action="store_true", help=text)
 
     arg = subpars.add_argument("-o", "--outdir", type=Path, help=ToolsCommon.START_OUTDIR_DESCR)
