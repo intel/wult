@@ -175,7 +175,9 @@ class WultRunner:
     def _collect(self, dpcnt, tlimit):
         """
         Collect datapoints and stop when either the CSV file has 'dpcnt' datapoints in total or when
-        collection time exceeds 'tlimit' (value '0' or 'None' means "no limit").
+        collection time exceeds 'tlimit' (value '0' or 'None' means "no limit"). Returns count of
+        collected datapoints. If the filters were configured, the returned value counts only those
+        datapoints that passed the filters.
         """
 
         datapoints = self._get_datapoints()
@@ -217,6 +219,7 @@ class WultRunner:
         self._res.csv.add_header(rawhdr)
 
         start_time = time.time()
+        collected_cnt = 0
         for rawhdr, rawdp in datapoints:
             if tlimit and time.time() - start_time > tlimit:
                 break
@@ -231,15 +234,18 @@ class WultRunner:
                 # the data point has not been added (e.g., because it did not pass raw filters).
                 continue
 
+            collected_cnt += 1
+
             if self._post_trigger:
                 self._run_post_trigger(dp["WakeLatency"])
 
             self._max_latency = max(dp["WakeLatency"], self._max_latency)
-            self._progress.update(self._res.csv.rows_cnt, self._max_latency)
+            self._progress.update(collected_cnt, self._max_latency)
 
-            dpcnt -= 1
-            if dpcnt <= 0:
+            if collected_cnt >= dpcnt:
                 break
+
+        return collected_cnt
 
     def _get_dmesg_msgs(self, old_dmesg):
         """Return new dmesg messages if available."""
@@ -278,9 +284,10 @@ class WultRunner:
         # Start printing the progress.
         self._progress.start()
 
+        collected_cnt = 0
         try:
             self._ep.start()
-            self._collect(dpcnt, tlimit)
+            collected_cnt = self._collect(dpcnt, tlimit)
         except Error as err:
             dmesg = ""
             with contextlib.suppress(Error):
@@ -292,7 +299,7 @@ class WultRunner:
                     self._stcoll.copy_stats()
             raise Error(f"{err}{dmesg}") from err
         finally:
-            self._progress.update(self._res.csv.rows_cnt, self._max_latency, final=True)
+            self._progress.update(collected_cnt, self._max_latency, final=True)
 
         _LOG.info("Finished measuring CPU %d%s", self._res.cpunum, self._proc.hostmsg)
 
