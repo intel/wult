@@ -12,7 +12,7 @@
 #include "wult.h"
 
 /*
- * Read the C-state information before idle.
+ * Read and save the C-state residency counters before idle.
  */
 void wult_cstates_read_before(struct wult_cstates_info *csinfo)
 {
@@ -25,7 +25,7 @@ void wult_cstates_read_before(struct wult_cstates_info *csinfo)
 }
 
 /*
- * Read the C-state information after idle.
+ * Read TSC and 'mperf' after idle.
  */
 void wult_cstates_read_after(struct wult_cstates_info *csinfo)
 {
@@ -33,19 +33,32 @@ void wult_cstates_read_after(struct wult_cstates_info *csinfo)
 
 	csinfo->mperf2 = __rdmsr(MSR_IA32_MPERF);
 	csinfo->tsc2 = rdtsc_ordered();
-	for_each_cstate_msr(csinfo, csi)
-		csi->cyc2 = __rdmsr(csi->msr);
 }
 
-/* Calculates the delta between 2 C-state statistics snapshots. */
+/*
+ * Read C-state residency counters after idle. Calculate the delta between the
+ * newly read values and the values read before idle.
+ *
+ * Unlike 'wult_cstates_read_after()' this function does not have to be called
+ * as soon as possible after idle, because as long as the CPU is in C0, the
+ * C-state residency counters do not change and can be read at a later
+ * convenient time.
+ */
 void wult_cstates_calc(struct wult_cstates_info *csinfo)
 {
 	struct cstate_info *csi;
 
+	/* Read C-state residency counters after idle */
+	for_each_cstate_msr(csinfo, csi)
+		csi->cyc2 = __rdmsr(csi->msr);
+
 	csinfo->tsc = csinfo->tsc2 - csinfo->tsc1;
 	csinfo->mperf = csinfo->mperf2 - csinfo->mperf1;
 
-	/* Read the C-state counters and calculate the delta. */
+	/*
+	 * Calculate the delta between the C-state residency counters before
+	 * and after idle.
+	 */
 	for_each_cstate_msr(csinfo, csi)
 		csi->cyc = csi->cyc2 - csi->cyc1;
 }
