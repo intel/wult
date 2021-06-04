@@ -9,6 +9,7 @@ wult-objs := main.o uapi.o tracer.o cstates.o
 obj-m += wult.o
 obj-m += wult_igb.o
 obj-m += wult_tdt.o
+obj-m += wult_hrtimer.o
 else
 # Out of tree build.
 
@@ -32,9 +33,9 @@ help:
 	@echo "Variables:"
 	@echo "  KSRC  - Path to the kernel tree to build against"
 	@echo
-	@echo "You can also use any standard kernel variable like 'V=1'.  Please, run "
+	@echo "You can also use any standard kernel variable like 'V=1'. Please, run "
 	@echo "'make help' in kernel source tree form more information."
 endif
 
 list_deployables:
-	@echo wult wult_igb wult_tdt
+	@echo wult wult_igb wult_tdt wult_hrtimer
