@@ -16,7 +16,6 @@ compatible wult devices.
 
 import contextlib
 import logging
-from abc import ABC, abstractmethod
 from pathlib import Path
 from wultlibs.pepclibs import LsPCI
 from wultlibs.helperlibs import FSHelpers, Dmesg, NetIface
@@ -25,12 +24,12 @@ from wultlibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupport
 # All the possible wult device driver names.
 DRVNAMES = set()
 
-# All supported devicetypes.
+# All supported device types.
 DEVTYPES = ("i210", "tdt")
 
 _LOG = logging.getLogger()
 
-class _WultDeviceBase(ABC):
+class _WultDeviceBase:
     """
     This is the base class for wult delayed event devices. It has 2 purposes.
        * Implement common functionality.
@@ -40,12 +39,10 @@ class _WultDeviceBase(ABC):
     # Name of wult driver that handles this device.
     drvname = None
 
-    @abstractmethod
-    def bind(self, drvname):
+    def bind(self, drvname): # pylint: disable=no-self-use, unused-argument
         """Bind the device to the 'drvname' driver."""
 
-    @abstractmethod
-    def unbind(self):
+    def unbind(self): # pylint: disable=no-self-use
         """
         Unbind the device from its driver if it is bound to any driver. Returns name of the
         driver the was unbinded from (or 'None' if it was not).
@@ -327,52 +324,35 @@ class _IntelI210(_PCIDevice):
 
         super().__init__(hwaddr, cpunum, proc)
 
-class _TimerBase(_WultDeviceBase):
+class _TSCDeadlineTimer(_WultDeviceBase):
     """
-    Base class for timer devices, such as TSC deadline timer. The are all very similar except for
-    names and descriptions.
+    This class represents the TSC deadline timer (TDT). TDT is a LAPIC feature supported by modern
+    Intel CPUs. TDT allows to schedule a timer interrupt to happen in the future when TSC reaches
+    certain value. Wult can use this as a source of delayed events.
     """
 
     drvname = "wult_tdt"
-    supported_devices = {}
-    # Name of the clock source device corresponding to the timer.
-    _clkname = None
+    supported_devices = {"tdt" : "TSC deadline timer"}
 
     def __init__(self, devid, cpunum, proc):
         """The class constructor. The arguments are the same as in '_WultDeviceBase.__init__()'."""
 
         errmsg = f"device '{devid}' is not supported for CPU {cpunum}{proc.hostmsg}."
-        if devid not in self.supported_devices:
+        if devid != "tdt":
             raise ErrorNotSupported(f"{errmsg}")
 
         path = Path(f"/sys/devices/system/clockevents/clockevent{cpunum}/current_device")
         with proc.open(path, "r") as fobj:
             clkname = fobj.read().strip()
-            if clkname != self._clkname:
-                raise ErrorNotSupported(f"{errmsg}\nCurrent clockevent device is {clkname}, should "
-                                        f"be {self._clkname} (see {path})")
+            if clkname != "lapic-deadline":
+                raise ErrorNotSupported(f"{errmsg}\nCurrent clockevent device is {clkname}, "
+                                        f"should be 'lapic-deadline' (see {path})")
 
         super().__init__(devid, cpunum, proc)
 
-        self.info["name"] = self.supported_devices[devid]
+        self.info["name"] = "tdt"
         self.info["devid"] = devid
-        self.info["descr"] = f"{self.info['name']} on CPU{cpunum}"
-
-    def bind(self, drvname):
-        """No bind for this device."""
-
-    def unbind(self):
-        """No unbind for this device."""
-        return None
-
-class _TSCDeadlineTimer(_TimerBase):
-    """
-    This class represents a TSC deadline timer device that can be used as a source of delayed
-    events.
-    """
-
-    supported_devices = {'tdt' : 'TSC deadline timer'}
-    _clkname = "lapic-deadline"
+        self.info["descr"] = self.supported_devices["tdt"]
 
 def WultDevice(devid, cpunum, proc, force=False):
     """
@@ -396,7 +376,7 @@ def scan_devices(proc, devtypes=None):
 
     Yields tuples of the following elements:
      * devid - device ID of the found compatible device
-     * alias - device ID aliase for the device ('None' if there are no aliases). Alias is just
+     * alias - device ID aliases for the device ('None' if there are no aliases). Alias is just
                another device ID for the same device.
      * descr - short device description
     """
