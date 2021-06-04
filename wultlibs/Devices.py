@@ -380,22 +380,6 @@ def WultDevice(devid, cpunum, proc, force=False):
     depending on 'devid'. The arguments are the same as in '_WultDeviceBase.__init__()'.
     """
 
-    # The "timer" device ID is an alias for "any timer type".
-    # Note: we used to support LAPIC timers and the "timer" name meant "any timer" at that point.
-    # But we removed LAPIC timers support later.
-    if devid == "timer":
-        failed = []
-        for cls in [_TSCDeadlineTimer]:
-            name = next(iter(cls.supported_devices))
-            try:
-                return cls(name, cpunum, proc)
-            except ErrorNotSupported as err:
-                _LOG.debug("'%s' probe error:\n%s", name, err)
-                failed.append(name)
-
-        failed = ", ".join(failed)
-        raise ErrorNotSupported(f"none of the following are supported{proc.hostmsg}:\n{failed}")
-
     if devid in _TSCDeadlineTimer.supported_devices:
         return _TSCDeadlineTimer(devid, cpunum, proc)
 
@@ -424,7 +408,7 @@ def scan_devices(proc, devtypes=None):
         for devid in _TSCDeadlineTimer.supported_devices:
             with contextlib.suppress(Error):
                 with _TSCDeadlineTimer(devid, 0, proc) as timerdev:
-                    yield timerdev.info["devid"], "timer", timerdev.info["descr"]
+                    yield timerdev.info["devid"], None, timerdev.info["descr"]
 
     if "i210" in devtypes:
         for pci_info in LsPCI.LsPCI(proc).get_devices():
