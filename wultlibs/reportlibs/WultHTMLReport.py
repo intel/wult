@@ -51,15 +51,10 @@ class WultHTMLReport(_HTMLReportBase.HTMLReportBase):
         """
 
         for colname in res.df:
-            if colname not in self._cs_cyc_colnames:
-                continue
-            # Drop the corresponding C-state percentage column if no CPU cycles were spent in
-            # it.
-            cs_colname = f"{colname[0:-3]}%"
-            if cs_colname in res.df and not res.df[colname].any():
-                res.df.drop(cs_colname, axis="columns", inplace=True)
-            # Remove the "C-state cycles" column as well.
-            res.df.drop(colname, axis="columns", inplace=True)
+            defs = res.defs.info.get(colname)
+            if defs and defs.get("drop_empty") and not res.df[colname].any():
+                # Drop the column if all values are 0.
+                res.df.drop(colname, axis="columns", inplace=True)
 
         return super()._mangle_loaded_res(res)
 
