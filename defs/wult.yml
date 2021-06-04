@@ -87,6 +87,7 @@ CCx%:
     short_unit: "%"
     default_funcs: "all"
     optional: True
+    drop_empty: True
 PCx%:
     title: "The PCx package C-state residency"
     descr: >-
@@ -97,6 +98,7 @@ PCx%:
     short_unit: "%"
     default_funcs: "all"
     optional: True
+    drop_empty: True
 TotCyc:
     title: "Total CPU Cycles Count"
     descr: >-
@@ -126,6 +128,7 @@ CCxCyc:
     short_unit: "cyc"
     default_funcs: "all"
     optional: True
+    drop_empty: True
 DerivedCC1Cyc:
     title: "The derived CC1 core C-state cycle count"
     descr: >-
@@ -157,6 +160,7 @@ PCxCyc:
     short_unit: "cyc"
     default_funcs: "all"
     optional: True
+    drop_empty: True
 NMIWake:
     title: "NMI count while measuring 'WakeLatency'"
     descr: >-
