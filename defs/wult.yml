@@ -169,6 +169,7 @@ NMIWake:
         NMI/SMI before idle.
     type: "int"
     optional: True
+    drop_empty: True
 NMIIntr:
     title: "NMI count while measuring 'IntrLatency'"
     descr: >-
@@ -177,6 +178,7 @@ NMIIntr:
         NMI/SMI in the delayed event interrupt handler.
     type: "int"
     optional: True
+    drop_empty: True
 WarmupDelay:
     title: "The I210 NIC link warm up delay"
     descr: >-
