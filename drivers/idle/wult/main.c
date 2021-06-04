@@ -152,8 +152,8 @@ static inline int check_armer_cpunum(void)
 }
 
 /*
- * The armer kernel thread. The main function of this thread is to arm the
- * delayed timer.
+ * The armer kernel thread. The main function of this thread is to arm delayed
+ * events.
  */
 static int armer_kthread(void *data)
 {

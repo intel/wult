@@ -68,7 +68,7 @@ struct wult_device_ops {
 	u64 (*get_time_after_idle)(struct wult_device_info *wdi, u64 cyc);
 	/* Read time before idle in delayed event driver units. */
 	u64 (*get_time_before_idle)(struct wult_device_info *wdi);
-	/* Arm a delayed timer 'ldist' nanoseconds away. */
+	/* Arm a delayed event 'ldist' nanoseconds away. */
 	int (*arm)(struct wult_device_info *wdi, u64 *ldist);
 	/* Checks whether the delayed event has happened. */
 	bool (*event_has_happened)(struct wult_device_info *wdi);

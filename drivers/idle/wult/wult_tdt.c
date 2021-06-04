@@ -3,6 +3,11 @@
  * Copyright (C) 2019-2020, Intel Corporation
  * Authors: Antti Laakso <antti.laakso@intel.com>
  *          Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+ *
+ * This delayed event driver uses x86 TSC deadline timer. The events are armed
+ * using the 'hrtimer' API, but in order to achieve higher precision, this
+ * driver directly reads TSC deadline timer registers. This is not something
+ * we'd be allowed to do in upstream kernel.
  */
 
 #define DRIVER_NAME "wult_tdt"
