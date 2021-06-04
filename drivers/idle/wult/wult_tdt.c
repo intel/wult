@@ -5,7 +5,7 @@
  *          Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
 
-#define DRIVER_NAME "wult_timer"
+#define DRIVER_NAME "wult_tdt"
 
 #include <linux/cpufeature.h>
 #include <linux/hrtimer.h>
@@ -21,17 +21,17 @@
 #define LDIST_MAX 10000000
 
 /*
- * Get a 'struct wult_timer' pointer by memory address of its 'wdi' field.
+ * Get a 'struct wult_tdt' pointer by memory address of its 'wdi' field.
  */
-#define wdi_to_wt(wdi) container_of(wdi, struct wult_timer, wdi)
+#define wdi_to_wt(wdi) container_of(wdi, struct wult_tdt, wdi)
 
-struct wult_timer {
+struct wult_tdt {
 	struct hrtimer timer;
 	struct wult_device_info wdi;
 	u64 deadline_before;
 };
 
-static struct wult_timer wult_timer = {
+static struct wult_tdt wult_tdt = {
 	.wdi = { .devname = DRIVER_NAME, },
 };
 
@@ -44,7 +44,7 @@ static enum hrtimer_restart timer_interrupt(struct hrtimer *hrtimer)
 
 static u64 get_time_before_idle(struct wult_device_info *wdi)
 {
-	struct wult_timer *wt = wdi_to_wt(wdi);
+	struct wult_tdt *wt = wdi_to_wt(wdi);
 
 	/*
 	 * This callback is invoked just before going to idle, and now we can
@@ -63,7 +63,7 @@ static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc)
 
 static int arm_event(struct wult_device_info *wdi, u64 *ldist)
 {
-	struct wult_timer *wt = wdi_to_wt(wdi);
+	struct wult_tdt *wt = wdi_to_wt(wdi);
 
 	/*
 	 * The TSC deadline timers are controlled by the core kernel, and we do
@@ -80,7 +80,7 @@ static int arm_event(struct wult_device_info *wdi, u64 *ldist)
 static bool event_has_happened(struct wult_device_info *wdi)
 {
 	u64 deadline;
-	struct wult_timer *wt = wdi_to_wt(wdi);
+	struct wult_tdt *wt = wdi_to_wt(wdi);
 
 	/*
 	 * The HW zeroes out the deadline MSR value when deadline is reached,
@@ -116,7 +116,7 @@ static u64 cyc_to_ns(struct wult_device_info *wdi, u64 cyc)
 
 static int init_device(struct wult_device_info *wdi, int cpunum)
 {
-	struct wult_timer *wt = wdi_to_wt(wdi);
+	struct wult_tdt *wt = wdi_to_wt(wdi);
 
 	if (!cpu_has(&cpu_data(cpunum), X86_FEATURE_TSC_DEADLINE_TIMER)) {
 		wult_err("the CPU does not support TSC deadline timers");
@@ -132,12 +132,12 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 
 static void exit_device(struct wult_device_info *wdi)
 {
-	struct wult_timer *wt = wdi_to_wt(wdi);
+	struct wult_tdt *wt = wdi_to_wt(wdi);
 
 	hrtimer_cancel(&wt->timer);
 }
 
-static struct wult_device_ops wult_timer_ops = {
+static struct wult_device_ops wult_tdt_ops = {
 	.get_time_before_idle = get_time_before_idle,
 	.get_time_after_idle = get_time_after_idle,
 	.arm = arm_event,
@@ -148,7 +148,7 @@ static struct wult_device_ops wult_timer_ops = {
 	.exit = exit_device,
 };
 
-static int __init wult_timer_init(void)
+static int __init wult_tdt_init(void)
 {
 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL &&
 	    boot_cpu_data.x86 < 6) {
@@ -157,21 +157,22 @@ static int __init wult_timer_init(void)
 		return -EINVAL;
 	}
 
-	wult_timer.wdi.ldist_min = 1;
-	wult_timer.wdi.ldist_max = LDIST_MAX;
-	wult_timer.wdi.ldist_gran = hrtimer_resolution;
-	wult_timer.wdi.ops = &wult_timer_ops;
+	wult_tdt.wdi.ldist_min = 1;
+	wult_tdt.wdi.ldist_max = LDIST_MAX;
+	wult_tdt.wdi.ldist_gran = hrtimer_resolution;
+	wult_tdt.wdi.ops = &wult_tdt_ops;
 
-	return wult_register(&wult_timer.wdi);
+	return wult_register(&wult_tdt.wdi);
 }
-module_init(wult_timer_init);
+module_init(wult_tdt_init);
 
-static void __exit wult_timer_exit(void)
+static void __exit wult_tdt_exit(void)
 {
 	wult_unregister();
 }
-module_exit(wult_timer_exit);
+module_exit(wult_tdt_exit);
 
-MODULE_DESCRIPTION("Wult driver for local timer");
+MODULE_DESCRIPTION("Wult delayed event driver based on x86 TSC deadline timer");
+MODULE_AUTHOR("Artem Bityutskiy");
 MODULE_AUTHOR("Antti Laakso");
 MODULE_LICENSE("GPL v2");

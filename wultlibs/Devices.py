@@ -333,7 +333,7 @@ class _TimerBase(_WultDeviceBase):
     names and descriptions.
     """
 
-    drvname = "wult_timer"
+    drvname = "wult_tdt"
     supported_devices = {}
     # Name of the clock source device corresponding to the timer.
     _clkname = None

@@ -8,7 +8,7 @@ ifneq ($(KERNELRELEASE),)
 wult-objs := main.o uapi.o tracer.o cstates.o
 obj-m += wult.o
 obj-m += wult_igb.o
-obj-m += wult_timer.o
+obj-m += wult_tdt.o
 else
 # Out of tree build.
 
@@ -37,4 +37,4 @@ help:
 endif
 
 list_deployables:
-	@echo wult wult_igb wult_timer
+	@echo wult wult_igb wult_tdt
