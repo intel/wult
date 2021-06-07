@@ -716,8 +716,12 @@ def is_deploy_needed(proc, toolname, helperpath=None):
 
         lproc = Procs.Proc()
 
-        for path, is_drv in [(_DRV_SRC_SUBPATH, True), (_HELPERS_SRC_SUBPATH, False)]:
-            srcpath = FSHelpers.search_for_app_data(toolname, path / toolname, default=None)
+        srcpaths = [(_DRV_SRC_SUBPATH / toolname, True)]
+        if helperpath:
+            srcpaths.append((_HELPERS_SRC_SUBPATH / helperpath.name, False))
+
+        for path, is_drv in srcpaths:
+            srcpath = FSHelpers.search_for_app_data(toolname, path, default=None)
             # Some tools may not have helpers.
             if not srcpath:
                 continue
