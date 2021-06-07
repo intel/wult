@@ -79,7 +79,7 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 {
 	struct wult_hrtimer *wt = wdi_to_wt(wdi);
 
-	hrtimer_init(&wt->timer, CLOCK_MONOTONIC_RAW, HRTIMER_MODE_REL_PINNED_HARD);
+	hrtimer_init(&wt->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL_PINNED_HARD);
 	wt->timer.function = &timer_interrupt;
 	return 0;
 }
