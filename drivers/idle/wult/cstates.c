@@ -29,8 +29,6 @@ void wult_cstates_read_before(struct wult_cstates_info *csinfo)
  */
 void wult_cstates_read_after(struct wult_cstates_info *csinfo)
 {
-	struct cstate_info *csi;
-
 	csinfo->mperf2 = __rdmsr(MSR_IA32_MPERF);
 	csinfo->tsc2 = rdtsc_ordered();
 }
