@@ -758,7 +758,11 @@ def is_deploy_needed(proc, toolname, helperpath=None):
 
     for srcpath, deploypath in get_path_pairs(proc, toolname, helperpath):
         if not deploypath or not FSHelpers.exists(deploypath, proc):
-            return True
+            msg = f"'{toolname}' drivers and/or helpers are not installed{proc.hostmsg}, please " \
+                  f"run: {toolname} deploy"
+            if proc.is_remote:
+                msg += f" -H {proc.hostname}"
+            raise Error(msg)
 
         srcmtime = get_newest_mtime(srcpath)
         if srcmtime + delta > FSHelpers.get_mtime(deploypath, proc):
