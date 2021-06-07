@@ -177,12 +177,12 @@ def search_for_app_data(appname, subpath: Path, pre: str = None, pathdescr: str 
             return path
         searched.append(path)
 
-    if not pathdescr:
-        pathdescr = f"'{subpath}'"
-    searched = [str(s) for s in searched]
-    dirs = " * " + "\n * ".join(searched)
-
     if default is _RAISE:
+        if not pathdescr:
+            pathdescr = f"'{subpath}'"
+        searched = [str(s) for s in searched]
+        dirs = " * " + "\n * ".join(searched)
+
         raise Error(f"cannot find {pathdescr}, searched in the following directories on local "
                     f"host:\n{dirs}")
     return default
