@@ -9,7 +9,6 @@
 
 #include <linux/cpufeature.h>
 #include <linux/hrtimer.h>
-#include <linux/kthread.h>
 #include <linux/ktime.h>
 #include <linux/module.h>
 #include <linux/time.h>
