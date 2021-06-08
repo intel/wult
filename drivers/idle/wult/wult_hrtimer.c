@@ -12,6 +12,7 @@
 #include <linux/ktime.h>
 #include <linux/module.h>
 #include <linux/time.h>
+#include <asm/msr.h>
 #include "wult.h"
 
 /* Maximum supported launch distance in nanoseconds. */
@@ -34,7 +35,7 @@ static struct wult_hrtimer wult_hrtimer = {
 
 static enum hrtimer_restart timer_interrupt(struct hrtimer *hrtimer)
 {
-	wult_interrupt(ktime_get_raw_ns());
+	wult_interrupt(rdtsc_ordered());
 
 	return HRTIMER_NORESTART;
 }

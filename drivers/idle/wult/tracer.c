@@ -82,11 +82,12 @@ static void after_idle(struct wult_info *wi)
 }
 
 /* Get measurements in the interrupt handler after idle. */
-void wult_tracer_interrupt(struct wult_info *wi, u64 tintr)
+void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 {
 	struct wult_tracer_info *ti = &wi->ti;
+	struct wult_device_info *wdi = wi->wdi;
 
-	ti->tintr = tintr;
+	ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
 	ti->smi_intr = get_smi_count();
 	ti->nmi_intr = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 }
