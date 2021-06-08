@@ -442,10 +442,10 @@ class WultRunner:
             with CPUIdle.CPUIdle(proc=proc) as cpuidle:
                 self._csinfo = cpuidle.get_cstates_info_dict(res.cpunum)
 
+        # Check that at least some C-states are enabled.
         cstates_present = False
-        # Build the C-state index -> name mapping. And check for enabled C-states.
         for info in self._csinfo.values():
-            if not info["disable"] and info["name"] != "POLL":
+            if not info["disable"]:
                 cstates_present = True
 
         if not cstates_present:
