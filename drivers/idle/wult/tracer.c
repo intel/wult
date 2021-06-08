@@ -284,7 +284,6 @@ static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_
 {
 	struct wult_info *wi = data;
 	struct wult_tracer_info *ti = &wi->ti;
-	static bool before_idle_called = false;
 
 	if (cpu_id != wi->cpunum)
 		/* Not the CPU we are measuring. */
@@ -299,27 +298,27 @@ static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_
 	}
 
 	if (req_cstate == PWR_EVENT_EXIT) {
-		if (before_idle_called) {
+		if (ti->bi_finished)
 			after_idle(data);
-			before_idle_called = false;
-		}
+		ti->bi_finished = false;
 	} else {
 #ifndef COMPAT_PECULIAR_TRACE_PROBE
-		WARN_ON(before_idle_called);
+		WARN_ON(ti->bi_finished);
 #endif
 		ti->req_cstate = req_cstate;
 		before_idle(data);
-		before_idle_called = true;
+		ti->bi_finished = true;
 	}
 }
 
 int wult_tracer_enable(struct wult_info *wi)
 {
 	int err;
+	struct wult_tracer_info *ti = &wi->ti;
 
-	wi->ti.got_measurements = false;
+	wi->ti.got_measurements = ti->bi_finished = false;
 
-	err = tracepoint_probe_register(wi->ti.tp, (void *)cpu_idle_hook, wi);
+	err = tracepoint_probe_register(ti->tp, (void *)cpu_idle_hook, wi);
 	if (err) {
 		wult_err("failed to register the '%s' tracepoint probe, error %d",
 			 TRACEPOINT_NAME, err);
@@ -327,7 +326,7 @@ int wult_tracer_enable(struct wult_info *wi)
 	}
 
 #ifndef COMPAT_USE_TRACE_PRINTK
-	err = trace_array_set_clr_event(wi->ti.event_file->tr, "synthetic",
+	err = trace_array_set_clr_event(ti->event_file->tr, "synthetic",
 					WULT_TRACE_EVENT_NAME, true);
 	if (err)
 		tracepoint_synchronize_unregister();
