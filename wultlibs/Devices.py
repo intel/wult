@@ -333,12 +333,13 @@ class _TSCDeadlineTimer(_WultDeviceBase):
 
     drvname = "wult_tdt"
     supported_devices = {"tdt" : "TSC deadline timer"}
+    alias = "tsc-deadline-timer"
 
     def __init__(self, devid, cpunum, proc):
         """The class constructor. The arguments are the same as in '_WultDeviceBase.__init__()'."""
 
         errmsg = f"device '{devid}' is not supported for CPU {cpunum}{proc.hostmsg}."
-        if devid != "tdt":
+        if devid not in self.supported_devices and devid != self.alias:
             raise ErrorNotSupported(f"{errmsg}")
 
         path = Path(f"/sys/devices/system/clockevents/clockevent{cpunum}/current_device")
@@ -352,6 +353,7 @@ class _TSCDeadlineTimer(_WultDeviceBase):
 
         self.info["name"] = "tdt"
         self.info["devid"] = devid
+        self.info["alias"] = self.alias
         self.info["descr"] = self.supported_devices["tdt"]
 
 class _LinuxHRTimer(_WultDeviceBase):
@@ -367,11 +369,12 @@ class _LinuxHRTimer(_WultDeviceBase):
 
     drvname = "wult_hrtimer"
     supported_devices = {"hrtimer" : "Linux High Resolution timer"}
+    alias = "hrt"
 
     def __init__(self, devid, cpunum, proc):
         """The class constructor. The arguments are the same as in '_WultDeviceBase.__init__()'."""
 
-        if devid != "hrtimer":
+        if devid not in self.supported_devices and devid != self.alias:
             raise ErrorNotSupported(f"device '{devid}' is not supported for CPU "
                                     f"{cpunum}{proc.hostmsg}.")
 
@@ -379,6 +382,7 @@ class _LinuxHRTimer(_WultDeviceBase):
 
         self.info["name"] = "hrtimer"
         self.info["devid"] = devid
+        self.info["alias"] = self.alias
         self.info["descr"] = self.supported_devices["hrtimer"]
 
 def WultDevice(devid, cpunum, proc, force=False):
@@ -387,10 +391,10 @@ def WultDevice(devid, cpunum, proc, force=False):
     depending on 'devid'. The arguments are the same as in '_WultDeviceBase.__init__()'.
     """
 
-    if devid in _TSCDeadlineTimer.supported_devices:
+    if devid in _TSCDeadlineTimer.supported_devices or devid in _TSCDeadlineTimer.alias:
         return _TSCDeadlineTimer(devid, cpunum, proc)
 
-    if devid in _LinuxHRTimer.supported_devices:
+    if devid in _LinuxHRTimer.supported_devices or devid in _LinuxHRTimer.alias:
         return _LinuxHRTimer(devid, cpunum, proc)
 
     try:
@@ -418,13 +422,13 @@ def scan_devices(proc, devtypes=None):
         for devid in _TSCDeadlineTimer.supported_devices:
             with contextlib.suppress(Error):
                 with _TSCDeadlineTimer(devid, 0, proc) as timerdev:
-                    yield timerdev.info["devid"], None, timerdev.info["descr"]
+                    yield timerdev.info["devid"], timerdev.info["alias"], timerdev.info["descr"]
 
     if "hrtimer" in devtypes:
         for devid in _LinuxHRTimer.supported_devices:
             with contextlib.suppress(Error):
                 with _LinuxHRTimer(devid, 0, proc) as timerdev:
-                    yield timerdev.info["devid"], None, timerdev.info["descr"]
+                    yield timerdev.info["devid"], timerdev.info["alias"], timerdev.info["descr"]
 
     if "i210" in devtypes:
         for pci_info in LsPCI.LsPCI(proc).get_devices():
