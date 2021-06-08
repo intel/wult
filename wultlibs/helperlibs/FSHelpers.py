@@ -30,10 +30,11 @@ _RAISE = object()
 
 _LOG = logging.getLogger()
 
-def get_sha512(path, default=_RAISE, proc=None):
+def get_sha512(path, default=_RAISE, proc=None, skip_lines=0):
     """
     Calculate sha512 checksum of the file 'path' on the host defined by 'proc'. The'default'
-    argument can be used as an return value instead of raising an error.
+    argument can be used as an return value instead of raising an error. The 'skip_lines' argument
+    tells how many lines from the beginning will be excluded from checksum calculation.
     """
 
     if not proc:
@@ -41,6 +42,10 @@ def get_sha512(path, default=_RAISE, proc=None):
 
     try:
         with proc.open(path, "rb") as fobj:
+            while skip_lines:
+                skip_lines -= 1
+                fobj.readline()
+
             data = fobj.read()
             checksum = sha512(data).hexdigest()
     except Error as err:
