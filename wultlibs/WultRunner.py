@@ -73,6 +73,10 @@ class WultRunner:
         """Return the raw data provided by the kernel driver as a dictionary."""
         return dict(zip(self._rawhdr, [int(elt) for elt in rawdp]))
 
+    def _is_poll_idle(self, dp): # pylint: disable=no-self-use
+        """Returns 'True' if the 'dp' datapoint contains the POLL idle state data."""
+        return dp["ReqCState"] == 0
+
     def _process_datapoint(self, rawdp):
         """
         Process a raw datapoint and return it as dictionary. The "raw" part in this contents means
@@ -93,24 +97,32 @@ class WultRunner:
             dp["NMIIntr"] += dp["SMIIntr"]
             del dp["SMIIntr"]
 
-        # Inject additional information to the datapoint.
-        # CStatesCyc - combined count of CPU cycles in all non-CC0 C-states.
-        # DerivedCC1Cyc - "total cycles" - "cycles in C-states other than CC1". So basically it is a
-        #                 software-calculated CC1 cycles, which is useful to have because not every
-        #                 Intel platform has a HW CC1 counter.
-        # IntrDelay - the interrupt delay.
-        cyc = sum([dp[name] for name in dp if name.startswith("CC") and name != "CC1Cyc"])
-        if self._is_intel:
-            dp["DerivedCC1Cyc"] = dp["TotCyc"] - cyc
-            dp["CStatesCyc"] = dp["TotCyc"] - dp["CC0Cyc"]
+        if not self._is_poll_idle(dp):
+            # Inject additional C-state information to the datapoint.
+            # * CStatesCyc - combined count of CPU cycles in all non-CC0 C-states.
+            # * DerivedCC1Cyc - software-calculated CC1 cycles, which is useful to have because not
+            #                   every Intel platform has a HW CC1 counter. Calculated as "total
+            #                   cycles" - "cycles in C-states other than CC1".
+            cyc = sum([dp[name] for name in dp if name.startswith("CC") and name != "CC1Cyc"])
+            if self._is_intel:
+                dp["DerivedCC1Cyc"] = dp["TotCyc"] - cyc
+                dp["CStatesCyc"] = dp["TotCyc"] - dp["CC0Cyc"]
+            else:
+                dp["CStatesCyc"] = dp["TotCyc"] - cyc
         else:
-            dp["CStatesCyc"] = dp["TotCyc"] - cyc
+            dp["DerivedCC1Cyc"] = dp["CStatesCyc"] = 0
+
+        # Inject 'IntrDelay' - the interrupt delay.
         if "IntrLatency" in dp:
             dp["IntrDelay"] = dp["IntrLatency"] - dp["WakeLatency"]
 
         # Add the C-state percentages.
         for cscyc_colname, csres_colname in self._cs_colnames:
-            dp[csres_colname] = dp[cscyc_colname] / dp["TotCyc"] * 100.0
+            # In case of POLL state, calculate only CC0%.
+            if not self._is_poll_idle(dp) or cscyc_colname == "CC0Cyc":
+                dp[csres_colname] = dp[cscyc_colname] / dp["TotCyc"] * 100.0
+            else:
+                dp[csres_colname] = 0
 
         # Turn the C-state index into the C-state name.
         try:
