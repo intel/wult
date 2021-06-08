@@ -43,13 +43,11 @@ static inline unsigned int get_smi_count(void)
 }
 
 /* Get measurement data before idle .*/
-static void before_idle(struct wult_info *wi, int req_cstate)
+static void before_idle(struct wult_info *wi)
 {
 	struct wult_tracer_info *ti = &wi->ti;
 
 	ti->got_measurements = false;
-	ti->req_cstate = req_cstate;
-
 	ti->smi_bi = get_smi_count();
 	ti->nmi_bi = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 
@@ -285,6 +283,7 @@ out_end:
 static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_id)
 {
 	struct wult_info *wi = data;
+	struct wult_tracer_info *ti = &wi->ti;
 	static bool before_idle_called = false;
 
 	if (cpu_id != wi->cpunum)
@@ -308,7 +307,8 @@ static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_
 #ifndef COMPAT_PECULIAR_TRACE_PROBE
 		WARN_ON(before_idle_called);
 #endif
-		before_idle(data, req_cstate);
+		ti->req_cstate = req_cstate;
+		before_idle(data);
 		before_idle_called = true;
 	}
 }
