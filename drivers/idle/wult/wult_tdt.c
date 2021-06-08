@@ -77,7 +77,7 @@ static int arm_event(struct wult_device_info *wdi, u64 *ldist)
 	 * timer. But we arm our time anyway to make sure there is at least
 	 * some timer there and we won't sleep forever.
 	 */
-	hrtimer_start(&wt->timer, ns_to_ktime(*ldist), HRTIMER_MODE_REL_PINNED);
+	hrtimer_start(&wt->timer, ns_to_ktime(*ldist), HRTIMER_MODE_REL_PINNED_HARD);
 	return 0;
 }
 
@@ -129,7 +129,7 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 
 	/* TODO: ensure that hrtimers are backed by the TSC dealine timer. */
 
-	hrtimer_init(&wt->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL_PINNED);
+	hrtimer_init(&wt->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL_PINNED_HARD);
 	wt->timer.function = &timer_interrupt;
 	return 0;
 }
