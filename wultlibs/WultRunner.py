@@ -86,6 +86,12 @@ class WultRunner:
 
         dp = self._get_datapoint_dict(rawdp)
 
+        # The 'wult_tdt' driver does not handle the 'POLL' state correctly.
+        if self._ep.dev.drvname == "wult_tdt" and self._is_poll_idle(dp):
+            _LOG.debug("dropping the datapoint with 'POLL' idle state as 'wult_tdt' driver does "
+                       "not handle it correctly")
+            return None
+
         # Merge SMI and NMI counters.
         # Note, the following counters were added in wult 1.8.14 (March 2020): SMIWake, NMIWake,
         # SMIIntr, NMIIntr. This is why we have the 'if' statements below, which can probably be
