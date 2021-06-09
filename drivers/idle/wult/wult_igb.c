@@ -47,18 +47,17 @@ static inline void pci_flush_posted(const struct network_adapter *nic)
 static irqreturn_t interrupt_handler(int irq, void *data)
 {
 	struct network_adapter *nic = data;
-	u32 icr, eicr, tsicr;
+	u32 icr, tsicr;
 	u64 cyc;
 
 	cyc = rdtsc_ordered();
 
 	icr = read32(nic, I210_ICR);
-	eicr = read32(nic, I210_EICR);
 	tsicr = read32(nic, I210_TSICR);
 
 	if (!(icr & I210_Ixx_TIME_SYNC) || !(tsicr & I210_TSIxx_TT0)) {
 		WARN_ONCE(1, "spurious interrupt, ICR %#x, EICR %#x, TSICR %#x",
-			  icr, eicr, tsicr);
+			  icr, read32(nic, I210_EICR), tsicr);
 		return IRQ_HANDLED;
 	}
 
