@@ -73,26 +73,6 @@ class WultRunner:
         """Return the raw data provided by the kernel driver as a dictionary."""
         return dict(zip(self._rawhdr, [int(elt) for elt in rawdp]))
 
-    def _get_smi_nmi(self, dp):
-        """
-        Returns number of SMI/NMI events happened during the last measurement cycle, that
-        corresponds to the 'dp' datapoint. The returned value is a dictionary with the 'SMI' and
-        'NMI'. Returns an empty dictionary if no SMI/NMI happened.
-        """
-
-        smi_nmi = {}
-        for what in ("NMI", "SMI"):
-            if what not in dp:
-                continue
-
-            var = f"_{what}_cnt"
-            count = dp[what] - getattr(self, var)
-            if count:
-                smi_nmi[what] = count
-                setattr(self, var, dp[what])
-
-        return smi_nmi
-
     def _process_datapoint(self, rawdp):
         """
         Process a raw datapoint and return it as dictionary. The "raw" part in this contents means
@@ -139,12 +119,6 @@ class WultRunner:
             # Supposedly an bad C-state index.
             raise Error(f"bad C-state index '{dp['ReqCState']}' coming from the following FTrace "
                         f"line:\n  {self._ftrace.raw_line}") from None
-
-        smi_nmi = self._get_smi_nmi(dp)
-        if smi_nmi:
-            msg = " and ".join([f"{cnt} {what}" for what, cnt in smi_nmi.items()])
-            _LOG.warning("%s happened%s, ignoring datapoint", msg, self._proc.hostmsg)
-            return None
 
         # Save time in microseconds.
         times_us = {}
