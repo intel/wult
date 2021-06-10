@@ -460,14 +460,23 @@ class WultRunner:
             with CPUIdle.CPUIdle(proc=proc) as cpuidle:
                 self._csinfo = cpuidle.get_cstates_info_dict(res.cpunum)
 
-        # Check that at least some C-states are enabled.
-        cstates_present = False
+        # Check that there are idle states that we can measure.
+        idle_present = False # An idle state is present, including POLL idle state.
+        cstate_present = False # A real C-state is present (POLL idle excluded).
         for info in self._csinfo.values():
             if not info["disable"]:
-                cstates_present = True
+                idle_present = True
+                if info["name"] != "POLL":
+                    cstate_present = True
 
-        if not cstates_present:
-            raise Error(f"no C-states enabled on CPU {res.cpunum}")
+        if not idle_present:
+            raise Error(f"no idle states are enabled on CPU {res.cpunum}{proc.hostmsg}")
+        if not cstate_present and self._ep.dev.info["devid"] == "tdt":
+            msg = ""
+            if idle_present:
+                msg = "\nNote, the 'tdt' method does not support measuring the POLL idle state, " \
+                      "use 'hrtimer' or 'i210' for measuring the POLL idle state."
+            raise Error(f"no C-states are enabled on CPU {res.cpunum}{proc.hostmsg}{msg}")
 
         if not lscpu_info:
             lscpu_info = CPUInfo.get_lscpu_info(proc=proc)
