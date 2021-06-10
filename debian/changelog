@@ -1,6 +1,7 @@
 wult (1.9.3) unstable; urgency=low
 
-  * wult: add new driver: hrtimer
+  * wult: add new driver: hrtimer.
+  * wult: add POLL idle state support.
   * wult/ndl: add '--keep-filtered' option for start command.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 04 Jun 2021 21:57:34 +0300
