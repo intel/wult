@@ -202,8 +202,8 @@ class WultRunner:
 
             if time.time() - last_collected_time > timeout:
                 raise ErrorTimeOut(f"no datapoints accepted for {timeout} seconds. While the "
-                                   f"dirver does produce them, they are being rejected. One "
-                                   f"possible reason is that they don not pass filters/selectors.")
+                                   f"driver does produce them, they are being rejected. One "
+                                   f"possible reason is that they do not pass filters/selectors.")
 
             self._validate_datapoint(rawhdr, rawdp)
             dp = self._process_datapoint(rawdp)
