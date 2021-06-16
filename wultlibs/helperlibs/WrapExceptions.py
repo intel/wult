@@ -65,6 +65,9 @@ class WrapExceptions:
             methods = dir(obj)
 
         for name in methods:
+            if not hasattr(obj, name):
+                continue
+
             value = getattr(obj, name)
             # If the attribute is not a private attribute and it is a function, then wrap it.
             if (name[0] != "_" and hasattr(value, "__call__")) or name == "__next__":
