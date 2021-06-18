@@ -135,6 +135,7 @@ static ssize_t dfs_write_atomic64_file(struct file *file, const char __user *use
 	if (res < 0)
 		goto out;
 
+	buf[res] = '\0';
         err = kstrtoull(buf, 0, &val);
         if (err)
                 goto out;
