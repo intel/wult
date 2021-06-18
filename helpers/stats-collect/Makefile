@@ -3,7 +3,7 @@ BINDIR := $(PREFIX)/bin
 PREPARE_STANDALONE = prepare-standalone.sh
 TOOLNAMES = stats-collect ipmi-helper
 
-all: $(TOOLNAMES)
+all:
 	./prepare-standalone.sh
 
 clean:

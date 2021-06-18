@@ -38,20 +38,31 @@ def get_version():
 
     return f"{major}.{minor}.{stable}"
 
-def get_data_files(installdir, subdir):
+def get_data_files(installdir, subdir, exclude=None):
     """
     When the task is to include all files in the 'subdir' direcotry to the package and install them
     under the 'installdir' directory, this function can be used to generate the list of files
     suitable for the 'data_files' setup parameter.
     """
 
-    result = []
+    files_dict = {}
     for root, _, files in os.walk(subdir):
         for fname in files:
             fname = Path(f"{root}/{fname}")
-            installpath = Path(installdir) / fname.relative_to(subdir).parent
-            result.append([str(installpath), (str(fname),)])
-    return result
+
+            if exclude and str(fname) in exclude:
+                continue
+
+            key = str(Path(installdir) / fname.relative_to(subdir).parent)
+            if key not in files_dict:
+                files_dict[key] = []
+            files_dict[key].append(str(fname))
+
+    return list(files_dict.items())
+
+# These helpers get installed as scripts. We must do this in order to have their shebang adjusted
+# correctly. And we exclude these scripts from being installed as data.
+_PYTHON_HELPERS = ["helpers/stats-collect/stats-collect", "helpers/stats-collect/ipmi-helper"]
 
 setup(
     name="wult",
@@ -61,11 +72,11 @@ setup(
     python_requires=">=3.7",
     version=get_version(),
     data_files=get_data_files("share/wult/drivers", "drivers") + \
-               get_data_files("share/wult/helpers", "helpers") + \
+               get_data_files("share/wult/helpers", "helpers", exclude=_PYTHON_HELPERS) + \
                get_data_files("share/wult/defs", "defs") + \
                get_data_files("share/wult/templates", "templates") + \
                get_data_files("share/wult/css", "css"),
-    scripts=_TOOLNAMES,
+    scripts=_TOOLNAMES + _PYTHON_HELPERS,
     packages=find_packages(),
     install_requires=["plotly>=4", "jinja2", "numpy", "pandas", "paramiko", "pyyml"],
     long_description="""This package provides wult - a Linux command-line tool for measuring Intel

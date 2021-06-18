@@ -31,17 +31,17 @@ if [ "${1:-}" = "clean" ]; then
     exit 0
 fi
 
-
 for toolname in $TOOLS; do
     mkdir -p "$MODULES_DIR"
-    deps="$(./$toolname --print-module-paths)"
+    toolpath="$(which $toolname)"
+    deps="$($toolpath --print-module-paths)"
 
     for dep in $deps; do
         cp "$dep" "$MODULES_DIR"
-        cp "$toolname" __main__.py
+        cp "$toolpath" __main__.py
 
         # Zip the tool and all its dependencies.
-        python -m zipfile -c $toolname.zip __main__.py ${MODULES_DIR%%/*}
+        python3 -m zipfile -c $toolname.zip __main__.py ${MODULES_DIR%%/*}
 
         # Turn it into an executable file.
         echo '#!/usr/bin/python3' > "$toolname".standalone
