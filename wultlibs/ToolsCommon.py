@@ -936,6 +936,9 @@ def _deploy(args):
             helpersdst = args.tmpdir / "helpers_deployed"
             _LOG.debug("Deploying helpers to '%s'%s", helpersdst, bproc.hostmsg)
 
+            # Make sure the the destination helpers deployment directory exists.
+            FSHelpers.mkdir(args.helpers_path, parents=True, exist_ok=True, proc=iproc)
+
             for helper in args.helpers:
                 helperpath = f"{args.helpersrc}/{helper}"
 
