@@ -110,41 +110,49 @@ static ssize_t dfs_write_atomic64_file(struct file *file, const char __user *use
 	struct dentry *dent = file->f_path.dentry;
 	struct wult_info *wi;
 	int err;
-	ssize_t res;
+	ssize_t len;
 	char buf[32];
-	atomic64_t *dest;
 	u64 val;
 
 	err = debugfs_file_get(dent);
 	if (err)
 		return err;
 
-	wi = file->private_data;
-
-	if (!strcmp(dent->d_name.name, LDIST_FROM_DFS_NAME)) {
-		dest = &wi->ldist_from;
-	} else if (!strcmp(dent->d_name.name, LDIST_TO_DFS_NAME)) {
-		dest = &wi->ldist_to;
-	} else {
-		err = -EINVAL;
+	len = simple_write_to_buffer(buf, ARRAY_SIZE(buf), ppos, user_buf,
+				     count);
+	if (len < 0) {
+		err = len;
 		goto out;
 	}
 
-	res = simple_write_to_buffer(buf, ARRAY_SIZE(buf), ppos, user_buf,
-			             count);
-	if (res < 0)
+	buf[len] = '\0';
+	err = kstrtoull(buf, 0, &val);
+	if (err)
 		goto out;
 
-	buf[res] = '\0';
-        err = kstrtoull(buf, 0, &val);
-        if (err)
-                goto out;
+	wi = file->private_data;
+	if (val > wi->wdi->ldist_max || val < wi->wdi->ldist_min)
+		goto out_einval;
 
-	atomic64_set(dest, val);
+	if (!strcmp(dent->d_name.name, LDIST_FROM_DFS_NAME)) {
+		if (val > atomic64_read(&wi->ldist_to))
+			goto out_einval;
+		atomic64_set(&wi->ldist_from, val);
+	} else if (!strcmp(dent->d_name.name, LDIST_TO_DFS_NAME)) {
+		if (val < atomic64_read(&wi->ldist_from))
+			goto out_einval;
+		atomic64_set(&wi->ldist_to, val);
+	} else {
+		goto out_einval;
+	}
 
 out:
 	debugfs_file_put(dent);
-	return res;
+	return len;
+
+out_einval:
+	debugfs_file_put(dent);
+	return -EINVAL;
 }
 
 /* Wult debugfs operations for R/W files backed by an atomic64 variable. */
