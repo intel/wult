@@ -66,7 +66,7 @@ _PYTHON_HELPERS = ["helpers/stats-collect/stats-collect", "helpers/stats-collect
 
 setup(
     name="wult",
-    description="Wake up LAtency Tracer tool",
+    description="Wake Up Latency Tracer tool",
     author="Artem Bityutskiy",
     author_email="artem.bityutskiy@linux.intel.com",
     python_requires=">=3.7",
