@@ -130,7 +130,6 @@ static ssize_t dfs_write_atomic64_file(struct file *file, const char __user *use
 		goto out;
 	}
 
-	snprintf(buf, ARRAY_SIZE(buf), "%lld", atomic64_read(dest));
 	res = simple_write_to_buffer(buf, ARRAY_SIZE(buf), ppos, user_buf,
 			             count);
 	if (res < 0)
