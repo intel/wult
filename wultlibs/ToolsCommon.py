@@ -903,7 +903,7 @@ def _remove_deploy_tmpdir(args, proc):
     """Remove temporary files."""
 
     if getattr(args, "tmpdir", None):
-        proc.run_verify(f"rm -rf -- '{args.tmpdir}'")
+        FSHelpers.rm_minus_rf(args.tmpdir, proc=proc)
 
 def deploy_command(args):
     """Implements the 'deploy' command for the 'wult' and 'ndl' tools."""
