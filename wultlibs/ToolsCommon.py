@@ -244,13 +244,10 @@ FUNCS_DESCR = """Comma-separated list of summary functions to calculate. By defa
 LIST_FUNCS_DESCR = "Print the list of the available summary functions."
 
 def get_proc(args, hostname):
-    """
-    Returns and "SSH" object or the 'Procs' object depending on 'hostname'.
-    """
+    """Returns an "SSH" or 'Procs' object for host 'hostname'."""
 
     if hostname == "localhost":
         return Procs.Proc()
-
     return SSH.SSH(hostname=hostname, username=args.username, privkeypath=args.privkey,
                    timeout=args.timeout)
 
