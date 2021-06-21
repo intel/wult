@@ -348,7 +348,7 @@ def add_ssh_options(parser, argcomplete=None):
     Add the '--host', '--timeout' and other SSH-related options to argument parser object 'parser'.
     """
 
-    text = "Name of the host to run on (default is the local host)."
+    text = "SUT host name to run on (default is the local host)."
     parser.add_argument("-H", "--host", help=text, default="localhost", dest="hostname")
     text = """Name of the user to use for logging into the remote host over SSH. The default user
               name is 'root'."""
@@ -566,9 +566,17 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
       o argcomplete - optional 'argcomplete' command-line arguments completer object.
     """
 
+    what = ""
+    if helpers and drivers:
+        what = "helpers and drivers"
+    elif helpers:
+        what = "helpers"
+    else:
+        what = "drivers"
+
     text = f"Compile and deploy {toolname} drivers."
-    descr = f"""Compile and deploy {toolname} drivers on local or remote host. This command has many
-                options, but they are very rarely useful and most probably you do not need them."""
+    descr = f"""Compile and deploy {toolname} {what} to the SUT (System Under Test), which can be
+                either local or a remote host, depending on the '-H' option."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
 
     envarname = f"{toolname.upper()}_DATA_PATH"
@@ -582,20 +590,20 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
         text = f"""Path to {toolname} drivers sources to build and deploy. By default the drivers
                    are searched for in the following directories (and in the following order) on the
                    local host: {dirnames}. Use value 'none' or '' (empty) to skip deploying the
-                   drivers."""
+                   drivers. Once found, driver sources are copied to the SUT, and then get built and
+                   deployed there."""
         arg = parser.add_argument("--drivers-src", help=text, dest="drvsrc")
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
         text = """Path to the Linux kernel sources to build the drivers against. The default is
-                  '/lib/modules/$(uname -r)/build'. This is the path on the system the drivers are
-                  going to be build on (BHOST)"""
+                  '/lib/modules/$(uname -r)/build' on the SUT."""
         arg = parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text)
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
-        text = f"""Where the {toolname} drivers should be deploy to (IHOST). The default is
-                   '/lib/modules/<kver>, where '<kver>' is version of the kernel in KSRC."""
+        text = """Drivers deploy path on the SUT. The default is '/lib/modules/<kver>, where
+                  '<kver>' is version of the kernel in KSRC."""
         arg = parser.add_argument("--kmod-path", help=text, type=Path, dest="kmodpath")
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
@@ -620,34 +628,11 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
-    what = ""
-    if helpers and drivers:
-        what = "helpers and drivers"
-    elif helpers:
-        what = "helpers"
-    else:
-        what = "drivers"
-
-    text = f"""Name of the host {what} have to be deployed to (local host by default). In order to
-               deploy to a remote host this program will log into it using the 'SSH' protocol."""
-    parser.add_argument("-H", "--host", dest="ihost", default=None, help=text)
+    add_ssh_options(parser, argcomplete=argcomplete)
 
     text = f"""Name of the host {what} have to be built on. By default they are built on IHOST, but
                this option can be used to build on the local host ('use --build-host localhost')."""
     parser.add_argument("--build-host", dest="bhost", default=None, help=text)
-
-    text = """Name of the user to use for logging into the SUT over SSH. The default user name is
-              'root'."""
-    parser.add_argument("-U", "--username", dest="username", help=text)
-
-    text = """Path to the private SSH key that should be used for logging into the SUT. By default
-              the key is automatically found from standard paths like '~/.ssh'."""
-    arg = parser.add_argument("-K", "--privkey", dest="privkey", type=Path, help=text)
-    if argcomplete:
-        arg.completer = argcomplete.completers.FilesCompleter()
-
-    text = """SSH connect timeout in seconds, default is 8."""
-    parser.add_argument("-T", "--timeout", dest="timeout", help=text)
 
     parser.set_defaults(func=func)
     parser.set_defaults(drvsrc=None)
