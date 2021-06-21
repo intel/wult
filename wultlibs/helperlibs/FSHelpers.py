@@ -268,7 +268,15 @@ def mktemp(prefix: str = None, tmpdir: Path = None, proc=None):
     """
 
     if not proc:
-        proc = Procs.Proc()
+        import tempfile # pylint: disable=import-outside-toplevel
+
+        try:
+            path = tempfile.mkdtemp(prefix=prefix, dir=tmpdir)
+        except OSError as err:
+            raise Error("failed to create temporary directory: {err}") from err
+
+        _LOG.debug("created local temporary directory '%s'", path)
+        return Path(path)
 
     cmd = "mktemp -d -t '"
     if prefix:
