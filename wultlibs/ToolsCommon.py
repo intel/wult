@@ -622,17 +622,13 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
         text = f"""Path to the directory to deploy {toolname} helpers to. The default is the path
                    defined by the {toolname.upper()}_HELPERSPATH environment variable. If it is not
                    defined, the default path is '$HOME/{HELPERS_LOCAL_DIR}/bin', where '$HOME' is
-                   the home directory of user 'USERNAME' on host 'IHOST' (see '--host' and
+                   the home directory of user 'USERNAME' on host 'HOST' (see '--host' and
                    '--username' options)."""
         arg = parser.add_argument("--helpers-path", metavar="HELPERSPATH", type=Path, help=text)
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
     add_ssh_options(parser, argcomplete=argcomplete)
-
-    text = f"""Name of the host {what} have to be built on. By default they are built on IHOST, but
-               this option can be used to build on the local host ('use --build-host localhost')."""
-    parser.add_argument("--build-host", dest="bhost", default=None, help=text)
 
     parser.set_defaults(func=func)
     parser.set_defaults(drvsrc=None)
@@ -768,21 +764,8 @@ def _deploy_prepare(args, toolname, minkver):
     args.tmpdir = None
     args.kver = None
 
-    if not args.ihost:
-        args.ihost = "localhost"
-    if not args.bhost:
-        args.bhost = args.ihost
     if args.drvsrc == "none":
         args.drvsrc = ""
-
-    if args.ihost != args.bhost and not args.bhost == "localhost":
-        raise Error("build host (--build-host) must be the local host or the same as deploy host "
-                    "(--host)")
-
-    if args.ihost == "localhost" and args.bhost == "localhost":
-        for attr in ("username", "privkey", "timeout"):
-            if getattr(args, attr) is not None:
-                _LOG.warning("ignoring the '--%s' option as it not useful for a local host", attr)
 
     if not args.timeout:
         args.timeout = 8
@@ -821,7 +804,7 @@ def _deploy_prepare(args, toolname, minkver):
             if not helperdir.is_dir():
                 raise Error(f"path '{helperdir}' does not exist or it is not a directory")
 
-    with contextlib.closing(get_proc(args, args.bhost)) as proc:
+    with contextlib.closing(get_proc(args, args.hostname)) as proc:
         if not FSHelpers.which("make", default=None, proc=proc):
             raise Error(f"please, install the 'make' tool{proc.hostmsg}")
 
@@ -862,7 +845,6 @@ def _deploy_prepare(args, toolname, minkver):
             args.helpersrc = args.tmpdir / "helpers"
             _LOG.info("Helpers will be compiled on host '%s'", proc.hostname)
 
-    with contextlib.closing(get_proc(args, args.ihost)) as proc:
         if args.drvsrc:
             if not args.kmodpath:
                 args.kmodpath = Path(f"/lib/modules/{args.kver}")
@@ -890,7 +872,7 @@ def _log_cmd_output(args, stdout, stderr):
 def _build(args):
     """Build drivers and helpers."""
 
-    with contextlib.closing(get_proc(args, args.bhost)) as proc:
+    with contextlib.closing(get_proc(args, args.hostname)) as proc:
         if args.drvsrc:
             _LOG.info("Compiling the drivers%s", proc.hostmsg)
             cmd = f"make -C '{args.drvsrc}' KSRC='{args.ksrc}'"
@@ -909,56 +891,52 @@ def _build(args):
 def _deploy(args):
     """Deploy helpers and drivers."""
 
-    with contextlib.closing(get_proc(args, args.ihost)) as iproc, \
-         contextlib.closing(get_proc(args, args.bhost)) as bproc:
-        remotesrc = args.bhost != "localhost"
-        remotedst = args.ihost != "localhost"
-
+    with contextlib.closing(get_proc(args, args.hostname)) as proc:
         if args.helpers:
             helpersdst = args.tmpdir / "helpers_deployed"
-            _LOG.debug("Deploying helpers to '%s'%s", helpersdst, bproc.hostmsg)
+            _LOG.debug("Deploying helpers to '%s'%s", helpersdst, proc.hostmsg)
 
             # Make sure the the destination helpers deployment directory exists.
-            FSHelpers.mkdir(args.helpers_path, parents=True, exist_ok=True, proc=iproc)
+            FSHelpers.mkdir(args.helpers_path, parents=True, exist_ok=True, proc=proc)
 
             for helper in args.helpers:
                 helperpath = f"{args.helpersrc}/{helper}"
 
                 cmd = f"make -C '{helperpath}' install PREFIX='{helpersdst}'"
-                stdout, stderr = bproc.run_verify(cmd)
+                stdout, stderr = proc.run_verify(cmd)
                 _log_cmd_output(args, stdout, stderr)
 
-                iproc.rsync(str(helpersdst) + "/bin/", args.helpers_path,
-                            remotesrc=remotesrc, remotedst=remotedst)
+                proc.rsync(str(helpersdst) + "/bin/", args.helpers_path,
+                            remotesrc=True, remotedst=True)
 
         if args.drvsrc:
             dstdir = args.kmodpath.joinpath(_DRV_SRC_SUBPATH)
-            FSHelpers.mkdir(dstdir, parents=True, exist_ok=True, proc=iproc)
+            FSHelpers.mkdir(dstdir, parents=True, exist_ok=True, proc=proc)
 
-            for name in _get_deployables(args.drvsrc, bproc):
-                installed_module = _get_module_path(iproc, name)
+            for name in _get_deployables(args.drvsrc, proc):
+                installed_module = _get_module_path(proc, name)
                 srcpath = args.drvsrc.joinpath(f"{name}.ko")
                 dstpath = dstdir.joinpath(f"{name}.ko")
-                _LOG.info("Deploying driver '%s' to '%s'%s", name, dstpath, iproc.hostmsg)
-                iproc.rsync(srcpath, dstpath, remotesrc=remotesrc, remotedst=remotedst)
+                _LOG.info("Deploying driver '%s' to '%s'%s", name, dstpath, proc.hostmsg)
+                proc.rsync(srcpath, dstpath, remotesrc=True, remotedst=True)
 
                 if installed_module and installed_module.resolve() != dstpath.resolve():
-                    _LOG.debug("removing old module '%s'%s", installed_module, iproc.hostmsg)
-                    iproc.run_verify(f"rm -f '{installed_module}'")
+                    _LOG.debug("removing old module '%s'%s", installed_module, proc.hostmsg)
+                    proc.run_verify(f"rm -f '{installed_module}'")
 
-            stdout, stderr = iproc.run_verify(f"depmod -a -- '{args.kver}'")
+            stdout, stderr = proc.run_verify(f"depmod -a -- '{args.kver}'")
             _log_cmd_output(args, stdout, stderr)
 
             # Potentially the deployed driver may crash the system before it gets to write-back data
             # to the file-system (e.g., what 'depmod' modified). This may lead to subsequent boot
             # problems. So sync the file-system now.
-            iproc.run_verify("sync")
+            proc.run_verify("sync")
 
 def _remove_deploy_tmpdir(args):
-    """Remove temporary files on the build host ('args.bhost')."""
+    """Remove temporary files."""
 
     if getattr(args, "tmpdir", None):
-        with contextlib.closing(get_proc(args, args.bhost)) as proc:
+        with contextlib.closing(get_proc(args, args.hostname)) as proc:
             proc.run_verify(f"rm -rf -- '{args.tmpdir}'")
 
 def deploy_command(args):
