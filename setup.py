@@ -60,8 +60,7 @@ def get_data_files(installdir, subdir, exclude=None):
 
     return list(files_dict.items())
 
-# These helpers get installed as scripts. We must do this in order to have their shebang adjusted
-# correctly. And we exclude these scripts from being installed as data.
+# Python helpers get installed as scripts. We exclude these scripts from being installed as data.
 _PYTHON_HELPERS = ["helpers/stats-collect/stats-collect", "helpers/stats-collect/ipmi-helper"]
 
 setup(

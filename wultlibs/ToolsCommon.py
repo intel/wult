@@ -17,12 +17,13 @@ this module require the  'args' object which represents the command-line argumen
 import os
 import sys
 import time
+import zipfile
 import logging
 import contextlib
 from pathlib import Path
 from wultlibs import Devices
 from wultlibs.helperlibs import Logging, Trivial, ReportID, KernelVersion, Procs, SSH, YAML, Human
-from wultlibs.helperlibs import FSHelpers, RemoteHelpers
+from wultlibs.helperlibs import FSHelpers, RemoteHelpers, WrapExceptions
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.pepclibs import CPUInfo
 from wultlibs.rawresultlibs import RORawResult
@@ -821,16 +822,12 @@ def _deploy_drivers(args, proc):
                proc.hostname, args.drvsrc, args.stmpdir)
     proc.rsync(f"{args.drvsrc}/", args.stmpdir / "drivers", remotesrc=False, remotedst=True)
     args.drvsrc = args.stmpdir / "drivers"
-    _LOG.info("Drivers will be compiled on host '%s'", proc.hostname)
 
     if not args.kmodpath:
         args.kmodpath = Path(f"/lib/modules/{args.kver}")
     if not FSHelpers.isdir(args.kmodpath, proc=proc):
         raise Error(f"kernel modules directory '{args.kmodpath}' does not "
                     f"exist{proc.hostmsg}")
-
-    _LOG.info("Drivers will be deployed to '%s'%s", args.kmodpath, proc.hostmsg)
-    _LOG.info("Kernel modules path%s: %s", proc.hostmsg, args.kmodpath)
 
     # Build the drivers on the SUT.
     _LOG.info("Compiling the drivers%s", proc.hostmsg)
@@ -863,15 +860,126 @@ def _deploy_drivers(args, proc):
     # problems. So sync the file-system now.
     proc.run_verify("sync")
 
-def _deploy_helpers(args, proc):
-    """Deploy helpers to the SUT represented by 'proc'."""
+def _create_standalone_python_script(script, pyhelperdir):
+    """
+    Create a standalone version of a python script 'script'. The 'pyhelperdir' argument is path to
+    the python helper sources directory on the local host. The script hast to be aready installed
+    installed on the local host.
 
-    if not args.helpers:
+    The 'script' depends on wult modules, but this function creates a single file version of it. The
+    file will be an executable zip archive containing 'script' and all the wult dependencies it has.
+
+    The resulting standalone script will be saved in 'pyhelperdir' under the 'script'.standalone
+    name.
+    """
+
+    lproc = Procs.Proc()
+
+    script_path = FSHelpers.which(script, proc=lproc)
+
+    # Find wult project dependencies of the script. The script have to support the
+    # '--print-module-paths' option.
+    cmd = f"{script_path} --print-module-paths"
+    stdout, _ = lproc.run_verify(cmd)
+    # 'deps' will contain the list of dependencies, for example:
+    #     /usr/lib/python3.9/site-packages/wultlibs/helperlibs/Trivial.py
+    deps = stdout.splitlines()
+
+    # Create an empty '__init__.py' file. We will be adding it to the sub-directories of the
+    # depenencies. For example, if one of the dependencies is 'wultlibs/helperlibs/Trivial.py',
+    # we'll have to add '__init__.py' to 'wultlibs/' and 'wultlibs/helperlibs'.
+    init_path = pyhelperdir / "__init__.py"
+    try:
+        with init_path.open("w+"):
+            pass
+    except OSError as err:
+        raise Error(f"failed to create file '{init_path}:\n{err}'") from None
+
+    try:
+        fobj = zipobj = None
+
+        # Start creating the stand-alone version of the script: create an empty file and write
+        # python shebang there.
+        standalone_path = pyhelperdir / f"{script}.standalone"
+        try:
+            fobj = standalone_path.open("bw+")
+            fobj.write("#!/usr/bin/python3\n".encode("utf8"))
+        except OSError as err:
+            raise Error(f"failed to create and initialize file '{standalone_path}:\n{err}") from err
+
+        # Create a zip archive in the 'standalone_path' file. The idea is that this file will start
+        # with python shebang, and then include compressed version the script and its dependencies.
+        # Python interpreter is smart and can run such zip archives.
+        try:
+            zipobj = zipfile.ZipFile(fobj, "w", compression=zipfile.ZIP_DEFLATED)
+        except Exception as err:
+            raise Error(f"faild to initialize a zip archive from file "
+                        f"'{standalone_path}':\n{err}") from err
+
+        # Make 'zipobj' raies exceptions of typ 'Error', so that we do not have to wrap every
+        # 'zipobj' operation into 'try/except'.
+        zipobj = WrapExceptions.WrapExceptions(zipobj)
+
+        # Put the script to the archive under the '__main__.py' name.
+        zipobj.write(script_path, arcname="./__main__.py")
+
+        pkgdirs = set()
+
+        for dep in deps:
+            src = Path(dep)
+
+            # Form the destination path. It just part of the source path staring from the 'wultlibs'
+            # component.
+            try:
+                wultlibs_idx = src.parts.index("wultlibs")
+            except ValueError:
+                raise Error(f"script '{script}' has bad depenency '{dep}' - the path does not have "
+                            f"the wultlibs' component in it.") from None
+
+            dst = Path(*src.parts[wultlibs_idx:])
+            zipobj.write(src, arcname=dst)
+
+            # Collecect all directory paths present in the dependencies. They are all python
+            # packages and we'll have to ensure we have the '__init__.py' file in each of the
+            # sub-directory.
+            pkgdir = dst.parent
+            for idx, _ in enumerate(pkgdir.parts):
+                pkgdirs.add(Path(*pkgdir.parts[:idx+1]))
+
+        # Ensure the '__init__.py' file is present in all sub-directories.
+        zipped_files = {Path(name) for name in zipobj.namelist()}
+        for pkgdir in pkgdirs:
+            path = pkgdir / "__init__.py"
+            if path not in zipped_files:
+                zipobj.write(init_path, arcname=pkgdir / "__init__.py")
+    finally:
+        if zipobj:
+            zipobj.close()
+        if fobj:
+            fobj.close()
+
+    # Make the standalone file executable.
+    try:
+        mode = standalone_path.stat().st_mode | 0o777
+        standalone_path.chmod(mode)
+    except OSError as err:
+        raise Error(f"cannot change '{standalone_path}' file mode to {oct(mode)}:\n{err}") from err
+
+def _deploy_helpers(args, proc):
+    """Deploy helpers (including python helpers) to the SUT represented by 'proc'."""
+
+    # Python helpers need to be deployd only to a remote host. The local host already has them
+    # deployed by 'setup.py'.
+    if not proc.is_remote:
+        args.pyhelpers = []
+
+    helpers = args.helpers + args.pyhelpers
+    if not helpers:
         return
 
     if not args.helpersrc:
-        # We assume all helpers are in the same place, so only search for the first helper path.
-        helper_path = _HELPERS_SRC_SUBPATH/f"{args.helpers[0]}"
+        # We assume all helpers are in the same base directory.
+        helper_path = _HELPERS_SRC_SUBPATH/f"{helpers[0]}"
         args.helpersrc = FSHelpers.find_app_data("wult", helper_path,
                                                  descr=f"{args.toolname} helper sources")
         args.helpersrc = args.helpersrc.parent
@@ -880,38 +988,65 @@ def _deploy_helpers(args, proc):
         raise Error(f"path '{args.helpersrc}' does not exist or it is not a directory")
 
     # Make sure all helpers are available.
-    for helper in args.helpers:
+    for helper in helpers:
         helperdir = args.helpersrc / helper
         if not helperdir.is_dir():
             raise Error(f"path '{helperdir}' does not exist or it is not a directory")
 
-    _LOG.debug("copying the helpers to %s:\n  '%s' -> '%s'",
-               proc.hostname, args.helpersrc, args.stmpdir)
-    proc.rsync(f"{args.helpersrc}/", args.stmpdir / "helpers", remotesrc=False,
-               remotedst=True)
-    args.helpersrc = args.stmpdir / "helpers"
-    _LOG.info("Helpers will be compiled on host '%s'", proc.hostname)
+    lproc = Procs.Proc()
+
+    # Copy python helpers to the temporary directory on the controller.
+    for pyhelper in args.pyhelpers:
+        srcdir = args.helpersrc / pyhelper
+        _LOG.debug("copying helper %s:\n  '%s' -> '%s'",
+                   pyhelper, srcdir, args.ctmpdir)
+        lproc.rsync(f"{srcdir}", args.ctmpdir, remotesrc=False, remotedst=False)
+
+    # Build stand-alone version of every python helper.
+    for pyhelper in args.pyhelpers:
+        _LOG.info("Building a stand-alone version of '%s'", pyhelper)
+        basedir = args.ctmpdir / pyhelper
+        deployables = _get_deployables(basedir, lproc)
+        for name in deployables:
+            _create_standalone_python_script(name, basedir)
+
+    # And copy the "standaline-ized" version of python helpers to the SUT.
+    if proc.is_remote:
+        for pyhelper in args.pyhelpers:
+            srcdir = args.ctmpdir / pyhelper
+            _LOG.debug("copying helper '%s' to %s:\n  '%s' -> '%s'",
+                       pyhelper, proc.hostname, srcdir, args.stmpdir)
+            proc.rsync(f"{srcdir}", args.stmpdir, remotesrc=False, remotedst=True)
+
+    # Copy non-python helpers to the temporary directory on the SUT.
+    for helper in args.helpers:
+        srcdir = args.helpersrc/ helper
+        _LOG.debug("copying helper '%s' to %s:\n  '%s' -> '%s'",
+                   helper, proc.hostname, srcdir, args.stmpdir)
+        proc.rsync(f"{srcdir}", args.stmpdir, remotesrc=False, remotedst=True)
 
     if not args.helpers_path:
         args.helpers_path = get_helpers_deploy_path(proc, args.toolname)
-    _LOG.info("Helpers will be deployed to '%s'%s", args.helpers_path, proc.hostmsg)
 
-    # Build the helpers on the SUT.
-    _LOG.info("Compiling the helpers%s", proc.hostmsg)
-    for helper in args.helpers:
-        helperpath = f"{args.helpersrc}/{helper}"
-        stdout, stderr = proc.run_verify(f"make -C '{helperpath}'")
-        _log_cmd_output(args, stdout, stderr)
+    # Build the non-python helpers on the SUT.
+    if args.helpers:
+        for helper in args.helpers:
+            _LOG.info("Compiling helper '%s'%s", helper, proc.hostmsg)
+            helperpath = f"{args.stmpdir}/{helper}"
+            stdout, stderr = proc.run_verify(f"make -C '{helperpath}'")
+            _log_cmd_output(args, stdout, stderr)
 
-    # Make sure the the destination helpers deployment directory exists.
+    # Make sure the the destination deployment directory exists.
     FSHelpers.mkdir(args.helpers_path, parents=True, exist_ok=True, proc=proc)
 
-    # Deploy the helpers.
-    helpersdst = args.stmpdir / "helpers_deployed"
-    _LOG.debug("Deploying helpers to '%s'%s", helpersdst, proc.hostmsg)
+    # Deploy all helpers.
+    _LOG.info("Deploying helpers to '%s'%s", args.helpers_path, proc.hostmsg)
 
-    for helper in args.helpers:
-        helperpath = f"{args.helpersrc}/{helper}"
+    helpersdst = args.stmpdir / "helpers_deployed"
+    _LOG.debug("deploying helpers to '%s'%s", helpersdst, proc.hostmsg)
+
+    for helper in helpers:
+        helperpath = f"{args.stmpdir}/{helper}"
 
         cmd = f"make -C '{helperpath}' install PREFIX='{helpersdst}'"
         stdout, stderr = proc.run_verify(cmd)
@@ -960,7 +1095,7 @@ def deploy_command(args):
             args.stmpdir = args.ctmpdir
 
         try:
-            _deploy_helpers(args, proc)
             _deploy_drivers(args, proc)
+            _deploy_helpers(args, proc)
         finally:
             _remove_deploy_tmpdir(args, proc)
