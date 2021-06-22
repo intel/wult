@@ -193,6 +193,6 @@ class Defs:
         self.info = None
         self.vanilla_info = None
 
-        path = FSHelpers.search_for_app_data("wult", Path(f"defs/{name}.yml"),
-                                             pathdescr=f"{name} datapoints definitions file")
+        path = FSHelpers.find_app_data("wult", Path(f"defs/{name}.yml"),
+                                       descr=f"{name} datapoints definitions file")
         self.info = self.vanilla_info = YAML.load(path)

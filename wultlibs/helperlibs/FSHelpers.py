@@ -135,8 +135,7 @@ def move_copy_link(src: Path, dst: Path, action: str = "symlink", exist_ok: bool
     except (OSError, shutil.Error) as err:
         raise Error(f"cannot {action} '{src}' to '{dst}':\n{err}") from err
 
-def search_for_app_data(appname, subpath: Path, pre: str = None, pathdescr: str = None,
-                        default=_RAISE):
+def find_app_data(appname, subpath: Path, pre: str = None, descr: str = None, default=_RAISE):
     """
     Search for application 'appname' data. The data are searched for
     in 'subpath' sub-path of the following directories (and in the following order):
@@ -149,7 +148,7 @@ def search_for_app_data(appname, subpath: Path, pre: str = None, pathdescr: str 
 
     By default this function raises an exception if 'subpath' was not found. The'default' argument
     can be used as an return value instead of raising an error.
-    The 'pathdescr' argument is a human-readable description of 'subpath', which will be used in the
+    The 'descr' argument is a human-readable description of 'subpath', which will be used in the
     error message if error is raised.
     """
 
@@ -183,13 +182,13 @@ def search_for_app_data(appname, subpath: Path, pre: str = None, pathdescr: str 
         searched.append(path)
 
     if default is _RAISE:
-        if not pathdescr:
-            pathdescr = f"'{subpath}'"
+        if not descr:
+            descr = f"'{subpath}'"
         searched = [str(s) for s in searched]
         dirs = " * " + "\n * ".join(searched)
 
-        raise Error(f"cannot find {pathdescr}, searched in the following directories on local "
-                    f"host:\n{dirs}")
+        raise Error(f"cannot find {descr}, searched in the following directories on local host:\n"
+                    f"{dirs}")
     return default
 
 def get_mtime(path: Path, proc=None):

@@ -698,7 +698,7 @@ def is_deploy_needed(proc, toolname, helperpath=None):
             srcpaths.append((_HELPERS_SRC_SUBPATH / helperpath.name, False))
 
         for path, is_drv in srcpaths:
-            srcpath = FSHelpers.search_for_app_data(toolname, path, default=None)
+            srcpath = FSHelpers.find_app_data(toolname, path, default=None)
             # Some tools may not have helpers.
             if not srcpath:
                 continue
@@ -777,9 +777,9 @@ def _deploy_prepare(args, proc):
 
     if args.drvsrc != "":
         if not args.drvsrc:
-            args.drvsrc = FSHelpers.search_for_app_data("wult",
-                                                _DRV_SRC_SUBPATH/f"{args.toolname}",
-                                                pathdescr=f"{args.toolname} drivers sources")
+            args.drvsrc = FSHelpers.find_app_data("wult",
+                                                  _DRV_SRC_SUBPATH/f"{args.toolname}",
+                                                  descr=f"{args.toolname} drivers sources")
         else:
             args.drvsrc = Path(args.drvsrc)
 
@@ -790,8 +790,8 @@ def _deploy_prepare(args, proc):
         if not args.helpersrc:
             # We assume all helpers are in the same place, so only search for the first helper path.
             helper_path = _HELPERS_SRC_SUBPATH/f"{args.helpers[0]}"
-            args.helpersrc = FSHelpers.search_for_app_data("wult", helper_path,
-                                                    pathdescr=f"{args.toolname} helper sources")
+            args.helpersrc = FSHelpers.find_app_data("wult", helper_path,
+                                                     descr=f"{args.toolname} helper sources")
             args.helpersrc = args.helpersrc.parent
 
         if not args.helpersrc.is_dir():

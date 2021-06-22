@@ -217,10 +217,10 @@ class HTMLReportBase:
         stats_path, descr_paths = self._copy_raw_data()
 
         # Find the styles and templates paths.
-        templdir = FSHelpers.search_for_app_data("wult", Path("templates"),
-                                                 pathdescr="HTML report Jinja2 templates")
-        csspath = FSHelpers.search_for_app_data("wult", Path("css/style.css"),
-                                                pathdescr="HTML report CSS file")
+        templdir = FSHelpers.find_app_data("wult", Path("templates"),
+                                           descr="HTML report Jinja2 templates")
+        csspath = FSHelpers.find_app_data("wult", Path("css/style.css"),
+                                          descr="HTML report CSS file")
 
         # Copy the styles file to the output directory.
         dstpath = self.outdir.joinpath("style.css")
