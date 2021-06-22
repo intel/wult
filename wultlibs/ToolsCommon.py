@@ -752,13 +752,14 @@ def is_deploy_needed(proc, toolname, helperpath=None):
 
     return False
 
-def _deploy_prepare(args, toolname, minkver):
+def _deploy_prepare(args, toolname, minkver, proc):
     """
     Validate command-line arguments of the "deploy" command and prepare for builing the helpers and
     drivers. The arguments are as follows.
       o args - the command line arguments.
       o toolname - name of the tool being deployed (e.g., 'ndl').
       o minkver - the minimum required version number.
+      o proc - a 'Proc' or 'SSH' object connected the SUT to deploy to.
     """
 
     args.tmpdir = None
@@ -804,61 +805,60 @@ def _deploy_prepare(args, toolname, minkver):
             if not helperdir.is_dir():
                 raise Error(f"path '{helperdir}' does not exist or it is not a directory")
 
-    with contextlib.closing(get_proc(args, args.hostname)) as proc:
-        if not FSHelpers.which("make", default=None, proc=proc):
-            raise Error(f"please, install the 'make' tool{proc.hostmsg}")
+    if not FSHelpers.which("make", default=None, proc=proc):
+        raise Error(f"please, install the 'make' tool{proc.hostmsg}")
 
-        args.tmpdir = FSHelpers.mktemp(prefix=f"{toolname}-", proc=proc)
+    args.tmpdir = FSHelpers.mktemp(prefix=f"{toolname}-", proc=proc)
 
-        if args.drvsrc:
+    if args.drvsrc:
+        if not args.ksrc:
+            args.kver = KernelVersion.get_kver(proc=proc)
             if not args.ksrc:
-                args.kver = KernelVersion.get_kver(proc=proc)
-                if not args.ksrc:
-                    args.ksrc = Path(f"/lib/modules/{args.kver}/build")
-            else:
-                args.ksrc = FSHelpers.abspath(args.ksrc, proc=proc)
+                args.ksrc = Path(f"/lib/modules/{args.kver}/build")
+        else:
+            args.ksrc = FSHelpers.abspath(args.ksrc, proc=proc)
 
-            if not FSHelpers.isdir(args.ksrc, proc=proc):
-                raise Error(f"kernel sources directory '{args.ksrc}' does not exist{proc.hostmsg}")
+        if not FSHelpers.isdir(args.ksrc, proc=proc):
+            raise Error(f"kernel sources directory '{args.ksrc}' does not exist{proc.hostmsg}")
 
-            if not args.kver:
-                args.kver = KernelVersion.get_kver_ktree(args.ksrc, proc=proc)
+        if not args.kver:
+            args.kver = KernelVersion.get_kver_ktree(args.ksrc, proc=proc)
 
-            _LOG.info("Kernel sources path: %s", args.ksrc)
-            _LOG.info("Kernel version: %s", args.kver)
+        _LOG.info("Kernel sources path: %s", args.ksrc)
+        _LOG.info("Kernel version: %s", args.kver)
 
-            if KernelVersion.kver_lt(args.kver, minkver):
-                raise Error(f"version of the kernel{proc.hostmsg} is {args.kver}, and it is not "
-                            f"new enough.\nPlease, use kernel version {minkver} or newer.")
+        if KernelVersion.kver_lt(args.kver, minkver):
+            raise Error(f"version of the kernel{proc.hostmsg} is {args.kver}, and it is not "
+                        f"new enough.\nPlease, use kernel version {minkver} or newer.")
 
-            _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'",
-                       proc.hostname, args.drvsrc, args.tmpdir)
-            proc.rsync(f"{args.drvsrc}/", args.tmpdir / "drivers", remotesrc=False, remotedst=True)
-            args.drvsrc = args.tmpdir / "drivers"
-            _LOG.info("Drivers will be compiled on host '%s'", proc.hostname)
+        _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'",
+                   proc.hostname, args.drvsrc, args.tmpdir)
+        proc.rsync(f"{args.drvsrc}/", args.tmpdir / "drivers", remotesrc=False, remotedst=True)
+        args.drvsrc = args.tmpdir / "drivers"
+        _LOG.info("Drivers will be compiled on host '%s'", proc.hostname)
 
-        if args.helpers:
-            _LOG.debug("copying the helpers to %s:\n  '%s' -> '%s'",
-                       proc.hostname, args.helpersrc, args.tmpdir)
-            proc.rsync(f"{args.helpersrc}/", args.tmpdir / "helpers", remotesrc=False,
-                       remotedst=True)
-            args.helpersrc = args.tmpdir / "helpers"
-            _LOG.info("Helpers will be compiled on host '%s'", proc.hostname)
+    if args.helpers:
+        _LOG.debug("copying the helpers to %s:\n  '%s' -> '%s'",
+                   proc.hostname, args.helpersrc, args.tmpdir)
+        proc.rsync(f"{args.helpersrc}/", args.tmpdir / "helpers", remotesrc=False,
+                   remotedst=True)
+        args.helpersrc = args.tmpdir / "helpers"
+        _LOG.info("Helpers will be compiled on host '%s'", proc.hostname)
 
-        if args.drvsrc:
-            if not args.kmodpath:
-                args.kmodpath = Path(f"/lib/modules/{args.kver}")
-            if not FSHelpers.isdir(args.kmodpath, proc=proc):
-                raise Error(f"kernel modules directory '{args.kmodpath}' does not "
-                            f"exist{proc.hostmsg}")
+    if args.drvsrc:
+        if not args.kmodpath:
+            args.kmodpath = Path(f"/lib/modules/{args.kver}")
+        if not FSHelpers.isdir(args.kmodpath, proc=proc):
+            raise Error(f"kernel modules directory '{args.kmodpath}' does not "
+                        f"exist{proc.hostmsg}")
 
-            _LOG.info("Drivers will be deployed to '%s'%s", args.kmodpath, proc.hostmsg)
-            _LOG.info("Kernel modules path%s: %s", proc.hostmsg, args.kmodpath)
+        _LOG.info("Drivers will be deployed to '%s'%s", args.kmodpath, proc.hostmsg)
+        _LOG.info("Kernel modules path%s: %s", proc.hostmsg, args.kmodpath)
 
-        if args.helpers:
-            if not args.helpers_path:
-                args.helpers_path = get_helpers_deploy_path(proc, toolname)
-            _LOG.info("Helpers will be deployed to '%s'%s", args.helpers_path, proc.hostmsg)
+    if args.helpers:
+        if not args.helpers_path:
+            args.helpers_path = get_helpers_deploy_path(proc, toolname)
+        _LOG.info("Helpers will be deployed to '%s'%s", args.helpers_path, proc.hostmsg)
 
 def _log_cmd_output(args, stdout, stderr):
     """Print output of a command in case debugging is enabled."""
@@ -869,82 +869,80 @@ def _log_cmd_output(args, stdout, stderr):
         if stderr:
             _LOG.log(Logging.ERRINFO, stderr)
 
-def _build(args):
+def _build(args, proc):
     """Build drivers and helpers."""
 
-    with contextlib.closing(get_proc(args, args.hostname)) as proc:
-        if args.drvsrc:
-            _LOG.info("Compiling the drivers%s", proc.hostmsg)
-            cmd = f"make -C '{args.drvsrc}' KSRC='{args.ksrc}'"
-            if args.debug:
-                cmd += " V=1"
+    if args.drvsrc:
+        _LOG.info("Compiling the drivers%s", proc.hostmsg)
+        cmd = f"make -C '{args.drvsrc}' KSRC='{args.ksrc}'"
+        if args.debug:
+            cmd += " V=1"
+        stdout, stderr = proc.run_verify(cmd)
+        _log_cmd_output(args, stdout, stderr)
+
+    if args.helpers:
+        _LOG.info("Compiling the helpers%s", proc.hostmsg)
+        for helper in args.helpers:
+            helperpath = f"{args.helpersrc}/{helper}"
+            stdout, stderr = proc.run_verify(f"make -C '{helperpath}'")
+            _log_cmd_output(args, stdout, stderr)
+
+def _deploy(args, proc):
+    """Deploy helpers and drivers."""
+
+    if args.helpers:
+        helpersdst = args.tmpdir / "helpers_deployed"
+        _LOG.debug("Deploying helpers to '%s'%s", helpersdst, proc.hostmsg)
+
+        # Make sure the the destination helpers deployment directory exists.
+        FSHelpers.mkdir(args.helpers_path, parents=True, exist_ok=True, proc=proc)
+
+        for helper in args.helpers:
+            helperpath = f"{args.helpersrc}/{helper}"
+
+            cmd = f"make -C '{helperpath}' install PREFIX='{helpersdst}'"
             stdout, stderr = proc.run_verify(cmd)
             _log_cmd_output(args, stdout, stderr)
 
-        if args.helpers:
-            _LOG.info("Compiling the helpers%s", proc.hostmsg)
-            for helper in args.helpers:
-                helperpath = f"{args.helpersrc}/{helper}"
-                stdout, stderr = proc.run_verify(f"make -C '{helperpath}'")
-                _log_cmd_output(args, stdout, stderr)
+            proc.rsync(str(helpersdst) + "/bin/", args.helpers_path,
+                        remotesrc=True, remotedst=True)
 
-def _deploy(args):
-    """Deploy helpers and drivers."""
+    if args.drvsrc:
+        dstdir = args.kmodpath.joinpath(_DRV_SRC_SUBPATH)
+        FSHelpers.mkdir(dstdir, parents=True, exist_ok=True, proc=proc)
 
-    with contextlib.closing(get_proc(args, args.hostname)) as proc:
-        if args.helpers:
-            helpersdst = args.tmpdir / "helpers_deployed"
-            _LOG.debug("Deploying helpers to '%s'%s", helpersdst, proc.hostmsg)
+        for name in _get_deployables(args.drvsrc, proc):
+            installed_module = _get_module_path(proc, name)
+            srcpath = args.drvsrc.joinpath(f"{name}.ko")
+            dstpath = dstdir.joinpath(f"{name}.ko")
+            _LOG.info("Deploying driver '%s' to '%s'%s", name, dstpath, proc.hostmsg)
+            proc.rsync(srcpath, dstpath, remotesrc=True, remotedst=True)
 
-            # Make sure the the destination helpers deployment directory exists.
-            FSHelpers.mkdir(args.helpers_path, parents=True, exist_ok=True, proc=proc)
+            if installed_module and installed_module.resolve() != dstpath.resolve():
+                _LOG.debug("removing old module '%s'%s", installed_module, proc.hostmsg)
+                proc.run_verify(f"rm -f '{installed_module}'")
 
-            for helper in args.helpers:
-                helperpath = f"{args.helpersrc}/{helper}"
+        stdout, stderr = proc.run_verify(f"depmod -a -- '{args.kver}'")
+        _log_cmd_output(args, stdout, stderr)
 
-                cmd = f"make -C '{helperpath}' install PREFIX='{helpersdst}'"
-                stdout, stderr = proc.run_verify(cmd)
-                _log_cmd_output(args, stdout, stderr)
+        # Potentially the deployed driver may crash the system before it gets to write-back data
+        # to the file-system (e.g., what 'depmod' modified). This may lead to subsequent boot
+        # problems. So sync the file-system now.
+        proc.run_verify("sync")
 
-                proc.rsync(str(helpersdst) + "/bin/", args.helpers_path,
-                            remotesrc=True, remotedst=True)
-
-        if args.drvsrc:
-            dstdir = args.kmodpath.joinpath(_DRV_SRC_SUBPATH)
-            FSHelpers.mkdir(dstdir, parents=True, exist_ok=True, proc=proc)
-
-            for name in _get_deployables(args.drvsrc, proc):
-                installed_module = _get_module_path(proc, name)
-                srcpath = args.drvsrc.joinpath(f"{name}.ko")
-                dstpath = dstdir.joinpath(f"{name}.ko")
-                _LOG.info("Deploying driver '%s' to '%s'%s", name, dstpath, proc.hostmsg)
-                proc.rsync(srcpath, dstpath, remotesrc=True, remotedst=True)
-
-                if installed_module and installed_module.resolve() != dstpath.resolve():
-                    _LOG.debug("removing old module '%s'%s", installed_module, proc.hostmsg)
-                    proc.run_verify(f"rm -f '{installed_module}'")
-
-            stdout, stderr = proc.run_verify(f"depmod -a -- '{args.kver}'")
-            _log_cmd_output(args, stdout, stderr)
-
-            # Potentially the deployed driver may crash the system before it gets to write-back data
-            # to the file-system (e.g., what 'depmod' modified). This may lead to subsequent boot
-            # problems. So sync the file-system now.
-            proc.run_verify("sync")
-
-def _remove_deploy_tmpdir(args):
+def _remove_deploy_tmpdir(args, proc):
     """Remove temporary files."""
 
     if getattr(args, "tmpdir", None):
-        with contextlib.closing(get_proc(args, args.hostname)) as proc:
-            proc.run_verify(f"rm -rf -- '{args.tmpdir}'")
+        proc.run_verify(f"rm -rf -- '{args.tmpdir}'")
 
 def deploy_command(args):
     """Implements the 'deploy' command for the 'wult' and 'ndl' tools."""
 
-    try:
-        _deploy_prepare(args, args.toolname, args.minkver)
-        _build(args)
-        _deploy(args)
-    finally:
-        _remove_deploy_tmpdir(args)
+    with contextlib.closing(get_proc(args, args.hostname)) as proc:
+        try:
+            _deploy_prepare(args, args.toolname, args.minkver, proc)
+            _build(args, proc)
+            _deploy(args, proc)
+        finally:
+            _remove_deploy_tmpdir(args, proc)
