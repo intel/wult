@@ -752,13 +752,11 @@ def is_deploy_needed(proc, toolname, helperpath=None):
 
     return False
 
-def _deploy_prepare(args, toolname, minkver, proc):
+def _deploy_prepare(args, proc):
     """
     Validate command-line arguments of the "deploy" command and prepare for builing the helpers and
     drivers. The arguments are as follows.
       o args - the command line arguments.
-      o toolname - name of the tool being deployed (e.g., 'ndl').
-      o minkver - the minimum required version number.
       o proc - a 'Proc' or 'SSH' object connected the SUT to deploy to.
     """
 
@@ -780,8 +778,9 @@ def _deploy_prepare(args, toolname, minkver, proc):
 
     if args.drvsrc != "":
         if not args.drvsrc:
-            args.drvsrc = FSHelpers.search_for_app_data("wult", _DRV_SRC_SUBPATH/f"{toolname}",
-                                                        pathdescr=f"{toolname} drivers sources")
+            args.drvsrc = FSHelpers.search_for_app_data("wult",
+                                                _DRV_SRC_SUBPATH/f"{args.toolname}",
+                                                pathdescr=f"{args.toolname} drivers sources")
         else:
             args.drvsrc = Path(args.drvsrc)
 
@@ -793,7 +792,7 @@ def _deploy_prepare(args, toolname, minkver, proc):
             # We assume all helpers are in the same place, so only search for the first helper path.
             helper_path = _HELPERS_SRC_SUBPATH/f"{args.helpers[0]}"
             args.helpersrc = FSHelpers.search_for_app_data("wult", helper_path,
-                                                           pathdescr=f"{toolname} helper sources")
+                                                    pathdescr=f"{args.toolname} helper sources")
             args.helpersrc = args.helpersrc.parent
 
         if not args.helpersrc.is_dir():
@@ -808,7 +807,7 @@ def _deploy_prepare(args, toolname, minkver, proc):
     if not FSHelpers.which("make", default=None, proc=proc):
         raise Error(f"please, install the 'make' tool{proc.hostmsg}")
 
-    args.tmpdir = FSHelpers.mktemp(prefix=f"{toolname}-", proc=proc)
+    args.tmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-", proc=proc)
 
     if args.drvsrc:
         if not args.ksrc:
@@ -827,9 +826,9 @@ def _deploy_prepare(args, toolname, minkver, proc):
         _LOG.info("Kernel sources path: %s", args.ksrc)
         _LOG.info("Kernel version: %s", args.kver)
 
-        if KernelVersion.kver_lt(args.kver, minkver):
+        if KernelVersion.kver_lt(args.kver, args.minkver):
             raise Error(f"version of the kernel{proc.hostmsg} is {args.kver}, and it is not "
-                        f"new enough.\nPlease, use kernel version {minkver} or newer.")
+                        f"new enough.\nPlease, use kernel version {args.minkver} or newer.")
 
         _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'",
                    proc.hostname, args.drvsrc, args.tmpdir)
@@ -857,7 +856,7 @@ def _deploy_prepare(args, toolname, minkver, proc):
 
     if args.helpers:
         if not args.helpers_path:
-            args.helpers_path = get_helpers_deploy_path(proc, toolname)
+            args.helpers_path = get_helpers_deploy_path(proc, args.toolname)
         _LOG.info("Helpers will be deployed to '%s'%s", args.helpers_path, proc.hostmsg)
 
 def _log_cmd_output(args, stdout, stderr):
@@ -941,7 +940,7 @@ def deploy_command(args):
 
     with contextlib.closing(get_proc(args, args.hostname)) as proc:
         try:
-            _deploy_prepare(args, args.toolname, args.minkver, proc)
+            _deploy_prepare(args, proc)
             _build(args, proc)
             _deploy(args, proc)
         finally:
