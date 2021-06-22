@@ -923,13 +923,16 @@ def _deploy_helpers(args, proc):
 def _remove_deploy_tmpdir(args, proc):
     """Remove temporary files."""
 
+    if getattr(args, "ctmpdir", None):
+        FSHelpers.rm_minus_rf(args.ctmpdir, proc=proc)
     if getattr(args, "stmpdir", None):
         FSHelpers.rm_minus_rf(args.stmpdir, proc=proc)
 
 def deploy_command(args):
     """Implements the 'deploy' command for the 'wult' and 'ndl' tools."""
 
-    args.stmpdir = None
+    args.stmpdir = None # Temporary directory on the SUT.
+    args.ctmpdir = None # Temporary directory on the controller (local host).
     args.kver = None
 
     if not args.timeout:
@@ -942,11 +945,19 @@ def deploy_command(args):
     if args.privkey and not args.privkey.is_dir():
         raise Error(f"path '{args.privkey}' does not exist or it is not a directory")
 
+    if args.pyhelpers:
+        # Local temporary directory is only needed for creating stand-alone version of python
+        # helpers.
+        args.ctmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-")
+
     with contextlib.closing(get_proc(args, args.hostname)) as proc:
         if not FSHelpers.which("make", default=None, proc=proc):
             raise Error(f"please, install the 'make' tool{proc.hostmsg}")
 
-        args.stmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-", proc=proc)
+        if proc.is_remote or not args.ctmpdir:
+            args.stmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-", proc=proc)
+        else:
+            args.stmpdir = args.ctmpdir
 
         try:
             _deploy_helpers(args, proc)
