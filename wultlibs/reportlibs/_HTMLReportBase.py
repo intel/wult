@@ -212,7 +212,7 @@ class HTMLReportBase:
         try:
             self.outdir.mkdir(parents=True, exist_ok=True)
         except OSError as err:
-            raise Error(f"failed to create directory '{self.outdir}': {err}")
+            raise Error(f"failed to create directory '{self.outdir}': {err}") from None
 
         stats_path, descr_paths = self._copy_raw_data()
 
@@ -227,7 +227,7 @@ class HTMLReportBase:
         try:
             shutil.copyfile(csspath, dstpath)
         except OSError as err:
-            raise Error(f"failed to copy CSS file from '{csspath}' to '{dstpath}':\n{err}")
+            raise Error(f"cannot copy CSS file from '{csspath}' to '{dstpath}':\n{err}") from None
 
         # The intro table is only included into the main HTML page.
         intro_tbl = self._prepare_intro_table(stats_path, descr_paths)
@@ -395,7 +395,7 @@ class HTMLReportBase:
         try:
             outdir.mkdir(parents=True, exist_ok=True)
         except OSError as err:
-            raise Error(f"failed to create directory '{outdir}': {err}")
+            raise Error(f"failed to create directory '{outdir}': {err}") from None
 
         fpath = outdir.joinpath(pinfo["fname"])
 
@@ -408,7 +408,7 @@ class HTMLReportBase:
             plotly.offline.plot(fig, filename=str(fpath), auto_open=False,
                                 config={"showLink" : False})
         except Exception as err:
-            raise Error(f"failed to create the '{pinfo['fname']}' diagram:\n{err}")
+            raise Error(f"failed to create the '{pinfo['fname']}' diagram:\n{err}") from err
 
         pinfo["path"] = str(fpath.relative_to(self.outdir))
 
@@ -551,7 +551,8 @@ class HTMLReportBase:
                                                        text=text, mode="markers",
                                                        name=res.reportid, marker=marker)
                 except Exception as err:
-                    raise Error(f"failed to create scatter plot '{ycolname}-vs-{xcolname}':\n{err}")
+                    raise Error(f"failed to create scatter plot '{ycolname}-vs-{xcolname}':\n"
+                                f"{err}") from err
                 gobjs.append(gobj)
 
             self._create_diagram(gobjs, pinfo)
@@ -591,8 +592,8 @@ class HTMLReportBase:
                         gobj = plotly.graph_objs.Histogram(x=xdata, name=res.reportid, xbins=xbins,
                                                            opacity=self._opacity)
                     except Exception as err:
-                        raise Error(f"failed to create histogram "
-                                    f"'{ycolname}-vs-{xcolname}':\n{err}")
+                        raise Error(f"failed to create histogram '{ycolname}-vs-{xcolname}':\n"
+                                    f"{err}") from err
                     gobjs.append(gobj)
 
                 self._create_diagram(gobjs, pinfo)
@@ -613,7 +614,7 @@ class HTMLReportBase:
                                                            opacity=self._opacity)
                     except Exception as err:
                         raise Error(f"failed to create cumulative histogram "
-                                    f"'{ycolname}-vs-{xcolname}':\n{err}")
+                                    f"'{ycolname}-vs-{xcolname}':\n{err}") from err
                     gobjs.append(gobj)
 
                 self._create_diagram(gobjs, pinfo)
@@ -802,7 +803,8 @@ class HTMLReportBase:
                 with open(self.title_descr, "r") as fobj:
                     self.title_descr = fobj.read()
             except OSError as err:
-                raise Error(f"failed to read the report description file {self.title_descr}: {err}")
+                raise Error(f"failed to read the report description file {self.title_descr}:\n"
+                            f"{err}") from err
 
         for res in self.rsts:
             if res.dirpath.resolve() == self.outdir.resolve():
