@@ -362,6 +362,8 @@ def rm_minus_rf(path: Path, proc=None):
             shutil.rmtree(path)
         else:
             path.unlink()
+    except FileNotFoundError:
+        pass
     except (OSError, shutil.Error) as err:
         raise Error(f"failed to remove {path}: {err}") from err
 
