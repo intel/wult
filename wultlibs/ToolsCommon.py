@@ -21,8 +21,8 @@ import logging
 import contextlib
 from pathlib import Path
 from wultlibs import Devices
-from wultlibs.helperlibs import Logging, Trivial, FSHelpers, KernelVersion, Procs, SSH, YAML, Human
-from wultlibs.helperlibs import ReportID
+from wultlibs.helperlibs import Logging, Trivial, ReportID, KernelVersion, Procs, SSH, YAML, Human
+from wultlibs.helperlibs import FSHelpers, RemoteHelpers
 from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.pepclibs import CPUInfo
 from wultlibs.rawresultlibs import RORawResult
@@ -691,8 +691,6 @@ def is_deploy_needed(proc, toolname, helperpath=None):
         same as in 'is_deploy_needed()'.
         """
 
-        lproc = Procs.Proc()
-
         srcpaths = [(_DRV_SRC_SUBPATH / toolname, True)]
         if helperpath:
             srcpaths.append((_HELPERS_SRC_SUBPATH / helperpath.name, False))
@@ -703,7 +701,7 @@ def is_deploy_needed(proc, toolname, helperpath=None):
             if not srcpath:
                 continue
 
-            for deployable in _get_deployables(srcpath, lproc):
+            for deployable in _get_deployables(srcpath, Procs.Proc()):
                 deploypath = None
                 # Deployable can be driver module or helpertool.
                 if is_drv:
@@ -729,13 +727,11 @@ def is_deploy_needed(proc, toolname, helperpath=None):
             raise Error(f"no files found in '{path}'")
         return newest
 
-    delta = 0
+    time_delta = 0
     if proc.is_remote:
         # We are about to get timestamps for local and remote files. Take into account the possible
         # time shift between local and remote systems.
-
-        remote_time = proc.run_verify("date +%s")[0].strip()
-        delta = time.time() - float(remote_time)
+        time_delta = time.time() - RemoteHelpers.time_time()
 
     for srcpath, deploypath in get_path_pairs(proc, toolname, helperpath):
         if not deploypath or not FSHelpers.exists(deploypath, proc):
@@ -746,7 +742,7 @@ def is_deploy_needed(proc, toolname, helperpath=None):
             raise Error(msg)
 
         srcmtime = get_newest_mtime(srcpath)
-        if srcmtime + delta > FSHelpers.get_mtime(deploypath, proc):
+        if srcmtime + time_delta > FSHelpers.get_mtime(deploypath, proc):
             return True
 
     return False

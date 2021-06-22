@@ -15,7 +15,7 @@ import socket
 import logging
 import contextlib
 from pathlib import Path
-from wultlibs.helperlibs import Procs, ProcHelpers, FSHelpers, Trivial, KernelVersion
+from wultlibs.helperlibs import Procs, ProcHelpers, FSHelpers, RemoteHelpers, Trivial, KernelVersion
 from wultlibs.helperlibs.Exceptions import Error, ErrorExists
 from wultlibs.statscollectlibs import SysInfo
 
@@ -809,7 +809,7 @@ class _Collector:
         """
 
         proc = self._proc
-        self._ssht_port = ProcHelpers.get_free_port()
+        self._ssht_port = RemoteHelpers.get_free_port()
         self._sc_id = f"{self._ssht_port}:{proc.hostname}:{self._uspath}"
 
 
