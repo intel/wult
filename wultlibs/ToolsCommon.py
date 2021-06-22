@@ -348,9 +348,9 @@ def add_ssh_options(parser, argcomplete=None):
     Add the '--host', '--timeout' and other SSH-related options to argument parser object 'parser'.
     """
 
-    text = "SUT host name to run on (default is the local host)."
+    text = "System Under Test (SUT) host name to run on (default is the local host)."
     parser.add_argument("-H", "--host", help=text, default="localhost", dest="hostname")
-    text = """Name of the user to use for logging into the remote host over SSH. The default user
+    text = """Name of the user to use for logging into the SUT over SSH. The default user
               name is 'root'."""
     parser.add_argument("-U", "--username", dest="username", default="root", metavar="USERNAME",
                         help=text)
@@ -672,14 +672,13 @@ def _get_deployables(srcpath, proc):
 
 def is_deploy_needed(proc, toolname, helperpath=None):
     """
-    Wult and other tools require additional helper programs and drivers to be installed on the
-    measured system. This function tries to analyze the measured system and figure out whether
-    drivers and helper programs are present and up-to-date. Returns 'True' if re-deployment is
-    needed, and 'False' otherwise.
+    Wult and other tools require additional helper programs and drivers to be installed on the SUT.
+    This function tries to analyze the SUT and figure out whether drivers and helper programs are
+    present and up-to-date. Returns 'True' if re-deployment is needed, and 'False' otherwise.
 
     This function works by simply matching the modification date of sources and binaries for every
     required helper and driver. If sources have later date, then re-deployment is probably needed.
-      * proc - the 'Proc' or 'SSH' object associated with the measured system.
+      * proc - the 'Proc' or 'SSH' object associated with the SUT.
       * toolname - name of the tool to check the necessity of deployment for (e.g., "wult").
       * helperpath - optional path to the helper program that is required to be up-to-date for
                      'toolname' to work correctly. If 'helperpath' is not given, default paths

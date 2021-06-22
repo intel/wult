@@ -309,8 +309,8 @@ def warn_trace_printk(proc):
 
 def check_settings(proc, dev, csinfo, lscpu_info, cpunum, devid):
     """
-    Some settings of the measured platform may lead to results that are potentially confusing for
-    the user. This function looks for such settings and if found, prints a notice message.
+    Some settings of the SUT may lead to results that are potentially confusing for the user. This
+    function looks for such settings and if found, prints a notice message.
       * proc - the 'Proc' or 'SSH' object that defines the host to run the measurements on.
       * dev - the delayed event device object created by 'Devices.WultDevice()'.
       * devid - the ID of the device used for measuring the latency.
