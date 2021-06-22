@@ -118,6 +118,9 @@ def move_copy_link(src: Path, dst: Path, action: str = "symlink", exist_ok: bool
             else:
                 shutil.move(str(src), dst)
         elif action == "copy":
+            if not dst.parent.exists():
+                dst.parent.mkdir(parents=True)
+
             if src.is_dir():
                 if src.resolve() in dst.resolve().parents:
                     raise Error(f"cannot do recursive copy from '{src}' to '{dst}'")
