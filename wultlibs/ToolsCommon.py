@@ -417,7 +417,7 @@ def set_filters(args, res):
     if not getattr(args, "oargs", None):
         return
 
-    # Note, the assumption is that dictionary preserves insertion order, which is trye starting from
+    # Note, the assumption is that dictionary preserves insertion order, which is true starting from
     # Python 3.6.
     ops = {}
     for name, expr in args.oargs:
@@ -554,22 +554,42 @@ def list_result_columns(rsts):
         for colname in rst.colnames:
             _LOG.info("  * %s: %s", colname, rst.defs.info[colname]["title"])
 
-def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=None,
+def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=None, pyhelpers=None,
                             argcomplete=None):
     """
     Add the the 'deploy' command. The input arguments are as follows.
       o subparsers - the 'argparse' subparsers to add the 'deploy' command to.
       o toolname - name of the tool the command line arguments belong to.
       o func - the 'deploy' command handling function.
-      o drivers - whether the tool comes with out of tree drivers.
-      o helpers - list of helpers used by or required for the tool.
+      o drivers - whether out-of-tree kernel drivers have to be deployed to the SUT.
+      o helpers - list of helpers required to be deployed on the SUT.
+      o pyhelpers - list of python helpers required to be deployed on the SUT.
       o argcomplete - optional 'argcomplete' command-line arguments completer object.
+
+      The difference about helpers and pyhelpers.
+      1. Helpers are stand-alone tools residing in the 'helpers' subdirectory. They do not depend on
+         any module/capability provided by this project. An example would be a stand-alone C
+         program. Helpers are deployed by compiling them on the SUT using 'make' and installing them
+         using 'make install'.
+      2. Python helpers (pyhelpers) are helper tools written in python (e.g., 'stats-collect'). They
+         also reside in the 'helpers subdirectory, but they are not totally independent. They depend
+         on multiple modules that come with 'wult' project (e.g., 'wultlibs/helperlibs/Procs.py').
+         Therefore, in order to deploy python helpers, we need to deploy the dependencies. And the
+         way we do this depends on whether we deploy to the local system or to a remote system. In
+         case of the local system, python helpers are deployed by 'setup.py', just the 'wult' tool
+         is deployed. In case of a remote system, we build and deploy a stand-alone version of the
+         helper using python '__main__.py' + zip archive mechanism.
     """
 
+    if not helpers:
+        helpers = []
+    if not pyhelpers:
+        pyhelpers = []
+
     what = ""
-    if helpers and drivers:
+    if (helpers or pyhelpers) and drivers:
         what = "helpers and drivers"
-    elif helpers:
+    elif helpers or pyhelpers:
         what = "helpers"
     else:
         what = "drivers"
@@ -608,9 +628,9 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
-    if helpers:
+    if helpers or pyhelpers:
         dirnames = ", ".join([dirname % str(_HELPERS_SRC_SUBPATH) for dirname in searchdirs])
-        helpernames = ", ".join(helpers)
+        helpernames = ", ".join(helpers + pyhelpers)
         text = f"""Path to {toolname} helpers directory. This directory should contain the following
                    helpers: {helpernames}. These helpers will be built and deployed. By default the
                    helpers to build are searched for in the following paths (and in the following
@@ -623,7 +643,8 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
                    defined by the {toolname.upper()}_HELPERSPATH environment variable. If it is not
                    defined, the default path is '$HOME/{HELPERS_LOCAL_DIR}/bin', where '$HOME' is
                    the home directory of user 'USERNAME' on host 'HOST' (see '--host' and
-                   '--username' options)."""
+                   '--username' options). Full list of helpers that will be deployed:
+                   {helpernames}."""
         arg = parser.add_argument("--helpers-path", metavar="HELPERSPATH", type=Path, help=text)
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
@@ -633,6 +654,7 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
     parser.set_defaults(func=func)
     parser.set_defaults(drvsrc=None)
     parser.set_defaults(helpers=helpers)
+    parser.set_defaults(pyhelpers=pyhelpers)
 
 def _get_module_path(proc, name):
     """Return path to installed module. Return 'None', if module not found."""
@@ -686,7 +708,7 @@ def is_deploy_needed(proc, toolname, helperpath=None):
 
     def get_path_pairs(proc, toolname, helperpath):
         """
-        Yield paths for 'toolname' driver and helpertool source code and deployables. Arguments are
+        Yield paths for 'toolname' driver and helper tool source code and deployables. Arguments are
         same as in 'is_deploy_needed()'.
         """
 
