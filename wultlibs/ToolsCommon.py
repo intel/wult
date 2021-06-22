@@ -818,9 +818,9 @@ def _deploy_drivers(args, proc):
                     f"new enough.\nPlease, use kernel version {args.minkver} or newer.")
 
     _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'",
-               proc.hostname, args.drvsrc, args.tmpdir)
-    proc.rsync(f"{args.drvsrc}/", args.tmpdir / "drivers", remotesrc=False, remotedst=True)
-    args.drvsrc = args.tmpdir / "drivers"
+               proc.hostname, args.drvsrc, args.stmpdir)
+    proc.rsync(f"{args.drvsrc}/", args.stmpdir / "drivers", remotesrc=False, remotedst=True)
+    args.drvsrc = args.stmpdir / "drivers"
     _LOG.info("Drivers will be compiled on host '%s'", proc.hostname)
 
     if not args.kmodpath:
@@ -886,10 +886,10 @@ def _deploy_helpers(args, proc):
             raise Error(f"path '{helperdir}' does not exist or it is not a directory")
 
     _LOG.debug("copying the helpers to %s:\n  '%s' -> '%s'",
-               proc.hostname, args.helpersrc, args.tmpdir)
-    proc.rsync(f"{args.helpersrc}/", args.tmpdir / "helpers", remotesrc=False,
+               proc.hostname, args.helpersrc, args.stmpdir)
+    proc.rsync(f"{args.helpersrc}/", args.stmpdir / "helpers", remotesrc=False,
                remotedst=True)
-    args.helpersrc = args.tmpdir / "helpers"
+    args.helpersrc = args.stmpdir / "helpers"
     _LOG.info("Helpers will be compiled on host '%s'", proc.hostname)
 
     if not args.helpers_path:
@@ -907,7 +907,7 @@ def _deploy_helpers(args, proc):
     FSHelpers.mkdir(args.helpers_path, parents=True, exist_ok=True, proc=proc)
 
     # Deploy the helpers.
-    helpersdst = args.tmpdir / "helpers_deployed"
+    helpersdst = args.stmpdir / "helpers_deployed"
     _LOG.debug("Deploying helpers to '%s'%s", helpersdst, proc.hostmsg)
 
     for helper in args.helpers:
@@ -923,13 +923,13 @@ def _deploy_helpers(args, proc):
 def _remove_deploy_tmpdir(args, proc):
     """Remove temporary files."""
 
-    if getattr(args, "tmpdir", None):
-        FSHelpers.rm_minus_rf(args.tmpdir, proc=proc)
+    if getattr(args, "stmpdir", None):
+        FSHelpers.rm_minus_rf(args.stmpdir, proc=proc)
 
 def deploy_command(args):
     """Implements the 'deploy' command for the 'wult' and 'ndl' tools."""
 
-    args.tmpdir = None
+    args.stmpdir = None
     args.kver = None
 
     if not args.timeout:
@@ -946,7 +946,7 @@ def deploy_command(args):
         if not FSHelpers.which("make", default=None, proc=proc):
             raise Error(f"please, install the 'make' tool{proc.hostmsg}")
 
-        args.tmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-", proc=proc)
+        args.stmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-", proc=proc)
 
         try:
             _deploy_helpers(args, proc)
