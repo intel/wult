@@ -681,8 +681,7 @@ def is_deploy_needed(proc, toolname, helperpath=None):
       * proc - the 'Proc' or 'SSH' object associated with the SUT.
       * toolname - name of the tool to check the necessity of deployment for (e.g., "wult").
       * helperpath - optional path to the helper program that is required to be up-to-date for
-                     'toolname' to work correctly. If 'helperpath' is not given, default paths
-                     are used to locate helper program.
+                     'toolname' to work correctly.
     """
 
     def get_path_pairs(proc, toolname, helperpath):
