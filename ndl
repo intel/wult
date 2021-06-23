@@ -78,7 +78,7 @@ def build_arguments_parser():
 
     ToolsCommon.add_ssh_options(subpars, argcomplete)
 
-    text = f"""Path to {OWN_NAME} helper tools. The default is the path defined by the
+    text = f"""Path to {OWN_NAME} helper tools on the SUT. The default is the path defined by the
                {OWN_NAME.upper()}_HELPERSPATH environment variable. If it is not defined, the
                default path is '$HOME/{ToolsCommon.HELPERS_LOCAL_DIR}/bin', where '$HOME' is home
                directory path of the 'USERNAME' user on the 'HOSTNAME' system (see '--host' and
