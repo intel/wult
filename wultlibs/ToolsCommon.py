@@ -839,13 +839,13 @@ def _deploy_drivers(args, proc):
     _log_cmd_output(args, stdout, stderr)
 
     # Deploy the drivers.
-    dstdir = args.kmodpath.joinpath(_DRV_SRC_SUBPATH)
+    dstdir = args.kmodpath / _DRV_SRC_SUBPATH
     FSHelpers.mkdir(dstdir, parents=True, exist_ok=True, proc=proc)
 
     for name in _get_deployables(args.drvsrc, proc):
         installed_module = _get_module_path(proc, name)
-        srcpath = args.drvsrc.joinpath(f"{name}.ko")
-        dstpath = dstdir.joinpath(f"{name}.ko")
+        srcpath = args.drvsrc / f"{name}.ko"
+        dstpath = dstdir / f"{name}.ko"
         _LOG.info("Deploying driver '%s' to '%s'%s", name, dstpath, proc.hostmsg)
         proc.rsync(srcpath, dstpath, remotesrc=True, remotedst=True)
 
