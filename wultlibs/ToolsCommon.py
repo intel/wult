@@ -1055,13 +1055,23 @@ def _deploy_helpers(args, proc):
         proc.rsync(str(helpersdst) + "/bin/", args.helpers_path,
                     remotesrc=True, remotedst=True)
 
-def _remove_deploy_tmpdir(args, proc):
+def _remove_deploy_tmpdir(args, proc, success=True):
     """Remove temporary files."""
 
-    if getattr(args, "ctmpdir", None):
-        FSHelpers.rm_minus_rf(args.ctmpdir, proc=proc)
-    if getattr(args, "stmpdir", None):
-        FSHelpers.rm_minus_rf(args.stmpdir, proc=proc)
+    ctmpdir = getattr(args, "ctmpdir", None)
+    stmpdir = getattr(args, "stmpdir", None)
+
+    if args.debug and not success:
+        _LOG.debug("preserved the following temporary directories for debugging purposes:")
+        if ctmpdir:
+            _LOG.debug(" * On the local host: %s", ctmpdir)
+        if stmpdir and stmpdir != ctmpdir:
+            _LOG.debug(" * On the SUT: %s", stmpdir)
+    else:
+        if ctmpdir:
+            FSHelpers.rm_minus_rf(args.ctmpdir, proc=proc)
+        if stmpdir:
+            FSHelpers.rm_minus_rf(args.stmpdir, proc=proc)
 
 def deploy_command(args):
     """Implements the 'deploy' command for the 'wult' and 'ndl' tools."""
@@ -1094,8 +1104,12 @@ def deploy_command(args):
         else:
             args.stmpdir = args.ctmpdir
 
+        success = True
         try:
             _deploy_drivers(args, proc)
             _deploy_helpers(args, proc)
+        except:
+            success = False
+            raise
         finally:
-            _remove_deploy_tmpdir(args, proc)
+            _remove_deploy_tmpdir(args, proc, success=success)
