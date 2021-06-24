@@ -614,24 +614,17 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
         text = f"""The {toolname} tool also depends on the following helpers: {helpernames}. These
                    helpers will be compiled on the SUT and deployed to the SUT. The sources of the
                    helpers are searched for in the following paths (and in the following order) on
-                   the local host: {helpersearch}."""
+                   the local host: {helpersearch}. By default, helpers are deployed to the path
+                   defined by the {toolname.upper()}_HELPERSPATH environment variable. If the
+                   variable is not defined, helpers are deployed to
+                   '$HOME/{HELPERS_LOCAL_DIR}/bin', where '$HOME' is the home directory of user
+                   'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
 
     if drivers:
         text = """Path to the Linux kernel sources to build the drivers against. The default is
                   '/lib/modules/$(uname -r)/build' on the SUT."""
         arg = parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text)
-        if argcomplete:
-            arg.completer = argcomplete.completers.DirectoriesCompleter()
-
-    if helpers or pyhelpers:
-        text = f"""Path to the directory to deploy {toolname} helpers to. The default is the path
-                   defined by the {toolname.upper()}_HELPERSPATH environment variable. If it is not
-                   defined, the default path is '$HOME/{HELPERS_LOCAL_DIR}/bin', where '$HOME' is
-                   the home directory of user 'USERNAME' on host 'HOST' (see '--host' and
-                   '--username' options). Full list of helpers that will be deployed:
-                   {helpernames}."""
-        arg = parser.add_argument("--helpers-path", metavar="HELPERSPATH", type=Path, help=text)
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
@@ -994,8 +987,7 @@ def _deploy_helpers(args, proc):
                    helper, proc.hostname, srcdir, args.stmpdir)
         proc.rsync(f"{srcdir}", args.stmpdir, remotesrc=False, remotedst=True)
 
-    if not args.helpers_path:
-        args.helpers_path = get_helpers_deploy_path(proc, args.toolname)
+    deploy_path = get_helpers_deploy_path(proc, args.toolname)
 
     # Build the non-python helpers on the SUT.
     if args.helpers:
@@ -1006,10 +998,10 @@ def _deploy_helpers(args, proc):
             _log_cmd_output(args, stdout, stderr)
 
     # Make sure the the destination deployment directory exists.
-    FSHelpers.mkdir(args.helpers_path, parents=True, exist_ok=True, proc=proc)
+    FSHelpers.mkdir(deploy_path, parents=True, exist_ok=True, proc=proc)
 
     # Deploy all helpers.
-    _LOG.info("Deploying helpers to '%s'%s", args.helpers_path, proc.hostmsg)
+    _LOG.info("Deploying helpers to '%s'%s", deploy_path, proc.hostmsg)
 
     helpersdst = args.stmpdir / "helpers_deployed"
     _LOG.debug("deploying helpers to '%s'%s", helpersdst, proc.hostmsg)
@@ -1021,8 +1013,7 @@ def _deploy_helpers(args, proc):
         stdout, stderr = proc.run_verify(cmd)
         _log_cmd_output(args, stdout, stderr)
 
-        proc.rsync(str(helpersdst) + "/bin/", args.helpers_path,
-                    remotesrc=True, remotedst=True)
+        proc.rsync(str(helpersdst) + "/bin/", deploy_path, remotesrc=True, remotedst=True)
 
 def _remove_deploy_tmpdir(args, proc, success=True):
     """Remove temporary files."""
