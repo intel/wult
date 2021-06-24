@@ -611,14 +611,14 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
     if helpers or pyhelpers:
         helpersearch = ", ".join([dirname % str(_HELPERS_SRC_SUBPATH) for dirname in searchdirs])
         helpernames = ", ".join(helpers + pyhelpers)
-        text = f"""The {toolname} tool also depends on the following helpers: {helpernames}. These
-                   helpers will be compiled on the SUT and deployed to the SUT. The sources of the
-                   helpers are searched for in the following paths (and in the following order) on
-                   the local host: {helpersearch}. By default, helpers are deployed to the path
-                   defined by the {toolname.upper()}_HELPERSPATH environment variable. If the
-                   variable is not defined, helpers are deployed to
-                   '$HOME/{HELPERS_LOCAL_DIR}/bin', where '$HOME' is the home directory of user
-                   'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
+        descr += f"""The {toolname} tool also depends on the following helpers: {helpernames}. These
+                     helpers will be compiled on the SUT and deployed to the SUT. The sources of the
+                     helpers are searched for in the following paths (and in the following order) on
+                     the local host: {helpersearch}. By default, helpers are deployed to the path
+                     defined by the {toolname.upper()}_HELPERSPATH environment variable. If the
+                     variable is not defined, helpers are deployed to
+                     '$HOME/{HELPERS_LOCAL_DIR}/bin', where '$HOME' is the home directory of user
+                     'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
 
     if drivers:

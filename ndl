@@ -78,15 +78,6 @@ def build_arguments_parser():
 
     ToolsCommon.add_ssh_options(subpars, argcomplete)
 
-    text = f"""Path to {OWN_NAME} helper tools on the SUT. The default is the path defined by the
-               {OWN_NAME.upper()}_HELPERSPATH environment variable. If it is not defined, the
-               default path is '$HOME/{ToolsCommon.HELPERS_LOCAL_DIR}/bin', where '$HOME' is home
-               directory path of the 'USERNAME' user on the 'HOSTNAME' system (see '--host' and
-               '--username' options)."""
-    arg = subpars.add_argument("--helpers-path", metavar="HELPERSPATH", type=Path, help=text)
-    if argcomplete:
-        arg.completer = argcomplete.completers.DirectoriesCompleter()
-
     subpars.add_argument("-c", "--datapoints", default=1000000, metavar="COUNT", dest="dpcnt",
                          help=ToolsCommon.DATAPOINTS_DESCR)
     subpars.add_argument("--time-limit", dest="tlimit", metavar="LIMIT",
@@ -244,10 +235,8 @@ def start_command(args):
     args.ldist = ToolsCommon.parse_ldist(args.ldist)
 
     # Figure out the helper path.
-    if not args.helpers_path:
-        args.helpers_path = ToolsCommon.get_helpers_deploy_path(proc, OWN_NAME)
-
-    ndlrunner_bin = args.helpers_path / "ndlrunner"
+    helpers_path = ToolsCommon.get_helpers_deploy_path(proc, OWN_NAME)
+    ndlrunner_bin = helpers_path / "ndlrunner"
 
     if ToolsCommon.is_deploy_needed(proc, OWN_NAME, helperpath=ndlrunner_bin):
         msg = f"'{OWN_NAME}' helpers and/or drivers are not up-to-date{proc.hostmsg}, " \
