@@ -623,12 +623,6 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
-        text = """Drivers deploy path on the SUT. The default is '/lib/modules/<kver>, where
-                  '<kver>' is version of the kernel in KSRC."""
-        arg = parser.add_argument("--kmod-path", help=text, type=Path, dest="kmodpath")
-        if argcomplete:
-            arg.completer = argcomplete.completers.DirectoriesCompleter()
-
     if helpers or pyhelpers:
         dirnames = ", ".join([dirname % str(_HELPERS_SRC_SUBPATH) for dirname in searchdirs])
         helpernames = ", ".join(helpers + pyhelpers)
@@ -824,11 +818,9 @@ def _deploy_drivers(args, proc):
     proc.rsync(f"{args.drvsrc}/", args.stmpdir / "drivers", remotesrc=False, remotedst=True)
     args.drvsrc = args.stmpdir / "drivers"
 
-    if not args.kmodpath:
-        args.kmodpath = Path(f"/lib/modules/{kver}")
-    if not FSHelpers.isdir(args.kmodpath, proc=proc):
-        raise Error(f"kernel modules directory '{args.kmodpath}' does not "
-                    f"exist{proc.hostmsg}")
+    kmodpath = Path(f"/lib/modules/{kver}")
+    if not FSHelpers.isdir(kmodpath, proc=proc):
+        raise Error(f"kernel modules directory '{kmodpath}' does not exist{proc.hostmsg}")
 
     # Build the drivers on the SUT.
     _LOG.info("Compiling the drivers%s", proc.hostmsg)
@@ -839,7 +831,7 @@ def _deploy_drivers(args, proc):
     _log_cmd_output(args, stdout, stderr)
 
     # Deploy the drivers.
-    dstdir = args.kmodpath / _DRV_SRC_SUBPATH
+    dstdir = kmodpath / _DRV_SRC_SUBPATH
     FSHelpers.mkdir(dstdir, parents=True, exist_ok=True, proc=proc)
 
     for name in _get_deployables(args.drvsrc, proc):
