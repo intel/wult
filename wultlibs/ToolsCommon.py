@@ -595,28 +595,22 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
     else:
         what = "drivers"
 
-    text = f"Compile and deploy {toolname} drivers."
-    descr = f"""Compile and deploy {toolname} {what} to the SUT (System Under Test), which can be
-                either local or a remote host, depending on the '-H' option."""
-    parser = subparsers.add_parser("deploy", help=text, description=descr)
-
     envarname = f"{toolname.upper()}_DATA_PATH"
     searchdirs = [f"{Path(sys.argv[0]).parent}/%s",
                   f"${envarname}/%s (if '{envarname}' environment variable is defined)",
                   "$HOME/.local/share/wult/%s",
                   "/usr/local/share/wult/%s", "/usr/share/wult/%s"]
 
+    text = f"Compile and deploy {toolname} {what}."
+    descr = f"""Compile and deploy {toolname} {what} to the SUT (System Under Test), which can be
+                either local or a remote host, depending on the '-H' option."""
     if drivers:
-        dirnames = ", ".join([dirname % str(_DRV_SRC_SUBPATH) for dirname in searchdirs])
-        text = f"""Path to {toolname} drivers sources to build and deploy. By default the drivers
-                   are searched for in the following directories (and in the following order) on the
-                   local host: {dirnames}. Use value 'none' or '' (empty) to skip deploying the
-                   drivers. Once found, driver sources are copied to the SUT, and then get built and
-                   deployed there."""
-        arg = parser.add_argument("--drivers-src", help=text, dest="drvsrc")
-        if argcomplete:
-            arg.completer = argcomplete.completers.DirectoriesCompleter()
+        drvsearch = ", ".join([dirname % str(_DRV_SRC_SUBPATH) for dirname in searchdirs])
+        descr += f"""The drivers are searched for in the following directories (and in the following
+                     order) on the local host: {drvsearch}."""
+    parser = subparsers.add_parser("deploy", help=text, description=descr)
 
+    if drivers:
         text = """Path to the Linux kernel sources to build the drivers against. The default is
                   '/lib/modules/$(uname -r)/build' on the SUT."""
         arg = parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text)
@@ -647,7 +641,6 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
     add_ssh_options(parser, argcomplete=argcomplete)
 
     parser.set_defaults(func=func)
-    parser.set_defaults(drvsrc=None)
     parser.set_defaults(helpers=helpers)
     parser.set_defaults(pyhelpers=pyhelpers)
 
@@ -775,22 +768,10 @@ def _log_cmd_output(args, stdout, stderr):
 def _deploy_drivers(args, proc):
     """Deploy drivers to the SUT represented by 'proc'."""
 
-    if args.drvsrc == "none":
-        args.drvsrc = ""
-
-    if args.drvsrc != "":
-        if not args.drvsrc:
-            args.drvsrc = FSHelpers.find_app_data("wult",
-                                                  _DRV_SRC_SUBPATH/f"{args.toolname}",
-                                                  descr=f"{args.toolname} drivers sources")
-        else:
-            args.drvsrc = Path(args.drvsrc)
-
-        if not args.drvsrc.is_dir():
-            raise Error(f"path '{args.drvsrc}' does not exist or it is not a directory")
-
-    if not args.drvsrc:
-        return
+    drvsrc = FSHelpers.find_app_data("wult", _DRV_SRC_SUBPATH/f"{args.toolname}",
+                                     descr=f"{args.toolname} drivers sources")
+    if not drvsrc.is_dir():
+        raise Error(f"path '{drvsrc}' does not exist or it is not a directory")
 
     kver = None
     if not args.ksrc:
@@ -813,10 +794,9 @@ def _deploy_drivers(args, proc):
         raise Error(f"version of the kernel{proc.hostmsg} is {kver}, and it is not new enough.\n"
                     f"Please, use kernel version {args.minkver} or newer.")
 
-    _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'",
-               proc.hostname, args.drvsrc, args.stmpdir)
-    proc.rsync(f"{args.drvsrc}/", args.stmpdir / "drivers", remotesrc=False, remotedst=True)
-    args.drvsrc = args.stmpdir / "drivers"
+    _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'", proc.hostname, drvsrc, args.stmpdir)
+    proc.rsync(f"{drvsrc}/", args.stmpdir / "drivers", remotesrc=False, remotedst=True)
+    drvsrc = args.stmpdir / "drivers"
 
     kmodpath = Path(f"/lib/modules/{kver}")
     if not FSHelpers.isdir(kmodpath, proc=proc):
@@ -824,7 +804,7 @@ def _deploy_drivers(args, proc):
 
     # Build the drivers on the SUT.
     _LOG.info("Compiling the drivers%s", proc.hostmsg)
-    cmd = f"make -C '{args.drvsrc}' KSRC='{args.ksrc}'"
+    cmd = f"make -C '{drvsrc}' KSRC='{args.ksrc}'"
     if args.debug:
         cmd += " V=1"
     stdout, stderr = proc.run_verify(cmd)
@@ -834,9 +814,9 @@ def _deploy_drivers(args, proc):
     dstdir = kmodpath / _DRV_SRC_SUBPATH
     FSHelpers.mkdir(dstdir, parents=True, exist_ok=True, proc=proc)
 
-    for name in _get_deployables(args.drvsrc, proc):
+    for name in _get_deployables(drvsrc, proc):
         installed_module = _get_module_path(proc, name)
-        srcpath = args.drvsrc / f"{name}.ko"
+        srcpath = drvsrc / f"{name}.ko"
         dstpath = dstdir / f"{name}.ko"
         _LOG.info("Deploying driver '%s' to '%s'%s", name, dstpath, proc.hostmsg)
         proc.rsync(srcpath, dstpath, remotesrc=True, remotedst=True)
