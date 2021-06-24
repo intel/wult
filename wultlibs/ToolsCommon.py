@@ -798,25 +798,26 @@ def _deploy_drivers(args, proc):
     if not args.drvsrc:
         return
 
+    kver = None
     if not args.ksrc:
-        args.kver = KernelVersion.get_kver(proc=proc)
+        kver = KernelVersion.get_kver(proc=proc)
         if not args.ksrc:
-            args.ksrc = Path(f"/lib/modules/{args.kver}/build")
+            args.ksrc = Path(f"/lib/modules/{kver}/build")
     else:
         args.ksrc = FSHelpers.abspath(args.ksrc, proc=proc)
 
     if not FSHelpers.isdir(args.ksrc, proc=proc):
         raise Error(f"kernel sources directory '{args.ksrc}' does not exist{proc.hostmsg}")
 
-    if not args.kver:
-        args.kver = KernelVersion.get_kver_ktree(args.ksrc, proc=proc)
+    if not kver:
+        kver = KernelVersion.get_kver_ktree(args.ksrc, proc=proc)
 
     _LOG.info("Kernel sources path: %s", args.ksrc)
-    _LOG.info("Kernel version: %s", args.kver)
+    _LOG.info("Kernel version: %s", kver)
 
-    if KernelVersion.kver_lt(args.kver, args.minkver):
-        raise Error(f"version of the kernel{proc.hostmsg} is {args.kver}, and it is not "
-                    f"new enough.\nPlease, use kernel version {args.minkver} or newer.")
+    if KernelVersion.kver_lt(kver, args.minkver):
+        raise Error(f"version of the kernel{proc.hostmsg} is {kver}, and it is not new enough.\n"
+                    f"Please, use kernel version {args.minkver} or newer.")
 
     _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'",
                proc.hostname, args.drvsrc, args.stmpdir)
@@ -824,7 +825,7 @@ def _deploy_drivers(args, proc):
     args.drvsrc = args.stmpdir / "drivers"
 
     if not args.kmodpath:
-        args.kmodpath = Path(f"/lib/modules/{args.kver}")
+        args.kmodpath = Path(f"/lib/modules/{kver}")
     if not FSHelpers.isdir(args.kmodpath, proc=proc):
         raise Error(f"kernel modules directory '{args.kmodpath}' does not "
                     f"exist{proc.hostmsg}")
@@ -852,7 +853,7 @@ def _deploy_drivers(args, proc):
             _LOG.debug("removing old module '%s'%s", installed_module, proc.hostmsg)
             proc.run_verify(f"rm -f '{installed_module}'")
 
-    stdout, stderr = proc.run_verify(f"depmod -a -- '{args.kver}'")
+    stdout, stderr = proc.run_verify(f"depmod -a -- '{kver}'")
     _log_cmd_output(args, stdout, stderr)
 
     # Potentially the deployed driver may crash the system before it gets to write-back data
@@ -1078,7 +1079,6 @@ def deploy_command(args):
 
     args.stmpdir = None # Temporary directory on the SUT.
     args.ctmpdir = None # Temporary directory on the controller (local host).
-    args.kver = None
 
     if not args.timeout:
         args.timeout = 8
