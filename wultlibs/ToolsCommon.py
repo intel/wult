@@ -608,6 +608,13 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
         drvsearch = ", ".join([dirname % str(_DRV_SRC_SUBPATH) for dirname in searchdirs])
         descr += f"""The drivers are searched for in the following directories (and in the following
                      order) on the local host: {drvsearch}."""
+    if helpers or pyhelpers:
+        helpersearch = ", ".join([dirname % str(_HELPERS_SRC_SUBPATH) for dirname in searchdirs])
+        helpernames = ", ".join(helpers + pyhelpers)
+        text = f"""The {toolname} tool also depends on the following helpers: {helpernames}. These
+                   helpers will be compiled on the SUT and deployed to the SUT. The sources of the
+                   helpers are searched for in the following paths (and in the following order) on
+                   the local host: {helpersearch}."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
 
     if drivers:
@@ -618,16 +625,6 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
     if helpers or pyhelpers:
-        dirnames = ", ".join([dirname % str(_HELPERS_SRC_SUBPATH) for dirname in searchdirs])
-        helpernames = ", ".join(helpers + pyhelpers)
-        text = f"""Path to {toolname} helpers directory. This directory should contain the following
-                   helpers: {helpernames}. These helpers will be built and deployed. By default the
-                   helpers to build are searched for in the following paths (and in the following
-                   order) on the local host: {dirnames}."""
-        arg = parser.add_argument("--helpers-src", help=text, dest="helpersrc", type=Path)
-        if argcomplete:
-            arg.completer = argcomplete.completers.DirectoriesCompleter()
-
         text = f"""Path to the directory to deploy {toolname} helpers to. The default is the path
                    defined by the {toolname.upper()}_HELPERSPATH environment variable. If it is not
                    defined, the default path is '$HOME/{HELPERS_LOCAL_DIR}/bin', where '$HOME' is
@@ -950,19 +947,18 @@ def _deploy_helpers(args, proc):
     if not helpers:
         return
 
-    if not args.helpersrc:
-        # We assume all helpers are in the same base directory.
-        helper_path = _HELPERS_SRC_SUBPATH/f"{helpers[0]}"
-        args.helpersrc = FSHelpers.find_app_data("wult", helper_path,
-                                                 descr=f"{args.toolname} helper sources")
-        args.helpersrc = args.helpersrc.parent
+    # We assume all helpers are in the same base directory.
+    helper_path = _HELPERS_SRC_SUBPATH/f"{helpers[0]}"
+    helpersrc = FSHelpers.find_app_data("wult", helper_path,
+                                         descr=f"{args.toolname} helper sources")
+    helpersrc = helpersrc.parent
 
-    if not args.helpersrc.is_dir():
-        raise Error(f"path '{args.helpersrc}' does not exist or it is not a directory")
+    if not helpersrc.is_dir():
+        raise Error(f"path '{helpersrc}' does not exist or it is not a directory")
 
     # Make sure all helpers are available.
     for helper in helpers:
-        helperdir = args.helpersrc / helper
+        helperdir = helpersrc / helper
         if not helperdir.is_dir():
             raise Error(f"path '{helperdir}' does not exist or it is not a directory")
 
@@ -970,7 +966,7 @@ def _deploy_helpers(args, proc):
 
     # Copy python helpers to the temporary directory on the controller.
     for pyhelper in args.pyhelpers:
-        srcdir = args.helpersrc / pyhelper
+        srcdir = helpersrc / pyhelper
         _LOG.debug("copying helper %s:\n  '%s' -> '%s'",
                    pyhelper, srcdir, args.ctmpdir)
         lproc.rsync(f"{srcdir}", args.ctmpdir, remotesrc=False, remotedst=False)
@@ -993,7 +989,7 @@ def _deploy_helpers(args, proc):
 
     # Copy non-python helpers to the temporary directory on the SUT.
     for helper in args.helpers:
-        srcdir = args.helpersrc/ helper
+        srcdir = helpersrc/ helper
         _LOG.debug("copying helper '%s' to %s:\n  '%s' -> '%s'",
                    helper, proc.hostname, srcdir, args.stmpdir)
         proc.rsync(f"{srcdir}", args.stmpdir, remotesrc=False, remotedst=True)
