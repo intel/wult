@@ -18,6 +18,7 @@ import shutil
 import logging
 from pathlib import Path
 from hashlib import sha512
+from operator import itemgetter
 from collections import namedtuple
 from wultlibs.helperlibs import Procs, Trivial, Human
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists
@@ -495,7 +496,9 @@ def lsdir(path: Path, must_exist: bool = True, proc=None):
     """
     For each directory entry in 'path', yield the ('name', 'path', 'type') tuple, where 'name' is
     the direntry name, 'path' is full directory entry path, and 'type' is the file type indicator
-    (see 'ls -F' for details).
+    (see 'ls --file-type' for details).
+
+    The directory entries are yielded in ctime (creation time) order.
 
     If 'path' does not exist, this function raises an exception. However, this behavior can be
     changed with the 'must_exist' argument. If 'must_exist' is 'False, this function just returns
@@ -505,22 +508,55 @@ def lsdir(path: Path, must_exist: bool = True, proc=None):
     a connected 'SSH' object in which case this function will operate on the remote host.
     """
 
-    if not proc:
-        proc = Procs.Proc()
-
     if not must_exist and not exists(path, proc=proc):
         return
 
-    stdout, _ = proc.run_verify(f"ls -c -1 --file-type -- '{path}'", join=False)
-    if not stdout:
-        return
+    if not proc:
+        proc = Procs.Proc()
 
-    for entry in (entry.strip() for entry in stdout):
-        ftype = ""
-        if entry[-1] in "/=>@|":
-            ftype = entry[-1]
-            entry = entry[:-1]
-        yield (entry, Path(f"{path}/{entry}"), ftype)
+    if proc and proc.is_remote:
+        stdout, _ = proc.run_verify(f"ls -c -1 --file-type -- '{path}'", join=False)
+        if not stdout:
+            return
+
+        for entry in (entry.strip() for entry in stdout):
+            ftype = ""
+            if entry[-1] in "/=>@|":
+                ftype = entry[-1]
+                entry = entry[:-1]
+            yield (entry, Path(f"{path}/{entry}"), ftype)
+    else:
+        # Get list of directory entries. For a dummy dictionary out of it. We'll need it later for
+        # sorting by ctime.
+        try:
+            entries = {entry : None for entry in os.listdir(path)}
+        except OSError as err:
+            raise Error(f"failed to get list of files in '{path}':\n{err}") from None
+
+        # For each directory entry, get its file type and ctime. Fill the entry dictionary value.
+        for entry in entries:
+            try:
+                stinfo = path.joinpath(entry).lstat()
+            except OSError as err:
+                raise Error(f"'stat()' failed for '{entry}':\n{err}") from None
+
+            entries[entry] = {"name" : entry, "ctime" : stinfo.st_ctime}
+
+            if stat.S_ISDIR(stinfo.st_mode):
+                ftype = "/"
+            elif stat.S_ISLNK(stinfo.st_mode):
+                ftype = "="
+            elif stat.S_ISSOCK(stinfo.st_mode):
+                ftype = "@"
+            elif stat.S_ISFIFO(stinfo.st_mode):
+                ftype = "|"
+            else:
+                ftype = ""
+
+            entries[entry]["ftype"] = ftype
+
+        for einfo in sorted(entries.values(), key=itemgetter("ctime"), reverse=True):
+            yield (einfo["name"], Path(path / einfo["name"]), einfo["ftype"])
 
 def abspath(path: Path, must_exist: bool = True, proc=None):
     """
