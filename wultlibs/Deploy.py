@@ -130,11 +130,14 @@ def get_helpers_deploy_path(proc, toolname):
         helpers_path = FSHelpers.get_homedir(proc=proc) / _HELPERS_LOCAL_DIR / "bin"
     return helpers_path
 
-def _get_deployables(srcpath, proc):
+def _get_deployables(srcpath, proc=None):
     """
     Returns the list of "deployables" (driver names or helper tool names) provided by tools or
     drivers source code directory 'srcpath' on a host defined by 'proc'.
     """
+
+    if not proc:
+        proc = Procs.Proc()
 
     cmd = f"make --silent -C '{srcpath}' list_deployables"
     deployables, _ = proc.run_verify(cmd)
@@ -309,14 +312,12 @@ def _create_standalone_python_script(script, pyhelperdir):
     name.
     """
 
-    lproc = Procs.Proc()
-
-    script_path = FSHelpers.which(script, proc=lproc)
+    script_path = FSHelpers.which(script)
 
     # Find wult project dependencies of the script. The script have to support the
     # '--print-module-paths' option.
     cmd = f"{script_path} --print-module-paths"
-    stdout, _ = lproc.run_verify(cmd)
+    stdout, _ = Procs.run_verify(cmd)
     # 'deps' will contain the list of dependencies, for example:
     #     /usr/lib/python3.9/site-packages/wultlibs/helperlibs/Trivial.py
     deps = stdout.splitlines()
@@ -428,20 +429,18 @@ def _deploy_helpers(args, proc):
         if not helperdir.is_dir():
             raise Error(f"path '{helperdir}' does not exist or it is not a directory")
 
-    lproc = Procs.Proc()
-
     # Copy python helpers to the temporary directory on the controller.
     for pyhelper in args.pyhelpers:
         srcdir = helpersrc / pyhelper
         _LOG.debug("copying helper %s:\n  '%s' -> '%s'",
                    pyhelper, srcdir, args.ctmpdir)
-        lproc.rsync(f"{srcdir}", args.ctmpdir, remotesrc=False, remotedst=False)
+        Procs.rsync(f"{srcdir}", args.ctmpdir, remotesrc=False, remotedst=False)
 
     # Build stand-alone version of every python helper.
     for pyhelper in args.pyhelpers:
         _LOG.info("Building a stand-alone version of '%s'", pyhelper)
         basedir = args.ctmpdir / pyhelper
-        deployables = _get_deployables(basedir, lproc)
+        deployables = _get_deployables(basedir)
         for name in deployables:
             _create_standalone_python_script(name, basedir)
 
