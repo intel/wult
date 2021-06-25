@@ -21,7 +21,7 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
 
-from wultlibs import ToolsCommon, NdlRunner
+from wultlibs import Deploy, ToolsCommon, NdlRunner
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs.reportlibs import NdlHTMLReport
 from wultlibs.helperlibs import Logging, ArgParse, ReportID, Human, Trivial, NetIface
@@ -54,9 +54,8 @@ def build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    ToolsCommon.add_deploy_cmdline_args(subparsers, OWN_NAME, ToolsCommon.deploy_command,
-                                        drivers=True, helpers=["ndlrunner"],
-                                        argcomplete=argcomplete)
+    Deploy.add_deploy_cmdline_args(subparsers, OWN_NAME, Deploy.deploy_command, drivers=True,
+                                   helpers=["ndlrunner"], argcomplete=argcomplete)
 
     #
     # Create parsers for the "scan" command.
@@ -235,10 +234,10 @@ def start_command(args):
     args.ldist = ToolsCommon.parse_ldist(args.ldist)
 
     # Figure out the helper path.
-    helpers_path = ToolsCommon.get_helpers_deploy_path(proc, OWN_NAME)
+    helpers_path = Deploy.get_helpers_deploy_path(proc, OWN_NAME)
     ndlrunner_bin = helpers_path / "ndlrunner"
 
-    if ToolsCommon.is_deploy_needed(proc, OWN_NAME, helperpath=ndlrunner_bin):
+    if Deploy.is_deploy_needed(proc, OWN_NAME, helperpath=ndlrunner_bin):
         msg = f"'{OWN_NAME}' helpers and/or drivers are not up-to-date{proc.hostmsg}, " \
               f"please run: {OWN_NAME} deploy"
         if proc.is_remote:

@@ -30,7 +30,7 @@ from wultlibs.reportlibs import WultHTMLReport
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs.pepclibs import CPUIdle, CPUInfo
 from wultlibs.pepclibs.msr import PowerCtl
-from wultlibs import ToolsCommon, Devices, EventsProvider, WultRunner, WultStatsCollect
+from wultlibs import Deploy, ToolsCommon, Devices, EventsProvider, WultRunner, WultStatsCollect
 
 VERSION = "1.9.2"
 OWN_NAME = "wult"
@@ -71,9 +71,8 @@ def build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    ToolsCommon.add_deploy_cmdline_args(subparsers, OWN_NAME, ToolsCommon.deploy_command,
-                                        drivers=True, pyhelpers=["stats-collect"],
-                                        argcomplete=argcomplete)
+    Deploy.add_deploy_cmdline_args(subparsers, OWN_NAME, Deploy.deploy_command, drivers=True,
+                                   pyhelpers=["stats-collect"], argcomplete=argcomplete)
 
     #
     # Create parsers for the "scan" command.
@@ -379,7 +378,7 @@ def start_command(args):
 
     warn_trace_printk(proc)
 
-    if ToolsCommon.is_deploy_needed(proc, OWN_NAME):
+    if Deploy.is_deploy_needed(proc, OWN_NAME):
         msg = f"'{OWN_NAME}' drivers are not up-to-date{proc.hostmsg}', " \
               f"please run: {OWN_NAME} deploy"
         if proc.is_remote:
