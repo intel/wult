@@ -237,7 +237,7 @@ def start_command(args):
     helpers_path = Deploy.get_helpers_deploy_path(proc, OWN_NAME)
     ndlrunner_bin = helpers_path / "ndlrunner"
 
-    if Deploy.is_deploy_needed(proc, OWN_NAME, helperpath=ndlrunner_bin):
+    if Deploy.is_deploy_needed(proc, OWN_NAME, helpers=["ndlrunner"]):
         msg = f"'{OWN_NAME}' helpers and/or drivers are not up-to-date{proc.hostmsg}, " \
               f"please run: {OWN_NAME} deploy"
         if proc.is_remote:

@@ -20,7 +20,7 @@ from pathlib import Path
 from wultlibs import ToolsCommon
 from wultlibs.helperlibs import Procs, Trivial, FSHelpers, RemoteHelpers, KernelVersion, Logging
 from wultlibs.helperlibs import WrapExceptions
-from wultlibs.helperlibs.Exceptions import Error
+from wultlibs.helperlibs.Exceptions import Error, ErrorNotFound
 
 _HELPERS_LOCAL_DIR = Path(".local")
 _DRV_SRC_SUBPATH = Path("drivers/idle")
@@ -158,7 +158,7 @@ def _get_pyhelper_dependencies(script_path):
     stdout, _ = Procs.run_verify(cmd)
     return [Path(path) for path in stdout.splitlines()]
 
-def is_deploy_needed(proc, toolname, helperpath=None):
+def is_deploy_needed(proc, toolname, helpers=None):
     """
     Wult and other tools require additional helper programs and drivers to be installed on the SUT.
     This function tries to analyze the SUT and figure out whether drivers and helper programs are
@@ -168,69 +168,78 @@ def is_deploy_needed(proc, toolname, helperpath=None):
     required helper and driver. If sources have later date, then re-deployment is probably needed.
       * proc - the 'Proc' or 'SSH' object associated with the SUT.
       * toolname - name of the tool to check the necessity of deployment for (e.g., "wult").
-      * helperpath - optional path to the helper program that is required to be up-to-date for
-                     'toolname' to work correctly.
+      o helpers - list of helpers required to be deployed on the SUT.
     """
-
-    def get_path_pairs(proc, toolname, helperpath):
-        """
-        Yield paths for 'toolname' driver and helper tool source code and deployables. Arguments are
-        same as in 'is_deploy_needed()'.
-        """
-
-        srcpaths = [(_DRV_SRC_SUBPATH / toolname, True)]
-        if helperpath:
-            srcpaths.append((_HELPERS_SRC_SUBPATH / helperpath.name, False))
-
-        for path, is_drv in srcpaths:
-            srcpath = FSHelpers.find_app_data(toolname, path, default=None)
-            # Some tools may not have helpers.
-            if not srcpath:
-                continue
-
-            for deployable in _get_deployables(srcpath, Procs.Proc()):
-                deploypath = None
-                # Deployable can be driver module or helpertool.
-                if is_drv:
-                    deploypath = _get_module_path(proc, deployable)
-                else:
-                    if helperpath and helperpath.name == deployable:
-                        deploypath = helperpath
-                    else:
-                        deploypath = get_helpers_deploy_path(proc, toolname)
-                        deploypath = Path(deploypath, "bin", deployable)
-                yield srcpath, deploypath
 
     def get_newest_mtime(path):
         """Scan items in 'path' and return newest modification time among entries found."""
 
         newest = 0
-        for _, fpath, _ in FSHelpers.lsdir(path, must_exist=False):
-            mtime = os.path.getmtime(fpath)
+        if not path.is_dir():
+            mtime = FSHelpers.get_mtime(path)
             if mtime > newest:
                 newest = mtime
+        else:
+            for root, _, files in os.walk(path):
+                for file in files:
+                    mtime = FSHelpers.get_mtime(Path(root, file))
+                    if mtime > newest:
+                        newest = mtime
 
         if not newest:
             raise Error(f"no files found in '{path}'")
         return newest
 
+    def deployable_not_found(what):
+        """Called when a helper of driver was not found on the SUT to raise an exception."""
+
+        err = f"{what} was not found on {proc.hostmsg}. Please, run:\n{toolname} deploy"
+        if proc.is_remote:
+            err += f" -H {proc.hostname}"
+        raise Error(err)
+
+
+    # Build the deploy information dictionary. Start with drivers.
+    dinfos = {}
+    srcpath = FSHelpers.find_app_data(toolname, _DRV_SRC_SUBPATH / toolname)
+    dstpaths = []
+    for deployable in _get_deployables(srcpath):
+        dstpath = _get_module_path(proc, deployable)
+        if not dstpath:
+            deployable_not_found(f"the '{deployable}' kernel module")
+        dstpaths.append(_get_module_path(proc, deployable))
+    dinfos["drivers"] = {"src" : srcpath, "dst" : dstpaths}
+
+    # Add non-python helpers' deploy information.
+    if helpers:
+        helpers_deploy_path = get_helpers_deploy_path(proc, toolname)
+        for helper in helpers:
+            srcpath = FSHelpers.find_app_data(toolname, _HELPERS_SRC_SUBPATH / helper)
+            dstpaths = []
+            for deployable in _get_deployables(srcpath):
+                dstpaths.append(helpers_deploy_path / deployable)
+            dinfos[helper] = {"src" : srcpath, "dst" : dstpaths}
+
+    # We are about to get timestamps for local and remote files. Take into account the possible time
+    # shift between local and remote systems.
     time_delta = 0
     if proc.is_remote:
-        # We are about to get timestamps for local and remote files. Take into account the possible
-        # time shift between local and remote systems.
         time_delta = time.time() - RemoteHelpers.time_time()
 
-    for srcpath, deploypath in get_path_pairs(proc, toolname, helperpath):
-        if not deploypath or not FSHelpers.exists(deploypath, proc):
-            msg = f"'{toolname}' drivers and/or helpers are not installed{proc.hostmsg}, please " \
-                  f"run: {toolname} deploy"
-            if proc.is_remote:
-                msg += f" -H {proc.hostname}"
-            raise Error(msg)
+    # Compare source and destination files' timestamps.
+    for what, dinfo in dinfos.items():
+        src = dinfo["src"]
+        src_mtime = get_newest_mtime(src)
+        for dst in dinfo["dst"]:
+            try:
+                dst_mtime = FSHelpers.get_mtime(dst, proc)
+            except ErrorNotFound:
+                deployable_not_found(dst)
 
-        srcmtime = get_newest_mtime(srcpath)
-        if srcmtime + time_delta > FSHelpers.get_mtime(deploypath, proc):
-            return True
+            if src_mtime + time_delta > dst_mtime:
+                _LOG.debug("%s src time %d + %d > dst_mtime %d\nsrc: %s\ndst %s",
+                           what, src_mtime, time_delta, dst_mtime, src, dst)
+                return True
 
     return False
 
