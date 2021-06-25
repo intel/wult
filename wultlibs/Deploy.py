@@ -158,7 +158,7 @@ def _get_pyhelper_dependencies(script_path):
     stdout, _ = Procs.run_verify(cmd)
     return [Path(path) for path in stdout.splitlines()]
 
-def is_deploy_needed(proc, toolname, helpers=None):
+def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
     """
     Wult and other tools require additional helper programs and drivers to be installed on the SUT.
     This function tries to analyze the SUT and figure out whether drivers and helper programs are
@@ -169,25 +169,31 @@ def is_deploy_needed(proc, toolname, helpers=None):
       * proc - the 'Proc' or 'SSH' object associated with the SUT.
       * toolname - name of the tool to check the necessity of deployment for (e.g., "wult").
       o helpers - list of helpers required to be deployed on the SUT.
+      o pyhelpers - list of python helpers required to be deployed on the SUT.
     """
 
-    def get_newest_mtime(path):
-        """Scan items in 'path' and return newest modification time among entries found."""
+    def get_newest_mtime(paths):
+        """
+        Scan list of paths 'paths', find and return the most recent modification time (mtime) among
+        files in 'path' and (in case 'path' is irectory) every file under 'path'.
+        """
 
         newest = 0
-        if not path.is_dir():
-            mtime = FSHelpers.get_mtime(path)
-            if mtime > newest:
-                newest = mtime
-        else:
-            for root, _, files in os.walk(path):
-                for file in files:
-                    mtime = FSHelpers.get_mtime(Path(root, file))
-                    if mtime > newest:
-                        newest = mtime
+        for path in paths:
+            if not path.is_dir():
+                mtime = path.stat().st_mtime
+                if mtime > newest:
+                    newest = mtime
+            else:
+                for root, _, files in os.walk(path):
+                    for file in files:
+                        mtime = Path(root, file).stat().st_mtime
+                        if mtime > newest:
+                            newest = mtime
 
         if not newest:
-            raise Error(f"no files found in '{path}'")
+            paths_str = "\n* ".join([str(path) for path in paths])
+            raise Error(f"no files found in the following paths:\n{paths_str}")
         return newest
 
     def deployable_not_found(what):
@@ -208,17 +214,30 @@ def is_deploy_needed(proc, toolname, helpers=None):
         if not dstpath:
             deployable_not_found(f"the '{deployable}' kernel module")
         dstpaths.append(_get_module_path(proc, deployable))
-    dinfos["drivers"] = {"src" : srcpath, "dst" : dstpaths}
+    dinfos["drivers"] = {"src" : [srcpath], "dst" : dstpaths}
 
     # Add non-python helpers' deploy information.
-    if helpers:
+    if helpers or pyhelpers:
         helpers_deploy_path = get_helpers_deploy_path(proc, toolname)
+
+    if helpers:
         for helper in helpers:
             srcpath = FSHelpers.find_app_data(toolname, _HELPERS_SRC_SUBPATH / helper)
             dstpaths = []
             for deployable in _get_deployables(srcpath):
                 dstpaths.append(helpers_deploy_path / deployable)
-            dinfos[helper] = {"src" : srcpath, "dst" : dstpaths}
+            dinfos[helper] = {"src" : [srcpath], "dst" : dstpaths}
+
+    # Add python helpers' deploy information.
+    if pyhelpers:
+        for pyhelper in pyhelpers:
+            srcpath = FSHelpers.find_app_data(toolname, _HELPERS_SRC_SUBPATH / pyhelper)
+            srcpaths = [srcpath]
+            dstpaths = []
+            for deployable in _get_deployables(srcpath, Procs.Proc()):
+                dstpaths.append(helpers_deploy_path / deployable)
+                srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
+            dinfos[pyhelper] = {"src" : srcpaths, "dst" : dstpaths}
 
     # We are about to get timestamps for local and remote files. Take into account the possible time
     # shift between local and remote systems.
@@ -237,8 +256,9 @@ def is_deploy_needed(proc, toolname, helpers=None):
                 deployable_not_found(dst)
 
             if src_mtime + time_delta > dst_mtime:
+                src_str = ", ".join([str(path) for path in src])
                 _LOG.debug("%s src time %d + %d > dst_mtime %d\nsrc: %s\ndst %s",
-                           what, src_mtime, time_delta, dst_mtime, src, dst)
+                           what, src_mtime, time_delta, dst_mtime, src_str, dst)
                 return True
 
     return False

@@ -378,7 +378,7 @@ def start_command(args):
 
     warn_trace_printk(proc)
 
-    if Deploy.is_deploy_needed(proc, OWN_NAME):
+    if Deploy.is_deploy_needed(proc, OWN_NAME, pyhelpers=["stats-collect"]):
         msg = f"'{OWN_NAME}' drivers are not up-to-date{proc.hostmsg}', " \
               f"please run: {OWN_NAME} deploy"
         if proc.is_remote:
