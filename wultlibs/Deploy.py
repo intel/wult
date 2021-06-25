@@ -146,6 +146,18 @@ def _get_deployables(srcpath, proc=None):
 
     return deployables
 
+def _get_pyhelper_dependencies(script_path):
+    """
+    Find and return a python helper script (pyhelper) dependencies. Only wult module dependencies
+    are returned. An example of such a dependency would be:
+        /usr/lib/python3.9/site-packages/wultlibs/helperlibs/Trivial.py
+    """
+
+    # All pyhelpers implement the '--print-module-paths' option, which prints the dependencies.
+    cmd = f"{script_path} --print-module-paths"
+    stdout, _ = Procs.run_verify(cmd)
+    return [Path(path) for path in stdout.splitlines()]
+
 def is_deploy_needed(proc, toolname, helperpath=None):
     """
     Wult and other tools require additional helper programs and drivers to be installed on the SUT.
@@ -313,14 +325,7 @@ def _create_standalone_python_script(script, pyhelperdir):
     """
 
     script_path = FSHelpers.which(script)
-
-    # Find wult project dependencies of the script. The script have to support the
-    # '--print-module-paths' option.
-    cmd = f"{script_path} --print-module-paths"
-    stdout, _ = Procs.run_verify(cmd)
-    # 'deps' will contain the list of dependencies, for example:
-    #     /usr/lib/python3.9/site-packages/wultlibs/helperlibs/Trivial.py
-    deps = stdout.splitlines()
+    deps = _get_pyhelper_dependencies(script_path)
 
     # Create an empty '__init__.py' file. We will be adding it to the sub-directories of the
     # depenencies. For example, if one of the dependencies is 'wultlibs/helperlibs/Trivial.py',
@@ -362,15 +367,13 @@ def _create_standalone_python_script(script, pyhelperdir):
 
         pkgdirs = set()
 
-        for dep in deps:
-            src = Path(dep)
-
+        for src in deps:
             # Form the destination path. It just part of the source path staring from the 'wultlibs'
             # component.
             try:
                 wultlibs_idx = src.parts.index("wultlibs")
             except ValueError:
-                raise Error(f"script '{script}' has bad depenency '{dep}' - the path does not have "
+                raise Error(f"script '{script}' has bad depenency '{src}' - the path does not have "
                             f"the wultlibs' component in it.") from None
 
             dst = Path(*src.parts[wultlibs_idx:])
