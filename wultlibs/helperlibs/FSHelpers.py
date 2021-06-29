@@ -199,10 +199,23 @@ def get_mtime(path: Path, proc=None):
     """Returns file or directory mtime."""
 
     if not proc:
-        return path.stat().st_mtime
+        try:
+            return path.stat().st_mtime
+        except FileNotFoundError:
+            raise ErrorNotFound(f"'{path}' does not exist") from None
+        except OSError as err:
+            raise Error(f"'stat()' failed for '{path}':\n{err}") from None
 
     cmd = f"stat -c %Y -- {path}"
-    mtime = proc.run_verify(cmd)[0].strip()
+
+    try:
+        stdout, _ = proc.run_verify(cmd)
+    except Error as err:
+        if "No such file or directory" in str(err):
+            raise ErrorNotFound(f"'{path}' does not exist{proc.hostmsg}") from None
+        raise
+
+    mtime = stdout.strip()
     if not Trivial.is_float(mtime):
         raise Error(f"got erroneous mtime of '{path}'{proc.hostmsg}:\n{mtime}")
     return float(mtime)
