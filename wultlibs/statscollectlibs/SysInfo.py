@@ -19,30 +19,37 @@ _LOG = logging.getLogger()
 def _run_commands(cmdinfos, proc):
     """Execute the commands specified in the 'cmdinfos' dictionary."""
 
-    procs = []
-    for cmdinfo in cmdinfos.values():
+    if proc.is_remote:
+        # In case of a remote host, it is much more effecient to run all commands in one go, because
+        # in this case only one SSH session needs to be established.
+        cmd = ""
+        for cmdinfo in cmdinfos.values():
+            cmd += cmdinfo["cmd"] + " &"
+
+        cmd += " wait"
         try:
-            procs.append(proc.run_async(cmdinfo["cmd"], shell=True))
+            proc.run_verify(cmd, shell=True)
         except Error as err:
-            cmdinfo["error"] = err
+            _LOG.warning("Some system statistics were not collected")
+            _LOG.debug(str(err))
+    else:
+        procs = []
+        errors = []
+        for cmdinfo in cmdinfos.values():
+            try:
+                procs.append(proc.run_async(cmdinfo["cmd"], shell=True))
+            except Error as err:
+                errors.append(str(err))
 
-    for cmd_proc in procs:
-        cmd_proc.wait_for_cmd(capture_output=False, timeout=5*60)
+        for cmd_proc in procs:
+            try:
+                cmd_proc.wait_for_cmd(capture_output=False, timeout=5*60)
+            except Error as err:
+                errors.append(str(err))
 
-    return cmdinfos
-
-def _print_warnings(cmdinfos):
-    """Print a warning for the failed commands."""
-
-    errors = []
-    for cmdinfo in cmdinfos.values():
-        error = cmdinfo.get("error")
-        if error:
-            errors.append(str(error))
-
-    if errors:
-        _LOG.warning("Not all the system statistics were collected, here are the failures\n%s",
-                     "\nNext error:\n".join(errors))
+        if errors:
+            _LOG.warning("Not all the system statistics were collected, here are the failures\n%s",
+                         "\nNext error:\n".join(errors))
 
 def _collect_totals(outdir, when, proc):
     """
@@ -169,8 +176,7 @@ def collect_before(outdir, proc):
     cmdinfo["cmd"] = f"sysctl --all > '{outfile}' 2>&1"
 
     _run_commands(cmdinfos, proc)
-    cmdinfos.update(_collect_totals(outdir, "before", proc))
-    _print_warnings(cmdinfos)
+    _collect_totals(outdir, "before", proc)
 
 def collect_after(outdir, proc):
     """
@@ -181,5 +187,4 @@ def collect_after(outdir, proc):
     workload. The data will be stored in the 'outdir' directory on the SUT.
     """
 
-    cmdinfos = _collect_totals(outdir, "after", proc)
-    _print_warnings(cmdinfos)
+    _collect_totals(outdir, "after", proc)
