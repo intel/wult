@@ -127,7 +127,7 @@ class NdlRunner:
         cmd = f"{self._ndlrunner_bin} -l {ldist_str} "
         cmd += f"{self._ifname}"
 
-        self._ndlrunner = self._proc.run_async(cmd, shell=True)
+        self._ndlrunner = self._proc.run_async(cmd)
 
     def _collect(self, dpcnt, tlimit):
         """

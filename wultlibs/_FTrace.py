@@ -109,7 +109,7 @@ class FTrace:
         name = "stale wult function trace reader process"
         ProcHelpers.kill_processes(cmd, log=True, name=name, proc=self._proc)
         self._clear()
-        self._reader = self._proc.run_async(cmd, shell=True)
+        self._reader = self._proc.run_async(cmd)
 
     def close(self):
         """Stop following the function trace buffer."""

@@ -85,7 +85,7 @@ class ETFQdisc():
 
         freq = 1.0 / sync_period
         cmd = f"phc2sys -s CLOCK_REALTIME -c {self._ifname} -R {freq:.5} -O {tai_offset}"
-        self._phc2sys_proc = self._proc.run_async(cmd, shell=True)
+        self._phc2sys_proc = self._proc.run_async(cmd)
 
         # Make sure the process did not exit immediately.
         stdout, stderr, exitcode = self._phc2sys_proc.wait_for_cmd(timeout=1)

@@ -235,7 +235,7 @@ class _BaseCollector:
             self._error("the colletor was not configured")
 
         self._proc = Procs.run_async(self._command, stderr=self._fobj, stdout=self._fobj,
-                                     newgrp=True, shell=True)
+                                     newgrp=True)
 
     def end(self):
         """Stop collecting and get the resulting statistics."""
