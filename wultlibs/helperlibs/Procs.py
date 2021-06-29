@@ -293,16 +293,6 @@ def _add_custom_fields(proc, cmd):
     proc.__del__ = types.MethodType(_del, proc)
     return proc
 
-def _split_command(cmd, shell):
-    """
-    This helper splits command in 'cmd' depending on whether 'shell' is is 'True' or 'False.
-    """
-
-    if not shell:
-        if isinstance(cmd, str):
-            return shlex.split(cmd)
-    return cmd
-
 def _do_run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=None, env=None,
                   shell=False, newgrp=False):
     """Implements 'run_async()'."""
@@ -323,8 +313,11 @@ def _do_run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=
         raise Error("cannot open file '%s': %s" % (fname, err)) from None
 
     if shell:
-        command = " exec stdbuf -i0 -o0 -e0 -- " + command
-    cmd = _split_command(command, shell)
+        cmd = command = " exec stdbuf -i0 -o0 -e0 -- " + command
+    elif isinstance(command, str):
+        cmd = shlex.split(command)
+    else:
+        cmd = command
 
     try:
         proc = subprocess.Popen(cmd, stdin=stdin, stdout=stdout, stderr=stderr, bufsize=bufsize,
