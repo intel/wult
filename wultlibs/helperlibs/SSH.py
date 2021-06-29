@@ -360,7 +360,7 @@ class SSH:
 
     Error = Error
 
-    def _do_run_async(self, command, cwd=None, shell=False):
+    def _do_run_async(self, command, cwd=None, shell=True):
         """Implements 'run_async()'."""
 
         # Allow for 'command' to be a 'pathlib.Path' object which Paramiko does not accept.
@@ -410,7 +410,7 @@ class SSH:
 
         return _add_custom_fields(chan, self.hostname, command, pid)
 
-    def run_async(self, command, cwd=None, shell=False):
+    def run_async(self, command, cwd=None, shell=True):
         """
         Run command 'command' on a remote host and return immediately without waiting for the
         command to complete.
@@ -439,7 +439,7 @@ class SSH:
         return self._do_run_async(str(command), cwd=cwd, shell=shell)
 
     def run(self, command, timeout=None, capture_output=True, mix_output=False, join=True,
-            output_fobjs=(None, None), cwd=None, shell=None): # pylint: disable=unused-argument
+            output_fobjs=(None, None), cwd=None, shell=True): # pylint: disable=unused-argument
         """
         Run command 'command' on the remote host and block until it finishes. The 'command' argument
         should be a string.
@@ -468,8 +468,9 @@ class SSH:
 
         The 'cwd' argument may be used to specify the working directory of the command.
 
-        The 'shell' variable is ignored, it is there only in order to make the 'SSH' APIs look
-        similar to the 'Proc' API.
+        The 'shell' argument controlls whether the command should be run via a shell on the remote
+        host. Most SSH servers will use user shell to run the command anyway. But there are rare
+        cases when this is not the case, and 'shell=False' may be handy.
 
         This function returns an named tuple of (exitcode, stdout, stderr), where
           o 'stdout' is the output of the executed command to stdout
@@ -489,7 +490,7 @@ class SSH:
         _LOG.debug(msg)
 
         # Execute the command on the remote host.
-        chan = self._do_run_async(command, cwd=cwd, shell=False)
+        chan = self._do_run_async(command, cwd=cwd, shell=shell)
         if mix_output:
             chan.set_combine_stderr(True)
 
@@ -513,7 +514,7 @@ class SSH:
         return result
 
     def run_verify(self, command, timeout=None, capture_output=True, mix_output=False,
-                   join=True, output_fobjs=(None, None), cwd=None, shell=None):
+                   join=True, output_fobjs=(None, None), cwd=None, shell=True):
         """
         Same as the "run()" method, but also verifies the exit status and if the command failed,
         raises the "Error" exception.
