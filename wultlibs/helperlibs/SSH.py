@@ -285,14 +285,15 @@ def _close_(chan):
     """The channel close method that will signal the threads to exit."""
 
     chan._dbg_("_close_()")
-    chan._threads_exit_ = True
+    if hasattr(chan, "_threads_exit_"):
+        chan._threads_exit_ = True
     chan._orig_close_()
 
 def _del_(chan):
     """The channel object destructor which makes all threads to exit."""
 
     chan._dbg_("_del_()")
-    chan._orig_close_()
+    chan._close_()
     chan._orig_del_()
 
 def _get_err_prefix(fobj, method):
