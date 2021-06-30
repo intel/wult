@@ -361,7 +361,7 @@ class SSH:
 
     Error = Error
 
-    def _do_run_async(self, command, cwd=None, shell=True):
+    def _run_async(self, command, cwd=None, shell=True):
         """Implements 'run_async()'."""
 
         # Allow for 'command' to be a 'pathlib.Path' object which Paramiko does not accept.
@@ -437,7 +437,7 @@ class SSH:
             cwd_msg = ""
         _LOG.debug("running the following command asynchronously%s:\n%s%s",
                    self.hostmsg, command, cwd_msg)
-        return self._do_run_async(str(command), cwd=cwd, shell=shell)
+        return self._run_async(str(command), cwd=cwd, shell=shell)
 
     def run(self, command, timeout=None, capture_output=True, mix_output=False, join=True,
             output_fobjs=(None, None), cwd=None, shell=True): # pylint: disable=unused-argument
@@ -491,7 +491,7 @@ class SSH:
         _LOG.debug(msg)
 
         # Execute the command on the remote host.
-        chan = self._do_run_async(command, cwd=cwd, shell=shell)
+        chan = self._run_async(command, cwd=cwd, shell=shell)
         if mix_output:
             chan.set_combine_stderr(True)
 
