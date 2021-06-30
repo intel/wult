@@ -383,6 +383,34 @@ class SSH:
         chan = self._run_in_new_session(command)
         return _add_custom_fields(chan, self.hostname, command, None)
 
+    def _read_pid(self, chan, command):
+        """Return PID of the just executed command."""
+
+        pid = []
+        pid_timeout = 10
+        time_before = time.time()
+        decoder = codecs.getincrementaldecoder('utf8')(errors="surrogateescape")
+        while time.time() - time_before < pid_timeout:
+            buf = chan.recv(1)
+            if not buf:
+                # No data received, which means that the channel is closed.
+                status = chan.recv_exit_status()
+                raise Error(f"cannot execute the following command{self.hostmsg}:\n{command}\n"
+                            f"The process exited with status {status}")
+
+            buf = decoder.decode(buf)
+            if not buf:
+                continue
+            if buf == "\n":
+                return int("".join(pid))
+            pid.append(buf)
+            if len(pid) > 128:
+                raise Error(f"received the following {len(pid)} PID characters without "
+                            f"newline:\n{''.join(pid)}")
+
+        raise Error(f"failed to read PID for the following command:\n{command}\nWaited for "
+                    f"{pid_timeout} seconds, but the PID did not show up in stdout")
+
     def _run_async(self, command, cwd=None, shell=True):
         """Implements 'run_async()'."""
 
@@ -408,28 +436,7 @@ class SSH:
                         f"{err}") from err
 
         # The first line of the output should contain the PID - extract it.
-        pid = []
-        decoder = codecs.getincrementaldecoder('utf8')(errors="surrogateescape")
-        while True:
-            buf = chan.recv(1)
-            if not buf:
-                # No data received, which means that the channel is closed.
-                status = chan.recv_exit_status()
-                raise Error(f"cannot execute the following command{self.hostmsg}:\n{command}\n"
-                            f"The process exited with status {status}")
-
-            buf = decoder.decode(buf)
-            if not buf:
-                continue
-            if buf == "\n":
-                break
-            pid.append(buf)
-            if len(pid) > 128:
-                raise Error(f"received the following {len(pid)} PID characters without "
-                            f"newline:\n{''.join(pid)}")
-
-        pid = int("".join(pid))
-
+        pid = self._read_pid(chan, command)
         return _add_custom_fields(chan, self.hostname, command, pid)
 
     def run_async(self, command, cwd=None, shell=True):
