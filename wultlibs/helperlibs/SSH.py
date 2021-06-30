@@ -361,20 +361,44 @@ class SSH:
 
     Error = Error
 
+    def _run_in_new_session(self, command):
+        """Run command 'command' in a new session."""
+
+        try:
+            chan = self.ssh.get_transport().open_session(timeout=self.connection_timeout)
+            chan.exec_command(command)
+        except (paramiko.SSHException, socket.error) as err:
+            raise Error(f"cannot execute the following command in new SSH session{self.hostmsg}:\n"
+                        "{command}\nReason: {err}") from err
+
+        return chan
+
+    def _run_async_noshell(self, command):
+        """
+        Runs a command in a new session in case usage of shell was prohibited. In most cases the SSH
+        server will run the command in some user shell, but the point is that we are not allowed to
+        use shell.
+        """
+
+        chan = self._run_in_new_session(command)
+        return _add_custom_fields(chan, self.hostname, command, None)
+
     def _run_async(self, command, cwd=None, shell=True):
         """Implements 'run_async()'."""
 
         # Allow for 'command' to be a 'pathlib.Path' object which Paramiko does not accept.
         command = str(command)
 
-        if shell:
-            # Prepend the command with a shell statement which prints the PID of the shell where the
-            # command will be run. Then use 'exec' to make sure that the command inherits the PID.
-            prefix = r'printf "%s\n" "$$";'
-            if cwd:
-                prefix += f""" cd "{cwd}" &&"""
-            # Force unbuffered I/O to be consistent with the 'shell=False' case.
-            command = prefix + " exec stdbuf -i0 -o0 -e0 -- " + command
+        if not shell:
+            return self._run_async_noshell(command)
+
+        # Prepend the command with a shell statement which prints the PID of the shell where the
+        # command will be run. Then use 'exec' to make sure that the command inherits the PID.
+        prefix = r'printf "%s\n" "$$";'
+        if cwd:
+            prefix += f""" cd "{cwd}" &&"""
+        # Force unbuffered I/O to be consistent with the 'shell=False' case.
+        command = prefix + " exec stdbuf -i0 -o0 -e0 -- " + command
 
         try:
             chan = self.ssh.get_transport().open_session(timeout=self.connection_timeout)
@@ -384,30 +408,27 @@ class SSH:
                         f"{err}") from err
 
         # The first line of the output should contain the PID - extract it.
-        if shell:
-            pid = []
-            decoder = codecs.getincrementaldecoder('utf8')(errors="surrogateescape")
-            while True:
-                buf = chan.recv(1)
-                if not buf:
-                    # No data received, which means that the channel is closed.
-                    status = chan.recv_exit_status()
-                    raise Error(f"cannot execute the following command{self.hostmsg}:\n{command}\n"
-                                f"The process exited with status {status}")
+        pid = []
+        decoder = codecs.getincrementaldecoder('utf8')(errors="surrogateescape")
+        while True:
+            buf = chan.recv(1)
+            if not buf:
+                # No data received, which means that the channel is closed.
+                status = chan.recv_exit_status()
+                raise Error(f"cannot execute the following command{self.hostmsg}:\n{command}\n"
+                            f"The process exited with status {status}")
 
-                buf = decoder.decode(buf)
-                if not buf:
-                    continue
-                if buf == "\n":
-                    break
-                pid.append(buf)
-                if len(pid) > 128:
-                    raise Error(f"received the following {len(pid)} PID characters without "
-                                f"newline:\n{''.join(pid)}")
+            buf = decoder.decode(buf)
+            if not buf:
+                continue
+            if buf == "\n":
+                break
+            pid.append(buf)
+            if len(pid) > 128:
+                raise Error(f"received the following {len(pid)} PID characters without "
+                            f"newline:\n{''.join(pid)}")
 
-            pid = int("".join(pid))
-        else:
-            pid = None
+        pid = int("".join(pid))
 
         return _add_custom_fields(chan, self.hostname, command, pid)
 
