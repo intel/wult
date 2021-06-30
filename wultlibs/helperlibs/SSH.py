@@ -9,6 +9,21 @@
 """
 This module provides helpful API for communicating and working with remote hosts over SSH.
 
+There are two ways we run commands remotely over SSH: in a new paramiko SSH session, and in the
+interactive shell. The latter way adds complexity, and the only reason we have it is because it is
+faster to run a process this way.
+
+The first way of running commands is very straight-forward - we just open a new paramiko SSH session
+and run the command. The session gets closed when the command finishes. The next command requires a
+new session. Creating a new SSH session takes time, so if we need to run many commands, the overhead
+becomes very noticeable.
+
+The second way of running commands is via the interactive shell. We run the 'sh -s' process in a new
+paramiko session, and then just run commands in this shell. One command can run at a time. But we do
+not need to create a new SSH session between the commands. The complication with this method is to
+detect when command has finished. We solve this problem my making each command print a unique random
+hash to 'stdout' when it finishes.
+
 SECURITY NOTICE: this module and any part of it should only be used for debugging and development
 purposes. No security audit had been done. Not for production use.
 """
@@ -537,12 +552,69 @@ class SSH:
 
         return chan
 
-    def _run_async(self, command, cwd=None, shell=True):
+    def _run_in_intsh(self, command, cwd=None):
+        """Run command 'command' in the interactive shell."""
+
+        if not self._intsh:
+            self._intsh = self._run_in_new_session("sh -s", shell=False)
+
+        return self._run_in_new_session(command, cwd=cwd, shell=True)
+
+    def _acquire_intsh_lock(self, command=None):
+        """
+        Acquire the interactive shell lock. It should be acquired only for short period of times.
+        """
+
+        timeout = 5
+        acquired = self._intsh_lock.acquire(timeout=timeout)
+        if not acquired:
+            msg = "failed to acquire the interactive shell lock"
+            if command:
+                msg += f" for for the following command:\n{command}\n"
+            else:
+                msg += "."
+            msg += f"Waited for {timeout} seconds."
+            _LOG.warning(msg)
+        return acquired
+
+    def _run_async(self, command, cwd=None, shell=True, intsh=False):
         """Implements 'run_async()'."""
 
-        return self._run_in_new_session(command, cwd=cwd, shell=shell)
+        if not shell and intsh:
+            raise Error("'shell' argument must be 'True' when 'intsh' is 'True'")
 
-    def run_async(self, command, cwd=None, shell=True):
+        if not shell or not intsh:
+            return self._run_in_new_session(command, cwd=cwd, shell=shell)
+
+        try:
+            acquired = self._acquire_intsh_lock(command=command)
+            if not acquired or self._intsh_busy:
+                intsh = False
+
+            if intsh:
+                self._intsh_busy = True
+        finally:
+            # Release the interactive shell lock if we acquired it.
+            if acquired:
+                self._intsh_lock.release()
+
+        if not intsh:
+            _LOG.warning("interactive shell is busy, running the following command in a new "
+                         "SSH session:\n%s", command)
+            return self._run_in_new_session(command, cwd=cwd, shell=shell)
+
+        try:
+            return self._run_in_intsh(command, cwd=cwd)
+        except:
+            # Mark internal shell and free.
+            with contextlib.suppress(Exception):
+                acquired = self._acquire_intsh_lock(command=command)
+                if acquired:
+                    self._intsh_busy = False
+                    self._intsh_lock.release()
+            raise
+
+    def run_async(self, command, cwd=None, shell=True, intsh=False):
         """
         Run command 'command' on a remote host and return immediately without waiting for the
         command to complete.
@@ -555,6 +627,11 @@ class SSH:
         function may want to assume that the 'command' command runs in a shell is to get the PID of
         the process on the remote system. So if you do not really need to know the PID, leave the
         'shell' parameter to be 'False'.
+
+        The 'intsh' argument indicates whether the command should run in an interactive shell or in
+        a separate SSH session. The former is faster because creating a new SSH session takes time.
+        However, only one command can run in an interactive shell at a time. Thereforr, by default
+        'intsh' is 'False'. Note, 'shell' cannot be 'False' if 'intsh' is 'True'.
 
         Returns the paramiko session channel object. The object will contain an additional 'pid'
         attribute, and depending on the 'shell' parameter, the attribute will have value 'None'
@@ -571,12 +648,13 @@ class SSH:
             cwd_msg = f"\nWorking directory: {cwd}"
         else:
             cwd_msg = ""
-        _LOG.debug("running the following command asynchronously%s:\n%s%s",
-                   self.hostmsg, command, cwd_msg)
-        return self._run_async(str(command), cwd=cwd, shell=shell)
+        _LOG.debug("running the following command asynchronously%s (shell %s, intsh %s):\n%s%s",
+                   self.hostmsg, str(shell), str(intsh), command, cwd_msg)
+
+        return self._run_async(str(command), cwd=cwd, shell=shell, intsh=intsh)
 
     def run(self, command, timeout=None, capture_output=True, mix_output=False, join=True,
-            output_fobjs=(None, None), cwd=None, shell=True): # pylint: disable=unused-argument
+            output_fobjs=(None, None), cwd=None, shell=True, intsh=False): # pylint: disable=unused-argument
         """
         Run command 'command' on the remote host and block until it finishes. The 'command' argument
         should be a string.
@@ -609,6 +687,9 @@ class SSH:
         host. Most SSH servers will use user shell to run the command anyway. But there are rare
         cases when this is not the case, and 'shell=False' may be handy.
 
+        The 'intsh' argument indicates whether the command should run in an interactive shell or in
+        a separate SSH session. The former is faster because creating a new SSH session takes time.
+
         This function returns an named tuple of (exitcode, stdout, stderr), where
           o 'stdout' is the output of the executed command to stdout
           o 'stderr' is the output of the executed command to stderr
@@ -621,13 +702,14 @@ class SSH:
         returned tuple will be an empty string.
         """
 
-        msg = f"running the following command{self.hostmsg}:\n{command}"
+        msg = f"running the following command{self.hostmsg} (shell {shell}, intsh {intsh}):\n" \
+              f"{command}"
         if cwd:
             msg += f"\nWorking directory: {cwd}"
         _LOG.debug(msg)
 
         # Execute the command on the remote host.
-        chan = self._run_async(command, cwd=cwd, shell=shell)
+        chan = self._run_async(command, cwd=cwd, shell=shell, intsh=intsh)
         if mix_output:
             chan.set_combine_stderr(True)
 
@@ -651,7 +733,7 @@ class SSH:
         return result
 
     def run_verify(self, command, timeout=None, capture_output=True, mix_output=False,
-                   join=True, output_fobjs=(None, None), cwd=None, shell=True):
+                   join=True, output_fobjs=(None, None), cwd=None, shell=True, intsh=False):
         """
         Same as the "run()" method, but also verifies the exit status and if the command failed,
         raises the "Error" exception.
@@ -659,7 +741,7 @@ class SSH:
 
         result = self.run(command, timeout=timeout, capture_output=capture_output,
                           mix_output=mix_output, join=join, output_fobjs=output_fobjs, cwd=cwd,
-                          shell=shell)
+                          shell=shell, intsh=intsh)
         if result.exitcode == 0:
             return (result.stdout, result.stderr)
 
@@ -828,6 +910,13 @@ class SSH:
         self.privkeypath = privkeypath
 
         self._sftp = None
+        # The interactive shell session.
+        self._intsh = None
+        # Whether we already run a process in the interactive shell.
+        self._intsh_busy = False
+        # A lock protecting 'self._intsh_busy' and 'self._intsh'. Basically this lock makes sure we
+        # always run exactly one process in the interactive shell.
+        self._intsh_lock = threading.Lock()
 
         if not self.username:
             self.username = os.getenv("USER")
@@ -894,6 +983,12 @@ class SSH:
             sftp = self._sftp
             self._sftp = None
             sftp.close()
+
+        if self._intsh:
+            intsh = self._intsh
+            self._intsh = None
+            intsh.send("exit\n")
+            intsh.close()
 
         if self.ssh:
             ssh = self.ssh
