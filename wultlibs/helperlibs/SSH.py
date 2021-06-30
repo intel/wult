@@ -287,6 +287,8 @@ def _close_(chan):
     chan._dbg_("_close_()")
     if hasattr(chan, "_threads_exit_"):
         chan._threads_exit_ = True
+    if hasattr(chan, "_ssh_"):
+        chan._ssh_ = None
     chan._orig_close_()
 
 def _del_(chan):
@@ -305,7 +307,7 @@ def _dbg_(chan, fmt, *args):
     if chan._debug_:
         _LOG.debug("%s: " + fmt, chan._id_, *args)
 
-def _add_custom_fields(chan, hostname, cmd, pid):
+def _add_custom_fields(chan, ssh, cmd, pid):
     """Add a couple of custom fields to the paramiko channel object."""
 
     for name, mode in (("stdin", "wb"), ("stdout", "rb"), ("stderr", "rb")):
@@ -337,12 +339,14 @@ def _add_custom_fields(chan, hostname, cmd, pid):
 
     # The below attributes are added to make the channel object look similar to the Popen object
     # which the 'Procs' module uses.
-    chan.hostname = hostname
+    chan.hostname = ssh.hostname
     chan.cmd = cmd
     chan.timeout = TIMEOUT
     if pid is not None:
         chan.pid = pid
     chan.close = types.MethodType(_close_, chan)
+
+    chan._ssh_ = ssh
     chan._dbg_ = types.MethodType(_dbg_, chan)
     chan.poll = types.MethodType(_poll_, chan)
     chan.cmd_failed_msg = types.MethodType(_cmd_failed_msg_, chan)
@@ -381,7 +385,7 @@ class SSH:
         """
 
         chan = self._run_in_new_session(command)
-        return _add_custom_fields(chan, self.hostname, command, None)
+        return _add_custom_fields(chan, self, command, None)
 
     def _read_pid(self, chan, command):
         """Return PID of the just executed command."""
@@ -437,7 +441,7 @@ class SSH:
 
         # The first line of the output should contain the PID - extract it.
         pid = self._read_pid(chan, command)
-        return _add_custom_fields(chan, self.hostname, command, pid)
+        return _add_custom_fields(chan, self, command, pid)
 
     def run_async(self, command, cwd=None, shell=True):
         """
