@@ -432,6 +432,8 @@ class SSH:
         """
 
         if cwd:
+            if not shell:
+                raise Error("cannot set working directory to '{cwd}' - using shell is disallowed")
             cwd_msg = f"\nWorking directory: {cwd}"
         else:
             cwd_msg = ""
