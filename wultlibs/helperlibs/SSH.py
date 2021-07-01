@@ -196,6 +196,9 @@ def _wait_for_cmd_(chan, timeout=None, capture_output=True, output_fobjs=(None, 
     chan._dbg_("wait_for_cmd: timeout %s, capture_output %s, wait_for_exit %s, by_line %s, "
                "join: %s:", timeout, capture_output, wait_for_exit, by_line, join)
 
+    if chan._threads_exit_:
+        raise Error("this SSH channel has '_threads_exit_ flag set and it cannot be used")
+
     if chan._exitcode_:
         # This command has already exited.
         return ("", "", chan._exitcode_)
