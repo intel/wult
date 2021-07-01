@@ -151,6 +151,60 @@ def _consume_queue(chan, timeout):
             contents.append(chan._queue_.get())
     return contents
 
+def _do_wait_for_cmd_(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
+                      wait_for_exit=True, join=True):
+    """Implements '_wait_for_cmd()'."""
+
+    output = ([], [])
+    exitcode = None
+    start_time = time.time()
+
+    while True:
+        for streamid, data in _consume_queue(chan, timeout):
+            if data is not None:
+                chan._dbg_("_do_wait_for_cmd: got data from stream %d: %s", streamid, data)
+                if capture_output:
+                    output[streamid].append(data)
+                if output_fobjs[streamid]:
+                    output_fobjs[streamid].write(data)
+            else:
+                chan._dbg_("_do_wait_for_cmd: stream %d closed", streamid)
+                # One of the output streams closed.
+                chan._threads_[streamid].join()
+                chan._threads_[streamid] = chan._streams_[streamid] = None
+
+        if (output[0] or output[1]) and not wait_for_exit:
+            chan._dbg_("_do_wait_for_cmd: got some output, stop waiting for more")
+            break
+
+        if timeout and time.time() - start_time > timeout:
+            chan._dbg_("_do_wait_for_cmd: stop waiting for the command - timeout")
+            break
+
+        if not chan._streams_[0] and not chan._streams_[1]:
+            chan._dbg_("_do_wait_for_cmd: both streams closed")
+            chan._queue_ = None
+            exitcode = _recv_exit_status_timeout(chan, timeout)
+            break
+
+        if not timeout:
+            chan._dbg_(f"_do_wait_for_cmd: timeout is {timeout}, exit immediately")
+            break
+
+    stdout = stderr = ""
+    if output[0]:
+        stdout = output[0]
+        if join:
+            stdout = "".join(stdout)
+    if output[1]:
+        stderr = output[1]
+        if join:
+            stderr = "".join(stderr)
+
+    chan._dbg_("_do_wait_for_cmd: returning, exitcode %s", exitcode)
+    chan._exitcode_ = exitcode
+    return ProcResult(stdout=stdout, stderr=stderr, exitcode=exitcode)
+
 def _wait_for_cmd_(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
                    wait_for_exit=True, by_line=True, join=True):
     """
@@ -214,55 +268,8 @@ def _wait_for_cmd_(chan, timeout=None, capture_output=True, output_fobjs=(None, 
                                                             daemon=True)
                 chan._threads_[streamid].start()
 
-    output = ([], [])
-    exitcode = None
-    start_time = time.time()
-
-    while True:
-        for streamid, data in _consume_queue(chan, timeout):
-            if data is not None:
-                chan._dbg_("wait_for_cmd: got data from stream %d: %s", streamid, data)
-                if capture_output:
-                    output[streamid].append(data)
-                if output_fobjs[streamid]:
-                    output_fobjs[streamid].write(data)
-            else:
-                chan._dbg_("wait_for_cmd: stream %d closed", streamid)
-                # One of the output streams closed.
-                chan._threads_[streamid].join()
-                chan._threads_[streamid] = chan._streams_[streamid] = None
-
-        if (output[0] or output[1]) and not wait_for_exit:
-            chan._dbg_("wait_for_cmd: got some output, stop waiting for more")
-            break
-
-        if timeout and time.time() - start_time > timeout:
-            chan._dbg_("wait_for_cmd: stop waiting for the command - timeout")
-            break
-
-        if not chan._streams_[0] and not chan._streams_[1]:
-            chan._dbg_("wait_for_cmd: both streams closed")
-            chan._queue_ = None
-            exitcode = _recv_exit_status_timeout(chan, timeout)
-            break
-
-        if not timeout:
-            chan._dbg_(f"wait_for_cmd: timeout is {timeout}, exit immediately")
-            break
-
-    stdout = stderr = ""
-    if output[0]:
-        stdout = output[0]
-        if join:
-            stdout = "".join(stdout)
-    if output[1]:
-        stderr = output[1]
-        if join:
-            stderr = "".join(stderr)
-
-    chan._dbg_("wait_for_cmd: returning, exitcode %s", exitcode)
-    chan._exitcode_ = exitcode
-    return ProcResult(stdout=stdout, stderr=stderr, exitcode=exitcode)
+    return _do_wait_for_cmd_(chan, timeout=timeout, capture_output=capture_output,
+                             output_fobjs=output_fobjs, wait_for_exit=wait_for_exit, join=join)
 
 def _poll_(chan):
     """
