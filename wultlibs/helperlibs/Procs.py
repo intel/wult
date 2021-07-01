@@ -255,7 +255,7 @@ def _get_err_prefix(fobj, method):
     """Return the error message prefix."""
     return "method '%s()' failed for file '%s'" % (method, fobj.name)
 
-def _dbg_(proc, fmt, *args):
+def _dbg(proc, fmt, *args):
     """Print a debugging message related to the 'proc' process handling."""
     if proc._debug_:
         _LOG.debug("%s: " + fmt, proc._id_, *args)
@@ -287,7 +287,7 @@ def _add_custom_fields(proc, cmd):
     proc.cmd = cmd
     proc.timeout = TIMEOUT
     proc.close = types.MethodType(_close, proc)
-    proc._dbg_ = types.MethodType(_dbg_, proc)
+    proc._dbg_ = types.MethodType(_dbg, proc)
     proc.cmd_failed_msg = types.MethodType(_cmd_failed_msg, proc)
     proc.wait_for_cmd = types.MethodType(_wait_for_cmd, proc)
     proc.__del__ = types.MethodType(_del, proc)
