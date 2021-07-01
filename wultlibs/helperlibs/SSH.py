@@ -151,8 +151,8 @@ def _consume_queue(chan, timeout):
             contents.append(chan._queue_.get())
     return contents
 
-def _do_wait_for_cmd_(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
-                      wait_for_exit=True, join=True):
+def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
+                     wait_for_exit=True, join=True):
     """Implements '_wait_for_cmd()'."""
 
     output = ([], [])
@@ -205,8 +205,8 @@ def _do_wait_for_cmd_(chan, timeout=None, capture_output=True, output_fobjs=(Non
     chan._exitcode_ = exitcode
     return ProcResult(stdout=stdout, stderr=stderr, exitcode=exitcode)
 
-def _wait_for_cmd_(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
-                   wait_for_exit=True, by_line=True, join=True):
+def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
+                  wait_for_exit=True, by_line=True, join=True):
     """
     This function waits for a command executed with the 'SSH.run_async()' function to finish or
     print something to stdout or stderr.
@@ -268,10 +268,10 @@ def _wait_for_cmd_(chan, timeout=None, capture_output=True, output_fobjs=(None, 
                                                             daemon=True)
                 chan._threads_[streamid].start()
 
-    return _do_wait_for_cmd_(chan, timeout=timeout, capture_output=capture_output,
-                             output_fobjs=output_fobjs, wait_for_exit=wait_for_exit, join=join)
+    return _do_wait_for_cmd(chan, timeout=timeout, capture_output=capture_output,
+                            output_fobjs=output_fobjs, wait_for_exit=wait_for_exit, join=join)
 
-def _poll_(chan):
+def _poll(chan):
     """
     Check if the process is still running. If it is, return 'None', else return exit status.
     """
@@ -280,7 +280,7 @@ def _poll_(chan):
         return chan.recv_exit_status()
     return None
 
-def _cmd_failed_msg_(chan, stdout, stderr, exitcode, startmsg=None, timeout=None):
+def _cmd_failed_msg(chan, stdout, stderr, exitcode, startmsg=None, timeout=None):
     """
     A wrapper over '_Common.cmd_failed_msg()'. The optional 'timeout' argument specifies the
     timeout that was used for the command.
@@ -291,28 +291,28 @@ def _cmd_failed_msg_(chan, stdout, stderr, exitcode, startmsg=None, timeout=None
     return _Common.cmd_failed_msg(chan.cmd, stdout, stderr, exitcode, hostname=chan.hostname,
                                   startmsg=startmsg, timeout=timeout)
 
-def _close_(chan):
+def _close(chan):
     """The channel close method that will signal the threads to exit."""
 
-    chan._dbg_("_close_()")
+    chan._dbg_("_close()")
     if hasattr(chan, "_threads_exit_"):
         chan._threads_exit_ = True
     if hasattr(chan, "_ssh_"):
         chan._ssh_ = None
     chan._orig_close_()
 
-def _del_(chan):
+def _del(chan):
     """The channel object destructor which makes all threads to exit."""
 
     chan._dbg_("_del_()")
-    chan._close_()
+    chan._close()
     chan._orig_del_()
 
 def _get_err_prefix(fobj, method):
     """Return the error message prefix."""
     return f"method '{method}()' failed for file '{fobj._stream_name_}'"
 
-def _dbg_(chan, fmt, *args):
+def _dbg(chan, fmt, *args):
     """Print a debugging message related to the 'chan' channel handling."""
     if chan._debug_:
         _LOG.debug("%s: " + fmt, chan._id_, *args)
@@ -354,14 +354,14 @@ def _add_custom_fields(chan, ssh, cmd, pid):
     chan.timeout = TIMEOUT
     if pid is not None:
         chan.pid = pid
-    chan.close = types.MethodType(_close_, chan)
+    chan.close = types.MethodType(_close, chan)
 
     chan._ssh_ = ssh
-    chan._dbg_ = types.MethodType(_dbg_, chan)
-    chan.poll = types.MethodType(_poll_, chan)
-    chan.cmd_failed_msg = types.MethodType(_cmd_failed_msg_, chan)
-    chan.wait_for_cmd = types.MethodType(_wait_for_cmd_, chan)
-    chan.__del__ = types.MethodType(_del_, chan)
+    chan._dbg_ = types.MethodType(_dbg, chan)
+    chan.poll = types.MethodType(_poll, chan)
+    chan.cmd_failed_msg = types.MethodType(_cmd_failed_msg, chan)
+    chan.wait_for_cmd = types.MethodType(_wait_for_cmd, chan)
+    chan.__del__ = types.MethodType(_del, chan)
 
     return chan
 
