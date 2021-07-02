@@ -147,7 +147,7 @@ def _consume_queue(chan, timeout):
     return contents
 
 def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
-                     wait_for_exit=True, join=True):
+                     wait_for_exit=True):
     """Implements '_wait_for_cmd()'."""
 
     cpd = chan._cpd_
@@ -191,19 +191,7 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
             chan._dbg_(f"_do_wait_for_cmd: timeout is {timeout}, exit immediately")
             break
 
-    stdout = stderr = ""
-    if output[0]:
-        stdout = output[0]
-        if join:
-            stdout = "".join(stdout)
-    if output[1]:
-        stderr = output[1]
-        if join:
-            stderr = "".join(stderr)
-
-    chan._dbg_("_do_wait_for_cmd: returning, exitcode %s", exitcode)
-    cpd.exitcode = exitcode
-    return ProcResult(stdout=stdout, stderr=stderr, exitcode=exitcode)
+    return output, exitcode
 
 def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
                   wait_for_exit=True, by_line=True, join=True):
@@ -269,8 +257,22 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
                                                          daemon=True)
                 cpd.threads[streamid].start()
 
-    return _do_wait_for_cmd(chan, timeout=timeout, capture_output=capture_output,
-                            output_fobjs=output_fobjs, wait_for_exit=wait_for_exit, join=join)
+    output, exitcode = _do_wait_for_cmd(chan, timeout=timeout, capture_output=capture_output,
+                                        output_fobjs=output_fobjs, wait_for_exit=wait_for_exit)
+
+    stdout = stderr = ""
+    if output[0]:
+        stdout = output[0]
+        if join:
+            stdout = "".join(stdout)
+    if output[1]:
+        stderr = output[1]
+        if join:
+            stderr = "".join(stderr)
+
+    chan._dbg_("_do_wait_for_cmd: returning, exitcode %s", exitcode)
+    cpd.exitcode = exitcode
+    return ProcResult(stdout=stdout, stderr=stderr, exitcode=exitcode)
 
 def _poll(chan):
     """
