@@ -43,20 +43,6 @@ logging.getLogger("paramiko").setLevel(logging.WARNING)
 # The exceptions to handle when dealing with paramiko.
 _PARAMIKO_EXCEPTIONS = (OSError, IOError, paramiko.SSHException, socket.error)
 
-def _get_username(uid=None):
-    """Return username of the current process or UID 'uid'."""
-
-    try:
-        if uid is None:
-            uid = os.getuid()
-    except OSError as err:
-        raise Error("failed to detect user name of the current process:\n%s" % err) from None
-
-    try:
-        return pwd.getpwuid(uid).pw_name
-    except KeyError as err:
-        raise Error("failed to get user name for UID %d:\n%s" % (uid, err)) from None
-
 def _stream_fetcher(streamid, chan, by_line):
     """
     This function runs in a separate thread. All it does is it fetches one of the output streams
@@ -364,6 +350,20 @@ def _add_custom_fields(chan, ssh, cmd, pid):
     chan.__del__ = types.MethodType(_del, chan)
 
     return chan
+
+def _get_username(uid=None):
+    """Return username of the current process or UID 'uid'."""
+
+    try:
+        if uid is None:
+            uid = os.getuid()
+    except OSError as err:
+        raise Error("failed to detect user name of the current process:\n%s" % err) from None
+
+    try:
+        return pwd.getpwuid(uid).pw_name
+    except KeyError as err:
+        raise Error("failed to get user name for UID %d:\n%s" % (uid, err)) from None
 
 class SSH:
     """
