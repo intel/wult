@@ -43,11 +43,12 @@ def _stream_fetcher(streamid, proc, by_line):
     of the executed program (either stdout or stderr) and puts the result into the queue.
     """
 
+    ppd = proc._ppd_
     partial = ""
-    stream = proc._streams_[streamid]
+    stream = ppd.streams[streamid]
     try:
         decoder = codecs.getincrementaldecoder('utf8')(errors="surrogateescape")
-        while not proc._threads_exit_:
+        while not ppd.threads_exit:
             if not stream:
                 proc._dbg_("stream %d: stream is closed", streamid)
                 break
@@ -71,20 +72,20 @@ def _stream_fetcher(streamid, proc, by_line):
 
             if by_line:
                 data, partial = _Common.extract_full_lines(partial + data)
-            if proc._debug_:
+            if ppd.debug:
                 if data:
                     proc._dbg_("stream %d: full line: %s", streamid, data[-1])
                 if partial:
                     proc._dbg_("stream %d: partial line: %s", streamid, partial)
             for line in data:
-                proc._queue_.put((streamid, line))
+                ppd.queue.put((streamid, line))
     except BaseException as err: # pylint: disable=broad-except
         _LOG.error(err)
 
     if partial:
-        proc._queue_.put((streamid, partial))
+        ppd.queue.put((streamid, partial))
 
-    proc._queue_.put((streamid, None))
+    ppd.queue.put((streamid, None))
     proc._dbg_("stream %d: thread exists", streamid)
 
 def _wait_timeout(proc, timeout):
@@ -103,16 +104,17 @@ def _wait_timeout(proc, timeout):
 def _consume_queue(proc, timeout):
     """Read out the entire queue."""
 
+    ppd = proc._ppd_
     contents = []
     with contextlib.suppress(queue.Empty):
         if timeout:
-            item = proc._queue_.get(timeout=timeout)
+            item = ppd.queue.get(timeout=timeout)
         else:
-            item = proc._queue_.get(block=False)
+            item = ppd.queue.get(block=False)
         contents.append(item)
         # Consume the rest of the queue.
-        while not proc._queue_.empty():
-            contents.append(proc._queue_.get())
+        while not ppd.queue.empty():
+            contents.append(ppd.queue.get())
     return contents
 
 def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
@@ -160,23 +162,24 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
     proc._dbg_("wait_for_cmd: timeout %s, capture_output %s, wait_for_exit %s, by_line %s, "
                "join: %s:", timeout, capture_output, wait_for_exit, by_line, join)
 
-    if proc._exitcode_:
+    ppd = proc._ppd_
+    if ppd.exitcode:
         # This command has already exited.
-        return ("", "", proc._exitcode_)
+        return ("", "", ppd.exitcode)
 
     if not proc.stdout and not proc.stderr:
         return ("", "", _wait_timeout(proc, timeout))
 
-    if not proc._queue_:
-        proc._queue_ = queue.Queue()
+    if not ppd.queue:
+        ppd.queue = queue.Queue()
         for streamid in (0, 1):
-            if proc._streams_[streamid]:
-                assert proc._threads_[streamid] is None
-                proc._threads_[streamid] = threading.Thread(target=_stream_fetcher,
-                                                            name='Procs-stream-fetcher',
-                                                            args=(streamid, proc, by_line),
-                                                            daemon=True)
-                proc._threads_[streamid].start()
+            if ppd.streams[streamid]:
+                assert ppd.threads[streamid] is None
+                ppd.threads[streamid] = threading.Thread(target=_stream_fetcher,
+                                                         name='Procs-stream-fetcher',
+                                                         args=(streamid, proc, by_line),
+                                                         daemon=True)
+                ppd.threads[streamid].start()
 
     output = ([], [])
     exitcode = None
@@ -192,8 +195,8 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
                     output_fobjs[streamid].write(data)
             else:
                 proc._dbg_("wait_for_cmd: stream %d closed", streamid)
-                proc._threads_[streamid].join()
-                proc._threads_[streamid] = proc._streams_[streamid] = None
+                ppd.threads[streamid].join()
+                ppd.threads[streamid] = ppd.streams[streamid] = None
 
         if (output[0] or output[1]) and not wait_for_exit:
             proc._dbg_("wait_for_cmd: got some output, stop waiting for more")
@@ -203,9 +206,9 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
             proc._dbg_("wait_for_cmd: stop waiting for the command - timeout")
             break
 
-        if not proc._streams_[0] and not proc._streams_[1]:
+        if not ppd.streams[0] and not ppd.streams[1]:
             proc._dbg_("wait_for_cmd: both streams closed")
-            proc._queue_ = None
+            ppd.queue = None
             exitcode = _wait_timeout(proc, timeout)
             break
 
@@ -224,7 +227,7 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
             stderr = "".join(stderr)
 
     proc._dbg_("wait_for_cmd: returning, exitcode %s", exitcode)
-    proc._exitcode_ = exitcode
+    ppd.exitcode = exitcode
     return ProcResult(stdout=stdout, stderr=stderr, exitcode=exitcode)
 
 def _cmd_failed_msg(proc, stdout, stderr, exitcode, startmsg=None, timeout=None):
@@ -241,24 +244,53 @@ def _cmd_failed_msg(proc, stdout, stderr, exitcode, startmsg=None, timeout=None)
 def _close(proc):
     """The process close method that will signal the threads to exit."""
 
-    proc._dbg_("_close_()")
-    proc._threads_exit_ = True
+    if hasattr(proc, "_ppd_"):
+        proc._dbg_("_close_()")
+        proc._ppd_.threads_exit = True
 
 def _del(proc):
     """The process object destructor which makes all threads to exit."""
 
-    proc._dbg_("_del_()")
-    proc._threads_exit_ = True
-    proc._orig_del_()
+    if hasattr(proc, "_ppd_"):
+        proc._dbg_("_del_()")
+        ppd = proc._ppd_
+        ppd.threads_exit = True
+        ppd.orig_del()
 
 def _get_err_prefix(fobj, method):
     """Return the error message prefix."""
-    return "method '%s()' failed for file '%s'" % (method, fobj.name)
+    return "method '%s()' failed for %s" % (method, fobj.name)
 
 def _dbg(proc, fmt, *args):
     """Print a debugging message related to the 'proc' process handling."""
-    if proc._debug_:
-        _LOG.debug("%s: " + fmt, proc._id_, *args)
+    if proc._ppd_.debug:
+        _LOG.debug("%s: " + fmt, proc._ppd_.debug_id, *args)
+
+class _ProcessPrivateData:
+    """
+    We need to attach additional data to the Popen object. This class represents that data.
+    """
+
+    def __init__(self):
+        """The constructor."""
+
+        # The 2 output streams of the command's process (stdout, stderr).
+        self.streams = []
+        # The queue which is used for passing commands output from stream fetcher threads.
+        self.queue = None
+        # The threds fetching data from the output streams and placing them to the queue.
+        self.threads = [None, None]
+        # The threads have to exit if the 'threads_exit' flag becomes 'True'.
+        self.threads_exit = False
+        # Exit code of the command ('None' if it is still running).
+        self.exitcode = None
+        # The original '__del__()' methods of the Popen object.
+        self.orig_del = None
+        # Print debugging messages if 'True'.
+        self.debug = False
+        # Prefix debugging messages with this string. Can be useful to distinguish between debugging
+        # message related to different processes.
+        self.debug_id = "stream"
 
 def _add_custom_fields(proc, cmd):
     """Add a couple of custom fields to the process object returned by 'subprocess.Popen()'."""
@@ -270,16 +302,10 @@ def _add_custom_fields(proc, cmd):
                                                          get_err_prefix=_get_err_prefix)
             setattr(proc, name, wrapped_fobj)
 
-    proc._queue_ = None
-    proc._streams_ = [proc.stdout, proc.stderr]
-    proc._threads_ = [None, None]
-    proc._threads_exit_ = False
-    proc._exitcode_ = None
-    proc._orig_del_ = proc.__del__
+    ppd = proc._ppd_ = _ProcessPrivateData()
 
-    # Debugging prints.
-    proc._debug_ = False
-    proc._id_ = "stream"
+    ppd.streams = [proc.stdout, proc.stderr]
+    ppd.orig_del = proc.__del__
 
     # The below attributes are added to the Popen object look similar to the channel object which
     # the 'SSH' module uses.

@@ -49,11 +49,13 @@ def _stream_fetcher(streamid, chan, by_line):
     of the executed program (either stdout or stderr) and puts the result into the queue.
     """
 
+    cpd = chan._cpd_
     partial = ""
-    read_func = chan._streams_[streamid]
+    read_func = cpd.streams[streamid]
     decoder = codecs.getincrementaldecoder('utf8')(errors="surrogateescape")
+
     try:
-        while not chan._threads_exit_:
+        while not cpd.threads_exit:
             if not read_func:
                 chan._dbg_("stream %d: stream is closed", streamid)
                 break
@@ -78,21 +80,21 @@ def _stream_fetcher(streamid, chan, by_line):
 
             if by_line:
                 data, partial = _Common.extract_full_lines(partial + data)
-            if chan._debug_:
+            if cpd.debug:
                 if data:
                     chan._dbg_("stream %d: full line: %s", streamid, data[-1])
                 if partial:
                     chan._dbg_("stream %d: partial line: %s", streamid, partial)
             for line in data:
-                chan._queue_.put((streamid, line))
+                cpd.queue.put((streamid, line))
     except BaseException as err: # pylint: disable=broad-except
         _LOG.error(err)
 
     if partial:
-        chan._queue_.put((streamid, partial))
+        cpd.queue.put((streamid, partial))
 
     # The end of stream marker.
-    chan._queue_.put((streamid, None))
+    cpd.queue.put((streamid, None))
     chan._dbg_("stream %d: thread exists", streamid)
 
 def _recv_exit_status_timeout(chan, timeout):
@@ -125,22 +127,26 @@ def _recv_exit_status_timeout(chan, timeout):
 def _consume_queue(chan, timeout):
     """Read out the entire queue."""
 
+    # Channel's private data.
+    cpd = chan._cpd_
     contents = []
+
     with contextlib.suppress(queue.Empty):
         if timeout:
-            item = chan._queue_.get(timeout=timeout)
+            item = cpd.queue.get(timeout=timeout)
         else:
-            item = chan._queue_.get(block=False)
+            item = cpd.queue.get(block=False)
         contents.append(item)
         # Consume the rest of the queue.
-        while not chan._queue_.empty():
-            contents.append(chan._queue_.get())
+        while not cpd.queue.empty():
+            contents.append(cpd.queue.get())
     return contents
 
 def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
                      wait_for_exit=True, join=True):
     """Implements '_wait_for_cmd()'."""
 
+    cpd = chan._cpd_
     output = ([], [])
     exitcode = None
     start_time = time.time()
@@ -156,8 +162,8 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
             else:
                 chan._dbg_("_do_wait_for_cmd: stream %d closed", streamid)
                 # One of the output streams closed.
-                chan._threads_[streamid].join()
-                chan._threads_[streamid] = chan._streams_[streamid] = None
+                cpd.threads[streamid].join()
+                cpd.threads[streamid] = cpd.streams[streamid] = None
 
         if (output[0] or output[1]) and not wait_for_exit:
             chan._dbg_("_do_wait_for_cmd: got some output, stop waiting for more")
@@ -167,9 +173,9 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
             chan._dbg_("_do_wait_for_cmd: stop waiting for the command - timeout")
             break
 
-        if not chan._streams_[0] and not chan._streams_[1]:
+        if not cpd.streams[0] and not cpd.streams[1]:
             chan._dbg_("_do_wait_for_cmd: both streams closed")
-            chan._queue_ = None
+            cpd.queue = None
             exitcode = _recv_exit_status_timeout(chan, timeout)
             break
 
@@ -188,7 +194,7 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
             stderr = "".join(stderr)
 
     chan._dbg_("_do_wait_for_cmd: returning, exitcode %s", exitcode)
-    chan._exitcode_ = exitcode
+    cpd.exitcode = exitcode
     return ProcResult(stdout=stdout, stderr=stderr, exitcode=exitcode)
 
 def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
@@ -236,23 +242,24 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
     chan._dbg_("wait_for_cmd: timeout %s, capture_output %s, wait_for_exit %s, by_line %s, "
                "join: %s:", timeout, capture_output, wait_for_exit, by_line, join)
 
-    if chan._threads_exit_:
+    cpd = chan._cpd_
+    if cpd.threads_exit:
         raise Error("this SSH channel has '_threads_exit_ flag set and it cannot be used")
 
-    if chan._exitcode_:
+    if cpd.exitcode:
         # This command has already exited.
-        return ("", "", chan._exitcode_)
+        return ("", "", cpd.exitcode)
 
-    if not chan._queue_:
-        chan._queue_ = queue.Queue()
+    if not cpd.queue:
+        cpd.queue = queue.Queue()
         for streamid in (0, 1):
-            if chan._streams_[streamid]:
-                assert chan._threads_[streamid] is None
-                chan._threads_[streamid] = threading.Thread(target=_stream_fetcher,
-                                                            name='SSH-stream-fetcher',
-                                                            args=(streamid, chan, by_line),
-                                                            daemon=True)
-                chan._threads_[streamid].start()
+            if cpd.streams[streamid]:
+                assert cpd.threads[streamid] is None
+                cpd.threads[streamid] = threading.Thread(target=_stream_fetcher,
+                                                         name='SSH-stream-fetcher',
+                                                         args=(streamid, chan, by_line),
+                                                         daemon=True)
+                cpd.threads[streamid].start()
 
     return _do_wait_for_cmd(chan, timeout=timeout, capture_output=capture_output,
                             output_fobjs=output_fobjs, wait_for_exit=wait_for_exit, join=join)
@@ -280,31 +287,68 @@ def _cmd_failed_msg(chan, stdout, stderr, exitcode, startmsg=None, timeout=None)
 def _close(chan):
     """The channel close method that will signal the threads to exit."""
 
-    chan._dbg_("_close()")
-    if hasattr(chan, "_threads_exit_"):
-        chan._threads_exit_ = True
-    if hasattr(chan, "_ssh_"):
-        chan._ssh_ = None
-    chan._orig_close_()
+    if hasattr(chan, "_cpd_"):
+        chan._dbg_("_close()")
+        cpd = chan._cpd_
+        cpd.threads_exit = True
+        cpd.ssh = None
+        cpd.orig_close()
 
 def _del(chan):
     """The channel object destructor which makes all threads to exit."""
 
-    chan._dbg_("_del_()")
-    chan._close()
-    chan._orig_del_()
+    if hasattr(chan, "_cpd_"):
+        chan._dbg_("_del_()")
+        chan._close()
+        chan._cpd_.orig_del()
 
 def _get_err_prefix(fobj, method):
     """Return the error message prefix."""
-    return f"method '{method}()' failed for file '{fobj._stream_name_}'"
+    return f"method '{method}()' failed for {fobj._stream_name_}"
 
 def _dbg(chan, fmt, *args):
     """Print a debugging message related to the 'chan' channel handling."""
-    if chan._debug_:
-        _LOG.debug("%s: " + fmt, chan._id_, *args)
+    if chan._cpd_.debug:
+        _LOG.debug("%s: " + fmt, chan._cpd_.debug_id, *args)
+
+class _ChannelPrivateData:
+    """
+    We need to attach additional data to the paramiko channel object. This class represents that
+    data.
+    """
+
+    def __init__(self):
+        """The constructor."""
+
+        # The 'SSH' object corresponding to the channel.
+        self.ssh = None
+        # File objects for the 3 standard streams of the command's process.
+        self.stdin = None
+        self.stdout = None
+        self.stderr = None
+        # The 2 output streams of the command's process (stdout, stderr).
+        self.streams = []
+        # The queue which is used for passing commands output from stream fetcher threads.
+        self.queue = None
+        # The threds fetching data from the output streams and placing them to the queue.
+        self.threads = [None, None]
+        # The threads have to exit if the 'threads_exit' flag becomes 'True'.
+        self.threads_exit = False
+        # Exit code of the command ('None' if it is still running).
+        self.exitcode = None
+        # The original 'close()' and '__del__()' methods of the paramiko channel object.
+        self.orig_close = None
+        self.orig_del = None
+        # Print debugging messages if 'True'.
+        self.debug = False
+        # Prefix debugging messages with this string. Can be useful to distinguish between debugging
+        # message related to different processes.
+        self.debug_id = "stream"
 
 def _add_custom_fields(chan, ssh, cmd, pid):
     """Add a couple of custom fields to the paramiko channel object."""
+
+    cpd = chan._cpd_ = _ChannelPrivateData()
 
     for name, mode in (("stdin", "wb"), ("stdout", "rb"), ("stderr", "rb")):
         try:
@@ -319,19 +363,12 @@ def _add_custom_fields(chan, ssh, cmd, pid):
         wrapped_fobj = WrapExceptions.WrapExceptions(fobj, exceptions=_PARAMIKO_EXCEPTIONS,
                                                      get_err_prefix=_get_err_prefix)
         wrapped_fobj.name = name
-        setattr(chan, name, wrapped_fobj)
+        setattr(cpd, name, wrapped_fobj)
 
-    chan._queue_ = None
-    chan._streams_ = [chan.recv, chan.recv_stderr]
-    chan._threads_ = [None, None]
-    chan._threads_exit_ = False
-    chan._exitcode_ = None
-    chan._orig_close_ = chan.close
-    chan._orig_del_ = chan.__del__
-
-    # Debugging prints.
-    chan._debug_ = False
-    chan._id_ = "stream"
+    cpd.ssh = ssh
+    cpd.streams = [chan.recv, chan.recv_stderr]
+    cpd.orig_close = chan.close
+    cpd.orig_del = chan.__del__
 
     # The below attributes are added to make the channel object look similar to the Popen object
     # which the 'Procs' module uses.
@@ -342,7 +379,6 @@ def _add_custom_fields(chan, ssh, cmd, pid):
         chan.pid = pid
     chan.close = types.MethodType(_close, chan)
 
-    chan._ssh_ = ssh
     chan._dbg_ = types.MethodType(_dbg, chan)
     chan.poll = types.MethodType(_poll, chan)
     chan.cmd_failed_msg = types.MethodType(_cmd_failed_msg, chan)
