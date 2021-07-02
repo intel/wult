@@ -117,6 +117,9 @@ def _consume_queue(proc, timeout):
         # Consume the rest of the queue.
         while not ppd.queue.empty():
             contents.append(ppd.queue.get())
+
+    if not contents:
+        return [(-1, None)]
     return contents
 
 def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
@@ -189,6 +192,10 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
 
     while True:
         for streamid, data in _consume_queue(proc, timeout):
+            if streamid == -1:
+                # Nothing in the queue for 'timeout' seconds.
+                break
+
             if data is not None:
                 proc._dbg_("wait_for_cmd: got data from stream %d: %s", streamid, data)
                 if capture_output:
@@ -204,14 +211,14 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
             proc._dbg_("wait_for_cmd: got some output, stop waiting for more")
             break
 
-        if timeout is not None and time.time() - start_time >= timeout:
-            proc._dbg_("wait_for_cmd: stop waiting for the command - timeout")
-            break
-
         if not ppd.streams[0] and not ppd.streams[1]:
             proc._dbg_("wait_for_cmd: both streams closed")
             ppd.queue = None
             exitcode = _wait_timeout(proc, timeout)
+            break
+
+        if timeout is not None and time.time() - start_time >= timeout:
+            proc._dbg_("wait_for_cmd: stop waiting for the command - timeout")
             break
 
         if not timeout:

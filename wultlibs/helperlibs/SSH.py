@@ -141,6 +141,9 @@ def _consume_queue(chan, timeout):
         # Consume the rest of the queue.
         while not cpd.queue.empty():
             contents.append(cpd.queue.get())
+
+    if not contents:
+        return [(-1, None)]
     return contents
 
 def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
@@ -154,6 +157,10 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
 
     while True:
         for streamid, data in _consume_queue(chan, timeout):
+            if streamid == -1:
+                # Nothing in the queue for 'timeout' seconds.
+                break
+
             if data is not None:
                 chan._dbg_("_do_wait_for_cmd: got data from stream %d: %s", streamid, data)
                 if capture_output:
@@ -170,14 +177,14 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
             chan._dbg_("_do_wait_for_cmd: got some output, stop waiting for more")
             break
 
-        if timeout and time.time() - start_time > timeout:
-            chan._dbg_("_do_wait_for_cmd: stop waiting for the command - timeout")
-            break
-
         if not cpd.streams[0] and not cpd.streams[1]:
             chan._dbg_("_do_wait_for_cmd: both streams closed")
             cpd.queue = None
             exitcode = _recv_exit_status_timeout(chan, timeout)
+            break
+
+        if timeout and time.time() - start_time > timeout:
+            chan._dbg_("_do_wait_for_cmd: stop waiting for the command - timeout")
             break
 
         if not timeout:
