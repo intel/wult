@@ -128,7 +128,7 @@ def get_helpers_deploy_path(proc, toolname):
     helpers_path = os.environ.get(f"{toolname.upper()}_HELPERSPATH")
     if not helpers_path:
         helpers_path = FSHelpers.get_homedir(proc=proc) / _HELPERS_LOCAL_DIR / "bin"
-    return helpers_path
+    return Path(helpers_path)
 
 def _get_deployables(srcpath, proc=None):
     """
