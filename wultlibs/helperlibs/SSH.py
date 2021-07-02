@@ -78,15 +78,16 @@ def _stream_fetcher(streamid, chan, by_line):
 
             chan._dbg_("stream %d: read data: %s", streamid, data)
 
-            if by_line:
+            if not by_line:
+                cpd.queue.put((streamid, data))
+            else:
                 data, partial = _Common.extract_full_lines(partial + data)
-            if cpd.debug:
                 if data:
                     chan._dbg_("stream %d: full line: %s", streamid, data[-1])
                 if partial:
                     chan._dbg_("stream %d: partial line: %s", streamid, partial)
-            for line in data:
-                cpd.queue.put((streamid, line))
+                for line in data:
+                    cpd.queue.put((streamid, line))
     except BaseException as err: # pylint: disable=broad-except
         _LOG.error(err)
 

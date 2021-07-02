@@ -70,15 +70,17 @@ def _stream_fetcher(streamid, proc, by_line):
                 proc._dbg_("stream %d: read more data", streamid)
                 continue
 
-            if by_line:
+            if not by_line:
+                ppd.queue.put((streamid, data))
+            else:
                 data, partial = _Common.extract_full_lines(partial + data)
-            if ppd.debug:
                 if data:
                     proc._dbg_("stream %d: full line: %s", streamid, data[-1])
                 if partial:
                     proc._dbg_("stream %d: partial line: %s", streamid, partial)
-            for line in data:
-                ppd.queue.put((streamid, line))
+                for line in data:
+                    ppd.queue.put((streamid, line))
+
     except BaseException as err: # pylint: disable=broad-except
         _LOG.error(err)
 
