@@ -94,7 +94,7 @@ def _stream_fetcher(streamid, chan, by_line):
     if partial:
         cpd.queue.put((streamid, partial))
 
-    # The end of stream marker.
+    # The end of stream indicator.
     cpd.queue.put((streamid, None))
     chan._dbg_("stream %d: thread exists", streamid)
 
