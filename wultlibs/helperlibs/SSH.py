@@ -133,7 +133,7 @@ def _consume_queue(chan, timeout):
     return contents
 
 def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
-                     wait_for_exit=True, by_line=True):
+                     lines=(None, None), by_line=True):
     """Implements '_wait_for_cmd()'."""
 
     def pick_output(data, streamid):
@@ -146,11 +146,12 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
                 output_fobjs[streamid].write(data)
 
     cpd = chan._cpd_
-    output = ([], [])
+    output = cpd.output
     partial = cpd.partial
+    enough_lines = False
     start_time = time.time()
 
-    while True:
+    while not enough_lines:
         for streamid, data in _consume_queue(chan, timeout):
             if streamid == -1:
                 # Nothing in the queue for 'timeout' seconds.
@@ -175,9 +176,12 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
                 cpd.threads[streamid].join()
                 cpd.threads[streamid] = cpd.streams[streamid] = None
 
-        if (output[0] or output[1]) and not wait_for_exit:
-            chan._dbg_("_do_wait_for_cmd: got some output, stop waiting for more")
-            break
+            if lines[streamid] is not None and len(output[streamid]) >= lines[streamid]:
+                # We read enough lines for this stream.
+                chan._dbg_("_do_wait_for_cmd: stream %d: read %d lines",
+                           streamid, len(output[streamid]))
+                enough_lines = True
+                break
 
         if not cpd.streams[0] and not cpd.streams[1]:
             chan._dbg_("_do_wait_for_cmd: both streams closed")
@@ -198,10 +202,21 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
             pick_output(part, streamid)
         cpd.partial = ["", ""]
 
+    # This is what we'll return to the user. The rest will stay in 'cpd.output'.
+    output = list(output)
+
+    for streamid in (0, 1):
+        limit = lines[streamid]
+        if limit is None or len(output[streamid]) <= limit:
+            cpd.output[streamid] = []
+        else:
+            output[streamid] = output[streamid][:limit]
+            cpd.output[streamid] = cpd.output[streamid][limit:]
+
     return output
 
 def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
-                  wait_for_exit=True, by_line=True, join=True, ):
+                  lines=(None, None), by_line=True, join=True):
     """
     This function waits for a command executed with the 'SSH.run_async()' function to finish or
     print something to stdout or stderr.
@@ -222,8 +237,12 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
     of the command will be echoed, in addition to being captured and returned. If not specified,
     then the the command output will not be echoed anywhere.
 
-    The 'wait_for_exit' parameter controls whether this function will return when the command
-    exits/times-out, or immediately after the command prints something to stdout or stderr.
+    The 'lines' argument provides a capability to wait for the comman to output certain amount of
+    lines. By default, there is no limit, and this function will wait either for timeout or until
+    the command exits. The 'line' argument is a tuple, the first element of the tuple is the
+    'stdout' limit, the second is the 'stderr' limit. For example, 'lines=(1, 5)' would mean to wait
+    for one full line in 'stdout' or five full lines in 'stderr'. And 'lines=(1, None)' would mean
+    to wait for one line in 'stdout' and any amount of lines in 'stderr'.
 
     The 'by_line' parameter controls whether this function should capture output on a line-by-line
     basis, or if it does not need to care about lines.
@@ -240,10 +259,15 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
         timeout = TIMEOUT
     if timeout < 0:
         raise Error(f"bad timeout value {timeout}, must be > 0")
+
+    if not by_line and lines != (None, None):
+        raise Error("'by_lines' must be 'True' when 'lines' is used (reading limited amout of "
+                    "output lines)")
+
     chan.timeout = timeout
 
-    chan._dbg_("wait_for_cmd: timeout %s, capture_output %s, wait_for_exit %s, by_line %s, "
-               "join: %s:", timeout, capture_output, wait_for_exit, by_line, join)
+    chan._dbg_("wait_for_cmd: timeout %s, capture_output %s, lines: %s, by_line %s, "
+               "join: %s:", timeout, capture_output, str(lines), by_line, join)
 
     cpd = chan._cpd_
     if cpd.threads_exit:
@@ -264,8 +288,7 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
                 cpd.threads[streamid].start()
 
     output = _do_wait_for_cmd(chan, timeout=timeout, capture_output=capture_output,
-                              output_fobjs=output_fobjs, wait_for_exit=wait_for_exit,
-                              by_line=by_line)
+                              output_fobjs=output_fobjs, lines=lines, by_line=by_line)
 
     stdout = stderr = ""
     if output[0]:
@@ -352,6 +375,9 @@ class _ChannelPrivateData:
         self.threads_exit = False
         # Exit code of the command ('None' if it is still running).
         self.exitcode = None
+        # The output for the command that was read from 'queue', but not yet sent to the user
+        # (separate for 'stdout' and 'stderr').
+        self.output = [[], []]
         # In case user specified 'by_line', this tuple contains the last partial lines of the
         # 'stdout' and 'stderr' output of the command. In case 'by_line' was 'False', the partial
         # lines will be in 'output'.

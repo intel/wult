@@ -57,7 +57,7 @@ class NdlRunner:
 
         while True:
             stdout, stderr, exitcode = self._ndlrunner.wait_for_cmd(timeout=timeout, by_line=True,
-                                                                    wait_for_exit=False, join=False)
+                                                                    lines=[16, None], join=False)
             if exitcode is not None:
                 msg = self._ndlrunner.cmd_failed_msg(stdout, stderr, exitcode, timeout)
                 raise Error(f"{self._ndlrunner_error_prefix()} has exited unexpectedly\n{msg}")

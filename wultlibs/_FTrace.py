@@ -65,7 +65,7 @@ class FTrace:
 
         while True:
             stdout, stderr, exitcode = self._reader.wait_for_cmd(timeout=self.timeout, by_line=True,
-                                                                 wait_for_exit=False, join=False)
+                                                                 lines=[32, None], join=False)
 
             if not stdout and not stderr and exitcode is None:
                 raise ErrorTimeOut(f"no data in trace buffer for {self._reader.timeout} seconds"
@@ -88,7 +88,7 @@ class FTrace:
         Class constructor. The arguments are as follows.
           * proc - the 'Proc' or 'SSH' object that defines the host to operate on. This object will
                    keep a 'proc' reference and use it in various methods.
-          * timeout - longest time in seconts to wait for data in the trace buffer.
+          * timeout - longest time in seconds to wait for data in the trace buffer.
         """
 
         self._reader = None
