@@ -37,14 +37,13 @@ hostname = "localhost"
 # The exceptions to handle when dealing with file I/O.
 _EXCEPTIONS = (OSError, IOError, BrokenPipeError)
 
-def _stream_fetcher(streamid, proc, by_line):
+def _stream_fetcher(streamid, proc):
     """
     This function runs in a separate thread. All it does is it fetches one of the output streams
     of the executed program (either stdout or stderr) and puts the result into the queue.
     """
 
     ppd = proc._ppd_
-    partial = ""
     stream = ppd.streams[streamid]
     try:
         decoder = codecs.getincrementaldecoder('utf8')(errors="surrogateescape")
@@ -70,22 +69,9 @@ def _stream_fetcher(streamid, proc, by_line):
                 proc._dbg_("stream %d: read more data", streamid)
                 continue
 
-            if not by_line:
-                ppd.queue.put((streamid, data))
-            else:
-                data, partial = _Common.extract_full_lines(partial + data)
-                if data:
-                    proc._dbg_("stream %d: full line: %s", streamid, data[-1])
-                if partial:
-                    proc._dbg_("stream %d: partial line: %s", streamid, partial)
-                for line in data:
-                    ppd.queue.put((streamid, line))
-
+            ppd.queue.put((streamid, data))
     except BaseException as err: # pylint: disable=broad-except
         _LOG.error(err)
-
-    if partial:
-        ppd.queue.put((streamid, partial))
 
     ppd.queue.put((streamid, None))
     proc._dbg_("stream %d: thread exists", streamid)
@@ -123,11 +109,21 @@ def _consume_queue(proc, timeout):
     return contents
 
 def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
-                     wait_for_exit=True):
+                     wait_for_exit=True, by_line=True):
     """Implements '_wait_for_cmd()'."""
+
+    def pick_output(data, streamid):
+        """Pick the output from the stream fetcher."""
+
+        if data:
+            if capture_output:
+                output[streamid].append(data)
+            if output_fobjs[streamid]:
+                output_fobjs[streamid].write(data)
 
     ppd = proc._ppd_
     output = ([], [])
+    partial = ["", ""]
     exitcode = None
     start_time = time.time()
 
@@ -138,13 +134,21 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
                 break
 
             if data is not None:
-                proc._dbg_("wait_for_cmd: got data from stream %d: %s", streamid, data)
-                if capture_output:
-                    output[streamid].append(data)
-                if output_fobjs[streamid]:
-                    output_fobjs[streamid].write(data)
+                proc._dbg_("_do_wait_for_cmd: got data from stream %d: %s", streamid, data)
+                if by_line:
+                    data, partial[streamid] = _Common.extract_full_lines(partial[streamid] + data)
+                    if data and partial[streamid]:
+                        proc._dbg_("_do_wait_for_cmd: stream %d: full lines:\n%s",
+                                   streamid, "".join(data))
+                        proc._dbg_("_do_wait_for_cmd: stream %d: partial line: %s",
+                                   streamid, partial[streamid])
+                    for line in data:
+                        pick_output(line, streamid)
+                else:
+                    pick_output(data, streamid)
             else:
                 proc._dbg_("wait_for_cmd: stream %d closed", streamid)
+                # One of the output streams closed.
                 ppd.threads[streamid].join()
                 ppd.threads[streamid] = ppd.streams[streamid] = None
 
@@ -165,6 +169,10 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
         if not timeout:
             proc._dbg_(f"wait_for_cmd: timeout is {timeout}, exit immediately")
             break
+
+    for streamid, part in enumerate(partial):
+        pick_output(part, streamid)
+
     return output, exitcode
 
 def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
@@ -197,7 +205,7 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
 
     The 'join' argument controls whether the captured output lines should be joined and returned as
     a single string, or no joining is needed and the output should be returned as a list of strings.
-    In the latter case if if 'by_line' is 'True, the output will be a list of full lines, otherwise
+    In the latter case if if 'by_line' is 'True', the output will be a list of full lines, otherwise
     it may be a list of partial lines. Newlines are not stripped in any case.
 
     This function returns a named tuple similar to what the 'run()' function returns.
@@ -227,12 +235,12 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
                 assert ppd.threads[streamid] is None
                 ppd.threads[streamid] = threading.Thread(target=_stream_fetcher,
                                                          name='Procs-stream-fetcher',
-                                                         args=(streamid, proc, by_line),
-                                                         daemon=True)
+                                                         args=(streamid, proc), daemon=True)
                 ppd.threads[streamid].start()
 
     output, exitcode = _do_wait_for_cmd(proc, timeout=timeout, capture_output=capture_output,
-                                        output_fobjs=output_fobjs, wait_for_exit=wait_for_exit)
+                                        output_fobjs=output_fobjs, wait_for_exit=wait_for_exit,
+                                        by_line=by_line)
 
     stdout = stderr = ""
     if output[0]:
