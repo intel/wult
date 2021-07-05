@@ -122,6 +122,51 @@ def _consume_queue(proc, timeout):
         return [(-1, None)]
     return contents
 
+def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
+                     wait_for_exit=True):
+    """Implements '_wait_for_cmd()'."""
+
+    ppd = proc._ppd_
+    output = ([], [])
+    exitcode = None
+    start_time = time.time()
+
+    while True:
+        for streamid, data in _consume_queue(proc, timeout):
+            if streamid == -1:
+                # Nothing in the queue for 'timeout' seconds.
+                break
+
+            if data is not None:
+                proc._dbg_("wait_for_cmd: got data from stream %d: %s", streamid, data)
+                if capture_output:
+                    output[streamid].append(data)
+                if output_fobjs[streamid]:
+                    output_fobjs[streamid].write(data)
+            else:
+                proc._dbg_("wait_for_cmd: stream %d closed", streamid)
+                ppd.threads[streamid].join()
+                ppd.threads[streamid] = ppd.streams[streamid] = None
+
+        if (output[0] or output[1]) and not wait_for_exit:
+            proc._dbg_("wait_for_cmd: got some output, stop waiting for more")
+            break
+
+        if not ppd.streams[0] and not ppd.streams[1]:
+            proc._dbg_("wait_for_cmd: both streams closed")
+            ppd.queue = None
+            exitcode = _wait_timeout(proc, timeout)
+            break
+
+        if timeout is not None and time.time() - start_time >= timeout:
+            proc._dbg_("wait_for_cmd: stop waiting for the command - timeout")
+            break
+
+        if not timeout:
+            proc._dbg_(f"wait_for_cmd: timeout is {timeout}, exit immediately")
+            break
+    return output, exitcode
+
 def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
                   wait_for_exit=True, by_line=True, join=True):
     """
@@ -186,44 +231,8 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
                                                          daemon=True)
                 ppd.threads[streamid].start()
 
-    output = ([], [])
-    exitcode = None
-    start_time = time.time()
-
-    while True:
-        for streamid, data in _consume_queue(proc, timeout):
-            if streamid == -1:
-                # Nothing in the queue for 'timeout' seconds.
-                break
-
-            if data is not None:
-                proc._dbg_("wait_for_cmd: got data from stream %d: %s", streamid, data)
-                if capture_output:
-                    output[streamid].append(data)
-                if output_fobjs[streamid]:
-                    output_fobjs[streamid].write(data)
-            else:
-                proc._dbg_("wait_for_cmd: stream %d closed", streamid)
-                ppd.threads[streamid].join()
-                ppd.threads[streamid] = ppd.streams[streamid] = None
-
-        if (output[0] or output[1]) and not wait_for_exit:
-            proc._dbg_("wait_for_cmd: got some output, stop waiting for more")
-            break
-
-        if not ppd.streams[0] and not ppd.streams[1]:
-            proc._dbg_("wait_for_cmd: both streams closed")
-            ppd.queue = None
-            exitcode = _wait_timeout(proc, timeout)
-            break
-
-        if timeout is not None and time.time() - start_time >= timeout:
-            proc._dbg_("wait_for_cmd: stop waiting for the command - timeout")
-            break
-
-        if not timeout:
-            proc._dbg_(f"wait_for_cmd: timeout is {timeout}, exit immediately")
-            break
+    output, exitcode = _do_wait_for_cmd(proc, timeout=timeout, capture_output=capture_output,
+                                        output_fobjs=output_fobjs, wait_for_exit=wait_for_exit)
 
     stdout = stderr = ""
     if output[0]:
