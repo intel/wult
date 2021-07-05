@@ -123,8 +123,7 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
 
     ppd = proc._ppd_
     output = ([], [])
-    partial = ["", ""]
-    exitcode = None
+    partial = ppd.partial
     start_time = time.time()
 
     while True:
@@ -159,7 +158,7 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
         if not ppd.streams[0] and not ppd.streams[1]:
             proc._dbg_("wait_for_cmd: both streams closed")
             ppd.queue = None
-            exitcode = _wait_timeout(proc, timeout)
+            ppd.exitcode = _wait_timeout(proc, timeout)
             break
 
         if timeout is not None and time.time() - start_time >= timeout:
@@ -170,10 +169,12 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
             proc._dbg_(f"wait_for_cmd: timeout is {timeout}, exit immediately")
             break
 
-    for streamid, part in enumerate(partial):
-        pick_output(part, streamid)
+    if not by_line or ppd.exitcode is not None:
+        for streamid, part in enumerate(partial):
+            pick_output(part, streamid)
+        ppd.partial = ["", ""]
 
-    return output, exitcode
+    return output
 
 def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
                   wait_for_exit=True, by_line=True, join=True):
@@ -238,9 +239,9 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
                                                          args=(streamid, proc), daemon=True)
                 ppd.threads[streamid].start()
 
-    output, exitcode = _do_wait_for_cmd(proc, timeout=timeout, capture_output=capture_output,
-                                        output_fobjs=output_fobjs, wait_for_exit=wait_for_exit,
-                                        by_line=by_line)
+    output = _do_wait_for_cmd(proc, timeout=timeout, capture_output=capture_output,
+                              output_fobjs=output_fobjs, wait_for_exit=wait_for_exit,
+                              by_line=by_line)
 
     stdout = stderr = ""
     if output[0]:
@@ -252,9 +253,8 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
         if join:
             stderr = "".join(stderr)
 
-    proc._dbg_("wait_for_cmd: returning, exitcode %s", exitcode)
-    ppd.exitcode = exitcode
-    return ProcResult(stdout=stdout, stderr=stderr, exitcode=exitcode)
+    proc._dbg_("wait_for_cmd: returning, exitcode %s", ppd.exitcode)
+    return ProcResult(stdout=stdout, stderr=stderr, exitcode=ppd.exitcode)
 
 def _cmd_failed_msg(proc, stdout, stderr, exitcode, startmsg=None, timeout=None):
     """
@@ -310,6 +310,11 @@ class _ProcessPrivateData:
         self.threads_exit = False
         # Exit code of the command ('None' if it is still running).
         self.exitcode = None
+        # In case user specified 'by_line', this tuple contains the last partial lines of the
+        # 'stdout' and 'stderr' output of the command. In case 'by_line' was 'False', the partial
+        # lines will be in 'output'.
+        self.partial = ["", ""]
+
         # The original '__del__()' methods of the Popen object.
         self.orig_del = None
         # Print debugging messages if 'True'.

@@ -147,8 +147,7 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
 
     cpd = chan._cpd_
     output = ([], [])
-    partial = ["", ""]
-    exitcode = None
+    partial = cpd.partial
     start_time = time.time()
 
     while True:
@@ -183,7 +182,7 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
         if not cpd.streams[0] and not cpd.streams[1]:
             chan._dbg_("_do_wait_for_cmd: both streams closed")
             cpd.queue = None
-            exitcode = _recv_exit_status_timeout(chan, timeout)
+            cpd.exitcode = _recv_exit_status_timeout(chan, timeout)
             break
 
         if timeout and time.time() - start_time > timeout:
@@ -194,10 +193,12 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
             chan._dbg_(f"_do_wait_for_cmd: timeout is {timeout}, exit immediately")
             break
 
-    for streamid, part in enumerate(partial):
-        pick_output(part, streamid)
+    if not by_line or cpd.exitcode is not None:
+        for streamid, part in enumerate(partial):
+            pick_output(part, streamid)
+        cpd.partial = ["", ""]
 
-    return output, exitcode
+    return output
 
 def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
                   wait_for_exit=True, by_line=True, join=True, ):
@@ -262,9 +263,9 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
                                                          args=(streamid, chan), daemon=True)
                 cpd.threads[streamid].start()
 
-    output, exitcode = _do_wait_for_cmd(chan, timeout=timeout, capture_output=capture_output,
-                                        output_fobjs=output_fobjs, wait_for_exit=wait_for_exit,
-                                        by_line=by_line)
+    output = _do_wait_for_cmd(chan, timeout=timeout, capture_output=capture_output,
+                              output_fobjs=output_fobjs, wait_for_exit=wait_for_exit,
+                              by_line=by_line)
 
     stdout = stderr = ""
     if output[0]:
@@ -276,9 +277,8 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
         if join:
             stderr = "".join(stderr)
 
-    chan._dbg_("_do_wait_for_cmd: returning, exitcode %s", exitcode)
-    cpd.exitcode = exitcode
-    return ProcResult(stdout=stdout, stderr=stderr, exitcode=exitcode)
+    chan._dbg_("_do_wait_for_cmd: returning, exitcode %s", cpd.exitcode)
+    return ProcResult(stdout=stdout, stderr=stderr, exitcode=cpd.exitcode)
 
 def _poll(chan):
     """
@@ -352,6 +352,11 @@ class _ChannelPrivateData:
         self.threads_exit = False
         # Exit code of the command ('None' if it is still running).
         self.exitcode = None
+        # In case user specified 'by_line', this tuple contains the last partial lines of the
+        # 'stdout' and 'stderr' output of the command. In case 'by_line' was 'False', the partial
+        # lines will be in 'output'.
+        self.partial = ["", ""]
+
         # The original 'close()' and '__del__()' methods of the paramiko channel object.
         self.orig_close = None
         self.orig_del = None
