@@ -411,6 +411,23 @@ def _get_username(uid=None):
     except KeyError as err:
         raise Error("failed to get user name for UID %d:\n%s" % (uid, err)) from None
 
+def _format_command_for_pid(command, cwd=None):
+    """
+    When we rund a command over SSH, we do not know it's PID. But users do need it in many
+    cases in order to be able finding and, for example, killing the processes they run. This
+    function modifies the original user 'command' command so that it prints the PID as the first
+    line of its output to the 'stdout' stream. This requires a shell.
+    """
+
+    # Prepend the command with a shell statement which prints the PID of the shell where the
+    # command will be run. Then use 'exec' to make sure that the command inherits the PID.
+    prefix = r'printf "%s\n" "$$";'
+    if cwd:
+        prefix += f""" cd "{cwd}" &&"""
+
+    # Force unbuffered I/O to be consistent with the 'shell=False' case.
+    return prefix + " exec stdbuf -i0 -o0 -e0 -- " + command
+
 class SSH:
     """
     This class provides API for communicating with remote hosts over SSH.
@@ -420,28 +437,6 @@ class SSH:
     """
 
     Error = Error
-
-    def _run_in_new_session(self, command):
-        """Run command 'command' in a new session."""
-
-        try:
-            chan = self.ssh.get_transport().open_session(timeout=self.connection_timeout)
-            chan.exec_command(command)
-        except (paramiko.SSHException, socket.error) as err:
-            raise Error(f"cannot execute the following command in new SSH session{self.hostmsg}:\n"
-                        "{command}\nReason: {err}") from err
-
-        return chan
-
-    def _run_async_noshell(self, command):
-        """
-        Runs a command in a new session in case usage of shell was prohibited. In most cases the SSH
-        server will run the command in some user shell, but the point is that we are not allowed to
-        use shell.
-        """
-
-        chan = self._run_in_new_session(command)
-        return _add_custom_fields(chan, self, command, None)
 
     def _read_pid(self, chan, command):
         """Return PID of the just executed command."""
@@ -471,33 +466,29 @@ class SSH:
         raise Error(f"failed to read PID for the following command:\n{command}\nWaited for "
                     f"{pid_timeout} seconds, but the PID did not show up in stdout")
 
-    def _run_async(self, command, cwd=None, shell=True):
-        """Implements 'run_async()'."""
+    def _run_in_new_session(self, command, cwd=None, shell=True):
+        """Run command 'command' in a new session."""
 
-        # Allow for 'command' to be a 'pathlib.Path' object which Paramiko does not accept.
-        command = str(command)
-
-        if not shell:
-            return self._run_async_noshell(command)
-
-        # Prepend the command with a shell statement which prints the PID of the shell where the
-        # command will be run. Then use 'exec' to make sure that the command inherits the PID.
-        prefix = r'printf "%s\n" "$$";'
-        if cwd:
-            prefix += f""" cd "{cwd}" &&"""
-        # Force unbuffered I/O to be consistent with the 'shell=False' case.
-        command = prefix + " exec stdbuf -i0 -o0 -e0 -- " + command
+        if shell:
+            command = _format_command_for_pid(command, cwd=cwd)
 
         try:
             chan = self.ssh.get_transport().open_session(timeout=self.connection_timeout)
             chan.exec_command(command)
         except (paramiko.SSHException, socket.error) as err:
-            raise Error(f"cannot execute the following command{self.hostmsg}:\n{command}\nReason: "
-                        f"{err}") from err
+            raise Error(f"cannot execute the following command in new SSH session{self.hostmsg}:\n"
+                        "{command}\nReason: {err}") from err
 
-        # The first line of the output should contain the PID - extract it.
-        pid = self._read_pid(chan, command)
+        if shell:
+            # The first line of the output should contain the PID - extract it.
+            pid = self._read_pid(chan, command)
+
         return _add_custom_fields(chan, self, command, pid)
+
+    def _run_async(self, command, cwd=None, shell=True):
+        """Implements 'run_async()'."""
+
+        return self._run_in_new_session(command, cwd=cwd, shell=shell)
 
     def run_async(self, command, cwd=None, shell=True):
         """
@@ -518,6 +509,9 @@ class SSH:
         ('shell' is 'False') or the integer PID of the executed process on the remote host ('shell'
         is 'True').
         """
+
+        # Allow for 'command' to be a 'pathlib.Path' object which Paramiko does not accept.
+        command = str(command)
 
         if cwd:
             if not shell:
