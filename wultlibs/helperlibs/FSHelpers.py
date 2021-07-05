@@ -478,7 +478,7 @@ def which(program: str, default=_RAISE, proc=None):
                 if not line.startswith("alias"):
                     return Path(line)
             if default is _RAISE:
-                raise ErrorNotFound(f"program '{program}' was not found in $PATH{proc.hostmsg})")
+                raise ErrorNotFound(f"program '{program}' was not found in $PATH{proc.hostmsg}")
             return default
 
         # The 'which' tool exits with status 1 when the program is not found. Any other error code
