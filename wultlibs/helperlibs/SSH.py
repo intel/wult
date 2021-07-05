@@ -30,7 +30,7 @@ import threading
 from pathlib import Path
 import contextlib
 import paramiko
-from wultlibs.helperlibs import _Common, Procs, WrapExceptions
+from wultlibs.helperlibs import _Common, Procs, WrapExceptions, Trivial
 from wultlibs.helperlibs._Common import ProcResult, cmd_failed_msg # pylint: disable=unused-import
 from wultlibs.helperlibs._Common import TIMEOUT
 from wultlibs.helperlibs.Exceptions import Error, ErrorPermissionDenied, ErrorTimeOut, ErrorConnect
@@ -392,7 +392,7 @@ class _ChannelPrivateData:
         # message related to different processes.
         self.debug_id = "stream"
 
-def _add_custom_fields(chan, ssh, cmd, pid):
+def _add_custom_fields(chan, ssh, cmd):
     """Add a couple of custom fields to the paramiko channel object."""
 
     cpd = chan._cpd_ = _ChannelPrivateData()
@@ -422,8 +422,6 @@ def _add_custom_fields(chan, ssh, cmd, pid):
     chan.hostname = ssh.hostname
     chan.cmd = cmd
     chan.timeout = TIMEOUT
-    if pid is not None:
-        chan.pid = pid
     chan.close = types.MethodType(_close, chan)
 
     chan._dbg_ = types.MethodType(_dbg, chan)
@@ -476,32 +474,27 @@ class SSH:
     Error = Error
 
     def _read_pid(self, chan, command):
-        """Return PID of the just executed command."""
+        """Return PID of just executed command."""
 
-        pid = []
-        pid_timeout = 10
-        time_before = time.time()
-        decoder = codecs.getincrementaldecoder('utf8')(errors="surrogateescape")
-        while time.time() - time_before < pid_timeout:
-            buf = chan.recv(1)
-            if not buf:
-                # No data received, which means that the channel is closed.
-                status = chan.recv_exit_status()
-                raise Error(f"cannot execute the following command{self.hostmsg}:\n{command}\n"
-                            f"The process exited with status {status}")
+        timeout = 10
+        stdout, stderr, exitcode = _wait_for_cmd(chan, timeout=timeout, lines=(1, None),
+                                                 by_line=True, join=False)
+        if exitcode is not None or stderr:
+            msg = "failed to get PID of the command."
+            raise Error(self.cmd_failed_msg(command, stdout, stderr, exitcode, startmsg=msg,
+                                            timeout=timeout))
 
-            buf = decoder.decode(buf)
-            if not buf:
-                continue
-            if buf == "\n":
-                return int("".join(pid))
-            pid.append(buf)
-            if len(pid) > 128:
-                raise Error(f"received the following {len(pid)} PID characters without "
-                            f"newline:\n{''.join(pid)}")
+        assert len(stdout) == 1
+        pid = stdout[0].strip()
 
-        raise Error(f"failed to read PID for the following command:\n{command}\nWaited for "
-                    f"{pid_timeout} seconds, but the PID did not show up in stdout")
+        if len(pid) > 128:
+            raise Error(f"received too long and probably bogus PID: {pid}\n"
+                        f"The command{self.hostmsg} was:\n{command}")
+        if not Trivial.is_int(pid):
+            raise Error(f"received a bogus non-integer PID: {pid}\n"
+                        f"The command{self.hostmsg} was:\n{command}")
+
+        return int(pid)
 
     def _run_in_new_session(self, command, cwd=None, shell=True):
         """Run command 'command' in a new session."""
@@ -516,11 +509,13 @@ class SSH:
             raise Error(f"cannot execute the following command in new SSH session{self.hostmsg}:\n"
                         "{command}\nReason: {err}") from err
 
+        _add_custom_fields(chan, self, command)
+
         if shell:
             # The first line of the output should contain the PID - extract it.
-            pid = self._read_pid(chan, command)
+            chan.pid = self._read_pid(chan, command)
 
-        return _add_custom_fields(chan, self, command, pid)
+        return chan
 
     def _run_async(self, command, cwd=None, shell=True):
         """Implements 'run_async()'."""
