@@ -43,14 +43,13 @@ logging.getLogger("paramiko").setLevel(logging.WARNING)
 # The exceptions to handle when dealing with paramiko.
 _PARAMIKO_EXCEPTIONS = (OSError, IOError, paramiko.SSHException, socket.error)
 
-def _stream_fetcher(streamid, chan, by_line):
+def _stream_fetcher(streamid, chan):
     """
     This function runs in a separate thread. All it does is it fetches one of the output streams
     of the executed program (either stdout or stderr) and puts the result into the queue.
     """
 
     cpd = chan._cpd_
-    partial = ""
     read_func = cpd.streams[streamid]
     decoder = codecs.getincrementaldecoder('utf8')(errors="surrogateescape")
 
@@ -77,22 +76,9 @@ def _stream_fetcher(streamid, chan, by_line):
                 continue
 
             chan._dbg_("stream %d: read data: %s", streamid, data)
-
-            if not by_line:
-                cpd.queue.put((streamid, data))
-            else:
-                data, partial = _Common.extract_full_lines(partial + data)
-                if data:
-                    chan._dbg_("stream %d: full line: %s", streamid, data[-1])
-                if partial:
-                    chan._dbg_("stream %d: partial line: %s", streamid, partial)
-                for line in data:
-                    cpd.queue.put((streamid, line))
+            cpd.queue.put((streamid, data))
     except BaseException as err: # pylint: disable=broad-except
         _LOG.error(err)
-
-    if partial:
-        cpd.queue.put((streamid, partial))
 
     # The end of stream indicator.
     cpd.queue.put((streamid, None))
@@ -147,11 +133,21 @@ def _consume_queue(chan, timeout):
     return contents
 
 def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
-                     wait_for_exit=True):
+                     wait_for_exit=True, by_line=True):
     """Implements '_wait_for_cmd()'."""
+
+    def pick_output(data, streamid):
+        """Pick the output from the stream fetcher."""
+
+        if data:
+            if capture_output:
+                output[streamid].append(data)
+            if output_fobjs[streamid]:
+                output_fobjs[streamid].write(data)
 
     cpd = chan._cpd_
     output = ([], [])
+    partial = ["", ""]
     exitcode = None
     start_time = time.time()
 
@@ -163,10 +159,17 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
 
             if data is not None:
                 chan._dbg_("_do_wait_for_cmd: got data from stream %d: %s", streamid, data)
-                if capture_output:
-                    output[streamid].append(data)
-                if output_fobjs[streamid]:
-                    output_fobjs[streamid].write(data)
+                if by_line:
+                    data, partial[streamid] = _Common.extract_full_lines(partial[streamid] + data)
+                    if data and partial[streamid]:
+                        chan._dbg_("_do_wait_for_cmd: stream %d: full lines:\n%s",
+                                   streamid, "".join(data))
+                        chan._dbg_("_do_wait_for_cmd: stream %d: partial line: %s",
+                                   streamid, partial[streamid])
+                    for line in data:
+                        pick_output(line, streamid)
+                else:
+                    pick_output(data, streamid)
             else:
                 chan._dbg_("_do_wait_for_cmd: stream %d closed", streamid)
                 # One of the output streams closed.
@@ -191,10 +194,13 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
             chan._dbg_(f"_do_wait_for_cmd: timeout is {timeout}, exit immediately")
             break
 
+    for streamid, part in enumerate(partial):
+        pick_output(part, streamid)
+
     return output, exitcode
 
 def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
-                  wait_for_exit=True, by_line=True, join=True):
+                  wait_for_exit=True, by_line=True, join=True, ):
     """
     This function waits for a command executed with the 'SSH.run_async()' function to finish or
     print something to stdout or stderr.
@@ -223,7 +229,7 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
 
     The 'join' argument controls whether the captured output lines should be joined and returned as
     a single string, or no joining is needed and the output should be returned as a list of strings.
-    In the latter case if if 'by_line' is 'True, the output will be a list of full lines, otherwise
+    In the latter case if if 'by_line' is 'True', the output will be a list of full lines, otherwise
     it may be a list of partial lines. Newlines are not stripped in any case.
 
     This function returns a named tuple similar to what the 'run()' function returns.
@@ -253,12 +259,12 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
                 assert cpd.threads[streamid] is None
                 cpd.threads[streamid] = threading.Thread(target=_stream_fetcher,
                                                          name='SSH-stream-fetcher',
-                                                         args=(streamid, chan, by_line),
-                                                         daemon=True)
+                                                         args=(streamid, chan), daemon=True)
                 cpd.threads[streamid].start()
 
     output, exitcode = _do_wait_for_cmd(chan, timeout=timeout, capture_output=capture_output,
-                                        output_fobjs=output_fobjs, wait_for_exit=wait_for_exit)
+                                        output_fobjs=output_fobjs, wait_for_exit=wait_for_exit,
+                                        by_line=by_line)
 
     stdout = stderr = ""
     if output[0]:
