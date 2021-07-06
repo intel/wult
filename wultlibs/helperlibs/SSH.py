@@ -221,7 +221,8 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
                str(pd.check_ll), str(pd.ll), partial, str(output))
 
     while not enough_lines:
-        for streamid, data in _Common.consume_queue(pd.queue, timeout):
+        while True:
+            streamid, data = _Common.get_next_queue_item(pd.queue, timeout)
             if streamid == -1:
                 chan._dbg_("_do_wait_for_cmd_intsh: nothing in the queue for %d seconds", timeout)
                 break
@@ -248,12 +249,7 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
                 enough_lines = True
                 break
 
-            # If the marker was met, 'pd.exitcode' will contain the exit code of the command.
-            # However, we should continue consuming the queue, because it may have bits of 'stderr'
-            # output still left there.
-            if pd.exitcode and pd.queue.empty():
-                chan._dbg_("_do_wait_for_cmd_intsh: exitcode %d and queue is empty, stop",
-                           pd.exitcode)
+            if pd.exitcode is not None:
                 break
 
         if pd.exitcode is not None:
@@ -298,7 +294,12 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
     chan._dbg_("_do_wait_for_cmd: starting with partial: %s, output:\n%s", partial, str(output))
 
     while not enough_lines:
-        for streamid, data in _Common.consume_queue(pd.queue, timeout):
+        while True:
+            streamid, data = _Common.get_next_queue_item(pd.queue, timeout)
+            if streamid == -1:
+                chan._dbg_("_do_wait_for_cmd_intsh: nothing in the queue for %d seconds", timeout)
+                break
+
             if data is not None:
                 _Common.capture_data(chan, streamid, data, capture_output=capture_output,
                                      output_fobjs=output_fobjs, by_line=by_line)
@@ -308,6 +309,12 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
                 pd.threads[streamid].join()
                 pd.threads[streamid] = pd.streams[streamid] = None
 
+                if not pd.streams[0] and not pd.streams[1]:
+                    chan._dbg_("_do_wait_for_cmd: both streams closed")
+                    pd.queue = None
+                    pd.exitcode = _recv_exit_status_timeout(chan, timeout)
+                    break
+
             if lines[streamid] is not None and len(output[streamid]) >= lines[streamid]:
                 # We read enough lines for this stream.
                 chan._dbg_("_do_wait_for_cmd: stream %d: read %d lines",
@@ -315,10 +322,8 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
                 enough_lines = True
                 break
 
-        if not pd.streams[0] and not pd.streams[1]:
-            chan._dbg_("_do_wait_for_cmd: both streams closed")
-            pd.queue = None
-            pd.exitcode = _recv_exit_status_timeout(chan, timeout)
+        if pd.exitcode is not None:
+            chan._dbg_("_do_wait_for_cmd: process exited with status %d", pd.exitcode)
             break
 
         if timeout and time.time() - start_time > timeout:

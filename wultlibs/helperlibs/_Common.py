@@ -25,23 +25,18 @@ TIMEOUT = 4 * 60 * 60
 # Results of a the process execution.
 ProcResult = namedtuple("proc_result", ["stdout", "stderr", "exitcode"])
 
-def consume_queue(qobj, timeout):
+def get_next_queue_item(qobj, timeout):
     """
-    This is a common function for 'Procs' and 'SSH'. It reads and yields all the data from the
-    'qobj' queue. Yields '(-1, None)' in case of time out.
+    This is a common function for 'Procs' and 'SSH'. It reads the next data item from the 'qobj'
+    queue. Returns '(-1, None)' in case of time out.
     """
 
     try:
         if timeout:
-            yield qobj.get(timeout=timeout)
-        else:
-            yield qobj.get(block=False)
+            return qobj.get(timeout=timeout)
+        return qobj.get(block=False)
     except queue.Empty:
-        yield (-1, None)
-
-    # Consume the rest of the queue.
-    while not qobj.empty():
-        yield qobj.get()
+        return (-1, None)
 
 def capture_data(proc, streamid, data, capture_output=True, output_fobjs=(None, None),
                   by_line=True):

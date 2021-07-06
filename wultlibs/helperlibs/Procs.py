@@ -101,19 +101,26 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
     proc._dbg_("_do_wait_for_cmd: starting with partial: %s, output:\n%s", partial, str(output))
 
     while not enough_lines:
-        for streamid, data in _Common.consume_queue(pd.queue, timeout):
+        while True:
+            streamid, data = _Common.get_next_queue_item(pd.queue, timeout)
             if streamid == -1:
-                proc._dbg_("_do_wait_for_cmd_intsh: nothing in the queue for %d seconds", timeout)
+                proc._dbg_("_do_wait_for_cmd: nothing in the queue for %d seconds", timeout)
                 break
 
             if data is not None:
                 _Common.capture_data(proc, streamid, data, capture_output=capture_output,
                                      output_fobjs=output_fobjs, by_line=by_line)
             else:
-                proc._dbg_("wait_for_cmd: stream %d closed", streamid)
+                proc._dbg_("_do_wait_for_cmd: stream %d closed", streamid)
                 # One of the output streams closed.
                 pd.threads[streamid].join()
                 pd.threads[streamid] = pd.streams[streamid] = None
+
+                if not pd.streams[0] and not pd.streams[1]:
+                    proc._dbg_("_do_wait_for_cmd: both streams closed")
+                    pd.queue = None
+                    pd.exitcode = _wait_timeout(proc, timeout)
+                    break
 
             if lines[streamid] is not None and len(output[streamid]) >= lines[streamid]:
                 # We read enough lines for this stream.
@@ -122,18 +129,16 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
                 enough_lines = True
                 break
 
-        if not pd.streams[0] and not pd.streams[1]:
-            proc._dbg_("wait_for_cmd: both streams closed")
-            pd.queue = None
-            pd.exitcode = _wait_timeout(proc, timeout)
+        if pd.exitcode is not None:
+            proc._dbg_("_do_wait_for_cmd: process exited with status %d", pd.exitcode)
             break
 
         if timeout is not None and time.time() - start_time >= timeout:
-            proc._dbg_("wait_for_cmd: stop waiting for the command - timeout")
+            proc._dbg_("_do_wait_for_cmd: stop waiting for the command - timeout")
             break
 
         if not timeout:
-            proc._dbg_(f"wait_for_cmd: timeout is {timeout}, exit immediately")
+            proc._dbg_(f"_do_wait_for_cmd: timeout is {timeout}, exit immediately")
             break
 
     return _Common.get_lines_to_return(proc, capture_output=capture_output,
