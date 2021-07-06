@@ -426,7 +426,7 @@ def _do_run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=
     return _add_custom_fields(proc, cmd)
 
 def run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=None, env=None,
-              shell=False, newgrp=False):
+              shell=False, newgrp=False, intsh=False): # pylint: disable=unused-argument
     """
     A helper function to run an external command asynchronously. The 'command' argument should be a
     string containing the command to run. The 'stdin', 'stdout', and 'stderr' parameters can be one
@@ -438,6 +438,9 @@ def run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=None
     The 'bufsize', 'cwd','env' and 'shell' arguments are the same as in 'Popen()'.
 
     If the 'newgrp' argument is 'True', then new process gets new session ID.
+
+    The 'intsh' argument is not used. It is present only for API compatibility between 'Procs' and
+    'SSH'.
 
     Returns the 'Popen' object of the executed process.
     """
@@ -452,7 +455,8 @@ def run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=None
                          cwd=cwd, env=env, shell=shell, newgrp=newgrp)
 
 def run(command, timeout=None, capture_output=True, mix_output=False, join=True,
-        output_fobjs=(None, None), bufsize=0, cwd=None, env=None, shell=False, newgrp=False):
+        output_fobjs=(None, None), bufsize=0, cwd=None, env=None, shell=False, newgrp=False,
+        intsh=True): # pylint: disable=unused-argument
     """
     Run command 'command' on the remote host and block until it finishes. The 'command' argument
     should be a string.
@@ -492,6 +496,9 @@ def run(command, timeout=None, capture_output=True, mix_output=False, join=True,
 
     If the 'capture_output' argument is not 'True', the 'stdout' and 'stderr' parts of the returned
     tuple will be an empty string.
+
+    The 'intsh' argument is not used. It is present only for API compatibility between 'Procs' and
+    'SSH'.
     """
 
     if cwd:
@@ -529,14 +536,14 @@ def run(command, timeout=None, capture_output=True, mix_output=False, join=True,
 
 def run_verify(command, timeout=None, capture_output=True, mix_output=False, join=True,
                output_fobjs=(None, None), bufsize=0, cwd=None, env=None, shell=False,
-               newgrp=False):
+               newgrp=False, intsh=True):
     """
     Same as 'run()' but verifies the command's exit code and raises an exception if it is not 0.
     """
 
     result = run(command, timeout=timeout, capture_output=capture_output, mix_output=mix_output,
                  join=join, output_fobjs=output_fobjs, bufsize=bufsize, cwd=cwd, env=env,
-                 shell=shell, newgrp=newgrp)
+                 shell=shell, newgrp=newgrp, intsh=intsh)
     if result.exitcode == 0:
         return (result.stdout, result.stderr)
 
