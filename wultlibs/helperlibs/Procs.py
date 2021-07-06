@@ -89,25 +89,6 @@ def _wait_timeout(proc, timeout):
     proc._dbg_("_wait_timeout: exit status %d", exitcode)
     return exitcode
 
-def _consume_queue(proc, timeout):
-    """Read out the entire queue."""
-
-    ppd = proc._ppd_
-    contents = []
-    with contextlib.suppress(queue.Empty):
-        if timeout:
-            item = ppd.queue.get(timeout=timeout)
-        else:
-            item = ppd.queue.get(block=False)
-        contents.append(item)
-        # Consume the rest of the queue.
-        while not ppd.queue.empty():
-            contents.append(ppd.queue.get())
-
-    if not contents:
-        return [(-1, None)]
-    return contents
-
 def _capture_data(proc, streamid, data, output, partial, capture_output=True,
                   output_fobjs=(None, None), by_line=True):
     """
@@ -170,7 +151,7 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
     proc._dbg_("_do_wait_for_cmd: starting with partial: %s, output:\n%s", partial, str(output))
 
     while not enough_lines:
-        for streamid, data in _consume_queue(proc, timeout):
+        for streamid, data in _Common.consume_queue(ppd.queue, timeout):
             if streamid == -1:
                 proc._dbg_("_do_wait_for_cmd_intsh: nothing in the queue for %d seconds", timeout)
                 break

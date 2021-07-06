@@ -12,6 +12,7 @@ supposed to be imported directly by users.
 """
 
 import re
+import queue
 import logging
 from collections import namedtuple
 from wultlibs.helperlibs import Human
@@ -23,6 +24,24 @@ TIMEOUT = 4 * 60 * 60
 
 # Results of a the process execution.
 ProcResult = namedtuple("proc_result", ["stdout", "stderr", "exitcode"])
+
+def consume_queue(qobj, timeout):
+    """
+    This is a common function for 'Procs' and 'SSH'. It reads and yields all the data from the
+    'qobj' queue. Yields '(-1, None)' in case of time out.
+    """
+
+    try:
+        if timeout:
+            yield qobj.get(timeout=timeout)
+        else:
+            yield qobj.get(block=False)
+    except queue.Empty:
+        yield (-1, None)
+
+    # Consume the rest of the queue.
+    while not qobj.empty():
+        yield qobj.get()
 
 def cmd_failed_msg(command, stdout, stderr, exitcode, hostname=None, startmsg=None, timeout=None):
     """

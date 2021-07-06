@@ -129,27 +129,6 @@ def _recv_exit_status_timeout(chan, timeout):
     chan._dbg_("_recv_exit_status_timeout: exit status %d", exitcode)
     return exitcode
 
-def _consume_queue(chan, timeout):
-    """Read out the entire queue."""
-
-    # Channel's private data.
-    cpd = chan._cpd_
-    contents = []
-
-    with contextlib.suppress(queue.Empty):
-        if timeout:
-            item = cpd.queue.get(timeout=timeout)
-        else:
-            item = cpd.queue.get(block=False)
-        contents.append(item)
-        # Consume the rest of the queue.
-        while not cpd.queue.empty():
-            contents.append(cpd.queue.get())
-
-    if not contents:
-        return [(-1, None)]
-    return contents
-
 def _capture_data(chan, streamid, data, output, partial, capture_output=True,
                   output_fobjs=(None, None), by_line=True):
     """
@@ -291,7 +270,7 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
                str(cpd.check_ll), str(cpd.ll), partial, str(output))
 
     while not enough_lines:
-        for streamid, data in _consume_queue(chan, timeout):
+        for streamid, data in _Common.consume_queue(cpd.queue, timeout):
             if streamid == -1:
                 chan._dbg_("_do_wait_for_cmd_intsh: nothing in the queue for %d seconds", timeout)
                 break
@@ -371,11 +350,7 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
     chan._dbg_("_do_wait_for_cmd: starting with partial: %s, output:\n%s", partial, str(output))
 
     while not enough_lines:
-        for streamid, data in _consume_queue(chan, timeout):
-            if streamid == -1:
-                chan._dbg_("_do_wait_for_cmd_intsh: nothing in the queue for %d seconds", timeout)
-                break
-
+        for streamid, data in _Common.consume_queue(cpd.queue, timeout):
             if data is not None:
                 _capture_data(chan, streamid, data, output, partial, capture_output=capture_output,
                               output_fobjs=output_fobjs, by_line=by_line)
