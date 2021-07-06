@@ -162,6 +162,25 @@ def _capture_data(chan, streamid, data, output, partial, capture_output=True,
     else:
         _save_data(data, streamid)
 
+def _get_lines_to_return(cpd, lines=(None, None)):
+    """
+    Figure out what part of the captured command output should be returned to the user, and what
+    part should stay in 'cpd.output', depending on the lines limit 'lines'.
+    """
+
+    output = [[], []]
+
+    for streamid in (0, 1):
+        limit = lines[streamid]
+        if limit is None or len(cpd.output[streamid]) <= limit:
+            output[streamid] = cpd.output[streamid]
+            cpd.output[streamid] = []
+        else:
+            output[streamid] = cpd.output[streamid][:limit]
+            cpd.output[streamid] = cpd.output[streamid][limit:]
+
+    return output
+
 def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
                      lines=(None, None), by_line=True):
     """Implements '_wait_for_cmd()'."""
@@ -214,18 +233,7 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
                           output_fobjs=output_fobjs, by_line=False)
         cpd.partial = ["", ""]
 
-    # This is what we'll return to the user. The rest will stay in 'cpd.output'.
-    output = list(output)
-
-    for streamid in (0, 1):
-        limit = lines[streamid]
-        if limit is None or len(output[streamid]) <= limit:
-            cpd.output[streamid] = []
-        else:
-            output[streamid] = output[streamid][:limit]
-            cpd.output[streamid] = cpd.output[streamid][limit:]
-
-    return output
+    return _get_lines_to_return(cpd, lines=lines)
 
 def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
                   lines=(None, None), by_line=True, join=True):

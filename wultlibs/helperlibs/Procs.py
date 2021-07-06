@@ -138,6 +138,25 @@ def _capture_data(proc, streamid, data, output, partial, capture_output=True,
     else:
         _save_output(data, streamid)
 
+def _get_lines_to_return(ppd, lines=(None, None)):
+    """
+    Figure out what part of the captured command output should be returned to the user, and what
+    part should stay in 'ppd.output', depending on the lines limit 'lines'.
+    """
+
+    output = [[], []]
+
+    for streamid in (0, 1):
+        limit = lines[streamid]
+        if limit is None or len(ppd.output[streamid]) <= limit:
+            output[streamid] = ppd.output[streamid]
+            ppd.output[streamid] = []
+        else:
+            output[streamid] = ppd.output[streamid][:limit]
+            ppd.output[streamid] = ppd.output[streamid][limit:]
+
+    return output
+
 def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
                      lines=(None, None), by_line=True):
     """Implements '_wait_for_cmd()'."""
@@ -190,18 +209,7 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
                           output_fobjs=output_fobjs, by_line=False)
         ppd.partial = ["", ""]
 
-    # This is what we'll return to the user. The rest will stay in 'ppd.output'.
-    output = list(output)
-
-    for streamid in (0, 1):
-        limit = lines[streamid]
-        if limit is None or len(output[streamid]) <= limit:
-            ppd.output[streamid] = []
-        else:
-            output[streamid] = output[streamid][:limit]
-            ppd.output[streamid] = ppd.output[streamid][limit:]
-
-    return output
+    return _get_lines_to_return(ppd, lines=lines)
 
 def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
                   lines=(None, None), by_line=True, join=True):
