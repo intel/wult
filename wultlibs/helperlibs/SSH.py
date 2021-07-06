@@ -132,18 +132,39 @@ def _consume_queue(chan, timeout):
         return [(-1, None)]
     return contents
 
-def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
-                     lines=(None, None), by_line=True):
-    """Implements '_wait_for_cmd()'."""
+def _capture_data(chan, streamid, data, output, partial, capture_output=True,
+                  output_fobjs=(None, None), by_line=True):
+    """
+    A helper for '_do_wait_for_cmd()' that captures data 'data' from the 'streamid' stream
+    fetcher thread. The arguments are the same as in '_do_wait_for_cmd()'.
+    """
 
-    def pick_output(data, streamid):
-        """Pick the output from the stream fetcher."""
+    def _save_data(data, streamid):
+        """Save a piece of output data 'data' from the 'streamid' stream fetcher."""
 
         if data:
             if capture_output:
                 output[streamid].append(data)
             if output_fobjs[streamid]:
                 output_fobjs[streamid].write(data)
+
+    chan._dbg_("_capture_data: stream %d: %s", streamid, data)
+
+    if by_line:
+        data, partial[streamid] = _Common.extract_full_lines(partial[streamid] + data)
+        if data and partial[streamid]:
+            chan._dbg_("_capture_data: stream %d: full lines:\n%s",
+                       streamid, "".join(data))
+            chan._dbg_("_capture_data: stream %d: partial line: %s",
+                       streamid, partial[streamid])
+        for line in data:
+            _save_data(line, streamid)
+    else:
+        _save_data(data, streamid)
+
+def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
+                     lines=(None, None), by_line=True):
+    """Implements '_wait_for_cmd()'."""
 
     cpd = chan._cpd_
     output = cpd.output
@@ -158,18 +179,8 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
                 break
 
             if data is not None:
-                chan._dbg_("_do_wait_for_cmd: got data from stream %d: %s", streamid, data)
-                if by_line:
-                    data, partial[streamid] = _Common.extract_full_lines(partial[streamid] + data)
-                    if data and partial[streamid]:
-                        chan._dbg_("_do_wait_for_cmd: stream %d: full lines:\n%s",
-                                   streamid, "".join(data))
-                        chan._dbg_("_do_wait_for_cmd: stream %d: partial line: %s",
-                                   streamid, partial[streamid])
-                    for line in data:
-                        pick_output(line, streamid)
-                else:
-                    pick_output(data, streamid)
+                _capture_data(chan, streamid, data, output, partial, capture_output=capture_output,
+                              output_fobjs=output_fobjs, by_line=by_line)
             else:
                 chan._dbg_("_do_wait_for_cmd: stream %d closed", streamid)
                 # One of the output streams closed.
@@ -199,7 +210,8 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
 
     if not by_line or cpd.exitcode is not None:
         for streamid, part in enumerate(partial):
-            pick_output(part, streamid)
+            _capture_data(chan, streamid, part, output, partial, capture_output=capture_output,
+                          output_fobjs=output_fobjs, by_line=False)
         cpd.partial = ["", ""]
 
     # This is what we'll return to the user. The rest will stay in 'cpd.output'.

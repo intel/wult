@@ -108,18 +108,39 @@ def _consume_queue(proc, timeout):
         return [(-1, None)]
     return contents
 
-def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
-                     lines=(None, None), by_line=True):
-    """Implements '_wait_for_cmd()'."""
+def _capture_data(proc, streamid, data, output, partial, capture_output=True,
+                  output_fobjs=(None, None), by_line=True):
+    """
+    A helper for '_do_wait_for_cmd()' that captures data 'data' from the 'streamid' stream
+    fetcher thread. The arguments are the same as in '_do_wait_for_cmd()'.
+    """
 
-    def pick_output(data, streamid):
-        """Pick the output from the stream fetcher."""
+    def _save_output(data, streamid):
+        """Save a piece of output data 'data' from the 'streamid' stream fetcher."""
 
         if data:
             if capture_output:
                 output[streamid].append(data)
             if output_fobjs[streamid]:
                 output_fobjs[streamid].write(data)
+
+    proc._dbg_("_do_wait_for_cmd: got data from stream %d: %s", streamid, data)
+
+    if by_line:
+        data, partial[streamid] = _Common.extract_full_lines(partial[streamid] + data)
+        if data and partial[streamid]:
+            proc._dbg_("_do_wait_for_cmd: stream %d: full lines:\n%s",
+                       streamid, "".join(data))
+            proc._dbg_("_do_wait_for_cmd: stream %d: partial line: %s",
+                       streamid, partial[streamid])
+        for line in data:
+            _save_output(line, streamid)
+    else:
+        _save_output(data, streamid)
+
+def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
+                     lines=(None, None), by_line=True):
+    """Implements '_wait_for_cmd()'."""
 
     ppd = proc._ppd_
     output = ppd.output
@@ -134,18 +155,8 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
                 break
 
             if data is not None:
-                proc._dbg_("_do_wait_for_cmd: got data from stream %d: %s", streamid, data)
-                if by_line:
-                    data, partial[streamid] = _Common.extract_full_lines(partial[streamid] + data)
-                    if data and partial[streamid]:
-                        proc._dbg_("_do_wait_for_cmd: stream %d: full lines:\n%s",
-                                   streamid, "".join(data))
-                        proc._dbg_("_do_wait_for_cmd: stream %d: partial line: %s",
-                                   streamid, partial[streamid])
-                    for line in data:
-                        pick_output(line, streamid)
-                else:
-                    pick_output(data, streamid)
+                _capture_data(proc, streamid, data, output, partial, capture_output=capture_output,
+                              output_fobjs=output_fobjs, by_line=by_line)
             else:
                 proc._dbg_("wait_for_cmd: stream %d closed", streamid)
                 # One of the output streams closed.
@@ -175,7 +186,8 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
 
     if not by_line or ppd.exitcode is not None:
         for streamid, part in enumerate(partial):
-            pick_output(part, streamid)
+            _capture_data(proc, streamid, part, output, partial, capture_output=capture_output,
+                          output_fobjs=output_fobjs, by_line=False)
         ppd.partial = ["", ""]
 
     # This is what we'll return to the user. The rest will stay in 'ppd.output'.
