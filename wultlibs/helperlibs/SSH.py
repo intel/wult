@@ -852,7 +852,7 @@ class SSH:
         return self._run_async(str(command), cwd=cwd, shell=shell, intsh=intsh)
 
     def run(self, command, timeout=None, capture_output=True, mix_output=False, join=True,
-            output_fobjs=(None, None), cwd=None, shell=True, intsh=False): # pylint: disable=unused-argument
+            output_fobjs=(None, None), cwd=None, shell=True, intsh=None): # pylint: disable=unused-argument
         """
         Run command 'command' on the remote host and block until it finishes. The 'command' argument
         should be a string.
@@ -887,6 +887,8 @@ class SSH:
 
         The 'intsh' argument indicates whether the command should run in an interactive shell or in
         a separate SSH session. The former is faster because creating a new SSH session takes time.
+        By default, 'intsh' is the same as 'shell' ('True' if using shell is allowed, 'False'
+        otherwise).
 
         This function returns an named tuple of (exitcode, stdout, stderr), where
           o 'stdout' is the output of the executed command to stdout
@@ -905,6 +907,9 @@ class SSH:
         if cwd:
             msg += f"\nWorking directory: {cwd}"
         _LOG.debug(msg)
+
+        if intsh is None:
+            intsh = shell
 
         # Execute the command on the remote host.
         chan = self._run_async(command, cwd=cwd, shell=shell, intsh=intsh)
@@ -931,7 +936,7 @@ class SSH:
         return result
 
     def run_verify(self, command, timeout=None, capture_output=True, mix_output=False,
-                   join=True, output_fobjs=(None, None), cwd=None, shell=True, intsh=False):
+                   join=True, output_fobjs=(None, None), cwd=None, shell=True, intsh=None):
         """
         Same as the "run()" method, but also verifies the exit status and if the command failed,
         raises the "Error" exception.
