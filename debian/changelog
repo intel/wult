@@ -3,8 +3,9 @@ wult (1.9.3) unstable; urgency=low
   * wult: add new driver: hrtimer.
   * wult: add POLL idle state support.
   * wult/ndl: add '--keep-filtered' option for start command.
-  * wult/ndl: remove broken "advanced" options
-  * wult: fix 'stats-collect' deployment
+  * wult/ndl: remove broken "advanced" options.
+  * wult: fix 'stats-collect' deployment.
+  * wult/ndl: fix speed problems when working with a remote host.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 29 Jun 2021 18:51:57 +0300
 
