@@ -222,6 +222,9 @@ def _watch_for_marker(chan, data):
     exitcode = None
     cdata = None
 
+    chan._dbg_("_watch_for_marker: starting with cpd.check_ll %s, cpd.ll: %s, data:\n%s",
+               str(cpd.check_ll), str(cpd.ll), data)
+
     split = data.rsplit("\n", 1)
     if len(split) > 1:
         # We have got a new line. This is our new marker suspect. Keep it in 'cpd.ll', while old
@@ -264,7 +267,7 @@ def _watch_for_marker(chan, data):
 
         exitcode = int(exitcode)
 
-    chan._dbg_("_watch_for_marker: cpd.check_ll %s, cpd.ll %s, exitcode %s, cdata:\n%s",
+    chan._dbg_("_watch_for_marker: ending with cpd.check_ll %s, cpd.ll %s, exitcode %s, cdata:\n%s",
                str(cpd.check_ll), cpd.ll, str(exitcode), cdata)
 
     return (cdata, exitcode)
@@ -290,7 +293,7 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
     while not enough_lines:
         for streamid, data in _consume_queue(chan, timeout):
             if streamid == -1:
-                # Nothing in the queue for 'timeout' seconds.
+                chan._dbg_("_do_wait_for_cmd_intsh: nothing in the queue for %d seconds", timeout)
                 break
 
             if data is None:
@@ -319,6 +322,8 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
             # However, we should continue consuming the queue, because it may have bits of 'stderr'
             # output still left there.
             if cpd.exitcode and cpd.queue.empty():
+                chan._dbg_("_do_wait_for_cmd_intsh: exitcode %d and queue is empty, stop",
+                           cpd.exitcode)
                 break
 
         if cpd.exitcode is not None:
@@ -368,7 +373,7 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
     while not enough_lines:
         for streamid, data in _consume_queue(chan, timeout):
             if streamid == -1:
-                # Nothing in the queue for 'timeout' seconds.
+                chan._dbg_("_do_wait_for_cmd_intsh: nothing in the queue for %d seconds", timeout)
                 break
 
             if data is not None:

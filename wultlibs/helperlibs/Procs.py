@@ -172,7 +172,7 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
     while not enough_lines:
         for streamid, data in _consume_queue(proc, timeout):
             if streamid == -1:
-                # Nothing in the queue for 'timeout' seconds.
+                proc._dbg_("_do_wait_for_cmd_intsh: nothing in the queue for %d seconds", timeout)
                 break
 
             if data is not None:
