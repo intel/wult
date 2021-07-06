@@ -268,11 +268,8 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
             chan._dbg_(f"_do_wait_for_cmd_intsh: timeout is {timeout}, exit immediately")
             break
 
-    if not by_line or pd.exitcode is not None:
-        for streamid, part in enumerate(partial):
-            _Common.capture_data(chan, streamid, part, capture_output=capture_output,
-                                 output_fobjs=output_fobjs, by_line=False)
-        pd.partial = ["", ""]
+    result = _Common.get_lines_to_return(chan, capture_output=capture_output,
+                                         output_fobjs=output_fobjs, lines=lines, by_line=by_line)
 
     if pd.exitcode is not None:
         # Mark the interactive shell process as vacant.
@@ -283,7 +280,7 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
             pd.ssh._intsh_busy = False
             pd.ssh._intsh_lock.release()
 
-    return _Common.get_lines_to_return(pd, lines=lines)
+    return result
 
 def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
                      lines=(None, None), by_line=True):
@@ -332,13 +329,8 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
             chan._dbg_(f"_do_wait_for_cmd: timeout is {timeout}, exit immediately")
             break
 
-    if not by_line or pd.exitcode is not None:
-        for streamid, part in enumerate(partial):
-            _Common.capture_data(chan, streamid, part, capture_output=capture_output,
-                                 output_fobjs=output_fobjs, by_line=False)
-        pd.partial = ["", ""]
-
-    return _Common.get_lines_to_return(pd, lines=lines)
+    return _Common.get_lines_to_return(chan, capture_output=capture_output,
+            output_fobjs=output_fobjs, lines=lines, by_line=by_line)
 
 def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
                   lines=(None, None), by_line=True, join=True):

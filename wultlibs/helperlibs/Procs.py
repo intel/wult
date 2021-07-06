@@ -136,13 +136,8 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
             proc._dbg_(f"wait_for_cmd: timeout is {timeout}, exit immediately")
             break
 
-    if not by_line or pd.exitcode is not None:
-        for streamid, part in enumerate(partial):
-            _Common.capture_data(proc, streamid, part, capture_output=capture_output,
-                                 output_fobjs=output_fobjs, by_line=False)
-        pd.partial = ["", ""]
-
-    return _Common.get_lines_to_return(pd, lines=lines)
+    return _Common.get_lines_to_return(proc, capture_output=capture_output,
+            output_fobjs=output_fobjs, lines=lines, by_line=by_line)
 
 def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
                   lines=(None, None), by_line=True, join=True):

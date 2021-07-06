@@ -47,7 +47,7 @@ def capture_data(proc, streamid, data, capture_output=True, output_fobjs=(None, 
                   by_line=True):
     """
     A helper for 'Procs' and 'SSH' that captures data 'data' from the 'streamid' stream fetcher
-    thread. The arguments are the same as in '_do_wait_for_cmd()'.
+    thread. The keyword arguments are the same as in '_do_wait_for_cmd()'.
     """
 
     def _save_output(data, streamid):
@@ -78,12 +78,21 @@ def capture_data(proc, streamid, data, capture_output=True, output_fobjs=(None, 
     else:
         _save_output(data, streamid)
 
-def get_lines_to_return(pd, lines=(None, None)):
+def get_lines_to_return(proc, capture_output=True, output_fobjs=(None, None), lines=(None, None),
+                        by_line=True):
     """
     A helper for 'Procs' and 'SSH' that figures out what part of the captured command output should
-    be returned to the user, and what part should stay in 'pd.output', depending on the lines limit
-    'lines'.
+    be returned to the user, and what part should stay in 'proc._pd_.output', depending on the lines
+    limit 'lines'. The keyword arguments are the same as in '_do_wait_for_cmd()'.
     """
+
+    pd = proc._pd_ # pylint: disable=protected-access
+
+    if not by_line or pd.exitcode is not None:
+        for streamid, part in enumerate(pd.partial):
+            capture_data(proc, streamid, part, capture_output=capture_output,
+                                 output_fobjs=output_fobjs, by_line=False)
+        pd.partial = ["", ""]
 
     output = [[], []]
 
