@@ -428,6 +428,15 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
             stderr = "".join(stderr)
 
     chan._dbg_("_do_wait_for_cmd: returning, exitcode %s", pd.exitcode)
+
+    if pd.exitcode:
+        # Sanity check: make sure all the output of the comand was consumed and sent to the caller.
+        assert pd.queue.empty()
+        assert not pd.ll
+        for streamid in (0, 1):
+            assert not pd.output[streamid]
+            assert not pd.partial[streamid]
+
     return ProcResult(stdout=stdout, stderr=stderr, exitcode=pd.exitcode)
 
 def _poll(chan):

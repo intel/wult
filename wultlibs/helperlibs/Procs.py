@@ -225,6 +225,15 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
             stderr = "".join(stderr)
 
     proc._dbg_("wait_for_cmd: returning, exitcode %s", pd.exitcode)
+
+    if pd.exitcode:
+        # Sanity check: make sure all the output of the comand was consumed and sent to the caller.
+        assert pd.queue.empty()
+        for streamid in (0, 1):
+            assert not pd.output[streamid]
+            assert not pd.partial[streamid]
+        return ("", "", pd.exitcode)
+
     return ProcResult(stdout=stdout, stderr=stderr, exitcode=pd.exitcode)
 
 def _cmd_failed_msg(proc, stdout, stderr, exitcode, startmsg=None, timeout=None):
