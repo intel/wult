@@ -67,12 +67,12 @@ def _stream_fetcher(streamid, chan):
     of the executed program (either stdout or stderr) and puts the result into the queue.
     """
 
-    cpd = chan._cpd_
-    read_func = cpd.streams[streamid]
+    pd = chan._pd_
+    read_func = pd.streams[streamid]
     decoder = codecs.getincrementaldecoder('utf8')(errors="surrogateescape")
 
     try:
-        while not cpd.threads_exit:
+        while not pd.threads_exit:
             if not read_func:
                 chan._dbg_("stream %d: stream is closed", streamid)
                 break
@@ -94,12 +94,12 @@ def _stream_fetcher(streamid, chan):
                 continue
 
             chan._dbg_("stream %d: read data:\n%s", streamid, data)
-            cpd.queue.put((streamid, data))
+            pd.queue.put((streamid, data))
     except BaseException as err: # pylint: disable=broad-except
         _LOG.error(err)
 
     # The end of stream indicator.
-    cpd.queue.put((streamid, None))
+    pd.queue.put((streamid, None))
     chan._dbg_("stream %d: thread exists", streamid)
 
 def _recv_exit_status_timeout(chan, timeout):
@@ -141,41 +141,41 @@ def _capture_data(chan, streamid, data, capture_output=True, output_fobjs=(None,
 
         if data:
             if capture_output:
-                cpd.output[streamid].append(data)
+                pd.output[streamid].append(data)
             if output_fobjs[streamid]:
                 output_fobjs[streamid].write(data)
 
-    cpd = chan._cpd_
+    pd = chan._pd_
     chan._dbg_("_capture_data: stream %d data:\n%s", streamid, data)
 
     if by_line:
-        data, cpd.partial[streamid] = _Common.extract_full_lines(cpd.partial[streamid] + data)
-        if data and cpd.partial[streamid]:
+        data, pd.partial[streamid] = _Common.extract_full_lines(pd.partial[streamid] + data)
+        if data and pd.partial[streamid]:
             chan._dbg_("_capture_data: stream %d: full lines:\n%s",
                        streamid, "".join(data))
             chan._dbg_("_capture_data: stream %d: partial line: %s",
-                       streamid, cpd.partial[streamid])
+                       streamid, pd.partial[streamid])
         for line in data:
             _save_data(line, streamid)
     else:
         _save_data(data, streamid)
 
-def _get_lines_to_return(cpd, lines=(None, None)):
+def _get_lines_to_return(pd, lines=(None, None)):
     """
     Figure out what part of the captured command output should be returned to the user, and what
-    part should stay in 'cpd.output', depending on the lines limit 'lines'.
+    part should stay in 'pd.output', depending on the lines limit 'lines'.
     """
 
     output = [[], []]
 
     for streamid in (0, 1):
         limit = lines[streamid]
-        if limit is None or len(cpd.output[streamid]) <= limit:
-            output[streamid] = cpd.output[streamid]
-            cpd.output[streamid] = []
+        if limit is None or len(pd.output[streamid]) <= limit:
+            output[streamid] = pd.output[streamid]
+            pd.output[streamid] = []
         else:
-            output[streamid] = cpd.output[streamid][:limit]
-            cpd.output[streamid] = cpd.output[streamid][limit:]
+            output[streamid] = pd.output[streamid][:limit]
+            pd.output[streamid] = pd.output[streamid][limit:]
 
     return output
 
@@ -191,64 +191,64 @@ def _watch_for_marker(chan, data):
     command.
 
     In other words, if no marker was not found, this function returns '(cdata, None)', and 'cdata'
-    may not be the same as 'data', because part of it may be saved in 'cpd.ll', because it looks
+    may not be the same as 'data', because part of it may be saved in 'pd.ll', because it looks
     like the beginning of the marker. I marker was found, this function returns '(cdata, exitcode)'.
     Again, 'cdata' does not have to be the same as 'data', because 'data' could contain the marker,
     which will not be present in 'cdata'. The 'exitcode' will contain an integer exit code of the
     command.
     """
 
-    cpd = chan._cpd_
+    pd = chan._pd_
     exitcode = None
     cdata = None
 
-    chan._dbg_("_watch_for_marker: starting with cpd.check_ll %s, cpd.ll: %s, data:\n%s",
-               str(cpd.check_ll), str(cpd.ll), data)
+    chan._dbg_("_watch_for_marker: starting with pd.check_ll %s, pd.ll: %s, data:\n%s",
+               str(pd.check_ll), str(pd.ll), data)
 
     split = data.rsplit("\n", 1)
     if len(split) > 1:
-        # We have got a new line. This is our new marker suspect. Keep it in 'cpd.ll', while old
-        # 'cpd.ll' and the rest of 'data' can be returned up for capturing. Set 'cpd.check_ll' to
-        # 'True' to indicate that 'cpd.ll' has to be checked for the marker.
-        cdata = cpd.ll + split[0] + "\n"
-        cpd.check_ll = True
-        cpd.ll = split[1]
+        # We have got a new line. This is our new marker suspect. Keep it in 'pd.ll', while old
+        # 'pd.ll' and the rest of 'data' can be returned up for capturing. Set 'pd.check_ll' to
+        # 'True' to indicate that 'pd.ll' has to be checked for the marker.
+        cdata = pd.ll + split[0] + "\n"
+        pd.check_ll = True
+        pd.ll = split[1]
     else:
         # We have got a continuation of the previous line. The 'check_ll' flag is 'True' when
-        # 'cpd.ll' being a marker is a real possibility. If we already checked 'cpd.ll' and it
+        # 'pd.ll' being a marker is a real possibility. If we already checked 'pd.ll' and it
         # starts with data that is different to the marker, there is not reason to check it again,
         # and we can send it up for capturing.
-        if not cpd.ll:
-            cpd.check_ll = True
-        if cpd.check_ll:
-            cpd.ll += split[0]
+        if not pd.ll:
+            pd.check_ll = True
+        if pd.check_ll:
+            pd.ll += split[0]
             cdata = ""
         else:
-            cdata = cpd.ll + data
-            cpd.ll = ""
+            cdata = pd.ll + data
+            pd.ll = ""
 
-    if cpd.check_ll:
-        # 'cpd.ll' is a real suspect, check if it looks like the marker.
-        cpd.check_ll = cpd.ll.startswith(cpd.marker) or cpd.marker.startswith(cpd.ll)
+    if pd.check_ll:
+        # 'pd.ll' is a real suspect, check if it looks like the marker.
+        pd.check_ll = pd.ll.startswith(pd.marker) or pd.marker.startswith(pd.ll)
 
-    # OK, if 'cpd.ll' is still a real suspect, do a full check using the regex: full marker line
+    # OK, if 'pd.ll' is still a real suspect, do a full check using the regex: full marker line
     # should contain not only the hash, but also the exit status.
-    if cpd.check_ll and re.match(cpd.marker_regex, cpd.ll):
-        # Extract the exit code from the 'cpd.ll' string that has the following form:
+    if pd.check_ll and re.match(pd.marker_regex, pd.ll):
+        # Extract the exit code from the 'pd.ll' string that has the following form:
         # --- hash, <exitcode> ---
-        split = cpd.ll.rsplit(", ", 1)
+        split = pd.ll.rsplit(", ", 1)
         assert len(split) == 2
         exitcode = split[1].rstrip(" ---")
 
         if not Trivial.is_int(exitcode):
-            raise Error(f"the command was running{cpd.ssh.hostmsg} under the interactive "
+            raise Error(f"the command was running{pd.ssh.hostmsg} under the interactive "
                         f"shell and finished with a correct marker, but unexpected exit "
                         f"code '{exitcode}'.\nThe command was: {chan.cmd}")
 
         exitcode = int(exitcode)
 
-    chan._dbg_("_watch_for_marker: ending with cpd.check_ll %s, cpd.ll %s, exitcode %s, cdata:\n%s",
-               str(cpd.check_ll), cpd.ll, str(exitcode), cdata)
+    chan._dbg_("_watch_for_marker: ending with pd.check_ll %s, pd.ll %s, exitcode %s, cdata:\n%s",
+               str(pd.check_ll), pd.ll, str(exitcode), cdata)
 
     return (cdata, exitcode)
 
@@ -260,25 +260,25 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
     commands.
     """
 
-    cpd = chan._cpd_
-    output = cpd.output
-    partial = cpd.partial
+    pd = chan._pd_
+    output = pd.output
+    partial = pd.partial
     enough_lines = False
     start_time = time.time()
 
-    chan._dbg_("_do_wait_for_cmd_intsh: starting with cpd.check_ll %s, cpd.ll: %s, "
-               "cpd.partial: %s, cpd.output:\n%s",
-               str(cpd.check_ll), str(cpd.ll), partial, str(output))
+    chan._dbg_("_do_wait_for_cmd_intsh: starting with pd.check_ll %s, pd.ll: %s, "
+               "pd.partial: %s, pd.output:\n%s",
+               str(pd.check_ll), str(pd.ll), partial, str(output))
 
     while not enough_lines:
-        for streamid, data in _Common.consume_queue(cpd.queue, timeout):
+        for streamid, data in _Common.consume_queue(pd.queue, timeout):
             if streamid == -1:
                 chan._dbg_("_do_wait_for_cmd_intsh: nothing in the queue for %d seconds", timeout)
                 break
 
             if data is None:
-                raise Error(f"the interactive shell process{cpd.ssh.hostmsg} closed stream "
-                            f"'{cpd.streams[streamid]._stream_name}' while running the following "
+                raise Error(f"the interactive shell process{pd.ssh.hostmsg} closed stream "
+                            f"'{pd.streams[streamid]._stream_name}' while running the following "
                             f"command:\n{chan.cmd}")
 
             # The indication that the command has ended is our marker in stdout (stream 0). Our goal
@@ -286,7 +286,7 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
             # output of the command. The marker always starts at the beginning of line.
 
             if streamid == 0:
-                data, cpd.exitcode = _watch_for_marker(chan, data)
+                data, pd.exitcode = _watch_for_marker(chan, data)
 
             _capture_data(chan, streamid, data, capture_output=capture_output,
                           output_fobjs=output_fobjs, by_line=by_line)
@@ -298,16 +298,16 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
                 enough_lines = True
                 break
 
-            # If the marker was met, 'cpd.exitcode' will contain the exit code of the command.
+            # If the marker was met, 'pd.exitcode' will contain the exit code of the command.
             # However, we should continue consuming the queue, because it may have bits of 'stderr'
             # output still left there.
-            if cpd.exitcode and cpd.queue.empty():
+            if pd.exitcode and pd.queue.empty():
                 chan._dbg_("_do_wait_for_cmd_intsh: exitcode %d and queue is empty, stop",
-                           cpd.exitcode)
+                           pd.exitcode)
                 break
 
-        if cpd.exitcode is not None:
-            chan._dbg_("_do_wait_for_cmd_intsh: process exited with status %d", cpd.exitcode)
+        if pd.exitcode is not None:
+            chan._dbg_("_do_wait_for_cmd_intsh: process exited with status %d", pd.exitcode)
             break
 
         if timeout and time.time() - start_time > timeout:
@@ -318,22 +318,22 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
             chan._dbg_(f"_do_wait_for_cmd_intsh: timeout is {timeout}, exit immediately")
             break
 
-    if not by_line or cpd.exitcode is not None:
+    if not by_line or pd.exitcode is not None:
         for streamid, part in enumerate(partial):
             _capture_data(chan, streamid, part, capture_output=capture_output,
                           output_fobjs=output_fobjs, by_line=False)
-        cpd.partial = ["", ""]
+        pd.partial = ["", ""]
 
-    if cpd.exitcode is not None:
+    if pd.exitcode is not None:
         # Mark the interactive shell process as vacant.
-        acquired = cpd.ssh._acquire_intsh_lock(chan.cmd)
+        acquired = pd.ssh._acquire_intsh_lock(chan.cmd)
         if not acquired:
             _LOG.warning("failed to mark the interactive shell process as free")
         else:
-            cpd.ssh._intsh_busy = False
-            cpd.ssh._intsh_lock.release()
+            pd.ssh._intsh_busy = False
+            pd.ssh._intsh_lock.release()
 
-    return _get_lines_to_return(cpd, lines=lines)
+    return _get_lines_to_return(pd, lines=lines)
 
 def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
                      lines=(None, None), by_line=True):
@@ -342,24 +342,24 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
     separate SSH session.
     """
 
-    cpd = chan._cpd_
-    output = cpd.output
-    partial = cpd.partial
+    pd = chan._pd_
+    output = pd.output
+    partial = pd.partial
     enough_lines = False
     start_time = time.time()
 
     chan._dbg_("_do_wait_for_cmd: starting with partial: %s, output:\n%s", partial, str(output))
 
     while not enough_lines:
-        for streamid, data in _Common.consume_queue(cpd.queue, timeout):
+        for streamid, data in _Common.consume_queue(pd.queue, timeout):
             if data is not None:
                 _capture_data(chan, streamid, data, capture_output=capture_output,
                               output_fobjs=output_fobjs, by_line=by_line)
             else:
                 chan._dbg_("_do_wait_for_cmd: stream %d closed", streamid)
                 # One of the output streams closed.
-                cpd.threads[streamid].join()
-                cpd.threads[streamid] = cpd.streams[streamid] = None
+                pd.threads[streamid].join()
+                pd.threads[streamid] = pd.streams[streamid] = None
 
             if lines[streamid] is not None and len(output[streamid]) >= lines[streamid]:
                 # We read enough lines for this stream.
@@ -368,10 +368,10 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
                 enough_lines = True
                 break
 
-        if not cpd.streams[0] and not cpd.streams[1]:
+        if not pd.streams[0] and not pd.streams[1]:
             chan._dbg_("_do_wait_for_cmd: both streams closed")
-            cpd.queue = None
-            cpd.exitcode = _recv_exit_status_timeout(chan, timeout)
+            pd.queue = None
+            pd.exitcode = _recv_exit_status_timeout(chan, timeout)
             break
 
         if timeout and time.time() - start_time > timeout:
@@ -382,13 +382,13 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
             chan._dbg_(f"_do_wait_for_cmd: timeout is {timeout}, exit immediately")
             break
 
-    if not by_line or cpd.exitcode is not None:
+    if not by_line or pd.exitcode is not None:
         for streamid, part in enumerate(partial):
             _capture_data(chan, streamid, part, capture_output=capture_output,
                           output_fobjs=output_fobjs, by_line=False)
-        cpd.partial = ["", ""]
+        pd.partial = ["", ""]
 
-    return _get_lines_to_return(cpd, lines=lines)
+    return _get_lines_to_return(pd, lines=lines)
 
 def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
                   lines=(None, None), by_line=True, join=True):
@@ -444,25 +444,25 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
     chan._dbg_("wait_for_cmd: timeout %s, capture_output %s, lines: %s, by_line %s, "
                "join: %s:", timeout, capture_output, str(lines), by_line, join)
 
-    cpd = chan._cpd_
-    if cpd.threads_exit:
+    pd = chan._pd_
+    if pd.threads_exit:
         raise Error("this SSH channel has '_threads_exit_ flag set and it cannot be used")
 
-    if cpd.exitcode:
+    if pd.exitcode:
         # This command has already exited.
-        return ("", "", cpd.exitcode)
+        return ("", "", pd.exitcode)
 
-    if not cpd.queue:
-        cpd.queue = queue.Queue()
+    if not pd.queue:
+        pd.queue = queue.Queue()
         for streamid in (0, 1):
-            if cpd.streams[streamid]:
-                assert cpd.threads[streamid] is None
-                cpd.threads[streamid] = threading.Thread(target=_stream_fetcher,
+            if pd.streams[streamid]:
+                assert pd.threads[streamid] is None
+                pd.threads[streamid] = threading.Thread(target=_stream_fetcher,
                                                          name='SSH-stream-fetcher',
                                                          args=(streamid, chan), daemon=True)
-                cpd.threads[streamid].start()
+                pd.threads[streamid].start()
 
-    if chan == cpd.ssh._intsh:
+    if chan == pd.ssh._intsh:
         func = _do_wait_for_cmd_intsh
     else:
         func = _do_wait_for_cmd
@@ -480,8 +480,8 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
         if join:
             stderr = "".join(stderr)
 
-    chan._dbg_("_do_wait_for_cmd: returning, exitcode %s", cpd.exitcode)
-    return ProcResult(stdout=stdout, stderr=stderr, exitcode=cpd.exitcode)
+    chan._dbg_("_do_wait_for_cmd: returning, exitcode %s", pd.exitcode)
+    return ProcResult(stdout=stdout, stderr=stderr, exitcode=pd.exitcode)
 
 def _poll(chan):
     """
@@ -506,20 +506,20 @@ def _cmd_failed_msg(chan, stdout, stderr, exitcode, startmsg=None, timeout=None)
 def _close(chan):
     """The channel close method that will signal the threads to exit."""
 
-    if hasattr(chan, "_cpd_"):
+    if hasattr(chan, "_pd_"):
         chan._dbg_("_close()")
-        cpd = chan._cpd_
-        cpd.threads_exit = True
-        cpd.ssh = None
-        cpd.orig_close()
+        pd = chan._pd_
+        pd.threads_exit = True
+        pd.ssh = None
+        pd.orig_close()
 
 def _del(chan):
     """The channel object destructor which makes all threads to exit."""
 
-    if hasattr(chan, "_cpd_"):
+    if hasattr(chan, "_pd_"):
         chan._dbg_("_del_()")
         chan._close()
-        chan._cpd_.orig_del()
+        chan._pd_.orig_del()
 
 def _get_err_prefix(fobj, method):
     """Return the error message prefix."""
@@ -527,10 +527,10 @@ def _get_err_prefix(fobj, method):
 
 def _dbg(chan, fmt, *args):
     """Print a debugging message related to the 'chan' channel handling."""
-    if chan._cpd_.debug:
+    if chan._pd_.debug:
         pfx = ""
-        if chan._cpd_.debug_id:
-            pfx += f"{chan._cpd_.debug_id}: "
+        if chan._pd_.debug_id:
+            pfx += f"{chan._pd_.debug_id}: "
         if hasattr(chan, "pid"):
             pfx += f"PID {chan.pid}: "
 
@@ -581,7 +581,7 @@ class _ChannelPrivateData:
 def _add_custom_fields(chan, ssh, cmd):
     """Add a couple of custom fields to the paramiko channel object."""
 
-    cpd = chan._cpd_ = _ChannelPrivateData()
+    pd = chan._pd_ = _ChannelPrivateData()
 
     for name, mode in (("stdin", "wb"), ("stdout", "rb"), ("stderr", "rb")):
         try:
@@ -596,12 +596,12 @@ def _add_custom_fields(chan, ssh, cmd):
         wrapped_fobj = WrapExceptions.WrapExceptions(fobj, exceptions=_PARAMIKO_EXCEPTIONS,
                                                      get_err_prefix=_get_err_prefix)
         wrapped_fobj.name = name
-        setattr(cpd, name, wrapped_fobj)
+        setattr(pd, name, wrapped_fobj)
 
-    cpd.ssh = ssh
-    cpd.streams = [chan.recv, chan.recv_stderr]
-    cpd.orig_close = chan.close
-    cpd.orig_del = chan.__del__
+    pd.ssh = ssh
+    pd.streams = [chan.recv, chan.recv_stderr]
+    pd.orig_close = chan.close
+    pd.orig_del = chan.__del__
 
     # The below attributes are added to make the channel object look similar to the Popen object
     # which the 'Procs' module uses.
@@ -624,23 +624,23 @@ def _init_intsh_custom_fields(chan, command, marker):
     new command that we run in the interactive shell, we have to re-initialize some of the fields.
     """
 
-    cpd = chan._cpd_
+    pd = chan._pd_
 
     # The marker indicating that the command has finished.
-    cpd.marker = marker
+    pd.marker = marker
     # The regular expression the last line of command output should match.
-    cpd.marker_regex = re.compile(f"^{marker}, \\d+ ---$")
+    pd.marker_regex = re.compile(f"^{marker}, \\d+ ---$")
     # The command executed under the interactive shell.
-    cpd.cmd = command
+    pd.cmd = command
     # The last line printed by the command to stdout observed so far.
-    cpd.ll = ""
+    pd.ll = ""
     # Whether the last line ('ll') should be checked against the marker. Used as an optimization in
     # order to avoid matching the 'll' against the marker too often.
-    cpd.check_ll = True
+    pd.check_ll = True
 
-    cpd.exitcode = None
-    cpd.output = [[], []]
-    cpd.partial = ["", ""]
+    pd.exitcode = None
+    pd.output = [[], []]
+    pd.partial = ["", ""]
 
 def _get_username(uid=None):
     """Return username of the current process or UID 'uid'."""
