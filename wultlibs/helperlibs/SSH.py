@@ -250,7 +250,9 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
                 enough_lines = True
                 break
 
-            if pd.exitcode is not None:
+            # Even if the command has finished, exhaust the queue before returning, because there
+            # may still be some 'stderr' data there.
+            if pd.exitcode is not None and pd.queue.empty():
                 break
 
         if pd.exitcode is not None:
