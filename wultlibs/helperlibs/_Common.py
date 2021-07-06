@@ -43,6 +43,41 @@ def consume_queue(qobj, timeout):
     while not qobj.empty():
         yield qobj.get()
 
+def capture_data(proc, streamid, data, capture_output=True, output_fobjs=(None, None),
+                  by_line=True):
+    """
+    A helper for 'Procs' and 'SSH' that captures data 'data' from the 'streamid' stream fetcher
+    thread. The arguments are the same as in '_do_wait_for_cmd()'.
+    """
+
+    def _save_output(data, streamid):
+        """Save a piece of 'pd.output' data 'data' from the 'streamid' stream fetcher."""
+
+        if data:
+            if capture_output:
+                pd.output[streamid].append(data)
+            if output_fobjs[streamid]:
+                output_fobjs[streamid].write(data)
+
+    if not data:
+        return
+
+    # pylint: disable=protected-access
+    pd = proc._pd_
+    proc._dbg_("capture_data: got data from stream %d:\n%s", streamid, data)
+
+    if by_line:
+        data, pd.partial[streamid] = extract_full_lines(pd.partial[streamid] + data)
+        if data and pd.partial[streamid]:
+            proc._dbg_("capture_data: stream %d: full lines:\n%s",
+                       streamid, "".join(data))
+            proc._dbg_("capture_data: stream %d: pd.partial line: %s",
+                       streamid, pd.partial[streamid])
+        for line in data:
+            _save_output(line, streamid)
+    else:
+        _save_output(data, streamid)
+
 def cmd_failed_msg(command, stdout, stderr, exitcode, hostname=None, startmsg=None, timeout=None):
     """
     This helper function formats an error message for a failed command 'command'. The 'stdout' and

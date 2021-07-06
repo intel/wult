@@ -129,37 +129,6 @@ def _recv_exit_status_timeout(chan, timeout):
     chan._dbg_("_recv_exit_status_timeout: exit status %d", exitcode)
     return exitcode
 
-def _capture_data(chan, streamid, data, capture_output=True, output_fobjs=(None, None),
-                  by_line=True):
-    """
-    A helper for '_do_wait_for_cmd()' that captures data 'data' from the 'streamid' stream
-    fetcher thread. The arguments are the same as in '_do_wait_for_cmd()'.
-    """
-
-    def _save_data(data, streamid):
-        """Save a piece of output data 'data' from the 'streamid' stream fetcher."""
-
-        if data:
-            if capture_output:
-                pd.output[streamid].append(data)
-            if output_fobjs[streamid]:
-                output_fobjs[streamid].write(data)
-
-    pd = chan._pd_
-    chan._dbg_("_capture_data: stream %d data:\n%s", streamid, data)
-
-    if by_line:
-        data, pd.partial[streamid] = _Common.extract_full_lines(pd.partial[streamid] + data)
-        if data and pd.partial[streamid]:
-            chan._dbg_("_capture_data: stream %d: full lines:\n%s",
-                       streamid, "".join(data))
-            chan._dbg_("_capture_data: stream %d: partial line: %s",
-                       streamid, pd.partial[streamid])
-        for line in data:
-            _save_data(line, streamid)
-    else:
-        _save_data(data, streamid)
-
 def _get_lines_to_return(pd, lines=(None, None)):
     """
     Figure out what part of the captured command output should be returned to the user, and what
@@ -288,8 +257,8 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
             if streamid == 0:
                 data, pd.exitcode = _watch_for_marker(chan, data)
 
-            _capture_data(chan, streamid, data, capture_output=capture_output,
-                          output_fobjs=output_fobjs, by_line=by_line)
+            _Common.capture_data(chan, streamid, data, capture_output=capture_output,
+                                 output_fobjs=output_fobjs, by_line=by_line)
 
             if lines[streamid] is not None and len(output[streamid]) >= lines[streamid]:
                 # We read enough lines for this stream.
@@ -320,8 +289,8 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
 
     if not by_line or pd.exitcode is not None:
         for streamid, part in enumerate(partial):
-            _capture_data(chan, streamid, part, capture_output=capture_output,
-                          output_fobjs=output_fobjs, by_line=False)
+            _Common.capture_data(chan, streamid, part, capture_output=capture_output,
+                                 output_fobjs=output_fobjs, by_line=False)
         pd.partial = ["", ""]
 
     if pd.exitcode is not None:
@@ -353,8 +322,8 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
     while not enough_lines:
         for streamid, data in _Common.consume_queue(pd.queue, timeout):
             if data is not None:
-                _capture_data(chan, streamid, data, capture_output=capture_output,
-                              output_fobjs=output_fobjs, by_line=by_line)
+                _Common.capture_data(chan, streamid, data, capture_output=capture_output,
+                                     output_fobjs=output_fobjs, by_line=by_line)
             else:
                 chan._dbg_("_do_wait_for_cmd: stream %d closed", streamid)
                 # One of the output streams closed.
@@ -384,8 +353,8 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
 
     if not by_line or pd.exitcode is not None:
         for streamid, part in enumerate(partial):
-            _capture_data(chan, streamid, part, capture_output=capture_output,
-                          output_fobjs=output_fobjs, by_line=False)
+            _Common.capture_data(chan, streamid, part, capture_output=capture_output,
+                                 output_fobjs=output_fobjs, by_line=False)
         pd.partial = ["", ""]
 
     return _get_lines_to_return(pd, lines=lines)
