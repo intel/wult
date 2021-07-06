@@ -201,7 +201,7 @@ def _get_lines_to_return(cpd, lines=(None, None)):
 
 def _watch_for_marker(chan, data):
     """
-    When we run a command in the interactive shell (as opposed to running in in a dedicated SSH
+    When we run a command in the interactive shell (as opposed to running in a dedicated SSH
     session), the way we can detect that the command has ended is by watching for a special marker
     in 'stdout' of the interactive shell process.
 
@@ -210,12 +210,12 @@ def _watch_for_marker(chan, data):
     where 'cdata' is the stdout data that has to be captured, and exitcode is the exit code of the
     command.
 
-    In other words, if no marker was found, this function returns '(cdata, None)', and 'cdata' does
+    In other words, if no marker was not found, this function returns '(cdata, None)', and 'cdata'
     may not be the same as 'data', because part of it may be saved in 'cpd.ll', because it looks
-    like the beginning of the marker. I marker was found, this function returns
-    '(cdata, exitcode)'. Again, 'cdata' does not have to be the same as 'data', because 'data'
-    could contain the marker, which will not be present in 'cdata'. The 'exitcode' will contain an
-    integer exit code of the command.
+    like the beginning of the marker. I marker was found, this function returns '(cdata, exitcode)'.
+    Again, 'cdata' does not have to be the same as 'data', because 'data' could contain the marker,
+    which will not be present in 'cdata'. The 'exitcode' will contain an integer exit code of the
+    command.
     """
 
     cpd = chan._cpd_
@@ -425,7 +425,7 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
     of the command will be echoed, in addition to being captured and returned. If not specified,
     then the the command output will not be echoed anywhere.
 
-    The 'lines' argument provides a capability to wait for the comman to output certain amount of
+    The 'lines' argument provides a capability to wait for the command to output certain amount of
     lines. By default, there is no limit, and this function will wait either for timeout or until
     the command exits. The 'line' argument is a tuple, the first element of the tuple is the
     'stdout' limit, the second is the 'stderr' limit. For example, 'lines=(1, 5)' would mean to wait
@@ -449,7 +449,7 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
         raise Error(f"bad timeout value {timeout}, must be > 0")
 
     if not by_line and lines != (None, None):
-        raise Error("'by_lines' must be 'True' when 'lines' is used (reading limited amout of "
+        raise Error("'by_lines' must be 'True' when 'lines' is used (reading limited amount of "
                     "output lines)")
 
     chan.timeout = timeout
@@ -562,7 +562,7 @@ class _ChannelPrivateData:
         self.streams = []
         # The queue which is used for passing commands output from stream fetcher threads.
         self.queue = None
-        # The threds fetching data from the output streams and placing them to the queue.
+        # The threads fetching data from the output streams and placing them to the queue.
         self.threads = [None, None]
         # The threads have to exit if the 'threads_exit' flag becomes 'True'.
         self.threads_exit = False
@@ -665,7 +665,7 @@ def _get_username(uid=None):
 
 def _format_command_for_pid(command, cwd=None):
     """
-    When we rund a command over SSH, we do not know it's PID. But users do need it in many
+    When we run a command over SSH, we do not know it's PID. But users do need it in many
     cases in order to be able finding and, for example, killing the processes they run. This
     function modifies the original user 'command' command so that it prints the PID as the first
     line of its output to the 'stdout' stream. This requires a shell.
@@ -809,7 +809,7 @@ class SSH:
                     self._intsh_busy = False
                     self._intsh_lock.release()
                 else:
-                    _LOG.dbg("failed to mark the interactive shell proces as free")
+                    _LOG.dbg("failed to mark the interactive shell process as free")
             raise
 
     def run_async(self, command, cwd=None, shell=True, intsh=False):
@@ -881,7 +881,7 @@ class SSH:
 
         The 'cwd' argument may be used to specify the working directory of the command.
 
-        The 'shell' argument controlls whether the command should be run via a shell on the remote
+        The 'shell' argument controls whether the command should be run via a shell on the remote
         host. Most SSH servers will use user shell to run the command anyway. But there are rare
         cases when this is not the case, and 'shell=False' may be handy.
 

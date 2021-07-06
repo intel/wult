@@ -233,7 +233,7 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
     of the command will be echoed, in addition to being captured and returned. If not specified,
     then the the command output will not be echoed anywhere.
 
-    The 'lines' argument provides a capability to wait for the comman to output certain amount of
+    The 'lines' argument provides a capability to wait for the command to output certain amount of
     lines. By default, there is no limit, and this function will wait either for timeout or until
     the command exits. The 'line' argument is a tuple, the first element of the tuple is the
     'stdout' limit, the second is the 'stderr' limit. For example, 'lines=(1, 5)' would mean to wait
@@ -342,7 +342,7 @@ class _ProcessPrivateData:
         self.streams = []
         # The queue which is used for passing commands output from stream fetcher threads.
         self.queue = None
-        # The threds fetching data from the output streams and placing them to the queue.
+        # The threads fetching data from the output streams and placing them to the queue.
         self.threads = [None, None]
         # The threads have to exit if the 'threads_exit' flag becomes 'True'.
         self.threads_exit = False
