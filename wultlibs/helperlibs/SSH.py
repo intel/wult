@@ -189,12 +189,13 @@ def _watch_for_marker(chan, data):
         split = pd.ll.rsplit(", ", 1)
         assert len(split) == 2
         exitcode = split[1].rstrip(" ---")
-
         if not Trivial.is_int(exitcode):
             raise Error(f"the command was running{pd.ssh.hostmsg} under the interactive "
                         f"shell and finished with a correct marker, but unexpected exit "
                         f"code '{exitcode}'.\nThe command was: {chan.cmd}")
 
+        pd.ll = ""
+        pd.check_ll = False
         exitcode = int(exitcode)
 
     chan._dbg_("_watch_for_marker: ending with pd.check_ll %s, pd.ll %s, exitcode %s, cdata:\n%s",
