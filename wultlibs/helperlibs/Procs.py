@@ -88,25 +88,6 @@ def _wait_timeout(proc, timeout):
     proc._dbg_("_wait_timeout: exit status %d", exitcode)
     return exitcode
 
-def _get_lines_to_return(pd, lines=(None, None)):
-    """
-    Figure out what part of the captured command output should be returned to the user, and what
-    part should stay in 'pd.output', depending on the lines limit 'lines'.
-    """
-
-    output = [[], []]
-
-    for streamid in (0, 1):
-        limit = lines[streamid]
-        if limit is None or len(pd.output[streamid]) <= limit:
-            output[streamid] = pd.output[streamid]
-            pd.output[streamid] = []
-        else:
-            output[streamid] = pd.output[streamid][:limit]
-            pd.output[streamid] = pd.output[streamid][limit:]
-
-    return output
-
 def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
                      lines=(None, None), by_line=True):
     """Implements '_wait_for_cmd()'."""
@@ -161,7 +142,7 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
                                  output_fobjs=output_fobjs, by_line=False)
         pd.partial = ["", ""]
 
-    return _get_lines_to_return(pd, lines=lines)
+    return _Common.get_lines_to_return(pd, lines=lines)
 
 def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
                   lines=(None, None), by_line=True, join=True):

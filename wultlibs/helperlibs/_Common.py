@@ -78,6 +78,26 @@ def capture_data(proc, streamid, data, capture_output=True, output_fobjs=(None, 
     else:
         _save_output(data, streamid)
 
+def get_lines_to_return(pd, lines=(None, None)):
+    """
+    A helper for 'Procs' and 'SSH' that figures out what part of the captured command output should
+    be returned to the user, and what part should stay in 'pd.output', depending on the lines limit
+    'lines'.
+    """
+
+    output = [[], []]
+
+    for streamid in (0, 1):
+        limit = lines[streamid]
+        if limit is None or len(pd.output[streamid]) <= limit:
+            output[streamid] = pd.output[streamid]
+            pd.output[streamid] = []
+        else:
+            output[streamid] = pd.output[streamid][:limit]
+            pd.output[streamid] = pd.output[streamid][limit:]
+
+    return output
+
 def cmd_failed_msg(command, stdout, stderr, exitcode, hostname=None, startmsg=None, timeout=None):
     """
     This helper function formats an error message for a failed command 'command'. The 'stdout' and
