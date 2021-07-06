@@ -129,8 +129,8 @@ def _recv_exit_status_timeout(chan, timeout):
     chan._dbg_("_recv_exit_status_timeout: exit status %d", exitcode)
     return exitcode
 
-def _capture_data(chan, streamid, data, output, partial, capture_output=True,
-                  output_fobjs=(None, None), by_line=True):
+def _capture_data(chan, streamid, data, capture_output=True, output_fobjs=(None, None),
+                  by_line=True):
     """
     A helper for '_do_wait_for_cmd()' that captures data 'data' from the 'streamid' stream
     fetcher thread. The arguments are the same as in '_do_wait_for_cmd()'.
@@ -141,19 +141,20 @@ def _capture_data(chan, streamid, data, output, partial, capture_output=True,
 
         if data:
             if capture_output:
-                output[streamid].append(data)
+                cpd.output[streamid].append(data)
             if output_fobjs[streamid]:
                 output_fobjs[streamid].write(data)
 
+    cpd = chan._cpd_
     chan._dbg_("_capture_data: stream %d data:\n%s", streamid, data)
 
     if by_line:
-        data, partial[streamid] = _Common.extract_full_lines(partial[streamid] + data)
-        if data and partial[streamid]:
+        data, cpd.partial[streamid] = _Common.extract_full_lines(cpd.partial[streamid] + data)
+        if data and cpd.partial[streamid]:
             chan._dbg_("_capture_data: stream %d: full lines:\n%s",
                        streamid, "".join(data))
             chan._dbg_("_capture_data: stream %d: partial line: %s",
-                       streamid, partial[streamid])
+                       streamid, cpd.partial[streamid])
         for line in data:
             _save_data(line, streamid)
     else:
@@ -287,7 +288,7 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
             if streamid == 0:
                 data, cpd.exitcode = _watch_for_marker(chan, data)
 
-            _capture_data(chan, streamid, data, output, partial, capture_output=capture_output,
+            _capture_data(chan, streamid, data, capture_output=capture_output,
                           output_fobjs=output_fobjs, by_line=by_line)
 
             if lines[streamid] is not None and len(output[streamid]) >= lines[streamid]:
@@ -319,7 +320,7 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
 
     if not by_line or cpd.exitcode is not None:
         for streamid, part in enumerate(partial):
-            _capture_data(chan, streamid, part, output, partial, capture_output=capture_output,
+            _capture_data(chan, streamid, part, capture_output=capture_output,
                           output_fobjs=output_fobjs, by_line=False)
         cpd.partial = ["", ""]
 
@@ -352,7 +353,7 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
     while not enough_lines:
         for streamid, data in _Common.consume_queue(cpd.queue, timeout):
             if data is not None:
-                _capture_data(chan, streamid, data, output, partial, capture_output=capture_output,
+                _capture_data(chan, streamid, data, capture_output=capture_output,
                               output_fobjs=output_fobjs, by_line=by_line)
             else:
                 chan._dbg_("_do_wait_for_cmd: stream %d closed", streamid)
@@ -383,7 +384,7 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
 
     if not by_line or cpd.exitcode is not None:
         for streamid, part in enumerate(partial):
-            _capture_data(chan, streamid, part, output, partial, capture_output=capture_output,
+            _capture_data(chan, streamid, part, capture_output=capture_output,
                           output_fobjs=output_fobjs, by_line=False)
         cpd.partial = ["", ""]
 

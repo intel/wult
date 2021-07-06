@@ -89,31 +89,32 @@ def _wait_timeout(proc, timeout):
     proc._dbg_("_wait_timeout: exit status %d", exitcode)
     return exitcode
 
-def _capture_data(proc, streamid, data, output, partial, capture_output=True,
-                  output_fobjs=(None, None), by_line=True):
+def _capture_data(proc, streamid, data, capture_output=True, output_fobjs=(None, None),
+                  by_line=True):
     """
     A helper for '_do_wait_for_cmd()' that captures data 'data' from the 'streamid' stream
     fetcher thread. The arguments are the same as in '_do_wait_for_cmd()'.
     """
 
     def _save_output(data, streamid):
-        """Save a piece of output data 'data' from the 'streamid' stream fetcher."""
+        """Save a piece of ppd.output data 'data' from the 'streamid' stream fetcher."""
 
         if data:
             if capture_output:
-                output[streamid].append(data)
+                ppd.output[streamid].append(data)
             if output_fobjs[streamid]:
                 output_fobjs[streamid].write(data)
 
+    ppd = proc._ppd_
     proc._dbg_("_do_wait_for_cmd: got data from stream %d:\n%s", streamid, data)
 
     if by_line:
-        data, partial[streamid] = _Common.extract_full_lines(partial[streamid] + data)
-        if data and partial[streamid]:
+        data, ppd.partial[streamid] = _Common.extract_full_lines(ppd.partial[streamid] + data)
+        if data and ppd.partial[streamid]:
             proc._dbg_("_do_wait_for_cmd: stream %d: full lines:\n%s",
                        streamid, "".join(data))
-            proc._dbg_("_do_wait_for_cmd: stream %d: partial line: %s",
-                       streamid, partial[streamid])
+            proc._dbg_("_do_wait_for_cmd: stream %d: ppd.partial line: %s",
+                       streamid, ppd.partial[streamid])
         for line in data:
             _save_output(line, streamid)
     else:
@@ -157,7 +158,7 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
                 break
 
             if data is not None:
-                _capture_data(proc, streamid, data, output, partial, capture_output=capture_output,
+                _capture_data(proc, streamid, data, capture_output=capture_output,
                               output_fobjs=output_fobjs, by_line=by_line)
             else:
                 proc._dbg_("wait_for_cmd: stream %d closed", streamid)
@@ -188,7 +189,7 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
 
     if not by_line or ppd.exitcode is not None:
         for streamid, part in enumerate(partial):
-            _capture_data(proc, streamid, part, output, partial, capture_output=capture_output,
+            _capture_data(proc, streamid, part, capture_output=capture_output,
                           output_fobjs=output_fobjs, by_line=False)
         ppd.partial = ["", ""]
 
