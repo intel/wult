@@ -32,14 +32,17 @@ purposes. No security audit had been done. Not for production use.
 # pylint: disable=protected-access
 
 import os
+import re
 import pwd
 import glob
 import time
 import stat
 import types
+import shlex
 import queue
 import codecs
 import socket
+import random
 import logging
 import threading
 from pathlib import Path
@@ -196,9 +199,159 @@ def _get_lines_to_return(cpd, lines=(None, None)):
 
     return output
 
+def _watch_for_marker(chan, data):
+    """
+    When we run a command in the interactive shell (as opposed to running in in a dedicated SSH
+    session), the way we can detect that the command has ended is by watching for a special marker
+    in 'stdout' of the interactive shell process.
+
+    This is a helper for '_do_wait_for_cmd_intsh()' which takes a piece of 'stdout' data that came
+    from the stream fetcher and checks for the marker in it. Returns a tuple of '(cdata, exitcode)',
+    where 'cdata' is the stdout data that has to be captured, and exitcode is the exit code of the
+    command.
+
+    In other words, if no marker was found, this function returns '(cdata, None)', and 'cdata' does
+    may not be the same as 'data', because part of it may be saved in 'cpd.ll', because it looks
+    like the beginning of the marker. I marker was found, this function returns
+    '(cdata, exitcode)'. Again, 'cdata' does not have to be the same as 'data', because 'data'
+    could contain the marker, which will not be present in 'cdata'. The 'exitcode' will contain an
+    integer exit code of the command.
+    """
+
+    cpd = chan._cpd_
+    exitcode = None
+    cdata = None
+
+    split = data.rsplit("\n", 1)
+    if len(split) > 1:
+        # We have got a new line. This is our new marker suspect. Keep it in 'cpd.ll', while old
+        # 'cpd.ll' and the rest of 'data' can be returned up for capturing. Set 'cpd.check_ll' to
+        # 'True' to indicate that 'cpd.ll' has to be checked for the marker.
+        cdata = cpd.ll + split[0] + "\n"
+        cpd.check_ll = True
+        cpd.ll = split[1]
+    else:
+        # We have got a continuation of the previous line. The 'check_ll' flag is 'True' when
+        # 'cpd.ll' being a marker is a real possibility. If we already checked 'cpd.ll' and it
+        # starts with data that is different to the marker, there is not reason to check it again,
+        # and we can send it up for capturing.
+        if not cpd.ll:
+            cpd.check_ll = True
+        if cpd.check_ll:
+            cpd.ll += split[0]
+            cdata = ""
+        else:
+            cdata = cpd.ll + data
+            cpd.ll = ""
+
+    if cpd.check_ll:
+        # 'cpd.ll' is a real suspect, check if it looks like the marker.
+        cpd.check_ll = cpd.ll.startswith(cpd.marker) or cpd.marker.startswith(cpd.ll)
+
+    # OK, if 'cpd.ll' is still a real suspect, do a full check using the regex: full marker line
+    # should contain not only the hash, but also the exit status.
+    if cpd.check_ll and re.match(cpd.marker_regex, cpd.ll):
+        # Extract the exit code from the 'cpd.ll' string that has the following form:
+        # --- hash, <exitcode> ---
+        split = cpd.ll.rsplit(", ", 1)
+        assert len(split) == 2
+        exitcode = split[1].rstrip(" ---")
+
+        if not Trivial.is_int(exitcode):
+            raise Error(f"the command was running{cpd.ssh.hostmsg} under the interactive "
+                        f"shell and finished with a correct marker, but unexpected exit "
+                        f"code '{exitcode}'.\nThe command was: {chan.cmd}")
+
+        exitcode = int(exitcode)
+
+    chan._dbg_("_watch_for_marker: cpd.check_ll %s, cpd.ll %s, exitcode %s, cdata: %s",
+               str(cpd.check_ll), cpd.ll, str(exitcode), cdata)
+
+    return (cdata, exitcode)
+
+def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
+                           lines=(None, None), by_line=True):
+    """
+    Implements '_wait_for_cmd()' for the optimized case when the command was executed in the
+    interactive shell process. This case allows us to save time on creating a separate session for
+    commands.
+    """
+
+    cpd = chan._cpd_
+    output = cpd.output
+    partial = cpd.partial
+    enough_lines = False
+    start_time = time.time()
+
+    while not enough_lines:
+        for streamid, data in _consume_queue(chan, timeout):
+            if streamid == -1:
+                # Nothing in the queue for 'timeout' seconds.
+                break
+
+            if data is None:
+                raise Error(f"the interactive shell process{cpd.ssh.hostmsg} closed stream "
+                            f"'{cpd.streams[streamid]._stream_name}' while running the following "
+                            f"command:\n{chan.cmd}")
+
+            # The indication that the command has ended is our marker in stdout (stream 0). Our goal
+            # is to watch for this marker, hide it from the user, because it does not belong to the
+            # output of the command. The marker always starts at the beginning of line.
+
+            if streamid == 0:
+                data, cpd.exitcode = _watch_for_marker(chan, data)
+
+            _capture_data(chan, streamid, data, output, partial, capture_output=capture_output,
+                          output_fobjs=output_fobjs, by_line=by_line)
+
+            if lines[streamid] is not None and len(output[streamid]) >= lines[streamid]:
+                # We read enough lines for this stream.
+                chan._dbg_("_do_wait_for_cmd_intsh: stream %d: read %d lines",
+                           streamid, len(output[streamid]))
+                enough_lines = True
+                break
+
+            # If the marker was met, 'cpd.exitcode' will contain the exit code of the command.
+            # However, we should continue consuming the queue, because it may have bits of 'stderr'
+            # output still left there.
+            if cpd.exitcode and cpd.queue.empty():
+                break
+
+        if cpd.exitcode is not None:
+            chan._dbg_("_do_wait_for_cmd_intsh: process exited with status %d", cpd.exitcode)
+            break
+
+        if timeout and time.time() - start_time > timeout:
+            chan._dbg_("_do_wait_for_cmd_intsh: stop waiting for the command - timeout")
+            break
+
+        if not timeout:
+            chan._dbg_(f"_do_wait_for_cmd_intsh: timeout is {timeout}, exit immediately")
+            break
+
+    if not by_line or cpd.exitcode is not None:
+        for streamid, part in enumerate(partial):
+            _capture_data(chan, streamid, part, output, partial, capture_output=capture_output,
+                          output_fobjs=output_fobjs, by_line=False)
+        cpd.partial = ["", ""]
+
+    if cpd.exitcode is not None:
+        # Mark the interactive shell process as vacant.
+        acquired = cpd.ssh._acquire_intsh_lock(chan.cmd)
+        if not acquired:
+            _LOG.warning("failed to mark the interactive shell process as free")
+        else:
+            cpd.ssh._intsh_busy = False
+            cpd.ssh._intsh_lock.release()
+
+    return _get_lines_to_return(cpd, lines=lines)
+
 def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
                      lines=(None, None), by_line=True):
-    """Implements '_wait_for_cmd()'."""
+    """
+    Implements '_wait_for_cmd()' for the non-optimized case when the command was executed in its own
+    separate SSH session.
+    """
 
     cpd = chan._cpd_
     output = cpd.output
@@ -322,8 +475,13 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
                                                          args=(streamid, chan), daemon=True)
                 cpd.threads[streamid].start()
 
-    output = _do_wait_for_cmd(chan, timeout=timeout, capture_output=capture_output,
-                              output_fobjs=output_fobjs, lines=lines, by_line=by_line)
+    if chan == cpd.ssh._intsh:
+        func = _do_wait_for_cmd_intsh
+    else:
+        func = _do_wait_for_cmd
+
+    output = func(chan, timeout=timeout, capture_output=capture_output, output_fobjs=output_fobjs,
+                  lines=lines, by_line=by_line)
 
     stdout = stderr = ""
     if output[0]:
@@ -467,6 +625,30 @@ def _add_custom_fields(chan, ssh, cmd):
 
     return chan
 
+def _init_intsh_custom_fields(chan, command, marker):
+    """
+    In case of interactive shell we carry more private data in the paramiko channel. And for every
+    new command that we run in the interactive shell, we have to re-initialize some of the fields.
+    """
+
+    cpd = chan._cpd_
+
+    # The marker indicating that the command has finished.
+    cpd.marker = marker
+    # The regular expression the last line of command output should match.
+    cpd.marker_regex = re.compile(f"^{marker}, \\d+ ---$")
+    # The command executed under the interactive shell.
+    cpd.cmd = command
+    # The last line printed by the command to stdout observed so far.
+    cpd.ll = ""
+    # Whether the last line ('ll') should be checked against the marker. Used as an optimization in
+    # order to avoid matching the 'll' against the marker too often.
+    cpd.check_ll = True
+
+    cpd.exitcode = None
+    cpd.output = [[], []]
+    cpd.partial = ["", ""]
+
 def _get_username(uid=None):
     """Return username of the current process or UID 'uid'."""
 
@@ -558,7 +740,21 @@ class SSH:
         if not self._intsh:
             self._intsh = self._run_in_new_session("sh -s", shell=False)
 
-        return self._run_in_new_session(command, cwd=cwd, shell=True)
+        command = _format_command_for_pid(command, cwd=cwd)
+
+        # Run the command in a shell. Keep in mind, the command starts with 'exec', so it'll use the
+        # shell process at the end. Once the command finishes, print its exit status and a random
+        # marker specifying the end of output. This marker will be used to detect that the command
+        # has finishes.
+        marker = random.getrandbits(256)
+        marker = f"--- {marker:064x}"
+        cmd = "sh -c " + shlex.quote(command) + "\n" + f'printf "%s, %d ---" "{marker}" "$?"\n'
+        self._intsh.send(cmd)
+
+        _init_intsh_custom_fields(self._intsh, command, marker)
+
+        self._intsh.pid = self._read_pid(self._intsh, command)
+        return self._intsh
 
     def _acquire_intsh_lock(self, command=None):
         """
@@ -612,6 +808,8 @@ class SSH:
                 if acquired:
                     self._intsh_busy = False
                     self._intsh_lock.release()
+                else:
+                    _LOG.dbg("failed to mark the interactive shell proces as free")
             raise
 
     def run_async(self, command, cwd=None, shell=True, intsh=False):
