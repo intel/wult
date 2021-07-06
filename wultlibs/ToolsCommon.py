@@ -425,7 +425,8 @@ def set_filters(args, res):
     if ops:
         set_filter(res, ops)
 
-    setattr(res, "keep_filtered", args.keep_filtered)
+    keep_filtered = getattr(args, "keep_filtered", None)
+    setattr(res, "keep_filtered", keep_filtered)
 
 def apply_filters(args, res):
     """
