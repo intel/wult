@@ -314,7 +314,6 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
 
                 if not pd.streams[0] and not pd.streams[1]:
                     chan._dbg_("_do_wait_for_cmd: both streams closed")
-                    pd.queue = None
                     pd.exitcode = _recv_exit_status_timeout(chan, timeout)
                     break
 

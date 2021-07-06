@@ -118,7 +118,6 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
 
                 if not pd.streams[0] and not pd.streams[1]:
                     proc._dbg_("_do_wait_for_cmd: both streams closed")
-                    pd.queue = None
                     pd.exitcode = _wait_timeout(proc, timeout)
                     break
 
@@ -232,7 +231,6 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
         for streamid in (0, 1):
             assert not pd.output[streamid]
             assert not pd.partial[streamid]
-        return ("", "", pd.exitcode)
 
     return ProcResult(stdout=stdout, stderr=stderr, exitcode=pd.exitcode)
 
