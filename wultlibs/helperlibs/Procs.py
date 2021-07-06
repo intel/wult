@@ -124,7 +124,7 @@ def _capture_data(proc, streamid, data, output, partial, capture_output=True,
             if output_fobjs[streamid]:
                 output_fobjs[streamid].write(data)
 
-    proc._dbg_("_do_wait_for_cmd: got data from stream %d: %s", streamid, data)
+    proc._dbg_("_do_wait_for_cmd: got data from stream %d:\n%s", streamid, data)
 
     if by_line:
         data, partial[streamid] = _Common.extract_full_lines(partial[streamid] + data)
@@ -166,6 +166,8 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
     partial = ppd.partial
     enough_lines = False
     start_time = time.time()
+
+    proc._dbg_("_do_wait_for_cmd: starting with partial: %s, output:\n%s", partial, str(output))
 
     while not enough_lines:
         for streamid, data in _consume_queue(proc, timeout):
@@ -328,7 +330,13 @@ def _get_err_prefix(fobj, method):
 def _dbg(proc, fmt, *args):
     """Print a debugging message related to the 'proc' process handling."""
     if proc._ppd_.debug:
-        _LOG.debug("%s: " + fmt, proc._ppd_.debug_id, *args)
+        pfx = ""
+        if proc._ppd_.debug_id:
+            pfx += f"{proc._ppd_.debug_id}: "
+        if hasattr(proc, "pid"):
+            pfx += f"PID {proc.pid}: "
+
+        _LOG.debug(pfx + fmt, *args)
 
 class _ProcessPrivateData:
     """
@@ -362,7 +370,7 @@ class _ProcessPrivateData:
         self.debug = False
         # Prefix debugging messages with this string. Can be useful to distinguish between debugging
         # message related to different processes.
-        self.debug_id = "stream"
+        self.debug_id = None
 
 def _add_custom_fields(proc, cmd):
     """Add a couple of custom fields to the process object returned by 'subprocess.Popen()'."""
@@ -449,7 +457,8 @@ def run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=None
         cwd_msg = "\nWorking directory: %s" % cwd
     else:
         cwd_msg = ""
-    _LOG.debug("running the following local command asynchronously:\n%s%s", command, cwd_msg)
+    _LOG.debug("running the following local command asynchronously (shell %s, newgrp %s):\n%s%s",
+               str(shell), str(newgrp), command, cwd_msg)
 
     return _do_run_async(command, stdin=stdin, stdout=stdout, stderr=stderr, bufsize=bufsize,
                          cwd=cwd, env=env, shell=shell, newgrp=newgrp)
@@ -505,7 +514,8 @@ def run(command, timeout=None, capture_output=True, mix_output=False, join=True,
         cwd_msg = "\nWorking directory: %s" % cwd
     else:
         cwd_msg = ""
-    _LOG.debug("running the following local command:\n%s%s", command, cwd_msg)
+    _LOG.debug("running the following local command (shell %s, newgrp %s):\n%s%s",
+               str(shell), str(newgrp), command, cwd_msg)
 
     stdout = subprocess.PIPE
     if mix_output:

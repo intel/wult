@@ -93,7 +93,7 @@ def _stream_fetcher(streamid, chan):
                 chan._dbg_("stream %d: read more data", streamid)
                 continue
 
-            chan._dbg_("stream %d: read data: %s", streamid, data)
+            chan._dbg_("stream %d: read data:\n%s", streamid, data)
             cpd.queue.put((streamid, data))
     except BaseException as err: # pylint: disable=broad-except
         _LOG.error(err)
@@ -166,7 +166,7 @@ def _capture_data(chan, streamid, data, output, partial, capture_output=True,
             if output_fobjs[streamid]:
                 output_fobjs[streamid].write(data)
 
-    chan._dbg_("_capture_data: stream %d: %s", streamid, data)
+    chan._dbg_("_capture_data: stream %d data:\n%s", streamid, data)
 
     if by_line:
         data, partial[streamid] = _Common.extract_full_lines(partial[streamid] + data)
@@ -264,7 +264,7 @@ def _watch_for_marker(chan, data):
 
         exitcode = int(exitcode)
 
-    chan._dbg_("_watch_for_marker: cpd.check_ll %s, cpd.ll %s, exitcode %s, cdata: %s",
+    chan._dbg_("_watch_for_marker: cpd.check_ll %s, cpd.ll %s, exitcode %s, cdata:\n%s",
                str(cpd.check_ll), cpd.ll, str(exitcode), cdata)
 
     return (cdata, exitcode)
@@ -282,6 +282,10 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
     partial = cpd.partial
     enough_lines = False
     start_time = time.time()
+
+    chan._dbg_("_do_wait_for_cmd_intsh: starting with cpd.check_ll %s, cpd.ll: %s, "
+               "cpd.partial: %s, cpd.output:\n%s",
+               str(cpd.check_ll), str(cpd.ll), partial, str(output))
 
     while not enough_lines:
         for streamid, data in _consume_queue(chan, timeout):
@@ -358,6 +362,8 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
     partial = cpd.partial
     enough_lines = False
     start_time = time.time()
+
+    chan._dbg_("_do_wait_for_cmd: starting with partial: %s, output:\n%s", partial, str(output))
 
     while not enough_lines:
         for streamid, data in _consume_queue(chan, timeout):
@@ -541,7 +547,13 @@ def _get_err_prefix(fobj, method):
 def _dbg(chan, fmt, *args):
     """Print a debugging message related to the 'chan' channel handling."""
     if chan._cpd_.debug:
-        _LOG.debug("%s: " + fmt, chan._cpd_.debug_id, *args)
+        pfx = ""
+        if chan._cpd_.debug_id:
+            pfx += f"{chan._cpd_.debug_id}: "
+        if hasattr(chan, "pid"):
+            pfx += f"PID {chan.pid}: "
+
+        _LOG.debug(pfx + fmt, *args)
 
 class _ChannelPrivateData:
     """
@@ -583,7 +595,7 @@ class _ChannelPrivateData:
         self.debug = False
         # Prefix debugging messages with this string. Can be useful to distinguish between debugging
         # message related to different processes.
-        self.debug_id = "stream"
+        self.debug_id = None
 
 def _add_custom_fields(chan, ssh, cmd):
     """Add a couple of custom fields to the paramiko channel object."""
@@ -693,6 +705,8 @@ class SSH:
     def _read_pid(self, chan, command):
         """Return PID of just executed command."""
 
+        chan._dbg_("read_pid: reading PID for command: %s", command)
+
         timeout = 10
         stdout, stderr, exitcode = _wait_for_cmd(chan, timeout=timeout, lines=(1, None),
                                                  by_line=True, join=False)
@@ -711,6 +725,7 @@ class SSH:
             raise Error(f"received a bogus non-integer PID: {pid}\n"
                         f"The command{self.hostmsg} was:\n{command}")
 
+        chan._dbg_("read_pid: PID is %s for command: %s", pid, command)
         return int(pid)
 
     def _run_in_new_session(self, command, cwd=None, shell=True):
