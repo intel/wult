@@ -122,6 +122,11 @@ class WultRunner:
         if "IntrLatency" in dp:
             dp["IntrDelay"] = dp["IntrLatency"] - dp["WakeLatency"]
 
+        if dp["TotCyc"] == 0:
+            # This should not happen.
+            raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
+                        f"a bug. The raw ftrace line was:\n  {self._ftrace.raw_line}") from None
+
         # Add the C-state percentages.
         for cscyc_colname, csres_colname in self._cs_colnames:
             # In case of POLL state, calculate only CC0%.
