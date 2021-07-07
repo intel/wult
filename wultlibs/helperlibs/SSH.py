@@ -1144,7 +1144,8 @@ class SSH:
         if self._intsh:
             intsh = self._intsh
             self._intsh = None
-            intsh.send("exit\n")
+            with contextlib.suppress(Exception):
+                intsh.send("exit\n")
             intsh.close()
 
         if self.ssh:
