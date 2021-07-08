@@ -132,8 +132,6 @@ class MSR:
             regsizes_str = ",".join([str(regsz) for regsz in regsizes])
             raise Error(f"invalid register size value '{regsize}', use one of: {regsizes_str}")
 
-        if not self._cpuinfo:
-            self._cpuinfo = CPUInfo.CPUInfo(proc=self._proc)
         cpus = self._cpuinfo.get_cpu_list(cpus)
 
         return (regsize, cpus)
@@ -349,7 +347,8 @@ class MSR:
         if MSR access is not possible.
         """
 
-        dev_path = Path("/dev/cpu/0/msr")
+        cpus = self._cpuinfo.get_cpus()
+        dev_path = Path(f"/dev/cpu/{cpus[0]}/msr")
         if FSHelpers.exists(dev_path, self._proc):
             return
 
@@ -383,6 +382,8 @@ class MSR:
             proc = Procs.Proc()
         self._proc = proc
         self._cpuinfo = cpuinfo
+        if not self._cpuinfo:
+            self._cpuinfo = CPUInfo.CPUInfo(proc=self._proc)
 
         self._msr_drv = None
         self._loaded_by_us = False
