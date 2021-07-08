@@ -341,10 +341,10 @@ class MSR:
 
         return True
 
-    def _check_dev_path(self):
+    def _ensure_dev_msr(self):
         """
-        Check if MSR device path exists and we are able to read/write MSR registers. Raises an error
-        if MSR access is not possible.
+        Make sure that device nodes for accessing MSR registers are available. Try to load the MSR
+        driver if necessary.
         """
 
         cpus = self._cpuinfo.get_cpus()
@@ -387,7 +387,9 @@ class MSR:
 
         self._msr_drv = None
         self._loaded_by_us = False
-        self._check_dev_path()
+
+        self._ensure_dev_msr()
+
         # Path to MSR.py (ourselves) on the remote host.
         self._rpath = None
         # Whether it is OK to run 'MSR.py' on the remote host as an optimization.
