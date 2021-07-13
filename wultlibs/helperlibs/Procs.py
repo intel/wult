@@ -357,7 +357,7 @@ def _do_run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=
         raise Error("cannot open file '%s': %s" % (fname, err)) from None
 
     if shell:
-        cmd = command = " exec stdbuf -i0 -o0 -e0 -- " + command
+        cmd = command = " exec -- " + command
     elif isinstance(command, str):
         cmd = shlex.split(command)
     else:

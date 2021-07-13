@@ -628,8 +628,7 @@ def _format_command_for_pid(command, cwd=None):
     if cwd:
         prefix += f""" cd "{cwd}" &&"""
 
-    # Force unbuffered I/O to be consistent with the 'shell=False' case.
-    return prefix + " exec stdbuf -i0 -o0 -e0 -- " + command
+    return prefix + " exec -- " + command
 
 class SSH:
     """
