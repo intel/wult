@@ -434,7 +434,8 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
     if pd.exitcode:
         # Sanity check: make sure all the output of the comand was consumed and sent to the caller.
         assert pd.queue.empty()
-        assert not pd.ll
+        if hasattr(pd, "ll"):
+            assert not pd.ll
         for streamid in (0, 1):
             assert not pd.output[streamid]
             assert not pd.partial[streamid]
