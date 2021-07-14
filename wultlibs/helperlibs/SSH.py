@@ -692,7 +692,9 @@ class SSH:
         """Run command 'command' in the interactive shell."""
 
         if not self._intsh:
-            self._intsh = self._run_in_new_session("sh -s", shell=False)
+            cmd = "sh -s"
+            _LOG.debug("starting interactive shell%s: %s", self.hostmsg, cmd)
+            self._intsh = self._run_in_new_session(cmd, shell=False)
 
         command = _format_command_for_pid(command, cwd=cwd)
 
