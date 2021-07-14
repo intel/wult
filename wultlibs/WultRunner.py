@@ -93,15 +93,21 @@ class WultRunner:
             return None
 
         # Merge SMI and NMI counters.
-        # Note, the following counters were added in wult 1.8.14 (March 2020): SMIWake, NMIWake,
-        # SMIIntr, NMIIntr. This is why we have the 'if' statements below, which can probably be
-        # removed in the future.
-        if "NMIWake" in dp:
-            dp["NMIWake"] += dp["SMIWake"]
+        if "NMICnt" in dp:
+            dp["NMICnt"] += dp["SMICnt"]
+            del dp["SMICnt"]
+        else:
+            # Note, 'NMIWake', 'SMIWake', 'NMIIntr', and 'SMIIntr' were removed in wult 1.9.3 (Jul
+            # 2021). Probably the code below can be removed in 2022.
+            cnt = dp["NMIWake"] + dp["SMIWake"]
+            del dp["NMIWake"]
             del dp["SMIWake"]
-        if "NMIIntr" in dp:
-            dp["NMIIntr"] += dp["SMIIntr"]
-            del dp["SMIIntr"]
+            # 'NMIIntr', and 'SMIIntr' were added a bit later.
+            if "NMIIntr" in dp:
+                cnt += dp["NMIIntr"] + dp["SMIIntr"]
+                del dp["NMIIntr"]
+                del dp["SMIIntr"]
+            dp["NMICnt"] = cnt
 
         if not self._is_poll_idle(dp):
             # Inject additional C-state information to the datapoint.
