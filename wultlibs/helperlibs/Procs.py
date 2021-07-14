@@ -193,12 +193,13 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
                "join: %s:", timeout, capture_output, str(lines), by_line, join)
 
     pd = proc._pd_
-    if pd.exitcode:
+    if pd.exitcode is not None:
         # This command has already exited.
-        return ("", "", pd.exitcode)
+        return ProcResult(stdout="", stderr="", exitcode=pd.exitcode)
 
     if not proc.stdout and not proc.stderr:
-        return ("", "", _wait_timeout(proc, timeout))
+        pd.exitcode = _wait_timeout(proc, timeout)
+        return ProcResult(stdout="", stderr="", exitcode=pd.exitcode)
 
     if not pd.queue:
         pd.queue = queue.Queue()

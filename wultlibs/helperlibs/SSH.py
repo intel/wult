@@ -398,9 +398,9 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
     if pd.threads_exit:
         raise Error("this SSH channel has '_threads_exit_ flag set and it cannot be used")
 
-    if pd.exitcode:
+    if pd.exitcode is not None:
         # This command has already exited.
-        return ("", "", pd.exitcode)
+        return ProcResult(stdout="", stderr="", exitcode=pd.exitcode)
 
     if not pd.queue:
         pd.queue = queue.Queue()
