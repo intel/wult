@@ -19,7 +19,7 @@
 /* Format string for the common part of trace output. */
 #define COMMON_TRACE_FMT "SilentTime=%llu WakeLatency=%llu IntrLatency=%llu " \
 			 "LDist=%llu ReqCState=%u TotCyc=%llu CC0Cyc=%llu " \
-			 "SMIWake=%llu NMIWake=%llu SMIIntr=%llu NMIIntr=%llu"
+			 "SMICnt=%llu NMICnt=%llu"
 
 /* Size of the measurement data output buffer. */
 #define OUTBUF_SIZE 4096
@@ -53,8 +53,6 @@ struct wult_tracer_info {
 	u32 smi_bi, nmi_bi;
 	/* SMI and NMI counters after idle. */
 	u32 smi_ai, nmi_ai;
-	/* SMI and NMI counters in the interrupt handler. */
-	u32 smi_intr, nmi_intr;
 	/* The overhead of taking measurements after we woke up. */
 	u64 ai_overhead;
 	/* Whether the tracer have new any measurement data. */

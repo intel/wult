@@ -26,10 +26,8 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "unsigned int", .name = "ReqCState" },
 	{ .type = "u64", .name = "TotCyc" },
 	{ .type = "u64", .name = "CC0Cyc" },
-	{ .type = "u64", .name = "SMIWake" },
-	{ .type = "u64", .name = "NMIWake" },
-	{ .type = "u64", .name = "SMIIntr" },
-	{ .type = "u64", .name = "NMIIntr" },
+	{ .type = "u64", .name = "SMICnt" },
+	{ .type = "u64", .name = "NMICnt" },
 };
 #endif
 
@@ -93,8 +91,8 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 		 * the statistics. Collect few more here and we are done.
 		 */
 		ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
-		ti->smi_intr = get_smi_count();
-		ti->nmi_intr = per_cpu(irq_stat, wi->cpunum).__nmi_count;
+		ti->smi_ai = get_smi_count();
+		ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 	} else if (ti->bi_finished) {
 		/*
 		 * We interrupted the POLL idle state. In this state interrupts
@@ -105,8 +103,8 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 		ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
 		wult_cstates_read_after(&ti->csinfo);
 		ti->tai = ti->tintr;
-		ti->smi_ai = ti->smi_intr = get_smi_count();
-		ti->nmi_ai = ti->nmi_intr = per_cpu(irq_stat, wi->cpunum).__nmi_count;
+		ti->smi_ai = get_smi_count();
+		ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 		ti->ai_overhead = 0;
 		ti->got_measurements = true;
 	}
@@ -172,8 +170,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 	cnt += snprintf(ti->outbuf, OUTBUF_SIZE, COMMON_TRACE_FMT,
 			silent_time, wake_latency, intr_latency, ti->ldist,
 			ti->req_cstate, ti->csinfo.tsc, ti->csinfo.mperf,
-			ti->smi_ai - ti->smi_bi, ti->nmi_ai - ti->nmi_bi,
-			ti->smi_intr - ti->smi_bi, ti->nmi_intr - ti->nmi_bi);
+			ti->smi_ai - ti->smi_bi, ti->nmi_ai - ti->nmi_bi);
 	if (cnt >= OUTBUF_SIZE)
 		goto out_too_small;
 
@@ -269,12 +266,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->nmi_ai - ti->nmi_bi, &trace_state);
-	if (err)
-		goto out_end;
-	err = synth_event_add_next_val(ti->smi_intr - ti->smi_bi, &trace_state);
-	if (err)
-		goto out_end;
-	err = synth_event_add_next_val(ti->nmi_intr - ti->nmi_bi, &trace_state);
 	if (err)
 		goto out_end;
 
