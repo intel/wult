@@ -23,7 +23,7 @@ import codecs
 import logging
 import threading
 import subprocess
-from wultlibs.helperlibs import _Common, WrapExceptions
+from wultlibs.helperlibs import _Common, WrapExceptions, Trivial
 from wultlibs.helperlibs._Common import ProcResult, cmd_failed_msg # pylint: disable=unused-import
 from wultlibs.helperlibs._Common import TIMEOUT
 from wultlibs.helperlibs.Exceptions import Error, ErrorTimeOut, ErrorPermissionDenied
@@ -188,6 +188,21 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
     if timeout < 0:
         raise Error(f"bad timeout value {timeout}, must be > 0")
     proc.timeout = timeout
+
+    if not by_line and lines != (None, None):
+        raise Error("'by_line' must be 'True' when 'lines' is used (reading limited amount of "
+                    "output lines)")
+
+    for streamid in (0, 1):
+        if not lines[streamid]:
+            continue
+        if not Trivial.is_int(lines[streamid]):
+            raise Error("the 'lines' argument can only include integers and 'None'")
+        if lines[streamid] < 0:
+            raise Error("the 'lines' argument cannot include negative values")
+
+    if lines[0] == 0 and lines[1] == 0:
+        raise Error("the 'lines' argument cannot be (0, 0)")
 
     proc._dbg_("wait_for_cmd: timeout %s, capture_output %s, lines %s, by_line %s, "
                "join: %s:", timeout, capture_output, str(lines), by_line, join)

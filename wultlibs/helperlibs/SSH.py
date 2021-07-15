@@ -388,6 +388,17 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
         raise Error("'by_lines' must be 'True' when 'lines' is used (reading limited amount of "
                     "output lines)")
 
+    for streamid in (0, 1):
+        if not lines[streamid]:
+            continue
+        if not Trivial.is_int(lines[streamid]):
+            raise Error("the 'lines' argument can only include integers and 'None'")
+        if lines[streamid] < 0:
+            raise Error("the 'lines' argument cannot include negative values")
+
+    if lines[0] == 0 and lines[1] == 0:
+        raise Error("the 'lines' argument cannot be (0, 0)")
+
     pd = chan._pd_
     chan.timeout = timeout
 
