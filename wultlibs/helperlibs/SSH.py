@@ -653,17 +653,17 @@ class SSH:
 
     Error = Error
 
-    def _read_pid(self, chan, command):
+    def _read_pid(self, chan):
         """Return PID of just executed command."""
 
-        chan._dbg_("_read_pid: reading PID for command: %s", command)
+        chan._dbg_("_read_pid: reading PID for command: %s", chan.cmd)
 
         timeout = 10
         stdout, stderr, exitcode = _wait_for_cmd(chan, timeout=timeout, lines=(1, None),
                                                  by_line=True, join=False)
         if exitcode is not None or stderr:
             msg = "failed to get PID of the command."
-            raise Error(self.cmd_failed_msg(command, stdout, stderr, exitcode, startmsg=msg,
+            raise Error(self.cmd_failed_msg(chan.cmd, stdout, stderr, exitcode, startmsg=msg,
                                             timeout=timeout))
 
         assert len(stdout) == 1
@@ -671,12 +671,12 @@ class SSH:
 
         if len(pid) > 128:
             raise Error(f"received too long and probably bogus PID: {pid}\n"
-                        f"The command{self.hostmsg} was:\n{command}")
+                        f"The command{self.hostmsg} was:\n{chan.cmd}")
         if not Trivial.is_int(pid):
             raise Error(f"received a bogus non-integer PID: {pid}\n"
-                        f"The command{self.hostmsg} was:\n{command}")
+                        f"The command{self.hostmsg} was:\n{chan.cmd}")
 
-        chan._dbg_("_read_pid: PID is %s for command: %s", pid, command)
+        chan._dbg_("_read_pid: PID is %s for command: %s", pid, chan.cmd)
         return int(pid)
 
     def _run_in_new_session(self, command, cwd=None, shell=True):
@@ -697,7 +697,7 @@ class SSH:
 
         if shell:
             # The first line of the output should contain the PID - extract it.
-            chan.pid = self._read_pid(chan, cmd)
+            chan.pid = self._read_pid(chan)
 
         return chan
 
@@ -721,7 +721,7 @@ class SSH:
         _init_intsh_custom_fields(self._intsh, command, cmd, marker)
         self._intsh.send(cmd)
 
-        self._intsh.pid = self._read_pid(self._intsh, command)
+        self._intsh.pid = self._read_pid(self._intsh)
         return self._intsh
 
     def _acquire_intsh_lock(self, command=None):
