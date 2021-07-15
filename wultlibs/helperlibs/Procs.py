@@ -134,15 +134,14 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
                     pd.exitcode = _wait_timeout(proc, timeout)
                     break
 
-            if lines[streamid] is not None and len(output[streamid]) >= lines[streamid]:
+            if lines[streamid] and len(output[streamid]) >= lines[streamid]:
                 # We read enough lines for this stream.
                 proc._dbg_("_do_wait_for_cmd: stream %d: read %d lines",
                            streamid, len(output[streamid]))
                 enough_lines = True
                 break
 
-    return _Common.get_lines_to_return(proc, capture_output=capture_output,
-            output_fobjs=output_fobjs, lines=lines, by_line=by_line)
+    return _Common.get_lines_to_return(proc, lines=lines)
 
 def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
                   lines=(None, None), by_line=True, join=True):
@@ -209,7 +208,7 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
                "command: %s", timeout, capture_output, str(lines), by_line, join, proc.cmd)
 
     pd = proc._pd_
-    if pd.exitcode is not None:
+    if _Common.all_output_consumed(proc):
         # This command has already exited.
         return ProcResult(stdout="", stderr="", exitcode=pd.exitcode)
 
@@ -242,20 +241,18 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
         if join:
             stderr = "".join(stderr)
 
+    if _Common.all_output_consumed(proc):
+        exitcode = pd.exitcode
+    else:
+        exitcode = None
+
     if proc._pd_.debug:
         sout = "".join(output[0])
         serr = "".join(output[1])
         proc._dbg_("_wait_for_cmd: returning, exitcode %s, stdout:\n%s\nstderr:\n%s",
-                   pd.exitcode, sout.rstrip(), serr.rstrip())
+                   exitcode, sout.rstrip(), serr.rstrip())
 
-    if pd.exitcode:
-        # Sanity check: make sure all the output of the comand was consumed and sent to the caller.
-        assert pd.queue.empty()
-        for streamid in (0, 1):
-            assert not pd.output[streamid]
-            assert not pd.partial[streamid]
-
-    return ProcResult(stdout=stdout, stderr=stderr, exitcode=pd.exitcode)
+    return ProcResult(stdout=stdout, stderr=stderr, exitcode=exitcode)
 
 def _cmd_failed_msg(proc, stdout, stderr, exitcode, startmsg=None, timeout=None):
     """

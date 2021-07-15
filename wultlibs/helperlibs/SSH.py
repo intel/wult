@@ -223,6 +223,9 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
 
     while not enough_lines:
         while True:
+            if pd.exitcode is not None and pd.queue.empty():
+                break
+
             streamid, data = _Common.get_next_queue_item(pd.queue, timeout)
             if streamid == -1:
                 chan._dbg_("_do_wait_for_cmd_intsh: nothing in the queue for %d seconds", timeout)
@@ -243,16 +246,11 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
             _Common.capture_data(chan, streamid, data, capture_output=capture_output,
                                  output_fobjs=output_fobjs, by_line=by_line)
 
-            if lines[streamid] is not None and len(output[streamid]) >= lines[streamid]:
+            if lines[streamid] and len(output[streamid]) >= lines[streamid]:
                 # We read enough lines for this stream.
                 chan._dbg_("_do_wait_for_cmd_intsh: stream %d: read %d lines",
                            streamid, len(output[streamid]))
                 enough_lines = True
-                break
-
-            # Even if the command has finished, exhaust the queue before returning, because there
-            # may still be some 'stderr' data there.
-            if pd.exitcode is not None and pd.queue.empty():
                 break
 
         if pd.exitcode is not None:
@@ -267,10 +265,9 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
             chan._dbg_(f"_do_wait_for_cmd_intsh: timeout is {timeout}, exit immediately")
             break
 
-    result = _Common.get_lines_to_return(chan, capture_output=capture_output,
-                                         output_fobjs=output_fobjs, lines=lines, by_line=by_line)
+    result = _Common.get_lines_to_return(chan, lines=lines)
 
-    if pd.exitcode is not None:
+    if _Common.all_output_consumed(chan):
         # Mark the interactive shell process as vacant.
         acquired = pd.ssh._acquire_intsh_lock(chan.cmd)
         if not acquired:
@@ -329,15 +326,14 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
                     pd.exitcode = _recv_exit_status_timeout(chan, timeout)
                     break
 
-            if lines[streamid] is not None and len(output[streamid]) >= lines[streamid]:
+            if lines[streamid] and len(output[streamid]) >= lines[streamid]:
                 # We read enough lines for this stream.
                 chan._dbg_("_do_wait_for_cmd: stream %d: read %d lines",
                            streamid, len(output[streamid]))
                 enough_lines = True
                 break
 
-    return _Common.get_lines_to_return(chan, capture_output=capture_output,
-            output_fobjs=output_fobjs, lines=lines, by_line=by_line)
+    return _Common.get_lines_to_return(chan, lines=lines)
 
 def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
                   lines=(None, None), by_line=True, join=True):
@@ -409,8 +405,7 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
     if pd.threads_exit:
         raise Error("this SSH channel has '_threads_exit_ flag set and it cannot be used")
 
-    if pd.exitcode is not None:
-        # This command has already exited.
+    if _Common.all_output_consumed(chan):
         return ProcResult(stdout="", stderr="", exitcode=pd.exitcode)
 
     if not pd.queue:
@@ -443,24 +438,18 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
         if join:
             stderr = "".join(stderr)
 
-    chan._dbg_("_wait_for_cmd: returning, exitcode %s", pd.exitcode)
+    if _Common.all_output_consumed(chan):
+        exitcode = pd.exitcode
+    else:
+        exitcode = None
 
     if chan._pd_.debug:
         sout = "".join(output[0])
         serr = "".join(output[1])
         chan._dbg_("_wait_for_cmd: returning, exitcode %s, stdout:\n%s\nstderr:\n%s",
-                   pd.exitcode, sout.rstrip(), serr.rstrip())
+                   exitcode, sout.rstrip(), serr.rstrip())
 
-    if pd.exitcode:
-        # Sanity check: make sure all the output of the comand was consumed and sent to the caller.
-        assert pd.queue.empty()
-        if hasattr(pd, "ll"):
-            assert not pd.ll
-        for streamid in (0, 1):
-            assert not pd.output[streamid]
-            assert not pd.partial[streamid]
-
-    return ProcResult(stdout=stdout, stderr=stderr, exitcode=pd.exitcode)
+    return ProcResult(stdout=stdout, stderr=stderr, exitcode=exitcode)
 
 def _poll(chan):
     """
@@ -678,14 +667,11 @@ class SSH:
         chan._dbg_("_read_pid: reading PID for command: %s", chan.cmd)
 
         timeout = 10
-        stdout, stderr, exitcode = _wait_for_cmd(chan, timeout=timeout, lines=(1, None),
-                                                 by_line=True, join=False)
-        if exitcode is not None or stderr:
-            msg = "failed to get PID of the command."
-            raise Error(self.cmd_failed_msg(chan.cmd, stdout, stderr, exitcode, startmsg=msg,
-                                            timeout=timeout))
-
+        stdout, stderr, _ = _wait_for_cmd(chan, timeout=timeout, lines=(1, 0), by_line=True,
+                                          join=False)
         assert len(stdout) == 1
+        assert not stderr
+
         pid = stdout[0].strip()
 
         if len(pid) > 128:

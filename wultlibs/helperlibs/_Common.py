@@ -73,8 +73,7 @@ def capture_data(proc, streamid, data, capture_output=True, output_fobjs=(None, 
     else:
         _save_output(data, streamid)
 
-def get_lines_to_return(proc, capture_output=True, output_fobjs=(None, None), lines=(None, None),
-                        by_line=True):
+def get_lines_to_return(proc, lines=(None, None)):
     """
     A helper for 'Procs' and 'SSH' that figures out what part of the captured command output should
     be returned to the user, and what part should stay in 'proc._pd_.output', depending on the lines
@@ -85,12 +84,6 @@ def get_lines_to_return(proc, capture_output=True, output_fobjs=(None, None), li
     pd = proc._pd_
     proc._dbg_("get_lines_to_return: starting with lines %s, pd.partial: %s, pd.output:\n%s",
                str(lines), pd.partial, pd.output)
-
-    if not by_line or pd.exitcode is not None:
-        for streamid, part in enumerate(pd.partial):
-            capture_data(proc, streamid, part, capture_output=capture_output,
-                                 output_fobjs=output_fobjs, by_line=False)
-        pd.partial = ["", ""]
 
     output = [[], []]
 
@@ -106,6 +99,21 @@ def get_lines_to_return(proc, capture_output=True, output_fobjs=(None, None), li
     proc._dbg_("get_lines_to_return: starting with  pd.partial: %s, pd.output:\n%s\nreturning:\n%s",
                pd.partial, pd.output, output)
     return output
+
+def all_output_consumed(proc):
+    """
+    Returns 'True' if all the output of the process in 'proc' was returned to the user and the
+    process exited. Returns 'False' if there is some output still in the queue or "cached" in
+    'proc._pd_.output' or if the process did not exit yet.
+    """
+
+    # pylint: disable=protected-access
+    pd = proc._pd_
+    return pd.exitcode is not None and \
+           not pd.output[0] and \
+           not pd.output[1] and \
+           not getattr(pd, "ll", None) and \
+           pd.queue.empty()
 
 def cmd_failed_msg(command, stdout, stderr, exitcode, hostname=None, startmsg=None, timeout=None):
     """
