@@ -81,7 +81,10 @@ def get_lines_to_return(proc, capture_output=True, output_fobjs=(None, None), li
     limit 'lines'. The keyword arguments are the same as in '_do_wait_for_cmd()'.
     """
 
-    pd = proc._pd_ # pylint: disable=protected-access
+    # pylint: disable=protected-access
+    pd = proc._pd_
+    proc._dbg_("get_lines_to_return: starting with lines %s, pd.partial: %s, pd.output:\n%s",
+               str(lines), pd.partial, pd.output)
 
     if not by_line or pd.exitcode is not None:
         for streamid, part in enumerate(pd.partial):
@@ -100,6 +103,8 @@ def get_lines_to_return(proc, capture_output=True, output_fobjs=(None, None), li
             output[streamid] = pd.output[streamid][:limit]
             pd.output[streamid] = pd.output[streamid][limit:]
 
+    proc._dbg_("get_lines_to_return: starting with  pd.partial: %s, pd.output:\n%s\nreturning:\n%s",
+               pd.partial, pd.output, output)
     return output
 
 def cmd_failed_msg(command, stdout, stderr, exitcode, hostname=None, startmsg=None, timeout=None):

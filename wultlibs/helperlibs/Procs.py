@@ -68,6 +68,7 @@ def _stream_fetcher(streamid, proc):
                 proc._dbg_("stream %d: read more data", streamid)
                 continue
 
+            proc._dbg_("stream %d: read data:\n%s", streamid, data)
             pd.queue.put((streamid, data))
     except BaseException as err: # pylint: disable=broad-except
         _LOG.error(err)
@@ -204,8 +205,8 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
     if lines[0] == 0 and lines[1] == 0:
         raise Error("the 'lines' argument cannot be (0, 0)")
 
-    proc._dbg_("wait_for_cmd: timeout %s, capture_output %s, lines %s, by_line %s, "
-               "join: %s:", timeout, capture_output, str(lines), by_line, join)
+    proc._dbg_("_wait_for_cmd: timeout %s, capture_output %s, lines %s, by_line %s, join: %s, "
+               "command: %s", timeout, capture_output, str(lines), by_line, join, proc.cmd)
 
     pd = proc._pd_
     if pd.exitcode is not None:
@@ -225,6 +226,8 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
                                                          name='Procs-stream-fetcher',
                                                          args=(streamid, proc), daemon=True)
                 pd.threads[streamid].start()
+    else:
+        proc._dbg_("_wait_for_cmd: queue is empty: %s", pd.queue.empty())
 
     output = _do_wait_for_cmd(proc, timeout=timeout, capture_output=capture_output,
                               output_fobjs=output_fobjs, lines=lines, by_line=by_line)
@@ -239,7 +242,11 @@ def _wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, N
         if join:
             stderr = "".join(stderr)
 
-    proc._dbg_("wait_for_cmd: returning, exitcode %s", pd.exitcode)
+    if proc._pd_.debug:
+        sout = "".join(output[0])
+        serr = "".join(output[1])
+        proc._dbg_("_wait_for_cmd: returning, exitcode %s, stdout:\n%s\nstderr:\n%s",
+                   pd.exitcode, sout.rstrip(), serr.rstrip())
 
     if pd.exitcode:
         # Sanity check: make sure all the output of the comand was consumed and sent to the caller.

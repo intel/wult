@@ -385,7 +385,7 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
         raise Error(f"bad timeout value {timeout}, must be > 0")
 
     if not by_line and lines != (None, None):
-        raise Error("'by_lines' must be 'True' when 'lines' is used (reading limited amount of "
+        raise Error("'by_line' must be 'True' when 'lines' is used (reading limited amount of "
                     "output lines)")
 
     for streamid in (0, 1):
@@ -403,7 +403,7 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
     chan.timeout = timeout
 
     chan._dbg_("_wait_for_cmd: timeout %s, capture_output %s, lines: %s, by_line %s, "
-               "join: %s\ncommand: %s\nreal command: %s",
+               "join: %s, command: %s\nreal command: %s",
                timeout, capture_output, str(lines), by_line, join, chan.cmd, pd.real_cmd)
 
     if pd.threads_exit:
@@ -422,6 +422,8 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
                                                          name='SSH-stream-fetcher',
                                                          args=(streamid, chan), daemon=True)
                 pd.threads[streamid].start()
+    else:
+        chan._dbg_("_wait_for_cmd: queue is empty: %s", pd.queue.empty())
 
     if chan == pd.ssh._intsh:
         func = _do_wait_for_cmd_intsh
@@ -442,6 +444,12 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
             stderr = "".join(stderr)
 
     chan._dbg_("_wait_for_cmd: returning, exitcode %s", pd.exitcode)
+
+    if chan._pd_.debug:
+        sout = "".join(output[0])
+        serr = "".join(output[1])
+        chan._dbg_("_wait_for_cmd: returning, exitcode %s, stdout:\n%s\nstderr:\n%s",
+                   pd.exitcode, sout.rstrip(), serr.rstrip())
 
     if pd.exitcode:
         # Sanity check: make sure all the output of the comand was consumed and sent to the caller.
