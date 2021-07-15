@@ -379,6 +379,13 @@ def _do_run_async(command, stdin=None, stdout=None, stderr=None, bufsize=0, cwd=
     except OSError as err:
         raise Error("cannot open file '%s': %s" % (fname, err)) from None
 
+    if not stdin:
+        stdin = subprocess.PIPE
+    if not stdout:
+        stdout = subprocess.PIPE
+    if not stderr:
+        stderr = subprocess.PIPE
+
     if shell:
         cmd = command = " exec -- " + command
     elif isinstance(command, str):
@@ -538,13 +545,6 @@ class Proc:
     """This class provides API similar to the 'SSH' class API."""
 
     Error = Error
-
-    @staticmethod
-    def run_async(command, cwd=None, shell=False):
-        """A version of 'run_async()' compatible with 'SSH.run_async()'."""
-
-        return run_async(command, cwd=cwd, shell=shell, stdin=subprocess.PIPE,
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def __init__(self):
         """Initialize a class instance."""
