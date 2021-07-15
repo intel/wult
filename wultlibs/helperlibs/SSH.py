@@ -388,12 +388,13 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
         raise Error("'by_lines' must be 'True' when 'lines' is used (reading limited amount of "
                     "output lines)")
 
+    pd = chan._pd_
     chan.timeout = timeout
 
-    chan._dbg_("wait_for_cmd: timeout %s, capture_output %s, lines: %s, by_line %s, "
-               "join: %s:", timeout, capture_output, str(lines), by_line, join)
+    chan._dbg_("_wait_for_cmd: timeout %s, capture_output %s, lines: %s, by_line %s, "
+               "join: %s\ncommand: %s\nreal command: %s",
+               timeout, capture_output, str(lines), by_line, join, chan.cmd, pd.real_cmd)
 
-    pd = chan._pd_
     if pd.threads_exit:
         raise Error("this SSH channel has '_threads_exit_ flag set and it cannot be used")
 
@@ -429,7 +430,7 @@ def _wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None, N
         if join:
             stderr = "".join(stderr)
 
-    chan._dbg_("_do_wait_for_cmd: returning, exitcode %s", pd.exitcode)
+    chan._dbg_("_wait_for_cmd: returning, exitcode %s", pd.exitcode)
 
     if pd.exitcode:
         # Sanity check: make sure all the output of the comand was consumed and sent to the caller.
@@ -459,7 +460,13 @@ def _cmd_failed_msg(chan, stdout, stderr, exitcode, startmsg=None, timeout=None)
 
     if timeout is None:
         timeout = chan.timeout
-    return _Common.cmd_failed_msg(chan.cmd, stdout, stderr, exitcode, hostname=chan.hostname,
+
+    cmd = chan.cmd
+    if _LOG.getEffectiveLevel() == logging.DEBUG:
+        if chan.cmd != chan._pd_.real_cmd:
+            cmd = f"{cmd}\nReal command: {chan._pd_.real_cmd}"
+
+    return _Common.cmd_failed_msg(cmd, stdout, stderr, exitcode, hostname=chan.hostname,
                                   startmsg=startmsg, timeout=timeout)
 
 def _close(chan):
@@ -528,6 +535,8 @@ class _ChannelPrivateData:
         # lines will be in 'output'.
         self.partial = ["", ""]
 
+        # Real command (user command and all the prefixes/suffixes).
+        self.real_cmd = None
         # The original 'close()' and '__del__()' methods of the paramiko channel object.
         self.orig_close = None
         self.orig_del = None
@@ -537,7 +546,7 @@ class _ChannelPrivateData:
         # message related to different processes.
         self.debug_id = None
 
-def _add_custom_fields(chan, ssh, cmd):
+def _add_custom_fields(chan, ssh, cmd, real_cmd):
     """Add a couple of custom fields to the paramiko channel object."""
 
     pd = chan._pd_ = _ChannelPrivateData()
@@ -558,6 +567,7 @@ def _add_custom_fields(chan, ssh, cmd):
         setattr(pd, name, wrapped_fobj)
 
     pd.ssh = ssh
+    pd.real_cmd = real_cmd
     pd.streams = [chan.recv, chan.recv_stderr]
     pd.orig_close = chan.close
     pd.orig_del = chan.__del__
@@ -577,7 +587,7 @@ def _add_custom_fields(chan, ssh, cmd):
 
     return chan
 
-def _init_intsh_custom_fields(chan, command, marker):
+def _init_intsh_custom_fields(chan, cmd, real_cmd, marker):
     """
     In case of interactive shell we carry more private data in the paramiko channel. And for every
     new command that we run in the interactive shell, we have to re-initialize some of the fields.
@@ -590,7 +600,9 @@ def _init_intsh_custom_fields(chan, command, marker):
     # The regular expression the last line of command output should match.
     pd.marker_regex = re.compile(f"^{marker}, \\d+ ---$")
     # The command executed under the interactive shell.
-    pd.cmd = command
+    chan.cmd = cmd
+    # Re real command ('pd.cmd' and all the prefixes/suffixes).
+    pd.real_cmd = real_cmd
     # The last line printed by the command to stdout observed so far.
     pd.ll = ""
     # Whether the last line ('ll') should be checked against the marker. Used as an optimization in
@@ -644,7 +656,7 @@ class SSH:
     def _read_pid(self, chan, command):
         """Return PID of just executed command."""
 
-        chan._dbg_("read_pid: reading PID for command: %s", command)
+        chan._dbg_("_read_pid: reading PID for command: %s", command)
 
         timeout = 10
         stdout, stderr, exitcode = _wait_for_cmd(chan, timeout=timeout, lines=(1, None),
@@ -664,27 +676,28 @@ class SSH:
             raise Error(f"received a bogus non-integer PID: {pid}\n"
                         f"The command{self.hostmsg} was:\n{command}")
 
-        chan._dbg_("read_pid: PID is %s for command: %s", pid, command)
+        chan._dbg_("_read_pid: PID is %s for command: %s", pid, command)
         return int(pid)
 
     def _run_in_new_session(self, command, cwd=None, shell=True):
         """Run command 'command' in a new session."""
 
+        cmd = command
         if shell:
-            command = _format_command_for_pid(command, cwd=cwd)
+            cmd = _format_command_for_pid(command, cwd=cwd)
 
         try:
             chan = self.ssh.get_transport().open_session(timeout=self.connection_timeout)
-            chan.exec_command(command)
+            chan.exec_command(cmd)
         except (paramiko.SSHException, socket.error) as err:
             raise Error(f"cannot execute the following command in new SSH session{self.hostmsg}:\n"
-                        "{command}\nReason: {err}") from err
+                        "{cmd}\nReason: {err}") from err
 
-        _add_custom_fields(chan, self, command)
+        _add_custom_fields(chan, self, command, cmd)
 
         if shell:
             # The first line of the output should contain the PID - extract it.
-            chan.pid = self._read_pid(chan, command)
+            chan.pid = self._read_pid(chan, cmd)
 
         return chan
 
@@ -696,7 +709,7 @@ class SSH:
             _LOG.debug("starting interactive shell%s: %s", self.hostmsg, cmd)
             self._intsh = self._run_in_new_session(cmd, shell=False)
 
-        command = _format_command_for_pid(command, cwd=cwd)
+        cmd = _format_command_for_pid(command, cwd=cwd)
 
         # Run the command in a shell. Keep in mind, the command starts with 'exec', so it'll use the
         # shell process at the end. Once the command finishes, print its exit status and a random
@@ -704,10 +717,9 @@ class SSH:
         # has finishes.
         marker = random.getrandbits(256)
         marker = f"--- {marker:064x}"
-        cmd = "sh -c " + shlex.quote(command) + "\n" + f'printf "%s, %d ---" "{marker}" "$?"\n'
+        cmd = "sh -c " + shlex.quote(cmd) + "\n" + f'printf "%s, %d ---" "{marker}" "$?"\n'
+        _init_intsh_custom_fields(self._intsh, command, cmd, marker)
         self._intsh.send(cmd)
-
-        _init_intsh_custom_fields(self._intsh, command, marker)
 
         self._intsh.pid = self._read_pid(self._intsh, command)
         return self._intsh
