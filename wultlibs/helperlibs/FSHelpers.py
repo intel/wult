@@ -324,7 +324,14 @@ def shell_test(path: Path, opt: str, proc=None):
         proc = Procs.Proc()
 
     cmd = f"test {opt} '{path}'"
-    stdout, stderr, exitcode = proc.run(cmd)
+    stdout, stderr, exitcode = proc.run(cmd, shell=True)
+    if stderr and exitcode == 127:
+        # There is some output in 'stderr' and exit code is 127, which happens when the 'test'
+        # command is not in '$PATH'. Let's try running 'sh' with '-l', which will make it read
+        # '/etc/profile' and possibly ensure that 'test' is in '$PATH'.
+        cmd = f"sh -c -l 'test {opt} \"{path}\"'"
+        stdout, stderr, exitcode = proc.run(cmd, shell=True)
+
     if stdout or stderr or exitcode not in (0, 1):
         raise Error(proc.cmd_failed_msg(cmd, stdout, stderr, exitcode))
 
