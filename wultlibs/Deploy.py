@@ -231,12 +231,21 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
     # Add python helpers' deploy information.
     if pyhelpers:
         for pyhelper in pyhelpers:
-            srcpath = FSHelpers.find_app_data(toolname, _HELPERS_SRC_SUBPATH / pyhelper)
-            srcpaths = [srcpath]
+            datapath = FSHelpers.find_app_data(toolname, _HELPERS_SRC_SUBPATH / pyhelper)
+            srcpaths = []
             dstpaths = []
-            for deployable in _get_deployables(srcpath, Procs.Proc()):
-                dstpaths.append(helpers_deploy_path / deployable)
+            for deployable in _get_deployables(datapath, Procs.Proc()):
+                if datapath.joinpath(deployable).exists():
+                    # This case is relevant for running wult from sources - python helpers are
+                    # in the 'helpers/pyhelper' directory.
+                    srcpath = datapath
+                else:
+                    # When wult is installed with 'pip', the python helpers go to the "bindir",
+                    # and they are not installed to the data directory.
+                    srcpath = FSHelpers.which(deployable).parent
+
                 srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
+                dstpaths.append(helpers_deploy_path / deployable)
             dinfos[pyhelper] = {"src" : srcpaths, "dst" : dstpaths}
 
     # We are about to get timestamps for local and remote files. Take into account the possible time
