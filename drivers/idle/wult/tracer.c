@@ -93,6 +93,7 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 		ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
 		ti->smi_ai = get_smi_count();
 		ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
+		ti->intr_finished = true;
 	} else if (ti->bi_finished) {
 		/*
 		 * We interrupted the POLL idle state. In this state interrupts
@@ -107,6 +108,7 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 		ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 		ti->ai_overhead = 0;
 		ti->got_measurements = true;
+		ti->intr_finished = true;
 	}
 }
 
@@ -310,13 +312,14 @@ static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_
 		 * the necessary information and 'after_idle()' becomes
 		 * unnecessary.
 		 */
-		if (ti->bi_finished && ti->req_cstate)
+		WARN_ON(ti->ai_finished && ti->intr_finished);
+
+		if (ti->bi_finished && ti->req_cstate) {
 			after_idle(wi);
-		ti->bi_finished = false;
+			ti->ai_finished = true;
+		}
 	} else {
-#ifndef COMPAT_PECULIAR_TRACE_PROBE
-		WARN_ON(ti->bi_finished);
-#endif
+		ti->ai_finished = ti->bi_finished = ti->intr_finished = false;
 		ti->req_cstate = req_cstate;
 		before_idle(data);
 		ti->bi_finished = true;
@@ -328,7 +331,8 @@ int wult_tracer_enable(struct wult_info *wi)
 	int err;
 	struct wult_tracer_info *ti = &wi->ti;
 
-	wi->ti.got_measurements = ti->bi_finished = false;
+	wi->ti.got_measurements = false;
+	ti->ai_finished = ti->bi_finished = ti->intr_finished = false;
 
 	err = tracepoint_probe_register(ti->tp, (void *)cpu_idle_hook, wi);
 	if (err) {

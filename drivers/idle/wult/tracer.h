@@ -57,11 +57,12 @@ struct wult_tracer_info {
 	u64 ai_overhead;
 	/* Whether the tracer have new any measurement data. */
 	bool got_measurements;
-	/*
-	 * Set to 'true' when 'before_idle()' finishes, set to 'false' when
-	 * exiting the idle state.
-	 */
+	/* 'True' if 'before_idle()' finished. */
 	bool bi_finished;
+	/* 'True' if 'after_idle()' finished. */
+	bool ai_finished;
+	/* 'True' if the interrupt handler finished. */
+	bool intr_finished;
 #ifdef COMPAT_USE_TRACE_PRINTK
 	/* The measurement data output buffer. */
 	char *outbuf;
