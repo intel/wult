@@ -45,12 +45,29 @@ static void before_idle(struct wult_info *wi)
 {
 	struct wult_tracer_info *ti = &wi->ti;
 
-	ti->got_measurements = false;
 	ti->smi_bi = get_smi_count();
 	ti->nmi_bi = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 
 	wult_cstates_read_before(&ti->csinfo);
 	ti->tbi = wi->wdi->ops->get_time_before_idle(wi->wdi);
+}
+
+static inline u64 read_data_after_idle(struct wult_info *wi, u64 cyc1)
+{
+	struct wult_tracer_info *ti = &wi->ti;
+	struct wult_device_info *wdi = wi->wdi;
+	u64 tai;
+
+	tai = wdi->ops->get_time_after_idle(wdi, cyc1);
+
+	if (!wdi->ops->event_has_happened(wi->wdi))
+		/* It is not the delayed event we armed that woke us up. */
+		return 0;
+
+	wult_cstates_read_after(&ti->csinfo);
+	ti->smi_ai = get_smi_count();
+	ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
+	return tai;
 }
 
 /* Get measurement data after idle .*/
@@ -61,20 +78,34 @@ static void after_idle(struct wult_info *wi)
 	u64 cyc1, cyc2;
 
 	cyc1 = rdtsc_ordered();
-	ti->tai = wdi->ops->get_time_after_idle(wdi, cyc1);
-
-	if (!wdi->ops->event_has_happened(wi->wdi))
-		/* It is not the delayed event we armed that woke us up. */
+	if (!ti->bi_finished)
+		return;
+	if (ti->intr_finished)
+		/* The data were already collected in the interrupt handler. */
 		return;
 
-	wult_cstates_read_after(&ti->csinfo);
+	ti->tai = read_data_after_idle(wi, cyc1);
 
-	ti->smi_ai = get_smi_count();
-	ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
-	ti->got_measurements = true;
-
+	if (!irqs_disabled()) {
+		/*
+		 * Interrupts are enabled, but the interrupt handler did not
+		 * finish when we checked 'ti->intr_finished' above. This
+		 * situation can happen when the CPU woke up from the idle
+		 * state for some other reasons. And there is a race condition
+		 * (e.g., the interrupt may happend in the middle of
+		 * 'after_idle()'. We should discard this datapoint.
+		 */
+		ti->discard_dp = true;
+	}
+	ti->got_dp = true;
 	cyc2 = rdtsc_ordered();
-	ti->ai_overhead = wult_cyc2ns(wdi, cyc2 - cyc1);
+
+	/*
+	 * Reading all the data takes time, and this will contribute to
+	 * interrupt latency. Measure the overhead, in order to compensate for
+	 * it later.
+	 */
+	ti->overhead = wult_cyc2ns(wdi, cyc2 - cyc1);
 }
 
 /* Get measurements in the interrupt handler after idle. */
@@ -83,33 +114,35 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_device_info *wdi = wi->wdi;
 
-	if (ti->req_cstate) {
+	if (!ti->bi_finished)
+		return;
+
+	if (ti->ai_finished) {
 		/*
-		 * Non-POLL state. In this case interrupts are disabled when
-		 * entering / exiting. The 'after_idle()' function runs before
-		 * the interrupt handler, and it has already collected most of
-		 * the statistics. Collect few more here and we are done.
+		 * 'after_idle()' has already finished, so assume that this is
+		 * the case of an idle state with interrupts disabled. In this
+		 * case the latency is measured in both 'after_idle()' and the
+		 * interrupt handler.
 		 */
-		ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
-		ti->smi_ai = get_smi_count();
-		ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
-		ti->intr_finished = true;
-	} else if (ti->bi_finished) {
+		if (ti->got_dp) {
+			ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
+			ti->smi_ai = get_smi_count();
+			ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
+		}
+	} else {
 		/*
-		 * We interrupted the POLL idle state. In this state interrupts
-		 * are enabled, so the interrupt handler is executed before
-		 * 'after_idle()' would be executed. Therefore, for the POLL
-		 * idle case we take "time after idle" here.
+		 * 'after_idle()' has not finished, so assume this is the case
+		 * of an idle state with interrupts enabled (e.g., 'POLL'). In
+		 * this case the latency is measured only in the interrupt
+		 * handler.
 		 */
-		ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
-		wult_cstates_read_after(&ti->csinfo);
+		ti->tintr = read_data_after_idle(wi, cyc);
 		ti->tai = ti->tintr;
-		ti->smi_ai = get_smi_count();
-		ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
-		ti->ai_overhead = 0;
-		ti->got_measurements = true;
-		ti->intr_finished = true;
+		ti->overhead = 0;
+		ti->got_dp = true;
 	}
+
+	ti->intr_finished = true;
 }
 
 /*
@@ -142,10 +175,10 @@ int wult_tracer_send_data(struct wult_info *wi)
 	u64 ltime, silent_time, wake_latency, intr_latency;
 	int cnt = 0;
 
-	if (!ti->got_measurements)
+	if (!ti->got_dp || ti->discard_dp)
 		return 0;
 
-	ti->got_measurements = false;
+	ti->got_dp = ti->discard_dp = false;
 
 	ltime = wdi->ops->get_launch_time(wdi);
 
@@ -167,7 +200,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
 		intr_latency = wdi->ops->time_to_ns(wdi, intr_latency);
 	}
-	intr_latency -= ti->ai_overhead;
+	intr_latency -= ti->overhead;
 
 	cnt += snprintf(ti->outbuf, OUTBUF_SIZE, COMMON_TRACE_FMT,
 			silent_time, wake_latency, intr_latency, ti->ldist,
@@ -193,7 +226,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 			goto out_too_small;
 	}
 
-	trace_printk(ti->outbuf);
 	return 0;
 
 out_too_small:
@@ -211,10 +243,10 @@ int wult_tracer_send_data(struct wult_info *wi)
 	u64 ltime, silent_time, wake_latency, intr_latency;
 	int err;
 
-	if (!ti->got_measurements)
+	if (!ti->got_dp || ti->discard_dp)
 		return 0;
 
-	ti->got_measurements = false;
+	ti->got_dp = ti->discard_dp = false;
 
 	ltime = wdi->ops->get_launch_time(wdi);
 
@@ -240,7 +272,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
 		intr_latency = wdi->ops->time_to_ns(wdi, intr_latency);
 	}
-	intr_latency -= ti->ai_overhead;
+	intr_latency -= ti->overhead;
 
 	/* Add values of the common fields. */
 	err = synth_event_add_next_val(silent_time, &trace_state);
@@ -314,11 +346,10 @@ static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_
 		 */
 		WARN_ON(ti->ai_finished && ti->intr_finished);
 
-		if (ti->bi_finished && ti->req_cstate) {
-			after_idle(wi);
-			ti->ai_finished = true;
-		}
+		after_idle(wi);
+		ti->ai_finished = true;
 	} else {
+		ti->got_dp = ti->discard_dp = false;
 		ti->ai_finished = ti->bi_finished = ti->intr_finished = false;
 		ti->req_cstate = req_cstate;
 		before_idle(data);
@@ -331,7 +362,7 @@ int wult_tracer_enable(struct wult_info *wi)
 	int err;
 	struct wult_tracer_info *ti = &wi->ti;
 
-	wi->ti.got_measurements = false;
+	wi->ti.got_dp = wi->ti.discard_dp = false;
 	ti->ai_finished = ti->bi_finished = ti->intr_finished = false;
 
 	err = tracepoint_probe_register(ti->tp, (void *)cpu_idle_hook, wi);

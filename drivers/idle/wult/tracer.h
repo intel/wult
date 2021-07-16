@@ -53,15 +53,17 @@ struct wult_tracer_info {
 	u32 smi_bi, nmi_bi;
 	/* SMI and NMI counters after idle. */
 	u32 smi_ai, nmi_ai;
-	/* The overhead of taking measurements after we woke up. */
-	u64 ai_overhead;
-	/* Whether the tracer have new any measurement data. */
-	bool got_measurements;
-	/* 'True' if 'before_idle()' finished. */
+	/* The overhead of taking measurements after idle. */
+	u64 overhead;
+	/* 'true' if a new datapoint is available. */
+	bool got_dp;
+	/* 'true' if the datapoint should be discarded. */
+	bool discard_dp;
+	/* 'true' if 'before_idle()' finished. */
 	bool bi_finished;
-	/* 'True' if 'after_idle()' finished. */
+	/* 'true' if 'after_idle()' finished. */
 	bool ai_finished;
-	/* 'True' if the interrupt handler finished. */
+	/* 'true' if the interrupt handler finished. */
 	bool intr_finished;
 #ifdef COMPAT_USE_TRACE_PRINTK
 	/* The measurement data output buffer. */
