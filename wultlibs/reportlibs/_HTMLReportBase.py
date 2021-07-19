@@ -632,6 +632,18 @@ class HTMLReportBase:
         subclass can override this method to mangle the dataframe.
         """
 
+        for colname in res.df:
+            defs = res.defs.info.get(colname)
+            if not defs:
+                continue
+
+            # Some columns should be dropped if they are "empty", i.e., contain only zero values.
+            # For example, the C-state residency columns may be empty. This usually means that the
+            # C-state was either disabled or just does not exist.
+            if defs.get("drop_empty") and not res.df[colname].any():
+                _LOG.debug("dropping empty column '%s'", colname)
+                res.df.drop(colname, axis="columns", inplace=True)
+
         # Update columns lists in case some of the columns were removed from the loaded dataframe.
         for name in ("_smry_colnames", "xaxes", "yaxes", "hist", "chist"):
             colnames = []

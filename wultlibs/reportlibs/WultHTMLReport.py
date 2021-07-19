@@ -43,21 +43,6 @@ EXCLUDE_YAXES = r"(?!SilentTime)"
 class WultHTMLReport(_HTMLReportBase.HTMLReportBase):
     """This module provides API for generating HTML reports for wult test results."""
 
-    def _mangle_loaded_res(self, res):
-        """
-        Drop 'res.df' dataframe columns corresponding to C-states with no residency. Presumably this
-        C-state was either disabled or just does not exist. And drop all the C-state cycle counters
-        as they will not be needed any longer.
-        """
-
-        for colname in res.df:
-            defs = res.defs.info.get(colname)
-            if defs and defs.get("drop_empty") and not res.df[colname].any():
-                # Drop the column if all values are 0.
-                res.df.drop(colname, axis="columns", inplace=True)
-
-        return super()._mangle_loaded_res(res)
-
     def __init__(self, rsts, outdir, title_descr=None, xaxes=None, yaxes=None, hist=None,
                  chist=None):
         """The class constructor. The arguments are the same as in 'HTMLReportBase()'."""

@@ -51,7 +51,6 @@ IntrDelay:
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
     optional: True
     drop_empty: True
-
 LDist:
     title: "Launch Distance"
     descr: >-

@@ -20,22 +20,6 @@ DEFAULT_YAXES = DEFAULT_HIST = DEFAULT_CHIST = "RTD"
 class NdlHTMLReport(_HTMLReportBase.HTMLReportBase):
     """This module provides API for generating HTML reports for ndl test results."""
 
-    def _mangle_loaded_res(self, res):
-        """
-        Drop 'res.df' dataframe columns corresponding to C-states with no residency. Presumably this
-        C-state was either disabled or just does not exist.
-        """
-
-        for colname in res.df:
-            if colname not in self._cs_colnames:
-                continue
-            # Drop the corresponding C-state percentage column if no CPU cycles were spent in
-            # it.
-            if not res.df[colname].any():
-                res.df.drop(colname, axis="columns", inplace=True)
-
-        return super()._mangle_loaded_res(res)
-
     def __init__(self, rsts, outdir, title_descr=None, xaxes=None, yaxes=None, hist=None,
                  chist=None):
         """The class constructor. The arguments are the same as in 'HTMLReportBase()'."""
