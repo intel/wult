@@ -89,6 +89,14 @@ def _wait_timeout(proc, timeout):
     proc._dbg_("_wait_timeout: exit status %d", exitcode)
     return exitcode
 
+def _have_enough_lines(output, lines=(None, None)):
+    """Returns 'True' if there are enough lines in the output buffer."""
+
+    for streamid in (0, 1):
+        if lines[streamid] and len(output[streamid]) >= lines[streamid]:
+            return True
+    return False
+
 def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None, None),
                      lines=(None, None), by_line=True):
     """Implements '_wait_for_cmd()'."""
@@ -96,50 +104,39 @@ def _do_wait_for_cmd(proc, timeout=None, capture_output=True, output_fobjs=(None
     pd = proc._pd_
     output = pd.output
     partial = pd.partial
-    enough_lines = False
     start_time = time.time()
 
     proc._dbg_("_do_wait_for_cmd: starting with partial: %s, output:\n%s", partial, str(output))
 
-    while not enough_lines:
+    while not _have_enough_lines(output, lines=lines):
         if pd.exitcode is not None:
             proc._dbg_("_do_wait_for_cmd: process exited with status %d", pd.exitcode)
             break
 
-        if timeout is not None and time.time() - start_time >= timeout:
-            proc._dbg_("_do_wait_for_cmd: stop waiting for the command - timeout")
+        streamid, data = _Common.get_next_queue_item(pd.queue, timeout)
+        if streamid == -1:
+            proc._dbg_("_do_wait_for_cmd: nothing in the queue for %d seconds", timeout)
             break
+        if data is not None:
+            _Common.capture_data(proc, streamid, data, capture_output=capture_output,
+                                 output_fobjs=output_fobjs, by_line=by_line)
+        else:
+            proc._dbg_("_do_wait_for_cmd: stream %d closed", streamid)
+            # One of the output streams closed.
+            pd.threads[streamid].join()
+            pd.threads[streamid] = pd.streams[streamid] = None
+
+            if not pd.streams[0] and not pd.streams[1]:
+                proc._dbg_("_do_wait_for_cmd: both streams closed")
+                pd.exitcode = _wait_timeout(proc, timeout)
+                break
 
         if not timeout:
             proc._dbg_(f"_do_wait_for_cmd: timeout is {timeout}, exit immediately")
             break
-
-        while True:
-            streamid, data = _Common.get_next_queue_item(pd.queue, timeout)
-            if streamid == -1:
-                proc._dbg_("_do_wait_for_cmd: nothing in the queue for %d seconds", timeout)
-                break
-
-            if data is not None:
-                _Common.capture_data(proc, streamid, data, capture_output=capture_output,
-                                     output_fobjs=output_fobjs, by_line=by_line)
-            else:
-                proc._dbg_("_do_wait_for_cmd: stream %d closed", streamid)
-                # One of the output streams closed.
-                pd.threads[streamid].join()
-                pd.threads[streamid] = pd.streams[streamid] = None
-
-                if not pd.streams[0] and not pd.streams[1]:
-                    proc._dbg_("_do_wait_for_cmd: both streams closed")
-                    pd.exitcode = _wait_timeout(proc, timeout)
-                    break
-
-            if lines[streamid] and len(output[streamid]) >= lines[streamid]:
-                # We read enough lines for this stream.
-                proc._dbg_("_do_wait_for_cmd: stream %d: read %d lines",
-                           streamid, len(output[streamid]))
-                enough_lines = True
-                break
+        if not None and time.time() - start_time >= timeout:
+            proc._dbg_("_do_wait_for_cmd: stop waiting for the command - timeout")
+            break
 
     return _Common.get_lines_to_return(proc, lines=lines)
 

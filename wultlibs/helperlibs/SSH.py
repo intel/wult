@@ -203,6 +203,14 @@ def _watch_for_marker(chan, data):
 
     return (cdata, exitcode)
 
+def _have_enough_lines(output, lines=(None, None)):
+    """Returns 'True' if there are enough lines in the output buffer."""
+
+    for streamid in (0, 1):
+        if lines[streamid] and len(output[streamid]) >= lines[streamid]:
+            return True
+    return False
+
 def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs=(None, None),
                            lines=(None, None), by_line=True):
     """
@@ -214,55 +222,38 @@ def _do_wait_for_cmd_intsh(chan, timeout=None, capture_output=True, output_fobjs
     pd = chan._pd_
     output = pd.output
     partial = pd.partial
-    enough_lines = False
     start_time = time.time()
 
     chan._dbg_("_do_wait_for_cmd_intsh: starting with pd.check_ll %s, pd.ll: %s, "
                "pd.partial: %s, pd.output:\n%s",
                str(pd.check_ll), str(pd.ll), partial, str(output))
 
-    while not enough_lines:
-        while True:
-            if pd.exitcode is not None and pd.queue.empty():
-                break
-
-            streamid, data = _Common.get_next_queue_item(pd.queue, timeout)
-            if streamid == -1:
-                chan._dbg_("_do_wait_for_cmd_intsh: nothing in the queue for %d seconds", timeout)
-                break
-
-            if data is None:
-                raise Error(f"the interactive shell process{pd.ssh.hostmsg} closed stream "
-                            f"'{pd.streams[streamid]._stream_name}' while running the following "
-                            f"command:\n{chan.cmd}")
-
-            # The indication that the command has ended is our marker in stdout (stream 0). Our goal
-            # is to watch for this marker, hide it from the user, because it does not belong to the
-            # output of the command. The marker always starts at the beginning of line.
-
-            if streamid == 0:
-                data, pd.exitcode = _watch_for_marker(chan, data)
-
-            _Common.capture_data(chan, streamid, data, capture_output=capture_output,
-                                 output_fobjs=output_fobjs, by_line=by_line)
-
-            if lines[streamid] and len(output[streamid]) >= lines[streamid]:
-                # We read enough lines for this stream.
-                chan._dbg_("_do_wait_for_cmd_intsh: stream %d: read %d lines",
-                           streamid, len(output[streamid]))
-                enough_lines = True
-                break
-
-        if pd.exitcode is not None:
+    while not _have_enough_lines(output, lines=lines):
+        if pd.exitcode is not None and pd.queue.empty():
             chan._dbg_("_do_wait_for_cmd_intsh: process exited with status %d", pd.exitcode)
             break
 
-        if timeout and time.time() - start_time > timeout:
-            chan._dbg_("_do_wait_for_cmd_intsh: stop waiting for the command - timeout")
-            break
+        streamid, data = _Common.get_next_queue_item(pd.queue, timeout)
+        if streamid == -1:
+            chan._dbg_("_do_wait_for_cmd_intsh: nothing in the queue for %d seconds", timeout)
+        elif data is None:
+            raise Error(f"the interactive shell process{pd.ssh.hostmsg} closed stream "
+                        f"'{pd.streams[streamid]._stream_name}' while running the following "
+                        f"command:\n{chan.cmd}")
+        elif streamid == 0:
+            # The indication that the command has ended is our marker in stdout (stream 0). Our goal
+            # is to watch for this marker, hide it from the user, because it does not belong to the
+            # output of the command. The marker always starts at the beginning of line.
+            data, pd.exitcode = _watch_for_marker(chan, data)
+
+        _Common.capture_data(chan, streamid, data, capture_output=capture_output,
+                             output_fobjs=output_fobjs, by_line=by_line)
 
         if not timeout:
             chan._dbg_(f"_do_wait_for_cmd_intsh: timeout is {timeout}, exit immediately")
+            break
+        if time.time() - start_time > timeout:
+            chan._dbg_("_do_wait_for_cmd_intsh: stop waiting for the command - timeout")
             break
 
     result = _Common.get_lines_to_return(chan, lines=lines)
@@ -288,50 +279,38 @@ def _do_wait_for_cmd(chan, timeout=None, capture_output=True, output_fobjs=(None
     pd = chan._pd_
     output = pd.output
     partial = pd.partial
-    enough_lines = False
     start_time = time.time()
 
     chan._dbg_("_do_wait_for_cmd: starting with partial: %s, output:\n%s", partial, str(output))
 
-    while not enough_lines:
+    while not _have_enough_lines(output, lines=lines):
         if pd.exitcode is not None:
             chan._dbg_("_do_wait_for_cmd: process exited with status %d", pd.exitcode)
             break
 
-        if timeout and time.time() - start_time > timeout:
-            chan._dbg_("_do_wait_for_cmd: stop waiting for the command - timeout")
-            break
+        streamid, data = _Common.get_next_queue_item(pd.queue, timeout)
+        if streamid == -1:
+            chan._dbg_("_do_wait_for_cmd_intsh: nothing in the queue for %d seconds", timeout)
+        elif data is not None:
+            _Common.capture_data(chan, streamid, data, capture_output=capture_output,
+                                 output_fobjs=output_fobjs, by_line=by_line)
+        else:
+            chan._dbg_("_do_wait_for_cmd: stream %d closed", streamid)
+            # One of the output streams closed.
+            pd.threads[streamid].join()
+            pd.threads[streamid] = pd.streams[streamid] = None
+
+            if not pd.streams[0] and not pd.streams[1]:
+                chan._dbg_("_do_wait_for_cmd: both streams closed")
+                pd.exitcode = _recv_exit_status_timeout(chan, timeout)
+                break
 
         if not timeout:
             chan._dbg_(f"_do_wait_for_cmd: timeout is {timeout}, exit immediately")
             break
-
-        while True:
-            streamid, data = _Common.get_next_queue_item(pd.queue, timeout)
-            if streamid == -1:
-                chan._dbg_("_do_wait_for_cmd_intsh: nothing in the queue for %d seconds", timeout)
-                break
-
-            if data is not None:
-                _Common.capture_data(chan, streamid, data, capture_output=capture_output,
-                                     output_fobjs=output_fobjs, by_line=by_line)
-            else:
-                chan._dbg_("_do_wait_for_cmd: stream %d closed", streamid)
-                # One of the output streams closed.
-                pd.threads[streamid].join()
-                pd.threads[streamid] = pd.streams[streamid] = None
-
-                if not pd.streams[0] and not pd.streams[1]:
-                    chan._dbg_("_do_wait_for_cmd: both streams closed")
-                    pd.exitcode = _recv_exit_status_timeout(chan, timeout)
-                    break
-
-            if lines[streamid] and len(output[streamid]) >= lines[streamid]:
-                # We read enough lines for this stream.
-                chan._dbg_("_do_wait_for_cmd: stream %d: read %d lines",
-                           streamid, len(output[streamid]))
-                enough_lines = True
-                break
+        if time.time() - start_time > timeout:
+            chan._dbg_("_do_wait_for_cmd: stop waiting for the command - timeout")
+            break
 
     return _Common.get_lines_to_return(chan, lines=lines)
 
