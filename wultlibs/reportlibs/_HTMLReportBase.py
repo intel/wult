@@ -644,6 +644,14 @@ class HTMLReportBase:
                 _LOG.debug("dropping empty column '%s'", colname)
                 res.df.drop(colname, axis="columns", inplace=True)
 
+            # Some columns may be identical and only one should stay. For example, in case of
+            # the 'POLL' idle state, the 'WakeLatency' column is identical to the 'IntrLatency'
+            # column, and we drop it, because it is not useful.
+            colname2 = defs.get("drop_if_same_as", None)
+            if colname2 and colname2 in res.df and res.df[colname].equals(res.df[colname2]):
+                _LOG.debug("dropping '%s' because it is the same as '%s'", colname, colname2)
+                res.df.drop(colname, axis="columns", inplace=True)
+
         # Update columns lists in case some of the columns were removed from the loaded dataframe.
         for name in ("_smry_colnames", "xaxes", "yaxes", "hist", "chist"):
             colnames = []
