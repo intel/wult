@@ -552,6 +552,9 @@ def deploy_command(args):
     args.stmpdir = None # Temporary directory on the SUT.
     args.ctmpdir = None # Temporary directory on the controller (local host).
 
+    if not FSHelpers.which("rsync", default=None):
+        raise Error(f"please, install the 'rsync' tool")
+
     if not args.timeout:
         args.timeout = 8
     else:
