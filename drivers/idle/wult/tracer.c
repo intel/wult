@@ -78,7 +78,7 @@ static void after_idle(struct wult_info *wi)
 	u64 cyc1, cyc2;
 
 	cyc1 = rdtsc_ordered();
-	if (!ti->bi_finished)
+	if (!ti->bi_finished || ti->ai_finished)
 		return;
 	if (ti->intr_finished)
 		/* The data were already collected in the interrupt handler. */
@@ -96,8 +96,9 @@ static void after_idle(struct wult_info *wi)
 		 * 'after_idle()'. We should discard this datapoint.
 		 */
 		ti->discard_dp = true;
+	} else {
+		ti->got_dp = true;
 	}
-	ti->got_dp = true;
 	cyc2 = rdtsc_ordered();
 
 	/*
@@ -114,7 +115,7 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_device_info *wdi = wi->wdi;
 
-	if (!ti->bi_finished)
+	if (!ti->bi_finished || ti->intr_finished)
 		return;
 
 	if (ti->ai_finished) {
@@ -143,6 +144,38 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 	}
 
 	ti->intr_finished = true;
+}
+
+static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_id)
+{
+	struct wult_info *wi = data;
+	struct wult_tracer_info *ti = &wi->ti;
+
+	if (cpu_id != wi->cpunum)
+		/* Not the CPU we are measuring. */
+		return;
+
+	if (req_cstate == PWR_EVENT_EXIT) {
+		/*
+		 * Invoke 'after_idle()' only if 'before_idle()' was previously
+		 * invoked and if the requested C-state was not 'POLL'. In
+		 * case of the 'POLL' state the interrupt handler collects all
+		 * the necessary information and 'after_idle()' becomes
+		 * unnecessary.
+		 */
+#ifndef COMPAT_PECULIAR_TRACE_PROBE
+		WARN_ON(ti->ai_finished && ti->intr_finished);
+		WARN_ON(ti->ai_finished);
+#endif
+		after_idle(wi);
+		ti->ai_finished = true;
+	} else {
+		ti->got_dp = ti->discard_dp = false;
+		ti->ai_finished = ti->bi_finished = ti->intr_finished = false;
+		ti->req_cstate = req_cstate;
+		before_idle(data);
+		ti->bi_finished = true;
+	}
 }
 
 /*
@@ -177,8 +210,10 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 	if (!ti->got_dp || ti->discard_dp)
 		return 0;
-
 	ti->got_dp = ti->discard_dp = false;
+
+	if (!ti->bi_finished || !ti->ai_finished || !ti->intr_finished)
+		return 0;
 
 	ltime = wdi->ops->get_launch_time(wdi);
 
@@ -192,6 +227,9 @@ int wult_tracer_send_data(struct wult_info *wi)
 			return PTR_ERR(tdata);
 	}
 
+	WARN_ON(ltime > ti->tintr);
+	WARN_ON(ltime > ti->tai);
+
 	silent_time = ltime - ti->tbi;
 	wake_latency = ti->tai - ltime;
 	intr_latency = ti->tintr - ltime;
@@ -200,6 +238,8 @@ int wult_tracer_send_data(struct wult_info *wi)
 		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
 		intr_latency = wdi->ops->time_to_ns(wdi, intr_latency);
 	}
+
+	WARN_ON(intr_latency < ti->overhead);
 	intr_latency -= ti->overhead;
 
 	cnt += snprintf(ti->outbuf, OUTBUF_SIZE, COMMON_TRACE_FMT,
@@ -245,8 +285,10 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 	if (!ti->got_dp || ti->discard_dp)
 		return 0;
-
 	ti->got_dp = ti->discard_dp = false;
+
+	if (!ti->bi_finished || !ti->ai_finished || !ti->intr_finished)
+		return 0;
 
 	ltime = wdi->ops->get_launch_time(wdi);
 
@@ -264,6 +306,9 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		return err;
 
+	WARN_ON(ltime > ti->tintr);
+	WARN_ON(ltime > ti->tai);
+
 	silent_time = ltime - ti->tbi;
 	wake_latency = ti->tai - ltime;
 	intr_latency = ti->tintr - ltime;
@@ -272,6 +317,8 @@ int wult_tracer_send_data(struct wult_info *wi)
 		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
 		intr_latency = wdi->ops->time_to_ns(wdi, intr_latency);
 	}
+
+	WARN_ON(intr_latency < ti->overhead);
 	intr_latency -= ti->overhead;
 
 	/* Add values of the common fields. */
@@ -326,36 +373,6 @@ out_end:
 	return err;
 }
 #endif
-
-static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_id)
-{
-	struct wult_info *wi = data;
-	struct wult_tracer_info *ti = &wi->ti;
-
-	if (cpu_id != wi->cpunum)
-		/* Not the CPU we are measuring. */
-		return;
-
-	if (req_cstate == PWR_EVENT_EXIT) {
-		/*
-		 * Invoke 'after_idle()' only if 'before_idle()' was previously
-		 * invoked and if the requested C-state was not 'POLL'. In
-		 * case of the 'POLL' state the interrupt handler collects all
-		 * the necessary information and 'after_idle()' becomes
-		 * unnecessary.
-		 */
-		WARN_ON(ti->ai_finished && ti->intr_finished);
-
-		after_idle(wi);
-		ti->ai_finished = true;
-	} else {
-		ti->got_dp = ti->discard_dp = false;
-		ti->ai_finished = ti->bi_finished = ti->intr_finished = false;
-		ti->req_cstate = req_cstate;
-		before_idle(data);
-		ti->bi_finished = true;
-	}
-}
 
 int wult_tracer_enable(struct wult_info *wi)
 {

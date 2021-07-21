@@ -82,8 +82,8 @@
  * subsystem artifact, or bug. We do not observe it in new kernels.
  *
  * As a result, with old kenels, there are warnings coming from
- * 'WARN_ON(before_idle_called)' in 'tracer.c'. There are no warning starting
- * from kernel version 5.3.
+ * 'WARN_ON()' in 'tracer.c'. There are no warning starting from kernel version
+ * 5.3.
  *
  * This macro makes that warning be conditional on the kernel version. This is
  * ugly, but temporary. We'll drop old kernels support at some point.
