@@ -10,24 +10,13 @@
 This module provides API for creating raw wult test results.
 """
 
-from wultlibs.helperlibs.Exceptions import Error
 from wultlibs.rawresultlibs import _WORawResultBase
 from wultlibs.rawresultlibs._WORawResultBase import FORMAT_VERSION # pylint: disable=unused-import
 
 class WultWORawResult(_WORawResultBase.WORawResultBase):
     """This class represents a write-only raw wult test result."""
 
-    def _check_can_continue(self):
-        """Same as 'WORawResultBase._check_can_continue()'. Just adds 'cpunum' check."""
-
-        super()._check_can_continue()
-
-        if self.cpunum != self.info.get("cpunum", self.cpunum):
-            raise Error(f"cannot continue writing CPU '{self.cpunum}' data to an existing test "
-                        f"result directory\n'{self.dirpath}' containing CPU '{self.info['cpunum']}'"
-                        f" data.\nCPU numbers must be the same.")
-
-    def __init__(self, reportid, outdir, toolver, cpunum, cont=False):
+    def __init__(self, reportid, outdir, toolver, cpunum):
         """
         The class constructor. The arguments are the same as in 'WORawResultBase', except for the
         following.
@@ -37,7 +26,7 @@ class WultWORawResult(_WORawResultBase.WORawResultBase):
 
         self.cpunum = cpunum
 
-        super().__init__(reportid, outdir, cont=cont)
+        super().__init__(reportid, outdir)
 
         self.info["toolname"] = "wult"
         self.info["toolver"] = toolver
@@ -51,14 +40,14 @@ class WultWORawResult(_WORawResultBase.WORawResultBase):
 class NdlWORawResult(_WORawResultBase.WORawResultBase):
     """This class represents a write-only raw ndl test result."""
 
-    def __init__(self, reportid, outdir, toolver, cont=False):
+    def __init__(self, reportid, outdir, toolver):
         """
         The class constructor. The arguments are the same as in 'WORawResultBase', except for the
         following.
           * toolver - version of the tool creating the report.
         """
 
-        super().__init__(reportid, outdir, cont=cont)
+        super().__init__(reportid, outdir)
 
         self.info["toolname"] = "ndl"
         self.info["toolver"] = toolver

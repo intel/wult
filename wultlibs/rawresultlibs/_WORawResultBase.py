@@ -12,7 +12,7 @@ This module base class for wirte-only raw test result classes.
 
 import os
 from wultlibs.helperlibs import FSHelpers, YAML
-from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
+from wultlibs.helperlibs.Exceptions import Error, ErrorExists
 from wultlibs.rawresultlibs import _CSV, _RawResultBase
 from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
 
@@ -27,44 +27,24 @@ class WORawResultBase(_RawResultBase.RawResultBase):
         """Save row selector value."""
         self._rsel = rsel
 
-    def _check_can_continue(self):
-        """
-        Verify if it is OK to continue adding more datapoints to an existing test result."""
-
-        if not self.dp_path.stat().st_size:
-            # The datapoints file is empty. It is OK to continue.
-            return
-
-        if not self.info_path.is_file():
-            raise Error(f"cannot continue a test result at '{self.dirpath}' because it does not "
-                        f"have the info file ('{self.info_path}').")
-
-        info = YAML.load(self.info_path)
-
-        if info["format_version"] != FORMAT_VERSION:
-            raise ErrorNotSupported(f"report at '{self.dirpath}' uses an unsupported format "
-                                    f"version '{info['format_version']}', supported format version "
-                                    f"is '{FORMAT_VERSION}'")
-
-        if self.reportid != info["reportid"]:
-            raise Error(f"cannot continue writing data belonging to report ID '{self.reportid}'\n"
-                        f"to an existing test result directory '{self.dirpath}' with report ID "
-                        f"'{info['reportid']}'.\nReport IDs must be the same.")
-
     def _init_outdir(self):
         """Initialize the output directory for writing or appending test results."""
 
-        if self.dp_path.is_file() and self._cont:
-            self._check_can_continue()
-
-        if not self.dirpath.exists():
+        if self.dirpath.exists():
+            # Only accept empty output directory.
+            paths = (self.dp_path, self.info_path, self.logs_path, self.stats_path, self.descr_path)
+            for path in paths:
+                if path.exists():
+                    raise ErrorExists(f"cannot use path '{self.dirpath}' as the output directory, "
+                                      f"it already contains '{path.name}'")
+        else:
             try:
                 self.dirpath.mkdir(parents=True, exist_ok=True)
                 FSHelpers.set_default_perm(self.dirpath)
             except OSError as err:
                 raise Error(f"failed to create directory '{self.dirpath}':\n{err}") from None
 
-        self.csv = _CSV.WritableCSV(self.dp_path, cont=self._cont)
+        self.csv = _CSV.WritableCSV(self.dp_path)
 
         if self.info_path.exists():
             if not self.info_path.is_file():
@@ -159,22 +139,17 @@ class WORawResultBase(_RawResultBase.RawResultBase):
 
         YAML.dump(self.info, self.info_path)
 
-    def __init__(self, reportid, outdir, cont=False):
+    def __init__(self, reportid, outdir):
         """
         The class constructor. The arguments are as follows.
           * reportid - reportid of the raw test result.
           * outdir - the output directory to store the raw results at.
-          * cont - defines what to do if 'outdir' already contains test results. By default the
-                   existing 'datapoints.csv' file gets overridden, but when 'cont' is 'True', the
-                   existing 'datapoints.csv' file is "continued" instead (new datapoints are
-                   appended).
         """
 
         super().__init__(outdir)
 
         # The writable CSV file object.
         self.csv = None
-        self._cont = cont
         self.reportid = reportid
         self._mangled_rsel = None
         self.keep_filtered = False

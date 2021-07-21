@@ -12,7 +12,6 @@
 
 import sys
 import logging
-import argparse
 from pathlib import Path
 
 try:
@@ -81,9 +80,6 @@ def build_arguments_parser():
                          help=ToolsCommon.DATAPOINTS_DESCR)
     subpars.add_argument("--time-limit", dest="tlimit", metavar="LIMIT",
                          help=ToolsCommon.TIME_LIMIT_DESCR)
-    # This is a deprecated option. We keep it for backward compatibility. Remove it in 2022.
-    subpars.add_argument("--continue", dest="cont", action="store_true", help=argparse.SUPPRESS)
-    subpars.add_argument("--start-over", action="store_true", help=ToolsCommon.START_OVER_DESCR)
 
     arg = subpars.add_argument("-o", "--outdir", type=Path, help=ToolsCommon.START_OUTDIR_DESCR)
     if argcomplete:
@@ -244,12 +240,11 @@ def start_command(args):
             msg += f" -H {proc.hostname}"
         LOG.warning(msg)
 
-    cont = not args.start_over
-    with WORawResult.NdlWORawResult(args.reportid, args.outdir, VERSION, cont=cont) as res:
-        dpcnt = ToolsCommon.get_dpcnt(res, args.dpcnt)
-        if not dpcnt:
-            return
+    if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
+        raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
+    args.dpcnt = int(args.dpcnt)
 
+    with WORawResult.NdlWORawResult(args.reportid, args.outdir, VERSION) as res:
         ToolsCommon.set_filters(args, res)
 
         # Configure the logger to print to both the console and the log file.
@@ -270,7 +265,7 @@ def start_command(args):
                 runner.prepare()
                 if args.post_trigger:
                     runner.set_post_trigger(args.post_trigger, trange=args.trange)
-                runner.run(dpcnt=dpcnt, tlimit=args.tlimit)
+                runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit)
 
     if not args.report:
         return

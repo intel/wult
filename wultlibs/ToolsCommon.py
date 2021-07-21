@@ -319,26 +319,6 @@ def parse_cpunum(cpunum, proc=None):
 
     return cpunum
 
-def get_dpcnt(res, dpcnt):
-    """
-    This helper function validates number of datapoints the user requested to collect ('dpcnt'). It
-    also looks at how many datapoints are already present in the 'res' object (represents a raw test
-    result) and returns the number datapoints to collect in order for 'rest' to end up with 'dpcnt'
-    datapoints.
-    """
-
-    if not Trivial.is_int(dpcnt) or int(dpcnt) <= 0:
-        raise Error(f"bad datapoints count '{dpcnt}', should be a positive integer")
-
-    dpcnt = int(dpcnt) - res.csv.initial_rows_cnt
-    if dpcnt <= 0:
-        _LOG.info("Raw test result at '%s' already includes %d datapoints",
-                  res.dirpath, res.csv.initial_rows_cnt)
-        _LOG.info("Nothing to collect")
-        return 0
-
-    return dpcnt
-
 def add_ssh_options(parser, argcomplete=None):
     """
     Add the '--host', '--timeout' and other SSH-related options to argument parser object 'parser'.
