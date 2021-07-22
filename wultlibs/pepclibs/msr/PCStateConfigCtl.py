@@ -116,10 +116,10 @@ class PCStateConfigCtl:
             fmt = "%s (CPU model %#x)"
             cpus_str = "\n* ".join([fmt % (CPUInfo.CPU_DESCR[model], model) for model in \
                                     feature["cpumodels"]])
-            raise ErrorNotSupported(f"The '{feature['name']}' feature is not supported"
-                                    f"{self._proc.hostmsg} - CPU '{self._lscpu_info['vendor']}, "
-                                    f"(CPU model {hex(model)})' is not supported.\nThe supported "
-                                    f"CPU models are:\n* {cpus_str}")
+            msg = f"The '{feature['name']}' feature is not supported{self._proc.hostmsg} - CPU " \
+                  f"'{self._lscpu_info['vendor']}, (CPU model {hex(model)})' is not supported.\n" \
+                  f"The currently supported CPU models are:\n* {cpus_str}"
+            raise ErrorNotSupported(msg)
 
     def _get_pkg_cstate_limit_value(self, pcs_limit):
         """
@@ -320,11 +320,11 @@ class PCStateConfigCtl:
             self._lscpu_info = CPUInfo.get_lscpu_info(proc=self._proc)
 
         if self._lscpu_info["vendor"] != "GenuineIntel":
-            raise ErrorNotSupported(f"unsupported CPU model '{self._lscpu_info['vendor']}', "
-                                    f"model-specific register {hex(MSR_PKG_CST_CONFIG_CONTROL)} "
-                                    f"(MSR_PKG_CST_CONFIG_CONTROL) is not available"
-                                    f"{self._proc.hostmsg}. MSR_PKG_CST_CONFIG_CONTROL is "
-                                    f"available only on Intel platforms")
+            msg = f"unsupported CPU model '{self._lscpu_info['vendor']}', model-specific " \
+                  f"register {hex(MSR_PKG_CST_CONFIG_CONTROL)} (MSR_PKG_CST_CONFIG_CONTROL) is " \
+                  f"not available{self._proc.hostmsg}. MSR_PKG_CST_CONFIG_CONTROL is available " \
+                  f"only on Intel platforms."
+            raise ErrorNotSupported(msg)
 
     def close(self):
         """Uninitialize the class object."""
