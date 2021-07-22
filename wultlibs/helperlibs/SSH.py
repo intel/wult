@@ -80,7 +80,7 @@ def _stream_fetcher(streamid, chan):
             data = None
             try:
                 data = read_func(4096)
-            except socket.timeout:
+            except _PARAMIKO_EXCEPTIONS as err:
                 chan._dbg_("stream %d: read timeout", streamid)
                 continue
 
@@ -673,7 +673,7 @@ class SSH:
         try:
             chan = self.ssh.get_transport().open_session(timeout=self.connection_timeout)
             chan.exec_command(cmd)
-        except (paramiko.SSHException, socket.error) as err:
+        except _PARAMIKO_EXCEPTIONS as err:
             raise Error(f"cannot execute the following command in new SSH session{self.hostmsg}:\n"
                         "{cmd}\nReason: {err}") from err
 
@@ -753,16 +753,26 @@ class SSH:
 
         try:
             return self._run_in_intsh(command, cwd=cwd)
-        except:
-            # Mark internal shell and free.
+        except _PARAMIKO_EXCEPTIONS as err:
+            _LOG.warning("failed to run the following command in an interactive shell: %s\n"
+                         "The error was: %s", command, err)
+
+            # Close the internal shell and try to run in a new session.
             with contextlib.suppress(Exception):
                 acquired = self._acquire_intsh_lock(command=command)
-                if acquired:
-                    self._intsh_busy = False
-                    self._intsh_lock.release()
-                else:
-                    _LOG.dbg("failed to mark the interactive shell process as free")
-            raise
+
+            if acquired:
+                self._intsh_busy = False
+                self._intsh_lock.release()
+                if self._intsh:
+                    with contextlib.suppress(Exception):
+                        self._intsh.send("exit\n")
+                        self._intsh.close()
+                    self._intsh = None
+            else:
+                _LOG.warning("failed to aquire the interactive shell process lock")
+
+            return self._run_in_new_session(command, cwd=cwd, shell=shell)
 
     def run_async(self, command, cwd=None, shell=True, intsh=False):
         """
