@@ -27,35 +27,53 @@ C1_AUTO_DEMOTION_ENABLE = 26
 C1_UNDEMOTION_ENABLE = 28
 MAX_PKG_C_STATE_MASK = 0xF
 
-# Icelake Xeon Package C-state limits.
+# Ice Lake Xeon package C-state limits.
 _ICX_PKG_CST_LIMITS = {"codes"   : {"pc0": 0, "pc2": 1, "pc6n":2, "unlimited" : 7},
                        "aliases" : {"pc6": "pc6n"}}
-# Sky-/Cascade-/Cooper- lake Xeon Package C-state limits.
+# Sky-/Cascade-/Cooper- lake Xeon package C-state limits.
 _SKX_PKG_CST_LIMITS = {"codes"   : {"pc0": 0, "pc2": 1, "pc6n":2, "pc6r": 3, "unlimited": 7},
                        "aliases" : {"pc6": "pc6r"}}
-# Haswell/Broadwell Xeon Package C-state limits.
+# Haswell and many other CPUs package C-state limits
 _HSW_PKG_CST_LIMITS = {"codes"   : {"pc0": 0, "pc2": 1, "pc3": 2, "pc6": 3, "unlimited": 8},
                        "aliases" : {}}
-# Ivy Town (Ivybridge Xeon) Package C-state limits.
+# Ivy Town (Ivybridge Xeon) package C-state limits.
 _IVT_PKG_CST_LIMITS = {"codes"   : {"pc0": 0, "pc2": 1, "pc6n": 2, "pc6r": 3, "unlimited": 7},
                        "aliases" : {"pc6": "pc6r"}}
-# Denverton SoC (Goldmont Atom) Package C-state limits.
+# Denverton SoC (Goldmont Atom) package C-state limits.
 _DNV_PKG_CST_LIMITS = {"codes"   : {"pc0": 0, "pc6": 3},
                        "aliases" : {}}
-# Snow Ridge SoC (Tremont Atom) Package C-state limits.
+# Snow Ridge SoC (Tremont Atom) package C-state limits.
 _SNR_PKG_CST_LIMITS = {"codes"   : {"pc0": 0},
                        "aliases" : {}}
 
 # Package C-state limits are platform specific.
-_PKG_CST_LIMIT_MAP = {CPUInfo.INTEL_FAM6_ICELAKE_D: _ICX_PKG_CST_LIMITS,
-                      CPUInfo.INTEL_FAM6_ICELAKE_X: _ICX_PKG_CST_LIMITS,
-                      CPUInfo.INTEL_FAM6_SKYLAKE_X: _SKX_PKG_CST_LIMITS,
-                      CPUInfo.INTEL_FAM6_HASWELL_X: _HSW_PKG_CST_LIMITS,
-                      CPUInfo.INTEL_FAM6_BROADWELL_X: _HSW_PKG_CST_LIMITS,
-                      CPUInfo.INTEL_FAM6_BROADWELL_G: _HSW_PKG_CST_LIMITS,
-                      CPUInfo.INTEL_FAM6_IVYBRIDGE_X: _IVT_PKG_CST_LIMITS,
-                      CPUInfo.INTEL_FAM6_GOLDMONT_D: _DNV_PKG_CST_LIMITS,
-                      CPUInfo.INTEL_FAM6_TREMONT_D: _SNR_PKG_CST_LIMITS}
+_PKG_CST_LIMIT_MAP = {CPUInfo.INTEL_FAM6_ICELAKE_D:    _ICX_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_ICELAKE_X:    _ICX_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_SKYLAKE_X:    _SKX_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_ICELAKE_L:    _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_ALDERLAKE:    _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_ALDERLAKE_L:  _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_ROCKETLAKE:   _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_LAKEFIELD:    _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_TIGERLAKE:    _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_TIGERLAKE_L:  _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_CANNONLAKE_L: _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_COMETLAKE:    _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_COMETLAKE_L:  _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_KABYLAKE:     _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_KABYLAKE_L:   _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_SKYLAKE:      _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_SKYLAKE_L:    _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_BROADWELL:    _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_BROADWELL_X:  _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_BROADWELL_D:  _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_BROADWELL_G:  _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_HASWELL:      _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_HASWELL_X:    _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_HASWELL_G:    _HSW_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_IVYBRIDGE_X:  _IVT_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_GOLDMONT_D:   _DNV_PKG_CST_LIMITS,
+                      CPUInfo.INTEL_FAM6_TREMONT_D:    _SNR_PKG_CST_LIMITS}
 
 # Map of features available on various CPU models.
 FEATURES = {

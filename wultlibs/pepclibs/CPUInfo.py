@@ -16,28 +16,66 @@ from wultlibs.helperlibs.Exceptions import Error # pylint: disable=unused-import
 from wultlibs.helperlibs import ArgParse, Procs, Trivial
 
 # CPU model numbers.
-INTEL_FAM6_SPR_X = 0x8F       # Sapphire Rapids Xeon.
-INTEL_FAM6_ICELAKE_X = 0x6A   # Icelake Xeon.
-INTEL_FAM6_ICELAKE_D = 0x6C   # Icelake Xeon D.
-INTEL_FAM6_SKYLAKE_X = 0x55   # Skylake, Cascadelake, and Cooperlake Xeon.
-INTEL_FAM6_BROADWELL_X = 0x4F # Broadwell Xeon.
-INTEL_FAM6_BROADWELL_G = 0x47 # Broadwell Xeon with Graphics.
-INTEL_FAM6_HASWELL_X = 0x3F   # Haswell Xeon.
-INTEL_FAM6_IVYBRIDGE_X = 0x3E # Ivy Town Xeon.
-INTEL_FAM6_GOLDMONT_D = 0x5F  # Goldmont Atom (Denverton).
-INTEL_FAM6_TREMONT_D = 0x86   # Tremont Atom (Snow Ridge).
+INTEL_FAM6_SPR_X = 0x8F        # Sapphire Rapids Xeon.
+INTEL_FAM6_ALDERLAKE = 0x97    # Alder Lake client.
+INTEL_FAM6_ALDERLAKE_L = 0x9A  # Alder Lake mobile.
+INTEL_FAM6_ROCKETLAKE = 0xA7   # Rocket lake client.
+INTEL_FAM6_LAKEFIELD = 0x8A    # Lakefield client.
+INTEL_FAM6_TIGERLAKE = 0x8D    # Tiger Lake client.
+INTEL_FAM6_TIGERLAKE_L = 0x8C  # Tiger Lake mobile.
+INTEL_FAM6_ICELAKE_X = 0x6A    # Ice Lake Xeon.
+INTEL_FAM6_ICELAKE_D = 0x6C    # Ice Lake Xeon D.
+INTEL_FAM6_ICELAKE_L = 0x66    # Ice Lake mobile.
+INTEL_FAM6_COMETLAKE = 0xA5    # Comet Lake client.
+INTEL_FAM6_COMETLAKE_L = 0xA6  # Comet Lake mobile.
+INTEL_FAM6_KABYLAKE = 0x9E     # Kaby Lake client.
+INTEL_FAM6_KABYLAKE_L = 0x8E   # Kaby Lake mobile.
+INTEL_FAM6_CANNONLAKE_L = 0x66 # Cannonlake mobile.
+INTEL_FAM6_SKYLAKE = 0x5E      # Skylake client.
+INTEL_FAM6_SKYLAKE_X = 0x55    # Skylake, Cascade Lake, and Cooper Lake Xeon.
+INTEL_FAM6_SKYLAKE_L = 0x4E    # Skylake mobile.
+INTEL_FAM6_BROADWELL = 0x3D    # Broadwell client.
+INTEL_FAM6_BROADWELL_X = 0x4F  # Broadwell Xeon.
+INTEL_FAM6_BROADWELL_G = 0x47  # Broadwell Xeon with Graphics.
+INTEL_FAM6_BROADWELL_D = 0x56  # Broadwell Xeon-D.
+INTEL_FAM6_HASWELL = 0x3C      # Haswell client.
+INTEL_FAM6_HASWELL_X = 0x3F    # Haswell Xeon.
+INTEL_FAM6_HASWELL_L = 0x45    # Haswell mobile.
+INTEL_FAM6_HASWELL_G = 0x46    # Haswell Xeon with Graphics.
+INTEL_FAM6_IVYBRIDGE_X = 0x3E  # Ivy Town Xeon.
+INTEL_FAM6_GOLDMONT_D = 0x5F   # Goldmont Atom (Denverton).
+INTEL_FAM6_TREMONT_D = 0x86    # Tremont Atom (Snow Ridge).
 
 # CPU model description.
-CPU_DESCR = {INTEL_FAM6_SPR_X: "Sapphire Rapids Xeon",
-             INTEL_FAM6_ICELAKE_X: "Icelake Xeon",
-             INTEL_FAM6_ICELAKE_D: "Icelake Xeon D",
-             INTEL_FAM6_SKYLAKE_X: "Skylake/Cascadelake/Cooperlake Xeon",
-             INTEL_FAM6_BROADWELL_X: "Broadwell Xeon",
-             INTEL_FAM6_BROADWELL_G: "Broadwell Xeon with Graphics",
-             INTEL_FAM6_HASWELL_X: "Haswell Xeon",
-             INTEL_FAM6_IVYBRIDGE_X: "Ivy Town Xeon",
-             INTEL_FAM6_GOLDMONT_D: "Goldmont Atom (Denverton)",
-             INTEL_FAM6_TREMONT_D: "Tremont Atom (Snow Ridge)"}
+CPU_DESCR = {INTEL_FAM6_SPR_X:        "Sapphire Rapids Xeon",
+             INTEL_FAM6_ALDERLAKE:    "Alder Lake client",
+             INTEL_FAM6_ALDERLAKE_L:  "Alder Lake mobile",
+             INTEL_FAM6_ROCKETLAKE:   "Rocket lake client",
+             INTEL_FAM6_LAKEFIELD:    "Lakefield client",
+             INTEL_FAM6_TIGERLAKE:    "Tiger Lake client",
+             INTEL_FAM6_TIGERLAKE_L:  "Tiger Lake mobile",
+             INTEL_FAM6_ICELAKE_L:    "Ice Lake mobile",
+             INTEL_FAM6_ICELAKE_X:    "Ice Lake Xeon",
+             INTEL_FAM6_ICELAKE_D:    "Ice Lake Xeon D",
+             INTEL_FAM6_COMETLAKE:    "Comet Lake client",
+             INTEL_FAM6_COMETLAKE_L:  "Comet Lake mobile",
+             INTEL_FAM6_KABYLAKE:     "Kaby Lake client",
+             INTEL_FAM6_KABYLAKE_L:   "Kaby Lake mobile",
+             INTEL_FAM6_CANNONLAKE_L: "Cannonlake mobile",
+             INTEL_FAM6_SKYLAKE:      "Skylake client",
+             INTEL_FAM6_SKYLAKE_X:    "Skylake/Cascade Lake/Cooper Lake Xeon",
+             INTEL_FAM6_SKYLAKE_L:    "Skylake mobile",
+             INTEL_FAM6_BROADWELL:    "Broadwell client",
+             INTEL_FAM6_BROADWELL_X:  "Broadwell Xeon",
+             INTEL_FAM6_BROADWELL_G:  "Broadwell Xeon with Graphics",
+             INTEL_FAM6_BROADWELL_D:  "Broadwell Xeon-D",
+             INTEL_FAM6_HASWELL:      "Haswell client",
+             INTEL_FAM6_HASWELL_X:    "Haswell Xeon",
+             INTEL_FAM6_HASWELL_L:    "Haswell mobile",
+             INTEL_FAM6_HASWELL_G:    "Haswell Xeon with Graphics",
+             INTEL_FAM6_IVYBRIDGE_X:  "Ivy Town Xeon",
+             INTEL_FAM6_GOLDMONT_D:   "Goldmont Atom (Denverton)",
+             INTEL_FAM6_TREMONT_D:    "Tremont Atom (Snow Ridge)"}
 
 LEVELS = ("pkg", "node", "core", "cpu")
 
