@@ -344,6 +344,10 @@ class PCStateConfigCtl:
                   f"only on Intel platforms."
             raise ErrorNotSupported(msg)
 
+        if self._lscpu_info["model"] not in CPUInfo.CPU_DESCR:
+            raise ErrorNotSupported(f"unsupported CPU model '{self._lscpu_info['vendor']}'"
+                                    f"{self._proc.hostmsg}")
+
     def close(self):
         """Uninitialize the class object."""
 
