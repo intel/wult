@@ -1,3 +1,9 @@
+wult (1.9.6) unstable; urgency=low
+
+  * wult: stop supporing kernels older than v5.6.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 30 Jul 2021 12:49:44 +0300
+
 wult (1.9.5) unstable; urgency=low
 
   * wult: many fixes for small, but annoying problems

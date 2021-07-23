@@ -16,7 +16,6 @@
 #include "tracer.h"
 #include "wult.h"
 
-#ifndef COMPAT_USE_TRACE_PRINTK
 /* The common, platform-independent wult event fields. */
 static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "SilentTime" },
@@ -29,7 +28,6 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "SMICnt" },
 	{ .type = "u64", .name = "NMICnt" },
 };
-#endif
 
 static inline unsigned int get_smi_count(void)
 {
@@ -163,10 +161,8 @@ static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_
 		 * the necessary information and 'after_idle()' becomes
 		 * unnecessary.
 		 */
-#ifndef COMPAT_PECULIAR_TRACE_PROBE
 		WARN_ON(ti->ai_finished && ti->intr_finished);
 		WARN_ON(ti->ai_finished);
-#endif
 		after_idle(wi);
 		ti->ai_finished = true;
 	} else {
@@ -198,81 +194,6 @@ int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist)
 	return 0;
 }
 
-#ifdef COMPAT_USE_TRACE_PRINTK
-int wult_tracer_send_data(struct wult_info *wi)
-{
-	struct wult_device_info *wdi = wi->wdi;
-	struct wult_tracer_info *ti = &wi->ti;
-	struct wult_trace_data_info *tdata = NULL;
-	struct cstate_info *csi;
-	u64 ltime, silent_time, wake_latency, intr_latency;
-	int cnt = 0;
-
-	if (!ti->got_dp || ti->discard_dp)
-		return 0;
-	ti->got_dp = ti->discard_dp = false;
-
-	if (!ti->bi_finished || !ti->ai_finished || !ti->intr_finished)
-		return 0;
-
-	ltime = wdi->ops->get_launch_time(wdi);
-
-	/* Check if the expected IRQ time is within the sleep time. */
-	if (ltime <= ti->tbi || ltime >= ti->tai)
-		return 0;
-
-	if (wdi->ops->get_trace_data) {
-		tdata = wdi->ops->get_trace_data(wdi);
-		if (IS_ERR(tdata))
-			return PTR_ERR(tdata);
-	}
-
-	WARN_ON(ltime > ti->tintr);
-	WARN_ON(ltime > ti->tai);
-
-	silent_time = ltime - ti->tbi;
-	wake_latency = ti->tai - ltime;
-	intr_latency = ti->tintr - ltime;
-	if (wdi->ops->time_to_ns) {
-		silent_time = wdi->ops->time_to_ns(wdi, silent_time);
-		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
-		intr_latency = wdi->ops->time_to_ns(wdi, intr_latency);
-	}
-
-	WARN_ON(intr_latency < ti->overhead);
-	intr_latency -= ti->overhead;
-
-	cnt += snprintf(ti->outbuf, OUTBUF_SIZE, COMMON_TRACE_FMT,
-			silent_time, wake_latency, intr_latency, ti->ldist,
-			ti->req_cstate, ti->csinfo.tsc, ti->csinfo.mperf,
-			ti->smi_ai - ti->smi_bi, ti->nmi_ai - ti->nmi_bi);
-	if (cnt >= OUTBUF_SIZE)
-		goto out_too_small;
-
-	/* Print the C-state cycles. */
-	wult_cstates_calc(&ti->csinfo);
-	for_each_cstate(&ti->csinfo, csi) {
-		cnt += snprintf(ti->outbuf + cnt, OUTBUF_SIZE - cnt,
-				" %sCyc=%llu", csi->name, csi->cyc);
-		if (cnt >= OUTBUF_SIZE)
-			goto out_too_small;
-	}
-
-	/* Print the driver-specific data. */
-	for (; tdata && tdata->name; tdata++) {
-		cnt += snprintf(ti->outbuf + cnt, OUTBUF_SIZE - cnt,
-				" %s=%llu", tdata->name, tdata->val);
-		if (cnt >= OUTBUF_SIZE)
-			goto out_too_small;
-	}
-
-	return 0;
-
-out_too_small:
-	wult_err("the measurement data buffer is too small");
-	return -EINVAL;
-}
-#else
 int wult_tracer_send_data(struct wult_info *wi)
 {
 	struct wult_device_info *wdi = wi->wdi;
@@ -372,7 +293,6 @@ out_end:
 	synth_event_trace_end(&trace_state);
 	return err;
 }
-#endif
 
 int wult_tracer_enable(struct wult_info *wi)
 {
@@ -389,12 +309,10 @@ int wult_tracer_enable(struct wult_info *wi)
 		return err;
 	}
 
-#ifndef COMPAT_USE_TRACE_PRINTK
 	err = trace_array_set_clr_event(ti->event_file->tr, "synthetic",
 					WULT_TRACE_EVENT_NAME, true);
 	if (err)
 		tracepoint_synchronize_unregister();
-#endif
 
 	return err;
 }
@@ -402,10 +320,8 @@ int wult_tracer_enable(struct wult_info *wi)
 void wult_tracer_disable(struct wult_info *wi)
 {
 	tracepoint_probe_unregister(wi->ti.tp, (void *)cpu_idle_hook, wi);
-#ifndef COMPAT_USE_TRACE_PRINTK
 	trace_array_set_clr_event(wi->ti.event_file->tr, "synthetic",
 				  WULT_TRACE_EVENT_NAME, false);
-#endif
 }
 
 static void match_tracepoint(struct tracepoint *tp, void *priv)
@@ -414,7 +330,6 @@ static void match_tracepoint(struct tracepoint *tp, void *priv)
 		*((struct tracepoint **)priv) = tp;
 }
 
-#ifndef COMPAT_USE_TRACE_PRINTK
 static int wult_synth_event_init(struct wult_info *wi)
 {
 	struct wult_tracer_info *ti = &wi->ti;
@@ -488,20 +403,6 @@ static void wult_synth_event_exit(const struct wult_tracer_info *ti)
 	trace_put_event_file(ti->event_file);
 	synth_event_delete(WULT_TRACE_EVENT_NAME);
 }
-#else
-static int wult_synth_event_init(struct wult_info *wi)
-{
-	wi->ti.outbuf = kmalloc(OUTBUF_SIZE, GFP_KERNEL);
-	if (!wi->ti.outbuf)
-		return -ENOMEM;
-	return 0;
-}
-
-static void wult_synth_event_exit(const struct wult_tracer_info *ti)
-{
-	kfree(ti->outbuf);
-}
-#endif
 
 int wult_tracer_init(struct wult_info *wi)
 {

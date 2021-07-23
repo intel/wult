@@ -31,7 +31,7 @@ from wultlibs.pepclibs import CPUIdle, CPUInfo
 from wultlibs.pepclibs.msr import PowerCtl
 from wultlibs import Deploy, ToolsCommon, Devices, EventsProvider, WultRunner, WultStatsCollect
 
-VERSION = "1.9.5"
+VERSION = "1.9.6"
 OWN_NAME = "wult"
 
 # By default 'ReportID' module does not allow for the ":" character, but it is part of the PCI
@@ -283,24 +283,10 @@ def parse_arguments():
 
     args = parser.parse_args()
     args.toolname = OWN_NAME
-    args.minkver = "4.19-rc1"
+    args.minkver = "5.6"
     args.devtypes = Devices.DEVTYPES
 
     return args
-
-def warn_trace_printk(proc):
-    """
-    Kernels before v5.6 did not have in-kernel synthetic trace event creation capabilities, so in
-    that case 'wult' driver uses 'trace_printk()' to deliver the measurement results. But this is a
-    debugging capability and should not be used for anything else. For now, we support pre-5.6
-    kernels and 'trace_printk()', but we would like to remove the support. This function warns the
-    user about the upcoming change.
-    """
-
-    kver = KernelVersion.get_kver(proc=proc)
-    if KernelVersion.kver_lt(kver, "5.6"):
-        LOG.warning("version of the kernel%s is %s, and soon it won't be supported.\nPlease, " \
-                    "switch to kernel version 5.6 or newer.", proc.hostmsg, kver)
 
 def check_settings(proc, dev, csinfo, lscpu_info, cpunum, devid):
     """
@@ -371,8 +357,6 @@ def start_command(args):
         stconf = WultStatsCollect.parse_stats(args.stats, args.stats_intervals)
 
     proc = ToolsCommon.get_proc(args, args.hostname)
-
-    warn_trace_printk(proc)
 
     if Deploy.is_deploy_needed(proc, OWN_NAME, pyhelpers=["stats-collect"]):
         msg = f"'{OWN_NAME}' drivers are not up-to-date{proc.hostmsg}', " \

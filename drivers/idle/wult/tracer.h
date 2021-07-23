@@ -15,21 +15,11 @@
 /* Name of the tracepoint we hook to. */
 #define TRACEPOINT_NAME "cpu_idle"
 
-#ifdef COMPAT_USE_TRACE_PRINTK
-/* Format string for the common part of trace output. */
-#define COMMON_TRACE_FMT "SilentTime=%llu WakeLatency=%llu IntrLatency=%llu " \
-			 "LDist=%llu ReqCState=%u TotCyc=%llu CC0Cyc=%llu " \
-			 "SMICnt=%llu NMICnt=%llu"
-
-/* Size of the measurement data output buffer. */
-#define OUTBUF_SIZE 4096
-#else
 /*
  * Name of the wult synthetic event which is used for sending measurement data
  * to user-space.
  */
 #define WULT_TRACE_EVENT_NAME "wult_cpu_idle"
-#endif
 
 struct wult_info;
 
@@ -65,13 +55,8 @@ struct wult_tracer_info {
 	bool ai_finished;
 	/* 'true' if the interrupt handler finished. */
 	bool intr_finished;
-#ifdef COMPAT_USE_TRACE_PRINTK
-	/* The measurement data output buffer. */
-	char *outbuf;
-#else
 	/* The wult trace event file. */
 	struct trace_event_file *event_file;
-#endif
 };
 
 int wult_tracer_init(struct wult_info *wi);
