@@ -137,7 +137,10 @@ class HTMLReportBase:
 
                 title_dict["funcs"] = {}
                 for funcname in self._smry_funcs:
-                    if funcname in self.rsts[0].smrys[colname]:
+                    # Select only those functions that are present in all test results. For example,
+                    # 'std' will not be present if the result has only one datapoint. In this case,
+                    # we need to exclude the 'std' function.
+                    if all(res.smrys[colname].get(funcname) for res in self.rsts):
                         title_dict["funcs"][funcname] = RORawResult.get_smry_func_descr(funcname)
 
                 # Now fill the values for each result.
