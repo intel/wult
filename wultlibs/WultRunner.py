@@ -113,8 +113,7 @@ class WultRunner:
             dp["DerivedCC1Cyc"] = dp["CStatesCyc"] = 0
 
         # Inject 'IntrDelay' - the interrupt delay.
-        if "IntrLatency" in dp:
-            dp["IntrDelay"] = dp["IntrLatency"] - dp["WakeLatency"]
+        dp["IntrDelay"] = dp["IntrLatency"] - dp["WakeLatency"]
 
         if dp["TotCyc"] == 0:
             # This should not happen.
@@ -181,8 +180,7 @@ class WultRunner:
 
         # Add the more metrics to the raw header - we'll be injecting the values in
         # '_process_datapoint()'.
-        if "IntrLatency" in rawhdr:
-            rawhdr.insert(rawhdr.index("IntrLatency") + 1, "IntrDelay")
+        rawhdr.insert(rawhdr.index("IntrLatency") + 1, "IntrDelay")
         if self._is_intel:
             rawhdr.insert(rawhdr.index("CC0Cyc") + 1, "DerivedCC1Cyc")
         rawhdr.append("CStatesCyc")
