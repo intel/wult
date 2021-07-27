@@ -155,6 +155,9 @@ class WultRunner:
                 times_us[colname] = val / 1000
         dp.update(times_us)
 
+        # Drop the not-so-useful columns.
+        for colname in self._exclude_colnames:
+            del dp[colname]
         return dp
 
     def _validate_datapoint(self, rawhdr, rawdp):
@@ -186,8 +189,9 @@ class WultRunner:
         rawhdr, rawdp = next(datapoints)
 
         self._rawhdr = list(rawhdr)
-        rawhdr = list(rawhdr)
         dp = self._get_datapoint_dict(rawdp)
+
+        rawhdr = [col for col in list(rawhdr) if col not in self._exclude_colnames]
 
         # Add the more metrics to the raw header - we'll be injecting the values in
         # '_process_datapoint()'.
@@ -450,6 +454,12 @@ class WultRunner:
         self._post_trigger = None
         self._post_trigger_range = []
         self._stcoll = None
+
+        # Not all information from the driver is saved in the CSV file, because it is not very
+        # useful and we have it mostly for debugging and purposes. For example, "TAI" (Time After
+        # Idle) or "LTime" (Launch Time) are not very interesting for the end user. Here are the
+        # columns that we exclude from the CSV file.
+        self._exclude_colnames = {"LTime", "TAI", "TBI", "TIntr"}
 
         self._validate_sut()
 

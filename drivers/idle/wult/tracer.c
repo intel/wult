@@ -22,6 +22,10 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "WakeLatency" },
 	{ .type = "u64", .name = "IntrLatency" },
 	{ .type = "u64", .name = "LDist" },
+	{ .type = "u64", .name = "LTime" },
+	{ .type = "u64", .name = "TBI" },
+	{ .type = "u64", .name = "TAI" },
+	{ .type = "u64", .name = "TIntr" },
 	{ .type = "unsigned int", .name = "ReqCState" },
 	{ .type = "u64", .name = "TotCyc" },
 	{ .type = "u64", .name = "CC0Cyc" },
@@ -242,6 +246,18 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->ldist, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ltime, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->tbi, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->tai, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->tintr, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->req_cstate, &trace_state);
