@@ -25,6 +25,11 @@ _LOG = logging.getLogger()
 # Maximum count of unexpected lines in the trace buffer we tolerate.
 _MAX_FTRACE_BAD_LINES = 10
 
+def _dump_dp(dp):
+    """Returns a string for datapoint 'dp' suitable for using in error messages."""
+
+    return "\n".join(f"{key}: {val}" for key, val in dp.items())
+
 class WultRunner:
     """Run wake latency measurement experiments."""
 
@@ -131,7 +136,7 @@ class WultRunner:
         if dp["TotCyc"] == 0:
             # This should not happen.
             raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
-                        f"a bug. The raw ftrace line was:\n  {self._ftrace.raw_line}") from None
+                        f"a bug. The datapoint is:\n{_dump_dp(dp)}") from None
 
         # Add the C-state percentages.
         for cscyc_colname, csres_colname in self._cs_colnames:
@@ -146,8 +151,9 @@ class WultRunner:
             dp["ReqCState"] = self._csinfo[dp["ReqCState"]]["name"]
         except KeyError:
             # Supposedly an bad C-state index.
-            raise Error(f"bad C-state index '{dp['ReqCState']}' coming from the following FTrace "
-                        f"line:\n  {self._ftrace.raw_line}") from None
+            indexes_str = ", ".join(f"{idx} ({val['name']})" for idx, val in  self._csinfo.items())
+            raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
+                        f"{_dump_dp(dp)}\nAllowed indexes are:\n{indexes_str}") from None
 
         # Save time in microseconds.
         times_us = {}
