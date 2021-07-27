@@ -97,23 +97,6 @@ class WultRunner:
                        "not handle it correctly")
             return None
 
-        # Merge SMI and NMI counters.
-        if "NMICnt" in dp:
-            dp["NMICnt"] += dp["SMICnt"]
-            del dp["SMICnt"]
-        else:
-            # Note, 'NMIWake', 'SMIWake', 'NMIIntr', and 'SMIIntr' were removed in wult 1.9.3 (Jul
-            # 2021). Probably the code below can be removed in 2022.
-            cnt = dp["NMIWake"] + dp["SMIWake"]
-            del dp["NMIWake"]
-            del dp["SMIWake"]
-            # 'NMIIntr', and 'SMIIntr' were added a bit later.
-            if "NMIIntr" in dp:
-                cnt += dp["NMIIntr"] + dp["SMIIntr"]
-                del dp["NMIIntr"]
-                del dp["SMIIntr"]
-            dp["NMICnt"] = cnt
-
         if not self._is_poll_idle(dp):
             # Inject additional C-state information to the datapoint.
             # * CStatesCyc - combined count of CPU cycles in all non-CC0 C-states.
@@ -193,14 +176,8 @@ class WultRunner:
         rawhdr, rawdp = next(datapoints)
 
         self._rawhdr = list(rawhdr)
+        rawhdr = list(rawhdr)
         dp = self._get_datapoint_dict(rawdp)
-
-        # The driver profides SMI and NMI counters separately, so there are 4 counters. We sum them
-        # up, treating both SMI's (System Management Interrupts) and NMI's (Non-Maskable Interrupts)
-        # as NMI, becase SMI's are non-maskable too. So we turn 4 counters into 2 counters, for
-        # simplicity. Therefore, remove SMI counters from the header. We take care of the header
-        # here, the data will be taken care of in '_process_datapoint()'.
-        rawhdr = [col for col in rawhdr if not col.startswith("SMI")]
 
         # Add the more metrics to the raw header - we'll be injecting the values in
         # '_process_datapoint()'.

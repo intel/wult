@@ -162,11 +162,19 @@ PCxCyc:
     default_funcs: "all"
     optional: True
     drop_empty: True
+SMICnt:
+    title: "SMI count while measuring 'WakeLatency' or 'IntrLatency'"
+    descr: >-
+        How many system management interupts (SMI) happened while measuring 'WakeLatency' and
+        'IntrLatency'.
+    type: "int"
+    optional: True
+    drop_empty: True
 NMICnt:
     title: "NMI count while measuring 'WakeLatency' or 'IntrLatency'"
     descr: >-
-        How many non-maskable interrupts (NMI) and system management interupts (SMI) happened while
-        measuring 'WakeLatency' and 'IntrLatency'.
+        How many non-maskable interrupts (NMI) happened while measuring 'WakeLatency' and
+        'IntrLatency'.
     type: "int"
     optional: True
     drop_empty: True
