@@ -179,6 +179,15 @@ class WultRunner:
             raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
                         f"{_dump_dp(dp)}\nAllowed indexes are:\n{indexes_str}") from None
 
+        # 'WLOverhead'is the time it takes to get all the data ('WakeLatency', C-state counters,
+        # etc) after idle, but before the interrupt handler. Therefore, it should be subtracted from
+        # interrupt latency, because it is just the measurement overhead.
+        if dp["WLOverhead"] < dp["IntrLatency"]:
+            dp["IntrLatency"] -= dp["WLOverhead"]
+        else:
+            _LOG.warning("'WakeLatency' measurement overhead ('WLOverhead') is greater than "
+                         "interrupt latency ('IntrLatency'). The datapoint is:\n%s", _dump_dp(dp))
+
         # Save time in microseconds.
         times_us = {}
         for colname, val in dp.items():
@@ -490,7 +499,7 @@ class WultRunner:
         # useful and we have it mostly for debugging and purposes. For example, "TAI" (Time After
         # Idle) or "LTime" (Launch Time) are not very interesting for the end user. Here are the
         # columns that we exclude from the CSV file.
-        self._exclude_colnames = {"LTime", "TAI", "TBI", "TIntr"}
+        self._exclude_colnames = {"LTime", "TAI", "TBI", "TIntr", "WLOverhead"}
 
         self._validate_sut()
 

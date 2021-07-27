@@ -26,6 +26,7 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "TBI" },
 	{ .type = "u64", .name = "TAI" },
 	{ .type = "u64", .name = "TIntr" },
+	{ .type = "u64", .name = "WLOverhead" },
 	{ .type = "unsigned int", .name = "ReqCState" },
 	{ .type = "u64", .name = "TotCyc" },
 	{ .type = "u64", .name = "CC0Cyc" },
@@ -229,11 +230,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 		intr_latency = wdi->ops->time_to_ns(wdi, intr_latency);
 	}
 
-	if (ti->overhead) {
-		ti->overhead = wult_cyc2ns(wdi, ti->overhead);
-		WARN_ON(intr_latency < ti->overhead);
-		intr_latency -= ti->overhead;
-	}
 
 	/* Add values of the common fields. */
 	err = synth_event_add_next_val(silent_time, &trace_state);
@@ -258,6 +254,10 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->tintr, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(wult_cyc2ns(wdi, ti->overhead),
+				       &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->req_cstate, &trace_state);
