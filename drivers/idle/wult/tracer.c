@@ -104,7 +104,7 @@ static void after_idle(struct wult_info *wi)
 	 * interrupt latency. Measure the overhead, in order to compensate for
 	 * it later.
 	 */
-	ti->overhead = wult_cyc2ns(wdi, cyc2 - cyc1);
+	ti->overhead = cyc2 - cyc1;
 }
 
 /* Get measurements in the interrupt handler after idle. */
@@ -239,8 +239,11 @@ int wult_tracer_send_data(struct wult_info *wi)
 		intr_latency = wdi->ops->time_to_ns(wdi, intr_latency);
 	}
 
-	WARN_ON(intr_latency < ti->overhead);
-	intr_latency -= ti->overhead;
+	if (ti->overhead) {
+		ti->overhead = wult_cyc2ns(wdi, ti->overhead);
+		WARN_ON(intr_latency < ti->overhead);
+		intr_latency -= ti->overhead;
+	}
 
 	/* Add values of the common fields. */
 	err = synth_event_add_next_val(silent_time, &trace_state);
