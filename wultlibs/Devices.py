@@ -358,17 +358,17 @@ class _TSCDeadlineTimer(_WultDeviceBase):
 
 class _LinuxHRTimer(_WultDeviceBase):
     """
-    This class represents Linux High Resolution Timers (hrtimers). Hrtimers are basically a Linux
-    abstraction and an API to arm timers. On a modern system, hrtimers typically use TSC deadline
-    timers under the hood, but may also be based on LAPIC timers. So this device may end up using
-    the same hardware as '_TSCDeadlineTimer'. But the '_TSCDeadlineTimer' is a bit more precise
-    because it directly looks at the TDT hardware registers and it is not affected by Linux
-    hrtimers' overhead. On the other hand, hrtimers can work on top of other hardware timers, e.g.,
-    LAPIC timers.
+    This class represents Linux High Resolution Timers (hrtimers). Hrtimer is basically a Linux
+    kernel API for using hardware timers in a platform-independent manner. On a modern Intel CPUs,
+    hrtimers typically use TSC deadline timer under the hood, but may also use LAPIC timers. So this
+    device may end up using the same hardware as '_TSCDeadlineTimer'. But the '_TSCDeadlineTimer' is
+    a bit more precise because it directly acesses the TDT hardware registers and it is not affected
+    by Linux hrtimers sybsystem overhead. On the other hand, hrtimers work with both LAPIC and TSC
+    deadline timers.
     """
 
     drvname = "wult_hrtimer"
-    supported_devices = {"hrtimer" : "Linux High Resolution timer"}
+    supported_devices = {"hrtimer" : "Linux High Resolution Timer"}
     alias = "hrt"
 
     def __init__(self, devid, cpunum, proc):
