@@ -227,8 +227,14 @@ static int armer_kthread(void *data)
 
 		/* Send the last measurement data to user-space. */
 		spin_lock(&wi.enable_lock);
-		if (wi.enabled)
-			wult_tracer_send_data(&wi);
+		if (wi.enabled) {
+			err = wult_tracer_send_data(&wi);
+			if (err) {
+				spin_unlock(&wi.enable_lock);
+				wult_err("failed to send data out, error %d", err);
+				goto error;
+			}
+		}
 		spin_unlock(&wi.enable_lock);
 	}
 
