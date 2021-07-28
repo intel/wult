@@ -47,6 +47,8 @@ struct wult_tracer_info {
 	u64 intr_cyc;
 	/* The overhead of taking measurements after idle. */
 	u64 overhead;
+	/* Whether interrupts were enabled in 'after_idle()'. */
+	bool irqs_enabled;
 	/* 'true' if a new datapoint is available. */
 	bool got_dp;
 	/* 'true' if the datapoint should be discarded. */

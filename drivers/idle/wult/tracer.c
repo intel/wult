@@ -86,6 +86,7 @@ static void after_idle(struct wult_info *wi)
 		return;
 
 	wult_cstates_read_after(&ti->csinfo);
+	ti->irqs_enabled = !irqs_disabled();
 	WARN_ON(ti->got_dp);
 	ti->got_dp = true;
 	ti->ai_cyc2 = rdtsc_ordered();
