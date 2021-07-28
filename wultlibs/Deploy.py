@@ -96,7 +96,8 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
 
     if drivers:
         text = """Path to the Linux kernel sources to build the drivers against. The default is
-                  '/lib/modules/$(uname -r)/build' on the SUT."""
+                  '/lib/modules/$(uname -r)/build' on the SUT. In case of deploying to a remote
+                  host, this is the path on the remote host (HOSTNAME)."""
         arg = parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text)
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
