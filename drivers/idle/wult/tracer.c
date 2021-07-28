@@ -82,6 +82,7 @@ static void after_idle(struct wult_info *wi)
 		return;
 
 	wult_cstates_read_after(&ti->csinfo);
+	WARN_ON(ti->got_dp);
 	ti->got_dp = true;
 	cyc2 = rdtsc_ordered();
 
