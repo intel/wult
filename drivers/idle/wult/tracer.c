@@ -60,9 +60,8 @@ static void after_idle(struct wult_info *wi)
 {
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_device_info *wdi = wi->wdi;
-	u64 cyc1, cyc2;
 
-	cyc1 = rdtsc_ordered();
+	ti->ai_cyc1 = rdtsc_ordered();
 	if (ti->intr_finished)
 		/* The data were already collected in the interrupt handler. */
 		return;
@@ -80,7 +79,7 @@ static void after_idle(struct wult_info *wi)
 		return;
 	}
 
-	ti->tai = wdi->ops->get_time_after_idle(wdi, cyc1);
+	ti->tai = wdi->ops->get_time_after_idle(wdi, ti->ai_cyc1);
 
 	if (!wdi->ops->event_has_happened(wi->wdi))
 		/* It is not the delayed event we armed that woke us up. */
@@ -89,14 +88,14 @@ static void after_idle(struct wult_info *wi)
 	wult_cstates_read_after(&ti->csinfo);
 	WARN_ON(ti->got_dp);
 	ti->got_dp = true;
-	cyc2 = rdtsc_ordered();
+	ti->ai_cyc2 = rdtsc_ordered();
 
 	/*
 	 * Reading all the data takes time, and this will contribute to
 	 * interrupt latency. Measure the overhead, in order to compensate for
 	 * it later.
 	 */
-	ti->overhead = cyc2 - cyc1;
+	ti->overhead = ti->ai_cyc2 - ti->ai_cyc1;
 }
 
 /* Get measurements in the interrupt handler after idle. */
@@ -109,6 +108,7 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 		return;
 
 	ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
+	ti->intr_cyc = cyc;
 
 	if (WARN_ON(ti->intr_finished))
 		return;

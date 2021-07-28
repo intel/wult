@@ -37,12 +37,14 @@ struct wult_tracer_info {
 	u64 ldist;
 	/* The requested C-state index. */
 	int req_cstate;
-	/* The tracepoint we hook to. */
-	struct tracepoint *tp;
 	/* SMI and NMI counters before idle. */
 	u32 smi_bi, nmi_bi;
 	/* SMI and NMI counters after idle. */
 	u32 smi_ai, nmi_ai;
+	/* Cycle counters at the beginning and at the end of 'after_idle(). */
+	u64 ai_cyc1, ai_cyc2;
+	/* Cycle counter at the beginning of the interrupt handler. */
+	u64 intr_cyc;
 	/* The overhead of taking measurements after idle. */
 	u64 overhead;
 	/* 'true' if a new datapoint is available. */
@@ -55,6 +57,8 @@ struct wult_tracer_info {
 	bool ai_finished;
 	/* 'true' if the interrupt handler finished. */
 	bool intr_finished;
+	/* The tracepoint we hook to. */
+	struct tracepoint *tp;
 	/* The wult trace event file. */
 	struct trace_event_file *event_file;
 };
