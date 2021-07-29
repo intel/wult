@@ -101,6 +101,11 @@ class WultRunner:
                        "not handle it correctly")
             return None
 
+        if dp["TotCyc"] == 0:
+            # This should not happen.
+            raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
+                        f"a bug. The datapoint is:\n{_dump_dp(dp)}") from None
+
         if not self._is_poll_idle(dp):
             # Inject additional C-state information to the datapoint.
             # * CStatesCyc - combined count of CPU cycles in all non-CC0 C-states.
@@ -113,16 +118,17 @@ class WultRunner:
                 dp["CStatesCyc"] = dp["TotCyc"] - dp["CC0Cyc"]
             else:
                 dp["CStatesCyc"] = dp["TotCyc"] - cyc
+            if dp["DerivedCC1Cyc"] < 0:
+                # The C-state counters are not always precise, and we may end up with a negative
+                # number.
+                dp["DerivedCC1Cyc"] = 0
+            if dp["CStatesCyc"] < 0:
+                raise Error(f"negative 'CStatesCyc', the datapoint is:\n{_dump_dp(dp)}")
         else:
             dp["DerivedCC1Cyc"] = dp["CStatesCyc"] = 0
 
         # Inject 'IntrDelay' - the interrupt delay.
         dp["IntrDelay"] = dp["IntrLatency"] - dp["WakeLatency"]
-
-        if dp["TotCyc"] == 0:
-            # This should not happen.
-            raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
-                        f"a bug. The datapoint is:\n{_dump_dp(dp)}") from None
 
         # Add the C-state percentages.
         for cscyc_colname, csres_colname in self._cs_colnames:
