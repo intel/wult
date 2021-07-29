@@ -51,28 +51,32 @@ class WultRunner:
           o vals - list of datapoint values.
         """
 
-        yield_time = time.time()
+        last_line = None
+        yielded_lines = 0
 
-        for line in self._ftrace.getlines():
-            if time.time() - yield_time > self._timeout:
-                raise ErrorTimeOut(f"no wult data in trace buffer for {self._timeout} seconds"
-                                   f"{self._proc.hostmsg}. Last seen non-wult line:\n{line.msg}")
+        try:
+            for line in self._ftrace.getlines():
+                # Wult output format should be: name1=val1 name2=val2, and so on. Parse the line and get
+                # the list of (name, val) pairs: [(name1, val1), (name2, val2), ... ].
+                try:
+                    if not line.msg:
+                        raise ValueError
+                    pairs = [pair.split("=") for pair in line.msg.split()]
+                    names, vals = zip(*pairs)
+                    if len(names) != len(vals):
+                        raise ValueError
+                except ValueError:
+                    _LOG.debug("unexpected line in ftrace buffer%s:\n%s", self._proc.hostmsg, line.msg)
+                    continue
 
-            # Wult output format should be: name1=val1 name2=val2, and so on. Parse the line and get
-            # the list of (name, val) pairs: [(name1, val1), (name2, val2), ... ].
-            try:
-                if not line.msg:
-                    raise ValueError
-                pairs = [pair.split("=") for pair in line.msg.split()]
-                names, vals = zip(*pairs)
-                if len(names) != len(vals):
-                    raise ValueError
-            except ValueError:
-                _LOG.debug("unexpected line in ftrace buffer%s:\n%s", self._proc.hostmsg, line.msg)
-                continue
-
-            yield_time = time.time()
-            yield names, vals
+                yielded_lines += 1
+                last_line = line.msg
+                yield names, vals
+        except ErrorTimeOut as err:
+            msg = f"{err}\nCount of wult ftrace lines read so far: {yielded_lines}"
+            if last_line:
+                msg = f"{msg}\nLast seen wult ftrace line:\n{last_line}"
+            raise ErrorTimeOut(msg) from err
 
     def _get_datapoint_dict(self, rawdp):
         """Return the raw data provided by the kernel driver as a dictionary."""
