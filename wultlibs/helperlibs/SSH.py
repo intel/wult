@@ -675,7 +675,7 @@ class SSH:
             chan.exec_command(cmd)
         except _PARAMIKO_EXCEPTIONS as err:
             raise Error(f"cannot execute the following command in new SSH session{self.hostmsg}:\n"
-                        "{cmd}\nReason: {err}") from err
+                        f"{cmd}\nReason: {err}") from err
 
         _add_custom_fields(chan, self, command, cmd)
 
