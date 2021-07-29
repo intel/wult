@@ -18,6 +18,7 @@
 #include <linux/smp.h>
 #include <linux/spinlock.h>
 #include <asm/div64.h>
+#include <asm/tsc.h>
 #include "tracer.h"
 #include "uapi.h"
 #include "wult.h"
@@ -373,6 +374,11 @@ static int __init wult_init(void)
 
 	if (!cpu_has(&cpu_data(cpunum), X86_FEATURE_CONSTANT_TSC)) {
 		wult_err("constant TSC is required");
+		return -EINVAL;
+	}
+
+	if (check_tsc_unstable()) {
+		wult_err("TSC is marked as unstable");
 		return -EINVAL;
 	}
 
