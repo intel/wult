@@ -165,7 +165,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 	struct cstate_info *csi;
 	u64 ltime, silent_time, wake_latency, intr_latency;
 	u64 ai_overhead = 0, intr_overhead = 0;
-	int err;
+	int err, err_after_send = 0;
 
 	if (!ti->got_dp_ai || !ti->got_dp_intr) {
 		ti->got_dp_ai = ti->got_dp_intr = false;
@@ -186,10 +186,8 @@ int wult_tracer_send_data(struct wult_info *wi)
 			return PTR_ERR(tdata);
 	}
 
-	if (WARN_ON(ltime > ti->tintr))
-		return -EINVAL;
-	if (WARN_ON(ltime > ti->tai))
-		return -EINVAL;
+	if (WARN_ON(ltime > ti->tintr) || WARN_ON(ltime > ti->tai))
+		err_after_send = -EINVAL;
 
 	silent_time = ltime - ti->tbi;
 	wake_latency = ti->tai - ltime;
@@ -223,7 +221,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 		 * before the interrupt handler.
 		 */
 		if (WARN_ON(ti->intr_cyc1 < ti->ai_cyc2))
-			return -EINVAL;
+			err_after_send = -EINVAL;
 		ai_overhead = wult_cyc2ns(wdi, ti->ai_cyc2 - ti->ai_cyc1);
 	}
 
@@ -306,6 +304,8 @@ int wult_tracer_send_data(struct wult_info *wi)
 	}
 
 	err = synth_event_trace_end(&trace_state);
+	if (!err)
+		err = err_after_send;
 	return err;
 
 out_end:
