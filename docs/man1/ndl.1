@@ -68,7 +68,7 @@ Print debugging information.
 
 .TP
 \fB\-\-kernel\-src\fR \fI\,KSRC\/\fR
-Path to the Linux kernel sources to build the drivers against. The default is '/lib/modules/$(uname \-r)/build' on the SUT.
+Path to the Linux kernel sources to build the drivers against. The default is '/lib/modules/$(uname \-r)/build' on the SUT. In case of deploying to a remote host, this is the path on the remote host (HOSTNAME).
 
 .TP
 \fB\-H\fR \fI\,HOSTNAME\/\fR, \fB\-\-host\fR \fI\,HOSTNAME\/\fR
@@ -121,8 +121,8 @@ Path to the private SSH key that should be used for logging into the SUT. By def
 SSH connect timeout in seconds, default is 8.
 
 .SH OPTIONS 'ndl start'
-usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--start-over] [-o OUTDIR] [--reportid REPORTID] [-l LDIST] [--post-trigger POST_TRIGGER]
-                 [--post-trigger-range TRANGE] [--rfilt RFILT] [--rsel RSEL] [--keep-filtered] [--report]
+usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid REPORTID] [-l LDIST] [--post-trigger POST_TRIGGER] [--post-trigger-range TRANGE]
+                 [--rfilt RFILT] [--rsel RSEL] [--keep-filtered] [--report]
                  ifname
 
 Start measuring and recording the latency data.
@@ -170,11 +170,6 @@ memory.
 The measurement time limit, i.e., for how long the SUT should be measured. The default unit is minutes, but you can use the following handy specifiers as well: d \- days, h \- hours, m \- minutes, s \- seconds. For example '1h25m' would be
 1 hour and 25 minutes, or 10m5s would be 10 minutes and 5 seconds. Value '0' means "no time limit", and this is the default. If this option is used along with the '\-\-datapoints' option, then measurements will stop as when either the
 time limit is reached, or the required amount of datapoints is collected.
-
-.TP
-\fB\-\-start\-over\fR
-If the output directory already contains the datapoints CSV file with some amount of datapoints in it, the default behavior is to keep them and append more datapoints if necessary. But with this option all the pre\-existing datapoints
-will be removed as soon as the tool starts writing new datapoints.
 
 .TP
 \fB\-o\fR \fI\,OUTDIR\/\fR, \fB\-\-outdir\fR \fI\,OUTDIR\/\fR
