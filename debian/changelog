@@ -1,3 +1,9 @@
+wult (1.9.5) unstable; urgency=low
+
+  * wult: many fixes for small, but annoying problems
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 30 Jul 2021 12:49:44 +0300
+
 wult (1.9.4) unstable; urgency=low
 
   * wult/ndl: speed up measuring remote SUTs.
