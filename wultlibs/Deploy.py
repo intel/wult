@@ -228,8 +228,10 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
                 dstpaths.append(helpers_deploy_path / deployable)
             dinfos[helper] = {"src" : [srcpath], "dst" : dstpaths}
 
-    # Add python helpers' deploy information.
-    if pyhelpers:
+    # Add python helpers' deploy information. Note, python helpers are deployed only to the remote
+    # host. The local copy of python helpers comes via 'setup.py'. Therefore, check them only for
+    # the remote case.
+    if pyhelpers and proc.is_remote:
         for pyhelper in pyhelpers:
             datapath = FSHelpers.find_app_data(toolname, _HELPERS_SRC_SUBPATH / pyhelper)
             srcpaths = []
