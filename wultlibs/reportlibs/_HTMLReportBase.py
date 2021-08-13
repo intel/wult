@@ -38,10 +38,10 @@ def _colname_to_fname(colname):
 class HTMLReportBase:
     """This is the base class for generating HTML reports for raw test results."""
 
-    def _prepare_intro_table(self, stats_path, descr_paths):
+    def _prepare_intro_table(self, stats_paths, descr_paths):
         """
         Create the intro table, which is the very first table in the report and it shortly
-        summarizes the entire report. The 'stats_path' should be a dictionary indexed by report ID
+        summarizes the entire report. The 'stats_paths' should be a dictionary indexed by report ID
         and containing the stats directory path. Similarly, the 'descr_paths' contains paths to the
         test result description files.
         """
@@ -73,11 +73,11 @@ class HTMLReportBase:
                 intro_tbl[res.reportid][key] = f"{resolution}ns"
 
         # Add links to the stats directories.
-        if stats_path:
+        if stats_paths:
             key = "stats"
             intro_tbl["Title"][key] = "Statistics"
             for res in self.rsts:
-                path = stats_path.get(res.reportid, "Not available")
+                path = stats_paths.get(res.reportid, "Not available")
                 intro_tbl[res.reportid][key] = path
 
         # Add links to the descriptions.
@@ -179,7 +179,7 @@ class HTMLReportBase:
         """Copy raw test results to the output directory."""
 
         # Paths to the stats directory.
-        stats_path = {}
+        stats_paths = {}
         # Paths to test reports' description files.
         descr_paths = {}
 
@@ -199,12 +199,12 @@ class HTMLReportBase:
 
             if res.stats_path.is_dir():
                 hlink = f"<a href=\"{resrootdir}/{res.stats_path.name}\">Statistics</a>"
-                stats_path[res.reportid] = hlink
+                stats_paths[res.reportid] = hlink
             if res.descr_path.is_file():
                 hlink = f"<a href=\"{resrootdir}/{res.descr_path.name}\">Test description</a>"
                 descr_paths[res.reportid] = hlink
 
-        return stats_path, descr_paths
+        return stats_paths, descr_paths
 
     def _generate_report(self):
         """Put together the final HTML report."""
@@ -217,7 +217,7 @@ class HTMLReportBase:
         except OSError as err:
             raise Error(f"failed to create directory '{self.outdir}': {err}") from None
 
-        stats_path, descr_paths = self._copy_raw_data()
+        stats_paths, descr_paths = self._copy_raw_data()
 
         # Find the styles and templates paths.
         templdir = FSHelpers.find_app_data("wult", Path("templates"),
@@ -233,7 +233,7 @@ class HTMLReportBase:
             raise Error(f"cannot copy CSS file from '{csspath}' to '{dstpath}':\n{err}") from None
 
         # The intro table is only included into the main HTML page.
-        intro_tbl = self._prepare_intro_table(stats_path, descr_paths)
+        intro_tbl = self._prepare_intro_table(stats_paths, descr_paths)
         links_tbl = self._prepare_links_table()
 
         # Each column name gets its own HTML page.
