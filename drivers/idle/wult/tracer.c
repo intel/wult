@@ -76,7 +76,7 @@ static void after_idle(struct wult_info *wi)
 	u64 cyc1, cyc2;
 
 	cyc1 = rdtsc_ordered();
-	if (!ti->bi_finished || ti->ai_finished)
+	if (ti->ai_finished)
 		return;
 	if (ti->intr_finished)
 		/* The data were already collected in the interrupt handler. */
@@ -163,8 +163,10 @@ static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_
 		 */
 		WARN_ON(ti->ai_finished && ti->intr_finished);
 		WARN_ON(ti->ai_finished);
-		after_idle(wi);
-		ti->ai_finished = true;
+		if (ti->bi_finished) {
+			after_idle(wi);
+			ti->ai_finished = true;
+		}
 	} else {
 		ti->got_dp = ti->discard_dp = false;
 		ti->ai_finished = ti->bi_finished = ti->intr_finished = false;
