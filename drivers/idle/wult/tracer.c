@@ -63,8 +63,6 @@ static inline u64 read_data_after_idle(struct wult_info *wi, u64 cyc1)
 		return 0;
 
 	wult_cstates_read_after(&ti->csinfo);
-	ti->smi_ai = get_smi_count();
-	ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 	return tai;
 }
 
@@ -123,11 +121,10 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 		 * case the latency is measured in both 'after_idle()' and the
 		 * interrupt handler.
 		 */
-		if (ti->got_dp) {
-			ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
-			ti->smi_ai = get_smi_count();
-			ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
-		}
+		if (!ti->got_dp)
+			return;
+
+		ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
 	} else {
 		/*
 		 * 'after_idle()' has not finished, so assume this is the case
@@ -141,6 +138,8 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 		ti->got_dp = true;
 	}
 
+	ti->smi_ai = get_smi_count();
+	ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 	ti->intr_finished = true;
 }
 
