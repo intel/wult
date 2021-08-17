@@ -114,7 +114,9 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_device_info *wdi = wi->wdi;
 
-	if (!ti->bi_finished || ti->intr_finished)
+	if (!ti->bi_finished)
+		return;
+	if (WARN_ON(ti->intr_finished))
 		return;
 
 	if (ti->ai_finished) {
@@ -162,7 +164,6 @@ static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_
 		 * the necessary information and 'after_idle()' becomes
 		 * unnecessary.
 		 */
-		WARN_ON(ti->ai_finished && ti->intr_finished);
 		WARN_ON(ti->ai_finished);
 		if (ti->bi_finished) {
 			after_idle(wi);
@@ -170,7 +171,7 @@ static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_
 		}
 	} else {
 		ti->got_dp = ti->discard_dp = false;
-		ti->ai_finished = ti->bi_finished = ti->intr_finished = false;
+		ti->ai_finished = ti->bi_finished = false;
 		ti->req_cstate = req_cstate;
 		before_idle(data);
 		ti->bi_finished = true;
@@ -186,6 +187,7 @@ int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist)
 	int err;
 	struct wult_tracer_info *ti = &wi->ti;
 
+	ti->intr_finished = false;
 	err = wi->wdi->ops->arm(wi->wdi, ldist);
 	if (err) {
 		wult_err("failed to arm a dleayed event %llu nsec away, error %d",
@@ -306,7 +308,7 @@ int wult_tracer_enable(struct wult_info *wi)
 	struct wult_tracer_info *ti = &wi->ti;
 
 	wi->ti.got_dp = wi->ti.discard_dp = false;
-	ti->ai_finished = ti->bi_finished = ti->intr_finished = false;
+	ti->ai_finished = ti->bi_finished = false;
 
 	err = tracepoint_probe_register(ti->tp, (void *)cpu_idle_hook, wi);
 	if (err) {
