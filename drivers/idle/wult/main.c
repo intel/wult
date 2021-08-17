@@ -287,6 +287,7 @@ static void init_wdi(struct wult_device_info *wdi)
 int wult_register(struct wult_device_info *wdi)
 {
 	int err = -EINVAL;
+
 	if (!try_module_get(THIS_MODULE))
 		return -ENODEV;
 
