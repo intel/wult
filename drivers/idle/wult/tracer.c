@@ -204,9 +204,13 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 	if (!ti->got_dp || ti->discard_dp)
 		return 0;
+
 	ti->got_dp = ti->discard_dp = false;
 
-	if (!ti->bi_finished || !ti->ai_finished || !ti->intr_finished)
+	if (WARN_ON(!ti->intr_finished))
+		return 0;
+
+	if (!ti->ai_finished || !ti->bi_finished)
 		return 0;
 
 	ltime = wdi->ops->get_launch_time(wdi);
