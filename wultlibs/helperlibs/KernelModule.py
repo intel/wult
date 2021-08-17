@@ -38,27 +38,30 @@ class KernelModule:
 
         return None
 
-    def _get_dmesg_msgs(self):
+    def _get_new_dmesg(self):
         """Return new dmesg messages if available."""
 
-        if not self.dmesg:
+        if not self._dmesg_obj:
             return ""
-        new_msgs = Dmesg.get_new_messages(self._captured, self._proc, join=True, strip=True)
+        new_msgs = self._dmesg_obj.get_new_messages(join=True)
         if new_msgs:
-            return f"\nNew kernel messages{self._proc.hostmsg}:\n{new_msgs}"
+            return f"New kernel messages{self._proc.hostmsg}:\n{new_msgs}"
         return ""
 
     def _run_mod_cmd(self, cmd):
         """This helper function runs module load/unload command 'cmd'."""
 
-        if self.dmesg:
-            self._captured = Dmesg.capture(self._proc)
+        if self._dmesg_obj:
+            if not self._dmesg_obj.captured:
+                self._dmesg_obj.run(capture=True)
+
             try:
                 self._proc.run_verify(cmd)
             except Error as err:
-                raise Error(f"{err}{self._get_dmesg_msgs()}") from err
+                raise Error(f"{err}{self._get_new_dmesg()}") from err
+
             if _LOG.getEffectiveLevel() == logging.DEBUG:
-                _LOG.debug("the following command finished: %s%s", cmd, self._get_dmesg_msgs())
+                _LOG.debug("the following command finished: %s%s", cmd, self._get_new_dmesg())
         else:
             self._proc.run_verify(cmd)
 
@@ -97,20 +100,37 @@ class KernelModule:
             opts += " dyndbg=+pf"
         self._run_mod_cmd(f"modprobe {self.name} {opts}")
 
-    def __init__(self, proc, name):
+    def __init__(self, proc, name, dmesg=None):
         """
         The class constructor. The arguments are as follows.
           * proc - the host to operate on. This object will keep a 'proc' reference and use it in
                    various methods.
           * name - kernel module name.
+          * dmesg - 'True' to enable 'dmesg' output checks (default), 'False' to disable them. Can
+                    also be a 'Dmesg' object.
+
+        By default, objects of this class capture 'dmesg' output on the host defined by 'proc'. The
+        first 'dmesg' snapshot is taken before loading/unloading the driver. The second snapsot is
+        taken only if an error happens. This allows to extract new 'dmesg' lines, which are
+        potentially related to the delayed event device driver. These lines are then included to the
+        error message, which is very helpful for diagnosing the error.
+
+        If you already have a 'Dmesg' object with the first snapshot capured, you can pass it via
+        the 'dmesg' argument, in which case the 'dmesg' tool will be invoked one less time, which is
+        more optimal.
         """
+
+        if dmesg is None:
+            dmesg = True
 
         self._proc = proc
         self.name = name
-        self._captured = None
+        self._dmesg_obj = None
 
-        # Whether kernel messages should be monitored. They are very useful if something goes wrong.
-        self.dmesg = True
+        if isinstance(dmesg, Dmesg.Dmesg):
+            self._dmesg_obj = dmesg
+        elif dmesg:
+            self._dmesg_obj = Dmesg.Dmesg(self._proc)
 
     def close(self):
         """Stop the measurements."""

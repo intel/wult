@@ -30,7 +30,7 @@ class EventsProvider:
 
         # Unload all the possible wult device drivers.
         for drvname in Devices.DRVNAMES:
-            drv = KernelModule.KernelModule(self._proc, drvname)
+            drv = KernelModule.KernelModule(self._proc, drvname, dmesg=self.dev.dmesg_obj)
             drv.unload()
             drv.close()
 
@@ -115,10 +115,6 @@ class EventsProvider:
     def prepare(self):
         """Prepare to start the measurements."""
 
-        self._main_drv.dmesg = self.dmesg
-        self._drv.dmesg = self.dmesg
-        self.dev.dmesg = self.dmesg
-
         # Unload wult drivers if they were loaded.
         self._unload()
 
@@ -183,12 +179,12 @@ class EventsProvider:
                     specific to the delayed event driver.
         """
 
+        self.dev = dev
         self._cpunum = cpunum
         self._proc = proc
         self._ldist = ldist
         self._drv = None
         self._saved_drvname = None
-        self.dev = None
         self._basedir = None
         self._enable_path = None
         self._main_drv = None
@@ -196,13 +192,9 @@ class EventsProvider:
         # This is a debugging option that allows to disable automatic wult modules unloading on
         # 'close()'.
         self.unload = True
-        # Whether kernel messages should be monitored. They are very useful if something goes wrong.
-        self.dmesg = True
 
-        self.dev = dev
-
-        self._main_drv = KernelModule.KernelModule(proc, "wult")
-        self._drv = KernelModule.KernelModule(proc, self.dev.drvname)
+        self._main_drv = KernelModule.KernelModule(proc, "wult", dmesg=dev.dmesg_obj)
+        self._drv = KernelModule.KernelModule(proc, self.dev.drvname, dmesg=dev.dmesg_obj)
 
         mntpoint = FSHelpers.mount_debugfs(proc=proc)
         self._basedir = mntpoint / "wult"
