@@ -78,25 +78,26 @@ static void after_idle(struct wult_info *wi)
 	cyc1 = rdtsc_ordered();
 	if (ti->ai_finished)
 		return;
+
 	if (ti->intr_finished)
 		/* The data were already collected in the interrupt handler. */
 		return;
-
-	ti->tai = read_data_after_idle(wi, cyc1);
 
 	if (!irqs_disabled()) {
 		/*
 		 * Interrupts are enabled, but the interrupt handler did not
 		 * finish when we checked 'ti->intr_finished' above. This
 		 * situation can happen when the CPU woke up from the idle
-		 * state for some other reasons. And there is a race condition
-		 * (e.g., the interrupt may happend in the middle of
+		 * state for some other reasons, but very close to our event.
+		 * In this case our interrupt may happend in the middle of
 		 * 'after_idle()'. We should discard this datapoint.
 		 */
 		ti->discard_dp = true;
-	} else {
-		ti->got_dp = true;
+		return;
 	}
+
+	ti->tai = read_data_after_idle(wi, cyc1);
+	ti->got_dp = true;
 	cyc2 = rdtsc_ordered();
 
 	/*
