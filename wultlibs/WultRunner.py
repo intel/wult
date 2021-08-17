@@ -16,7 +16,7 @@ import logging
 import contextlib
 from pathlib import Path
 from wultlibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from wultlibs.helperlibs import Dmesg, FSHelpers, Human
+from wultlibs.helperlibs import FSHelpers, Human
 from wultlibs.pepclibs import CPUIdle, CPUInfo, Systemctl
 from wultlibs import EventsProvider, Defs, _FTrace, _ProgressLine, WultStatsCollect
 
@@ -250,27 +250,12 @@ class WultRunner:
 
         return collected_cnt
 
-    def _get_dmesg_msgs(self, old_dmesg):
-        """Return new dmesg messages if available."""
-
-        if not self.dmesg:
-            return ""
-        new_msgs = Dmesg.get_new_messages(old_dmesg, self._proc, join=True, strip=True)
-        if new_msgs:
-            return f"\nNew kernel messages{self._proc.hostmsg}:\n{new_msgs}"
-        return ""
-
     def run(self, dpcnt=1000000, tlimit=None):
         """
         Start the measurements. The arguments are as follows.
           * dpcnt - count of datapoints to collect.
           * tlimit - the measurements time limit in seconds.
         """
-
-        if self.dmesg:
-            old_dmesg = Dmesg.capture(self._proc)
-        else:
-            old_dmesg = None
 
         self._res.write_info()
 
@@ -294,7 +279,7 @@ class WultRunner:
         except Error as err:
             dmesg = ""
             with contextlib.suppress(Error):
-                dmesg = "\n" + self._get_dmesg_msgs(old_dmesg)
+                dmesg = "\n" + self._dev.get_new_dmesg()
             if self._stcoll:
                 with contextlib.suppress(Error):
                     self._stcoll.stop()
@@ -329,7 +314,6 @@ class WultRunner:
             self._sysctl.stop("irqbalance")
 
         self._ep.unload = self.unload
-        self._ep.dmesg = self.dmesg
         self._ep.prepare()
 
         # Validate the delayed event resolution.
@@ -428,6 +412,7 @@ class WultRunner:
         """
 
         self._proc = proc
+        self._dev = dev
         self._res = res
         self._ldist = ldist
         self._csinfo = csinfo
@@ -436,8 +421,6 @@ class WultRunner:
         # This is a debugging option that allows to disable automatic wult modules unloading on
         # 'close()'.
         self.unload = True
-        # Whether kernel messages should be monitored. They are very useful if something goes wrong.
-        self.dmesg = True
 
         self._ep = None
         self._ftrace = None
@@ -494,6 +477,9 @@ class WultRunner:
             self._proc = None
         else:
             return
+
+        if getattr(self, "_dev", None):
+            self._dev = None
 
         if getattr(self, "_csinfo", None):
             self._csinfo = None
