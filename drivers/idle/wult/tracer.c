@@ -50,22 +50,6 @@ static void before_idle(struct wult_info *wi)
 	ti->tbi = wi->wdi->ops->get_time_before_idle(wi->wdi);
 }
 
-static inline u64 read_data_after_idle(struct wult_info *wi, u64 cyc1)
-{
-	struct wult_tracer_info *ti = &wi->ti;
-	struct wult_device_info *wdi = wi->wdi;
-	u64 tai;
-
-	tai = wdi->ops->get_time_after_idle(wdi, cyc1);
-
-	if (!wdi->ops->event_has_happened(wi->wdi))
-		/* It is not the delayed event we armed that woke us up. */
-		return 0;
-
-	wult_cstates_read_after(&ti->csinfo);
-	return tai;
-}
-
 /* Get measurement data after idle .*/
 static void after_idle(struct wult_info *wi)
 {
@@ -91,7 +75,13 @@ static void after_idle(struct wult_info *wi)
 		return;
 	}
 
-	ti->tai = read_data_after_idle(wi, cyc1);
+	ti->tai = wdi->ops->get_time_after_idle(wdi, cyc1);
+
+	if (!wdi->ops->event_has_happened(wi->wdi))
+		/* It is not the delayed event we armed that woke us up. */
+		return;
+
+	wult_cstates_read_after(&ti->csinfo);
 	ti->got_dp = true;
 	cyc2 = rdtsc_ordered();
 
@@ -111,30 +101,22 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 
 	if (!ti->bi_finished)
 		return;
+
+	ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
+
 	if (WARN_ON(ti->intr_finished))
 		return;
 
-	if (ti->ai_finished) {
+	if (!ti->ai_finished) {
 		/*
-		 * 'after_idle()' has already finished, so assume that this is
-		 * the case of an idle state with interrupts disabled. In this
-		 * case the latency is measured in both 'after_idle()' and the
-		 * interrupt handler.
+		 * 'after_idle()' has not finished, so the CPU was in an idle
+		 * state with interrupts enabled (e.g., 'POLL'). In this case
+		 * the wake latency is the interrupt latency.
 		 */
-		if (!ti->got_dp)
-			return;
-
-		ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
-	} else {
-		/*
-		 * 'after_idle()' has not finished, so assume this is the case
-		 * of an idle state with interrupts enabled (e.g., 'POLL'). In
-		 * this case the latency is measured only in the interrupt
-		 * handler.
-		 */
-		ti->tintr = read_data_after_idle(wi, cyc);
+		wult_cstates_read_after(&ti->csinfo);
 		ti->tai = ti->tintr;
 		ti->overhead = 0;
+		WARN_ON(ti->got_dp);
 		ti->got_dp = true;
 	}
 
