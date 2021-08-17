@@ -56,8 +56,8 @@ class WultRunner:
 
         try:
             for line in self._ftrace.getlines():
-                # Wult output format should be: name1=val1 name2=val2, and so on. Parse the line and get
-                # the list of (name, val) pairs: [(name1, val1), (name2, val2), ... ].
+                # Wult output format should be: name1=val1 name2=val2, and so on. Parse the line and
+                # get the list of (name, val) pairs: [(name1, val1), (name2, val2), ... ].
                 try:
                     if not line.msg:
                         raise ValueError
@@ -66,7 +66,8 @@ class WultRunner:
                     if len(names) != len(vals):
                         raise ValueError
                 except ValueError:
-                    _LOG.debug("unexpected line in ftrace buffer%s:\n%s", self._proc.hostmsg, line.msg)
+                    _LOG.debug("unexpected line in ftrace buffer%s:\n%s",
+                               self._proc.hostmsg, line.msg)
                     continue
 
                 yielded_lines += 1
