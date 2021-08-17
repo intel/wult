@@ -157,13 +157,6 @@ static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_
 		return;
 
 	if (req_cstate == PWR_EVENT_EXIT) {
-		/*
-		 * Invoke 'after_idle()' only if 'before_idle()' was previously
-		 * invoked and if the requested C-state was not 'POLL'. In
-		 * case of the 'POLL' state the interrupt handler collects all
-		 * the necessary information and 'after_idle()' becomes
-		 * unnecessary.
-		 */
 		WARN_ON(ti->ai_finished);
 		if (ti->bi_finished) {
 			after_idle(wi);
