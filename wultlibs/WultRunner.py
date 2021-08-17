@@ -291,6 +291,21 @@ class WultRunner:
 
         _LOG.info("Finished measuring CPU %d%s", self._res.cpunum, self._proc.hostmsg)
 
+        # Check if there were any bug/warning messages in 'dmesg'.
+        dmesg = ""
+        with contextlib.suppress(Error):
+            dmesg = self._dev.get_new_dmesg()
+            # The bug/warning markers we are looking for in 'dmesg'.
+            markers = ("bug: ", "error: ", "warning: ")
+            for marker in markers:
+                variants = (marker, marker.upper(), marker.title())
+                for variant in variants:
+                    if variant in dmesg:
+                        _LOG.warning("found a message prefixed with '%s' in 'dmesg':\n%s",
+                                     variant, dmesg)
+                        _LOG.warning("consider reporting this to wult developers")
+                        break
+
         if self._stcoll:
             self._stcoll.stop()
             self._stcoll.copy_stats()
