@@ -398,7 +398,7 @@ def start_command(args):
 
         ToolsCommon.set_filters(args, res)
 
-        with Devices.WultDevice(args.devid, args.cpunum, proc, force=args.force) as dev:
+        with Devices.WultDevice(args.devid, args.cpunum, proc, dmesg=True, force=args.force) as dev:
             with CPUIdle.CPUIdle(proc=proc) as cpuidle:
                 csinfo = cpuidle.get_cstates_info_dict(res.cpunum)
 
@@ -463,7 +463,7 @@ def load_command(args):
     """Implements the 'load' command."""
 
     proc = ToolsCommon.get_proc(args, args.hostname)
-    with Devices.WultDevice(args.devid, 0, proc, force=args.force) as dev:
+    with Devices.WultDevice(args.devid, 0, proc, dmesg=True, force=args.force) as dev:
         with EventsProvider.EventsProvider(dev, 0, proc) as ep:
             ep.unload = not args.no_unload
             ep.prepare()

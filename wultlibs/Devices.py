@@ -49,42 +49,41 @@ class _WultDeviceBase:
         """
         return None
 
-    def _dmesg_capture(self):
-        """Capture all dmesg message."""
+    def get_new_dmesg(self):
+        """
+        Return new dmesg messages as a single string, if available."""
 
-        if self.dmesg:
-            self._captured_dmesg = Dmesg.capture(self._proc)
-
-    def _get_new_dmesg(self):
-        """Return new dmesg messages if available."""
-
-        if not self.dmesg:
+        if not self.dmesg_obj:
             return ""
-
-        new_msgs = Dmesg.get_new_messages(self._captured_dmesg, self._proc, join=True, strip=True)
+        new_msgs = self.dmesg_obj.get_new_messages(join=True)
         if new_msgs:
             return f"New kernel messages{self._proc.hostmsg}:\n{new_msgs}"
         return ""
 
-    def __init__(self, devid, cpunum, proc):
+    def __init__(self, devid, cpunum, proc, dmesg=None):
         """
         The class constructor. The arguments are as follows.
           * devid - device ID. What the "ID" is depends on the device type.
           * proc - the host to operate on. This object will keep a 'proc' reference and use it in
                    various methods.
           * cpunum - the measured CPU number.
+          * dmesg - 'True' to enable 'dmesg' output checks (default), 'False' to disable them.
         """
 
         if not devid:
             raise Error("device ID was not provided")
 
+        if dmesg is None:
+            dmesg = True
+
         self._devid = devid
         self._cpunum = cpunum
         self._proc = proc
-        self._captured_dmesg = None
+        self.dmesg_obj = None
 
-        # Whether kernel messages should be monitored. They are very useful if something goes wrong.
-        self.dmesg = True
+        if dmesg:
+            self.dmesg_obj = Dmesg.Dmesg(self._proc)
+            self.dmesg_obj.run(capture=True)
 
         # Device information dictionary. Every subclass is expected to provide the following keys.
         # * name - device name (string). Should be short (1-2 words), preferably human-readable.
@@ -102,6 +101,9 @@ class _WultDeviceBase:
         """Uninitialize the device."""
         if getattr(self, "_proc", None):
             self._proc = None
+        if getattr(self, "dmesg_obj", None):
+            self.dmesg_obj.close()
+            self.dmesg_obj = None
 
     def __enter__(self):
         """Enter the run-time context."""
@@ -156,8 +158,6 @@ class _PCIDevice(_WultDeviceBase):
         failmsg = f"failed to bind device '{self._pci_info['pciaddr']}' to driver '{drvname}'" \
                   f"{self._proc.hostmsg}"
 
-        self._dmesg_capture()
-
         drvpath = Path(f"/sys/bus/pci/drivers/{drvname}")
         if not FSHelpers.exists(drvpath, proc=self._proc):
             raise Error(f"{failmsg}':\npath '{drvpath}' does not exist{self._proc.hostmsg}")
@@ -195,14 +195,14 @@ class _PCIDevice(_WultDeviceBase):
                 try:
                     fobj.write(val)
                 except Error as err:
-                    raise Error(f"{failmsg}:\n{err}\n{self._get_new_dmesg()}") from err
+                    raise Error(f"{failmsg}:\n{err}\n{self.get_new_dmesg()}") from err
 
         # Verify that the device is bound to the driver.
         if not self._get_driver()[1]:
-            raise Error(f"{failmsg}\n{self._get_new_dmesg()}")
+            raise Error(f"{failmsg}\n{self.get_new_dmesg()}")
 
         _LOG.debug("binded device '%s' to driver '%s'%s\n%s", self._pci_info["pciaddr"], drvname,
-                   self._proc.hostmsg, self._get_new_dmesg())
+                   self._proc.hostmsg, self.get_new_dmesg())
 
     def unbind(self):
         """
@@ -220,8 +220,6 @@ class _PCIDevice(_WultDeviceBase):
         _LOG.debug("unbinding device '%s' from driver '%s'%s",
                    self._pci_info["pciaddr"], drvname, self._proc.hostmsg)
 
-        self._dmesg_capture()
-
         failmsg = f"failed to unbind PCI device '{self._pci_info['pciaddr']}' from driver " \
                   f"'{drvname}'{self._proc.hostmsg}"
 
@@ -230,24 +228,23 @@ class _PCIDevice(_WultDeviceBase):
             try:
                 fobj.write(self._pci_info["pciaddr"])
             except Error as err:
-                raise Error(f"{failmsg}:\n{err}\n{self._get_new_dmesg()}") from err
+                raise Error(f"{failmsg}:\n{err}\n{self.get_new_dmesg()}") from err
 
         if self._get_driver()[1]:
-            raise Error(f"{failmsg}:\npath '{drvpath}' still exists\n{self._get_new_dmesg()}")
+            raise Error(f"{failmsg}:\npath '{drvpath}' still exists\n{self.get_new_dmesg()}")
 
         _LOG.debug("unbinded device '%s' from driver '%s'%s\n%s", self._pci_info["pciaddr"],
-                   drvname, self._proc.hostmsg, self._get_new_dmesg())
+                   drvname, self._proc.hostmsg, self.get_new_dmesg())
 
         return drvname
 
-    def __init__(self, devid, cpunum, proc):
+    def __init__(self, devid, cpunum, proc, dmesg=None):
         """The class constructor. The arguments are the same as in '_WultDeviceBase.__init__()'."""
 
-        super().__init__(devid, cpunum, proc)
+        super().__init__(devid, cpunum, proc, dmesg=dmesg)
 
         self._pci_info = None
         self._devpath = None
-        self._captured = None
 
         path = Path(f"/sys/bus/pci/devices/{self._devid}")
         if not FSHelpers.exists(path, proc=proc):
@@ -292,7 +289,7 @@ class _IntelI210(_PCIDevice):
         '157c' : 'Intel I210 (serdes flashless)',
         '1539' : 'Intel I211 (copper)'}
 
-    def __init__(self, devid, cpunum, proc, force=False):
+    def __init__(self, devid, cpunum, proc, dmesg=None, force=False):
         """
         The class constructor. The 'force' argument can be used to initialize I210 device for
         measurements even if its network interface state is "up". Other arguments are the same as in
@@ -322,7 +319,7 @@ class _IntelI210(_PCIDevice):
         else:
             hwaddr = devid
 
-        super().__init__(hwaddr, cpunum, proc)
+        super().__init__(hwaddr, cpunum, proc, dmesg=dmesg)
 
 class _TSCDeadlineTimer(_WultDeviceBase):
     """
@@ -335,7 +332,7 @@ class _TSCDeadlineTimer(_WultDeviceBase):
     supported_devices = {"tdt" : "TSC deadline timer"}
     alias = "tsc-deadline-timer"
 
-    def __init__(self, devid, cpunum, proc):
+    def __init__(self, devid, cpunum, proc, dmesg=None):
         """The class constructor. The arguments are the same as in '_WultDeviceBase.__init__()'."""
 
         errmsg = f"device '{devid}' is not supported for CPU {cpunum}{proc.hostmsg}."
@@ -349,7 +346,7 @@ class _TSCDeadlineTimer(_WultDeviceBase):
                 raise ErrorNotSupported(f"{errmsg}\nCurrent clockevent device is {clkname}, "
                                         f"should be 'lapic-deadline' (see {path})")
 
-        super().__init__(devid, cpunum, proc)
+        super().__init__(devid, cpunum, proc, dmesg=dmesg)
 
         self.info["name"] = "tdt"
         self.info["devid"] = devid
@@ -371,34 +368,34 @@ class _LinuxHRTimer(_WultDeviceBase):
     supported_devices = {"hrtimer" : "Linux High Resolution Timer"}
     alias = "hrt"
 
-    def __init__(self, devid, cpunum, proc):
+    def __init__(self, devid, cpunum, proc, dmesg=None):
         """The class constructor. The arguments are the same as in '_WultDeviceBase.__init__()'."""
 
         if devid not in self.supported_devices and devid != self.alias:
             raise ErrorNotSupported(f"device '{devid}' is not supported for CPU "
                                     f"{cpunum}{proc.hostmsg}.")
 
-        super().__init__(devid, cpunum, proc)
+        super().__init__(devid, cpunum, proc, dmesg=dmesg)
 
         self.info["name"] = "hrtimer"
         self.info["devid"] = devid
         self.info["alias"] = self.alias
         self.info["descr"] = self.supported_devices["hrtimer"]
 
-def WultDevice(devid, cpunum, proc, force=False):
+def WultDevice(devid, cpunum, proc, dmesg=None, force=False):
     """
     The wult device object factory - creates and returns the correct type of wult device object
     depending on 'devid'. The arguments are the same as in '_WultDeviceBase.__init__()'.
     """
 
     if devid in _TSCDeadlineTimer.supported_devices or devid in _TSCDeadlineTimer.alias:
-        return _TSCDeadlineTimer(devid, cpunum, proc)
+        return _TSCDeadlineTimer(devid, cpunum, proc, dmesg=dmesg)
 
     if devid in _LinuxHRTimer.supported_devices or devid in _LinuxHRTimer.alias:
-        return _LinuxHRTimer(devid, cpunum, proc)
+        return _LinuxHRTimer(devid, cpunum, proc, dmesg=dmesg)
 
     try:
-        return _IntelI210(devid, cpunum, proc, force=force)
+        return _IntelI210(devid, cpunum, proc, dmesg=dmesg, force=force)
     except ErrorNotSupported as err:
         raise ErrorNotSupported(f"unsupported device '{devid}'{proc.hostmsg}") from err
 
@@ -421,13 +418,13 @@ def scan_devices(proc, devtypes=None):
     if "tdt" in devtypes:
         for devid in _TSCDeadlineTimer.supported_devices:
             with contextlib.suppress(Error):
-                with _TSCDeadlineTimer(devid, 0, proc) as timerdev:
+                with _TSCDeadlineTimer(devid, 0, proc, dmesg=False) as timerdev:
                     yield timerdev.info["devid"], timerdev.info["alias"], timerdev.info["descr"]
 
     if "hrtimer" in devtypes:
         for devid in _LinuxHRTimer.supported_devices:
             with contextlib.suppress(Error):
-                with _LinuxHRTimer(devid, 0, proc) as timerdev:
+                with _LinuxHRTimer(devid, 0, proc, dmesg=False) as timerdev:
                     yield timerdev.info["devid"], timerdev.info["alias"], timerdev.info["descr"]
 
     if "i210" in devtypes:
