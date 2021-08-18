@@ -1,5 +1,6 @@
 wult (1.9.6) unstable; urgency=low
 
+  * wult: improve driver error diagnostics.
   * wult: stop supporing kernels older than v5.6.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 30 Jul 2021 12:49:44 +0300
