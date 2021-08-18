@@ -37,28 +37,22 @@ struct wult_tracer_info {
 	u64 ldist;
 	/* The requested C-state index. */
 	int req_cstate;
-	/* SMI and NMI counters before idle. */
+	/* SMI and NMI counters collected in 'before_idle()'. */
 	u32 smi_bi, nmi_bi;
-	/* SMI and NMI counters after idle. */
-	u32 smi_ai, nmi_ai;
+	/* SMI and NMI counters collected in the interrupt handler. */
+	u32 smi_intr, nmi_intr;
 	/* Cycle counters at the beginning and at the end of 'after_idle(). */
 	u64 ai_cyc1, ai_cyc2;
-	/* Cycle counter at the beginning of the interrupt handler. */
-	u64 intr_cyc;
-	/* The overhead of taking measurements after idle. */
-	u64 overhead;
+	/* Cycle counters at the beginning and at the end of IRQ handler. */
+	u64 intr_cyc1, intr_cyc2;
+	/* 'true' if an event has been armed, but did not happen yet. */
+	bool armed;
 	/* Whether interrupts were enabled in 'after_idle()'. */
 	bool irqs_enabled;
-	/* 'true' if a new datapoint is available. */
-	bool got_dp;
-	/* 'true' if the datapoint should be discarded. */
-	bool discard_dp;
-	/* 'true' if 'before_idle()' finished. */
-	bool bi_finished;
-	/* 'true' if 'after_idle()' finished. */
-	bool ai_finished;
-	/* 'true' if the interrupt handler finished. */
-	bool intr_finished;
+	/* 'true' if measurements were taken in 'after_idle()'. */
+	bool got_dp_ai;
+	/* 'true' if measurements were taken in the interrupt handler. */
+	bool got_dp_intr;
 	/* The tracepoint we hook to. */
 	struct tracepoint *tp;
 	/* The wult trace event file. */

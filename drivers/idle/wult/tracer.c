@@ -26,7 +26,8 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "TBI" },
 	{ .type = "u64", .name = "TAI" },
 	{ .type = "u64", .name = "TIntr" },
-	{ .type = "u64", .name = "WLOverhead" },
+	{ .type = "u64", .name = "AIOverhead" },
+	{ .type = "u64", .name = "IntrOverhead" },
 	{ .type = "unsigned int", .name = "ReqCState" },
 	{ .type = "u64", .name = "TotCyc" },
 	{ .type = "u64", .name = "CC0Cyc" },
@@ -62,41 +63,18 @@ static void after_idle(struct wult_info *wi)
 	struct wult_device_info *wdi = wi->wdi;
 
 	ti->ai_cyc1 = rdtsc_ordered();
-	if (ti->intr_finished)
-		/* The data were already collected in the interrupt handler. */
-		return;
-
-	if (!irqs_disabled()) {
-		/*
-		 * Interrupts are enabled, but the interrupt handler did not
-		 * finish when we checked 'ti->intr_finished' above. This
-		 * situation can happen when the CPU woke up from the idle
-		 * state for some other reasons, but very close to our event.
-		 * In this case our interrupt may happend in the middle of
-		 * 'after_idle()'. We should discard this datapoint.
-		 */
-		ti->discard_dp = true;
-		return;
-	}
-
 	ti->tai = wdi->ops->get_time_after_idle(wdi, ti->ai_cyc1);
 
 	if (!wdi->ops->event_has_happened(wi->wdi))
 		/* It is not the delayed event we armed that woke us up. */
 		return;
 
-	wult_cstates_read_after(&ti->csinfo);
+	if (ti->csinfo.tsc2 <= ti->csinfo.tsc1)
+		/* The second read of C-state data has not been done yet. */
+		wult_cstates_read_after(&ti->csinfo);
 	ti->irqs_enabled = !irqs_disabled();
-	WARN_ON(ti->got_dp);
-	ti->got_dp = true;
+	ti->got_dp_ai = true;
 	ti->ai_cyc2 = rdtsc_ordered();
-
-	/*
-	 * Reading all the data takes time, and this will contribute to
-	 * interrupt latency. Measure the overhead, in order to compensate for
-	 * it later.
-	 */
-	ti->overhead = ti->ai_cyc2 - ti->ai_cyc1;
 }
 
 /* Get measurements in the interrupt handler after idle. */
@@ -105,53 +83,47 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_device_info *wdi = wi->wdi;
 
-	if (!ti->bi_finished)
-		return;
-
 	ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
-	ti->intr_cyc = cyc;
-
-	if (WARN_ON(ti->intr_finished))
-		return;
-
-	if (!ti->ai_finished) {
-		/*
-		 * 'after_idle()' has not finished, so the CPU was in an idle
-		 * state with interrupts enabled (e.g., 'POLL'). In this case
-		 * the wake latency is the interrupt latency.
-		 */
+	if (ti->csinfo.tsc2 <= ti->csinfo.tsc1)
+		/* The second read of C-state data has not been done yet. */
 		wult_cstates_read_after(&ti->csinfo);
-		ti->tai = ti->tintr;
-		ti->overhead = 0;
-		WARN_ON(ti->got_dp);
-		ti->got_dp = true;
-	}
 
-	ti->smi_ai = get_smi_count();
-	ti->nmi_ai = per_cpu(irq_stat, wi->cpunum).__nmi_count;
-	ti->intr_finished = true;
+	ti->intr_cyc1 = cyc;
+	ti->smi_intr = get_smi_count();
+	ti->nmi_intr = per_cpu(irq_stat, wi->cpunum).__nmi_count;
+	ti->armed = false;
+	ti->got_dp_intr = true;
+	ti->intr_cyc2 = rdtsc_ordered();
 }
 
 static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_id)
 {
 	struct wult_info *wi = data;
 	struct wult_tracer_info *ti = &wi->ti;
+	static bool bi_finished = false;
 
 	if (cpu_id != wi->cpunum)
 		/* Not the CPU we are measuring. */
 		return;
 
 	if (req_cstate == PWR_EVENT_EXIT) {
-		if (!WARN_ON(ti->ai_finished) && ti->bi_finished) {
+		if (ti->armed && bi_finished)
 			after_idle(wi);
-			ti->ai_finished = true;
-		}
+		bi_finished = false;
 	} else {
-		ti->got_dp = ti->discard_dp = false;
-		ti->ai_finished = ti->bi_finished = false;
 		ti->req_cstate = req_cstate;
-		before_idle(data);
-		ti->bi_finished = true;
+		if (ti->armed) {
+			/*
+			 * Invalidate the datapoint if we got one. Since
+			 * 'event_has_happened()' is not necessarily precise we
+			 * may end up with getting measurement data more than
+			 * once in 'after_idle()', before the interrupt handler
+			 * actually runs.
+			 */
+			ti->got_dp_ai = false;
+			before_idle(data);
+		}
+		bi_finished = true;
 	}
 }
 
@@ -164,7 +136,11 @@ int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist)
 	int err;
 	struct wult_tracer_info *ti = &wi->ti;
 
-	ti->intr_finished = false;
+	if (WARN_ON(ti->got_dp_ai && ti->got_dp_intr))
+		return -EINVAL;
+	ti->got_dp_ai = ti->got_dp_intr = false;
+
+	ti->armed = true;
 	err = wi->wdi->ops->arm(wi->wdi, ldist);
 	if (err) {
 		wult_err("failed to arm a dleayed event %llu nsec away, error %d",
@@ -184,29 +160,20 @@ int wult_tracer_send_data(struct wult_info *wi)
 	struct synth_event_trace_state trace_state;
 	struct cstate_info *csi;
 	u64 ltime, silent_time, wake_latency, intr_latency;
+	u64 ai_overhead = 0, intr_overhead = 0;
 	int err;
 
-	if (!ti->got_dp || ti->discard_dp)
+	if (!ti->got_dp_ai || !ti->got_dp_intr) {
+		ti->got_dp_ai = ti->got_dp_intr = false;
 		return 0;
+ 	}
 
-	if (!ti->bi_finished || !ti->ai_finished) {
-		/*
-		 * The armed interrupt probably happened while the CPU wasn't
-		 * idle, which is fine. In this case we don't have a datapoint.
-		 */
-		WARN_ON(ti->got_dp);
-		return 0;
-	}
-
-	ti->got_dp = ti->discard_dp = false;
-
-	if (WARN_ON(!ti->intr_finished))
-		return 0;
+	ti->got_dp_ai = ti->got_dp_intr = false;
 
 	ltime = wdi->ops->get_launch_time(wdi);
 
 	/* Check if the expected IRQ time is within the sleep time. */
-	if (ltime <= ti->tbi || ltime >= ti->tai)
+	if (ltime <= ti->tbi || ltime >= ti->tai || ltime >= ti->tintr)
 		return 0;
 
 	if (wdi->ops->get_trace_data) {
@@ -215,12 +182,10 @@ int wult_tracer_send_data(struct wult_info *wi)
 			return PTR_ERR(tdata);
 	}
 
-	err = synth_event_trace_start(ti->event_file, &trace_state);
-	if (err)
-		return err;
-
-	WARN_ON(ltime > ti->tintr);
-	WARN_ON(ltime > ti->tai);
+	if (WARN_ON(ltime > ti->tintr))
+		return -EINVAL;
+	if (WARN_ON(ltime > ti->tai))
+		return -EINVAL;
 
 	silent_time = ltime - ti->tbi;
 	wake_latency = ti->tai - ltime;
@@ -231,6 +196,36 @@ int wult_tracer_send_data(struct wult_info *wi)
 		intr_latency = wdi->ops->time_to_ns(wdi, intr_latency);
 	}
 
+	if (ti->irqs_enabled) {
+		/*
+		 * This is an idle state like 'POLL' which has interrupts
+		 * enabled. This means that the interrupt handler runs before
+		 * 'after_idle()'.
+		 */
+		if (ti->ai_cyc1 < ti->intr_cyc1)
+			/*
+			 * But 'after_idle()' started first, which may happen
+			 * when the measured CPU wakes up for a different
+			 * reason, but very close to the event that we aremed.
+			 * Ignore this datapoint.
+			 */
+			return 0;
+
+		intr_overhead = wult_cyc2ns(wdi, ti->intr_cyc2 - ti->intr_cyc1);
+	} else {
+		/*
+		 * This is an idle state that is entered and exited with
+		 * interrupts disabled. In this case 'after_idle()' always runs
+		 * before the interrupt handler.
+		 */
+		if (WARN_ON(ti->intr_cyc1 < ti->ai_cyc2))
+			return -EINVAL;
+		ai_overhead = wult_cyc2ns(wdi, ti->ai_cyc2 - ti->ai_cyc1);
+	}
+
+	err = synth_event_trace_start(ti->event_file, &trace_state);
+	if (err)
+		return err;
 
 	/* Add values of the common fields. */
 	err = synth_event_add_next_val(silent_time, &trace_state);
@@ -257,8 +252,10 @@ int wult_tracer_send_data(struct wult_info *wi)
 	err = synth_event_add_next_val(ti->tintr, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(wult_cyc2ns(wdi, ti->overhead),
-				       &trace_state);
+	err = synth_event_add_next_val(ai_overhead, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(intr_overhead, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->req_cstate, &trace_state);
@@ -270,10 +267,10 @@ int wult_tracer_send_data(struct wult_info *wi)
 	err = synth_event_add_next_val(ti->csinfo.mperf, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->smi_ai - ti->smi_bi, &trace_state);
+	err = synth_event_add_next_val(ti->smi_intr - ti->smi_bi, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->nmi_ai - ti->nmi_bi, &trace_state);
+	err = synth_event_add_next_val(ti->nmi_intr - ti->nmi_bi, &trace_state);
 	if (err)
 		goto out_end;
 
@@ -305,8 +302,7 @@ int wult_tracer_enable(struct wult_info *wi)
 	int err;
 	struct wult_tracer_info *ti = &wi->ti;
 
-	wi->ti.got_dp = wi->ti.discard_dp = false;
-	ti->ai_finished = ti->bi_finished = false;
+	ti->got_dp_ai = ti->got_dp_intr = false;
 
 	err = tracepoint_probe_register(ti->tp, (void *)cpu_idle_hook, wi);
 	if (err) {

@@ -61,6 +61,74 @@ def _dump_dp(dp):
 
     return "\n".join(["    ".join(row).strip() for row in zip_longest(*columns, fillvalue="")])
 
+def _apply_dp_overhead(dp):
+    """
+    This is a helper function for '_process_datapoint()' which handles the 'AIOverhead' and
+    'IntrOverhead' values and modifies the 'dp' datapoint accordingly.
+
+    'AIOverhead' stands for 'After Idle Overhead', and this is the time it takes to get all the data
+    ('WakeLatency', C-state counters, etc) after idle, but before the interrupt handler. This value
+    will be non-zero value for C-states that are entered with interrupts disabled (all C-states
+    except for 'POLL' today, as of Aug 2021). In this case 'IntrOverhead' will be 0.
+
+    'IntrOverhead' stands for 'Interrupt Overhead', and this is the time it takes to get all the
+    data ('IntrLatency', C-state counters, etc) in the interrupt handler, before 'WakeLatency' is
+    taken after idle. This value will be non-zero only for C-states that are entered with interrupts
+    enabled (only the 'POLL' state today, as of Aug 2021).
+
+    The overhead values are in nanoseconds. And they should be subtracted from wake/interrupt
+    latency, because they do not contribute to the latency, they are the extra time added by wult
+    driver between the wake event and "after idle" or interrupt.
+
+    We do not save 'AIOverhead' and 'IntrOverhead' in the CSV file.
+    """
+
+    if dp["AIOverhead"] and dp["IntrOverhead"]:
+        raise Error(f"Both 'AIOverhead' and 'IntrOverhead' are not 0 at the same time. The "
+                    f"datapoint is:\n{_dump_dp(dp)}") from None
+
+    if dp["AIOverhead"]:
+        # Interrupts were disabled, 'WakeLatency' has to be smaller than 'IntrLatency'.
+        if dp["AIOverhead"] < dp["IntrLatency"]:
+            dp["IntrLatency"] -= dp["AIOverhead"]
+        else:
+            # This sometimes happens, and it is not 100% clear what to do about this. One thing to
+            # keep in mind is that the overhead is measured using direct TSC read, while the
+            # latency is measured using delayed event device (e.g., a NIC), so the overhead and
+            # latency may be measured with two different sources time sources. Print a warning and
+            # drop the datapoint, until we figure this out.
+            _LOG.warning("'AIOverhead' is greater than interrupt latency ('IntrLatency'). The "
+                         "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(dp))
+            return None
+
+        if dp["WakeLatency"] >= dp["IntrLatency"]:
+            # This happens with the "i210" method, and it is not 100% clear what to do about this.
+            # The root-cause is most probably the same as what causes the "AIOverhead > IntrLatency"
+            # ussue descrived above. The "i210" method uses TSC to measure the overhead of accessing
+            # the network card registers. So we use TSC-based time to adjust NIC-based time.
+            _LOG.warning("'WakeLatency' is greater than 'IntrLatency', even though interrupts "
+                         "were disabled. The datapoint is:\n%s\nDropping this datapoint\n",
+                         _dump_dp(dp))
+            return None
+
+
+    if dp["IntrOverhead"]:
+        # Interrupts were enabled, 'IntrLatency' has to be smaller than 'WakeLatency'.
+        if dp["IntrLatency"] >= dp["WakeLatency"]:
+            _LOG.warning("'IntrLatency' is smaller than 'WakeLatency', even though interrupts "
+                         "were enabled. The datapoint is:\n%s\nDropping this datapoint\n",
+                         _dump_dp(dp))
+            return None
+
+        if dp["IntrOverhead"] < dp["WakeLatency"]:
+            dp["WakeLatency"] -= dp["IntrOverhead"]
+        else:
+            _LOG.warning("'IntrOverhead' is greater than wake latency ('WakeLatency'). The "
+                         "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(dp))
+            return None
+
+    return dp
+
 class WultRunner:
     """Run wake latency measurement experiments."""
 
@@ -179,14 +247,8 @@ class WultRunner:
             raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
                         f"{_dump_dp(dp)}\nAllowed indexes are:\n{indexes_str}") from None
 
-        # 'WLOverhead'is the time it takes to get all the data ('WakeLatency', C-state counters,
-        # etc) after idle, but before the interrupt handler. Therefore, it should be subtracted from
-        # interrupt latency, because it is just the measurement overhead.
-        if dp["WLOverhead"] < dp["IntrLatency"]:
-            dp["IntrLatency"] -= dp["WLOverhead"]
-        else:
-            _LOG.warning("'WakeLatency' measurement overhead ('WLOverhead') is greater than "
-                         "interrupt latency ('IntrLatency'). The datapoint is:\n%s", _dump_dp(dp))
+        if not _apply_dp_overhead(dp):
+            return None
 
         # Save time in microseconds.
         times_us = {}
@@ -499,7 +561,7 @@ class WultRunner:
         # useful and we have it mostly for debugging and purposes. For example, "TAI" (Time After
         # Idle) or "LTime" (Launch Time) are not very interesting for the end user. Here are the
         # columns that we exclude from the CSV file.
-        self._exclude_colnames = {"LTime", "TAI", "TBI", "TIntr", "WLOverhead"}
+        self._exclude_colnames = {"LTime", "TAI", "TBI", "TIntr", "AIOverhead", "IntrOverhead"}
 
         self._validate_sut()
 
