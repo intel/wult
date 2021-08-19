@@ -199,13 +199,10 @@ class HTMLReportBase:
             dstpath = self.outdir.joinpath(resrootdir)
 
             if self.relocatable:
-                action = "copy"
-            else:
-                action = "symlink"
-            FSHelpers.move_copy_link(srcpath, dstpath, action=action, exist_ok=True)
-
-            if action == "copy":
+                FSHelpers.copy_dir(srcpath, dstpath, exist_ok=True, ignore=["html-report"])
                 FSHelpers.set_default_perm(dstpath)
+            else:
+                FSHelpers.move_copy_link(srcpath, dstpath, action="symlink", exist_ok=True)
 
             if res.stats_path.is_dir():
                 hlink = f"<a href=\"{resrootdir}/{res.stats_path.name}\">Statistics</a>"
