@@ -92,6 +92,37 @@ def get_homedir(proc=None):
         return Path(proc.run_verify("echo $HOME", shell=True)[0].strip())
     return Path("~").expanduser()
 
+def _copy_dir(src: Path, dst: Path, ignore=None):
+    """Implements the 'copy_dir()' function."""
+
+    try:
+        if not dst.parent.exists():
+            dst.parent.mkdir(parents=True)
+
+        if src.resolve() in dst.resolve().parents:
+            raise Error(f"cannot do recursive copy from '{src}' to '{dst}'")
+
+        shutil.copytree(src, dst, ignore = lambda path, content: ignore)
+    except (OSError, shutil.Error) as err:
+        raise Error(f"cannot copy '{src}' to '{dst}':\n{err}") from err
+
+def copy_dir(src: Path, dst: Path, exist_ok: bool = False, ignore=None):
+    """
+    Copy 'src' directory to 'dst'. The 'ignore' argument is a list of file or directory
+    names which will be ignored and not copied.
+    """
+
+    exists_err = f"cannot copy '{src}' to '{dst}', the destination path already exists"
+    if dst.exists():
+        if exist_ok:
+            return
+        raise ErrorExists(exists_err)
+
+    if not src.is_dir():
+        raise Error("cannot copy '{src}' to '{dst}', the destination path is not directory.")
+
+    _copy_dir(src, dst, ignore)
+
 def move_copy_link(src: Path, dst: Path, action: str = "symlink", exist_ok: bool = False):
     """
     Moves, copy. or link the 'src' file or directory to 'dst' depending on the 'action' contents
@@ -123,9 +154,7 @@ def move_copy_link(src: Path, dst: Path, action: str = "symlink", exist_ok: bool
                 dst.parent.mkdir(parents=True)
 
             if src.is_dir():
-                if src.resolve() in dst.resolve().parents:
-                    raise Error(f"cannot do recursive copy from '{src}' to '{dst}'")
-                shutil.copytree(src, dst)
+                _copy_dir(src, dst)
             else:
                 shutil.copyfile(src, dst)
         elif action == "symlink":
