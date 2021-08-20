@@ -88,45 +88,52 @@ def _apply_dp_overhead(dp):
                     f"datapoint is:\n{_dump_dp(dp)}") from None
 
     if dp["AIOverhead"]:
-        # Interrupts were disabled, 'WakeLatency' has to be smaller than 'IntrLatency'.
-        if dp["AIOverhead"] < dp["IntrLatency"]:
-            dp["IntrLatency"] -= dp["AIOverhead"]
-        else:
-            # This sometimes happens, and it is not 100% clear what to do about this. One thing to
-            # keep in mind is that the overhead is measured using direct TSC read, while the
-            # latency is measured using delayed event device (e.g., a NIC), so the overhead and
-            # latency may be measured with two different sources time sources. Print a warning and
-            # drop the datapoint, until we figure this out.
+        # Interrupts were disabled.
+        #
+        # The below error conditions happen, and it is not 100% clear what to do about this. One
+        # thing to keep in mind is that the overhead is measured using direct TSC read, while the
+        # latency is measured using delayed event device (e.g., a NIC), so the overhead and latency
+        # may be measured with two different sources time sources. Print a warning and drop the
+        # datapoint, until we figure this out.
+        if dp["AIOverhead"] >= dp["IntrLatency"]:
             _LOG.warning("'AIOverhead' is greater than interrupt latency ('IntrLatency'). The "
                          "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(dp))
             return None
 
         if dp["WakeLatency"] >= dp["IntrLatency"]:
-            # This happens with the "i210" method, and it is not 100% clear what to do about this.
-            # The root-cause is most probably the same as what causes the "AIOverhead > IntrLatency"
-            # ussue descrived above. The "i210" method uses TSC to measure the overhead of accessing
-            # the network card registers. So we use TSC-based time to adjust NIC-based time.
             _LOG.warning("'WakeLatency' is greater than 'IntrLatency', even though interrupts "
                          "were disabled. The datapoint is:\n%s\nDropping this datapoint\n",
                          _dump_dp(dp))
             return None
 
+        if dp["WakeLatency"] >= dp["IntrLatency"] - dp["AIOverhead"]:
+            _LOG.warning("'WakeLatency' is greater than 'IntrLatency' - 'AIOverhead', even though "
+                         "interrupts were disabled. The datapoint is:\n%s\nDropping this "
+                         "datapoint\n", _dump_dp(dp))
+            return None
+
+        dp["IntrLatency"] -= dp["AIOverhead"]
 
     if dp["IntrOverhead"]:
-        # Interrupts were enabled, 'IntrLatency' has to be smaller than 'WakeLatency'.
+        # Interrupts were enabled.
+        if dp["IntrOverhead"] >= dp["WakeLatency"]:
+            _LOG.warning("'IntrOverhead' is greater than wake latency ('WakeLatency'). The "
+                         "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(dp))
+            return None
+
         if dp["IntrLatency"] >= dp["WakeLatency"]:
             _LOG.warning("'IntrLatency' is smaller than 'WakeLatency', even though interrupts "
                          "were enabled. The datapoint is:\n%s\nDropping this datapoint\n",
                          _dump_dp(dp))
             return None
 
-        if dp["IntrOverhead"] < dp["WakeLatency"]:
-            dp["WakeLatency"] -= dp["IntrOverhead"]
-        else:
-            _LOG.warning("'IntrOverhead' is greater than wake latency ('WakeLatency'). The "
-                         "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(dp))
+        if dp["IntrLatency"] >= dp["WakeLatency"] - dp["IntrOverhead"]:
+            _LOG.warning("'IntrLatency' is smaller than 'WakeLatency' - 'IntrOverhead', even "
+                         "though interrupts were enabled. The datapoint is:\n%s\nDropping this "
+                         "datapoint\n", _dump_dp(dp))
             return None
 
+        dp["WakeLatency"] -= dp["IntrOverhead"]
     return dp
 
 class WultRunner:
