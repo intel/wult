@@ -586,7 +586,7 @@ class WultRunner:
         # Idle) or "LTime" (Launch Time) are not very interesting for the end user. Here are the
         # columns that we exclude from the CSV file.
         self._exclude_colnames = {"LTime", "TAI", "TBI", "TIntr", "AIOverhead", "IntrOverhead",
-                                  "AICyc1", "AICyc2", "IntrCyc1", "IntrCyc2"}
+                                  "IntrOn", "AICyc1", "AICyc2", "IntrCyc1", "IntrCyc2"}
 
         self._validate_sut()
 

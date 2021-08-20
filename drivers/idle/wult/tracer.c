@@ -28,6 +28,7 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "TIntr" },
 	{ .type = "u64", .name = "AIOverhead" },
 	{ .type = "u64", .name = "IntrOverhead" },
+	{ .type = "unsigned int", .name = "IntrOn" },
 	{ .type = "unsigned int", .name = "ReqCState" },
 	{ .type = "u64", .name = "AICyc1" },
 	{ .type = "u64", .name = "AICyc2" },
@@ -212,7 +213,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 			 * Ignore this datapoint.
 			 */
 			return 0;
-
 		intr_overhead = wult_cyc2ns(wdi, ti->intr_cyc2 - ti->intr_cyc1);
 	} else {
 		/*
@@ -258,6 +258,9 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(intr_overhead, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->irqs_enabled, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->req_cstate, &trace_state);
