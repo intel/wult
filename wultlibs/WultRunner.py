@@ -281,6 +281,39 @@ class WultRunner:
             del dp[colname]
         return dp
 
+    def _prepare_to_process_datapoints(self, rawdp):
+        """
+        This helper should be called as soon as the first raw datapoint 'raw' is acquired. It
+        prepared for processing datapoints by building various data structures. For example, we
+        learn about the C-state names from the first datapoint.
+        """
+
+        fields = list(rawdp.keys())
+        fields = [col for col in list(fields) if col not in self._exclude_colnames]
+
+        # Add the more metrics to the list of fields - we'll be injecting the values in
+        # '_process_datapoint()'.
+        fields.insert(fields.index("IntrLatency") + 1, "IntrDelay")
+        if self._is_intel:
+            fields.insert(fields.index("CC0Cyc") + 1, "DerivedCC1Cyc")
+        fields.append("CStatesCyc")
+
+        # Now 'fields' contains information about C-state of the measured platform, save it for
+        # later use.
+        self._cs_colnames = list(Defs.get_cs_colnames(fields))
+
+        # Driver sends time data in nanoseconds, build list of columns which we need to convert to
+        # microseconds.
+        defs = Defs.Defs(self._res.info["toolname"])
+        self._us_colnames = [colname for colname, vals in defs.info.items() \
+                             if vals.get("unit") == "microsecond"]
+
+        # The raw datapoint does not include C-state residency data, it only has the C-state cycle
+        # counters. We'll be calculating residencies later and include them too.
+        for _, csres_colname in self._cs_colnames:
+            fields.append(csres_colname)
+        self._res.csv.add_header(fields)
+
     def _collect(self, dpcnt, tlimit):
         """
         Collect datapoints and stop when either the CSV file has 'dpcnt' datapoints in total or when
@@ -292,32 +325,9 @@ class WultRunner:
         datapoints = self._get_datapoints()
         rawdp = next(datapoints)
 
-        rawhdr = list(rawdp.keys())
-        rawhdr = [col for col in list(rawhdr) if col not in self._exclude_colnames]
-
-        # Add the more metrics to the raw header - we'll be injecting the values in
-        # '_process_datapoint()'.
-        rawhdr.insert(rawhdr.index("IntrLatency") + 1, "IntrDelay")
-        if self._is_intel:
-            rawhdr.insert(rawhdr.index("CC0Cyc") + 1, "DerivedCC1Cyc")
-        rawhdr.append("CStatesCyc")
-
-        # Now 'rawhdr' contains information about C-state of the measured platform, save it for
-        # later use.
-        self._cs_colnames = list(Defs.get_cs_colnames(rawhdr))
-
-        # Driver sends time data in nanoseconds, build list of columns which we need to convert to
-        # microseconds.
-        defs = Defs.Defs(self._res.info["toolname"])
-        self._us_colnames = [colname for colname, vals in defs.info.items() \
-                             if vals.get("unit") == "microsecond"]
-
-        # The raw CSV header (the one that comes from the trace buffer) does not include C-state
-        # residency, it only provides the C-state cycle counters. We'll be calculating residencies
-        # later and include them too, so extend the raw CSV header.
-        for _, csres_colname in self._cs_colnames:
-            rawhdr.append(csres_colname)
-        self._res.csv.add_header(rawhdr)
+        # We could actually process this datapoint, but we prefer to drop it and start with the
+        # second one.
+        self._prepare_to_process_datapoints(rawdp)
 
         # At least one datapoint should be collected within the 'timeout' seconds interval.
         timeout = self._timeout * 1.5
