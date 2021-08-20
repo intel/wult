@@ -19,21 +19,21 @@ from wultlibs.helperlibs import FSHelpers, YAML
 _RAISE = object()
 
 def is_cscyc_colname(colname):
-    """Returns true if 'colname' is a C-state cycles count CSV column name."""
+    """Returns 'True' if 'colname' is a C-state cycles count CSV column name."""
 
     return (colname.startswith("CC") or colname.startswith("DerivedCC") or \
             colname.startswith("PC") or colname.startswith("CStates")) and \
             colname.endswith("Cyc") and len(colname) > 5
 
 def is_csres_colname(colname):
-    """Returns true if 'colname' is a C-state residency CSV column name."""
+    """Returns 'True' if 'colname' is a C-state residency CSV column name."""
 
     return (colname.startswith("CC") or colname.startswith("DerivedCC") or \
             colname.startswith("PC") or colname.startswith("CStates") ) and \
             colname.endswith("%") and len(colname) > 3
 
 def is_cs_colname(colname):
-    """Returns true if 'colname' is a C-state residency or cycles counter CSV column name."""
+    """Returns 'True' if 'colname' is a C-state residency or cycles counter CSV column name."""
 
     return is_csres_colname(colname) or is_cscyc_colname(colname)
 
