@@ -89,48 +89,55 @@ def _apply_dp_overhead(dp):
 
     if dp["AIOverhead"]:
         # Interrupts were disabled.
-        #
-        # The below error conditions happen, and it is not 100% clear what to do about this. One
-        # thing to keep in mind is that the overhead is measured using direct TSC read, while the
-        # latency is measured using delayed event device (e.g., a NIC), so the overhead and latency
-        # may be measured with two different sources time sources. Print a warning and drop the
-        # datapoint, until we figure this out.
-        if dp["AIOverhead"] >= dp["IntrLatency"]:
-            _LOG.warning("'AIOverhead' is greater than interrupt latency ('IntrLatency'). The "
-                         "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(dp))
-            return None
-
         if dp["WakeLatency"] >= dp["IntrLatency"]:
             _LOG.warning("'WakeLatency' is greater than 'IntrLatency', even though interrupts "
                          "were disabled. The datapoint is:\n%s\nDropping this datapoint\n",
                          _dump_dp(dp))
             return None
 
+        if dp["AIOverhead"] >= dp["IntrLatency"]:
+            # This sometimes happens, and here are 2 contributing factors that may lead to this
+            # condition.
+            # 1. The overhead is measured by reading TSC at the beginning and the end of the
+            #    'after_idle()' function, which runs as soon as the CPU wakes up. The 'IntrLatency'
+            #    is measured using a delayed event device (e.g., a NIC). So we are comparing two
+            #    time intervals from different time sources.
+            # 2. 'AIOverhead' is the overhead of 'after_idle()', where we don't exactly know why we
+            #    woke up, and we cannot tell with 100% certainty that we woke because of the
+            #    interrupt that we armed. We could wake up or a different event, before launch time,
+            #    close enough to the armed event. In this situation, we may measure large enough
+            #    'AIOverhead', then the armed event happens when the CPU is in C0, and we measure
+            #    very small 'IntrLatency'.
+            _LOG.debug("'AIOverhead' is greater than interrupt latency ('IntrLatency'). The "
+                       "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(dp))
+            return None
+
         if dp["WakeLatency"] >= dp["IntrLatency"] - dp["AIOverhead"]:
-            _LOG.warning("'WakeLatency' is greater than 'IntrLatency' - 'AIOverhead', even though "
-                         "interrupts were disabled. The datapoint is:\n%s\nDropping this "
-                         "datapoint\n", _dump_dp(dp))
+            # This condition may happen for similar reasons.
+            _LOG.debug("'WakeLatency' is greater than 'IntrLatency' - 'AIOverhead', even though "
+                       "interrupts were disabled. The datapoint is:\n%s\nDropping this "
+                       "datapoint\n", _dump_dp(dp))
             return None
 
         dp["IntrLatency"] -= dp["AIOverhead"]
 
     if dp["IntrOverhead"]:
         # Interrupts were enabled.
-        if dp["IntrOverhead"] >= dp["WakeLatency"]:
-            _LOG.warning("'IntrOverhead' is greater than wake latency ('WakeLatency'). The "
-                         "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(dp))
-            return None
-
         if dp["IntrLatency"] >= dp["WakeLatency"]:
-            _LOG.warning("'IntrLatency' is smaller than 'WakeLatency', even though interrupts "
+            _LOG.warning("'IntrLatency' is greater than 'WakeLatency', even though interrupts "
                          "were enabled. The datapoint is:\n%s\nDropping this datapoint\n",
                          _dump_dp(dp))
             return None
 
+        if dp["IntrOverhead"] >= dp["WakeLatency"]:
+            _LOG.debug("'IntrOverhead' is greater than wake latency ('WakeLatency'). The "
+                       "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(dp))
+            return None
+
         if dp["IntrLatency"] >= dp["WakeLatency"] - dp["IntrOverhead"]:
-            _LOG.warning("'IntrLatency' is smaller than 'WakeLatency' - 'IntrOverhead', even "
-                         "though interrupts were enabled. The datapoint is:\n%s\nDropping this "
-                         "datapoint\n", _dump_dp(dp))
+            _LOG.debug("'IntrLatency' is greater than 'WakeLatency' - 'IntrOverhead', even "
+                       "though interrupts were enabled. The datapoint is:\n%s\nDropping this "
+                       "datapoint\n", _dump_dp(dp))
             return None
 
         dp["WakeLatency"] -= dp["IntrOverhead"]
