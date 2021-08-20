@@ -144,9 +144,9 @@ class WultRunner:
 
     def _get_datapoints(self):
         """
-        This generators reads the trace buffer and yields datapoints in form of (names, vals)
+        This generators reads the trace buffer and yields datapoints in form of (fields, vals)
         tuples, where:
-          o names - list of datapoint names (the CSV file header).
+          o fields - list of datapoint fields (the CSV file header).
           o vals - list of datapoint values.
         """
 
@@ -155,14 +155,14 @@ class WultRunner:
 
         try:
             for line in self._ftrace.getlines():
-                # Wult output format should be: name1=val1 name2=val2, and so on. Parse the line and
-                # get the list of (name, val) pairs: [(name1, val1), (name2, val2), ... ].
+                # Wult output format should be: field1=val1 field2=val2, and so on. Parse the line
+                # and get the list of (field, val) pairs: [(field1, val1), (field2, val2), ... ].
                 try:
                     if not line.msg:
                         raise ValueError
                     pairs = [pair.split("=") for pair in line.msg.split()]
-                    names, vals = zip(*pairs)
-                    if len(names) != len(vals):
+                    fields, vals = zip(*pairs)
+                    if len(fields) != len(vals):
                         raise ValueError
                 except ValueError:
                     _LOG.debug("unexpected line in ftrace buffer%s:\n%s",
@@ -171,7 +171,7 @@ class WultRunner:
 
                 yielded_lines += 1
                 last_line = line.msg
-                yield names, vals
+                yield fields, vals
         except ErrorTimeOut as err:
             msg = f"{err}\nCount of wult ftrace lines read so far: {yielded_lines}"
             if last_line:
