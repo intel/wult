@@ -406,7 +406,7 @@ def start_command(args):
             check_settings(proc, dev, csinfo, lscpu_info, args.cpunum, args.devid)
 
             with WultRunner.WultRunner(proc, dev, res, ldist=args.ldist, csinfo=csinfo,
-                                       lscpu_info=lscpu_info, stconf=stconf) as runner:
+                                       stconf=stconf) as runner:
                 runner.unload = not args.no_unload
                 if args.post_trigger:
                     runner.set_post_trigger(args.post_trigger, trange=args.trange)

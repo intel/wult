@@ -17,7 +17,7 @@ import contextlib
 from pathlib import Path
 from wultlibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from wultlibs.helperlibs import FSHelpers, Human
-from wultlibs.pepclibs import CPUIdle, CPUInfo, Systemctl
+from wultlibs.pepclibs import CPUIdle, Systemctl
 from wultlibs import EventsProvider, Defs, _FTrace, _ProgressLine, WultStatsCollect
 
 _LOG = logging.getLogger()
@@ -240,7 +240,7 @@ class WultRunner:
             raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
                         f"a bug. The datapoint is:\n{_dump_dp(dp)}") from None
 
-        if self._is_intel and not self._is_poll_idle(dp):
+        if self._has_cstates and not self._is_poll_idle(dp):
             # Inject additional C-state information to the datapoint.
             # * CStatesCyc - combined count of CPU cycles in all non-CC0 C-states.
             # * DerivedCC1Cyc - software-calculated CC1 cycles, which is useful to have because not
@@ -303,10 +303,12 @@ class WultRunner:
         fields = list(rawdp.keys())
         fields = [col for col in list(fields) if col not in self._exclude_colnames]
 
+        self._has_cstates = Defs.get_cscyc_colnames(fields)
+
         # Add the more metrics to the list of fields - we'll be injecting the values in
         # '_process_datapoint()'.
         fields.insert(fields.index("IntrLatency") + 1, "IntrDelay")
-        if self._is_intel:
+        if self._has_cstates:
             fields.insert(fields.index("CC0Cyc") + 1, "DerivedCC1Cyc")
         fields.append("CStatesCyc")
 
@@ -539,7 +541,7 @@ class WultRunner:
             raise Error(f"unsupported idle driver '{drvname}'{self._proc.hostmsg},\n"
                         f"only the following drivers are supported: {supported}")
 
-    def __init__(self, proc, dev, res, ldist=None, csinfo=None, lscpu_info=None, stconf=None):
+    def __init__(self, proc, dev, res, ldist=None, csinfo=None, stconf=None):
         """
         The class constructor. The arguments are as follows.
           * proc - the 'Proc' or 'SSH' object that defines the host to run the measurements on.
@@ -568,6 +570,7 @@ class WultRunner:
         self._ftrace = None
         self._timeout = 10
         self._fields = None
+        self._has_cstates = None
         self._cs_colnames = None
         self._us_colnames = None
         self._progress = None
@@ -613,9 +616,6 @@ class WultRunner:
                       "use 'hrtimer' or 'i210' for measuring the POLL idle state."
             raise Error(f"no C-states are enabled on CPU {res.cpunum}{proc.hostmsg}{msg}")
 
-        if not lscpu_info:
-            lscpu_info = CPUInfo.get_lscpu_info(proc=proc)
-        self._is_intel = lscpu_info["vendor"] == "GenuineIntel"
         self._sysctl = Systemctl.Systemctl(proc=proc)
         self._has_irqbalance = self._sysctl.is_active("irqbalance")
 
