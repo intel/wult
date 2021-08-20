@@ -142,6 +142,23 @@ class WultRunner:
 
         self._proc.run_verify(f"{self._post_trigger} --latency {latency}")
 
+    def _validate_datapoint(self, fields, vals):
+        """
+        This is a helper function for '_get_datapoints()' which checks that every raw datapoint
+        from the trace buffer has the same fields in the same order.
+        """
+
+        if len(fields) != len(self._fields) or len(vals) != len(self._fields):
+            oldhdr = ", ".join(self._fields)
+            newhdr = ", ".join(fields)
+            newdp = ", ".join(vals)
+            raise Error(f"the very first datapoint had {len(fields)} elements, but a newer "
+                        f"datapoint has {len(self._fields)} elements\n"
+                        f"Fist datapoint header: {oldhdr}\n"
+                        f"New datapoint header:  {newhdr}\n"
+                        f"New datapoint data:    {newdp}\n"
+                        f"New datapoint, full ftrace line: {self._ftrace.raw_line}")
+
     def _get_datapoints(self):
         """
         This generators reads the trace buffer and yields datapoints in form of (fields, vals)
@@ -171,6 +188,12 @@ class WultRunner:
 
                 yielded_lines += 1
                 last_line = line.msg
+
+                if self._fields:
+                    self._validate_datapoint(fields, vals)
+                else:
+                    self._fields = fields
+
                 yield fields, vals
         except ErrorTimeOut as err:
             msg = f"{err}\nCount of wult ftrace lines read so far: {yielded_lines}"
@@ -180,7 +203,7 @@ class WultRunner:
 
     def _get_datapoint_dict(self, rawdp):
         """Return the raw data provided by the kernel driver as a dictionary."""
-        return dict(zip(self._rawhdr, [int(elt) for elt in rawdp]))
+        return dict(zip(self._fields, [int(elt) for elt in rawdp]))
 
     def _is_poll_idle(self, dp): # pylint: disable=no-self-use
         """Returns 'True' if the 'dp' datapoint contains the POLL idle state data."""
@@ -262,23 +285,6 @@ class WultRunner:
             del dp[colname]
         return dp
 
-    def _validate_datapoint(self, rawhdr, rawdp):
-        """
-        Validate a new datapoint - it should contain the same amount of elements as the previous
-        datapoints.
-        """
-
-        if len(rawhdr) != len(self._rawhdr) or len(rawdp) != len(self._rawhdr):
-            oldhdr = ", ".join(self._rawhdr)
-            newhdr = ", ".join(rawhdr)
-            newdp = ", ".join(rawdp)
-            raise Error(f"the very first datapoint had {len(rawhdr)} elements, but a newer "
-                        f"datapoint has {len(self._rawhdr)} elements\n"
-                        f"Fist datapoint header: {oldhdr}\n"
-                        f"New datapoint header:  {newhdr}\n"
-                        f"New datapoint data:    {newdp}\n"
-                        f"New datapoint, full ftrace line: {self._ftrace.raw_line}")
-
     def _collect(self, dpcnt, tlimit):
         """
         Collect datapoints and stop when either the CSV file has 'dpcnt' datapoints in total or when
@@ -290,7 +296,6 @@ class WultRunner:
         datapoints = self._get_datapoints()
         rawhdr, rawdp = next(datapoints)
 
-        self._rawhdr = list(rawhdr)
         dp = self._get_datapoint_dict(rawdp)
 
         rawhdr = [col for col in list(rawhdr) if col not in self._exclude_colnames]
@@ -332,7 +337,6 @@ class WultRunner:
                                    f"driver does produce them, they are being rejected. One "
                                    f"possible reason is that they do not pass filters/selectors.")
 
-            self._validate_datapoint(rawhdr, rawdp)
             dp = self._process_datapoint(rawdp)
             if not dp:
                 continue
@@ -546,7 +550,7 @@ class WultRunner:
         self._ep = None
         self._ftrace = None
         self._timeout = 10
-        self._rawhdr = None
+        self._fields = None
         self._cs_colnames = None
         self._us_colnames = None
         self._progress = None
