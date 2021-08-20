@@ -240,18 +240,15 @@ class WultRunner:
             raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
                         f"a bug. The datapoint is:\n{_dump_dp(dp)}") from None
 
-        if not self._is_poll_idle(dp):
+        if self._is_intel and not self._is_poll_idle(dp):
             # Inject additional C-state information to the datapoint.
             # * CStatesCyc - combined count of CPU cycles in all non-CC0 C-states.
             # * DerivedCC1Cyc - software-calculated CC1 cycles, which is useful to have because not
             #                   every Intel platform has a HW CC1 counter. Calculated as "total
             #                   cycles" - "cycles in C-states other than CC1".
             cyc = sum([dp[name] for name in dp if name.startswith("CC") and name != "CC1Cyc"])
-            if self._is_intel:
-                dp["DerivedCC1Cyc"] = dp["TotCyc"] - cyc
-                dp["CStatesCyc"] = dp["TotCyc"] - dp["CC0Cyc"]
-            else:
-                dp["CStatesCyc"] = dp["TotCyc"] - cyc
+            dp["DerivedCC1Cyc"] = dp["TotCyc"] - cyc
+            dp["CStatesCyc"] = dp["TotCyc"] - dp["CC0Cyc"]
             if dp["DerivedCC1Cyc"] < 0:
                 # The C-state counters are not always precise, and we may end up with a negative
                 # number.
