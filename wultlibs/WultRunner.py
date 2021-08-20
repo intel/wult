@@ -161,10 +161,8 @@ class WultRunner:
 
     def _get_datapoints(self):
         """
-        This generators reads the trace buffer and yields datapoints in form of (fields, vals)
-        tuples, where:
-          o fields - list of datapoint fields (the CSV file header).
-          o vals - list of datapoint values.
+        This generators reads the trace buffer and yields raw datapoints in form of a dictionary.
+        The dictionary values are of integer type.
         """
 
         last_line = None
@@ -194,16 +192,12 @@ class WultRunner:
                 else:
                     self._fields = fields
 
-                yield fields, vals
+                yield dict(zip(fields, [int(val) for val in vals]))
         except ErrorTimeOut as err:
             msg = f"{err}\nCount of wult ftrace lines read so far: {yielded_lines}"
             if last_line:
                 msg = f"{msg}\nLast seen wult ftrace line:\n{last_line}"
             raise ErrorTimeOut(msg) from err
-
-    def _get_datapoint_dict(self, rawdp):
-        """Return the raw data provided by the kernel driver as a dictionary."""
-        return dict(zip(self._fields, [int(elt) for elt in rawdp]))
 
     def _is_poll_idle(self, dp): # pylint: disable=no-self-use
         """Returns 'True' if the 'dp' datapoint contains the POLL idle state data."""
@@ -211,12 +205,14 @@ class WultRunner:
 
     def _process_datapoint(self, rawdp):
         """
-        Process a raw datapoint and return it as dictionary. The "raw" part in this contents means
-        that the 'rawdp' list contains data provided by the kernel driver. This methods is going to
-        amend and extend it.
+        Process a raw datapoint 'rawdp'. The "raw" part in this contenxs means that 'rawdp' contains
+        the datapoint as the kernel driver provided it. This function processes it and retuns the
+        CSV datapoint. The CSV datapoint is derived from the raw datapoint, and it is later stored
+        in the 'datapoints.csv' file. The CSV datapoint contains more fields comparing to the raw
+        datapoint.
         """
 
-        dp = self._get_datapoint_dict(rawdp)
+        dp = rawdp
 
         # The 'wult_tdt' driver does not handle the 'POLL' state correctly.
         if self._ep.dev.drvname == "wult_tdt" and self._is_poll_idle(dp):
@@ -294,10 +290,9 @@ class WultRunner:
         """
 
         datapoints = self._get_datapoints()
-        rawhdr, rawdp = next(datapoints)
+        rawdp = next(datapoints)
 
-        dp = self._get_datapoint_dict(rawdp)
-
+        rawhdr = list(rawdp.keys())
         rawhdr = [col for col in list(rawhdr) if col not in self._exclude_colnames]
 
         # Add the more metrics to the raw header - we'll be injecting the values in
@@ -328,7 +323,7 @@ class WultRunner:
         timeout = self._timeout * 1.5
         start_time = last_collected_time = time.time()
         collected_cnt = 0
-        for rawhdr, rawdp in datapoints:
+        for rawdp in datapoints:
             if tlimit and time.time() - start_time > tlimit:
                 break
 
@@ -343,7 +338,7 @@ class WultRunner:
 
             # Add the data to the CSV file.
             if not self._res.add_csv_row(dp):
-                # the data point has not been added (e.g., because it did not pass raw filters).
+                # the data point has not been added (e.g., because it did not pass row filters).
                 continue
 
             collected_cnt += 1
