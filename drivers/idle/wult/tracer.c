@@ -28,11 +28,11 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "TIntr" },
 	{ .type = "u64", .name = "AIOverhead" },
 	{ .type = "u64", .name = "IntrOverhead" },
+	{ .type = "unsigned int", .name = "ReqCState" },
 	{ .type = "u64", .name = "AICyc1" },
 	{ .type = "u64", .name = "AICyc2" },
 	{ .type = "u64", .name = "IntrCyc1" },
 	{ .type = "u64", .name = "IntrCyc2" },
-	{ .type = "unsigned int", .name = "ReqCState" },
 	{ .type = "u64", .name = "TotCyc" },
 	{ .type = "u64", .name = "CC0Cyc" },
 	{ .type = "u64", .name = "SMICnt" },
@@ -260,6 +260,9 @@ int wult_tracer_send_data(struct wult_info *wi)
 	err = synth_event_add_next_val(intr_overhead, &trace_state);
 	if (err)
 		goto out_end;
+	err = synth_event_add_next_val(ti->req_cstate, &trace_state);
+	if (err)
+		goto out_end;
 	err = synth_event_add_next_val(ti->ai_cyc1, &trace_state);
 	if (err)
 		goto out_end;
@@ -270,9 +273,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->intr_cyc2, &trace_state);
-	if (err)
-		goto out_end;
-	err = synth_event_add_next_val(ti->req_cstate, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->csinfo.tsc, &trace_state);
