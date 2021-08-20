@@ -148,16 +148,17 @@ class WultRunner:
         from the trace buffer has the same fields in the same order.
         """
 
-        if len(fields) != len(self._fields) or len(vals) != len(self._fields):
-            oldhdr = ", ".join(self._fields)
-            newhdr = ", ".join(fields)
-            newdp = ", ".join(vals)
-            raise Error(f"the very first datapoint had {len(fields)} elements, but a newer "
-                        f"datapoint has {len(self._fields)} elements\n"
-                        f"Fist datapoint header: {oldhdr}\n"
-                        f"New datapoint header:  {newhdr}\n"
-                        f"New datapoint data:    {newdp}\n"
-                        f"New datapoint, full ftrace line: {self._ftrace.raw_line}")
+        if len(fields) != len(self._fields) or len(vals) != len(self._fields) or \
+           not all([f1 == f2 for f1, f2 in zip(fields, self._fields)]):
+            old_fields = ", ".join(self._fields)
+            new_fields = ", ".join(fields)
+            raise Error(f"the very first raw datapoint has different fields comparing to a new "
+                        f"datapointhad\n"
+                        f"First datapoint fields count: {len(fields)}\n"
+                        f"New datapoint fields count: {len(self._fields)}\n"
+                        f"Fist datapoint fields:\n{old_fields}\n"
+                        f"New datapoint fields:\n{new_fields}\n\n"
+                        f"New datapoint full ftrace line:\n{self._ftrace.raw_line}")
 
     def _get_datapoints(self):
         """
