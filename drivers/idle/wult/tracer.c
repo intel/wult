@@ -209,7 +209,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 			/*
 			 * But 'after_idle()' started first, which may happen
 			 * when the measured CPU wakes up for a different
-			 * reason, but very close to the event that we aremed.
+			 * reason, but very close to the event that we armed.
 			 * Ignore this datapoint.
 			 */
 			return 0;
