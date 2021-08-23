@@ -117,17 +117,8 @@ static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_
 		bi_finished = false;
 	} else {
 		ti->req_cstate = req_cstate;
-		if (ti->armed) {
-			/*
-			 * Invalidate the datapoint if we got one. Since
-			 * 'event_has_happened()' is not necessarily precise we
-			 * may end up with getting measurement data more than
-			 * once in 'after_idle()', before the interrupt handler
-			 * actually runs.
-			 */
-			ti->got_dp_ai = false;
+		if (ti->armed)
 			before_idle(data);
-		}
 		bi_finished = true;
 	}
 }
@@ -141,8 +132,6 @@ int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist)
 	int err;
 	struct wult_tracer_info *ti = &wi->ti;
 
-	if (WARN_ON(ti->got_dp_ai && ti->got_dp_intr))
-		return -EINVAL;
 	ti->got_dp_ai = ti->got_dp_intr = false;
 
 	ti->armed = true;
