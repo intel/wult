@@ -218,27 +218,8 @@ class WultRunner:
         """Returns 'True' if the 'dp' datapoint contains the POLL idle state data."""
         return dp["ReqCState"] == 0
 
-    def _process_datapoint(self, rawdp):
-        """
-        Process a raw datapoint 'rawdp'. The "raw" part in this contenxs means that 'rawdp' contains
-        the datapoint as the kernel driver provided it. This function processes it and retuns the
-        CSV datapoint. The CSV datapoint is derived from the raw datapoint, and it is later stored
-        in the 'datapoints.csv' file. The CSV datapoint contains more fields comparing to the raw
-        datapoint.
-        """
-
-        dp = rawdp
-
-        # The 'wult_tdt' driver does not handle the 'POLL' state correctly.
-        if self._ep.dev.drvname == "wult_tdt" and self._is_poll_idle(dp):
-            _LOG.debug("dropping the datapoint with 'POLL' idle state as 'wult_tdt' driver does "
-                       "not handle it correctly")
-            return None
-
-        if dp["TotCyc"] == 0:
-            # This should not happen.
-            raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
-                        f"a bug. The datapoint is:\n{_dump_dp(dp)}") from None
+    def _process_datapoint_cstates(self, dp):
+        """Add and validate various 'dp' datapoint fields related to C-states."""
 
         if self._has_cstates and not self._is_poll_idle(dp):
             # Inject additional C-state information to the datapoint.
@@ -274,6 +255,31 @@ class WultRunner:
             indexes_str = ", ".join(f"{idx} ({val['name']})" for idx, val in  self._csinfo.items())
             raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
                         f"{_dump_dp(dp)}\nAllowed indexes are:\n{indexes_str}") from None
+
+    def _process_datapoint(self, rawdp):
+        """
+        Process a raw datapoint 'rawdp'. The "raw" part in this contenxs means that 'rawdp' contains
+        the datapoint as the kernel driver provided it. This function processes it and retuns the
+        CSV datapoint. The CSV datapoint is derived from the raw datapoint, and it is later stored
+        in the 'datapoints.csv' file. The CSV datapoint contains more fields comparing to the raw
+        datapoint.
+        """
+
+        dp = rawdp
+
+        # The 'wult_tdt' driver does not handle the 'POLL' state correctly.
+        if self._ep.dev.drvname == "wult_tdt" and self._is_poll_idle(dp):
+            _LOG.debug("dropping the datapoint with 'POLL' idle state as 'wult_tdt' driver does "
+                       "not handle it correctly")
+            return None
+
+        if dp["TotCyc"] == 0:
+            # This should not happen.
+            raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
+                        f"a bug. The datapoint is:\n{_dump_dp(dp)}") from None
+
+        # Add and validated C-state related fields.
+        self._process_datapoint_cstates(dp)
 
         if not _apply_dp_overhead(dp):
             return None
