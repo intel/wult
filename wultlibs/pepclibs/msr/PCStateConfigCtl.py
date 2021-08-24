@@ -147,14 +147,14 @@ class PCStateConfigCtl:
 
         model = self._lscpu_info["model"]
 
-        pcs_limit = str(pcs_limit)
+        pcs_limit = str(pcs_limit).lower()
         codes = _PKG_CST_LIMIT_MAP[model]["codes"]
         aliases = _PKG_CST_LIMIT_MAP[model]["aliases"]
 
         if pcs_limit in aliases:
             pcs_limit = aliases[pcs_limit]
 
-        limit_val = codes.get(pcs_limit.lower())
+        limit_val = codes.get(pcs_limit)
         if limit_val is None:
             codes_str = ", ".join(codes)
             aliases_str = ", ".join(aliases)
