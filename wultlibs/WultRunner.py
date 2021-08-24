@@ -242,10 +242,23 @@ class WultRunner:
         # Add the C-state percentages.
         for cscyc_colname, csres_colname in self._cs_colnames:
             # In case of POLL state, calculate only CC0%.
-            if not self._is_poll_idle(dp) or cscyc_colname == "CC0Cyc":
-                dp[csres_colname] = dp[cscyc_colname] / dp["TotCyc"] * 100.0
-            else:
+            if self._is_poll_idle(dp) and cscyc_colname != "CC0Cyc":
                 dp[csres_colname] = 0
+                continue
+
+            dp[csres_colname] = dp[cscyc_colname] / dp["TotCyc"] * 100.0
+
+            if dp[csres_colname] > 100:
+                loglevel = logging.DEBUG
+                # Sometimes C-state residency counters are not precise, especially during short
+                # sleep times. Warn only about too large percentage.
+                if dp[csres_colname] > 300:
+                    loglevel = logging.WARNING
+
+                csname = Defs.get_csname(csres_colname)
+                _LOG.log(loglevel, "too high %s residency of %.1f%%, using 100%% instead. The "
+                                   "datapoint is:\n%s", csname, dp[csres_colname], _dump_dp(dp))
+                dp[csres_colname] = 100.0
 
         # Turn the C-state index into the C-state name.
         try:
