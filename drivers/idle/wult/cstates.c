@@ -119,8 +119,3 @@ int wult_cstates_init(struct wult_cstates_info *csinfo)
 
 	return err;
 }
-
-void wult_cstates_exit(struct wult_cstates_info *csinfo)
-{
-	return;
-}

@@ -47,5 +47,4 @@ void wult_cstates_read_before(struct wult_cstates_info *csinfo);
 void wult_cstates_read_after(struct wult_cstates_info *csinfo);
 void wult_cstates_calc(struct wult_cstates_info *csinfo);
 int wult_cstates_init(struct wult_cstates_info *csinfo);
-void wult_cstates_exit(struct wult_cstates_info *csinfo);
 #endif

@@ -429,18 +429,14 @@ int wult_tracer_init(struct wult_info *wi)
 	if (!ti->tp) {
 		wult_err("failed to find the '%s' tracepoint", TRACEPOINT_NAME);
 		err = -EINVAL;
-		goto out_cstates;
+		return err;
 	}
 
 	err = wult_synth_event_init(wi);
 	if (err)
-		goto out_cstates;
+		return err;
 
 	return 0;
-
-out_cstates:
-	wult_cstates_exit(&ti->csinfo);
-	return err;
 }
 
 void wult_tracer_exit(struct wult_info *wi)
@@ -449,5 +445,4 @@ void wult_tracer_exit(struct wult_info *wi)
 
 	wult_synth_event_exit(ti);
 	tracepoint_synchronize_unregister();
-	wult_cstates_exit(&ti->csinfo);
 }
