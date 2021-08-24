@@ -258,9 +258,6 @@ class WultRunner:
         else:
             dp["DerivedCC1Cyc"] = dp["CStatesCyc"] = 0
 
-        # Inject 'IntrDelay' - the interrupt delay.
-        dp["IntrDelay"] = dp["IntrLatency"] - dp["WakeLatency"]
-
         # Add the C-state percentages.
         for cscyc_colname, csres_colname in self._cs_colnames:
             # In case of POLL state, calculate only CC0%.
@@ -280,6 +277,9 @@ class WultRunner:
 
         if not _apply_dp_overhead(dp):
             return None
+
+        # Inject 'IntrDelay' - the interrupt delay.
+        dp["IntrDelay"] = dp["IntrLatency"] - dp["WakeLatency"]
 
         # Save time in microseconds.
         times_us = {}
