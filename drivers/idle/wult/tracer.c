@@ -214,6 +214,8 @@ int wult_tracer_send_data(struct wult_info *wi)
 		ai_overhead = wult_cyc2ns(wdi, ti->ai_cyc2 - ti->ai_cyc1);
 	}
 
+	wult_cstates_calc(&ti->csinfo);
+
 	err = synth_event_trace_start(ti->event_file, &trace_state);
 	if (err)
 		return err;
@@ -281,7 +283,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 		goto out_end;
 
 	/* Add C-state cycle counter values. */
-	wult_cstates_calc(&ti->csinfo);
 	for_each_cstate(&ti->csinfo, csi) {
 		err = synth_event_add_next_val(csi->cyc, &trace_state);
 		if (err)
