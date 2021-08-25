@@ -7,6 +7,9 @@
 #ifndef _WULT_CSTATE_H_
 #define _WULT_CSTATE_H_
 
+/* Maximum C-state cycle snapsots count. */
+#define MAX_CSTATE_SNAPSHOTS 2
+
 /* Iterate over every valid C-state. */
 #define for_each_cstate(csinfo, csi)             \
         for (csi = (csinfo)->cstates; csi->name; csi++) \
@@ -22,9 +25,9 @@ struct cstate_info {
 	bool core;
 	/* True if this C-state does not exist on this CPU. */
 	bool absent;
-	/* Cycles count before and after idle. */
-	u64 cyc1, cyc2;
-	/* Delta between 'cyc2' and 'cyc1'. */
+	/* C-state counter snapshots.  */
+	u64 cyc[MAX_CSTATE_SNAPSHOTS];
+	/* Delta between between any two C-state counter snapshots. */
 	u64 dcyc;
 };
 
@@ -34,18 +37,21 @@ struct cstate_info {
 struct wult_cstates_info {
 	/* Information about every C-state on this platform. */
 	struct cstate_info *cstates;
-	/* TSC value before and idle after idle. */
-	u64 tsc1, tsc2;
-	/* Delta between 'tsc2' and 'tsc1'. */
+	/* TSC snapshots. */
+	u64 tsc[MAX_CSTATE_SNAPSHOTS];
+	/* Delta between any two TSC snapshots. */
 	u64 dtsc;
-	/* MPERF value before and idle after idle. */
-	u64 mperf1, mperf2;
-	/* Delta between 'mperf2' and 'mperf1'. */
+	/* MPERF snapshots. */
+	u64 mperf[MAX_CSTATE_SNAPSHOTS];
+	/* Delta between any two MPERF snapshots. */
 	u64 dmperf;
 };
 
-void wult_cstates_read_before(struct wult_cstates_info *csinfo);
-void wult_cstates_read_after(struct wult_cstates_info *csinfo);
-void wult_cstates_calc(struct wult_cstates_info *csinfo);
+void wult_cstates_snap_tsc(struct wult_cstates_info *csinfo, unsigned int snum);
+void wult_cstates_snap_mperf(struct wult_cstates_info *csinfo,
+			     unsigned int snum);
+void wult_cstates_snap_cst(struct wult_cstates_info *csinfo, unsigned int snum);
+void wult_cstates_calc(struct wult_cstates_info *csinfo,
+		       unsigned int snum1, unsigned int snum2);
 int wult_cstates_init(struct wult_cstates_info *csinfo);
 #endif

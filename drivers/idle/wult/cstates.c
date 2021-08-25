@@ -12,53 +12,61 @@
 #include "wult.h"
 
 /*
- * Read and save the C-state residency counters before idle.
+ * Read TSC and save it in snapshot number 'snum'.
  */
-void wult_cstates_read_before(struct wult_cstates_info *csinfo)
+void wult_cstates_snap_tsc(struct wult_cstates_info *csinfo, unsigned int snum)
 {
 	struct cstate_info *csi;
 
-	csinfo->tsc1 = rdtsc_ordered();
-	csinfo->mperf1 = __rdmsr(MSR_IA32_MPERF);
-	for_each_cstate(csinfo, csi)
-		csi->cyc1 = __rdmsr(csi->msr);
+	if (WARN_ON(snum >= MAX_CSTATE_SNAPSHOTS))
+		return;
+
+	csinfo->tsc[snum] = rdtsc_ordered();
 }
 
 /*
- * Read TSC and 'mperf' after idle.
+ * Read MPERF and save it in snapshot number 'snum'.
  */
-void wult_cstates_read_after(struct wult_cstates_info *csinfo)
-{
-	csinfo->mperf2 = __rdmsr(MSR_IA32_MPERF);
-	csinfo->tsc2 = rdtsc_ordered();
-}
-
-/*
- * Read C-state residency counters after idle. Calculate the delta between the
- * newly read values and the values read before idle.
- *
- * Unlike 'wult_cstates_read_after()' this function does not have to be called
- * as soon as possible after idle, because as long as the CPU is in C0, the
- * C-state residency counters do not change and can be read at a later
- * convenient time.
- */
-void wult_cstates_calc(struct wult_cstates_info *csinfo)
+void wult_cstates_snap_mperf(struct wult_cstates_info *csinfo, unsigned int snum)
 {
 	struct cstate_info *csi;
 
-	/* Read C-state residency counters after idle */
-	for_each_cstate(csinfo, csi)
-		csi->cyc2 = __rdmsr(csi->msr);
+	if (WARN_ON(snum >= MAX_CSTATE_SNAPSHOTS))
+		return;
 
-	csinfo->dtsc = csinfo->tsc2 - csinfo->tsc1;
-	csinfo->dmperf = csinfo->mperf2 - csinfo->mperf1;
+	csinfo->mperf[snum] = __rdmsr(MSR_IA32_MPERF);
+}
 
-	/*
-	 * Calculate the delta between the C-state residency counters before
-	 * and after idle.
-	 */
+/*
+ * Read C-state counters and save them in snapshot number 'snum'.
+ */
+void wult_cstates_snap_cst(struct wult_cstates_info *csinfo, unsigned int snum)
+{
+	struct cstate_info *csi;
+
+	if (WARN_ON(snum >= MAX_CSTATE_SNAPSHOTS))
+		return;
+
 	for_each_cstate(csinfo, csi)
-		csi->dcyc = csi->cyc2 - csi->cyc1;
+		csi->cyc[snum] = __rdmsr(csi->msr);
+}
+
+/*
+ * Calculate the delta between snapshots number 'snum1' and 'snum2'.
+ */
+void wult_cstates_calc(struct wult_cstates_info *csinfo,
+		       unsigned int snum1, unsigned int snum2)
+{
+	struct cstate_info *csi;
+
+	if (WARN_ON(snum1 >= MAX_CSTATE_SNAPSHOTS) ||
+	    WARN_ON(snum2 >= MAX_CSTATE_SNAPSHOTS))
+		return;
+
+	csinfo->dtsc = csinfo->tsc[snum2] - csinfo->tsc[snum1];
+	csinfo->dmperf = csinfo->mperf[snum2] - csinfo->mperf[snum1];
+	for_each_cstate(csinfo, csi)
+		csi->dcyc = csi->cyc[snum2] - csi->cyc[snum1];
 }
 
 static struct cstate_info intel_cstates[] = {

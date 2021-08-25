@@ -57,7 +57,11 @@ static void before_idle(struct wult_info *wi)
 	ti->smi_bi = get_smi_count();
 	ti->nmi_bi = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 
-	wult_cstates_read_before(&ti->csinfo);
+	/* Make a snapshot of C-state counters. */
+	wult_cstates_snap_cst(&ti->csinfo, 0);
+	wult_cstates_snap_mperf(&ti->csinfo, 0);
+	wult_cstates_snap_tsc(&ti->csinfo, 0);
+
 	ti->tbi = wi->wdi->ops->get_time_before_idle(wi->wdi);
 }
 
@@ -74,9 +78,12 @@ static void after_idle(struct wult_info *wi)
 		/* It is not the delayed event we armed that woke us up. */
 		return;
 
-	if (ti->csinfo.tsc2 <= ti->csinfo.tsc1)
+	if (ti->csinfo.tsc[1] <= ti->csinfo.tsc[0]) {
 		/* The second read of C-state data has not been done yet. */
-		wult_cstates_read_after(&ti->csinfo);
+		wult_cstates_set_tsc(&ti->csinfo, ti->ai_cyc1, 1);
+		wult_cstates_snap_mperf(&ti->csinfo, 1);
+	}
+
 	ti->irqs_enabled = !irqs_disabled();
 	ti->got_dp_ai = true;
 	ti->ai_cyc2 = rdtsc_ordered();
@@ -89,9 +96,12 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 	struct wult_device_info *wdi = wi->wdi;
 
 	ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
-	if (ti->csinfo.tsc2 <= ti->csinfo.tsc1)
+
+	if (ti->csinfo.tsc[1] <= ti->csinfo.tsc[0]) {
 		/* The second read of C-state data has not been done yet. */
-		wult_cstates_read_after(&ti->csinfo);
+		wult_cstates_set_tsc(&ti->csinfo, ti->intr_cyc1, 1);
+		wult_cstates_snap_mperf(&ti->csinfo, 1);
+	}
 
 	ti->intr_cyc1 = cyc;
 	ti->smi_intr = get_smi_count();
@@ -214,7 +224,8 @@ int wult_tracer_send_data(struct wult_info *wi)
 		ai_overhead = wult_cyc2ns(wdi, ti->ai_cyc2 - ti->ai_cyc1);
 	}
 
-	wult_cstates_calc(&ti->csinfo);
+	wult_cstates_snap_cst(&ti->csinfo, 1);
+	wult_cstates_calc(&ti->csinfo, 0, 1);
 
 	err = synth_event_trace_start(ti->event_file, &trace_state);
 	if (err)
