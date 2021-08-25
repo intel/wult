@@ -20,7 +20,7 @@ void wult_cstates_read_before(struct wult_cstates_info *csinfo)
 
 	csinfo->tsc1 = rdtsc_ordered();
 	csinfo->mperf1 = __rdmsr(MSR_IA32_MPERF);
-	for_each_cstate_msr(csinfo, csi)
+	for_each_cstate(csinfo, csi)
 		csi->cyc1 = __rdmsr(csi->msr);
 }
 
@@ -47,7 +47,7 @@ void wult_cstates_calc(struct wult_cstates_info *csinfo)
 	struct cstate_info *csi;
 
 	/* Read C-state residency counters after idle */
-	for_each_cstate_msr(csinfo, csi)
+	for_each_cstate(csinfo, csi)
 		csi->cyc2 = __rdmsr(csi->msr);
 
 	csinfo->tsc = csinfo->tsc2 - csinfo->tsc1;
@@ -57,7 +57,7 @@ void wult_cstates_calc(struct wult_cstates_info *csinfo)
 	 * Calculate the delta between the C-state residency counters before
 	 * and after idle.
 	 */
-	for_each_cstate_msr(csinfo, csi)
+	for_each_cstate(csinfo, csi)
 		csi->cyc = csi->cyc2 - csi->cyc1;
 }
 
@@ -85,7 +85,7 @@ static int intel_cstate_init(struct wult_cstates_info *csinfo)
 	u64 reg;
 
 	csinfo->cstates = intel_cstates;
-	for_each_cstate_msr(csinfo, csi)
+	for_each_cstate(csinfo, csi)
 		/*
 		 * Assume the C-state is present if we do not get an exception
 		 * when reading the MSR. If the C-state is not actually

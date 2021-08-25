@@ -7,8 +7,8 @@
 #ifndef _WULT_CSTATE_H_
 #define _WULT_CSTATE_H_
 
-/* Iterate over every valid C-state which has an MSR register. */
-#define for_each_cstate_msr(csinfo, csi)             \
+/* Iterate over every valid C-state. */
+#define for_each_cstate(csinfo, csi)             \
         for (csi = (csinfo)->cstates; csi->name; csi++) \
 		if (csi->absent || !csi->msr) {} else
 
