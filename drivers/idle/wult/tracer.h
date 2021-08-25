@@ -29,7 +29,7 @@ struct wult_info;
 struct wult_tracer_info {
 	/* C-state information. */
 	struct wult_cstates_info csinfo;
-	/* Time before idle and after idle in cycles or nanoseconds. */
+	/* Time before idle and after idle in TSC cycles or nanoseconds. */
 	u64 tbi, tai;
 	/* Interrupt time. */
 	u64 tintr;
@@ -41,10 +41,10 @@ struct wult_tracer_info {
 	u32 smi_bi, nmi_bi;
 	/* SMI and NMI counters collected in the interrupt handler. */
 	u32 smi_intr, nmi_intr;
-	/* Cycle counters at the beginning and at the end of 'after_idle(). */
-	u64 ai_cyc1, ai_cyc2;
-	/* Cycle counters at the beginning and at the end of IRQ handler. */
-	u64 intr_cyc1, intr_cyc2;
+	/* TSC values at the beginning and at the end of 'after_idle(). */
+	u64 ai_tsc1, ai_tsc2;
+	/* TSC values at the beginning and at the end of IRQ handler. */
+	u64 intr_tsc1, intr_tsc2;
 	/* 'true' if an event has been armed, but did not happen yet. */
 	bool armed;
 	/* Whether interrupts were enabled in 'after_idle()'. */

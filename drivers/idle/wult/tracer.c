@@ -71,8 +71,8 @@ static void after_idle(struct wult_info *wi)
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_device_info *wdi = wi->wdi;
 
-	ti->ai_cyc1 = rdtsc_ordered();
-	ti->tai = wdi->ops->get_time_after_idle(wdi, ti->ai_cyc1);
+	ti->ai_tsc1 = rdtsc_ordered();
+	ti->tai = wdi->ops->get_time_after_idle(wdi, ti->ai_tsc1);
 
 	wult_cstates_snap_tsc(&ti->csinfo, 1);
 	wult_cstates_snap_mperf(&ti->csinfo, 1);
@@ -83,7 +83,7 @@ static void after_idle(struct wult_info *wi)
 
 	ti->irqs_enabled = !irqs_disabled();
 	ti->got_dp_ai = true;
-	ti->ai_cyc2 = rdtsc_ordered();
+	ti->ai_tsc2 = rdtsc_ordered();
 }
 
 /* Get measurements in the interrupt handler after idle. */
@@ -97,12 +97,12 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 	wult_cstates_snap_tsc(&ti->csinfo, 2);
 	wult_cstates_snap_mperf(&ti->csinfo, 2);
 
-	ti->intr_cyc1 = cyc;
+	ti->intr_tsc1 = cyc;
 	ti->smi_intr = get_smi_count();
 	ti->nmi_intr = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 	ti->armed = false;
 	ti->got_dp_intr = true;
-	ti->intr_cyc2 = rdtsc_ordered();
+	ti->intr_tsc2 = rdtsc_ordered();
 }
 
 static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_id)
@@ -198,7 +198,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 		 * enabled. This means that the interrupt handler runs before
 		 * 'after_idle()'.
 		 */
-		if (ti->ai_cyc1 < ti->intr_cyc1)
+		if (ti->ai_tsc1 < ti->intr_tsc1)
 			/*
 			 * But 'after_idle()' started first, which may happen
 			 * when the measured CPU wakes up for a different
@@ -207,17 +207,17 @@ int wult_tracer_send_data(struct wult_info *wi)
 			 */
 			return 0;
 
-		intr_overhead = wult_cyc2ns(wdi, ti->intr_cyc2 - ti->intr_cyc1);
+		intr_overhead = wult_cyc2ns(wdi, ti->intr_tsc2 - ti->intr_tsc1);
 	} else {
 		/*
 		 * This is an idle state that is entered and exited with
 		 * interrupts disabled. In this case 'after_idle()' always runs
 		 * before the interrupt handler.
 		 */
-		if (WARN_ON(ti->intr_cyc1 < ti->ai_cyc2))
+		if (WARN_ON(ti->intr_tsc1 < ti->ai_tsc2))
 			err_after_send = -EINVAL;
 
-		ai_overhead = wult_cyc2ns(wdi, ti->ai_cyc2 - ti->ai_cyc1);
+		ai_overhead = wult_cyc2ns(wdi, ti->ai_tsc2 - ti->ai_tsc1);
 	}
 
 	/*
@@ -274,16 +274,16 @@ int wult_tracer_send_data(struct wult_info *wi)
 	err = synth_event_add_next_val(ti->req_cstate, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->ai_cyc1, &trace_state);
+	err = synth_event_add_next_val(ti->ai_tsc1, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->ai_cyc2, &trace_state);
+	err = synth_event_add_next_val(ti->ai_tsc2, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->intr_cyc1, &trace_state);
+	err = synth_event_add_next_val(ti->intr_tsc1, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->intr_cyc2, &trace_state);
+	err = synth_event_add_next_val(ti->intr_tsc2, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->csinfo.dtsc, &trace_state);
