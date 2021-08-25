@@ -283,7 +283,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 		goto out_end;
 
 	/* Add C-state cycle counter values. */
-	for_each_cstate(&ti->csinfo, csi) {
+	for_each_cstate_msr(&ti->csinfo, csi) {
 		err = synth_event_add_next_val(csi->cyc, &trace_state);
 		if (err)
 			goto out_end;
@@ -364,7 +364,7 @@ static int wult_synth_event_init(struct wult_info *wi)
 		goto out_free;
 
 	/* Add C-states fields. */
-	for_each_cstate(&ti->csinfo, csi) {
+	for_each_cstate_msr(&ti->csinfo, csi) {
 		name_len = snprintf(name_buf, 64, "%sCyc", csi->name);
 		if (name_len >= sizeof(name_buf)) {
 			err = -EINVAL;
