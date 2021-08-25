@@ -103,7 +103,6 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 	ti->smi_intr = get_smi_count();
 	ti->nmi_intr = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 	ti->armed = false;
-	ti->got_dp_intr = true;
 	ti->intr_tsc2 = rdtsc_ordered();
 }
 
@@ -138,9 +137,9 @@ int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist)
 	int err;
 	struct wult_tracer_info *ti = &wi->ti;
 
-	ti->got_dp_ai = ti->got_dp_intr = false;
-
+	ti->got_dp_ai = false;
 	ti->armed = true;
+
 	err = wi->wdi->ops->arm(wi->wdi, ldist);
 	if (err) {
 		wult_err("failed to arm a dleayed event %llu nsec away, error %d",
@@ -163,12 +162,19 @@ int wult_tracer_send_data(struct wult_info *wi)
 	u64 ai_overhead = 0, intr_overhead = 0;
 	int err, snum, err_after_send = 0;
 
-	if (!ti->got_dp_ai || !ti->got_dp_intr) {
-		ti->got_dp_ai = ti->got_dp_intr = false;
+	if (WARN_ON(ti->armed))
+		/*
+		 * This function must be called only after the armed event has
+		 * happened.
+		 */
+		return -EINVAL;
+
+	if (!ti->got_dp_ai) {
+		/* The event must have happend while the CPU was in C0 */
+		ti->got_dp_ai = false;
 		return 0;
  	}
-
-	ti->got_dp_ai = ti->got_dp_intr = false;
+	ti->got_dp_ai = false;
 
 	ltime = wdi->ops->get_launch_time(wdi);
 
@@ -330,7 +336,7 @@ int wult_tracer_enable(struct wult_info *wi)
 	int err;
 	struct wult_tracer_info *ti = &wi->ti;
 
-	ti->got_dp_ai = ti->got_dp_intr = false;
+	ti->got_dp_ai = false;
 
 	err = tracepoint_probe_register(ti->tp, (void *)cpu_idle_hook, wi);
 	if (err) {
