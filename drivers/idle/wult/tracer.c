@@ -79,10 +79,7 @@ static void after_idle(struct wult_info *wi)
 	wult_cstates_snap_tsc(&ti->csinfo, 1);
 	wult_cstates_snap_mperf(&ti->csinfo, 1);
 
-	if (!wdi->ops->event_has_happened(wi->wdi))
-		/* It is not the delayed event we armed that woke us up. */
-		return;
-
+	ti->event_happened = wdi->ops->event_has_happened(wi->wdi);
 	ti->irqs_disabled = irqs_disabled();
 	ti->ai_tsc2 = rdtsc_ordered();
 }
@@ -137,6 +134,7 @@ int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist)
 	struct wult_tracer_info *ti = &wi->ti;
 
 	ti->armed = true;
+	ti->event_happened = false;
 	err = wi->wdi->ops->arm(wi->wdi, ldist);
 	if (err) {
 		wult_err("failed to arm a dleayed event %llu nsec away, error %d",
@@ -181,6 +179,13 @@ int wult_tracer_send_data(struct wult_info *wi)
 		 * interrupts disabled. In this case 'after_idle()' always runs
 		 * before the interrupt handler.
 		 */
+		if (!ti->event_happened)
+			/*
+			 * The wake up was not because of the event we armed.
+			 * It was probably a different, but close event.
+			 */
+			return 0;
+
 		if (WARN_ON(ti->intr_tsc1 < ti->ai_tsc2))
 			err_after_send = -EINVAL;
 
@@ -326,7 +331,7 @@ int wult_tracer_enable(struct wult_info *wi)
 	int err;
 	struct wult_tracer_info *ti = &wi->ti;
 
-	ti->armed = false;
+	ti->event_happened = ti->armed = false;
 	err = tracepoint_probe_register(ti->tp, (void *)cpu_idle_hook, wi);
 	if (err) {
 		wult_err("failed to register the '%s' tracepoint probe, error %d",

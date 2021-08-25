@@ -49,6 +49,8 @@ struct wult_tracer_info {
 	bool armed;
 	/* 'true' if interrupts were disabled in 'after_idle()'. */
 	bool irqs_disabled;
+	/* 'true' if the armed event has happened. */
+	bool event_happened;
 	/* The tracepoint we hook to. */
 	struct tracepoint *tp;
 	/* The wult trace event file. */
