@@ -49,8 +49,6 @@ struct wult_tracer_info {
 	bool armed;
 	/* Whether interrupts were enabled in 'after_idle()'. */
 	bool irqs_enabled;
-	/* 'true' if measurements were taken in 'after_idle()'. */
-	bool got_dp_ai;
 	/* The tracepoint we hook to. */
 	struct tracepoint *tp;
 	/* The wult trace event file. */

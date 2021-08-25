@@ -84,7 +84,6 @@ static void after_idle(struct wult_info *wi)
 		return;
 
 	ti->irqs_enabled = !irqs_disabled();
-	ti->got_dp_ai = true;
 	ti->ai_tsc2 = rdtsc_ordered();
 }
 
@@ -137,9 +136,7 @@ int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist)
 	int err;
 	struct wult_tracer_info *ti = &wi->ti;
 
-	ti->got_dp_ai = false;
 	ti->armed = true;
-
 	err = wi->wdi->ops->arm(wi->wdi, ldist);
 	if (err) {
 		wult_err("failed to arm a dleayed event %llu nsec away, error %d",
@@ -168,13 +165,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 		 * happened.
 		 */
 		return -EINVAL;
-
-	if (!ti->got_dp_ai) {
-		/* The event must have happend while the CPU was in C0 */
-		ti->got_dp_ai = false;
-		return 0;
- 	}
-	ti->got_dp_ai = false;
 
 	ltime = wdi->ops->get_launch_time(wdi);
 
@@ -336,8 +326,7 @@ int wult_tracer_enable(struct wult_info *wi)
 	int err;
 	struct wult_tracer_info *ti = &wi->ti;
 
-	ti->got_dp_ai = false;
-
+	ti->armed = false;
 	err = tracepoint_probe_register(ti->tp, (void *)cpu_idle_hook, wi);
 	if (err) {
 		wult_err("failed to register the '%s' tracepoint probe, error %d",
