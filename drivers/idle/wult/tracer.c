@@ -172,23 +172,8 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (ltime <= ti->tbi || ltime >= ti->tai || ltime >= ti->tintr)
 		return 0;
 
-	if (wdi->ops->get_trace_data) {
-		tdata = wdi->ops->get_trace_data(wdi);
-		if (IS_ERR(tdata))
-			return PTR_ERR(tdata);
-	}
-
 	if (WARN_ON(ltime > ti->tintr) || WARN_ON(ltime > ti->tai))
 		err_after_send = -EINVAL;
-
-	silent_time = ltime - ti->tbi;
-	wake_latency = ti->tai - ltime;
-	intr_latency = ti->tintr - ltime;
-	if (wdi->ops->time_to_ns) {
-		silent_time = wdi->ops->time_to_ns(wdi, silent_time);
-		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
-		intr_latency = wdi->ops->time_to_ns(wdi, intr_latency);
-	}
 
 	if (ti->irqs_enabled) {
 		/*
@@ -216,6 +201,15 @@ int wult_tracer_send_data(struct wult_info *wi)
 			err_after_send = -EINVAL;
 
 		ai_overhead = wult_cyc2ns(wdi, ti->ai_tsc2 - ti->ai_tsc1);
+	}
+
+	silent_time = ltime - ti->tbi;
+	wake_latency = ti->tai - ltime;
+	intr_latency = ti->tintr - ltime;
+	if (wdi->ops->time_to_ns) {
+		silent_time = wdi->ops->time_to_ns(wdi, silent_time);
+		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
+		intr_latency = wdi->ops->time_to_ns(wdi, intr_latency);
 	}
 
 	/*
@@ -304,11 +298,17 @@ int wult_tracer_send_data(struct wult_info *wi)
 			goto out_end;
 	}
 
-	/* Add driver-specific field values. */
-	for (; tdata && tdata->name; tdata++) {
-		err = synth_event_add_next_val(tdata->val, &trace_state);
-		if (err)
+	if (wdi->ops->get_trace_data) {
+		tdata = wdi->ops->get_trace_data(wdi);
+		if (IS_ERR(tdata))
+			err = PTR_ERR(tdata);
 			goto out_end;
+		/* Add driver-specific field values. */
+		for (; tdata->name; tdata++) {
+			err = synth_event_add_next_val(tdata->val, &trace_state);
+			if (err)
+				goto out_end;
+		}
 	}
 
 	err = synth_event_trace_end(&trace_state);
