@@ -50,15 +50,15 @@ void wult_cstates_calc(struct wult_cstates_info *csinfo)
 	for_each_cstate(csinfo, csi)
 		csi->cyc2 = __rdmsr(csi->msr);
 
-	csinfo->tsc = csinfo->tsc2 - csinfo->tsc1;
-	csinfo->mperf = csinfo->mperf2 - csinfo->mperf1;
+	csinfo->dtsc = csinfo->tsc2 - csinfo->tsc1;
+	csinfo->dmperf = csinfo->mperf2 - csinfo->mperf1;
 
 	/*
 	 * Calculate the delta between the C-state residency counters before
 	 * and after idle.
 	 */
 	for_each_cstate(csinfo, csi)
-		csi->cyc = csi->cyc2 - csi->cyc1;
+		csi->dcyc = csi->cyc2 - csi->cyc1;
 }
 
 static struct cstate_info intel_cstates[] = {
@@ -89,13 +89,10 @@ static int intel_cstate_init(struct wult_cstates_info *csinfo)
 		/*
 		 * Assume the C-state is present if we do not get an exception
 		 * when reading the MSR. If the C-state is not actually
-		 * supported by this platform, the MSR will always be 0, which
-		 * is OK.
+		 * supported by this platform, MSR read will always return 0.
 		 */
-		if (rdmsrl_safe(csi->msr, &reg)) {
-			csi->msr = 0;
+		if (rdmsrl_safe(csi->msr, &reg))
 			csi->absent = true;
-		}
 
 	return 0;
 }

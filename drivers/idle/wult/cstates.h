@@ -17,13 +17,15 @@
  */
 struct cstate_info {
 	const char *name;
-	unsigned int msr;
+	const unsigned int msr;
 	/* True for core C-states, false for package C-states. */
 	bool core;
 	/* True if this C-state does not exist on this CPU. */
 	bool absent;
-	/* Cycles count before, after idle, and the delta. */
-	u64 cyc1, cyc2, cyc;
+	/* Cycles count before and after idle. */
+	u64 cyc1, cyc2;
+	/* Delta between 'cyc2' and 'cyc1'. */
+	u64 dcyc;
 };
 
 /*
@@ -32,10 +34,14 @@ struct cstate_info {
 struct wult_cstates_info {
 	/* Information about every C-state on this platform. */
 	struct cstate_info *cstates;
-	/* TSC value before idle, after idle, and the delta. */
-	u64 tsc1, tsc2, tsc;
-	/* MPERF value before idle, after idle, and the delta. */
-	u64 mperf1, mperf2, mperf;
+	/* TSC value before and idle after idle. */
+	u64 tsc1, tsc2;
+	/* Delta between 'tsc2' and 'tsc1'. */
+	u64 dtsc;
+	/* MPERF value before and idle after idle. */
+	u64 mperf1, mperf2;
+	/* Delta between 'mperf2' and 'mperf1'. */
+	u64 dmperf;
 };
 
 void wult_cstates_read_before(struct wult_cstates_info *csinfo);

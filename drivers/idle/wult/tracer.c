@@ -269,10 +269,10 @@ int wult_tracer_send_data(struct wult_info *wi)
 	err = synth_event_add_next_val(ti->intr_cyc2, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->csinfo.tsc, &trace_state);
+	err = synth_event_add_next_val(ti->csinfo.dtsc, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->csinfo.mperf, &trace_state);
+	err = synth_event_add_next_val(ti->csinfo.dmperf, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->smi_intr - ti->smi_bi, &trace_state);
@@ -284,7 +284,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 	/* Add C-state cycle counter values. */
 	for_each_cstate(&ti->csinfo, csi) {
-		err = synth_event_add_next_val(csi->cyc, &trace_state);
+		err = synth_event_add_next_val(csi->dcyc, &trace_state);
 		if (err)
 			goto out_end;
 	}
