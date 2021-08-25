@@ -74,15 +74,12 @@ static void after_idle(struct wult_info *wi)
 	ti->ai_cyc1 = rdtsc_ordered();
 	ti->tai = wdi->ops->get_time_after_idle(wdi, ti->ai_cyc1);
 
+	wult_cstates_snap_tsc(&ti->csinfo, 1);
+	wult_cstates_snap_mperf(&ti->csinfo, 1);
+
 	if (!wdi->ops->event_has_happened(wi->wdi))
 		/* It is not the delayed event we armed that woke us up. */
 		return;
-
-	if (ti->csinfo.tsc[1] <= ti->csinfo.tsc[0]) {
-		/* The second read of C-state data has not been done yet. */
-		wult_cstates_set_tsc(&ti->csinfo, ti->ai_cyc1, 1);
-		wult_cstates_snap_mperf(&ti->csinfo, 1);
-	}
 
 	ti->irqs_enabled = !irqs_disabled();
 	ti->got_dp_ai = true;
@@ -97,11 +94,8 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 
 	ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
 
-	if (ti->csinfo.tsc[1] <= ti->csinfo.tsc[0]) {
-		/* The second read of C-state data has not been done yet. */
-		wult_cstates_set_tsc(&ti->csinfo, ti->intr_cyc1, 1);
-		wult_cstates_snap_mperf(&ti->csinfo, 1);
-	}
+	wult_cstates_snap_tsc(&ti->csinfo, 2);
+	wult_cstates_snap_mperf(&ti->csinfo, 2);
 
 	ti->intr_cyc1 = cyc;
 	ti->smi_intr = get_smi_count();
@@ -165,7 +159,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 	struct cstate_info *csi;
 	u64 ltime, silent_time, wake_latency, intr_latency;
 	u64 ai_overhead = 0, intr_overhead = 0;
-	int err, err_after_send = 0;
+	int err, snum, err_after_send = 0;
 
 	if (!ti->got_dp_ai || !ti->got_dp_intr) {
 		ti->got_dp_ai = ti->got_dp_intr = false;
@@ -212,6 +206,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 			 * Ignore this datapoint.
 			 */
 			return 0;
+
 		intr_overhead = wult_cyc2ns(wdi, ti->intr_cyc2 - ti->intr_cyc1);
 	} else {
 		/*
@@ -221,11 +216,22 @@ int wult_tracer_send_data(struct wult_info *wi)
 		 */
 		if (WARN_ON(ti->intr_cyc1 < ti->ai_cyc2))
 			err_after_send = -EINVAL;
+
 		ai_overhead = wult_cyc2ns(wdi, ti->ai_cyc2 - ti->ai_cyc1);
 	}
 
-	wult_cstates_snap_cst(&ti->csinfo, 1);
-	wult_cstates_calc(&ti->csinfo, 0, 1);
+	/*
+	 * Snapshot #1 was taken in 'after_idle()', and we should use it for
+	 * C-states that are requested with interrupts disabled. Othewise, we
+	 * should use snapshot #2, that was takin in the interrupt handler.
+	 */
+	snum = ti->irqs_enabled ? 2 : 1;
+
+	if (WARN_ON(ti->csinfo.tsc[0] > ti->csinfo.tsc[snum]))
+		err_after_send = -EINVAL;
+
+	wult_cstates_snap_cst(&ti->csinfo, snum);
+	wult_cstates_calc(&ti->csinfo, 0, snum);
 
 	err = synth_event_trace_start(ti->event_file, &trace_state);
 	if (err)
