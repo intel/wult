@@ -54,6 +54,8 @@ static void before_idle(struct wult_info *wi)
 {
 	struct wult_tracer_info *ti = &wi->ti;
 
+	WARN_ON(!irqs_disabled());
+
 	ti->smi_bi = get_smi_count();
 	ti->nmi_bi = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 
