@@ -113,14 +113,15 @@ static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_
 		return;
 
 	if (req_cstate == PWR_EVENT_EXIT) {
-		if (ti->armed && bi_finished)
+		if (bi_finished)
 			after_idle(wi);
 		bi_finished = false;
 	} else {
 		ti->req_cstate = req_cstate;
-		if (ti->armed)
+		if (ti->armed) {
 			before_idle(data);
-		bi_finished = true;
+			bi_finished = true;
+		}
 	}
 }
 
