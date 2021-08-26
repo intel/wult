@@ -12,7 +12,6 @@ This module provides API for generating HTML reports for ndl test results.
 """
 
 from wultlibs.reportlibs import _HTMLReportBase
-from wultlibs.helperlibs import Trivial
 
 DEFAULT_XAXES = "LDist"
 DEFAULT_YAXES = DEFAULT_HIST = DEFAULT_CHIST = "RTD"
@@ -32,15 +31,3 @@ class NdlHTMLReport(_HTMLReportBase.HTMLReportBase):
 
         super().__init__(rsts, outdir, title_descr=title_descr, xaxes=args["xaxes"],
                          yaxes=args["yaxes"], hist=args["hist"], chist=args["chist"])
-
-        # Column names representing C-state residency.
-        self._cs_colnames = set()
-
-        for res in rsts:
-            for colname in res.defs.get_csres_colnames():
-                # Form the list of column names representing C-state residency. We'll need to load
-                # them in order to detect C-states with no residency.
-                self._cs_colnames.add(colname)
-                self._more_colnames.append(colname)
-
-        self._more_colnames = Trivial.list_dedup(self._more_colnames)
