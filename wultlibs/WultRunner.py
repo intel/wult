@@ -220,6 +220,15 @@ class WultRunner:
     def _process_datapoint_cstates(self, dp):
         """Add and validate various 'dp' datapoint fields related to C-states."""
 
+        # Turn the C-state index into the C-state name.
+        try:
+            dp["ReqCState"] = self._csinfo[dp["ReqCState"]]["name"]
+        except KeyError:
+            # Supposedly an bad C-state index.
+            indexes_str = ", ".join(f"{idx} ({val['name']})" for idx, val in  self._csinfo.items())
+            raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
+                        f"{_dump_dp(dp)}\nAllowed indexes are:\n{indexes_str}") from None
+
         # The driver takes TSC and MPERF counters so that the MPERF interval is inside the
         # TSC interval, so delta TSC (total cycles) is expected to be always greater than
         # delta MPERF (C0 cycles).
@@ -267,15 +276,6 @@ class WultRunner:
                 _LOG.log(loglevel, "too high %s residency of %.1f%%, using 100%% instead. The "
                                    "datapoint is:\n%s", csname, dp[colname], _dump_dp(dp))
                 dp[colname] = 100.0
-
-        # Turn the C-state index into the C-state name.
-        try:
-            dp["ReqCState"] = self._csinfo[dp["ReqCState"]]["name"]
-        except KeyError:
-            # Supposedly an bad C-state index.
-            indexes_str = ", ".join(f"{idx} ({val['name']})" for idx, val in  self._csinfo.items())
-            raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
-                        f"{_dump_dp(dp)}\nAllowed indexes are:\n{indexes_str}") from None
 
     def _process_datapoint(self, rawdp):
         """
