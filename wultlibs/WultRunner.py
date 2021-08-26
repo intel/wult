@@ -236,24 +236,6 @@ class WultRunner:
             raise Error(f"total cycles is smaller than CC0 cycles, the datapoint is:\n"
                         f"{_dump_dp(dp)}")
 
-        if self._has_cstates and not self._is_poll_idle(dp):
-            # Inject additional C-state information to the datapoint.
-            # * CStatesCyc - combined count of CPU cycles in all non-CC0 C-states.
-            # * DerivedCC1Cyc - software-calculated CC1 cycles, which is useful to have because not
-            #                   every Intel platform has a HW CC1 counter. Calculated as "total
-            #                   cycles" - "cycles in C-states other than CC1".
-            cyc = sum([dp[name] for name in dp if name.startswith("CC") and name != "CC1Cyc"])
-            dp["DerivedCC1Cyc"] = dp["TotCyc"] - cyc
-            dp["CStatesCyc"] = dp["TotCyc"] - dp["CC0Cyc"]
-            if dp["DerivedCC1Cyc"] < 0:
-                # The C-state counters are not always precise, and we may end up with a negative
-                # number.
-                dp["DerivedCC1Cyc"] = 0
-            if dp["CStatesCyc"] < 0:
-                raise Error(f"negative 'CStatesCyc', the datapoint is:\n{_dump_dp(dp)}")
-        else:
-            dp["DerivedCC1Cyc"] = dp["CStatesCyc"] = 0
-
         # Add the C-state percentages.
         for colname in self._cs_colnames:
             field = Defs.get_cscyc_colname(Defs.get_csname(colname))
@@ -276,6 +258,23 @@ class WultRunner:
                 _LOG.log(loglevel, "too high %s residency of %.1f%%, using 100%% instead. The "
                                    "datapoint is:\n%s", csname, dp[colname], _dump_dp(dp))
                 dp[colname] = 100.0
+
+        if self._has_cstates and not self._is_poll_idle(dp):
+            # Inject additional C-state information to the datapoint.
+            # * DerivedCC1% - software-calculated CC1 cycles, which is useful to have because not
+            #                 every Intel platform has a HW CC1 counter. Calculated as
+            #                 total cycles minus cycles in C-states other than CC1.
+            # * CStates% - combined count of CPU cycles in all non-CC0 C-states.
+            cyc = sum([dp[name] for name in dp if Defs.is_cscyc_colname(name) and name != "CC1Cyc"])
+            dp["DerivedCC1%"] = (dp["TotCyc"] - cyc) / dp["TotCyc"] * 100.0
+            if dp["DerivedCC1%"] < 0:
+                # The C-state counters are not always precise, and we may end up with a negative
+                # number.
+                dp["DerivedCC1%"] = 0
+
+            dp["CStates%"] = (dp["TotCyc"] - dp["CC0Cyc"]) / dp["TotCyc"] * 100.0
+        else:
+            dp["DerivedCC1%"] = dp["CStates%"] = 0
 
     def _process_datapoint(self, rawdp):
         """
@@ -323,12 +322,6 @@ class WultRunner:
 
         self._has_cstates = Defs.get_cscyc_colnames(fields)
 
-        # Add the more metrics to the list of fields - we'll be injecting the values in
-        # '_process_datapoint()'.
-        if self._has_cstates:
-            fields.insert(fields.index("CC0Cyc") + 1, "DerivedCC1Cyc")
-        fields.append("CStatesCyc")
-
         # Get the C-states the measured platform provided by the driver for the measured platform.
         self._cs_colnames = list(Defs.get_cs_colnames(fields))
 
@@ -342,6 +335,9 @@ class WultRunner:
         # counters. We'll be calculating residencies later and include them too.
         for colname in self._cs_colnames:
             fields.append(colname)
+        fields.append("CStates%")
+        fields.insert(fields.index("CC0%") + 1, "DerivedCC1%")
+
         self._res.csv.add_header(fields)
 
     def _collect(self, dpcnt, tlimit):
