@@ -58,10 +58,10 @@ class KernelModule:
             try:
                 self._proc.run_verify(cmd)
             except Error as err:
-                raise Error(f"{err}{self._get_new_dmesg()}") from err
+                raise Error(f"{err}\n{self._get_new_dmesg()}") from err
 
             if _LOG.getEffectiveLevel() == logging.DEBUG:
-                _LOG.debug("the following command finished: %s%s", cmd, self._get_new_dmesg())
+                _LOG.debug("the following command finished: %s\n%s", cmd, self._get_new_dmesg())
         else:
             self._proc.run_verify(cmd)
 
