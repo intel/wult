@@ -221,6 +221,13 @@ class WultRunner:
     def _process_datapoint_cstates(self, dp):
         """Add and validate various 'dp' datapoint fields related to C-states."""
 
+        # The driver takes TSC and MPERF counters so that the MPERF interval is inside the
+        # TSC interval, so delta TSC (total cycles) is expected to be always greater than
+        # delta MPERF (C0 cycles).
+        if dp["TotCyc"] < dp["CC0Cyc"]:
+            raise Error(f"total cycles is smaller than CC0 cycles, the datapoint is:\n"
+                        f"{_dump_dp(dp)}")
+
         if self._has_cstates and not self._is_poll_idle(dp):
             # Inject additional C-state information to the datapoint.
             # * CStatesCyc - combined count of CPU cycles in all non-CC0 C-states.
