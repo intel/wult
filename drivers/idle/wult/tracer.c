@@ -61,8 +61,8 @@ static void before_idle(struct wult_info *wi)
 
 	/* Make a snapshot of C-state counters. */
 	wult_cstates_snap_cst(&ti->csinfo, 0);
-	wult_cstates_snap_mperf(&ti->csinfo, 0);
 	wult_cstates_snap_tsc(&ti->csinfo, 0);
+	wult_cstates_snap_mperf(&ti->csinfo, 0);
 
 	ti->tbi = wi->wdi->ops->get_time_before_idle(wi->wdi);
 }
@@ -76,8 +76,8 @@ static void after_idle(struct wult_info *wi)
 	ti->ai_tsc1 = rdtsc_ordered();
 	ti->tai = wdi->ops->get_time_after_idle(wdi, ti->ai_tsc1);
 
-	wult_cstates_snap_tsc(&ti->csinfo, 1);
 	wult_cstates_snap_mperf(&ti->csinfo, 1);
+	wult_cstates_snap_tsc(&ti->csinfo, 1);
 
 	ti->event_happened = wdi->ops->event_has_happened(wi->wdi);
 	ti->irqs_disabled = irqs_disabled();
@@ -92,8 +92,8 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 
 	ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
 
-	wult_cstates_snap_tsc(&ti->csinfo, 2);
 	wult_cstates_snap_mperf(&ti->csinfo, 2);
+	wult_cstates_snap_tsc(&ti->csinfo, 2);
 
 	ti->intr_tsc1 = cyc;
 	ti->smi_intr = get_smi_count();
