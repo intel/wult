@@ -120,8 +120,7 @@ def _apply_dp_overhead(dp):
             return None
 
         dp["IntrLatency"] -= dp["AIOverhead"]
-
-    if dp["IntrOverhead"]:
+    else:
         # Interrupts were enabled.
         if dp["IntrLatency"] >= dp["WakeLatency"]:
             _LOG.warning("'IntrLatency' is greater than 'WakeLatency', even though interrupts "
@@ -286,12 +285,6 @@ class WultRunner:
         """
 
         dp = rawdp
-
-        # The 'wult_tdt' driver does not handle the 'POLL' state correctly.
-        if self._ep.dev.drvname == "wult_tdt" and self._is_poll_idle(dp):
-            _LOG.debug("dropping the datapoint with 'POLL' idle state as 'wult_tdt' driver does "
-                       "not handle it correctly")
-            return None
 
         if dp["TotCyc"] == 0:
             # This should not happen.
@@ -621,22 +614,11 @@ class WultRunner:
                 self._csinfo = cpuidle.get_cstates_info_dict(res.cpunum)
 
         # Check that there are idle states that we can measure.
-        idle_present = False # An idle state is present, including POLL idle state.
-        cstate_present = False # A real C-state is present (POLL idle excluded).
         for info in self._csinfo.values():
             if not info["disable"]:
-                idle_present = True
-                if info["name"] != "POLL":
-                    cstate_present = True
-
-        if not idle_present:
+                break
+        else:
             raise Error(f"no idle states are enabled on CPU {res.cpunum}{proc.hostmsg}")
-        if not cstate_present and self._ep.dev.info["devid"] == "tdt":
-            msg = ""
-            if idle_present:
-                msg = "\nNote, the 'tdt' method does not support measuring the POLL idle state, " \
-                      "use 'hrtimer' or 'i210' for measuring the POLL idle state."
-            raise Error(f"no C-states are enabled on CPU {res.cpunum}{proc.hostmsg}{msg}")
 
         self._sysctl = Systemctl.Systemctl(proc=proc)
         self._has_irqbalance = self._sysctl.is_active("irqbalance")
