@@ -12,7 +12,6 @@ This module provides API for generating HTML reports for wult test results.
 """
 
 from wultlibs.reportlibs import _HTMLReportBase
-from wultlibs.helperlibs import Trivial
 
 # The constants below define the diagrams and histograms that are included into a report. There are
 # 3 groups of constands - for a small report, a medium report, and large report. The former includes
@@ -56,15 +55,3 @@ class WultHTMLReport(_HTMLReportBase.HTMLReportBase):
         super().__init__(rsts, outdir, title_descr=title_descr, xaxes=args["xaxes"],
                          yaxes=args["yaxes"], hist=args["hist"], chist=args["chist"],
                          exclude_xaxes=EXCLUDE_XAXES, exclude_yaxes=EXCLUDE_YAXES)
-
-        # Column names representing C-state cycles.
-        self._cs_cyc_colnames = set()
-
-        for res in rsts:
-            for colname in res.defs.get_cscyc_colnames():
-                # Form the list of column names representing C-state cycles. We'll need to load them
-                # in order to detect C-states with no residency.
-                self._cs_cyc_colnames.add(colname)
-                self._more_colnames.append(colname)
-
-        self._more_colnames = Trivial.list_dedup(self._more_colnames)
