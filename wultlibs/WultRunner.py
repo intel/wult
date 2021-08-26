@@ -87,7 +87,7 @@ def _apply_dp_overhead(dp):
         raise Error(f"Both 'AIOverhead' and 'IntrOverhead' are not 0 at the same time. The "
                     f"datapoint is:\n{_dump_dp(dp)}") from None
 
-    if dp["AIOverhead"]:
+    if dp["IntrOff"]:
         # Interrupts were disabled.
         if dp["WakeLatency"] >= dp["IntrLatency"]:
             _LOG.warning("'WakeLatency' is greater than 'IntrLatency', even though interrupts "
@@ -304,9 +304,6 @@ class WultRunner:
         if not _apply_dp_overhead(dp):
             return None
 
-        # Inject 'IntrDelay' - the interrupt delay.
-        dp["IntrDelay"] = dp["IntrLatency"] - dp["WakeLatency"]
-
         # Save time in microseconds.
         times_us = {}
         for colname, val in dp.items():
@@ -333,7 +330,6 @@ class WultRunner:
 
         # Add the more metrics to the list of fields - we'll be injecting the values in
         # '_process_datapoint()'.
-        fields.insert(fields.index("IntrLatency") + 1, "IntrDelay")
         if self._has_cstates:
             fields.insert(fields.index("CC0Cyc") + 1, "DerivedCC1Cyc")
         fields.append("CStatesCyc")
