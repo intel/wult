@@ -246,25 +246,27 @@ class WultRunner:
             dp["DerivedCC1Cyc"] = dp["CStatesCyc"] = 0
 
         # Add the C-state percentages.
-        for cscyc_colname, csres_colname in self._cs_colnames:
+        for colname in self._cs_colnames:
+            field = Defs.get_cscyc_colname(Defs.get_csname(colname))
+
             # In case of POLL state, calculate only CC0%.
-            if self._is_poll_idle(dp) and cscyc_colname != "CC0Cyc":
-                dp[csres_colname] = 0
+            if self._is_poll_idle(dp) and field != "CC0Cyc":
+                dp[colname] = 0
                 continue
 
-            dp[csres_colname] = dp[cscyc_colname] / dp["TotCyc"] * 100.0
+            dp[colname] = dp[field] / dp["TotCyc"] * 100.0
 
-            if dp[csres_colname] > 100:
+            if dp[colname] > 100:
                 loglevel = logging.DEBUG
                 # Sometimes C-state residency counters are not precise, especially during short
                 # sleep times. Warn only about too large percentage.
-                if dp[csres_colname] > 300:
+                if dp[colname] > 300:
                     loglevel = logging.WARNING
 
-                csname = Defs.get_csname(csres_colname)
+                csname = Defs.get_csname(colname)
                 _LOG.log(loglevel, "too high %s residency of %.1f%%, using 100%% instead. The "
-                                   "datapoint is:\n%s", csname, dp[csres_colname], _dump_dp(dp))
-                dp[csres_colname] = 100.0
+                                   "datapoint is:\n%s", csname, dp[colname], _dump_dp(dp))
+                dp[colname] = 100.0
 
         # Turn the C-state index into the C-state name.
         try:
@@ -327,8 +329,7 @@ class WultRunner:
             fields.insert(fields.index("CC0Cyc") + 1, "DerivedCC1Cyc")
         fields.append("CStatesCyc")
 
-        # Now 'fields' contains information about C-state of the measured platform, save it for
-        # later use.
+        # Get the C-states the measured platform provided by the driver for the measured platform.
         self._cs_colnames = list(Defs.get_cs_colnames(fields))
 
         # Driver sends time data in nanoseconds, build list of columns which we need to convert to
@@ -339,8 +340,8 @@ class WultRunner:
 
         # The raw datapoint does not include C-state residency data, it only has the C-state cycle
         # counters. We'll be calculating residencies later and include them too.
-        for _, csres_colname in self._cs_colnames:
-            fields.append(csres_colname)
+        for colname in self._cs_colnames:
+            fields.append(colname)
         self._res.csv.add_header(fields)
 
     def _collect(self, dpcnt, tlimit):

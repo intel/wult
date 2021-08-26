@@ -101,7 +101,7 @@ def get_cs_colnames(colnames):
     for colname in colnames:
         if is_cscyc_colname(colname):
             csname = get_csname(colname)
-            yield (get_cscyc_colname(csname), get_csres_colname(csname))
+            yield get_csres_colname(csname)
 
 def get_cscyc_colnames(colnames):
     """Yield all C-state cycles column names found in 'colnames'."""
@@ -123,8 +123,8 @@ class Defs:
     def get_cs_colnames(self):
         """Similar to the module-level 'get_cs_colnames()'."""
 
-        for colnames in get_cs_colnames(self.info):
-            yield colnames
+        for colname in get_cs_colnames(self.info):
+            yield colname
 
     def get_cscyc_colnames(self):
         """Similar to the module-level 'get_cscyc_colnames()'."""
