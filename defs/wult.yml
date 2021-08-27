@@ -66,6 +66,17 @@ CC0%:
     short_unit: "%"
     default_funcs: "all"
     optional: False
+CC1Derived%:
+    title: "Derived CC1%"
+    descr: >-
+        Percent of the time spent in the CC1 state over the idle period. Calculated as
+        ('TotCyc' - 'CC0Cyc') / 'TotCyc' * 100.
+    type: "float"
+    unit: "%"
+    short_unit: "%"
+    default_funcs: "all"
+    optional: True
+    drop_empty: True
 CCx%:
     title: "The CCx core C-state residency"
     descr: >-
