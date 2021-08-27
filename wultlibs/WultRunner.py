@@ -229,6 +229,10 @@ class WultRunner:
             raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
                         f"{_dump_dp(dp)}\nAllowed indexes are:\n{indexes_str}") from None
 
+        if dp["TotCyc"] == 0:
+            raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
+                        f"a bug. The datapoint is:\n{_dump_dp(dp)}") from None
+
         # The driver takes TSC and MPERF counters so that the MPERF interval is inside the
         # TSC interval, so delta TSC (total cycles) is expected to be always greater than
         # delta MPERF (C0 cycles).
@@ -283,11 +287,6 @@ class WultRunner:
         """
 
         dp = rawdp
-
-        if dp["TotCyc"] == 0:
-            # This should not happen.
-            raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
-                        f"a bug. The datapoint is:\n{_dump_dp(dp)}") from None
 
         # Add and validated C-state related fields.
         self._process_datapoint_cstates(dp)
