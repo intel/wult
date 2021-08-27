@@ -99,48 +99,6 @@ PCx%:
     default_funcs: "all"
     optional: True
     drop_empty: True
-TotCyc:
-    title: "Total CPU Cycles Count"
-    descr: >-
-        Total count of CPU cycles over the idle period.
-    type: "int"
-    unit: "CPU cycles"
-    short_unit: "cyc"
-    default_funcs: "all"
-    optional: False
-CC0Cyc:
-    title: "Core C-state 0 Cycles count"
-    descr: >-
-        Count of CPU cycles spent in the CC0 (running) state over the idle period.
-    type: "int"
-    unit: "CPU cycles"
-    short_unit: "cyc"
-    default_funcs: "all"
-    optional: False
-CCxCyc:
-    title: "The CCx core C-state cycles count"
-    descr: >-
-        Count of CPU cycles spent in the CCx core C-state state over the idle period. Different
-        platforms support different C-states. For example, Intel platforms may support CC1, CC1E,
-        CC3, CC6, etc.
-    type: "int"
-    unit: "CPU cycles"
-    short_unit: "cyc"
-    default_funcs: "all"
-    optional: True
-    drop_empty: True
-PCxCyc:
-    title: "The PCx package C-state cycles count"
-    descr: >-
-        Count of CPU cycles spent in the PCx package C-state state over the idle period. Different
-        platforms support different C-states. For example, Intel platforms may support PC3, PC6,
-        etc.
-    type: "int"
-    unit: "CPU cycles"
-    short_unit: "cyc"
-    default_funcs: "all"
-    optional: True
-    drop_empty: True
 SMICnt:
     title: "SMI count while measuring 'WakeLatency' or 'IntrLatency'"
     descr: >-
