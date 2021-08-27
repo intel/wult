@@ -317,7 +317,7 @@ class WultRunner:
         fields = list(rawdp.keys())
         fields = [col for col in list(fields) if col not in self._exclude_colnames]
 
-        self._has_cstates = Defs.get_cscyc_colnames(fields)
+        self._has_cstates = any([Defs.is_cscyc_colname(field) for field in fields])
 
         # Get the C-states the measured platform provided by the driver for the measured platform.
         self._cs_colnames = list(Defs.get_cs_colnames(fields))
