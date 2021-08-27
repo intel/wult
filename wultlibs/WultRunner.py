@@ -261,17 +261,17 @@ class WultRunner:
 
         if self._has_cstates and not self._is_poll_idle(dp):
             # Inject additional C-state information to the datapoint.
-            # * DerivedCC1% - software-calculated CC1 cycles, which is useful to have because not
+            # * CC1Derived% - software-calculated CC1 cycles, which is useful to have because not
             #                 every Intel platform has a HW CC1 counter. Calculated as
             #                 total cycles minus cycles in C-states other than CC1.
             cyc = sum([dp[name] for name in dp if Defs.is_cscyc_colname(name) and name != "CC1Cyc"])
-            dp["DerivedCC1%"] = (dp["TotCyc"] - cyc) / dp["TotCyc"] * 100.0
-            if dp["DerivedCC1%"] < 0:
+            dp["CC1Derived%"] = (dp["TotCyc"] - cyc) / dp["TotCyc"] * 100.0
+            if dp["CC1Derived%"] < 0:
                 # The C-state counters are not always precise, and we may end up with a negative
                 # number.
-                dp["DerivedCC1%"] = 0
+                dp["CC1Derived%"] = 0
         else:
-            dp["DerivedCC1%"] = 0
+            dp["CC1Derived%"] = 0
 
     def _process_datapoint(self, rawdp):
         """
@@ -332,7 +332,7 @@ class WultRunner:
         # counters. We'll be calculating residencies later and include them too.
         for colname in self._cs_colnames:
             fields.append(colname)
-        fields.insert(fields.index("CC0%") + 1, "DerivedCC1%")
+        fields.insert(fields.index("CC0%") + 1, "CC1Derived%")
 
         self._res.csv.add_header(fields)
 

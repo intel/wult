@@ -21,14 +21,14 @@ _RAISE = object()
 def is_cscyc_colname(colname):
     """Returns 'True' if 'colname' is a C-state cycles count CSV column name."""
 
-    return (colname.startswith("CC") or colname.startswith("DerivedCC") or \
-            colname.startswith("PC")) and colname.endswith("Cyc") and len(colname) > 5
+    return (colname.startswith("CC") or colname.startswith("PC")) and \
+            colname.endswith("Cyc") and len(colname) > 5
 
 def is_csres_colname(colname):
     """Returns 'True' if 'colname' is a C-state residency CSV column name."""
 
-    return (colname.startswith("CC") or colname.startswith("DerivedCC") or \
-            colname.startswith("PC")) and colname.endswith("%") and len(colname) > 3
+    return (colname.startswith("CC") or colname.startswith("PC")) and \
+            colname.endswith("%") and len(colname) > 3
 
 def is_cs_colname(colname):
     """Returns 'True' if 'colname' is a C-state residency or cycles counter CSV column name."""
@@ -45,11 +45,12 @@ def get_csname(colname, default=_RAISE):
     csname = None
     if colname.endswith("Cyc"):
         csname = colname[:-3]
+        if csname.endswith("Derived"):
+            csname = csname[:-len("Derived")]
     elif colname.endswith("%"):
         csname = colname[:-1]
 
-    if not csname or not (colname.startswith("CC") or colname.startswith("DerivedCC") or \
-                          colname.startswith("PC")):
+    if not csname or not (colname.startswith("CC") or colname.startswith("PC")):
         if default is _RAISE:
             raise Error(f"cannot get C-state name for CSV column '{colname}'")
         return default
@@ -62,7 +63,7 @@ def is_core_cs(csname):
     'csname' is not a valid C-state name).
     """
 
-    return (csname.startswith("CC") or csname.startswith("DerivedCC")) and len(csname) > 2
+    return csname.startswith("CC") and len(csname) > 2
 
 def is_package_cs(csname):
     """

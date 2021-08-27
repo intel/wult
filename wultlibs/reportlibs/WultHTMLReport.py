@@ -27,7 +27,7 @@ SMALL_HIST = f"{SMALL_YAXES}"
 SMALL_CHIST = r"WakeLatency"
 
 LARGE_XAXES = "SilentTime,LDist"
-LARGE_YAXES = r".*Latency,.*Delay,(Derived)?[PC]C.+%,SilentTime,ReqCState"
+LARGE_YAXES = r".*Latency,.*Delay,[PC]C.+%,SilentTime,ReqCState"
 LARGE_HIST = f"{LARGE_YAXES},LDist"
 LARGE_CHIST = r".*Latency"
 
