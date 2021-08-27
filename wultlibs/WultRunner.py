@@ -61,7 +61,7 @@ def _dump_dp(dp):
 
     return "\n".join(["    ".join(row).strip() for row in zip_longest(*columns, fillvalue="")])
 
-def _apply_dp_overhead(dp):
+def _apply_dp_overhead(rawdp, dp):
     """
     This is a helper function for '_process_datapoint()' which handles the 'AIOverhead' and
     'IntrOverhead' values and modifies the 'dp' datapoint accordingly.
@@ -83,19 +83,19 @@ def _apply_dp_overhead(dp):
     We do not save 'AIOverhead' and 'IntrOverhead' in the CSV file.
     """
 
-    if dp["AIOverhead"] and dp["IntrOverhead"]:
+    if rawdp["AIOverhead"] and rawdp["IntrOverhead"]:
         raise Error(f"Both 'AIOverhead' and 'IntrOverhead' are not 0 at the same time. The "
-                    f"datapoint is:\n{_dump_dp(dp)}") from None
+                    f"datapoint is:\n{_dump_dp(rawdp)}") from None
 
-    if dp["IntrOff"]:
+    if rawdp["IntrOff"]:
         # Interrupts were disabled.
-        if dp["WakeLatency"] >= dp["IntrLatency"]:
+        if rawdp["WakeLatency"] >= rawdp["IntrLatency"]:
             _LOG.warning("'WakeLatency' is greater than 'IntrLatency', even though interrupts "
                          "were disabled. The datapoint is:\n%s\nDropping this datapoint\n",
-                         _dump_dp(dp))
+                         _dump_dp(rawdp))
             return None
 
-        if dp["AIOverhead"] >= dp["IntrLatency"]:
+        if rawdp["AIOverhead"] >= rawdp["IntrLatency"]:
             # This sometimes happens, and here are 2 contributing factors that may lead to this
             # condition.
             # 1. The overhead is measured by reading TSC at the beginning and the end of the
@@ -109,37 +109,37 @@ def _apply_dp_overhead(dp):
             #    'AIOverhead', then the armed event happens when the CPU is in C0, and we measure
             #    very small 'IntrLatency'.
             _LOG.debug("'AIOverhead' is greater than interrupt latency ('IntrLatency'). The "
-                       "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(dp))
+                       "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(rawdp))
             return None
 
-        if dp["WakeLatency"] >= dp["IntrLatency"] - dp["AIOverhead"]:
+        if rawdp["WakeLatency"] >= rawdp["IntrLatency"] - rawdp["AIOverhead"]:
             # This condition may happen for similar reasons.
             _LOG.debug("'WakeLatency' is greater than 'IntrLatency' - 'AIOverhead', even though "
                        "interrupts were disabled. The datapoint is:\n%s\nDropping this "
-                       "datapoint\n", _dump_dp(dp))
+                       "datapoint\n", _dump_dp(rawdp))
             return None
 
-        dp["IntrLatency"] -= dp["AIOverhead"]
+        dp["IntrLatency"] -= rawdp["AIOverhead"]
     else:
         # Interrupts were enabled.
-        if dp["IntrLatency"] >= dp["WakeLatency"]:
+        if rawdp["IntrLatency"] >= rawdp["WakeLatency"]:
             _LOG.warning("'IntrLatency' is greater than 'WakeLatency', even though interrupts "
                          "were enabled. The datapoint is:\n%s\nDropping this datapoint\n",
-                         _dump_dp(dp))
+                         _dump_dp(rawdp))
             return None
 
-        if dp["IntrOverhead"] >= dp["WakeLatency"]:
+        if rawdp["IntrOverhead"] >= rawdp["WakeLatency"]:
             _LOG.debug("'IntrOverhead' is greater than wake latency ('WakeLatency'). The "
-                       "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(dp))
+                       "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(rawdp))
             return None
 
-        if dp["IntrLatency"] >= dp["WakeLatency"] - dp["IntrOverhead"]:
+        if rawdp["IntrLatency"] >= rawdp["WakeLatency"] - rawdp["IntrOverhead"]:
             _LOG.debug("'IntrLatency' is greater than 'WakeLatency' - 'IntrOverhead', even "
                        "though interrupts were enabled. The datapoint is:\n%s\nDropping this "
-                       "datapoint\n", _dump_dp(dp))
+                       "datapoint\n", _dump_dp(rawdp))
             return None
 
-        dp["WakeLatency"] -= dp["IntrOverhead"]
+        dp["WakeLatency"] -= rawdp["IntrOverhead"]
     return dp
 
 class WultRunner:
@@ -217,39 +217,42 @@ class WultRunner:
         """Returns 'True' if the 'dp' datapoint contains the POLL idle state data."""
         return dp["ReqCState"] == 0
 
-    def _process_datapoint_cstates(self, dp):
-        """Add and validate various 'dp' datapoint fields related to C-states."""
+    def _process_datapoint_cstates(self, rawdp, dp):
+        """
+        Validate various raw datapoint 'rawdp' fields related to C-states. Populate CSV datapoint
+        ('dp') fields related to C-states.
+        """
 
         # Turn the C-state index into the C-state name.
         try:
-            dp["ReqCState"] = self._csinfo[dp["ReqCState"]]["name"]
+            dp["ReqCState"] = self._csinfo[rawdp["ReqCState"]]["name"]
         except KeyError:
             # Supposedly an bad C-state index.
             indexes_str = ", ".join(f"{idx} ({val['name']})" for idx, val in  self._csinfo.items())
-            raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
-                        f"{_dump_dp(dp)}\nAllowed indexes are:\n{indexes_str}") from None
+            raise Error(f"bad C-state index '{rawdp['ReqCState']}' in the following datapoint:\n"
+                        f"{_dump_dp(rawdp)}\nAllowed indexes are:\n{indexes_str}") from None
 
-        if dp["TotCyc"] == 0:
+        if rawdp["TotCyc"] == 0:
             raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
-                        f"a bug. The datapoint is:\n{_dump_dp(dp)}") from None
+                        f"a bug. The raw datapoint is:\n{_dump_dp(rawdp)}") from None
 
         # The driver takes TSC and MPERF counters so that the MPERF interval is inside the
         # TSC interval, so delta TSC (total cycles) is expected to be always greater than
         # delta MPERF (C0 cycles).
-        if dp["TotCyc"] < dp["CC0Cyc"]:
-            raise Error(f"total cycles is smaller than CC0 cycles, the datapoint is:\n"
-                        f"{_dump_dp(dp)}")
+        if rawdp["TotCyc"] < rawdp["CC0Cyc"]:
+            raise Error(f"total cycles is smaller than CC0 cycles, the raw datapoint is:\n"
+                        f"{_dump_dp(rawdp)}")
 
         # Add the C-state percentages.
         for colname in self._cs_colnames:
             field = Defs.get_cscyc_colname(Defs.get_csname(colname))
 
             # In case of POLL state, calculate only CC0%.
-            if self._is_poll_idle(dp) and field != "CC0Cyc":
+            if self._is_poll_idle(rawdp) and field != "CC0Cyc":
                 dp[colname] = 0
                 continue
 
-            dp[colname] = dp[field] / dp["TotCyc"] * 100.0
+            dp[colname] = rawdp[field] / rawdp["TotCyc"] * 100.0
 
             if dp[colname] > 100:
                 loglevel = logging.DEBUG
@@ -260,16 +263,20 @@ class WultRunner:
 
                 csname = Defs.get_csname(colname)
                 _LOG.log(loglevel, "too high %s residency of %.1f%%, using 100%% instead. The "
-                                   "datapoint is:\n%s", csname, dp[colname], _dump_dp(dp))
+                                   "datapoint is:\n%s", csname, dp[colname], _dump_dp(rawdp))
                 dp[colname] = 100.0
 
-        if self._has_cstates and not self._is_poll_idle(dp):
-            # Inject additional C-state information to the datapoint.
-            # * CC1Derived% - software-calculated CC1 cycles, which is useful to have because not
-            #                 every Intel platform has a HW CC1 counter. Calculated as
-            #                 total cycles minus cycles in C-states other than CC1.
-            cyc = sum([dp[name] for name in dp if Defs.is_cscyc_colname(name) and name != "CC1Cyc"])
-            dp["CC1Derived%"] = (dp["TotCyc"] - cyc) / dp["TotCyc"] * 100.0
+        if self._has_cstates and not self._is_poll_idle(rawdp):
+            # Populate 'CC1Derived%' - the software-calculated CC1 residency, which is useful to
+            # have because not every Intel platform has a hardware CC1 counter. Calculated as total
+            # cycles minus cycles in C-states other than CC1.
+
+            non_cc1_cyc = 0
+            for field in rawdp.keys():
+                if Defs.is_cscyc_colname(field) and Defs.get_csname(field) != "CC1":
+                    non_cc1_cyc += rawdp[field]
+
+            dp["CC1Derived%"] = (rawdp["TotCyc"] - non_cc1_cyc) / rawdp["TotCyc"] * 100.0
             if dp["CC1Derived%"] < 0:
                 # The C-state counters are not always precise, and we may end up with a negative
                 # number.
@@ -286,26 +293,19 @@ class WultRunner:
         datapoint.
         """
 
-        dp = rawdp
+        dp = {colname : rawdp.get(colname) for colname in self._colnames}
 
         # Add and validated C-state related fields.
-        self._process_datapoint_cstates(dp)
+        self._process_datapoint_cstates(rawdp, dp)
 
-        if not _apply_dp_overhead(dp):
+        if not _apply_dp_overhead(rawdp, dp):
             return None
 
+        # Some raw datapoint values are in nanoseconds, but we need them to be in microseconds.
         # Save time in microseconds.
-        times_us = {}
         for colname, val in dp.items():
-            if colname in self._us_colnames_set:
-                times_us[colname] = val / 1000
-        dp.update(times_us)
-
-        # Remove the less important fields in order to keep the datapoints CSV file smaller.
-        for field in list(dp.keys()):
-            if field not in self._colnames_set:
-                del dp[field]
-
+            if colname in rawdp and colname in self._us_colnames_set:
+                dp[colname] = rawdp[colname] / 1000.0
         return dp
 
     def _prepare_to_process_datapoints(self, rawdp):
@@ -346,7 +346,7 @@ class WultRunner:
                             f"{_dump_dp(rawdp)}")
 
         self._res.csv.add_header(colnames)
-        self._colnames_set = set(colnames)
+        self._colnames = colnames
 
     def _collect(self, dpcnt, tlimit):
         """
@@ -591,7 +591,7 @@ class WultRunner:
         self._timeout = 10
         self._fields = None
         self._has_cstates = None
-        self._colnames_set = None
+        self._colnames = None
         self._cs_colnames = None
         self._us_colnames_set = None
         self._progress = None
