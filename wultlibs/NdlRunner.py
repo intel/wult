@@ -283,9 +283,8 @@ class NdlRunner:
         ndlrunner = self._ndlrunner
         self._ndlrunner = None
         with contextlib.suppress(Error):
-            pd = ndlrunner._pd_
-            pd.stdin.write("q\n".encode("utf8"))
-            pd.stdin.flush()
+            ndlrunner.stdin.write("q\n".encode("utf8"))
+            ndlrunner.stdin.flush()
 
         _, _, exitcode = ndlrunner.wait_for_cmd(timeout=5)
         if exitcode is None:
