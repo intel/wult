@@ -264,17 +264,14 @@ class WultRunner:
             # * DerivedCC1% - software-calculated CC1 cycles, which is useful to have because not
             #                 every Intel platform has a HW CC1 counter. Calculated as
             #                 total cycles minus cycles in C-states other than CC1.
-            # * CStates% - combined count of CPU cycles in all non-CC0 C-states.
             cyc = sum([dp[name] for name in dp if Defs.is_cscyc_colname(name) and name != "CC1Cyc"])
             dp["DerivedCC1%"] = (dp["TotCyc"] - cyc) / dp["TotCyc"] * 100.0
             if dp["DerivedCC1%"] < 0:
                 # The C-state counters are not always precise, and we may end up with a negative
                 # number.
                 dp["DerivedCC1%"] = 0
-
-            dp["CStates%"] = (dp["TotCyc"] - dp["CC0Cyc"]) / dp["TotCyc"] * 100.0
         else:
-            dp["DerivedCC1%"] = dp["CStates%"] = 0
+            dp["DerivedCC1%"] = 0
 
     def _process_datapoint(self, rawdp):
         """
@@ -335,7 +332,6 @@ class WultRunner:
         # counters. We'll be calculating residencies later and include them too.
         for colname in self._cs_colnames:
             fields.append(colname)
-        fields.append("CStates%")
         fields.insert(fields.index("CC0%") + 1, "DerivedCC1%")
 
         self._res.csv.add_header(fields)
