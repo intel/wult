@@ -317,10 +317,16 @@ class WultRunner:
         fields = list(rawdp.keys())
         fields = [col for col in list(fields) if col not in self._exclude_colnames]
 
-        self._has_cstates = any([Defs.is_cscyc_colname(field) for field in fields])
+        self._cs_colnames = []
+        self._has_cstates = False
 
-        # Get the C-states the measured platform provided by the driver for the measured platform.
-        self._cs_colnames = list(Defs.get_cs_colnames(fields))
+        for field in fields:
+            csname = Defs.get_csname(field, default=None)
+            if not csname:
+                # Not a C-state field.
+                continue
+            self._has_cstates = True
+            self._cs_colnames.append(Defs.get_csres_colname(csname))
 
         # Driver sends time data in nanoseconds, build list of columns which we need to convert to
         # microseconds.

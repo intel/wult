@@ -89,26 +89,8 @@ def get_csres_colname(csname):
 
     return f"{csname}%"
 
-def get_cs_colnames(colnames):
-    """
-    For every C-state cyscles column name in 'columns', yield a tuple of the following elements.
-    * the C-state cycles column name.
-    * the C-state residency column name corresponging to the found cycles column name.
-    """
-
-    for colname in colnames:
-        if is_cscyc_colname(colname):
-            csname = get_csname(colname)
-            yield get_csres_colname(csname)
-
 class Defs:
     """This class provides API to the datapoints CSV file definitions (AKA 'defs')."""
-
-    def get_cs_colnames(self):
-        """Similar to the module-level 'get_cs_colnames()'."""
-
-        for colname in get_cs_colnames(self.info):
-            yield colname
 
     def populate_cstates(self, hdr):
         """
