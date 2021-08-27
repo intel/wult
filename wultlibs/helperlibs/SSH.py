@@ -500,10 +500,6 @@ class _ChannelPrivateData:
 
         # The 'SSH' object corresponding to the channel.
         self.ssh = None
-        # File objects for the 3 standard streams of the command's process.
-        self.stdin = None
-        self.stdout = None
-        self.stderr = None
         # The 2 output streams of the command's process (stdout, stderr).
         self.streams = []
         # The queue which is used for passing commands output from stream fetcher threads.
@@ -538,6 +534,11 @@ def _add_custom_fields(chan, ssh, cmd, real_cmd):
 
     pd = chan._pd_ = _ChannelPrivateData()
 
+    # File objects for the 3 standard streams of the command's process.
+    chan.stdin = None
+    chan.stdout = None
+    chan.stderr = None
+
     for name, mode in (("stdin", "wb"), ("stdout", "rb"), ("stderr", "rb")):
         try:
             if name != "stderr":
@@ -551,7 +552,7 @@ def _add_custom_fields(chan, ssh, cmd, real_cmd):
         wrapped_fobj = WrapExceptions.WrapExceptions(fobj, exceptions=_PARAMIKO_EXCEPTIONS,
                                                      get_err_prefix=_get_err_prefix)
         wrapped_fobj.name = name
-        setattr(pd, name, wrapped_fobj)
+        setattr(chan, name, wrapped_fobj)
 
     pd.ssh = ssh
     pd.real_cmd = real_cmd
