@@ -297,7 +297,7 @@ class WultRunner:
         # Save time in microseconds.
         times_us = {}
         for colname, val in dp.items():
-            if colname in self._us_colnames:
+            if colname in self._us_colnames_set:
                 times_us[colname] = val / 1000
         dp.update(times_us)
 
@@ -331,8 +331,8 @@ class WultRunner:
             self._has_cstates = True
             self._cs_colnames.append(Defs.get_csres_colname(csname))
 
-        self._us_colnames = [colname for colname, vals in defs.info.items() \
-                             if vals.get("unit") == "microsecond"]
+        self._us_colnames_set = {colname for colname, vals in defs.info.items() \
+                                 if vals.get("unit") == "microsecond"}
 
         # Form the list of colums in the datapoints CSV file.
         colnames = []
@@ -593,7 +593,7 @@ class WultRunner:
         self._has_cstates = None
         self._colnames_set = None
         self._cs_colnames = None
-        self._us_colnames = None
+        self._us_colnames_set = None
         self._progress = None
         self._max_latency = 0
         self._sysctl = None
