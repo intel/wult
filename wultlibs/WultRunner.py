@@ -302,9 +302,11 @@ class WultRunner:
                 times_us[colname] = val / 1000
         dp.update(times_us)
 
-        # Drop the not-so-useful columns.
-        for colname in self._exclude_colnames:
-            del dp[colname]
+        # Remove the less important fields in order to keep the datapoints CSV file smaller.
+        for field in list(dp.keys()):
+            if field not in self._colnames_set:
+                del dp[field]
+
         return dp
 
     def _prepare_to_process_datapoints(self, rawdp):
@@ -315,7 +317,9 @@ class WultRunner:
         """
 
         fields = list(rawdp.keys())
-        fields = [col for col in list(fields) if col not in self._exclude_colnames]
+
+        defs = Defs.Defs(self._res.info["toolname"])
+        defs.populate_cstates(fields)
 
         self._cs_colnames = []
         self._has_cstates = False
@@ -328,19 +332,22 @@ class WultRunner:
             self._has_cstates = True
             self._cs_colnames.append(Defs.get_csres_colname(csname))
 
-        # Driver sends time data in nanoseconds, build list of columns which we need to convert to
-        # microseconds.
-        defs = Defs.Defs(self._res.info["toolname"])
         self._us_colnames = [colname for colname, vals in defs.info.items() \
                              if vals.get("unit") == "microsecond"]
 
-        # The raw datapoint does not include C-state residency data, it only has the C-state cycle
-        # counters. We'll be calculating residencies later and include them too.
-        for colname in self._cs_colnames:
-            fields.append(colname)
-        fields.insert(fields.index("CC0%") + 1, "CC1Derived%")
+        # Form the list of colums in the datapoints CSV file.
+        colnames = []
+        for colname in defs.info.keys():
+            if Defs.is_csres_colname(colname) or colname in rawdp:
+                colnames.append(colname)
+                continue
 
-        self._res.csv.add_header(fields)
+            if not defs.info[colname].get("optional"):
+                raise Error(f"the mandatory '{colname}' filed was not found. The datapoint is:\n"
+                            f"{_dump_dp(rawdp)}")
+
+        self._res.csv.add_header(colnames)
+        self._colnames_set = set(colnames)
 
     def _collect(self, dpcnt, tlimit):
         """
@@ -585,6 +592,7 @@ class WultRunner:
         self._timeout = 10
         self._fields = None
         self._has_cstates = None
+        self._colnames_set = None
         self._cs_colnames = None
         self._us_colnames = None
         self._progress = None
@@ -594,13 +602,6 @@ class WultRunner:
         self._post_trigger = None
         self._post_trigger_range = []
         self._stcoll = None
-
-        # Not all information from the driver is saved in the CSV file, because it is not very
-        # useful and we have it mostly for debugging and purposes. For example, "TAI" (Time After
-        # Idle) or "LTime" (Launch Time) are not very interesting for the end user. Here are the
-        # columns that we exclude from the CSV file.
-        self._exclude_colnames = {"LTime", "TAI", "TBI", "TIntr", "AIOverhead", "IntrOverhead",
-                                  "IntrOff", "AICyc1", "AICyc2", "IntrCyc1", "IntrCyc2"}
 
         self._validate_sut()
 
