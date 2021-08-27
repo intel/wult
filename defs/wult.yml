@@ -60,7 +60,7 @@ CC0%:
     title: "Busy percent"
     descr: >-
         Percent of the time spent in the C0 state over the idle period. Calculated as
-        ('CC0Cyc' / 'TotalCyc') * 100.
+        ('CC0Cyc' / 'TotCyc') * 100.
     type: "float"
     unit: "%"
     short_unit: "%"
@@ -81,7 +81,7 @@ CCx%:
     title: "The CCx core C-state residency"
     descr: >-
         Percent of the time spent in the CCx core C-state state over the idle period. Calculated as
-        ('CCxCyc' / 'TotalCyc') * 100.
+        ('CCxCyc' / 'TotCyc') * 100.
     type: "float"
     unit: "%"
     short_unit: "%"
@@ -92,7 +92,7 @@ PCx%:
     title: "The PCx package C-state residency"
     descr: >-
         Percent of the time spent in the PCx package state over the idle period. Calculated as
-        ('PCxCyc' / 'TotalCyc') * 100.
+        ('PCxCyc' / 'TotCyc') * 100.
     type: "float"
     unit: "%"
     short_unit: "%"
