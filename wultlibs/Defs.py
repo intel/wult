@@ -108,13 +108,6 @@ def get_cscyc_colnames(colnames):
         if is_cscyc_colname(colname):
             yield colname
 
-def get_csres_colnames(colnames):
-    """Yield all C-state residency column names found in 'colnames'."""
-
-    for colname in colnames:
-        if is_csres_colname(colname):
-            yield colname
-
 class Defs:
     """This class provides API to the datapoints CSV file definitions (AKA 'defs')."""
 
@@ -128,12 +121,6 @@ class Defs:
         """Similar to the module-level 'get_cscyc_colnames()'."""
 
         for colnames in get_cscyc_colnames(self.info):
-            yield colnames
-
-    def get_csres_colnames(self):
-        """Similar to the module-level 'get_csres_colnames()'."""
-
-        for colnames in get_csres_colnames(self.info):
             yield colnames
 
     def populate_cstates(self, hdr):
