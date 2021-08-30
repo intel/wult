@@ -356,14 +356,22 @@ class RORawResult(_RawResultBase.RawResultBase):
                 raise Error(f"no data left after applying column selector(s) to CSV file "
                             f"'{self.dp_path}'")
 
+        if not load_csv:
+            return
+
         # Previously the CSV file had time in nanoseconds, but from version 1.1 onwards, time is
         # saved in microseconds. Convert time to microseconds if we are dealing with old data
         # format.
-        if self.info["format_version"] < "1.1" and load_csv:
+        if self.info["format_version"] < "1.1":
             for colname in self.df:
                 defs = self.defs.info.get(colname)
                 if defs and defs.get("unit") == "microsecond":
                     self.df[colname] = self.df[colname] / 1000
+
+        # Starting from format version 1.2, the 'DerivedCC1%' column is named as 'CC1Derived%'.
+        # Rename it on the fly.
+        if self.info["format_version"] < "1.2" and "DerivedCC1%" in self.df:
+            self.df = self.df.rename(columns={"DerivedCC1%" : "CC1Derived%"})
 
     def load_df(self, **kwargs):
         """
@@ -427,6 +435,11 @@ class RORawResult(_RawResultBase.RawResultBase):
             colnames = list(pandas.read_csv(self.dp_path, nrows=0))
         except Exception as err:
             raise Error(f"failed to load CSV file {self.dp_path}:\n{err}") from None
+
+        # Starting from format version 1.2, the 'DerivedCC1%' column is named as 'CC1Derived%'.
+        # Rename it on the fly.
+        if self.info["format_version"] < "1.2" and "DerivedCC1%" in colnames:
+            colnames = ["CC1Derived%" if name == "DerivedCC1%" else name for name in list(colnames)]
 
         self.defs.populate_cstates(colnames)
 
