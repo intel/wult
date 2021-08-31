@@ -29,6 +29,11 @@ struct wult_info;
 struct wult_tracer_info {
 	/* C-state information. */
 	struct wult_cstates_info csinfo;
+	/*
+	 * The TSC counter and monotonic time taken close to each other in
+	 * 'before_idle()' with interrupts disabled.
+	 */
+	u64 bi_tsc, bi_monotonic;
 	/* Time before idle and after idle in TSC cycles or nanoseconds. */
 	u64 tbi, tai;
 	/* Interrupt time. */

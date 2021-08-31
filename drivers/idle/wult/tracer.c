@@ -30,6 +30,8 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "IntrOverhead" },
 	{ .type = "unsigned int", .name = "IntrOff" },
 	{ .type = "unsigned int", .name = "ReqCState" },
+	{ .type = "u64", .name = "BICyc" },
+	{ .type = "u64", .name = "BIMonotinic" },
 	{ .type = "u64", .name = "AICyc1" },
 	{ .type = "u64", .name = "AICyc2" },
 	{ .type = "u64", .name = "IntrCyc1" },
@@ -55,6 +57,8 @@ static void before_idle(struct wult_info *wi)
 	struct wult_tracer_info *ti = &wi->ti;
 
 	WARN_ON(!irqs_disabled());
+	ti->bi_tsc = rdtsc_ordered();
+	ti->bi_monotonic = ktime_to_ns(ktime_get_raw());
 
 	ti->smi_bi = get_smi_count();
 	ti->nmi_bi = per_cpu(irq_stat, wi->cpunum).__nmi_count;
@@ -296,6 +300,12 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->req_cstate, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->bi_tsc, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->bi_monotonic, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->ai_tsc1, &trace_state);
