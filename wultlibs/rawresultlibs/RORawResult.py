@@ -481,24 +481,6 @@ class RORawResult(_RawResultBase.RawResultBase):
         path = dirpath.joinpath(self.dp_path.name)
         self.df.to_csv(path, index=False, header=True)
 
-    def _get_toolname(self):
-        """
-        Figure out what tool created this result. Very old results did not contain this information
-        in the info file.
-        """
-
-        try:
-            colnames = list(pandas.read_csv(self.dp_path, nrows=0))
-        except Exception as err:
-            raise Error(f"failed to load CSV file '{self.dp_path}':\n{err}") from None
-
-        if "RTD" in colnames:
-            return "ndl"
-        if "WakeLatency" in colnames:
-            return "wult"
-
-        raise Error(f"unrecognized test results in '{self.dp_path}' - neither wult nor ndl")
-
     def _get_toolver(self):
         """
         Figure out version of the tool that created this result. Very old results did not contain
@@ -560,11 +542,11 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         toolname = self.info.get("toolname")
         if not toolname:
-            self.info["toolname"] = self._get_toolname()
+            raise Error(f"bad '{self.info_path}' format - the 'toolname' key is missing")
 
         toolver = self.info.get("toolver")
         if not toolver:
-            self.info["toolver"] = self._get_toolver()
+            raise Error(f"bad '{self.info_path}' format - the 'toolver' key is missing")
 
         self.defs = Defs.Defs(self.info["toolname"])
 
