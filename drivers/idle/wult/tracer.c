@@ -306,9 +306,10 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 	if (wdi->ops->get_trace_data) {
 		tdata = wdi->ops->get_trace_data(wdi);
-		if (IS_ERR(tdata))
+		if (IS_ERR(tdata)) {
 			err = PTR_ERR(tdata);
 			goto out_end;
+		}
 		/* Add driver-specific field values. */
 		for (; tdata->name; tdata++) {
 			err = synth_event_add_next_val(tdata->val, &trace_state);
