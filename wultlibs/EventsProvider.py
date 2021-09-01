@@ -139,6 +139,12 @@ class EventsProvider:
         if self._ldist:
             self._set_launch_distance()
 
+        if self._intr_focus:
+            if not FSHelpers.exists(self._intr_focus_path, proc=self._proc):
+                raise Error(f"path {self._intr_focus_path} does not exist{self._proc.hostmsg}")
+            with self._proc.open(self._intr_focus_path, "w") as fobj:
+                fobj.write("1")
+
     def close(self):
         """Uninitialize everything (unload kernel drivers, etc)."""
 
@@ -168,7 +174,7 @@ class EventsProvider:
                                self.dev.info["devid"], self._saved_drvname, err)
             self._saved_drvname = None
 
-    def __init__(self, dev, cpunum, proc, ldist=None):
+    def __init__(self, dev, cpunum, proc, ldist=None, intr_focus=None):
         """
         Initialize a class instance for a PCI device 'devid'. The arguments are as follows.
           * dev - the delayed event device object created by 'Devices.WultDevice()'.
@@ -177,12 +183,15 @@ class EventsProvider:
                    various methods
           * ldist - a pair of numbers specifying the launch distance range. The default value is
                     specific to the delayed event driver.
+          * intr_focus - enable inerrupt latency focused measurements ('WakeLatency' is not measured
+                         in this case, only 'IntrLatency').
         """
 
         self.dev = dev
         self._cpunum = cpunum
         self._proc = proc
         self._ldist = ldist
+        self._intr_focus = intr_focus
         self._drv = None
         self._saved_drvname = None
         self._basedir = None
@@ -199,6 +208,7 @@ class EventsProvider:
         mntpoint = FSHelpers.mount_debugfs(proc=proc)
         self._basedir = mntpoint / "wult"
         self._enabled_path = self._basedir / "enabled"
+        self._intr_focus_path = self._basedir / "intr_focus"
 
         msg = f"Compatible device '{self.dev.info['name']}'{proc.hostmsg}:\n" \
               f" * Device ID: {self.dev.info['devid']}\n" \

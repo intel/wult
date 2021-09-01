@@ -183,6 +183,16 @@ def build_arguments_parser():
     text = """The logical CPU number to measure, default is CPU 0."""
     subpars.add_argument("--cpunum", help=text, type=int, default=0)
 
+    text = """Enable interrupt latency focused measurements. Most C-states are entered using the
+              'mwait' instruction with interrupts disabled. When there is an interrupt, the CPU
+              wakes up and continues running the instructions after the 'mwait'. The CPU first runs
+              some housekeeping code, and only then the interrupts get enabled and the CPU jumps to
+              the interrupt handler. Wult measures 'WakeLatency' during the "housekeeping" stage,
+              and 'IntrLatency' is measured in the interrupt handler. However, the 'WakeLatency'
+              measurement takes time and affects the measured 'IntrLatency'. This option disables
+              'WakeLatency' measurements, which improves 'IntrLatency' measurements' accuracy."""
+    subpars.add_argument("--intr-focus", action="store_true", help=text)
+
     text = f"""This option exists for debugging and troubleshooting purposes. Please, do not use
                for other reasons. While normally {OWN_NAME} kernel modules are unloaded after the
                measurements are done, with this option the modules will stay loaded into the
@@ -405,8 +415,8 @@ def start_command(args):
             lscpu_info = CPUInfo.get_lscpu_info(proc=proc)
             check_settings(proc, dev, csinfo, lscpu_info, args.cpunum, args.devid)
 
-            with WultRunner.WultRunner(proc, dev, res, ldist=args.ldist, csinfo=csinfo,
-                                       stconf=stconf) as runner:
+            with WultRunner.WultRunner(proc, dev, res, ldist=args.ldist, intr_focus=args.intr_focus,
+                                       csinfo=csinfo, stconf=stconf) as runner:
                 runner.unload = not args.no_unload
                 if args.post_trigger:
                     runner.set_post_trigger(args.post_trigger, trange=args.trange)
