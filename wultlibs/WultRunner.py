@@ -364,6 +364,8 @@ class WultRunner:
         # second one.
         self._prepare_to_process_datapoints(rawdp)
 
+        latkey = "IntrLatency" if self._intr_focus else "WakeLatency"
+
         # At least one datapoint should be collected within the 'timeout' seconds interval.
         timeout = self._timeout * 1.5
         start_time = last_collected_time = time.time()
@@ -391,7 +393,7 @@ class WultRunner:
             if self._post_trigger:
                 self._run_post_trigger(dp["WakeLatency"])
 
-            self._max_latency = max(dp["WakeLatency"], self._max_latency)
+            self._max_latency = max(dp[latkey], self._max_latency)
             self._progress.update(collected_cnt, self._max_latency)
             last_collected_time = time.time()
 
