@@ -61,87 +61,6 @@ def _dump_dp(dp):
 
     return "\n".join(["    ".join(row).strip() for row in zip_longest(*columns, fillvalue="")])
 
-def _apply_dp_overhead(rawdp, dp):
-    """
-    This is a helper function for '_process_datapoint()' which handles the 'AIOverhead' and
-    'IntrOverhead' values and modifies the 'dp' datapoint accordingly.
-
-    'AIOverhead' stands for 'After Idle Overhead', and this is the time it takes to get all the data
-    ('WakeLatency', C-state counters, etc) after idle, but before the interrupt handler. This value
-    will be non-zero value for C-states that are entered with interrupts disabled (all C-states
-    except for 'POLL' today, as of Aug 2021). In this case 'IntrOverhead' will be 0.
-
-    'IntrOverhead' stands for 'Interrupt Overhead', and this is the time it takes to get all the
-    data ('IntrLatency', C-state counters, etc) in the interrupt handler, before 'WakeLatency' is
-    taken after idle. This value will be non-zero only for C-states that are entered with interrupts
-    enabled (only the 'POLL' state today, as of Aug 2021).
-
-    The overhead values are in nanoseconds. And they should be subtracted from wake/interrupt
-    latency, because they do not contribute to the latency, they are the extra time added by wult
-    driver between the wake event and "after idle" or interrupt.
-
-    We do not save 'AIOverhead' and 'IntrOverhead' in the CSV file.
-    """
-
-    if rawdp["AIOverhead"] and rawdp["IntrOverhead"]:
-        raise Error(f"Both 'AIOverhead' and 'IntrOverhead' are not 0 at the same time. The "
-                    f"datapoint is:\n{_dump_dp(rawdp)}") from None
-
-    if rawdp["IntrOff"]:
-        # Interrupts were disabled.
-        if rawdp["WakeLatency"] >= rawdp["IntrLatency"]:
-            _LOG.warning("'WakeLatency' is greater than 'IntrLatency', even though interrupts "
-                         "were disabled. The datapoint is:\n%s\nDropping this datapoint\n",
-                         _dump_dp(rawdp))
-            return None
-
-        if rawdp["AIOverhead"] >= rawdp["IntrLatency"]:
-            # This sometimes happens, and here are 2 contributing factors that may lead to this
-            # condition.
-            # 1. The overhead is measured by reading TSC at the beginning and the end of the
-            #    'after_idle()' function, which runs as soon as the CPU wakes up. The 'IntrLatency'
-            #    is measured using a delayed event device (e.g., a NIC). So we are comparing two
-            #    time intervals from different time sources.
-            # 2. 'AIOverhead' is the overhead of 'after_idle()', where we don't exactly know why we
-            #    woke up, and we cannot tell with 100% certainty that we woke because of the
-            #    interrupt that we armed. We could wake up or a different event, before launch time,
-            #    close enough to the armed event. In this situation, we may measure large enough
-            #    'AIOverhead', then the armed event happens when the CPU is in C0, and we measure
-            #    very small 'IntrLatency'.
-            _LOG.debug("'AIOverhead' is greater than interrupt latency ('IntrLatency'). The "
-                       "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(rawdp))
-            return None
-
-        if rawdp["WakeLatency"] >= rawdp["IntrLatency"] - rawdp["AIOverhead"]:
-            # This condition may happen for similar reasons.
-            _LOG.debug("'WakeLatency' is greater than 'IntrLatency' - 'AIOverhead', even though "
-                       "interrupts were disabled. The datapoint is:\n%s\nDropping this "
-                       "datapoint\n", _dump_dp(rawdp))
-            return None
-
-        dp["IntrLatency"] -= rawdp["AIOverhead"]
-    else:
-        # Interrupts were enabled.
-        if rawdp["IntrLatency"] >= rawdp["WakeLatency"]:
-            _LOG.warning("'IntrLatency' is greater than 'WakeLatency', even though interrupts "
-                         "were enabled. The datapoint is:\n%s\nDropping this datapoint\n",
-                         _dump_dp(rawdp))
-            return None
-
-        if rawdp["IntrOverhead"] >= rawdp["WakeLatency"]:
-            _LOG.debug("'IntrOverhead' is greater than wake latency ('WakeLatency'). The "
-                       "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(rawdp))
-            return None
-
-        if rawdp["IntrLatency"] >= rawdp["WakeLatency"] - rawdp["IntrOverhead"]:
-            _LOG.debug("'IntrLatency' is greater than 'WakeLatency' - 'IntrOverhead', even "
-                       "though interrupts were enabled. The datapoint is:\n%s\nDropping this "
-                       "datapoint\n", _dump_dp(rawdp))
-            return None
-
-        dp["WakeLatency"] -= rawdp["IntrOverhead"]
-    return dp
-
 class WultRunner:
     """Run wake latency measurement experiments."""
 
@@ -216,6 +135,88 @@ class WultRunner:
     def _is_poll_idle(self, dp): # pylint: disable=no-self-use
         """Returns 'True' if the 'dp' datapoint contains the POLL idle state data."""
         return dp["ReqCState"] == 0
+
+    def _apply_dp_overhead(self, rawdp, dp):
+        """
+        This is a helper function for '_process_datapoint()' which handles the 'AIOverhead' and
+        'IntrOverhead' values and modifies the 'dp' datapoint accordingly.
+
+        'AIOverhead' stands for 'After Idle Overhead', and this is the time it takes to get all the
+        data ('WakeLatency', C-state counters, etc) after idle, but before the interrupt handler.
+        This value will be non-zero value for C-states that are entered with interrupts disabled
+        (all C-states except for 'POLL' today, as of Aug 2021). In this case 'IntrOverhead' will be
+        0.
+
+        'IntrOverhead' stands for 'Interrupt Overhead', and this is the time it takes to get all the
+        data ('IntrLatency', C-state counters, etc) in the interrupt handler, before 'WakeLatency'
+        is taken after idle. This value will be non-zero only for C-states that are entered with
+        interrupts enabled (only the 'POLL' state today, as of Aug 2021).
+
+        The overhead values are in nanoseconds. And they should be subtracted from wake/interrupt
+        latency, because they do not contribute to the latency, they are the extra time added by
+        wult driver between the wake event and "after idle" or interrupt.
+
+        We do not save 'AIOverhead' and 'IntrOverhead' in the CSV file.
+        """
+
+        if rawdp["AIOverhead"] and rawdp["IntrOverhead"]:
+            raise Error(f"Both 'AIOverhead' and 'IntrOverhead' are not 0 at the same time. The "
+                        f"datapoint is:\n{_dump_dp(rawdp)}") from None
+
+        if rawdp["IntrOff"]:
+            # Interrupts were disabled.
+            if rawdp["WakeLatency"] >= rawdp["IntrLatency"]:
+                _LOG.warning("'WakeLatency' is greater than 'IntrLatency', even though interrupts "
+                             "were disabled. The datapoint is:\n%s\nDropping this datapoint\n",
+                             _dump_dp(rawdp))
+                return None
+
+            if rawdp["AIOverhead"] >= rawdp["IntrLatency"]:
+                # This sometimes happens, and here are 2 contributing factors that may lead to this
+                # condition.
+                # 1. The overhead is measured by reading TSC at the beginning and the end of the
+                #    'after_idle()' function, which runs as soon as the CPU wakes up. The
+                #    'IntrLatency' is measured using a delayed event device (e.g., a NIC). So we are
+                #    comparing two time intervals from different time sources.
+                # 2. 'AIOverhead' is the overhead of 'after_idle()', where we don't exactly know why
+                #    we woke up, and we cannot tell with 100% certainty that we woke because of the
+                #    interrupt that we armed. We could wake up or a different event, before launch
+                #    time, close enough to the armed event. In this situation, we may measure large
+                #    enough 'AIOverhead', then the armed event happens when the CPU is in C0, and we
+                #    measure very small 'IntrLatency'.
+                _LOG.debug("'AIOverhead' is greater than interrupt latency ('IntrLatency'). The "
+                           "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(rawdp))
+                return None
+
+            if rawdp["WakeLatency"] >= rawdp["IntrLatency"] - rawdp["AIOverhead"]:
+                # This condition may happen for similar reasons.
+                _LOG.debug("'WakeLatency' is greater than 'IntrLatency' - 'AIOverhead', even "
+                           "though interrupts were disabled. The datapoint is:\n%s\nDropping this "
+                           "datapoint\n", _dump_dp(rawdp))
+                return None
+
+            dp["IntrLatency"] -= rawdp["AIOverhead"]
+        else:
+            # Interrupts were enabled.
+            if rawdp["IntrLatency"] >= rawdp["WakeLatency"]:
+                _LOG.warning("'IntrLatency' is greater than 'WakeLatency', even though interrupts "
+                             "were enabled. The datapoint is:\n%s\nDropping this datapoint\n",
+                             _dump_dp(rawdp))
+                return None
+
+            if rawdp["IntrOverhead"] >= rawdp["WakeLatency"]:
+                _LOG.debug("'IntrOverhead' is greater than wake latency ('WakeLatency'). The "
+                           "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(rawdp))
+                return None
+
+            if rawdp["IntrLatency"] >= rawdp["WakeLatency"] - rawdp["IntrOverhead"]:
+                _LOG.debug("'IntrLatency' is greater than 'WakeLatency' - 'IntrOverhead', even "
+                           "though interrupts were enabled. The datapoint is:\n%s\nDropping this "
+                           "datapoint\n", _dump_dp(rawdp))
+                return None
+
+            dp["WakeLatency"] -= rawdp["IntrOverhead"]
+        return dp
 
     def _process_datapoint_cstates(self, rawdp, dp):
         """
@@ -298,7 +299,7 @@ class WultRunner:
         # Add and validated C-state related fields.
         self._process_datapoint_cstates(rawdp, dp)
 
-        if not _apply_dp_overhead(rawdp, dp):
+        if not self._apply_dp_overhead(rawdp, dp):
             return None
 
         # Some raw datapoint values are in nanoseconds, but we need them to be in microseconds.
