@@ -196,7 +196,7 @@ class WultRunner:
                 return None
 
             dp["IntrLatency"] -= rawdp["AIOverhead"]
-        else:
+        elif not self._intr_focus:
             # Interrupts were enabled.
             if rawdp["IntrLatency"] >= rawdp["WakeLatency"]:
                 _LOG.warning("'IntrLatency' is greater than 'WakeLatency', even though interrupts "

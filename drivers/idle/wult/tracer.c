@@ -73,6 +73,17 @@ static void after_idle(struct wult_info *wi)
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_device_info *wdi = wi->wdi;
 
+	if (wi->intr_focus) {
+		/*
+		 * Skip taking measurements in order to increase interrupt
+		 * measurements' accuracy.
+		 */
+		ti->irqs_disabled = irqs_disabled();
+		wult_cstates_snap_mperf(&ti->csinfo, 1);
+		wult_cstates_snap_tsc(&ti->csinfo, 1);
+		return;
+	}
+
 	ti->ai_tsc1 = rdtsc_ordered();
 	ti->tai = wdi->ops->get_time_after_idle(wdi, ti->ai_tsc1);
 
@@ -167,6 +178,16 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 	ltime = wdi->ops->get_launch_time(wdi);
 
+	if (wi->intr_focus) {
+		/*
+		 * Set variables that we skipped reading in 'after_idle()' to
+		 * "sane" values in order to pass various checks below.
+		 */
+		ti->tai = ti->tintr;
+		ti->ai_tsc1 = ti->ai_tsc2 = ti->csinfo.tsc[1];
+		ti->event_happened = true;
+	}
+
 	/* Check if the expected IRQ time is within the sleep time. */
 	if (ltime <= ti->tbi || ltime >= ti->tai || ltime >= ti->tintr)
 		return 0;
@@ -230,6 +251,11 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 	wult_cstates_snap_cst(&ti->csinfo, snum);
 	wult_cstates_calc(&ti->csinfo, 0, snum);
+
+	if (wi->intr_focus) {
+		ti->tai = 0;
+		wake_latency = 0;
+	}
 
 	err = synth_event_trace_start(ti->event_file, &trace_state);
 	if (err)
