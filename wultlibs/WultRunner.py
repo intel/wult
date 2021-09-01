@@ -304,7 +304,7 @@ class WultRunner:
 
         # Some raw datapoint values are in nanoseconds, but we need them to be in microseconds.
         # Save time in microseconds.
-        for colname, val in dp.items():
+        for colname in dp:
             if colname in rawdp and colname in self._us_colnames_set:
                 dp[colname] = rawdp[colname] / 1000.0
         return dp
@@ -337,7 +337,7 @@ class WultRunner:
 
         # Form the list of colums in the datapoints CSV file.
         colnames = []
-        for colname in defs.info.keys():
+        for colname in defs.info:
             if Defs.is_csres_colname(colname) or colname in rawdp:
                 colnames.append(colname)
                 continue
