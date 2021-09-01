@@ -26,6 +26,9 @@
 /* Name of debugfs file for starting and stopping the measurements. */
 #define ENABLED_DFS_NAME "enabled"
 
+/* Name of debugfs file for enabling interrupt latency focused measurements. */
+#define INTR_FOCUS_DFS_NAME "intr_focus"
+
 int wult_uapi_device_register(struct wult_info *wi);
 void wult_uapi_device_unregister(struct wult_info *wi);
 

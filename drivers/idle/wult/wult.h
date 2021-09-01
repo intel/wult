@@ -135,6 +135,8 @@ struct wult_info {
 	spinlock_t enable_lock;
 	/* Whether the measurement is enabled. */
 	bool enabled;
+	/* Whether the interrupt latency focused measurements are enabled. */
+	bool intr_focus;
 	/* Wult tracer information. */
 	struct wult_tracer_info ti;
 	/* The armer thread. */
@@ -173,5 +175,6 @@ static inline u64 wult_cyc2ns(struct wult_device_info *wdi, u64 cyc)
 /* Only for wult framework use, not for delayed event drivers. */
 int wult_enable(void);
 void wult_disable(void);
+int wult_set_intr_focus(bool intr_focus);
 
 #endif

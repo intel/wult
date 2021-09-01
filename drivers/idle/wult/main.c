@@ -79,6 +79,25 @@ void wult_disable(void)
 	spin_unlock(&wi.enable_lock);
 }
 
+/* Enable/disable interrupt latency focused measurements. */
+int wult_set_intr_focus(bool intr_focus)
+{
+	int err = 0;
+
+	spin_lock(&wi.enable_lock);
+	if (wi.intr_focus == intr_focus || !wi.enabled)
+		wi.intr_focus = intr_focus;
+	else
+		/*
+		 * The measurements must be disabled in order to toggle the
+		 * interrupt focus mode.
+		 */
+		err = -EINVAL;
+	spin_unlock(&wi.enable_lock);
+
+	return err;
+}
+
 /*
  * The delayed event device driver should call this function from its event
  * (interrupt) handler.

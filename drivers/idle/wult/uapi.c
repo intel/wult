@@ -33,6 +33,44 @@ static const struct file_operations dfs_ops_enabled = {
 	.llseek = default_llseek,
 };
 
+static ssize_t dfs_write_intr_focus_file(struct file *file,
+					 const char __user *user_buf,
+					 size_t count, loff_t *ppos)
+{
+	int err;
+	bool intr_focus;
+	bool *val = file->private_data;
+	struct dentry *dent = file->f_path.dentry;
+
+	err = kstrtobool_from_user(user_buf, count, &intr_focus);
+	if (err)
+		return err;
+
+	err = debugfs_file_get(dent);
+	if (err)
+		return err;
+
+	err = wult_set_intr_focus(intr_focus);
+	if (err)
+		goto error;
+
+	*val = intr_focus;
+	debugfs_file_put(dent);
+	return count;
+
+error:
+	debugfs_file_put(dent);
+	return err;
+}
+
+/* Wult debugfs operations for the 'intr_focus' file. */
+static const struct file_operations dfs_ops_intr_focus = {
+	.read = debugfs_read_file_bool,
+	.write = dfs_write_intr_focus_file,
+	.open = simple_open,
+	.llseek = default_llseek,
+};
+
 static ssize_t dfs_read_u64_file(struct file *file, char __user *user_buf,
 				 size_t count, loff_t *ppos)
 {
@@ -181,6 +219,8 @@ int wult_uapi_device_register(struct wult_info *wi)
 			    &dfs_ops_u64);
 	debugfs_create_file(ENABLED_DFS_NAME, 0644, wi->dfsroot, &wi->enabled,
 			    &dfs_ops_enabled);
+	debugfs_create_file(INTR_FOCUS_DFS_NAME, 0644, wi->dfsroot, &wi->intr_focus,
+			    &dfs_ops_intr_focus);
 
 	return 0;
 }
