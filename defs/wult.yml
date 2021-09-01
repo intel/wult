@@ -19,7 +19,6 @@ WakeLatency:
     short_unit: "us"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
     optional: False
-    drop_if_same_as: "IntrLatency"
 SilentTime:
     title: "Silent Time"
     descr: >-
@@ -145,4 +144,3 @@ LatchDelay:
     short_unit: "us"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
     optional: True
-    drop_if_same_as: "IntrLatency"
