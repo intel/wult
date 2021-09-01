@@ -19,6 +19,7 @@ WakeLatency:
     short_unit: "us"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
     optional: False
+    drop_empty: True
 SilentTime:
     title: "Silent Time"
     descr: >-
