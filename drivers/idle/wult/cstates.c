@@ -93,14 +93,20 @@ static int intel_cstate_init(struct wult_cstates_info *csinfo)
 	u64 reg;
 
 	csinfo->cstates = intel_cstates;
-	for_each_cstate(csinfo, csi)
-		/*
-		 * Assume the C-state is present if we do not get an exception
-		 * when reading the MSR. If the C-state is not actually
-		 * supported by this platform, MSR read will always return 0.
-		 */
+	for_each_cstate(csinfo, csi) {
 		if (rdmsrl_safe(csi->msr, &reg))
+			/* We got an exception while reading the MSR. */
 			csi->absent = true;
+		else if (!reg) {
+			/*
+			 * The MSR contains zero, which means that either it is
+			 * not supported, or the C-state has never been reached
+			 * yet. Let's assume it is not reachable and exclude
+			 * it.
+			 */
+			csi->absent = true;
+		}
+	}
 
 	return 0;
 }
