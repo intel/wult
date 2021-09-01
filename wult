@@ -359,7 +359,7 @@ def start_command(args):
     proc = ToolsCommon.get_proc(args, args.hostname)
 
     if Deploy.is_deploy_needed(proc, OWN_NAME, pyhelpers=["stats-collect"]):
-        msg = f"'{OWN_NAME}' drivers are not up-to-date{proc.hostmsg}', " \
+        msg = f"'{OWN_NAME}' drivers are not up-to-date{proc.hostmsg}, " \
               f"please run: {OWN_NAME} deploy"
         if proc.is_remote:
             msg += f" -H {proc.hostname}"
