@@ -57,10 +57,10 @@ class EventsProvider:
         """Start the latency measurements."""
 
         # Sanity check.
-        if not FSHelpers.exists(self._enable_path, proc=self._proc):
-            raise Error(f"path {self._enable_path} does not exist{self._proc.hostmsg}")
+        if not FSHelpers.exists(self._enabled_path, proc=self._proc):
+            raise Error(f"path {self._enabled_path} does not exist{self._proc.hostmsg}")
 
-        with self._proc.open(self._enable_path, "w") as fobj:
+        with self._proc.open(self._enabled_path, "w") as fobj:
             fobj.write("1")
 
     def _set_launch_distance(self):
@@ -186,7 +186,7 @@ class EventsProvider:
         self._drv = None
         self._saved_drvname = None
         self._basedir = None
-        self._enable_path = None
+        self._enabled_path = None
         self._main_drv = None
 
         # This is a debugging option that allows to disable automatic wult modules unloading on
@@ -198,7 +198,7 @@ class EventsProvider:
 
         mntpoint = FSHelpers.mount_debugfs(proc=proc)
         self._basedir = mntpoint / "wult"
-        self._enable_path = self._basedir /"enabled"
+        self._enabled_path = self._basedir / "enabled"
 
         msg = f"Compatible device '{self.dev.info['name']}'{proc.hostmsg}:\n" \
               f" * Device ID: {self.dev.info['devid']}\n" \
