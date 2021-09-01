@@ -487,10 +487,11 @@ class WultRunner:
         resolution = self._ep.get_resolution()
         _LOG.debug("delayed event resolution %dns", resolution)
 
-        # Save the delayed event device information to the output file.
+        # Save the test setup information in the info.yml file.
         self._res.info["devid"] = self._ep.dev.info["devid"]
         self._res.info["devdescr"] = self._ep.dev.info["descr"]
         self._res.info["resolution"] = resolution
+        self._res.info["intr_focus"] = self._intr_focus
 
         errmsg = None
         if resolution > 1:
