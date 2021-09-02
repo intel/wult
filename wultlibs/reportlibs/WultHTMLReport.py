@@ -16,20 +16,25 @@ from wultlibs.reportlibs import _HTMLReportBase
 # The constants below define the diagrams and histograms that are included into a report. There are
 # 3 groups of constands - for a small report, a medium report, and large report. The former includes
 # minimum amount of diagrams/histograms, the latter includes all of them.
-DEFAULT_XAXES = MEDIUM_XAXES = "SilentTime"
-DEFAULT_YAXES = MEDIUM_YAXES = r".*Latency,.*Delay"
-DEFAULT_HIST = MEDIUM_HIST = f"{DEFAULT_YAXES}"
-DEFAULT_CHIST = MEDIUM_CHIST = r".*Latency"
-
 SMALL_XAXES = "SilentTime"
-SMALL_YAXES = r"WakeLatency,WarmupDelay,LatchDelay"
+SMALL_YAXES = r".*Latency"
 SMALL_HIST = f"{SMALL_YAXES}"
-SMALL_CHIST = r"WakeLatency"
+SMALL_CHIST = None
+
+MEDIUM_XAXES = "SilentTime"
+MEDIUM_YAXES = r".*Latency,.*Delay"
+MEDIUM_HIST = f"{MEDIUM_YAXES}"
+MEDIUM_CHIST = r".*Latency"
 
 LARGE_XAXES = "SilentTime,LDist"
 LARGE_YAXES = r".*Latency,.*Delay,[PC]C.+%,SilentTime,ReqCState"
 LARGE_HIST = f"{LARGE_YAXES},LDist"
 LARGE_CHIST = r".*Latency"
+
+DEFAULT_XAXES = SMALL_XAXES
+DEFAULT_YAXES = SMALL_YAXES
+DEFAULT_HIST  = SMALL_HIST
+DEFAULT_CHIST = SMALL_CHIST
 
 # All diagrams and histograms with the combinations of EXCLUDE_XAXES and EXCLUDE_YAXES will not be
 # included to the report. By default this will be all "Whatever vs LDist" diagram, except for
@@ -49,7 +54,7 @@ class WultHTMLReport(_HTMLReportBase.HTMLReportBase):
         args = {"xaxes": xaxes, "yaxes": yaxes, "hist": hist, "chist": chist}
 
         for name, default in zip(args, (DEFAULT_XAXES, DEFAULT_YAXES, DEFAULT_HIST, DEFAULT_CHIST)):
-            if args[name] is None:
+            if args[name] is None and default:
                 args[name] = default.split(",")
 
         super().__init__(rsts, outdir, title_descr=title_descr, xaxes=args["xaxes"],

@@ -54,7 +54,9 @@ def get_axes_default(name):
 
     names = getattr(WultHTMLReport, f"DEFAULT_{name.upper()}")
     # The result is used for argparse, which does not accept '%' symbols.
-    return names.replace("%", "%%")
+    if names:
+        return names.replace("%", "%%")
+    return None
 
 def build_arguments_parser():
     """Build and return the arguments parser object."""
