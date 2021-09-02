@@ -16,8 +16,6 @@
  */
 void wult_cstates_snap_tsc(struct wult_cstates_info *csinfo, unsigned int snum)
 {
-	struct cstate_info *csi;
-
 	if (WARN_ON(snum >= MAX_CSTATE_SNAPSHOTS))
 		return;
 
@@ -29,8 +27,6 @@ void wult_cstates_snap_tsc(struct wult_cstates_info *csinfo, unsigned int snum)
  */
 void wult_cstates_snap_mperf(struct wult_cstates_info *csinfo, unsigned int snum)
 {
-	struct cstate_info *csi;
-
 	if (WARN_ON(snum >= MAX_CSTATE_SNAPSHOTS))
 		return;
 
