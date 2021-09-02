@@ -294,7 +294,13 @@ class WultRunner:
         datapoint.
         """
 
-        dp = {colname : rawdp.get(colname) for colname in self._colnames}
+        dp = {}
+        for colname in self._colnames:
+            if colname in rawdp:
+                dp[colname] = rawdp[colname]
+            elif colname.startswith("Raw"):
+                name = colname[len("Raw"):]
+                dp[colname] = rawdp[name]
 
         # Add and validated C-state related fields.
         self._process_datapoint_cstates(rawdp, dp)
@@ -309,7 +315,7 @@ class WultRunner:
                 dp[colname] = rawdp[colname] / 1000.0
         return dp
 
-    def _prepare_to_process_datapoints(self, rawdp):
+    def _prepare_to_process_datapoints(self, rawdp, keep_rawdp):
         """
         This helper should be called as soon as the first raw datapoint 'raw' is acquired. It
         prepared for processing datapoints by building various data structures. For example, we
@@ -335,7 +341,8 @@ class WultRunner:
         self._us_colnames_set = {colname for colname, vals in defs.info.items() \
                                  if vals.get("unit") == "microsecond"}
 
-        # Form the list of colums in the datapoints CSV file.
+        # Form the list of columns in the datapoints CSV file. Columns from the "defs" file go
+        # first.
         colnames = []
         for colname in defs.info:
             if Defs.is_csres_colname(colname) or colname in rawdp:
@@ -346,10 +353,28 @@ class WultRunner:
                 raise Error(f"the mandatory '{colname}' filed was not found. The datapoint is:\n"
                             f"{_dump_dp(rawdp)}")
 
+        if keep_rawdp:
+            # Append raw fields. In case of a duplicate name:
+            # * if the values are the same too, drop the raw field.
+            # * if the values are different, keep both, just prepend the raw field name with "Raw".
+            self._colnames = colnames
+            dp = self._process_datapoint(rawdp)
+
+            for field in fields:
+                if field not in dp:
+                    colnames.append(field)
+                elif rawdp[field] != dp[field]:
+                    colnames.append(f"Raw{field}")
+
         self._res.csv.add_header(colnames)
         self._colnames = colnames
 
-    def _collect(self, dpcnt, tlimit):
+        # Sanity check: no values should be 'None'.
+        dp = self._process_datapoint(rawdp)
+        if any(val is None for val in dp.values()):
+            raise Error("bug: 'None' values found in the following datapoint:\n_dump_dp(dp)")
+
+    def _collect(self, dpcnt, tlimit, keep_rawdp):
         """
         Collect datapoints and stop when either the CSV file has 'dpcnt' datapoints in total or when
         collection time exceeds 'tlimit' (value '0' or 'None' means "no limit"). Returns count of
@@ -362,7 +387,7 @@ class WultRunner:
 
         # We could actually process this datapoint, but we prefer to drop it and start with the
         # second one.
-        self._prepare_to_process_datapoints(rawdp)
+        self._prepare_to_process_datapoints(rawdp, keep_rawdp)
 
         latkey = "IntrLatency" if self._intr_focus else "WakeLatency"
 
@@ -402,11 +427,14 @@ class WultRunner:
 
         return collected_cnt
 
-    def run(self, dpcnt=1000000, tlimit=None):
+    def run(self, dpcnt=1000000, tlimit=None, keep_rawdp=False):
         """
         Start the measurements. The arguments are as follows.
           * dpcnt - count of datapoints to collect.
           * tlimit - the measurements time limit in seconds.
+          * keep_rawdp - by default, raw datapoint fields are dropped and do not make it to the
+                         'datapoints.csv' file. But if 'keep_rawdp' is 'True', all the raw datapoint
+                         fields will also be saved in the CSV file.
         """
 
         self._res.write_info()
@@ -427,7 +455,7 @@ class WultRunner:
         collected_cnt = 0
         try:
             self._ep.start()
-            collected_cnt = self._collect(dpcnt, tlimit)
+            collected_cnt = self._collect(dpcnt, tlimit, keep_rawdp)
         except Error as err:
             dmesg = ""
             with contextlib.suppress(Error):

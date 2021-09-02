@@ -445,8 +445,8 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self._ignored_colnames = set(colnames) - set(self.defs.info.keys())
         if self._ignored_colnames:
-            _LOG.warning("ignoring the following unknown column names in '%s':\n%s",
-                         self.dp_path, ", ".join(self._ignored_colnames))
+            _LOG.debug("ignoring the following columns in '%s':\n%s",
+                        self.dp_path, ", ".join(self._ignored_colnames))
 
         for colname in colnames:
             if colname not in self._ignored_colnames:

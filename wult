@@ -196,6 +196,13 @@ def build_arguments_parser():
               accuracy."""
     subpars.add_argument("--intr-focus", action="store_true", help=text)
 
+    text = f"""{OWN_NAME.title()} received raw datapoints from the driver, then processes them, and
+               then saves the processed datapoint in the 'datapoints.csv' file. In order to keep the
+               CSV file smaller, {OWN_NAME} keeps only the esential information, and drops the rest.
+               For example, raw timestamps are dropped. With this option, however, {OWN_NAME} saves
+               all the raw data to the CSV file, along with the processed data."""
+    subpars.add_argument("--keep-raw-data", action="store_true", dest="keep_rawdp", help=text)
+
     text = f"""This option exists for debugging and troubleshooting purposes. Please, do not use
                for other reasons. While normally {OWN_NAME} kernel modules are unloaded after the
                measurements are done, with this option the modules will stay loaded into the
@@ -424,7 +431,7 @@ def start_command(args):
                 if args.post_trigger:
                     runner.set_post_trigger(args.post_trigger, trange=args.trange)
                 runner.prepare()
-                runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit)
+                runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit, keep_rawdp=args.keep_rawdp)
 
     if not args.report:
         return
