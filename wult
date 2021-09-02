@@ -61,7 +61,7 @@ def get_axes_default(name):
 def build_arguments_parser():
     """Build and return the arguments parser object."""
 
-    text = "wult - a tool for measuring C-state latency."
+    text = f"{OWN_NAME} - a tool for measuring C-state latency."
     parser = ArgParse.ArgsParser(description=text, prog=OWN_NAME, ver=VERSION)
 
     text = "Force coloring of the text output."
@@ -189,10 +189,11 @@ def build_arguments_parser():
               'mwait' instruction with interrupts disabled. When there is an interrupt, the CPU
               wakes up and continues running the instructions after the 'mwait'. The CPU first runs
               some housekeeping code, and only then the interrupts get enabled and the CPU jumps to
-              the interrupt handler. Wult measures 'WakeLatency' during the "housekeeping" stage,
-              and 'IntrLatency' is measured in the interrupt handler. However, the 'WakeLatency'
-              measurement takes time and affects the measured 'IntrLatency'. This option disables
-              'WakeLatency' measurements, which improves 'IntrLatency' measurements' accuracy."""
+              the interrupt handler. {OWN_NAME.title()} measures 'WakeLatency' during the
+              "housekeeping" stage, and 'IntrLatency' is measured in the interrupt handler. However,
+              the 'WakeLatency' measurement takes time and affects the measured 'IntrLatency'. This
+              option disables 'WakeLatency' measurements, which improves 'IntrLatency' measurements'
+              accuracy."""
     subpars.add_argument("--intr-focus", action="store_true", help=text)
 
     text = f"""This option exists for debugging and troubleshooting purposes. Please, do not use
