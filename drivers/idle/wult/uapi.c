@@ -12,6 +12,28 @@
 #include "uapi.h"
 #include "wult.h"
 
+/*
+ * Names of debugfs files exposing the allowed launch distance range.
+ */
+#define LDIST_MIN_FNAME "ldist_min_nsec"
+#define LDIST_MAX_FNAME "ldist_max_nsec"
+
+/*
+ * Names of debugfs files exposing the currently configured launch distance
+ * range.
+ */
+#define LDIST_FROM_FNAME "ldist_from_nsec"
+#define LDIST_TO_FNAME   "ldist_to_nsec"
+
+/* Name of debugfs file for exposing the launch distance resolution. */
+#define LDIST_RES_FNAME "resolution_nsec"
+
+/* Name of debugfs file for starting and stopping the measurements. */
+#define ENABLED_FNAME "enabled"
+
+/* Name of debugfs file for enabling interrupt latency focused measurements. */
+#define INTR_FOCUS_FNAME "intr_focus"
+
 static ssize_t dfs_write_enabled_file(struct file *file,
 				      const char __user *user_buf, size_t count,
 				      loff_t *ppos)
@@ -86,11 +108,11 @@ static ssize_t dfs_read_u64_file(struct file *file, char __user *user_buf,
 		return err;
 
 	wi = file->private_data;
-	if (!strcmp(dent->d_name.name, LDIST_MIN_DFS_NAME)) {
+	if (!strcmp(dent->d_name.name, LDIST_MIN_FNAME)) {
 		val = wi->wdi->ldist_min;
-	} else if (!strcmp(dent->d_name.name, LDIST_MAX_DFS_NAME)) {
+	} else if (!strcmp(dent->d_name.name, LDIST_MAX_FNAME)) {
 		val = wi->wdi->ldist_max;
-	} else if (!strcmp(dent->d_name.name, LDIST_RES_DFS_NAME)) {
+	} else if (!strcmp(dent->d_name.name, LDIST_RES_FNAME)) {
 		val = wi->wdi->ldist_gran;
 	} else {
 		res = -EINVAL;
@@ -126,9 +148,9 @@ static ssize_t dfs_read_atomic64_file(struct file *file, char __user *user_buf,
 		return err;
 
 	wi = file->private_data;
-	if (!strcmp(dent->d_name.name, LDIST_FROM_DFS_NAME)) {
+	if (!strcmp(dent->d_name.name, LDIST_FROM_FNAME)) {
 		val = atomic64_read(&wi->ldist_from);
-	} else if (!strcmp(dent->d_name.name, LDIST_TO_DFS_NAME)) {
+	} else if (!strcmp(dent->d_name.name, LDIST_TO_FNAME)) {
 		val = atomic64_read(&wi->ldist_to);
 	} else {
 		res = -EINVAL;
@@ -172,11 +194,11 @@ static ssize_t dfs_write_atomic64_file(struct file *file, const char __user *use
 	if (val > wi->wdi->ldist_max || val < wi->wdi->ldist_min)
 		goto out_einval;
 
-	if (!strcmp(dent->d_name.name, LDIST_FROM_DFS_NAME)) {
+	if (!strcmp(dent->d_name.name, LDIST_FROM_FNAME)) {
 		if (val > atomic64_read(&wi->ldist_to))
 			goto out_einval;
 		atomic64_set(&wi->ldist_from, val);
-	} else if (!strcmp(dent->d_name.name, LDIST_TO_DFS_NAME)) {
+	} else if (!strcmp(dent->d_name.name, LDIST_TO_FNAME)) {
 		if (val < atomic64_read(&wi->ldist_from))
 			goto out_einval;
 		atomic64_set(&wi->ldist_to, val);
@@ -207,19 +229,19 @@ int wult_uapi_device_register(struct wult_info *wi)
 	if (IS_ERR(wi->dfsroot))
 		return PTR_ERR(wi->dfsroot);
 
-	debugfs_create_file(LDIST_FROM_DFS_NAME, 0644, wi->dfsroot, wi,
+	debugfs_create_file(LDIST_FROM_FNAME, 0644, wi->dfsroot, wi,
 			    &dfs_ops_atomic64);
-	debugfs_create_file(LDIST_TO_DFS_NAME, 0644, wi->dfsroot, wi,
+	debugfs_create_file(LDIST_TO_FNAME, 0644, wi->dfsroot, wi,
 			    &dfs_ops_atomic64);
-	debugfs_create_file(LDIST_MIN_DFS_NAME, 0444, wi->dfsroot, wi,
+	debugfs_create_file(LDIST_MIN_FNAME, 0444, wi->dfsroot, wi,
 			    &dfs_ops_u64);
-	debugfs_create_file(LDIST_MAX_DFS_NAME, 0444, wi->dfsroot, wi,
+	debugfs_create_file(LDIST_MAX_FNAME, 0444, wi->dfsroot, wi,
 			    &dfs_ops_u64);
-	debugfs_create_file(LDIST_RES_DFS_NAME, 0444, wi->dfsroot, wi,
+	debugfs_create_file(LDIST_RES_FNAME, 0444, wi->dfsroot, wi,
 			    &dfs_ops_u64);
-	debugfs_create_file(ENABLED_DFS_NAME, 0644, wi->dfsroot, &wi->enabled,
+	debugfs_create_file(ENABLED_FNAME, 0644, wi->dfsroot, &wi->enabled,
 			    &dfs_ops_enabled);
-	debugfs_create_file(INTR_FOCUS_DFS_NAME, 0644, wi->dfsroot, &wi->intr_focus,
+	debugfs_create_file(INTR_FOCUS_FNAME, 0644, wi->dfsroot, &wi->intr_focus,
 			    &dfs_ops_intr_focus);
 
 	return 0;
