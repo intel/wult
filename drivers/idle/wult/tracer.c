@@ -16,6 +16,16 @@
 #include "tracer.h"
 #include "wult.h"
 
+/* Name of the tracepoint we hook to. */
+#define TRACEPOINT_NAME "cpu_idle"
+
+/*
+ * Name of the wult synthetic event which is used for sending measurement data
+ * to user-space.
+ */
+#define TRACE_EVENT_NAME "wult_cpu_idle"
+
+
 /* The common, platform-independent wult event fields. */
 static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "SilentTime" },
@@ -378,7 +388,7 @@ int wult_tracer_enable(struct wult_info *wi)
 	}
 
 	err = trace_array_set_clr_event(ti->event_file->tr, "synthetic",
-					WULT_TRACE_EVENT_NAME, true);
+					TRACE_EVENT_NAME, true);
 	if (err)
 		tracepoint_synchronize_unregister();
 
@@ -389,7 +399,7 @@ void wult_tracer_disable(struct wult_info *wi)
 {
 	tracepoint_probe_unregister(wi->ti.tp, (void *)cpu_idle_hook, wi);
 	trace_array_set_clr_event(wi->ti.event_file->tr, "synthetic",
-				  WULT_TRACE_EVENT_NAME, false);
+				  TRACE_EVENT_NAME, false);
 }
 
 static void match_tracepoint(struct tracepoint *tp, void *priv)
@@ -414,7 +424,7 @@ static int wult_synth_event_init(struct wult_info *wi)
 	synth_event_cmd_init(&cmd, cmd_buf, MAX_DYNEVENT_CMD_LEN);
 
 	/* Add the common fields. */
-	err = synth_event_gen_cmd_array_start(&cmd, WULT_TRACE_EVENT_NAME,
+	err = synth_event_gen_cmd_array_start(&cmd, TRACE_EVENT_NAME,
 					      THIS_MODULE, common_fields,
 					      ARRAY_SIZE(common_fields));
 	if (err)
@@ -453,10 +463,10 @@ static int wult_synth_event_init(struct wult_info *wi)
 		goto out_free;
 
 	ti->event_file = trace_get_event_file(NULL, "synthetic",
-					      WULT_TRACE_EVENT_NAME);
+					      TRACE_EVENT_NAME);
 	if (IS_ERR(ti->event_file)) {
 		err = PTR_ERR(ti->event_file);
-		synth_event_delete(WULT_TRACE_EVENT_NAME);
+		synth_event_delete(TRACE_EVENT_NAME);
 	}
 
 	return err;
@@ -469,7 +479,7 @@ out_free:
 static void wult_synth_event_exit(const struct wult_tracer_info *ti)
 {
 	trace_put_event_file(ti->event_file);
-	synth_event_delete(WULT_TRACE_EVENT_NAME);
+	synth_event_delete(TRACE_EVENT_NAME);
 }
 
 int wult_tracer_init(struct wult_info *wi)

@@ -12,15 +12,6 @@
 #include "compat.h"
 #include "cstates.h"
 
-/* Name of the tracepoint we hook to. */
-#define TRACEPOINT_NAME "cpu_idle"
-
-/*
- * Name of the wult synthetic event which is used for sending measurement data
- * to user-space.
- */
-#define WULT_TRACE_EVENT_NAME "wult_cpu_idle"
-
 struct wult_info;
 
 /*
