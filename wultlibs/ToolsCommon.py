@@ -20,7 +20,6 @@ from pathlib import Path
 from wultlibs import Devices
 from wultlibs.helperlibs import Trivial, ReportID, Procs, SSH, YAML, Human
 from wultlibs.helperlibs.Exceptions import Error
-from wultlibs.pepclibs import CPUInfo
 from wultlibs.rawresultlibs import RORawResult
 
 HELPERS_LOCAL_DIR = Path(".local")
@@ -295,12 +294,14 @@ def parse_trange(trange, single_ok=True):
 
     return _validate_range(trange, "post-trigger range", single_ok)
 
-def parse_cpunum(cpunum, proc=None):
+def parse_cpunum(cpunum, cpuinfo=None):
     """
-    Parse and validate CPU number 'cpunum'. If 'proc' is provided, then this function discovers CPU
-    count on the host associated with the 'proc' object, and verifies that 'cpunum' does not exceed
-    the host CPU count and the CPU is online. Note, 'proc' should be an 'SSH' or 'Proc' object. If
-    'proc' is not provided, this function just checks that 'cpunum' is a positive integer number.
+    Parse and validate CPU number 'cpunum'. If 'cpuinfo' is provided, it should be a
+    'CPUInfo.CPUInfo()' object, in which case this function will verify that 'cpunum' exists and is
+    online on the system associated with 'cpuinfo'.
+
+    If 'cpuinfo' is not provided, this function just checks that 'cpunum' is a positive integer
+    number.
     """
 
     if not Trivial.is_int(cpunum) or int(cpunum) < 0:
@@ -308,14 +309,12 @@ def parse_cpunum(cpunum, proc=None):
 
     cpunum = int(cpunum)
 
-    if proc:
-        with CPUInfo.CPUInfo(proc=proc) as cpuinfo:
-            cpugeom = cpuinfo.get_cpu_geometry()
-
+    if cpuinfo:
+        cpugeom = cpuinfo.get_cpu_geometry()
         if cpunum in cpugeom["offcpus"]:
-            raise Error(f"CPU '{cpunum}'{proc.hostmsg} is offline")
+            raise Error(f"CPU '{cpunum}'{cpuinfo.hostmsg} is offline")
         if cpunum not in cpugeom["cpus"]:
-            raise Error(f"CPU '{cpunum}' does not exist{proc.hostmsg}")
+            raise Error(f"CPU '{cpunum}' does not exist{cpuinfo.hostmsg}")
 
     return cpunum
 

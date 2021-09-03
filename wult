@@ -399,9 +399,11 @@ def start_command(args):
         args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
     if args.ldist:
         args.ldist = ToolsCommon.parse_ldist(args.ldist)
-    args.cpunum = ToolsCommon.parse_cpunum(args.cpunum, proc=proc)
     if args.trange:
         args.trange = ToolsCommon.parse_trange(args.trange)
+
+    with CPUInfo.CPUInfo(proc=proc) as cpuinfo:
+        args.cpunum = ToolsCommon.parse_cpunum(args.cpunum, cpuinfo=cpuinfo)
 
     if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
         raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
