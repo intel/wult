@@ -11,7 +11,6 @@ This module contains common trivial helpers.
 """
 
 import os
-from itertools import groupby
 from wultlibs.helperlibs.Exceptions import Error
 
 # A unique object used as the default value for the 'default' key in some functions.
@@ -118,29 +117,3 @@ def split_csv_line(csv_line, sep=",", dedup=False):
     if dedup:
         return list_dedup(result)
     return result
-
-def rangify(numbers):
-    """
-    Turn list of numbers in 'numbers' to a string of comma-separated ranges. Numbers can be integers
-    or strings. E.g. list of numbers [0,1,2,4] is translated to "0-2,4".
-    """
-
-    try:
-        numbers = [int(number) for number in numbers]
-    except (ValueError, TypeError) as err:
-        raise Error(f"failed to translate numbers to ranges, expected list of numbers, got "
-                    f"'{numbers}'") from err
-
-    range_strs = []
-    for _, pairs in groupby(enumerate(numbers), lambda x:x[0]-x[1]):
-        # The 'pairs' is an iterable of tuples (enumerate value, number). E.g. 'numbers'
-        # [5,6,7,8,10,11,13] would result in three iterable groups:
-        # ((0, 5), (1, 6), (2, 7), (3, 8)) , ((4, 10), (5, 11)) and  (6, 13)
-
-        nums = [val for _, val in pairs]
-        if len(nums) > 1:
-            range_strs.append(f"{nums[0]}-{nums[-1]}")
-        else:
-            range_strs.append(str(nums[0]))
-
-    return ",".join(range_strs)
