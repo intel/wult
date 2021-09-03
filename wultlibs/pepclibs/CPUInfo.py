@@ -192,7 +192,7 @@ class CPUInfo:
         for num in nums:
             if num not in items:
                 items_str = ", ".join(str(key) for key in items)
-                raise Error(f"{start} {num} does not exist{self._proc.hostmsg}, use: {items_str}")
+                raise Error(f"{start} {num} does not exist{self.hostmsg}, use: {items_str}")
             result += items[num]
 
         return Trivial.list_dedup(result)
@@ -243,7 +243,7 @@ class CPUInfo:
         for cpu in cpus:
             if cpu not in allcpus:
                 cpus_str = ", ".join([str(cpu) for cpu in sorted(allcpus)])
-                raise Error(f"CPU{cpu} is not available{self._proc.hostmsg}, available CPUs are: "
+                raise Error(f"CPU{cpu} is not available{self.hostmsg}, available CPUs are: "
                             f"{cpus_str}")
 
         return cpus
@@ -261,7 +261,7 @@ class CPUInfo:
         for pkg in pkgs:
             if pkg not in allpkgs:
                 pkgs_str = ", ".join([str(pkg) for pkg in sorted(allpkgs)])
-                raise Error(f"package '{pkg}' not available{self._proc.hostmsg}, available "
+                raise Error(f"package '{pkg}' not available{self.hostmsg}, available "
                             f"packages are: {pkgs_str}")
 
         return pkgs
@@ -275,7 +275,7 @@ class CPUInfo:
 
         allcpus = self.get_cpus()
         cpus_str = ", ".join([str(cpu) for cpu in sorted(allcpus)])
-        raise Error(f"CPU{cpu} is not available{self._proc.hostmsg}, available CPUs are:\n"
+        raise Error(f"CPU{cpu} is not available{self.hostmsg}, available CPUs are:\n"
                     f"{cpus_str}")
 
     def cpu_to_core(self, cpu):
@@ -287,7 +287,7 @@ class CPUInfo:
 
         allcpus = self.get_cpus()
         cpus_str = ", ".join([str(cpu) for cpu in sorted(allcpus)])
-        raise Error(f"CPU{cpu} is not available{self._proc.hostmsg}, available CPUs are:\n"
+        raise Error(f"CPU{cpu} is not available{self.hostmsg}, available CPUs are:\n"
                     f"{cpus_str}")
 
     def _add_nums(self, nums):
@@ -428,9 +428,13 @@ class CPUInfo:
 
         if not proc:
             proc = Procs.Proc()
+
         self._proc = proc
 
+        self.hostname = proc.hostname
+        self.hostmsg = proc.hostmsg
         self.cpugeom = None
+
         self._lscpu_cache = None
 
     def close(self):
