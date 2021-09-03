@@ -409,31 +409,39 @@ def start_command(args):
         raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
     args.dpcnt = int(args.dpcnt)
 
-    with WORawResult.WultWORawResult(args.reportid, args.outdir, VERSION, args.cpunum) as res:
+    with contextlib.ExitStack() as stack:
+        res = WORawResult.WultWORawResult(args.reportid, args.outdir, VERSION, args.cpunum)
+        stack.enter_context(res)
+
         # Configure the logger to print to both the console and the log file.
         try:
             res.logs_path.mkdir(exist_ok=True)
         except OSError as err:
             raise Error(f"cannot create log directory '{res.logs_path}': {err}") from None
+
         logfile = res.logs_path / f"{OWN_NAME}.log.txt"
         Logging.setup_logger(OWN_NAME, info_logfile=logfile, error_logfile=logfile)
 
         ToolsCommon.set_filters(args, res)
 
-        with Devices.WultDevice(args.devid, args.cpunum, proc, dmesg=True, force=args.force) as dev:
-            with CPUIdle.CPUIdle(proc=proc) as cpuidle:
-                csinfo = cpuidle.get_cstates_info_dict(res.cpunum)
+        dev = Devices.WultDevice(args.devid, args.cpunum, proc, dmesg=True, force=args.force)
+        stack.enter_context(dev)
 
-            lscpu_info = CPUInfo.get_lscpu_info(proc=proc)
-            check_settings(proc, dev, csinfo, lscpu_info, args.cpunum, args.devid)
+        with CPUIdle.CPUIdle(proc=proc) as cpuidle:
+            csinfo = cpuidle.get_cstates_info_dict(res.cpunum)
 
-            with WultRunner.WultRunner(proc, dev, res, ldist=args.ldist, intr_focus=args.intr_focus,
-                                       csinfo=csinfo, stconf=stconf) as runner:
-                runner.unload = not args.no_unload
-                if args.post_trigger:
-                    runner.set_post_trigger(args.post_trigger, trange=args.trange)
-                runner.prepare()
-                runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit, keep_rawdp=args.keep_rawdp)
+        lscpu_info = CPUInfo.get_lscpu_info(proc=proc)
+        check_settings(proc, dev, csinfo, lscpu_info, args.cpunum, args.devid)
+
+        runner = WultRunner.WultRunner(proc, dev, res, ldist=args.ldist, intr_focus=args.intr_focus,
+                                       csinfo=csinfo, stconf=stconf)
+        stack.enter_context(runner)
+
+        runner.unload = not args.no_unload
+        if args.post_trigger:
+            runner.set_post_trigger(args.post_trigger, trange=args.trange)
+        runner.prepare()
+        runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit, keep_rawdp=args.keep_rawdp)
 
     if not args.report:
         return
