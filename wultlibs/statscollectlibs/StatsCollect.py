@@ -113,7 +113,6 @@ DEFAULT_STINFO = {
 
 class SCReplyError(Error):
     """This exception is raised when 'stats-collect' replies that a commant has failed."""
-    pass
 
 def _check_stname(stname):
     """Verify that 'stname' is a known statistic name."""
