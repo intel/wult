@@ -152,6 +152,12 @@ class WultRunner:
             dp["IntrLatency"] -= rawdp["AIOverhead"]
         elif not self._intr_focus:
             # Interrupts were enabled.
+
+            if self._ep.dev.drvname == "wult_tdt":
+                _LOG.debug("dropping datapoint with interrupts enabled - the 'tdt' driver does not "
+                           "handle them correctly. The datapoint is:\n%s", Human.dict2str(rawdp))
+                return None
+
             if rawdp["IntrLatency"] >= rawdp["WakeLatency"]:
                 _LOG.warning("'IntrLatency' is greater than 'WakeLatency', even though interrupts "
                              "were enabled. The datapoint is:\n%s\nDropping this datapoint\n",
