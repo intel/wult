@@ -671,7 +671,7 @@ class _Collector:
             stnames.remove("sysinfo")
             if sysinfo:
                 _LOG.info("Collecting more %s system information", self._sutname)
-                SysInfo.collect_before(self._statsdir / "sysinfo", self._proc)
+                SysInfo.collect_after(self._statsdir / "sysinfo", self._proc)
 
         if not stnames:
             return
