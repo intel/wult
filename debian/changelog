@@ -2,7 +2,10 @@ wult (1.9.6) unstable; urgency=low
 
   * wult: improve driver error diagnostics.
   * wult: stop supporing kernels older than v5.6.
-  * wult: add '--intr-focus' option/capability.
+  * wult: add 'start --intr-focus' option/capability.
+  * wult: add 'start --keep-raw-data' option.
+  * wult: add 'start --offline' option/capability.
+  * wult: add 'filter --human-readable' option.
   * wult/ndl: removed '--post-trigger' option/capability.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 30 Jul 2021 12:49:44 +0300
