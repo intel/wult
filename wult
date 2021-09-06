@@ -224,11 +224,6 @@ def build_arguments_parser():
               onlined back after the measurements."""
     subpars.add_argument("--offline", help=text)
 
-    text = ToolsCommon.get_post_trigger_descr("wake latency")
-    subpars.add_argument("--post-trigger", metavar="POST_TRIGGER", type=Path, help=text)
-    text = ToolsCommon.get_post_trigger_range_descr("wake latency")
-    subpars.add_argument("--post-trigger-range", metavar="TRANGE", dest="trange", help=text)
-
     subpars.add_argument("--report", action="store_true", help=ToolsCommon.START_REPORT_DESCR)
 
     text = f"""By default {OWN_NAME} does not accept network card as a measurement device if its
@@ -407,9 +402,6 @@ def get_offline_cpus(args, cpuinfo):
 def start_command(args):
     """Implements the 'start' command."""
 
-    if args.trange and not args.post_trigger:
-        raise Error("specify post trigger program to run")
-
     if args.list_stats:
         list_stats()
         return
@@ -443,8 +435,6 @@ def start_command(args):
         args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
     if args.ldist:
         args.ldist = ToolsCommon.parse_ldist(args.ldist)
-    if args.trange:
-        args.trange = ToolsCommon.parse_trange(args.trange)
 
     if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
         raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
@@ -495,12 +485,8 @@ def start_command(args):
         stack.enter_context(runner)
 
         runner.unload = not args.no_unload
-        if args.post_trigger:
-            runner.set_post_trigger(args.post_trigger, trange=args.trange)
-
         if onl:
             onl.offline(offline_cpus)
-
         runner.prepare()
         runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit, keep_rawdp=args.keep_rawdp)
 

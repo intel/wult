@@ -101,10 +101,6 @@ def build_arguments_parser():
                the SUT from reaching deep C-states. The optimal value is system-specific."""
     subpars.add_argument("-l", "--ldist", default="5000,50000", help=text)
 
-    text = ToolsCommon.get_post_trigger_descr("RTD")
-    subpars.add_argument("--post-trigger", metavar="POST_TRIGGER", type=Path, help=text)
-    text = ToolsCommon.get_post_trigger_range_descr("RTD")
-    subpars.add_argument("--post-trigger-range", metavar="TRANGE", dest="trange", help=text)
     subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_START_DESCR)
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     text = f"""{ToolsCommon.KEEP_FILTERED_DESCR} Here is an example. Suppose you want to collect
@@ -210,9 +206,6 @@ def parse_arguments():
 def start_command(args):
     """Implements the 'start' command."""
 
-    if args.trange and not args.post_trigger:
-        raise Error("specify post trigger program to run")
-
     proc = ToolsCommon.get_proc(args, args.hostname)
 
     if not args.reportid and proc.is_remote:
@@ -226,8 +219,6 @@ def start_command(args):
         args.outdir = Path(f"./{args.reportid}")
     if args.tlimit:
         args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
-    if args.trange:
-        args.trange = ToolsCommon.parse_trange(args.trange)
 
     args.ldist = ToolsCommon.parse_ldist(args.ldist)
 
@@ -265,8 +256,6 @@ def start_command(args):
 
             with NdlRunner.NdlRunner(proc, netif, res, ndlrunner_bin, ldist=args.ldist) as runner:
                 runner.prepare()
-                if args.post_trigger:
-                    runner.set_post_trigger(args.post_trigger, trange=args.trange)
                 runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit)
 
     if not args.report:

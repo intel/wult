@@ -16,7 +16,7 @@ import logging
 import contextlib
 from pathlib import Path
 from wultlibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from wultlibs.helperlibs import FSHelpers, Human
+from wultlibs.helperlibs import Human
 from wultlibs.pepclibs import CPUIdle, Systemctl
 from wultlibs import EventsProvider, Defs, _FTrace, _ProgressLine, WultStatsCollect
 
@@ -27,16 +27,6 @@ _MAX_FTRACE_BAD_LINES = 10
 
 class WultRunner:
     """Run wake latency measurement experiments."""
-
-    def _run_post_trigger(self, latency):
-        """Run the post-trigger program."""
-
-        if self._post_trigger_range and \
-           latency < self._post_trigger_range[0] or \
-           latency > self._post_trigger_range[1]:
-            return
-
-        self._proc.run_verify(f"{self._post_trigger} --latency {latency}")
 
     def _validate_datapoint(self, fields, vals):
         """
@@ -379,9 +369,6 @@ class WultRunner:
 
             collected_cnt += 1
 
-            if self._post_trigger:
-                self._run_post_trigger(dp["WakeLatency"])
-
             self._max_latency = max(dp[latkey], self._max_latency)
             self._progress.update(collected_cnt, self._max_latency)
             last_collected_time = time.time()
@@ -511,25 +498,6 @@ class WultRunner:
             self._stcoll.apply_stconf(self._stconf)
             _LOG.info("Configured the following statistics: %s", ", ".join(self._stconf["include"]))
 
-    def set_post_trigger(self, path, trange=None):
-        """
-        Configure the post-trigger - a program that has to be executed after a datapoint is
-        collected. The arguments are as follows.
-          * path - path to the executable program to run. The program will be executed with the
-            '--latency <value>' option, where '<value>' is the observed wake latency value in
-            nanoseconds.
-          * trange - the post-trigger range. By default, the trigger program is executed on every
-            datapoint. But if the trigger range is provided, the trigger program will be executed
-            only when wake latency is in trigger range.
-        """
-
-        if not FSHelpers.isexe(path, proc=self._proc):
-            raise Error(f"post-trigger program '{path}' does not exist{self._proc.hostmsg} or it "
-                        f"is not an executable file")
-
-        self._post_trigger = path
-        self._post_trigger_range = trange
-
     def _validate_sut(self):
         """Check the SUT to insure we have everything to measure it."""
 
@@ -597,8 +565,6 @@ class WultRunner:
         self._max_latency = 0
         self._sysctl = None
         self._has_irqbalance = None
-        self._post_trigger = None
-        self._post_trigger_range = []
         self._stcoll = None
 
         self._validate_sut()

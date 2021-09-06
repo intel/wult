@@ -23,16 +23,6 @@ _LOG = logging.getLogger()
 class NdlRunner:
     """Run the latency measurements."""
 
-    def _run_post_trigger(self, rtd):
-        """Run the post-trigger program."""
-
-        if self._post_trigger_range and \
-           rtd < self._post_trigger_range[0] or \
-           rtd > self._post_trigger_range[1]:
-            return
-
-        self._proc.run_verify(f"{self._post_trigger} --latency {rtd}")
-
     def _ndlrunner_error_prefix(self):
         """
         Forms and returns the starting part of an error message related to a general 'ndlrunner'
@@ -157,10 +147,6 @@ class NdlRunner:
                 continue
 
             collected_cnt += 1
-
-            if self._post_trigger:
-                self._run_post_trigger(dp["RTD"])
-
             self._progress.update(collected_cnt, self._max_rtd)
 
             if collected_cnt >= dpcnt:
@@ -251,24 +237,6 @@ class NdlRunner:
         _LOG.info("Starting NIC-to-system clock synchronization process%s", self._proc.hostmsg)
         self._etfqdisc.start_phc2sys(tai_offset=int(tai_offset))
 
-    def set_post_trigger(self, path, trange=None):
-        """
-        Configure the post-trigger - a program that has to be executed after a datapoint is
-        collected. The arguments are as follows.
-          * path - path to the executable program to run. The program will be executed with the
-            '--latency <value>' option, where '<value>' is the observed latency value in
-            nanoseconds.
-          * trange - the post-trigger range. By default, the trigger program is executed on every
-            datapoint. But if a range is provided, the trigger program will be executed only when
-            RTD is in trigger range.
-        """
-
-        if not FSHelpers.isexe(path, proc=self._proc):
-            raise Error(f"file '{path}' does not exist or it is not an executable file")
-
-        self._post_trigger = path
-        self._post_trigger_range = trange
-
     def _verify_input_args(self):
         """Verify and adjust the constructor input arguments."""
 
@@ -318,10 +286,8 @@ class NdlRunner:
         self._ndlrunner = None
         self._progress = None
         self._max_rtd = 0
-        self._post_trigger = None
         self._etfqdisc = None
         self._nmcli = None
-        self._post_trigger_range = []
 
         if not self._ldist:
             self._ldist = [5000000, 50000000]

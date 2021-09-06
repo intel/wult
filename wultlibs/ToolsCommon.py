@@ -69,35 +69,6 @@ def get_start_reportid_descr(allowed_chars):
                 23, 2015. The allowed characters are: {allowed_chars}."""
     return descr
 
-# Description for the '--post-trigger' option of the 'start' command.
-def get_post_trigger_descr(name):
-    """
-    Returns description for the '--post-trigger' option of the 'start' command. The 'name' argument
-    should be the trigger metric name.
-    """
-
-    descr = f"""The post-measurement trigger. Please, provide path to a trigger program that should
-                be executed after a datapoint had been collected. The next measurement cycle will
-                start only after the trigger program finishes. The trigger program will be executed
-                as 'POST_TRIGGER --value <value>', where '<value>' is the last observed {name} in
-                nanoseconds. This option exists for debugging and troubleshooting purposes only."""
-    return descr
-
-# Description for the '--post-trigger-range' option of the 'start' command.
-def get_post_trigger_range_descr(name):
-    """
-    Returns description for the '--post-trigger-range' option of the 'start' command. The 'name'
-    argument should be the name of the trigger metric name..
-    """
-
-    descr = f"""By default, the post trigger is executed for every datapoint, but this option allows
-                for setting the {name} range - the trigger program will be executed only when
-                observed {name} value is in the range (inclusive). Specify a comma-separated range,
-                e.g '--post-trigger-range 50,600'. The default unit is microseconds, but you can use
-                the following specifiers as well: {Human.DURATION_NS_SPECS_DESCR}. For example,
-                '--post-trigger-range 100us,1ms' would be a [100,1000] microseconds range."""
-    return descr
-
 # Description for the '--report' option of the 'start' command.
 START_REPORT_DESCR = """Generate an HTML report for collected results (same as calling 'report'
                         command with default arguments)."""
@@ -252,7 +223,7 @@ def get_proc(args, hostname):
                    timeout=args.timeout)
 
 def _validate_range(rng, what, single_ok):
-    """Implements 'parse_ldist()' and 'parse_trange()'."""
+    """Implements 'parse_ldist()'."""
 
     if single_ok:
         min_len = 1
@@ -293,11 +264,6 @@ def parse_ldist(ldist, single_ok=True):
     """
 
     return _validate_range(ldist, "launch distance", single_ok)
-
-def parse_trange(trange, single_ok=True):
-    """Similar to 'parse_ldist()', but for the '--post-trigger-range' option."""
-
-    return _validate_range(trange, "post-trigger range", single_ok)
 
 def parse_cpunum(cpunum, cpuinfo=None):
     """
