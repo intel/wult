@@ -220,10 +220,15 @@ CFILT_DESCR = """The columns filter: remove all column specified in the filter. 
 CSEL_DESCR = """The columns selector: remove all column except for those specified in the selector.
                 The syntax is the same as for '--cfilt'."""
 
+# Discription for the '--human-readable' option of the 'filter' command.
+FILTER_HUMAN_DESCR = """By default the result 'filter' command print the result as a CSV file to the
+                        standard output. This option can be used to dump the result in a more
+                        human-readable form."""
+
 # Description for the '--outdir' option of the 'filter' command.
 FILTER_OUTDIR_DESCR = """By default the resulting CSV lines are printed to the standard output. But
-                        this option can be used to specify the output directly to store the result
-                        at. This will create a filtered version of the input test result."""
+                         this option can be used to specify the output directly to store the result
+                         at. This will create a filtered version of the input test result."""
 
 # Description for the '--reportid' option of the 'filter' command.
 FILTER_REPORTID_DESCR = """Report ID of the filtered version of the result (can only be used with
@@ -449,12 +454,20 @@ def filter_command(args):
     if args.reportid and not args.outdir:
         raise Error("'--reportid' can be used only with '-o'/'--outdir'")
 
+    if args.human_readable and args.outdir:
+        raise Error("'--human-readable' and '--outdir' are mutually exclusive")
+
     apply_filters(args, res)
 
-    if not args.outdir:
+    if args.outdir:
+        res.save(args.outdir, reportid=args.reportid)
+    elif not args.human_readable:
         res.df.to_csv(sys.stdout, index=False, header=True)
     else:
-        res.save(args.outdir, reportid=args.reportid)
+        for idx, (_, dp) in enumerate(res.df.iterrows()):
+            if idx > 0:
+                _LOG.info("")
+            _LOG.info(Human.dict2str(dict(dp)))
 
 def calc_command(args):
     """Implements the 'calc' command  for the 'wult' and 'ndl' tools."""
