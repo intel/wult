@@ -25,42 +25,6 @@ _LOG = logging.getLogger()
 # Maximum count of unexpected lines in the trace buffer we tolerate.
 _MAX_FTRACE_BAD_LINES = 10
 
-def _dump_dp(dp):
-    """Returns a string for datapoint 'dp' suitable for using in error messages."""
-
-    import numpy                      # pylint: disable=import-outside-toplevel
-    from itertools import zip_longest # pylint: disable=import-outside-toplevel
-
-    # Printing one element per line takes too many lines and it is hard to read. So we attempt to
-    # print 3 elements per line and align them for readability. So split items on 3 groups, each
-    # group represents a column. The easy way of doing this is using 'numpy.array_split()'.
-    split = [list(column) for column in numpy.array_split(numpy.array(list(dp)), 3)]
-
-    columns = []
-    for keys in split:
-        # Create list of values for the keys in the column. Shorten the floating point numbers.
-        vals = []
-        for key in keys:
-            val = dp[key]
-            if isinstance(val, float):
-                vals.append(f"{val:.2f}")
-            else:
-                vals.append(f"{val}")
-
-        longest_key = max([len(key) for key in keys])
-        longest_val = max([len(val) for val in vals])
-
-        elts = []
-        for key, val in zip(keys, vals):
-            # Pad the keys/values to the longer key/value in the column.
-            key = f"{(key + ':').ljust(longest_key + 1)}"
-            val = f"{val.ljust(longest_val)}"
-            elts.append(f"{key} {val}")
-
-        columns.append(elts)
-
-    return "\n".join(["    ".join(row).strip() for row in zip_longest(*columns, fillvalue="")])
-
 class WultRunner:
     """Run wake latency measurement experiments."""
 
@@ -161,14 +125,14 @@ class WultRunner:
 
         if rawdp["AIOverhead"] and rawdp["IntrOverhead"]:
             raise Error(f"Both 'AIOverhead' and 'IntrOverhead' are not 0 at the same time. The "
-                        f"datapoint is:\n{_dump_dp(rawdp)}") from None
+                        f"datapoint is:\n{Human.dict2str(rawdp)}") from None
 
         if rawdp["IntrOff"]:
             # Interrupts were disabled.
             if rawdp["WakeLatency"] >= rawdp["IntrLatency"]:
                 _LOG.warning("'WakeLatency' is greater than 'IntrLatency', even though interrupts "
                              "were disabled. The datapoint is:\n%s\nDropping this datapoint\n",
-                             _dump_dp(rawdp))
+                             Human.dict2str(rawdp))
                 return None
 
             if rawdp["AIOverhead"] >= rawdp["IntrLatency"]:
@@ -185,14 +149,14 @@ class WultRunner:
                 #    enough 'AIOverhead', then the armed event happens when the CPU is in C0, and we
                 #    measure very small 'IntrLatency'.
                 _LOG.debug("'AIOverhead' is greater than interrupt latency ('IntrLatency'). The "
-                           "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(rawdp))
+                           "datapoint is:\n%s\nDropping this datapoint\n", Human.dict2str(rawdp))
                 return None
 
             if rawdp["WakeLatency"] >= rawdp["IntrLatency"] - rawdp["AIOverhead"]:
                 # This condition may happen for similar reasons.
                 _LOG.debug("'WakeLatency' is greater than 'IntrLatency' - 'AIOverhead', even "
                            "though interrupts were disabled. The datapoint is:\n%s\nDropping this "
-                           "datapoint\n", _dump_dp(rawdp))
+                           "datapoint\n", Human.dict2str(rawdp))
                 return None
 
             dp["IntrLatency"] -= rawdp["AIOverhead"]
@@ -201,18 +165,18 @@ class WultRunner:
             if rawdp["IntrLatency"] >= rawdp["WakeLatency"]:
                 _LOG.warning("'IntrLatency' is greater than 'WakeLatency', even though interrupts "
                              "were enabled. The datapoint is:\n%s\nDropping this datapoint\n",
-                             _dump_dp(rawdp))
+                             Human.dict2str(rawdp))
                 return None
 
             if rawdp["IntrOverhead"] >= rawdp["WakeLatency"]:
                 _LOG.debug("'IntrOverhead' is greater than wake latency ('WakeLatency'). The "
-                           "datapoint is:\n%s\nDropping this datapoint\n", _dump_dp(rawdp))
+                           "datapoint is:\n%s\nDropping this datapoint\n", Human.dict2str(rawdp))
                 return None
 
             if rawdp["IntrLatency"] >= rawdp["WakeLatency"] - rawdp["IntrOverhead"]:
                 _LOG.debug("'IntrLatency' is greater than 'WakeLatency' - 'IntrOverhead', even "
                            "though interrupts were enabled. The datapoint is:\n%s\nDropping this "
-                           "datapoint\n", _dump_dp(rawdp))
+                           "datapoint\n", Human.dict2str(rawdp))
                 return None
 
             dp["WakeLatency"] -= rawdp["IntrOverhead"]
@@ -231,18 +195,18 @@ class WultRunner:
             # Supposedly an bad C-state index.
             indexes_str = ", ".join(f"{idx} ({val['name']})" for idx, val in  self._csinfo.items())
             raise Error(f"bad C-state index '{rawdp['ReqCState']}' in the following datapoint:\n"
-                        f"{_dump_dp(rawdp)}\nAllowed indexes are:\n{indexes_str}") from None
+                        f"{Human.dict2str(rawdp)}\nAllowed indexes are:\n{indexes_str}") from None
 
         if rawdp["TotCyc"] == 0:
             raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
-                        f"a bug. The raw datapoint is:\n{_dump_dp(rawdp)}") from None
+                        f"a bug. The raw datapoint is:\n{Human.dict2str(rawdp)}") from None
 
         # The driver takes TSC and MPERF counters so that the MPERF interval is inside the
         # TSC interval, so delta TSC (total cycles) is expected to be always greater than
         # delta MPERF (C0 cycles).
         if rawdp["TotCyc"] < rawdp["CC0Cyc"]:
             raise Error(f"total cycles is smaller than CC0 cycles, the raw datapoint is:\n"
-                        f"{_dump_dp(rawdp)}")
+                        f"{Human.dict2str(rawdp)}")
 
         # Add the C-state percentages.
         for colname in self._cs_colnames:
@@ -264,7 +228,7 @@ class WultRunner:
 
                 csname = Defs.get_csname(colname)
                 _LOG.log(loglevel, "too high %s residency of %.1f%%, using 100%% instead. The "
-                                   "datapoint is:\n%s", csname, dp[colname], _dump_dp(rawdp))
+                                   "datapoint is:\n%s", csname, dp[colname], Human.dict2str(rawdp))
                 dp[colname] = 100.0
 
         if self._has_cstates and not self._is_poll_idle(rawdp):
@@ -351,7 +315,7 @@ class WultRunner:
 
             if not defs.info[colname].get("optional"):
                 raise Error(f"the mandatory '{colname}' filed was not found. The datapoint is:\n"
-                            f"{_dump_dp(rawdp)}")
+                            f"{Human.dict2str(rawdp)}")
 
         if keep_rawdp:
             # Append raw fields. In case of a duplicate name:
@@ -372,7 +336,7 @@ class WultRunner:
         # Sanity check: no values should be 'None'.
         dp = self._process_datapoint(rawdp)
         if any(val is None for val in dp.values()):
-            raise Error("bug: 'None' values found in the following datapoint:\n_dump_dp(dp)")
+            raise Error("bug: 'None' values found in the following datapoint:\nHuman.dict2str(dp)")
 
     def _collect(self, dpcnt, tlimit, keep_rawdp):
         """
