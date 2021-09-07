@@ -459,11 +459,14 @@ class WultRunner:
     def prepare(self):
         """Prepare for starting the measurements."""
 
-        # The 'irqbalance' service usually causes problems by binding the delayed event to a CPU
-        # different form the measured one. Stop the service.
-        if self._has_irqbalance:
-            _LOG.info("Stopping the 'irqbalance' service")
-            self._sysctl.stop("irqbalance")
+        # The 'irqbalance' service usually causes problems by binding the delayed events (NIC
+        # interrupts) to CPUs different form the measured one. Stop the service.
+        if self._ep.dev.drvname == "wult_igb":
+            self._sysctl = Systemctl.Systemctl(proc=self._proc)
+            self._has_irqbalance = self._sysctl.is_active("irqbalance")
+            if self._has_irqbalance:
+                _LOG.info("Stopping the 'irqbalance' service")
+                self._sysctl.stop("irqbalance")
 
         self._ep.unload = self.unload
         self._ep.prepare()
@@ -591,9 +594,6 @@ class WultRunner:
         else:
             raise Error(f"no idle states are enabled on CPU {res.cpunum}{proc.hostmsg}")
 
-        self._sysctl = Systemctl.Systemctl(proc=proc)
-        self._has_irqbalance = self._sysctl.is_active("irqbalance")
-
     def close(self):
         """Stop the measurements."""
 
@@ -624,9 +624,9 @@ class WultRunner:
             try:
                 self._sysctl.start("irqbalance")
             except Error as err:
-                # One case when we saw failures here was a system that was running irqbalance, but
-                # the user offlined all the CPUs except for CPU0. We were able to stop the service,
-                # but could not start it again, probably because there is only one CPU.
+                # We saw failures here on a system that was running irqbalance, but the user
+                # offlined all the CPUs except for CPU0. We were able to stop the service, but could
+                # not start it again, probably because there is only one CPU.
                 _LOG.warning("failed to start the previously stoopped 'irqbalance' service:\n%s",
                              err)
             self._sysctl = None
