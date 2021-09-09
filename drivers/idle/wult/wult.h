@@ -11,6 +11,7 @@
 #include <linux/clocksource.h>
 #include <linux/ftrace.h>
 #include <linux/math64.h>
+#include <linux/mutex.h>
 #include <linux/printk.h>
 #include <linux/spinlock.h>
 #include <linux/wait.h>
@@ -119,6 +120,11 @@ struct task_struct;
 struct wult_info {
 	/* Wult delayed event device driver information. */
 	struct wult_device_info *wdi;
+	/*
+	 * Protect 'pdev' and serializes delayed event driver registration and
+	 * removal.
+	 */
+	struct mutex dev_mutex;
 	/* Driver's root debugfs directory. */
 	struct dentry *dfsroot;
 	/* The measured CPU number. */

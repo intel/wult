@@ -32,17 +32,11 @@
 
 /* TODO: this whole thing should use sysfs and bus/device model. */
 
-/* CPU number to measure wake latency on. */
+/* CPU number to measure wake latency on (module parameter). */
 static unsigned int cpunum;
 
 /* The wult driver information object. */
 static struct wult_info *wi;
-
-/*
- * This mutex protect 'wi->pdev' and serializes delayed event driver
- * registration and removal.
- */
-static DEFINE_MUTEX(wi_mutex);
 
 /* Enable the measurements. */
 int wult_enable(void)
@@ -311,7 +305,7 @@ int wult_register(struct wult_device_info *wdi)
 	if (!try_module_get(THIS_MODULE))
 		return -ENODEV;
 
-	mutex_lock(&wi_mutex);
+	mutex_lock(&wi->dev_mutex);
 	if (wi->wdi) {
 		wult_err("already have device '%s' registered", wi->wdi->devname);
 		goto err_put;
@@ -348,7 +342,7 @@ int wult_register(struct wult_device_info *wdi)
 		wult_err("failed to create debugfs files, error %d", err);
 		goto err_kthread;
 	}
-	mutex_unlock(&wi_mutex);
+	mutex_unlock(&wi->dev_mutex);
 
 	wult_msg("registered device '%s', resolution: %u ns",
 		 wdi->devname, wdi->ldist_gran);
@@ -359,7 +353,7 @@ err_kthread:
 err_tracer:
 	wult_tracer_exit(wi);
 err_put:
-	mutex_unlock(&wi_mutex);
+	mutex_unlock(&wi->dev_mutex);
 	module_put(THIS_MODULE);
 	return err;
 }
@@ -375,9 +369,9 @@ void wult_unregister(void)
 	kthread_stop(wi->armer);
 	wult_tracer_exit(wi);
 
-	mutex_lock(&wi_mutex);
+	mutex_lock(&wi->dev_mutex);
 	wi->wdi = NULL;
-	mutex_unlock(&wi_mutex);
+	mutex_unlock(&wi->dev_mutex);
 
 	module_put(THIS_MODULE);
 	return;
@@ -410,6 +404,8 @@ static int __init wult_init(void)
 	}
 
 	wi = kzalloc(sizeof(struct wult_info), GFP_KERNEL);
+
+	mutex_init(&wi->dev_mutex);
 	wi->cpunum = cpunum;
 
 	return 0;
