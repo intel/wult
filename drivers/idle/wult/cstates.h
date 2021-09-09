@@ -47,9 +47,25 @@ struct wult_cstates_info {
 	u64 dmperf;
 };
 
-void wult_cstates_snap_tsc(struct wult_cstates_info *csinfo, unsigned int snum);
-void wult_cstates_snap_mperf(struct wult_cstates_info *csinfo,
-			     unsigned int snum);
+/*
+ * Read TSC and save it in snapshot number 'snum'.
+ */
+static inline void wult_cstates_snap_tsc(struct wult_cstates_info *csinfo,
+		                         unsigned int snum)
+{
+	csinfo->tsc[snum] = rdtsc_ordered();
+}
+
+/*
+ * Read MPERF and save it in snapshot number 'snum'.
+ */
+static inline void wult_cstates_snap_mperf(struct wult_cstates_info *csinfo,
+		                           unsigned int snum)
+{
+	csinfo->mperf[snum] = __rdmsr(MSR_IA32_MPERF);
+}
+
+
 void wult_cstates_snap_cst(struct wult_cstates_info *csinfo, unsigned int snum);
 void wult_cstates_calc(struct wult_cstates_info *csinfo,
 		       unsigned int snum1, unsigned int snum2);

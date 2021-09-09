@@ -12,28 +12,6 @@
 #include "wult.h"
 
 /*
- * Read TSC and save it in snapshot number 'snum'.
- */
-void wult_cstates_snap_tsc(struct wult_cstates_info *csinfo, unsigned int snum)
-{
-	if (WARN_ON(snum >= MAX_CSTATE_SNAPSHOTS))
-		return;
-
-	csinfo->tsc[snum] = rdtsc_ordered();
-}
-
-/*
- * Read MPERF and save it in snapshot number 'snum'.
- */
-void wult_cstates_snap_mperf(struct wult_cstates_info *csinfo, unsigned int snum)
-{
-	if (WARN_ON(snum >= MAX_CSTATE_SNAPSHOTS))
-		return;
-
-	csinfo->mperf[snum] = __rdmsr(MSR_IA32_MPERF);
-}
-
-/*
  * Read C-state counters and save them in snapshot number 'snum'.
  */
 void wult_cstates_snap_cst(struct wult_cstates_info *csinfo, unsigned int snum)
