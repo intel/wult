@@ -8,7 +8,7 @@ wult (1.9.6) unstable; urgency=low
   * wult: add 'filter --human-readable' option.
   * wult/ndl: removed '--post-trigger' option/capability.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 30 Jul 2021 12:49:44 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 09 Sep 2021 11:43:25 +0300
 
 wult (1.9.5) unstable; urgency=low
 
