@@ -211,6 +211,19 @@ def build_arguments_parser():
                binded back."""
     subpars.add_argument("--no-unload", action="store_true", help=text)
 
+    text = """This option is for research purposes and you most probably do not need it. Linux's
+              'cpuidle' subsystem enters most C-states with interrupts disabled. So when the CPU
+              exits the C-state becaouse of an interrupt, it will not jump to the interrupt
+              handler, but instead, continue running some 'cpuidle' housekeeping code. After this,
+              the 'cpuidle' subsystem enables interrupts, and the CPU jumps to the interrupt
+              hanlder. Therefore, there is a tiny delay the 'cpuidle' subsystem adds on top of the
+              hardware C-state latency. For fast C-states like C1, this tiny delay may even be
+              measurable on some platforms. This option allows to measure that delay. It makes wult
+              enable interrupts before linux enters the C-state. This option is generally a crude
+              option along with '--intr-focus'. When this option is used, often it makes sense to
+              use '--intr-focus' at the same time."""
+    subpars.add_argument("--early-intr", action="store_true", help=text)
+
     text = """Offline CPUs before the measurements. The possible values are: same-core,
               same-package, all.  The "same-core" value offlines all other CPUs on the same core as
               the measured CPU. The "same-package" value offlines all CPUs on the same package as
@@ -481,7 +494,7 @@ def start_command(args):
         check_settings(proc, dev, csinfo, lscpu_info, args.cpunum, args.devid)
 
         runner = WultRunner.WultRunner(proc, dev, res, ldist=args.ldist, intr_focus=args.intr_focus,
-                                       csinfo=csinfo, stconf=stconf)
+                                       early_intr=args.early_intr, csinfo=csinfo, stconf=stconf)
         stack.enter_context(runner)
 
         runner.unload = not args.no_unload
