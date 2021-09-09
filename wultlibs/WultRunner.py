@@ -583,6 +583,10 @@ class WultRunner:
                                                  intr_focus=self._intr_focus)
         self._ftrace = _FTrace.FTrace(proc=proc, timeout=self._timeout)
 
+        if self._ep.dev.drvname == "wult_tdt" and self._intr_focus:
+            raise Error("the 'tdt' driver does not support the interrupt latency focused "
+                        "measurements")
+
         if self._csinfo is None:
             with CPUIdle.CPUIdle(proc=proc) as cpuidle:
                 self._csinfo = cpuidle.get_cstates_info_dict(res.cpunum)
