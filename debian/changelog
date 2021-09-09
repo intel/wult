@@ -1,3 +1,9 @@
+wult (1.9.7) unstable; urgency=low
+
+  * wult: add 'start --early-intr' option/capability.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 09 Sep 2021 11:43:25 +0300
+
 wult (1.9.6) unstable; urgency=low
 
   * wult: improve driver error diagnostics.
