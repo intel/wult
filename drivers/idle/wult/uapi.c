@@ -34,37 +34,46 @@
 /* Name of debugfs file for enabling interrupt latency focused measurements. */
 #define INTR_FOCUS_FNAME "intr_focus"
 
-static ssize_t dfs_write_enabled_file(struct file *file,
-				      const char __user *user_buf, size_t count,
-				      loff_t *ppos)
+static int set_enabled(bool enabled)
 {
-	int err;
+	int err = 0;
 
-	err = wult_enable();
-	if (err)
-		return err;
+	if (enabled)
+		err = wult_enable();
+	else
+		wult_disable();
 
-	return debugfs_write_file_bool(file, user_buf, count, ppos);
+	return err;
 }
 
-/* Wult debugfs operations for the 'enabled' file. */
-static const struct file_operations dfs_ops_enabled = {
-	.read = debugfs_read_file_bool,
-	.write = dfs_write_enabled_file,
-	.open = simple_open,
-	.llseek = default_llseek,
-};
+static int set_intr_focus(struct wult_info *wi, bool intr_focus)
+{
+	int err = 0;
 
-static ssize_t dfs_write_intr_focus_file(struct file *file,
-					 const char __user *user_buf,
-					 size_t count, loff_t *ppos)
+	spin_lock(&wi->enable_lock);
+	if (wi->intr_focus == intr_focus || !wi->enabled)
+		wi->intr_focus = intr_focus;
+	else
+		/*
+		 * The measurements must be disabled in order to toggle the
+		 * interrupt focus mode.
+		 */
+		err = -EINVAL;
+	spin_unlock(&wi->enable_lock);
+
+	return err;
+}
+
+static ssize_t dfs_write_bool_file(struct file *file,
+				   const char __user *user_buf,
+				   size_t count, loff_t *ppos)
 {
 	int err;
-	bool intr_focus;
-	bool *val = file->private_data;
+	bool val;
 	struct dentry *dent = file->f_path.dentry;
+	struct wult_info *wi = file->private_data;
 
-	err = kstrtobool_from_user(user_buf, count, &intr_focus);
+	err = kstrtobool_from_user(user_buf, count, &val);
 	if (err)
 		return err;
 
@@ -72,23 +81,59 @@ static ssize_t dfs_write_intr_focus_file(struct file *file,
 	if (err)
 		return err;
 
-	err = wult_set_intr_focus(intr_focus);
-	if (err)
-		goto error;
+	if (!strcmp(dent->d_name.name, ENABLED_FNAME))
+		err = set_enabled(val);
+	else if (!strcmp(dent->d_name.name, INTR_FOCUS_FNAME))
+		err = set_intr_focus(wi, val);
+	else
+		err = -EINVAL;
 
-	*val = intr_focus;
 	debugfs_file_put(dent);
-	return count;
+
+	if (!err)
+		return count;
+	return err;
+}
+
+static ssize_t dfs_read_bool_file(struct file *file, char __user *user_buf,
+				  size_t count, loff_t *ppos)
+{
+	int err;
+	bool val;
+	char buf[2];
+	struct dentry *dent = file->f_path.dentry;
+	struct wult_info *wi = file->private_data;
+
+	err = debugfs_file_get(dent);
+	if (err)
+		return err;
+
+	if (!strcmp(dent->d_name.name, ENABLED_FNAME)) {
+		val = wi->enabled;
+	} else if (!strcmp(dent->d_name.name, INTR_FOCUS_FNAME)) {
+		val = wi->intr_focus;
+	} else {
+		err = -EINVAL;
+		goto error;
+	}
+
+	if (val)
+		buf[0] = 'Y';
+	else
+		buf[0] = 'N';
+	buf[1] = '\n';
+
+	err = simple_read_from_buffer(user_buf, count, ppos, buf, 2);
 
 error:
 	debugfs_file_put(dent);
 	return err;
 }
 
-/* Wult debugfs operations for the 'intr_focus' file. */
-static const struct file_operations dfs_ops_intr_focus = {
-	.read = debugfs_read_file_bool,
-	.write = dfs_write_intr_focus_file,
+/* Wult debugfs operations for the 'enabled' and 'intr_focus' files. */
+static const struct file_operations dfs_ops_misc = {
+	.read = dfs_read_bool_file,
+	.write = dfs_write_bool_file,
 	.open = simple_open,
 	.llseek = default_llseek,
 };
@@ -97,7 +142,7 @@ static ssize_t dfs_read_u64_file(struct file *file, char __user *user_buf,
 				 size_t count, loff_t *ppos)
 {
 	struct dentry *dent = file->f_path.dentry;
-	struct wult_info *wi;
+	struct wult_info *wi = file->private_data;
 	char buf[32];
 	int err, len;
 	ssize_t res;
@@ -107,7 +152,6 @@ static ssize_t dfs_read_u64_file(struct file *file, char __user *user_buf,
 	if (err)
 		return err;
 
-	wi = file->private_data;
 	if (!strcmp(dent->d_name.name, LDIST_MIN_FNAME)) {
 		val = wi->wdi->ldist_min;
 	} else if (!strcmp(dent->d_name.name, LDIST_MAX_FNAME)) {
@@ -137,7 +181,7 @@ static ssize_t dfs_read_atomic64_file(struct file *file, char __user *user_buf,
 				      size_t count, loff_t *ppos)
 {
 	struct dentry *dent = file->f_path.dentry;
-	struct wult_info *wi;
+	struct wult_info *wi = file->private_data;
 	char buf[32];
 	int err, len;
 	ssize_t res;
@@ -147,7 +191,6 @@ static ssize_t dfs_read_atomic64_file(struct file *file, char __user *user_buf,
 	if (err)
 		return err;
 
-	wi = file->private_data;
 	if (!strcmp(dent->d_name.name, LDIST_FROM_FNAME)) {
 		val = atomic64_read(&wi->ldist_from);
 	} else if (!strcmp(dent->d_name.name, LDIST_TO_FNAME)) {
@@ -168,7 +211,7 @@ static ssize_t dfs_write_atomic64_file(struct file *file, const char __user *use
 				       size_t count, loff_t *ppos)
 {
 	struct dentry *dent = file->f_path.dentry;
-	struct wult_info *wi;
+	struct wult_info *wi = file->private_data;
 	int err;
 	ssize_t len;
 	char buf[32];
@@ -190,7 +233,6 @@ static ssize_t dfs_write_atomic64_file(struct file *file, const char __user *use
 	if (err)
 		goto out;
 
-	wi = file->private_data;
 	if (val > wi->wdi->ldist_max || val < wi->wdi->ldist_min)
 		goto out_einval;
 
@@ -239,10 +281,10 @@ int wult_uapi_device_register(struct wult_info *wi)
 			    &dfs_ops_u64);
 	debugfs_create_file(LDIST_RES_FNAME, 0444, wi->dfsroot, wi,
 			    &dfs_ops_u64);
-	debugfs_create_file(ENABLED_FNAME, 0644, wi->dfsroot, &wi->enabled,
-			    &dfs_ops_enabled);
-	debugfs_create_file(INTR_FOCUS_FNAME, 0644, wi->dfsroot, &wi->intr_focus,
-			    &dfs_ops_intr_focus);
+	debugfs_create_file(ENABLED_FNAME, 0644, wi->dfsroot, wi,
+			    &dfs_ops_misc);
+	debugfs_create_file(INTR_FOCUS_FNAME, 0644, wi->dfsroot, wi,
+			    &dfs_ops_misc);
 
 	return 0;
 }
