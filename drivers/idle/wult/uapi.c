@@ -34,6 +34,9 @@
 /* Name of debugfs file for enabling interrupt latency focused measurements. */
 #define INTR_FOCUS_FNAME "intr_focus"
 
+/* Name of debugfs file for enabling early interrupts. */
+#define EARLY_INTR_FNAME "early_intr"
+
 static int set_enabled(bool enabled)
 {
 	int err = 0;
@@ -64,6 +67,24 @@ static int set_intr_focus(struct wult_info *wi, bool intr_focus)
 	return err;
 }
 
+static int set_early_intr(struct wult_info *wi, bool early_intr)
+{
+	int err = 0;
+
+	spin_lock(&wi->enable_lock);
+	if (wi->early_intr == early_intr || !wi->enabled)
+		wi->early_intr = early_intr;
+	else
+		/*
+		 * The measurements must be disabled in order to enable/disable
+		 * early interrupts.
+		 */
+		err = -EINVAL;
+	spin_unlock(&wi->enable_lock);
+
+	return err;
+}
+
 static ssize_t dfs_write_bool_file(struct file *file,
 				   const char __user *user_buf,
 				   size_t count, loff_t *ppos)
@@ -85,6 +106,8 @@ static ssize_t dfs_write_bool_file(struct file *file,
 		err = set_enabled(val);
 	else if (!strcmp(dent->d_name.name, INTR_FOCUS_FNAME))
 		err = set_intr_focus(wi, val);
+	else if (!strcmp(dent->d_name.name, EARLY_INTR_FNAME))
+		err = set_early_intr(wi, val);
 	else
 		err = -EINVAL;
 
@@ -112,6 +135,8 @@ static ssize_t dfs_read_bool_file(struct file *file, char __user *user_buf,
 		val = wi->enabled;
 	} else if (!strcmp(dent->d_name.name, INTR_FOCUS_FNAME)) {
 		val = wi->intr_focus;
+	} else if (!strcmp(dent->d_name.name, EARLY_INTR_FNAME)) {
+		val = wi->early_intr;
 	} else {
 		err = -EINVAL;
 		goto error;
@@ -130,7 +155,7 @@ error:
 	return err;
 }
 
-/* Wult debugfs operations for the 'enabled' and 'intr_focus' files. */
+/* Wult debugfs operations for the 'enabled', 'intr_focus' and other files. */
 static const struct file_operations dfs_ops_misc = {
 	.read = dfs_read_bool_file,
 	.write = dfs_write_bool_file,
@@ -284,6 +309,8 @@ int wult_uapi_device_register(struct wult_info *wi)
 	debugfs_create_file(ENABLED_FNAME, 0644, wi->dfsroot, wi,
 			    &dfs_ops_misc);
 	debugfs_create_file(INTR_FOCUS_FNAME, 0644, wi->dfsroot, wi,
+			    &dfs_ops_misc);
+	debugfs_create_file(EARLY_INTR_FNAME, 0644, wi->dfsroot, wi,
 			    &dfs_ops_misc);
 
 	return 0;

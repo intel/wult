@@ -143,6 +143,8 @@ struct wult_info {
 	bool enabled;
 	/* Whether the interrupt latency focused measurements are enabled. */
 	bool intr_focus;
+	/* Whether the early interrupts feature is enabled. */
+	bool early_intr;
 	/* Wult tracer information. */
 	struct wult_tracer_info ti;
 	/* The armer thread. */

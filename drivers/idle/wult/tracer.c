@@ -79,6 +79,9 @@ static void before_idle(struct wult_info *wi)
 	wult_cstates_snap_mperf(&ti->csinfo, 0);
 
 	ti->tbi = wi->wdi->ops->get_time_before_idle(wi->wdi);
+
+	if (wi->early_intr)
+		local_irq_enable();
 }
 
 /* Get measurement data after idle .*/
