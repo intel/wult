@@ -154,10 +154,11 @@ def rangify(numbers):
         # ((0, 5), (1, 6), (2, 7), (3, 8)) , ((4, 10), (5, 11)) and  (6, 13)
 
         nums = [val for _, val in pairs]
-        if len(nums) > 1:
+        if len(nums) > 2:
             range_strs.append(f"{nums[0]}-{nums[-1]}")
         else:
-            range_strs.append(str(nums[0]))
+            for num in nums:
+                range_strs.append(str(num))
 
     return ",".join(range_strs)
 
