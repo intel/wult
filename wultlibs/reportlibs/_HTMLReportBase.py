@@ -779,13 +779,8 @@ class HTMLReportBase:
                                  "of the results", colname, name)
                 setattr(self, name, colnames)
 
-        # Verify that we have at least one X-column and Y-column.
         if not self.xaxes or not self.yaxes:
-            if not self.xaxes:
-                name = "X"
-            else:
-                name = "Y"
-            raise Error(f"the {name} axis column list is empty")
+            self.xaxes = self.yaxes = []
 
         # Ensure '_hov_colnames' dictionary is initialized.
         self.set_hover_colnames(())
