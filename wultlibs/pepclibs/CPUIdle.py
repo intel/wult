@@ -101,26 +101,25 @@ class CPUIdle:
     def _normalize_cstates(self, cstates):
         """
         Some methods accept the C-states to operate on as a string or a list. There may be C-state
-        names or indexes in the list. This method turns the user input into a list of C-state
-        indexes and returns this list.
+        names or indexes in the list. This method turns the user input into two lists, parsed list
+        of user input, and a list of C-state indexes. The lists are returned as a tuple.
         """
 
-        # 'None' will be translated to all C-states in '_get_cstates_info()'.
-        if cstates == "all":
-            cstates = None
+        if cstates in ("all", None):
+            return None
 
         if isinstance(cstates, int):
             cstates = str(cstates)
-        if cstates is not None:
-            if isinstance(cstates, str):
-                cstates = Trivial.split_csv_line(cstates, dedup=True)
-            indexes = []
-            for cstate in cstates:
-                if not Trivial.is_int(cstate):
-                    cstate = self._name2idx(cstate)
-                indexes.append(int(cstate))
-            cstates = indexes
-        return cstates
+        if isinstance(cstates, str):
+            cstates = Trivial.split_csv_line(cstates, dedup=True)
+
+        indexes = []
+        for cstate in cstates:
+            if not Trivial.is_int(cstate):
+                cstate = self._name2idx(cstate)
+            indexes.append(int(cstate))
+
+        return indexes
 
     def _normalize_cpus(self, cpus):
         """
@@ -186,7 +185,8 @@ class CPUIdle:
 
     def _toggle_cstates(self, cpus=None, cstates=None, enable=True, dflt_enable=None):
         """
-        Enable or disable C-states 'cstates' on CPUs 'cpus'. The arguments are as follows.
+        Enable or disable C-states 'cstates' on CPUs 'cpus'. Returns list of CPU numbers and
+        C-states as a tuple. The arguments are as follows.
           * cstates - same as in 'get_cstates_info()'.
           * cpus - same as in 'get_cstates_info()'.
           * enabled - if 'True', the specified C-states should be enabled on the specified CPUS,
@@ -197,23 +197,28 @@ class CPUIdle:
         """
 
         cpus = self._normalize_cpus(cpus)
-        cstates = self._normalize_cstates(cstates)
 
-        self._do_toggle_cstates(cpus, cstates, enable, dflt_enable)
+        if isinstance(cstates, str) and cstates != "all":
+            cstates = Trivial.split_csv_line(cstates, dedup=True)
+        indexes = self._normalize_cstates(cstates)
+
+        self._do_toggle_cstates(cpus, indexes, enable, dflt_enable)
+
+        return (cpus, cstates)
 
     def enable_cstates(self, cpus=None, cstates=None):
         """
         Enable C-states 'cstates' on CPUs 'cpus'. The 'cstates' and 'cpus' arguments are the same as
         in 'get_cstates_info()'.
         """
-        self._toggle_cstates(cpus, cstates, True)
+        return self._toggle_cstates(cpus, cstates, True)
 
     def disable_cstates(self, cpus=None, cstates=None):
         """
         Disable C-states 'cstates' on CPUs 'cpus'. The 'cstates' and 'cpus' arguments are the same
         as in 'get_cstates_info()'.
         """
-        self._toggle_cstates(cpus, cstates, False)
+        return self._toggle_cstates(cpus, cstates, False)
 
     def _get_cstates_info(self, cpus, indexes, ordered):
         """Implements 'get_cstates_info()'."""
@@ -287,9 +292,9 @@ class CPUIdle:
         """
 
         cpus = self._normalize_cpus(cpus)
-        cstates = self._normalize_cstates(cstates)
+        indexes = self._normalize_cstates(cstates)
 
-        for info in self._get_cstates_info(cpus, cstates, ordered):
+        for info in self._get_cstates_info(cpus, indexes, ordered):
             yield info
 
     def get_cstates_info_dict(self, cpu, cstates=None, ordered=True):
