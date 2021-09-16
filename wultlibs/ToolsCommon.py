@@ -137,11 +137,19 @@ TITLE_DESCR = """The report title description - any text describing this report 
                  the resulting HTML report."""
 
 # Description for the '--relocatable' option of the 'report' command.
-RELOCATABLE_DESCR = """The generated report includes references to the test results. By default,
-                       these references are symlinks to the raw result directories. However, this
-                       makes the generated report be not relocatable. Use this option to make the
-                       report relocatable in expense of increased disk space consumption - this
-                       tool will make a copy of the test results."""
+RELOCATABLE_DESCR = """By default the generated report includes references to the raw test results,
+                       and at the file-system level, the raw test results are symlinks pointing to
+                       the raw test results directory paths. This means that if raw test results are
+                       moved somewhere, or the generated report is moved to another system, it may
+                       end up with broken raw results links. This option accepts 3 possible values:
+                       'copy' and 'noraw', and 'symlink'. In case of the 'copy' value, raw results
+                       will be copied to the report output directory, which will make the report
+                       relocatable, but in expense of increased disk space consumption. In case of
+                       the 'noraw' value, the raw results wont be referenced at all, neither in the
+                       HTML report, nor at the file-system level. This will also exclude the logs
+                       and the statistics. This option may be useful for minimizing the output
+                       directory disk space usage. The 'symlink' value corresponds to the default
+                       behavior."""
 
 # Description for the '--list-columns' option of the 'report' and other commands.
 LIST_COLUMNS_DESCR = "Print the list of the available column names and exit."

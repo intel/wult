@@ -269,7 +269,7 @@ def build_arguments_parser():
     subpars.add_argument("--chist", help=ToolsCommon.CHIST_DESCR % get_axes_default('chist'))
     subpars.add_argument("--reportids", help=ToolsCommon.REPORTIDS_DESCR)
     subpars.add_argument("--title-descr", help=ToolsCommon.TITLE_DESCR)
-    subpars.add_argument("--relocatable", action="store_true", help=ToolsCommon.RELOCATABLE_DESCR)
+    subpars.add_argument("--relocatable", help=ToolsCommon.RELOCATABLE_DESCR)
     subpars.add_argument("--list-columns", action="store_true", help=ToolsCommon.LIST_COLUMNS_DESCR)
 
     text = f"""One or multiple {OWN_NAME} test result paths."""
@@ -508,12 +508,18 @@ def start_command(args):
 
     rsts = ToolsCommon.open_raw_results([args.outdir], args.toolname)
     rep = WultHTMLReport.WultHTMLReport(rsts, args.outdir, title_descr=args.reportid)
-    rep.relocatable = False
+    rep.relocatable = "symlink"
     rep.set_hover_colnames(HOVER_COLNAME_REGEXS)
     rep.generate()
 
 def report_command(args):
     """Implements the 'report' command."""
+
+    if not args.relocatable:
+        args.relocatable= "symlink"
+    elif args.relocatable not in ("copy", "noraw", "symlink"):
+        raise Error(f"bad '--relocatable' value '{args.relocatable}', use one of: "
+                    f"copy, noraw, symlink")
 
     # Split the comma-separated lists.
     for name in ("xaxes", "yaxes", "hist", "chist"):

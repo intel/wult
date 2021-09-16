@@ -1,6 +1,7 @@
 wult (1.9.7) unstable; urgency=low
 
   * wult: add 'start --early-intr' option/capability.
+  * wult/ndl: add 'report --relocatable=noraw' support.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 09 Sep 2021 11:43:25 +0300
 
