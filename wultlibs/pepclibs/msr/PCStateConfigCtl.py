@@ -28,8 +28,8 @@ C1_UNDEMOTION_ENABLE = 28
 MAX_PKG_C_STATE_MASK = 0xF
 
 # Ice Lake and Sapphire Rapids Xeon package C-state limits.
-_ICX_PKG_CST_LIMITS = {"codes"   : {"pc0": 0, "pc2": 1, "pc6n":2, "unlimited" : 7},
-                       "aliases" : {"pc6": "pc6n"}}
+_ICX_PKG_CST_LIMITS = {"codes"   : {"pc0": 0, "pc2": 1, "pc6":2, "unlimited" : 7},
+                       "aliases" : {"pc6n": "pc6"}}
 # Sky-/Cascade-/Cooper- lake Xeon package C-state limits.
 _SKX_PKG_CST_LIMITS = {"codes"   : {"pc0": 0, "pc2": 1, "pc6n":2, "pc6r": 3, "unlimited": 7},
                        "aliases" : {"pc6": "pc6r"}}
