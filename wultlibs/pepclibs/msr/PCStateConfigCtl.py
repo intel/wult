@@ -182,9 +182,21 @@ class PCStateConfigCtl:
 
             if pcs_code not in pcs_rmap:
                 known_codes = ", ".join([str(code) for code in pcs_rmap])
-                raise Error(f"unexpected package C-state limit code '{pcs_code}' read from "
-                            f"'PKG_CST_CONFIG_CONTROL' MSR ({MSR_PKG_CST_CONFIG_CONTROL})"
-                            f"{self._proc.hostmsg}, known codes are: {known_codes}")
+                msg = f"unexpected package C-state limit code '{pcs_code}' read from " \
+                      f"'PKG_CST_CONFIG_CONTROL' MSR ({MSR_PKG_CST_CONFIG_CONTROL})" \
+                      f"{self._proc.hostmsg}, known codes are: {known_codes}"
+
+                # No exact match. The limit is the closest lower known number. For example, if the
+                # known numbers are 0(PC0), 2(PC6), and 7(unlimited), and 'pcs_code' is 3, then the
+                # limit is PC6.
+                for code in sorted(pcs_rmap, reverse=True):
+                    if code <= pcs_code:
+                        pcs_code = code
+                        break
+                else:
+                    raise Error(msg)
+
+                _LOG.debug(msg)
 
         return (pcs_code, locked)
 
