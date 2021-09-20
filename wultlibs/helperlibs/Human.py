@@ -148,6 +148,7 @@ def rangify(numbers):
                     f"'{numbers}'") from err
 
     range_strs = []
+    numbers = sorted(numbers)
     for _, pairs in groupby(enumerate(numbers), lambda x:x[0]-x[1]):
         # The 'pairs' is an iterable of tuples (enumerate value, number). E.g. 'numbers'
         # [5,6,7,8,10,11,13] would result in three iterable groups:
