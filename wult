@@ -83,7 +83,7 @@ def build_arguments_parser():
     subpars = subparsers.add_parser("scan", help=text, description=descr)
     subpars.set_defaults(func=ToolsCommon.scan_command)
 
-    ToolsCommon.add_ssh_options(subpars, argcomplete)
+    ArgParse.add_ssh_options(subpars)
 
     #
     # Create parsers for the "load" command.
@@ -108,7 +108,7 @@ def build_arguments_parser():
     text = "The device ID, same as in the 'start' command."""
     subpars.add_argument("devid", help=text)
 
-    ToolsCommon.add_ssh_options(subpars, argcomplete)
+    ArgParse.add_ssh_options(subpars)
 
     #
     # Create parsers for the "start" command.
@@ -118,7 +118,7 @@ def build_arguments_parser():
     subpars = subparsers.add_parser("start", help=text, description=descr)
     subpars.set_defaults(func=start_command)
 
-    ToolsCommon.add_ssh_options(subpars, argcomplete)
+    ArgParse.add_ssh_options(subpars)
 
     subpars.add_argument("-c", "--datapoints", default=1000000, metavar="COUNT", dest="dpcnt",
                          help=ToolsCommon.DATAPOINTS_DESCR)

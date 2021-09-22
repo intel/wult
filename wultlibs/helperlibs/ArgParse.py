@@ -12,8 +12,43 @@ This module contains helpers related to parsing command-line arguments.
 
 import types
 import argparse
+from collections import namedtuple
+
+try:
+    import argcomplete
+except ImportError:
+    # We can live without argcomplete, we only lose tab completions.
+    argcomplete = None
+
 from wultlibs.helperlibs import DamerauLevenshtein, Trivial
 from wultlibs.helperlibs.Exceptions import Error # pylint: disable=unused-import
+
+SSHOptions = namedtuple("SSHOptions", ["short", "long", "argcomplete", "kwargs"])
+SSH_OPTIONS = (SSHOptions("-H", "--host", None,
+                          {"dest" : "hostname", "default" : "localhost",
+                           "help" : "Name of the host to run the command on."}),
+               SSHOptions("-U", "--username", None,
+                          {"dest" : "username", "default" : "root",
+                           "help" : "Name of the user to use for logging into the remote host over "
+                                    " SSH. The default user name is 'root'."}),
+               SSHOptions("-K", "--priv-key", "FilesCompleter",
+                          {"dest" : "privkey",
+                           "help" : "Path to the private SSH key that should be used for logging "
+                                    "into the remote host. By default the key is automatically "
+                                    "found from standard paths like '~/.ssh'."}),
+               SSHOptions("-T", "--timeout", None,
+                          {"dest" : "timeout", "default" : 8,
+                           "help" : "SSH connect timeout in seconds, default is 8."}))
+
+def add_ssh_options(parser):
+    """
+    Add the '--host', '--timeout' and other SSH-related options to argument parser object 'parser'.
+    """
+
+    for opt in SSH_OPTIONS:
+        arg = parser.add_argument(opt.short, opt.long, **opt.kwargs)
+        if opt.argcomplete and argcomplete:
+            arg.completer = getattr(argcomplete.completers, opt.argcomplete)
 
 class OrderedArg(argparse.Action):
     """
