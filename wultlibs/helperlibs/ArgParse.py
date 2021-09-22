@@ -10,6 +10,7 @@
 This module contains helpers related to parsing command-line arguments.
 """
 
+import sys
 import types
 import argparse
 from collections import namedtuple
@@ -160,6 +161,57 @@ class ArgsParser(argparse.ArgumentParser):
                           "        %s" % (offending, self.prog, suggestion)
 
         super().error(message)
+
+class SSHOptsAwareArgsParser(ArgsParser):
+    """
+    This class defines a parser that improves SSH options (see 'SSH_OPTIONS') handling by allowing
+    them to be used before and after sub-commands. Here is the usage scenario. A command has
+    sub-commands, and some of them support SSH options. For example, "wult start -H my_host". But it
+    is convenient that the following works as well: "wult -H my_host start". This class makes makes
+    it possible.
+    """
+
+    def parse_args(self, args=None, **kwargs): # pylint: disable=signature-differs, arguments-differ
+        """
+        Re-structure the input arguments ('args') so that SSH options always go after the
+        subcommand.
+        """
+
+        if args is None:
+            args = sys.argv[1:]
+        else:
+            args = list(args)
+
+        ssh_opts = set()
+        for opt in SSH_OPTIONS:
+            if opt.long:
+                ssh_opts.add(opt.long)
+            if opt.short:
+                ssh_opts.add(opt.short)
+
+        sub_cmd_idx = 0
+        ssh_arg_idx = -1
+        ssh_args = []
+        non_ssh_args = []
+        # Find SSH and non-SSH arguments before sub-command and save them in separate lists.
+        for idx, arg in enumerate(args):
+            if arg in ssh_opts:
+                ssh_arg_idx = idx + 1
+                ssh_args.append(arg)
+                continue
+            # We assume that every SSH option has an argument.
+            if ssh_arg_idx == idx:
+                ssh_args.append(arg)
+                continue
+
+            non_ssh_args.append(arg)
+
+            if not arg.startswith("-"):
+                sub_cmd_idx = idx
+                break
+
+        args_new = non_ssh_args + ssh_args + args[sub_cmd_idx+1:]
+        return super().parse_args(args=args_new, **kwargs)
 
 def parse_int_list(nums, ints=False, dedup=False, sort=False):
     """

@@ -43,7 +43,7 @@ def build_arguments_parser():
     """Build and return the arguments parser object."""
 
     text = "ndl - a tool for measuring memory access latency observed by a network card."
-    parser = ArgParse.ArgsParser(description=text, prog=OWN_NAME, ver=VERSION)
+    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=OWN_NAME, ver=VERSION)
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
