@@ -13,7 +13,7 @@ This module provides an API to get CPU information.
 import re
 from itertools import groupby
 from wultlibs.helperlibs.Exceptions import Error # pylint: disable=unused-import
-from wultlibs.helperlibs import ArgParse, Procs, Trivial
+from wultlibs.helperlibs import ArgParse, Procs, Trivial, Human
 
 # CPU model numbers.
 INTEL_FAM6_SAPPHIRERAPIDS_X = 0x8F # Sapphire Rapids Xeon.
@@ -78,6 +78,25 @@ CPU_DESCR = {INTEL_FAM6_SAPPHIRERAPIDS_X: "Sapphire Rapids Xeon",
              INTEL_FAM6_TREMONT_D:        "Tremont Atom (Snow Ridge)"}
 
 LEVELS = ("pkg", "node", "core", "cpu")
+
+def get_scope_msg(proc, cpuinfo, nums, scope="cpu"):
+    """
+    Helper function to return user friendly string of host information and the CPUs or packages
+    listed in 'nums'.
+    """
+
+    if scope == "package":
+        all_nums = cpuinfo.get_packages()
+    else:
+        all_nums = cpuinfo.get_cpus()
+        scope = "CPU"
+
+    if nums in ("all", None, all_nums):
+        scope = f"all {scope}s"
+    else:
+        scope = f"{scope}(s): {Human.rangify(nums)}"
+
+    return f"{proc.hostmsg} for {scope}"
 
 def get_lscpu_info(proc=None):
     """
