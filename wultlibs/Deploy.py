@@ -326,7 +326,15 @@ def _deploy_drivers(args, proc):
     cmd = f"make -C '{drvsrc}' KSRC='{args.ksrc}'"
     if args.debug:
         cmd += " V=1"
-    stdout, stderr = proc.run_verify(cmd)
+
+    stdout, stderr, exitcode = proc.run(cmd)
+    if exitcode != 0:
+        msg = proc.cmd_failed_msg(stdout, stderr, exitcode)
+        if "synth_event_" in stderr:
+            msg += "\n\nLooks like synthetic events support is disabled in your kernel, enable " \
+                   "the 'CONFIG_SYNTH_EVENTS' kernel configuration option."
+        raise Error(msg)
+
     _log_cmd_output(args, stdout, stderr)
 
     # Deploy the drivers.
@@ -556,7 +564,7 @@ def deploy_command(args):
     args.ctmpdir = None # Temporary directory on the controller (local host).
 
     if not FSHelpers.which("rsync", default=None):
-        raise Error(f"please, install the 'rsync' tool")
+        raise Error("please, install the 'rsync' tool")
 
     if not args.timeout:
         args.timeout = 8
