@@ -573,8 +573,8 @@ def deploy_command(args):
     if not args.username:
         args.username = "root"
 
-    if args.privkey and not args.privkey.is_dir():
-        raise Error(f"path '{args.privkey}' does not exist or it is not a directory")
+    if args.privkey and not args.privkey.is_file():
+        raise Error(f"path '{args.privkey}' does not exist or it is not a file")
 
     if args.pyhelpers:
         # Local temporary directory is only needed for creating stand-alone version of python
