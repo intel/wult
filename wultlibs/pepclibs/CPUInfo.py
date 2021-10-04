@@ -79,25 +79,6 @@ CPU_DESCR = {INTEL_FAM6_SAPPHIRERAPIDS_X: "Sapphire Rapids Xeon",
 
 LEVELS = ("pkg", "node", "core", "cpu")
 
-def get_scope_msg(proc, cpuinfo, nums, scope="cpu"):
-    """
-    Helper function to return user friendly string of host information and the CPUs or packages
-    listed in 'nums'.
-    """
-
-    if scope == "package":
-        all_nums = cpuinfo.get_packages()
-    else:
-        all_nums = cpuinfo.get_cpus()
-        scope = "CPU"
-
-    if nums in ("all", None, all_nums):
-        scope = f"all {scope}s"
-    else:
-        scope = f"{scope}(s): {Human.rangify(nums)}"
-
-    return f"{proc.hostmsg} for {scope}"
-
 def get_lscpu_info(proc=None):
     """
     Run the 'lscpu' command on the host defined by the 'proc' argument, and return the output in
