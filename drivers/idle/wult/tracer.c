@@ -67,9 +67,6 @@ static void before_idle(struct wult_info *wi)
 	struct wult_tracer_info *ti = &wi->ti;
 
 	WARN_ON(!irqs_disabled());
-	ti->bi_tsc = rdtsc_ordered();
-	ti->bi_monotonic = ktime_to_ns(ktime_get_raw());
-
 	ti->smi_bi = get_smi_count();
 	ti->nmi_bi = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 
@@ -77,6 +74,9 @@ static void before_idle(struct wult_info *wi)
 	wult_cstates_snap_cst(&ti->csinfo, 0);
 	wult_cstates_snap_tsc(&ti->csinfo, 0);
 	wult_cstates_snap_mperf(&ti->csinfo, 0);
+
+	ti->bi_tsc = rdtsc_ordered();
+	ti->bi_monotonic = ktime_to_ns(ktime_get_raw());
 
 	ti->tbi = wi->wdi->ops->get_time_before_idle(wi->wdi);
 
