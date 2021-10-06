@@ -189,7 +189,6 @@ class SSHOptsAwareArgsParser(ArgsParser):
             if opt.short:
                 ssh_opts.add(opt.short)
 
-        sub_cmd_idx = 0
         ssh_arg_idx = -1
         ssh_args = []
         non_ssh_args = []
@@ -206,11 +205,7 @@ class SSHOptsAwareArgsParser(ArgsParser):
 
             non_ssh_args.append(arg)
 
-            if not arg.startswith("-"):
-                sub_cmd_idx = idx
-                break
-
-        args_new = non_ssh_args + ssh_args + args[sub_cmd_idx+1:]
+        args_new = non_ssh_args + ssh_args
         return super().parse_args(args=args_new, **kwargs)
 
 def parse_int_list(nums, ints=False, dedup=False, sort=False):
