@@ -33,7 +33,7 @@ class DatapointProcessor:
 
     def _apply_dp_overhead(self, rawdp, dp):
         """
-        This is a helper function for 'process_datapoint()' which handles the 'AIOverhead' and
+        This is a helper function for '_process_datapoint()' which handles the 'AIOverhead' and
         'IntrOverhead' values and modifies the 'dp' datapoint accordingly.
 
         'AIOverhead' stands for 'After Idle Overhead', and this is the time it takes to get all the
@@ -190,12 +190,8 @@ class DatapointProcessor:
         else:
             dp["CC1Derived%"] = 0
 
-    def process_datapoint(self, rawdp):
-        """
-        Process a raw datapoint 'rawdp'. The "raw" part in this contenxs means that 'rawdp' contains
-        the datapoint as the kernel driver provided it. This function processes it and retuns the
-        processed datapoint.
-        """
+    def _process_datapoint(self, rawdp):
+        """Process a raw datapoint 'rawdp'. Retuns the processed datapoint."""
 
         dp = {}
         for field in self.fields:
@@ -216,7 +212,29 @@ class DatapointProcessor:
         for field in dp:
             if field in rawdp and field in self._us_fields_set:
                 dp[field] = rawdp[field] / 1000.0
+
         return dp
+
+    def add_raw_datapoint(self, rawdp):
+        """
+        Process a raw datapoint 'rawdp'. The "raw" part in this contenxs means that 'rawdp' contains
+        the datapoint as the kernel driver provided it. This function processes it and retuns the
+        processed datapoint.
+        """
+
+        dp = self._process_datapoint(rawdp)
+        if dp:
+            self._dps.append(dp)
+
+    def get_processed_datapoints(self):
+        """
+        This generator yields the processed datapoints.
+        """
+
+        for dp in self._dps:
+            yield dp
+
+        self._dps = []
 
     def prepare(self, rawdp, keep_rawdp):
         """
@@ -260,7 +278,7 @@ class DatapointProcessor:
             # * if the values are the same too, drop the raw field.
             # * if the values are different, keep both, just prepend the raw field name with "Raw".
             self.fields = fields
-            dp = self.process_datapoint(rawdp)
+            dp = self._process_datapoint(rawdp)
 
             for field in raw_fields:
                 if field not in dp:
@@ -271,7 +289,7 @@ class DatapointProcessor:
         self.fields = fields
 
         # Sanity check: no values should be 'None'.
-        dp = self.process_datapoint(rawdp)
+        dp = self._process_datapoint(rawdp)
         if any(val is None for val in dp.values()):
             raise Error("bug: 'None' values found in the following datapoint:\nHuman.dict2str(dp)")
 
@@ -297,6 +315,7 @@ class DatapointProcessor:
         # Processed datapoint field names.
         self.fields = None
 
+        self._dps = []
         self._has_cstates = None
         self._cs_fields = None
         self._us_fields_set = None

@@ -118,23 +118,22 @@ class WultRunner:
                                    f"driver does produce them, they are being rejected. One "
                                    f"possible reason is that they do not pass filters/selectors.")
 
-            dp = self._dpp.process_datapoint(rawdp)
-            if not dp:
-                continue
+            self._dpp.add_raw_datapoint(rawdp)
 
-            # Add the data to the CSV file.
-            if not self._res.add_csv_row(dp):
-                # the data point has not been added (e.g., because it did not pass row filters).
-                continue
+            for dp in self._dpp.get_processed_datapoints():
+                # Add the data to the CSV file.
+                if not self._res.add_csv_row(dp):
+                    # The data point has not been added (e.g., because it did not pass row filters).
+                    continue
 
-            collected_cnt += 1
+                collected_cnt += 1
 
-            self._max_latency = max(dp[latkey], self._max_latency)
-            self._progress.update(collected_cnt, self._max_latency)
-            last_collected_time = time.time()
+                self._max_latency = max(dp[latkey], self._max_latency)
+                self._progress.update(collected_cnt, self._max_latency)
+                last_collected_time = time.time()
 
-            if collected_cnt >= dpcnt:
-                break
+                if collected_cnt >= dpcnt:
+                    return collected_cnt
 
         return collected_cnt
 
