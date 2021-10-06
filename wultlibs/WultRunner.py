@@ -17,8 +17,8 @@ import contextlib
 from pathlib import Path
 from wultlibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from wultlibs.helperlibs import Human
-from wultlibs.pepclibs import CPUIdle, Systemctl
-from wultlibs import EventsProvider, Defs, _FTrace, _ProgressLine, WultStatsCollect
+from wultlibs.pepclibs import Systemctl
+from wultlibs import EventsProvider, _FTrace, _ProgressLine, _WultDpProcess, WultStatsCollect
 
 _LOG = logging.getLogger()
 
@@ -86,260 +86,6 @@ class WultRunner:
                 msg = f"{msg}\nLast seen wult ftrace line:\n{last_line}"
             raise ErrorTimeOut(msg) from err
 
-    def _is_poll_idle(self, dp): # pylint: disable=no-self-use
-        """Returns 'True' if the 'dp' datapoint contains the POLL idle state data."""
-        return dp["ReqCState"] == 0
-
-    def _apply_dp_overhead(self, rawdp, dp):
-        """
-        This is a helper function for '_process_datapoint()' which handles the 'AIOverhead' and
-        'IntrOverhead' values and modifies the 'dp' datapoint accordingly.
-
-        'AIOverhead' stands for 'After Idle Overhead', and this is the time it takes to get all the
-        data ('WakeLatency', C-state counters, etc) after idle, but before the interrupt handler.
-        This value will be non-zero value for C-states that are entered with interrupts disabled
-        (all C-states except for 'POLL' today, as of Aug 2021). In this case 'IntrOverhead' will be
-        0.
-
-        'IntrOverhead' stands for 'Interrupt Overhead', and this is the time it takes to get all the
-        data ('IntrLatency', C-state counters, etc) in the interrupt handler, before 'WakeLatency'
-        is taken after idle. This value will be non-zero only for C-states that are entered with
-        interrupts enabled (only the 'POLL' state today, as of Aug 2021).
-
-        The overhead values are in nanoseconds. And they should be subtracted from wake/interrupt
-        latency, because they do not contribute to the latency, they are the extra time added by
-        wult driver between the wake event and "after idle" or interrupt.
-
-        We do not save 'AIOverhead' and 'IntrOverhead' in the CSV file.
-        """
-
-        if rawdp["AIOverhead"] and rawdp["IntrOverhead"]:
-            raise Error(f"Both 'AIOverhead' and 'IntrOverhead' are not 0 at the same time. The "
-                        f"datapoint is:\n{Human.dict2str(rawdp)}") from None
-
-        if rawdp["IntrOff"]:
-            # Interrupts were disabled.
-            if rawdp["WakeLatency"] >= rawdp["IntrLatency"]:
-                _LOG.warning("'WakeLatency' is greater than 'IntrLatency', even though interrupts "
-                             "were disabled. The datapoint is:\n%s\nDropping this datapoint\n",
-                             Human.dict2str(rawdp))
-                return None
-
-            if self._early_intr:
-                _LOG.warning("hit a datapoint with interrupts disabled even though the early "
-                             "interrupts feature was enabled. The datapoint is:\n%s\n"
-                             "Dropping this datapoint\n", Human.dict2str(rawdp))
-                return None
-
-            if rawdp["AIOverhead"] >= rawdp["IntrLatency"]:
-                # This sometimes happens, and here are 2 contributing factors that may lead to this
-                # condition.
-                # 1. The overhead is measured by reading TSC at the beginning and the end of the
-                #    'after_idle()' function, which runs as soon as the CPU wakes up. The
-                #    'IntrLatency' is measured using a delayed event device (e.g., a NIC). So we are
-                #    comparing two time intervals from different time sources.
-                # 2. 'AIOverhead' is the overhead of 'after_idle()', where we don't exactly know why
-                #    we woke up, and we cannot tell with 100% certainty that we woke because of the
-                #    interrupt that we armed. We could wake up or a different event, before launch
-                #    time, close enough to the armed event. In this situation, we may measure large
-                #    enough 'AIOverhead', then the armed event happens when the CPU is in C0, and we
-                #    measure very small 'IntrLatency'.
-                _LOG.debug("'AIOverhead' is greater than interrupt latency ('IntrLatency'). The "
-                           "datapoint is:\n%s\nDropping this datapoint\n", Human.dict2str(rawdp))
-                return None
-
-            if rawdp["WakeLatency"] >= rawdp["IntrLatency"] - rawdp["AIOverhead"]:
-                # This condition may happen for similar reasons.
-                _LOG.debug("'WakeLatency' is greater than 'IntrLatency' - 'AIOverhead', even "
-                           "though interrupts were disabled. The datapoint is:\n%s\nDropping this "
-                           "datapoint\n", Human.dict2str(rawdp))
-                return None
-
-            dp["IntrLatency"] -= rawdp["AIOverhead"]
-        elif not self._intr_focus:
-            # Interrupts were enabled.
-
-            if self._ep.dev.drvname == "wult_tdt":
-                _LOG.debug("dropping datapoint with interrupts enabled - the 'tdt' driver does not "
-                           "handle them correctly. The datapoint is:\n%s", Human.dict2str(rawdp))
-                return None
-
-            if rawdp["IntrLatency"] >= rawdp["WakeLatency"]:
-                _LOG.warning("'IntrLatency' is greater than 'WakeLatency', even though interrupts "
-                             "were enabled. The datapoint is:\n%s\nDropping this datapoint\n",
-                             Human.dict2str(rawdp))
-                return None
-
-            if rawdp["IntrOverhead"] >= rawdp["WakeLatency"]:
-                _LOG.debug("'IntrOverhead' is greater than wake latency ('WakeLatency'). The "
-                           "datapoint is:\n%s\nDropping this datapoint\n", Human.dict2str(rawdp))
-                return None
-
-            if rawdp["IntrLatency"] >= rawdp["WakeLatency"] - rawdp["IntrOverhead"]:
-                _LOG.debug("'IntrLatency' is greater than 'WakeLatency' - 'IntrOverhead', even "
-                           "though interrupts were enabled. The datapoint is:\n%s\nDropping this "
-                           "datapoint\n", Human.dict2str(rawdp))
-                return None
-
-            dp["WakeLatency"] -= rawdp["IntrOverhead"]
-        return dp
-
-    def _process_datapoint_cstates(self, rawdp, dp):
-        """
-        Validate various raw datapoint 'rawdp' fields related to C-states. Populate CSV datapoint
-        ('dp') fields related to C-states.
-        """
-
-        # Turn the C-state index into the C-state name.
-        try:
-            dp["ReqCState"] = self._csinfo[rawdp["ReqCState"]]["name"]
-        except KeyError:
-            # Supposedly an bad C-state index.
-            indexes_str = ", ".join(f"{idx} ({val['name']})" for idx, val in  self._csinfo.items())
-            raise Error(f"bad C-state index '{rawdp['ReqCState']}' in the following datapoint:\n"
-                        f"{Human.dict2str(rawdp)}\nAllowed indexes are:\n{indexes_str}") from None
-
-        if rawdp["TotCyc"] == 0:
-            raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
-                        f"a bug. The raw datapoint is:\n{Human.dict2str(rawdp)}") from None
-
-        # The driver takes TSC and MPERF counters so that the MPERF interval is inside the
-        # TSC interval, so delta TSC (total cycles) is expected to be always greater than
-        # delta MPERF (C0 cycles).
-        if rawdp["TotCyc"] < rawdp["CC0Cyc"]:
-            raise Error(f"total cycles is smaller than CC0 cycles, the raw datapoint is:\n"
-                        f"{Human.dict2str(rawdp)}")
-
-        # Add the C-state percentages.
-        for colname in self._cs_colnames:
-            field = Defs.get_cscyc_colname(Defs.get_csname(colname))
-
-            # In case of POLL state, calculate only CC0%.
-            if self._is_poll_idle(rawdp) and field != "CC0Cyc":
-                dp[colname] = 0
-                continue
-
-            dp[colname] = rawdp[field] / rawdp["TotCyc"] * 100.0
-
-            if dp[colname] > 100:
-                loglevel = logging.DEBUG
-                # Sometimes C-state residency counters are not precise, especially during short
-                # sleep times. Warn only about too large percentage.
-                if dp[colname] > 300:
-                    loglevel = logging.WARNING
-
-                csname = Defs.get_csname(colname)
-                _LOG.log(loglevel, "too high %s residency of %.1f%%, using 100%% instead. The "
-                                   "datapoint is:\n%s", csname, dp[colname], Human.dict2str(rawdp))
-                dp[colname] = 100.0
-
-        if self._has_cstates and not self._is_poll_idle(rawdp):
-            # Populate 'CC1Derived%' - the software-calculated CC1 residency, which is useful to
-            # have because not every Intel platform has a hardware CC1 counter. Calculated as total
-            # cycles minus cycles in C-states other than CC1.
-
-            non_cc1_cyc = 0
-            for field in rawdp.keys():
-                if Defs.is_cscyc_colname(field) and Defs.get_csname(field) != "CC1":
-                    non_cc1_cyc += rawdp[field]
-
-            dp["CC1Derived%"] = (rawdp["TotCyc"] - non_cc1_cyc) / rawdp["TotCyc"] * 100.0
-            if dp["CC1Derived%"] < 0:
-                # The C-state counters are not always precise, and we may end up with a negative
-                # number.
-                dp["CC1Derived%"] = 0
-        else:
-            dp["CC1Derived%"] = 0
-
-    def _process_datapoint(self, rawdp):
-        """
-        Process a raw datapoint 'rawdp'. The "raw" part in this contenxs means that 'rawdp' contains
-        the datapoint as the kernel driver provided it. This function processes it and retuns the
-        CSV datapoint. The CSV datapoint is derived from the raw datapoint, and it is later stored
-        in the 'datapoints.csv' file. The CSV datapoint contains more fields comparing to the raw
-        datapoint.
-        """
-
-        dp = {}
-        for colname in self._colnames:
-            if colname in rawdp:
-                dp[colname] = rawdp[colname]
-            elif colname.startswith("Raw"):
-                name = colname[len("Raw"):]
-                dp[colname] = rawdp[name]
-
-        # Add and validated C-state related fields.
-        self._process_datapoint_cstates(rawdp, dp)
-
-        if not self._apply_dp_overhead(rawdp, dp):
-            return None
-
-        # Some raw datapoint values are in nanoseconds, but we need them to be in microseconds.
-        # Save time in microseconds.
-        for colname in dp:
-            if colname in rawdp and colname in self._us_colnames_set:
-                dp[colname] = rawdp[colname] / 1000.0
-        return dp
-
-    def _prepare_to_process_datapoints(self, rawdp, keep_rawdp):
-        """
-        This helper should be called as soon as the first raw datapoint 'raw' is acquired. It
-        prepared for processing datapoints by building various data structures. For example, we
-        learn about the C-state names from the first datapoint.
-        """
-
-        fields = list(rawdp.keys())
-
-        defs = Defs.Defs(self._res.info["toolname"])
-        defs.populate_cstates(fields)
-
-        self._cs_colnames = []
-        self._has_cstates = False
-
-        for field in fields:
-            csname = Defs.get_csname(field, default=None)
-            if not csname:
-                # Not a C-state field.
-                continue
-            self._has_cstates = True
-            self._cs_colnames.append(Defs.get_csres_colname(csname))
-
-        self._us_colnames_set = {colname for colname, vals in defs.info.items() \
-                                 if vals.get("unit") == "microsecond"}
-
-        # Form the list of columns in the datapoints CSV file. Columns from the "defs" file go
-        # first.
-        colnames = []
-        for colname in defs.info:
-            if Defs.is_csres_colname(colname) or colname in rawdp:
-                colnames.append(colname)
-                continue
-
-            if not defs.info[colname].get("optional"):
-                raise Error(f"the mandatory '{colname}' filed was not found. The datapoint is:\n"
-                            f"{Human.dict2str(rawdp)}")
-
-        if keep_rawdp:
-            # Append raw fields. In case of a duplicate name:
-            # * if the values are the same too, drop the raw field.
-            # * if the values are different, keep both, just prepend the raw field name with "Raw".
-            self._colnames = colnames
-            dp = self._process_datapoint(rawdp)
-
-            for field in fields:
-                if field not in dp:
-                    colnames.append(field)
-                elif rawdp[field] != dp[field]:
-                    colnames.append(f"Raw{field}")
-
-        self._res.csv.add_header(colnames)
-        self._colnames = colnames
-
-        # Sanity check: no values should be 'None'.
-        dp = self._process_datapoint(rawdp)
-        if any(val is None for val in dp.values()):
-            raise Error("bug: 'None' values found in the following datapoint:\nHuman.dict2str(dp)")
-
     def _collect(self, dpcnt, tlimit, keep_rawdp):
         """
         Collect datapoints and stop when either the CSV file has 'dpcnt' datapoints in total or when
@@ -353,7 +99,9 @@ class WultRunner:
 
         # We could actually process this datapoint, but we prefer to drop it and start with the
         # second one.
-        self._prepare_to_process_datapoints(rawdp, keep_rawdp)
+        self._dpp.prepare(rawdp, keep_rawdp)
+
+        self._res.csv.add_header(self._dpp.colnames)
 
         latkey = "IntrLatency" if self._intr_focus else "WakeLatency"
 
@@ -370,7 +118,7 @@ class WultRunner:
                                    f"driver does produce them, they are being rejected. One "
                                    f"possible reason is that they do not pass filters/selectors.")
 
-            dp = self._process_datapoint(rawdp)
+            dp = self._dpp.process_datapoint(rawdp)
             if not dp:
                 continue
 
@@ -565,21 +313,17 @@ class WultRunner:
         self._ldist = ldist
         self._intr_focus = intr_focus
         self._early_intr = early_intr
-        self._csinfo = csinfo
         self._stconf = stconf
 
         # This is a debugging option that allows to disable automatic wult modules unloading on
         # 'close()'.
         self.unload = True
 
+        self._dpp = None
         self._ep = None
         self._ftrace = None
         self._timeout = 10
         self._fields = None
-        self._has_cstates = None
-        self._colnames = None
-        self._cs_colnames = None
-        self._us_colnames_set = None
         self._progress = None
         self._max_latency = 0
         self._sysctl = None
@@ -605,16 +349,8 @@ class WultRunner:
         if self._ep.dev.drvname == "wult_tdt" and self._early_intr:
             raise Error("the 'tdt' driver does not support the early interrupt feature")
 
-        if self._csinfo is None:
-            with CPUIdle.CPUIdle(proc=proc) as cpuidle:
-                self._csinfo = cpuidle.get_cstates_info_dict(res.cpunum)
-
-        # Check that there are idle states that we can measure.
-        for info in self._csinfo.values():
-            if not info["disable"]:
-                break
-        else:
-            raise Error(f"no idle states are enabled on CPU {res.cpunum}{proc.hostmsg}")
+        self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, proc, self._ep.dev.drvname,
+                                                      csinfo=csinfo)
 
     def close(self):
         """Stop the measurements."""
@@ -627,11 +363,13 @@ class WultRunner:
         if getattr(self, "_dev", None):
             self._dev = None
 
-        if getattr(self, "_csinfo", None):
-            self._csinfo = None
+        if getattr(self, "_dpp", None):
+            self._dpp.close()
+            self._dpp = None
 
         if getattr(self, "_stcoll", None):
             self._stcoll.close()
+            self._stcoll = None
 
         if getattr(self, "_ep", None):
             self._ep.close()
