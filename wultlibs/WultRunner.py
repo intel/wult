@@ -97,6 +97,8 @@ class WultRunner:
         datapoints = self._get_datapoints()
         rawdp = next(datapoints)
 
+        _LOG.info("Calculating TSC rate for %s", Human.duration(self._dpp.tsc_cal_time))
+
         # We could actually process this datapoint, but we prefer to drop it and start with the
         # second one.
         self._dpp.prepare(rawdp, keep_rawdp)
@@ -107,18 +109,24 @@ class WultRunner:
 
         # At least one datapoint should be collected within the 'timeout' seconds interval.
         timeout = self._timeout * 1.5
-        start_time = last_collected_time = time.time()
+        start_time = last_rawdp_time = time.time()
         collected_cnt = 0
-        for rawdp in datapoints:
-            if tlimit and time.time() - start_time > tlimit:
-                break
+        tsc_rate_printed = False
 
-            if time.time() - last_collected_time > timeout:
+        for rawdp in datapoints:
+            if time.time() - last_rawdp_time > timeout:
                 raise ErrorTimeOut(f"no datapoints accepted for {timeout} seconds. While the "
                                    f"driver does produce them, they are being rejected. One "
                                    f"possible reason is that they do not pass filters/selectors.")
 
             self._dpp.add_raw_datapoint(rawdp)
+
+            if not self._dpp.tsc_mhz:
+                # TSC rate has not been calculated yet.
+                continue
+            elif not tsc_rate_printed:
+                _LOG.info("TSC rate is %.6f MHz", self._dpp.tsc_mhz)
+                tsc_rate_printed = True
 
             for dp in self._dpp.get_processed_datapoints():
                 # Add the data to the CSV file.
@@ -126,14 +134,16 @@ class WultRunner:
                     # The data point has not been added (e.g., because it did not pass row filters).
                     continue
 
-                collected_cnt += 1
-
                 self._max_latency = max(dp[latkey], self._max_latency)
                 self._progress.update(collected_cnt, self._max_latency)
-                last_collected_time = time.time()
+                last_rawdp_time = time.time()
 
+                collected_cnt += 1
                 if collected_cnt >= dpcnt:
-                    return collected_cnt
+                    break
+
+            if tlimit and time.time() - start_time > tlimit or collected_cnt >= dpcnt:
+                break
 
         return collected_cnt
 
@@ -349,7 +359,8 @@ class WultRunner:
             raise Error("the 'tdt' driver does not support the early interrupt feature")
 
         self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, proc, self._ep.dev.drvname,
-                                                      csinfo=csinfo)
+                                                      intr_focus=self._intr_focus,
+                                                      early_intr=self._early_intr, csinfo=csinfo)
 
     def close(self):
         """Stop the measurements."""
