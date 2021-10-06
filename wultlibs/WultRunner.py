@@ -101,7 +101,7 @@ class WultRunner:
         # second one.
         self._dpp.prepare(rawdp, keep_rawdp)
 
-        self._res.csv.add_header(self._dpp.colnames)
+        self._res.csv.add_header(self._dpp.fields)
 
         latkey = "IntrLatency" if self._intr_focus else "WakeLatency"
 

@@ -50,8 +50,6 @@ class DatapointProcessor:
         The overhead values are in nanoseconds. And they should be subtracted from wake/interrupt
         latency, because they do not contribute to the latency, they are the extra time added by
         wult driver between the wake event and "after idle" or interrupt.
-
-        We do not save 'AIOverhead' and 'IntrOverhead' in the CSV file.
         """
 
         if rawdp["AIOverhead"] and rawdp["IntrOverhead"]:
@@ -127,8 +125,8 @@ class DatapointProcessor:
 
     def _process_datapoint_cstates(self, rawdp, dp):
         """
-        Validate various raw datapoint 'rawdp' fields related to C-states. Populate CSV datapoint
-        ('dp') fields related to C-states.
+        Validate various raw datapoint 'rawdp' fields related to C-states. Populate the processed
+        datapoint 'dp' with fields related to C-states.
         """
 
         # Turn the C-state index into the C-state name.
@@ -152,27 +150,27 @@ class DatapointProcessor:
                         f"{Human.dict2str(rawdp)}")
 
         # Add the C-state percentages.
-        for colname in self._cs_colnames:
-            field = Defs.get_cscyc_colname(Defs.get_csname(colname))
+        for field in self._cs_fields:
+            cyc_filed = Defs.get_cscyc_colname(Defs.get_csname(field))
 
             # In case of POLL state, calculate only CC0%.
-            if self._is_poll_idle(rawdp) and field != "CC0Cyc":
-                dp[colname] = 0
+            if self._is_poll_idle(rawdp) and cyc_filed != "CC0Cyc":
+                dp[field] = 0
                 continue
 
-            dp[colname] = rawdp[field] / rawdp["TotCyc"] * 100.0
+            dp[field] = rawdp[cyc_filed] / rawdp["TotCyc"] * 100.0
 
-            if dp[colname] > 100:
+            if dp[field] > 100:
                 loglevel = logging.DEBUG
                 # Sometimes C-state residency counters are not precise, especially during short
                 # sleep times. Warn only about too large percentage.
-                if dp[colname] > 300:
+                if dp[field] > 300:
                     loglevel = logging.WARNING
 
-                csname = Defs.get_csname(colname)
+                csname = Defs.get_csname(field)
                 _LOG.log(loglevel, "too high %s residency of %.1f%%, using 100%% instead. The "
-                                   "datapoint is:\n%s", csname, dp[colname], Human.dict2str(rawdp))
-                dp[colname] = 100.0
+                                   "datapoint is:\n%s", csname, dp[field], Human.dict2str(rawdp))
+                dp[field] = 100.0
 
         if self._has_cstates and not self._is_poll_idle(rawdp):
             # Populate 'CC1Derived%' - the software-calculated CC1 residency, which is useful to
@@ -196,18 +194,16 @@ class DatapointProcessor:
         """
         Process a raw datapoint 'rawdp'. The "raw" part in this contenxs means that 'rawdp' contains
         the datapoint as the kernel driver provided it. This function processes it and retuns the
-        CSV datapoint. The CSV datapoint is derived from the raw datapoint, and it is later stored
-        in the 'datapoints.csv' file. The CSV datapoint contains more fields comparing to the raw
-        datapoint.
+        processed datapoint.
         """
 
         dp = {}
-        for colname in self.colnames:
-            if colname in rawdp:
-                dp[colname] = rawdp[colname]
-            elif colname.startswith("Raw"):
-                name = colname[len("Raw"):]
-                dp[colname] = rawdp[name]
+        for field in self.fields:
+            if field in rawdp:
+                dp[field] = rawdp[field]
+            elif field.startswith("Raw"):
+                name = field[len("Raw"):]
+                dp[field] = rawdp[name]
 
         # Add and validated C-state related fields.
         self._process_datapoint_cstates(rawdp, dp)
@@ -217,9 +213,9 @@ class DatapointProcessor:
 
         # Some raw datapoint values are in nanoseconds, but we need them to be in microseconds.
         # Save time in microseconds.
-        for colname in dp:
-            if colname in rawdp and colname in self._us_colnames_set:
-                dp[colname] = rawdp[colname] / 1000.0
+        for field in dp:
+            if field in rawdp and field in self._us_fields_set:
+                dp[field] = rawdp[field] / 1000.0
         return dp
 
     def prepare(self, rawdp, keep_rawdp):
@@ -229,51 +225,50 @@ class DatapointProcessor:
         learn about the C-state names from the first datapoint.
         """
 
-        fields = list(rawdp.keys())
+        raw_fields = list(rawdp.keys())
 
         defs = Defs.Defs("wult")
-        defs.populate_cstates(fields)
+        defs.populate_cstates(raw_fields)
 
-        self._cs_colnames = []
+        self._cs_fields = []
         self._has_cstates = False
 
-        for field in fields:
+        for field in raw_fields:
             csname = Defs.get_csname(field, default=None)
             if not csname:
                 # Not a C-state field.
                 continue
             self._has_cstates = True
-            self._cs_colnames.append(Defs.get_csres_colname(csname))
+            self._cs_fields.append(Defs.get_csres_colname(csname))
 
-        self._us_colnames_set = {colname for colname, vals in defs.info.items() \
-                                     if vals.get("unit") == "microsecond"}
+        self._us_fields_set = {field for field, vals in defs.info.items() \
+                               if vals.get("unit") == "microsecond"}
 
-        # Form the list of columns in the datapoints CSV file. Columns from the "defs" file go
-        # first.
-        colnames = []
-        for colname in defs.info:
-            if Defs.is_csres_colname(colname) or colname in rawdp:
-                colnames.append(colname)
+        # Form the list of fileds in processed datapoints. Fields from the "defs" file go first.
+        fields = []
+        for field in defs.info:
+            if Defs.is_csres_colname(field) or field in rawdp:
+                fields.append(field)
                 continue
 
-            if not defs.info[colname].get("optional"):
-                raise Error(f"the mandatory '{colname}' filed was not found. The datapoint is:\n"
+            if not defs.info[field].get("optional"):
+                raise Error(f"the mandatory '{field}' filed was not found. The datapoint is:\n"
                             f"{Human.dict2str(rawdp)}")
 
         if keep_rawdp:
             # Append raw fields. In case of a duplicate name:
             # * if the values are the same too, drop the raw field.
             # * if the values are different, keep both, just prepend the raw field name with "Raw".
-            self.colnames = colnames
+            self.fields = fields
             dp = self.process_datapoint(rawdp)
 
-            for field in fields:
+            for field in raw_fields:
                 if field not in dp:
-                    colnames.append(field)
+                    fields.append(field)
                 elif rawdp[field] != dp[field]:
-                    colnames.append(f"Raw{field}")
+                    fields.append(f"Raw{field}")
 
-        self.colnames = colnames
+        self.fields = fields
 
         # Sanity check: no values should be 'None'.
         dp = self.process_datapoint(rawdp)
@@ -299,12 +294,12 @@ class DatapointProcessor:
         self._early_intr = early_intr
         self._csinfo = csinfo
 
-        # Column names for processed datapoints.
-        self.colnames = None
+        # Processed datapoint field names.
+        self.fields = None
 
         self._has_cstates = None
-        self._cs_colnames = None
-        self._us_colnames_set = None
+        self._cs_fields = None
+        self._us_fields_set = None
 
         if self._csinfo is None:
             with CPUIdle.CPUIdle(proc=proc) as cpuidle:
