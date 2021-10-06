@@ -196,7 +196,7 @@ def build_arguments_parser():
               accuracy."""
     subpars.add_argument("--intr-focus", action="store_true", help=text)
 
-    text = f"""{OWN_NAME.title()} received raw datapoints from the driver, then processes them, and
+    text = f"""{OWN_NAME.title()} receives raw datapoints from the driver, then processes them, and
                then saves the processed datapoint in the 'datapoints.csv' file. In order to keep the
                CSV file smaller, {OWN_NAME} keeps only the esential information, and drops the rest.
                For example, raw timestamps are dropped. With this option, however, {OWN_NAME} saves
