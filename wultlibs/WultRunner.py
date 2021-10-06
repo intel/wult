@@ -586,6 +586,10 @@ class WultRunner:
         self._has_irqbalance = None
         self._stcoll = None
 
+        if res.info["toolname"] != "wult":
+            raise Error(f"unsupported non-wult test result at {res.dirpath}.\nPlease, provide a "
+                        f"wult test result.")
+
         self._validate_sut()
 
         self._progress = _ProgressLine.ProgressLine(period=1)
