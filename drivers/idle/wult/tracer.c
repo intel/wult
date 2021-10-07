@@ -28,9 +28,6 @@
 
 /* The common, platform-independent wult event fields. */
 static struct synth_field_desc common_fields[] = {
-	{ .type = "u64", .name = "SilentTime" },
-	{ .type = "u64", .name = "WakeLatency" },
-	{ .type = "u64", .name = "IntrLatency" },
 	{ .type = "u64", .name = "LDist" },
 	{ .type = "u64", .name = "LTime" },
 	{ .type = "u64", .name = "TBI" },
@@ -182,8 +179,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 	struct wult_trace_data_info *tdata = NULL;
 	struct synth_event_trace_state trace_state;
 	struct cstate_info *csi;
-	u64 ltime, silent_time, wake_latency, intr_latency;
-	u64 ai_overhead = 0, intr_overhead = 0;
+	u64 ltime, ai_overhead = 0, intr_overhead = 0;
 	int err, snum, err_after_send = 0;
 
 	if (WARN_ON(ti->armed))
@@ -247,15 +243,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 		intr_overhead = wult_cyc2ns(wdi, ti->intr_tsc2 - ti->intr_tsc1);
 	}
 
-	silent_time = ltime - ti->tbi;
-	wake_latency = ti->tai - ltime;
-	intr_latency = ti->tintr - ltime;
-	if (wdi->ops->time_to_ns) {
-		silent_time = wdi->ops->time_to_ns(wdi, silent_time);
-		wake_latency = wdi->ops->time_to_ns(wdi, wake_latency);
-		intr_latency = wdi->ops->time_to_ns(wdi, intr_latency);
-	}
-
 	/*
 	 * Snapshot #1 was taken in 'after_idle()', and we should use it for
 	 * C-states that are requested with interrupts disabled. Othewise, we
@@ -269,25 +256,11 @@ int wult_tracer_send_data(struct wult_info *wi)
 	wult_cstates_snap_cst(&ti->csinfo, snum);
 	wult_cstates_calc(&ti->csinfo, 0, snum);
 
-	if (wi->intr_focus) {
-		ti->tai = 0;
-		wake_latency = 0;
-	}
-
 	err = synth_event_trace_start(ti->event_file, &trace_state);
 	if (err)
 		return err;
 
 	/* Add values of the common fields. */
-	err = synth_event_add_next_val(silent_time, &trace_state);
-	if (err)
-		goto out_end;
-	err = synth_event_add_next_val(wake_latency, &trace_state);
-	if (err)
-		goto out_end;
-	err = synth_event_add_next_val(intr_latency, &trace_state);
-	if (err)
-		goto out_end;
 	err = synth_event_add_next_val(ti->ldist, &trace_state);
 	if (err)
 		goto out_end;

@@ -75,8 +75,6 @@ struct wult_device_ops {
 	bool (*event_has_happened)(struct wult_device_info *wdi);
 	/* Returns the launch time in delayed event driver units. */
 	u64 (*get_launch_time)(struct wult_device_info *wdi);
-	/* Convert delayed event driver units to nanoseconds. */
-	u64 (*time_to_ns)(struct wult_device_info *wdi, u64 time);
 	/* Return trace data for the last measurement. */
 	struct wult_trace_data_info *
 			(*get_trace_data)(struct wult_device_info *wdi);

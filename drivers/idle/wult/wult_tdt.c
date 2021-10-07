@@ -113,11 +113,6 @@ static u64 get_launch_time(struct wult_device_info *wdi)
 	return wdi_to_wt(wdi)->deadline_before;
 }
 
-static u64 cyc_to_ns(struct wult_device_info *wdi, u64 cyc)
-{
-	return wult_cyc2ns(wdi, cyc);
-}
-
 static int init_device(struct wult_device_info *wdi, int cpunum)
 {
 	struct wult_tdt *wt = wdi_to_wt(wdi);
@@ -147,7 +142,6 @@ static struct wult_device_ops wult_tdt_ops = {
 	.arm = arm_event,
 	.event_has_happened = event_has_happened,
 	.get_launch_time = get_launch_time,
-	.time_to_ns = cyc_to_ns,
 	.init = init_device,
 	.exit = exit_device,
 };
