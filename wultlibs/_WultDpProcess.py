@@ -291,7 +291,7 @@ class DatapointProcessor:
         for rawdp in self._rawdps:
             dp = self._process_datapoint(rawdp)
             if dp:
-                self._dps.append(dp)
+                yield dp
 
         self._rawdps = []
 
