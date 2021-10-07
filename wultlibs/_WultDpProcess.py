@@ -123,7 +123,7 @@ class DatapointProcessor:
             dp["WakeLatency"] -= rawdp["IntrOverhead"]
         return dp
 
-    def _process_datapoint_cstates(self, rawdp, dp):
+    def _process_cstates(self, rawdp, dp):
         """
         Validate various raw datapoint 'rawdp' fields related to C-states. Populate the processed
         datapoint 'dp' with fields related to C-states.
@@ -205,7 +205,7 @@ class DatapointProcessor:
         dp = self._init_dp(rawdp)
 
         # Add and validated C-state related fields.
-        self._process_datapoint_cstates(rawdp, dp)
+        self._process_cstates(rawdp, dp)
 
         if not self._apply_dp_overhead(rawdp, dp):
             return None
