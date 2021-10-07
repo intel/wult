@@ -364,8 +364,7 @@ class DatapointProcessor:
                 continue
 
             if not defs.info[field].get("optional"):
-                raise Error(f"the mandatory '{field}' filed was not found. The datapoint is:\n"
-                            f"{Human.dict2str(rawdp)}")
+                fields.append(field)
 
         if keep_rawdp:
             # Append raw fields. In case of a duplicate name:
