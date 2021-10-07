@@ -197,6 +197,21 @@ def build_arguments_parser():
     subpars.add_argument("--intr-focus", action="store_true", help=text)
 
     text = f"""{OWN_NAME.title()} receives raw datapoints from the driver, then processes them, and
+               then saves the processed datapoint in the 'datapoints.csv' file. The processing
+               involves converting TSC cycles to microseconds, so {OWN_NAME} has needs SUT's TSC
+               rate. TSC rate is calculated from the datapoints, which come with TSC counters and
+               timestamps, so TSC rate can be calculated as "delta TSC / delta timestamp". In other
+               words, {OWN_NAME} needs two datapoints to calculate TSC rate. However, the
+               datapoints have to be far enough apart, and this option defines the distance between
+               the datapoints (in seconds). The default distance is 10 seconds, which means that
+               {OWN_NAME} will keep collecting and buffering datapoints for 10s without processing
+               them (because processing requires TSC rate to be known). After 10s, {OWN_NAME} will
+               start processing all the buffered datapoints, and then the newly collected
+               datapoints. Generally, longer TSC calculation time translates to better
+               accuracy."""
+    subpars.add_argument("--tsc-cal-time", default="10s", help=text)
+
+    text = f"""{OWN_NAME.title()} receives raw datapoints from the driver, then processes them, and
                then saves the processed datapoint in the 'datapoints.csv' file. In order to keep the
                CSV file smaller, {OWN_NAME} keeps only the esential information, and drops the rest.
                For example, raw timestamps are dropped. With this option, however, {OWN_NAME} saves
@@ -453,6 +468,9 @@ def start_command(args):
         raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
     args.dpcnt = int(args.dpcnt)
 
+    args.tsc_cal_time = Human.parse_duration(args.tsc_cal_time, default_unit="s",
+                                            name="TSC calculation time")
+
     with contextlib.ExitStack() as stack:
         cpuinfo = CPUInfo.CPUInfo(proc=proc)
         stack.enter_context(cpuinfo)
@@ -487,7 +505,8 @@ def start_command(args):
         check_settings(proc, dev, csinfo, lscpu_info, args.cpunum, args.devid)
 
         runner = WultRunner.WultRunner(proc, dev, res, ldist=args.ldist, intr_focus=args.intr_focus,
-                                       early_intr=args.early_intr, csinfo=csinfo, stconf=stconf)
+                                       early_intr=args.early_intr, tsc_cal_time=args.tsc_cal_time,
+                                       csinfo=csinfo, stconf=stconf)
         stack.enter_context(runner)
 
         runner.unload = not args.no_unload
