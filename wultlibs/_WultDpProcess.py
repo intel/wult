@@ -190,13 +190,19 @@ class DatapointProcessor:
         else:
             dp["CC1Derived%"] = 0
 
-    def _process_datapoint(self, rawdp):
-        """Process a raw datapoint 'rawdp'. Retuns the processed datapoint."""
+    def _init_dp(self, rawdp):
+        """Create and intialized a processed datapoint from raw datapoint 'rawdp'."""
 
         dp = {}
         for field in self.fields:
-            if field in rawdp:
-                dp[field] = rawdp[field]
+            dp[field] = rawdp.get(field, None)
+
+        return dp
+
+    def _process_datapoint(self, rawdp):
+        """Process a raw datapoint 'rawdp'. Retuns the processed datapoint."""
+
+        dp = self._init_dp(rawdp)
 
         # Add and validated C-state related fields.
         self._process_datapoint_cstates(rawdp, dp)
