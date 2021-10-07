@@ -329,7 +329,7 @@ def _deploy_drivers(args, proc):
 
     stdout, stderr, exitcode = proc.run(cmd)
     if exitcode != 0:
-        msg = proc.cmd_failed_msg(stdout, stderr, exitcode)
+        msg = proc.cmd_failed_msg(cmd, stdout, stderr, exitcode)
         if "synth_event_" in stderr:
             msg += "\n\nLooks like synthetic events support is disabled in your kernel, enable " \
                    "the 'CONFIG_SYNTH_EVENTS' kernel configuration option."
