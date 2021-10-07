@@ -31,98 +31,6 @@ class DatapointProcessor:
         """Returns 'True' if the 'dp' datapoint contains the POLL idle state data."""
         return dp["ReqCState"] == 0
 
-    def _apply_dp_overhead(self, rawdp, dp):
-        """
-        This is a helper function for '_process_datapoint()' which handles the 'AIOverhead' and
-        'IntrOverhead' values and modifies the 'dp' datapoint accordingly.
-
-        'AIOverhead' stands for 'After Idle Overhead', and this is the time it takes to get all the
-        data ('WakeLatency', C-state counters, etc) after idle, but before the interrupt handler.
-        This value will be non-zero value for C-states that are entered with interrupts disabled
-        (all C-states except for 'POLL' today, as of Aug 2021). In this case 'IntrOverhead' will be
-        0.
-
-        'IntrOverhead' stands for 'Interrupt Overhead', and this is the time it takes to get all the
-        data ('IntrLatency', C-state counters, etc) in the interrupt handler, before 'WakeLatency'
-        is taken after idle. This value will be non-zero only for C-states that are entered with
-        interrupts enabled (only the 'POLL' state today, as of Aug 2021).
-
-        The overhead values are in nanoseconds. And they should be subtracted from wake/interrupt
-        latency, because they do not contribute to the latency, they are the extra time added by
-        wult driver between the wake event and "after idle" or interrupt.
-        """
-
-        if rawdp["AIOverhead"] and rawdp["IntrOverhead"]:
-            raise Error(f"Both 'AIOverhead' and 'IntrOverhead' are not 0 at the same time. The "
-                        f"datapoint is:\n{Human.dict2str(rawdp)}") from None
-
-        if rawdp["IntrOff"]:
-            # Interrupts were disabled.
-            if rawdp["WakeLatency"] >= rawdp["IntrLatency"]:
-                _LOG.warning("'WakeLatency' is greater than 'IntrLatency', even though interrupts "
-                             "were disabled. The datapoint is:\n%s\nDropping this datapoint\n",
-                             Human.dict2str(rawdp))
-                return None
-
-            if self._early_intr:
-                _LOG.warning("hit a datapoint with interrupts disabled even though the early "
-                             "interrupts feature was enabled. The datapoint is:\n%s\n"
-                             "Dropping this datapoint\n", Human.dict2str(rawdp))
-                return None
-
-            if rawdp["AIOverhead"] >= rawdp["IntrLatency"]:
-                # This sometimes happens, and here are 2 contributing factors that may lead to this
-                # condition.
-                # 1. The overhead is measured by reading TSC at the beginning and the end of the
-                #    'after_idle()' function, which runs as soon as the CPU wakes up. The
-                #    'IntrLatency' is measured using a delayed event device (e.g., a NIC). So we are
-                #    comparing two time intervals from different time sources.
-                # 2. 'AIOverhead' is the overhead of 'after_idle()', where we don't exactly know why
-                #    we woke up, and we cannot tell with 100% certainty that we woke because of the
-                #    interrupt that we armed. We could wake up or a different event, before launch
-                #    time, close enough to the armed event. In this situation, we may measure large
-                #    enough 'AIOverhead', then the armed event happens when the CPU is in C0, and we
-                #    measure very small 'IntrLatency'.
-                _LOG.debug("'AIOverhead' is greater than interrupt latency ('IntrLatency'). The "
-                           "datapoint is:\n%s\nDropping this datapoint\n", Human.dict2str(rawdp))
-                return None
-
-            if rawdp["WakeLatency"] >= rawdp["IntrLatency"] - rawdp["AIOverhead"]:
-                # This condition may happen for similar reasons.
-                _LOG.debug("'WakeLatency' is greater than 'IntrLatency' - 'AIOverhead', even "
-                           "though interrupts were disabled. The datapoint is:\n%s\nDropping this "
-                           "datapoint\n", Human.dict2str(rawdp))
-                return None
-
-            dp["IntrLatency"] -= rawdp["AIOverhead"]
-        elif not self._intr_focus:
-            # Interrupts were enabled.
-
-            if self._drvname == "wult_tdt":
-                _LOG.debug("dropping datapoint with interrupts enabled - the 'tdt' driver does not "
-                           "handle them correctly. The datapoint is:\n%s", Human.dict2str(rawdp))
-                return None
-
-            if rawdp["IntrLatency"] >= rawdp["WakeLatency"]:
-                _LOG.warning("'IntrLatency' is greater than 'WakeLatency', even though interrupts "
-                             "were enabled. The datapoint is:\n%s\nDropping this datapoint\n",
-                             Human.dict2str(rawdp))
-                return None
-
-            if rawdp["IntrOverhead"] >= rawdp["WakeLatency"]:
-                _LOG.debug("'IntrOverhead' is greater than wake latency ('WakeLatency'). The "
-                           "datapoint is:\n%s\nDropping this datapoint\n", Human.dict2str(rawdp))
-                return None
-
-            if rawdp["IntrLatency"] >= rawdp["WakeLatency"] - rawdp["IntrOverhead"]:
-                _LOG.debug("'IntrLatency' is greater than 'WakeLatency' - 'IntrOverhead', even "
-                           "though interrupts were enabled. The datapoint is:\n%s\nDropping this "
-                           "datapoint\n", Human.dict2str(rawdp))
-                return None
-
-            dp["WakeLatency"] -= rawdp["IntrOverhead"]
-        return dp
-
     def _process_cstates(self, rawdp, dp):
         """
         Validate various raw datapoint 'rawdp' fields related to C-states. Populate the processed
@@ -200,16 +108,16 @@ class DatapointProcessor:
         'IntrLatency'.
         """
 
-        time_keys = ("SilentTime", "WakeLatency", "IntrLatency")
-
         dp["SilentTime"] = rawdp["LTime"] - rawdp["TBI"]
         if self._intr_focus:
+            # We do not measure 'WakeLatency' in this case, but it is handy to have it in the
+            # dictionary as '0'. We'll remove it at the end of this function.
             dp["WakeLatency"] = 0
         else:
             dp["WakeLatency"] = rawdp["TAI"] - rawdp["LTime"]
         dp["IntrLatency"] = rawdp["TIntr"] - rawdp["LTime"]
 
-        for key in time_keys:
+        for key in ("SilentTime", "WakeLatency", "IntrLatency"):
             if self._drvname == "wult_tdt":
                 # The time is in TSC cycles.
                 dp[key] = self._cyc_to_us(dp[key])
@@ -217,12 +125,117 @@ class DatapointProcessor:
                 # The time is in nanoseconds.
                 dp[key] /= 1000.0
 
-        # TODO: temporary.
-        for key in time_keys:
-            rawdp[key] = dp[key] * 1000.0
+        #
+        # Try to compensate for the overhead introduced by wult drivers.
+        #
+        # Some C-states are entered with interrupts enabled (e.g., POLL), and some C-states are
+        # entered with interrupts disabled. This is indicated by the 'IntrOff' flag ('IntrOff ==
+        # True' are the datapoints for C-states entered with interrupts disabled).
+        #
+        if rawdp["IntrOff"]:
+            # 1. When the CPU exits the C-state, it runs 'after_idle()' before the interrupt
+            #    handler.
+            #    1.1. If 'self._intr_focus == False', 'WakeLatency' is measured in 'after_idle()'.
+            #         This introduces additional overhead, and delays the interrupt handler. This
+            #         overhead can be estimated using 'AICyc1' and 'AICyc2' TSC counter snapshots.
+            #    1.2. If 'self._intr_focus == True', 'WakeLatency' is not measured at all.
+            # 2. The interrupt handler is executed shortly after 'after_idle()' finishes and the
+            #    CPUIdle Linux kernel subsystem re-enables CPU interrupts.
+
+            if dp["WakeLatency"] >= dp["IntrLatency"]:
+                _LOG.warning("'WakeLatency' is greater than 'IntrLatency', even though interrupts "
+                             "were disabled. The datapoint is:\n%s\nDropping this datapoint\n",
+                             Human.dict2str(rawdp))
+                return None
+
+            if self._early_intr:
+                _LOG.warning("hit a datapoint with interrupts disabled even though the early "
+                             "interrupts feature was enabled. The datapoint is:\n%s\n"
+                             "Dropping this datapoint\n", Human.dict2str(rawdp))
+                return None
+
+            if self._intr_focus:
+                overhead = 0
+            else:
+                overhead = rawdp["AICyc2"] - rawdp["AICyc1"]
+            overhead = self._cyc_to_us(overhead)
+
+            if overhead >= dp["IntrLatency"]:
+                # This sometimes happens, most probably because the overhead is measured by reading
+                # TSC at the beginning and the end of the 'after_idle()' function, which runs as
+                # soon as the CPU wakes up. The 'IntrLatency' is measured using a delayed event
+                # device (e.g., a NIC). So we are comparing two time intervals from different time
+                # sources.
+                _LOG.debug("The overhead is greater than interrupt latency ('IntrLatency'). The "
+                           "datapoint is:\n%s\nThe overhead is: %f\nDropping this datapoint\n",
+                           Human.dict2str(rawdp), overhead)
+                return None
+
+            if dp["WakeLatency"] >= dp["IntrLatency"] - overhead:
+                # This condition may happen for similar reasons.
+                _LOG.debug("'WakeLatency' is greater than 'IntrLatency' - overhead, even though "
+                           "interrupts were disabled. The datapoint is:\n%s\nThe overhead is: %f\n"
+                           "Dropping this datapoint\n", Human.dict2str(rawdp), overhead)
+                return None
+
+            dp["IntrLatency"] -= overhead
+
+        if not rawdp["IntrOff"] and not self._intr_focus:
+            # 1. When the CPU exits the C-state, it runs the interrupt handler before
+            #    'after_idle()'.
+            # 2. The interrupt latency is measured in the interrupt handler. This introduces
+            #    additional overhead, and delays 'after_idle()'. This overhead can be estimated
+            #    using 'IntrCyc1' and 'IntrCyc2' TSC counter snapshots. But if 'self._intr_focus ==
+            #    True', 'WakeLatency' is not going to be measured anyway.
+            # 3. 'after_idle()' is executed after the interrupt handler and measures 'WakeLatency',
+            #    which is greater than 'IntrLatency' in this case.
+            #
+            # Bear in mind, that wult interrupt handler may be executed after interrupt handlers, in
+            # case there are multiple pending interrupts. Also keep in mind that in case of
+            # timer-based measurements, the generic Linux interrupt handler is executed first, and
+            # wult's handler may be called after other registered handlers. In other words, there
+            # may be many CPU instructions between the moment the CPU wakes up from the C-state and
+            # the moment it executes wult's interrupt handler.
+
+            if self._drvname == "wult_tdt":
+                _LOG.debug("dropping datapoint with interrupts enabled - the 'tdt' driver does not "
+                           "handle them correctly. The datapoint is:\n%s", Human.dict2str(rawdp))
+                return None
+
+            if dp["IntrLatency"] >= dp["WakeLatency"]:
+                _LOG.warning("'IntrLatency' is greater than 'WakeLatency', even though interrupts "
+                             "were enabled. The datapoint is:\n%s\nDropping this datapoint\n",
+                             Human.dict2str(rawdp))
+                return None
+
+            if self._intr_focus:
+                overhead = 0
+            else:
+                overhead = rawdp["IntrCyc1"] - rawdp["IntrCyc2"]
+            overhead = self._cyc_to_us(overhead)
+
+            if overhead >= dp["WakeLatency"]:
+                _LOG.debug("Overhead is greater than wake latency ('WakeLatency'). The "
+                           "datapoint is:\n%s\nThe overhead is: %f\nDropping this datapoint\n",
+                           overhead, Human.dict2str(rawdp))
+                return None
+
+            if dp["IntrLatency"] >= dp["WakeLatency"] - overhead:
+                _LOG.debug("'IntrLatency' is greater than 'WakeLatency' - overhead, even though "
+                           "interrupts were enabled. The datapoint is:\n%sThe overhead is: %f\n"
+                           "Dropping this datapoint\n", overhead, Human.dict2str(rawdp))
+                return None
+
+            dp["WakeLatency"] -= overhead
+
+
+        if self._intr_focus:
+            del dp["WakeLatency"]
+
+        return dp
 
     def _init_dp(self, rawdp):
-        """Create and intialized a processed datapoint from raw datapoint 'rawdp'."""
+        """Create and initialize a processed datapoint from raw datapoint 'rawdp'."""
 
         dp = {}
         for field in self.fields:
@@ -236,13 +249,11 @@ class DatapointProcessor:
         dp = self._init_dp(rawdp)
 
         # Calculate latencies and other metrics providing time intervals.
-        self._process_time(rawdp, dp)
+        if not self._process_time(rawdp, dp):
+            return None
 
         # Add and validated C-state related fields.
         self._process_cstates(rawdp, dp)
-
-        if not self._apply_dp_overhead(rawdp, dp):
-            return None
 
         # Some raw datapoint values are in nanoseconds, but we need them to be in microseconds.
         # Save time in microseconds.
@@ -257,10 +268,10 @@ class DatapointProcessor:
         TSC rate is calculated using 'BICyc' and 'BIMonotinic' raw datapoint fields. These fields
         are read one after another with interrupts disabled. The former is "TSC cycles Before Idle",
         the latter stands for "Monotonic time Before Idle". The "Before Idle" part is not relevant
-        here at all, it jsut tells that these counters were read just before the system enters an
+        here at all, it just tells that these counters were read just before the system enters an
         idle state.
 
-        We need a couple of datapoints fare enough apart in order to calculate TSC rate. This method
+        We need a couple of datapoints far enough apart in order to calculate TSC rate. This method
         is called for every datapoint, and once there are a couple of datapoints
         'self.tsc_cal_time' seconds apart, this function calculates TSC rate and stores it in
         'self.tsc_mhz'.
@@ -301,9 +312,13 @@ class DatapointProcessor:
 
     def add_raw_datapoint(self, rawdp):
         """
-        Process a raw datapoint 'rawdp'. The "raw" part in this contenxs means that 'rawdp' contains
+        Process a raw datapoint 'rawdp'. The "raw" part in this context means that 'rawdp' contains
         the datapoint as the kernel driver provided it. This function processes it and retuns the
         processed datapoint.
+
+        Notice: for effeciency purposes this function does not make a copy of 'rawdp' and instead,
+        uses and even modifies 'rawd'. In other words, the caller should not use 'rawdp' after
+        calling this function.
         """
 
         self._calculate_tsc_rate(rawdp)
@@ -395,7 +410,7 @@ class DatapointProcessor:
           * intr_focus - enable inerrupt latency focused measurements ('WakeLatency' is not measured
                          in this case, only 'IntrLatency').
           * early_intr - enable intrrupts before entering the C-state.
-          * tsc_cal_time - amount of senconds to use for calculating TSC rate.
+          * tsc_cal_time - amount of seconds to use for calculating TSC rate.
           * csinfo - C-state information for the CPU to measure ('res.cpunum'), generated by
                     'CPUIdle.get_cstates_info_dict()'.
         """

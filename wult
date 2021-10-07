@@ -198,17 +198,16 @@ def build_arguments_parser():
 
     text = f"""{OWN_NAME.title()} receives raw datapoints from the driver, then processes them, and
                then saves the processed datapoint in the 'datapoints.csv' file. The processing
-               involves converting TSC cycles to microseconds, so {OWN_NAME} has needs SUT's TSC
-               rate. TSC rate is calculated from the datapoints, which come with TSC counters and
+               involves converting TSC cycles to microseconds, so {OWN_NAME} needs SUT's TSC rate.
+               TSC rate is calculated from the datapoints, which come with TSC counters and
                timestamps, so TSC rate can be calculated as "delta TSC / delta timestamp". In other
-               words, {OWN_NAME} needs two datapoints to calculate TSC rate. However, the
-               datapoints have to be far enough apart, and this option defines the distance between
-               the datapoints (in seconds). The default distance is 10 seconds, which means that
+               words, {OWN_NAME} needs two datapoints to calculate TSC rate. However, the datapoints
+               have to be far enough apart, and this option defines the distance between the
+               datapoints (in seconds). The default distance is 10 seconds, which means that
                {OWN_NAME} will keep collecting and buffering datapoints for 10s without processing
                them (because processing requires TSC rate to be known). After 10s, {OWN_NAME} will
                start processing all the buffered datapoints, and then the newly collected
-               datapoints. Generally, longer TSC calculation time translates to better
-               accuracy."""
+               datapoints. Generally, longer TSC calculation time translates to better accuracy."""
     subpars.add_argument("--tsc-cal-time", default="10s", help=text)
 
     text = f"""{OWN_NAME.title()} receives raw datapoints from the driver, then processes them, and
