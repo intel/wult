@@ -217,6 +217,10 @@ class DatapointProcessor:
                 # The time is in nanoseconds.
                 dp[key] /= 1000.0
 
+        # TODO: temporary.
+        for key in time_keys:
+            rawdp[key] = dp[key] * 1000.0
+
     def _init_dp(self, rawdp):
         """Create and intialized a processed datapoint from raw datapoint 'rawdp'."""
 
