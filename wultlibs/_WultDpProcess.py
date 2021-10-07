@@ -190,6 +190,33 @@ class DatapointProcessor:
         else:
             dp["CC1Derived%"] = 0
 
+    def _cyc_to_us(self, cyc):
+        """Convert TSC cycles to microseconds."""
+        return cyc / self.tsc_mhz
+
+    def _process_time(self, rawdp, dp):
+        """
+        Calculate, validate, and initialize fields related to time, for example 'WakeLatency' and
+        'IntrLatency'.
+        """
+
+        time_keys = ("SilentTime", "WakeLatency", "IntrLatency")
+
+        dp["SilentTime"] = rawdp["LTime"] - rawdp["TBI"]
+        if self._intr_focus:
+            dp["WakeLatency"] = 0
+        else:
+            dp["WakeLatency"] = rawdp["TAI"] - rawdp["LTime"]
+        dp["IntrLatency"] = rawdp["TIntr"] - rawdp["LTime"]
+
+        for key in time_keys:
+            if self._drvname == "wult_tdt":
+                # The time is in TSC cycles.
+                dp[key] = self._cyc_to_us(dp[key])
+            else:
+                # The time is in nanoseconds.
+                dp[key] /= 1000.0
+
     def _init_dp(self, rawdp):
         """Create and intialized a processed datapoint from raw datapoint 'rawdp'."""
 
@@ -203,6 +230,9 @@ class DatapointProcessor:
         """Process a raw datapoint 'rawdp'. Retuns the processed datapoint."""
 
         dp = self._init_dp(rawdp)
+
+        # Calculate latencies and other metrics providing time intervals.
+        self._process_time(rawdp, dp)
 
         # Add and validated C-state related fields.
         self._process_cstates(rawdp, dp)
@@ -348,11 +378,6 @@ class DatapointProcessor:
                     fields.append(field)
 
         self.fields = fields
-
-        # Sanity check: no values should be 'None'.
-        dp = self._process_datapoint(rawdp)
-        if any(val is None for val in dp.values()):
-            raise Error("bug: 'None' values found in the following datapoint:\nHuman.dict2str(dp)")
 
     def __init__(self, cpunum, proc, drvname, intr_focus=None, early_intr=None, tsc_cal_time=10,
                  csinfo=None):
