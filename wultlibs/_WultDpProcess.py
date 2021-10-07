@@ -197,9 +197,6 @@ class DatapointProcessor:
         for field in self.fields:
             if field in rawdp:
                 dp[field] = rawdp[field]
-            elif field.startswith("Raw"):
-                name = field[len("Raw"):]
-                dp[field] = rawdp[name]
 
         # Add and validated C-state related fields.
         self._process_datapoint_cstates(rawdp, dp)
@@ -338,14 +335,11 @@ class DatapointProcessor:
             # Append raw fields. In case of a duplicate name:
             # * if the values are the same too, drop the raw field.
             # * if the values are different, keep both, just prepend the raw field name with "Raw".
-            self.fields = fields
-            dp = self._process_datapoint(rawdp)
+            fields_set = set(fields)
 
             for field in raw_fields:
-                if field not in dp:
+                if field not in fields_set:
                     fields.append(field)
-                elif rawdp[field] != dp[field]:
-                    fields.append(f"Raw{field}")
 
         self.fields = fields
 
