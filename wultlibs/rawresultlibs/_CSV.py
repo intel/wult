@@ -26,7 +26,7 @@ class WritableCSV:
         try:
             self._fobj = self.path.open("r+", encoding="utf-8")
         except OSError as err:
-            raise Error(f"failed to open file '{self.path}':\n{err}")
+            raise Error(f"failed to open file '{self.path}':\n{err}") from None
 
         try:
             reader = csv.reader(self._fobj)
@@ -35,7 +35,7 @@ class WritableCSV:
             _LOG.debug("CSV file '%s' information:\n * Header %s\n * Data rows count: %d",
                        self.path, ", ".join(self.hdr), self.initial_rows_cnt)
         except csv.Error as err:
-            raise Error(f"failed to read CSV file '{self.path}':\n{err}")
+            raise Error(f"failed to read CSV file '{self.path}':\n{err}") from err
         except StopIteration:
             pass
 
@@ -48,7 +48,7 @@ class WritableCSV:
         try:
             self._fobj = self.path.open("tw+", encoding="utf-8")
         except OSError as err:
-            raise Error(f"failed to create file '{self.path}':\n{err}")
+            raise Error(f"failed to create file '{self.path}':\n{err}") from None
 
     def _cond_flush(self):
         """
