@@ -118,6 +118,9 @@ class HTMLReportBase:
         in 'pinfos' list.
         """
 
+        if not pinfos:
+            return {}
+
         smrys_tbl = {}
         smrys_tbl["Title"] = {}
         for res in self.rsts:
@@ -249,12 +252,20 @@ class HTMLReportBase:
         intro_tbl = self._prepare_intro_table(stats_paths, logs_paths, descr_paths)
         links_tbl = self._prepare_links_table()
 
+        jenv = Jinja2.build_jenv(templdir, trim_blocks=True, lstrip_blocks=True)
+
+        all_pinfos = self._pinfos
+        if not self._pinfos:
+            # This may happen if there are no diagrams to plot. In this case we still want to
+            # generate an HTML report, but without diagrams.
+            _LOG.warning("no diagrams to plot")
+            all_pinfos = {"Dummy" : {}}
+
         # Each column name gets its own HTML page.
-        for colname, pinfos in self._pinfos.items():
+        for colname, pinfos in all_pinfos.items():
             smrys_tbl = self._prepare_smrys_tables(pinfos)
 
             # Render the template.
-            jenv = Jinja2.build_jenv(templdir, trim_blocks=True, lstrip_blocks=True)
             jenv.globals["smrys_tbl"] = smrys_tbl
             jenv.globals["pinfos"] = pinfos
             jenv.globals["colname"] = colname

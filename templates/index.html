@@ -13,7 +13,7 @@
 {% endif %}
 
 {#
- # The summaries table.
+ # The intro table.
  #}
 {% include "intro_tbl.html" %}
 
@@ -31,12 +31,14 @@
     </table>
 {% endif %}
 
-<h2>{{ colname }}</h2>
-
+{% if smrys_tbl %}
 {#
  # The summaries table.
  #}
+<h2>{{ colname }}</h2>
+
 {% include "smrys_tbl.html" %}
+{% endif %}
 
 {#
  # The diagrams.
