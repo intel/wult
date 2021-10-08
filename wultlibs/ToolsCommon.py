@@ -299,25 +299,6 @@ def parse_cpunum(cpunum, cpuinfo=None):
 
     return cpunum
 
-def add_ssh_options(parser, argcomplete=None):
-    """
-    Add the '--host', '--timeout' and other SSH-related options to argument parser object 'parser'.
-    """
-
-    text = "System Under Test (SUT) host name to run on (default is the local host)."
-    parser.add_argument("-H", "--host", help=text, default="localhost", dest="hostname")
-    text = """Name of the user to use for logging into the SUT over SSH. The default user
-              name is 'root'."""
-    parser.add_argument("-U", "--username", dest="username", default="root", metavar="USERNAME",
-                        help=text)
-    text = """Path to the private SSH key that should be used for logging into the SUT. By default
-              the key is automatically found from standard paths like '~/.ssh'."""
-    arg = parser.add_argument("-K", "--priv-key", dest="privkey", type=Path, help=text)
-    if argcomplete:
-        arg.completer = argcomplete.completers.FilesCompleter()
-    text = """SSH connect timeout in seconds, default is 8."""
-    parser.add_argument("-T", "--timeout", default=8, help=text)
-
 def even_up_dpcnt(rsts):
     """
     This is a helper function for the '--even-up-datapoints' option. It takes a list of

@@ -19,7 +19,7 @@ import contextlib
 from pathlib import Path
 from wultlibs import ToolsCommon
 from wultlibs.helperlibs import Procs, Trivial, FSHelpers, RemoteHelpers, KernelVersion, Logging
-from wultlibs.helperlibs import WrapExceptions
+from wultlibs.helperlibs import WrapExceptions, ArgParse
 from wultlibs.helperlibs.Exceptions import Error, ErrorNotFound
 
 _HELPERS_LOCAL_DIR = Path(".local")
@@ -102,7 +102,7 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
-    ToolsCommon.add_ssh_options(parser, argcomplete=argcomplete)
+    ArgParse.add_ssh_options(parser)
 
     parser.set_defaults(func=func)
     parser.set_defaults(helpers=helpers)
