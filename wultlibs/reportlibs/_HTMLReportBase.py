@@ -701,6 +701,9 @@ class HTMLReportBase:
             # dataframe. This is more effecient than creating copies.
             self._mangle_loaded_res(res)
 
+        # Some columns from the axes lists could have been dropped, updata the lists.
+        self._drop_absent_colnames()
+
     def generate(self):
         """Generate the HTML report and store the result in 'self.outdir'.
 
@@ -737,6 +740,27 @@ class HTMLReportBase:
         for res in self.rsts:
             self._hov_colnames[res.reportid] = res.find_colnames(regexs, must_find_any=False)
 
+    def _drop_absent_colnames(self):
+        """
+        Verify that test results provide the columns in 'xaxes', 'yaxes', 'hist' and 'chist'. Drop
+        the absent columns.
+        """
+
+        lists = ("xaxes", "yaxes", "hist", "chist")
+
+        for name in lists:
+            intersection = set(getattr(self, name))
+            for res in self.rsts:
+                intersection = intersection & res.colnames_set
+            colnames = []
+            for colname in getattr(self, name):
+                if colname in intersection:
+                    colnames.append(colname)
+                else:
+                    _LOG.warning("dropping column '%s' from '%s' because it is not present in one "
+                                 "of the results", colname, name)
+            setattr(self, name, colnames)
+
     def _init_colnames(self):
         """
         Assign default values to the diagram/histogram column names and remove possible
@@ -763,22 +787,9 @@ class HTMLReportBase:
                 else:
                     setattr(self, name, [col2])
 
-        # At this point we've got the list of column names based on the first test result. But if
-        # there are multiple test results, we should find the largest common subset, in case other
-        # test results are missing some of the columns present in the first (reference) test result.
-        for name in ("xaxes", "yaxes", "hist", "chist"):
-            intersection = set(getattr(self, name))
-            for res in self.rsts:
-                intersection = intersection & res.colnames_set
-            colnames = []
-            for colname in getattr(self, name):
-                if colname in intersection:
-                    colnames.append(colname)
-                else:
-                    _LOG.warning("dropping column '%s' from '%s' because it is not present in one "
-                                 "of the results", colname, name)
-                setattr(self, name, colnames)
+        self._drop_absent_colnames()
 
+        # Both X- and Y-axes are required for scatter plots.
         if not self.xaxes or not self.yaxes:
             self.xaxes = self.yaxes = []
 
