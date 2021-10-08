@@ -93,7 +93,7 @@ class WultStatsCollect:
             path = self._outdir
             path.mkdir(exist_ok=True)
         except OSError as err:
-            raise Error(f"failed to create directory '{path}': {err}")
+            raise Error(f"failed to create directory '{path}': {err}") from None
 
         self._stcoll = StatsCollect.StatsCollect(proc, local_outdir=self._outdir.resolve())
 
