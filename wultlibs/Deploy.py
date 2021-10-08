@@ -18,9 +18,9 @@ import logging
 import contextlib
 from pathlib import Path
 from wultlibs import ToolsCommon
-from wultlibs.helperlibs import Procs, Trivial, FSHelpers, RemoteHelpers, KernelVersion, Logging
-from wultlibs.helperlibs import WrapExceptions, ArgParse
-from wultlibs.helperlibs.Exceptions import Error, ErrorNotFound
+from helperlibs import Procs, Trivial, FSHelpers, RemoteHelpers, KernelVersion, Logging
+from helperlibs import WrapExceptions, ArgParse
+from helperlibs.Exceptions import Error, ErrorNotFound
 
 _HELPERS_LOCAL_DIR = Path(".local")
 _DRV_SRC_SUBPATH = Path("drivers/idle")
@@ -47,7 +47,7 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
          using 'make install'.
       2. Python helpers (pyhelpers) are helper tools written in python (e.g., 'stats-collect'). They
          also reside in the 'helpers subdirectory, but they are not totally independent. They depend
-         on multiple modules that come with 'wult' project (e.g., 'wultlibs/helperlibs/Procs.py').
+         on multiple modules that come with 'wult' project (e.g., 'helperlibs/Procs.py').
          Therefore, in order to deploy python helpers, we need to deploy the dependencies. And the
          way we do this depends on whether we deploy to the local system or to a remote system. In
          case of the local system, python helpers are deployed by 'setup.py', just the 'wult' tool
@@ -151,7 +151,7 @@ def _get_pyhelper_dependencies(script_path):
     """
     Find and return a python helper script (pyhelper) dependencies. Only wult module dependencies
     are returned. An example of such a dependency would be:
-        /usr/lib/python3.9/site-packages/wultlibs/helperlibs/Trivial.py
+        /usr/lib/python3.9/site-packages/helperlibs/Trivial.py
     """
 
     # All pyhelpers implement the '--print-module-paths' option, which prints the dependencies.
@@ -377,8 +377,8 @@ def _create_standalone_python_script(script, pyhelperdir):
     deps = _get_pyhelper_dependencies(script_path)
 
     # Create an empty '__init__.py' file. We will be adding it to the sub-directories of the
-    # depenencies. For example, if one of the dependencies is 'wultlibs/helperlibs/Trivial.py',
-    # we'll have to add '__init__.py' to 'wultlibs/' and 'wultlibs/helperlibs'.
+    # depenencies. For example, if one of the dependencies is 'helperlibs/Trivial.py',
+    # we'll have to add '__init__.py' to 'wultlibs/' and 'helperlibs'.
     init_path = pyhelperdir / "__init__.py"
     try:
         with init_path.open("w+"):

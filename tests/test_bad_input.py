@@ -27,7 +27,7 @@ Test module for 'wult' project. Includes following bad input tests for both, 'wu
 
 import pytest
 from common import tool
-from wultlibs.helperlibs import Exceptions
+from helperlibs import Exceptions
 
 def test_bad_input_data(tool):
     """Test 'report', 'calc', and 'start' commands for bad input data."""

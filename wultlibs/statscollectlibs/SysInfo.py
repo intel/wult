@@ -11,8 +11,8 @@ This module implements collecting the "system information" type of statistics.
 """
 
 import logging
-from wultlibs.helperlibs import FSHelpers
-from wultlibs.helperlibs.Exceptions import Error
+from helperlibs import FSHelpers
+from helperlibs.Exceptions import Error
 
 _LOG = logging.getLogger()
 

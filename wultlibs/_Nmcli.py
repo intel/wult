@@ -11,8 +11,8 @@ This module provides API to NetworkManger's nmcli tool.
 """
 
 import re
-from wultlibs.helperlibs import Trivial, FSHelpers, Procs
-from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
+from helperlibs import Trivial, FSHelpers, Procs
+from helperlibs.Exceptions import Error, ErrorNotSupported
 
 class Nmcli:
     """API to the nmcli tool."""

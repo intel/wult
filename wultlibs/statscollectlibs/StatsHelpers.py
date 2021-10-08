@@ -14,8 +14,8 @@ This module implements several misc. helpers for tools using 'StatsCollect'.
 
 import logging
 from wultlibs.statscollectlibs import StatsCollect
-from wultlibs.helperlibs import Trivial
-from wultlibs.helperlibs.Exceptions import Error
+from helperlibs import Trivial
+from helperlibs.Exceptions import Error
 
 _LOG = logging.getLogger()
 

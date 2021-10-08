@@ -18,8 +18,8 @@ import sys
 import logging
 from pathlib import Path
 from wultlibs import Devices
-from wultlibs.helperlibs import Trivial, ReportID, Procs, SSH, YAML, Human
-from wultlibs.helperlibs.Exceptions import Error
+from helperlibs import Trivial, ReportID, Procs, SSH, YAML, Human
+from helperlibs.Exceptions import Error
 from wultlibs.rawresultlibs import RORawResult
 
 HELPERS_LOCAL_DIR = Path(".local")

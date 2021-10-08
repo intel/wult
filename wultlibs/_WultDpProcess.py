@@ -12,9 +12,9 @@ saves the results.
 """
 
 import logging
-from wultlibs.helperlibs.Exceptions import Error
-from wultlibs.helperlibs import Human
-from wultlibs.pepclibs import CPUIdle
+from helperlibs.Exceptions import Error
+from helperlibs import Human
+from pepclibs import CPUIdle
 from wultlibs import Defs
 
 _LOG = logging.getLogger()

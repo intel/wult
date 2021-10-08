@@ -14,8 +14,8 @@ result.
 import time
 import logging
 import contextlib
-from wultlibs.helperlibs import Trivial, FSHelpers, KernelModule, KernelVersion, ProcHelpers, Human
-from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported
+from helperlibs import Trivial, FSHelpers, KernelModule, KernelVersion, ProcHelpers, Human
+from helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs import _ProgressLine, _Nmcli, _ETFQdisc
 
 _LOG = logging.getLogger()

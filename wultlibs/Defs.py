@@ -11,8 +11,8 @@ This module provides API to the datapoints CSV file definitions (AKA 'defs').
 """
 
 from pathlib import Path
-from wultlibs.helperlibs.Exceptions import Error
-from wultlibs.helperlibs import FSHelpers, YAML
+from helperlibs.Exceptions import Error
+from helperlibs import FSHelpers, YAML
 
 # A unique object used as the default value for the 'default' keyword argument in various
 # functions.

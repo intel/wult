@@ -19,7 +19,7 @@ A raw test result is a directory containing the following files.
 """
 
 from pathlib import Path
-from wultlibs.helperlibs.Exceptions import Error
+from helperlibs.Exceptions import Error
 
 # The latest supported raw results format version.
 FORMAT_VERSION = "1.2"

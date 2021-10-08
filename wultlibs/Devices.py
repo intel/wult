@@ -17,9 +17,9 @@ compatible wult devices.
 import contextlib
 import logging
 from pathlib import Path
-from wultlibs.pepclibs import LsPCI
-from wultlibs.helperlibs import FSHelpers, Dmesg, NetIface
-from wultlibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
+from pepclibs import LsPCI
+from helperlibs import FSHelpers, Dmesg, NetIface
+from helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 
 # All the possible wult device driver names.
 DRVNAMES = set()

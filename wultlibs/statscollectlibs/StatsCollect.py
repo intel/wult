@@ -15,8 +15,8 @@ import socket
 import logging
 import contextlib
 from pathlib import Path
-from wultlibs.helperlibs import Procs, ProcHelpers, FSHelpers, RemoteHelpers, Trivial, KernelVersion
-from wultlibs.helperlibs.Exceptions import Error, ErrorExists
+from helperlibs import Procs, ProcHelpers, FSHelpers, RemoteHelpers, Trivial, KernelVersion
+from helperlibs.Exceptions import Error, ErrorExists
 from wultlibs.statscollectlibs import SysInfo
 
 _LOG = logging.getLogger()

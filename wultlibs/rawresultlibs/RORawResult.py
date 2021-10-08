@@ -16,8 +16,8 @@ import builtins
 from pathlib import Path
 import numpy
 import pandas
-from wultlibs.helperlibs import YAML, Trivial
-from wultlibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
+from helperlibs import YAML, Trivial
+from helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
 from wultlibs.rawresultlibs import _RawResultBase
 from wultlibs import Defs
 

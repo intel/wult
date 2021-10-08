@@ -18,8 +18,8 @@ from pathlib import Path
 import numpy
 import pandas
 import plotly
-from wultlibs.helperlibs import Trivial, FSHelpers, Jinja2
-from wultlibs.helperlibs.Exceptions import Error
+from helperlibs import Trivial, FSHelpers, Jinja2
+from helperlibs.Exceptions import Error
 from wultlibs.rawresultlibs import RORawResult
 
 _LOG = logging.getLogger()

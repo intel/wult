@@ -13,7 +13,7 @@ This module provides API for reading and writing CSV files.
 import csv
 import logging
 from pathlib import Path
-from wultlibs.helperlibs.Exceptions import Error
+from helperlibs.Exceptions import Error
 
 _LOG = logging.getLogger()
 
