@@ -417,15 +417,18 @@ def _create_standalone_python_script(script, pyhelperdir):
         pkgdirs = set()
 
         for src in deps:
-            # Form the destination path. It just part of the source path staring from the 'wultlibs'
-            # component.
+            # Form the destination path. It is just part of the source path staring from the
+            # 'wultlibs' of 'helperlibs' components.
             try:
-                wultlibs_idx = src.parts.index("wultlibs")
+                idx = src.parts.index("wultlibs")
             except ValueError:
-                raise Error(f"script '{script}' has bad depenency '{src}' - the path does not have "
-                            f"the wultlibs' component in it.") from None
+                try:
+                    idx = src.parts.index("helperlibs")
+                except ValueError:
+                    raise Error(f"script '{script}' has bad depenency '{src}' - the path does not "
+                                f"have the 'wultlibs' or 'helperlibs' component in it.") from None
 
-            dst = Path(*src.parts[wultlibs_idx:])
+            dst = Path(*src.parts[idx:])
             zipobj.write(src, arcname=dst)
 
             # Collecect all directory paths present in the dependencies. They are all python
