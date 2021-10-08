@@ -779,24 +779,12 @@ class HTMLReportBase:
         """
 
         for name in ("xaxes", "yaxes", "hist", "chist"):
-            val = getattr(self, name, None)
-            if val is not None:
-                if val:
-                    # Convert list of regular expressions into list of names.
-                    colnames = self._refres.find_colnames(getattr(self, name))
-                else:
-                    colnames = []
-                setattr(self, name, colnames)
+            if getattr(self, name):
+                # Convert list of regular expressions into list of names.
+                colnames = self._refres.find_colnames(getattr(self, name))
             else:
-                # Set the default values.
-                colnames = iter(self._refdefs.info)
-                col1 = next(colnames)
-                col2 = next(colnames)
-
-                if name != "yaxes":
-                    setattr(self, name, [col1])
-                else:
-                    setattr(self, name, [col2])
+                colnames = []
+            setattr(self, name, colnames)
 
         self._drop_absent_colnames()
 
