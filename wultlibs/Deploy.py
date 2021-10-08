@@ -17,10 +17,10 @@ import zipfile
 import logging
 import contextlib
 from pathlib import Path
-from wultlibs import ToolsCommon
 from helperlibs import Procs, Trivial, FSHelpers, RemoteHelpers, KernelVersion, Logging
 from helperlibs import WrapExceptions, ArgParse
 from helperlibs.Exceptions import Error, ErrorNotFound
+from wultlibs import ToolsCommon
 
 _HELPERS_LOCAL_DIR = Path(".local")
 _DRV_SRC_SUBPATH = Path("drivers/idle")

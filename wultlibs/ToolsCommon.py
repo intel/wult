@@ -17,9 +17,9 @@ this module require the  'args' object which represents the command-line argumen
 import sys
 import logging
 from pathlib import Path
-from wultlibs import Devices
 from helperlibs import Trivial, ReportID, Procs, SSH, YAML, Human
 from helperlibs.Exceptions import Error
+from wultlibs import Devices
 from wultlibs.rawresultlibs import RORawResult
 
 HELPERS_LOCAL_DIR = Path(".local")
