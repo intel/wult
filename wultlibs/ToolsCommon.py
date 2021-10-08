@@ -17,7 +17,7 @@ this module require the  'args' object which represents the command-line argumen
 import sys
 import logging
 from pathlib import Path
-from helperlibs import Trivial, ReportID, Procs, SSH, YAML, Human
+from helperlibs import Trivial, ReportID, Procs, SSH, YAML, Human, Logging
 from helperlibs.Exceptions import Error
 from wultlibs import Devices
 from wultlibs.rawresultlibs import RORawResult
@@ -261,6 +261,20 @@ def _validate_range(rng, what, single_ok):
         vals.append(vals[0])
 
     return vals
+
+def setup_stdout_logging(toolname, logs_path):
+    """
+    Configure the logger to mirror all stdout and stderr messages to the log file in the 'logs_path'
+    directory.
+    """
+
+    # Configure the logger to print to both the console and the log file.
+    try:
+        logs_path.mkdir(exist_ok=True)
+    except OSError as err:
+        raise Error(f"cannot create log directory '{logs_path}': {err}") from None
+    logfile = logs_path / f"{toolname}.log.txt"
+    Logging.setup_logger(toolname, info_logfile=logfile, error_logfile=logfile)
 
 def parse_ldist(ldist, single_ok=True):
     """

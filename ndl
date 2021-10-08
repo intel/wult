@@ -238,15 +238,8 @@ def start_command(args):
     args.dpcnt = int(args.dpcnt)
 
     with WORawResult.NdlWORawResult(args.reportid, args.outdir, VERSION) as res:
+        ToolsCommon.setup_stdout_logging(OWN_NAME, res.logs_path)
         ToolsCommon.set_filters(args, res)
-
-        # Configure the logger to print to both the console and the log file.
-        try:
-            res.logs_path.mkdir(exist_ok=True)
-        except OSError as err:
-            raise Error(f"cannot create log directory '{res.logs_path}': {err}") from None
-        logfile = res.logs_path / "wult.log.txt"
-        Logging.setup_logger(OWN_NAME, info_logfile=logfile, error_logfile=logfile)
 
         with NetIface.NetIface(args.ifname, proc=proc) as netif:
             info = netif.get_pci_info()
