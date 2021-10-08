@@ -31,7 +31,7 @@ from pepclibs import CPUIdle, CPUInfo, CPUOnline
 from pepclibs.msr import PowerCtl
 from wultlibs import Deploy, ToolsCommon, Devices, EventsProvider, WultRunner, WultStatsCollect
 
-VERSION = "1.9.7"
+VERSION = "1.9.8"
 OWN_NAME = "wult"
 
 # By default 'ReportID' module does not allow for the ":" character, but it is part of the PCI

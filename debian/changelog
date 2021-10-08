@@ -1,3 +1,11 @@
+wult (1.9.8) unstable; urgency=low
+
+  * wult/ndl: use modules from the 'pepc' project (new dependency)
+  * wult: few more informative error messages
+  * wult: -H option can now be placed anywhere
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 08 Oct 2021 10:53:30 +0300
+
 wult (1.9.7) unstable; urgency=low
 
   * wult: add 'start --early-intr' option/capability.
