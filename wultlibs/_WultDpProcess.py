@@ -368,6 +368,9 @@ class DatapointProcessor:
                 continue
 
             if not defs.info[field].get("optional"):
+                if self._intr_focus and field == "WakeLatency":
+                    # In case of interrupt-focused measurements 'WakeLatency' is not measured.
+                    continue
                 fields.append(field)
 
         if keep_rawdp:
