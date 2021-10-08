@@ -274,6 +274,13 @@ def setup_stdout_logging(toolname, logs_path):
     except OSError as err:
         raise Error(f"cannot create log directory '{logs_path}': {err}") from None
     logfile = logs_path / f"{toolname}.log.txt"
+
+    try:
+        with logfile.open("w+") as fobj:
+            fobj.write(f"Command line: {' '.join(sys.argv)}\n")
+    except OSError as err:
+        raise Error("failed to write command line to '{logfile}':\n{err}") from None
+
     Logging.setup_logger(toolname, info_logfile=logfile, error_logfile=logfile)
 
 def parse_ldist(ldist, single_ok=True):
