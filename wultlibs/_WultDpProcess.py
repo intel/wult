@@ -98,15 +98,72 @@ class DatapointProcessor:
         else:
             dp["CC1Derived%"] = 0
 
+    def _cyc_to_ns(self, cyc):
+        """Convert TSC cycles to nanoseconds."""
+        return (cyc * 1000) / self.tsc_mhz
+
     def _cyc_to_us(self, cyc):
         """Convert TSC cycles to microseconds."""
         return cyc / self.tsc_mhz
+
+    def _adjust_wult_igb_time(self, rawdp):
+        """
+        The 'wult_igb' driver needs to access the NIC over PCIe, which may add a significan overhead
+        and increas inaccuracy. In order to improve this, the driver provides TSC snapshots taken at
+        various points in 'get_time_before_idle()' ('DrvBICyc1', 'DrvBICyc2', 'DrvBICyc3') and in
+        'get_time_after_idle()' ('DrvAICyc2', 'DrvAICyc3').
+        """
+
+        keys = ("DrvBICyc1", "DrvBICyc2", "DrvBICyc3", "DrvAICyc1", "DrvAICyc2", "DrvAICyc3")
+        for key in keys:
+            if key not in rawdp:
+                raise Error(f"the '{key}' field was not found, make sure you have up-to-date wult "
+                            f"drivers installed{self._proc.hostmsg}\nThe raw datapoint is:\n"
+                            f"{Human.dict2str(rawdp)}")
+
+        # In 'time_before_idle()', we first flush posted writes, then latch the NIC time by reading
+        # a NIC register over PCIe. We have 2 TSC timestamp around the latch register read:
+        # 'DrvBICyc1' and 'DrvBICyc2'. We assume that the read operation reached the NIC roughly
+        # ('DrvBICyc2' - 'DrvBICyc1') / 2 TSC cycles after it was initiated on the CPU.
+        tbi_adj = (rawdp["DrvBICyc2"] - rawdp["DrvBICyc1"]) / 2
+
+        # After the time was latched, and 'DrvBICyc2' timestampe taken, we read the latched NIC time
+        # from the NIC. And this read operation takes 'DrvBICyc3' - 'DrvBICyc2' cycles, which can be
+        # considered as an added 'time_before_idle()' delay. Let's "compensate" for this delay.
+        tbi_adj += rawdp["DrvBICyc3"] - rawdp["DrvBICyc2"]
+
+        # Convert cycles to nanoseconds.
+        tbi_adj = self._cyc_to_ns(tbi_adj)
+
+        # Keep in mind: 'rawdp["TBI"]' is time in nanoseconds from the NIC. But 'tbi_adj' was
+        # measured using CPU's TSC. We adjust the NIC-based time using TSC-based time here. This is
+        # not ideal.
+        #rawdp["TBI"] += tbi_adj
+
+        # In 'time_after_idle()' we start with "warming up" the link between the CPU and the link
+        # (e.g., flush posted writes, wake it up from an L-state). The warm up is just a read
+        # operation. But we have TSC values taken around the warm up read: 'DrvAICyc1' and
+        # 'DrvAICyc2'. The warm up time is 'WarmupDelay'.
+        warmup_delay = self._cyc_to_ns(rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"])
+
+        # After this we latch the NIC time. This time is referred to as 'LatchDelay'.
+        latch_delay = self._cyc_to_ns(rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"])
+
+        # We need to "compensate" for the warm up delay and adjust for NIC time latch delay,
+        # similarly to how we did it for 'TBI'.
+        tai_adj = rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"]
+        tai_adj += (rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"]) / 2
+        tai_adj = self._cyc_to_ns(tai_adj)
+        #rawdp["TAI"] -= tbi_adj
 
     def _process_time(self, rawdp, dp):
         """
         Calculate, validate, and initialize fields related to time, for example 'WakeLatency' and
         'IntrLatency'.
         """
+
+        if self._drvname == "wult_igb":
+            self._adjust_wult_igb_time(rawdp)
 
         dp["SilentTime"] = rawdp["LTime"] - rawdp["TBI"]
         if self._intr_focus:
