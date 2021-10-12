@@ -33,8 +33,6 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "TBI" },
 	{ .type = "u64", .name = "TAI" },
 	{ .type = "u64", .name = "TIntr" },
-	{ .type = "u64", .name = "AIOverhead" },
-	{ .type = "u64", .name = "IntrOverhead" },
 	{ .type = "unsigned int", .name = "IntrOff" },
 	{ .type = "unsigned int", .name = "ReqCState" },
 	{ .type = "u64", .name = "BICyc" },
@@ -179,7 +177,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 	struct wult_trace_data_info *tdata = NULL;
 	struct synth_event_trace_state trace_state;
 	struct cstate_info *csi;
-	u64 ltime, ai_overhead = 0, intr_overhead = 0;
+	u64 ltime;
 	int err, snum, err_after_send = 0;
 
 	if (WARN_ON(ti->armed))
@@ -223,8 +221,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 		if (WARN_ON(ti->intr_tsc1 < ti->ai_tsc2))
 			err_after_send = -EINVAL;
-
-		ai_overhead = wult_cyc2ns(wdi, ti->ai_tsc2 - ti->ai_tsc1);
 	} else {
 		/*
 		 * This is an idle state like 'POLL' which has interrupts
@@ -239,8 +235,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 			 * Ignore this datapoint.
 			 */
 			return 0;
-
-		intr_overhead = wult_cyc2ns(wdi, ti->intr_tsc2 - ti->intr_tsc1);
 	}
 
 	/*
@@ -274,12 +268,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->tintr, &trace_state);
-	if (err)
-		goto out_end;
-	err = synth_event_add_next_val(ai_overhead, &trace_state);
-	if (err)
-		goto out_end;
-	err = synth_event_add_next_val(intr_overhead, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->irqs_disabled, &trace_state);
