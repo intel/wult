@@ -21,8 +21,6 @@
 #include "wult_igb.h"
 
 static struct wult_trace_data_info tdata[] = {
-	{ .name = "WarmupDelay" },
-	{ .name = "LatchDelay" },
 	{ .name = "DrvBICyc1" },
 	{ .name = "DrvBICyc2" },
 	{ .name = "DrvBICyc3" },
@@ -75,7 +73,7 @@ static irqreturn_t interrupt_handler(int irq, void *data)
 static u64 get_time_before_idle(struct wult_device_info *wdi)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
-	u64 ns, cyc;
+	u64 ns;
 
 	/* A "warm up" read. */
 	pci_flush_posted(nic);
@@ -88,17 +86,13 @@ static u64 get_time_before_idle(struct wult_device_info *wdi)
 	ns += read32(nic, I210_SYSTIMH) * NSEC_PER_SEC;
 	nic->cyc.tbi3 = rdtsc_ordered();
 
-	cyc = (nic->cyc.tbi2 - nic->cyc.tbi1) / 2;
-	cyc += nic->cyc.tbi3 - nic->cyc.tbi2;
-	return ns + wult_cyc2ns(wdi, cyc);
+	return ns;
 }
 
 static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc_tai1)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
 	u64 ns;
-	u64 *ns1 = &tdata[0].val;
-	u64 *ns2 = &tdata[1].val;
 
 	/*
 	 * The first read from the NIC is sometimes exceptionally slow. Measure
@@ -113,20 +107,7 @@ static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc_tai1)
 	/* Read the latched NIC time. */
 	ns = read32(nic, I210_SYSTIML);
 	ns += read32(nic, I210_SYSTIMH) * NSEC_PER_SEC;
-
-	/*
-	 * Save the warmup and latch delays in order to have them included in
-	 * the trace output.
-	 */
-	*ns1 = wult_cyc2ns(wdi, nic->cyc.tai2 - cyc_tai1);
-	*ns2 = wult_cyc2ns(wdi, nic->cyc.tai3 - nic->cyc.tai2);
-
-	/*
-	 * Account for the "warm up" read and and half of the latch. Here we
-	 * make an assumption that the latch read request reached the NIC
-	 * somewhere in the middle.
-	 */
-	return ns - *ns1 - *ns2 / 2;
+	return ns;
 }
 
 static int arm_irq(struct wult_device_info *wdi, u64 *ldist)
@@ -173,12 +154,12 @@ static struct wult_trace_data_info *get_trace_data(struct wult_device_info *wdi)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
 
-	tdata[2].val = nic->cyc.tbi1;
-	tdata[3].val = nic->cyc.tbi2;
-	tdata[4].val = nic->cyc.tbi3;
-	tdata[5].val = nic->cyc.tai1;
-	tdata[6].val = nic->cyc.tai2;
-	tdata[7].val = nic->cyc.tai3;
+	tdata[0].val = nic->cyc.tbi1;
+	tdata[1].val = nic->cyc.tbi2;
+	tdata[2].val = nic->cyc.tbi3;
+	tdata[3].val = nic->cyc.tai1;
+	tdata[4].val = nic->cyc.tai2;
+	tdata[5].val = nic->cyc.tai3;
 
 	return tdata;
 }

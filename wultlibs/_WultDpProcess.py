@@ -138,23 +138,23 @@ class DatapointProcessor:
         # Keep in mind: 'rawdp["TBI"]' is time in nanoseconds from the NIC. But 'tbi_adj' was
         # measured using CPU's TSC. We adjust the NIC-based time using TSC-based time here. This is
         # not ideal.
-        #rawdp["TBI"] += tbi_adj
+        rawdp["TBI"] += tbi_adj
 
         # In 'time_after_idle()' we start with "warming up" the link between the CPU and the link
         # (e.g., flush posted writes, wake it up from an L-state). The warm up is just a read
         # operation. But we have TSC values taken around the warm up read: 'DrvAICyc1' and
         # 'DrvAICyc2'. The warm up time is 'WarmupDelay'.
-        warmup_delay = self._cyc_to_ns(rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"])
+        rawdp["WarmupDelay"]= self._cyc_to_ns(rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"])
 
         # After this we latch the NIC time. This time is referred to as 'LatchDelay'.
-        latch_delay = self._cyc_to_ns(rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"])
+        rawdp["LatchDelay"] = self._cyc_to_ns(rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"])
 
         # We need to "compensate" for the warm up delay and adjust for NIC time latch delay,
         # similarly to how we did it for 'TBI'.
         tai_adj = rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"]
         tai_adj += (rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"]) / 2
         tai_adj = self._cyc_to_ns(tai_adj)
-        #rawdp["TAI"] -= tbi_adj
+        rawdp["TAI"] -= tbi_adj
 
     def _process_time(self, rawdp, dp):
         """
