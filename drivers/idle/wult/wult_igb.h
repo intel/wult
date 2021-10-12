@@ -125,6 +125,16 @@
 
 struct pci_dev;
 
+/*
+ * TSC snapshots at various points of the measurement.
+ */
+struct wult_igb_cycles {
+	/* TSC counter snapshots taken in 'get_time_before_idle()'. */
+	u64 tbi1, tbi2, tbi3;
+	/* TSC counter snapshots taken in 'get_time_after_idle()'. */
+	u64 tai1, tai2, tai3;
+};
+
 /* This structure represents the NIC. */
 struct network_adapter {
 	struct wult_device_info wdi;
@@ -132,6 +142,7 @@ struct network_adapter {
 	u8 __iomem *iomem;
 	/* Launch time of the last armed delayed event in nanoseconds. */
 	u64 ltime;
+	struct wult_igb_cycles cyc;
 };
 
 #endif

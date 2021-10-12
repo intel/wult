@@ -23,6 +23,12 @@
 static struct wult_trace_data_info tdata[] = {
 	{ .name = "WarmupDelay" },
 	{ .name = "LatchDelay" },
+	{ .name = "DrvBICyc1" },
+	{ .name = "DrvBICyc2" },
+	{ .name = "DrvBICyc3" },
+	{ .name = "DrvAICyc1" },
+	{ .name = "DrvAICyc2" },
+	{ .name = "DrvAICyc3" },
 	{ NULL },
 };
 
@@ -69,26 +75,28 @@ static irqreturn_t interrupt_handler(int irq, void *data)
 static u64 get_time_before_idle(struct wult_device_info *wdi)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
-	u64 ns, cyc1, cyc2, cyc3;
+	u64 ns, cyc;
 
 	/* A "warm up" read. */
 	pci_flush_posted(nic);
 
-	cyc1 = rdtsc_ordered();
+	nic->cyc.tbi1 = rdtsc_ordered();
 	read32(nic, I210_SYSTIMR);
-	cyc2 = rdtsc_ordered();
+	nic->cyc.tbi2 = rdtsc_ordered();
 
 	ns = read32(nic, I210_SYSTIML);
 	ns += read32(nic, I210_SYSTIMH) * NSEC_PER_SEC;
-	cyc3 = rdtsc_ordered();
+	nic->cyc.tbi3 = rdtsc_ordered();
 
-	return ns + wult_cyc2ns(wdi, (cyc2 - cyc1) / 2 + (cyc3 - cyc2));
+	cyc = (nic->cyc.tbi2 - nic->cyc.tbi1) / 2;
+	cyc += nic->cyc.tbi3 - nic->cyc.tbi2;
+	return ns + wult_cyc2ns(wdi, cyc);
 }
 
-static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc)
+static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc_tai1)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
-	u64 ns, cyc2, cyc3;
+	u64 ns;
 	u64 *ns1 = &tdata[0].val;
 	u64 *ns2 = &tdata[1].val;
 
@@ -97,9 +105,10 @@ static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc)
 	 * this "warm up" read separately.
 	 */
 	pci_flush_posted(nic);
-	cyc2 = rdtsc_ordered();
+	nic->cyc.tai2 = rdtsc_ordered();
 	read32(nic, I210_SYSTIMR);
-	cyc3 = rdtsc_ordered();
+	nic->cyc.tai3 = rdtsc_ordered();
+	nic->cyc.tai1 = cyc_tai1;
 
 	/* Read the latched NIC time. */
 	ns = read32(nic, I210_SYSTIML);
@@ -109,8 +118,8 @@ static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc)
 	 * Save the warmup and latch delays in order to have them included in
 	 * the trace output.
 	 */
-	*ns1 = wult_cyc2ns(wdi, cyc2 - cyc);
-	*ns2 = wult_cyc2ns(wdi, cyc3 - cyc2);
+	*ns1 = wult_cyc2ns(wdi, nic->cyc.tai2 - cyc_tai1);
+	*ns2 = wult_cyc2ns(wdi, nic->cyc.tai3 - nic->cyc.tai2);
 
 	/*
 	 * Account for the "warm up" read and and half of the latch. Here we
@@ -162,6 +171,15 @@ static u64 get_launch_time(struct wult_device_info *wdi)
 
 static struct wult_trace_data_info *get_trace_data(struct wult_device_info *wdi)
 {
+	struct network_adapter *nic = wdi_to_nic(wdi);
+
+	tdata[2].val = nic->cyc.tbi1;
+	tdata[3].val = nic->cyc.tbi2;
+	tdata[4].val = nic->cyc.tbi3;
+	tdata[5].val = nic->cyc.tai1;
+	tdata[6].val = nic->cyc.tai2;
+	tdata[7].val = nic->cyc.tai3;
+
 	return tdata;
 }
 
