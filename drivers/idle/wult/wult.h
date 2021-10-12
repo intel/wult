@@ -8,7 +8,6 @@
 #define _WULT_H_
 
 #include <linux/atomic.h>
-#include <linux/clocksource.h>
 #include <linux/ftrace.h>
 #include <linux/math64.h>
 #include <linux/mutex.h>
@@ -25,10 +24,6 @@
 
 /* The coarsest supported launch distance granularity, nanoseconds. */
 #define WULT_MAX_LDIST_GRANULARITY 100000000
-
-/* Longest time interval allowed to be converted with 'wult_cyc2ns(). */
-#define WULT_CYC2NS_MAXSEC 2
-#define WULT_CYC2NS_MAXNSEC (WULT_CYC2NS_MAXSEC * NSEC_PER_SEC)
 
 #ifndef DRIVER_NAME
 #define DRIVER_NAME "wult"
@@ -100,11 +95,6 @@ struct wult_device_info {
 	/* Name of the delayed event device. */
 	const char *devname;
 	/* Wult framework private data. */
-	/*
-	 * The multiplier ('mult') and divisor ('shift') values which are used
-	 * for fast CPU cycles to nanoseconds conversion.
-	 */
-	u32 mult, shift;
 	void *priv;
 };
 
@@ -164,19 +154,6 @@ struct wult_info {
 int wult_register(struct wult_device_info *wdi);
 void wult_unregister(void);
 void wult_interrupt(u64 cyc);
-
-/*
- * Convert cycles to nanoseconds. Should be used only for time intervals within
- * wdi->ldist_max.
- */
-static inline u64 wult_cyc2ns(struct wult_device_info *wdi, u64 cyc)
-{
-	u64 ns;
-
-	ns = mul_u64_u32_shr(cyc, wdi->mult, wdi->shift);
-	WARN_ON(ns > WULT_CYC2NS_MAXNSEC);
-	return ns;
-}
 
 /* Only for wult framework use, not for delayed event drivers. */
 int wult_enable(void);

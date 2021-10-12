@@ -267,12 +267,6 @@ static void init_wdi(struct wult_device_info *wdi)
 	atomic64_set(&wi->ldist_to, min(wdi->ldist_max, DEFAULT_LDIST_TO));
 	spin_lock_init(&wi->enable_lock);
 	init_waitqueue_head(&wi->armer_wq);
-	/*
-	 * Claculate 'mult' and 'shift' that will further be used for converting
-	 * count of cycles to nanoseconds.
-	 */
-	clocks_calc_mult_shift(&wdi->mult, &wdi->shift, tsc_khz * 1000,
-			       NSEC_PER_SEC, WULT_CYC2NS_MAXSEC);
 }
 
 /*
