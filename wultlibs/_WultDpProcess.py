@@ -182,13 +182,11 @@ class DatapointProcessor:
                 # The time is in nanoseconds.
                 dp[key] /= 1000.0
 
-        #
         # Try to compensate for the overhead introduced by wult drivers.
         #
         # Some C-states are entered with interrupts enabled (e.g., POLL), and some C-states are
         # entered with interrupts disabled. This is indicated by the 'IntrOff' flag ('IntrOff ==
         # True' are the datapoints for C-states entered with interrupts disabled).
-        #
         if rawdp["IntrOff"]:
             # 1. When the CPU exits the C-state, it runs 'after_idle()' before the interrupt
             #    handler.
@@ -284,7 +282,6 @@ class DatapointProcessor:
                 return None
 
             dp["WakeLatency"] -= overhead
-
 
         if self._intr_focus:
             del dp["WakeLatency"]
