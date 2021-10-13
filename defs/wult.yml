@@ -40,6 +40,12 @@ IntrLatency:
     short_unit: "us"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
     optional: False
+IntrOff:
+    title: "Interrupts disabled"
+    descr: >-
+        Status indicating whether or not interrupts were disabled during the test.
+    type: "bool"
+    optional: True
 LDist:
     title: "Launch Distance"
     descr: >-
