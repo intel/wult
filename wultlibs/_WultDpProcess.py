@@ -125,20 +125,20 @@ class DatapointProcessor:
         # a NIC register over PCIe. We have 2 TSC timestamps around the latch register read:
         # 'DrvBICyc1' and 'DrvBICyc2'. We assume that the read operation reaches the NIC roughly
         # ('DrvBICyc2' - 'DrvBICyc1') / 2 TSC cycles after it was initiated on the CPU.
-        tbi_adj = (rawdp["DrvBICyc2"] - rawdp["DrvBICyc1"]) / 2
+        adj = (rawdp["DrvBICyc2"] - rawdp["DrvBICyc1"]) / 2
 
         # After the time was latched, and 'DrvBICyc2' timestamp taken, we read the latched NIC time
         # from the NIC. And this read operation takes 'DrvBICyc3' - 'DrvBICyc2' cycles, which can be
         # considered as an added 'time_before_idle()' delay. Let's "compensate" for this delay.
-        tbi_adj += rawdp["DrvBICyc3"] - rawdp["DrvBICyc2"]
+        adj += rawdp["DrvBICyc3"] - rawdp["DrvBICyc2"]
 
         # Convert cycles to nanoseconds.
-        tbi_adj = self._cyc_to_ns(tbi_adj)
+        adj = self._cyc_to_ns(adj)
 
-        # Keep in mind: 'rawdp["TBI"]' is time in nanoseconds from the NIC. But 'tbi_adj' was
+        # Keep in mind: 'rawdp["TBI"]' is time in nanoseconds from the NIC. But 'adj' was
         # measured using CPU's TSC. We adjust the NIC-based time using TSC-based time here. This is
         # not ideal.
-        rawdp["TBI"] += tbi_adj
+        rawdp["TBI"] += adj
 
         # In 'time_after_idle()' we start with "warming up" the link between the CPU and the link
         # (e.g., flush posted writes, wake it up from an L-state). The warm up is just a read
@@ -151,9 +151,9 @@ class DatapointProcessor:
 
         # We need to "compensate" for the warm up delay and adjust for NIC time latch delay,
         # similarly to how we did it for 'TBI'.
-        tai_adj = rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"]
-        tai_adj += (rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"]) / 2
-        rawdp["TAI"] -= self._cyc_to_ns(tai_adj)
+        adj = rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"]
+        adj += (rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"]) / 2
+        rawdp["TAI"] -= self._cyc_to_ns(adj)
 
     def _process_time(self, rawdp, dp):
         """
