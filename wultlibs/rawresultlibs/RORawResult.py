@@ -432,26 +432,11 @@ class RORawResult(_RawResultBase.RawResultBase):
         """Read the datapoints CSV file header, fetch and validate its column names."""
 
         try:
-            colnames = list(pandas.read_csv(self.dp_path, nrows=0))
+            self.colnames = list(pandas.read_csv(self.dp_path, nrows=0))
         except Exception as err:
             raise Error(f"failed to load CSV file {self.dp_path}:\n{err}") from None
 
-        # Starting from format version 1.2, the 'DerivedCC1%' column is named as 'CC1Derived%'.
-        # Rename it on the fly.
-        if self.info["format_version"] < "1.2" and "DerivedCC1%" in colnames:
-            colnames = ["CC1Derived%" if name == "DerivedCC1%" else name for name in list(colnames)]
-
-        self.defs.populate_cstates(colnames)
-
-        self._ignored_colnames = set(colnames) - set(self.defs.info.keys())
-        if self._ignored_colnames:
-            _LOG.debug("ignoring the following columns in '%s':\n%s",
-                        self.dp_path, ", ".join(self._ignored_colnames))
-
-        for colname in colnames:
-            if colname not in self._ignored_colnames:
-                self.colnames.append(colname)
-
+        self.defs.populate_cstates(self.colnames)
         self.colnames_set = set(self.colnames)
 
     def save(self, dirpath, reportid=None):
