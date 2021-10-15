@@ -139,6 +139,8 @@ class DatapointProcessor:
         # measured using CPU's TSC. We adjust the NIC-based time using TSC-based time here. This is
         # not ideal.
         rawdp["TBI"] += adj
+        if "TBI" in dp:
+            dp["TBI"] = rawdp["TBI"]
 
         # In 'time_after_idle()' we start with "warming up" the link between the CPU and the link
         # (e.g., flush posted writes, wake it up from an L-state). The warm up is just a read
@@ -154,6 +156,8 @@ class DatapointProcessor:
         adj = rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"]
         adj += (rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"]) / 2
         rawdp["TAI"] -= self._cyc_to_ns(adj)
+        if "TAI" in dp:
+            dp["TAI"] = rawdp["TAI"]
 
     def _process_time(self, rawdp, dp):
         """
