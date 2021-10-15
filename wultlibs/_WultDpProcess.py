@@ -108,8 +108,8 @@ class DatapointProcessor:
 
     def _adjust_wult_igb_time(self, rawdp):
         """
-        The 'wult_igb' driver needs to access the NIC over PCIe, which may add a significan overhead
-        and increas inaccuracy. In order to improve this, the driver provides TSC snapshots taken at
+        The 'wult_igb' driver needs to access the NIC over PCIe, which may add a significant overhead
+        and increased inaccuracy. In order to improve this, the driver provides TSC snapshots taken at
         various points in 'get_time_before_idle()' ('DrvBICyc1', 'DrvBICyc2', 'DrvBICyc3') and in
         'get_time_after_idle()' ('DrvAICyc2', 'DrvAICyc3').
         """
@@ -122,12 +122,12 @@ class DatapointProcessor:
                             f"{Human.dict2str(rawdp)}")
 
         # In 'time_before_idle()', we first flush posted writes, then latch the NIC time by reading
-        # a NIC register over PCIe. We have 2 TSC timestamp around the latch register read:
-        # 'DrvBICyc1' and 'DrvBICyc2'. We assume that the read operation reached the NIC roughly
+        # a NIC register over PCIe. We have 2 TSC timestamps around the latch register read:
+        # 'DrvBICyc1' and 'DrvBICyc2'. We assume that the read operation reaches the NIC roughly
         # ('DrvBICyc2' - 'DrvBICyc1') / 2 TSC cycles after it was initiated on the CPU.
         tbi_adj = (rawdp["DrvBICyc2"] - rawdp["DrvBICyc1"]) / 2
 
-        # After the time was latched, and 'DrvBICyc2' timestampe taken, we read the latched NIC time
+        # After the time was latched, and 'DrvBICyc2' timestamp taken, we read the latched NIC time
         # from the NIC. And this read operation takes 'DrvBICyc3' - 'DrvBICyc2' cycles, which can be
         # considered as an added 'time_before_idle()' delay. Let's "compensate" for this delay.
         tbi_adj += rawdp["DrvBICyc3"] - rawdp["DrvBICyc2"]
@@ -144,7 +144,7 @@ class DatapointProcessor:
         # (e.g., flush posted writes, wake it up from an L-state). The warm up is just a read
         # operation. But we have TSC values taken around the warm up read: 'DrvAICyc1' and
         # 'DrvAICyc2'. The warm up time is 'WarmupDelay'.
-        rawdp["WarmupDelay"]= self._cyc_to_ns(rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"])
+        rawdp["WarmupDelay"] = self._cyc_to_ns(rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"])
 
         # After this we latch the NIC time. This time is referred to as 'LatchDelay'.
         rawdp["LatchDelay"] = self._cyc_to_ns(rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"])
@@ -298,11 +298,11 @@ class DatapointProcessor:
         return dp
 
     def _process_datapoint(self, rawdp):
-        """Process a raw datapoint 'rawdp'. Retuns the processed datapoint."""
+        """Process a raw datapoint 'rawdp'. Returns the processed datapoint."""
 
         dp = self._init_dp(rawdp)
 
-        # Calculate latencies and other metrics providing time intervals.
+        # Calculate latency and other metrics providing time intervals.
         if not self._process_time(rawdp, dp):
             return None
 
@@ -367,10 +367,10 @@ class DatapointProcessor:
     def add_raw_datapoint(self, rawdp):
         """
         Process a raw datapoint 'rawdp'. The "raw" part in this context means that 'rawdp' contains
-        the datapoint as the kernel driver provided it. This function processes it and retuns the
+        the datapoint as the kernel driver provided it. This function processes it and returns the
         processed datapoint.
 
-        Notice: for effeciency purposes this function does not make a copy of 'rawdp' and instead,
+        Notice: for efficiency purposes this function does not make a copy of 'rawdp' and instead,
         uses and even modifies 'rawd'. In other words, the caller should not use 'rawdp' after
         calling this function.
         """
@@ -429,7 +429,7 @@ class DatapointProcessor:
         self._us_fields_set = {field for field, vals in defs.info.items() \
                                if vals.get("unit") == "microsecond"}
 
-        # Form the list of fileds in processed datapoints. Fields from the "defs" file go first.
+        # Form the list of fields in processed datapoints. Fields from the "defs" file go first.
         fields = []
         for field in defs.info:
             if Defs.is_csres_colname(field) or field in rawdp:
@@ -458,12 +458,12 @@ class DatapointProcessor:
                  csinfo=None):
         """
         The class constructor. The arguments are as follows.
-          * cpunum - the measured CPU numer.
+          * cpunum - the measured CPU number.
           * proc - the 'Proc' or 'SSH' object that defines the host to run the measurements on.
           * drvname - name of the driver providing the datapoints
-          * intr_focus - enable inerrupt latency focused measurements ('WakeLatency' is not measured
+          * intr_focus - enable interrupt latency focused measurements ('WakeLatency' is not measured
                          in this case, only 'IntrLatency').
-          * early_intr - enable intrrupts before entering the C-state.
+          * early_intr - enable interrupts before entering the C-state.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
           * csinfo - C-state information for the CPU to measure ('res.cpunum'), generated by
                     'CPUIdle.get_cstates_info_dict()'.
