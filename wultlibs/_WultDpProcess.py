@@ -106,7 +106,7 @@ class DatapointProcessor:
         """Convert TSC cycles to microseconds."""
         return cyc / self.tsc_mhz
 
-    def _adjust_wult_igb_time(self, rawdp):
+    def _adjust_wult_igb_time(self, dp, rawdp):
         """
         The 'wult_igb' driver needs to access the NIC over PCIe, which may add a significant overhead
         and increased inaccuracy. In order to improve this, the driver provides TSC snapshots taken at
@@ -144,10 +144,10 @@ class DatapointProcessor:
         # (e.g., flush posted writes, wake it up from an L-state). The warm up is just a read
         # operation. But we have TSC values taken around the warm up read: 'DrvAICyc1' and
         # 'DrvAICyc2'. The warm up time is 'WarmupDelay'.
-        rawdp["WarmupDelay"] = self._cyc_to_ns(rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"])
+        dp["WarmupDelay"] = self._cyc_to_us(rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"])
 
         # After this we latch the NIC time. This time is referred to as 'LatchDelay'.
-        rawdp["LatchDelay"] = self._cyc_to_ns(rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"])
+        dp["LatchDelay"] = self._cyc_to_us(rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"])
 
         # We need to "compensate" for the warm up delay and adjust for NIC time latch delay,
         # similarly to how we did it for 'TBI'.
@@ -163,7 +163,7 @@ class DatapointProcessor:
         """
 
         if self._drvname == "wult_igb":
-            self._adjust_wult_igb_time(rawdp)
+            self._adjust_wult_igb_time(dp, rawdp)
 
         dp["SilentTime"] = rawdp["LTime"] - rawdp["TBI"]
         if self._intr_focus:
