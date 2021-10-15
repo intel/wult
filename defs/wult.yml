@@ -18,7 +18,6 @@ WakeLatency:
     unit: "microsecond"
     short_unit: "us"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
-    optional: False
     drop_empty: True
 SilentTime:
     title: "Silent Time"
@@ -29,7 +28,6 @@ SilentTime:
     unit: "microsecond"
     short_unit: "us"
     default_funcs: ["min", "max"]
-    optional: False
 IntrLatency:
     title: "Interrupt latency"
     descr: >-
@@ -39,13 +37,11 @@ IntrLatency:
     unit: "microsecond"
     short_unit: "us"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
-    optional: False
 IntrOff:
     title: "Interrupts disabled"
     descr: >-
         Status indicating whether or not interrupts were disabled during the test.
     type: "bool"
-    optional: True
 LDist:
     title: "Launch Distance"
     descr: >-
@@ -54,14 +50,12 @@ LDist:
     unit: "microsecond"
     short_unit: "us"
     default_funcs: ["min", "max"]
-    optional: False
 ReqCState:
     title: "Requested C-State name"
     descr: >-
         The requested C-state name. This is the Linux CPU C-state name, do not confuse it with
         hardware C-state names.
     type: "str"
-    optional: False
 CC0%:
     title: "Busy percent"
     descr: >-
@@ -71,7 +65,6 @@ CC0%:
     unit: "%"
     short_unit: "%"
     default_funcs: "all"
-    optional: False
 CC1Derived%:
     title: "Derived CC1%"
     descr: >-
@@ -81,7 +74,6 @@ CC1Derived%:
     unit: "%"
     short_unit: "%"
     default_funcs: "all"
-    optional: True
     drop_empty: True
 CCx%:
     title: "The CCx core C-state residency"
@@ -92,7 +84,6 @@ CCx%:
     unit: "%"
     short_unit: "%"
     default_funcs: "all"
-    optional: True
     drop_empty: True
 PCx%:
     title: "The PCx package C-state residency"
@@ -103,7 +94,6 @@ PCx%:
     unit: "%"
     short_unit: "%"
     default_funcs: "all"
-    optional: True
     drop_empty: True
 SMICnt:
     title: "SMI count while measuring 'WakeLatency' or 'IntrLatency'"
@@ -111,7 +101,6 @@ SMICnt:
         How many system management interupts (SMI) happened while measuring 'WakeLatency' and
         'IntrLatency'.
     type: "int"
-    optional: True
     drop_empty: True
 NMICnt:
     title: "NMI count while measuring 'WakeLatency' or 'IntrLatency'"
@@ -119,7 +108,6 @@ NMICnt:
         How many non-maskable interrupts (NMI) happened while measuring 'WakeLatency' and
         'IntrLatency'.
     type: "int"
-    optional: True
     drop_empty: True
 WarmupDelay:
     title: "The I210 NIC link warm up delay"
@@ -135,7 +123,6 @@ WarmupDelay:
     unit: "microsecond"
     short_unit: "us"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
-    optional: True
 LatchDelay:
     title: "The I210 NIC time latch delay"
     descr: >-
@@ -150,4 +137,3 @@ LatchDelay:
     unit: "microsecond"
     short_unit: "us"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
-    optional: True

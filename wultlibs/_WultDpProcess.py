@@ -292,7 +292,7 @@ class DatapointProcessor:
         """Create and initialize a processed datapoint from raw datapoint 'rawdp'."""
 
         dp = {}
-        for field in self.fields:
+        for field in self._fields:
             dp[field] = rawdp.get(field, None)
 
         return dp
@@ -314,6 +314,16 @@ class DatapointProcessor:
         for field in dp:
             if field in rawdp and field in self._us_fields_set:
                 dp[field] = rawdp[field] / 1000.0
+
+        if not self._first_dp_processed:
+            # This is the very first datapoint. There may be some fields in 'self._fields' which do
+            # we do not actually have (e.g., some driver-specific fields). Remove them from
+            # 'self._fields'.
+            for field, val in dp.items():
+                if val is None:
+                    del self._fields[field]
+        else:
+            self._first_dp_processed = True
 
         return dp
 
@@ -429,30 +439,15 @@ class DatapointProcessor:
         self._us_fields_set = {field for field, vals in defs.info.items() \
                                if vals.get("unit") == "microsecond"}
 
-        # Form the list of fields in processed datapoints. Fields from the "defs" file go first.
-        fields = []
+        # Form the preliminary list of fields in processed datapoints. Fields from the "defs" file
+        # go first. The list (but we use dictionary in this case) will be amended later.
+        self._fields = {}
         for field in defs.info:
-            if Defs.is_csres_colname(field) or field in rawdp:
-                fields.append(field)
-                continue
-
-            if not defs.info[field].get("optional"):
-                if self._intr_focus and field == "WakeLatency":
-                    # In case of interrupt-focused measurements 'WakeLatency' is not measured.
-                    continue
-                fields.append(field)
+            self._fields[field] = None
 
         if keep_rawdp:
-            # Append raw fields. In case of a duplicate name:
-            # * if the values are the same too, drop the raw field.
-            # * if the values are different, keep both, just prepend the raw field name with "Raw".
-            fields_set = set(fields)
-
             for field in raw_fields:
-                if field not in fields_set:
-                    fields.append(field)
-
-        self.fields = fields
+                self._fields[field] = None
 
     def __init__(self, cpunum, proc, drvname, intr_focus=None, early_intr=None, tsc_cal_time=10,
                  csinfo=None):
@@ -477,7 +472,9 @@ class DatapointProcessor:
         self._csinfo = csinfo
 
         # Processed datapoint field names.
-        self.fields = None
+        self._fields = None
+        # Whether at least one datapoint has been processed.
+        self._first_dp_processed = False
         # TSC rate in MHz (cycles / microsecond).
         self.tsc_mhz = None
 
