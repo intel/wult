@@ -265,7 +265,7 @@ class DatapointProcessor:
             if self._intr_focus:
                 overhead = 0
             else:
-                overhead = rawdp["IntrCyc1"] - rawdp["IntrCyc2"]
+                overhead = rawdp["IntrCyc2"] - rawdp["IntrCyc1"]
             overhead = self._cyc_to_us(overhead)
 
             if overhead >= dp["WakeLatency"]:
