@@ -103,8 +103,6 @@ class WultRunner:
         # second one.
         self._dpp.prepare(rawdp, keep_rawdp)
 
-        self._res.csv.add_header(self._dpp.fields)
-
         latkey = "IntrLatency" if self._intr_focus else "WakeLatency"
 
         # At least one datapoint should be collected within the 'timeout' seconds interval.
@@ -129,6 +127,10 @@ class WultRunner:
                 tsc_rate_printed = True
 
             for dp in self._dpp.get_processed_datapoints():
+                if not self._res.csv.hdr:
+                    # Add the first CSV header.
+                    self._res.csv.add_header(dp.keys())
+
                 # Add the data to the CSV file.
                 if not self._res.add_csv_row(dp):
                     # The data point has not been added (e.g., because it did not pass row filters).
