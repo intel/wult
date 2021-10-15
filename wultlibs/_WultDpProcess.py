@@ -153,7 +153,6 @@ class DatapointProcessor:
         # similarly to how we did it for 'TBI'.
         tai_adj = rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"]
         tai_adj += (rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"]) / 2
-        tai_adj = self._cyc_to_ns(tai_adj)
         rawdp["TAI"] -= self._cyc_to_ns(tai_adj)
 
     def _process_time(self, rawdp, dp):
