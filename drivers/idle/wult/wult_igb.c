@@ -115,11 +115,16 @@ static int arm_irq(struct wult_device_info *wdi, u64 *ldist)
 	struct network_adapter *nic = wdi_to_nic(wdi);
 	unsigned long flags;
 	struct timespec64 ts;
+	u64 ns;
 
 	preempt_disable();
 	local_irq_save(flags);
 
-	nic->ltime = get_time_before_idle(wdi) + *ldist;
+	read32(nic, I210_SYSTIMR);
+	ns = read32(nic, I210_SYSTIML);
+	ns += read32(nic, I210_SYSTIMH) * NSEC_PER_SEC;
+
+	nic->ltime = ns + *ldist;
 
 	/* Program the interrupt time. */
 	ts = ns_to_timespec64(nic->ltime);
