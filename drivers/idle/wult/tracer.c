@@ -119,10 +119,15 @@ void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
 	wult_cstates_snap_tsc(&ti->csinfo, 2);
 
 	ti->intr_tsc1 = cyc;
-	ti->smi_intr = get_smi_count();
-	ti->nmi_intr = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 	ti->armed = false;
 	ti->intr_tsc2 = rdtsc_ordered();
+
+	/*
+	 * NMI/SMI counters are used for checking if an SMI/NMI happen during
+	 * the measurements. Therefore, they have to be read last.
+	 * */
+	ti->smi_intr = get_smi_count();
+	ti->nmi_intr = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 }
 
 static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_id)
