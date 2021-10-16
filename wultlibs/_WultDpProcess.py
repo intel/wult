@@ -280,8 +280,8 @@ class DatapointProcessor:
 
             if dp["IntrLatency"] >= dp["WakeLatency"] - overhead:
                 _LOG.debug("'IntrLatency' is greater than 'WakeLatency' - overhead, even though "
-                           "interrupts were enabled. The datapoint is:\n%sThe overhead is: %f\n"
-                           "Dropping this datapoint\n", overhead, Human.dict2str(rawdp))
+                           "interrupts were enabled. The datapoint is:\n%s\nThe overhead is: %f\n"
+                           "Dropping this datapoint\n", Human.dict2str(rawdp), overhead)
                 return None
 
             dp["WakeLatency"] -= overhead
