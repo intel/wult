@@ -439,6 +439,13 @@ class RORawResult(_RawResultBase.RawResultBase):
         self.defs.populate_cstates(self.colnames)
         self.colnames_set = set(self.colnames)
 
+        # By default set the columns selector only to the columns present in the defs file.
+        self._csel = []
+        defs_colnames = set(self.defs.info.keys())
+        for colname in self.colnames:
+            if colname in defs_colnames:
+                self._csel.append(colname)
+
     def save(self, dirpath, reportid=None):
         """
         Save the test result at path 'dirpath', optionally change the report ID with 'reportid'.
