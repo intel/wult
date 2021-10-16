@@ -143,6 +143,7 @@ struct network_adapter {
 	/* Launch time of the last armed delayed event in nanoseconds. */
 	u64 ltime;
 	struct wult_igb_cycles cyc;
+	bool irq_pending;
 };
 
 #endif

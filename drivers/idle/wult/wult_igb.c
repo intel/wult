@@ -70,6 +70,12 @@ static irqreturn_t interrupt_handler(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
+static bool irq_is_pending(struct network_adapter *nic)
+{
+	/* Reading ICS is the same as reading ICR, except it does not clear. */
+	return read32(nic, I210_ICS) & I210_Ixx_TIME_SYNC;
+}
+
 static u64 get_time_before_idle(struct wult_device_info *wdi)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
@@ -94,11 +100,8 @@ static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc_tai1)
 	struct network_adapter *nic = wdi_to_nic(wdi);
 	u64 ns;
 
-	/*
-	 * The first read from the NIC is sometimes exceptionally slow. Measure
-	 * this "warm up" read separately.
-	 */
-	pci_flush_posted(nic);
+	nic->irq_pending = irq_is_pending(nic);
+
 	nic->cyc.tai2 = rdtsc_ordered();
 	read32(nic, I210_SYSTIMR);
 	nic->cyc.tai3 = rdtsc_ordered();
@@ -116,6 +119,8 @@ static int arm_irq(struct wult_device_info *wdi, u64 *ldist)
 	unsigned long flags;
 	struct timespec64 ts;
 	u64 ns;
+
+	nic->irq_pending = false;
 
 	preempt_disable();
 	local_irq_save(flags);
@@ -146,8 +151,7 @@ static bool event_has_happened(struct wult_device_info *wdi)
 
 	struct network_adapter *nic = wdi_to_nic(wdi);
 
-	/* Reading ICS is the same as reading ICR, except it does not clear. */
-	return read32(nic, I210_ICS) & I210_Ixx_TIME_SYNC;
+	return nic->irq_pending;
 }
 
 static u64 get_launch_time(struct wult_device_info *wdi)
