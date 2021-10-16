@@ -31,42 +31,42 @@ class DatapointProcessor:
         """Returns 'True' if the 'dp' datapoint contains the POLL idle state data."""
         return dp["ReqCState"] == 0
 
-    def _process_cstates(self, rawdp, dp):
+    def _process_cstates(self, dp):
         """
-        Validate various raw datapoint 'rawdp' fields related to C-states. Populate the processed
+        Validate various datapoint 'dp' fields related to C-states. Populate the processed
         datapoint 'dp' with fields related to C-states.
         """
 
         # Turn the C-state index into the C-state name.
         try:
-            dp["ReqCState"] = self._csinfo[rawdp["ReqCState"]]["name"]
+            dp["ReqCState"] = self._csinfo[dp["ReqCState"]]["name"]
         except KeyError:
             # Supposedly an bad C-state index.
             indexes_str = ", ".join(f"{idx} ({val['name']})" for idx, val in  self._csinfo.items())
-            raise Error(f"bad C-state index '{rawdp['ReqCState']}' in the following datapoint:\n"
-                        f"{Human.dict2str(rawdp)}\nAllowed indexes are:\n{indexes_str}") from None
+            raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
+                        f"{Human.dict2str(dp)}\nAllowed indexes are:\n{indexes_str}") from None
 
-        if rawdp["TotCyc"] == 0:
+        if dp["TotCyc"] == 0:
             raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
-                        f"a bug. The raw datapoint is:\n{Human.dict2str(rawdp)}") from None
+                        f"a bug. The raw datapoint is:\n{Human.dict2str(dp)}") from None
 
         # The driver takes TSC and MPERF counters so that the MPERF interval is inside the
         # TSC interval, so delta TSC (total cycles) is expected to be always greater than
         # delta MPERF (C0 cycles).
-        if rawdp["TotCyc"] < rawdp["CC0Cyc"]:
+        if dp["TotCyc"] < dp["CC0Cyc"]:
             raise Error(f"total cycles is smaller than CC0 cycles, the raw datapoint is:\n"
-                        f"{Human.dict2str(rawdp)}")
+                        f"{Human.dict2str(dp)}")
 
         # Add the C-state percentages.
         for field in self._cs_fields:
             cyc_filed = Defs.get_cscyc_colname(Defs.get_csname(field))
 
             # In case of POLL state, calculate only CC0%.
-            if self._is_poll_idle(rawdp) and cyc_filed != "CC0Cyc":
+            if self._is_poll_idle(dp) and cyc_filed != "CC0Cyc":
                 dp[field] = 0
                 continue
 
-            dp[field] = rawdp[cyc_filed] / rawdp["TotCyc"] * 100.0
+            dp[field] = dp[cyc_filed] / dp["TotCyc"] * 100.0
 
             if dp[field] > 100:
                 loglevel = logging.DEBUG
@@ -77,20 +77,20 @@ class DatapointProcessor:
 
                 csname = Defs.get_csname(field)
                 _LOG.log(loglevel, "too high %s residency of %.1f%%, using 100%% instead. The "
-                                   "datapoint is:\n%s", csname, dp[field], Human.dict2str(rawdp))
+                                   "datapoint is:\n%s", csname, dp[field], Human.dict2str(dp))
                 dp[field] = 100.0
 
-        if self._has_cstates and not self._is_poll_idle(rawdp):
+        if self._has_cstates and not self._is_poll_idle(dp):
             # Populate 'CC1Derived%' - the software-calculated CC1 residency, which is useful to
             # have because not every Intel platform has a hardware CC1 counter. Calculated as total
             # cycles minus cycles in C-states other than CC1.
 
             non_cc1_cyc = 0
-            for field in rawdp.keys():
+            for field in dp.keys():
                 if Defs.is_cscyc_colname(field) and Defs.get_csname(field) != "CC1":
-                    non_cc1_cyc += rawdp[field]
+                    non_cc1_cyc += dp[field]
 
-            dp["CC1Derived%"] = (rawdp["TotCyc"] - non_cc1_cyc) / rawdp["TotCyc"] * 100.0
+            dp["CC1Derived%"] = (dp["TotCyc"] - non_cc1_cyc) / dp["TotCyc"] * 100.0
             if dp["CC1Derived%"] < 0:
                 # The C-state counters are not always precise, and we may end up with a negative
                 # number.
@@ -102,7 +102,7 @@ class DatapointProcessor:
         """Convert TSC cycles to nanoseconds."""
         return (cyc * 1000) / self.tsc_mhz
 
-    def _adjust_wult_igb_time(self, dp, rawdp):
+    def _adjust_wult_igb_time(self, dp):
         """
         The 'wult_igb' driver needs to access the NIC over PCIe, which may add a significant
         overhead and increased inaccuracy. In order to improve this, the driver provides TSC
@@ -112,66 +112,62 @@ class DatapointProcessor:
 
         keys = ("DrvBICyc1", "DrvBICyc2", "DrvBICyc3", "DrvAICyc1", "DrvAICyc2", "DrvAICyc3")
         for key in keys:
-            if key not in rawdp:
+            if key not in dp:
                 raise Error(f"the '{key}' field was not found, make sure you have up-to-date wult "
                             f"drivers installed{self._proc.hostmsg}\nThe raw datapoint is:\n"
-                            f"{Human.dict2str(rawdp)}")
+                            f"{Human.dict2str(dp)}")
 
         # In 'time_before_idle()', we first flush posted writes, then latch the NIC time by reading
         # a NIC register over PCIe. We have 2 TSC timestamps around the latch register read:
         # 'DrvBICyc1' and 'DrvBICyc2'. We assume that the read operation reaches the NIC roughly
         # ('DrvBICyc2' - 'DrvBICyc1') / 2 TSC cycles after it was initiated on the CPU.
-        adj = (rawdp["DrvBICyc2"] - rawdp["DrvBICyc1"]) / 2
+        adj = (dp["DrvBICyc2"] - dp["DrvBICyc1"]) / 2
 
         # After the time was latched, and 'DrvBICyc2' timestamp taken, we read the latched NIC time
         # from the NIC. And this read operation takes 'DrvBICyc3' - 'DrvBICyc2' cycles, which can be
         # considered as an added 'time_before_idle()' delay. Let's "compensate" for this delay.
-        adj += rawdp["DrvBICyc3"] - rawdp["DrvBICyc2"]
+        adj += dp["DrvBICyc3"] - dp["DrvBICyc2"]
 
         # Convert cycles to nanoseconds.
         adj = self._cyc_to_ns(adj)
 
-        # Keep in mind: 'rawdp["TBI"]' is time in nanoseconds from the NIC. But 'adj' was
+        # Keep in mind: 'dp["TBI"]' is time in nanoseconds from the NIC. But 'adj' was
         # measured using CPU's TSC. We adjust the NIC-based time using TSC-based time here. This is
         # not ideal.
-        rawdp["TBI"] += adj
-        if "TBI" in dp:
-            dp["TBI"] = rawdp["TBI"]
+        dp["TBI"] += adj
 
         # In 'time_after_idle()' we start with "warming up" the link between the CPU and the link
         # (e.g., flush posted writes, wake it up from an L-state). The warm up is just a read
         # operation. But we have TSC values taken around the warm up read: 'DrvAICyc1' and
         # 'DrvAICyc2'. The warm up time is 'WarmupDelay'.
-        dp["WarmupDelay"] = self._cyc_to_ns(rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"])
+        dp["WarmupDelay"] = self._cyc_to_ns(dp["DrvAICyc2"] - dp["DrvAICyc1"])
 
         # After this we latch the NIC time. This time is referred to as 'LatchDelay'.
-        dp["LatchDelay"] = self._cyc_to_ns(rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"])
+        dp["LatchDelay"] = self._cyc_to_ns(dp["DrvAICyc3"] - dp["DrvAICyc2"])
 
         # We need to "compensate" for the warm up delay and adjust for NIC time latch delay,
         # similarly to how we did it for 'TBI'.
-        adj = rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"]
-        adj += (rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"]) / 2
-        rawdp["TAI"] -= self._cyc_to_ns(adj)
-        if "TAI" in dp:
-            dp["TAI"] = rawdp["TAI"]
+        adj = dp["DrvAICyc2"] - dp["DrvAICyc1"]
+        adj += (dp["DrvAICyc3"] - dp["DrvAICyc2"]) / 2
+        dp["TAI"] -= self._cyc_to_ns(adj)
 
-    def _process_time(self, rawdp, dp):
+    def _process_time(self, dp):
         """
         Calculate, validate, and initialize fields related to time, for example 'WakeLatency' and
         'IntrLatency'.
         """
 
         if self._drvname == "wult_igb":
-            self._adjust_wult_igb_time(dp, rawdp)
+            self._adjust_wult_igb_time(dp)
 
-        dp["SilentTime"] = rawdp["LTime"] - rawdp["TBI"]
+        dp["SilentTime"] = dp["LTime"] - dp["TBI"]
         if self._intr_focus:
             # We do not measure 'WakeLatency' in this case, but it is handy to have it in the
             # dictionary as '0'. We'll remove it at the end of this function.
             dp["WakeLatency"] = 0
         else:
-            dp["WakeLatency"] = rawdp["TAI"] - rawdp["LTime"]
-        dp["IntrLatency"] = rawdp["TIntr"] - rawdp["LTime"]
+            dp["WakeLatency"] = dp["TAI"] - dp["LTime"]
+        dp["IntrLatency"] = dp["TIntr"] - dp["LTime"]
 
         if self._drvname == "wult_tdt":
             # In case of 'wult_tdt' driver the time is in TSC cycles, convert to nanoseconds.
@@ -183,7 +179,7 @@ class DatapointProcessor:
         # Some C-states are entered with interrupts enabled (e.g., POLL), and some C-states are
         # entered with interrupts disabled. This is indicated by the 'IntrOff' flag ('IntrOff ==
         # True' are the datapoints for C-states entered with interrupts disabled).
-        if rawdp["IntrOff"]:
+        if dp["IntrOff"]:
             # 1. When the CPU exits the C-state, it runs 'after_idle()' before the interrupt
             #    handler.
             #    1.1. If 'self._intr_focus == False', 'WakeLatency' is measured in 'after_idle()'.
@@ -196,19 +192,19 @@ class DatapointProcessor:
             if dp["WakeLatency"] >= dp["IntrLatency"]:
                 _LOG.warning("'WakeLatency' is greater than 'IntrLatency', even though interrupts "
                              "were disabled. The datapoint is:\n%s\nDropping this datapoint\n",
-                             Human.dict2str(rawdp))
+                             Human.dict2str(dp))
                 return None
 
             if self._early_intr:
                 _LOG.warning("hit a datapoint with interrupts disabled even though the early "
                              "interrupts feature was enabled. The datapoint is:\n%s\n"
-                             "Dropping this datapoint\n", Human.dict2str(rawdp))
+                             "Dropping this datapoint\n", Human.dict2str(dp))
                 return None
 
             if self._intr_focus:
                 overhead = 0
             else:
-                overhead = rawdp["AICyc2"] - rawdp["AICyc1"]
+                overhead = dp["AICyc2"] - dp["AICyc1"]
             overhead = self._cyc_to_ns(overhead)
 
             if overhead >= dp["IntrLatency"]:
@@ -219,19 +215,19 @@ class DatapointProcessor:
                 # sources.
                 _LOG.debug("The overhead is greater than interrupt latency ('IntrLatency'). The "
                            "datapoint is:\n%s\nThe overhead is: %f\nDropping this datapoint\n",
-                           Human.dict2str(rawdp), overhead)
+                           Human.dict2str(dp), overhead)
                 return None
 
             if dp["WakeLatency"] >= dp["IntrLatency"] - overhead:
                 # This condition may happen for similar reasons.
                 _LOG.debug("'WakeLatency' is greater than 'IntrLatency' - overhead, even though "
                            "interrupts were disabled. The datapoint is:\n%s\nThe overhead is: %f\n"
-                           "Dropping this datapoint\n", Human.dict2str(rawdp), overhead)
+                           "Dropping this datapoint\n", Human.dict2str(dp), overhead)
                 return None
 
             dp["IntrLatency"] -= overhead
 
-        if not rawdp["IntrOff"] and not self._intr_focus:
+        if not dp["IntrOff"] and not self._intr_focus:
             # 1. When the CPU exits the C-state, it runs the interrupt handler before
             #    'after_idle()'.
             # 2. The interrupt latency is measured in the interrupt handler. This introduces
@@ -250,31 +246,31 @@ class DatapointProcessor:
 
             if self._drvname == "wult_tdt":
                 _LOG.debug("dropping datapoint with interrupts enabled - the 'tdt' driver does not "
-                           "handle them correctly. The datapoint is:\n%s", Human.dict2str(rawdp))
+                           "handle them correctly. The datapoint is:\n%s", Human.dict2str(dp))
                 return None
 
             if dp["IntrLatency"] >= dp["WakeLatency"]:
                 _LOG.warning("'IntrLatency' is greater than 'WakeLatency', even though interrupts "
                              "were enabled. The datapoint is:\n%s\nDropping this datapoint\n",
-                             Human.dict2str(rawdp))
+                             Human.dict2str(dp))
                 return None
 
             if self._intr_focus:
                 overhead = 0
             else:
-                overhead = rawdp["IntrCyc2"] - rawdp["IntrCyc1"]
+                overhead = dp["IntrCyc2"] - dp["IntrCyc1"]
             overhead = self._cyc_to_ns(overhead)
 
             if overhead >= dp["WakeLatency"]:
                 _LOG.debug("Overhead is greater than wake latency ('WakeLatency'). The "
                            "datapoint is:\n%s\nThe overhead is: %f\nDropping this datapoint\n",
-                           overhead, Human.dict2str(rawdp))
+                           overhead, Human.dict2str(dp))
                 return None
 
             if dp["IntrLatency"] >= dp["WakeLatency"] - overhead:
                 _LOG.debug("'IntrLatency' is greater than 'WakeLatency' - overhead, even though "
                            "interrupts were enabled. The datapoint is:\n%s\nThe overhead is: %f\n"
-                           "Dropping this datapoint\n", Human.dict2str(rawdp), overhead)
+                           "Dropping this datapoint\n", Human.dict2str(dp), overhead)
                 return None
 
             dp["WakeLatency"] -= overhead
@@ -284,26 +280,27 @@ class DatapointProcessor:
 
         return dp
 
-    def _init_dp(self, rawdp):
-        """Create and initialize a processed datapoint from raw datapoint 'rawdp'."""
+    def _finalize_dp(self, dp):
+        """Remove extra fields from the processed data point."""
 
-        dp = {}
-        for field in self._fields:
-            dp[field] = rawdp.get(field, None)
+        for field in list(dp):
+            if field not in self._fields:
+                del dp[field]
 
         return dp
 
     def _process_datapoint(self, rawdp):
         """Process a raw datapoint 'rawdp'. Returns the processed datapoint."""
 
-        dp = self._init_dp(rawdp)
+        # Avoid extra copying for effeciency.
+        dp = rawdp
 
         # Calculate latency and other metrics providing time intervals.
-        if not self._process_time(rawdp, dp):
+        if not self._process_time(dp):
             return None
 
         # Add and validated C-state related fields.
-        self._process_cstates(rawdp, dp)
+        self._process_cstates(dp)
 
         # Some raw datapoint values are in nanoseconds, but we need them to be in microseconds.
         # Save time in microseconds.
@@ -321,7 +318,7 @@ class DatapointProcessor:
         else:
             self._first_dp_processed = True
 
-        return dp
+        return self._finalize_dp(dp)
 
     def _calculate_tsc_rate(self, rawdp):
         """
