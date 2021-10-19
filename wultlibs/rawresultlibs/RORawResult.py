@@ -182,8 +182,8 @@ class RORawResult(_RawResultBase.RawResultBase):
             restype = None
             coldef = self.defs.info[colname]
 
-            # We do not the description, calling this method just to let it validate the function
-            # name.
+            # We do not need the description, calling this method just to let it validate the
+            # function name.
             get_smry_func_descr(funcname)
 
             fname = funcname
