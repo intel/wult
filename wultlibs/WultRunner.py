@@ -122,7 +122,7 @@ class WultRunner:
             if not self._dpp.tsc_mhz:
                 # TSC rate has not been calculated yet.
                 continue
-            elif not tsc_rate_printed:
+            if not tsc_rate_printed:
                 _LOG.info("TSC rate is %.6f MHz", self._dpp.tsc_mhz)
                 tsc_rate_printed = True
 
