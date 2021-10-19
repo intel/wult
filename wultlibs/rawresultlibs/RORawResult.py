@@ -189,7 +189,7 @@ class RORawResult(_RawResultBase.RawResultBase):
             fname = funcname
             if fname.endswith("%"):
                 fname = "N%"
-            if coldef["default_funcs"] != "all" and not all_funcs:
+            if "default_funcs" in coldef and coldef["default_funcs"] != "all" and not all_funcs:
                 # Skip functions that are not in the "default functions" list for this column.
                 if funcname not in coldef["default_funcs"]:
                     # Take into account that defs may contain 'N%' that matches all percentiles.
