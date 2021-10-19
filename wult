@@ -413,12 +413,12 @@ def get_offline_cpus(args, cpuinfo):
 
     if args.offline == "same-core":
         core = cpuinfo.cpu_to_core(args.cpunum)
-        offline_cpus = cpuinfo.get_cpus(lvl="core", nums=(core,))
+        offline_cpus = cpuinfo.cores_to_cpus(cores=(core,))
     elif args.offline == "same-package":
         package = cpuinfo.cpu_to_package(args.cpunum)
-        offline_cpus = cpuinfo.get_cpus(lvl="pkg", nums=(package,))
+        offline_cpus = cpuinfo.pkgs_to_cpus(pkgs=(package,))
     else:
-        offline_cpus = cpuinfo.get_cpus(lvl="cpu", nums="all")
+        offline_cpus = cpuinfo.get_cpus()
 
     with contextlib.suppress(AttributeError):
         # Exclude the CPU that we measure from the offline list.
