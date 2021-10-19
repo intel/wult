@@ -1,7 +1,10 @@
-format_version: '1.0'
-reportid: testdata
-toolname: wult
-toolver: 1.8.0
 cpunum: 0
+devdescr: TSC deadline timer
 devid: tdt
-devdescr: TSC deadline timer on CPU0
+early_intr: false
+format_version: '1.2'
+intr_focus: false
+reportid: testdata
+resolution: 1
+toolname: wult
+toolver: 1.9.8
