@@ -49,13 +49,20 @@ HOVER_COLNAME_REGEXS = [".*Latency", "IntrOff", ".*Delay", "LDist", "ReqCState",
 LOG = logging.getLogger()
 Logging.setup_logger(OWN_NAME)
 
-def get_axes_default(name):
-    """Returns the default CSV column names for X- or Y-axes, as well as histograms."""
+def get_axes(optname, report_size=None):
+    """
+    Returns the CSV column name regex for a given plot option name and report size setting.
+      * optname - plot option name ('xaxes', 'yaxes', 'hist' or 'chist')
+      * report_size - report size setting ('small', 'medium' or 'large'), defaults to 'small'.
+    """
 
-    names = getattr(WultHTMLReport, f"DEFAULT_{name.upper()}")
+    if not report_size:
+        report_size = "small"
+
+    optnames = getattr(WultHTMLReport, f"{report_size.upper()}_{optname.upper()}")
     # The result is used for argparse, which does not accept '%' symbols.
-    if names:
-        return names.replace("%", "%%")
+    if optnames:
+        return optnames.replace("%", "%%")
     return None
 
 def build_arguments_parser():
@@ -277,10 +284,10 @@ def build_arguments_parser():
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
                          help=ToolsCommon.EVEN_UP_DP_DESCR)
-    subpars.add_argument("-x", "--xaxes", help=ToolsCommon.XAXES_DESCR % get_axes_default('xaxes'))
-    subpars.add_argument("-y", "--yaxes", help=ToolsCommon.YAXES_DESCR % get_axes_default('yaxes'))
-    subpars.add_argument("--hist", help=ToolsCommon.HIST_DESCR % get_axes_default('hist'))
-    subpars.add_argument("--chist", help=ToolsCommon.CHIST_DESCR % get_axes_default('chist'))
+    subpars.add_argument("-x", "--xaxes", help=ToolsCommon.XAXES_DESCR % get_axes('xaxes'))
+    subpars.add_argument("-y", "--yaxes", help=ToolsCommon.YAXES_DESCR % get_axes('yaxes'))
+    subpars.add_argument("--hist", help=ToolsCommon.HIST_DESCR % get_axes('hist'))
+    subpars.add_argument("--chist", help=ToolsCommon.CHIST_DESCR % get_axes('chist'))
     subpars.add_argument("--reportids", help=ToolsCommon.REPORTIDS_DESCR)
     subpars.add_argument("--title-descr", help=ToolsCommon.TITLE_DESCR)
     subpars.add_argument("--relocatable", help=ToolsCommon.RELOCATABLE_DESCR)
