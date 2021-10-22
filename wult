@@ -293,6 +293,19 @@ def build_arguments_parser():
     subpars.add_argument("--relocatable", help=ToolsCommon.RELOCATABLE_DESCR)
     subpars.add_argument("--list-columns", action="store_true", help=ToolsCommon.LIST_COLUMNS_DESCR)
 
+    text = f"""Generate HTML report with a pre-defined set of diagrams and histograms. This option
+               is mutually exclusive with '--xaxes', '--yaxes', '--hist', '--chist', therefore
+               cannot be used in combination with any of these options. This option can be set to
+               'small', 'medium' or 'large'. Here are the regular expressions for each setting:
+               small: {{XAXES='{WultHTMLReport.SMALL_XAXES}', YAXES='{WultHTMLReport.SMALL_YAXES}',
+               HIST='{WultHTMLReport.SMALL_HIST}', CHIST='{WultHTMLReport.SMALL_CHIST}'}} medium:
+               {{XAXES='{WultHTMLReport.MEDIUM_XAXES}', YAXES='{WultHTMLReport.MEDIUM_YAXES}',
+               HIST='{WultHTMLReport.MEDIUM_HIST}', CHIST='{WultHTMLReport.MEDIUM_CHIST}'}} large:
+               {{XAXES='{WultHTMLReport.LARGE_XAXES}', YAXES='{WultHTMLReport.LARGE_YAXES}',
+               HIST='{WultHTMLReport.LARGE_HIST}', CHIST='{WultHTMLReport.LARGE_CHIST}'}}
+            """.replace("%", "%%")
+    subpars.add_argument("--size", dest="report_size", type=str, help=text)
+
     text = f"""One or multiple {OWN_NAME} test result paths."""
     subpars.add_argument("respaths", nargs="+", type=Path, help=text)
 
@@ -539,6 +552,14 @@ def report_command(args):
         raise Error(f"bad '--relocatable' value '{args.relocatable}', use one of: "
                     f"copy, noraw, symlink")
 
+    if args.report_size:
+        if any({getattr(args, name) for name in ("xaxes", "yaxes", "hist", "chist")}):
+            raise Error("'--size' and ('--xaxes', '--yaxes', '--hist', '--chist') options are "
+                        "mutually exclusive, use either '--size' or the other options, not both")
+        if args.report_size.lower() not in ("small", "medium", "large"):
+            raise Error(f"bad '--size' value '{args.report_size}', use one of: small, medium, "
+                         "large")
+
     # Split the comma-separated lists.
     for name in ("xaxes", "yaxes", "hist", "chist"):
         val = getattr(args, name)
@@ -547,6 +568,12 @@ def report_command(args):
                 setattr(args, name, "")
             else:
                 setattr(args, name, Trivial.split_csv_line(val))
+        elif args.report_size:
+            size_default = get_axes(name, args.report_size)
+            if size_default:
+                setattr(args, name, Trivial.split_csv_line(size_default))
+            else:
+                setattr(args, name, None)
 
     rsts = ToolsCommon.open_raw_results(args.respaths, args.toolname, reportids=args.reportids,
                                         reportid_additional_chars=REPORTID_ADDITIONAL_CHARS)
