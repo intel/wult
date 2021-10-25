@@ -583,7 +583,7 @@ def report_command(args):
         return
 
     for res in rsts:
-        ToolsCommon.apply_filters(args, res)
+        ToolsCommon.set_filters(args, res)
 
     if args.even_dpcnt:
         ToolsCommon.even_up_dpcnt(rsts)
