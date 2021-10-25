@@ -134,6 +134,7 @@ class DatapointProcessor:
         # Keep in mind: 'dp["TBI"]' is time in nanoseconds from the NIC. But 'adj' was
         # measured using CPU's TSC. We adjust the NIC-based time using TSC-based time here. This is
         # not ideal.
+        dp["TBIRaw"] = dp["TBI"]
         dp["TBI"] += adj
 
         # In 'time_after_idle()' we start with "warming up" the link between the CPU and the link
@@ -149,6 +150,7 @@ class DatapointProcessor:
         # similarly to how we did it for 'TBI'.
         adj = dp["DrvAICyc2"] - dp["DrvAICyc1"]
         adj += (dp["DrvAICyc3"] - dp["DrvAICyc2"]) / 2
+        dp["TAIRaw"] = dp["TAI"]
         dp["TAI"] -= self._cyc_to_ns(adj)
 
     def _process_time(self, dp):
@@ -225,6 +227,7 @@ class DatapointProcessor:
                            "Dropping this datapoint\n", Human.dict2str(dp), overhead)
                 return None
 
+            dp["IntrLatencyRaw"] = dp["IntrLatency"]
             dp["IntrLatency"] -= overhead
 
         if not dp["IntrOff"] and not self._intr_focus:
@@ -273,6 +276,7 @@ class DatapointProcessor:
                            "Dropping this datapoint\n", Human.dict2str(dp), overhead)
                 return None
 
+            dp["WakeLatencyRaw"] = dp["WakeLatency"]
             dp["WakeLatency"] -= overhead
 
         if self._intr_focus:
@@ -284,7 +288,7 @@ class DatapointProcessor:
         """Remove extra fields from the processed data point."""
 
         for field in list(dp):
-            if field not in self._fields:
+            if not field.endswith("Raw") and field not in self._fields:
                 del dp[field]
 
         return dp
@@ -307,16 +311,6 @@ class DatapointProcessor:
         for field in dp:
             if field in self._us_fields_set:
                 dp[field] /= 1000.0
-
-        if not self._first_dp_processed:
-            # This is the very first datapoint. There may be some fields in 'self._fields' which do
-            # we do not actually have (e.g., some driver-specific fields). Remove them from
-            # 'self._fields'.
-            for field, val in dp.items():
-                if val is None:
-                    del self._fields[field]
-        else:
-            self._first_dp_processed = True
 
         return self._finalize_dp(dp)
 
@@ -466,8 +460,6 @@ class DatapointProcessor:
 
         # Processed datapoint field names.
         self._fields = None
-        # Whether at least one datapoint has been processed.
-        self._first_dp_processed = False
         # TSC rate in MHz (cycles / microsecond).
         self.tsc_mhz = None
 
