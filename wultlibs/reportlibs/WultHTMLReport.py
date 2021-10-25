@@ -42,7 +42,7 @@ DEFAULT_CHIST = SMALL_CHIST
 # is enough to include "Whatever vs SilentTime", and "Whatever vs LDist" will just cluttering the
 # report. But "SilentTime vs LDist" is almost always useful and it shows how the two are correlated.
 EXCLUDE_XAXES = "LDist"
-EXCLUDE_YAXES = r"(?!SilentTime)"
+EXCLUDE_YAXES = "SilentTime"
 
 class WultHTMLReport(_HTMLReportBase.HTMLReportBase):
     """This module provides API for generating HTML reports for wult test results."""

@@ -389,7 +389,7 @@ class RORawResult(_RawResultBase.RawResultBase):
             matched = False
             for colname in self.colnames:
                 try:
-                    if re.match(regex, colname):
+                    if re.fullmatch(regex, colname):
                         found[colname] = regex
                         matched = True
                 except re.error as err:
