@@ -102,10 +102,6 @@ class DatapointProcessor:
         """Convert TSC cycles to nanoseconds."""
         return (cyc * 1000) / self.tsc_mhz
 
-    def _cyc_to_us(self, cyc):
-        """Convert TSC cycles to microseconds."""
-        return cyc / self.tsc_mhz
-
     def _adjust_wult_igb_time(self, dp, rawdp):
         """
         The 'wult_igb' driver needs to access the NIC over PCIe, which may add a significant
@@ -146,10 +142,10 @@ class DatapointProcessor:
         # (e.g., flush posted writes, wake it up from an L-state). The warm up is just a read
         # operation. But we have TSC values taken around the warm up read: 'DrvAICyc1' and
         # 'DrvAICyc2'. The warm up time is 'WarmupDelay'.
-        dp["WarmupDelay"] = self._cyc_to_us(rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"])
+        dp["WarmupDelay"] = self._cyc_to_ns(rawdp["DrvAICyc2"] - rawdp["DrvAICyc1"])
 
         # After this we latch the NIC time. This time is referred to as 'LatchDelay'.
-        dp["LatchDelay"] = self._cyc_to_us(rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"])
+        dp["LatchDelay"] = self._cyc_to_ns(rawdp["DrvAICyc3"] - rawdp["DrvAICyc2"])
 
         # We need to "compensate" for the warm up delay and adjust for NIC time latch delay,
         # similarly to how we did it for 'TBI'.
@@ -177,13 +173,10 @@ class DatapointProcessor:
             dp["WakeLatency"] = rawdp["TAI"] - rawdp["LTime"]
         dp["IntrLatency"] = rawdp["TIntr"] - rawdp["LTime"]
 
-        for key in ("SilentTime", "WakeLatency", "IntrLatency"):
-            if self._drvname == "wult_tdt":
-                # The time is in TSC cycles.
-                dp[key] = self._cyc_to_us(dp[key])
-            else:
-                # The time is in nanoseconds.
-                dp[key] /= 1000.0
+        if self._drvname == "wult_tdt":
+            # In case of 'wult_tdt' driver the time is in TSC cycles, convert to nanoseconds.
+            for key in ("SilentTime", "WakeLatency", "IntrLatency"):
+                dp[key] = self._cyc_to_ns(dp[key])
 
         # Try to compensate for the overhead introduced by wult drivers.
         #
@@ -216,7 +209,7 @@ class DatapointProcessor:
                 overhead = 0
             else:
                 overhead = rawdp["AICyc2"] - rawdp["AICyc1"]
-            overhead = self._cyc_to_us(overhead)
+            overhead = self._cyc_to_ns(overhead)
 
             if overhead >= dp["IntrLatency"]:
                 # This sometimes happens, most probably because the overhead is measured by reading
@@ -270,7 +263,7 @@ class DatapointProcessor:
                 overhead = 0
             else:
                 overhead = rawdp["IntrCyc2"] - rawdp["IntrCyc1"]
-            overhead = self._cyc_to_us(overhead)
+            overhead = self._cyc_to_ns(overhead)
 
             if overhead >= dp["WakeLatency"]:
                 _LOG.debug("Overhead is greater than wake latency ('WakeLatency'). The "
@@ -315,8 +308,8 @@ class DatapointProcessor:
         # Some raw datapoint values are in nanoseconds, but we need them to be in microseconds.
         # Save time in microseconds.
         for field in dp:
-            if field in rawdp and field in self._us_fields_set:
-                dp[field] = rawdp[field] / 1000.0
+            if field in self._us_fields_set:
+                dp[field] /= 1000.0
 
         if not self._first_dp_processed:
             # This is the very first datapoint. There may be some fields in 'self._fields' which do
