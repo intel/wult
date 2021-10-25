@@ -89,7 +89,7 @@ class RORawResult(_RawResultBase.RawResultBase):
 
     def get_numeric_colnames(self, colnames=None):
         """
-        Returns the list of non-numeric colnames in the 'colnames' list (all colnames by default).
+        Returns the list of numeric colnames in the 'colnames' list (all colnames by default).
         """
 
         if not colnames:
@@ -355,9 +355,6 @@ class RORawResult(_RawResultBase.RawResultBase):
             if self.df.empty:
                 raise Error(f"no data left after applying column selector(s) to CSV file "
                             f"'{self.dp_path}'")
-
-        if not load_csv:
-            return
 
     def load_df(self, **kwargs):
         """
