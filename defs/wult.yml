@@ -19,6 +19,15 @@ WakeLatency:
     short_unit: "us"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
     drop_empty: True
+WakeLatencyRaw:
+    title: "Raw (not adjusted) C-state wake latency"
+    descr: >-
+        Same as 'WakeLatency', but without the measurement overhead adjustments.
+    type: "float"
+    unit: "microsecond"
+    short_unit: "us"
+    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
+    drop_empty: True
 SilentTime:
     title: "Silent Time"
     descr: >-
@@ -33,6 +42,14 @@ IntrLatency:
     descr: >-
         The time between the moment the delayed event was generated (launch time) till the moment
         the interrupt handler of the delayed event was executed.
+    type: "float"
+    unit: "microsecond"
+    short_unit: "us"
+    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
+IntrLatencyRaw:
+    title: "Raw (not adjusted) interrupt latency"
+    descr: >-
+        Same as 'IntrLatency', but without the measurement overhead adjustments.
     type: "float"
     unit: "microsecond"
     short_unit: "us"

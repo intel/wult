@@ -27,7 +27,7 @@ MEDIUM_HIST = f"{MEDIUM_YAXES}"
 MEDIUM_CHIST = r".*Latency"
 
 LARGE_XAXES = "SilentTime,LDist"
-LARGE_YAXES = r".*Latency,.*Delay,[PC]C.+%,SilentTime,ReqCState"
+LARGE_YAXES = r".*Latency.*,.*Delay.*,[PC]C.+%,SilentTime,ReqCState"
 LARGE_HIST = f"{LARGE_YAXES},LDist"
 LARGE_CHIST = r".*Latency"
 
