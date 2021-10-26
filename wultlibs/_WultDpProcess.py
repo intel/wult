@@ -102,12 +102,15 @@ class DatapointProcessor:
         """Convert TSC cycles to nanoseconds."""
         return (cyc * 1000) / self.tsc_mhz
 
-    def _adjust_wult_igb_time(self, dp):
+    def _get_wult_igb_adjustments(self, dp, adj):
         """
-        The 'wult_igb' driver needs to access the NIC over PCIe, which may add a significant
-        overhead and increased inaccuracy. In order to improve this, the driver provides TSC
-        snapshots taken at various points in 'get_time_before_idle()' ('DrvBICyc1', 'DrvBICyc2',
-        'DrvBICyc3') and in 'get_time_after_idle()' ('DrvAICyc2', 'DrvAICyc3').
+        The 'wult_igb' driver needs to access the NIC over PCIe, which has an overhead and may
+        increase inaccuracy. In order to improve this, the driver provides TSC snapshots taken at
+        various points in 'get_time_before_idle()' ('DrvBICyc1', 'DrvBICyc2', 'DrvBICyc3') and in
+        'get_time_after_idle()' ('DrvAICyc2', 'DrvAICyc3').
+
+        This method calculates 'TDI' and 'TBI' adjustments based on those snapshots, and saves them
+        in the 'adj' dictionary.
         """
 
         keys = ("DrvBICyc1", "DrvBICyc2", "DrvBICyc3", "DrvAICyc1", "DrvAICyc2", "DrvAICyc3")
@@ -121,21 +124,20 @@ class DatapointProcessor:
         # a NIC register over PCIe. We have 2 TSC timestamps around the latch register read:
         # 'DrvBICyc1' and 'DrvBICyc2'. We assume that the read operation reaches the NIC roughly
         # ('DrvBICyc2' - 'DrvBICyc1') / 2 TSC cycles after it was initiated on the CPU.
-        adj = (dp["DrvBICyc2"] - dp["DrvBICyc1"]) / 2
+        adj["TBI"] = (dp["DrvBICyc2"] - dp["DrvBICyc1"]) / 2
 
         # After the time was latched, and 'DrvBICyc2' timestamp taken, we read the latched NIC time
         # from the NIC. And this read operation takes 'DrvBICyc3' - 'DrvBICyc2' cycles, which can be
         # considered as an added 'time_before_idle()' delay. Let's "compensate" for this delay.
-        adj += dp["DrvBICyc3"] - dp["DrvBICyc2"]
+        adj["TBI"] += dp["DrvBICyc3"] - dp["DrvBICyc2"]
 
-        # Convert cycles to nanoseconds.
-        adj = self._cyc_to_ns(adj)
-
-        # Keep in mind: 'dp["TBI"]' is time in nanoseconds from the NIC. But 'adj' was
-        # measured using CPU's TSC. We adjust the NIC-based time using TSC-based time here. This is
-        # not ideal.
-        dp["TBIRaw"] = dp["TBI"]
-        dp["TBI"] += adj
+        # Convert cycles to nanoseconds. Keep in mind: 'dp["TBI"]' is time in nanoseconds from the
+        # NIC. But 'adj' was measured using CPU's TSC. We adjust the NIC-based time using TSC-based
+        # time here. This is not ideal.
+        #
+        # The adjusted 'TBI' is the time from the NIC plus additional amount of time
+        # spent in 'get_time_before_idle()' after the NIC time had been read.
+        adj["TBI"] = self._cyc_to_ns(adj["TBI"])
 
         # In 'time_after_idle()' we start with "warming up" the link between the CPU and the link
         # (e.g., flush posted writes, wake it up from an L-state). The warm up is just a read
@@ -146,12 +148,14 @@ class DatapointProcessor:
         # After this we latch the NIC time. This time is referred to as 'LatchDelay'.
         dp["LatchDelay"] = self._cyc_to_ns(dp["DrvAICyc3"] - dp["DrvAICyc2"])
 
-        # We need to "compensate" for the warm up delay and adjust for NIC time latch delay,
-        # similarly to how we did it for 'TBI'.
-        adj = dp["DrvAICyc2"] - dp["DrvAICyc1"]
-        adj += (dp["DrvAICyc3"] - dp["DrvAICyc2"]) / 2
-        dp["TAIRaw"] = dp["TAI"]
-        dp["TAI"] -= self._cyc_to_ns(adj)
+        # Calculate the adjustments based on the warm up and latch delays, similarly to how it was
+        # don for 'TBI'.
+        adj["TAI"] = dp["DrvAICyc2"] - dp["DrvAICyc1"]
+        adj["TAI"] += (dp["DrvAICyc3"] - dp["DrvAICyc2"]) / 2
+
+        # Adjusted 'TAI' is the time from the NIC minus the amount of time spent in
+        # 'get_time_after_idle()' before the NIC time was read.
+        adj["TAI"] = -self._cyc_to_ns(adj["TAI"])
 
     def _process_time(self, dp):
         """
@@ -159,17 +163,26 @@ class DatapointProcessor:
         'IntrLatency'.
         """
 
+        adj = {"TBI" : 0, "TAI" : 0}
         if self._drvname == "wult_igb":
-            self._adjust_wult_igb_time(dp)
+            self._get_wult_igb_adjustments(dp, adj)
 
-        dp["SilentTime"] = dp["LTime"] - dp["TBI"]
+        if adj["TBI"]:
+            dp["SilentTimeRaw"] = dp["LTime"] - dp["TBI"]
+        dp["SilentTime"] = dp["LTime"] - (dp["TBI"] + adj["TBI"])
+
         if self._intr_focus:
             # We do not measure 'WakeLatency' in this case, but it is handy to have it in the
             # dictionary as '0'. We'll remove it at the end of this function.
             dp["WakeLatency"] = 0
         else:
-            dp["WakeLatency"] = dp["TAI"] - dp["LTime"]
-        dp["IntrLatency"] = dp["TIntr"] - dp["LTime"]
+            if adj["TAI"]:
+                dp["WakeLatencyRaw"] = dp["TAI"] - dp["LTime"]
+            dp["WakeLatency"] = (dp["TAI"] + adj["TAI"]) - dp["LTime"]
+
+        if adj["TAI"]:
+            dp["IntrLatencyRaw"] = dp["TIntr"] - dp["LTime"]
+        dp["IntrLatency"] = (dp["TIntr"] + adj["TAI"]) - dp["LTime"]
 
         if self._drvname == "wult_tdt":
             # In case of 'wult_tdt' driver the time is in TSC cycles, convert to nanoseconds.
@@ -227,7 +240,8 @@ class DatapointProcessor:
                            "Dropping this datapoint\n", Human.dict2str(dp), overhead)
                 return None
 
-            dp["IntrLatencyRaw"] = dp["IntrLatency"]
+            if "IntrLatencyRaw" not in dp:
+                dp["IntrLatencyRaw"] = dp["IntrLatency"]
             dp["IntrLatency"] -= overhead
 
         if not dp["IntrOff"] and not self._intr_focus:
@@ -276,10 +290,13 @@ class DatapointProcessor:
                            "Dropping this datapoint\n", Human.dict2str(dp), overhead)
                 return None
 
-            dp["WakeLatencyRaw"] = dp["WakeLatency"]
+            if "WakeLatencyRaw" not in dp:
+                dp["WakeLatencyRaw"] = dp["WakeLatency"]
             dp["WakeLatency"] -= overhead
 
         if self._intr_focus:
+            if "WakeLatencyRaw" in dp:
+                del dp["WakeLatencyRaw"]
             del dp["WakeLatency"]
 
         return dp
