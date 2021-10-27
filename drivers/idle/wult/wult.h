@@ -151,11 +151,17 @@ struct wult_info {
 	atomic_t events_happened;
 	/* ID of the CPU that handled the last delayed event. */
 	unsigned int event_cpu;
+	/*
+	 * Used for passing an error code from delayed event driver's interrupt
+	 * handler.
+	 */
+	int irq_err;
 };
 
 int wult_register(struct wult_device_info *wdi);
 void wult_unregister(void);
-void wult_interrupt(u64 cyc);
+void wult_interrupt_start(void);
+void wult_interrupt_finish(int err);
 
 /* Only for wult framework use, not for delayed event drivers. */
 int wult_enable(void);

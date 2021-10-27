@@ -69,13 +69,13 @@ static int irq_ack_and_check(const struct network_adapter *nic)
 
 static irqreturn_t interrupt_handler(int irq, void *data)
 {
+	int err;
 	struct network_adapter *nic = data;
-	u64 cyc;
 
-	cyc = rdtsc_ordered();
+	wult_interrupt_start();
 
-	if (!irq_ack_and_check(nic))
-		wult_interrupt(cyc);
+	err = irq_ack_and_check(nic);
+	wult_interrupt_finish(err);
 
 	return IRQ_HANDLED;
 }

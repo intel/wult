@@ -76,16 +76,27 @@ void wult_disable(void)
 
 /*
  * The delayed event device driver should call this function from its event
- * (interrupt) handler.
+ * (interrupt) handler as soon as possible.
  */
-void wult_interrupt(u64 cyc)
+void wult_interrupt_start(void)
 {
-	wult_tracer_interrupt(wi, cyc);
+	wult_tracer_interrupt(wi);
+}
+EXPORT_SYMBOL_GPL(wult_interrupt_start);
+
+/*
+ * This function should be called from the delayed event interrupt handler
+ * after 'wult_interrupt_start()'. If there were any errors, the error code
+ * should be passed via the 'err' argument.
+ */
+void wult_interrupt_finish(int err)
+{
+	WRITE_ONCE(wi->irq_err, err);
 	WRITE_ONCE(wi->event_cpu, smp_processor_id());
 	atomic_inc(&wi->events_happened);
 	wake_up(&wi->armer_wq);
 }
-EXPORT_SYMBOL_GPL(wult_interrupt);
+EXPORT_SYMBOL_GPL(wult_interrupt_finish);
 
 /* Pick random launch distance. */
 static u64 pick_ldist(void)
@@ -150,7 +161,7 @@ static int check_armer_cpunum(void)
 /* Sanity checks after the delayed event has happened. */
 static int check_event(void)
 {
-	unsigned int events_happened, events_armed, event_cpu;
+	unsigned int events_happened, events_armed, event_cpu, irq_err;
 
 	/* Check that the interrupt happend on the right CPU. */
 	event_cpu = READ_ONCE(wi->event_cpu);
@@ -165,6 +176,12 @@ static int check_event(void)
 	if (events_armed != events_happened) {
 		wult_err("events count mismatch: armed %u, got %u",
 			 events_armed, events_happened);
+		return -EINVAL;
+	}
+
+	irq_err = READ_ONCE(wi->irq_err);
+	if (irq_err) {
+		wult_err("error %d happened in the IRQ handler", irq_err);
 		return -EINVAL;
 	}
 

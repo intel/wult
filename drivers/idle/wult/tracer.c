@@ -108,17 +108,17 @@ static void after_idle(struct wult_info *wi)
 }
 
 /* Get measurements in the interrupt handler after idle. */
-void wult_tracer_interrupt(struct wult_info *wi, u64 cyc)
+void wult_tracer_interrupt(struct wult_info *wi)
 {
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_device_info *wdi = wi->wdi;
 
-	ti->tintr = wdi->ops->get_time_after_idle(wdi, cyc);
+	ti->intr_tsc1 = rdtsc_ordered();
+	ti->tintr = wdi->ops->get_time_after_idle(wdi, ti->intr_tsc1);
 
 	wult_cstates_snap_mperf(&ti->csinfo, 2);
 	wult_cstates_snap_tsc(&ti->csinfo, 2);
 
-	ti->intr_tsc1 = cyc;
 	ti->armed = false;
 	ti->intr_tsc2 = rdtsc_ordered();
 

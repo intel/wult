@@ -62,5 +62,5 @@ void wult_tracer_disable(struct wult_info *wi);
 int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist);
 int wult_tracer_send_data(struct wult_info *wi);
 
-void wult_tracer_interrupt(struct wult_info *wi, u64 cyc);
+void wult_tracer_interrupt(struct wult_info *wi);
 #endif

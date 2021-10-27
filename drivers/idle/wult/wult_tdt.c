@@ -41,7 +41,8 @@ static struct wult_tdt wult_tdt = {
 
 static enum hrtimer_restart timer_interrupt(struct hrtimer *hrtimer)
 {
-	wult_interrupt(rdtsc_ordered());
+	wult_interrupt_start();
+	wult_interrupt_finish(0);
 
 	return HRTIMER_NORESTART;
 }
