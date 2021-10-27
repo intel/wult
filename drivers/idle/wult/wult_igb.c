@@ -317,13 +317,14 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 		goto err_master;
 
 	vector = pci_irq_vector(nic->pdev, 0);
-	err = request_irq(vector, interrupt_handler, 0, DRIVER_NAME, nic);
-	if (err)
-		goto err_vecs;
 
 	err = irq_set_affinity_hint(vector, get_cpu_mask(cpunum));
 	if (err)
 		goto err_irq;
+
+	err = request_irq(vector, interrupt_handler, 0, DRIVER_NAME, nic);
+	if (err)
+		goto err_vecs;
 
 	return 0;
 

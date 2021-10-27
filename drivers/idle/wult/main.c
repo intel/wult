@@ -155,7 +155,6 @@ static int armer_kthread(void *data)
 {
 	int err;
 	unsigned int timeout, events_happened, events_armed, event_cpu;
-	unsigned int wrong_cpu_cnt = 0;
 	u64 ldist;
 
 	wult_dbg("started on CPU%d", smp_processor_id());
@@ -205,10 +204,8 @@ static int armer_kthread(void *data)
 		/* Check that the interrupt happend on the right CPU. */
 		event_cpu = READ_ONCE(wi->event_cpu);
 		if (event_cpu != wi->cpunum) {
-			if (wrong_cpu_cnt++ < 128)
-				continue;
-			wult_err("delayed event happened on CPU%u instead of CPU%u %u times, stop measuring",
-				 event_cpu, wi->cpunum, wrong_cpu_cnt);
+			wult_err("delayed event happened on CPU%u instead of CPU%u, stop measuring",
+				 event_cpu, wi->cpunum);
 			goto error;
 		}
 
