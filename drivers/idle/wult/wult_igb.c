@@ -48,13 +48,12 @@ static inline void pci_flush_posted(const struct network_adapter *nic)
 	read32(nic, I210_STATUS);
 }
 
-static irqreturn_t interrupt_handler(int irq, void *data)
+/*
+ * Acknowledge NIC interrupt and do a sanity check.
+ */
+static int irq_ack_and_check(const struct network_adapter *nic)
 {
-	struct network_adapter *nic = data;
 	u32 icr, tsicr;
-	u64 cyc;
-
-	cyc = rdtsc_ordered();
 
 	icr = read32(nic, I210_ICR);
 	tsicr = read32(nic, I210_TSICR);
@@ -62,10 +61,21 @@ static irqreturn_t interrupt_handler(int irq, void *data)
 	if (!(icr & I210_Ixx_TIME_SYNC) || !(tsicr & I210_TSIxx_TT0)) {
 		WARN_ONCE(1, "spurious interrupt, ICR %#x, EICR %#x, TSICR %#x",
 			  icr, read32(nic, I210_EICR), tsicr);
-		return IRQ_HANDLED;
+		return -EINVAL;
 	}
 
-	wult_interrupt(cyc);
+	return 0;
+}
+
+static irqreturn_t interrupt_handler(int irq, void *data)
+{
+	struct network_adapter *nic = data;
+	u64 cyc;
+
+	cyc = rdtsc_ordered();
+
+	if (!irq_ack_and_check(nic))
+		wult_interrupt(cyc);
 
 	return IRQ_HANDLED;
 }
