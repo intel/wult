@@ -318,7 +318,11 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 
 	vector = pci_irq_vector(nic->pdev, 0);
 
+#ifdef COMPAT_HAVE_SET_AFFINITY
+	err = irq_set_affinity(vector, get_cpu_mask(cpunum));
+#else
 	err = irq_set_affinity_hint(vector, get_cpu_mask(cpunum));
+#endif
 	if (err)
 		goto err_irq;
 
@@ -345,7 +349,6 @@ static void exit_device(struct wult_device_info *wdi)
 	mask_interrupts(nic);
 	bus_master_disable(nic);
 	vector = pci_irq_vector(nic->pdev, 0);
-	irq_set_affinity_hint(vector, NULL);
 	free_irq(vector, nic);
 	pci_free_irq_vectors(nic->pdev);
 }
