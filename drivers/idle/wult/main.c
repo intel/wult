@@ -137,13 +137,37 @@ static int delayed_event_device_init(struct wult_device_info *wdi,
 }
 
 /* Check if the armer threads runs on the correct CPU. */
-static inline int check_armer_cpunum(void)
+static int check_armer_cpunum(void)
 {
 	if (smp_processor_id() != wi->cpunum) {
 		wult_err("armer thread runs on CPU%u instead of CPU%u",
 			 smp_processor_id(), wi->cpunum);
 		return -EINVAL;
 	}
+	return 0;
+}
+
+/* Sanity checks after the delayed event has happened. */
+static int check_event(void)
+{
+	unsigned int events_happened, events_armed, event_cpu;
+
+	/* Check that the interrupt happend on the right CPU. */
+	event_cpu = READ_ONCE(wi->event_cpu);
+	if (event_cpu != wi->cpunum) {
+		wult_err("delayed event happened on CPU%u instead of CPU%u, stop measuring",
+			 event_cpu, wi->cpunum);
+		return -EINVAL;
+	}
+
+	events_happened = atomic_read(&wi->events_happened);
+	events_armed = atomic_read(&wi->events_armed);
+	if (events_armed != events_happened) {
+		wult_err("events count mismatch: armed %u, got %u",
+			 events_armed, events_happened);
+		return -EINVAL;
+	}
+
 	return 0;
 }
 
@@ -154,7 +178,7 @@ static inline int check_armer_cpunum(void)
 static int armer_kthread(void *data)
 {
 	int err;
-	unsigned int timeout, events_happened, events_armed, event_cpu;
+	unsigned int timeout, events_happened;
 	u64 ldist;
 
 	wult_dbg("started on CPU%d", smp_processor_id());
@@ -201,21 +225,9 @@ static int armer_kthread(void *data)
 			goto error;
 		}
 
-		/* Check that the interrupt happend on the right CPU. */
-		event_cpu = READ_ONCE(wi->event_cpu);
-		if (event_cpu != wi->cpunum) {
-			wult_err("delayed event happened on CPU%u instead of CPU%u, stop measuring",
-				 event_cpu, wi->cpunum);
+		err = check_event();
+		if (err)
 			goto error;
-		}
-
-		events_happened = atomic_read(&wi->events_happened);
-		events_armed = atomic_read(&wi->events_armed);
-		if (events_armed != events_happened) {
-			wult_err("events count mismatch: armed %u, got %u",
-				 events_armed, events_happened);
-			goto error;
-		}
 
 		/* Send the last measurement data to user-space. */
 		spin_lock(&wi->enable_lock);
