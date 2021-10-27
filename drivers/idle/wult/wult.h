@@ -57,13 +57,15 @@ struct wult_device_info;
  */
 struct wult_device_ops {
 	/*
-	 * Read time after idle in delayed event driver units (may be
-	 * nanoseconds or something else, like CPU cycles count). The 'cyc'
-	 * argument is the CPU cycles count after the CPU woke up from idle.
+	 * Read time before entering idle state. The returned time is in
+	 * driver-specific units, e.g., nanoseconds or CPU cycles count.
+	 */
+	u64 (*get_time_before_idle)(struct wult_device_info *wdi);
+	/*
+	 * Read time after idle. The 'cyc' argument is the CPU cycles count
+	 * after the CPU woke up from idle.
 	 */
 	u64 (*get_time_after_idle)(struct wult_device_info *wdi, u64 cyc);
-	/* Read time before idle in delayed event driver units. */
-	u64 (*get_time_before_idle)(struct wult_device_info *wdi);
 	/* Arm a delayed event 'ldist' nanoseconds away. */
 	int (*arm)(struct wult_device_info *wdi, u64 *ldist);
 	/* Checks whether the delayed event has happened. */
