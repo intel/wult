@@ -73,7 +73,7 @@ static void before_idle(struct wult_info *wi)
 	ti->bi_tsc = rdtsc_ordered();
 	ti->bi_monotonic = ktime_to_ns(ktime_get_raw());
 
-	ti->tbi = wi->wdi->ops->get_time_before_idle(wi->wdi);
+	ti->tbi = wi->wdi->ops->get_time_before_idle(wi->wdi, &ti->tbi_adj);
 
 	if (wi->early_intr)
 		local_irq_enable();
@@ -97,7 +97,7 @@ static void after_idle(struct wult_info *wi)
 	}
 
 	ti->ai_tsc1 = rdtsc_ordered();
-	ti->tai = wdi->ops->get_time_after_idle(wdi, ti->ai_tsc1);
+	ti->tai = wdi->ops->get_time_after_idle(wdi, ti->ai_tsc1, &ti->tai_adj);
 
 	wult_cstates_snap_mperf(&ti->csinfo, 1);
 	wult_cstates_snap_tsc(&ti->csinfo, 1);
@@ -114,7 +114,8 @@ void wult_tracer_interrupt(struct wult_info *wi)
 	struct wult_device_info *wdi = wi->wdi;
 
 	ti->intr_tsc1 = rdtsc_ordered();
-	ti->tintr = wdi->ops->get_time_after_idle(wdi, ti->intr_tsc1);
+	ti->tintr = wdi->ops->get_time_after_idle(wdi, ti->intr_tsc1,
+						  &ti->tintr_adj);
 
 	wult_cstates_snap_mperf(&ti->csinfo, 2);
 	wult_cstates_snap_tsc(&ti->csinfo, 2);

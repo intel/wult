@@ -27,8 +27,12 @@ struct wult_tracer_info {
 	u64 bi_tsc, bi_monotonic;
 	/* Time before idle and after idle in TSC cycles or nanoseconds. */
 	u64 tbi, tai;
-	/* Interrupt time. */
+	/* Time before idle and after idle adjustments in TSC cycles. */
+	u64 tbi_adj, tai_adj;
+	/* Interrupt time in TSC cycles or nanoseconds. */
 	u64 tintr;
+	/* Interrupt time adjustment in TSC cycles. */
+	u64 tintr_adj;
 	/* Launch distance. */
 	u64 ldist;
 	/* The requested C-state index. */

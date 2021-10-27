@@ -47,9 +47,11 @@ static enum hrtimer_restart timer_interrupt(struct hrtimer *hrtimer)
 	return HRTIMER_NORESTART;
 }
 
-static u64 get_time_before_idle(struct wult_device_info *wdi)
+static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj_cyc)
 {
 	struct wult_tdt *wt = wdi_to_wt(wdi);
+
+	*adj_cyc = 0;
 
 	/*
 	 * This callback is invoked just before going to idle, and now we can
@@ -61,8 +63,10 @@ static u64 get_time_before_idle(struct wult_device_info *wdi)
 	return rdtsc_ordered();
 }
 
-static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc)
+static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc,
+		               u64 *adj_cyc)
 {
+	*adj_cyc = 0;
 	return cyc;
 }
 

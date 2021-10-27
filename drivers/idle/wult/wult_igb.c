@@ -86,13 +86,14 @@ static bool irq_is_pending(struct network_adapter *nic)
 	return read32(nic, I210_ICS) & I210_Ixx_TIME_SYNC;
 }
 
-static u64 get_time_before_idle(struct wult_device_info *wdi)
+static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj_cyc)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
 	u64 ns;
 
 	/* A "warm up" read. */
 	pci_flush_posted(nic);
+	*adj_cyc = 0;
 
 	nic->cyc.tbi1 = rdtsc_ordered();
 	read32(nic, I210_SYSTIMR);
@@ -105,7 +106,8 @@ static u64 get_time_before_idle(struct wult_device_info *wdi)
 	return ns;
 }
 
-static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc_tai1)
+static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc,
+		               u64 *adj_cyc)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
 	u64 ns;
@@ -115,11 +117,12 @@ static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc_tai1)
 	nic->cyc.tai2 = rdtsc_ordered();
 	read32(nic, I210_SYSTIMR);
 	nic->cyc.tai3 = rdtsc_ordered();
-	nic->cyc.tai1 = cyc_tai1;
+	nic->cyc.tai1 = cyc;
 
 	/* Read the latched NIC time. */
 	ns = read32(nic, I210_SYSTIML);
 	ns += read32(nic, I210_SYSTIMH) * NSEC_PER_SEC;
+	*adj_cyc = 0;
 	return ns;
 }
 
