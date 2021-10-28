@@ -754,7 +754,7 @@ class HTMLReportBase:
     def _drop_absent_colnames(self):
         """
         Verify that test results provide the columns in 'xaxes', 'yaxes', 'hist' and 'chist'. Drop
-        the absent columns.
+        the absent columns. Also drop uknown columns (those not present in the "definitions").
         """
 
         lists = ("xaxes", "yaxes", "hist", "chist")
@@ -770,6 +770,17 @@ class HTMLReportBase:
                 else:
                     _LOG.warning("dropping column '%s' from '%s' because it is not present in one "
                                  "of the results", colname, name)
+            setattr(self, name, colnames)
+
+        for name in lists:
+            for res in self.rsts:
+                colnames = []
+                for colname in getattr(self, name):
+                    if colname in res.defs.info:
+                        colnames.append(colname)
+                    else:
+                        _LOG.warning("dropping column '%s' from '%s' because it is not present in "
+                                     "the definitions file at '%s'", colname, name, res.defs.path)
             setattr(self, name, colnames)
 
     def _init_colnames(self):
