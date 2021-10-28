@@ -108,6 +108,53 @@ class DatapointProcessor:
         dp["WarmupDelay"] = self._cyc_to_ns(dp["WarmupDelayCyc"])
         dp["LatchDelay"] = self._cyc_to_ns(dp["LatchDelayCyc"])
 
+    def _apply_time_adjustments(self, dp):
+        """
+        Some drivers provide adjustments for 'TAI', 'TBI', and 'TInr', for example 'wult_igb'. The
+        adjustments are there for improving measurement accuracy, and they are in CPU cycles. This
+        function adjusts 'SilentTime', 'WakeLatency', and 'IntrLatency' accordingly.
+
+        This function also validates the adjusted values. Returns the datapoint in case of success
+        and 'None' if the datapoint has to be dropped.
+        """
+
+        # Apply the adjustments if the driver provides them.
+        if dp["TBIAdjCyc"]:
+            tbi_adj = self._cyc_to_ns(dp["TBIAdjCyc"])
+            dp["SilentTimeRaw"] = dp["SilentTime"]
+            dp["SilentTime"] -= tbi_adj
+
+            if dp["TBI"] + tbi_adj >= dp["LTime"]:
+                _LOG.debug("adjusted 'TBI' is greater than 'LTime', the scheduled event must have "
+                           "happened before the CPU entered the idle state. The datapoint is:\n%s\n"
+                           "Adjusted 'TBI' is %d + %d = %d ns\nDropping this datapoint\n",
+                           Human.dict2str(dp),  dp["TBI"], tbi_adj, dp["TBI"] + tbi_adj)
+                return None
+
+        if dp["TAIAdjCyc"]:
+            tai_adj = self._cyc_to_ns(dp["TAIAdjCyc"])
+            tintr_adj = self._cyc_to_ns(dp["TIntrAdjCyc"])
+
+            dp["WakeLatencyRaw"] = dp["WakeLatency"]
+            dp["IntrLatencyRaw"] = dp["IntrLatency"]
+            dp["WakeLatency"] -= tai_adj
+            dp["IntrLatency"] -= tintr_adj
+
+            if dp["TAI"] - tai_adj <= dp["LTime"]:
+                _LOG.debug("adjusted 'TAI' is smaller than 'LTime', the CPU must have woken up "
+                           "before 'LTime'. The datapoint is:\n%s\n"
+                           "Adjusted 'TAI' is %d - %d = %d ns\nDropping this datapoint\n",
+                           Human.dict2str(dp),  dp["TAI"], tai_adj, dp["TAI"] - tai_adj)
+                return None
+            if dp["TIntr"] - tintr_adj <= dp["LTime"]:
+                _LOG.debug("adjusted 'TIntr' is smaller than 'LTime', the CPU must have woken up "
+                           "before 'LTime'. The datapoint is:\n%s\n"
+                           "Adjusted 'TIntr' is %d - %d = %d ns\nDropping this datapoint\n",
+                           Human.dict2str(dp),  dp["TIntr"], tintr_adj, dp["TIntr"] - tintr_adj)
+                return None
+
+        return dp
+
     def _process_time(self, dp):
         """
         Calculate, validate, and initialize fields related to time, for example 'WakeLatency' and
@@ -126,20 +173,13 @@ class DatapointProcessor:
             dp["WakeLatency"] = dp["TAI"] - dp["LTime"]
         dp["IntrLatency"] = dp["TIntr"] - dp["LTime"]
 
-        # Apply the adjustments if the driver provides them.
-        if dp["TBIAdjCyc"]:
-            dp["SilentTimeRaw"] = dp["SilentTime"]
-            dp["SilentTime"] -= self._cyc_to_ns(dp["TBIAdjCyc"])
-        if dp["TAIAdjCyc"]:
-            dp["WakeLatencyRaw"] = dp["WakeLatency"]
-            dp["IntrLatencyRaw"] = dp["IntrLatency"]
-            dp["WakeLatency"] -= self._cyc_to_ns(dp["TAIAdjCyc"])
-            dp["IntrLatency"] -= self._cyc_to_ns(dp["TIntrAdjCyc"])
-
         if self._drvname == "wult_tdt":
             # In case of 'wult_tdt' driver the time is in TSC cycles, convert to nanoseconds.
             for key in ("SilentTime", "WakeLatency", "IntrLatency"):
                 dp[key] = self._cyc_to_ns(dp[key])
+
+        if not self._apply_time_adjustments(dp):
+            return None
 
         # Try to compensate for the overhead introduced by wult drivers.
         #
