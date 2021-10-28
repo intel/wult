@@ -19,7 +19,7 @@ A raw test result is a directory containing the following files.
 """
 
 from pathlib import Path
-from helperlibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error
 
 # The latest supported raw results format version.
 FORMAT_VERSION = "1.2"

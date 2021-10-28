@@ -10,8 +10,8 @@
 This module provides python API to the systemctl tool.
 """
 
-from helperlibs import FSHelpers, Procs, Trivial
-from helperlibs.Exceptions import Error, ErrorNotSupported
+from pepclibs.helperlibs import FSHelpers, Procs, Trivial
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 
 class Systemctl:
     """This module provides python API to the systemctl tool."""

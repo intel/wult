@@ -12,8 +12,8 @@ saves the results.
 """
 
 import logging
-from helperlibs.Exceptions import Error
-from helperlibs import Human
+from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs import Human
 from pepclibs import CPUIdle
 from wultlibs import Defs
 

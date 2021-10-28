@@ -12,8 +12,8 @@ This module provides API for discovering Operating System information.
 
 import contextlib
 from pathlib import Path
-from helperlibs.Exceptions import Error
-from helperlibs import Procs
+from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs import Procs
 
 _COMMONPKGS = { "phc2sys" : "linuxptp" , "tc" : "iproute2" }
 _FEDORAPKGS = { "sch_etf.ko" : "kernel-modules-extra" }

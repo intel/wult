@@ -13,7 +13,7 @@ This module provides API for reading and writing CSV files.
 import csv
 import logging
 from pathlib import Path
-from helperlibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error
 
 _LOG = logging.getLogger()
 

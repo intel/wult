@@ -12,7 +12,7 @@ This module provides helpers for dealing with jinja2 templates.
 
 import logging
 import jinja2
-from helperlibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error
 
 _LOG = logging.getLogger()
 

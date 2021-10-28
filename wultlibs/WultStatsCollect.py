@@ -12,7 +12,7 @@ This module is just a "glue" layer between "WultRunner" and "StatsCollect".
 
 import logging
 import contextlib
-from helperlibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.statscollectlibs import StatsCollect, StatsHelpers
 
 _LOG = logging.getLogger()

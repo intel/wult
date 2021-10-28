@@ -9,8 +9,8 @@
 """This module can be used to get information about PCI devices in system."""
 
 import re
-from helperlibs.Exceptions import ErrorNotSupported, Error
-from helperlibs import FSHelpers, Procs
+from pepclibs.helperlibs.Exceptions import ErrorNotSupported, Error
+from pepclibs.helperlibs import FSHelpers, Procs
 
 class LsPCI:
     """This is a wrapper class for 'lspci' tool."""

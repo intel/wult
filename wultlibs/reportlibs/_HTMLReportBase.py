@@ -18,8 +18,8 @@ from pathlib import Path
 import numpy
 import pandas
 import plotly
-from helperlibs import Trivial, FSHelpers
-from helperlibs.Exceptions import Error
+from pepclibs.helperlibs import Trivial, FSHelpers
+from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import Jinja2
 from wultlibs.rawresultlibs import RORawResult
 

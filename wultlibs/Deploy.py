@@ -17,8 +17,8 @@ import zipfile
 import logging
 import contextlib
 from pathlib import Path
-from helperlibs import Procs, Trivial, FSHelpers, Logging, ArgParse, WrapExceptions
-from helperlibs.Exceptions import Error, ErrorNotFound
+from pepclibs.helperlibs import Procs, Trivial, FSHelpers, Logging, ArgParse, WrapExceptions
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import ToolsCommon
 from wultlibs.helperlibs import KernelVersion, RemoteHelpers
 

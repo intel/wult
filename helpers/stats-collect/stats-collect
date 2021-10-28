@@ -27,8 +27,8 @@ import logging
 import tempfile
 import argparse
 import contextlib
-from helperlibs import Logging, ArgParse, Procs, Trivial
-from helperlibs.Exceptions import Error
+from pepclibs.helperlibs import Logging, ArgParse, Procs, Trivial
+from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import ProcHelpers
 
 VERSION = "1.0"

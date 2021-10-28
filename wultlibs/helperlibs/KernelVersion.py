@@ -12,8 +12,8 @@ This module contains helper functions for dealing with Linux kernel version numb
 
 import re
 from collections import namedtuple
-from helperlibs.Exceptions import Error
-from helperlibs import Procs
+from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs import Procs
 
 # The resource owner information namedtuple "type".
 SplitKver = namedtuple("SplitKver", ["major", "minor", "stable", "rc", "localver"])

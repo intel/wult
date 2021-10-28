@@ -17,8 +17,8 @@ this module require the  'args' object which represents the command-line argumen
 import sys
 import logging
 from pathlib import Path
-from helperlibs import Trivial, Procs, SSH, Human, Logging
-from helperlibs.Exceptions import Error
+from pepclibs.helperlibs import Trivial, Procs, SSH, Human, Logging
+from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import Devices
 from wultlibs.helperlibs import YAML, ReportID
 from wultlibs.rawresultlibs import RORawResult

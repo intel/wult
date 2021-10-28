@@ -13,7 +13,7 @@ This module provides helpers for dealing with YAML files.
 import logging
 from pathlib import Path, PosixPath
 import yaml
-from helperlibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import Jinja2
 
 _LOG = logging.getLogger()

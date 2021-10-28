@@ -15,8 +15,8 @@ import socket
 import logging
 import contextlib
 from pathlib import Path
-from helperlibs import Procs, FSHelpers, Trivial
-from helperlibs.Exceptions import Error, ErrorExists
+from pepclibs.helperlibs import Procs, FSHelpers, Trivial
+from pepclibs.helperlibs.Exceptions import Error, ErrorExists
 from wultlibs.helperlibs import KernelVersion, ProcHelpers, RemoteHelpers
 from wultlibs.statscollectlibs import SysInfo
 

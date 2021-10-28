@@ -15,8 +15,8 @@ import re
 import time
 import logging
 import contextlib
-from helperlibs.Exceptions import Error
-from helperlibs import Procs, Trivial
+from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs import Procs, Trivial
 
 _LOG = logging.getLogger()
 

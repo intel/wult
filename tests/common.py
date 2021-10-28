@@ -14,7 +14,7 @@ import os
 import subprocess
 from pathlib import Path
 import pytest
-from helperlibs import Exceptions
+from pepclibs.helperlibs import Exceptions
 
 class CmdLineRunner():
     """Class for running commandline commands."""

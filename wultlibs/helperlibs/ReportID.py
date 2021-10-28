@@ -13,7 +13,7 @@ human-readable. This module contains helper function for dealing with a report I
 
 import re
 import time
-from helperlibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error
 
 MAX_REPORID_LEN = 64
 # The special characters allowed in the report ID.

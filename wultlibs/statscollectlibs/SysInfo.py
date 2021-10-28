@@ -11,8 +11,8 @@ This module implements collecting the "system information" type of statistics.
 """
 
 import logging
-from helperlibs import FSHelpers
-from helperlibs.Exceptions import Error
+from pepclibs.helperlibs import FSHelpers
+from pepclibs.helperlibs.Exceptions import Error
 
 _LOG = logging.getLogger()
 

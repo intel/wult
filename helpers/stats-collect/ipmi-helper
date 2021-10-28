@@ -19,8 +19,8 @@ import sys
 import time
 import logging
 import argparse
-from helperlibs import Logging, ArgParse, Procs
-from helperlibs.Exceptions import Error
+from pepclibs.helperlibs import Logging, ArgParse, Procs
+from pepclibs.helperlibs.Exceptions import Error
 
 VERSION = "1.0"
 OWN_NAME = "ipmi-helper"
