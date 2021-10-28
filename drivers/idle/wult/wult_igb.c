@@ -93,8 +93,8 @@ static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj_cyc)
 
 	/* A "warm up" read. */
 	pci_flush_posted(nic);
-	*adj_cyc = 0;
 
+	/* Latch the time. */
 	nic->cyc.tbi1 = rdtsc_ordered();
 	read32(nic, I210_SYSTIMR);
 	nic->cyc.tbi2 = rdtsc_ordered();
@@ -102,6 +102,24 @@ static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj_cyc)
 	ns = read32(nic, I210_SYSTIML);
 	ns += read32(nic, I210_SYSTIMH) * NSEC_PER_SEC;
 	nic->cyc.tbi3 = rdtsc_ordered();
+
+	/*
+	 * Ideally, time before idle is the moment this function exits. But we
+	 * latch the time at the beginning of the function, then spend time
+	 * reading from the NIC. Everything we do after NIC has latched the
+	 * time is the overhead, and we try to calculate the adjustment for
+	 * this overhead.
+	 *
+	 * For the first latch read operation, we assume that the overhead is
+	 * half of the read delay. And then we need to adjust for the time read
+	 * operations.
+	 *
+	 * Note, 'ns' is time in nanoseconds as seen by the NIC. 'adj_cyc' is
+	 * count of cycles, measured by CPU. So not only these are different
+	 * units, but also different observers.
+	 */
+	*adj_cyc = (nic->cyc.tbi2 - nic->cyc.tbi1)/2 +
+		   (nic->cyc.tbi3 - nic->cyc.tbi2);
 
 	return ns;
 }
@@ -112,6 +130,10 @@ static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc,
 	struct network_adapter *nic = wdi_to_nic(wdi);
 	u64 ns;
 
+	/*
+	 * This read will also flush posted PCI writes, if any, and "warm up"
+	 * the PCI link.
+	 */
 	nic->irq_pending = irq_is_pending(nic);
 
 	nic->cyc.tai2 = rdtsc_ordered();
@@ -122,7 +144,13 @@ static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc,
 	/* Read the latched NIC time. */
 	ns = read32(nic, I210_SYSTIML);
 	ns += read32(nic, I210_SYSTIMH) * NSEC_PER_SEC;
-	*adj_cyc = 0;
+
+	/*
+	 * Ideally, time after idle is the time at the moment this function is
+	 * entered. Therefore, the adjustment is the time spent reading the
+	 * pending IRQs status, plus half of the time latch operation.
+	 */
+	*adj_cyc = (nic->cyc.tai2 - cyc) + (nic->cyc.tai3 - nic->cyc.tai2)/2;
 	return ns;
 }
 

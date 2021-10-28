@@ -31,8 +31,11 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "LDist" },
 	{ .type = "u64", .name = "LTime" },
 	{ .type = "u64", .name = "TBI" },
+	{ .type = "u64", .name = "TBIAdjCyc" },
 	{ .type = "u64", .name = "TAI" },
+	{ .type = "u64", .name = "TAIAdjCyc" },
 	{ .type = "u64", .name = "TIntr" },
+	{ .type = "u64", .name = "TIntrAdjCyc" },
 	{ .type = "unsigned int", .name = "IntrOff" },
 	{ .type = "unsigned int", .name = "ReqCState" },
 	{ .type = "u64", .name = "BICyc" },
@@ -270,10 +273,19 @@ int wult_tracer_send_data(struct wult_info *wi)
 	err = synth_event_add_next_val(ti->tbi, &trace_state);
 	if (err)
 		goto out_end;
+	err = synth_event_add_next_val(ti->tbi_adj, &trace_state);
+	if (err)
+		goto out_end;
 	err = synth_event_add_next_val(ti->tai, &trace_state);
 	if (err)
 		goto out_end;
+	err = synth_event_add_next_val(ti->tai_adj, &trace_state);
+	if (err)
+		goto out_end;
 	err = synth_event_add_next_val(ti->tintr, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->tintr_adj, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->irqs_disabled, &trace_state);
