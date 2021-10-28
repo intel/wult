@@ -100,7 +100,7 @@ class DatapointProcessor:
 
     def _cyc_to_ns(self, cyc):
         """Convert TSC cycles to nanoseconds."""
-        return (cyc * 1000) / self.tsc_mhz
+        return int((cyc * 1000) / self.tsc_mhz)
 
     def _get_wult_igb_adjustments(self, dp, adj):
         """
