@@ -21,12 +21,8 @@
 #include "wult_igb.h"
 
 static struct wult_trace_data_info tdata[] = {
-	{ .name = "DrvBICyc1" },
-	{ .name = "DrvBICyc2" },
-	{ .name = "DrvBICyc3" },
-	{ .name = "DrvAICyc1" },
-	{ .name = "DrvAICyc2" },
-	{ .name = "DrvAICyc3" },
+	{ .name = "WarmupDelayCyc" },
+	{ .name = "LatchDelayCyc" },
 	{ NULL },
 };
 
@@ -89,19 +85,19 @@ static bool irq_is_pending(struct network_adapter *nic)
 static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj_cyc)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
-	u64 ns;
+	u64 ns, cyc1, cyc2, cyc3;
 
 	/* A "warm up" read. */
 	pci_flush_posted(nic);
 
 	/* Latch the time. */
-	nic->cyc.tbi1 = rdtsc_ordered();
+	cyc1 = rdtsc_ordered();
 	read32(nic, I210_SYSTIMR);
-	nic->cyc.tbi2 = rdtsc_ordered();
+	cyc2 = rdtsc_ordered();
 
 	ns = read32(nic, I210_SYSTIML);
 	ns += read32(nic, I210_SYSTIMH) * NSEC_PER_SEC;
-	nic->cyc.tbi3 = rdtsc_ordered();
+	cyc3 = rdtsc_ordered();
 
 	/*
 	 * Ideally, time before idle is the moment this function exits. But we
@@ -118,17 +114,16 @@ static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj_cyc)
 	 * count of cycles, measured by CPU. So not only these are different
 	 * units, but also different observers.
 	 */
-	*adj_cyc = (nic->cyc.tbi2 - nic->cyc.tbi1)/2 +
-		   (nic->cyc.tbi3 - nic->cyc.tbi2);
+	*adj_cyc = (cyc2 - cyc1)/2 + (cyc3 - cyc2);
 
 	return ns;
 }
 
-static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc,
+static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc1,
 		               u64 *adj_cyc)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
-	u64 ns;
+	u64 ns, cyc2, cyc3;
 
 	/*
 	 * This read will also flush posted PCI writes, if any, and "warm up"
@@ -136,21 +131,29 @@ static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc,
 	 */
 	nic->irq_pending = irq_is_pending(nic);
 
-	nic->cyc.tai2 = rdtsc_ordered();
+	cyc2 = rdtsc_ordered();
 	read32(nic, I210_SYSTIMR);
-	nic->cyc.tai3 = rdtsc_ordered();
-	nic->cyc.tai1 = cyc;
+	cyc3 = rdtsc_ordered();
 
 	/* Read the latched NIC time. */
 	ns = read32(nic, I210_SYSTIML);
 	ns += read32(nic, I210_SYSTIMH) * NSEC_PER_SEC;
+
+	if (tdata[0].val == 0) {
+		/*
+		 * Save the warmup and latch delays in order to have them included in
+		 * the trace output.
+		 */
+		tdata[0].val = cyc2 - cyc1;
+		tdata[1].val = cyc3 - cyc2;
+	}
 
 	/*
 	 * Ideally, time after idle is the time at the moment this function is
 	 * entered. Therefore, the adjustment is the time spent reading the
 	 * pending IRQs status, plus half of the time latch operation.
 	 */
-	*adj_cyc = (nic->cyc.tai2 - cyc) + (nic->cyc.tai3 - nic->cyc.tai2)/2;
+	*adj_cyc = (cyc2 - cyc1) + (cyc3 - cyc2)/2;
 	return ns;
 }
 
@@ -161,6 +164,7 @@ static int arm_irq(struct wult_device_info *wdi, u64 *ldist)
 	struct timespec64 ts;
 	u64 ns;
 
+	tdata[0].val = 0;
 	nic->irq_pending = false;
 
 	preempt_disable();
@@ -202,15 +206,6 @@ static u64 get_launch_time(struct wult_device_info *wdi)
 
 static struct wult_trace_data_info *get_trace_data(struct wult_device_info *wdi)
 {
-	struct network_adapter *nic = wdi_to_nic(wdi);
-
-	tdata[0].val = nic->cyc.tbi1;
-	tdata[1].val = nic->cyc.tbi2;
-	tdata[2].val = nic->cyc.tbi3;
-	tdata[3].val = nic->cyc.tai1;
-	tdata[4].val = nic->cyc.tai2;
-	tdata[5].val = nic->cyc.tai3;
-
 	return tdata;
 }
 

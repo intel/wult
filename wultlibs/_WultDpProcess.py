@@ -102,11 +102,20 @@ class DatapointProcessor:
         """Convert TSC cycles to nanoseconds."""
         return int((cyc * 1000) / self.tsc_mhz)
 
+    def _calc_wult_igb_delays(self, dp):
+        """Calculate warmup and latch delays in case of 'wult_igb' driver."""
+
+        dp["WarmupDelay"] = self._cyc_to_ns(dp["WarmupDelayCyc"])
+        dp["LatchDelay"] = self._cyc_to_ns(dp["LatchDelayCyc"])
+
     def _process_time(self, dp):
         """
         Calculate, validate, and initialize fields related to time, for example 'WakeLatency' and
         'IntrLatency'.
         """
+
+        if self._drvname == "wult_igb":
+            self._calc_wult_igb_delays(dp)
 
         dp["SilentTime"] = dp["LTime"] - dp["TBI"]
         if self._intr_focus:
