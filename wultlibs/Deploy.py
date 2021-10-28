@@ -499,7 +499,7 @@ def _deploy_helpers(args, proc):
         for name in deployables:
             _create_standalone_python_script(name, basedir)
 
-    # And copy the "standaline-ized" version of python helpers to the SUT.
+    # And copy the "standoline-ized" version of python helpers to the SUT.
     if proc.is_remote:
         for pyhelper in args.pyhelpers:
             srcdir = args.ctmpdir / pyhelper
