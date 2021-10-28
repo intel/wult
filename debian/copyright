@@ -7,11 +7,11 @@ Source: https://github.com/intel/wult
   on Wed Apr 29 16:32:19 EEST 2020.
 
 Files: *
-Copyright: © 2014-2020 Intel, Inc.
+Copyright: © 2019-2021 Intel, Inc.
 License: BSD-3-Clause
 
 Files: drivers/*
-Copyright: © 2014-2020 Intel, Inc.
+Copyright: © 2019-2021 Intel, Inc.
 License: GPL-2
 
 License: BSD-3-Clause

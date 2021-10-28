@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2020 Intel Corporation
+# Copyright (C) 2019-2021 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Authors: Vladislav Govtva <vladislav.govtva@intel.com>

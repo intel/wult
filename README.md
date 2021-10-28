@@ -2,7 +2,7 @@
 -*- coding: utf-8 -*-
 vim: ts=4 sw=4 tw=100 et ai si
 
-Copyright (c) 2020 Intel, Inc.
+Copyright (C) 2019-2021 Intel, Inc.
 SPDX-License-Identifier: BSD-3-Clause
 
 Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
