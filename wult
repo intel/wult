@@ -23,10 +23,11 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
 
-from helperlibs import Logging, ArgParse, ReportID, Trivial, Human
+from helperlibs import Logging, ArgParse, Trivial, Human
 from helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs import CPUIdle, CPUInfo, CPUOnline
 from pepclibs.msr import PowerCtl
+from wultlibs.helperlibs import ReportID
 from wultlibs.reportlibs import WultHTMLReport
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs import Deploy, ToolsCommon, Devices, EventsProvider, WultRunner, WultStatsCollect

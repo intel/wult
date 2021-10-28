@@ -11,8 +11,9 @@ This module provides API for dealing with Linux function trace buffer.
 """
 
 import logging
-from helperlibs import ProcHelpers, FSHelpers
+from helperlibs import FSHelpers
 from helperlibs.Exceptions import Error, ErrorNotSupported, ErrorTimeOut
+from wultlibs.helperlibs import ProcHelpers
 
 _LOG = logging.getLogger()
 

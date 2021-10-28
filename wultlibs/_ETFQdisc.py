@@ -13,8 +13,10 @@ discipline).
 
 import re
 import logging
-from helperlibs import FSHelpers, ProcHelpers, OSInfo, KernelVersion
+from helperlibs import FSHelpers
 from helperlibs.Exceptions import Error, ErrorNotSupported
+from wultlibs import OSInfo
+from wultlibs.helperlibs import KernelVersion, ProcHelpers
 
 _LOG = logging.getLogger()
 

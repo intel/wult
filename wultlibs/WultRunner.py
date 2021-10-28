@@ -17,8 +17,8 @@ import contextlib
 from pathlib import Path
 from helperlibs.Exceptions import Error, ErrorTimeOut
 from helperlibs import Human
-from pepclibs import Systemctl
 from wultlibs import EventsProvider, _FTrace, _ProgressLine, _WultDpProcess, WultStatsCollect
+from wultlibs.helperlibs import Systemctl
 
 _LOG = logging.getLogger()
 
