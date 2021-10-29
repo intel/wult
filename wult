@@ -518,15 +518,15 @@ def start_command(args):
         dev = Devices.WultDevice(args.devid, args.cpunum, proc, dmesg=True, force=args.force)
         stack.enter_context(dev)
 
-        with CPUIdle.CPUIdle(proc=proc) as cpuidle:
-            csinfo = cpuidle.get_cstates_info_dict(res.cpunum)
+        cpuidle = CPUIdle.CPUIdle(proc=proc)
+        csinfo = cpuidle.get_cstates_info_dict(res.cpunum)
 
         lscpu_info = CPUInfo.get_lscpu_info(proc=proc)
         check_settings(proc, dev, csinfo, lscpu_info, args.cpunum, args.devid)
 
         runner = WultRunner.WultRunner(proc, dev, res, ldist=args.ldist, intr_focus=args.intr_focus,
                                        early_intr=args.early_intr, tsc_cal_time=args.tsc_cal_time,
-                                       csinfo=csinfo, stconf=stconf)
+                                       cpuidle=cpuidle, stconf=stconf)
         stack.enter_context(runner)
 
         runner.unload = not args.no_unload
