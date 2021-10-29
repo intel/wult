@@ -12,7 +12,7 @@ saves the results.
 """
 
 import logging
-from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs.helperlibs import Human
 from pepclibs import CPUIdle
 from wultlibs import Defs
@@ -97,6 +97,35 @@ class DatapointProcessor:
                 dp["CC1Derived%"] = 0
         else:
             dp["CC1Derived%"] = 0
+
+        self._validate_cstates(dp)
+
+    def _validate_cstates(self, dp):
+        """
+        Validate that all hardware C-states entered in the datapoint 'dp' are permitted for the
+        requested OS C-state in that datapoint. Raises an error if any hardware state is not
+        permitted.
+        """
+
+        hwcstates = list()
+        for colname, val in dp.items():
+            csname = Defs.get_csname(colname, default=None)
+            if csname is None:
+                continue
+            if self._cpuidle.is_hwcstate_name(csname) and val > 0:
+                hwcstates.append(csname)
+
+        cstate = dp["ReqCState"]
+
+        try:
+            self._cpuidle.validate_hwcstates(hwcstates, cstate, self._cpunum)
+        except ErrorNotSupported as err:
+            if cstate not in self._warned_cstates:
+                _LOG.warning("%s", err)
+                _LOG.debug("%s. The datapoint is:\n%s\n", err, Human.dict2str(dp))
+                self._warned_cstates.add(cstate)
+        except Error as err:
+            raise Error(f"{err}. The datapoint is: \n{Human.dict2str(dp)}") from err
 
     def _cyc_to_ns(self, cyc):
         """Convert TSC cycles to nanoseconds."""
@@ -462,6 +491,7 @@ class DatapointProcessor:
           * cpuidle - the 'CPUIdle' object initialized for the SUT (or for the measured system).
         """
 
+        self._cpunum = cpunum
         self._proc = proc
         self._drvname = drvname
         self._intr_focus = intr_focus
@@ -485,6 +515,10 @@ class DatapointProcessor:
         self._has_cstates = None
         self._cs_fields = None
         self._us_fields_set = None
+
+        # Tracks if a user has already been warned about an OS C-state not being supported by
+        # 'CPUIdle._validate_hwcstates()'.
+        self._warned_cstates = set()
 
         if cpuidle is None:
             self._cpu_idle = CPUIdle.CPUIdle(proc=proc)
