@@ -201,11 +201,17 @@ static ssize_t dfs_read_rw_u64_file(struct file *file, char __user *user_buf,
 	if (err)
 		return err;
 
+	spin_lock(&wi->enable_lock);
 	if (!strcmp(dent->d_name.name, LDIST_FROM_FNAME)) {
 		val = atomic64_read(&wi->ldist_from);
 	} else if (!strcmp(dent->d_name.name, LDIST_TO_FNAME)) {
 		val = atomic64_read(&wi->ldist_to);
 	} else {
+		err = -EINVAL;
+	}
+	spin_unlock(&wi->enable_lock);
+
+	if (err) {
 		res = -EINVAL;
 		goto out;
 	}
@@ -244,26 +250,33 @@ static ssize_t dfs_write_rw_u64_file(struct file *file,
 	if (err)
 		goto out;
 
+	spin_lock(&wi->enable_lock);
+	if (wi->enabled)
+		/* Forbid changes if measurements are enabled. */
+		goto out_unlock;
+
 	if (val > wi->wdi->ldist_max || val < wi->wdi->ldist_min)
-		goto out_einval;
+		goto out_unlock;
 
 	if (!strcmp(dent->d_name.name, LDIST_FROM_FNAME)) {
 		if (val > atomic64_read(&wi->ldist_to))
-			goto out_einval;
+			goto out_unlock;
 		atomic64_set(&wi->ldist_from, val);
 	} else if (!strcmp(dent->d_name.name, LDIST_TO_FNAME)) {
 		if (val < atomic64_read(&wi->ldist_from))
-			goto out_einval;
+			goto out_unlock;
 		atomic64_set(&wi->ldist_to, val);
 	} else {
-		goto out_einval;
+		goto out_unlock;
 	}
+	spin_unlock(&wi->enable_lock);
 
 out:
 	debugfs_file_put(dent);
 	return len;
 
-out_einval:
+out_unlock:
+	spin_unlock(&wi->enable_lock);
 	debugfs_file_put(dent);
 	return -EINVAL;
 }
