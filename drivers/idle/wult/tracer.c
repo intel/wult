@@ -59,6 +59,17 @@ static inline unsigned int get_smi_count(void)
 	return smicnt;
 }
 
+/* Try to dirty the CPU cache by writing to a buffer */
+static void dirt_cpu_cache(struct wult_info *wi)
+{
+	bool irqs_off = irqs_disabled();
+
+	if (irqs_off)
+		local_irq_enable();
+	memset(wi->dcbuf, 0, wi->dcbuf_size);
+	if (irqs_off)
+		local_irq_disable();
+}
 /* Get measurement data before idle .*/
 static void before_idle(struct wult_info *wi)
 {
@@ -67,6 +78,9 @@ static void before_idle(struct wult_info *wi)
 	WARN_ON(!irqs_disabled());
 	ti->smi_bi = get_smi_count();
 	ti->nmi_bi = per_cpu(irq_stat, wi->cpunum).__nmi_count;
+
+	if (wi->dcbuf)
+		dirt_cpu_cache(wi);
 
 	/* Make a snapshot of C-state counters. */
 	wult_cstates_snap_cst(&ti->csinfo, 0);
