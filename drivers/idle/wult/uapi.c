@@ -141,7 +141,7 @@ error:
 }
 
 /* Wult debugfs operations for the 'enabled', 'intr_focus' and other files. */
-static const struct file_operations dfs_ops_misc = {
+static const struct file_operations dfs_ops_bool = {
 	.read = dfs_read_bool_file,
 	.write = dfs_write_bool_file,
 	.open = simple_open,
@@ -309,11 +309,11 @@ int wult_uapi_device_register(struct wult_info *wi)
 	debugfs_create_file(LDIST_RES_FNAME, 0444, wi->dfsroot, wi,
 			    &dfs_ops_ro_u64);
 	debugfs_create_file(ENABLED_FNAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_misc);
+			    &dfs_ops_bool);
 	debugfs_create_file(INTR_FOCUS_FNAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_misc);
+			    &dfs_ops_bool);
 	debugfs_create_file(EARLY_INTR_FNAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_misc);
+			    &dfs_ops_bool);
 
 	return 0;
 }
