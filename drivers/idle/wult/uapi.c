@@ -180,15 +180,15 @@ out:
 	return res;
 }
 
-/* Wult debugfs operations for R/O files backed by an u64 variable. */
+/* Wult debugfs operations for R/O files backed by u64 variables. */
 static const struct file_operations dfs_ops_ro_u64 = {
 	.read = dfs_read_ro_u64_file,
 	.open = simple_open,
 	.llseek = default_llseek,
 };
 
-static ssize_t dfs_read_atomic64_file(struct file *file, char __user *user_buf,
-				      size_t count, loff_t *ppos)
+static ssize_t dfs_read_rw_u64_file(struct file *file, char __user *user_buf,
+				    size_t count, loff_t *ppos)
 {
 	struct dentry *dent = file->f_path.dentry;
 	struct wult_info *wi = file->private_data;
@@ -217,8 +217,9 @@ out:
 	return res;
 }
 
-static ssize_t dfs_write_atomic64_file(struct file *file, const char __user *user_buf,
-				       size_t count, loff_t *ppos)
+static ssize_t dfs_write_rw_u64_file(struct file *file,
+				     const char __user *user_buf,
+				     size_t count, loff_t *ppos)
 {
 	struct dentry *dent = file->f_path.dentry;
 	struct wult_info *wi = file->private_data;
@@ -267,10 +268,10 @@ out_einval:
 	return -EINVAL;
 }
 
-/* Wult debugfs operations for R/W files backed by an atomic64 variable. */
-static const struct file_operations dfs_ops_atomic64 = {
-	.read = dfs_read_atomic64_file,
-	.write = dfs_write_atomic64_file,
+/* Wult debugfs operations for R/W files backed by u64 variables. */
+static const struct file_operations dfs_ops_rw_u64 = {
+	.read = dfs_read_rw_u64_file,
+	.write = dfs_write_rw_u64_file,
 	.open = simple_open,
 	.llseek = default_llseek,
 };
@@ -282,9 +283,9 @@ int wult_uapi_device_register(struct wult_info *wi)
 		return PTR_ERR(wi->dfsroot);
 
 	debugfs_create_file(LDIST_FROM_FNAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_atomic64);
+			    &dfs_ops_rw_u64);
 	debugfs_create_file(LDIST_TO_FNAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_atomic64);
+			    &dfs_ops_rw_u64);
 	debugfs_create_file(LDIST_MIN_FNAME, 0444, wi->dfsroot, wi,
 			    &dfs_ops_ro_u64);
 	debugfs_create_file(LDIST_MAX_FNAME, 0444, wi->dfsroot, wi,
