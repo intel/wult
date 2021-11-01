@@ -64,7 +64,7 @@ static int set_bool(struct wult_info *wi, bool *boolptr, bool val)
 		 * The measurements must be disabled in order to toggle the
 		 * interrupt focus mode.
 		 */
-		err = -EINVAL;
+		err = -EBUSY;
 	spin_unlock(&wi->enable_lock);
 
 	return err;
@@ -251,10 +251,13 @@ static ssize_t dfs_write_rw_u64_file(struct file *file,
 		goto out;
 
 	spin_lock(&wi->enable_lock);
-	if (wi->enabled)
+	if (wi->enabled) {
 		/* Forbid changes if measurements are enabled. */
+		err = -EBUSY;
 		goto out_unlock;
+	}
 
+	err = -EINVAL;
 	if (val > wi->wdi->ldist_max || val < wi->wdi->ldist_min)
 		goto out_unlock;
 
@@ -278,7 +281,7 @@ out:
 out_unlock:
 	spin_unlock(&wi->enable_lock);
 	debugfs_file_put(dent);
-	return -EINVAL;
+	return err;
 }
 
 /* Wult debugfs operations for R/W files backed by u64 variables. */
