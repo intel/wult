@@ -298,22 +298,22 @@ int wult_uapi_device_register(struct wult_info *wi)
 	if (IS_ERR(wi->dfsroot))
 		return PTR_ERR(wi->dfsroot);
 
-	debugfs_create_file(LDIST_FROM_FNAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_rw_u64);
-	debugfs_create_file(LDIST_TO_FNAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_rw_u64);
-	debugfs_create_file(LDIST_MIN_FNAME, 0444, wi->dfsroot, wi,
-			    &dfs_ops_ro_u64);
-	debugfs_create_file(LDIST_MAX_FNAME, 0444, wi->dfsroot, wi,
-			    &dfs_ops_ro_u64);
-	debugfs_create_file(LDIST_RES_FNAME, 0444, wi->dfsroot, wi,
-			    &dfs_ops_ro_u64);
 	debugfs_create_file(ENABLED_FNAME, 0644, wi->dfsroot, wi,
 			    &dfs_ops_bool);
 	debugfs_create_file(INTR_FOCUS_FNAME, 0644, wi->dfsroot, wi,
 			    &dfs_ops_bool);
 	debugfs_create_file(EARLY_INTR_FNAME, 0644, wi->dfsroot, wi,
 			    &dfs_ops_bool);
+	debugfs_create_file(LDIST_MIN_FNAME, 0444, wi->dfsroot, wi,
+			    &dfs_ops_ro_u64);
+	debugfs_create_file(LDIST_MAX_FNAME, 0444, wi->dfsroot, wi,
+			    &dfs_ops_ro_u64);
+	debugfs_create_file(LDIST_RES_FNAME, 0444, wi->dfsroot, wi,
+			    &dfs_ops_ro_u64);
+	debugfs_create_file(LDIST_FROM_FNAME, 0644, wi->dfsroot, wi,
+			    &dfs_ops_rw_u64);
+	debugfs_create_file(LDIST_TO_FNAME, 0644, wi->dfsroot, wi,
+			    &dfs_ops_rw_u64);
 
 	return 0;
 }
