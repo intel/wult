@@ -120,22 +120,23 @@ struct wult_info {
 	struct dentry *dfsroot;
 	/* The measured CPU number. */
 	unsigned int cpunum;
-	/*
-	 * Launch distance range in nanoseconds. We pick a random number from
-	 * this range when selecting time for the delayed event.
-	 */
-	atomic64_t ldist_from, ldist_to;
-	/*
-	 * Serialises wult measurements enabling and disabling, protects the
-	 * the 'enabled' field of this structure.
-	 */
-	spinlock_t enable_lock;
 	/* Whether the measurement is enabled. */
 	bool enabled;
 	/* Whether the interrupt latency focused measurements are enabled. */
 	bool intr_focus;
 	/* Whether the early interrupts feature is enabled. */
 	bool early_intr;
+	/*
+	 * Launch distance range in nanoseconds. We pick a random number from
+	 * this range when selecting time for the delayed event.
+	 */
+	u64 ldist_from, ldist_to;
+	/*
+	 * Serialises wult measurements enabling and disabling, protects the
+	 * following fields of this structure: 'enabled', 'intr_focus',
+	 * 'early_intr', 'ldist_from', 'ldist_to'.
+	 */
+	spinlock_t enable_lock;
 	/* Wult tracer information. */
 	struct wult_tracer_info ti;
 	/* The armer thread. */

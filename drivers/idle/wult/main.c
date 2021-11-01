@@ -101,17 +101,21 @@ EXPORT_SYMBOL_GPL(wult_interrupt_finish);
 /* Pick random launch distance. */
 static u64 pick_ldist(void)
 {
-	u64 ldist_from, ldist_to, ldist;
+	u64 ldist;
 
-	ldist_from = atomic64_read(&wi->ldist_from);
-	ldist_to = atomic64_read(&wi->ldist_to);
-	if (ldist_from > ldist_to)
-		ldist_from = ldist_to;
+	/*
+	 * Note, we do not grab the 'wi->enable_lock' here because no one can
+	 * change 'wi->ldist_from' and 'wi->ldist_to' while measurements are
+	 * going on.
+	 */
+
+	if (wi->ldist_from > wi->ldist_to)
+		wi->ldist_from = wi->ldist_to;
 
 	/* Get random ldist within the range. */
 	ldist = get_random_u64();
-	ldist = do_div(ldist, ldist_to - ldist_from + 1);
-	ldist += ldist_from;
+	ldist = do_div(ldist, wi->ldist_to - wi->ldist_from + 1);
+	ldist += wi->ldist_from;
 
 	/* Ensure the ldist_gran. */
 	if (wi->wdi->ldist_gran > 1) {
@@ -289,8 +293,8 @@ static void init_wdi(struct wult_device_info *wdi)
 	wi->wdi = wdi;
 	wdi->priv = wi;
 	wi->cpunum = cpunum;
-	atomic64_set(&wi->ldist_from, max(wdi->ldist_min, DEFAULT_LDIST_FROM));
-	atomic64_set(&wi->ldist_to, min(wdi->ldist_max, DEFAULT_LDIST_TO));
+	wi->ldist_from = max(wdi->ldist_min, DEFAULT_LDIST_FROM);
+	wi->ldist_to = min(wdi->ldist_max, DEFAULT_LDIST_TO);
 	spin_lock_init(&wi->enable_lock);
 	init_waitqueue_head(&wi->armer_wq);
 }
