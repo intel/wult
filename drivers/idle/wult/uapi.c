@@ -49,35 +49,20 @@ static int set_enabled(bool enabled)
 	return err;
 }
 
-static int set_intr_focus(struct wult_info *wi, bool intr_focus)
+/*
+ * Set a boolean variable pointed to by 'boolptr' to value 'val'.
+ */
+static int set_bool(struct wult_info *wi, bool *boolptr, bool val)
 {
 	int err = 0;
 
 	spin_lock(&wi->enable_lock);
-	if (wi->intr_focus == intr_focus || !wi->enabled)
-		wi->intr_focus = intr_focus;
+	if (*boolptr == val || !wi->enabled)
+		*boolptr = val;
 	else
 		/*
 		 * The measurements must be disabled in order to toggle the
 		 * interrupt focus mode.
-		 */
-		err = -EINVAL;
-	spin_unlock(&wi->enable_lock);
-
-	return err;
-}
-
-static int set_early_intr(struct wult_info *wi, bool early_intr)
-{
-	int err = 0;
-
-	spin_lock(&wi->enable_lock);
-	if (wi->early_intr == early_intr || !wi->enabled)
-		wi->early_intr = early_intr;
-	else
-		/*
-		 * The measurements must be disabled in order to enable/disable
-		 * early interrupts.
 		 */
 		err = -EINVAL;
 	spin_unlock(&wi->enable_lock);
@@ -105,9 +90,9 @@ static ssize_t dfs_write_bool_file(struct file *file,
 	if (!strcmp(dent->d_name.name, ENABLED_FNAME))
 		err = set_enabled(val);
 	else if (!strcmp(dent->d_name.name, INTR_FOCUS_FNAME))
-		err = set_intr_focus(wi, val);
+		err = set_bool(wi, &wi->intr_focus, val);
 	else if (!strcmp(dent->d_name.name, EARLY_INTR_FNAME))
-		err = set_early_intr(wi, val);
+		err = set_bool(wi, &wi->early_intr, val);
 	else
 		err = -EINVAL;
 
