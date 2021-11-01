@@ -240,15 +240,15 @@ static ssize_t dfs_write_rw_u64_file(struct file *file,
 
 	len = simple_write_to_buffer(buf, ARRAY_SIZE(buf), ppos, user_buf,
 				     count);
-	if (len < 0) {
-		err = len;
+	if (len < 0)
 		goto out;
-	}
 
 	buf[len] = '\0';
 	err = kstrtoull(buf, 0, &val);
-	if (err)
+	if (err) {
+		len = err;
 		goto out;
+	}
 
 	spin_lock(&wi->enable_lock);
 	if (wi->enabled) {
