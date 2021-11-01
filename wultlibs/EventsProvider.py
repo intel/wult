@@ -151,6 +151,12 @@ class EventsProvider:
             with self._proc.open(self._early_intr_path, "w") as fobj:
                 fobj.write("1")
 
+        if self._dcbuf_size:
+            if not FSHelpers.exists(self._dcbuf_size_path, proc=self._proc):
+                raise Error(f"path {self._dcbuf_size_path} does not exist{self._proc.hostmsg}")
+            with self._proc.open(self._dcbuf_size_path, "w") as fobj:
+                fobj.write(f"{self._dcbuf_size}")
+
     def close(self):
         """Uninitialize everything (unload kernel drivers, etc)."""
 
@@ -180,7 +186,8 @@ class EventsProvider:
                                self.dev.info["devid"], self._saved_drvname, err)
             self._saved_drvname = None
 
-    def __init__(self, dev, cpunum, proc, ldist=None, intr_focus=None, early_intr=None):
+    def __init__(self, dev, cpunum, proc, ldist=None, intr_focus=None, early_intr=None,
+                 dcbuf_size=None):
         """
         Initialize a class instance for a PCI device 'devid'. The arguments are as follows.
           * dev - the delayed event device object created by 'Devices.WultDevice()'.
@@ -192,6 +199,9 @@ class EventsProvider:
           * intr_focus - enable inerrupt latency focused measurements ('WakeLatency' is not measured
                          in this case, only 'IntrLatency').
           * early_intr - enable intrrupts before entering the C-state.
+          * dcbuf_size - size of a memory buffer to write to before requesting C-states in order to
+                         "dirty" the CPU cache. By default the CPU cache dirtying fetature is
+                         disabled. The size has to be an integer amount of bytes.
         """
 
         self.dev = dev
@@ -200,6 +210,7 @@ class EventsProvider:
         self._ldist = ldist
         self._intr_focus = intr_focus
         self._early_intr = early_intr
+        self._dcbuf_size = dcbuf_size
         self._drv = None
         self._saved_drvname = None
         self._basedir = None
@@ -218,6 +229,7 @@ class EventsProvider:
         self._enabled_path = self._basedir / "enabled"
         self._intr_focus_path = self._basedir / "intr_focus"
         self._early_intr_path = self._basedir / "early_intr"
+        self._dcbuf_size_path = self._basedir / "dcbuf_size"
 
         msg = f"Compatible device '{self.dev.info['name']}'{proc.hostmsg}:\n" \
               f" * Device ID: {self.dev.info['devid']}\n" \

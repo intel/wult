@@ -246,6 +246,8 @@ class WultRunner:
         self._res.info["resolution"] = resolution
         self._res.info["intr_focus"] = self._intr_focus
         self._res.info["early_intr"] = self._early_intr
+        if self._dcbuf_size:
+            self._res.info["dcbuf_size"] = self._dcbuf_size
 
         errmsg = None
         if resolution > 1:
@@ -301,7 +303,7 @@ class WultRunner:
                         f"only the following drivers are supported: {supported}")
 
     def __init__(self, proc, dev, res, ldist=None, intr_focus=None, early_intr=None,
-                 tsc_cal_time=10, cpuidle=None, stconf=None):
+                 tsc_cal_time=10, dcbuf_size=None, cpuidle=None, stconf=None):
         """
         The class constructor. The arguments are as follows.
           * proc - the 'Proc' or 'SSH' object that defines the host to run the measurements on.
@@ -314,6 +316,9 @@ class WultRunner:
           * early_intr - enable intrrupts before entering the C-state.
           * tsc_cal_time - amount of senconds to use for calculating TSC rate.
           * cpuidle - the 'CPUIdle' object initialized for the SUT (or for the measured system).
+          * dcbuf_size - size of a memory buffer to write to before requesting C-states in order to
+                         "dirty" the CPU cache. By default the CPU cache dirtying fetature is
+                         disabled. The size has to be an integer amount of bytes.
           * stconf - the statistics configuration, a dictionary describing the statistics that
                      should be collected. By default no statistics will be collected.
         """
@@ -324,6 +329,7 @@ class WultRunner:
         self._ldist = ldist
         self._intr_focus = intr_focus
         self._early_intr = early_intr
+        self._dcbuf_size = dcbuf_size
         self._stconf = stconf
 
         # This is a debugging option that allows to disable automatic wult modules unloading on
@@ -350,7 +356,8 @@ class WultRunner:
         self._progress = _ProgressLine.ProgressLine(period=1)
         self._ep = EventsProvider.EventsProvider(dev, res.cpunum, proc, ldist=self._ldist,
                                                  intr_focus=self._intr_focus,
-                                                 early_intr=self._early_intr)
+                                                 early_intr=self._early_intr,
+                                                 dcbuf_size=self._dcbuf_size)
         self._ftrace = _FTrace.FTrace(proc=proc, timeout=self._timeout)
 
         if self._ep.dev.drvname == "wult_tdt" and self._intr_focus:
