@@ -72,15 +72,15 @@ Path to the Linux kernel sources to build the drivers against. The default is '/
 
 .TP
 \fB\-H\fR \fI\,HOSTNAME\/\fR, \fB\-\-host\fR \fI\,HOSTNAME\/\fR
-System Under Test (SUT) host name to run on (default is the local host).
+Name of the host to run the command on.
 
 .TP
-\fB\-U\fR USERNAME, \fB\-\-username\fR USERNAME
-Name of the user to use for logging into the SUT over SSH. The default user name is 'root'.
+\fB\-U\fR \fI\,USERNAME\/\fR, \fB\-\-username\fR \fI\,USERNAME\/\fR
+Name of the user to use for logging into the remote host over SSH. The default user name is 'root'.
 
 .TP
 \fB\-K\fR \fI\,PRIVKEY\/\fR, \fB\-\-priv\-key\fR \fI\,PRIVKEY\/\fR
-Path to the private SSH key that should be used for logging into the SUT. By default the key is automatically found from standard paths like '~/.ssh'.
+Path to the private SSH key that should be used for logging into the remote host. By default the key is automatically found from standard paths like '~/.ssh'.
 
 .TP
 \fB\-T\fR \fI\,TIMEOUT\/\fR, \fB\-\-timeout\fR \fI\,TIMEOUT\/\fR
@@ -106,24 +106,22 @@ Print debugging information.
 
 .TP
 \fB\-H\fR \fI\,HOSTNAME\/\fR, \fB\-\-host\fR \fI\,HOSTNAME\/\fR
-System Under Test (SUT) host name to run on (default is the local host).
+Name of the host to run the command on.
 
 .TP
-\fB\-U\fR USERNAME, \fB\-\-username\fR USERNAME
-Name of the user to use for logging into the SUT over SSH. The default user name is 'root'.
+\fB\-U\fR \fI\,USERNAME\/\fR, \fB\-\-username\fR \fI\,USERNAME\/\fR
+Name of the user to use for logging into the remote host over SSH. The default user name is 'root'.
 
 .TP
 \fB\-K\fR \fI\,PRIVKEY\/\fR, \fB\-\-priv\-key\fR \fI\,PRIVKEY\/\fR
-Path to the private SSH key that should be used for logging into the SUT. By default the key is automatically found from standard paths like '~/.ssh'.
+Path to the private SSH key that should be used for logging into the remote host. By default the key is automatically found from standard paths like '~/.ssh'.
 
 .TP
 \fB\-T\fR \fI\,TIMEOUT\/\fR, \fB\-\-timeout\fR \fI\,TIMEOUT\/\fR
 SSH connect timeout in seconds, default is 8.
 
 .SH OPTIONS 'ndl start'
-usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid REPORTID] [-l LDIST] [--post-trigger POST_TRIGGER] [--post-trigger-range TRANGE]
-                 [--rfilt RFILT] [--rsel RSEL] [--keep-filtered] [--report]
-                 ifname
+usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid REPORTID] [-l LDIST] [--rfilt RFILT] [--rsel RSEL] [--keep-filtered] [--report] ifname
 
 Start measuring and recording the latency data.
 
@@ -145,15 +143,15 @@ Print debugging information.
 
 .TP
 \fB\-H\fR \fI\,HOSTNAME\/\fR, \fB\-\-host\fR \fI\,HOSTNAME\/\fR
-System Under Test (SUT) host name to run on (default is the local host).
+Name of the host to run the command on.
 
 .TP
-\fB\-U\fR USERNAME, \fB\-\-username\fR USERNAME
-Name of the user to use for logging into the SUT over SSH. The default user name is 'root'.
+\fB\-U\fR \fI\,USERNAME\/\fR, \fB\-\-username\fR \fI\,USERNAME\/\fR
+Name of the user to use for logging into the remote host over SSH. The default user name is 'root'.
 
 .TP
 \fB\-K\fR \fI\,PRIVKEY\/\fR, \fB\-\-priv\-key\fR \fI\,PRIVKEY\/\fR
-Path to the private SSH key that should be used for logging into the SUT. By default the key is automatically found from standard paths like '~/.ssh'.
+Path to the private SSH key that should be used for logging into the remote host. By default the key is automatically found from standard paths like '~/.ssh'.
 
 .TP
 \fB\-T\fR \fI\,TIMEOUT\/\fR, \fB\-\-timeout\fR \fI\,TIMEOUT\/\fR
@@ -188,17 +186,6 @@ separated range or a single value if you want launch distance to be precisely th
 nanoseconds. For example, '\-\-ldist 500us,100ms' would be a [500,100000] microseconds range. Note, too low values may cause failures or prevent the SUT from reaching deep C\-states. The optimal value is system\-specific.
 
 .TP
-\fB\-\-post\-trigger\fR POST_TRIGGER
-The post\-measurement trigger. Please, provide path to a trigger program that should be executed after a datapoint had been collected. The next measurement cycle will start only after the trigger program finishes. The trigger program
-will be executed as 'POST_TRIGGER \-\-value <value>', where '<value>' is the last observed RTD in nanoseconds. This option exists for debugging and troubleshooting purposes only.
-
-.TP
-\fB\-\-post\-trigger\-range\fR TRANGE
-By default, the post trigger is executed for every datapoint, but this option allows for setting the RTD range \- the trigger program will be executed only when observed RTD value is in the range (inclusive). Specify a comma\-separated
-range, e.g '\-\-post\-trigger\-range 50,600'. The default unit is microseconds, but you can use the following specifiers as well: ms \- milliseconds, us \- microseconds, ns \- nanoseconds. For example, '\-\-post\-trigger\-range 100us,1ms' would be
-a [100,1000] microseconds range.
-
-.TP
 \fB\-\-rfilt\fR \fI\,RFILT\/\fR
 The row filter: remove all the rows satisfying the filter expression. Here is an example of an expression: '(WakeLatency < 10000) | (PC6% < 1)'. This row filter expression will remove all rows with 'WakeLatency' smaller than 10000
 nanoseconds or package C6 residency smaller than 1%. You can use any column names in the expression.
@@ -219,7 +206,8 @@ The result will contain, say, 150000 datapoints, 100000 of which will have RTD v
 Generate an HTML report for collected results (same as calling 'report' command with default arguments).
 
 .SH OPTIONS 'ndl report'
-usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--rfilt RFILT] [--rsel RSEL] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR] [--relocatable] [--list-columns]
+usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--rfilt RFILT] [--rsel RSEL] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR] [--relocatable RELOCATABLE]
+                  [--list-columns]
                   respaths [respaths ...]
 
 Create an HTML report for one or multiple test results.
@@ -262,12 +250,13 @@ histograms may look a little bit misleading. This option evens up datapoints cou
 
 .TP
 \fB\-x\fR \fI\,XAXES\/\fR, \fB\-\-xaxes\fR \fI\,XAXES\/\fR
-A comma\-separated list of CSV column names (or python style regular expressions matching the names) to use on X\-axes, default is 'LDist'. Use '\-\-list\-columns' to get the list of the available column names.
+A comma\-separated list of CSV column names (or python style regular expressions matching the names) to use on X\-axes of the scatter plot(s), default is 'LDist'. Use '\-\-list\-columns' to get the list of the available column names. Use
+value 'none' to disable scatter plots.
 
 .TP
 \fB\-y\fR \fI\,YAXES\/\fR, \fB\-\-yaxes\fR \fI\,YAXES\/\fR
-A comma\-separated list of CSV column names (or python style regular expressions matching the names) to use on the Y\-axes. If multiple CSV column names are specified for the X\- or Y\-axes, then the report will include all the X\- and
-Y\-axes combination. The default is 'RTD'. Use '\-\-list\-columns' to get the list of the available column names.
+A comma\-separated list of CSV column names (or python style regular expressions matching the names) to use on the Y\-axes for the scatter plot(s). If multiple CSV column names are specified for the X\- or Y\-axes, then the report will
+include multiple scatter plots for all the X\- and Y\-axes combinations. The default is 'RTD'. Use '\-\-list\-columns' to get the list of the available column names. se value 'none' to disable scatter plots.
 
 .TP
 \fB\-\-hist\fR \fI\,HIST\/\fR
@@ -291,16 +280,18 @@ The report title description \- any text describing this report as whole, or pat
 'platform A vs B comparison'. This text will be included into the very beginning of the resulting HTML report.
 
 .TP
-\fB\-\-relocatable\fR
-The generated report includes references to the test results. By default, these references are symlinks to the raw result directories. However, this makes the generated report be not relocatable. Use this option to make the report
-relocatable in expense of increased disk space consumption \- this tool will make a copy of the test results.
+\fB\-\-relocatable\fR \fI\,RELOCATABLE\/\fR
+By default the generated report includes references to the raw test results, and at the file\-system level, the raw test results are symlinks pointing to the raw test results directory paths. This means that if raw test results are moved
+somewhere, or the generated report is moved to another system, it may end up with broken raw results links. This option accepts 3 possible values: 'copy' and 'noraw', and 'symlink'. In case of the 'copy' value, raw results will be
+copied to the report output directory, which will make the report relocatable, but in expense of increased disk space consumption. In case of the 'noraw' value, the raw results wont be referenced at all, neither in the HTML report, nor
+at the file\-system level. This will also exclude the logs and the statistics. This option may be useful for minimizing the output directory disk space usage. The 'symlink' value corresponds to the default behavior.
 
 .TP
 \fB\-\-list\-columns\fR
 Print the list of the available column names and exit.
 
 .SH OPTIONS 'ndl filter'
-usage: ndl filter [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt CFILT] [--csel CSEL] [-o OUTDIR] [--list-columns] [--reportid REPORTID] respath
+usage: ndl filter [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt CFILT] [--csel CSEL] [--human-readable] [-o OUTDIR] [--list-columns] [--reportid REPORTID] respath
 
 Filter datapoints out of a test result by removing CSV rows and columns according to specified criteria. The criteria is specified using the row and column filter and selector options ('\-\-rsel', '\-\-cfilt', etc). The options may be specified multiple times.
 
@@ -338,6 +329,10 @@ The columns filter: remove all column specified in the filter. The columns filte
 .TP
 \fB\-\-csel\fR \fI\,CSEL\/\fR
 The columns selector: remove all column except for those specified in the selector. The syntax is the same as for '\-\-cfilt'.
+
+.TP
+\fB\-\-human\-readable\fR
+By default the result 'filter' command print the result as a CSV file to the standard output. This option can be used to dump the result in a more human\-readable form.
 
 .TP
 \fB\-o\fR \fI\,OUTDIR\/\fR, \fB\-\-outdir\fR \fI\,OUTDIR\/\fR

@@ -75,15 +75,15 @@ Path to the Linux kernel sources to build the drivers against. The default is '/
 
 .TP
 \fB\-H\fR \fI\,HOSTNAME\/\fR, \fB\-\-host\fR \fI\,HOSTNAME\/\fR
-System Under Test (SUT) host name to run on (default is the local host).
+Name of the host to run the command on.
 
 .TP
-\fB\-U\fR USERNAME, \fB\-\-username\fR USERNAME
-Name of the user to use for logging into the SUT over SSH. The default user name is 'root'.
+\fB\-U\fR \fI\,USERNAME\/\fR, \fB\-\-username\fR \fI\,USERNAME\/\fR
+Name of the user to use for logging into the remote host over SSH. The default user name is 'root'.
 
 .TP
 \fB\-K\fR \fI\,PRIVKEY\/\fR, \fB\-\-priv\-key\fR \fI\,PRIVKEY\/\fR
-Path to the private SSH key that should be used for logging into the SUT. By default the key is automatically found from standard paths like '~/.ssh'.
+Path to the private SSH key that should be used for logging into the remote host. By default the key is automatically found from standard paths like '~/.ssh'.
 
 .TP
 \fB\-T\fR \fI\,TIMEOUT\/\fR, \fB\-\-timeout\fR \fI\,TIMEOUT\/\fR
@@ -109,15 +109,15 @@ Print debugging information.
 
 .TP
 \fB\-H\fR \fI\,HOSTNAME\/\fR, \fB\-\-host\fR \fI\,HOSTNAME\/\fR
-System Under Test (SUT) host name to run on (default is the local host).
+Name of the host to run the command on.
 
 .TP
-\fB\-U\fR USERNAME, \fB\-\-username\fR USERNAME
-Name of the user to use for logging into the SUT over SSH. The default user name is 'root'.
+\fB\-U\fR \fI\,USERNAME\/\fR, \fB\-\-username\fR \fI\,USERNAME\/\fR
+Name of the user to use for logging into the remote host over SSH. The default user name is 'root'.
 
 .TP
 \fB\-K\fR \fI\,PRIVKEY\/\fR, \fB\-\-priv\-key\fR \fI\,PRIVKEY\/\fR
-Path to the private SSH key that should be used for logging into the SUT. By default the key is automatically found from standard paths like '~/.ssh'.
+Path to the private SSH key that should be used for logging into the remote host. By default the key is automatically found from standard paths like '~/.ssh'.
 
 .TP
 \fB\-T\fR \fI\,TIMEOUT\/\fR, \fB\-\-timeout\fR \fI\,TIMEOUT\/\fR
@@ -155,15 +155,15 @@ By default wult refuses to load network card drivers if its Linux network interf
 
 .TP
 \fB\-H\fR \fI\,HOSTNAME\/\fR, \fB\-\-host\fR \fI\,HOSTNAME\/\fR
-System Under Test (SUT) host name to run on (default is the local host).
+Name of the host to run the command on.
 
 .TP
-\fB\-U\fR USERNAME, \fB\-\-username\fR USERNAME
-Name of the user to use for logging into the SUT over SSH. The default user name is 'root'.
+\fB\-U\fR \fI\,USERNAME\/\fR, \fB\-\-username\fR \fI\,USERNAME\/\fR
+Name of the user to use for logging into the remote host over SSH. The default user name is 'root'.
 
 .TP
 \fB\-K\fR \fI\,PRIVKEY\/\fR, \fB\-\-priv\-key\fR \fI\,PRIVKEY\/\fR
-Path to the private SSH key that should be used for logging into the SUT. By default the key is automatically found from standard paths like '~/.ssh'.
+Path to the private SSH key that should be used for logging into the remote host. By default the key is automatically found from standard paths like '~/.ssh'.
 
 .TP
 \fB\-T\fR \fI\,TIMEOUT\/\fR, \fB\-\-timeout\fR \fI\,TIMEOUT\/\fR
@@ -171,7 +171,8 @@ SSH connect timeout in seconds, default is 8.
 
 .SH OPTIONS 'wult start'
 usage: wult start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--rfilt RFILT] [--rsel RSEL] [--keep-filtered] [-o OUTDIR] [--reportid REPORTID] [--stats STATS]
-                  [--stats-intervals STATS_INTERVALS] [--list-stats] [-l LDIST] [--cpunum CPUNUM] [--no-unload] [--post-trigger POST_TRIGGER] [--post-trigger-range TRANGE] [--report] [--force]
+                  [--stats-intervals STATS_INTERVALS] [--list-stats] [-l LDIST] [--cpunum CPUNUM] [--intr-focus] [--tsc-cal-time TSC_CAL_TIME] [--keep-raw-data] [--no-unload] [--early-intr] [--dirty-cpu-cache] [--dcbuf-size DCBUF_SIZE]
+                  [--offline OFFLINE] [--report] [--force]
                   devid
 
 Start measuring and recording C\-state latency.
@@ -194,15 +195,15 @@ Print debugging information.
 
 .TP
 \fB\-H\fR \fI\,HOSTNAME\/\fR, \fB\-\-host\fR \fI\,HOSTNAME\/\fR
-System Under Test (SUT) host name to run on (default is the local host).
+Name of the host to run the command on.
 
 .TP
-\fB\-U\fR USERNAME, \fB\-\-username\fR USERNAME
-Name of the user to use for logging into the SUT over SSH. The default user name is 'root'.
+\fB\-U\fR \fI\,USERNAME\/\fR, \fB\-\-username\fR \fI\,USERNAME\/\fR
+Name of the user to use for logging into the remote host over SSH. The default user name is 'root'.
 
 .TP
 \fB\-K\fR \fI\,PRIVKEY\/\fR, \fB\-\-priv\-key\fR \fI\,PRIVKEY\/\fR
-Path to the private SSH key that should be used for logging into the SUT. By default the key is automatically found from standard paths like '~/.ssh'.
+Path to the private SSH key that should be used for logging into the remote host. By default the key is automatically found from standard paths like '~/.ssh'.
 
 .TP
 \fB\-T\fR \fI\,TIMEOUT\/\fR, \fB\-\-timeout\fR \fI\,TIMEOUT\/\fR
@@ -274,20 +275,52 @@ event source will be used. The optimal launch distance range is system\-specific
 The logical CPU number to measure, default is CPU 0.
 
 .TP
+\fB\-\-intr\-focus\fR
+Enable interrupt latency focused measurements. Most C\-states are entered using the 'mwait' instruction with interrupts disabled. When there is an interrupt, the CPU wakes up and continues running the instructions after the 'mwait'. The
+CPU first runs some housekeeping code, and only then the interrupts get enabled and the CPU jumps to the interrupt handler. {OWN_NAME.title()} measures 'WakeLatency' during the "housekeeping" stage, and 'IntrLatency' is measured in the
+interrupt handler. However, the 'WakeLatency' measurement takes time and affects the measured 'IntrLatency'. This option disables 'WakeLatency' measurements, which improves 'IntrLatency' measurements' accuracy.
+
+.TP
+\fB\-\-tsc\-cal\-time\fR \fI\,TSC_CAL_TIME\/\fR
+Wult receives raw datapoints from the driver, then processes them, and then saves the processed datapoint in the 'datapoints.csv' file. The processing involves converting TSC cycles to microseconds, so wult needs SUT's TSC rate. TSC
+rate is calculated from the datapoints, which come with TSC counters and timestamps, so TSC rate can be calculated as "delta TSC / delta timestamp". In other words, wult needs two datapoints to calculate TSC rate. However, the
+datapoints have to be far enough apart, and this option defines the distance between the datapoints (in seconds). The default distance is 10 seconds, which means that wult will keep collecting and buffering datapoints for 10s without
+processing them (because processing requires TSC rate to be known). After 10s, wult will start processing all the buffered datapoints, and then the newly collected datapoints. Generally, longer TSC calculation time translates to better
+accuracy.
+
+.TP
+\fB\-\-keep\-raw\-data\fR
+Wult receives raw datapoints from the driver, then processes them, and then saves the processed datapoint in the 'datapoints.csv' file. In order to keep the CSV file smaller, wult keeps only the esential information, and drops the rest.
+For example, raw timestamps are dropped. With this option, however, wult saves all the raw data to the CSV file, along with the processed data.
+
+.TP
 \fB\-\-no\-unload\fR
 This option exists for debugging and troubleshooting purposes. Please, do not use for other reasons. While normally wult kernel modules are unloaded after the measurements are done, with this option the modules will stay loaded into the
 kernel. Keep in mind that if the the specified 'devid' device was bound to some driver (e.g., a network driver), it will be unbinded and with this option it won't be binded back.
 
 .TP
-\fB\-\-post\-trigger\fR POST_TRIGGER
-The post\-measurement trigger. Please, provide path to a trigger program that should be executed after a datapoint had been collected. The next measurement cycle will start only after the trigger program finishes. The trigger program
-will be executed as 'POST_TRIGGER \-\-value <value>', where '<value>' is the last observed wake latency in nanoseconds. This option exists for debugging and troubleshooting purposes only.
+\fB\-\-early\-intr\fR
+This option is for research purposes and you most probably do not need it. Linux's 'cpuidle' subsystem enters most C\-states with interrupts disabled. So when the CPU exits the C\-state becaouse of an interrupt, it will not jump to the
+interrupt handler, but instead, continue running some 'cpuidle' housekeeping code. After this, the 'cpuidle' subsystem enables interrupts, and the CPU jumps to the interrupt hanlder. Therefore, there is a tiny delay the 'cpuidle'
+subsystem adds on top of the hardware C\-state latency. For fast C\-states like C1, this tiny delay may even be measurable on some platforms. This option allows to measure that delay. It makes wult enable interrupts before linux enters
+the C\-state. This option is generally a crude option along with '\-\-intr\-focus'. When this option is used, often it makes sense to use '\-\-intr\-focus' at the same time.
 
 .TP
-\fB\-\-post\-trigger\-range\fR TRANGE
-By default, the post trigger is executed for every datapoint, but this option allows for setting the wake latency range \- the trigger program will be executed only when observed wake latency value is in the range (inclusive). Specify a
-comma\-separated range, e.g '\-\-post\-trigger\-range 50,600'. The default unit is microseconds, but you can use the following specifiers as well: ms \- milliseconds, us \- microseconds, ns \- nanoseconds. For example, '\-\-post\-trigger\-range
-100us,1ms' would be a [100,1000] microseconds range.
+\fB\-\-dirty\-cpu\-cache\fR
+Deeper C\-states like Intel CPU core C6 flush the CPU cache before entering the C\-state. Therefore, the dirty CPU cache lines must be written back to the main memory before entering the C\-state. This may increase C\-state latency observed
+by the operating system. If this option is used, wult will try to "dirty" the measured CPU cache before requesting C\-states. This is done by writing zeroes to a pre\-allocated 2MiB buffer.
+
+.TP
+\fB\-\-dcbuf\-size\fR \fI\,DCBUF_SIZE\/\fR
+By default, in order to make CPU cache be filled with dirty cache lines, wult filles a 2MiB buffer with zeroes before requesting a C\-state. This buffer is reffered to as "dirty cache buffer", or "dcbuf". This option allows for changing
+the dcbuf size. For example, in order to make it 4MiB, use '\-\-dcbuf\-size=4MiB'.
+
+.TP
+\fB\-\-offline\fR \fI\,OFFLINE\/\fR
+Offline CPUs before the measurements. The possible values are: same\-core, same\-package, all. The "same\-core" value offlines all other CPUs on the same core as the measured CPU. The "same\-package" value offlines all CPUs on the same
+package as the measured CPU, and the "all" value offlines all CPUs except for the measured CPU. Example: consider a hypothetical 2\-socket system with 2 cores per socket and 2 CPUs per core (e.g., hyper\-threads). The default measured CPU
+is CPU0 (see '\-\-cpunum'). Suppose CPU0\-3 are on package 0, and CPU4\-7 are on package 1. Suppose CPU2 is the hyper\-thread running on the same core as CPU0. In this case '\-\-offline same\-core' would offline only CPU2, '\-\-offline same\-
+package' would offline CPU1\-3, '\-\-offline all' would offline CPU1\-7. The CPUs are offlined before starting the measurements, and onlined back after the measurements.
 
 .TP
 \fB\-\-report\fR
@@ -298,7 +331,8 @@ Generate an HTML report for collected results (same as calling 'report' command 
 By default wult does not accept network card as a measurement device if its Linux network interface is in an active state, such as "up". Use '\-\-force' to disable this safety mechanism. Use '\-\-force' option with caution.
 
 .SH OPTIONS 'wult report'
-usage: wult report [-h] [-q] [-d] [-o OUTDIR] [--rfilt RFILT] [--rsel RSEL] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR] [--relocatable] [--list-columns]
+usage: wult report [-h] [-q] [-d] [-o OUTDIR] [--rfilt RFILT] [--rsel RSEL] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR] [--relocatable RELOCATABLE]
+                   [--list-columns] [--size REPORT_SIZE]
                    respaths [respaths ...]
 
 Create an HTML report for one or multiple test results.
@@ -341,22 +375,23 @@ histograms may look a little bit misleading. This option evens up datapoints cou
 
 .TP
 \fB\-x\fR \fI\,XAXES\/\fR, \fB\-\-xaxes\fR \fI\,XAXES\/\fR
-A comma\-separated list of CSV column names (or python style regular expressions matching the names) to use on X\-axes, default is 'SilentTime'. Use '\-\-list\-columns' to get the list of the available column names.
+A comma\-separated list of CSV column names (or python style regular expressions matching the names) to use on X\-axes of the scatter plot(s), default is 'SilentTime'. Use '\-\-list\-columns' to get the list of the available column names.
+Use value 'none' to disable scatter plots.
 
 .TP
 \fB\-y\fR \fI\,YAXES\/\fR, \fB\-\-yaxes\fR \fI\,YAXES\/\fR
-A comma\-separated list of CSV column names (or python style regular expressions matching the names) to use on the Y\-axes. If multiple CSV column names are specified for the X\- or Y\-axes, then the report will include all the X\- and
-Y\-axes combination. The default is '.*Latency,.*Delay'. Use '\-\-list\-columns' to get the list of the available column names.
+A comma\-separated list of CSV column names (or python style regular expressions matching the names) to use on the Y\-axes for the scatter plot(s). If multiple CSV column names are specified for the X\- or Y\-axes, then the report will
+include multiple scatter plots for all the X\- and Y\-axes combinations. The default is '.*Latency'. Use '\-\-list\-columns' to get the list of the available column names. se value 'none' to disable scatter plots.
 
 .TP
 \fB\-\-hist\fR \fI\,HIST\/\fR
-A comma\-separated list of CSV column names (or python style regular expressions matching the names) to add a histogram for, default is '.*Latency,.*Delay'. Use '\-\-list\-columns' to get the list of the available column names. Use value
-'none' to disable histograms.
+A comma\-separated list of CSV column names (or python style regular expressions matching the names) to add a histogram for, default is '.*Latency'. Use '\-\-list\-columns' to get the list of the available column names. Use value 'none' to
+disable histograms.
 
 .TP
 \fB\-\-chist\fR \fI\,CHIST\/\fR
-A comma\-separated list of CSV column names (or python style regular expressions matching the names) to add a cumulative distribution for, default is '.*Latency'. Use '\-\-list\-columns' to get the list of the available column names. Use
-value 'none' to disable cumulative histograms.
+A comma\-separated list of CSV column names (or python style regular expressions matching the names) to add a cumulative distribution for, default is 'None'. Use '\-\-list\-columns' to get the list of the available column names. Use value
+'none' to disable cumulative histograms.
 
 .TP
 \fB\-\-reportids\fR \fI\,REPORTIDS\/\fR
@@ -370,16 +405,24 @@ The report title description \- any text describing this report as whole, or pat
 'platform A vs B comparison'. This text will be included into the very beginning of the resulting HTML report.
 
 .TP
-\fB\-\-relocatable\fR
-The generated report includes references to the test results. By default, these references are symlinks to the raw result directories. However, this makes the generated report be not relocatable. Use this option to make the report
-relocatable in expense of increased disk space consumption \- this tool will make a copy of the test results.
+\fB\-\-relocatable\fR \fI\,RELOCATABLE\/\fR
+By default the generated report includes references to the raw test results, and at the file\-system level, the raw test results are symlinks pointing to the raw test results directory paths. This means that if raw test results are moved
+somewhere, or the generated report is moved to another system, it may end up with broken raw results links. This option accepts 3 possible values: 'copy' and 'noraw', and 'symlink'. In case of the 'copy' value, raw results will be
+copied to the report output directory, which will make the report relocatable, but in expense of increased disk space consumption. In case of the 'noraw' value, the raw results wont be referenced at all, neither in the HTML report, nor
+at the file\-system level. This will also exclude the logs and the statistics. This option may be useful for minimizing the output directory disk space usage. The 'symlink' value corresponds to the default behavior.
 
 .TP
 \fB\-\-list\-columns\fR
 Print the list of the available column names and exit.
 
+.TP
+\fB\-\-size\fR \fI\,REPORT_SIZE\/\fR
+Generate HTML report with a pre\-defined set of diagrams and histograms. This option is mutually exclusive with '\-\-xaxes', '\-\-yaxes', '\-\-hist', '\-\-chist', therefore cannot be used in combination with any of these options. This option can
+be set to 'small', 'medium' or 'large'. Here are the regular expressions for each setting: small: {XAXES='SilentTime', YAXES='.*Latency', HIST='.*Latency', CHIST='None'} medium: {XAXES='SilentTime', YAXES='.*Latency,.*Delay',
+HIST='.*Latency,.*Delay', CHIST='.*Latency'} large: {XAXES='SilentTime,LDist', YAXES='.*Latency.*,.*Delay.*,[PC]C.+%,SilentTime,ReqCState', HIST='.*Latency.*,.*Delay.*,[PC]C.+%,SilentTime,ReqCState,LDist', CHIST='.*Latency'}
+
 .SH OPTIONS 'wult filter'
-usage: wult filter [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt CFILT] [--csel CSEL] [-o OUTDIR] [--list-columns] [--reportid REPORTID] respath
+usage: wult filter [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt CFILT] [--csel CSEL] [--human-readable] [-o OUTDIR] [--list-columns] [--reportid REPORTID] respath
 
 Filter datapoints out of a test result by removing CSV rows and columns according to specified criteria. The criteria is specified using the row and column filter and selector options ('\-\-rsel', '\-\-cfilt', etc). The options may be specified multiple times.
 
@@ -417,6 +460,10 @@ The columns filter: remove all column specified in the filter. The columns filte
 .TP
 \fB\-\-csel\fR \fI\,CSEL\/\fR
 The columns selector: remove all column except for those specified in the selector. The syntax is the same as for '\-\-cfilt'.
+
+.TP
+\fB\-\-human\-readable\fR
+By default the result 'filter' command print the result as a CSV file to the standard output. This option can be used to dump the result in a more human\-readable form.
 
 .TP
 \fB\-o\fR \fI\,OUTDIR\/\fR, \fB\-\-outdir\fR \fI\,OUTDIR\/\fR
