@@ -705,7 +705,6 @@ class HTMLReportBase:
                     colnames.append(colname)
 
             csel = Trivial.list_dedup(self._smry_colnames + colnames)
-            res.clear_filts()
             res.set_csel(csel)
             res.load_df()
 
