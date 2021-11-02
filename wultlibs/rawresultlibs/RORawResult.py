@@ -342,7 +342,7 @@ class RORawResult(_RawResultBase.RawResultBase):
             _LOG.debug("applying rows selector: %s", rsel)
             try:
                 expr = pandas.eval(rsel)
-            except SyntaxError as err:
+            except Exception as err:
                 raise Error(f"failed to evaluate expression '{rsel}'. Make sure you use correct "
                             f"CSV column names, which are also case-sensitive.") from err
             self.df = self.df[expr].reset_index(drop=True)
