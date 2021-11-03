@@ -8,6 +8,7 @@
 #include <linux/err.h>
 #include <linux/errno.h>
 #include <linux/fs.h>
+#include <linux/vmalloc.h>
 #include "tracer.h"
 #include "uapi.h"
 #include "wult.h"
@@ -331,18 +332,18 @@ static int set_dcbuf_size(struct wult_info *wi, unsigned long size)
 	if (size > WULT_DCBUF_MAX_SIZE)
 		return -EINVAL;
 
-	dcbuf = kmalloc(size, GFP_KERNEL);
+	dcbuf = vmalloc(size);
 	if (!dcbuf)
 		return -EINVAL;
 
 	spin_lock(&wi->enable_lock);
 	if (wi->enabled) {
 		spin_unlock(&wi->enable_lock);
-		kfree(dcbuf);
+		vfree(dcbuf);
 		return -EBUSY;
 	}
 	if (wi->dcbuf)
-		kfree(wi->dcbuf);
+		vfree(wi->dcbuf);
 	wi->dcbuf = dcbuf;
 	wi->dcbuf_size = size;
 	spin_unlock(&wi->enable_lock);

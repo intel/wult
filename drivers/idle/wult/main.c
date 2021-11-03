@@ -18,6 +18,7 @@
 #include <linux/slab.h>
 #include <linux/smp.h>
 #include <linux/spinlock.h>
+#include <linux/vmalloc.h>
 #include <asm/div64.h>
 #include <asm/tsc.h>
 #include "tracer.h"
@@ -375,7 +376,7 @@ void wult_unregister(void)
 	wult_tracer_exit(wi);
 
 	if (wi->dcbuf) {
-		kfree(wi->dcbuf);
+		vfree(wi->dcbuf);
 		wi->dcbuf = NULL;
 	}
 
