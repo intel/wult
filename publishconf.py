@@ -12,7 +12,7 @@ from pelicanconf import *
 SITEURL = "https://intel.github.io/wult"
 
 MENUITEMS = (
-    ("Overview", "/wult/index.html"),
+    ("How it works", "/wult/pages/how-it-works.html"),
     ("Install", "/wult/pages/install-guide.html"),
     ("Use", "/wult/pages/user-guide.html"),
     ("Ndl", "/wult/pages/ndl.html"),

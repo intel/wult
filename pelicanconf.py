@@ -3,7 +3,7 @@
 
 AUTHOR = "Artem Bityutskiy"
 SITENAME = "Wult"
-SITEURL = ""
+SITEURL = "http://localhost:8000"
 
 PATH = "content"
 TIMEZONE = "UTC"
@@ -13,6 +13,9 @@ DELETE_OUTPUT_DIRECTORY = True
 
 DISPLAY_CATEGORIES_ON_MENU = False
 DISPLAY_PAGES_ON_MENU = False
+DISPLAY_ARTICLE_INFO_ON_INDEX=False
+HIDE_SIDEBAR=True
+HIDE_CATEGORIES=True
 
 FEED_ALL_ATOM = None
 CATEGORY_FEED_ATOM = None
@@ -21,18 +24,35 @@ AUTHOR_FEED_ATOM = None
 AUTHOR_FEED_RSS = None
 
 DEFAULT_PAGINATION = False
-RELATIVE_URLS = True
+#RELATIVE_URLS = True
 
-THEME="../pelican-themes/fresh"
+PLUGIN_PATHS = ['../pelican-plugins']
+PLUGINS = ['i18n_subsites', ]
+JINJA_ENVIRONMENT = {
+    'extensions': ['jinja2.ext.i18n'],
+}
 
-STATIC_PATHS=["results", "images"]
-ARTICLE_EXCLUDES=["results"]
+#THEME = "../pelican-fresh"
+#THEME = "../pelican-themes/sneakyidea"
+#THEME = "../pelican-themes/relapse"
+THEME = "../pelican-themes/Peli-Kiera"
+#THEME = "../pelican-themes/pelican-fh5co-marble"
 
-SYNTAX_THEME = "github"
+#THEME = "../pelican-themes/pelican-bootstrap3"
+#CC_LICENSE = "CC-BY"
+#BOOTSTRAP_THEME = "flatly"
+#BOOTSTRAP_THEME = "sandstone"
+#BOOTSTRAP_THEME = "cerulean"
+#BOOTSTRAP_THEME = "readable-old"
+#PYGMENTS_STYLE = "vim"
+
+STATIC_PATHS = ["results", "images"]
+ARTICLE_EXCLUDES = ["results"]
 
 MENUITEMS = (
-    ("Overview", "/index.html"),
+    ("How it works", "/pages/how-it-works.html"),
     ("Install", "/pages/install-guide.html"),
     ("Use", "/pages/user-guide.html"),
+    ("Howto", "/pages/howto.html"),
     ("Ndl", "/pages/ndl.html"),
 )
