@@ -306,7 +306,7 @@ static void init_wdi(struct wult_device_info *wdi)
  */
 int wult_register(struct wult_device_info *wdi)
 {
-	int err = -EINVAL;
+	int err;
 
 	if (!try_module_get(THIS_MODULE))
 		return -ENODEV;
@@ -314,6 +314,7 @@ int wult_register(struct wult_device_info *wdi)
 	mutex_lock(&wi->dev_mutex);
 	if (wi->wdi) {
 		wult_err("already have device '%s' registered", wi->wdi->devname);
+		err = -EBUSY;
 		goto err_put;
 	}
 
