@@ -75,6 +75,7 @@ fi
 ask_question "Did you run tests"
 ask_question "Did you update man pages"
 ask_question "Did you update 'debian/changelog'"
+ask_question "Did you specify pepc version dependency in 'setup.py' and 'debian/changelog'"
 
 # Make sure the git index is up-to-date
 [ -z "$(git status --porcelain)" ] || fatal "git index is not up-to-date"
