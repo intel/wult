@@ -1,9 +1,9 @@
 wult (1.9.8) unstable; urgency=low
 
-  * wult: new feature/option: --dirty-cpu-cache
-  * wult/ndl: use modules from the 'pepc' project (new dependency)
-  * wult: improve error messages
-  * wult: -H option can now be placed anywhere
+  * wult: add 'start --dirty-cpu-cache' option/capability.
+  * wult/ndl: use modules from the 'pepc' project (new dependency).
+  * wult: calculate TSC rate and improve measurements accuracy.
+  * wult: this version requres pepc v1.1.1.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 08 Oct 2021 10:53:30 +0300
 
