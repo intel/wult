@@ -419,7 +419,8 @@ Print the list of the available column names and exit.
 \fB\-\-size\fR \fI\,REPORT_SIZE\/\fR
 Generate HTML report with a pre\-defined set of diagrams and histograms. This option is mutually exclusive with '\-\-xaxes', '\-\-yaxes', '\-\-hist', '\-\-chist', therefore cannot be used in combination with any of these options. This option can
 be set to 'small', 'medium' or 'large'. Here are the regular expressions for each setting: small: {XAXES='SilentTime', YAXES='.*Latency', HIST='.*Latency', CHIST='None'} medium: {XAXES='SilentTime', YAXES='.*Latency,.*Delay',
-HIST='.*Latency,.*Delay', CHIST='.*Latency'} large: {XAXES='SilentTime,LDist', YAXES='.*Latency.*,.*Delay.*,[PC]C.+%,SilentTime,ReqCState', HIST='.*Latency.*,.*Delay.*,[PC]C.+%,SilentTime,ReqCState,LDist', CHIST='.*Latency'}
+HIST='.*Latency,.*Delay', CHIST='.*Latency'} large: {XAXES='SilentTime,LDist', YAXES='.*Latency.*,.*Delay(?!Cyc).*,[PC]C.+%,SilentTime,ReqCState', HIST='.*Latency.*,.*Delay(?!Cyc).*,[PC]C.+%,SilentTime,ReqCState,LDist',
+CHIST='.*Latency'}
 
 .SH OPTIONS 'wult filter'
 usage: wult filter [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt CFILT] [--csel CSEL] [--human-readable] [-o OUTDIR] [--list-columns] [--reportid REPORTID] respath
@@ -531,5 +532,5 @@ Print the list of the available summary functions.
 was written by Artem Bityutskiy <dedekind1@gmail.com>.
 .SH DISTRIBUTION
 The latest version of wult may be downloaded from
-.UR <<UNSET \-\-url OPTION>>
+.UR https://github.com/intel/wult
 .UE
