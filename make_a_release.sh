@@ -83,6 +83,18 @@ ask_question "Did you specify pepc version dependency in 'setup.py' and 'debian/
 # Change the tool version.
 sed -i -e "s/^VERSION = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"$/VERSION = \"$new_ver\"/" wult
 
+# Update the man page.
+argparse-manpage --pyfile ./wult --function build_arguments_parser \
+                 --project-name 'wult' --author 'Artem Bityutskiy' \
+                 --author-email 'dedekind1@gmail.com' --output docs/man1/wult.1 \
+                 --url 'https://github.com/intel/wult'
+argparse-manpage --pyfile ./ndl --function build_arguments_parser \
+                 --project-name 'ndl' --author 'Artem Bityutskiy' \
+                 --author-email 'dedekind1@gmail.com' --output docs/man1/ndl.1 \
+                 --url 'https://github.com/intel/ndl'
+pandoc --toc -t man -s docs/man1/wult.1 -t rst -o docs/wult-man.rst
+pandoc --toc -t man -s docs/man1/ndl.1  -t rst -o docs/ndl-man.rst
+
 # Commit the changes
 git commit -a -s -m "Release version $new_ver"
 
