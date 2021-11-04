@@ -11,4 +11,6 @@ Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 Wult stands for "Wake Up Latency Tracer", and this is a project that provides tools for measuring
 C-state latency in Linux.
 
-Project web pages: https://intel.github.io/wult
+Please, refer to the [documentation web pages](https://intel.github.io/wult) for more information.
+
+Wult man page is available [here](docs/wult-man.rst).
