@@ -517,7 +517,7 @@ class DatapointProcessor:
         self._us_fields_set = None
 
         # Tracks if a user has already been warned about an OS C-state not being supported by
-        # 'CPUIdle._validate_hwcstates()'.
+        # 'CPUIdle.validate_hwcstates()'.
         self._warned_cstates = set()
 
         if cpuidle is None:
