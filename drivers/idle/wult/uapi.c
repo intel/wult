@@ -326,7 +326,6 @@ out:
 
 static int set_dcbuf_size(struct wult_info *wi, unsigned long size)
 {
-	int err;
 	char *dcbuf;
 
 	if (size > WULT_DCBUF_MAX_SIZE)
