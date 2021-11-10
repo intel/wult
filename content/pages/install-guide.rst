@@ -49,7 +49,7 @@ Make sure you have root or `sudo` permissions on the SUT.
 *Wult* has several dependencies. First of all, the sources of the running kernel must be installed
 on the SUT. Not just kernel headers for user-space programs, but full kernel source code.
 
-Wult also requires `pepc <https://github.com/intel/pepc>` to be installed.
+Wult also requires `pepc <https://github.com/intel/pepc>`_ to be installed.
 You'll also need the tools necessary for compiling kernel drivers on the SUT: `gcc`, `make`, etc.
 
 In addition to this, *wult* requires various python packages.
