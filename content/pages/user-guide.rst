@@ -71,8 +71,10 @@ The example output lists 3 devices that can be used as delayed interrupt sources
 * *tdt* - the TCS deadline timer.
 * *hrtimer* or *hrt* - the high resolution timer, **this is what we recommend to use** to most users.
 * *0000:38:00.0* - this is the PCI address of the I210 NIC. This NIC is also available under the
-  `enp1s0` name, which is actually the Linux network interface name. Please, check the
-  `this howto section <howto.html#use-wult-with-intel-i210>`_.
+  `enp1s0` name, which is actually the Linux network interface name.
+
+If using the *nic* method, `this howto section <howto.html#intel-i210>`_ has
+some useful information.
 
 
 3. Start the measurements
@@ -119,35 +121,4 @@ Note, you can generate a **diff** too. A diff is an HTML report for multiple raw
 it easier to compare test results. Just give `wult report` multiple raw test results to generate a
 diff.
 
-4.1. Advanced example
----------------------
-
-This section describes how `this diff <../results/ivt-c6-hfm-nic-vs-tdt/index.html>`_ was generated.
-The diff compares *nic* and *tdt* results for the same system (details
-`here <how-it-works.html#c-state-prewake>`_).
-
-We had two raw test results: ::
-
- $ ls
- ivt-nic-c6-hfm-noaspm  ivt-tdt-c6-hfm-noaspm
-
-First is for the *nic* method, second is for the *tdt* method. We started with a default
-`wult report` options: ::
-
- $ wult report -o ivt-c6-hfm-nic-vs-tdt ivt-nic-c6-hfm-noaspm ivt-tdt-c6-hfm-noaspm
-
- $ du -sh ivt-c6-hfm-nic-vs-tdt/
- 406M	ivt-c6-hfm-nic-vs-tdt/
-
-This resulted in a 406M HTML report, which is too large to publish in GitHub web pages.
-
-Each raw result contained 1000000 datapoints, which is quite a lot. So we decided to use only 10000
-datapoints out of 1M. ::
-
- $ rm -r ivt-c6-hfm-nic-vs-tdt
- $ wult report -o ivt-c6-hfm-nic-vs-tdt --rsel 'index < 10000' ivt-nic-c6-hfm-noaspm ivt-tdt-c6-hfm-noaspm
-
- $ du -sh ivt-c6-hfm-nic-vs-tdt
- 11M	ivt-c6-hfm-nic-vs-tdt
-
-This 11M diff was more suitable *wult* web pages.
+Please, find `more 'wult report' hints here <howto.html#wult-report>`_.
