@@ -20,5 +20,4 @@ Development
 
 Publish
 
-Make publishconf
-Copy output/* to the gh-pages branch, commit
+Run 'make publish'
