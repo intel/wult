@@ -121,7 +121,7 @@ class DatapointProcessor:
             self._cpuidle.validate_hwcstates(hwcstates, cstate, self._cpunum)
         except ErrorNotSupported as err:
             if cstate not in self._warned_cstates:
-                _LOG.warning("%s", err)
+                _LOG.notice("disclaimer: %s. This is harmless.", err)
                 _LOG.debug("%s. The datapoint is:\n%s\n", err, Human.dict2str(dp))
                 self._warned_cstates.add(cstate)
         except Error as err:
