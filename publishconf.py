@@ -15,5 +15,6 @@ MENUITEMS = (
     ("How it works", "/wult/pages/how-it-works.html"),
     ("Install", "/wult/pages/install-guide.html"),
     ("Use", "/wult/pages/user-guide.html"),
+    ("Howto", "/wult/pages/howto.html"),
     ("Ndl", "/wult/pages/ndl.html"),
 )
