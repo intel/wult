@@ -73,7 +73,6 @@ fi
 
 # Remind the maintainer about various important things
 ask_question "Did you run tests"
-ask_question "Did you update man pages"
 ask_question "Did you update 'debian/changelog'"
 ask_question "Did you specify pepc version dependency in 'setup.py' and 'debian/changelog'"
 
