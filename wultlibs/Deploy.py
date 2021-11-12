@@ -255,7 +255,7 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
     # shift between local and remote systems.
     time_delta = 0
     if proc.is_remote:
-        time_delta = time.time() - RemoteHelpers.time_time()
+        time_delta = time.time() - RemoteHelpers.time_time(proc=proc)
 
     # Compare source and destination files' timestamps.
     for what, dinfo in dinfos.items():
@@ -267,7 +267,7 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
             except ErrorNotFound:
                 deployable_not_found(dst)
 
-            if src_mtime + time_delta > dst_mtime:
+            if src_mtime > time_delta + dst_mtime:
                 src_str = ", ".join([str(path) for path in src])
                 _LOG.debug("%s src time %d + %d > dst_mtime %d\nsrc: %s\ndst %s",
                            what, src_mtime, time_delta, dst_mtime, src_str, dst)
