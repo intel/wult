@@ -32,7 +32,7 @@ from wultlibs.reportlibs import WultHTMLReport
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs import Deploy, ToolsCommon, Devices, EventsProvider, WultRunner, WultStatsCollect
 
-VERSION = "1.9.8"
+VERSION = "1.9.9"
 OWN_NAME = "wult"
 
 # By default 'ReportID' module does not allow for the ":" character, but it is part of the PCI

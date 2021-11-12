@@ -351,10 +351,10 @@ Start measuring and recording C-state latency.
    there is an interrupt, the CPU wakes up and continues running the
    instructions after the 'mwait'. The CPU first runs some housekeeping
    code, and only then the interrupts get enabled and the CPU jumps to
-   the interrupt handler. {OWN_NAME.title()} measures 'WakeLatency'
-   during the "housekeeping" stage, and 'IntrLatency' is measured in the
-   interrupt handler. However, the 'WakeLatency' measurement takes time
-   and affects the measured 'IntrLatency'. This option disables
+   the interrupt handler. Wult measures 'WakeLatency' during the
+   "housekeeping" stage, and 'IntrLatency' is measured in the interrupt
+   handler. However, the 'WakeLatency' measurement takes time and
+   affects the measured 'IntrLatency'. This option disables
    'WakeLatency' measurements, which improves 'IntrLatency'
    measurements' accuracy.
 
