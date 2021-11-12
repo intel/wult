@@ -51,11 +51,11 @@ publishconf:
 
 publish: publishconf
 	ghp-import -m "Re-generate Pelican site" -b $(GITHUB_PAGES_BRANCH) "$(OUTPUTDIR)"
-	git push origin $(GITHUB_PAGES_BRANCH):$(GITHUB_PAGES_BRANCH)
-	git push origin master:$(WEB_BRANCH)
-	git push upstream $(GITHUB_PAGES_BRANCH):$(GITHUB_PAGES_BRANCH)
-	git push upstream master:$(WEB_BRANCH)
-	git push public $(GITHUB_PAGES_BRANCH):$(GITHUB_PAGES_BRANCH)
-	git push public master:$(WEB_BRANCH)
+	git push --force origin $(GITHUB_PAGES_BRANCH):$(GITHUB_PAGES_BRANCH)
+	git push --force public $(GITHUB_PAGES_BRANCH):$(GITHUB_PAGES_BRANCH)
+	git push --force upstream $(GITHUB_PAGES_BRANCH):$(GITHUB_PAGES_BRANCH)
+	git push origin $(WEB_BRANCH):$(WEB_BRANCH)
+	git push public $(WEB_BRANCH):$(WEB_BRANCH)
+	git push upstream $(WEB_BRANCH):$(WEB_BRANCH)
 
 #.PHONY: all html help clean serve publish github
