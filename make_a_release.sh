@@ -110,6 +110,12 @@ To finish the release:
 
 The commands would be:
 
+git push origin $tag_name
+git push origin master:master
+git push origin master:release
+git push upstream $tag_name
+git push upstream master:master
+git push upstream master:release
 git push public $tag_name
 git push public master:master
 git push public master:release
