@@ -11,6 +11,8 @@ This module base class for wirte-only raw test result classes.
 """
 
 import os
+import shutil
+import contextlib
 from pepclibs.helperlibs import FSHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
 from wultlibs.helperlibs import YAML
@@ -38,9 +40,11 @@ class WORawResultBase(_RawResultBase.RawResultBase):
                 if path.exists():
                     raise ErrorExists(f"cannot use path '{self.dirpath}' as the output directory, "
                                       f"it already contains '{path.name}'")
+            self._created_paths = paths
         else:
             try:
                 self.dirpath.mkdir(parents=True, exist_ok=True)
+                self._created_paths.append(self.dirpath)
                 FSHelpers.set_default_perm(self.dirpath)
             except OSError as err:
                 raise Error(f"failed to create directory '{self.dirpath}':\n{err}") from None
@@ -154,6 +158,7 @@ class WORawResultBase(_RawResultBase.RawResultBase):
         self.reportid = reportid
         self._mangled_rsel = None
         self.keep_filtered = False
+        self._created_paths = []
 
         self._init_outdir()
 
@@ -175,6 +180,21 @@ class WORawResultBase(_RawResultBase.RawResultBase):
         if getattr(self, "csv", None):
             self.csv.close()
             self.csv = None
+
+        # Remove results if no datapoints was collected.
+        dp_path = getattr(self, "dp_path", None)
+        with contextlib.suppress(Exception):
+            paths = []
+            if (not dp_path or not dp_path.exists()) or dp_path.stat().st_size == 0:
+                paths = getattr(self, "_created_paths", [])
+
+            for path in paths:
+                if not path.exists():
+                    continue
+                if path.is_dir():
+                    shutil.rmtree(path)
+                elif path.is_file():
+                    os.remove(path)
 
     def __enter__(self):
         """Enter the run-time context."""
