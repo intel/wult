@@ -416,9 +416,10 @@ def check_settings(proc, dev, csinfo, lscpu_info, cpunum, devid):
         # Check for the following 2 conditions to be true at the same time.
         # * C1 is enabled.
         # * C1E auto-promotion is enabled.
-        if enabled_cstates == ["C1"]:
+        if enabled_cstates in [["C1"], ["C1_ACPI"]]:
             if powerctl.feature_enabled("c1e_autopromote", cpunum):
-                LOG.notice("C1E autopromote is enabled, all C1 requests are converted to C1E.")
+                LOG.notice("C1E autopromote is enabled, all %s requests are converted to C1E.",
+                            enabled_cstates[0])
 
 def list_stats():
     """Print information about statistics."""
