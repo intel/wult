@@ -783,6 +783,16 @@ class HTMLReportBase:
                                      "the definitions file at '%s'", colname, name, res.defs.path)
             setattr(self, name, colnames)
 
+        for res in self.rsts:
+            colnames = []
+            for colname in self._hov_colnames[res.reportid]:
+                if colname in res.defs.info:
+                    colnames.append(colname)
+                else:
+                    _LOG.warning("dropping column '%s' from hover text because it is not present "
+                                 "in the definitions file at '%s'", colname, res.defs.path)
+            self._hov_colnames[res.reportid] = colnames
+
     def _init_colnames(self):
         """
         Assign default values to the diagram/histogram column names and remove possible
@@ -797,14 +807,14 @@ class HTMLReportBase:
                 colnames = []
             setattr(self, name, colnames)
 
+        # Ensure '_hov_colnames' dictionary is initialized.
+        self.set_hover_colnames(())
+
         self._drop_absent_colnames()
 
         # Both X- and Y-axes are required for scatter plots.
         if not self.xaxes or not self.yaxes:
             self.xaxes = self.yaxes = []
-
-        # Ensure '_hov_colnames' dictionary is initialized.
-        self.set_hover_colnames(())
 
     def _validate_init_args(self):
         """Validate the class constructor input arguments."""
