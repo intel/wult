@@ -190,9 +190,6 @@ class HTMLReportBase:
     def _copy_raw_data(self):
         """Copy raw test results to the output directory."""
 
-        if self.relocatable == "noraw":
-            return (None, None, None)
-
         # Paths to the stats directory.
         stats_paths = {}
         # Paths to the logs directory.
@@ -723,8 +720,8 @@ class HTMLReportBase:
         dataframes).
         """
 
-        if self.relocatable not in ("copy", "noraw", "symlink"):
-            raise Error("bad 'relocatable' value, use one of: copy, noraw, symlink")
+        if self.relocatable not in ("copy", "symlink"):
+            raise Error("bad 'relocatable' value, use one of: copy, symlink")
 
         # Load the required datapoints into memory.
         self._load_results()
@@ -917,11 +914,8 @@ class HTMLReportBase:
             raise Error("'exclude_xaxes' and 'exclude_yaxes' must both be 'None' or both not be "
                         "'None'")
 
-        # Users can change this to 'copy' or 'noraw' to make the reports relocatable. In the former
-        # case the raw results will be copied from the test result directories to the output
-        # directory. In the latter case, the raw results won't be referenced at all, neither from
-        # the HTML report, nor at the file-system level. The logs, statistics and other stuff from
-        # the raw result will also be excluded.
+        # Users can change this to 'copy' to make the reports relocatable. In which case the raw
+        # results will be copied from the test result directories to the output directory.
         self.relocatable = "symlink"
 
         # The first result is the 'reference' result.

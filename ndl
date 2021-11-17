@@ -265,9 +265,9 @@ def report_command(args):
 
     if not args.relocatable:
         args.relocatable= "symlink"
-    elif args.relocatable not in ("copy", "noraw", "symlink"):
+    elif args.relocatable not in ("copy", "symlink"):
         raise Error(f"bad '--relocatable' value '{args.relocatable}', use one of: "
-                    f"copy, noraw, symlink")
+                    f"copy, symlink")
 
     # Split the comma-separated lists.
     for name in ("xaxes", "yaxes", "hist", "chist"):
