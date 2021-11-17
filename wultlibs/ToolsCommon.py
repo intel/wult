@@ -144,15 +144,11 @@ RELOCATABLE_DESCR = """By default the generated report includes references to th
                        and at the file-system level, the raw test results are symlinks pointing to
                        the raw test results directory paths. This means that if raw test results are
                        moved somewhere, or the generated report is moved to another system, it may
-                       end up with broken raw results links. This option accepts 3 possible values:
-                       'copy' and 'noraw', and 'symlink'. In case of the 'copy' value, raw results
-                       will be copied to the report output directory, which will make the report
-                       relocatable, but in expense of increased disk space consumption. In case of
-                       the 'noraw' value, the raw results wont be referenced at all, neither in the
-                       HTML report, nor at the file-system level. This will also exclude the logs
-                       and the statistics. This option may be useful for minimizing the output
-                       directory disk space usage. The 'symlink' value corresponds to the default
-                       behavior."""
+                       end up with broken raw results links. This option accepts 2 possible values:
+                       'copy' and 'symlink'. In the case of the 'copy' value, raw results will be
+                       copied to the report output directory, which will make the report
+                       relocatable, but in expense of increased disk space consumption.  The
+                       'symlink' value corresponds to the default behavior."""
 
 # Description for the '--list-columns' option of the 'report' and other commands.
 LIST_COLUMNS_DESCR = "Print the list of the available column names and exit."
