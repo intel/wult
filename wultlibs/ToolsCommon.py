@@ -259,6 +259,19 @@ def _validate_range(rng, what, single_ok):
 
     return vals
 
+def validate_relocatable_arg(arg):
+    """
+    Validate that a given argument 'arg' is valid for the 'relocatable' option. If the argument is
+    valid, it is returned. If the argument is not valid, an Error is raised.
+    """
+
+    if not arg:
+        return "symlink"
+    if arg not in ("copy", "symlink"):
+        raise Error(f"bad '--relocatable' value '{arg}', use one of: "
+                    f"copy, symlink")
+    return arg
+
 def setup_stdout_logging(toolname, logs_path):
     """
     Configure the logger to mirror all stdout and stderr messages to the log file in the 'logs_path'

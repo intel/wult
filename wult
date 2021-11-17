@@ -573,11 +573,7 @@ def start_command(args):
 def report_command(args):
     """Implements the 'report' command."""
 
-    if not args.relocatable:
-        args.relocatable= "symlink"
-    elif args.relocatable not in ("copy", "symlink"):
-        raise Error(f"bad '--relocatable' value '{args.relocatable}', use one of: "
-                    f"copy, symlink")
+    args.relocatable = ToolsCommon.validate_relocatable_arg(args.relocatable)
 
     if args.report_size:
         if any({getattr(args, name) for name in ("xaxes", "yaxes", "hist", "chist")}):
