@@ -11,7 +11,6 @@
 This module the base class for generating HTML reports for raw test results.
 """
 
-import shutil
 import logging
 import itertools
 from pathlib import Path
@@ -220,6 +219,13 @@ class HTMLReportBase:
 
         return stats_paths, logs_paths, descr_paths
 
+    def _copy_asset(self, src, action, descr):
+        """Copy asset file to the output directory or create symlink."""
+
+        asset_path = FSHelpers.find_app_data("wult", src, descr=descr)
+        dstpath = self.outdir.joinpath(src.name)
+        FSHelpers.move_copy_link(asset_path, dstpath, action, exist_ok=True)
+
     def _generate_report(self):
         """Put together the final HTML report."""
 
@@ -231,20 +237,14 @@ class HTMLReportBase:
         except OSError as err:
             raise Error(f"failed to create directory '{self.outdir}': {err}") from None
 
+        # Copy raw data and assets according to 'self.relocatable'.
         stats_paths, logs_paths, descr_paths = self._copy_raw_data()
+        for path, descr in self._assets:
+            self._copy_asset(Path(path), self.relocatable, descr)
 
-        # Find the styles and templates paths.
+        # Find the template paths.
         templdir = FSHelpers.find_app_data("wult", Path("templates"),
                                            descr="HTML report Jinja2 templates")
-        csspath = FSHelpers.find_app_data("wult", Path("css/style.css"),
-                                          descr="HTML report CSS file")
-
-        # Copy the styles file to the output directory.
-        dstpath = self.outdir.joinpath("style.css")
-        try:
-            shutil.copyfile(csspath, dstpath)
-        except OSError as err:
-            raise Error(f"cannot copy CSS file from '{csspath}' to '{dstpath}':\n{err}") from None
 
         # The intro table is only included into the main HTML page.
         intro_tbl = self._prepare_intro_table(stats_paths, logs_paths, descr_paths)
@@ -813,6 +813,22 @@ class HTMLReportBase:
         if not self.xaxes or not self.yaxes:
             self.xaxes = self.yaxes = []
 
+    def _init_assets(self):
+        """
+        'Assets' are the CSS and JS files which supplement the HTML which makes up the report.
+        'self._assets' defines these assets and the path at which they are located. The list is in
+        the format: (path_to_asset, asset_description).
+        """
+
+        self._assets = [
+            ("bootstrap/css/bootstrap.min.css", "Bootstrap CSS file"),
+            ("bootstrap/css/bootstrap.min.css.map", "Bootstrap CSS source map"),
+            ("bootstrap/js/bootstrap.min.js", "Bootstrap js file"),
+            ("bootstrap/js/bootstrap.min.js.map", "Bootstrap js source map"),
+            ("bootstrap/LICENSE", "Bootstrap usage License"),
+            ("css/style.css", "HTML report CSS file")
+        ]
+
     def _validate_init_args(self):
         """Validate the class constructor input arguments."""
 
@@ -915,7 +931,8 @@ class HTMLReportBase:
                         "'None'")
 
         # Users can change this to 'copy' to make the reports relocatable. In which case the raw
-        # results will be copied from the test result directories to the output directory.
+        # results and report assets such as CSS and JS files will be copied from the test result
+        # directories to the output directory.
         self.relocatable = "symlink"
 
         # The first result is the 'reference' result.
@@ -963,4 +980,5 @@ class HTMLReportBase:
             else:
                 self._smry_colnames.append(colname)
 
+        self._init_assets()
         self._validate_init_args()
