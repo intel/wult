@@ -140,15 +140,15 @@ TITLE_DESCR = """The report title description - any text describing this report 
                  the resulting HTML report."""
 
 # Description for the '--relocatable' option of the 'report' command.
-RELOCATABLE_DESCR = """By default the generated report includes references to the raw test results,
-                       and at the file-system level, the raw test results are symlinks pointing to
-                       the raw test results directory paths. This means that if raw test results are
-                       moved somewhere, or the generated report is moved to another system, it may
-                       end up with broken raw results links. This option accepts 2 possible values:
-                       'copy' and 'symlink'. In the case of the 'copy' value, raw results will be
-                       copied to the report output directory, which will make the report
-                       relocatable, but in expense of increased disk space consumption.  The
-                       'symlink' value corresponds to the default behavior."""
+RELOCATABLE_DESCR = """By default the generated report includes references to the raw test results
+                       and report assets (such as CSS/JS files). At the file-system level, symlinks
+                       are created to the assets and results. This means that if the original files
+                       are moved somewhere, or the generated report is moved to another system, it
+                       may end up with broken links to these files. This option accepts 2 possible
+                       values: 'copy' and 'symlink'. In the case of the 'copy' value, raw results
+                       and report assets will be copied to the report output directory, which will
+                       make the report relocatable, but at the expense of increased disk space
+                       consumption. The 'symlink' value corresponds to the default behavior."""
 
 # Description for the '--list-columns' option of the 'report' and other commands.
 LIST_COLUMNS_DESCR = "Print the list of the available column names and exit."
