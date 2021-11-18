@@ -222,7 +222,7 @@ class HTMLReportBase:
     def _copy_asset(self, src, action, descr):
         """Copy asset file to the output directory or create symlink."""
 
-        asset_path = FSHelpers.find_app_data("wult", src, descr=descr)
+        asset_path = FSHelpers.find_app_data(self._projname, src, descr=descr)
         dstpath = self.outdir.joinpath(src.name)
         FSHelpers.move_copy_link(asset_path, dstpath, action, exist_ok=True)
 
@@ -243,7 +243,7 @@ class HTMLReportBase:
             self._copy_asset(Path(path), self.relocatable, descr)
 
         # Find the template paths.
-        templdir = FSHelpers.find_app_data("wult", Path("templates"),
+        templdir = FSHelpers.find_app_data(self._projname, Path("templates"),
                                            descr="HTML report Jinja2 templates")
 
         # The intro table is only included into the main HTML page.
@@ -924,6 +924,7 @@ class HTMLReportBase:
         self.chist = chist
         self.exclude_xaxes = exclude_xaxes
         self.exclude_yaxes = exclude_yaxes
+        self._projname = "wult"
 
         if (self.exclude_xaxes and not self.exclude_yaxes) or \
            (self.exclude_yaxes and not self.exclude_xaxes):
