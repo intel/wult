@@ -1,22 +1,18 @@
-<!DOCTYPE html>
-<html>
-<head>
-<link rel="stylesheet" type="text/css" href="style.css">
-</head>
-
-<body>
-<p><a href="index.html">Back</a></p>
-<h2>{{ colname }}</h2>
+{% from "smrys_tbl.html" import add_smrys_tbl %}
+{% from "diags.html" import add_diags %}
 
 {#
- # The summaries table.
+ # Populate a tab for a given metric.
  #}
-{% include "smrys_tbl.html" %}
+{% macro add_metric(info) %}
+    <h2>{{ info["colname"] }}</h2>
+    {#
+     # The summaries table.
+     #}
+    {{ add_smrys_tbl(info["smrys_tbl"]) }}
 
-{#
- # The diagrams.
- #}
-{% include "diags.html" %}
-
-</body>
-</html>
+    {#
+     # The diagrams.
+     #}
+    {{ add_diags(info["pinfos"]) }}
+{% endmacro %}

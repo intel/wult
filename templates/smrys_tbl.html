@@ -1,6 +1,7 @@
 {#
- # The summaries table.
+ # Add the summaries table.
  #}
+{% macro add_smrys_tbl(smrys_tbl) %}
 <table class="table" width="{{ [(smrys_tbl | length)*20, 100] | min }}%">
 
 {# The table heading. #}
@@ -38,3 +39,4 @@
         {% endfor %}
 {% endfor %}
 </table>
+{% endmacro %}

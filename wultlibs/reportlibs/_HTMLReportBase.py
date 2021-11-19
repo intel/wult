@@ -241,6 +241,23 @@ class HTMLReportBase:
         dstpath = self.outdir.joinpath(src.name)
         FSHelpers.move_copy_link(asset_path, dstpath, action, exist_ok=True)
 
+    def _generate_metric_tabs(self, all_pinfos):
+        """
+        Generate Tabs which contain the plots in 'all_pinfos'. These Tabs are then used to populate
+        the Jinja templates and resultantly the HTML report.
+        """
+
+        tabs = []
+        for colname, pinfos in all_pinfos.items():
+            smrys_tbl = self._prepare_smrys_tables(pinfos)
+            metric_data = {}
+            metric_data["smrys_tbl"] = smrys_tbl
+            metric_data["pinfos"] = pinfos
+            metric_data["colname"] = colname
+            metric_data["title_descr"] = self.title_descr
+            tabs.append(Tab(id=colname, label=colname, category="metric", mdata=metric_data))
+        return tabs
+
     def _generate_report(self):
         """Put together the final HTML report."""
 
@@ -265,7 +282,8 @@ class HTMLReportBase:
                                            descr="HTML report Jinja2 templates")
 
         jenv = Jinja2.build_jenv(templdir, trim_blocks=True, lstrip_blocks=True)
-        intro_tbl = self._prepare_intro_table(stats_paths, logs_paths, descr_paths)
+        jenv.globals["intro_tbl"] = self._prepare_intro_table(stats_paths, logs_paths, descr_paths)
+        jenv.globals["toolname"] = self._refinfo["toolname"]
 
         all_pinfos = self._pinfos
         if not self._pinfos:
@@ -274,23 +292,15 @@ class HTMLReportBase:
             _LOG.warning("no diagrams to plot")
             all_pinfos = {"Dummy" : {}}
 
-        # Each column name gets its own HTML page.
-        for colname, pinfos in all_pinfos.items():
-            smrys_tbl = self._prepare_smrys_tables(pinfos)
+        metric_tabs = self._generate_metric_tabs(all_pinfos)
 
-            # Render the template.
-            jenv.globals["smrys_tbl"] = smrys_tbl
-            jenv.globals["pinfos"] = pinfos
-            jenv.globals["colname"] = colname
-            jenv.globals["title_descr"] = self.title_descr
-            jenv.globals["toolname"] = self._refinfo["toolname"]
+        tabs = []
+        tabs.append(Tab(id="Results", label="Results", tabs=metric_tabs))
+        # 'tab_container' acts as a global store of tabs.
+        jenv.globals["tab_container"] = {"tabs": tabs}
 
-            if intro_tbl:
-                jenv.globals["intro_tbl"] = intro_tbl
-                templfile = outfile = "index.html"
-                intro_tbl = None
-
-            Jinja2.render_template(jenv, Path(templfile), outfile=self.outdir.joinpath(outfile))
+        templfile = outfile = "index.html"
+        Jinja2.render_template(jenv, Path(templfile), outfile=self.outdir.joinpath(outfile))
 
     def _add_pinfo(self, xcolname, ycolname, is_hist=False):
         """Add information about a plot to 'self._create_diagrams'."""

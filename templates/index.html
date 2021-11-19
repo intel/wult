@@ -3,44 +3,28 @@
 {% include "header.html" %}
 <body>
 <h1>{{ toolname | capitalize}} report</h1>
+<br>
 
 {# The report description. #}
 {% if title_descr %}
 <p class="title_descr">{{ title_descr }}</p>
+<br>
 {% endif %}
+
 
 {#
  # The intro table.
  #}
 {% include "intro_tbl.html" %}
+<br>
 
 {#
- # The links.
+ # The report content.
  #}
-{% if links_tbl %}
-    <h2>Other metrics</h2>
-    <table class="table" width="{{ [(intro_tbl | length)*20, 100] | min }}%">
-    {% for val in links_tbl.values() %}
-        <tr>
-        <td class="td-colname">{{ val["hlink"] | safe}}</td>
-        </tr>
-    {% endfor %}
-    </table>
-{% endif %}
-
-{% if smrys_tbl %}
-{#
- # The summaries table.
- #}
-<h2>{{ colname }}</h2>
-
-{% include "smrys_tbl.html" %}
-{% endif %}
-
-{#
- # The diagrams.
- #}
-{% include "diags.html" %}
+{% from "tabs.html" import add_tab %}
+<div class="tabbable boxed parentTabs">
+    {{ add_tab(tab_container) }}
+</div>
 
 </body>
 </html>

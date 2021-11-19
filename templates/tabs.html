@@ -1,0 +1,29 @@
+{% from "metric.html" import add_metric %}
+{% macro add_tab(tab) %}
+    {% if tab["tabs"] %}
+        {% set tabs = tab["tabs"] %}
+        <ul class="nav nav-tabs" role="tablist">
+            {% set default_active = {1: "active"} %}
+            {% for tab in tabs %}
+                {% set active = default_active.get(loop.index, "") %}
+                <li class="nav-item {{ active }}" role="presentation">
+                    <button class="nav-link {{ active }}" id="{{ tab["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ tab["id"] }}"><strong>{{ tab["label"] }}</strong></button>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <div class="tab-content {{ active }}">
+            {% set default_active = {1: "active"} %}
+            {% for tab in tabs %}
+                {% set active = default_active.get(loop.index, "") %}
+                <div class="tab-pane {{ active }}" id="{{ tab["id"] }}" role="tab-pane" aria-labelledby="{{ tab["id"] }}-tab">
+                    {{ add_tab(tab) }}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        {% if tab["category"] == "metric" %}
+            {{ add_metric(tab["mdata"]) }}
+        {% endif %}
+    {% endif %}
+{% endmacro %}
