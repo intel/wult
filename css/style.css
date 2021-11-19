@@ -75,3 +75,19 @@ abbr, acronym
     border-bottom: 1px dotted;
     text-decoration: none;
 }
+
+/*
+ * By default, inactive Bootstrap tabs have 'display: none' which breaks Plotly
+ * legends. Therefore we make inactive tabs invisible in our own way using the
+ * following two css classes:
+ */
+.tab-content>.tab-pane {
+    display: block;
+    height: 0px;
+    overflow: hidden;
+}
+
+.tab-content>.active {
+    display: block;
+    height: auto;
+}
