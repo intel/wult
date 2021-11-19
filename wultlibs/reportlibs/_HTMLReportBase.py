@@ -98,19 +98,6 @@ class HTMLReportBase:
 
         return intro_tbl
 
-    def _prepare_links_table(self):
-        """Creates the links table which refers to HTML sub-pages."""
-
-        links_tbl = {}
-        for colname in itertools.islice(self._pinfos, 1, None):
-            links_tbl[colname] = {}
-            links_tbl[colname]["name"] = f"{colname}"
-            fname = _colname_to_fname(colname) + ".html"
-            links_tbl[colname]["fname"] = fname
-            links_tbl[colname]["hlink"] = f"<a href=\"{fname}\">{colname}</a>"
-
-        return links_tbl
-
     def _prepare_smrys_tables(self, pinfos):
         """
         Summaries table includes values like average and median values for a single metric (column).
@@ -249,11 +236,8 @@ class HTMLReportBase:
         templdir = FSHelpers.find_app_data(self._projname, Path("templates"),
                                            descr="HTML report Jinja2 templates")
 
-        # The intro table is only included into the main HTML page.
-        intro_tbl = self._prepare_intro_table(stats_paths, logs_paths, descr_paths)
-        links_tbl = self._prepare_links_table()
-
         jenv = Jinja2.build_jenv(templdir, trim_blocks=True, lstrip_blocks=True)
+        intro_tbl = self._prepare_intro_table(stats_paths, logs_paths, descr_paths)
 
         all_pinfos = self._pinfos
         if not self._pinfos:
@@ -275,12 +259,8 @@ class HTMLReportBase:
 
             if intro_tbl:
                 jenv.globals["intro_tbl"] = intro_tbl
-                jenv.globals["links_tbl"] = links_tbl
                 templfile = outfile = "index.html"
                 intro_tbl = None
-            else:
-                templfile = "metric.html"
-                outfile = links_tbl[colname]["fname"]
 
             Jinja2.render_template(jenv, Path(templfile), outfile=self.outdir.joinpath(outfile))
 
