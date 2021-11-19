@@ -14,6 +14,8 @@ This module the base class for generating HTML reports for raw test results.
 import logging
 import itertools
 from pathlib import Path
+from dataclasses import dataclass
+from typing import Dict, List
 import numpy
 import pandas
 import plotly
@@ -34,6 +36,32 @@ def _colname_to_fname(colname):
     """
 
     return colname.replace("%", "_pcnt").replace("/", "-to-")
+
+@dataclass
+class Tab:
+    """
+    This class defines what is expected by the Jinja templates when adding a tab to the
+    report.
+
+    Jinja templates read from Tab objects to populate tabs in the report. Here is how it is done:
+     1. The tab selector (the button you click to open a tab) is created with 'label' as the text in
+        the button and 'id' as the HTML element ID.
+     2. If 'Tab.tabs' is populated with child tabs, the template recursively adds these tabs.
+     3. Depending on the 'category' of tab chosen, the template uses a different macro to populate
+        the tab. The macro will be passed the dictionary 'mdata'.
+    """
+
+    # HTML tab element ID.
+    id: str
+    # Label for the tab selector.
+    label: str
+    # Child tabs (each child tab is of type 'Tab').
+    tabs: List['Tab'] = None
+    # If a 'category' is defined, it is used to populate the tab using the correct macro.
+    # Possible values include 'metric', 'info' or None.
+    category: str = None
+    # Macros which populate the tab content will be provided the 'mdata' dictionary.
+    mdata: Dict = None
 
 class HTMLReportBase:
     """This is the base class for generating HTML reports for raw test results."""
