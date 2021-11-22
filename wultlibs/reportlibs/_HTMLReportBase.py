@@ -238,7 +238,7 @@ class HTMLReportBase:
         """Copy asset file to the output directory or create symlink."""
 
         asset_path = FSHelpers.find_app_data(self._projname, src, descr=descr)
-        dstpath = self.outdir.joinpath(src.name)
+        dstpath = self.outdir.joinpath(src)
         FSHelpers.move_copy_link(asset_path, dstpath, action, exist_ok=True)
 
     def _generate_metric_tabs(self, all_pinfos):
