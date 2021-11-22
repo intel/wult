@@ -40,7 +40,7 @@ def get_version():
 
 def get_data_files(installdir, subdir, exclude=None):
     """
-    When the task is to include all files in the 'subdir' direcotry to the package and install them
+    When the task is to include all files in the 'subdir' directory to the package and install them
     under the 'installdir' directory, this function can be used to generate the list of files
     suitable for the 'data_files' setup parameter.
     """
@@ -74,6 +74,7 @@ setup(
                get_data_files("share/wult/helpers", "helpers", exclude=_PYTHON_HELPERS) + \
                get_data_files("share/wult/defs", "defs") + \
                get_data_files("share/wult/templates", "templates") + \
+               get_data_files("share/wult/bootstrap", "bootstrap") + \
                get_data_files("share/wult/css", "css"),
     scripts=_TOOLNAMES + _PYTHON_HELPERS,
     packages=find_packages(),
