@@ -242,6 +242,9 @@ class HTMLReportBase:
         for path, descr in self._assets:
             self._copy_asset(Path(path), self.relocatable, descr)
 
+        # Always copy 'css/style.css' as it is so small.
+        self._copy_asset(Path("css/style.css"), "copy", "HTML report CSS file")
+
         # Find the template paths.
         templdir = FSHelpers.find_app_data(self._projname, Path("templates"),
                                            descr="HTML report Jinja2 templates")
@@ -816,8 +819,8 @@ class HTMLReportBase:
     def _init_assets(self):
         """
         'Assets' are the CSS and JS files which supplement the HTML which makes up the report.
-        'self._assets' defines these assets and the path at which they are located. The list is in
-        the format: (path_to_asset, asset_description).
+        'self._assets' defines the assets which should be copied into or linked to from the output
+        directory. The list is in the format: (path_to_asset, asset_description).
         """
 
         self._assets = [
@@ -826,7 +829,6 @@ class HTMLReportBase:
             ("bootstrap/js/bootstrap.min.js", "Bootstrap js file"),
             ("bootstrap/js/bootstrap.min.js.map", "Bootstrap js source map"),
             ("bootstrap/LICENSE", "Bootstrap usage License"),
-            ("css/style.css", "HTML report CSS file")
         ]
 
     def _validate_init_args(self):
