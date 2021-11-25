@@ -727,10 +727,10 @@ class HTMLReportBase:
             res.load_df()
 
             # We'll be dropping columns and adding temporary columns, so we'll affect the original
-            # dataframe. This is more effecient than creating copies.
+            # dataframe. This is more efficient than creating copies.
             self._mangle_loaded_res(res)
 
-        # Some columns from the axes lists could have been dropped, updata the lists.
+        # Some columns from the axes lists could have been dropped, update the lists.
         self._drop_absent_colnames()
 
     def generate(self):
@@ -976,7 +976,7 @@ class HTMLReportBase:
         self._opacity = 0.8 if len(self.rsts) > 1 else 1
         # Plot information dictionaries. This is a dictionary of of lists, each list containing
         # sub-dictionaries describing a single plot. The lists of sub-dictionaries are grouped by
-        # the X" and "Y" axis column names, because later plots with the same "Y" and "Y" axes will
+        # the "X" and "Y" axis column names, because later plots with the same "Y" and "Y" axes will
         # go to the same HTML page.
         self._pinfos = {}
         # Per-test result list of column names to include into the hover text of the scatter plot.
