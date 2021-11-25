@@ -1,11 +1,11 @@
 {#
  # Add all diagrams for a metric.
  #}
-{% macro add_diags(pinfos) %}
+{% macro add_diags(ppaths) %}
     <div class="grid">
-    {% for pinfo in pinfos %}
+    {% for path in ppaths %}
         <div class="plot">
-            <iframe seamless="seamless" frameborder="0" scrolling="no" class="frame" src="{{pinfo['path']}}"></iframe>
+            <iframe seamless="seamless" frameborder="0" scrolling="no" class="frame" src="{{ path }}"></iframe>
         </div>
     {% endfor %}
     </div>
