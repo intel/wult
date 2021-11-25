@@ -128,7 +128,7 @@ class HTMLReportBase:
             smrys_tbl[res.reportid] = {}
 
         for pinfo in pinfos:
-            for colname in (pinfo["colname"], pinfo["xcolname"]):
+            for colname in (pinfo.colname, pinfo.xcolname):
                 if colname in smrys_tbl["Title"]:
                     continue
 
@@ -240,7 +240,7 @@ class HTMLReportBase:
             # Build plot paths 'ppaths' (relative to the output directory).
             ppaths = []
             for pinfo in pinfos:
-                p = self._plotsdir.joinpath(pinfo["fname"])
+                p = self._plotsdir.joinpath(pinfo.fname)
                 ppaths.append(p.relative_to(self.outdir))
 
             metric_data = {}
