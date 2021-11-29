@@ -139,7 +139,7 @@ class HTMLReportBase:
                 # Each column name is represented by a row in the summary table. Fill the "Title"
                 # column.
                 title_dict = smrys_tbl["Title"][colname] = {}
-                defs = self._refdefs.info[colname]
+                defs = self._refres.defs.info[colname]
 
                 title_dict["colname"] = colname
                 unit = defs.get("short_unit", "")
@@ -589,9 +589,6 @@ class HTMLReportBase:
 
         # The first result is the 'reference' result.
         self._refres = rsts[0]
-        # The reference definitions - it contains helpful information about every CSV file column,
-        # for example the title, units, and so on.
-        self._refdefs = self._refres.defs
         # The raw reference result information.
         self._refinfo = self._refres.info
 
