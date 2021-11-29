@@ -40,10 +40,10 @@ class PInfo:
     class.
     """
 
-    # Datapoints CSV column name on the X-axis of this plot.
-    xcolname: str
-    # Datapoints CSV column name on the Y-axis of this plot.
-    ycolname: str
+    # Metric on the X-axis of this plot, usually a Datapoints CSV column name.
+    xmetric: str
+    # Metric on the Y-axis of this plot, usually a Datapoints CSV column name.
+    ymetric: str
     # The name of the file containing the HTML plot.
     fname: str
 
@@ -71,7 +71,7 @@ class PlotsBuilder:
     def _create_diagram_axis_info(self, axis, pinfo):
         """Configure axis information dictionary for plotly's 'Figure()' method."""
 
-        nkey = f"{axis}colname"
+        nkey = f"{axis}metric"
         colname = getattr(pinfo, nkey)
         defs = self._refdefs.info.get(colname, {})
         title = defs.get("title", colname)
@@ -130,7 +130,7 @@ class PlotsBuilder:
         Create and return a list containing hover text for every datapoint in the 'df' dataframe.
         """
 
-        xcolname, ycolname = pinfo.xcolname, pinfo.ycolname
+        xcolname, ycolname = pinfo.xmetric, pinfo.ymetric
         _LOG.debug("Preparing hover text for '%s vs %s'", xcolname, ycolname)
 
         # The loop below creates the following objects.

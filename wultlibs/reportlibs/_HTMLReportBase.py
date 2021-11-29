@@ -112,7 +112,7 @@ class HTMLReportBase:
 
         return intro_tbl
 
-    def _prepare_smrys_tables(self, tabname, pinfos):
+    def _prepare_smrys_tables(self, tabmetric, pinfos):
         """
         Summaries table includes values like average and median values for a single metric (column).
         It "summarizes" the metric. This function creates summaries table for each metrics included
@@ -128,23 +128,22 @@ class HTMLReportBase:
             smrys_tbl[res.reportid] = {}
 
         for pinfo in pinfos:
-            for colname in (tabname, pinfo.xcolname):
-                if colname in smrys_tbl["Title"]:
+            for metric in (tabmetric, pinfo.xmetric):
+                if metric in smrys_tbl["Title"]:
                     continue
 
-                # Skip non-numeric columns, as summaries are calculated only for numeric columns.
-                if not self.rsts[0].is_numeric(colname):
+                # Skip non-numeric metrics, as summaries are calculated only for numeric metrics.
+                if not self.rsts[0].is_numeric(metric):
                     continue
 
-                # Each column name is represented by a row in the summary table. Fill the "Title"
-                # column.
-                title_dict = smrys_tbl["Title"][colname] = {}
-                defs = self._refres.defs.info[colname]
+                # Each metric is represented by a row in the summary table. Fill the "Title" column.
+                title_dict = smrys_tbl["Title"][metric] = {}
+                defs = self._refres.defs.info[metric]
 
-                title_dict["colname"] = colname
+                title_dict["metric"] = metric
                 unit = defs.get("short_unit", "")
                 if unit:
-                    title_dict["colname"] += f", {unit}"
+                    title_dict["metric"] += f", {unit}"
                 title_dict["coldescr"] = defs["descr"]
 
                 title_dict["funcs"] = {}
@@ -152,16 +151,16 @@ class HTMLReportBase:
                     # Select only those functions that are present in all test results. For example,
                     # 'std' will not be present if the result has only one datapoint. In this case,
                     # we need to exclude the 'std' function.
-                    if all(res.smrys[colname].get(funcname) for res in self.rsts):
+                    if all(res.smrys[metric].get(funcname) for res in self.rsts):
                         title_dict["funcs"][funcname] = RORawResult.get_smry_func_descr(funcname)
 
                 # Now fill the values for each result.
                 for res in self.rsts:
-                    res_dict = smrys_tbl[res.reportid][colname] = {}
+                    res_dict = smrys_tbl[res.reportid][metric] = {}
                     res_dict["funcs"] = {}
 
                     for funcname in title_dict["funcs"]:
-                        val = res.smrys[colname][funcname]
+                        val = res.smrys[metric][funcname]
                         fmt = "{}"
                         if defs["type"] == "float":
                             fmt = "{:.2f}"
@@ -175,7 +174,7 @@ class HTMLReportBase:
                                                  "are compared to this one."
                             continue
 
-                        ref_fdict = smrys_tbl[self._refres.reportid][colname]["funcs"][funcname]
+                        ref_fdict = smrys_tbl[self._refres.reportid][metric]["funcs"][funcname]
                         change = val - ref_fdict["raw_val"]
                         if ref_fdict["raw_val"]:
                             percent = (change / ref_fdict["raw_val"]) * 100
