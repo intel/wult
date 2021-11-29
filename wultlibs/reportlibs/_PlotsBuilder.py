@@ -44,9 +44,6 @@ class PInfo:
     xcolname: str
     # Datapoints CSV column name on the Y-axis of this plot.
     ycolname: str
-    # Datapoints CSV column name this plot is associated with. For example, this determines which
-    # HTML tab the plot will be included in.
-    colname: str
     # The name of the file containing the HTML plot.
     fname: str
 
@@ -120,7 +117,7 @@ class PlotsBuilder:
         else:
             colname = ycolname
 
-        pinfo = PInfo(xcolname, ycolname, colname, fname)
+        pinfo = PInfo(xcolname, ycolname, fname)
 
         if colname not in self._pinfos:
             self._pinfos[colname] = []

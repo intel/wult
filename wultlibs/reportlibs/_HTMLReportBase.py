@@ -112,7 +112,7 @@ class HTMLReportBase:
 
         return intro_tbl
 
-    def _prepare_smrys_tables(self, pinfos):
+    def _prepare_smrys_tables(self, tabname, pinfos):
         """
         Summaries table includes values like average and median values for a single metric (column).
         It "summarizes" the metric. This function creates summaries table for each metrics included
@@ -128,7 +128,7 @@ class HTMLReportBase:
             smrys_tbl[res.reportid] = {}
 
         for pinfo in pinfos:
-            for colname in (pinfo.colname, pinfo.xcolname):
+            for colname in (tabname, pinfo.xcolname):
                 if colname in smrys_tbl["Title"]:
                     continue
 
@@ -234,8 +234,8 @@ class HTMLReportBase:
         """
 
         tabs = []
-        for colname, pinfos in all_pinfos.items():
-            smrys_tbl = self._prepare_smrys_tables(pinfos)
+        for tabname, pinfos in all_pinfos.items():
+            smrys_tbl = self._prepare_smrys_tables(tabname, pinfos)
 
             # Build plot paths 'ppaths' (relative to the output directory).
             ppaths = []
@@ -246,9 +246,7 @@ class HTMLReportBase:
             metric_data = {}
             metric_data["smrys_tbl"] = smrys_tbl
             metric_data["ppaths"] = ppaths
-            metric_data["colname"] = colname
-            metric_data["title_descr"] = self.title_descr
-            tabs.append(Tab(id=colname, label=colname, category="metric", mdata=metric_data))
+            tabs.append(Tab(id=tabname, label=tabname, category="metric", mdata=metric_data))
         return tabs
 
     def _generate_report(self):
