@@ -228,7 +228,7 @@ class HTMLReportBase:
 
     def _generate_metric_tabs(self, all_pinfos):
         """
-        Generate Tabs which contain the plots in 'all_pinfos'. These Tabs are then used to populate
+        Generate Tabs which contain the plots in 'pinfos'. These Tabs are then used to populate
         the Jinja templates and resultantly the HTML report.
         """
 
@@ -248,7 +248,7 @@ class HTMLReportBase:
             tabs.append(Tab(id=tabname, label=tabname, category="metric", mdata=metric_data))
         return tabs
 
-    def _generate_report(self):
+    def _generate_report(self, pinfos):
         """Put together the final HTML report."""
 
         _LOG.info("Generating the HTML report.")
@@ -275,14 +275,13 @@ class HTMLReportBase:
         jenv.globals["intro_tbl"] = self._prepare_intro_table(stats_paths, logs_paths, descr_paths)
         jenv.globals["toolname"] = self._refinfo["toolname"]
 
-        all_pinfos = self._pinfos
-        if not self._pinfos:
+        if not pinfos:
             # This may happen if there are no diagrams to plot. In this case we still want to
             # generate an HTML report, but without diagrams.
             _LOG.warning("no diagrams to plot")
-            all_pinfos = {"Dummy" : {}}
+            pinfos = {"Dummy" : {}}
 
-        metric_tabs = self._generate_metric_tabs(all_pinfos)
+        metric_tabs = self._generate_metric_tabs(pinfos)
 
         tabs = []
         tabs.append(Tab(id="Results", label="Results", tabs=metric_tabs))
@@ -382,11 +381,14 @@ class HTMLReportBase:
         except OSError as err:
             raise Error(f"failed to create directory '{self._plotsdir}': {err}") from None
 
-        # Generate the plots.
-        self._pinfos = self._pbuilder.generate_plots()
+        # This is a dictionary of of lists, each list containing Plot Info dataclasses (PInfos)
+        # which describe a single plot. The lists of PInfos are grouped by the "X" and "Y" axis
+        # column names, because later plots with the same "Y" and "Y" axes will go to the same HTML
+        # page.
+        pinfos = self._pbuilder.generate_plots()
 
         # Put together the final HTML report.
-        self._generate_report()
+        self._generate_report(pinfos)
 
     def set_hover_colnames(self, regexs):
         """
@@ -595,11 +597,6 @@ class HTMLReportBase:
         # List of functions to provide in the summary tables.
         self._smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg",
                             "min", "std")
-        # Plot information dictionaries. This is a dictionary of of lists, each list containing
-        # sub-dictionaries describing a single plot. The lists of sub-dictionaries are grouped by
-        # the "X" and "Y" axis column names, because later plots with the same "Y" and "Y" axes will
-        # go to the same HTML page.
-        self._pinfos = {}
         # Per-test result list of column names to include into the hover text of the scatter plot.
         # By default only the x and y axis values are included.
         self._hov_colnames = {}
