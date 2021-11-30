@@ -323,9 +323,9 @@ def parse_cpunum(cpunum, cpuinfo=None):
 
     if cpuinfo:
         cpugeom = cpuinfo.get_cpu_geometry()
-        if cpunum in cpugeom["CPU"]["offcpus"]:
+        if cpunum in cpugeom["CPU"]["offline_cpus"]:
             raise Error(f"CPU '{cpunum}'{cpuinfo.hostmsg} is offline")
-        if cpunum not in cpugeom["CPU"]["CPUs"]:
+        if cpunum not in cpugeom["CPU"]["nums"]:
             raise Error(f"CPU '{cpunum}' does not exist{cpuinfo.hostmsg}")
 
     return cpunum
