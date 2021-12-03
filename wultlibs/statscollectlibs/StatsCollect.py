@@ -894,7 +894,7 @@ class _Collector:
             # directly. Setup SSH forwarding.
             self._setup_stats_collect_ssh_forwarding()
 
-    def _init_outdir(self, discovery=None):
+    def _init_outdir(self, discovery=False):
         """
         Helper function for 'configure()' that creates the output directory and various of its
         sub-direcories.
@@ -969,7 +969,7 @@ class _Collector:
 
         if stnames:
             with contextlib.suppress(SCReplyError):
-                self.configure()
+                self.configure(discovery=True)
                 self.start(sysinfo=False)
                 self.stop(sysinfo=False)
 
