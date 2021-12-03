@@ -31,7 +31,7 @@ VERSION = "1.3.13"
 OWN_NAME = "ndl"
 
 LOG = logging.getLogger()
-Logging.setup_logger(OWN_NAME)
+Logging.setup_logger(prefix=OWN_NAME)
 
 def get_axes_default(name):
     """Returns the default CSV column names for X- or Y-axes, as well as histograms."""

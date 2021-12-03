@@ -48,7 +48,7 @@ HOVER_COLNAME_REGEXS = [".*Latency", "IntrOff", ".*Delay", "LDist", "ReqCState",
                         "SMI.*", "NMI.*"]
 
 LOG = logging.getLogger()
-Logging.setup_logger(OWN_NAME)
+Logging.setup_logger(prefix=OWN_NAME)
 
 def get_axes(optname, report_size=None):
     """
