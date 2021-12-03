@@ -228,11 +228,6 @@ class StatsCollect:
 
         return max(inb_max_interval, oob_max_interval)
 
-    def wait_interval(self):
-        """Sleep for the duration of the longest statistics collection interval."""
-
-        time.sleep(self.get_max_interval())
-
     def set_disabled_stats(self, stnames):
         """Disable statistics in 'stnames'."""
 
