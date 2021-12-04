@@ -385,18 +385,7 @@ def set_filters(args, res):
     if not getattr(args, "oargs", None):
         return
 
-    # Note, the assumption is that dictionary preserves insertion order, which is true starting from
-    # Python 3.6.
-    ops = {}
-    for name, expr in args.oargs:
-        if name in ops:
-            set_filter(res, ops)
-            ops = {}
-        ops[name] = expr
-
-    if ops:
-        set_filter(res, ops)
-
+    set_filter(res, args.oargs)
     keep_filtered = getattr(args, "keep_filtered", None)
     setattr(res, "keep_filtered", keep_filtered)
 
