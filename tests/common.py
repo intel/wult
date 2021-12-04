@@ -11,10 +11,14 @@
 """Common code for test modules."""
 
 import os
+import logging
 import subprocess
 from pathlib import Path
 import pytest
 from pepclibs.helperlibs import Exceptions
+
+logging.basicConfig(level=logging.DEBUG)
+_LOG = logging.getLogger()
 
 class CmdLineRunner():
     """Class for running commandline commands."""
@@ -22,6 +26,8 @@ class CmdLineRunner():
     @staticmethod
     def _command(cmd):
         """Run 'cmd' command and return output, if any."""
+
+        _LOG.debug("running: %s", " ".join([str(elt) for elt in cmd]))
 
         try:
             result = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
