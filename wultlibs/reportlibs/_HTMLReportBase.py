@@ -534,6 +534,8 @@ class HTMLReportBase:
                 # Don't create report in results directory, use 'html-report' subdirectory instead.
                 self.outdir = self.outdir.joinpath("html-report")
 
+        self._plotsdir = self.outdir.joinpath("plots")
+
     def __init__(self, rsts, outdir, title_descr=None, xaxes=None, yaxes=None, hist=None,
                  chist=None, exclude_xaxes=None, exclude_yaxes=None):
         """
@@ -577,7 +579,7 @@ class HTMLReportBase:
         self.chist = chist
 
         self._projname = "wult"
-        self._plotsdir = self.outdir.joinpath("plots")
+        self._plotsdir = None
         self._pbuilder = None
 
         # Users can change this to 'copy' to make the reports relocatable. In which case the raw
