@@ -7,3 +7,5 @@
  *
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
+
+import { DiagramElement } from './diagram-element';
