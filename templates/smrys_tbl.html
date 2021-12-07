@@ -19,7 +19,7 @@
             {# Metric name and unit, part of the "Title" column. #}
             {% if loop.index == 1 %}
             <td class="td-colname" rowspan="{{ title_dict["funcs"] | length }}">
-				<abbr title="{{ title_dict["coldescr"] }}">{{ title_dict["colname"] }}</abbr>
+				<abbr title="{{ title_dict["coldescr"] }}">{{ title_dict["metric"] }}</abbr>
 			</td>
 
             {# Function name, part of the "Title" column. #}
