@@ -264,8 +264,10 @@ class HTMLReportBase:
         for path, descr in self._assets:
             self._copy_asset(Path(path), self.relocatable, descr)
 
-        # Always copy 'css/style.css' as it is so small.
+        # Always copy 'css/style.css' and bundled javascript.
         self._copy_asset(Path("css/style.css"), "copy", "HTML report CSS file")
+        self._copy_asset(Path("js/dist/main.js"), "copy", "bundled javascript")
+        self._copy_asset(Path("js/dist/main.js.LICENSE.txt"), "copy", "bundled javascript licenses")
 
         # Find the template paths.
         templdir = FSHelpers.find_app_data(self._projname, Path("templates"),
