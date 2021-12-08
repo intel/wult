@@ -23,7 +23,7 @@
         </div>
     {% else %}
         {% if tab["category"] == "metric" %}
-            {{ add_metric(tab["mdata"]) }}
+            {{ add_metric(tab["mdata"], tab["id"]) }}
         {% endif %}
     {% endif %}
 {% endmacro %}

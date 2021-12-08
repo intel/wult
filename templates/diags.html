@@ -1,12 +1,10 @@
 {#
  # Add all diagrams for a metric.
  #}
-{% macro add_diags(ppaths) %}
+{% macro add_diags(ppaths, tabname) %}
     <div class="grid">
     {% for path in ppaths %}
-        <div class="plot">
-            <iframe seamless="seamless" frameborder="0" scrolling="no" class="frame" src="{{ path }}"></iframe>
-        </div>
+        <diagram-element ptab={{ tabname }} path={{ path }} ></diagram-element>
     {% endfor %}
     </div>
 {% endmacro %}

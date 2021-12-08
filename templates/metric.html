@@ -4,7 +4,7 @@
 {#
  # Populate a tab for a given metric.
  #}
-{% macro add_metric(info) %}
+{% macro add_metric(info, tabname) %}
     <br>
     {#
      # The summaries table.
@@ -14,5 +14,5 @@
     {#
      # The diagrams.
      #}
-    {{ add_diags(info["ppaths"]) }}
+    {{ add_diags(info["ppaths"], tabname) }}
 {% endmacro %}

@@ -10,7 +10,6 @@ body {
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
     width: 100%;
     grid-auto-rows: 800px;
     grid-auto-flow: dense;
