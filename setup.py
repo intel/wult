@@ -73,10 +73,10 @@ setup(
     data_files=get_data_files("share/wult/drivers", "drivers") + \
                get_data_files("share/wult/helpers", "helpers", exclude=_PYTHON_HELPERS) + \
                get_data_files("share/wult/defs", "defs") + \
-               get_data_files("share/wult/templates", "templates") + \
-               get_data_files("share/wult/bootstrap", "bootstrap") + \
-               get_data_files("share/wult/css", "css") + \
-               get_data_files("share/wult/js/dist", "js/dist"),
+               get_data_files("share/wult/html/templates", "html/templates") + \
+               get_data_files("share/wult/html/bootstrap", "html/bootstrap") + \
+               get_data_files("share/wult/html/css", "html/css") + \
+               get_data_files("share/wult/html/js/dist", "html/js/dist"),
     scripts=_TOOLNAMES + _PYTHON_HELPERS,
     packages=find_packages(),
     install_requires=["pepc>=1.2.0,<1.3.0", "plotly>=4", "jinja2", "numpy", "pandas", "paramiko",

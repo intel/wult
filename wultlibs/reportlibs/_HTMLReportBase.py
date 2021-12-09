@@ -265,12 +265,13 @@ class HTMLReportBase:
             self._copy_asset(Path(path), self.relocatable, descr)
 
         # Always copy 'css/style.css' and bundled javascript.
-        self._copy_asset(Path("css/style.css"), "copy", "HTML report CSS file")
-        self._copy_asset(Path("js/dist/main.js"), "copy", "bundled javascript")
-        self._copy_asset(Path("js/dist/main.js.LICENSE.txt"), "copy", "bundled javascript licenses")
+        self._copy_asset(Path("html/css/style.css"), "copy", "HTML report CSS file")
+        self._copy_asset(Path("html/js/dist/main.js"), "copy", "bundled javascript")
+        self._copy_asset(Path("html/js/dist/main.js.LICENSE.txt"), "copy",
+                              "bundled javascript licenses")
 
         # Find the template paths.
-        templdir = FSHelpers.find_app_data(self._projname, Path("templates"),
+        templdir = FSHelpers.find_app_data(self._projname, Path("html/templates"),
                                            descr="HTML report Jinja2 templates")
 
         jenv = Jinja2.build_jenv(templdir, trim_blocks=True, lstrip_blocks=True)
@@ -477,11 +478,11 @@ class HTMLReportBase:
         """
 
         self._assets = [
-            ("bootstrap/css/bootstrap.min.css", "Bootstrap CSS file"),
-            ("bootstrap/css/bootstrap.min.css.map", "Bootstrap CSS source map"),
-            ("bootstrap/js/bootstrap.min.js", "Bootstrap js file"),
-            ("bootstrap/js/bootstrap.min.js.map", "Bootstrap js source map"),
-            ("bootstrap/LICENSE", "Bootstrap usage License"),
+            ("html/bootstrap/css/bootstrap.min.css", "Bootstrap CSS file"),
+            ("html/bootstrap/css/bootstrap.min.css.map", "Bootstrap CSS source map"),
+            ("html/bootstrap/js/bootstrap.min.js", "Bootstrap js file"),
+            ("html/bootstrap/js/bootstrap.min.js.map", "Bootstrap js source map"),
+            ("html/bootstrap/LICENSE", "Bootstrap usage License"),
         ]
 
     def _validate_init_args(self):
