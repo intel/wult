@@ -155,6 +155,25 @@ class DatapointProcessor:
 
         return dp
 
+    def _check_cstate_intrs(self, dp):
+        """
+        Check that interrupt status, enabled or disabled, remains the same for the each C-state
+        during the measurement. E.g. if the first datapoint has interrupts enabled and the requested
+        C-state is C1, the following datapoints with C1 should have the interrupts enabled too.
+
+        Raises an exception if interrupt status is different than in previous datapoints.
+        """
+
+        cstate = dp["ReqCState"]
+        if cstate not in self._cstate_intrs:
+            self._cstate_intrs[cstate] = dp["IntrOff"]
+
+        if self._cstate_intrs[cstate] != dp["IntrOff"]:
+            status = "disabled" if dp["IntrOff"] else "enabled"
+            raise Error(f"interrupts are {status} for the datapoint, which is different from other "
+                        f"observed datapoints with requested C-state '{cstate}'. The datapoint is:"
+                        f"\n{Human.dict2str(dp)}\nDropping this datapoint\n") from None
+
     def _process_time(self, dp):
         """
         Calculate, validate, and initialize fields related to time, for example 'WakeLatency' and
@@ -180,6 +199,8 @@ class DatapointProcessor:
 
         if not self._apply_time_adjustments(dp):
             return None
+
+        self._check_cstate_intrs(dp)
 
         # Try to compensate for the overhead introduced by wult drivers.
         #
@@ -472,6 +493,8 @@ class DatapointProcessor:
 
         # Processed datapoint field names.
         self._fields = None
+        # Interrupt status of observed C-states.
+        self._cstate_intrs = {}
         # TSC rate in MHz (cycles / microsecond).
         self.tsc_mhz = None
 
