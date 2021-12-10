@@ -240,7 +240,8 @@ class HTMLReportBase:
             ppaths = []
             for pinfo in pinfos:
                 p = self._plotsdir.joinpath(pinfo.fname)
-                ppaths.append(p.relative_to(self.outdir))
+                # Plot paths are passed in str representation as Jinja will not convert on its own.
+                ppaths.append(str(p.relative_to(self.outdir)))
 
             metric_data = {}
             metric_data["smrys_tbl"] = smrys_tbl
