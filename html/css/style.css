@@ -8,13 +8,6 @@ body {
     padding-bottom: 20px;
 }
 
-.grid {
-    display: grid;
-    width: 100%;
-    grid-auto-rows: 800px;
-    grid-auto-flow: dense;
-}
-
 .plot {
     position: relative;
     height: 100%;
