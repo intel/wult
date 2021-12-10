@@ -8,4 +8,4 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import { DiagramElement } from './diagram-element';
+import { WultMetricTab } from './wult-metric-tab';

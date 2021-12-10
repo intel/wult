@@ -26,41 +26,18 @@ class DiagramElement extends LitElement {
 
     static properties = {
         path: {type: String},
-        visible: {type: Boolean},
-        ptab: {type: String},
     };
-
-    checkVisible() {
-        let parentTab = document.getElementById(this.ptab);
-        this.visible = parentTab.classList.contains('active');
-    }
-
-    connectedCallback(){
-        super.connectedCallback();
-        window.addEventListener("click", this._handleClick);
-        this.checkVisible();
-    }
-
-    disconnectedCallback(){
-        window.removeEventListener('click', this._handleClick);
-        super.disconnectedCallback();
-    }
 
     constructor() {
         super();
-        this._handleClick = this.checkVisible.bind(this);
     }
 
-
-
     render() {
-        return this.visible
-        ? html`
-        <div class="plot">
-            <iframe seamless="seamless" frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
-        </div>
+        return html`
+            <div class="plot">
+                <iframe seamless="seamless" frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
+            </div>
         `
-        : html``;
     }
 }
 
