@@ -23,9 +23,9 @@ class WultMetricTab extends LitElement {
   `;
 
     static properties = {
-        paths: {type: Array},
         tabname: {type: String},
-        visible: {type: Boolean}
+        info: {type: Object},
+        visible: {type: Boolean, attribute: false}
     };
 
     checkVisible() {
@@ -37,6 +37,7 @@ class WultMetricTab extends LitElement {
         super.connectedCallback();
         window.addEventListener("click", this._handleClick);
         this.checkVisible();
+        this.paths = this.info.ppaths;
     }
 
     disconnectedCallback(){

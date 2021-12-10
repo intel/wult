@@ -13,5 +13,5 @@
     {#
      # The diagrams.
      #}
-    <wult-metric-tab paths='{{ info["ppaths"] | tojson }}' tabname={{ tabname }}></wult-metric-tab>
+    <wult-metric-tab info='{{ info | tojson }}' tabname={{ tabname }}></wult-metric-tab>
 {% endmacro %}
