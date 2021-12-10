@@ -49,15 +49,22 @@ class WultMetricTab extends LitElement {
         this._handleClick = this.checkVisible.bind(this);
     }
 
-    render() {
-        return this.visible
-        ? html`
+    /*
+     * Provides the template for when the tab is visible (active).
+     */
+    visibleTemplate() {
+        return html`
             <div class="grid">
             ${this.paths.map((path) =>
                     html`<diagram-element path="${path}" ></diagram-element>`
             )}
             </div>
         `
+    }
+
+    render() {
+        return this.visible
+        ? html`${this.visibleTemplate()}`
         : html``;
     }
 }
