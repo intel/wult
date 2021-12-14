@@ -61,17 +61,17 @@ format_changelog() {
 
 new_ver="$1"; shift
 
-# Validate the new version
+# Validate the new version.
 printf "%s" "$new_ver" | egrep -q -x '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' ||
         fatal "please, provide new version in X.Y.Z format"
 
-# Make sure that the current branch is 'master'
+# Make sure that the current branch is 'master' or 'release'.
 current_branch="$(git branch | sed -n -e '/^*/ s/^* //p')"
-if [ "$current_branch" != "master" ]; then
-	fatal "current branch is '$current_branch' but must be 'master'"
+if [ "$current_branch" != "master" -a "$current_branch" != "release" ]; then
+	fatal "current branch is '$current_branch' but must be 'master' or 'release'"
 fi
 
-# Remind the maintainer about various important things
+# Remind the maintainer about various important things.
 ask_question "Did you run tests"
 ask_question "Did you update 'debian/changelog'"
 ask_question "Did you specify pepc version dependency in 'setup.py' and 'debian/changelog'"
@@ -91,31 +91,46 @@ argparse-manpage --pyfile ./ndl --function build_arguments_parser \
 pandoc --toc -t man -s docs/man1/wult.1 -t rst -o docs/wult-man.rst
 pandoc --toc -t man -s docs/man1/ndl.1  -t rst -o docs/ndl-man.rst
 
-# Commit the changes
+# Commit the changes.
 git commit -a -s -m "Release version $new_ver"
 
 outdir="."
 tag_name="v$new_ver"
 release_name="Version $new_ver"
 
-# Create new signed tag
+# Create new signed tag.
 printf "%s\n" "Signing tag $tag_name"
 git tag -m "$release_name" -s "$tag_name"
+
+if [ "$current_branch" = "master" ]; then
+    branchnames="master and release brances"
+else
+    branchnames="release branch"
+fi
 
 cat <<EOF
 To finish the release:
   1. push the $tag_name tag out
-  2. push the master and release branches out
+  2. push $branchnames branches out
 
 The commands would be:
-
-git push origin $tag_name
-git push origin master:master
-git push origin master:release
-git push upstream $tag_name
-git push upstream master:master
-git push upstream master:release
-git push public $tag_name
-git push public master:master
-git push public master:release
 EOF
+
+for remote in "origin" "upstream" "public"; do
+    echo "git push $remote $tag_name"
+    if [ "$current_branch" = "master" ]; then
+        echo "git push $remote master:master"
+        echo "git push $remote master:release"
+    else
+        echo "git push public release:release"
+    fi
+done
+
+if [ "$current_branch" != "master" ]; then
+    echo
+    echo "Then merge the release branch back to master, and run the following commands:"
+
+    for remote in "origin" "upstream" "public"; do
+        echo "git push $remote master:master"
+    done
+fi
