@@ -148,7 +148,7 @@ class DatapointProcessor:
         """
 
         # Apply the adjustments if the driver provides them.
-        if dp["TBIAdjCyc"]:
+        if "TBIAdjCyc" in dp:
             tbi_adj = self._cyc_to_ns(dp["TBIAdjCyc"])
             dp["SilentTimeRaw"] = dp["SilentTime"]
             dp["SilentTime"] -= tbi_adj
@@ -160,7 +160,7 @@ class DatapointProcessor:
                            Human.dict2str(dp),  dp["TBI"], tbi_adj, dp["TBI"] + tbi_adj)
                 return None
 
-        if dp["TAIAdjCyc"]:
+        if "TAIAdjCyc" in dp:
             tai_adj = self._cyc_to_ns(dp["TAIAdjCyc"])
             tintr_adj = self._cyc_to_ns(dp["TIntrAdjCyc"])
 
