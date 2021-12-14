@@ -11,6 +11,7 @@
 import {LitElement, html, css} from 'lit';
 
 import './diagram-element.js';
+import './wult-metric-smry-tbl';
 
 class WultMetricTab extends LitElement {
     static styles = css`
@@ -38,6 +39,7 @@ class WultMetricTab extends LitElement {
         window.addEventListener("click", this._handleClick);
         this.checkVisible();
         this.paths = this.info.ppaths;
+        this.smrystbl = this.info.smrys_tbl;
     }
 
     disconnectedCallback(){
@@ -55,6 +57,7 @@ class WultMetricTab extends LitElement {
      */
     visibleTemplate() {
         return html`
+            <wult-metric-smry-tbl .smrystbl="${this.smrystbl}"></wult-metric-smry-tbl>
             <div class="grid">
             ${this.paths.map((path) =>
                     html`<diagram-element path="${path}" ></diagram-element>`
