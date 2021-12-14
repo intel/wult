@@ -10,6 +10,9 @@
 
 import {LitElement, html, css} from 'lit';
 
+/*
+ * Responsible for generating the summary table for a given metric.
+ */
 class WultMetricSmryTbl extends LitElement {
     static styles = css`
         table {
@@ -63,6 +66,10 @@ class WultMetricSmryTbl extends LitElement {
         smrystbl: {type: Object},
     };
 
+    /*
+     * Returns pixel width of table based on the number of sets of results shown in the report.
+     * @return {Number} no. of pixels to set the width of the table to.
+     */
     getWidth() {
         let nkeys = Object.keys(this.smrystbl).length;
         return Math.min(100, 20 * nkeys);
@@ -72,6 +79,11 @@ class WultMetricSmryTbl extends LitElement {
         super();
     }
 
+    /*
+     * Returns the HTML template for the headers of the summary table.
+     * @return {TemplateResult} <tr> element containing table headers with the sets of results used
+     *                          and 'Title' header.
+     */
     headerTemplate() {
         return html`
             <tr>
