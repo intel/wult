@@ -85,22 +85,22 @@ Here are the required OS packages.
 
 ::
 
- sudo dnf install -y tar bison flex make gcc elfutils-libelf-devel rsync
+ sudo dnf install -y tar bison flex make gcc elfutils-libelf-devel rsync procps-ng
  sudo dnf install -y libffi-devel redhat-rpm-config openssl-devel
  sudo dnf install -y kernel-devel
  sudo dnf install -y git python3 python3-devel python3-pip python3-numpy
  sudo dnf install -y python3-colorama python3-yaml python3-pandas
- sudo dnf install -y  python3-paramiko python3-jinja2 rsync
+ sudo dnf install -y  python3-paramiko python3-jinja2 python3-argcomplete
 
 **Ubuntu**
 
 ::
 
- sudo apt install -y bison flex libelf-dev libssl-dev
+ sudo apt install -y bison flex libelf-dev libssl-dev rsync procps
  sudo apt-get source linux-source
  sudo apt install -y git python3-pip python3-numpy python3-plotly
  sudo apt install -y python3-colorama python3-yaml python3-pandas
- sudo apt install -y python3-paramiko python3-jinja2 rsync
+ sudo apt install -y python3-paramiko python3-jinja2 python3-argcomplete
 
 **Notes**
 
@@ -137,6 +137,18 @@ The final step is to build and deploy wult drivers. Run this command on the SUT 
 
 The drivers are installed only for the currently running kernel. If you reboot the SUT to a
 different kernel, you have to re-run `wult deploy`.
+
+1.7 Tab completions
+-------------------
+
+`Wult` and `pepc` tools have bash tab completions support, but this will only work if you have
+certain environment variables defined. The following commands will do it: ::
+
+ eval $(register-python-argcomplete wult)
+ eval $(register-python-argcomplete pepc)
+
+You can put these lines to your `.bashrc` file in order to have `wult` and `pepc` tab completions
+enabled by default.
 
 
 2 Non-standard case (remote usage model)
