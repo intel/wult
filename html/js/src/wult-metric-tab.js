@@ -8,7 +8,8 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import {LitElement, html, css, TemplateResult} from 'lit';
+import {html, css, TemplateResult} from 'lit';
+import {WultTab} from './wult-tab.js';
 
 import './diagram-element.js';
 import './wult-metric-smry-tbl';
@@ -18,7 +19,7 @@ import './wult-metric-smry-tbl';
  * @class WultMetricTab
  * @extends {LitElement}
  */
-class WultMetricTab extends LitElement {
+class WultMetricTab extends WultTab {
     static styles = css`
         .grid {
             display: grid;
@@ -28,35 +29,8 @@ class WultMetricTab extends LitElement {
         }
   `;
 
-    static properties = {
-        tabname: {type: String},
-        info: {type: Object},
-        visible: {type: Boolean, attribute: false}
-    };
-
-    /**
-     * Checks whether this tab is visible by checking if the tab has the 'active' class applied to
-     * it and sets the 'visible' attribute accordingly.
-     */
-    checkVisible() {
-        let tab = document.getElementById(this.tabname);
-        this.visible = tab.classList.contains('active');
-    }
-
-    /**
-     * Early DOM lifecycle event. Invoked each time the custom element is appended into a
-     * document-connected element.
-     */
     connectedCallback(){
         super.connectedCallback();
-        /*
-         * Adds event listener so that the tab will re-evaulate 'visible' every time the user clicks
-         * to see if the tab has been opened. Read relevant docs here:
-         * https://lit.dev/docs/components/events/#adding-event-listeners-to-other-elements
-         */
-        window.addEventListener("click", this._handleClick);
-        this.checkVisible();
-
         /*
          * DOM-based inputs are only parsed once the component has been 'connected' therefore this
          * is the earliest point to load the input into class attributes.
@@ -65,18 +39,8 @@ class WultMetricTab extends LitElement {
         this.smrystbl = this.info.smrys_tbl;
     }
 
-    /**
-     * Removes the 'click' event handler in the case that the tab is destroyed so that the window
-     * does not attempt to trigger the handler when it is no longer accessible.
-     */
-    disconnectedCallback(){
-        window.removeEventListener('click', this._handleClick);
-        super.disconnectedCallback();
-    }
-
     constructor() {
         super();
-        this._handleClick = this.checkVisible.bind(this);
     }
 
     /**
@@ -95,9 +59,7 @@ class WultMetricTab extends LitElement {
     }
 
     render() {
-        return this.visible
-        ? html`${this.visibleTemplate()}`
-        : html``;
+        return super.render();
     }
 }
 
