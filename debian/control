@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Artem Bityutskiy <artem.bityutskiy@intel.com>
 Build-Depends: debhelper (>= 9),
                dh-python,
-               python3-all (>= 3.6),
+               python3-all (>= 3.7),
                python3-setuptools
 Standards-Version: 3.9.8
 Homepage: https://intelpedia.intel.com/ServerPowerLab/Wult
@@ -13,7 +13,7 @@ X-Python3-Version: >= 3.6
 Package: wult
 Architecture: all
 Multi-Arch: foreign
-Depends: python3:any (>= 3.6~),
+Depends: python3:any (>= 3.7~),
          python3-colorama,
          python3-argcomplete,
          python3-yaml,
