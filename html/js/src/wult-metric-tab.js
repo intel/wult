@@ -8,13 +8,15 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import {LitElement, html, css} from 'lit';
+import {LitElement, html, css, TemplateResult} from 'lit';
 
 import './diagram-element.js';
 import './wult-metric-smry-tbl';
 
-/*
+/**
  * Responsible for generating all content contained within a metric tab.
+ * @class WultMetricTab
+ * @extends {LitElement}
  */
 class WultMetricTab extends LitElement {
     static styles = css`
@@ -32,7 +34,7 @@ class WultMetricTab extends LitElement {
         visible: {type: Boolean, attribute: false}
     };
 
-    /*
+    /**
      * Checks whether this tab is visible by checking if the tab has the 'active' class applied to
      * it and sets the 'visible' attribute accordingly.
      */
@@ -41,25 +43,29 @@ class WultMetricTab extends LitElement {
         this.visible = tab.classList.contains('active');
     }
 
-    /*
+    /**
      * Early DOM lifecycle event. Invoked each time the custom element is appended into a
      * document-connected element.
      */
     connectedCallback(){
         super.connectedCallback();
-        // Adds event listener so that the tab will re-evaulate 'visible' every time the user clicks
-        // to see if the tab has been opened. Read relevant docs here:
-        // https://lit.dev/docs/components/events/#adding-event-listeners-to-other-elements
+        /*
+         * Adds event listener so that the tab will re-evaulate 'visible' every time the user clicks
+         * to see if the tab has been opened. Read relevant docs here:
+         * https://lit.dev/docs/components/events/#adding-event-listeners-to-other-elements
+         */
         window.addEventListener("click", this._handleClick);
         this.checkVisible();
 
-        // DOM-based inputs are only parsed once the component has been 'connected' therefore this
-        // is the earliest point to load the input into class attributes.
+        /*
+         * DOM-based inputs are only parsed once the component has been 'connected' therefore this
+         * is the earliest point to load the input into class attributes.
+         */
         this.paths = this.info.ppaths;
         this.smrystbl = this.info.smrys_tbl;
     }
 
-    /*
+    /**
      * Removes the 'click' event handler in the case that the tab is destroyed so that the window
      * does not attempt to trigger the handler when it is no longer accessible.
      */
@@ -73,8 +79,9 @@ class WultMetricTab extends LitElement {
         this._handleClick = this.checkVisible.bind(this);
     }
 
-    /*
+    /**
      * Provides the template for when the tab is visible (active).
+     * @returns {TemplateResult}
      */
     visibleTemplate() {
         return html`

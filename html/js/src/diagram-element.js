@@ -10,6 +10,11 @@
 
 import {LitElement, html, css} from '../node_modules/lit/index.js';
 
+/**
+ * Responsible for creating a 'div' element containing a plot.
+ * @class DiagramElement
+ * @extends {LitElement}
+ */
 class DiagramElement extends LitElement {
     static styles = css`
     .plot {

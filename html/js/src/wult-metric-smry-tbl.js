@@ -8,10 +8,12 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import {LitElement, html, css} from 'lit';
+import {LitElement, html, css, TemplateResult} from 'lit';
 
-/*
+/**
  * Responsible for generating the summary table for a given metric.
+ * @class WultMetricSmryTbl
+ * @extends {LitElement}
  */
 class WultMetricSmryTbl extends LitElement {
     static styles = css`
@@ -66,7 +68,7 @@ class WultMetricSmryTbl extends LitElement {
         smrystbl: {type: Object},
     };
 
-    /*
+    /**
      * Returns pixel width of table based on the number of sets of results shown in the report.
      * @return {Number} no. of pixels to set the width of the table to.
      */
@@ -79,7 +81,7 @@ class WultMetricSmryTbl extends LitElement {
         super();
     }
 
-    /*
+    /**
      * Returns the HTML template for the headers of the summary table.
      * @return {TemplateResult} <tr> element containing table headers with the sets of results used
      *                          and 'Title' header.
