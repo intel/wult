@@ -15,7 +15,6 @@ Architecture: all
 Multi-Arch: foreign
 Depends: python3:any (>= 3.6~),
          python3-colorama,
-         python3-paramiko,
          python3-argcomplete,
          python3-yaml,
          ${misc:Depends},
