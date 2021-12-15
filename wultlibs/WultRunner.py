@@ -16,8 +16,9 @@ import logging
 import contextlib
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from pepclibs.helperlibs import Systemctl, Human
+from pepclibs.helperlibs import Systemctl
 from wultlibs import EventsProvider, _FTrace, _ProgressLine, _WultDpProcess, WultStatsCollect
+from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
 

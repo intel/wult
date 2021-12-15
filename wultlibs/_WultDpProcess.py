@@ -13,9 +13,9 @@ saves the results.
 
 import logging
 from pepclibs.helperlibs.Exceptions import Error
-from pepclibs.helperlibs import Human
 from pepclibs import CPUIdle
 from wultlibs import Defs
+from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
 

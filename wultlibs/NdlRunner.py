@@ -14,10 +14,10 @@ result.
 import time
 import logging
 import contextlib
-from pepclibs.helperlibs import Trivial, FSHelpers, KernelModule, Human
+from pepclibs.helperlibs import Trivial, FSHelpers, KernelModule
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs import _ProgressLine, _Nmcli, _ETFQdisc
-from wultlibs.helperlibs import KernelVersion, ProcHelpers
+from wultlibs.helperlibs import KernelVersion, ProcHelpers, Human
 
 _LOG = logging.getLogger()
 

@@ -20,10 +20,10 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
 
-from pepclibs.helperlibs import Logging, ArgParse, Human, Trivial
+from pepclibs.helperlibs import Logging, ArgParse, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import Deploy, ToolsCommon, NdlRunner, NetIface
-from wultlibs.helperlibs import ReportID
+from wultlibs.helperlibs import ReportID, Human
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs.reportlibs import NdlHTMLReport
 
