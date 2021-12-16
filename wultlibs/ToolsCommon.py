@@ -81,9 +81,9 @@ def get_report_outdir_descr(toolname):
     """
 
     descr = f"""Path to the directory to store the report at. By default the report is stored in the
-                '{toolname}-report-<reportid>' sub-directory of the current working directory, where
-                '<reportid>' is report ID of {toolname} test result (the first one if there are
-                multiple)."""
+                '{toolname}-report-<reportid>' sub-directory of the test result directory. If there
+                are multiple test results, the report is stored in the current directory. The
+                '<reportid>' is report ID of {toolname} test result."""
     return descr
 
 # Description for the '--even-up-dp-count' option of the 'report' command.

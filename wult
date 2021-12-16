@@ -610,9 +610,15 @@ def report_command(args):
         ToolsCommon.even_up_dpcnt(rsts)
 
     if args.outdir is None:
-        args.outdir = ReportID.format_reportid(prefix=f"{OWN_NAME}-report",
-                                               reportid=rsts[0].reportid,
-                                               additional_chars=REPORTID_ADDITIONAL_CHARS)
+        if len(args.respaths) > 1:
+            args.outdir = ReportID.format_reportid(prefix=f"{OWN_NAME}-report",
+                                                   reportid=rsts[0].reportid,
+                                                   additional_chars=REPORTID_ADDITIONAL_CHARS)
+        else:
+            args.outdir = args.respaths[0]
+
+        args.outdir = Path(args.outdir)
+        LOG.info("Generating report into: %s", args.outdir)
 
     rep = WultHTMLReport.WultHTMLReport(rsts, args.outdir, title_descr=args.title_descr,
                                         xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
