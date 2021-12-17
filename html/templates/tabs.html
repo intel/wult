@@ -1,4 +1,3 @@
-{% from "metric.html" import add_metric %}
 {% macro add_tab(tab) %}
     {% if tab["tabs"] %}
         {% set tabs = tab["tabs"] %}
@@ -23,7 +22,7 @@
         </div>
     {% else %}
         {% if tab["category"] == "metric" %}
-            {{ add_metric(tab["mdata"], tab["id"]) }}
+            <wult-metric-tab info='{{ tab["mdata"] | tojson }}' tabname={{ tab["id"] }}></wult-metric-tab>
         {% endif %}
     {% endif %}
 {% endmacro %}

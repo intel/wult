@@ -49,6 +49,7 @@ class WultMetricTab extends WultTab {
      */
     visibleTemplate() {
         return html`
+            <br>
             <wult-metric-smry-tbl .smrystbl="${this.smrystbl}"></wult-metric-smry-tbl>
             <div class="grid">
             ${this.paths.map((path) =>

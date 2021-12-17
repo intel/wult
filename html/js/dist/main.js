@@ -93,6 +93,7 @@
             grid-auto-flow: dense;
         }
   `;connectedCallback(){super.connectedCallback(),this.paths=this.info.ppaths,this.smrystbl=this.info.smrys_tbl}constructor(){super()}visibleTemplate(){return O`
+            <br>
             <wult-metric-smry-tbl .smrystbl="${this.smrystbl}"></wult-metric-smry-tbl>
             <div class="grid">
             ${this.paths.map((t=>O`<diagram-element path="${t}" ></diagram-element>`))}

@@ -1,7 +1,0 @@
-{#
- # Populate a tab for a given metric.
- #}
-{% macro add_metric(info, tabname) %}
-    <br>
-    <wult-metric-tab info='{{ info | tojson }}' tabname={{ tabname }}></wult-metric-tab>
-{% endmacro %}
