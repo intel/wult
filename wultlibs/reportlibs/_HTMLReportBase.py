@@ -609,6 +609,7 @@ class HTMLReportBase:
         # Additional columns to load, if they exist in the CSV file.
         self._more_colnames = []
 
+        self._validate_init_args()
         self._init_colnames()
 
         # We'll provide summaries for every column participating in at least one diagram.
@@ -626,7 +627,6 @@ class HTMLReportBase:
                 self._smry_colnames.append(colname)
 
         self._init_assets()
-        self._validate_init_args()
 
         self._pbuilder = _PlotsBuilder.PlotsBuilder(self.rsts, self._plotsdir, self.xaxes,
                                                     self.yaxes, self.hist, self.chist,
