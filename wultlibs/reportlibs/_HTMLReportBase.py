@@ -181,7 +181,7 @@ class HTMLReportBase:
                         else:
                             percent = change
                         change = fmt.format(change) + unit
-                        percent = "{:.1f}%".format(percent)
+                        percent = f"{percent:.1f}%"
                         fdict["hovertext"] = f"Change: {change} ({percent})"
 
         return smrys_tbl
@@ -527,7 +527,7 @@ class HTMLReportBase:
 
         if self.title_descr and Path(self.title_descr).is_file():
             try:
-                with open(self.title_descr, "r") as fobj:
+                with open(self.title_descr, "r", encoding="UTF-8") as fobj:
                     self.title_descr = fobj.read()
             except OSError as err:
                 raise Error(f"failed to read the report description file {self.title_descr}:\n"
