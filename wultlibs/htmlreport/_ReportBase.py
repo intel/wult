@@ -19,7 +19,7 @@ from pepclibs.helperlibs import Trivial, FSHelpers
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import Jinja2
 from wultlibs.rawresultlibs import RORawResult
-from wultlibs.reportlibs import _PlotsBuilder
+from wultlibs.htmlreport import _PlotsBuilder
 
 _LOG = logging.getLogger()
 
@@ -49,7 +49,7 @@ class Tab:
     # Macros which populate the tab content will be provided the 'mdata' dictionary.
     mdata: Dict = None
 
-class HTMLReportBase:
+class ReportBase:
     """This is the base class for generating HTML reports for raw test results."""
 
     def _prepare_intro_table(self, stats_paths, logs_paths, descr_paths):

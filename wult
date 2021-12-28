@@ -28,7 +28,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs import CPUIdle, CPUInfo, CPUOnline
 from pepclibs.msr import PowerCtl
 from wultlibs.helperlibs import ReportID, Human
-from wultlibs.reportlibs import WultHTMLReport
+from wultlibs.htmlreport import WultReport
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs import Deploy, ToolsCommon, Devices, EventsProvider, WultRunner, WultStatsCollect
 
@@ -60,7 +60,7 @@ def get_axes(optname, report_size=None):
     if not report_size:
         report_size = "small"
 
-    optnames = getattr(WultHTMLReport, f"{report_size.upper()}_{optname.upper()}")
+    optnames = getattr(WultReport, f"{report_size.upper()}_{optname.upper()}")
     # The result is used for argparse, which does not accept '%' symbols.
     if optnames:
         return optnames.replace("%", "%%")
@@ -312,12 +312,12 @@ def build_arguments_parser():
                is mutually exclusive with '--xaxes', '--yaxes', '--hist', '--chist', therefore
                cannot be used in combination with any of these options. This option can be set to
                'small', 'medium' or 'large'. Here are the regular expressions for each setting:
-               small: {{XAXES='{WultHTMLReport.SMALL_XAXES}', YAXES='{WultHTMLReport.SMALL_YAXES}',
-               HIST='{WultHTMLReport.SMALL_HIST}', CHIST='{WultHTMLReport.SMALL_CHIST}'}} medium:
-               {{XAXES='{WultHTMLReport.MEDIUM_XAXES}', YAXES='{WultHTMLReport.MEDIUM_YAXES}',
-               HIST='{WultHTMLReport.MEDIUM_HIST}', CHIST='{WultHTMLReport.MEDIUM_CHIST}'}} large:
-               {{XAXES='{WultHTMLReport.LARGE_XAXES}', YAXES='{WultHTMLReport.LARGE_YAXES}',
-               HIST='{WultHTMLReport.LARGE_HIST}', CHIST='{WultHTMLReport.LARGE_CHIST}'}}
+               small: {{XAXES='{WultReport.SMALL_XAXES}', YAXES='{WultReport.SMALL_YAXES}',
+               HIST='{WultReport.SMALL_HIST}', CHIST='{WultReport.SMALL_CHIST}'}} medium:
+               {{XAXES='{WultReport.MEDIUM_XAXES}', YAXES='{WultReport.MEDIUM_YAXES}',
+               HIST='{WultReport.MEDIUM_HIST}', CHIST='{WultReport.MEDIUM_CHIST}'}} large:
+               {{XAXES='{WultReport.LARGE_XAXES}', YAXES='{WultReport.LARGE_YAXES}',
+               HIST='{WultReport.LARGE_HIST}', CHIST='{WultReport.LARGE_CHIST}'}}
             """.replace("%", "%%")
     subpars.add_argument("--size", dest="report_size", type=str, help=text)
 
@@ -563,7 +563,7 @@ def start_command(args):
         return
 
     rsts = ToolsCommon.open_raw_results([args.outdir], args.toolname)
-    rep = WultHTMLReport.WultHTMLReport(rsts, args.outdir, title_descr=args.reportid)
+    rep = WultReport.WultReport(rsts, args.outdir, title_descr=args.reportid)
     rep.relocatable = "symlink"
     rep.set_hover_colnames(HOVER_COLNAME_REGEXS)
     rep.generate()
@@ -620,7 +620,7 @@ def report_command(args):
         args.outdir = Path(args.outdir)
         LOG.info("Generating report into: %s", args.outdir)
 
-    rep = WultHTMLReport.WultHTMLReport(rsts, args.outdir, title_descr=args.title_descr,
+    rep = WultReport.WultReport(rsts, args.outdir, title_descr=args.title_descr,
                                         xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
                                         chist=args.chist)
     rep.relocatable = args.relocatable

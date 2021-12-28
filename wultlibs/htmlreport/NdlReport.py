@@ -11,12 +11,12 @@
 This module provides API for generating HTML reports for ndl test results.
 """
 
-from wultlibs.reportlibs import _HTMLReportBase
+from wultlibs.htmlreport import _ReportBase
 
 DEFAULT_XAXES = "LDist"
 DEFAULT_YAXES = DEFAULT_HIST = DEFAULT_CHIST = "RTD"
 
-class NdlHTMLReport(_HTMLReportBase.HTMLReportBase):
+class NdlReport(_ReportBase.ReportBase):
     """This module provides API for generating HTML reports for ndl test results."""
 
     def __init__(self, rsts, outdir, title_descr=None, xaxes=None, yaxes=None, hist=None,

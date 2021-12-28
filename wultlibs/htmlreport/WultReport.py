@@ -11,7 +11,7 @@
 This module provides API for generating HTML reports for wult test results.
 """
 
-from wultlibs.reportlibs import _HTMLReportBase
+from wultlibs.htmlreport import _ReportBase
 
 # The constants below define the diagrams and histograms that are included into a report. There are
 # 3 groups of constands - for a small report, a medium report, and large report. The former includes
@@ -44,7 +44,7 @@ DEFAULT_CHIST = SMALL_CHIST
 EXCLUDE_XAXES = "LDist"
 EXCLUDE_YAXES = "SilentTime"
 
-class WultHTMLReport(_HTMLReportBase.HTMLReportBase):
+class WultReport(_ReportBase.ReportBase):
     """This module provides API for generating HTML reports for wult test results."""
 
     def __init__(self, rsts, outdir, title_descr=None, xaxes=None, yaxes=None, hist=None,
