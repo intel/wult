@@ -8,74 +8,19 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import {LitElement, html, css, TemplateResult} from 'lit';
+import {html, TemplateResult} from 'lit';
+import {ReportTable} from './report-table.js';
 
 /**
  * Responsible for generating the summary table for a given metric.
  * @class WultMetricSmryTbl
- * @extends {LitElement}
+ * @extends {ReportTable}
  */
-class WultMetricSmryTbl extends LitElement {
-    static styles = css`
-        table {
-            table-layout: fixed;
-            border-collapse: collapse;
-            width: auto;
-        }
-
-        table th {
-            font-family: Arial, sans-serif;
-            font-size: 15px;
-            font-weight: bold;
-            padding: 10px 5px;
-            border-style: solid;
-            border-width: 1px;
-            overflow: hidden;
-            word-break: normal;
-            border-color: black;
-            text-align: center;
-            background-color: rgb(161, 195, 209);
-        }
-
-        table td {
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            padding: 5px 10px;
-            border-style: solid;
-            border-width: 1px;
-            overflow: hidden;
-            word-break:normal ;
-            border-color:black;
-            background-color: rgb(237, 250, 255);
-        }
-
-        table .td-colname {
-            font-size: 15px;
-            font-weight: bold;
-            text-align: left;
-        }
-
-        table .td-value {
-            text-align: left;
-        }
-
-        table .td-funcname {
-            text-align: left;
-        }
-    `;
+class WultMetricSmryTbl extends ReportTable {
 
     static properties = {
         smrystbl: {type: Object},
     };
-
-    /**
-     * Returns pixel width of table based on the number of sets of results shown in the report.
-     * @return {Number} no. of pixels to set the width of the table to.
-     */
-    getWidth() {
-        let nkeys = Object.keys(this.smrystbl).length;
-        return Math.min(100, 20 * nkeys);
-    }
 
     constructor() {
         super();
@@ -143,7 +88,7 @@ class WultMetricSmryTbl extends LitElement {
     render() {
         return this.smrystbl
         ? html`
-            <table width="${this.getWidth()}%">
+            <table width="${this.getWidth(this.smrystbl)}%">
             ${this.headerTemplate()}
             ${this.rowsTemplate()}
             </table>

@@ -60,7 +60,7 @@
         table .td-funcname {
             text-align: left;
         }
-    `;static properties={smrystbl:{type:Object}};getWidth(){let t=Object.keys(this.smrystbl).length;return Math.min(100,20*t)}constructor(){super()}headerTemplate(){return O`
+    `;getWidth(t){let e=Object.keys(t).length;return Math.min(100,20*e)}constructor(){super()}}customElements.define("report-table",st),customElements.define("wult-metric-smry-tbl",class extends st{static properties={smrystbl:{type:Object}};constructor(){super()}headerTemplate(){return O`
             <tr>
                 ${Object.keys(this.smrystbl).map((t=>O`<th colspan="${"Title"==t?2:""}">${t}</th>`))}
             </tr>
@@ -81,11 +81,11 @@
                     </tr>
                     `))))}
         `}render(){return this.smrystbl?O`
-            <table width="${this.getWidth()}%">
+            <table width="${this.getWidth(this.smrystbl)}%">
             ${this.headerTemplate()}
             ${this.rowsTemplate()}
             </table>
-        `:O``}}customElements.define("wult-metric-smry-tbl",st);class it extends tt{static styles=r`
+        `:O``}});class it extends tt{static styles=r`
         .grid {
             display: grid;
             width: 100%;
