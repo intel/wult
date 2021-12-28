@@ -9,3 +9,4 @@
  */
 
 import { WultMetricTab } from './wult-metric-tab';
+import { IntroTable } from './intro-tbl';
