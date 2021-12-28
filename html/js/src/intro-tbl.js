@@ -9,18 +9,27 @@
  */
 
 import {html} from 'lit';
-import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-import { ReportTable } from './report-table.js';
+import {ReportTable} from './report-table.js';
 
 /**
  * Responsible for generating the 'Intro Table' which contains information on the report.
  * @class IntroTable
- * @extends {LitElement}
+ * @extends {ReportTable}
  */
 class IntroTable extends ReportTable {
     static properties = {
         introtbl: {type: Object},
     };
+
+    /**
+     * Early DOM lifecycle event. Invoked each time the custom element is appended into a
+     * document-connected element.
+     */
+    connectedCallback(){
+        super.connectedCallback();
+        this.link_keys = this.introtbl.link_keys;
+        delete this.introtbl.link_keys;
+    }
 
     constructor() {
         super();
@@ -41,7 +50,12 @@ class IntroTable extends ReportTable {
                 <td class="td-colname"> ${val} </td>
                 ${Object.entries(this.introtbl).map(([key1, val1]) => {
                     if (key1 != "Title"){
-                        return html`<td class="td-value"> ${unsafeHTML(String(val1[key]))} </td>`
+                        return html`<td class="td-value"> ${
+                            (this.link_keys.includes(key))
+                            ? val1[key]
+                                ? html`<a href=${val1[key]}> ${val} </a>`
+                                : "Not available" 
+                            : val1[key]} </td>`
                     }})}
                 </tr>
                 `)}

@@ -62,6 +62,8 @@ class ReportBase:
 
         intro_tbl = {}
         intro_tbl["Title"] = {}
+        # Keys of values to turn into links (e.g. paths).
+        link_keys = []
         for res in self.rsts:
             intro_tbl[res.reportid] = {}
 
@@ -90,25 +92,30 @@ class ReportBase:
         if stats_paths:
             key = "stats"
             intro_tbl["Title"][key] = "Statistics"
+            link_keys.append(key)
             for res in self.rsts:
-                path = stats_paths.get(res.reportid, "Not available")
+                path = stats_paths.get(res.reportid, None)
                 intro_tbl[res.reportid][key] = path
 
         # Add links to the logs directories.
         if logs_paths:
             key = "logs"
             intro_tbl["Title"][key] = "Logs"
+            link_keys.append(key)
             for res in self.rsts:
-                path = logs_paths.get(res.reportid, "Not available")
+                path = logs_paths.get(res.reportid, None)
                 intro_tbl[res.reportid][key] = path
 
         # Add links to the descriptions.
         if descr_paths:
             key = "descr"
             intro_tbl["Title"][key] = "Test description"
+            link_keys.append(key)
             for res in self.rsts:
-                path = descr_paths.get(res.reportid, "Not available")
+                path = descr_paths.get(res.reportid, None)
                 intro_tbl[res.reportid][key] = path
+
+        intro_tbl["link_keys"] = link_keys
 
         return intro_tbl
 
@@ -208,14 +215,11 @@ class ReportBase:
                 FSHelpers.move_copy_link(srcpath, dstpath, action="symlink", exist_ok=True)
 
             if res.stats_path.is_dir():
-                hlink = f"<a href=\"{resrootdir}/{res.stats_path.name}\">Statistics</a>"
-                stats_paths[res.reportid] = hlink
+                stats_paths[res.reportid] = f"{resrootdir}/{res.stats_path.name}"
             if res.logs_path.is_dir():
-                hlink = f"<a href=\"{resrootdir}/{res.logs_path.name}\">Logs</a>"
-                logs_paths[res.reportid] = hlink
+                logs_paths[res.reportid] = f"{resrootdir}/{res.logs_path.name}"
             if res.descr_path.is_file():
-                hlink = f"<a href=\"{resrootdir}/{res.descr_path.name}\">Test description</a>"
-                descr_paths[res.reportid] = hlink
+                descr_paths[res.reportid] = f"{resrootdir}/{res.descr_path.name}"
 
         return stats_paths, logs_paths, descr_paths
 
