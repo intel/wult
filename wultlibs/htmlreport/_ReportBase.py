@@ -15,8 +15,8 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, FSHelpers
 from pepclibs.helperlibs.Exceptions import Error
+from wultlibs import DFSummary
 from wultlibs.helperlibs import Jinja2
-from wultlibs.rawresultlibs import RORawResult
 from wultlibs.htmlreport import _PlotsBuilder
 from wultlibs.htmlreport._Tab import Tab
 
@@ -132,7 +132,7 @@ class ReportBase:
                     # 'std' will not be present if the result has only one datapoint. In this case,
                     # we need to exclude the 'std' function.
                     if all(res.smrys[metric].get(funcname) for res in self.rsts):
-                        title_dict["funcs"][funcname] = RORawResult.get_smry_func_descr(funcname)
+                        title_dict["funcs"][funcname] = DFSummary.get_smry_func_descr(funcname)
 
                 # Now fill the values for each result.
                 for res in self.rsts:

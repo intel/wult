@@ -10,63 +10,17 @@
 This module provides API for reading raw test results.
 """
 
+import builtins
 import re
 import logging
-import builtins
 from pathlib import Path
-import numpy
 import pandas
-from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
-from wultlibs import Defs
+from wultlibs import Defs, DFSummary
 from wultlibs.helperlibs import YAML
 from wultlibs.rawresultlibs import _RawResultBase
 
 _LOG = logging.getLogger()
-
-# Summary function names and titles.
-_SMRY_FUNCS = {"min"       : "the minimum value",
-               "min_index" : "index of the minimum value",
-               "max"       : "the maximum value",
-               "max_index" : "index of the maximum value",
-               "avg"       : "the average value",
-               "med"       : "the median value",
-               "std"       : "standard deviation",
-               "N%"        : "N-th percentile, 0 < N < 100",
-               "nzcnt"     : "datapoints with non-zero value"}
-
-def get_smry_funcs():
-    """
-    Yields all the supported summary function names along with short description as a tuple.
-    """
-
-    for funcname, descr in _SMRY_FUNCS.items():
-        yield funcname, descr
-
-def _get_percentile(funcname):
-    """
-    Parses and validates the percentile statistics function name (e.g., "99%") and returns the
-    percent value (99).
-    """
-
-    percent = Trivial.str_to_num(funcname[:-1])
-    if percent <= 0 or percent >= 100:
-        raise Error(f"bad percentile number in '{funcname}', should be in range of "
-                    f"(0, 100)")
-    return percent
-
-def get_smry_func_descr(funcname):
-    """Returns description for a summary function 'funcname'."""
-
-    if funcname in _SMRY_FUNCS:
-        return _SMRY_FUNCS[funcname]
-
-    if "%" in funcname:
-        percent = _get_percentile(funcname)
-        return f"{percent}-th percentile"
-
-    funcnames = ", ".join([fname for fname, _ in get_smry_funcs()])
-    raise Error(f"unknown function name '{funcname}', supported names are:\n{funcnames}")
 
 class RORawResult(_RawResultBase.RawResultBase):
     """This class represents a read-only raw test result."""
@@ -169,27 +123,20 @@ class RORawResult(_RawResultBase.RawResultBase):
         if regexs:
             self._csel = self.find_colnames(regexs, must_find_all=True)
 
-    def _calc_smrys(self, colname, funcnames, all_funcs):
+    def _get_column_funcnames(self, colname, funcnames, all_funcs):
         """
-        Calculate summary functions 'funcnames' for column 'colname' and return the resulting
-        dictionary. Note, 'smrys' comes from "summaries".
+        A helper for 'calc_smrys()', which figures out the list of summary functions to compute for
+        column 'colname'.
         """
 
-        fmap = {"min" : "idxmin", "min_index" : "idxmin", "max" : "idxmax", "max_index" : "idxmax",
-                "avg" : "mean", "med" : "median", "std" : "std"}
-        smrys = {}
+        coldef = self.defs.info[colname]
 
+        fnames = []
         for funcname in funcnames:
-            restype = None
-            coldef = self.defs.info[colname]
-
             # We do not need the description, calling this method just to let it validate the
             # function name.
-            get_smry_func_descr(funcname)
+            DFSummary.get_smry_func_descr(funcname)
 
-            fname = funcname
-            if fname.endswith("%"):
-                fname = "N%"
             if "default_funcs" in coldef and coldef["default_funcs"] != "all" and not all_funcs:
                 # Skip functions that are not in the "default functions" list for this column.
                 if funcname not in coldef["default_funcs"]:
@@ -197,42 +144,9 @@ class RORawResult(_RawResultBase.RawResultBase):
                     if not (funcname.endswith("%") and "N%" in coldef["default_funcs"]):
                         continue
 
-            if funcname in smrys:
-                continue
+            fnames.append(funcname)
 
-            if funcname in fmap:
-                # Other summaries can be handled in a generic way.
-                datum = getattr(self.df[colname], fmap[funcname])()
-            elif funcname == "nzcnt":
-                datum = (self.df[colname] != 0).sum()
-                restype = int
-            else:
-                # Handle percentiles separately.
-                if funcname == "N%":
-                    # Assume 99% by default.
-                    funcname = "99%"
-                percent = _get_percentile(funcname)
-                datum = self.df[colname].quantile(percent / 100)
-
-            if numpy.isnan(datum):
-                continue
-
-            # Min/max are a bit special.
-            if fmap.get(funcname, "").startswith("idx"):
-                # Datum is the index, not the actual value.
-                idx_funcname = f"{funcname[0:3]}_index"
-                funcname = funcname[0:3]
-                if "idx" not in funcname:
-                    # This makes sure that the order is the same as in 'funcnames'.
-                    smrys[funcname] = None
-                smrys[idx_funcname] = datum
-                datum = self.df.loc[datum, colname]
-
-            if not restype:
-                restype = getattr(builtins, coldef["type"])
-            smrys[funcname] = restype(datum)
-
-        return smrys
+        return fnames
 
     def calc_smrys(self, regexs=None, funcnames=None, all_funcs=False):
         """
@@ -280,7 +194,7 @@ class RORawResult(_RawResultBase.RawResultBase):
             raise ErrorNotFound(msg)
 
         if not funcnames:
-            funcnames = list(_SMRY_FUNCS.keys())
+            funcnames = [funcname for funcname, _ in DFSummary.get_smry_funcs()]
 
         # Turn 'N%' into 99%, 99.9%, 99.99%, and 99.999%.
         fnames = []
@@ -291,10 +205,17 @@ class RORawResult(_RawResultBase.RawResultBase):
                 fnames += ["99%", "99.9%", "99.99%", "99.999%"]
 
         self.smrys = {}
+        dfsum = DFSummary.DFSummary(self.df)
         for colname in colnames:
-            subdict = self._calc_smrys(colname, fnames, all_funcs)
-            if subdict:
-                self.smrys[colname] = subdict
+            smry_fnames = self._get_column_funcnames(colname, fnames, all_funcs)
+            subdict = dfsum.calc_col_smry(colname, smry_fnames)
+
+            coldef = self.defs.info[colname]
+            restype = getattr(builtins, coldef["type"])
+            for func, datum in subdict.items():
+                subdict[func] = restype(datum)
+
+            self.smrys[colname] = subdict
 
     def _load_csv(self, **kwargs):
         """Read the datapoints CSV file into a pandas dataframe and validate it."""
