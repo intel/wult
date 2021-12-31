@@ -42,7 +42,6 @@ class ParserBase:
 
         if path:
             try:
-                with open(path, 'r', encoding="UTF-8") as f:
-                    self._lines = iter(f.readlines())
+                self._lines = open(path, 'r') # pylint: disable=consider-using-with
             except OSError as err:
                 raise Error(f"cannot open '{path}':\n{err}") from err
