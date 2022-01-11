@@ -19,6 +19,7 @@ import pandas
 import plotly
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
+from wultlibs.htmlreport import _ScatterPlot
 
 _LOG = logging.getLogger()
 
@@ -306,38 +307,27 @@ class PlotsBuilder:
             _LOG.info("Generating scatter plot: %s vs %s.", xcolname, ycolname)
 
             pinfo = self._add_pinfo(xcolname, ycolname, is_hist=False)
-            markers = itertools.cycle(_SCATTERPLOT_MARKERS)
-            gobjs = []
+
+            xaxis_defs = self._refdefs.info.get(xcolname, {})
+            yaxis_defs = self._refdefs.info.get(ycolname, {})
+            xaxis_label = xaxis_defs.get("title", xcolname)
+            yaxis_label = yaxis_defs.get("title", xcolname)
+            xaxis_unit = xaxis_defs.get("unit", "")
+            yaxis_unit = yaxis_defs.get("unit", "")
+
+            outpath = self.outdir.joinpath(pinfo.fname)
+            plot = _ScatterPlot.ScatterPlot(xcolname, ycolname, outpath, xaxis_label=xaxis_label,
+                                            yaxis_label=yaxis_label, xaxis_unit=xaxis_unit,
+                                            yaxis_unit=yaxis_unit)
 
             for res in self.rsts:
                 df = self._reduce_df_density(res, xcolname, ycolname)
-
                 text = self._create_hover_text(res, df, pinfo)
+                df[xcolname] = self._base_unit(df, xcolname)
+                df[ycolname] = self._base_unit(df, ycolname)
+                plot.add_df(df, res.reportid, text)
 
-                # Non-numeric columns will have only few unique values, e.g. 'ReqState' might have
-                # "C1", "C1E" and "C6". Using dotted markers for such data will have 3 thin lines
-                # which is hard to see. Improve it by using line markers to turn lines into wider
-                # "bars".
-                if all((res.is_numeric(xcolname), res.is_numeric(ycolname))):
-                    marker_size = 4
-                    marker_symbol = next(markers)
-                else:
-                    marker_size = 30
-                    marker_symbol = "line-ns"
-
-                marker = {"size" : marker_size, "symbol" : marker_symbol, "opacity" : self._opacity}
-                try:
-                    gobj = plotly.graph_objs.Scattergl(x=self._base_unit(df, xcolname),
-                                                       y=self._base_unit(df, ycolname),
-                                                       opacity=self._opacity,
-                                                       text=text, mode="markers",
-                                                       name=res.reportid, marker=marker)
-                except Exception as err:
-                    raise Error(f"failed to create scatter plot '{ycolname}-vs-{xcolname}':\n"
-                                f"{err}") from err
-                gobjs.append(gobj)
-
-            self._create_diagram(gobjs, pinfo)
+            plot.generate()
 
     def _generate_histograms(self):
         """Generate the scatter plots."""
