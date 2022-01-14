@@ -16,7 +16,6 @@ import logging
 from dataclasses import dataclass
 import numpy
 import pandas
-import plotly
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.htmlreport import _ScatterPlot, _Histogram
@@ -68,45 +67,6 @@ class PlotsBuilder:
         if base_colname not in df:
             df[base_colname] = df[colname] / 1000000
         return df[base_colname]
-
-    def _create_diagram_axis_info(self, axis, pinfo):
-        """Configure axis information dictionary for plotly's 'Figure()' method."""
-
-        nkey = f"{axis}metric"
-        colname = getattr(pinfo, nkey)
-        defs = self._refdefs.info.get(colname, {})
-        title = defs.get("title", colname)
-
-        fontfmt = {"family" : "Arial, sans-serif",
-                   "size"   : 18,
-                   "color"  : "black"}
-
-        axis = {"showline"  : True,
-                "showgrid"  : True,
-                "title"     : title,
-                "titlefont" : fontfmt,
-                "ticks"     : "outside",
-                "tickwidth" : 1,
-                "showticklabels" : True,
-                "linewidth" : 1,
-                "linecolor" : "black",
-                "zeroline" : True,
-                "zerolinewidth" : 1,
-                "zerolinecolor" : "black"}
-
-        if defs.get("unit") == "microsecond":
-            axis["tickformat"] = ".3s"
-            axis["ticksuffix"] = "s"
-            axis["hoverformat"] = ".4s"
-        elif colname == "Percentile":
-            axis["ticksuffix"] = "%"
-
-        if defs and not self.rsts[0].is_numeric(colname):
-            axis["type"] = "category"
-            axis["autorange"] = False
-            axis["categoryorder"] = "category ascending"
-
-        return axis
 
     def _add_pinfo(self, xcolname, ycolname, is_hist=False):
         """Add information about a plot to 'self._create_diagrams'."""
@@ -165,38 +125,6 @@ class PlotsBuilder:
             text.append(fmt.format(*row))
 
         return text
-
-    def _create_diagram(self, gobjs, pinfo):
-        """Put the 'gobjs' objects to a single plot and save it in the output directory."""
-
-        xaxis = self._create_diagram_axis_info("x", pinfo)
-        yaxis = self._create_diagram_axis_info("y", pinfo)
-
-        legend_format = {"font"    : {"size" : 14},
-                         "bgcolor" : "#E2E2E2",
-                         "borderwidth" : 2,
-                         "bordercolor" : "#FFFFFF"}
-
-        layout = {"showlegend"  : True,
-                  "hovermode"   : "closest",
-                  "xaxis"   : xaxis,
-                  "yaxis"   : yaxis,
-                  "barmode" : "overlay",
-                  "bargap"  : 0,
-                  "legend"  : legend_format}
-
-        fpath = self.outdir.joinpath(pinfo.fname)
-
-        try:
-            fig = plotly.graph_objs.Figure(data=gobjs, layout=layout)
-            if hasattr(fig, "update_layout") and fig.update_layout:
-                # In plotly version 4 the default theme has changed. The old theme is called
-                # 'plotly_white'. Use it to maintain consistent look for plotly v3 and v4.
-                fig.update_layout(template="plotly_white")
-            plotly.offline.plot(fig, filename=str(fpath), auto_open=False,
-                                config={"showLink" : False})
-        except Exception as err:
-            raise Error(f"failed to create the '{pinfo.fname}' diagram:\n{err}") from err
 
     @staticmethod
     def _reduce_df_density(res, xcolname, ycolname):
