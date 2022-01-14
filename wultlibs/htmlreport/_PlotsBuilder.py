@@ -19,7 +19,7 @@ import pandas
 import plotly
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.htmlreport import _ScatterPlot
+from wultlibs.htmlreport import _ScatterPlot, _Histogram
 
 _LOG = logging.getLogger()
 
@@ -356,40 +356,35 @@ class PlotsBuilder:
                 ycolname = "Count"
                 pinfo = self._add_pinfo(xcolname, ycolname, is_hist=True)
                 _LOG.info("Generating histogram: %s vs %s.", xcolname, ycolname)
-                gobjs = []
-                xbins = get_xbins(xcolname)
-                for res in self.rsts:
-                    xdata = self._base_unit(res.df, xcolname)
-                    try:
-                        gobj = plotly.graph_objs.Histogram(x=xdata, name=res.reportid, xbins=xbins,
-                                                           opacity=self._opacity)
-                    except Exception as err:
-                        raise Error(f"failed to create histogram '{ycolname}-vs-{xcolname}':\n"
-                                    f"{err}") from err
-                    gobjs.append(gobj)
 
-                self._create_diagram(gobjs, pinfo)
+                xaxis_defs = self._refdefs.info.get(xcolname, {})
+                xaxis_label = xaxis_defs.get("title", xcolname)
+                xaxis_unit = xaxis_defs.get("unit", "")
+                xbins = get_xbins(xcolname)
+                outpath = self.outdir.joinpath(pinfo.fname)
+                hst = _Histogram.Histogram(xcolname, outpath, xaxis_label=xaxis_label, xbins=xbins,
+                                           xaxis_unit=xaxis_unit)
+
+                for res in self.rsts:
+                    df = res.df
+                    df[xcolname] = self._base_unit(df, xcolname)
+                    hst.add_df(df, res.reportid)
+                hst.generate()
 
             if xcolname in chist_set:
                 ycolname = "Percentile"
                 _LOG.info("Generating cumulative histogram: %s vs %s.", xcolname, ycolname)
                 pinfo = self._add_pinfo(xcolname, ycolname, is_hist=True)
-                gobjs = []
+                outpath = self.outdir.joinpath(pinfo.fname)
                 if xcolname not in hist_set:
                     xbins = get_xbins(xcolname)
+                chst = _Histogram.Histogram(xcolname, outpath, xaxis_label=xaxis_label,
+                                            xaxis_unit=xaxis_unit, xbins=xbins, cumulative=True)
                 for res in self.rsts:
-                    xdata = self._base_unit(res.df, xcolname)
-                    try:
-                        gobj = plotly.graph_objs.Histogram(x=xdata, name=res.reportid, xbins=xbins,
-                                                           cumulative=dict(enabled=True),
-                                                           histnorm="percent",
-                                                           opacity=self._opacity)
-                    except Exception as err:
-                        raise Error(f"failed to create cumulative histogram "
-                                    f"'{ycolname}-vs-{xcolname}':\n{err}") from err
-                    gobjs.append(gobj)
-
-                self._create_diagram(gobjs, pinfo)
+                    df = res.df
+                    df[xcolname] = self._base_unit(df, xcolname)
+                    chst.add_df(df, res.reportid)
+                chst.generate()
 
     def generate_plots(self):
         """
