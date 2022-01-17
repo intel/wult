@@ -12,8 +12,7 @@ This module provides API to the datapoints CSV file definitions (AKA 'defs').
 
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error
-from pepclibs.helperlibs import FSHelpers
-from wultlibs.helperlibs import YAML
+from pepclibs.helperlibs import FSHelpers, YAML
 
 # A unique object used as the default value for the 'default' keyword argument in various
 # functions.

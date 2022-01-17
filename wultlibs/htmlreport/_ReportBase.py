@@ -13,10 +13,9 @@ This module the base class for generating HTML reports for raw test results.
 
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import Trivial, FSHelpers
+from pepclibs.helperlibs import Trivial, FSHelpers, Jinja2
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import DFSummary
-from wultlibs.helperlibs import Jinja2
 from wultlibs.htmlreport import _PlotsBuilder
 from wultlibs.htmlreport._Tab import Tab
 

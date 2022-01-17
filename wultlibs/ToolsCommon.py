@@ -17,10 +17,10 @@ this module require the  'args' object which represents the command-line argumen
 import sys
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import Trivial, Procs, SSH, Logging
+from pepclibs.helperlibs import Trivial, Procs, SSH, Logging, YAML
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import Devices
-from wultlibs.helperlibs import YAML, ReportID, Human
+from wultlibs.helperlibs import ReportID, Human
 from wultlibs.rawresultlibs import RORawResult
 
 HELPERS_LOCAL_DIR = Path(".local")
