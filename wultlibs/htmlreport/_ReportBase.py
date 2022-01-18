@@ -15,8 +15,7 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, FSHelpers, Jinja2
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import DFSummary
-from wultlibs.htmlreport import _PlotsBuilder
+from wultlibs.htmlreport import _PlotsBuilder, _SummaryTable
 from wultlibs.htmlreport._Tab import Tab
 
 _LOG = logging.getLogger()
@@ -91,7 +90,7 @@ class ReportBase:
 
         return intro_tbl
 
-    def _prepare_smrys_tables(self, tabmetric, pinfos):
+    def _prepare_smrys_tables(self, pinfos):
         """
         Summaries table includes values like average and median values for a single metric (column).
         It "summarizes" the metric. This function creates summaries table for each metrics included
@@ -101,69 +100,34 @@ class ReportBase:
         if not pinfos:
             return {}
 
-        smrys_tbl = {}
-        smrys_tbl["Title"] = {}
-        for res in self.rsts:
-            smrys_tbl[res.reportid] = {}
+        # Summaries are calculated only for numeric metrics.
+        metrics = list({info.xmetric for info in pinfos if self._refres.is_numeric(info.xmetric)})
 
-        for pinfo in pinfos:
-            for metric in (tabmetric, pinfo.xmetric):
-                if metric in smrys_tbl["Title"]:
-                    continue
+        smry_tbl = _SummaryTable.SummaryTable()
 
-                # Skip non-numeric metrics, as summaries are calculated only for numeric metrics.
-                if not self.rsts[0].is_numeric(metric):
-                    continue
+        for metric in metrics:
+            # Create row in the summary table for each metric.
+            defs = self._refres.defs.info[metric]
+            fmt = "{:.2f}" if defs["type"] == "float" else None
+            smry_tbl.add_metric(metric, defs["short_unit"], defs["descr"], fmt)
 
-                # Each metric is represented by a row in the summary table. Fill the "Title" column.
-                title_dict = smrys_tbl["Title"][metric] = {}
-                defs = self._refres.defs.info[metric]
+            # Select only those functions that are present in all test results. For example, 'std'
+            # will not be present if the result has only one datapoint. In this case, we need to
+            # exclude the 'std' function.
+            funcs = []
+            for funcname in self._smry_funcs:
+                if all(res.smrys[metric].get(funcname) for res in self.rsts):
+                    funcs.append(funcname)
 
-                title_dict["metric"] = metric
-                unit = defs.get("short_unit", "")
-                if unit:
-                    title_dict["metric"] += f", {unit}"
-                title_dict["coldescr"] = defs["descr"]
-
-                title_dict["funcs"] = {}
-                for funcname in self._smry_funcs:
-                    # Select only those functions that are present in all test results. For example,
-                    # 'std' will not be present if the result has only one datapoint. In this case,
-                    # we need to exclude the 'std' function.
-                    if all(res.smrys[metric].get(funcname) for res in self.rsts):
-                        title_dict["funcs"][funcname] = DFSummary.get_smry_func_descr(funcname)
-
-                # Now fill the values for each result.
-                for res in self.rsts:
-                    res_dict = smrys_tbl[res.reportid][metric] = {}
-                    res_dict["funcs"] = {}
-
-                    for funcname in title_dict["funcs"]:
-                        val = res.smrys[metric][funcname]
-                        fmt = "{}"
-                        if defs["type"] == "float":
-                            fmt = "{:.2f}"
-
-                        fdict = res_dict["funcs"][funcname] = {}
-                        fdict["val"] = fmt.format(val)
-                        fdict["raw_val"] = val
-
-                        if self._refres.reportid == res.reportid:
-                            fdict["hovertext"] = "This is the reference result, other results " \
-                                                 "are compared to this one."
-                            continue
-
-                        ref_fdict = smrys_tbl[self._refres.reportid][metric]["funcs"][funcname]
-                        change = val - ref_fdict["raw_val"]
-                        if ref_fdict["raw_val"]:
-                            percent = (change / ref_fdict["raw_val"]) * 100
-                        else:
-                            percent = change
-                        change = fmt.format(change) + unit
-                        percent = f"{percent:.1f}%"
-                        fdict["hovertext"] = f"Change: {change} ({percent})"
-
-        return smrys_tbl
+            # Populate each row with summary functions for each result.
+            for res in self.rsts:
+                for funcname in funcs:
+                    val = res.smrys[metric][funcname]
+                    smry_tbl.add_smry_func(res.reportid, metric, funcname,  val)
+        try:
+            return smry_tbl.generate()
+        except Error as err:
+            raise Error("Failed to generate summary table.") from err
 
     def _copy_raw_data(self):
         """Copy raw test results to the output directory."""
@@ -210,7 +174,7 @@ class ReportBase:
 
         tabs = []
         for tabname, pinfos in all_pinfos.items():
-            smrys_tbl = self._prepare_smrys_tables(tabname, pinfos)
+            smrys_tbl = self._prepare_smrys_tables(pinfos)
 
             # Build plot paths 'ppaths' (relative to the output directory).
             ppaths = []
