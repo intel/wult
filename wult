@@ -25,7 +25,7 @@ except ImportError:
 
 from pepclibs.helperlibs import Logging, ArgParse, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
-from pepclibs import CPUIdle, CPUInfo, CPUOnline
+from pepclibs import CStates, CPUInfo, CPUOnline
 from pepclibs.msr import PowerCtl
 from wultlibs.helperlibs import ReportID, Human
 from wultlibs.htmlreport import WultReport
@@ -387,7 +387,7 @@ def check_settings(proc, dev, csinfo, cpunum, devid):
       * proc - the 'Proc' or 'SSH' object that defines the host to run the measurements on.
       * dev - the delayed event device object created by 'Devices.WultDevice()'.
       * devid - the ID of the device used for measuring the latency.
-      * csinfo - cstate info from 'CPUIdle.get_cstates_info()'.
+      * csinfo - cstate info from 'CStates.get_cstates_info()'.
       * cpunum - the logical CPU number to measure.
     """
 
@@ -543,7 +543,7 @@ def start_command(args):
         dev = Devices.WultDevice(args.devid, args.cpunum, proc, dmesg=True, force=args.force)
         stack.enter_context(dev)
 
-        cpuidle = CPUIdle.CPUIdle(proc=proc)
+        cpuidle = CStates.CStates(proc=proc)
         csinfo = cpuidle.get_cstates_info_dict(res.cpunum)
 
         check_settings(proc, dev, csinfo, args.cpunum, args.devid)

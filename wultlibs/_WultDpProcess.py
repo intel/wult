@@ -13,7 +13,7 @@ saves the results.
 
 import logging
 from pepclibs.helperlibs.Exceptions import Error
-from pepclibs import CPUIdle
+from pepclibs import CStates
 from wultlibs import Defs
 from wultlibs.helperlibs import Human
 
@@ -215,7 +215,7 @@ class DatapointProcessor:
             #         overhead can be estimated using 'AICyc1' and 'AICyc2' TSC counter snapshots.
             #    1.2. If 'self._intr_focus == True', 'WakeLatency' is not measured at all.
             # 2. The interrupt handler is executed shortly after 'after_idle()' finishes and the
-            #    CPUIdle Linux kernel subsystem re-enables CPU interrupts.
+            #    "cpuidle" Linux kernel subsystem re-enables CPU interrupts.
 
             if dp["WakeLatency"] >= dp["IntrLatency"]:
                 _LOG.warning("'WakeLatency' is greater than 'IntrLatency', even though interrupts "
@@ -480,7 +480,7 @@ class DatapointProcessor:
           *              measured in this case, only 'IntrLatency').
           * early_intr - enable interrupts before entering the C-state.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
-          * cpuidle - the 'CPUIdle' object initialized for the SUT (or for the measured system).
+          * cpuidle - the 'CStates' object initialized for the SUT (or for the measured system).
         """
 
         self._cpunum = cpunum
@@ -511,7 +511,7 @@ class DatapointProcessor:
         self._us_fields_set = None
 
         if cpuidle is None:
-            self._cpu_idle = CPUIdle.CPUIdle(proc=proc)
+            self._cpu_idle = CStates.CStates(proc=proc)
         self._csinfo = self._cpuidle.get_cstates_info_dict(cpunum)
 
         # Check that there are idle states that we can measure.

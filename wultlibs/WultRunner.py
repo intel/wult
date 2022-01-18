@@ -315,7 +315,7 @@ class WultRunner:
                          in this case, only 'IntrLatency').
           * early_intr - enable intrrupts before entering the C-state.
           * tsc_cal_time - amount of senconds to use for calculating TSC rate.
-          * cpuidle - the 'CPUIdle' object initialized for the SUT (or for the measured system).
+          * cpuidle - the 'CStates' object initialized for the SUT (or for the measured system).
           * dcbuf_size - size of a memory buffer to write to before requesting C-states in order to
                          "dirty" the CPU cache. By default the CPU cache dirtying fetature is
                          disabled. The size has to be an integer amount of bytes.
