@@ -490,7 +490,7 @@ def start_command(args):
         stack.enter_context(dev)
 
         cpuidle = CStates.CStates(proc=proc)
-        csinfo = cpuidle.get_cstates_info_dict(res.cpunum)
+        csinfo = cpuidle.get_cpu_cstates_info(res.cpunum)
 
         check_settings(proc, dev, csinfo, args.cpunum, args.devid)
 

@@ -512,7 +512,7 @@ class DatapointProcessor:
 
         if cpuidle is None:
             self._cpu_idle = CStates.CStates(proc=proc)
-        self._csinfo = self._cpuidle.get_cstates_info_dict(cpunum)
+        self._csinfo = self._cpuidle.get_cpu_cstates_info(cpunum)
 
         # Check that there are idle states that we can measure.
         for info in self._csinfo.values():
