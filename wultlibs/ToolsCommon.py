@@ -306,30 +306,6 @@ def parse_ldist(ldist, single_ok=True):
 
     return _validate_range(ldist, "launch distance", single_ok)
 
-def parse_cpunum(cpunum, cpuinfo=None):
-    """
-    Parse and validate CPU number 'cpunum'. If 'cpuinfo' is provided, it should be a
-    'CPUInfo.CPUInfo()' object, in which case this function will verify that 'cpunum' exists and is
-    online on the system associated with 'cpuinfo'.
-
-    If 'cpuinfo' is not provided, this function just checks that 'cpunum' is a positive integer
-    number.
-    """
-
-    if not Trivial.is_int(cpunum) or int(cpunum) < 0:
-        raise Error(f"bad CPU number '{cpunum}', should be a positive integer")
-
-    cpunum = int(cpunum)
-
-    if cpuinfo:
-        cpugeom = cpuinfo.get_cpu_geometry()
-        if cpunum in cpugeom["CPU"]["offline_cpus"]:
-            raise Error(f"CPU '{cpunum}'{cpuinfo.hostmsg} is offline")
-        if cpunum not in cpugeom["CPU"]["nums"]:
-            raise Error(f"CPU '{cpunum}' does not exist{cpuinfo.hostmsg}")
-
-    return cpunum
-
 def even_up_dpcnt(rsts):
     """
     This is a helper function for the '--even-up-datapoints' option. It takes a list of

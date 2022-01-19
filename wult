@@ -478,7 +478,7 @@ def start_command(args):
         cpuinfo = CPUInfo.CPUInfo(proc=proc)
         stack.enter_context(cpuinfo)
 
-        args.cpunum = ToolsCommon.parse_cpunum(args.cpunum, cpuinfo=cpuinfo)
+        args.cpunum = cpuinfo.normalize_cpu(args.cpunum)
 
         res = WORawResult.WultWORawResult(args.reportid, args.outdir, VERSION, args.cpunum)
         stack.enter_context(res)
