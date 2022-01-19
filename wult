@@ -25,7 +25,7 @@ except ImportError:
 
 from pepclibs.helperlibs import Logging, ArgParse, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
-from pepclibs import CStates, CPUInfo, CPUOnline
+from pepclibs import CStates, CPUInfo
 from pepclibs.msr import PowerCtl
 from wultlibs.helperlibs import ReportID, Human
 from wultlibs.htmlreport import WultReport
@@ -260,19 +260,6 @@ def build_arguments_parser():
                size. For example, in order to make it 4MiB, use '--dcbuf-size=4MiB'."""
     subpars.add_argument("--dcbuf-size", help=text)
 
-    text = """Offline CPUs before the measurements. The possible values are: same-core,
-              same-package, all.  The "same-core" value offlines all other CPUs on the same core as
-              the measured CPU. The "same-package" value offlines all CPUs on the same package as
-              the measured CPU, and the "all" value offlines all CPUs except for the measured CPU.
-              Example: consider a hypothetical 2-socket system with 2 cores per socket and 2 CPUs
-              per core (e.g., hyper-threads). The default measured CPU is CPU0 (see '--cpunum').
-              Suppose CPU0-3 are on package 0, and CPU4-7 are on package 1. Suppose CPU2 is the
-              hyper-thread running on the same core as CPU0. In this case '--offline same-core'
-              would offline only CPU2, '--offline same-package' would offline CPU1-3, '--offline
-              all' would offline CPU1-7. The CPUs are offlined before starting the measurements, and
-              onlined back after the measurements."""
-    subpars.add_argument("--offline", help=text)
-
     subpars.add_argument("--report", action="store_true", help=ToolsCommon.START_REPORT_DESCR)
 
     text = f"""By default {OWN_NAME} does not accept network card as a measurement device if its
@@ -431,35 +418,6 @@ def list_stats():
             LOG.info("  - Default interval: %.1fs", stinfo["interval"])
         LOG.info("  - %s", stinfo["description"])
 
-def get_offline_cpus(args, cpuinfo):
-    """
-    Parses the '--offline' option and returns the list of CPUs to offline on the SUT described by
-    the 'cpuinfo' 'CPUInfo().CPUInfo()' object.
-    """
-
-    if not args.offline:
-        return []
-
-    allowed_values = ("same-core", "same-package", "all")
-    if args.offline not in allowed_values:
-        raise Error(f"bad '--offline' option value '{args.offline}', should be one of: "
-                    f"{', '.join(allowed_values)}")
-
-    if args.offline == "same-core":
-        core = cpuinfo.cpu_to_core(args.cpunum)
-        offline_cpus = cpuinfo.cores_to_cpus(cores=(core,))
-    elif args.offline == "same-package":
-        package = cpuinfo.cpu_to_package(args.cpunum)
-        offline_cpus = cpuinfo.pkgs_to_cpus(pkgs=(package,))
-    else:
-        offline_cpus = cpuinfo.get_cpus()
-
-    with contextlib.suppress(AttributeError):
-        # Exclude the CPU that we measure from the offline list.
-        offline_cpus.remove(args.cpunum)
-
-    return offline_cpus
-
 def start_command(args):
     """Implements the 'start' command."""
 
@@ -528,18 +486,6 @@ def start_command(args):
         ToolsCommon.setup_stdout_logging(OWN_NAME, res.logs_path)
         ToolsCommon.set_filters(args, res)
 
-        # Validate and create the list of CPUs to offline while measuring.
-        offline_cpus = get_offline_cpus(args, cpuinfo)
-        if offline_cpus:
-            onl = CPUOnline.CPUOnline(progress=logging.INFO, proc=proc)
-            onl.restore_on_close = True
-            stack.enter_context(onl)
-
-            offline_cpus_str = Human.rangify(offline_cpus)
-            LOG.info("CPU numbers to offline: %s", offline_cpus_str)
-        else:
-            onl = None
-
         dev = Devices.WultDevice(args.devid, args.cpunum, proc, dmesg=True, force=args.force)
         stack.enter_context(dev)
 
@@ -554,8 +500,6 @@ def start_command(args):
         stack.enter_context(runner)
 
         runner.unload = not args.no_unload
-        if onl:
-            onl.offline(offline_cpus)
         runner.prepare()
         runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit, keep_rawdp=args.keep_rawdp)
 
