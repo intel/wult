@@ -220,6 +220,20 @@ class PlotsBuilder:
         # Include all the colums in reduced version of the dataframe.
         return res.df.loc[copy_cols]
 
+    @staticmethod
+    def _get_base_si_unit(unit):
+        """
+        Plotly will handle SI unit prefixes therefore we should provide only the base unit.
+        Several defs list 'us' as the 'short_unit' which includes the prefix so should be
+        reduced to just the base unit 's'.
+        """
+
+        # This is not generic, but today we have to deal only with microseconds, so this is good
+        # enough.
+        if unit == "us":
+            return "s"
+        return unit
+
     def _generate_scatter_plots(self):
         """Generate the scatter plots."""
 
@@ -240,8 +254,8 @@ class PlotsBuilder:
             yaxis_defs = self._refdefs.info.get(ycolname, {})
             xaxis_label = xaxis_defs.get("title", xcolname)
             yaxis_label = yaxis_defs.get("title", xcolname)
-            xaxis_unit = xaxis_defs.get("unit", "")
-            yaxis_unit = yaxis_defs.get("unit", "")
+            xaxis_unit = self._get_base_si_unit(xaxis_defs.get("short_unit", ""))
+            yaxis_unit = self._get_base_si_unit(yaxis_defs.get("short_unit", ""))
 
             outpath = self.outdir.joinpath(pinfo.fname)
             plot = _ScatterPlot.ScatterPlot(xcolname, ycolname, outpath, xaxis_label=xaxis_label,
@@ -287,7 +301,7 @@ class PlotsBuilder:
 
                 xaxis_defs = self._refdefs.info.get(xcolname, {})
                 xaxis_label = xaxis_defs.get("title", xcolname)
-                xaxis_unit = xaxis_defs.get("unit", "")
+                xaxis_unit = self._get_base_si_unit(xaxis_defs.get("short_unit", ""))
                 xbins = get_xbins(xcolname)
                 outpath = self.outdir.joinpath(pinfo.fname)
                 hst = _Histogram.Histogram(xcolname, outpath, xaxis_label=xaxis_label, xbins=xbins,

@@ -100,16 +100,6 @@ class Plot:
                  "ticksuffix": self.yaxis_unit,
                  "title": self.yaxis_label}
 
-        if self.xaxis_unit == "microsecond":
-            xaxis["tickformat"] = ".3s"
-            xaxis["ticksuffix"] = "s"
-            xaxis["hoverformat"] = ".4s"
-
-        if self.yaxis_unit == "microsecond":
-            yaxis["tickformat"] = ".3s"
-            yaxis["ticksuffix"] = "s"
-            yaxis["hoverformat"] = ".4s"
-
         layout = {"showlegend"  : True,
                   "hovermode"   : "closest",
                   "xaxis"   : xaxis,
