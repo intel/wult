@@ -393,8 +393,8 @@ def check_settings(proc, dev, csinfo, cpunum, devid):
         # * C6 pre-wake is enabled.
         # * The "tdt" method is used.
         if devid == "tdt" and "C6" in enabled_cstates and \
-            powerctl.is_feature_supported("cstate_prewake", cpunum) and \
-            powerctl.is_feature_enabled("cstate_prewake", cpunum):
+            powerctl.is_cpu_feature_supported("cstate_prewake", cpunum) and \
+            powerctl.is_cpu_feature_enabled("cstate_prewake", cpunum):
             LOG.notice("C-state prewake is enabled, and this usually hides the real "
                        "latency when using '%s' as delayed event device.", devid)
 
@@ -402,7 +402,7 @@ def check_settings(proc, dev, csinfo, cpunum, devid):
         # * C1 is enabled.
         # * C1E auto-promotion is enabled.
         if enabled_cstates in [["C1"], ["C1_ACPI"]]:
-            if powerctl.is_feature_enabled("c1e_autopromote", cpunum):
+            if powerctl.is_cpu_feature_enabled("c1e_autopromote", cpunum):
                 LOG.notice("C1E autopromote is enabled, all %s requests are converted to C1E.",
                             enabled_cstates[0])
 
