@@ -205,10 +205,9 @@ class RORawResult(_RawResultBase.RawResultBase):
                 fnames += ["99%", "99.9%", "99.99%", "99.999%"]
 
         self.smrys = {}
-        dfsum = DFSummary.DFSummary(self.df)
         for colname in colnames:
             smry_fnames = self._get_column_funcnames(colname, fnames, all_funcs)
-            subdict = dfsum.calc_col_smry(colname, smry_fnames)
+            subdict = DFSummary.calc_col_smry(self.df, colname, smry_fnames)
 
             coldef = self.defs.info[colname]
             restype = getattr(builtins, coldef["type"])

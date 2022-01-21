@@ -10,12 +10,9 @@
 This module provides the capability of calculating summarising statistics for a given DataFrame.
 """
 
-import logging
 import numpy
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
-
-_LOG = logging.getLogger()
 
 # Summary function names and titles.
 _SMRY_FUNCS = {"min"       : "the minimum value",
@@ -62,57 +59,47 @@ def get_smry_func_descr(funcname):
     funcnames = ", ".join([fname for fname, _ in get_smry_funcs()])
     raise Error(f"unknown function name '{funcname}', supported names are:\n{funcnames}")
 
-
-class DFSummary:
+def calc_col_smry(df, colname, funcnames):
     """
-    This class provides the capability of calculating summarising statistics for a given DataFrame.
+    Calculate summary function 'funcname' for pandas DataFrame column 'colname' in DataFrame 'df'
+    and return the resulting dictionary. Note, 'smry' comes from "summary".
     """
 
-    def calc_col_smry(self, colname, funcnames):
-        """
-        Calculate summary function 'funcname' for DataFrame column named 'colname' and return the
-        resulting dictionary. Note, 'smry' comes from "summary".
-        """
+    fmap = {"min" : "idxmin", "min_index" : "idxmin", "max" : "idxmax", "max_index" : "idxmax",
+            "avg" : "mean", "med" : "median", "std" : "std"}
+    smry = {}
 
-        fmap = {"min" : "idxmin", "min_index" : "idxmin", "max" : "idxmax", "max_index" : "idxmax",
-                "avg" : "mean", "med" : "median", "std" : "std"}
-        smry = {}
+    for funcname in funcnames:
+        # We do not need the description, calling this method just to let it validate the
+        # function name.
+        get_smry_func_descr(funcname)
 
-        for funcname in funcnames:
-            # We do not need the description, calling this method just to let it validate the
-            # function name.
-            get_smry_func_descr(funcname)
+        if funcname in fmap:
+            # Other summaries can be handled in a generic way.
+            datum = getattr(df[colname], fmap[funcname])()
+        elif funcname == "nzcnt":
+            datum = int((df[colname] != 0).sum())
+        else:
+            # Handle percentiles separately.
+            if funcname == "N%":
+                # Assume 99% by default.
+                funcname = "99%"
+            percent = _get_percentile(funcname)
+            datum = df[colname].quantile(percent / 100)
 
-            if funcname in fmap:
-                # Other summaries can be handled in a generic way.
-                datum = getattr(self.df[colname], fmap[funcname])()
-            elif funcname == "nzcnt":
-                datum = int((self.df[colname] != 0).sum())
-            else:
-                # Handle percentiles separately.
-                if funcname == "N%":
-                    # Assume 99% by default.
-                    funcname = "99%"
-                percent = _get_percentile(funcname)
-                datum = self.df[colname].quantile(percent / 100)
+        if numpy.isnan(datum):
+            return {}, None
 
-            if numpy.isnan(datum):
-                return {}, None
+        # Min/max are a bit special.
+        if fmap.get(funcname, "").startswith("idx"):
+            # Datum is the index, not the actual value.
+            idx_funcname = f"{funcname[0:3]}_index"
+            funcname = funcname[0:3]
+            if "idx" not in funcname:
+                # This makes sure that the order is the same as in 'funcnames'.
+                smry[funcname] = None
+            smry[idx_funcname] = datum
+            datum = df[colname].loc[datum]
 
-            # Min/max are a bit special.
-            if fmap.get(funcname, "").startswith("idx"):
-                # Datum is the index, not the actual value.
-                idx_funcname = f"{funcname[0:3]}_index"
-                funcname = funcname[0:3]
-                if "idx" not in funcname:
-                    # This makes sure that the order is the same as in 'funcnames'.
-                    smry[funcname] = None
-                smry[idx_funcname] = datum
-                datum = self.df[colname].loc[datum]
-
-            smry[funcname] = datum
-        return smry
-
-    def __init__(self, df):
-        """The class constructor. Takes a pandas DataFrame as an argument 'df'."""
-        self.df = df
+        smry[funcname] = datum
+    return smry
