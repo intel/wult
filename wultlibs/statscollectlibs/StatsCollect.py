@@ -13,6 +13,7 @@ This module provides API for collecting SUT statistics.
 import time
 import socket
 import logging
+import threading
 import contextlib
 from pathlib import Path
 from pepclibs.helperlibs import Procs, FSHelpers, Trivial
@@ -434,6 +435,9 @@ class StatsCollect:
         self._inbcoll = None
         self._oobcoll = None
 
+        # Prevents race conditions related to calling 'close()' from the destructor and directly.
+        self._close_lock = threading.Lock()
+
         if local_outdir:
             local_outdir = Path(local_outdir)
             if not local_outdir.is_absolute():
@@ -464,16 +468,27 @@ class StatsCollect:
         representing associated with the host the statistics were collected for.
         """
 
-        if getattr(self, "_proc", None):
-            self._proc = None
-        if getattr(self, "_inbcoll", None):
-            self._inbcoll.close()
-        if getattr(self, "_oobcoll", None):
-            self._oobcoll.close()
+        acquired = self._close_lock.acquire(timeout=1) # pylint: disable=consider-using-with
+        if not acquired:
+            return
+
+        try:
+            if getattr(self, "_oobcoll", None):
+                self._oobcoll.close()
+                self._oobcoll = None
+            if getattr(self, "_inbcoll", None):
+                self._inbcoll.close()
+                self._inbcoll = None
+            if getattr(self, "_proc", None):
+                self._proc = None
+        finally:
+            self._close_lock.release()
 
     def __del__(self):
         """The destructor."""
-        self.close()
+
+        with contextlib.suppress(Exception):
+            self.close()
 
     def __enter__(self):
         """Enter the run-time context."""
@@ -1004,6 +1019,8 @@ class _Collector:
 
         # The commant to start 'stats-collect'.
         self._cmd = None
+        # Prevents race conditions related to calling 'close()' from the destructor and directly.
+        self._close_lock = threading.Lock()
 
         # Paths to the 'unshare' and 'nice' tools on the same host where 'stats-collect' runs.
         self._unshare_path = None
@@ -1034,38 +1051,48 @@ class _Collector:
     def close(self):
         """Close the statistics collector."""
 
-        if getattr(self, "_sock", None):
-            if self._start_time:
-                with contextlib.suppress(Error):
-                    self._send_command("stop")
-            with contextlib.suppress(Error):
-                self._send_command("exit")
-            with contextlib.suppress(Error):
-                self._disconnect()
-            self._sock = None
+        acquired = self._close_lock.acquire(timeout=1) # pylint: disable=consider-using-with
+        if not acquired:
+            return
 
-        if getattr(self, "_proc", None):
-            if self._ssht:
-                with contextlib.suppress(Error):
-                    ProcHelpers.kill_processes(self._ssht_search, proc=self._proc)
-                self._ssht = None
+        try:
+            if getattr(self, "_sock", None):
+                if self._start_time:
+                    with contextlib.suppress(Exception):
+                        self._send_command("stop")
+                with contextlib.suppress(Exception):
+                    self._send_command("exit")
+                with contextlib.suppress(Exception):
+                    self._disconnect()
+                self._sock = None
 
-            if self._sc:
-                with contextlib.suppress(Error):
-                    ProcHelpers.kill_processes(self._sc_search, proc=self._proc)
-                self._sc = None
+            if getattr(self, "_proc", None):
+                if self._ssht:
+                    with contextlib.suppress(Exception):
+                        ProcHelpers.kill_processes(self._ssht_search, proc=self._proc)
+                    self._ssht = None
 
-            # Remove the output directory if we created it.
-            if getattr(self, "_outdir_created", None):
-                with contextlib.suppress(Error):
-                    FSHelpers.rm_minus_rf(self.outdir, proc=self._proc)
-                self._outdir_created = None
+                if self._sc:
+                    with contextlib.suppress(Exception):
+                        ProcHelpers.kill_processes(self._sc_search, proc=self._proc)
+                    self._sc = None
 
-            self._proc = None
+                # Remove the output directory if we created it.
+                if getattr(self, "_outdir_created", None):
+                    with contextlib.suppress(Exception):
+                        FSHelpers.rm_minus_rf(self.outdir, proc=self._proc)
+                    self._outdir_created = None
+
+                self._proc = None
+        finally:
+            self._close_lock.release()
+
 
     def __del__(self):
         """The destructor."""
-        self.close()
+
+        with contextlib.suppress(Exception):
+            self.close()
 
     def __enter__(self):
         """Enter the run-time context."""
