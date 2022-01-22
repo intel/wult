@@ -56,10 +56,6 @@ class EventsProvider:
     def start(self):
         """Start the latency measurements."""
 
-        # Sanity check.
-        if not FSHelpers.exists(self._enabled_path, proc=self._proc):
-            raise Error(f"path {self._enabled_path} does not exist{self._proc.hostmsg}")
-
         with self._proc.open(self._enabled_path, "w") as fobj:
             fobj.write("1")
 
@@ -140,20 +136,14 @@ class EventsProvider:
             self._set_launch_distance()
 
         if self._intr_focus:
-            if not FSHelpers.exists(self._intr_focus_path, proc=self._proc):
-                raise Error(f"path {self._intr_focus_path} does not exist{self._proc.hostmsg}")
             with self._proc.open(self._intr_focus_path, "w") as fobj:
                 fobj.write("1")
 
         if self._early_intr:
-            if not FSHelpers.exists(self._early_intr_path, proc=self._proc):
-                raise Error(f"path {self._early_intr_path} does not exist{self._proc.hostmsg}")
             with self._proc.open(self._early_intr_path, "w") as fobj:
                 fobj.write("1")
 
         if self._dcbuf_size:
-            if not FSHelpers.exists(self._dcbuf_size_path, proc=self._proc):
-                raise Error(f"path {self._dcbuf_size_path} does not exist{self._proc.hostmsg}")
             with self._proc.open(self._dcbuf_size_path, "w") as fobj:
                 fobj.write(f"{self._dcbuf_size}")
 
