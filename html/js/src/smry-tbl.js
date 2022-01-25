@@ -2,7 +2,7 @@
  * -*- coding: utf-8 -*-
  * vim: ts=4 sw=4 tw=100 et ai si
  *
- * Copyright (C) 2019-2021 Intel, Inc.
+ * Copyright (C) 2021-2022 Intel, Inc.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Author: Adam Hawley <adam.james.hawley@intel.com>
@@ -29,15 +29,9 @@ class SummaryTable extends ReportTable {
     headerTemplate () {
       return html`
             <tr>
-                ${Object.keys(this.smrystbl).map((header) => {
-                    let colspan
-                    if (header === 'Title') {
-                        colspan = 2
-                    } else {
-                        colspan = ''
-                    }
-                    return html`<th colspan="${colspan}">${header}</th>`
-                }
+                <th colspan="2">Title</th>
+                ${Object.keys(this.smrystbl.funcs).map((header) =>
+                    html`<th>${header}</th>`
                 )}
             </tr>
         `
@@ -45,7 +39,7 @@ class SummaryTable extends ReportTable {
 
     rowsTemplate () {
       return html`
-            ${Object.entries(this.smrystbl.Title).map(([colname, titleDict]) =>
+            ${Object.entries(this.smrystbl.title).map(([colname, titleDict]) =>
                 Object.entries(titleDict.funcs).map(([funcname, funcdescr], i) =>
                     /*
                      * For each row:
@@ -56,22 +50,18 @@ class SummaryTable extends ReportTable {
                         ${!i
 ? html`
                             <td class="td-colname" rowspan="${Object.keys(titleDict.funcs).length}">
-                                <abbr title="${titleDict.coldescr}">${titleDict.metric}</abbr>
+                                <abbr title="${titleDict.descr}">${titleDict.metric}</abbr>
                             </td>
                         `
 : html``}
                         <td class="td-funcname">
                             <abbr title="${funcdescr}">${funcname}</abbr>
                         </td>
-                        ${Object.entries(this.smrystbl).map(([key, resDict]) => {
-                            if (key === 'Title') {
-                                return html``
-                            }
-                            const fdict = resDict[colname].funcs[funcname]
+                        ${Object.values(this.smrystbl.funcs).map((resDict) => {
+                            const fdict = resDict[colname][funcname]
                             return html`
                             <td class="td-value">
-                                <abbr title="${fdict.hovertext}">${fdict.val}</abbr>
-                            </td>
+                                <abbr title="${fdict.hovertext}">${fdict.formatted_val}</abbr>
                             `
                         }
                         )}

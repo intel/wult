@@ -62,22 +62,22 @@
         }
     `;getWidth(t){const e=Object.keys(t).length;return Math.min(100,20*e)}}customElements.define("report-table",st),customElements.define("smry-tbl",class extends st{static properties={smrystbl:{type:Object}};headerTemplate(){return H`
             <tr>
-                ${Object.keys(this.smrystbl).map((t=>{let e;return e="Title"===t?2:"",H`<th colspan="${e}">${t}</th>`}))}
+                <th colspan="2">Title</th>
+                ${Object.keys(this.smrystbl.funcs).map((t=>H`<th>${t}</th>`))}
             </tr>
         `}rowsTemplate(){return H`
-            ${Object.entries(this.smrystbl.Title).map((([t,e])=>Object.entries(e.funcs).map((([s,i],n)=>H`<tr>
+            ${Object.entries(this.smrystbl.title).map((([t,e])=>Object.entries(e.funcs).map((([s,i],n)=>H`<tr>
                         ${n?H``:H`
                             <td class="td-colname" rowspan="${Object.keys(e.funcs).length}">
-                                <abbr title="${e.coldescr}">${e.metric}</abbr>
+                                <abbr title="${e.descr}">${e.metric}</abbr>
                             </td>
                         `}
                         <td class="td-funcname">
                             <abbr title="${i}">${s}</abbr>
                         </td>
-                        ${Object.entries(this.smrystbl).map((([e,i])=>{if("Title"===e)return H``;const n=i[t].funcs[s];return H`
+                        ${Object.values(this.smrystbl.funcs).map((e=>{const i=e[t][s];return H`
                             <td class="td-value">
-                                <abbr title="${n.hovertext}">${n.val}</abbr>
-                            </td>
+                                <abbr title="${i.hovertext}">${i.formatted_val}</abbr>
                             `}))}
                     </tr>
                     `))))}

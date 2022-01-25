@@ -48,15 +48,15 @@ class SummaryTable:
          * fmt - format string. Decides how values will be formatted in the table.
         """
 
-        if metricname in self.smrytbl["Title"]:
+        if metricname in self.smrytbl["title"]:
             raise ErrorExists(f"Unable to add metric '{metricname}' as it has already been added.")
 
         self._units[metricname] = unit
         self._formats[metricname] = fmt
 
-        self.smrytbl["Title"][metricname] = {
+        self.smrytbl["title"][metricname] = {
             "metric": f"{metricname}, {unit}" if unit else metricname,
-            "coldescr": description if description else "",
+            "descr": description if description else "",
             "funcs": {}
         }
 
@@ -69,27 +69,27 @@ class SummaryTable:
          * val - raw value of the summary function calculation.
         """
 
-        if metric not in self.smrytbl["Title"]:
+        if metric not in self.smrytbl["title"]:
             raise ErrorNotFound(f"Trying to add a summary function calculation for a metric which "
                                 f"has not yet been added. Please add metric '{metric}' with "
                                 f"'_SummaryTable.add_metric()'.")
 
-        if reportid not in self.smrytbl:
-            self.smrytbl[reportid] = {}
+        if reportid not in self.smrytbl["funcs"]:
+            self.smrytbl["funcs"][reportid] = {}
 
-        if metric not in self.smrytbl[reportid]:
-            self.smrytbl[reportid][metric] = {"funcs": {}}
+        if metric not in self.smrytbl["funcs"][reportid]:
+            self.smrytbl["funcs"][reportid][metric] = {}
 
         formatted_val = self._formats[metric].format(val)
 
-        self.smrytbl[reportid][metric]["funcs"][funcname] = {
+        self.smrytbl["funcs"][reportid][metric][funcname] = {
             "raw_val": val,
-            "val": formatted_val,
+            "formatted_val": formatted_val,
         }
 
-        if funcname not in self.smrytbl["Title"][metric]["funcs"]:
+        if funcname not in self.smrytbl["title"][metric]["funcs"]:
             func_descr = DFSummary.get_smry_func_descr(funcname)
-            self.smrytbl["Title"][metric]["funcs"][funcname] = func_descr
+            self.smrytbl["title"][metric]["funcs"][funcname] = func_descr
 
     def _get_hovertext(self, val, reportid, metric, funcname):
         """
@@ -102,24 +102,21 @@ class SummaryTable:
          * funcname - the function which this value represents.
         """
 
-        for key in self.smrytbl:
-            if key != "Title":
-                ref_reportid = key
-                break
+        ref_reportid = next(iter(self.smrytbl["funcs"]))
 
         if reportid == ref_reportid:
             return "This is the reference result, other results are compared to this one."
 
-        if metric not in self.smrytbl[ref_reportid]:
+        if metric not in self.smrytbl["funcs"][ref_reportid]:
             raise Error(f"Metric '{metric}' not added for reference set '{ref_reportid}'. Please "
                         f"add summary calculations with 'SummaryTable.add_smry_func_val()'.")
 
-        if funcname not in self.smrytbl[ref_reportid][metric]["funcs"]:
+        if funcname not in self.smrytbl["funcs"][ref_reportid][metric]:
             raise Error(f"Calculation for function '{funcname}' for metric '{metric}' in set "
                         f"'{reportid}' not added. Please add summary calculation with "
                         f"'SummaryTable.add_smry_func_val()'.")
 
-        ref_fdict = self.smrytbl[ref_reportid][metric]["funcs"][funcname]
+        ref_fdict = self.smrytbl["funcs"][ref_reportid][metric][funcname]
         change = val - ref_fdict["raw_val"]
         if ref_fdict["raw_val"]:
             percent = (change / ref_fdict["raw_val"]) * 100
@@ -130,14 +127,38 @@ class SummaryTable:
         return f"Change: {change} ({percent})"
 
     def generate(self):
-        """Generate the finalised report summary table dictionary."""
+        """
+        Generate the finalised report summary table dictionary. The finalised dictionary has the
+        following structure:
+
+        {
+            "title": {
+                metric: {
+                    "metric": metric_name (+ metric_unit),
+                    "coldescr": metric_description,
+                    "funcs": {
+                        func_name: func_value
+                    }
+                }
+            },
+            "funcs": {
+                reportid: {
+                    metric: {
+                        func_name: {
+                            "raw_val": raw_val,
+                            "formatted_val": formatted_val,
+                            "hovertext": hovertext
+                        }
+                    }
+                }
+            }
+        }
+        """
 
         # Calculate hovertext now that all reference calculations have been added.
-        for name, subdict in self.smrytbl.items():
-            if name == "Title":
-                continue
+        for name, subdict in self.smrytbl["funcs"].items():
             for metric, mdict in subdict.items():
-                for funcname, fdict in mdict["funcs"].items():
+                for funcname, fdict in mdict.items():
                     fdict["hovertext"] = self._get_hovertext(fdict["raw_val"], name, metric,
                                                              funcname)
         return self.smrytbl
@@ -146,7 +167,8 @@ class SummaryTable:
         """The class constructor."""
 
         self.smrytbl = {}
-        self.smrytbl["Title"] = {}
+        self.smrytbl["title"] = {}
+        self.smrytbl["funcs"] = {}
 
         # A dictionary mapping from metric name to metric unit.
         self._units = {}
