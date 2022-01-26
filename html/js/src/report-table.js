@@ -8,7 +8,7 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import {LitElement, css} from 'lit';
+import { LitElement, css } from 'lit'
 
 /**
  * Contains CSS and helper functions for tables.
@@ -68,14 +68,10 @@ export class ReportTable extends LitElement {
      * Returns pixel width of table based on the number of sets of results shown in the report.
      * @return {Number} no. of pixels to set the width of the table to.
      */
-    getWidth(table) {
-        let nkeys = Object.keys(table).length;
-        return Math.min(100, 20 * nkeys);
-    }
-
-    constructor() {
-        super();
+    getWidth (table) {
+      const nkeys = Object.keys(table).length
+      return Math.min(100, 20 * nkeys)
     }
 }
 
-customElements.define('report-table', ReportTable);
+customElements.define('report-table', ReportTable)

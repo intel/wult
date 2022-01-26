@@ -8,6 +8,8 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import { WultMetricTab } from './wult-metric-tab';
-import { IntroTable } from './intro-tbl';
-import { StatsTab } from './stats-tab';
+/* eslint-disable no-unused-vars */
+
+import { WultMetricTab } from './wult-metric-tab'
+import { IntroTable } from './intro-tbl'
+import { StatsTab } from './stats-tab'

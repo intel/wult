@@ -8,8 +8,8 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import {html} from 'lit';
-import {ReportTable} from './report-table.js';
+import { html } from 'lit'
+import { ReportTable } from './report-table.js'
 
 /**
  * Responsible for generating the 'Intro Table' which contains information on the report.
@@ -18,25 +18,21 @@ import {ReportTable} from './report-table.js';
  */
 class IntroTable extends ReportTable {
     static properties = {
-        introtbl: {type: Object},
+      introtbl: { type: Object }
     };
 
     /**
      * Early DOM lifecycle event. Invoked each time the custom element is appended into a
      * document-connected element.
      */
-    connectedCallback(){
-        super.connectedCallback();
-        this.link_keys = this.introtbl.link_keys;
-        delete this.introtbl.link_keys;
+    connectedCallback () {
+      super.connectedCallback()
+      this.link_keys = this.introtbl.link_keys
+      delete this.introtbl.link_keys
     }
 
-    constructor() {
-        super();
-    }
-
-    render() {
-        return this.introtbl
+    render () {
+      return this.introtbl
         ? html`
             <table width="${this.getWidth(this.introtbl)}%">
             <tr>
@@ -49,14 +45,16 @@ class IntroTable extends ReportTable {
                 <tr>
                 <td class="td-colname"> ${val} </td>
                 ${Object.entries(this.introtbl).map(([key1, val1]) => {
-                    if (key1 != "Title"){
+                    if (key1 !== 'Title') {
                         return html`<td class="td-value"> ${
                             (this.link_keys.includes(key))
                             ? val1[key]
                                 ? html`<a href=${val1[key]}> ${val} </a>`
-                                : "Not available" 
+                                : 'Not available'
                             : val1[key]} </td>`
-                    }})}
+                    }
+                    return html``
+})}
                 </tr>
                 `)}
             </table>
@@ -65,4 +63,4 @@ class IntroTable extends ReportTable {
     }
 }
 
-customElements.define('intro-tbl', IntroTable);
+customElements.define('intro-tbl', IntroTable)

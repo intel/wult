@@ -8,10 +8,10 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import {html, css, TemplateResult} from 'lit';
-import {WultTab} from './wult-tab.js';
+import { html, css } from 'lit'
+import { WultTab } from './wult-tab.js'
 
-import './diagram-element.js';
+import './diagram-element.js'
 
 /**
  * Responsible for generating all content contained within a statistics tab.
@@ -28,26 +28,22 @@ class StatsTab extends WultTab {
         }
     `;
 
-    connectedCallback(){
-        super.connectedCallback();
-        /* 
+    connectedCallback () {
+      super.connectedCallback()
+      /*
          * DOM-based inputs are only parsed once the component has been 'connected' therefore this
          * is the earliest point to load the input into class attributes.
          */
-        this.paths = this.info.ppaths;
-        this.smrystbl = this.info.smrys_tbl;
-    }
-
-    constructor() {
-        super();
+      this.paths = this.info.ppaths
+      this.smrystbl = this.info.smrys_tbl
     }
 
     /**
      * Provides the template for when the tab is visible (active).
      * @returns {TemplateResult}
      */
-    visibleTemplate() {
-        return html`
+    visibleTemplate () {
+      return html`
         <br>
         <wult-metric-smry-tbl .smrystbl="${this.smrystbl}"></wult-metric-smry-tbl>
         <div class="grid">
@@ -59,4 +55,4 @@ class StatsTab extends WultTab {
     }
 }
 
-customElements.define('stats-tab', StatsTab);
+customElements.define('stats-tab', StatsTab)

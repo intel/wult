@@ -8,11 +8,11 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import {html, css, TemplateResult} from 'lit';
-import {WultTab} from './wult-tab.js';
+import { html, css } from 'lit'
+import { WultTab } from './wult-tab.js'
 
-import './diagram-element.js';
-import './smry-tbl';
+import './diagram-element.js'
+import './smry-tbl'
 
 /**
  * Responsible for generating all content contained within a metric tab.
@@ -29,26 +29,21 @@ class WultMetricTab extends WultTab {
         }
   `;
 
-    connectedCallback(){
-        super.connectedCallback();
-        /*
+    connectedCallback () {
+      super.connectedCallback()
+      /*
          * DOM-based inputs are only parsed once the component has been 'connected' therefore this
          * is the earliest point to load the input into class attributes.
          */
-        this.paths = this.info.ppaths;
-        this.smrystbl = this.info.smrys_tbl;
-    }
-
-    constructor() {
-        super();
+      this.paths = this.info.ppaths
+      this.smrystbl = this.info.smrys_tbl
     }
 
     /**
      * Provides the template for when the tab is visible (active).
-     * @returns {TemplateResult}
      */
-    visibleTemplate() {
-        return html`
+    visibleTemplate () {
+      return html`
             <br>
             <smry-tbl .smrystbl="${this.smrystbl}"></smry-tbl>
             <div class="grid">
@@ -59,9 +54,9 @@ class WultMetricTab extends WultTab {
         `
     }
 
-    render() {
-        return super.render();
+    render () {
+      return super.render()
     }
 }
 
-customElements.define('wult-metric-tab', WultMetricTab);
+customElements.define('wult-metric-tab', WultMetricTab)

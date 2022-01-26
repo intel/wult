@@ -8,7 +8,7 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import {LitElement, html, css} from '../node_modules/lit/index.js';
+import { LitElement, html, css } from '../node_modules/lit/index.js'
 
 /**
  * Responsible for creating a 'div' element containing a plot.
@@ -30,15 +30,11 @@ class DiagramElement extends LitElement {
   `;
 
     static properties = {
-        path: {type: String},
+      path: { type: String }
     };
 
-    constructor() {
-        super();
-    }
-
-    render() {
-        return html`
+    render () {
+      return html`
             <div class="plot">
                 <iframe seamless="seamless" frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
             </div>
@@ -46,4 +42,4 @@ class DiagramElement extends LitElement {
     }
 }
 
-customElements.define('diagram-element', DiagramElement);
+customElements.define('diagram-element', DiagramElement)
