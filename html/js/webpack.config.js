@@ -7,13 +7,15 @@
  *
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
-const path = require('path');
+const path = require('path')
+const ESLintPlugin = require('eslint-webpack-plugin')
 
 module.exports = {
   entry: './src/index.js',
   mode: 'production',
+  plugins: [new ESLintPlugin()],
   output: {
     filename: 'main.js',
-    path: path.resolve(__dirname, 'dist'),
-  },
-};
+    path: path.resolve(__dirname, 'dist')
+  }
+}
