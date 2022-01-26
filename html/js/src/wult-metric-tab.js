@@ -12,7 +12,7 @@ import {html, css, TemplateResult} from 'lit';
 import {WultTab} from './wult-tab.js';
 
 import './diagram-element.js';
-import './wult-metric-smry-tbl';
+import './smry-tbl';
 
 /**
  * Responsible for generating all content contained within a metric tab.
@@ -50,7 +50,7 @@ class WultMetricTab extends WultTab {
     visibleTemplate() {
         return html`
             <br>
-            <wult-metric-smry-tbl .smrystbl="${this.smrystbl}"></wult-metric-smry-tbl>
+            <smry-tbl .smrystbl="${this.smrystbl}"></smry-tbl>
             <div class="grid">
             ${this.paths.map((path) =>
                     html`<diagram-element path="${path}" ></diagram-element>`

@@ -13,10 +13,10 @@ import {ReportTable} from './report-table.js';
 
 /**
  * Responsible for generating the summary table for a given metric.
- * @class WultMetricSmryTbl
+ * @class SummaryTable
  * @extends {ReportTable}
  */
-class WultMetricSmryTbl extends ReportTable {
+class SummaryTable extends ReportTable {
 
     static properties = {
         smrystbl: {type: Object},
@@ -97,4 +97,4 @@ class WultMetricSmryTbl extends ReportTable {
     }
 }
 
-customElements.define('wult-metric-smry-tbl', WultMetricSmryTbl);
+customElements.define('smry-tbl', SummaryTable);
