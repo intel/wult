@@ -42,8 +42,8 @@ OPTIONS
 **--force-color**
    Force coloring of the text output.
 
-**Sub-commands**
-----------------
+COMMANDS
+========
 
 **ndl** *deploy*
    Compile and deploy ndl helpers and drivers.
@@ -63,8 +63,8 @@ OPTIONS
 **ndl** *calc*
    Calculate summary functions for a ndl test result.
 
-OPTIONS 'ndl deploy'
-====================
+COMMAND *'ndl* deploy'
+======================
 
 usage: ndl deploy [-h] [-q] [-d] [--kernel-src KSRC] [-H HOSTNAME] [-U
 USERNAME] [-K PRIVKEY] [-T TIMEOUT]
@@ -87,6 +87,9 @@ defined by the NDL_HELPERSPATH environment variable. If the variable is
 not defined, helpers are deployed to '$HOME/.local/bin', where '$HOME'
 is the home directory of user 'USERNAME' on host 'HOST' (see '--host'
 and '--username' options).
+
+OPTIONS *'ndl* deploy'
+======================
 
 **-h**
    Show this help message and exit.
@@ -118,13 +121,16 @@ and '--username' options).
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
 
-OPTIONS 'ndl scan'
-==================
+COMMAND *'ndl* scan'
+====================
 
 usage: ndl scan [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
 [-T TIMEOUT]
 
 Scan for compatible device.
+
+OPTIONS *'ndl* scan'
+====================
 
 **-h**
    Show this help message and exit.
@@ -150,8 +156,8 @@ Scan for compatible device.
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
 
-OPTIONS 'ndl start'
-===================
+COMMAND *'ndl* start'
+=====================
 
 usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
 [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid
@@ -165,6 +171,9 @@ Start measuring and recording the latency data.
    measurements. Today only Intel I210 and I211 NICs are supported.
    Please, specify NIC's network interface name (e.g., eth0).
 
+OPTIONS *'ndl* start'
+=====================
+
 **-h**
    Show this help message and exit.
 
@@ -189,13 +198,13 @@ Start measuring and recording the latency data.
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
 
-**-c** COUNT, **--datapoints** COUNT
+**-c** *COUNT*, **--datapoints** *COUNT*
    How many datapoints should the test result include, default is
    1000000. Note, unless the '--start-over' option is used, the
    pre-existing datapoints are taken into account. For example, if the
    test result already has 6000 datapoints and memory.
 
-**--time-limit** LIMIT
+**--time-limit** *LIMIT*
    The measurement time limit, i.e., for how long the SUT should be
    measured. The default unit is minutes, but you can use the following
    handy specifiers as well: d - days, h - hours, m - minutes, s -
@@ -263,8 +272,8 @@ Start measuring and recording the latency data.
    Generate an HTML report for collected results (same as calling
    'report' command with default arguments).
 
-OPTIONS 'ndl report'
-====================
+COMMAND *'ndl* report'
+======================
 
 usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--rfilt RFILT] [--rsel
 RSEL] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist
@@ -275,6 +284,9 @@ Create an HTML report for one or multiple test results.
 
 **respaths**
    One or multiple ndl test result paths.
+
+OPTIONS *'ndl* report'
+======================
 
 **-h**
    Show this help message and exit.
@@ -383,8 +395,8 @@ Create an HTML report for one or multiple test results.
 **--list-columns**
    Print the list of the available column names and exit.
 
-OPTIONS 'ndl filter'
-====================
+COMMAND *'ndl* filter'
+======================
 
 usage: ndl filter [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt
 CFILT] [--csel CSEL] [--human-readable] [-o OUTDIR] [--list-columns]
@@ -397,6 +409,9 @@ options may be specified multiple times.
 
 **respath**
    The ndl test result path to filter.
+
+OPTIONS *'ndl* filter'
+======================
 
 **-h**
    Show this help message and exit.
@@ -452,8 +467,8 @@ options may be specified multiple times.
    Report ID of the filtered version of the result (can only be used
    with '--outdir').
 
-OPTIONS 'ndl calc'
-==================
+COMMAND *'ndl* calc'
+====================
 
 usage: ndl calc [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt
 CFILT] [--csel CSEL] [-f FUNCS] [--list-funcs] respath
@@ -463,6 +478,9 @@ median value for one of the CSV columns).
 
 **respath**
    The ndl test result path to calculate summary functions for.
+
+OPTIONS *'ndl* calc'
+====================
 
 **-h**
    Show this help message and exit.

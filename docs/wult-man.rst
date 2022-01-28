@@ -41,8 +41,8 @@ OPTIONS
 **--force-color**
    Force coloring of the text output.
 
-**Sub-commands**
-----------------
+COMMANDS
+========
 
 **wult** *deploy*
    Compile and deploy wult helpers and drivers.
@@ -65,8 +65,8 @@ OPTIONS
 **wult** *calc*
    Calculate summary functions for a wult test result.
 
-OPTIONS 'wult deploy'
-=====================
+COMMAND *'wult* deploy'
+=======================
 
 usage: wult deploy [-h] [-q] [-d] [--kernel-src KSRC] [-H HOSTNAME] [-U
 USERNAME] [-K PRIVKEY] [-T TIMEOUT]
@@ -89,6 +89,9 @@ helpers are deployed to the path defined by the WULT_HELPERSPATH
 environment variable. If the variable is not defined, helpers are
 deployed to '$HOME/.local/bin', where '$HOME' is the home directory of
 user 'USERNAME' on host 'HOST' (see '--host' and '--username' options).
+
+OPTIONS *'wult* deploy'
+=======================
 
 **-h**
    Show this help message and exit.
@@ -120,13 +123,16 @@ user 'USERNAME' on host 'HOST' (see '--host' and '--username' options).
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
 
-OPTIONS 'wult scan'
-===================
+COMMAND *'wult* scan'
+=====================
 
 usage: wult scan [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
 [-T TIMEOUT]
 
 Scan for compatible device.
+
+OPTIONS *'wult* scan'
+=====================
 
 **-h**
    Show this help message and exit.
@@ -152,8 +158,8 @@ Scan for compatible device.
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
 
-OPTIONS 'wult load'
-===================
+COMMAND *'wult* load'
+=====================
 
 usage: wult load [-h] [-q] [-d] [--no-unload] [--force] [-H HOSTNAME]
 [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] devid
@@ -162,6 +168,9 @@ Load wult drivers and exit without starting the measurements.
 
 **devid**
    The device ID, same as in the 'start' command.
+
+OPTIONS *'wult* load'
+=====================
 
 **-h**
    Show this help message and exit.
@@ -199,8 +208,8 @@ Load wult drivers and exit without starting the measurements.
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
 
-OPTIONS 'wult start'
-====================
+COMMAND *'wult* start'
+======================
 
 usage: wult start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K
 PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--rfilt RFILT]
@@ -217,6 +226,9 @@ Start measuring and recording C-state latency.
    it can be a PCI address of the Intel I210 device, or "tdt" for the
    TSC deadline timer block of the CPU. Use the 'scan' command to get
    supported devices.
+
+OPTIONS *'wult* start'
+======================
 
 **-h**
    Show this help message and exit.
@@ -242,13 +254,13 @@ Start measuring and recording C-state latency.
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
 
-**-c** COUNT, **--datapoints** COUNT
+**-c** *COUNT*, **--datapoints** *COUNT*
    How many datapoints should the test result include, default is
    1000000. Note, unless the '--start-over' option is used, the
    pre-existing datapoints are taken into account. For example, if the
    test result already has 6000 datapoints and memory.
 
-**--time-limit** LIMIT
+**--time-limit** *LIMIT*
    The measurement time limit, i.e., for how long the SUT should be
    measured. The default unit is minutes, but you can use the following
    handy specifiers as well: d - days, h - hours, m - minutes, s -
@@ -448,8 +460,8 @@ Start measuring and recording C-state latency.
    Use '--force' to disable this safety mechanism. Use '--force' option
    with caution.
 
-OPTIONS 'wult report'
-=====================
+COMMAND *'wult* report'
+=======================
 
 usage: wult report [-h] [-q] [-d] [-o OUTDIR] [--rfilt RFILT] [--rsel
 RSEL] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist
@@ -461,6 +473,9 @@ Create an HTML report for one or multiple test results.
 
 **respaths**
    One or multiple wult test result paths.
+
+OPTIONS *'wult* report'
+=======================
 
 **-h**
    Show this help message and exit.
@@ -583,8 +598,8 @@ Create an HTML report for one or multiple test results.
    HIST='.*Latency.*,.*Delay(?!Cyc).*,[PC]C.+%,SilentTime,ReqCState,LDist',
    CHIST='.*Latency'}
 
-OPTIONS 'wult filter'
-=====================
+COMMAND *'wult* filter'
+=======================
 
 usage: wult filter [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt
 CFILT] [--csel CSEL] [--human-readable] [-o OUTDIR] [--list-columns]
@@ -597,6 +612,9 @@ options may be specified multiple times.
 
 **respath**
    The wult test result path to filter.
+
+OPTIONS *'wult* filter'
+=======================
 
 **-h**
    Show this help message and exit.
@@ -652,8 +670,8 @@ options may be specified multiple times.
    Report ID of the filtered version of the result (can only be used
    with '--outdir').
 
-OPTIONS 'wult calc'
-===================
+COMMAND *'wult* calc'
+=====================
 
 usage: wult calc [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt
 CFILT] [--csel CSEL] [-f FUNCS] [--list-funcs] respath
@@ -663,6 +681,9 @@ median value for one of the CSV columns).
 
 **respath**
    The wult test result path to calculate summary functions for.
+
+OPTIONS *'wult* calc'
+=====================
 
 **-h**
    Show this help message and exit.

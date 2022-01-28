@@ -6,8 +6,8 @@ ndl
 [-h] [-q] [-d] [--version] [--force-color] ...
 .SH DESCRIPTION
 ndl \- a tool for measuring memory access latency observed by a network card.
-.SH OPTIONS
 
+.SH OPTIONS
 .TP
 \fB\-h\fR
 Show this help message and exit.
@@ -28,8 +28,8 @@ Print version and exit.
 \fB\-\-force\-color\fR
 Force coloring of the text output.
 
-.SS
-\fBSub-commands\fR
+.SH
+COMMANDS
 .TP
 \fBndl\fR \fI\,deploy\/\fR
 Compile and deploy ndl helpers and drivers.
@@ -48,12 +48,12 @@ Filter datapoints out of a test result.
 .TP
 \fBndl\fR \fI\,calc\/\fR
 Calculate summary functions for a ndl test result.
-.SH OPTIONS 'ndl deploy'
+.SH COMMAND \fI\,'ndl deploy'\/\fR
 usage: ndl deploy [-h] [-q] [-d] [--kernel-src KSRC] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
 Compile and deploy ndl helpers and drivers to the SUT (System Under Test), which can be either local or a remote host, depending on the '\-H' option.The drivers are searched for in the following directories (and in the following order) on the local host: /usr/bin/drivers/idle, $NDL_DATA_PATH/drivers/idle (if 'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/drivers/idle, /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The ndl tool also depends on the following helpers: ndlrunner. These helpers will be compiled on the SUT and deployed to the SUT. The sources of the helpers are searched for in the following paths (and in the following order) on the local host: /usr/bin/helpers, $NDL_DATA_PATH/helpers (if 'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/helpers, /usr/local/share/wult/helpers, /usr/share/wult/helpers. By default, helpers are deployed to the path defined by the NDL_HELPERSPATH environment variable. If the variable is not defined, helpers are deployed to '$HOME/.local/bin', where '$HOME' is the home directory of user 'USERNAME' on host 'HOST' (see '\-\-host' and '\-\-username' options).
 
-
+.SH OPTIONS \fI\,'ndl deploy'\/\fR
 .TP
 \fB\-h\fR
 Show this help message and exit.
@@ -86,12 +86,12 @@ Path to the private SSH key that should be used for logging into the remote host
 \fB\-T\fR \fI\,TIMEOUT\/\fR, \fB\-\-timeout\fR \fI\,TIMEOUT\/\fR
 SSH connect timeout in seconds, default is 8.
 
-.SH OPTIONS 'ndl scan'
+.SH COMMAND \fI\,'ndl scan'\/\fR
 usage: ndl scan [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
 Scan for compatible device.
 
-
+.SH OPTIONS \fI\,'ndl scan'\/\fR
 .TP
 \fB\-h\fR
 Show this help message and exit.
@@ -120,7 +120,7 @@ Path to the private SSH key that should be used for logging into the remote host
 \fB\-T\fR \fI\,TIMEOUT\/\fR, \fB\-\-timeout\fR \fI\,TIMEOUT\/\fR
 SSH connect timeout in seconds, default is 8.
 
-.SH OPTIONS 'ndl start'
+.SH COMMAND \fI\,'ndl start'\/\fR
 usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid REPORTID] [-l LDIST] [--rfilt RFILT] [--rsel RSEL] [--keep-filtered] [--report] ifname
 
 Start measuring and recording the latency data.
@@ -129,6 +129,7 @@ Start measuring and recording the latency data.
 \fBifname\fR
 The network interface backed by the NIC to use for latency measurements. Today only Intel I210 and I211 NICs are supported. Please, specify NIC's network interface name (e.g., eth0).
 
+.SH OPTIONS \fI\,'ndl start'\/\fR
 .TP
 \fB\-h\fR
 Show this help message and exit.
@@ -158,13 +159,13 @@ Path to the private SSH key that should be used for logging into the remote host
 SSH connect timeout in seconds, default is 8.
 
 .TP
-\fB\-c\fR COUNT, \fB\-\-datapoints\fR COUNT
+\fB\-c\fR \fI\,COUNT\/\fR, \fB\-\-datapoints\fR \fI\,COUNT\/\fR
 How many datapoints should the test result include, default is 1000000. Note, unless the '\-\-start\-over' option is used, the pre\-existing datapoints are taken into account. For example, if the test result already has 6000 datapoints and
 '\-c 10000' is used, the tool will collect 4000 datapoints and exit. Warning: collecting too many datapoints may result in a very large test result file, which will be difficult to process later, because that would require a lot of
 memory.
 
 .TP
-\fB\-\-time\-limit\fR LIMIT
+\fB\-\-time\-limit\fR \fI\,LIMIT\/\fR
 The measurement time limit, i.e., for how long the SUT should be measured. The default unit is minutes, but you can use the following handy specifiers as well: d \- days, h \- hours, m \- minutes, s \- seconds. For example '1h25m' would be
 1 hour and 25 minutes, or 10m5s would be 10 minutes and 5 seconds. Value '0' means "no time limit", and this is the default. If this option is used along with the '\-\-datapoints' option, then measurements will stop as when either the
 time limit is reached, or the required amount of datapoints is collected.
@@ -205,7 +206,7 @@ The result will contain, say, 150000 datapoints, 100000 of which will have RTD v
 \fB\-\-report\fR
 Generate an HTML report for collected results (same as calling 'report' command with default arguments).
 
-.SH OPTIONS 'ndl report'
+.SH COMMAND \fI\,'ndl report'\/\fR
 usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--rfilt RFILT] [--rsel RSEL] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR] [--relocatable RELOCATABLE]
                   [--list-columns]
                   respaths [respaths ...]
@@ -216,6 +217,7 @@ Create an HTML report for one or multiple test results.
 \fBrespaths\fR
 One or multiple ndl test result paths.
 
+.SH OPTIONS \fI\,'ndl report'\/\fR
 .TP
 \fB\-h\fR
 Show this help message and exit.
@@ -290,7 +292,7 @@ at the file\-system level. This will also exclude the logs and the statistics. T
 \fB\-\-list\-columns\fR
 Print the list of the available column names and exit.
 
-.SH OPTIONS 'ndl filter'
+.SH COMMAND \fI\,'ndl filter'\/\fR
 usage: ndl filter [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt CFILT] [--csel CSEL] [--human-readable] [-o OUTDIR] [--list-columns] [--reportid REPORTID] respath
 
 Filter datapoints out of a test result by removing CSV rows and columns according to specified criteria. The criteria is specified using the row and column filter and selector options ('\-\-rsel', '\-\-cfilt', etc). The options may be specified multiple times.
@@ -299,6 +301,7 @@ Filter datapoints out of a test result by removing CSV rows and columns accordin
 \fBrespath\fR
 The ndl test result path to filter.
 
+.SH OPTIONS \fI\,'ndl filter'\/\fR
 .TP
 \fB\-h\fR
 Show this help message and exit.
@@ -346,7 +349,7 @@ Print the list of the available column names and exit.
 \fB\-\-reportid\fR \fI\,REPORTID\/\fR
 Report ID of the filtered version of the result (can only be used with '\-\-outdir').
 
-.SH OPTIONS 'ndl calc'
+.SH COMMAND \fI\,'ndl calc'\/\fR
 usage: ndl calc [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt CFILT] [--csel CSEL] [-f FUNCS] [--list-funcs] respath
 
 Calculates various summary functions for a ndl test result (e.g., the median value for one of the CSV columns).
@@ -355,6 +358,7 @@ Calculates various summary functions for a ndl test result (e.g., the median val
 \fBrespath\fR
 The ndl test result path to calculate summary functions for.
 
+.SH OPTIONS \fI\,'ndl calc'\/\fR
 .TP
 \fB\-h\fR
 Show this help message and exit.

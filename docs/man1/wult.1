@@ -6,8 +6,8 @@ wult
 [-h] [-q] [-d] [--version] [--force-color] ...
 .SH DESCRIPTION
 wult \- a tool for measuring C\-state latency.
-.SH OPTIONS
 
+.SH OPTIONS
 .TP
 \fB\-h\fR
 Show this help message and exit.
@@ -28,8 +28,8 @@ Print version and exit.
 \fB\-\-force\-color\fR
 Force coloring of the text output.
 
-.SS
-\fBSub-commands\fR
+.SH
+COMMANDS
 .TP
 \fBwult\fR \fI\,deploy\/\fR
 Compile and deploy wult helpers and drivers.
@@ -51,12 +51,12 @@ Filter datapoints out of a test result.
 .TP
 \fBwult\fR \fI\,calc\/\fR
 Calculate summary functions for a wult test result.
-.SH OPTIONS 'wult deploy'
+.SH COMMAND \fI\,'wult deploy'\/\fR
 usage: wult deploy [-h] [-q] [-d] [--kernel-src KSRC] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
 Compile and deploy wult helpers and drivers to the SUT (System Under Test), which can be either local or a remote host, depending on the '\-H' option.The drivers are searched for in the following directories (and in the following order) on the local host: /usr/bin/drivers/idle, $WULT_DATA_PATH/drivers/idle (if 'WULT_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/drivers/idle, /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The wult tool also depends on the following helpers: stats\-collect. These helpers will be compiled on the SUT and deployed to the SUT. The sources of the helpers are searched for in the following paths (and in the following order) on the local host: /usr/bin/helpers, $WULT_DATA_PATH/helpers (if 'WULT_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/helpers, /usr/local/share/wult/helpers, /usr/share/wult/helpers. By default, helpers are deployed to the path defined by the WULT_HELPERSPATH environment variable. If the variable is not defined, helpers are deployed to '$HOME/.local/bin', where '$HOME' is the home directory of user 'USERNAME' on host 'HOST' (see '\-\-host' and '\-\-username' options).
 
-
+.SH OPTIONS \fI\,'wult deploy'\/\fR
 .TP
 \fB\-h\fR
 Show this help message and exit.
@@ -89,12 +89,12 @@ Path to the private SSH key that should be used for logging into the remote host
 \fB\-T\fR \fI\,TIMEOUT\/\fR, \fB\-\-timeout\fR \fI\,TIMEOUT\/\fR
 SSH connect timeout in seconds, default is 8.
 
-.SH OPTIONS 'wult scan'
+.SH COMMAND \fI\,'wult scan'\/\fR
 usage: wult scan [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
 Scan for compatible device.
 
-
+.SH OPTIONS \fI\,'wult scan'\/\fR
 .TP
 \fB\-h\fR
 Show this help message and exit.
@@ -123,7 +123,7 @@ Path to the private SSH key that should be used for logging into the remote host
 \fB\-T\fR \fI\,TIMEOUT\/\fR, \fB\-\-timeout\fR \fI\,TIMEOUT\/\fR
 SSH connect timeout in seconds, default is 8.
 
-.SH OPTIONS 'wult load'
+.SH COMMAND \fI\,'wult load'\/\fR
 usage: wult load [-h] [-q] [-d] [--no-unload] [--force] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] devid
 
 Load wult drivers and exit without starting the measurements.
@@ -132,6 +132,7 @@ Load wult drivers and exit without starting the measurements.
 \fBdevid\fR
 The device ID, same as in the 'start' command.
 
+.SH OPTIONS \fI\,'wult load'\/\fR
 .TP
 \fB\-h\fR
 Show this help message and exit.
@@ -169,7 +170,7 @@ Path to the private SSH key that should be used for logging into the remote host
 \fB\-T\fR \fI\,TIMEOUT\/\fR, \fB\-\-timeout\fR \fI\,TIMEOUT\/\fR
 SSH connect timeout in seconds, default is 8.
 
-.SH OPTIONS 'wult start'
+.SH COMMAND \fI\,'wult start'\/\fR
 usage: wult start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--rfilt RFILT] [--rsel RSEL] [--keep-filtered] [-o OUTDIR] [--reportid REPORTID] [--stats STATS]
                   [--stats-intervals STATS_INTERVALS] [--list-stats] [-l LDIST] [--cpunum CPUNUM] [--intr-focus] [--tsc-cal-time TSC_CAL_TIME] [--keep-raw-data] [--no-unload] [--early-intr] [--dirty-cpu-cache] [--dcbuf-size DCBUF_SIZE]
                   [--offline OFFLINE] [--report] [--force]
@@ -181,6 +182,7 @@ Start measuring and recording C\-state latency.
 \fBdevid\fR
 The ID of the device to use for measuring the latency. For example, it can be a PCI address of the Intel I210 device, or "tdt" for the TSC deadline timer block of the CPU. Use the 'scan' command to get supported devices.
 
+.SH OPTIONS \fI\,'wult start'\/\fR
 .TP
 \fB\-h\fR
 Show this help message and exit.
@@ -210,13 +212,13 @@ Path to the private SSH key that should be used for logging into the remote host
 SSH connect timeout in seconds, default is 8.
 
 .TP
-\fB\-c\fR COUNT, \fB\-\-datapoints\fR COUNT
+\fB\-c\fR \fI\,COUNT\/\fR, \fB\-\-datapoints\fR \fI\,COUNT\/\fR
 How many datapoints should the test result include, default is 1000000. Note, unless the '\-\-start\-over' option is used, the pre\-existing datapoints are taken into account. For example, if the test result already has 6000 datapoints and
 '\-c 10000' is used, the tool will collect 4000 datapoints and exit. Warning: collecting too many datapoints may result in a very large test result file, which will be difficult to process later, because that would require a lot of
 memory.
 
 .TP
-\fB\-\-time\-limit\fR LIMIT
+\fB\-\-time\-limit\fR \fI\,LIMIT\/\fR
 The measurement time limit, i.e., for how long the SUT should be measured. The default unit is minutes, but you can use the following handy specifiers as well: d \- days, h \- hours, m \- minutes, s \- seconds. For example '1h25m' would be
 1 hour and 25 minutes, or 10m5s would be 10 minutes and 5 seconds. Value '0' means "no time limit", and this is the default. If this option is used along with the '\-\-datapoints' option, then measurements will stop as when either the
 time limit is reached, or the required amount of datapoints is collected.
@@ -330,7 +332,7 @@ Generate an HTML report for collected results (same as calling 'report' command 
 \fB\-\-force\fR
 By default wult does not accept network card as a measurement device if its Linux network interface is in an active state, such as "up". Use '\-\-force' to disable this safety mechanism. Use '\-\-force' option with caution.
 
-.SH OPTIONS 'wult report'
+.SH COMMAND \fI\,'wult report'\/\fR
 usage: wult report [-h] [-q] [-d] [-o OUTDIR] [--rfilt RFILT] [--rsel RSEL] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR] [--relocatable RELOCATABLE]
                    [--list-columns] [--size REPORT_SIZE]
                    respaths [respaths ...]
@@ -341,6 +343,7 @@ Create an HTML report for one or multiple test results.
 \fBrespaths\fR
 One or multiple wult test result paths.
 
+.SH OPTIONS \fI\,'wult report'\/\fR
 .TP
 \fB\-h\fR
 Show this help message and exit.
@@ -422,7 +425,7 @@ be set to 'small', 'medium' or 'large'. Here are the regular expressions for eac
 HIST='.*Latency,.*Delay', CHIST='.*Latency'} large: {XAXES='SilentTime,LDist', YAXES='.*Latency.*,.*Delay(?!Cyc).*,[PC]C.+%,SilentTime,ReqCState', HIST='.*Latency.*,.*Delay(?!Cyc).*,[PC]C.+%,SilentTime,ReqCState,LDist',
 CHIST='.*Latency'}
 
-.SH OPTIONS 'wult filter'
+.SH COMMAND \fI\,'wult filter'\/\fR
 usage: wult filter [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt CFILT] [--csel CSEL] [--human-readable] [-o OUTDIR] [--list-columns] [--reportid REPORTID] respath
 
 Filter datapoints out of a test result by removing CSV rows and columns according to specified criteria. The criteria is specified using the row and column filter and selector options ('\-\-rsel', '\-\-cfilt', etc). The options may be specified multiple times.
@@ -431,6 +434,7 @@ Filter datapoints out of a test result by removing CSV rows and columns accordin
 \fBrespath\fR
 The wult test result path to filter.
 
+.SH OPTIONS \fI\,'wult filter'\/\fR
 .TP
 \fB\-h\fR
 Show this help message and exit.
@@ -478,7 +482,7 @@ Print the list of the available column names and exit.
 \fB\-\-reportid\fR \fI\,REPORTID\/\fR
 Report ID of the filtered version of the result (can only be used with '\-\-outdir').
 
-.SH OPTIONS 'wult calc'
+.SH COMMAND \fI\,'wult calc'\/\fR
 usage: wult calc [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt CFILT] [--csel CSEL] [-f FUNCS] [--list-funcs] respath
 
 Calculates various summary functions for a wult test result (e.g., the median value for one of the CSV columns).
@@ -487,6 +491,7 @@ Calculates various summary functions for a wult test result (e.g., the median va
 \fBrespath\fR
 The wult test result path to calculate summary functions for.
 
+.SH OPTIONS \fI\,'wult calc'\/\fR
 .TP
 \fB\-h\fR
 Show this help message and exit.
