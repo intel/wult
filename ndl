@@ -27,7 +27,7 @@ from wultlibs.helperlibs import ReportID
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs.reportlibs import NdlHTMLReport
 
-VERSION = "1.3.12"
+VERSION = "1.3.13"
 OWN_NAME = "ndl"
 
 LOG = logging.getLogger()
