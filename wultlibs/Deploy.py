@@ -159,12 +159,11 @@ def _get_pyhelper_dependencies(script_path):
     stdout, _ = Procs.run_verify(cmd)
     return [Path(path) for path in stdout.splitlines()]
 
-def find_app_data(appname, subpath, pre=None, descr=None):
+def find_app_data(appname, subpath, descr=None):
     """
     Search for application 'appname' data. The data are searched for
     in 'subpath' sub-path of the following directories (and in the following order):
       * in the directory the of the running process (sys.argv[0])
-      * the the directories in the 'pre' list, if it was specified
       * in the directory specified by the f'{appname}_DATA_PATH' environment variable
       * $HOME/.local/share/<appname>/, if it exists
       * /usr/local/share/<appname>/, if it exists
@@ -175,9 +174,7 @@ def find_app_data(appname, subpath, pre=None, descr=None):
     """
 
     searched = []
-    paths = pre
-    if not paths:
-        paths = []
+    paths = []
 
     paths.append(Path(sys.argv[0]).parent)
 
