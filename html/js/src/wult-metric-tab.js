@@ -36,7 +36,7 @@ class WultMetricTab extends WultTab {
          * is the earliest point to load the input into class attributes.
          */
       this.paths = this.info.ppaths
-      this.smrystbl = this.info.smrys_tbl
+      this.smrystblpath = this.info.smrytblpath
     }
 
     /**
@@ -45,7 +45,7 @@ class WultMetricTab extends WultTab {
     visibleTemplate () {
       return html`
             <br>
-            <smry-tbl .smrystbl="${this.smrystbl}"></smry-tbl>
+            <smry-tbl .src="${this.smrystblpath}"></smry-tbl>
             <div class="grid">
             ${this.paths.map((path) =>
                     html`<diagram-element path="${path}" ></diagram-element>`

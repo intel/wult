@@ -102,15 +102,15 @@ class ReportBase:
 
         return intro_tbl
 
-    def _prepare_smrys_tables(self, pinfos):
+    def _prepare_smrys_tables(self, pinfos, smrytblpath):
         """
         Summaries table includes values like average and median values for a single metric (column).
         It "summarizes" the metric. This function creates summaries table for each metrics included
-        in 'pinfos' list.
+        in 'pinfos' list and dumps them to the 'smrytblpath'.
         """
 
         if not pinfos:
-            return {}
+            return
 
         # Summaries are calculated only for numeric metrics.
         metrics = list({info.xmetric for info in pinfos if self._refres.is_numeric(info.xmetric)})
@@ -137,7 +137,7 @@ class ReportBase:
                     val = res.smrys[metric][funcname]
                     smry_tbl.add_smry_func(res.reportid, metric, funcname,  val)
         try:
-            return smry_tbl.generate()
+            smry_tbl.generate(smrytblpath)
         except Error as err:
             raise Error("Failed to generate summary table.") from err
 
@@ -185,8 +185,12 @@ class ReportBase:
         """
 
         tabs = []
+        smrytbldir = self.outdir / "summary-tables"
+        self._try_mkdir(smrytbldir)
+
         for tabname, pinfos in all_pinfos.items():
-            smrys_tbl = self._prepare_smrys_tables(pinfos)
+            smrytblpath = smrytbldir.joinpath(tabname)
+            self._prepare_smrys_tables(pinfos, smrytblpath)
 
             # Build plot paths 'ppaths' (relative to the output directory).
             ppaths = []
@@ -196,7 +200,7 @@ class ReportBase:
                 ppaths.append(str(p.relative_to(self.outdir)))
 
             metric_data = {}
-            metric_data["smrys_tbl"] = smrys_tbl
+            metric_data["smrytblpath"] = smrytblpath.relative_to(self.outdir)
             metric_data["ppaths"] = ppaths
             tabs.append(_Tab.Tab(id=tabname, label=tabname, category="metric", mdata=metric_data))
         return tabs
@@ -227,6 +231,8 @@ class ReportBase:
         jenv = Jinja2.build_jenv(templdir, trim_blocks=True, lstrip_blocks=True)
         jenv.globals["intro_tbl"] = self._prepare_intro_table(stats_paths, logs_paths, descr_paths)
         jenv.globals["toolname"] = self._refinfo["toolname"]
+        # Ensure that pathlib.Path() objects are coerced to 'str' so they are JSON serialisable.
+        jenv.policies["json.dumps_kwargs"] = {"default": str}
 
         if not pinfos:
             # This may happen if there are no diagrams to plot. In this case we still want to

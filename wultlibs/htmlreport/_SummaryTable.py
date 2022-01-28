@@ -23,19 +23,43 @@ class SummaryTable:
 
     The HTML summary table has the following format:
 
-    | Title                     | Result Report ID 1 | Result Report ID 2 |
+    | Metric | Function         | Result Report ID 1 | Result Report ID 2 |
     |---------------------------|--------------------|--------------------|
     | Metric | Smry Func Name 1 | Smry Func Val 1    | Smry Func Val 1    |
     |        | Smry Func Name 2 | Smry Func Val 2    | Smry Func Val 2    |
     |--------|------------------|--------------------|--------------------|
     | Metric | Smry Func Name 1 | Smry Func Val 3    | Smry Func Val 3    |
 
+    The underlying Summary Table dictionary has the following structure:
+    {
+        "title": {
+            metric: {
+                "metric": metric_name (+ metric_unit),
+                "coldescr": metric_description,
+                "funcs": {
+                    func_name: func_descr
+                }
+            }
+        },
+        "funcs": {
+            reportid: {
+                metric: {
+                    func_name: {
+                        "raw_val": raw_val,
+                        "formatted_val": formatted_val,
+                        "hovertext": hovertext
+                    }
+                }
+            }
+        }
+    }
+
     Public methods overview:
     1. Add metrics to the summary table.
        * 'add_metric()'
     2. Populate summary function cells by adding summary function names and values.
        * 'add_smry_func()'
-    3. Generate the dictionary representing the summary table.
+    3. Finalise the summary table and generate the summary table file representing it.
        * 'generate()'
     """
 
@@ -126,33 +150,50 @@ class SummaryTable:
         percent = f"{percent:.1f}%"
         return f"Change: {change} ({percent})"
 
-    def generate(self):
+    def _get_func_lines(self, metric):
         """
-        Generate the finalised report summary table dictionary. The finalised dictionary has the
-        following structure:
+        Helper function for '_dump()'. Given a specific metric, returns all of the summary functions
+        and their values associated with that metric. Returns in the format of lines to be written
+        during '_dump()'.
+        """
 
-        {
-            "title": {
-                metric: {
-                    "metric": metric_name (+ metric_unit),
-                    "coldescr": metric_description,
-                    "funcs": {
-                        func_name: func_value
-                    }
-                }
-            },
-            "funcs": {
-                reportid: {
-                    metric: {
-                        func_name: {
-                            "raw_val": raw_val,
-                            "formatted_val": formatted_val,
-                            "hovertext": hovertext
-                        }
-                    }
-                }
-            }
-        }
+        lines = []
+        for func, fdescr in self.smrytbl["title"][metric]["funcs"].items():
+            line = f"F;{func}|{fdescr}"
+            for subdct in self.smrytbl["funcs"].values():
+                fdict = subdct[metric][func]
+                line += f";{fdict['formatted_val']}|{fdict['hovertext']}"
+            lines.append(f"{line}\n")
+        return lines
+
+    def _dump(self, path):
+        """
+        Dump the summary table dictionary to a file. Uses a format specific to this project.
+        The format contains three types of rows:
+        * Header row. There is only one per file and should be the first row in the file. Marks
+          itself as a header row with a leading 'H'. For example:
+          H;Metric;Func;report_id1;report_id2
+        * Metric row. For example:
+          M;metric_name|metric_description;no_of_funcs
+        * Function row. For example:
+          F;func_name|func_description;func_val|func_hovertext1;func_val2|func_hovertext2
+        """
+
+        with open(path, "w", encoding="utf-8") as fobj:
+            lines = []
+            lines.append(f"H;Metric;Function;{';'.join(list(self.smrytbl['funcs']))}\n")
+
+            for metric, mdict in self.smrytbl["title"].items():
+                funcs = max((len(dct[metric]) for dct in self.smrytbl["funcs"].values()))
+                lines.append(f"M;{mdict['metric']}|{mdict['descr']};{funcs}\n")
+                lines += self._get_func_lines(metric)
+
+            fobj.writelines(lines)
+
+    def generate(self, path):
+        """
+        Generate the file representing this summary table in text format and save the file at path
+        'path'.
         """
 
         # Calculate hovertext now that all reference calculations have been added.
@@ -161,7 +202,8 @@ class SummaryTable:
                 for funcname, fdict in mdict.items():
                     fdict["hovertext"] = self._get_hovertext(fdict["raw_val"], name, metric,
                                                              funcname)
-        return self.smrytbl
+
+        self._dump(path)
 
     def __init__(self):
         """The class constructor."""
