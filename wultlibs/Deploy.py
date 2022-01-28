@@ -438,6 +438,7 @@ def _create_standalone_python_script(script, pyhelperdir):
     except OSError as err:
         raise Error(f"failed to create file '{init_path}:\n{err}'") from None
 
+    # pylint: disable=consider-using-with
     try:
         fobj = zipobj = None
 
@@ -501,6 +502,7 @@ def _create_standalone_python_script(script, pyhelperdir):
             zipobj.close()
         if fobj:
             fobj.close()
+    # pylint: enable=consider-using-with
 
     # Make the standalone file executable.
     try:
