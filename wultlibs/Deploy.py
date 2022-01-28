@@ -159,6 +159,58 @@ def _get_pyhelper_dependencies(script_path):
     stdout, _ = Procs.run_verify(cmd)
     return [Path(path) for path in stdout.splitlines()]
 
+def find_app_data(appname, subpath: Path, pre: str = None, descr: str = None):
+    """
+    Search for application 'appname' data. The data are searched for
+    in 'subpath' sub-path of the following directories (and in the following order):
+      * in the directory the of the running process (sys.argv[0])
+      * the the directories in the 'pre' list, if it was specified
+      * in the directory specified by the f'{appname}_DATA_PATH' environment variable
+      * $HOME/.local/share/<appname>/, if it exists
+      * /usr/local/share/<appname>/, if it exists
+      * /usr/share/<appname>/, if it exists
+
+    The 'descr' argument is a human-readable description of 'subpath', which will be used in the
+    error message if error is raised.
+    """
+
+    searched = []
+    paths = pre
+    if not paths:
+        paths = []
+
+    paths.append(Path(sys.argv[0]).parent)
+
+    path = os.environ.get(f"{appname}_DATA_PATH".upper())
+    if path:
+        paths.append(Path(path))
+
+    for path in paths:
+        path /= subpath
+        if path.exists():
+            return path
+        searched.append(path)
+
+    path = Path("~").expanduser() / Path(f".local/share/{appname}/{subpath}")
+    if path.exists():
+        return path
+
+    searched.append(path)
+
+    for path in (Path(f"/usr/local/share/{appname}"), Path(f"/usr/share/{appname}")):
+        path /= subpath
+        if path.exists():
+            return path
+        searched.append(path)
+
+    if not descr:
+        descr = f"'{subpath}'"
+    searched = [str(s) for s in searched]
+    dirs = " * " + "\n * ".join(searched)
+
+    raise Error(f"cannot find {descr}, searched in the following directories on local host:\n"
+                f"{dirs}")
+
 def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
     """
     Wult and other tools require additional helper programs and drivers to be installed on the SUT.
@@ -208,7 +260,7 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
 
     # Build the deploy information dictionary. Start with drivers.
     dinfos = {}
-    srcpath = FSHelpers.find_app_data("wult", _DRV_SRC_SUBPATH / toolname)
+    srcpath = find_app_data("wult", _DRV_SRC_SUBPATH / toolname)
     dstpaths = []
     for deployable in _get_deployables(srcpath):
         dstpath = _get_module_path(proc, deployable)
@@ -223,7 +275,7 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
 
     if helpers:
         for helper in helpers:
-            srcpath = FSHelpers.find_app_data("wult", _HELPERS_SRC_SUBPATH / helper)
+            srcpath = find_app_data("wult", _HELPERS_SRC_SUBPATH / helper)
             dstpaths = []
             for deployable in _get_deployables(srcpath):
                 dstpaths.append(helpers_deploy_path / deployable)
@@ -234,7 +286,7 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
     # the remote case.
     if pyhelpers and proc.is_remote:
         for pyhelper in pyhelpers:
-            datapath = FSHelpers.find_app_data("wult", _HELPERS_SRC_SUBPATH / pyhelper)
+            datapath = find_app_data("wult", _HELPERS_SRC_SUBPATH / pyhelper)
             srcpaths = []
             dstpaths = []
             for deployable in _get_deployables(datapath, Procs.Proc()):
@@ -287,8 +339,8 @@ def _log_cmd_output(args, stdout, stderr):
 def _deploy_drivers(args, proc):
     """Deploy drivers to the SUT represented by 'proc'."""
 
-    drvsrc = FSHelpers.find_app_data("wult", _DRV_SRC_SUBPATH/f"{args.toolname}",
-                                     descr=f"{args.toolname} drivers sources")
+    drvsrc = find_app_data("wult", _DRV_SRC_SUBPATH/f"{args.toolname}",
+                           descr=f"{args.toolname} drivers sources")
     if not drvsrc.is_dir():
         raise Error(f"path '{drvsrc}' does not exist or it is not a directory")
 
@@ -471,8 +523,7 @@ def _deploy_helpers(args, proc):
 
     # We assume all helpers are in the same base directory.
     helper_path = _HELPERS_SRC_SUBPATH/f"{helpers[0]}"
-    helpersrc = FSHelpers.find_app_data("wult", helper_path,
-                                         descr=f"{args.toolname} helper sources")
+    helpersrc = find_app_data("wult", helper_path, descr=f"{args.toolname} helper sources")
     helpersrc = helpersrc.parent
 
     if not helpersrc.is_dir():

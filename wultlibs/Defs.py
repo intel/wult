@@ -12,7 +12,8 @@ This module provides API to the datapoints CSV file definitions (AKA 'defs').
 
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error
-from pepclibs.helperlibs import FSHelpers, YAML
+from pepclibs.helperlibs import YAML
+from wultlibs import Deploy
 
 # A unique object used as the default value for the 'default' keyword argument in various
 # functions.
@@ -146,6 +147,6 @@ class Defs:
         self.name = name
         self.info = None
         self.vanilla_info = None
-        self.path = FSHelpers.find_app_data("wult", Path(f"defs/{name}.yml"),
-                                             descr=f"{name} datapoints definitions file")
+        self.path = Deploy.find_app_data("wult", Path(f"defs/{name}.yml"),
+                                         descr=f"{name} datapoints definitions file")
         self.info = self.vanilla_info = YAML.load(self.path)

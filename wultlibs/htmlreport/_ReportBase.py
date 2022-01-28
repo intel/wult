@@ -16,6 +16,7 @@ from pathlib import Path
 from pepclibs.helperlibs import Trivial, FSHelpers, Jinja2
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.htmlreport import _PlotsBuilder, _SummaryTable
+from wultlibs import Deploy
 from wultlibs.htmlreport._Tab import Tab
 
 _LOG = logging.getLogger()
@@ -162,7 +163,7 @@ class ReportBase:
     def _copy_asset(self, src, action, descr):
         """Copy asset file to the output directory or create symlink."""
 
-        asset_path = FSHelpers.find_app_data(self._projname, src, descr=descr)
+        asset_path = Deploy.find_app_data(self._projname, src, descr=descr)
         dstpath = self.outdir.joinpath(src)
         FSHelpers.move_copy_link(asset_path, dstpath, action, exist_ok=True)
 
@@ -212,8 +213,8 @@ class ReportBase:
                               "bundled javascript licenses")
 
         # Find the template paths.
-        templdir = FSHelpers.find_app_data(self._projname, Path("html/templates"),
-                                           descr="HTML report Jinja2 templates")
+        templdir = Deploy.find_app_data(self._projname, Path("html/templates"),
+                                        descr="HTML report Jinja2 templates")
 
         jenv = Jinja2.build_jenv(templdir, trim_blocks=True, lstrip_blocks=True)
         jenv.globals["intro_tbl"] = self._prepare_intro_table(stats_paths, logs_paths, descr_paths)
