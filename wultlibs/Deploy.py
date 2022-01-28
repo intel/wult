@@ -159,19 +159,22 @@ def _get_pyhelper_dependencies(script_path):
     stdout, _ = Procs.run_verify(cmd)
     return [Path(path) for path in stdout.splitlines()]
 
-def find_app_data(appname, subpath, descr=None):
+def find_app_data(prjname, subpath, appname=None, descr=None):
     """
-    Search for application 'appname' data. The data are searched for
-    in 'subpath' sub-path of the following directories (and in the following order):
-      * in the directory the of the running process (sys.argv[0])
+    Search for application 'appname' data. The data are searched for in the 'subpath' sub-path of
+    the following directories (and in the following order):
+      * in the directory the of the running process (sys.argv[0]/<subpath>)
       * in the directory specified by the f'{appname}_DATA_PATH' environment variable
-      * $HOME/.local/share/<appname>/, if it exists
-      * /usr/local/share/<appname>/, if it exists
-      * /usr/share/<appname>/, if it exists
+      * $HOME/.local/share/<prjname>/, if it exists
+      * /usr/local/share/<prjname>/, if it exists
+      * /usr/share/<prjname>/, if it exists
 
     The 'descr' argument is a human-readable description of 'subpath', which will be used in the
     error message if error is raised.
     """
+
+    if not appname:
+        appname = prjname
 
     searched = []
     paths = []
@@ -188,13 +191,13 @@ def find_app_data(appname, subpath, descr=None):
             return path
         searched.append(path)
 
-    path = Path("~").expanduser() / Path(f".local/share/{appname}/{subpath}")
+    path = Path("~").expanduser() / Path(f".local/share/{prjname}/{subpath}")
     if path.exists():
         return path
 
     searched.append(path)
 
-    for path in (Path(f"/usr/local/share/{appname}"), Path(f"/usr/share/{appname}")):
+    for path in (Path(f"/usr/local/share/{prjname}"), Path(f"/usr/share/{prjname}")):
         path /= subpath
         if path.exists():
             return path
@@ -257,7 +260,7 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
 
     # Build the deploy information dictionary. Start with drivers.
     dinfos = {}
-    srcpath = find_app_data("wult", _DRV_SRC_SUBPATH / toolname)
+    srcpath = find_app_data("wult", _DRV_SRC_SUBPATH / toolname, appname=toolname)
     dstpaths = []
     for deployable in _get_deployables(srcpath):
         dstpath = _get_module_path(proc, deployable)
@@ -272,7 +275,7 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
 
     if helpers:
         for helper in helpers:
-            srcpath = find_app_data("wult", _HELPERS_SRC_SUBPATH / helper)
+            srcpath = find_app_data("wult", _HELPERS_SRC_SUBPATH / helper, appname=toolname)
             dstpaths = []
             for deployable in _get_deployables(srcpath):
                 dstpaths.append(helpers_deploy_path / deployable)
@@ -283,7 +286,7 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
     # the remote case.
     if pyhelpers and proc.is_remote:
         for pyhelper in pyhelpers:
-            datapath = find_app_data("wult", _HELPERS_SRC_SUBPATH / pyhelper)
+            datapath = find_app_data("wult", _HELPERS_SRC_SUBPATH / pyhelper, appname=toolname)
             srcpaths = []
             dstpaths = []
             for deployable in _get_deployables(datapath, Procs.Proc()):

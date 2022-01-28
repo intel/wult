@@ -147,6 +147,6 @@ class Defs:
         self.name = name
         self.info = None
         self.vanilla_info = None
-        self.path = Deploy.find_app_data("wult", Path(f"defs/{name}.yml"),
+        self.path = Deploy.find_app_data("wult", Path(f"defs/{name}.yml"), appname=name,
                                          descr=f"{name} datapoints definitions file")
         self.info = self.vanilla_info = YAML.load(self.path)
