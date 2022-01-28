@@ -15,9 +15,8 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, FSHelpers, Jinja2
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.htmlreport import _PlotsBuilder, _SummaryTable
+from wultlibs.htmlreport import _PlotsBuilder, _SummaryTable, _Tab
 from wultlibs import Deploy
-from wultlibs.htmlreport._Tab import Tab
 
 _LOG = logging.getLogger()
 
@@ -187,7 +186,7 @@ class ReportBase:
             metric_data = {}
             metric_data["smrys_tbl"] = smrys_tbl
             metric_data["ppaths"] = ppaths
-            tabs.append(Tab(id=tabname, label=tabname, category="metric", mdata=metric_data))
+            tabs.append(_Tab.Tab(id=tabname, label=tabname, category="metric", mdata=metric_data))
         return tabs
 
     def _generate_report(self, pinfos):
@@ -229,7 +228,7 @@ class ReportBase:
         metric_tabs = self._generate_metric_tabs(pinfos)
 
         tabs = []
-        tabs.append(Tab(id="Results", label="Results", tabs=metric_tabs))
+        tabs.append(_Tab.Tab(id="Results", label="Results", tabs=metric_tabs))
         # 'tab_container' acts as a global store of tabs.
         jenv.globals["tab_container"] = {"tabs": tabs}
 
