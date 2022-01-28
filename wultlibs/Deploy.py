@@ -208,7 +208,7 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
 
     # Build the deploy information dictionary. Start with drivers.
     dinfos = {}
-    srcpath = FSHelpers.find_app_data(toolname, _DRV_SRC_SUBPATH / toolname)
+    srcpath = FSHelpers.find_app_data("wult", _DRV_SRC_SUBPATH / toolname)
     dstpaths = []
     for deployable in _get_deployables(srcpath):
         dstpath = _get_module_path(proc, deployable)
@@ -223,7 +223,7 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
 
     if helpers:
         for helper in helpers:
-            srcpath = FSHelpers.find_app_data(toolname, _HELPERS_SRC_SUBPATH / helper)
+            srcpath = FSHelpers.find_app_data("wult", _HELPERS_SRC_SUBPATH / helper)
             dstpaths = []
             for deployable in _get_deployables(srcpath):
                 dstpaths.append(helpers_deploy_path / deployable)
@@ -234,7 +234,7 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
     # the remote case.
     if pyhelpers and proc.is_remote:
         for pyhelper in pyhelpers:
-            datapath = FSHelpers.find_app_data(toolname, _HELPERS_SRC_SUBPATH / pyhelper)
+            datapath = FSHelpers.find_app_data("wult", _HELPERS_SRC_SUBPATH / pyhelper)
             srcpaths = []
             dstpaths = []
             for deployable in _get_deployables(datapath, Procs.Proc()):
