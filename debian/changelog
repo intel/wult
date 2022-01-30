@@ -1,8 +1,12 @@
-wult (1.9.12) unstable; urgency=low
+wult (1.9.13) unstable; urgency=low
 
   * wult: removed 'start --offline' option
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  ADD_DATE
+
+  * wult: bugfix release: fix crash when running 'wult report --list-columns'.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Sun, 30 Jan 2022 16:20:35 +0200
 
 wult (1.9.11) unstable; urgency=low
 
