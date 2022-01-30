@@ -520,4 +520,5 @@ def list_result_columns(rsts):
     for rst in rsts:
         _LOG.info("Column names in '%s':", rst.dirpath)
         for colname in rst.colnames:
-            _LOG.info("  * %s: %s", colname, rst.defs.info[colname]["title"])
+            if colname in rst.defs.info:
+                _LOG.info("  * %s: %s", colname, rst.defs.info[colname]["title"])
