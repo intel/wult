@@ -9,6 +9,7 @@
  */
 
 import { LitElement, html } from 'lit'
+import { cache } from 'lit/directives/cache.js'
 
 /**
  * Generic class which handles visiblity of report tabs. When creating a new tab, it is recommended
@@ -69,9 +70,13 @@ export class WultTab extends LitElement {
     }
 
     render () {
-      return this.visible
+      // Use 'cache()' to cache tabs which means their content will be saved after being loaded for
+      // the first time and does not need to be re-generated every time.
+      return html`
+      ${cache(this.visible
         ? html`${this.visibleTemplate()}`
         : html``
+      )}`
     }
 }
 
