@@ -23,6 +23,18 @@ _LOG = logging.getLogger()
 class ReportBase:
     """This is the base class for generating HTML reports for raw test results."""
 
+    @staticmethod
+    def _try_mkdir(path):
+        """
+        Helper function wrapping 'mkdir' operation with a standardised error message so the warnings
+        are consistent throughout the class.
+        """
+
+        try:
+            path.mkdir(parents=True, exist_ok=True)
+        except OSError as err:
+            raise Error(f"failed to create directory '{path}': {err}") from None
+
     def _prepare_intro_table(self, stats_paths, logs_paths, descr_paths):
         """
         Create the intro table, which is the very first table in the report and it shortly
@@ -195,10 +207,7 @@ class ReportBase:
         _LOG.info("Generating the HTML report.")
 
         # Make sure the output directory exists.
-        try:
-            self.outdir.mkdir(parents=True, exist_ok=True)
-        except OSError as err:
-            raise Error(f"failed to create directory '{self.outdir}': {err}") from None
+        self._try_mkdir(self.outdir)
 
         # Copy raw data and assets according to 'self.relocatable'.
         stats_paths, logs_paths, descr_paths = self._copy_raw_data()
@@ -320,10 +329,7 @@ class ReportBase:
         # Calculate the summaries for the datapoints, like min. and max. values.
         self._calc_smrys()
 
-        try:
-            self._plotsdir.mkdir(parents=True, exist_ok=True)
-        except OSError as err:
-            raise Error(f"failed to create directory '{self._plotsdir}': {err}") from None
+        self._try_mkdir(self._plotsdir)
 
         # This is a dictionary of of lists, each list containing Plot Info dataclasses (PInfos)
         # which describe a single plot. The lists of PInfos are grouped by the "X" and "Y" axis
