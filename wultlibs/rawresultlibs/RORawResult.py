@@ -341,10 +341,19 @@ class RORawResult(_RawResultBase.RawResultBase):
         if rsel:
             _LOG.debug("applying rows selector: %s", rsel)
             try:
-                expr = pandas.eval(rsel)
+                try:
+                    expr = pandas.eval(rsel)
+                except ValueError as err:
+                    if "data type must provide an itemsize" in str(err):
+                        # Some older versions of the default "numexpr" engine has a bug, and this is
+                        # a workaround. We just try the "python" engine instead.
+                        expr = pandas.eval(rsel, engine="python")
+                    else:
+                        raise
             except Exception as err:
-                raise Error(f"failed to evaluate expression '{rsel}'. Make sure you use correct "
-                            f"CSV column names, which are also case-sensitive.") from err
+                raise Error(f"failed to evaluate expression '{rsel}': {err}\nMake sure you use "
+                            f"correct CSV column names, which are also case-sensitive.") from err
+
             self.df = self.df[expr].reset_index(drop=True)
             if self.df.empty:
                 raise Error(f"no data left after applying row selector(s) to CSV file "
