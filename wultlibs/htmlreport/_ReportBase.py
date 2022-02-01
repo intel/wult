@@ -218,11 +218,11 @@ class ReportBase:
         for path, descr in self._assets:
             self._copy_asset(Path(path), self.relocatable, descr)
 
-        # Always copy 'css/style.css' and bundled javascript.
-        self._copy_asset(Path("html/css/style.css"), "copy", "HTML report CSS file")
-        self._copy_asset(Path("html/js/dist/main.js"), "copy", "bundled javascript")
+        # Always copy bundled JavaScript, CSS and appropriate licences.
+        self._copy_asset(Path("html/js/dist/main.js"), "copy", "bundled JavaScript")
+        self._copy_asset(Path("html/js/dist/main.css"), "copy", "bundled CSS")
         self._copy_asset(Path("html/js/dist/main.js.LICENSE.txt"), "copy",
-                              "bundled javascript licenses")
+                              "bundled JavaScript licenses")
 
         # Find the template paths.
         templdir = Deploy.find_app_data(self._projname, Path("html/templates"),
