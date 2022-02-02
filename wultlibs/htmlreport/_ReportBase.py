@@ -11,6 +11,8 @@
 This module the base class for generating HTML reports for raw test results.
 """
 
+import dataclasses
+import json
 import logging
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, FSHelpers, Jinja2
@@ -243,9 +245,11 @@ class ReportBase:
         metric_tabs = self._generate_metric_tabs(pinfos)
 
         tabs = []
-        tabs.append(_Tab.Tab(id="Results", label="Results", tabs=metric_tabs))
-        # 'tab_container' acts as a global store of tabs.
-        jenv.globals["tab_container"] = {"tabs": tabs}
+        tabs.append(dataclasses.asdict(_Tab.Tab(id="Results", label="Results", tabs=metric_tabs)))
+        tabs_path = self.outdir / "tabs.json"
+        with open(tabs_path, "w", encoding="utf-8") as fobj:
+            json.dump(tabs, fobj, default=str)
+        jenv.globals["tab_file"] = str(tabs_path.relative_to(self.outdir))
 
         templfile = outfile = "index.html"
         Jinja2.render_template(jenv, Path(templfile), outfile=self.outdir.joinpath(outfile))

@@ -10,9 +10,9 @@
 
 /* eslint-disable no-unused-vars */
 
-import { WultMetricTab } from './wult-metric-tab'
 import { IntroTable } from './intro-tbl'
-import { StatsTab } from './stats-tab'
+import { TabGroup } from './tab-group'
+
 import '../css/style.css'
 import '@shoelace-style/shoelace/dist/themes/light.css'
 import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js'

@@ -2,7 +2,7 @@
  * -*- coding: utf-8 -*-
  * vim: ts=4 sw=4 tw=100 et ai si
  *
- * Copyright (C) 2019-2021 Intel, Inc.
+ * Copyright (C) 2021-2022 Intel, Inc.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Author: Adam Hawley <adam.james.hawley@intel.com>
@@ -27,12 +27,19 @@ export class WultTab extends LitElement {
     };
 
     /**
-     * Checks whether this tab is visible by checking if the tab has the 'active' class applied to
-     * it and sets the 'visible' attribute accordingly.
+     * Checks mutations to the parent tab element to see if the 'active' attribute has been set and
+     * sets the 'visible' attribute accordingly.
      */
-    checkVisible () {
-      const tab = document.getElementById(this.tabname)
-      this.visible = tab.classList.contains('active')
+    checkVisible (mutationsList, observer) {
+      for (const mutation of mutationsList) {
+        if (mutation.attributeName === 'active') {
+          if (this.tabname === mutation.target.id) {
+            this.visible = true
+          } else {
+            this.visible = false
+          }
+        }
+      }
     }
 
     /**
@@ -44,8 +51,20 @@ export class WultTab extends LitElement {
       // Adds event listener so that the tab will re-evaulate 'visible' every time the user clicks
       // to see if the tab has been opened. Read relevant docs here:
       // https://lit.dev/docs/components/events/#adding-event-listeners-to-other-elements
-      window.addEventListener('click', this._handleClick)
-      this.checkVisible()
+
+      // WultTabs are contained by SlTabPanel components which gain the 'active'
+      // attribute when the respective tab is active. Therefore we observe
+      // changes on that SlTabPanel and when it becomes active, we know that
+      // this tab is visible.
+
+      // Bind the callback to 'this' instance so that it can access class properties.
+      const mutationCallback = this.checkVisible.bind(this)
+
+      // Options for the observer (which mutations to observe).
+      const config = { attributes: true }
+
+      this.observer = new MutationObserver(mutationCallback)
+      this.observer.observe(this.parentElement, config)
     }
 
     /**
@@ -53,13 +72,8 @@ export class WultTab extends LitElement {
      * does not attempt to trigger the handler when it is no longer accessible.
      */
     disconnectedCallback () {
-      window.removeEventListener('click', this._handleClick)
       super.disconnectedCallback()
-    }
-
-    constructor () {
-      super()
-      this._handleClick = this.checkVisible.bind(this)
+      this.observer.disconnect()
     }
 
     /**

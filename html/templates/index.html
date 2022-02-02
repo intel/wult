@@ -21,10 +21,7 @@
 {#
  # The report content.
  #}
-{% from "tabs.html" import add_tab %}
-<div class="tabbable boxed parentTabs">
-    {{ add_tab(tab_container) }}
-</div>
+<tab-group tabFile="{{ tab_file }}"></tab-group>
 
 </body>
 </html>
