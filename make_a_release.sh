@@ -122,7 +122,7 @@ for remote in "origin" "upstream" "public"; do
         echo "git push $remote master:master"
         echo "git push $remote master:release"
     else
-        echo "git push public release:release"
+        echo "git push $remote release:release"
     fi
 done
 
