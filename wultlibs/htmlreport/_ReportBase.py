@@ -114,8 +114,12 @@ class ReportBase:
         if not pinfos:
             return
 
-        # Summaries are calculated only for numeric metrics.
-        metrics = list({info.xmetric for info in pinfos if self._refres.is_numeric(info.xmetric)})
+        # Summaries are calculated only for numeric metrics. Tab metric name is represented by
+        # 'smrytblpath.name', this should come first.
+        metrics = [smrytblpath.name] if self._refres.is_numeric(smrytblpath.name) else []
+        metrics += [info.xmetric for info in pinfos if self._refres.is_numeric(info.xmetric)]
+        # Dedupe the list so that each metric only appears once.
+        metrics = Trivial.list_dedup(metrics)
 
         smry_tbl = _SummaryTable.SummaryTable()
 
