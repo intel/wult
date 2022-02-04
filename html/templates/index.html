@@ -1,27 +1,30 @@
 <!DOCTYPE html>
 <html>
-{% include "header.html" %}
-<body>
-<h1>{{ toolname | capitalize}} report</h1>
-<br>
+    <head>
+            <script src="html/js/dist/main.js"></script>
+            <link rel="stylesheet" href="html/js/dist/main.css"></link>
+    </head>
 
-{# The report description. #}
-{% if title_descr %}
-<p class="title_descr">{{ title_descr }}</p>
-<br>
-{% endif %}
+    <body>
+        <h1>{{ toolname | capitalize}} report</h1>
+        <br>
+
+        {# The report description. #}
+        {% if title_descr %}
+        <p class="title_descr">{{ title_descr }}</p>
+        <br>
+        {% endif %}
 
 
-{#
- # The intro table.
- #}
- <intro-tbl introtbl='{{ intro_tbl | tojson }}'></intro-tbl>
-<br>
+        {#
+        # The intro table.
+        #}
+        <intro-tbl introtbl='{{ intro_tbl | tojson }}'></intro-tbl>
+        <br>
 
-{#
- # The report content.
- #}
-<tab-group tabFile="{{ tab_file }}"></tab-group>
-
-</body>
+        {#
+        # The report content.
+        #}
+        <tab-group tabFile="{{ tab_file }}"></tab-group>
+    </body>
 </html>
