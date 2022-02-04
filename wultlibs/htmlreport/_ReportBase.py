@@ -177,12 +177,12 @@ class ReportBase:
 
         return stats_paths, logs_paths, descr_paths
 
-    def _copy_asset(self, src, action, descr):
-        """Copy asset file to the output directory or create symlink."""
+    def _copy_asset(self, src, descr):
+        """Copy asset file to the output directory."""
 
         asset_path = Deploy.find_app_data(self._projname, src, descr=descr)
         dstpath = self.outdir.joinpath(src)
-        FSHelpers.move_copy_link(asset_path, dstpath, action, exist_ok=True)
+        FSHelpers.move_copy_link(asset_path, dstpath, "copy", exist_ok=True)
 
     def _generate_metric_tabs(self, all_pinfos):
         """
@@ -219,16 +219,10 @@ class ReportBase:
         # Make sure the output directory exists.
         self._try_mkdir(self.outdir)
 
-        # Copy raw data and assets according to 'self.relocatable'.
+        # Copy raw data and assets.
         stats_paths, logs_paths, descr_paths = self._copy_raw_data()
         for path, descr in self._assets:
-            self._copy_asset(Path(path), self.relocatable, descr)
-
-        # Always copy bundled JavaScript, CSS and appropriate licences.
-        self._copy_asset(Path("html/js/dist/main.js"), "copy", "bundled JavaScript")
-        self._copy_asset(Path("html/js/dist/main.css"), "copy", "bundled CSS")
-        self._copy_asset(Path("html/js/dist/main.js.LICENSE.txt"), "copy",
-                              "bundled JavaScript licenses")
+            self._copy_asset(Path(path), descr)
 
         # Find the template paths.
         templdir = Deploy.find_app_data(self._projname, Path("html/templates"),
@@ -434,16 +428,14 @@ class ReportBase:
     def _init_assets(self):
         """
         'Assets' are the CSS and JS files which supplement the HTML which makes up the report.
-        'self._assets' defines the assets which should be copied into or linked to from the output
-        directory. The list is in the format: (path_to_asset, asset_description).
+        'self._assets' defines the assets which should be copied into the output directory. The list
+        is in the format: (path_to_asset, asset_description).
         """
 
         self._assets = [
-            ("html/bootstrap/css/bootstrap.min.css", "Bootstrap CSS file"),
-            ("html/bootstrap/css/bootstrap.min.css.map", "Bootstrap CSS source map"),
-            ("html/bootstrap/js/bootstrap.min.js", "Bootstrap js file"),
-            ("html/bootstrap/js/bootstrap.min.js.map", "Bootstrap js source map"),
-            ("html/bootstrap/LICENSE", "Bootstrap usage License"),
+            ("html/js/dist/main.js", "bundled JavaScript"),
+            ("html/js/dist/main.css", "bundled CSS"),
+            ("html/js/dist/main.js.LICENSE.txt", "bundled dependency licenses"),
         ]
 
     def _validate_init_args(self):

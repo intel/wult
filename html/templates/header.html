@@ -3,24 +3,7 @@
  #}
 
 <head>
-<!-- Attempt to load Bootstrap assets locally. -->
-<link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
-<script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
-
-<!-- If local assets were not loaded properly, use CDN to retrieve them. -->
-<script> if(window.bootstrap === undefined) {
-    console.log("Local Bootstrap assets not found so retrieving from CDN");
-    document.write(
-            <!-- Replace "\n" with "'\n+'" so that each line is treated as its own string argument passed to 'console.write'. -->
-            <!-- Escape closing script tags so that the broswer doesn't close the surrounding script tag. -->
-            {% filter trim | replace("\n", "'\n+'" | safe) | replace("</script" | safe, "<\\/script" | safe) %}
-                    ' {% include "bootstrap_cdn.html" %} '
-            {% endfilter %}
-   )};
-</script>
-
-<script src="html/js/dist/main.js"></script>
-<link rel="stylesheet" href="html/js/dist/main.css"></link>
-
+        <script src="html/js/dist/main.js"></script>
+        <link rel="stylesheet" href="html/js/dist/main.css"></link>
 </head>
 
