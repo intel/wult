@@ -39,10 +39,10 @@ class DatapointProcessor:
 
         # Turn the C-state index into the C-state name.
         try:
-            dp["ReqCState"] = self._csinfo[dp["ReqCState"]]["name"]
+            dp["ReqCState"] = self._csmap[dp["ReqCState"]]
         except KeyError:
             # Supposedly an bad C-state index.
-            indexes_str = ", ".join(f"{idx} ({val['name']})" for idx, val in  self._csinfo.items())
+            indexes_str = ", ".join(f"{idx} ({csname})" for idx, csname in  self._csmap.items())
             raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
                         f"{Human.dict2str(dp)}\nAllowed indexes are:\n{indexes_str}") from None
 
@@ -469,8 +469,35 @@ class DatapointProcessor:
             for field in raw_fields:
                 self._fields[field] = None
 
+    def _build_csmap(self, csobj):
+        """
+        Wult driver supplies the requrested C-state index. Build a dictionary mapping the index to
+        C-state name.
+        """
+
+        close = False
+        try:
+            if csobj is None:
+                csobj = CStates.CStates(proc=self._proc)
+                close = True
+            csinfo = csobj.get_cpu_cstates_info(self._cpunum)
+        finally:
+            if close:
+                csobj.close()
+
+        # Check that there are idle states that we can measure.
+        for info in csinfo.values():
+            if not info["disable"]:
+                break
+        else:
+            raise Error(f"no idle states are enabled on CPU {self._cpunum}{self._proc.hostmsg}")
+
+        self._csmap = {}
+        for csname, cstate in csinfo.items():
+            self._csmap[cstate["index"]] = csname
+
     def __init__(self, cpunum, proc, drvname, intr_focus=None, early_intr=None, tsc_cal_time=10,
-                 cpuidle=None):
+                 csobj=None):
         """
         The class constructor. The arguments are as follows.
           * cpunum - the measured CPU number.
@@ -480,7 +507,7 @@ class DatapointProcessor:
           *              measured in this case, only 'IntrLatency').
           * early_intr - enable interrupts before entering the C-state.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
-          * cpuidle - the 'CStates' object initialized for the SUT (or for the measured system).
+          * csobj - the 'CStates' object initialized for the SUT (or for the measured system).
         """
 
         self._cpunum = cpunum
@@ -489,12 +516,13 @@ class DatapointProcessor:
         self._intr_focus = intr_focus
         self._early_intr = early_intr
         self.tsc_cal_time = tsc_cal_time
-        self._cpuidle = cpuidle
 
         # Processed datapoint field names.
         self._fields = None
         # Interrupt status of observed C-states.
         self._cstate_intrs = {}
+        # C-state index -> name mapping.
+        self._csmap = None
         # TSC rate in MHz (cycles / microsecond).
         self.tsc_mhz = None
 
@@ -510,16 +538,7 @@ class DatapointProcessor:
         self._cs_fields = None
         self._us_fields_set = None
 
-        if cpuidle is None:
-            self._cpu_idle = CStates.CStates(proc=proc)
-        self._csinfo = self._cpuidle.get_cpu_cstates_info(cpunum)
-
-        # Check that there are idle states that we can measure.
-        for info in self._csinfo.values():
-            if not info["disable"]:
-                break
-        else:
-            raise Error(f"no idle states are enabled on CPU {cpunum}{proc.hostmsg}")
+        self._build_csmap(csobj)
 
     def close(self):
         """Close the datapoint processor."""
@@ -528,10 +547,6 @@ class DatapointProcessor:
             self._proc = None
         else:
             return
-
-        if getattr(self, "_csinfo", None):
-            self._csinfo = None
-
 
     def __enter__(self):
         """Enter the run-time context."""

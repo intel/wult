@@ -303,7 +303,7 @@ class WultRunner:
                         f"only the following drivers are supported: {supported}")
 
     def __init__(self, proc, dev, res, ldist=None, intr_focus=None, early_intr=None,
-                 tsc_cal_time=10, dcbuf_size=None, cpuidle=None, stconf=None):
+                 tsc_cal_time=10, dcbuf_size=None, csobj=None, stconf=None):
         """
         The class constructor. The arguments are as follows.
           * proc - the 'Proc' or 'SSH' object that defines the host to run the measurements on.
@@ -315,7 +315,7 @@ class WultRunner:
                          in this case, only 'IntrLatency').
           * early_intr - enable intrrupts before entering the C-state.
           * tsc_cal_time - amount of senconds to use for calculating TSC rate.
-          * cpuidle - the 'CStates' object initialized for the SUT (or for the measured system).
+          * csobj - the 'CStates' object initialized for the SUT (or for the measured system).
           * dcbuf_size - size of a memory buffer to write to before requesting C-states in order to
                          "dirty" the CPU cache. By default the CPU cache dirtying fetature is
                          disabled. The size has to be an integer amount of bytes.
@@ -370,7 +370,7 @@ class WultRunner:
         self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, proc, self._ep.dev.drvname,
                                                       intr_focus=self._intr_focus,
                                                       early_intr=self._early_intr,
-                                                      tsc_cal_time=tsc_cal_time, cpuidle=cpuidle)
+                                                      tsc_cal_time=tsc_cal_time, csobj=csobj)
 
     def close(self):
         """Stop the measurements."""
