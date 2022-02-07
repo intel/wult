@@ -12,15 +12,15 @@ This module the base class for generating HTML reports for raw test results.
 """
 
 import dataclasses
+import itertools
 import json
 import logging
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, FSHelpers, Jinja2
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.htmlreport import _PlotsBuilder, _SummaryTable
+from wultlibs import Deploy
 from wultlibs.htmlreport.tabs import _TabCollection
 from wultlibs.htmlreport.tabs.metrictab import _MetricTab
-from wultlibs import Deploy
 
 _LOG = logging.getLogger()
 
@@ -106,49 +106,6 @@ class ReportBase:
 
         return intro_tbl
 
-    def _prepare_smrys_tables(self, pinfos, smrytblpath):
-        """
-        Summaries table includes values like average and median values for a single metric (column).
-        It "summarizes" the metric. This function creates summaries table for each metrics included
-        in 'pinfos' list and dumps them to the 'smrytblpath'.
-        """
-
-        if not pinfos:
-            return
-
-        # Summaries are calculated only for numeric metrics. Tab metric name is represented by
-        # 'smrytblpath.name', this should come first.
-        metrics = [smrytblpath.name] if self._refres.is_numeric(smrytblpath.name) else []
-        metrics += [info.xmetric for info in pinfos if self._refres.is_numeric(info.xmetric)]
-        # Dedupe the list so that each metric only appears once.
-        metrics = Trivial.list_dedup(metrics)
-
-        smry_tbl = _SummaryTable.SummaryTable()
-
-        for metric in metrics:
-            # Create row in the summary table for each metric.
-            defs = self._refres.defs.info[metric]
-            fmt = "{:.2f}" if defs["type"] == "float" else None
-            smry_tbl.add_metric(metric, defs["short_unit"], defs["descr"], fmt)
-
-            # Select only those functions that are present in all test results. For example, 'std'
-            # will not be present if the result has only one datapoint. In this case, we need to
-            # exclude the 'std' function.
-            funcs = []
-            for funcname in self._smry_funcs:
-                if all(res.smrys[metric].get(funcname) for res in self.rsts):
-                    funcs.append(funcname)
-
-            # Populate each row with summary functions for each result.
-            for res in self.rsts:
-                for funcname in funcs:
-                    val = res.smrys[metric][funcname]
-                    smry_tbl.add_smry_func(res.reportid, metric, funcname,  val)
-        try:
-            smry_tbl.generate(smrytblpath)
-        except Error as err:
-            raise Error("Failed to generate summary table.") from err
-
     def _copy_raw_data(self):
         """Copy raw test results to the output directory."""
 
@@ -189,41 +146,44 @@ class ReportBase:
     def _generate_metric_tabs(self):
         """Generate 'Metric Tabs' which contain the plots and summary tables for each metric."""
 
-        # Calculate summaries that we are going to show in the summary table.
         for res in self.rsts:
             _LOG.debug("calculate summary functions for '%s'", res.reportid)
             res.calc_smrys(regexs=self._smry_colnames, funcnames=self._smry_funcs)
 
-        self._try_mkdir(self._plotsdir)
+        plot_axes = [(x, y) for x, y in itertools.product(self.xaxes, self.yaxes) if x != y]
 
-        # This is a dictionary of of lists, each list containing Plot Info dataclasses (PInfos)
-        # which describe a single plot. The lists of PInfos are grouped by the "X" and "Y" axis
-        # column names, because later plots with the same "Y" and "Y" axes will go to the same HTML
-        # page.
-        all_pinfos = self._pbuilder.generate_plots()
-
-        if not all_pinfos:
-            # This may happen if there are no diagrams to plot. In this case we still want to
-            # generate an HTML report, but without diagrams.
-            _LOG.warning("no diagrams to plot")
-            pinfos = {"Dummy" : {}}
+        if self.exclude_xaxes and self.exclude_yaxes:
+            x_axes = self._refres.find_colnames([self.exclude_xaxes])
+            y_axes = self._refres.find_colnames([self.exclude_yaxes])
+            exclude_axes = list(itertools.product(x_axes, y_axes))
+            plot_axes = [axes for axes in plot_axes if axes not in exclude_axes]
 
         tabs = []
-        smrytbldir = self.outdir / "summary-tables"
-        self._try_mkdir(smrytbldir)
+        tab_names = [y for _, y in plot_axes]
+        tab_names += self.chist + self.hist
+        tab_names = Trivial.list_dedup(tab_names)
 
-        for tabname, pinfos in all_pinfos.items():
-            smrytblpath = smrytbldir.joinpath(tabname)
-            self._prepare_smrys_tables(pinfos, smrytblpath)
+        for metric in tab_names:
+            # Create sub-directory for each tab which will contain all files for that tab.
+            tab_dir = self.outdir / metric
+            self._try_mkdir(tab_dir)
 
-            # Build plot paths 'ppaths' (relative to the output directory).
-            ppaths = []
-            for pinfo in pinfos:
-                p = self._plotsdir.joinpath(pinfo.fname)
-                # Plot paths are passed in str representation as Jinja will not convert on its own.
-                ppaths.append(str(p.relative_to(self.outdir)))
+            tab_plots = []
+            smry_metrics = []
+            for axes in plot_axes:
+                if metric in axes:
+                    # Only add plots which have the tab metric on one of the axes.
+                    tab_plots.append(axes)
+                    # Only add metrics shown in the diagrams to the summary table.
+                    smry_metrics += axes
 
-            tabs.append(_MetricTab.MetricTab(tabname, ppaths, smrytblpath.relative_to(self.outdir)))
+            smry_metrics = Trivial.list_dedup(smry_metrics)
+
+            metric_tab = _MetricTab.MetricTabBuilder(metric, self.rsts, tab_dir)
+            metric_tab.add_smrytbl(smry_metrics, self._smry_funcs)
+            metric_tab.add_plots(tab_plots, self.hist, self.chist, self._hov_colnames)
+            tabs.append(metric_tab.get_tab())
+
         return tabs
 
     def _generate_report(self):
@@ -481,8 +441,6 @@ class ReportBase:
                 # Don't create report in results directory, use 'html-report' subdirectory instead.
                 self.outdir = self.outdir.joinpath("html-report")
 
-        self._plotsdir = self.outdir.joinpath("plots")
-
     def __init__(self, rsts, outdir, title_descr=None, xaxes=None, yaxes=None, hist=None,
                  chist=None, exclude_xaxes=None, exclude_yaxes=None):
         """
@@ -522,12 +480,12 @@ class ReportBase:
         self.title_descr = title_descr
         self.xaxes = xaxes
         self.yaxes = yaxes
+        self.exclude_xaxes = exclude_xaxes
+        self.exclude_yaxes = exclude_yaxes
         self.hist = hist
         self.chist = chist
 
         self._projname = "wult"
-        self._plotsdir = None
-        self._pbuilder = None
 
         # Users can change this to 'copy' to make the reports relocatable. In which case the raw
         # results and report assets such as CSS and JS files will be copied from the test result
@@ -571,7 +529,7 @@ class ReportBase:
 
         self._init_assets()
 
-        self._pbuilder = _PlotsBuilder.PlotsBuilder(self.rsts, self._plotsdir, self.xaxes,
-                                                    self.yaxes, self.hist, self.chist,
-                                                    exclude_xaxes, exclude_yaxes,
-                                                    self._hov_colnames)
+        if (self.exclude_xaxes and not self.exclude_yaxes) or \
+           (self.exclude_yaxes and not self.exclude_xaxes):
+            raise Error("'exclude_xaxes' and 'exclude_yaxes' must both be 'None' or both not be "
+                        "'None'")
