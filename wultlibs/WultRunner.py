@@ -35,7 +35,7 @@ class WultRunner:
         """
 
         if len(fields) != len(self._fields) or len(vals) != len(self._fields) or \
-           not all([f1 == f2 for f1, f2 in zip(fields, self._fields)]):
+           not all(f1 == f2 for f1, f2 in zip(fields, self._fields)):
             old_fields = ", ".join(self._fields)
             new_fields = ", ".join(fields)
             raise Error(f"the very first raw datapoint has different fields comparing to a new "
