@@ -63,14 +63,14 @@ class TabGroup extends LitElement {
         return html`
           <sl-tab-group>
             ${tab.tabs.map((innerTab) => html`
-             <sl-tab slot="nav" panel="${innerTab.id}">${innerTab.label}</sl-tab>
-             <sl-tab-panel id="${innerTab.id}" name="${innerTab.id}">${this.tabTemplate(innerTab)}</sl-tab-panel>
+             <sl-tab slot="nav" panel="${innerTab.name}">${innerTab.name}</sl-tab>
+             <sl-tab-panel id="${innerTab.name}" name="${innerTab.name}">${this.tabTemplate(innerTab)}</sl-tab-panel>
              `)}
           </sl-tab-group>
         `
       }
       return html`
-      <wult-metric-tab tabname="${tab.id}" .info="${tab.mdata}"></wult-metric-tab>
+      <wult-metric-tab tabname="${tab.name}" .smrytblpath="${tab.smrytblpath}" .paths="${tab.ppaths}" .dir="${tab.dir}" ></wult-metric-tab>
       `
     }
 
@@ -80,8 +80,8 @@ class TabGroup extends LitElement {
             <sl-tab-group>
               ${this.tabs.map((tab) =>
                 html`
-                  <sl-tab slot="nav" panel="${tab.id}">${tab.label}</sl-tab>
-                  <sl-tab-panel name="${tab.id}">${this.tabTemplate(tab)}</sl-tab-panel>
+                  <sl-tab slot="nav" panel="${tab.name}">${tab.name}</sl-tab>
+                  <sl-tab-panel name="${tab.name}">${this.tabTemplate(tab)}</sl-tab-panel>
                 `
               )}
             </sl-tab-group>

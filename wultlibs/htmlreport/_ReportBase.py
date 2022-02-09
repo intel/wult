@@ -17,7 +17,9 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, FSHelpers, Jinja2
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.htmlreport import _PlotsBuilder, _SummaryTable, _Tab
+from wultlibs.htmlreport import _PlotsBuilder, _SummaryTable
+from wultlibs.htmlreport.tabs import _TabCollection
+from wultlibs.htmlreport.tabs.metrictab import _MetricTab
 from wultlibs import Deploy
 
 _LOG = logging.getLogger()
@@ -221,10 +223,7 @@ class ReportBase:
                 # Plot paths are passed in str representation as Jinja will not convert on its own.
                 ppaths.append(str(p.relative_to(self.outdir)))
 
-            metric_data = {}
-            metric_data["smrytblpath"] = smrytblpath.relative_to(self.outdir)
-            metric_data["ppaths"] = ppaths
-            tabs.append(_Tab.Tab(id=tabname, label=tabname, category="metric", mdata=metric_data))
+            tabs.append(_MetricTab.MetricTab(tabname, ppaths, smrytblpath.relative_to(self.outdir)))
         return tabs
 
     def _generate_report(self):
@@ -253,7 +252,7 @@ class ReportBase:
         metric_tabs = self._generate_metric_tabs()
 
         tabs = []
-        tabs.append(dataclasses.asdict(_Tab.Tab(id="Results", label="Results", tabs=metric_tabs)))
+        tabs.append(dataclasses.asdict(_TabCollection.TabCollection("Results", metric_tabs)))
         tabs_path = self.outdir / "tabs.json"
         with open(tabs_path, "w", encoding="utf-8") as fobj:
             json.dump(tabs, fobj, default=str)

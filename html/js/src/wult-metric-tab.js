@@ -29,14 +29,9 @@ class WultMetricTab extends WultTab {
         }
   `;
 
-    connectedCallback () {
-      super.connectedCallback()
-      /*
-         * DOM-based inputs are only parsed once the component has been 'connected' therefore this
-         * is the earliest point to load the input into class attributes.
-         */
-      this.paths = this.info.ppaths
-      this.smrystblpath = this.info.smrytblpath
+    static properties = {
+      paths: { type: Array },
+      smrytblpath: { type: String }
     }
 
     /**
@@ -45,7 +40,7 @@ class WultMetricTab extends WultTab {
     visibleTemplate () {
       return html`
             <br>
-            <smry-tbl .src="${this.smrystblpath}"></smry-tbl>
+            <smry-tbl .src="${this.smrytblpath}"></smry-tbl>
             <div class="grid">
             ${this.paths.map((path) =>
                     html`<diagram-element path="${path}" ></diagram-element>`
