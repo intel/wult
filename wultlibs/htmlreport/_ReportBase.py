@@ -184,11 +184,27 @@ class ReportBase:
         dstpath = self.outdir.joinpath(src)
         FSHelpers.move_copy_link(asset_path, dstpath, "copy", exist_ok=True)
 
-    def _generate_metric_tabs(self, all_pinfos):
-        """
-        Generate Tabs which contain the plots in 'pinfos'. These Tabs are then used to populate
-        the Jinja templates and resultantly the HTML report.
-        """
+    def _generate_metric_tabs(self):
+        """Generate 'Metric Tabs' which contain the plots and summary tables for each metric."""
+
+        # Calculate summaries that we are going to show in the summary table.
+        for res in self.rsts:
+            _LOG.debug("calculate summary functions for '%s'", res.reportid)
+            res.calc_smrys(regexs=self._smry_colnames, funcnames=self._smry_funcs)
+
+        self._try_mkdir(self._plotsdir)
+
+        # This is a dictionary of of lists, each list containing Plot Info dataclasses (PInfos)
+        # which describe a single plot. The lists of PInfos are grouped by the "X" and "Y" axis
+        # column names, because later plots with the same "Y" and "Y" axes will go to the same HTML
+        # page.
+        all_pinfos = self._pbuilder.generate_plots()
+
+        if not all_pinfos:
+            # This may happen if there are no diagrams to plot. In this case we still want to
+            # generate an HTML report, but without diagrams.
+            _LOG.warning("no diagrams to plot")
+            pinfos = {"Dummy" : {}}
 
         tabs = []
         smrytbldir = self.outdir / "summary-tables"
@@ -211,7 +227,7 @@ class ReportBase:
             tabs.append(_Tab.Tab(id=tabname, label=tabname, category="metric", mdata=metric_data))
         return tabs
 
-    def _generate_report(self, pinfos):
+    def _generate_report(self):
         """Put together the final HTML report."""
 
         _LOG.info("Generating the HTML report.")
@@ -234,13 +250,7 @@ class ReportBase:
         # Ensure that pathlib.Path() objects are coerced to 'str' so they are JSON serialisable.
         jenv.policies["json.dumps_kwargs"] = {"default": str}
 
-        if not pinfos:
-            # This may happen if there are no diagrams to plot. In this case we still want to
-            # generate an HTML report, but without diagrams.
-            _LOG.warning("no diagrams to plot")
-            pinfos = {"Dummy" : {}}
-
-        metric_tabs = self._generate_metric_tabs(pinfos)
+        metric_tabs = self._generate_metric_tabs()
 
         tabs = []
         tabs.append(dataclasses.asdict(_Tab.Tab(id="Results", label="Results", tabs=metric_tabs)))
@@ -251,13 +261,6 @@ class ReportBase:
 
         templfile = outfile = "index.html"
         Jinja2.render_template(jenv, Path(templfile), outfile=self.outdir.joinpath(outfile))
-
-    def _calc_smrys(self):
-        """Calculate summaries that we are going to show in the summary table."""
-
-        for res in self.rsts:
-            _LOG.debug("calculate summary functions for '%s'", res.reportid)
-            res.calc_smrys(regexs=self._smry_colnames, funcnames=self._smry_funcs)
 
     def _mangle_loaded_res(self, res): # pylint: disable=no-self-use, unused-argument
         """
@@ -334,19 +337,8 @@ class ReportBase:
         # Load the required datapoints into memory.
         self._load_results()
 
-        # Calculate the summaries for the datapoints, like min. and max. values.
-        self._calc_smrys()
-
-        self._try_mkdir(self._plotsdir)
-
-        # This is a dictionary of of lists, each list containing Plot Info dataclasses (PInfos)
-        # which describe a single plot. The lists of PInfos are grouped by the "X" and "Y" axis
-        # column names, because later plots with the same "Y" and "Y" axes will go to the same HTML
-        # page.
-        pinfos = self._pbuilder.generate_plots()
-
         # Put together the final HTML report.
-        self._generate_report(pinfos)
+        self._generate_report()
 
     def set_hover_colnames(self, regexs):
         """
