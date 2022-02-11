@@ -17,9 +17,10 @@ import json
 import logging
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, FSHelpers
-from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Deploy
 from wultlibs.htmlreport.tabs import _BaseTab
+from wultlibs.htmlreport.tabs.stats import _ACPowerTab
 from wultlibs.htmlreport.tabs.metrictab import _MetricTab
 
 _LOG = logging.getLogger()
@@ -192,6 +193,37 @@ class ReportBase:
 
         return tabs
 
+    def _generate_stats_tabs(self, stats_paths):
+        """
+        Generate statistics tabs using the appropriate tab generator for each statistic.
+        'stats_paths' is a dictionary mapping in the format: {Report ID: Stats directory path} where
+        the stats directory path is the directory to check for raw statistics files.
+        """
+
+        _LOG.info("Generating statistics tabs.")
+
+        tab_builders = [
+            _ACPowerTab.ACPowerTabBuilder
+        ]
+
+        tabs = []
+
+        # 'stats_paths' are relative to 'self.outdir'. Turn the paths into absolute paths so that
+        # statistics tab builders know where to look for raw statistics files.
+        stats_paths = {reportid: self.outdir / p for reportid, p in stats_paths.items()}
+
+        for tab_builder in tab_builders:
+            try:
+                tbldr = tab_builder(stats_paths, self.outdir, self._projname)
+            except ErrorNotFound:
+                _LOG.info("Skipping '%s' statistics.", tab_builder.name)
+                continue
+
+            _LOG.info("Generating %s tab.", tbldr.title)
+            tabs.append(tbldr.get_tab())
+
+        return tabs
+
     def _generate_report(self):
         """Put together the final HTML report."""
 
@@ -216,8 +248,22 @@ class ReportBase:
 
         metric_tabs = self._generate_metric_tabs()
 
+        try:
+            stats_tabs = self._generate_stats_tabs(stats_paths)
+        except Error as err:
+            _LOG.info("Error occurred during statistics tabs generation: %s", err)
+            stats_tabs = []
+
         tabs = []
+        # Convert Dataclasses to dictionaries so that they are JSON serialisable.
         tabs.append(dataclasses.asdict(_BaseTab.TabCollectionDC("Results", metric_tabs)))
+
+        if stats_tabs:
+            tabs.append(dataclasses.asdict(_BaseTab.TabCollectionDC("Stats", tabs=stats_tabs)))
+        else:
+            _LOG.info("All statistics have been skipped therefore the report will not contain a "
+                      "'Stats' tab.")
+
         tabs_path = self.outdir / "tabs.json"
         self._dump_json(tabs, tabs_path, "tab container")
 
