@@ -166,9 +166,9 @@ memory.
 
 .TP
 \fB\-\-time\-limit\fR \fI\,LIMIT\/\fR
-The measurement time limit, i.e., for how long the SUT should be measured. The default unit is minutes, but you can use the following handy specifiers as well: d \- days, h \- hours, m \- minutes, s \- seconds. For example '1h25m' would be
-1 hour and 25 minutes, or 10m5s would be 10 minutes and 5 seconds. Value '0' means "no time limit", and this is the default. If this option is used along with the '\-\-datapoints' option, then measurements will stop as when either the
-time limit is reached, or the required amount of datapoints is collected.
+The measurement time limit, i.e., for how long the SUT should be measured. The default unit is minutes, but you can use the following handy specifiers as well: {'d': 'days', 'h': 'hours', 'm': 'minutes', 's': 'seconds'}. For example
+'1h25m' would be 1 hour and 25 minutes, or 10m5s would be 10 minutes and 5 seconds. Value '0' means "no time limit", and this is the default. If this option is used along with the '\-\-datapoints' option, then measurements will stop as
+when either the time limit is reached, or the required amount of datapoints is collected.
 
 .TP
 \fB\-o\fR \fI\,OUTDIR\/\fR, \fB\-\-outdir\fR \fI\,OUTDIR\/\fR
@@ -183,8 +183,8 @@ run made on March 23, 2015. The allowed characters are: ACSII alphanumeric, '\-'
 \fB\-l\fR \fI\,LDIST\/\fR, \fB\-\-ldist\fR \fI\,LDIST\/\fR
 The launch distance in microseconds. This tool works by scheduling a delayed network packet, then sleeping and waiting for the packet to be sent. This step is referred to as a "measurement cycle" and it is usually repeated many times.
 The launch distance defines how far in the future the delayed network packets are scheduled. By default this tool randomly selects launch distance in range of [5000, 50000] microseconds (same as '\-\-ldist 5000,50000'). Specify a comma\-
-separated range or a single value if you want launch distance to be precisely that value all the time. The default unit is microseconds, but you can use the following specifiers as well: ms \- milliseconds, us \- microseconds, ns \-
-nanoseconds. For example, '\-\-ldist 500us,100ms' would be a [500,100000] microseconds range. Note, too low values may cause failures or prevent the SUT from reaching deep C\-states. The optimal value is system\-specific.
+separated range or a single value if you want launch distance to be precisely that value all the time. The default unit is microseconds, but you can use the following specifiers as well: {'ms': 'milliseconds', 'us': 'microseconds',
+'ns': 'nanoseconds'}. For example, '\-\-ldist 500us,100ms' would be a [500,100000] microseconds range. Note, too low values may cause failures or prevent the SUT from reaching deep C\-states. The optimal value is system\-specific.
 
 .TP
 \fB\-\-rfilt\fR \fI\,RFILT\/\fR
@@ -232,8 +232,8 @@ Print debugging information.
 
 .TP
 \fB\-o\fR \fI\,OUTDIR\/\fR, \fB\-\-outdir\fR \fI\,OUTDIR\/\fR
-Path to the directory to store the report at. By default the report is stored in the 'ndl\-report\-<reportid>' sub\-directory of the current working directory, where '<reportid>' is report ID of ndl test result (the first one if there are
-multiple).
+Path to the directory to store the report at. By default the report is stored in the 'ndl\-report\-<reportid>' sub\-directory of the test result directory. If there are multiple test results, the report is stored in the current directory.
+The '<reportid>' is report ID of ndl test result.
 
 .TP
 \fB\-\-rfilt\fR \fI\,RFILT\/\fR
@@ -283,10 +283,9 @@ The report title description \- any text describing this report as whole, or pat
 
 .TP
 \fB\-\-relocatable\fR \fI\,RELOCATABLE\/\fR
-By default the generated report includes references to the raw test results, and at the file\-system level, the raw test results are symlinks pointing to the raw test results directory paths. This means that if raw test results are moved
-somewhere, or the generated report is moved to another system, it may end up with broken raw results links. This option accepts 3 possible values: 'copy' and 'noraw', and 'symlink'. In case of the 'copy' value, raw results will be
-copied to the report output directory, which will make the report relocatable, but in expense of increased disk space consumption. In case of the 'noraw' value, the raw results wont be referenced at all, neither in the HTML report, nor
-at the file\-system level. This will also exclude the logs and the statistics. This option may be useful for minimizing the output directory disk space usage. The 'symlink' value corresponds to the default behavior.
+By default the generated report includes references to the raw test results and report assets (such as CSS/JS files). At the file\-system level, symlinks are created to the assets and results. This means that if the original files are
+moved somewhere, or the generated report is moved to another system, it may end up with broken links to these files. This option accepts 2 possible values: 'copy' and 'symlink'. In the case of the 'copy' value, raw results and report
+assets will be copied to the report output directory, which will make the report relocatable, but at the expense of increased disk space consumption. The 'symlink' value corresponds to the default behavior.
 
 .TP
 \fB\-\-list\-columns\fR

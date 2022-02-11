@@ -217,7 +217,7 @@ PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--rfilt RFILT]
 [--stats STATS] [--stats-intervals STATS_INTERVALS] [--list-stats] [-l
 LDIST] [--cpunum CPUNUM] [--intr-focus] [--tsc-cal-time TSC_CAL_TIME]
 [--keep-raw-data] [--no-unload] [--early-intr] [--dirty-cpu-cache]
-[--dcbuf-size DCBUF_SIZE] [--offline OFFLINE] [--report] [--force] devid
+[--dcbuf-size DCBUF_SIZE] [--report] [--force] devid
 
 Start measuring and recording C-state latency.
 
@@ -263,13 +263,11 @@ OPTIONS *'wult* start'
 **--time-limit** *LIMIT*
    The measurement time limit, i.e., for how long the SUT should be
    measured. The default unit is minutes, but you can use the following
-   handy specifiers as well: d - days, h - hours, m - minutes, s -
-   seconds. For example '1h25m' would be 1 hour and 25 minutes, or 10m5s
-   would be 10 minutes and 5 seconds. Value '0' means "no time limit",
-   and this is the default. If this option is used along with the
-   '--datapoints' option, then measurements will stop as when either the
-   time limit is reached, or the required amount of datapoints is
-   collected.
+   handy specifiers as well: {'d': 'days', 'h': 'hours', 'm': 'minutes',
+   's': 'seconds'}. For example
+
+when either the time limit is reached, or the required amount of
+datapoints is collected.
 
 **--rfilt** *RFILT*
    The row filter: remove all the rows satisfying the filter expression.
@@ -346,13 +344,13 @@ OPTIONS *'wult* start'
    option. Specify a comma-separated range (e.g '--ldist 10,5000'), or a
    single value if you want launch distance to be precisely that value
    all the time. The default unit is microseconds, but you can use the
-   following specifiers as well: ms - milliseconds, us - microseconds,
-   ns - nanoseconds. For example, ' --ldist 10us,5ms' would be a
-   [10,5000] microseconds range. Too small values may cause failures or
-   prevent the SUT from reaching deep C-states. If the range starts with
-   0, the minimum possible launch distance value allowed by the delayed
-   event source will be used. The optimal launch distance range is
-   system-specific.
+   following specifiers as well: {'ms': 'milliseconds', 'us':
+   'microseconds', 'ns': 'nanoseconds'}. For example, '--ldist 10us,5ms'
+   would be a [10,5000] microseconds range. Too small values may cause
+   failures or prevent the SUT from reaching deep C-states. If the range
+   starts with 0, the minimum possible launch distance value allowed by
+   the delayed event source will be used. The optimal launch distance
+   range is system-specific.
 
 **--cpunum** *CPUNUM*
    The logical CPU number to measure, default is CPU 0.
@@ -434,22 +432,6 @@ OPTIONS *'wult* start'
    "dcbuf". This option allows for changing the dcbuf size. For example,
    in order to make it 4MiB, use '--dcbuf-size=4MiB'.
 
-**--offline** *OFFLINE*
-   Offline CPUs before the measurements. The possible values are:
-   same-core, same-package, all. The "same-core" value offlines all
-   other CPUs on the same core as the measured CPU. The "same-package"
-   value offlines all CPUs on the same package as the measured CPU, and
-   the "all" value offlines all CPUs except for the measured CPU.
-   Example: consider a hypothetical 2-socket system with 2 cores per
-   socket and 2 CPUs per core (e.g., hyper-threads). The default
-   measured CPU is CPU0 (see '--cpunum'). Suppose CPU0-3 are on package
-   0, and CPU4-7 are on package 1. Suppose CPU2 is the hyper-thread
-   running on the same core as CPU0. In this case '--offline same-core'
-   would offline only CPU2, '--offline same- package' would offline
-   CPU1-3, '--offline all' would offline CPU1-7. The CPUs are offlined
-   before starting the measurements, and onlined back after the
-   measurements.
-
 **--report**
    Generate an HTML report for collected results (same as calling
    'report' command with default arguments).
@@ -488,9 +470,10 @@ OPTIONS *'wult* report'
 
 **-o** *OUTDIR*, **--outdir** *OUTDIR*
    Path to the directory to store the report at. By default the report
-   is stored in the 'wult-report-<reportid>' sub-directory of the
-   current working directory, where '<reportid>' is report ID of wult
-   test result (the first one if there are multiple).
+   is stored in the 'wult-report-<reportid>' sub-directory of the test
+   result directory. If there are multiple test results, the report is
+   stored in the current directory. The '<reportid>' is report ID of
+   wult test result.
 
 **--rfilt** *RFILT*
    The row filter: remove all the rows satisfying the filter expression.
@@ -567,19 +550,15 @@ OPTIONS *'wult* report'
 
 **--relocatable** *RELOCATABLE*
    By default the generated report includes references to the raw test
-   results, and at the file-system level, the raw test results are
-   symlinks pointing to the raw test results directory paths. This means
-   that if raw test results are moved somewhere, or the generated report
-   is moved to another system, it may end up with broken raw results
-   links. This option accepts 3 possible values: 'copy' and 'noraw', and
-   'symlink'. In case of the 'copy' value, raw results will be copied to
-   the report output directory, which will make the report relocatable,
-   but in expense of increased disk space consumption. In case of the
-   'noraw' value, the raw results wont be referenced at all, neither in
-   the HTML report, nor at the file-system level. This will also exclude
-   the logs and the statistics. This option may be useful for minimizing
-   the output directory disk space usage. The 'symlink' value
-   corresponds to the default behavior.
+   results and report assets (such as CSS/JS files). At the file-system
+   level, symlinks are created to the assets and results. This means
+   that if the original files are moved somewhere, or the generated
+   report is moved to another system, it may end up with broken links to
+   these files. This option accepts 2 possible values: 'copy' and
+   'symlink'. In the case of the 'copy' value, raw results and report
+   assets will be copied to the report output directory, which will make
+   the report relocatable, but at the expense of increased disk space
+   consumption. The 'symlink' value corresponds to the default behavior.
 
 **--list-columns**
    Print the list of the available column names and exit.
