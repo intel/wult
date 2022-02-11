@@ -19,7 +19,7 @@ from pathlib import Path
 from pepclibs.helperlibs import Trivial, FSHelpers, Jinja2
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import Deploy
-from wultlibs.htmlreport.tabs import _TabCollection
+from wultlibs.htmlreport.tabs import _BaseTab
 from wultlibs.htmlreport.tabs.metrictab import _MetricTab
 
 _LOG = logging.getLogger()
@@ -212,7 +212,7 @@ class ReportBase:
         metric_tabs = self._generate_metric_tabs()
 
         tabs = []
-        tabs.append(dataclasses.asdict(_TabCollection.TabCollection("Results", metric_tabs)))
+        tabs.append(dataclasses.asdict(_BaseTab.TabCollection("Results", metric_tabs)))
         tabs_path = self.outdir / "tabs.json"
         with open(tabs_path, "w", encoding="utf-8") as fobj:
             json.dump(tabs, fobj, default=str)

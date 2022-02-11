@@ -13,32 +13,21 @@ This module defines what is expected by the JavaScript side when adding a Metric
 reports.
 """
 
-from dataclasses import dataclass
-from typing import List
-from pathlib import Path
 import logging
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import Trivial
 from wultlibs.htmlreport import _SummaryTable
 from wultlibs.htmlreport.tabs.metrictab import _PlotsBuilder
+from wultlibs.htmlreport.tabs import _BaseTab
 
 _LOG = logging.getLogger()
 
-@dataclass
-class MetricTab:
+class MetricTab(_BaseTab.BaseTab):
     """
     This class defines what is expected by the JavaScript side when adding a Metric tab to HTML
     reports.
     """
 
-    # The metric is used as the tab name.
-    name: str
-
-    # Relative paths to any 'plotly' plots to include in the tab.
-    ppaths: List[Path]
-
-    # Relative path to the summary table dump for the metric.
-    smrytblpath: Path
 
 class MetricTabBuilder:
     """

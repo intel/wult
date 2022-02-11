@@ -12,7 +12,24 @@ This module defines what is expected by the JavaScript side when adding a set of
 
 from dataclasses import dataclass
 from typing import Union, List
-from wultlibs.htmlreport.tabs.metrictab import _MetricTab
+from pathlib import Path
+
+
+@dataclass
+class BaseTab:
+    """
+    This class defines what is expected by the JavaScript side when adding a Metric tab to HTML
+    reports.
+    """
+
+    # The metric is used as the tab name.
+    name: str
+
+    # Relative paths to any 'plotly' plots to include in the tab.
+    ppaths: List[Path]
+
+    # Relative path to the summary table dump for the metric.
+    smrytblpath: Path
 
 
 @dataclass
@@ -23,4 +40,4 @@ class TabCollection:
     """
 
     name: str
-    tabs: Union["TabCollection", List[_MetricTab.MetricTab]]
+    tabs: Union["TabCollection", List[BaseTab]]
