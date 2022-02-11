@@ -1,3 +1,9 @@
+wult (1.9.15) unstable; urgency=low
+
+  * wult: bugfix release: fix HTML report summary table hover text
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 11 Feb 2022 18:00:33 +0200
+
 wult (1.9.14) unstable; urgency=low
 
   * wult: removed 'start --offline' option.
