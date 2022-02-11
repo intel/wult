@@ -489,14 +489,14 @@ def start_command(args):
         dev = Devices.WultDevice(args.devid, args.cpunum, proc, dmesg=True, force=args.force)
         stack.enter_context(dev)
 
-        csobj = CStates.CStates(proc=proc)
-        csinfo = csobj.get_cpu_cstates_info(res.cpunum)
+        rcsobj = CStates.ReqCStates(proc=proc)
+        csinfo = rcsobj.get_cpu_cstates_info(res.cpunum)
 
         check_settings(proc, dev, csinfo, args.cpunum, args.devid)
 
         runner = WultRunner.WultRunner(proc, dev, res, ldist=args.ldist, intr_focus=args.intr_focus,
                                        early_intr=args.early_intr, tsc_cal_time=args.tsc_cal_time,
-                                       dcbuf_size=args.dcbuf_size, csobj=csobj, stconf=stconf)
+                                       dcbuf_size=args.dcbuf_size, rcsobj=rcsobj, stconf=stconf)
         stack.enter_context(runner)
 
         runner.unload = not args.no_unload

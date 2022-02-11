@@ -469,7 +469,7 @@ class DatapointProcessor:
             for field in raw_fields:
                 self._fields[field] = None
 
-    def _build_csmap(self, csobj):
+    def _build_csmap(self, rcsobj):
         """
         Wult driver supplies the requrested C-state index. Build a dictionary mapping the index to
         C-state name.
@@ -477,13 +477,13 @@ class DatapointProcessor:
 
         close = False
         try:
-            if csobj is None:
-                csobj = CStates.CStates(proc=self._proc)
+            if rcsobj is None:
+                rcsobj = CStates.ReqCStates(proc=self._proc)
                 close = True
-            csinfo = csobj.get_cpu_cstates_info(self._cpunum)
+            csinfo = rcsobj.get_cpu_cstates_info(self._cpunum)
         finally:
             if close:
-                csobj.close()
+                rcsobj.close()
 
         # Check that there are idle states that we can measure.
         for info in csinfo.values():
@@ -497,7 +497,7 @@ class DatapointProcessor:
             self._csmap[cstate["index"]] = csname
 
     def __init__(self, cpunum, proc, drvname, intr_focus=None, early_intr=None, tsc_cal_time=10,
-                 csobj=None):
+                 rcsobj=None):
         """
         The class constructor. The arguments are as follows.
           * cpunum - the measured CPU number.
@@ -507,7 +507,7 @@ class DatapointProcessor:
           *              measured in this case, only 'IntrLatency').
           * early_intr - enable interrupts before entering the C-state.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
-          * csobj - the 'CStates' object initialized for the SUT (or for the measured system).
+          * rcsobj - the 'CStates' object initialized for the measured system.
         """
 
         self._cpunum = cpunum
@@ -538,7 +538,7 @@ class DatapointProcessor:
         self._cs_fields = None
         self._us_fields_set = None
 
-        self._build_csmap(csobj)
+        self._build_csmap(rcsobj)
 
     def close(self):
         """Close the datapoint processor."""
