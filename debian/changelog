@@ -1,12 +1,13 @@
 wult (1.9.14) unstable; urgency=low
 
-  * wult: removed 'start --offline' option
+  * wult: removed 'start --offline' option.
+  * wult: browsers now load wult HTML reports faster.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  ADD_DATE
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 11 Feb 2022 13:09:07 +0200
 
 wult (1.9.13) unstable; urgency=low
 
-  * wult: bugfix release: fix raw filters on system with older pandas/numexpr
+  * wult: bugfix release: fix raw filters on system with older pandas/numexpr.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 01 Feb 2022 10:58:46 +0200
 
