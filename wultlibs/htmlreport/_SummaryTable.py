@@ -126,6 +126,12 @@ class SummaryTable:
          * funcname - the function which this value represents.
         """
 
+        # Hovertext displays absolute and relative differences between summary table values in
+        # different sets of results. If there is only one set of results, don't include hovertext
+        # as it will be the reference result with no other sets to compare to.
+        if len(self.smrytbl["funcs"]) < 2:
+            return ""
+
         ref_reportid = next(iter(self.smrytbl["funcs"]))
 
         if reportid == ref_reportid:

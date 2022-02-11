@@ -90,7 +90,7 @@ class SummaryTable extends ReportTable {
       const [contents, hover] = cell.split('|')
       return html`
         <td class="td-value">
-            <abbr title=${hover}>${contents}</abbr>
+            ${hover ? html`<abbr title=${hover}>${contents}</abbr>` : html`${contents}`}
         </td>
       `
     }
