@@ -555,7 +555,7 @@
         </td>
       `}parseSummaryFunc(t){const[e,s]=t.split("|");return z`
         <td class="td-value">
-            <abbr title=${s}>${e}</abbr>
+            ${s?z`<abbr title=${s}>${e}</abbr>`:z`${e}`}
         </td>
       `}async parseSrc(){let t,e=z``;for await(const s of async function*(t){const e=new TextDecoder("utf-8"),s=(await fetch(t)).body.getReader();let{value:i,done:o}=await s.read();i=i?e.decode(i,{stream:!0}):"";const r=/\r\n|\n|\r/gm;let n=0;for(;;){const t=r.exec(i);if(t)yield i.substring(n,t.index),n=r.lastIndex;else{if(o)break;const t=i.substr(n);({value:i,done:o}=await s.read()),i=t+(i?e.decode(i,{stream:!0}):""),n=r.lastIndex=0}}n<i.length&&(yield i.substr(n))}(this.src)){const i=s.split(";"),o=i[0];if(i.shift(),"H"===o)for(const t of i)e=z`${e}<th>${t}</th>`,this.cols=this.cols+1;else if("M"===o)t=this.parseMetric(i);else{const s=z`
             ${i.map((t=>this.parseSummaryFunc(t)))}
