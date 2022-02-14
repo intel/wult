@@ -31,20 +31,24 @@ class DatapointProcessor:
         """Returns 'True' if the 'dp' datapoint contains the POLL idle state data."""
         return dp["ReqCState"] == 0
 
+    def _get_req_cstate_name(self, dp):
+        """Returns requestable C-state name for datapoint 'dp'."""
+
+        try:
+            return self._csmap[dp["ReqCState"]]
+        except KeyError:
+            # Supposedly an bad C-state index.
+            indexes_str = ", ".join(f"{idx} ({csname})" for idx, csname in  self._csmap.items())
+            raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
+                        f"{Human.dict2str(dp)}\nAllowed indexes are:\n{indexes_str}") from None
+
     def _process_cstates(self, dp):
         """
         Validate various datapoint 'dp' fields related to C-states. Populate the processed
         datapoint 'dp' with fields related to C-states.
         """
 
-        # Turn the C-state index into the C-state name.
-        try:
-            dp["ReqCState"] = self._csmap[dp["ReqCState"]]
-        except KeyError:
-            # Supposedly an bad C-state index.
-            indexes_str = ", ".join(f"{idx} ({csname})" for idx, csname in  self._csmap.items())
-            raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
-                        f"{Human.dict2str(dp)}\nAllowed indexes are:\n{indexes_str}") from None
+        dp["ReqCState"] = self._get_req_cstate_name(dp)
 
         if dp["TotCyc"] == 0:
             raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
