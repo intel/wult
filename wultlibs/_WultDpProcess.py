@@ -296,7 +296,7 @@ class DatapointProcessor:
             overhead = self._cyc_to_ns(overhead)
 
             if overhead >= dp["WakeLatency"]:
-                _LOG.debug("Overhead is greater than wake latency ('WakeLatency'). The "
+                _LOG.debug("overhead is greater than wake latency ('WakeLatency'). The "
                            "datapoint is:\n%s\nThe overhead is: %f\nDropping this datapoint\n",
                            overhead, Human.dict2str(dp))
                 return None
