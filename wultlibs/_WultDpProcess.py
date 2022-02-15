@@ -11,6 +11,7 @@ This module implements the main wult functionality - runs wake latency measureme
 saves the results.
 """
 
+import time
 import logging
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs import CStates
@@ -26,10 +27,47 @@ class DatapointProcessor:
     datapoints, calculating C-state residency percentages, and so on.
     """
 
+    def _warn(self, key, msg, *args):
+        """Rate-limited warnings printing."""
+
+        _LOG.debug(msg, *args)
+
+        if key not in self._warnings:
+            self._warnings[key] = {"cnt" : 0, "tprint" : time.time(), "suppressed" : 0}
+            _LOG.warning(msg, *args)
+            return
+
+        winfo = self._warnings[key]
+        winfo["cnt"] += 1
+        ts = time.time()
+        if ts - winfo["tprint"] < 1:
+            winfo["suppressed"] += 1
+            # Do not print the warning more often than every second.
+            return
+
+        _LOG.warning(msg, *args)
+        if winfo["suppressed"]:
+            _LOG.notice("suppressed %d messages like this (total %d)",
+                        winfo["suppressed"], winfo["cnt"])
+
+        winfo["tprint"] = ts
+        winfo["suppressed"] = 0
+
     @staticmethod
     def _is_poll_idle(dp):
         """Returns 'True' if the 'dp' datapoint contains the POLL idle state data."""
         return dp["ReqCState"] == 0
+
+    def _get_req_cstate_name(self, dp):
+        """Returns requestable C-state name for datapoint 'dp'."""
+
+        try:
+            return self._csmap[dp["ReqCState"]]
+        except KeyError:
+            # Supposedly an bad C-state index.
+            indexes_str = ", ".join(f"{idx} ({csname})" for idx, csname in  self._csmap.items())
+            raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
+                        f"{Human.dict2str(dp)}\nAllowed indexes are:\n{indexes_str}") from None
 
     def _process_cstates(self, dp):
         """
@@ -37,14 +75,7 @@ class DatapointProcessor:
         datapoint 'dp' with fields related to C-states.
         """
 
-        # Turn the C-state index into the C-state name.
-        try:
-            dp["ReqCState"] = self._csmap[dp["ReqCState"]]
-        except KeyError:
-            # Supposedly an bad C-state index.
-            indexes_str = ", ".join(f"{idx} ({csname})" for idx, csname in  self._csmap.items())
-            raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
-                        f"{Human.dict2str(dp)}\nAllowed indexes are:\n{indexes_str}") from None
+        dp["ReqCState"] = self._get_req_cstate_name(dp)
 
         if dp["TotCyc"] == 0:
             raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
@@ -218,15 +249,17 @@ class DatapointProcessor:
             #    "cpuidle" Linux kernel subsystem re-enables CPU interrupts.
 
             if dp["WakeLatency"] >= dp["IntrLatency"]:
-                _LOG.warning("'WakeLatency' is greater than 'IntrLatency', even though interrupts "
-                             "were disabled. The datapoint is:\n%s\nDropping this datapoint\n",
-                             Human.dict2str(dp))
+                self._warn("IntrOff_WakeLatency_GT_IntrLatency",
+                           "'WakeLatency' is greater than 'IntrLatency', even though interrupts "
+                           "were disabled. The datapoint is:\n%s\nDropping this datapoint\n",
+                           Human.dict2str(dp))
                 return None
 
             if self._early_intr:
-                _LOG.warning("hit a datapoint with interrupts disabled even though the early "
-                             "interrupts feature was enabled. The datapoint is:\n%s\n"
-                             "Dropping this datapoint\n", Human.dict2str(dp))
+                self._warn("IntrOff_early_intr",
+                           "hit a datapoint with interrupts disabled even though the early "
+                           "interrupts feature was enabled. The datapoint is:\n%s\n"
+                           "Dropping this datapoint\n", Human.dict2str(dp))
                 return None
 
             if self._intr_focus:
@@ -275,14 +308,20 @@ class DatapointProcessor:
             # the moment it executes wult's interrupt handler.
 
             if self._drvname == "wult_tdt":
+                csname = self._get_req_cstate_name(dp)
+                self._warn(f"tdt_{csname}_IntrOn",
+                           "The %s C-state has interrupts enabled and therefore, can't be "
+                           "collected with the 'tdt' driver. Use another driver for %s.",
+                           csname, csname)
                 _LOG.debug("dropping datapoint with interrupts enabled - the 'tdt' driver does not "
                            "handle them correctly. The datapoint is:\n%s", Human.dict2str(dp))
                 return None
 
             if dp["IntrLatency"] >= dp["WakeLatency"]:
-                _LOG.warning("'IntrLatency' is greater than 'WakeLatency', even though interrupts "
-                             "were enabled. The datapoint is:\n%s\nDropping this datapoint\n",
-                             Human.dict2str(dp))
+                self._warn("IntrON_IntrLatency_GT_WakeLatency",
+                           "'IntrLatency' is greater than 'WakeLatency', even though interrupts "
+                           "were enabled. The datapoint is:\n%s\nDropping this datapoint\n",
+                           Human.dict2str(dp))
                 return None
 
             if self._intr_focus:
@@ -292,7 +331,7 @@ class DatapointProcessor:
             overhead = self._cyc_to_ns(overhead)
 
             if overhead >= dp["WakeLatency"]:
-                _LOG.debug("Overhead is greater than wake latency ('WakeLatency'). The "
+                _LOG.debug("overhead is greater than wake latency ('WakeLatency'). The "
                            "datapoint is:\n%s\nThe overhead is: %f\nDropping this datapoint\n",
                            overhead, Human.dict2str(dp))
                 return None
@@ -329,7 +368,7 @@ class DatapointProcessor:
     def _process_datapoint(self, rawdp):
         """Process a raw datapoint 'rawdp'. Returns the processed datapoint."""
 
-        # Avoid extra copying for effeciency.
+        # Avoid extra copying for efficiency.
         dp = rawdp
 
         # Calculate latency and other metrics providing time intervals.
@@ -401,7 +440,7 @@ class DatapointProcessor:
         processed datapoint.
 
         Notice: for efficiency purposes this function does not make a copy of 'rawdp' and instead,
-        uses and even modifies 'rawd'. In other words, the caller should not use 'rawdp' after
+        uses and even modifies 'rawdp'. In other words, the caller should not use 'rawdp' after
         calling this function.
         """
 
@@ -471,7 +510,7 @@ class DatapointProcessor:
 
     def _build_csmap(self, rcsobj):
         """
-        Wult driver supplies the requrested C-state index. Build a dictionary mapping the index to
+        Wult driver supplies the requested C-state index. Build a dictionary mapping the index to
         C-state name.
         """
 
@@ -537,6 +576,9 @@ class DatapointProcessor:
         self._has_cstates = None
         self._cs_fields = None
         self._us_fields_set = None
+
+        # Information about printed warnings.
+        self._warnings = {}
 
         self._build_csmap(rcsobj)
 
