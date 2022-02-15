@@ -1,3 +1,9 @@
+wult (1.9.16) unstable; urgency=low
+
+  * wult: bugfix release: improve TDT driver skipping datapoints error diagnostic.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 15 Feb 2022 09:14:10 +0200
+
 wult (1.9.15) unstable; urgency=low
 
   * wult: bugfix release: fix HTML report summary table hover text
