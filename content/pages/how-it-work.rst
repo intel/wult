@@ -231,8 +231,6 @@ certain value.
 Both *hrt*/*tdt* and *nic* methods measure CPU C-state latency, and they may produce similar or
 different results depending various factors. Let's look at some of them.
 
-.. _c-state-prewake:
-
 2.3.1 PCIe ASPM
 +++++++++++++++
 
@@ -272,6 +270,8 @@ CPUs are PCIe Gen 4 and Gen 5. Therefore, this network card may not be a perfect
 measuring PCI-related delays. We did not have time to support a more modern NIC, but this should
 generally be possible.
 
+.. _c-state-prewake:
+
 2.3.2 C-state pre-wake
 ++++++++++++++++++++++
 
@@ -289,7 +289,7 @@ and 17.6us (timer). The timer method shows about 76% latency reduction.
 
 Note, you can disable the pre-wake feature and measure the "unoptimized" C-state latency even with
 the *hrt* or *tdt* methods (e.g., verified on IceLake Xeon). You can do this using the
-`pepc tool <https://github.com/intel/pepc>`_.
+"``--cstate-prewake``" option of the `pepc <https://github.com/intel/pepc>`_ tool.
 
 2.3.3 PCI topology
 ++++++++++++++++++
