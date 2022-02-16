@@ -79,8 +79,96 @@ interrupt handler right away.
 
 For this type of idle state, *wult* measures only interrupt latency (*IntrLatency*).
 
-.. _irq-source:
+.. _measurement-steps-simple-introff:
 
+1.5 Measurement steps
+---------------------
+
+This section will walk you through the main *wult* measurement cycle steps. The goal is to demonstrate
+the principle of operation, so many details will be omitted.
+
+Here are the steps for measuring wake latency of a C-state entered with interrupts disabled.
+
+.. image:: ../images/wult-steps-simple-introff.jpg
+    :alt: Basic wult measurement steps for C-states entered with interrupts disabled.
+
+**Step 1: arm delayed event**
+
+Wult kernel driver arms a delayed event. In case of an *hrt* or *tdt* methods, this will be a timer
+event. In case of the *nic* method, this will be a NIC event.
+
+The delayed event is armed *LDist* milliseconds ahead. Driver selects a random *LDist* value in
+a user-configurable range (0-4 milliseconds by default).
+
+The delayed event is armed to happen at time "LaunchTime", also referred to as *LTime*.
+
+**Step 2: enter idle state**
+
+Once the delayed interrupt is armed, *wult* driver just does nothing and waits for it to happen. Since
+*wult* is supposed to be used on an idle system, the measured CPU most probably start entering an idle
+state, because there are supposedly no tasks to run.
+
+The CPU runs Linux idle task, which eventually disables local interrupts (the ``cli`` instruction on
+Intel CPUs) and requests a C-state by executing the ``mwait`` instruction.
+
+Before Linux requests a C-state, *wult* driver takes the "Time Before Idle" time-stamp, also
+referred to as *TBI*. In case of the *tdt* and *hrt* methods, this is the TSC counter value
+(the ``rdtsc`` instruction on Intel CPUs). In case of the *nic* method, this is the NIC's own,
+independent time stamp counter value.
+
+Once the ``mwait`` instruction is executed, CPU enters a C-state and does not execute more
+instructions. Instead, the CPU waits for an event and saves power.
+
+Note, if CPU never enters an idle state during the *LTime* period of time, the delayed interrupt
+fires while the CPU is not idle (C0 state). In this case the result of experiment is discarded and
+*wult* driver repeats Step 1.
+
+**Step 3: delayed event**
+
+When the delayed event happens, the CPU starts exiting the C-state. This takes some time. Deeper
+C-states (e.g., C6 on Intel CPUs) result in longer exit latency than shallower C-states, such as
+C1.
+
+**Step 4: resume execution**
+
+Eventually the CPU resumes instructions execution starting from the first instruction after
+``mwait``. Even though there is a pending interrupt, the CPU does not handle it yet, because
+interrupts are disabled.
+
+**Step 5: wake latency**
+
+Shortly after the CPU wakes up, *wult* driver takes the "Time After Idle" time-stamp, also referred
+to as "*TAI*".
+
+*TAI*, *TBI*, and *LTime* are used for calculating *WakeLatency* and *SilentTime*:
+
+* *WakeLatency* = *TAI* - *LTime*
+* *SilentTime* = *LTime* - *TBI*
+
+*WakeLatency* is the time between the delayed event and CPU execution resume, modulo the *TAI*
+overhead (it takes time to get *TAI*, and there are other instructions between the first executed
+instruction and the *TAI* read). In other words, this is an approximation of C-state exit latency.
+
+*SilentTime* is the time between ``mwait`` and the delayed event, modulo the *TBI* overhead (it
+takes time to get *TBI*, and there are other instructions between *TBI* read and ``mwait``). In
+other words, this is the time the CPU stayed.
+
+**Step 6: interrupt latency**
+
+The CPU continues executing the Linux "cpuidle" subsystem code, doing a bit of housekeeping (e.g.,
+take some C-states statistics). Then the interrupts get enabled (the ``sti`` instruction on Intel
+CPUs), and the CPU jumps to the interrupt handler.
+
+In the interrupt handler *wult* will take the "Time in Interrupt" time-stamp, also known as
+"*TIntr*". This time-stamp is used for calculating Interrupt Latency, also known as "*IntrLatency*".
+
+* *IntrLatency* = *TIntr* - *LTime*
+
+IntrLatency* is the time between the delayed event and the moment CPU reaches delayed event's
+interrupt handler, modulo the Linux "cpuidle" subsystem and generic interrupt handling subsystem
+overhead. In other words, this is an approximation of interrupt latency.
+
+.. _irq-source:
 
 2 Interrupt source
 ==================
@@ -104,8 +192,8 @@ On older Intel CPUs, the LAPIC block does not support TSC deadline timers, in wh
 kernel uses coarser "LAPIC timers". Linux kernel may fall-back to using LAPIC timers if it detects
 that TSC is unstable or if Linux TSC deadline timers support was disabled by the user.
 
-This *hrt* *wult* method should work with both TSC deadline and legacy LAPIC timers. The *tdt* wult
-method works only with TSC deadline timers.
+This *hrt* *wult* method should work with both TSC deadline and legacy LAPIC timers. The *tdt*
+*wult* method works only with TSC deadline timers.
 
 .. image:: ../images/wult-irq-source-timer.jpg
     :alt: Timer interrupt illustration.
