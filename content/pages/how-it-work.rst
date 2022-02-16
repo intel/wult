@@ -54,7 +54,33 @@ measure C-state latency, but they use different delayed interrupt sources.
 Please, refer to `this section <#irq-source>`_ for more information on how C-state measurement
 results depend on the delayed interrupt source.
 
+.. _idle-states-with-irq-on-off:
+
+1.4 Idle states with interrupts on and off
+------------------------------------------
+
+Most idle states are entered and exited with interrupts disabled. This means that Linux kernel's
+"cpuidle" subsystem disables idle CPU interrupts before requesting the C-state. On Intel CPUs, a
+C-state is requested using the ``mwait`` instruction, so it is executed with interrupts disabled.
+
+When the CPU exits the C-state, it continues executing the next instruction after ``mwait``. Even if
+the wake event was an interrupt, the CPU does not jump to it just yet. Instead, it runs small amount
+of "cpuidle" subsystem housekeeping code first. Then "cpuidle" enables local CPU interrupts (the
+``sti`` instruction on Intel CPUs), and the CPU jumps to the interrupt handler.
+
+For this type of idle state, *wult* measures both wake latency (*WakeLatency*) and interrupt
+latency (*IntrLatency*). Wake latency is sampled shortly after ``mwait``, while interrupt latency is
+sampled in the interrupt handler.
+
+Some idle states are entered with interrupts enabled, such as the 'POLL' state, which *wult* can
+measure too. Another example would be the C1 C-state on Icelake Xeon platform when the
+``intel_idle`` driver is used. In these cases when the CPU exists the idle state, it jumps to the
+interrupt handler right away.
+
+For this type of idle state, *wult* measures only interrupt latency (*IntrLatency*).
+
 .. _irq-source:
+
 
 2 Interrupt source
 ==================
