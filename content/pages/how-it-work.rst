@@ -151,7 +151,7 @@ instruction and the *TAI* read). In other words, this is an approximation of C-s
 
 *SilentTime* is the time between ``mwait`` and the delayed event, modulo the *TBI* overhead (it
 takes time to get *TBI*, and there are other instructions between *TBI* read and ``mwait``). In
-other words, this is the time the CPU stayed.
+other words, this is approximate time the CPU stayed idle.
 
 **Step 6: interrupt latency**
 
