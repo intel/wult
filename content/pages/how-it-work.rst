@@ -164,7 +164,7 @@ In the interrupt handler *wult* will take the "Time in Interrupt" time-stamp, al
 
 * *IntrLatency* = *TIntr* - *LTime*
 
-IntrLatency* is the time between the delayed event and the moment CPU reaches delayed event's
+*IntrLatency* is the time between the delayed event and the moment CPU reaches delayed event's
 interrupt handler, modulo the Linux "cpuidle" subsystem and generic interrupt handling subsystem
 overhead. In other words, this is an approximation of interrupt latency.
 
