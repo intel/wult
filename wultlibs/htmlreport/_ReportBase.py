@@ -8,7 +8,7 @@
 #          Vladislav Govtva <vladislav.govtva@intel.com>
 
 """
-This module the base class for generating HTML reports for raw test results.
+This module provides the base class for generating HTML reports for raw test results.
 """
 
 import dataclasses
