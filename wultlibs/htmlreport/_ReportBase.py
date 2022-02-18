@@ -164,6 +164,7 @@ class ReportBase:
         tab_names = Trivial.list_dedup(tab_names)
 
         for metric in tab_names:
+            _LOG.info("Generating %s tab.", metric)
             # Create sub-directory for each tab which will contain all files for that tab.
             tab_dir = self.outdir / metric
             self._try_mkdir(tab_dir)

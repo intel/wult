@@ -10,9 +10,10 @@
 
 """This module provides the common defaults and logic for producing plotly diagrams."""
 
+import logging
+import plotly
 from pandas.core.dtypes.common import is_numeric_dtype
 from pepclibs.helperlibs.Exceptions import Error
-import plotly
 
 # Default plotly diagram layout configuration.
 
@@ -38,6 +39,8 @@ _LEGEND = {"font"    : {"size" : 14},
            "bgcolor" : "#E2E2E2",
            "borderwidth" : 2,
            "bordercolor" : "#FFFFFF"}
+
+_LOG = logging.getLogger()
 
 class Plot:
     """This class provides the common defaults and logic for producing plotly diagrams."""
@@ -81,6 +84,8 @@ class Plot:
                 # In plotly version 4 the default theme has changed. The old theme is called
                 # 'plotly_white'. Use it to maintain consistent look for plotly v3 and v4.
                 fig.update_layout(template="plotly_white")
+
+            _LOG.info("Generating plot: %s vs %s.", self.yaxis_label, self.xaxis_label)
             plotly.offline.plot(fig, filename=str(self.outpath), auto_open=False,
                                 config={"showLink" : False})
         except Exception as err:

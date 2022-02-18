@@ -57,7 +57,7 @@ class PlotsBuilder:
         Create and return a list containing hover text for every datapoint in the 'df' dataframe.
         """
 
-        _LOG.debug("Preparing hover text for '%s vs %s'", xcolname, ycolname)
+        _LOG.debug("Preparing hover text for '%s vs %s'", ycolname, xcolname)
 
         # The loop below creates the following objects.
         #  o colnames - names of the columns to include to the hover text.
@@ -143,7 +143,6 @@ class PlotsBuilder:
         """
 
         ymetric = "Count"
-        _LOG.info("Generating histogram: %s vs %s.", xmetric, ymetric)
         fname = _colname_to_fname(ymetric) + "-vs-" + _colname_to_fname(xmetric) + ".html"
         outpath = self.outdir / fname
 
@@ -166,7 +165,6 @@ class PlotsBuilder:
         ymetric = "Percentile"
         fname = _colname_to_fname(ymetric) + "-vs-" + _colname_to_fname(xmetric) + ".html"
         outpath = self.outdir / fname
-        _LOG.info("Generating cumulative histogram: %s vs %s.", xmetric, ymetric)
         chst = _Histogram.Histogram(xmetric, outpath, xaxis_label=xaxis_label,
                                     xaxis_unit=xaxis_unit, xbins=xbins, cumulative=True)
         for res in rsts:

@@ -13,14 +13,11 @@ This module defines what is expected by the JavaScript side when adding a Metric
 reports.
 """
 
-import logging
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import Trivial
 from wultlibs.htmlreport import _SummaryTable
 from wultlibs.htmlreport.tabs.metrictab import _PlotsBuilder
 from wultlibs.htmlreport.tabs import _BaseTab
-
-_LOG = logging.getLogger()
 
 class MetricTabDC(_BaseTab.BaseTabDC):
     """
@@ -87,8 +84,6 @@ class MetricTabBuilder:
 
         ppaths = []
         for xcolname, ycolname in plot_axes:
-            _LOG.info("Generating scatter plot: %s vs %s.", xcolname, ycolname)
-
             ppath = self._pbuilder.build_scatter(self._rsts, xcolname, ycolname)
             ppaths.append(ppath)
         return ppaths
