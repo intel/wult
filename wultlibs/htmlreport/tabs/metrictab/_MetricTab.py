@@ -22,7 +22,7 @@ from wultlibs.htmlreport.tabs import _BaseTab
 
 _LOG = logging.getLogger()
 
-class MetricTab(_BaseTab.BaseTab):
+class MetricTabDC(_BaseTab.BaseTabDC):
     """
     This class defines what is expected by the JavaScript side when adding a Metric tab to HTML
     reports.
@@ -131,7 +131,7 @@ class MetricTabBuilder:
         ppaths = [p.relative_to(self.outdir) for p in self._ppaths]
         smrytblpath = self._smrytblpath.relative_to(self.outdir)
 
-        return MetricTab(self.tabname, ppaths, smrytblpath)
+        return MetricTabDC(self.tabname, ppaths, smrytblpath)
 
     def __init__(self, tabname, rsts, outdir):
         """

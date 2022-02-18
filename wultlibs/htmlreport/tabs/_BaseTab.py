@@ -16,7 +16,7 @@ from pathlib import Path
 
 
 @dataclass
-class BaseTab:
+class BaseTabDC:
     """
     This class defines what is expected by the JavaScript side when adding a Metric tab to HTML
     reports.
@@ -33,11 +33,11 @@ class BaseTab:
 
 
 @dataclass
-class TabCollection:
+class TabCollectionDC:
     """
     This class defines what is expected by the JavaScript side when adding a set of tabs to the
     report.
     """
 
     name: str
-    tabs: Union["TabCollection", List[BaseTab]]
+    tabs: Union["TabCollectionDC", List[BaseTabDC]]

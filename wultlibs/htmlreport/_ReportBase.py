@@ -212,7 +212,7 @@ class ReportBase:
         metric_tabs = self._generate_metric_tabs()
 
         tabs = []
-        tabs.append(dataclasses.asdict(_BaseTab.TabCollection("Results", metric_tabs)))
+        tabs.append(dataclasses.asdict(_BaseTab.TabCollectionDC("Results", metric_tabs)))
         tabs_path = self.outdir / "tabs.json"
         with open(tabs_path, "w", encoding="utf-8") as fobj:
             json.dump(tabs, fobj, default=str)
