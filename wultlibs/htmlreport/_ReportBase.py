@@ -237,7 +237,7 @@ class ReportBase:
         rinfo_path = self.outdir / "report_info.json"
         self._dump_json(report_info, rinfo_path, "report information dictionary")
 
-        self._copy_asset("html/js/index.html", "root HTML page of the report.",
+        self._copy_asset("js/index.html", "root HTML page of the report.",
                          self.outdir / "index.html")
 
     def _mangle_loaded_res(self, res): # pylint: disable=no-self-use, unused-argument
@@ -403,9 +403,9 @@ class ReportBase:
         """
 
         self._assets = [
-            ("html/js/dist/main.js", "bundled JavaScript"),
-            ("html/js/dist/main.css", "bundled CSS"),
-            ("html/js/dist/main.js.LICENSE.txt", "bundled dependency licenses"),
+            ("js/dist/main.js", "bundled JavaScript"),
+            ("js/dist/main.css", "bundled CSS"),
+            ("js/dist/main.js.LICENSE.txt", "bundled dependency licenses"),
         ]
 
     def _validate_init_args(self):
