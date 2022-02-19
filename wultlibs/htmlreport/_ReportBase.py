@@ -16,7 +16,7 @@ import itertools
 import json
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import Trivial, FSHelpers, Jinja2
+from pepclibs.helperlibs import Trivial, FSHelpers
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import Deploy
 from wultlibs.htmlreport.tabs import _BaseTab
@@ -26,6 +26,22 @@ _LOG = logging.getLogger()
 
 class ReportBase:
     """This is the base class for generating HTML reports for raw test results."""
+
+    @staticmethod
+    def _dump_json(obj, path, descr):
+        """
+        Helper function wrapping 'json.dump' operation with a standardised error message so that the
+        error messages are consistent. Arguments are as follows:
+         * obj - Python object to dump to JSON.
+         * path - path to create JSON file at.
+         * descr - description of object being dumped.
+        """
+        try:
+            with open(path, "w", encoding="utf-8") as fobj:
+                json.dump(obj, fobj, default=str)
+        except Exception as err:
+            raise Error(f"could not generate report: failed to JSON dump '{descr}' to '{path}':"
+                        f"{err}") from None
 
     @staticmethod
     def _try_mkdir(path):
@@ -136,12 +152,16 @@ class ReportBase:
 
         return stats_paths, logs_paths, descr_paths
 
-    def _copy_asset(self, src, descr):
-        """Copy asset file to the output directory."""
+    def _copy_asset(self, src, descr, dst):
+        """
+        Copy asset file to the output directory. Arguments are as follows:
+         * src - source path of the file to copy.
+         * descr - description of the file which is being copied.
+         * dst - where the file should be copied to.
+        """
 
         asset_path = Deploy.find_app_data(self._projname, src, descr=descr)
-        dstpath = self.outdir.joinpath(src)
-        FSHelpers.move_copy_link(asset_path, dstpath, "copy", exist_ok=True)
+        FSHelpers.move_copy_link(asset_path, dst, "copy", exist_ok=True)
 
     def _generate_metric_tabs(self):
         """Generate 'Metric Tabs' which contain the plots and summary tables for each metric."""
@@ -197,30 +217,28 @@ class ReportBase:
 
         # Copy raw data and assets.
         stats_paths, logs_paths, descr_paths = self._copy_raw_data()
-        for path, descr in self._assets:
-            self._copy_asset(Path(path), descr)
+        for src, descr in self._assets:
+            self._copy_asset(Path(src), descr, self.outdir / src)
 
-        # Find the template paths.
-        templdir = Deploy.find_app_data(self._projname, Path("html/templates"),
-                                        descr="HTML report Jinja2 templates")
-
-        jenv = Jinja2.build_jenv(templdir, trim_blocks=True, lstrip_blocks=True)
-        jenv.globals["intro_tbl"] = self._prepare_intro_table(stats_paths, logs_paths, descr_paths)
-        jenv.globals["toolname"] = self._refinfo["toolname"]
-        # Ensure that pathlib.Path() objects are coerced to 'str' so they are JSON serialisable.
-        jenv.policies["json.dumps_kwargs"] = {"default": str}
+        # 'report_info' stores data used by the Javascript to generate the main report page
+        # including the intro table, the file path of the tabs JSON dump and the toolname.
+        report_info = {}
+        report_info["intro_tbl"] = self._prepare_intro_table(stats_paths, logs_paths, descr_paths)
+        report_info["toolname"] = self._refinfo["toolname"].title()
 
         metric_tabs = self._generate_metric_tabs()
 
         tabs = []
         tabs.append(dataclasses.asdict(_BaseTab.TabCollectionDC("Results", metric_tabs)))
         tabs_path = self.outdir / "tabs.json"
-        with open(tabs_path, "w", encoding="utf-8") as fobj:
-            json.dump(tabs, fobj, default=str)
-        jenv.globals["tab_file"] = str(tabs_path.relative_to(self.outdir))
+        self._dump_json(tabs, tabs_path, "tab container")
 
-        templfile = outfile = "index.html"
-        Jinja2.render_template(jenv, Path(templfile), outfile=self.outdir.joinpath(outfile))
+        report_info["tab_file"] = str(tabs_path.relative_to(self.outdir))
+        rinfo_path = self.outdir / "report_info.json"
+        self._dump_json(report_info, rinfo_path, "report information dictionary")
+
+        self._copy_asset("html/js/index.html", "root HTML page of the report.",
+                         self.outdir / "index.html")
 
     def _mangle_loaded_res(self, res): # pylint: disable=no-self-use, unused-argument
         """

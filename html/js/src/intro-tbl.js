@@ -21,45 +21,40 @@ class IntroTable extends ReportTable {
       introtbl: { type: Object }
     };
 
-    /**
-     * Early DOM lifecycle event. Invoked each time the custom element is appended into a
-     * document-connected element.
-     */
-    connectedCallback () {
-      super.connectedCallback()
+    render () {
+      if (!this.introtbl) {
+        return html``
+      }
+
       this.link_keys = this.introtbl.link_keys
       delete this.introtbl.link_keys
-    }
 
-    render () {
-      return this.introtbl
-        ? html`
-            <table width="${this.getWidth(this.introtbl)}%">
+      return html`
+        <table width="${this.getWidth(this.introtbl)}%">
+        <tr>
+        ${Object.keys(this.introtbl).map((header) => {
+            return html`<th>${header} </th>`
+        })}
+        </tr>
+        ${Object.entries(this.introtbl.Title).map(([key, val]) =>
+            html`
             <tr>
-            ${Object.keys(this.introtbl).map((header) => {
-                return html`<th>${header} </th>`
+            <td class="td-colname"> ${val} </td>
+            ${Object.entries(this.introtbl).map(([key1, val1]) => {
+                if (key1 !== 'Title') {
+                    return html`<td class="td-value"> ${
+                        (this.link_keys.includes(key))
+                        ? val1[key]
+                            ? html`<a href=${val1[key]}> ${val} </a>`
+                            : 'Not available'
+                        : val1[key]} </td>`
+                }
+                return html``
             })}
             </tr>
-            ${Object.entries(this.introtbl.Title).map(([key, val]) =>
-                html`
-                <tr>
-                <td class="td-colname"> ${val} </td>
-                ${Object.entries(this.introtbl).map(([key1, val1]) => {
-                    if (key1 !== 'Title') {
-                        return html`<td class="td-value"> ${
-                            (this.link_keys.includes(key))
-                            ? val1[key]
-                                ? html`<a href=${val1[key]}> ${val} </a>`
-                                : 'Not available'
-                            : val1[key]} </td>`
-                    }
-                    return html``
-})}
-                </tr>
-                `)}
-            </table>
-        `
-        : html``
+        `)}
+        </table>
+      `
     }
 }
 

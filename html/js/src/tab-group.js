@@ -44,13 +44,18 @@ class TabGroup extends LitElement {
       tabs: { type: Object, attribute: false }
     };
 
-    connectedCallback () {
-      super.connectedCallback()
-      // Once this component is attached to the DOM, 'tabFile' should be populated and we can read
-      // the data from it and load it into the underlying 'tabs' property.
-      fetch(this.tabFile)
-        .then((response) => response.json())
-        .then(data => { this.tabs = data })
+    /**
+     * Called whenever the component’s update finishes and the element's DOM has been updated and
+     * rendered. Checks for changes in the tab file property which is used to determine the contents
+     * of the report tabs.
+     * @param {Map} changedProperties
+     */
+    updated (changedProperties) {
+      if (changedProperties.has('tabFile')) {
+        fetch(this.tabFile)
+          .then((response) => response.json())
+          .then(data => { this.tabs = data })
+      }
     }
 
     /**
@@ -75,18 +80,20 @@ class TabGroup extends LitElement {
     }
 
     render () {
-      return this.tabs
-        ? html`
-            <sl-tab-group>
-              ${this.tabs.map((tab) =>
-                html`
-                  <sl-tab slot="nav" panel="${tab.name}">${tab.name}</sl-tab>
-                  <sl-tab-panel name="${tab.name}">${this.tabTemplate(tab)}</sl-tab-panel>
-                `
-              )}
-            </sl-tab-group>
-          `
-        : html``
+      if (!this.tabs) {
+        return html``
+      }
+
+      return html`
+        <sl-tab-group>
+          ${this.tabs.map((tab) =>
+            html`
+              <sl-tab slot="nav" panel="${tab.name}">${tab.name}</sl-tab>
+              <sl-tab-panel name="${tab.name}">${this.tabTemplate(tab)}</sl-tab-panel>
+            `
+          )}
+        </sl-tab-group>
+      `
     }
 }
 

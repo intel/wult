@@ -10,8 +10,7 @@
 
 /* eslint-disable no-unused-vars */
 
-import { IntroTable } from './intro-tbl'
-import { TabGroup } from './tab-group'
+import { ReportPage } from './report-page'
 
 import '../css/style.css'
 import '@shoelace-style/shoelace/dist/themes/light.css'
