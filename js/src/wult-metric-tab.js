@@ -40,10 +40,10 @@ class WultMetricTab extends WultTab {
     visibleTemplate () {
       return html`
             <br>
-            <smry-tbl .src="${this.tabname}/${this.smrytblpath}"></smry-tbl>
+            <smry-tbl .src="${this.smrytblpath}"></smry-tbl>
             <div class="grid">
             ${this.paths.map((path) =>
-                    html`<diagram-element path="${this.tabname}/${path}" ></diagram-element>`
+                    html`<diagram-element path="${path}"></diagram-element>`
             )}
             </div>
         `

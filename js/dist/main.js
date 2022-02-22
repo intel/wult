@@ -578,9 +578,9 @@
         }
   `;static properties={paths:{type:Array},smrytblpath:{type:String}};visibleTemplate(){return z`
             <br>
-            <smry-tbl .src="${this.tabname}/${this.smrytblpath}"></smry-tbl>
+            <smry-tbl .src="${this.smrytblpath}"></smry-tbl>
             <div class="grid">
-            ${this.paths.map((t=>z`<diagram-element path="${this.tabname}/${t}" ></diagram-element>`))}
+            ${this.paths.map((t=>z`<diagram-element path="${t}"></diagram-element>`))}
             </div>
         `}render(){return super.render()}}customElements.define("wult-metric-tab",Ms);class zs extends et{static styles=r`
       /*

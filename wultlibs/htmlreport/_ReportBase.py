@@ -43,18 +43,6 @@ class ReportBase:
             raise Error(f"could not generate report: failed to JSON dump '{descr}' to '{path}':"
                         f"{err}") from None
 
-    @staticmethod
-    def _try_mkdir(path):
-        """
-        Helper function wrapping 'mkdir' operation with a standardised error message so the warnings
-        are consistent throughout the class.
-        """
-
-        try:
-            path.mkdir(parents=True, exist_ok=True)
-        except OSError as err:
-            raise Error(f"failed to create directory '{path}': {err}") from None
-
     def _prepare_intro_table(self, stats_paths, logs_paths, descr_paths):
         """
         Create the intro table, which is the very first table in the report and it shortly
@@ -185,9 +173,6 @@ class ReportBase:
 
         for metric in tab_names:
             _LOG.info("Generating %s tab.", metric)
-            # Create sub-directory for each tab which will contain all files for that tab.
-            tab_dir = self.outdir / metric
-            self._try_mkdir(tab_dir)
 
             tab_plots = []
             smry_metrics = []
@@ -200,7 +185,7 @@ class ReportBase:
 
             smry_metrics = Trivial.list_dedup(smry_metrics)
 
-            metric_tab = _MetricTab.MetricTabBuilder(metric, self.rsts, tab_dir)
+            metric_tab = _MetricTab.MetricTabBuilder(metric, self.rsts, self.outdir)
             metric_tab.add_smrytbl(smry_metrics, self._smry_funcs)
             metric_tab.add_plots(tab_plots, self.hist, self.chist, self._hov_colnames)
             tabs.append(metric_tab.get_tab())
@@ -213,7 +198,10 @@ class ReportBase:
         _LOG.info("Generating the HTML report.")
 
         # Make sure the output directory exists.
-        self._try_mkdir(self.outdir)
+        try:
+            self.outdir.mkdir(parents=True, exist_ok=True)
+        except OSError as err:
+            raise Error(f"failed to create directory '{self.outdir}': {err}") from None
 
         # Copy raw data and assets.
         stats_paths, logs_paths, descr_paths = self._copy_raw_data()

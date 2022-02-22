@@ -123,8 +123,8 @@ class MetricTabBuilder:
     def get_tab(self):
         """Returns a 'MetricTab' instance representative of the data already added to the class."""
 
-        ppaths = [p.relative_to(self.outdir) for p in self._ppaths]
-        smrytblpath = self._smrytblpath.relative_to(self.outdir)
+        ppaths = [p.relative_to(self._basedir) for p in self._ppaths]
+        smrytblpath = self._smrytblpath.relative_to(self._basedir)
 
         return MetricTabDC(self.tabname, ppaths, smrytblpath)
 
@@ -133,14 +133,21 @@ class MetricTabBuilder:
         The class constructor. Arguments as follows:
          * tabname - the metric which this tab represents.
          * rsts - sets of results containing the data to represent in this tab.
-         * outdir - the tab directory, plot HTML files and summary table files will be stored here.
+         * outdir - the output directory, in which to create the tab sub-dictionary which will
+                    contain plot HTML files and summary table files.
         """
 
         self.tabname = tabname
         self._rsts = rsts
         self._refres = rsts[0]
-        self.outdir = outdir
+        self._basedir = outdir
+        self.outdir = outdir / tabname
         self._pbuilder = None
         self._ppaths = []
 
-        self._smrytblpath = outdir / "summary-table.txt"
+        self._smrytblpath = self.outdir / "summary-table.txt"
+
+        try:
+            self.outdir.mkdir(parents=True, exist_ok=True)
+        except OSError as err:
+            raise Error(f"failed to create directory '{self.outdir}': {err}") from None
