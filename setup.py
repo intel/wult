@@ -73,14 +73,11 @@ setup(
     data_files=get_data_files("share/wult/drivers", "drivers") + \
                get_data_files("share/wult/helpers", "helpers", exclude=_PYTHON_HELPERS) + \
                get_data_files("share/wult/defs", "defs") + \
-               get_data_files("share/wult/html/templates", "html/templates") + \
-               get_data_files("share/wult/html/bootstrap", "html/bootstrap") + \
-               get_data_files("share/wult/html/css", "html/css") + \
-               get_data_files("share/wult/html/js/dist", "html/js/dist"),
+               get_data_files("share/wult/js/dist", "js/dist") + \
+               [("share/wult/js", ["js/index.html"])],
     scripts=_TOOLNAMES + _PYTHON_HELPERS,
     packages=find_packages(),
-    install_requires=["pepc>=1.2.0,<1.3.0", "plotly>=4", "jinja2", "numpy", "pandas", "pyyml",
-                      "colorama"],
+    install_requires=["pepc>=1.2.0,<1.3.0", "plotly>=4", "numpy", "pandas", "pyyml", "colorama"],
     long_description="""This package provides wult - a Linux command-line tool for measuring Intel
                         CPU C-state wake latency.""",
     classifiers=[
