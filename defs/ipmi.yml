@@ -1,0 +1,31 @@
+# -*- coding: utf-8 -*-
+# vim: ts=4 sw=4 tw=100 et ai si
+#
+# Definitions for IPMI file.
+
+FanSpeed:
+    title: "Fan Speed"
+    descr: >-
+        Fan speed of a SUT (System Under Test) fan. Collected using IPMI.
+    unit: "rotations per minute"
+    short_unit: "RPM"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+Temperature:
+    title: "Temperature"
+    descr: >-
+        Temperature recorded in the SUT (System Under Test). Collected using IPMI.
+    unit: "degrees C"
+    short_unit: "°c"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+Power:
+    title: "AC Power"
+    descr: >-
+        Power measurement taken on the SUT (System Under Test). Collected using IPMI.
+    unit: "Watt"
+    short_unit: "W"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+Time:
+    title: "Time Elapsed"
+    descr: "Time elapsed since first measurement was taken."
+    unit: "second"
+    short_unit: "s"
