@@ -13,9 +13,8 @@ discipline).
 
 import re
 import logging
-from pepclibs.helperlibs import FSHelpers
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
-from wultlibs import OSInfo
+from pepclibs.helperlibs import ToolChecker, Procs
+from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import KernelVersion, ProcHelpers
 
 _LOG = logging.getLogger()
@@ -51,7 +50,7 @@ class ETFQdisc():
             errors = ("Operation not supported", "Specified qdisc not found")
             if any(err in stderr for err in errors):
                 errmsg += "\n\n"
-                pkgname = OSInfo.tool_to_package_name("sch_etf.ko", proc=self._proc)
+                pkgname = self._tchk.tool_to_pkg("sch_etf.ko")
                 if pkgname:
                     kver = KernelVersion.get_kver(proc=self._proc)
                     errmsg += f"Try to install package '{pkgname}'{self._proc.hostmsg}\n"      \
@@ -155,23 +154,24 @@ class ETFQdisc():
 
         self._close_proc = proc is None
 
+        self._tchk = None
         self._tc_bin = None
+
         self._phc2sys_bin = None
-        self._handover_delta = None
-        self._old_tc_err_msg = None
         self._phc2sys_proc = None
 
-        self._tc_bin = FSHelpers.which(tc_bin, default=None, proc=proc)
-        self._handover_delta = int(handover_delta * 1000)
-        self._phc2sys_bin = FSHelpers.which(phc2sys_bin, default=None, proc=proc)
+        self._handover_delta = None
+        self._old_tc_err_msg = None
 
-        for path, name in ((self._phc2sys_bin, "phc2sys"), (self._tc_bin, "tc")):
-            if not path:
-                msg = f"failed to find tool '{name}'{self._proc.hostmsg}"
-                pkgname = OSInfo.tool_to_package_name(name, proc=self._proc)
-                if pkgname:
-                    msg += f"\nTry to install package '{pkgname}'{self._proc.hostmsg}"
-                raise ErrorNotSupported(msg)
+        if not self._proc:
+            self._proc = Procs.Proc()
+
+        self._handover_delta = int(handover_delta * 1000)
+
+        self._tchk = ToolChecker.ToolChecker(proc=self._proc)
+
+        self._tc_bin = self._tchk.check_tool(tc_bin)
+        self._phc2sys_bin = self._tchk.check_tool(phc2sys_bin)
 
         self._old_tc_err_msg = f"the 'tc' tool installed{self._proc.hostmsg} is not new enough " \
                                f"and does not support the ETF qdisc.\nPlease, install 'tc' " \
@@ -187,6 +187,12 @@ class ETFQdisc():
             ProcHelpers.kill_pids(self._phc2sys_proc.pid, kill_children=True, must_die=False,
                                   proc=self._proc)
             self._phc2sys_proc = None
+
+        for attr in ("_tchk",):
+            obj = getattr(self, attr, None)
+            if obj:
+                obj.close()
+                setattr(self, attr, None)
 
         for attr in ("_netif", "_proc",):
             obj = getattr(self, attr, None)
