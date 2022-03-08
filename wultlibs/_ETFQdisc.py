@@ -149,15 +149,21 @@ class ETFQdisc():
         sent at incorrect time or just dropped causing errors like "missing deadline".
         """
 
+        self._proc = proc
+        self._netif = netif
+        self._ifname = netif.ifname
+
+        self._close_proc = proc is None
+
+        self._tc_bin = None
+        self._phc2sys_bin = None
+        self._handover_delta = None
         self._old_tc_err_msg = None
         self._phc2sys_proc = None
 
-        self._netif = netif
-        self._ifname = netif.ifname
         self._tc_bin = FSHelpers.which(tc_bin, default=None, proc=proc)
         self._handover_delta = int(handover_delta * 1000)
         self._phc2sys_bin = FSHelpers.which(phc2sys_bin, default=None, proc=proc)
-        self._proc = proc
 
         for path, name in ((self._phc2sys_bin, "phc2sys"), (self._tc_bin, "tc")):
             if not path:
@@ -175,21 +181,19 @@ class ETFQdisc():
     def close(self):
         """Stop the measurements."""
 
-        if getattr(self, "_proc", None):
-            proc = self._proc
-            self._proc = None
-        else:
-            return
-
         if getattr(self, "_phc2sys_proc", None):
             _LOG.debug("killing the the phc2sys process PID %d%s",
-                       self._phc2sys_proc.pid, proc.hostmsg)
+                       self._phc2sys_proc.pid, self._proc.hostmsg)
             ProcHelpers.kill_pids(self._phc2sys_proc.pid, kill_children=True, must_die=False,
-                                  proc=proc)
+                                  proc=self._proc)
             self._phc2sys_proc = None
 
-        if getattr(self, "_netif", None):
-            self._netif = None
+        for attr in ("_netif", "_proc",):
+            obj = getattr(self, attr, None)
+            if obj:
+                if getattr(self, f"_close{attr}", False):
+                    getattr(obj, "close")()
+                setattr(self, attr, None)
 
     def __enter__(self):
         """Enter the runtime context."""
