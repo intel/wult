@@ -162,9 +162,9 @@ class ETFQdisc():
         for path, name in ((self._phc2sys_bin, "phc2sys"), (self._tc_bin, "tc")):
             if not path:
                 msg = f"failed to find tool '{name}'{self._proc.hostmsg}"
-                pkg = OSInfo.tool_to_package_name(name, proc=self._proc)
-                if pkg:
-                    msg += f"\nTry to install package '{pkg}'{self._proc.hostmsg}"
+                pkgname = OSInfo.tool_to_package_name(name, proc=self._proc)
+                if pkgname:
+                    msg += f"\nTry to install package '{pkgname}'{self._proc.hostmsg}"
                 raise ErrorNotSupported(msg)
 
         self._old_tc_err_msg = f"the 'tc' tool installed{self._proc.hostmsg} is not new enough " \
