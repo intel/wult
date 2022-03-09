@@ -296,7 +296,7 @@ class NdlRunner:
         self._verify_input_args()
 
         self._progress = _ProgressLine.ProgressLine(period=1)
-        self._drv = KernelModule.KernelModule(proc, "ndl")
+        self._drv = KernelModule.KernelModule("ndl", proc=proc)
 
         mntpath = FSHelpers.mount_debugfs(proc=proc)
         self._rtd_path = mntpath.joinpath(f"{self._drv.name}/rtd")

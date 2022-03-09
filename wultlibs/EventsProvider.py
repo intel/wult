@@ -30,7 +30,7 @@ class EventsProvider:
 
         # Unload all the possible wult device drivers.
         for drvname in Devices.DRVNAMES:
-            drv = KernelModule.KernelModule(self._proc, drvname, dmesg=self.dev.dmesg_obj)
+            drv = KernelModule.KernelModule(drvname, proc=self._proc, dmesg=self.dev.dmesg_obj)
             drv.unload()
             drv.close()
 
@@ -211,8 +211,8 @@ class EventsProvider:
         # 'close()'.
         self.unload = True
 
-        self._main_drv = KernelModule.KernelModule(proc, "wult", dmesg=dev.dmesg_obj)
-        self._drv = KernelModule.KernelModule(proc, self.dev.drvname, dmesg=dev.dmesg_obj)
+        self._main_drv = KernelModule.KernelModule("wult", proc=proc, dmesg=dev.dmesg_obj)
+        self._drv = KernelModule.KernelModule(self.dev.drvname, proc=proc, dmesg=dev.dmesg_obj)
 
         mntpoint = FSHelpers.mount_debugfs(proc=proc)
         self._basedir = mntpoint / "wult"
