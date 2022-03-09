@@ -82,7 +82,7 @@ class _WultDeviceBase:
         self.dmesg_obj = None
 
         if dmesg:
-            self.dmesg_obj = Dmesg.Dmesg(self._proc)
+            self.dmesg_obj = Dmesg.Dmesg(proc=self._proc)
             self.dmesg_obj.run(capture=True)
 
         # Device information dictionary. Every subclass is expected to provide the following keys.
