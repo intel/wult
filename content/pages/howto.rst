@@ -12,6 +12,116 @@ Howto
 Wult report
 ===========
 
+
+Securely view wult HTML reports
+-------------------------------
+
+Please consider disabling all untrusted browser extensions while viewing wult HTML reports.
+
+Browser extensions have varying levels of permissions. For example, some extensions require that the
+user allows them to access and distribute the data they are viewing in-browser. This means that it
+is possible for some browser extensions to view and share the contents of wult HTML reports.
+
+For Google chrome, you can inspect the permissions of your extensions by visiting
+`chrome://extensions`. In Firefox, the same thing can be done at `about:addons`.
+
+Open wult reports locally
+-------------------------
+
+Suppose you have already generated a wult HTML report using the `wult report` command. If you wish
+to view this report locally, such as by copying the report onto your machine and opening
+`index.html`, you will need to host the report files locally. This is because modern browsers forbid
+loading data from local file-systems for security reasons.
+
+This can be done in many ways, such as by using `python -m http.server` in the root directory of the
+report if you have Python3 installed.
+
+Equally, if you have `npm` installed, you can install and then use the `http-server` package with
+the following commands::
+
+    $ cd <report-directory>
+    $ npm install -g http-server
+    $ http-server
+
+We have also found that the following methods are convenient and easy to use through a graphical
+interface.
+
+Chrome extension
+++++++++++++++++++++++++++++++++++
+
+By installing the "Web Server for Chrome" extension, you will be able to serve the reports locally without an
+internet connection in future through a graphical interface. However this extension is limited to
+browsers which are compatible with chrome extensions.
+
+    Disclaimer: we have not performed a security audit of this extension and it should be used at
+    your own risk. The code is open source, under an MIT license and can be browsed `on GitHub
+    <https://github.com/kzahel/web-server-chrome>`_. The privacy policy for this extension is
+    available on `this page <http://graehlarts.com/privacy.html>`_. At the time of writing (11 March
+    2022), this privacy policy states that "The application does not collect any user information".
+    However we actively monitor neither the source code nor the privacy policy. Use at your own
+    risk. See `Securely view wult HTML reports`_ for more privacy information.
+
+Install the chrome extension from the chrome web store here_.
+
+.. _here: https://chrome.google.com/webstore/detail/web-server-for-chrome/ofhbbkphhbklhfoeikjpcbhemlocgigb
+
+Once the application is installed, it can be opened from the chrome web store, chrome app menu
+(`chrome://apps/`) or as a normal program on your computer. For example, on Windows 10, a shortcut
+will be added to the `Chrome Apps` directory in the start menu.
+
+.. image:: ../images/wult-web-server-chrome.jpg
+    :alt: Screenshot of the Web Server for Chrome application.
+    :width: 700 px
+    :height: 692 px
+    :scale: 50 %
+
+1. Use the **CHOOSE FOLDER** button to select the wult HTML report directory of the report you want to view.
+2. A link should appear below the `Web Server URL(s)` heading. Click on this link to open and view the report.
+
+servefolder.dev
++++++++++++++++
+
+This option should work on any modern browser (tested on 10 March 2022 working on Chrome, Firefox
+and Edge but not Internet Explorer).  An internet connection is required to reach the site initially
+but following this, the report can be viewed independently of an internet connection until the
+`Serve folder` tab is closed.
+
+    Disclaimer: According to the `privacy policy <https://servefolder.dev/privacy-policy.html>`_,
+    servefolder.dev does not collect or transmit any personal info and only accesses the files locally
+    in order to perform its function, futhermore the content of the files never leave your device. The
+    code is open source and can be inspected on `GitHub
+    <https://github.com/AshleyScirra/servefolder.dev>`_. We have audited the code live at
+    servefolder.dev and can confirm that at the time of inspection (03 March 2022), it follows the
+    privacy policy, but we do not continuously security audit the code. Use at your own risk.
+
+1. Open `the servefolder website <https://servefolder.dev/>`_.
+    .. image:: ../images/wult-serve-folder.jpg
+        :alt: Screenshot from https://servefolder.dev on 10.03.2022
+        :width: 700 px
+        :height: 264 px
+        :scale: 75 %
+
+2. Click **Pick folder** and select the report directory in the dialog that appears.
+    .. image:: ../images/wult-servefolder-allow.jpg
+        :alt: Screenshot from https://servefolder.dev on 10.03.2022
+        :width: 700 px
+        :height: 241 px
+        :scale: 75 %
+
+3. Your browser will then prompt you to confirm that you would like to share the
+   files with the site. Choose **View files** or **Upload** depending on your browser
+   to allow the report to be shared.
+
+    .. image:: ../images/wult-files-hosted.jpg
+        :alt: Screenshot from https://servefolder.dev once the wult report has been shared.
+        :width: 700 px
+        :height: 217 px
+        :scale: 75 %
+
+4. The report should now be viewable by clicking on the link shown. If you want to view a different
+   report use the **Browse...**  button.
+
+
 Include only CC6 datapoints
 ---------------------------
 
