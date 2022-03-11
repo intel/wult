@@ -56,8 +56,6 @@ def parse_arguments():
     parser.add_argument("--print-module-paths", action="store_true", help=argparse.SUPPRESS)
     return parser.parse_args()
 
-    return parser.parse_args()
-
 def print_module_paths():
     """
     Print paths to all modules other than standard.
@@ -79,6 +77,7 @@ def main():
     """Script entry point."""
 
     args = parse_arguments()
+    proc = Procs.Proc()
 
     if (args.user or args.password) and not args.host:
         raise Error("please, specify the host: '--user' and '--password' require '--host'")
@@ -101,8 +100,8 @@ def main():
 
     if not args.host:
         # Make sure the IPMI Linux kernel modules are loaded.
-        Procs.run_verify("modprobe ipmi_devintf")
-        Procs.run_verify("modprobe ipmi_si")
+        proc.run_verify("modprobe ipmi_devintf")
+        proc.run_verify("modprobe ipmi_si")
 
     interval = delta = args.interval
     retries = count = 0
@@ -110,7 +109,7 @@ def main():
     while True:
         start = time.time()
         try:
-            output, _ = Procs.run_verify(cmd)
+            output, _ = proc.run_verify(cmd)
         except Error:
             if retries >= args.retries:
                 # Too many failures.
