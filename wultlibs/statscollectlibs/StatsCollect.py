@@ -825,7 +825,7 @@ class _Collector:
 
         ssh_opts = proc.get_ssh_opts()
         cmd = f"ssh -L {self._ssht_port}:{self._uspath} -N {ssh_opts} {proc.hostname}"
-        self._ssht = Procs.run_async(cmd)
+        self._ssht = Procs.Proc().run_async(cmd)
 
         # Wait the tunnel to get established.
         start_time = time.time()
