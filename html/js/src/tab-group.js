@@ -9,6 +9,7 @@
  */
 
 import { html, css, LitElement } from 'lit'
+import '@shoelace-style/shoelace/dist/components/alert/alert'
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group'
 import '@shoelace-style/shoelace/dist/components/tab/tab'
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel'
@@ -41,16 +42,44 @@ class TabGroup extends LitElement {
 
     static properties = {
       tabFile: { type: String },
-      tabs: { type: Object, attribute: false }
+      tabs: { type: Object, attribute: false },
+      fetchFailed: { type: Boolean, attribute: false }
     };
 
     connectedCallback () {
       super.connectedCallback()
       // Once this component is attached to the DOM, 'tabFile' should be populated and we can read
       // the data from it and load it into the underlying 'tabs' property.
+
       fetch(this.tabFile)
         .then((response) => response.json())
         .then(data => { this.tabs = data })
+        .catch(err => {
+          // Catching a CORS error caused by viewing reports locally.
+          if (err instanceof TypeError) {
+            this.fetchFailed = true
+          } else {
+            throw err
+          }
+        })
+    }
+
+    /**
+     * Returns the HTML template for an alert to tell the user about a CORS error thrown when the
+     * report is viewed locally.  We use the 'file:/' protocol to read the JSON file which contains
+     * the tab data. This can cause a CORS error when the browser tries to read local files. Because
+     * of this we warn the user about what is happening and inform them how to properly view reports
+     * locally.
+     */
+    corsWarning () {
+      return html`
+        <sl-alert variant="danger" open>
+          Warning: it looks like you might be trying to view this report locally. See our
+          documentation on how to do that 
+          <a href="https://intel.github.io/wult/pages/howto.html#open-wult-reports-locally">
+            here.</a>
+        </sl-alert>
+      `
     }
 
     /**
@@ -75,6 +104,9 @@ class TabGroup extends LitElement {
     }
 
     render () {
+      if (this.fetchFailed) {
+        return this.corsWarning()
+      }
       return this.tabs
         ? html`
             <sl-tab-group>
