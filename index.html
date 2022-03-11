@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Wult - Overview</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"/>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab|Ruda"/>
+        <link rel="stylesheet" type="text/css" href="https://intel.github.io/wult/theme/css/main.css"/>
+</head>
+<body>
+<style>.github-corner:hover .octo-arm {
+    animation: octocat-wave 560ms ease-in-out
+}
+@keyframes octocat-wave {
+    0%, 100% {
+        transform: rotate(0)
+    }
+    20%, 60% {
+        transform: rotate(-25deg)
+    }
+    40%, 80% {
+        transform: rotate(10deg)
+    }
+}
+@media (max-width: 500px) {
+    .github-corner:hover .octo-arm {
+        animation: none
+    }
+
+    .github-corner .octo-arm {
+        animation: octocat-wave 560ms ease-in-out
+    }
+}</style><div id="container">
+    <header>
+        <h1><a href="https://intel.github.io/wult/">Wult</a></h1>
+        <p><em></em></p>
+    </header>
+    <nav>
+        <ul>
+                <li><a href="/wult/pages/how-it-works.html">How it works</a></li>
+                <li><a href="/wult/pages/install-guide.html">Install</a></li>
+                <li><a href="/wult/pages/user-guide.html">Use</a></li>
+                <li><a href="/wult/pages/howto.html">Howto</a></li>
+                <li><a href="/wult/pages/ndl.html">Ndl</a></li>
+        </ul>
+    </nav>
+    <main>
+        <section>
+            <h1>Overview</h1>
+            
+            <!-- -*- coding: utf-8 -*- -->
+<!-- vim: ts=4 sw=4 tw=100 et ai si -->
+<div class="contents topic" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#introduction" id="id1">1 Introduction</a></li>
+<li><a class="reference internal" href="#documentation" id="id2">2 Documentation</a></li>
+</ul>
+</div>
+<div class="section" id="introduction">
+<h2><a class="toc-backref" href="#id1">1 Introduction</a></h2>
+<p><em>Wult</em> stands for &quot;Wake Up Latency Tracer&quot;, and this is a project providing tools for measuring
+C-state latency in Linux. The project provides 2 tools:</p>
+<ul class="simple">
+<li><em>wult</em> - measures CPU C-state exit latency in Linux. This is the main deliverable of the project.</li>
+<li><em>ndl</em> - measures the memory access latency observed by a PCIe network card when the CPU is is
+in a C-state. However, this tool is rarely used, and it is documented separately
+<a class="reference external" href="pages/ndl.html">here</a>.</li>
+</ul>
+<p><strong>Important note</strong>: both <em>wult</em> and <em>ndl</em> are research, debugging and tracing tools which require
+superuser privileges and must not be used in production environment.</p>
+</div>
+<div class="section" id="documentation">
+<h2><a class="toc-backref" href="#id2">2 Documentation</a></h2>
+<p>These web pages are the primary source of <em>wult</em> and <em>ndl</em>. In addition to this, man pages include many
+details:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/intel/wult/blob/master/docs/wult-man.rst">Wult man page</a>.</li>
+<li><a class="reference external" href="https://github.com/intel/wult/blob/master/docs/ndl-man.rst">Ndl man page</a>.</li>
+</ul>
+<p>Here is an <a class="reference external" href="https://youtu.be/Opk92aQyvt0?t=8270">old wult presentation video recording</a>
+by Artem Bityutskiy at Linux Plumbers Conference in 2019. The presentation begins at &quot;2:17:50&quot; and
+it gives a high level <em>wult</em> introduction.</p>
+<p>The presentation focuses on <em>wult</em> kernel drivers, but some of the details are out of date.</p>
+<ul class="simple">
+<li>The presentation is focused around the I210 NIC measurement method, but nowadays <em>wult</em> supports the
+<em>hrt</em> method, which is probably the main method you should use. This method does not require any
+special hardware, such as a NIC. We recommend using <em>hrt</em>.</li>
+<li>Nowadays we measure both wake latency (<em>WakeLatency</em>) and (<em>IntrLatency</em>). The latter is the time
+it takes to the CPU to exit the C-state and execute the interrupt handler.</li>
+</ul>
+<p>And finally, if you do not find the information you are looking for, <strong>feel free</strong> to ask questions by
+filing GitHub issues or sending an e-mail to Artem Bityutskiy &lt;<a class="reference external" href="mailto:dedekind1&#64;gmail.com">dedekind1&#64;gmail.com</a>&gt;.</p>
+</div>
+
+        </section>
+     </main>
+    <footer>
+        <h6>
+            Rendered by <a href="http://getpelican.com/">Pelican</a> &nbsp;&bull;&nbsp; Theme by <a
+                href="https://github.com/aleylara/Peli-Kiera">Peli-Kiera</a> &nbsp;&bull;&nbsp; Copyright
+                &copy &nbsp;&#8209;&nbsp; Artem Bityutskiy         </h6>
+    </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Wult - Ndl</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"/>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab|Ruda"/>
+        <link rel="stylesheet" type="text/css" href="https://intel.github.io/wult/theme/css/main.css"/>
+</head>
+<body>
+<style>.github-corner:hover .octo-arm {
+    animation: octocat-wave 560ms ease-in-out
+}
+@keyframes octocat-wave {
+    0%, 100% {
+        transform: rotate(0)
+    }
+    20%, 60% {
+        transform: rotate(-25deg)
+    }
+    40%, 80% {
+        transform: rotate(10deg)
+    }
+}
+@media (max-width: 500px) {
+    .github-corner:hover .octo-arm {
+        animation: none
+    }
+
+    .github-corner .octo-arm {
+        animation: octocat-wave 560ms ease-in-out
+    }
+}</style><div id="container">
+    <header>
+        <h1><a href="https://intel.github.io/wult/">Wult</a></h1>
+        <p><em></em></p>
+    </header>
+    <nav>
+        <ul>
+                <li><a href="/wult/pages/how-it-works.html">How it works</a></li>
+                <li><a href="/wult/pages/install-guide.html">Install</a></li>
+                <li><a href="/wult/pages/user-guide.html">Use</a></li>
+                <li><a href="/wult/pages/howto.html">Howto</a></li>
+                <li><a href="/wult/pages/ndl.html">Ndl</a></li>
+        </ul>
+    </nav>
+    <main>
+        <section>
+            <h1>Ndl</h1>
+            
+            <!-- -*- coding: utf-8 -*- -->
+<!-- vim: ts=4 sw=4 tw=100 et ai si -->
+<div class="contents topic" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#overview" id="id1">Overview</a></li>
+<li><a class="reference internal" href="#principle-of-operation" id="id2">Principle of operation</a></li>
+</ul>
+</div>
+<div class="section" id="overview">
+<h2><a class="toc-backref" href="#id1">Overview</a></h2>
+<p><em>Ndl</em> is a another tool that comes with the <em>wult</em> project. It is a very specific tool and we did not
+document it that much, because we expect very limited audience for this tool.</p>
+<p>From the usage perspective, <em>ndl</em> is very similar to <em>wult</em> - it supports similar commands and
+provides similar data analysis capabilities. It also comes with a man page and the help text.
+Please, feel free to ask questions by filing GitHub issues (preferred) or sending an e-mail to
+Artem Bityutskiy &lt;<a class="reference external" href="mailto:dedekind1&#64;gmail.com">dedekind1&#64;gmail.com</a>&gt;.</p>
+</div>
+<div class="section" id="principle-of-operation">
+<h2><a class="toc-backref" href="#id2">Principle of operation</a></h2>
+<p>Consider a system with a PCIe NIC (Network Interface Card) connected to network. Suppose the CPU is
+sitting in a deep C-state, and the NIC starts receiving network packets at a high rate. The NIC has
+internal buffers to store the incoming network packets, but the buffer is relatively small. The NIC
+must start moving the incoming packets from internal buffers to the main memory in parallel with
+receiving the packets, otherwise the buffers overflow and some of the packets get lost.</p>
+<p>On a typical x86 computer system the main memory is connected to the CPU, and when the CPU is in a
+deep enough C-state, the memory is not available to the NIC. Therefore, the NIC must first wake up
+the CPU from the deep C-state, which takes some time, and only then it can start offloading
+the packets from the internal buffer to the main memory.</p>
+<p>Note, in this case the CPU does not have to wake up all the way to C0 (executing instruction), it is
+enough to wake up to a state where the memory subsystem becomes available. For example, on many
+Intel Xeon systems it is enough to transition to package C2 state (PC2).</p>
+<p>The longer it takes to wake up the CPU, the larger internal buffers the NIC should have in order to
+prevent packets from being lost (dropped). Obviously, the internal buffer size also depends on the
+incoming packets rate. But the buffer is going to have some size, and this size will define the
+longest tolerable wake up delay. If the CPU is too slow, the NIC has to start dropping incoming
+packets.</p>
+<p>NDL stands for &quot;Network Drop Latency&quot;, and this is the longest memory availability delay the NIC can
+tolerate. It is going to be different for different NICs.</p>
+<p>The <em>ndl</em> tool does not measure the NDL, despite the name. But it measures something similar - the
+longest memory availability delay observed by the NIC. We call this metric &quot;RTD&quot;, which stands for
+&quot;Round-Trip Delay&quot;. RTD is basically the time it takes for NIC's memory access request to finish.
+The &quot;round-trip&quot; part comes from the fact that NIC's memory access request first leaves the NIC,
+travels all the way to the memory, and then the result comes back to the NIC.</p>
+<p>Note, <em>ndl</em> supports only the Intel i210-based NICs today, so it is a highly specialized tool.</p>
+<p>Here is how <em>ndl</em> works today.</p>
+<ol class="arabic simple">
+<li>Schedule a delayed network packet to be sent by the NIC in the future (Intel I210 has such a
+capability).</li>
+<li>Let the system be idle, the CPU enters a deep C-state.</li>
+<li>When the NIC starts sending the delayed packet, it will first fetch packet data from the main
+memory.</li>
+<li>The NIC will measure every DMA read transaction and remember the longest one, which is going to
+be the first transaction that woke up the CPU. The longest transaction time is the RTD.</li>
+<li><em>Ndl</em> reads the measured NDL from the NIC, and saves it in a CSV file.</li>
+</ol>
+<p>This process may be repeated tens or hundreds of thousands times. The data are collected in
+a CSV file. Ndl provides a capability for analyzing the CSV file (finding the median, percentiles,
+etc) as well as a capability for visualizing the test results (scatter plots, histograms).</p>
+</div>
+
+        </section>
+     </main>
+    <footer>
+        <h6>
+            Rendered by <a href="http://getpelican.com/">Pelican</a> &nbsp;&bull;&nbsp; Theme by <a
+                href="https://github.com/aleylara/Peli-Kiera">Peli-Kiera</a> &nbsp;&bull;&nbsp; Copyright
+                &copy &nbsp;&#8209;&nbsp; Artem Bityutskiy         </h6>
+    </footer>
+</div>
+</body>
+</html>

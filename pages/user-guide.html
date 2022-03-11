@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Wult - User Guide</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"/>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab|Ruda"/>
+        <link rel="stylesheet" type="text/css" href="https://intel.github.io/wult/theme/css/main.css"/>
+</head>
+<body>
+<style>.github-corner:hover .octo-arm {
+    animation: octocat-wave 560ms ease-in-out
+}
+@keyframes octocat-wave {
+    0%, 100% {
+        transform: rotate(0)
+    }
+    20%, 60% {
+        transform: rotate(-25deg)
+    }
+    40%, 80% {
+        transform: rotate(10deg)
+    }
+}
+@media (max-width: 500px) {
+    .github-corner:hover .octo-arm {
+        animation: none
+    }
+
+    .github-corner .octo-arm {
+        animation: octocat-wave 560ms ease-in-out
+    }
+}</style><div id="container">
+    <header>
+        <h1><a href="https://intel.github.io/wult/">Wult</a></h1>
+        <p><em></em></p>
+    </header>
+    <nav>
+        <ul>
+                <li><a href="/wult/pages/how-it-works.html">How it works</a></li>
+                <li><a href="/wult/pages/install-guide.html">Install</a></li>
+                <li><a href="/wult/pages/user-guide.html">Use</a></li>
+                <li><a href="/wult/pages/howto.html">Howto</a></li>
+                <li><a href="/wult/pages/ndl.html">Ndl</a></li>
+        </ul>
+    </nav>
+    <main>
+        <section>
+            <h1>User Guide</h1>
+            
+            <!-- -*- coding: utf-8 -*- -->
+<!-- vim: ts=4 sw=4 tw=100 et ai si -->
+<div class="contents topic" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#id1" id="id4">1 Usage models</a><ul>
+<li><a class="reference internal" href="#id2" id="id5">1.1 Local usage model</a></li>
+<li><a class="reference internal" href="#id3" id="id6">2.2 Remote usage model</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#scan-for-supported-devices" id="id7">2. Scan for supported devices</a></li>
+<li><a class="reference internal" href="#start-the-measurements" id="id8">3. Start the measurements</a></li>
+<li><a class="reference internal" href="#generate-html-report" id="id9">4. Generate HTML report</a></li>
+</ul>
+</div>
+<div class="section" id="id1">
+<span id="usage-models"></span><h2><a class="toc-backref" href="#id4">1 Usage models</a></h2>
+<p>There are 2 <em>wult</em> usage models - <strong>local</strong> and <strong>remote</strong>. Most users prefer the local usage model,
+because it is more straight-forward.</p>
+<p>In both usage models <em>wult</em> command line arguments are the same except for the <cite>-H SUTNAME</cite> option,
+that you should add in the remote usage case. This option specifies the SUT host name <em>wult</em> should
+connect to.</p>
+<div class="section" id="id2">
+<span id="local-usage-model"></span><h3><a class="toc-backref" href="#id5">1.1 Local usage model</a></h3>
+<img alt="Examples of local wult usage." src="../images/wult-local-usage-model.jpg" />
+<p>In the local usage model, the user runs <em>wult</em> on the SUT. <em>Wult</em> measures the SUT and stores the
+measurement results on the SUT.</p>
+</div>
+<div class="section" id="id3">
+<span id="remote-usage-model"></span><h3><a class="toc-backref" href="#id6">2.2 Remote usage model</a></h3>
+<img alt="Example of remote wult usage." src="../images/wult-remote-usage-model.jpg" />
+<p>In case of remote usage model, the user runs <em>wult</em> on the controller. <em>Wult</em> connects to the SUT
+over the network, exercises the SUT, and stores the results on the controller.</p>
+<p>In the remote usage model a single controller may exercise many SUTs at the same time (multiple
+instances of <em>wult</em> running simultaneously). The other advantage of this usage model is that you run
+<em>wult</em> as a non-privileged user on the controller. However, you should have root SSH login
+configured on the SUT (<a class="reference external" href="install-guide.html#passwordless-ssh">here is how to do this</a>).</p>
+</div>
+</div>
+<div class="section" id="scan-for-supported-devices">
+<h2><a class="toc-backref" href="#id7">2. Scan for supported devices</a></h2>
+<p>Start with scanning for supported delayed interrupt source devices. Run the following command on the
+SUT using the the local usage model:</p>
+<pre class="literal-block">
+sudo wult scan
+
+Compatible device(s):
+ * Device ID: tdt
+   - Alias: tsc-deadline-timer
+   - Description: TSC deadline timer
+ * Device ID: hrtimer
+   - Alias: hrt
+   - Description: Linux High Resolution Timer
+ * Device ID: 0000:38:00.0
+   - Alias: enp1s0
+   - Description: Intel I210 (copper). PCI address 0000:38:00.0, Vendor ID 8086, Device ID 0000:38:00.0.
+</pre>
+<p>The example output lists 3 devices that can be used as delayed interrupt sources for <em>wult</em>:</p>
+<ul class="simple">
+<li><em>tdt</em> - the TCS deadline timer.</li>
+<li><em>hrtimer</em> or <em>hrt</em> - the high resolution timer, <strong>this is what we recommend to use</strong> to most users.</li>
+<li><em>0000:38:00.0</em> - this is the PCI address of the I210 NIC. This NIC is also available under the
+<cite>enp1s0</cite> name, which is actually the Linux network interface name.</li>
+</ul>
+<p>If using the <em>nic</em> method, <a class="reference external" href="howto.html#intel-i210">this howto section</a> has
+some useful information.</p>
+</div>
+<div class="section" id="start-the-measurements">
+<h2><a class="toc-backref" href="#id8">3. Start the measurements</a></h2>
+<p>Before you start <em>wult</em>, you should know which method you are going to use.
+<a class="reference external" href="how-it-works.html#irq-source">This section may help</a>.</p>
+<p>The basic way to start <em>wult</em> is by running <cite>wult start DeviceID</cite>, and <cite>DeviceID</cite>'s are provided by
+<cite>wult scan</cite>. If unsure, use <em>hrt</em>.</p>
+<p>For example, to run <em>wult</em> using the <em>hrt</em> method, run:</p>
+<pre class="literal-block">
+wult start hrt
+</pre>
+<p>This command will collect 1000000 datapoints and save them in current directory in a sub-directory
+like <cite>wult-hrt-&lt;date&gt;</cite>. Here are the options you may want to use as well.</p>
+<ul class="simple">
+<li><cite>-c</cite> - count of datapoints to collect (default is 1000000).</li>
+<li><cite>--reportid</cite> - report ID of the result. Use a short, but descriptive string to describe the test
+run.</li>
+<li><cite>-o</cite> - the output directory path.</li>
+<li><cite>--cpunum</cite> - the CPU to measure the C-state latency on (default is CPU 0).</li>
+</ul>
+<p>Check <cite>wult start -h</cite> for more information.</p>
+</div>
+<div class="section" id="generate-html-report">
+<h2><a class="toc-backref" href="#id9">4. Generate HTML report</a></h2>
+<p>The <cite>wult start</cite> command measures the SUT and saves the result in the <cite>datapoints.csv</cite> file, along
+with some additional metadata in the <cite>info.yml</cite> file. We also refer to these results as &quot;raw
+results&quot;.</p>
+<p>One way to quickly inspect the results in the command line is by using the <cite>wult stats</cite> and <cite>wult
+filter</cite> commands. But you also can generate an HTML report with <cite>wult report</cite>. Here is how to
+generate an HTML report for the raw results in <cite>all-cstates-enabled</cite>:</p>
+<pre class="literal-block">
+wult report all-cstates-enabled
+</pre>
+<p>The HTML report will be saved in <cite>all-cstates-enabled/html-report</cite> sub-directory. Use <cite>-o</cite> option to
+specify a different path to save the HTML report in.</p>
+<p>Note, you can generate a <strong>diff</strong> too. A diff is an HTML report for multiple raw results. Diffs make
+it easier to compare test results. Just give <cite>wult report</cite> multiple raw test results to generate a
+diff.</p>
+<p>Please, find <a class="reference external" href="howto.html#wult-report">more 'wult report' hints here</a>.</p>
+</div>
+
+        </section>
+     </main>
+    <footer>
+        <h6>
+            Rendered by <a href="http://getpelican.com/">Pelican</a> &nbsp;&bull;&nbsp; Theme by <a
+                href="https://github.com/aleylara/Peli-Kiera">Peli-Kiera</a> &nbsp;&bull;&nbsp; Copyright
+                &copy &nbsp;&#8209;&nbsp; Artem Bityutskiy         </h6>
+    </footer>
+</div>
+</body>
+</html>
