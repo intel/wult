@@ -156,7 +156,7 @@ def _get_pyhelper_dependencies(script_path):
 
     # All pyhelpers implement the '--print-module-paths' option, which prints the dependencies.
     cmd = f"{script_path} --print-module-paths"
-    stdout, _ = Procs.run_verify(cmd)
+    stdout, _ = Procs.Proc().run_verify(cmd)
     return [Path(path) for path in stdout.splitlines()]
 
 def find_app_data(prjname, subpath, appname=None, descr=None):
@@ -542,7 +542,7 @@ def _deploy_helpers(args, proc):
         srcdir = helpersrc / pyhelper
         _LOG.debug("copying helper %s:\n  '%s' -> '%s'",
                    pyhelper, srcdir, args.ctmpdir)
-        Procs.rsync(f"{srcdir}", args.ctmpdir, remotesrc=False, remotedst=False)
+        Procs.Proc().rsync(f"{srcdir}", args.ctmpdir, remotesrc=False, remotedst=False)
 
     # Build stand-alone version of every python helper.
     for pyhelper in args.pyhelpers:
