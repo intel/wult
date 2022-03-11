@@ -71,8 +71,8 @@ enough to just install the kernel sources package provided by the OS, e.g.:
 * Fedora: `kernel-devel` package
 * Ubuntu: `linux-source` package
 
-Advance users can provide kernel sources path vial `wult deploy` command line options
-(see the `wult man page <https://github.com/intel/wult/blob/master/docs/wult-man.rst>`_).
+Advanced users can provide custom kernel sources path via `wult deploy` command line options (see
+the `wult man page <https://github.com/intel/wult/blob/master/docs/wult-man.rst>`_).
 
 .. _os-packages:
 
