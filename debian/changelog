@@ -1,3 +1,9 @@
+wult (1.9.17) unstable; urgency=low
+
+  * wult: bugfix release: suggest users how to view local HTML reports
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 11 Mar 2022 18:38:29 +0200
+
 wult (1.9.16) unstable; urgency=low
 
   * wult: bugfix release: improve TDT driver skipping datapoints error diagnostic.
