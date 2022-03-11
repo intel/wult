@@ -236,8 +236,8 @@ class _BaseCollector:
         if not self._configured:
             self._error("the colletor was not configured")
 
-        self._proc = Procs.run_async(self._command, stderr=self._fobj, stdout=self._fobj,
-                                     newgrp=True)
+        self._proc = Procs.Proc().run_async(self._command, stderr=self._fobj, stdout=self._fobj,
+                                            newgrp=True)
 
     def end(self):
         """Stop collecting and get the resulting statistics."""
@@ -427,7 +427,7 @@ class ACPowerCollector(_BaseCollector):
 
         # Note, we assume that the power meter is generally initialized and configured outside of
         # 'stats-collect'. Here we only set the interval.
-        Procs.run_verify(f"{cmd} set interval {self.props['interval']}")
+        Procs.Proc().run_verify(f"{cmd} set interval {self.props['interval']}")
 
         items = "T,P,I,V,S,Q,Phi,Fv,Vrange,Irange"
         self._command = f"{cmd} read {items}"
