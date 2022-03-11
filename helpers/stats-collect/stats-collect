@@ -214,6 +214,7 @@ class _BaseCollector:
             self._fobj = None
 
         try:
+            # pylint: disable=consider-using-with
             self._fobj = open(self._outpath, "wb+", buffering=0)
         except OSError as err:
             self._error("failed to open '%s':\n%s", self._outpath, err)
@@ -537,7 +538,7 @@ class StatsCollector:
                     collector.props[args[1]] = (args[2] == "True")
                 else:
                     collector.props[args[1]] = the_type(args[2])
-            except TypeError:
+            except TypeError as err:
                 raise Error(f"type conversion error for property '{args[1]}' of collector "
                             f"'{collector.name}':\nstring '{args[2]}' cannot be converted to "
                             f"'{the_type}'") from err
@@ -903,5 +904,5 @@ if __name__ == "__main__":
         sys.exit(main())
     except KeyboardInterrupt:
         LOG.error_out("interrupted, exiting")
-    except Error as err:
-        LOG.error_out(err, print_tb=True)
+    except Error as error:
+        LOG.error_out(error, print_tb=True)
