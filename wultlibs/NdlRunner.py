@@ -47,7 +47,7 @@ class NdlRunner:
         timeout = 1.0 + self._ldist[1]/1000000000
 
         while True:
-            stdout, stderr, exitcode = self._ndlrunner.wait_for_cmd(timeout=timeout, by_line=True,
+            stdout, stderr, exitcode = self._ndlrunner.wait_for_cmd(timeout=timeout,
                                                                     lines=[16, None], join=False)
             if exitcode is not None:
                 msg = self._ndlrunner.cmd_failed_msg(stdout, stderr, exitcode, timeout)

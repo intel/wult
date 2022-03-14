@@ -65,7 +65,7 @@ class FTrace:
         """
 
         while True:
-            stdout, stderr, exitcode = self._reader.wait_for_cmd(timeout=self.timeout, by_line=True,
+            stdout, stderr, exitcode = self._reader.wait_for_cmd(timeout=self.timeout,
                                                                  lines=[32, None], join=False)
 
             if not stdout and not stderr and exitcode is None:
