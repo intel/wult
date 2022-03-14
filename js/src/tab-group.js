@@ -9,6 +9,7 @@
  */
 
 import { html, css, LitElement } from 'lit'
+import '@shoelace-style/shoelace/dist/components/alert/alert'
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group'
 import '@shoelace-style/shoelace/dist/components/tab/tab'
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel'
@@ -41,7 +42,8 @@ class TabGroup extends LitElement {
 
     static properties = {
       tabFile: { type: String },
-      tabs: { type: Object, attribute: false }
+      tabs: { type: Object, attribute: false },
+      fetchFailed: { type: Boolean, attribute: false }
     };
 
     /**
