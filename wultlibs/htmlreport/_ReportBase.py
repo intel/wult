@@ -216,8 +216,10 @@ class ReportBase:
         for tab_builder in tab_builders:
             try:
                 tbldr = tab_builder(stats_paths, self.outdir, self._projname)
-            except ErrorNotFound:
-                _LOG.info("Skipping '%s' statistics.", tab_builder.name)
+            except ErrorNotFound as err:
+                _LOG.info("Skipping '%s' tab as '%s' statistics not found for all reports.",
+                          tab_builder.name, tab_builder.name)
+                _LOG.debug(err)
                 continue
 
             _LOG.info("Generating '%s' tab.", tbldr.name)

@@ -117,11 +117,11 @@ class StatsTabGroupBuilder:
                     break
 
             if not stats_exist:
-                _LOG.warning("no raw '%s' statistic files found for report '%s'.", self.name,
-                             reportid)
+                raise ErrorNotFound(f"failed to generate '{self.name}' tab: no raw statistics file "
+                                    f"found for report '{reportid}'.")
 
         if not self._reports:
-            raise ErrorNotFound(f"failed to generate '{self.name}' tab. None of the following raw "
+            raise ErrorNotFound(f"failed to generate '{self.name}' tab: none of the following raw "
                                 f"statistics files were found in any statistics directory: "
                                 f"'{self._stats_files}'.")
 
