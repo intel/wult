@@ -133,7 +133,7 @@ class ReportBase:
         for res in self.rsts:
             resdir = res.dirpath
 
-            if self.relocatable == "copy":
+            if self.relocatable:
                 dstpath = self.outdir / f"raw-{res.reportid}"
                 try:
                     FSHelpers.copy_dir(resdir, dstpath, exist_ok=True, ignore=["html-report"])
@@ -364,9 +364,6 @@ class ReportBase:
         dataframes).
         """
 
-        if self.relocatable not in ("copy", "symlink"):
-            raise Error("bad 'relocatable' value, use one of: copy, symlink")
-
         # Load the required datapoints into memory.
         self._load_results()
 
@@ -561,10 +558,9 @@ class ReportBase:
 
         self._projname = "wult"
 
-        # Users can change this to 'copy' to make the reports relocatable. In which case the raw
-        # results and report assets such as CSS and JS files will be copied from the test result
-        # directories to the output directory.
-        self.relocatable = "symlink"
+        # Users can change this to 'True' to make the reports relocatable. In which case the raw
+        # results files will be copied from the test result directories to the output directory.
+        self.relocatable = False
 
         # The first result is the 'reference' result.
         self._refres = rsts[0]

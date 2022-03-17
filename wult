@@ -292,7 +292,7 @@ def build_arguments_parser():
     subpars.add_argument("--chist", help=ToolsCommon.CHIST_DESCR % get_axes('chist'))
     subpars.add_argument("--reportids", help=ToolsCommon.REPORTIDS_DESCR)
     subpars.add_argument("--title-descr", help=ToolsCommon.TITLE_DESCR)
-    subpars.add_argument("--relocatable", help=ToolsCommon.RELOCATABLE_DESCR)
+    subpars.add_argument("--relocatable", action="store_true", help=ToolsCommon.RELOCATABLE_DESCR)
     subpars.add_argument("--list-columns", action="store_true", help=ToolsCommon.LIST_COLUMNS_DESCR)
 
     text = f"""Generate HTML report with a pre-defined set of diagrams and histograms. This option
@@ -508,14 +508,12 @@ def start_command(args):
 
     rsts = ToolsCommon.open_raw_results([args.outdir], args.toolname)
     rep = WultReport.WultReport(rsts, args.outdir, title_descr=args.reportid)
-    rep.relocatable = "symlink"
+    rep.relocatable = False
     rep.set_hover_colnames(HOVER_COLNAME_REGEXS)
     rep.generate()
 
 def report_command(args):
     """Implements the 'report' command."""
-
-    args.relocatable = ToolsCommon.validate_relocatable_arg(args.relocatable)
 
     if args.report_size:
         if any({getattr(args, name) for name in ("xaxes", "yaxes", "hist", "chist")}):

@@ -1,3 +1,10 @@
+wult (1.9.19) unstable; urgency=low
+
+  * wult report: removed symbolic links to raw result files.
+  * wult report: changed '--relocatable' to be a binary option.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com> 
+
 wult (1.9.18) unstable; urgency=low
 
   * wult report: added AC power and IPM statistics visualization.

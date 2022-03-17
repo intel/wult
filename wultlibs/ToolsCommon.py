@@ -140,15 +140,9 @@ TITLE_DESCR = """The report title description - any text describing this report 
                  the resulting HTML report."""
 
 # Description for the '--relocatable' option of the 'report' command.
-RELOCATABLE_DESCR = """By default the generated report includes references to the raw test results
-                       and report assets (such as CSS/JS files). At the file-system level, symlinks
-                       are created to the assets and results. This means that if the original files
-                       are moved somewhere, or the generated report is moved to another system, it
-                       may end up with broken links to these files. This option accepts 2 possible
-                       values: 'copy' and 'symlink'. In the case of the 'copy' value, raw results
-                       and report assets will be copied to the report output directory, which will
-                       make the report relocatable, but at the expense of increased disk space
-                       consumption. The 'symlink' value corresponds to the default behavior."""
+RELOCATABLE_DESCR = """Generate a report which contains a copy of the raw test results. With this
+                       option, viewers of the report will be able to browse raw logs and statistics
+                       files which are copied across with the raw test results."""
 
 # Description for the '--list-columns' option of the 'report' and other commands.
 LIST_COLUMNS_DESCR = "Print the list of the available column names and exit."
@@ -258,19 +252,6 @@ def _validate_range(rng, what, single_ok):
         vals.append(vals[0])
 
     return vals
-
-def validate_relocatable_arg(arg):
-    """
-    Validate that a given argument 'arg' is valid for the 'relocatable' option. If the argument is
-    valid, it is returned. If the argument is not valid, an Error is raised.
-    """
-
-    if not arg:
-        return "symlink"
-    if arg not in ("copy", "symlink"):
-        raise Error(f"bad '--relocatable' value '{arg}', use one of: "
-                    f"copy, symlink")
-    return arg
 
 def setup_stdout_logging(toolname, logs_path):
     """
