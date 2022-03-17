@@ -80,32 +80,41 @@ class ReportBase:
                 intro_tbl["Title"][key] = "Device Resolution"
                 intro_tbl[res.reportid][key] = f"{resolution}ns"
 
+        def add_intro_tbl_links(key, title, paths):
+            """
+            Add links in 'paths' to the 'intro_tbl' dictionary. Arguments are as follows:
+             * paths - dictionary in the format {Report ID: Path to Link to}.
+             * key - the key which will be used to store the links in the 'intro_tbl' dictionary.
+             * title - the label that will be shown in the intro table for these links.
+            """
+
+            if not paths:
+                return
+
+            intro_tbl["Title"][key] = title
+            link_keys.append(key)
+
+            for res in self.rsts:
+                path = paths.get(res.reportid, None)
+                if path:
+                    if self.outdir not in path.parents:
+                        # If the path points to somewhere outside of the report directory, don't
+                        # include it in the intro table.
+                        path = None
+                    else:
+                        # If the path points to inside the report directory then make it relative to
+                        # the output directory so that the output directory is relocatable. That is,
+                        # the whole directory can be moved or copied without breaking the link.
+                        path = path.relative_to(self.outdir)
+
+                intro_tbl[res.reportid][key] = path
+
         # Add links to the stats directories.
-        if stats_paths:
-            key = "stats"
-            intro_tbl["Title"][key] = "Statistics"
-            link_keys.append(key)
-            for res in self.rsts:
-                path = stats_paths.get(res.reportid, None)
-                intro_tbl[res.reportid][key] = path
-
+        add_intro_tbl_links("stats", "Statistics", stats_paths)
         # Add links to the logs directories.
-        if logs_paths:
-            key = "logs"
-            intro_tbl["Title"][key] = "Logs"
-            link_keys.append(key)
-            for res in self.rsts:
-                path = logs_paths.get(res.reportid, None)
-                intro_tbl[res.reportid][key] = path
-
+        add_intro_tbl_links("logs", "Logs", logs_paths)
         # Add links to the descriptions.
-        if descr_paths:
-            key = "descr"
-            intro_tbl["Title"][key] = "Test description"
-            link_keys.append(key)
-            for res in self.rsts:
-                path = descr_paths.get(res.reportid, None)
-                intro_tbl[res.reportid][key] = path
+        add_intro_tbl_links("descr", "Test Description", descr_paths)
 
         intro_tbl["link_keys"] = link_keys
 
@@ -122,28 +131,31 @@ class ReportBase:
         descr_paths = {}
 
         for res in self.rsts:
-            srcpath = res.dirpath
-            resrootdir = "raw-" + res.reportid
-            dstpath = self.outdir.joinpath(resrootdir)
+            resdir = res.dirpath
 
             if self.relocatable == "copy":
-                FSHelpers.copy_dir(srcpath, dstpath, exist_ok=True, ignore=["html-report"])
-                FSHelpers.set_default_perm(dstpath)
-            else:
-                FSHelpers.move_copy_link(srcpath, dstpath, action="symlink", exist_ok=True)
+                dstpath = self.outdir / f"raw-{res.reportid}"
+                try:
+                    FSHelpers.copy_dir(resdir, dstpath, exist_ok=True, ignore=["html-report"])
+                    FSHelpers.set_default_perm(dstpath)
+                except Error as err:
+                    raise Error(f"failed to copy raw data to report directory: {err}") from None
+
+                # Use the path of the copied raw results rather than the original.
+                resdir = dstpath
 
             if res.stats_path.is_dir():
-                stats_paths[res.reportid] = f"{resrootdir}/{res.stats_path.name}"
+                stats_paths[res.reportid] = resdir / res.stats_path.name
             else:
                 stats_paths[res.reportid] = None
 
             if res.logs_path.is_dir():
-                logs_paths[res.reportid] = f"{resrootdir}/{res.logs_path.name}"
+                logs_paths[res.reportid] = resdir / res.logs_path.name
             else:
                 logs_paths[res.reportid] = None
 
             if res.descr_path.is_file():
-                descr_paths[res.reportid] = f"{resrootdir}/{res.descr_path.name}"
+                descr_paths[res.reportid] = resdir / res.descr_path.name
 
         return stats_paths, logs_paths, descr_paths
 
@@ -214,12 +226,6 @@ class ReportBase:
         ]
 
         tabs = []
-
-        # 'stats_paths' are relative to 'self.outdir'. Turn the paths into absolute paths so that
-        # statistics tab builders know where to look for raw statistics files.
-        for reportid, path in stats_paths.items():
-            if path:
-                stats_paths[reportid] = self.outdir / path
 
         for tab_builder in tab_builders:
             try:
