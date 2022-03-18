@@ -1,6 +1,12 @@
+wult (1.9.18) unstable; urgency=low
+
+  * wult report: added AC power and IPM statistics visualization.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 18 Mar 2022 11:28:24 +0200
+
 wult (1.9.17) unstable; urgency=low
 
-  * wult: bugfix release: suggest users how to view local HTML reports
+  * wult: bugfix release: suggest users how to view local HTML reports.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 11 Mar 2022 18:38:29 +0200
 
@@ -12,7 +18,7 @@ wult (1.9.16) unstable; urgency=low
 
 wult (1.9.15) unstable; urgency=low
 
-  * wult: bugfix release: fix HTML report summary table hover text
+  * wult: bugfix release: fix HTML report summary table hover text.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 11 Feb 2022 18:00:33 +0200
 
