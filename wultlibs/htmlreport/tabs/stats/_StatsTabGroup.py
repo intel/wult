@@ -109,12 +109,13 @@ class StatsTabGroupBuilder:
 
         for reportid, statsdir in stats_paths.items():
             stats_exist = False
-            for stats_file in self._stats_files:
-                statspath = Path(statsdir) / stats_file
-                if statspath.exists():
-                    self._add_stats(reportid, statspath)
-                    stats_exist = True
-                    break
+            if statsdir:
+                for stats_file in self._stats_files:
+                    statspath = Path(statsdir) / stats_file
+                    if statspath.exists():
+                        self._add_stats(reportid, statspath)
+                        stats_exist = True
+                        break
 
             if not stats_exist:
                 raise ErrorNotFound(f"failed to generate '{self.name}' tab: no raw statistics file "

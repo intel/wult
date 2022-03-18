@@ -134,8 +134,14 @@ class ReportBase:
 
             if res.stats_path.is_dir():
                 stats_paths[res.reportid] = f"{resrootdir}/{res.stats_path.name}"
+            else:
+                stats_paths[res.reportid] = None
+
             if res.logs_path.is_dir():
                 logs_paths[res.reportid] = f"{resrootdir}/{res.logs_path.name}"
+            else:
+                logs_paths[res.reportid] = None
+
             if res.descr_path.is_file():
                 descr_paths[res.reportid] = f"{resrootdir}/{res.descr_path.name}"
 
@@ -211,7 +217,9 @@ class ReportBase:
 
         # 'stats_paths' are relative to 'self.outdir'. Turn the paths into absolute paths so that
         # statistics tab builders know where to look for raw statistics files.
-        stats_paths = {reportid: self.outdir / p for reportid, p in stats_paths.items()}
+        for reportid, path in stats_paths.items():
+            if path:
+                stats_paths[reportid] = self.outdir / path
 
         for tab_builder in tab_builders:
             try:
