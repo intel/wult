@@ -29,6 +29,12 @@ class IntroTable extends ReportTable {
       this.link_keys = this.introtbl.link_keys
       delete this.introtbl.link_keys
 
+      // If a link is not available, then it is because the original link pointed outside of the
+      // report directory. In this case, we should let the report viewer know how they can keep the
+      // links with the '--relocatable' option.
+      const noLinkHovertext = 'Regenerate the report with "wult report --relocatable" to copy ' +
+                              'statistics and results to the report directory.'
+
       return html`
         <table width="${this.getWidth(this.introtbl)}%">
         <tr>
@@ -46,7 +52,7 @@ class IntroTable extends ReportTable {
                         (this.link_keys.includes(key))
                         ? val1[key]
                             ? html`<a href=${val1[key]}> ${val} </a>`
-                            : 'Not available'
+                            : html`<abbr title=${noLinkHovertext}>Not available</abbr>`
                         : val1[key]} </td>`
                 }
                 return html``

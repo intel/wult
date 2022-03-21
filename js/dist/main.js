@@ -307,7 +307,7 @@
         ${Object.entries(this.introtbl.Title).map((([t,e])=>z`
             <tr>
             <td class="td-colname"> ${e} </td>
-            ${Object.entries(this.introtbl).map((([s,i])=>"Title"!==s?z`<td class="td-value"> ${this.link_keys.includes(t)?i[t]?z`<a href=${i[t]}> ${e} </a>`:"Not available":i[t]} </td>`:z``))}
+            ${Object.entries(this.introtbl).map((([s,i])=>"Title"!==s?z`<td class="td-value"> ${this.link_keys.includes(t)?i[t]?z`<a href=${i[t]}> ${e} </a>`:z`<abbr title=${'Regenerate the report with "wult report --relocatable" to copy statistics and results to the report directory.'}>Not available</abbr>`:i[t]} </td>`:z``))}
             </tr>
         `))}
         </table>
