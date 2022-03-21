@@ -90,7 +90,7 @@ Here are the required OS packages.
  sudo dnf install -y kernel-devel
  sudo dnf install -y git python3 python3-devel python3-pip python3-numpy
  sudo dnf install -y python3-colorama python3-yaml python3-pandas
- sudo dnf install -y  python3-paramiko python3-jinja2 python3-argcomplete
+ sudo dnf install -y  python3-paramiko python3-argcomplete
 
 **Ubuntu**
 
@@ -100,7 +100,7 @@ Here are the required OS packages.
  sudo apt-get source linux-source
  sudo apt install -y git python3-pip python3-numpy python3-plotly
  sudo apt install -y python3-colorama python3-yaml python3-pandas
- sudo apt install -y python3-paramiko python3-jinja2 python3-argcomplete
+ sudo apt install -y python3-paramiko python3-argcomplete
 
 **Notes**
 
@@ -238,7 +238,7 @@ Controller: ::
 
  sudo dnf install -y git python3 python3-devel python3-pip python3-numpy
  sudo dnf install -y python3-colorama python3-yaml python3-pandas
- sudo dnf install -y  python3-paramiko python3-jinja2 rsync
+ sudo dnf install -y  python3-paramiko rsync
 
 **Ubuntu**
 
@@ -251,7 +251,7 @@ Controller: ::
 
  sudo apt install -y git python3-pip python3-numpy python3-plotly
  sudo apt install -y python3-colorama python3-yaml python3-pandas
- sudo apt install -y python3-paramiko python3-jinja2 rsync
+ sudo apt install -y python3-paramiko rsync
 
 **Notes**
 
