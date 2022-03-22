@@ -13,8 +13,8 @@ consist of one or multiple turbostat data tables.
 
 import re
 from itertools import zip_longest
-from powerlablibs import Trivial
-from powerlablibs.parsers import _ParserBase
+from pepclibs.helperlibs import Trivial
+from wultlibs.parsers import _ParserBase
 
 # The default regular expression for turbostat columns to parse.
 _COLS_REGEX = r".*\s*Avg_MHz\s+(Busy%|%Busy)\s+Bzy_MHz\s+.*"

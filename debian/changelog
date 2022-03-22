@@ -1,9 +1,15 @@
-wult (1.9.19) unstable; urgency=low
+wult (1.9.20) unstable; urgency=low
 
   * wult report: removed symbolic links to raw result files.
   * wult report: changed '--relocatable' to be a binary option.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com> 
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com> __ADD_DATE__
+
+wult (1.9.19) unstable; urgency=low
+
+  * wult report: fix crash introduced in version 1.9.18.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 22 Mar 2022 14:05:57 +0200
 
 wult (1.9.18) unstable; urgency=low
 

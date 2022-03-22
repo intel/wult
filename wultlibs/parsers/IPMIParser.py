@@ -15,8 +15,8 @@ with the "timestamp | XYZ" lines.
 
 import re
 import datetime
-from powerlablibs import Trivial
-from powerlablibs.parsers import _ParserBase
+from pepclibs.helperlibs import Trivial
+from wultlibs.parsers import _ParserBase
 
 class IPMIParser(_ParserBase.ParserBase):
     """This class represents the IPMI parser."""
