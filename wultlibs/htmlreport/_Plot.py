@@ -101,9 +101,19 @@ class Plot:
                  "ticksuffix": self.xaxis_unit,
                  "title": self.xaxis_label}
 
+        # The default axis configuration uses an SI prefix for units (e.g. ms, ks, etc.).  For
+        # percent values, just round the value to 3 significant figures and do not include an SI
+        # prefix.
+        if self.xaxis_unit == "%":
+            xaxis["tickformat"] = ".3r"
+
         yaxis = {**_AXIS,
                  "ticksuffix": self.yaxis_unit,
                  "title": self.yaxis_label}
+
+        # See comment above regarding SI prefixes. Here we do the same but for the Y-axis.
+        if self.yaxis_unit == "%":
+            yaxis["tickformat"] = ".3r"
 
         layout = {"showlegend"  : True,
                   "hovermode"   : "closest",
