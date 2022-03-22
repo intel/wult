@@ -1,3 +1,9 @@
+wult (1.9.19) unstable; urgency=low
+
+  * wult report: fix crash introduced in version 1.9.18.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 22 Mar 2022 14:05:57 +0200
+
 wult (1.9.18) unstable; urgency=low
 
   * wult report: added AC power and IPM statistics visualization.
