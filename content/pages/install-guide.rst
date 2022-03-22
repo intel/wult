@@ -34,8 +34,8 @@ In the (`local usage model <user-guide.html#local-usage-model>`_):
 Before describing the installation steps, here is a how you update an existing wult
 installation. ::
 
- pip install --user --upgrade git+https://github.com/intel/pepc.git@release
- pip install --user --upgrade git+https://github.com/intel/wult.git@release
+ pip3 install --user --upgrade git+https://github.com/intel/pepc.git@release
+ pip3 install --user --upgrade git+https://github.com/intel/wult.git@release
  sudo wult deploy
 
 1.2 SUT root access
@@ -123,8 +123,8 @@ The `pepc` installation steps are provided in the next section.
 installing them. Here is how to install them directly from the `release` branch of their git
 repositories: ::
 
- pip install --user --upgrade git+https://github.com/intel/pepc.git@release
- pip install --user --upgrade git+https://github.com/intel/wult.git@release
+ pip3 install --user --upgrade git+https://github.com/intel/pepc.git@release
+ pip3 install --user --upgrade git+https://github.com/intel/wult.git@release
 
 1.6 Deploy wult drivers
 -----------------------
@@ -166,8 +166,8 @@ In the (`remote usage model <user-guide.html#remote-usage-model>`_):
 Before describing the installation steps, here is a how you update an existing wult
 installation. Run the following commands on the controller::
 
- pip install --user --upgrade git+https://github.com/intel/pepc.git@release
- pip install --user --upgrade git+https://github.com/intel/wult.git@release
+ pip3 install --user --upgrade git+https://github.com/intel/pepc.git@release
+ pip3 install --user --upgrade git+https://github.com/intel/wult.git@release
  sudo wult deploy -H SUTNAME
 
 .. _passwordless-ssh:
