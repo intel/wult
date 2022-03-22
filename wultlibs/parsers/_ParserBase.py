@@ -10,7 +10,7 @@
 This module provides the base class for parsers.
 """
 
-from powerlablibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error
 
 class ParserBase:
     """The base class for parsers."""
