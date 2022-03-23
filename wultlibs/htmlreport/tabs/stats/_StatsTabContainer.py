@@ -14,8 +14,6 @@ from pathlib import Path
 import logging
 
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from pepclibs.helperlibs import YAML
-from wultlibs import Deploy
 from wultlibs.htmlreport.tabs import _BaseTab
 from wultlibs.htmlreport.tabs.stats import _StatsTab
 
@@ -52,19 +50,20 @@ class StatsTabContainerBuilderBase:
 
         raise NotImplementedError()
 
-    def _get_tab_group(self, tab_metrics, time_metric):
+    def _get_tab_group(self, metric_defs, time_defs):
         """
         Returns a 'StatsTabContainerDC' instance containing sub-tabs which represent statistics
         contained within the group.
-         * tab_metrics - a list of metrics to include in the tab container.
-         * time_metric - the metric which represents the time elapsed.
+         * metric_defs - a list of dictionaries containing the definitions for the metrics included
+                         in this tab group.
+         * time_defs - dictionary containing the definitions for the elapsed time.
         """
 
         # Create child tabs.
         tbldrs = []
-        for metric in tab_metrics:
-            tab = _StatsTab.StatsTabBuilder(self._reports, self._outdir, self._basedir, metric,
-                                            time_metric, self._defs)
+        for defs in metric_defs:
+            tab = _StatsTab.StatsTabBuilder(self._reports, self._outdir, self._basedir, defs,
+                                            time_defs)
             tbldrs.append(tab)
 
         tabs = []
@@ -123,7 +122,7 @@ class StatsTabContainerBuilderBase:
                                 f"statistics files were found in any statistics directory: "
                                 f"'{self._stats_files}'.")
 
-    def __init__(self, stats_paths, outdir, bmname, defs_path, stats_files):
+    def __init__(self, stats_paths, outdir, stats_files):
         """
         The class constructor. Adding a statistics group tab will create a sub-directory and store
         sub-tabs inside it. Sub-tabs will represent all of the metrics stored in 'stats_file'.
@@ -131,8 +130,6 @@ class StatsTabContainerBuilderBase:
          * stats_paths - dictionary in the format {'reportid': 'statistics_directory_path'}.
            This class will use these directories to locate raw statistic files.
          * outdir - the output directory in which to create the sub-directory for this tab group.
-         * bmname - name of the benchmark ran during statistics collection.
-         * defs_path - path to definitions file for this metric.
          * stats_files - a list of the possible names of the raw statistics file.
         """
 
@@ -148,13 +145,6 @@ class StatsTabContainerBuilderBase:
             self._outdir.mkdir(parents=True, exist_ok=True)
         except OSError as err:
             raise Error(f"failed to create directory '{self._outdir}': {err}") from None
-
-        try:
-            path = Deploy.find_app_data(bmname, Path(defs_path), appname=bmname,
-                                        descr=f"{self.name} definitions file")
-            self._defs = YAML.load(path)
-        except Error as err:
-            raise Error(f"failed to build '{self.name}' tab: {err}") from None
 
         self._stats_files = stats_files
         self._read_stats(stats_paths)

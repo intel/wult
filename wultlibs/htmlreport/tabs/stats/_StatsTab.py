@@ -99,7 +99,7 @@ class StatsTabBuilder:
 
         self._plots.append(h)
 
-    def __init__(self, reports, outdir, basedir, metric, time_metric, defs):
+    def __init__(self, reports, outdir, basedir, metric_defs, time_defs):
         """
         The class constructor. Adding a stats tab will create a 'metricname' sub-directory and
         store plots and the summary table in it. Arguments are as follows:
@@ -107,13 +107,12 @@ class StatsTabBuilder:
                      '{reportid: stats_df}'
          * outdir - the output directory in which to create the 'metricname' sub-directory.
          * basedir - base directory of the report. All paths should be made relative to this.
-         * metric - name of the metric to create the tab for.
-         * time_metric - name of the metric which represents the elpased time.
-         * defs - dictionary containing the definitions for this metric.
+         * metric_defs - dictionary containing the definitions for this metric.
+         * time_defs - dictionary containing the definitions for the elapsed time.
         """
 
         # File system-friendly tab name.
-        self.name = metric
+        self.name = metric_defs["metric"]
         self._basedir = basedir
         self._outdir = outdir / self.name
         self.smry_path = self._outdir / "summary-table.txt"
@@ -123,9 +122,10 @@ class StatsTabBuilder:
         except OSError as err:
             raise Error(f"failed to create directory '{self._outdir}': {err}") from None
 
-        self._metric_defs = defs[self.name]
-        self._time_defs = defs[time_metric]
-        self._time_metric = time_metric
+        self._metric_defs = metric_defs
+        self._metric = self.name
+        self._time_defs = time_defs
+        self._time_metric = time_defs["metric"]
         self.title = self._metric_defs["title"]
         self.descr = self._metric_defs["descr"]
 

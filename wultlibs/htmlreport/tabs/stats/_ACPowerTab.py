@@ -14,6 +14,7 @@ import pandas
 
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.htmlreport.tabs.stats import _StatsTabContainer
+from wultlibs import Defs
 
 
 class ACPowerTabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
@@ -66,9 +67,10 @@ class ACPowerTabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
         metrics within the ACPower raw statistics file.
         """
 
-        return super()._get_tab_group({self._metric: self._metric}, self._time_metric).tabs[0]
+        defs = Defs.Defs("acpower").info
+        return super()._get_tab_group([defs["ACPower"]], defs["Time"] ).tabs[0]
 
-    def __init__(self, stats_paths, outdir, bmname):
+    def __init__(self, stats_paths, outdir):
         """
         The class constructor. Adding an ACPower tab will create an 'ACPower' sub-directory and
         store plots and the summary table in it. The arguments are the same as in
@@ -78,4 +80,4 @@ class ACPowerTabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
         self._metric = "ACPower"
         self._time_metric = "Time"
 
-        super().__init__(stats_paths, outdir, bmname, "defs/acpower.yml", ["acpower.raw.txt"])
+        super().__init__(stats_paths, outdir, ["acpower.raw.txt"])

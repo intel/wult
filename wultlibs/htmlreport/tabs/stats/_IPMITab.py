@@ -14,6 +14,7 @@ import numpy
 import pandas
 
 from pepclibs.helperlibs.Exceptions import Error
+from wultlibs import Defs
 from wultlibs.parsers import IPMIParser
 from wultlibs.htmlreport.tabs.stats import _StatsTab, _StatsTabContainer
 
@@ -40,6 +41,8 @@ class IPMITabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
         col_sets = [set(sdf.columns) for sdf in self._reports.values()]
         common_cols = set.intersection(*col_sets)
 
+        defs = Defs.Defs("ipmi")
+
         mgroups = []
         for metric, colnames in self._metrics.items():
             coltabs = []
@@ -50,12 +53,12 @@ class IPMITabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
 
                 # Since we use column names which aren't known until runtime as tab titles, use the
                 # defs for the metric but overwrite the 'title' attribute.
-                defs = self._defs
-                defs[col] = defs[metric]
-                defs[col]["title"] = col
+                col_defs = defs.info[metric]
+                col_defs["title"] = col
+                col_defs["metric"] = col
 
-                coltab = _StatsTab.StatsTabBuilder(self._reports, mtab_outdir, self._basedir, col,
-                                                   self._time_metric, defs)
+                coltab = _StatsTab.StatsTabBuilder(self._reports, mtab_outdir, self._basedir,
+                                                   col_defs, defs.info[self._time_metric])
                 coltabs.append(coltab.get_tab())
 
             # Only add a tab group for 'metric' if any tabs were generated to populate it.
@@ -130,7 +133,7 @@ class IPMITabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
         sdf = sdf.rename(columns={time_colname: self._time_metric})
         return sdf
 
-    def __init__(self, stats_paths, outdir, bmname):
+    def __init__(self, stats_paths, outdir):
         """
         The class constructor. Adding an IPMI statistics group tab will create an 'IPMI'
         sub-directory and store sub-tabs inside it. Sub-tabs will represent all of the metrics
@@ -149,5 +152,4 @@ class IPMITabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
             "Power": set()
         }
 
-        super().__init__(stats_paths, outdir, bmname, "defs/ipmi.yml",
-                         ["ipmi.raw.txt", "ipmi-inband.raw.txt"])
+        super().__init__(stats_paths, outdir, ["ipmi.raw.txt", "ipmi-inband.raw.txt"])
