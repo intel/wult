@@ -123,31 +123,6 @@ class RORawResult(_RawResultBase.RawResultBase):
         if regexs:
             self._csel = self.find_colnames(regexs, must_find_all=True)
 
-    def _get_column_funcnames(self, colname, funcnames, all_funcs):
-        """
-        A helper for 'calc_smrys()', which figures out the list of summary functions to compute for
-        column 'colname'.
-        """
-
-        coldef = self.defs.info[colname]
-
-        fnames = []
-        for funcname in funcnames:
-            # We do not need the description, calling this method just to let it validate the
-            # function name.
-            DFSummary.get_smry_func_descr(funcname)
-
-            if "default_funcs" in coldef and coldef["default_funcs"] != "all" and not all_funcs:
-                # Skip functions that are not in the "default functions" list for this column.
-                if funcname not in coldef["default_funcs"]:
-                    # Take into account that defs may contain 'N%' that matches all percentiles.
-                    if not (funcname.endswith("%") and "N%" in coldef["default_funcs"]):
-                        continue
-
-            fnames.append(funcname)
-
-        return fnames
-
     def calc_smrys(self, regexs=None, funcnames=None, all_funcs=False):
         """
         Calculate summary functions specified in 'funcnames' for columns matching 'regexs', and
@@ -196,17 +171,14 @@ class RORawResult(_RawResultBase.RawResultBase):
         if not funcnames:
             funcnames = [funcname for funcname, _ in DFSummary.get_smry_funcs()]
 
-        # Turn 'N%' into 99%, 99.9%, 99.99%, and 99.999%.
-        fnames = []
-        for fname in funcnames:
-            if fname != "N%":
-                fnames.append(fname)
-            else:
-                fnames += ["99%", "99.9%", "99.99%", "99.999%"]
-
         self.smrys = {}
         for colname in colnames:
-            smry_fnames = self._get_column_funcnames(colname, fnames, all_funcs)
+            if all_funcs:
+                smry_fnames = funcnames
+            else:
+                default_funcs = self.defs.info[colname].get("default_funcs", None)
+                smry_fnames = DFSummary.filter_smry_funcs(funcnames, default_funcs)
+
             subdict = DFSummary.calc_col_smry(self.df, colname, smry_fnames)
 
             coldef = self.defs.info[colname]

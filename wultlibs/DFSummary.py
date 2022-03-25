@@ -59,7 +59,36 @@ def get_smry_func_descr(funcname):
     funcnames = ", ".join([fname for fname, _ in get_smry_funcs()])
     raise Error(f"unknown function name '{funcname}', supported names are:\n{funcnames}")
 
-def calc_col_smry(df, colname, funcnames):
+def filter_smry_funcs(funcs, default_funcs=None):
+    """
+    Filter and validate summary functions 'funcs' to only include functions in 'default_funcs'.  The
+    arguments are as follows:
+     * funcs - a list of the summary functions to be filtered.
+     * default_funcs - a list of the summary functions to filter against, defaults to allow all
+                       functions.
+    """
+
+    if not default_funcs:
+        default_funcs = "all"
+
+    fnames = []
+    for funcname in funcs:
+        # We do not need the description, calling this method just to let it validate the
+        # function name.
+        get_smry_func_descr(funcname)
+
+        if default_funcs != "all":
+            # Skip functions that are not in the "default functions" list for this column.
+            if funcname not in default_funcs:
+                # Take into account that defs may contain 'N%' that matches all percentiles.
+                if not (funcname.endswith("%") and "N%" in default_funcs):
+                    continue
+
+        fnames.append(funcname)
+
+    return fnames
+
+def calc_col_smry(df, colname, funcnames=None):
     """
     Calculate summary function 'funcname' for pandas DataFrame column 'colname' in DataFrame 'df'
     and return the resulting dictionary. Note, 'smry' comes from "summary".
@@ -69,7 +98,18 @@ def calc_col_smry(df, colname, funcnames):
             "avg" : "mean", "med" : "median", "std" : "std"}
     smry = {}
 
-    for funcname in funcnames:
+    if not funcnames:
+        funcnames = get_smry_funcs()
+
+    # Turn 'N%' into 99%, 99.9%, 99.99%, and 99.999%.
+    fnames = []
+    for fname in funcnames:
+        if fname != "N%":
+            fnames.append(fname)
+        else:
+            fnames += ["99%", "99.9%", "99.99%", "99.999%"]
+
+    for funcname in fnames:
         # We do not need the description, calling this method just to let it validate the
         # function name.
         get_smry_func_descr(funcname)
@@ -81,9 +121,6 @@ def calc_col_smry(df, colname, funcnames):
             datum = int((df[colname] != 0).sum())
         else:
             # Handle percentiles separately.
-            if funcname == "N%":
-                # Assume 99% by default.
-                funcname = "99%"
             percent = _get_percentile(funcname)
             datum = df[colname].quantile(percent / 100)
 
