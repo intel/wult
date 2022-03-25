@@ -47,8 +47,8 @@ class NdlRunner:
         timeout = 1.0 + self._ldist[1]/1000000000
 
         while True:
-            stdout, stderr, exitcode = self._ndlrunner.wait_for_cmd(timeout=timeout,
-                                                                    lines=[16, None], join=False)
+            stdout, stderr, exitcode = self._ndlrunner.wait(timeout=timeout, lines=[16, None],
+                                                            join=False)
             if exitcode is not None:
                 msg = self._ndlrunner.cmd_failed_msg(stdout, stderr, exitcode, timeout)
                 raise Error(f"{self._ndlrunner_error_prefix()} has exited unexpectedly\n{msg}")
@@ -255,7 +255,7 @@ class NdlRunner:
             ndlrunner.stdin.write("q\n".encode("utf8"))
             ndlrunner.stdin.flush()
 
-        _, _, exitcode = ndlrunner.wait_for_cmd(timeout=5)
+        _, _, exitcode = ndlrunner.wait(timeout=5)
         if exitcode is None:
             _LOG.warning("the 'ndlrunner' program PID %d%s failed to exit, killing it",
                          ndlrunner.pid, self._proc.hostmsg)

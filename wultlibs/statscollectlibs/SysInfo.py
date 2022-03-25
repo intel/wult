@@ -43,7 +43,7 @@ def _run_commands(cmdinfos, proc):
 
         for cmd_proc in procs:
             try:
-                cmd_proc.wait_for_cmd(capture_output=False, timeout=5*60)
+                cmd_proc.wait(capture_output=False, timeout=5*60)
             except Error as err:
                 errors.append(str(err))
 

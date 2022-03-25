@@ -749,7 +749,7 @@ class _Collector:
         # Spend max. 5 secs waiting for 'stats-collect' to startup and print the socket file path.
         attempts = 0
         while not self._uspath and attempts < 5:
-            _, _, exitcode = self._sc.wait_for_cmd(timeout=1, capture_output=False)
+            _, _, exitcode = self._sc.wait(timeout=1, capture_output=False)
             attempts += 1
 
             logdata = logerr = None
@@ -835,7 +835,8 @@ class _Collector:
 
         while time.time() - start_time <= timeout:
             _LOG.debug("trying to connect to localhost:%s", self._ssht_port)
-            stdout, stderr, exitcode = self._ssht.wait_for_cmd(timeout=1, capture_output=True) # pylint: disable=no-member
+            # pylint: disable=no-member
+            stdout, stderr, exitcode = self._ssht.wait(timeout=1, capture_output=True)
 
             if exitcode is not None:
                 raise Error(proc.cmd_failed_msg(cmd, stdout, stderr, exitcode, startmsg=msg))

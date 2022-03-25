@@ -89,7 +89,7 @@ class ETFQdisc():
         self._phc2sys_proc = self._proc.run_async(cmd)
 
         # Make sure the process did not exit immediately.
-        stdout, stderr, exitcode = self._phc2sys_proc.wait_for_cmd(timeout=1)
+        stdout, stderr, exitcode = self._phc2sys_proc.wait(timeout=1)
         if exitcode is not None:
             raise Error("can't synchronize the NIC and system clocks, 'phc2sys' exited:\n%s"
                         % self._phc2sys_proc.cmd_failed_msg(stdout, stderr, exitcode))

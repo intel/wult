@@ -264,7 +264,7 @@ class _BaseCollector:
     def save(self):
         """Save the collected statistics."""
 
-        _, _, exitcode = self._proc.wait_for_cmd(timeout=10, capture_output=False)
+        _, _, exitcode = self._proc.wait(timeout=10, capture_output=False)
         self._sync()
         if exitcode is None:
             self._error("PID %d refused to exit", self._proc.pid)

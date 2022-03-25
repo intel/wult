@@ -65,8 +65,8 @@ class FTrace:
         """
 
         while True:
-            stdout, stderr, exitcode = self._reader.wait_for_cmd(timeout=self.timeout,
-                                                                 lines=[32, None], join=False)
+            stdout, stderr, exitcode = self._reader.wait(timeout=self.timeout, lines=[32, None],
+                                                         join=False)
 
             if not stdout and not stderr and exitcode is None:
                 raise ErrorTimeOut(f"no data in trace buffer for {self._reader.timeout} seconds"
