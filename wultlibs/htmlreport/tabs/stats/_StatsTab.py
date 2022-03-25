@@ -131,7 +131,14 @@ class StatsTabBuilder:
         self._time_colname = time_colname
         self.title = self._metric_defs["title"]
         self.descr = self._metric_defs["descr"]
-        self.smry_funcs = self._metric_defs["default_funcs"]
+
+        # List of functions to provide in the summary tables.
+        smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
+                      "std")
+
+        # Only use a summary function if it is included in the default funcs for this statistic.
+        default_funcs = set(self._metric_defs["default_funcs"])
+        self.smry_funcs = DFSummary.filter_smry_funcs(smry_funcs, default_funcs)
 
         # Reduce 'reports' to only the metric and time columns which are needed for this tab.
         self._reports = {}

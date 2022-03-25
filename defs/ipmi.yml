@@ -9,21 +9,21 @@ FanSpeed:
         Fan speed of a SUT (System Under Test) fan. Collected using IPMI.
     unit: "rotations per minute"
     short_unit: "RPM"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
 Temperature:
     title: "Temperature"
     descr: >-
         Temperature recorded in the SUT (System Under Test). Collected using IPMI.
     unit: "degrees C"
     short_unit: "°c"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
 Power:
     title: "AC Power"
     descr: >-
         Power measurement taken on the SUT (System Under Test). Collected using IPMI.
     unit: "Watt"
     short_unit: "W"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
 Time:
     title: "Time Elapsed"
     descr: "Time elapsed since first measurement was taken."

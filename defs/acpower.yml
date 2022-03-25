@@ -10,7 +10,7 @@ ACPower:
         socket level.
     unit: "Watt"
     short_unit: "W"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
 Time:
     title: "Time Elapsed"
     descr: "Time elapsed since first measurement was taken."
