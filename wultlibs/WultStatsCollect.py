@@ -50,8 +50,8 @@ class WultStatsCollect:
 
         if stconf["discover"] or "acpower" in stconf["include"]:
             # Assume that power meter is configured to match the SUT name.
-            if self._proc.is_remote:
-                devnode = self._proc.hostname
+            if self._pman.is_remote:
+                devnode = self._pman.hostname
             else:
                 devnode = "default"
             self._stcoll.set_prop("acpower", "devnode", devnode)
@@ -62,7 +62,7 @@ class WultStatsCollect:
     def copy_stats(self):
         """Copy collected statistics and statistics log from remote SUT to the local system."""
 
-        if not self._proc.is_remote:
+        if not self._pman.is_remote:
             return
 
         _, routdir = self._stcoll.get_outdirs()
@@ -71,20 +71,20 @@ class WultStatsCollect:
             return
 
         _LOG.debug("copy in-band statistics from '%s:%s' to '%s'",
-                   self._proc.hostname, routdir, self._outdir)
+                   self._pman.hostname, routdir, self._outdir)
 
         # We add trailing slash to the remote directory path in order to make rsync copy the
         # contents of the remote directory, but not the directory itself.
-        self._proc.rsync(f"{routdir}/", self._outdir, opts="rltD", remotesrc=True, remotedst=False)
+        self._pman.rsync(f"{routdir}/", self._outdir, opts="rltD", remotesrc=True, remotedst=False)
 
-    def __init__(self, proc, res):
+    def __init__(self, pman, res):
         """
         The class constructor. The arguments are as follows.
-          * proc - the 'Proc' or 'SSH' object that defines the host to collect the statistics about.
+          * pman - the process manager object that defines the host to collect the statistics about.
           * res - the 'WORawResult' object to store the results at.
           """
 
-        self._proc = proc
+        self._pman = pman
         self._outdir = res.dirpath
         self._stcoll = None
 
@@ -95,7 +95,7 @@ class WultStatsCollect:
         except OSError as err:
             raise Error(f"failed to create directory '{path}': {err}") from None
 
-        self._stcoll = StatsCollect.StatsCollect(proc, local_outdir=self._outdir.resolve())
+        self._stcoll = StatsCollect.StatsCollect(pman, local_outdir=self._outdir.resolve())
 
     def close(self):
         """Close the statistics collector."""
@@ -105,8 +105,8 @@ class WultStatsCollect:
                 self._stcoll.close()
             self._stcoll = None
 
-        if getattr(self, "_proc", None):
-            self._proc = None
+        if getattr(self, "_pman", None):
+            self._pman = None
 
     def __del__(self):
         """The destructor."""

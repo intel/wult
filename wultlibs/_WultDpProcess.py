@@ -517,7 +517,7 @@ class DatapointProcessor:
         close = False
         try:
             if rcsobj is None:
-                rcsobj = CStates.ReqCStates(proc=self._proc)
+                rcsobj = CStates.ReqCStates(pman=self._pman)
                 close = True
             csinfo = rcsobj.get_cpu_cstates_info(self._cpunum)
         finally:
@@ -529,18 +529,18 @@ class DatapointProcessor:
             if not info["disable"]:
                 break
         else:
-            raise Error(f"no idle states are enabled on CPU {self._cpunum}{self._proc.hostmsg}")
+            raise Error(f"no idle states are enabled on CPU {self._cpunum}{self._pman.hostmsg}")
 
         self._csmap = {}
         for csname, cstate in csinfo.items():
             self._csmap[cstate["index"]] = csname
 
-    def __init__(self, cpunum, proc, drvname, intr_focus=None, early_intr=None, tsc_cal_time=10,
+    def __init__(self, cpunum, pman, drvname, intr_focus=None, early_intr=None, tsc_cal_time=10,
                  rcsobj=None):
         """
         The class constructor. The arguments are as follows.
           * cpunum - the measured CPU number.
-          * proc - the 'Proc' or 'SSH' object that defines the host to run the measurements on.
+          * pman - the process manager object that defines the host to run the measurements on.
           * drvname - name of the driver providing the datapoints
           * intr_focus - enable interrupt latency focused measurements ('WakeLatency' is not
           *              measured in this case, only 'IntrLatency').
@@ -550,7 +550,7 @@ class DatapointProcessor:
         """
 
         self._cpunum = cpunum
-        self._proc = proc
+        self._pman = pman
         self._drvname = drvname
         self._intr_focus = intr_focus
         self._early_intr = early_intr
@@ -585,8 +585,8 @@ class DatapointProcessor:
     def close(self):
         """Close the datapoint processor."""
 
-        if getattr(self, "_proc", None):
-            self._proc = None
+        if getattr(self, "_pman", None):
+            self._pman = None
         else:
             return
 

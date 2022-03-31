@@ -30,7 +30,7 @@ class EventsProvider:
 
         # Unload all the possible wult device drivers.
         for drvname in Devices.DRVNAMES:
-            drv = KernelModule.KernelModule(drvname, proc=self._proc, dmesg=self.dev.dmesg_obj)
+            drv = KernelModule.KernelModule(drvname, pman=self._pman, dmesg=self.dev.dmesg_obj)
             drv.unload()
             drv.close()
 
@@ -50,13 +50,13 @@ class EventsProvider:
                 self._main_drv.unload()
             except Error as err1:
                 _LOG.warning("failed to unload module '%s'%s:\n%s", self._main_drv.name,
-                             self._proc.hostmsg, err1)
+                             self._pman.hostmsg, err1)
             raise
 
     def start(self):
         """Start the latency measurements."""
 
-        with self._proc.open(self._enabled_path, "w") as fobj:
+        with self._pman.open(self._enabled_path, "w") as fobj:
             fobj.write("1")
 
     def _set_launch_distance(self):
@@ -64,15 +64,15 @@ class EventsProvider:
 
         try:
             limit_path = self._basedir / "ldist_max_nsec"
-            with self._proc.open(limit_path, "r") as fobj:
+            with self._pman.open(limit_path, "r") as fobj:
                 ldist_max = fobj.read().strip()
 
             limit_path = self._basedir / "ldist_min_nsec"
-            with self._proc.open(limit_path, "r") as fobj:
+            with self._pman.open(limit_path, "r") as fobj:
                 ldist_min = fobj.read().strip()
         except Error as err:
             raise Error(f"failed to read launch distance limit from '{limit_path}'"
-                        f"{self._proc.hostmsg}:\n{err}") from err
+                        f"{self._pman.hostmsg}:\n{err}") from err
 
         ldist_min = Trivial.str_to_num(ldist_min)
         ldist_max = Trivial.str_to_num(ldist_max)
@@ -89,22 +89,22 @@ class EventsProvider:
                 raise Error(f"launch distance '{ldist}' is out of range, it should be in range of "
                             f"[{ldist_min},{ldist_max}]")
             try:
-                with self._proc.open(ldist_path, "w") as fobj:
+                with self._pman.open(ldist_path, "w") as fobj:
                     fobj.write(str(ldist))
             except Error as err:
                 raise Error(f"can't to change launch disatance range\nfailed to open '{ldist_path}'"
-                            f"{self._proc.hostmsg} and write {ldist} to it:\n\t{err}") from err
+                            f"{self._pman.hostmsg} and write {ldist} to it:\n\t{err}") from err
 
     def get_resolution(self):
         """Returns resolution of the delayed event devices in nanoseconds."""
 
         try:
             path = self._basedir / "resolution_nsec"
-            with self._proc.open(path, "r") as fobj:
+            with self._pman.open(path, "r") as fobj:
                 resolution = fobj.read().strip()
         except Error as err:
             raise Error(f"failed to read the delayed event resolution from '{path}'"
-                        f"{self._proc.hostmsg}:\n{err}") from err
+                        f"{self._pman.hostmsg}:\n{err}") from err
 
         return Trivial.str_to_num(resolution)
 
@@ -136,22 +136,22 @@ class EventsProvider:
             self._set_launch_distance()
 
         if self._intr_focus:
-            with self._proc.open(self._intr_focus_path, "w") as fobj:
+            with self._pman.open(self._intr_focus_path, "w") as fobj:
                 fobj.write("1")
 
         if self._early_intr:
-            with self._proc.open(self._early_intr_path, "w") as fobj:
+            with self._pman.open(self._early_intr_path, "w") as fobj:
                 fobj.write("1")
 
         if self._dcbuf_size:
-            with self._proc.open(self._dcbuf_size_path, "w") as fobj:
+            with self._pman.open(self._dcbuf_size_path, "w") as fobj:
                 fobj.write(f"{self._dcbuf_size}")
 
     def close(self):
         """Uninitialize everything (unload kernel drivers, etc)."""
 
-        if getattr(self, "_proc", None):
-            self._proc = None
+        if getattr(self, "_pman", None):
+            self._pman = None
         else:
             return
 
@@ -176,14 +176,13 @@ class EventsProvider:
                                self.dev.info["devid"], self._saved_drvname, err)
             self._saved_drvname = None
 
-    def __init__(self, dev, cpunum, proc, ldist=None, intr_focus=None, early_intr=None,
+    def __init__(self, dev, cpunum, pman, ldist=None, intr_focus=None, early_intr=None,
                  dcbuf_size=None):
         """
         Initialize a class instance for a PCI device 'devid'. The arguments are as follows.
           * dev - the delayed event device object created by 'Devices.WultDevice()'.
           * cpunum - the measured CPU number.
-          * proc - the host to operate on. This object will keep a 'proc' reference and use it in
-                   various methods
+          * pman - the process manager object defining host to operate on.
           * ldist - a pair of numbers specifying the launch distance range. The default value is
                     specific to the delayed event driver.
           * intr_focus - enable inerrupt latency focused measurements ('WakeLatency' is not measured
@@ -196,7 +195,7 @@ class EventsProvider:
 
         self.dev = dev
         self._cpunum = cpunum
-        self._proc = proc
+        self._pman = pman
         self._ldist = ldist
         self._intr_focus = intr_focus
         self._early_intr = early_intr
@@ -211,17 +210,17 @@ class EventsProvider:
         # 'close()'.
         self.unload = True
 
-        self._main_drv = KernelModule.KernelModule("wult", proc=proc, dmesg=dev.dmesg_obj)
-        self._drv = KernelModule.KernelModule(self.dev.drvname, proc=proc, dmesg=dev.dmesg_obj)
+        self._main_drv = KernelModule.KernelModule("wult", pman=pman, dmesg=dev.dmesg_obj)
+        self._drv = KernelModule.KernelModule(self.dev.drvname, pman=pman, dmesg=dev.dmesg_obj)
 
-        mntpoint = FSHelpers.mount_debugfs(proc=proc)
+        mntpoint = FSHelpers.mount_debugfs(pman=pman)
         self._basedir = mntpoint / "wult"
         self._enabled_path = self._basedir / "enabled"
         self._intr_focus_path = self._basedir / "intr_focus"
         self._early_intr_path = self._basedir / "early_intr"
         self._dcbuf_size_path = self._basedir / "dcbuf_size"
 
-        msg = f"Compatible device '{self.dev.info['name']}'{proc.hostmsg}:\n" \
+        msg = f"Compatible device '{self.dev.info['name']}'{pman.hostmsg}:\n" \
               f" * Device ID: {self.dev.info['devid']}\n" \
               f"   - {self.dev.info['descr']}"
         _LOG.info(msg)

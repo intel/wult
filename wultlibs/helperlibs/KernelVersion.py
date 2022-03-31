@@ -13,7 +13,7 @@ This module contains helper functions for dealing with Linux kernel version numb
 import re
 from collections import namedtuple
 from pepclibs.helperlibs.Exceptions import Error
-from pepclibs.helperlibs import Procs
+from pepclibs.helperlibs import LocalProcessManager
 
 # The resource owner information namedtuple "type".
 SplitKver = namedtuple("SplitKver", ["major", "minor", "stable", "rc", "localver"])
@@ -85,26 +85,25 @@ def kver_ge(kver1, kver2):
 
     return not kver_lt(kver1, kver2)
 
-def get_kver(split=False, proc=None):
+def get_kver(split=False, pman=None):
     """
-    Return version of the kernel running on the host associated with the 'proc' object. By default
-    it is the local system. But one can pass a connect 'SSH' object via 'proc' in order to get the
-    version of the kernel running on a remote system.
+    Return version of the kernel running on the host associated with the 'pman' object (local host
+    by default).
 
     By default this function returns the kernel version string (e.g., "4.18.1-build0"), but if
     'split' is 'True', this function returns the split kernel version (refer to 'split_kver()' for
     the details).
     """
 
-    if not proc:
-        proc = Procs.Proc()
+    if not pman:
+        pman = LocalProcessManager.LocalProcessManager()
 
-    kver = proc.run_verify("uname -r")[0].strip()
+    kver = pman.run_verify("uname -r")[0].strip()
     if split:
         return split_kver(kver)
     return kver
 
-def get_kver_ktree(ktree, split=False, proc=None, makecmd=None):
+def get_kver_ktree(ktree, split=False, pman=None, makecmd=None):
     """
     Get version of the kernel in the kernel sources directory 'ktree'. The 'ktree' directory must
     contain an already configured kernel or it should be path to the kernel build directory if the
@@ -114,19 +113,19 @@ def get_kver_ktree(ktree, split=False, proc=None, makecmd=None):
     kernel version. However, you can use the 'makecmd' argument to verride the 'make -C <ktree>'
     part of it.
 
-    The 'split' and 'proc' arguments are the same as in 'get_kver()'.
+    The 'split' and 'pman' arguments are the same as in 'get_kver()'.
     """
 
-    if not proc:
-        proc = Procs.Proc()
+    if not pman:
+        pman = LocalProcessManager.LocalProcessManager()
 
     if not makecmd:
         makecmd = "make -C '%s'" % ktree
     cmd = makecmd + " --quiet -- kernelrelease"
 
     try:
-        kver = proc.run_verify(cmd)[0].strip()
-    except proc.Error as err:
+        kver = pman.run_verify(cmd)[0].strip()
+    except pman.Error as err:
         raise Error("cannot detect kernel version in '%s':\n%s\nMake sure kernel sources are "
                     "configured." % (ktree, err)) from err
 
@@ -134,23 +133,23 @@ def get_kver_ktree(ktree, split=False, proc=None, makecmd=None):
         return split_kver(kver)
     return kver
 
-def get_kver_bin(path, split=False, proc=None):
+def get_kver_bin(path, split=False, pman=None):
     """
-    Get version of a kernel binary at 'path'. The 'split' and 'proc' arguments are the same as in
+    Get version of a kernel binary at 'path'. The 'split' and 'pman' arguments are the same as in
     'get_kver()'.
     """
 
-    if not proc:
-        proc = Procs.Proc()
+    if not pman:
+        pman = LocalProcessManager.LocalProcessManager()
 
     cmd = f"file -- {path}"
-    stdout = proc.run_verify(cmd)[0].strip()
+    stdout = pman.run_verify(cmd)[0].strip()
 
     msg = f"ran this command: {cmd}, got output:\n{stdout}"
 
     matchobj = re.match(r".* Linux kernel.* executable .*", stdout)
     if not matchobj:
-        raise Error(f"file at '{path}'{proc.hostmsg} is not a Linux kernel binary file\n{msg}")
+        raise Error(f"file at '{path}'{pman.hostmsg} is not a Linux kernel binary file\n{msg}")
 
     matchobj = re.match(r".* version ([^ ]+) .*", stdout)
     if not matchobj:

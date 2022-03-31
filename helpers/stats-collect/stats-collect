@@ -27,7 +27,7 @@ import logging
 import tempfile
 import argparse
 import contextlib
-from pepclibs.helperlibs import Logging, ArgParse, Procs, Trivial
+from pepclibs.helperlibs import Logging, ArgParse, LocalProcessManager, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import ProcHelpers
 
@@ -236,38 +236,39 @@ class _BaseCollector:
         if not self._configured:
             self._error("the colletor was not configured")
 
-        self._proc = Procs.Proc().run_async(self._command, stderr=self._fobj, stdout=self._fobj,
-                                            newgrp=True)
+        pman = LocalProcessManager.LocalProcessManager()
+        self._pman = pman.run_async(self._command, stderr=self._fobj, stdout=self._fobj,
+                                    newgrp=True)
 
     def end(self):
         """Stop collecting and get the resulting statistics."""
 
-        exitcode = self._proc.poll()
+        exitcode = self._pman.poll()
         if exitcode is not None:
             self._error("the following command exited prematurely with exit code %d:\n%s",
                         exitcode, self._command)
         else:
             try:
-                pgid = Trivial.get_pgid(self._proc.pid)
+                pgid = Trivial.get_pgid(self._pman.pid)
             except Error as err:
                 self._error(err)
 
             # Signal the entire statistics collection process group.
             self._debug("sending signal %s to PGID %d (group of PID %d)",
-                        self._signal, pgid, self._proc.pid)
+                        self._signal, pgid, self._pman.pid)
             try:
                 os.killpg(pgid, self._signal)
             except OSError as err:
                 self._error("failed to kill the process group of PID %d, PGID %d:\n%s",
-                            self._proc.pid, pgid, err)
+                            self._pman.pid, pgid, err)
 
     def save(self):
         """Save the collected statistics."""
 
-        _, _, exitcode = self._proc.wait(timeout=10, capture_output=False)
+        _, _, exitcode = self._pman.wait(timeout=10, capture_output=False)
         self._sync()
         if exitcode is None:
-            self._error("PID %d refused to exit", self._proc.pid)
+            self._error("PID %d refused to exit", self._pman.pid)
 
     def validate(self):
         """Check that the collected statistics are valid."""
@@ -312,7 +313,7 @@ class _BaseCollector:
         # These attributes are internal to this base class.
         #
         self._fobj = None
-        self._proc = None
+        self._pman = None
         self._outpath = None
 
         #
@@ -427,7 +428,8 @@ class ACPowerCollector(_BaseCollector):
 
         # Note, we assume that the power meter is generally initialized and configured outside of
         # 'stats-collect'. Here we only set the interval.
-        Procs.Proc().run_verify(f"{cmd} set interval {self.props['interval']}")
+        pman = LocalProcessManager.LocalProcessManager()
+        pman.run_verify(f"{cmd} set interval {self.props['interval']}")
 
         items = "T,P,I,V,S,Q,Phi,Fv,Vrange,Irange"
         self._command = f"{cmd} read {items}"

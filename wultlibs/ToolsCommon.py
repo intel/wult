@@ -17,7 +17,7 @@ this module require the  'args' object which represents the command-line argumen
 import sys
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import Trivial, Procs, SSH, Logging, YAML
+from pepclibs.helperlibs import Trivial, LocalProcessManager, SSHProcessManager, Logging, YAML
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import Devices
 from wultlibs.helperlibs import ReportID, Human
@@ -215,13 +215,13 @@ FUNCS_DESCR = """Comma-separated list of summary functions to calculate. By defa
 # Description for the '--list-funcs' option of the 'calc' command.
 LIST_FUNCS_DESCR = "Print the list of the available summary functions."
 
-def get_proc(args, hostname):
-    """Returns an "SSH" or 'Procs' object for host 'hostname'."""
+def get_pman(args, hostname):
+    """Returns the process manager object for host 'hostname'."""
 
     if hostname == "localhost":
-        return Procs.Proc()
-    return SSH.SSH(hostname=hostname, username=args.username, privkeypath=args.privkey,
-                   timeout=args.timeout)
+        return LocalProcessManager.LocalProcessManager()
+    return SSHProcessManager.SSHProcessManager(hostname=hostname, username=args.username,
+                                               privkeypath=args.privkey, timeout=args.timeout)
 
 def _validate_range(rng, what, single_ok):
     """Implements 'parse_ldist()'."""
@@ -358,10 +358,10 @@ def apply_filters(args, res):
 def scan_command(args):
     """Implements the 'scan' command for the 'wult' and 'ndl' tools."""
 
-    proc = get_proc(args, args.hostname)
+    pman = get_pman(args, args.hostname)
 
     msg = ""
-    for devid, alias, descr in Devices.scan_devices(proc, args.devtypes):
+    for devid, alias, descr in Devices.scan_devices(pman, args.devtypes):
         msg += f" * Device ID: {devid}\n"
         if alias:
             msg += f"   - Alias: {alias}\n"
@@ -371,7 +371,7 @@ def scan_command(args):
         _LOG.info("No %s compatible devices found", args.toolname)
         return
 
-    _LOG.info("Compatible device(s)%s:\n%s", proc.hostmsg, msg.rstrip())
+    _LOG.info("Compatible device(s)%s:\n%s", pman.hostmsg, msg.rstrip())
 
 def filter_command(args):
     """Implements the 'filter' command for the 'wult' and 'ndl' tools."""

@@ -18,7 +18,7 @@ import time
 import contextlib
 from pathlib import Path
 from collections import namedtuple
-from pepclibs.helperlibs import FSHelpers, Procs, Trivial
+from pepclibs.helperlibs import FSHelpers, LocalProcessManager, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
 from wultlibs import LsPCI
 
@@ -43,33 +43,33 @@ def _looks_like_ip(name):
         return False
     return True
 
-def _get_ifinfos(proc):
+def _get_ifinfos(pman):
     """
-    For every network interfaces backed by a real device on the system defined by 'proc', yield the
+    For every network interfaces backed by a real device on the system defined by 'pman', yield the
     following tuples:
     * interface name
     * device HW address
     """
 
-    for ifname, path, typ in FSHelpers.lsdir(_SYSFSBASE, proc=proc):
+    for ifname, path, typ in FSHelpers.lsdir(_SYSFSBASE, pman=pman):
         if typ != "@":
             # We expect a symlink.
             continue
 
         devpath = None
         with contextlib.suppress(Error):
-            devpath = FSHelpers.abspath(path / "device", proc=proc)
+            devpath = FSHelpers.abspath(path / "device", pman=pman)
         if not devpath:
             continue
 
         yield ifname, devpath.name
 
-def _get_ifnames(proc):
+def _get_ifnames(pman):
     """
-    Yields names of network interfaces backed by a real device on the system defined by 'proc'.
+    Yields names of network interfaces backed by a real device on the system defined by 'pman'.
     """
 
-    for ifname, _ in _get_ifinfos(proc):
+    for ifname, _ in _get_ifinfos(pman):
         yield ifname
 
 def _parse_ip_address_show(raw):
@@ -109,8 +109,8 @@ class NetIface:
         max_attempts = 128
         for _ in range(max_attempts):
             ipaddr = ".".join([str(random.randint(0, 255)) for _ in range(4)])
-            for ifname in _get_ifnames(self._proc):
-                netif = NetIface(ifname, proc=self._proc)
+            for ifname in _get_ifnames(self._pman):
+                netif = NetIface(ifname, pman=self._pman)
                 netinfo = netif.get_ip_info()
 
                 if "ipv4" not in netinfo:
@@ -126,7 +126,7 @@ class NetIface:
                 # We found the unique IP.
                 return ipaddr
 
-        raise Error(f"failed to find a random unique IP address for host '{self._proc.hostname}'")
+        raise Error(f"failed to find a random unique IP address for host '{self._pman.hostname}'")
 
     def has_carrier(self):
         """
@@ -136,7 +136,7 @@ class NetIface:
 
         path = self._sysfsbase.joinpath("carrier")
         try:
-            with self._proc.open(path, "r") as fobj:
+            with self._pman.open(path, "r") as fobj:
                 value = fobj.read()
         except Error:
             return None
@@ -149,40 +149,40 @@ class NetIface:
         if self._ip_tool_present:
             return
 
-        if not FSHelpers.which("ip", default=None, proc=self._proc):
-            raise ErrorNotSupported(f"the 'ip' tool is not installed{self._proc.hostmsg}.\nThis "
+        if not FSHelpers.which("ip", default=None, pman=self._pman):
+            raise ErrorNotSupported(f"the 'ip' tool is not installed{self._pman.hostmsg}.\nThis "
                                     f"tool is part of the 'iproute2' project, please install it.")
         self._ip_tool_present = True
 
     def get_pci_info(self):
         """Return network interface PCI information."""
-        return LsPCI.LsPCI(proc=self._proc).get_info(self.hwaddr)
+        return LsPCI.LsPCI(pman=self._pman).get_info(self.hwaddr)
 
     def up(self): # pylint: disable=invalid-name
         """Bring the network interface up."""
 
         self._check_ip_tool_present()
-        self._proc.run_verify(f"ip link set dev {self.ifname} up")
+        self._pman.run_verify(f"ip link set dev {self.ifname} up")
 
     def down(self):
         """Bring the network interface down."""
 
         self._check_ip_tool_present()
-        self._proc.run_verify(f"ip link set dev {self.ifname} down")
+        self._pman.run_verify(f"ip link set dev {self.ifname} down")
 
     def getstate(self):
         """Return the operational state of the itnerface (up, down, etc)."""
 
         path = self._sysfsbase.joinpath("operstate")
-        with self._proc.open(path, "r") as fobj:
+        with self._pman.open(path, "r") as fobj:
             return fobj.read().strip()
 
     def disable_ipv6(self):
         """Disable IPv6 for the network interface."""
 
         path = Path("/proc/sys/net/ipv6/conf/{self.ifname}/disable_ipv6")
-        if FSHelpers.isfile(path, proc=self._proc):
-            with self._proc.open(path, "w") as fobj:
+        if FSHelpers.isfile(path, pman=self._pman):
+            with self._pman.open(path, "w") as fobj:
                 fobj.write("1")
 
     def wait_for_carrier(self, timeout):
@@ -194,7 +194,7 @@ class NetIface:
                 return
             time.sleep(0.1)
 
-        raise Error(f"network interface '{self.ifname}'{self._proc.hostmsg} has no carrier, "
+        raise Error(f"network interface '{self.ifname}'{self._pman.hostmsg} has no carrier, "
                     f"waited for {timeout} seconds")
 
     def get_ip_info(self):
@@ -204,7 +204,7 @@ class NetIface:
         """
 
         self._check_ip_tool_present()
-        stdout, _ = self._proc.run_verify(f"ip address show {self.ifname}")
+        stdout, _ = self._pman.run_verify(f"ip address show {self.ifname}")
         return _parse_ip_address_show(stdout)
 
     def get_ipv4_addr(self, default=_RAISE):
@@ -217,7 +217,7 @@ class NetIface:
         info = self.get_ip_info()
         if "ipv4" not in info:
             if default is _RAISE:
-                raise Error(f"interface '{self.ifname}'{self._proc.hostmsg} does not have an IPv4 "
+                raise Error(f"interface '{self.ifname}'{self._pman.hostmsg} does not have an IPv4 "
                             f"address")
             return default
 
@@ -231,7 +231,7 @@ class NetIface:
 
         self._check_ip_tool_present()
         self._saved_ip_info = self.get_ip_info()
-        self._proc.run_verify(f"ip address add {ip} dev {self.ifname}")
+        self._pman.run_verify(f"ip address add {ip} dev {self.ifname}")
 
     def restore_ipv4_addr(self):
         """
@@ -252,7 +252,7 @@ class NetIface:
                 return
             cmd = "del"
 
-        self._proc.run_verify(f"ip address {cmd} {info['ipv4']['ip_cidr']} dev {self.ifname}")
+        self._pman.run_verify(f"ip address {cmd} {info['ipv4']['ip_cidr']} dev {self.ifname}")
 
     def _get_hw_addr(self):
         """
@@ -262,12 +262,12 @@ class NetIface:
 
         # The "device" symlink leads to the sysfs subdirectory corresponding to the underlying NIC.
         path = self._sysfsbase / "device"
-        if not FSHelpers.exists(path, proc=self._proc):
+        if not FSHelpers.exists(path, pman=self._pman):
             raise ErrorNotFound(f"cannot find network interface '{self.ifname}':\n"
-                                f"path '{path}' does not exist{self._proc.hostmsg}'")
+                                f"path '{path}' does not exist{self._pman.hostmsg}'")
 
         # The name of the subdirectory is the hardware address.
-        path = FSHelpers.abspath(path, proc=self._proc)
+        path = FSHelpers.abspath(path, pman=self._pman)
         return path.name
 
     def _raise_iface_not_found(self):
@@ -281,12 +281,12 @@ class NetIface:
             msg1 = "\nIt looks like you specified an IP address. Please, specify name of network " \
                    "interface instead."
         try:
-            msg2 = ", ".join(_get_ifnames(self._proc))
-            msg2 = f"\nHere is the list of network iterfaces available{self._proc.hostmsg}: {msg2}."
+            msg2 = ", ".join(_get_ifnames(self._pman))
+            msg2 = f"\nHere is the list of network iterfaces available{self._pman.hostmsg}: {msg2}."
         except Error:
             pass
 
-        raise ErrorNotFound(f"network interface '{self._ifid}' was not found{self._proc.hostmsg}."
+        raise ErrorNotFound(f"network interface '{self._ifid}' was not found{self._pman.hostmsg}."
                             f"{msg1}{msg2}")
 
     def _hw_addr_to_ifname(self):
@@ -297,30 +297,26 @@ class NetIface:
 
         # Go through all network interfaces and check for the "device" symlink, which will contain
         # the HW address of the network interface. Tested with PCI devices.
-        for ifname, hwaddr in _get_ifinfos(self._proc):
+        for ifname, hwaddr in _get_ifinfos(self._pman):
             if self._ifid == hwaddr:
                 _LOG.debug("resolved '%s' to '%s'", self._ifid, ifname)
                 return ifname
 
         return None
 
-    def __init__(self, ifid, proc=None):
+    def __init__(self, ifid, pman=None):
         """
         Initialize a class instance network interface corresponding to 'ifid' on the host associated
-        with the 'proc' object. The 'ifid' argumen can be either the network interface name or its
+        with the 'pman' object. The 'ifid' argumen can be either the network interface name or its
         hardware address (e.g., the PCI address of the network card corresponding to the network
         interface).
-
-        By default this class is intialized for the local host, but 'proc' can be used to pass a
-        connected 'SSH' object, in which case all operation will be done on the remote host. This
-        object will keep a 'proc' reference and use it in various methods.
         """
 
-        if not proc:
-            proc = Procs.Proc()
+        if not pman:
+            pman = LocalProcessManager.LocalProcessManager()
 
         self._ifid = ifid
-        self._proc = proc
+        self._pman = pman
         self.ifname = None
         self.hwaddr = None
         self._sysfsbase = None
@@ -328,7 +324,7 @@ class NetIface:
         self._ip_tool_present = None
 
         sysfsbase = _SYSFSBASE.joinpath(ifid)
-        if FSHelpers.isdir(sysfsbase, proc=proc):
+        if FSHelpers.isdir(sysfsbase, pman=pman):
             # 'ifid' is a network interface name.
             self.ifname = ifid
             self._sysfsbase = sysfsbase
@@ -343,8 +339,8 @@ class NetIface:
 
     def close(self):
         """Stop the measurements."""
-        if getattr(self, "_proc", None):
-            self._proc = None
+        if getattr(self, "_pman", None):
+            self._pman = None
 
     def __enter__(self):
         """Enter the runtime context."""

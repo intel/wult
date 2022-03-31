@@ -17,7 +17,8 @@ import zipfile
 import logging
 import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import Procs, Trivial, FSHelpers, Logging, ArgParse, WrapExceptions
+from pepclibs.helperlibs import LocalProcessManager, Trivial, FSHelpers, Logging, ArgParse
+from pepclibs.helperlibs import WrapExceptions
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import ToolsCommon
 from wultlibs.helperlibs import KernelVersion, RemoteHelpers
@@ -46,13 +47,14 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
          program. Helpers are deployed by compiling them on the SUT using 'make' and installing them
          using 'make install'.
       2. Python helpers (pyhelpers) are helper tools written in python (e.g., 'stats-collect'). They
-         also reside in the 'helpers subdirectory, but they are not totally independent. They depend
-         on multiple modules that come with 'wult' project (e.g., 'helperlibs/Procs.py').
-         Therefore, in order to deploy python helpers, we need to deploy the dependencies. And the
-         way we do this depends on whether we deploy to the local system or to a remote system. In
-         case of the local system, python helpers are deployed by 'setup.py', just the 'wult' tool
-         is deployed. In case of a remote system, we build and deploy a stand-alone version of the
-         helper using python '__main__.py' + zip archive mechanism.
+         also reside in the 'helpers' subdirectory, but they are not totally independent. They
+         depend on multiple modules that come with 'wult' project (e.g.,
+         'helperlibs/LocalProcessManager.py'). Therefore, in order to deploy python helpers, we need
+         to deploy the dependencies. And the way we do this depends on whether we deploy to the
+         local system or to a remote system. In case of the local system, python helpers are
+         deployed by 'setup.py', just the 'wult' tool is deployed. In case of a remote system, we
+         build and deploy a stand-alone version of the helper using python '__main__.py' + zip
+         archive mechanism.
     """
 
     if not helpers:
@@ -108,40 +110,40 @@ def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=No
     parser.set_defaults(helpers=helpers)
     parser.set_defaults(pyhelpers=pyhelpers)
 
-def _get_module_path(proc, name):
+def _get_module_path(pman, name):
     """Return path to installed module. Return 'None', if module not found."""
 
     cmd = f"modinfo -n {name}"
-    stdout, _, exitcode = proc.run(cmd)
+    stdout, _, exitcode = pman.run(cmd)
     if exitcode != 0:
         return None
 
     modpath = Path(stdout.strip())
-    if FSHelpers.isfile(modpath, proc):
+    if FSHelpers.isfile(modpath, pman):
         return modpath
     return None
 
-def get_helpers_deploy_path(proc, toolname):
+def get_helpers_deploy_path(pman, toolname):
     """
-    Get helpers deployment path for 'toolname' on the system associated with the 'proc' object.
+    Get helpers deployment path for 'toolname' on the system associated with the 'pman' object.
     """
 
     helpers_path = os.environ.get(f"{toolname.upper()}_HELPERSPATH")
     if not helpers_path:
-        helpers_path = FSHelpers.get_homedir(proc=proc) / _HELPERS_LOCAL_DIR / "bin"
+        helpers_path = FSHelpers.get_homedir(pman=pman) / _HELPERS_LOCAL_DIR / "bin"
     return Path(helpers_path)
 
-def _get_deployables(srcpath, proc=None):
+def _get_deployables(srcpath, pman=None):
     """
     Returns the list of "deployables" (driver names or helper tool names) provided by tools or
-    drivers source code directory 'srcpath' on a host defined by 'proc'.
+    drivers source code directory 'srcpath' on a host defined by 'pman'.
     """
 
-    if not proc:
-        proc = Procs.Proc()
+    if not pman:
+        pman = LocalProcessManager.LocalProcessManager()
 
     cmd = f"make --silent -C '{srcpath}' list_deployables"
-    deployables, _ = proc.run_verify(cmd)
+    deployables, _ = pman.run_verify(cmd)
     if deployables:
         deployables = Trivial.split_csv_line(deployables, sep=" ")
 
@@ -156,7 +158,7 @@ def _get_pyhelper_dependencies(script_path):
 
     # All pyhelpers implement the '--print-module-paths' option, which prints the dependencies.
     cmd = f"{script_path} --print-module-paths"
-    stdout, _ = Procs.Proc().run_verify(cmd)
+    stdout, _ = LocalProcessManager.LocalProcessManager().run_verify(cmd)
     return [Path(path) for path in stdout.splitlines()]
 
 def find_app_data(prjname, subpath, appname=None, descr=None):
@@ -211,7 +213,7 @@ def find_app_data(prjname, subpath, appname=None, descr=None):
     raise Error(f"cannot find {descr}, searched in the following directories on local host:\n"
                 f"{dirs}")
 
-def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
+def is_deploy_needed(pman, toolname, helpers=None, pyhelpers=None):
     """
     Wult and other tools require additional helper programs and drivers to be installed on the SUT.
     This function tries to analyze the SUT and figure out whether drivers and helper programs are
@@ -219,7 +221,7 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
 
     This function works by simply matching the modification date of sources and binaries for every
     required helper and driver. If sources have later date, then re-deployment is probably needed.
-      * proc - the 'Proc' or 'SSH' object associated with the SUT.
+      * pman - the process manager object for the SUT.
       * toolname - name of the tool to check the necessity of deployment for (e.g., "wult").
       o helpers - list of helpers required to be deployed on the SUT.
       o pyhelpers - list of python helpers required to be deployed on the SUT.
@@ -252,9 +254,9 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
     def deployable_not_found(what):
         """Called when a helper of driver was not found on the SUT to raise an exception."""
 
-        err = f"{what} was not found on {proc.hostmsg}. Please, run:\n{toolname} deploy"
-        if proc.is_remote:
-            err += f" -H {proc.hostname}"
+        err = f"{what} was not found on {pman.hostmsg}. Please, run:\n{toolname} deploy"
+        if pman.is_remote:
+            err += f" -H {pman.hostname}"
         raise Error(err)
 
 
@@ -263,15 +265,15 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
     srcpath = find_app_data("wult", _DRV_SRC_SUBPATH / toolname, appname=toolname)
     dstpaths = []
     for deployable in _get_deployables(srcpath):
-        dstpath = _get_module_path(proc, deployable)
+        dstpath = _get_module_path(pman, deployable)
         if not dstpath:
             deployable_not_found(f"the '{deployable}' kernel module")
-        dstpaths.append(_get_module_path(proc, deployable))
+        dstpaths.append(_get_module_path(pman, deployable))
     dinfos["drivers"] = {"src" : [srcpath], "dst" : dstpaths}
 
     # Add non-python helpers' deploy information.
     if helpers or pyhelpers:
-        helpers_deploy_path = get_helpers_deploy_path(proc, toolname)
+        helpers_deploy_path = get_helpers_deploy_path(pman, toolname)
 
     if helpers:
         for helper in helpers:
@@ -284,12 +286,14 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
     # Add python helpers' deploy information. Note, python helpers are deployed only to the remote
     # host. The local copy of python helpers comes via 'setup.py'. Therefore, check them only for
     # the remote case.
-    if pyhelpers and proc.is_remote:
+    if pyhelpers and pman.is_remote:
         for pyhelper in pyhelpers:
             datapath = find_app_data("wult", _HELPERS_SRC_SUBPATH / pyhelper, appname=toolname)
             srcpaths = []
             dstpaths = []
-            for deployable in _get_deployables(datapath, Procs.Proc()):
+            pman = LocalProcessManager.LocalProcessManager()
+
+            for deployable in _get_deployables(datapath, pman):
                 if datapath.joinpath(deployable).exists():
                     # This case is relevant for running wult from sources - python helpers are
                     # in the 'helpers/pyhelper' directory.
@@ -306,8 +310,8 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
     # We are about to get timestamps for local and remote files. Take into account the possible time
     # shift between local and remote systems.
     time_delta = 0
-    if proc.is_remote:
-        time_delta = time.time() - RemoteHelpers.time_time(proc=proc)
+    if pman.is_remote:
+        time_delta = time.time() - RemoteHelpers.time_time(pman=pman)
 
     # Compare source and destination files' timestamps.
     for what, dinfo in dinfos.items():
@@ -315,7 +319,7 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
         src_mtime = get_newest_mtime(src)
         for dst in dinfo["dst"]:
             try:
-                dst_mtime = FSHelpers.get_mtime(dst, proc)
+                dst_mtime = FSHelpers.get_mtime(dst, pman)
             except ErrorNotFound:
                 deployable_not_found(dst)
 
@@ -336,8 +340,8 @@ def _log_cmd_output(args, stdout, stderr):
         if stderr:
             _LOG.log(Logging.ERRINFO, stderr)
 
-def _deploy_drivers(args, proc):
-    """Deploy drivers to the SUT represented by 'proc'."""
+def _deploy_drivers(args, pman):
+    """Deploy drivers to the SUT represented by 'pman'."""
 
     drvsrc = find_app_data("wult", _DRV_SRC_SUBPATH/f"{args.toolname}",
                            descr=f"{args.toolname} drivers sources")
@@ -346,42 +350,42 @@ def _deploy_drivers(args, proc):
 
     kver = None
     if not args.ksrc:
-        kver = KernelVersion.get_kver(proc=proc)
+        kver = KernelVersion.get_kver(pman=pman)
         if not args.ksrc:
             args.ksrc = Path(f"/lib/modules/{kver}/build")
     else:
-        args.ksrc = FSHelpers.abspath(args.ksrc, proc=proc)
+        args.ksrc = FSHelpers.abspath(args.ksrc, pman=pman)
 
-    if not FSHelpers.isdir(args.ksrc, proc=proc):
-        raise Error(f"kernel sources directory '{args.ksrc}' does not exist{proc.hostmsg}")
+    if not FSHelpers.isdir(args.ksrc, pman=pman):
+        raise Error(f"kernel sources directory '{args.ksrc}' does not exist{pman.hostmsg}")
 
     if not kver:
-        kver = KernelVersion.get_kver_ktree(args.ksrc, proc=proc)
+        kver = KernelVersion.get_kver_ktree(args.ksrc, pman=pman)
 
     _LOG.info("Kernel sources path: %s", args.ksrc)
     _LOG.info("Kernel version: %s", kver)
 
     if KernelVersion.kver_lt(kver, args.minkver):
-        raise Error(f"version of the kernel{proc.hostmsg} is {kver}, and it is not new enough.\n"
+        raise Error(f"version of the kernel{pman.hostmsg} is {kver}, and it is not new enough.\n"
                     f"Please, use kernel version {args.minkver} or newer.")
 
-    _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'", proc.hostname, drvsrc, args.stmpdir)
-    proc.rsync(f"{drvsrc}/", args.stmpdir / "drivers", remotesrc=False, remotedst=True)
+    _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'", pman.hostname, drvsrc, args.stmpdir)
+    pman.rsync(f"{drvsrc}/", args.stmpdir / "drivers", remotesrc=False, remotedst=True)
     drvsrc = args.stmpdir / "drivers"
 
     kmodpath = Path(f"/lib/modules/{kver}")
-    if not FSHelpers.isdir(kmodpath, proc=proc):
-        raise Error(f"kernel modules directory '{kmodpath}' does not exist{proc.hostmsg}")
+    if not FSHelpers.isdir(kmodpath, pman=pman):
+        raise Error(f"kernel modules directory '{kmodpath}' does not exist{pman.hostmsg}")
 
     # Build the drivers on the SUT.
-    _LOG.info("Compiling the drivers%s", proc.hostmsg)
+    _LOG.info("Compiling the drivers%s", pman.hostmsg)
     cmd = f"make -C '{drvsrc}' KSRC='{args.ksrc}'"
     if args.debug:
         cmd += " V=1"
 
-    stdout, stderr, exitcode = proc.run(cmd)
+    stdout, stderr, exitcode = pman.run(cmd)
     if exitcode != 0:
-        msg = proc.cmd_failed_msg(cmd, stdout, stderr, exitcode)
+        msg = pman.cmd_failed_msg(cmd, stdout, stderr, exitcode)
         if "synth_event_" in stderr:
             msg += "\n\nLooks like synthetic events support is disabled in your kernel, enable " \
                    "the 'CONFIG_SYNTH_EVENTS' kernel configuration option."
@@ -391,26 +395,26 @@ def _deploy_drivers(args, proc):
 
     # Deploy the drivers.
     dstdir = kmodpath / _DRV_SRC_SUBPATH
-    FSHelpers.mkdir(dstdir, parents=True, exist_ok=True, proc=proc)
+    FSHelpers.mkdir(dstdir, parents=True, exist_ok=True, pman=pman)
 
-    for name in _get_deployables(drvsrc, proc):
-        installed_module = _get_module_path(proc, name)
+    for name in _get_deployables(drvsrc, pman):
+        installed_module = _get_module_path(pman, name)
         srcpath = drvsrc / f"{name}.ko"
         dstpath = dstdir / f"{name}.ko"
-        _LOG.info("Deploying driver '%s' to '%s'%s", name, dstpath, proc.hostmsg)
-        proc.rsync(srcpath, dstpath, remotesrc=True, remotedst=True)
+        _LOG.info("Deploying driver '%s' to '%s'%s", name, dstpath, pman.hostmsg)
+        pman.rsync(srcpath, dstpath, remotesrc=True, remotedst=True)
 
         if installed_module and installed_module.resolve() != dstpath.resolve():
-            _LOG.debug("removing old module '%s'%s", installed_module, proc.hostmsg)
-            proc.run_verify(f"rm -f '{installed_module}'")
+            _LOG.debug("removing old module '%s'%s", installed_module, pman.hostmsg)
+            pman.run_verify(f"rm -f '{installed_module}'")
 
-    stdout, stderr = proc.run_verify(f"depmod -a -- '{kver}'")
+    stdout, stderr = pman.run_verify(f"depmod -a -- '{kver}'")
     _log_cmd_output(args, stdout, stderr)
 
     # Potentially the deployed driver may crash the system before it gets to write-back data
     # to the file-system (e.g., what 'depmod' modified). This may lead to subsequent boot
     # problems. So sync the file-system now.
-    proc.run_verify("sync")
+    pman.run_verify("sync")
 
 def _create_standalone_python_script(script, pyhelperdir):
     """
@@ -511,12 +515,12 @@ def _create_standalone_python_script(script, pyhelperdir):
     except OSError as err:
         raise Error(f"cannot change '{standalone_path}' file mode to {oct(mode)}:\n{err}") from err
 
-def _deploy_helpers(args, proc):
-    """Deploy helpers (including python helpers) to the SUT represented by 'proc'."""
+def _deploy_helpers(args, pman):
+    """Deploy helpers (including python helpers) to the SUT represented by 'pman'."""
 
     # Python helpers need to be deployd only to a remote host. The local host already has them
     # deployed by 'setup.py'.
-    if not proc.is_remote:
+    if not pman.is_remote:
         args.pyhelpers = []
 
     helpers = args.helpers + args.pyhelpers
@@ -540,9 +544,9 @@ def _deploy_helpers(args, proc):
     # Copy python helpers to the temporary directory on the controller.
     for pyhelper in args.pyhelpers:
         srcdir = helpersrc / pyhelper
-        _LOG.debug("copying helper %s:\n  '%s' -> '%s'",
-                   pyhelper, srcdir, args.ctmpdir)
-        Procs.Proc().rsync(f"{srcdir}", args.ctmpdir, remotesrc=False, remotedst=False)
+        _LOG.debug("copying helper %s:\n  '%s' -> '%s'", pyhelper, srcdir, args.ctmpdir)
+        pman = LocalProcessManager.LocalProcessManager()
+        pman.rsync(f"{srcdir}", args.ctmpdir, remotesrc=False, remotedst=False)
 
     # Build stand-alone version of every python helper.
     for pyhelper in args.pyhelpers:
@@ -553,49 +557,49 @@ def _deploy_helpers(args, proc):
             _create_standalone_python_script(name, basedir)
 
     # And copy the "standoline-ized" version of python helpers to the SUT.
-    if proc.is_remote:
+    if pman.is_remote:
         for pyhelper in args.pyhelpers:
             srcdir = args.ctmpdir / pyhelper
             _LOG.debug("copying helper '%s' to %s:\n  '%s' -> '%s'",
-                       pyhelper, proc.hostname, srcdir, args.stmpdir)
-            proc.rsync(f"{srcdir}", args.stmpdir, remotesrc=False, remotedst=True)
+                       pyhelper, pman.hostname, srcdir, args.stmpdir)
+            pman.rsync(f"{srcdir}", args.stmpdir, remotesrc=False, remotedst=True)
 
     # Copy non-python helpers to the temporary directory on the SUT.
     for helper in args.helpers:
         srcdir = helpersrc/ helper
         _LOG.debug("copying helper '%s' to %s:\n  '%s' -> '%s'",
-                   helper, proc.hostname, srcdir, args.stmpdir)
-        proc.rsync(f"{srcdir}", args.stmpdir, remotesrc=False, remotedst=True)
+                   helper, pman.hostname, srcdir, args.stmpdir)
+        pman.rsync(f"{srcdir}", args.stmpdir, remotesrc=False, remotedst=True)
 
-    deploy_path = get_helpers_deploy_path(proc, args.toolname)
+    deploy_path = get_helpers_deploy_path(pman, args.toolname)
 
     # Build the non-python helpers on the SUT.
     if args.helpers:
         for helper in args.helpers:
-            _LOG.info("Compiling helper '%s'%s", helper, proc.hostmsg)
+            _LOG.info("Compiling helper '%s'%s", helper, pman.hostmsg)
             helperpath = f"{args.stmpdir}/{helper}"
-            stdout, stderr = proc.run_verify(f"make -C '{helperpath}'")
+            stdout, stderr = pman.run_verify(f"make -C '{helperpath}'")
             _log_cmd_output(args, stdout, stderr)
 
     # Make sure the the destination deployment directory exists.
-    FSHelpers.mkdir(deploy_path, parents=True, exist_ok=True, proc=proc)
+    FSHelpers.mkdir(deploy_path, parents=True, exist_ok=True, pman=pman)
 
     # Deploy all helpers.
-    _LOG.info("Deploying helpers to '%s'%s", deploy_path, proc.hostmsg)
+    _LOG.info("Deploying helpers to '%s'%s", deploy_path, pman.hostmsg)
 
     helpersdst = args.stmpdir / "helpers_deployed"
-    _LOG.debug("deploying helpers to '%s'%s", helpersdst, proc.hostmsg)
+    _LOG.debug("deploying helpers to '%s'%s", helpersdst, pman.hostmsg)
 
     for helper in helpers:
         helperpath = f"{args.stmpdir}/{helper}"
 
         cmd = f"make -C '{helperpath}' install PREFIX='{helpersdst}'"
-        stdout, stderr = proc.run_verify(cmd)
+        stdout, stderr = pman.run_verify(cmd)
         _log_cmd_output(args, stdout, stderr)
 
-        proc.rsync(str(helpersdst) + "/bin/", deploy_path, remotesrc=True, remotedst=True)
+        pman.rsync(str(helpersdst) + "/bin/", deploy_path, remotesrc=True, remotedst=True)
 
-def _remove_deploy_tmpdir(args, proc, success=True):
+def _remove_deploy_tmpdir(args, pman, success=True):
     """Remove temporary files."""
 
     ctmpdir = getattr(args, "ctmpdir", None)
@@ -609,9 +613,9 @@ def _remove_deploy_tmpdir(args, proc, success=True):
             _LOG.debug(" * On the SUT: %s", stmpdir)
     else:
         if ctmpdir:
-            FSHelpers.rm_minus_rf(args.ctmpdir, proc=proc)
+            FSHelpers.rm_minus_rf(args.ctmpdir, pman=pman)
         if stmpdir:
-            FSHelpers.rm_minus_rf(args.stmpdir, proc=proc)
+            FSHelpers.rm_minus_rf(args.stmpdir, pman=pman)
 
 def deploy_command(args):
     """Implements the 'deploy' command for the 'wult' and 'ndl' tools."""
@@ -637,21 +641,21 @@ def deploy_command(args):
         # helpers.
         args.ctmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-")
 
-    with contextlib.closing(ToolsCommon.get_proc(args, args.hostname)) as proc:
-        if not FSHelpers.which("make", default=None, proc=proc):
-            raise Error(f"please, install the 'make' tool{proc.hostmsg}")
+    with contextlib.closing(ToolsCommon.get_pman(args, args.hostname)) as pman:
+        if not FSHelpers.which("make", default=None, pman=pman):
+            raise Error(f"please, install the 'make' tool{pman.hostmsg}")
 
-        if proc.is_remote or not args.ctmpdir:
-            args.stmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-", proc=proc)
+        if pman.is_remote or not args.ctmpdir:
+            args.stmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-", pman=pman)
         else:
             args.stmpdir = args.ctmpdir
 
         success = True
         try:
-            _deploy_drivers(args, proc)
-            _deploy_helpers(args, proc)
+            _deploy_drivers(args, pman)
+            _deploy_helpers(args, pman)
         except:
             success = False
             raise
         finally:
-            _remove_deploy_tmpdir(args, proc, success=success)
+            _remove_deploy_tmpdir(args, pman, success=success)

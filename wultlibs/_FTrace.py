@@ -56,7 +56,7 @@ class FTrace:
         """Clear the function trace buffer."""
 
         _LOG.debug("clearing the trace buffer")
-        with self._proc.open(self.ftpath, "w+") as fobj:
+        with self._pman.open(self.ftpath, "w+") as fobj:
             fobj.write("0")
 
     def getlines(self):
@@ -70,7 +70,7 @@ class FTrace:
 
             if not stdout and not stderr and exitcode is None:
                 raise ErrorTimeOut(f"no data in trace buffer for {self._reader.timeout} seconds"
-                                   f"{self._proc.hostmsg}")
+                                   f"{self._pman.hostmsg}")
 
 
             # The process has terminated or printed something to standard error.
@@ -84,47 +84,46 @@ class FTrace:
                 self.raw_line = line.strip()
                 yield FTraceLine(line)
 
-    def __init__(self, proc, timeout=30):
+    def __init__(self, pman, timeout=30):
         """
         Class constructor. The arguments are as follows.
-          * proc - the 'Proc' or 'SSH' object that defines the host to operate on. This object will
-                   keep a 'proc' reference and use it in various methods.
+          * pman - the process manager object object that defines the host to operate on.
           * timeout - longest time in seconds to wait for data in the trace buffer.
         """
 
         self._reader = None
-        self._proc = proc
+        self._pman = pman
         self.timeout = timeout
         self.raw_line = None
 
-        mntpoint = FSHelpers.mount_debugfs(proc=proc)
+        mntpoint = FSHelpers.mount_debugfs(pman=pman)
         self.ftpath = mntpoint.joinpath("tracing/trace")
         self.ftpipe_path = mntpoint.joinpath("tracing/trace_pipe")
 
         for path in (self.ftpath, self.ftpipe_path):
-            if not FSHelpers.isfile(path, proc=proc):
+            if not FSHelpers.isfile(path, pman=pman):
                 raise ErrorNotSupported(f"linux kernel function trace file was not found at "
-                                        f"'{path}'{proc.hostmsg}")
+                                        f"'{path}'{pman.hostmsg}")
 
         cmd = f"cat {self.ftpipe_path}"
         name = "stale wult function trace reader process"
-        ProcHelpers.kill_processes(cmd, log=True, name=name, proc=self._proc)
+        ProcHelpers.kill_processes(cmd, log=True, name=name, pman=self._pman)
         self._clear()
-        self._reader = self._proc.run_async(cmd)
+        self._reader = self._pman.run_async(cmd)
 
     def close(self):
         """Stop following the function trace buffer."""
 
-        if getattr(self, "_proc", None):
-            proc = self._proc
-            self._proc = None
+        if getattr(self, "_pman", None):
+            pman = self._pman
+            self._pman = None
         else:
             return
 
         if getattr(self, "_reader", None) and getattr(self._reader, "pid", None):
             _LOG.debug("killing the function trace reader process PID %d%s",
-                       self._reader.pid, proc.hostmsg)
-            ProcHelpers.kill_pids(self._reader.pid, kill_children=True, must_die=False, proc=proc)
+                       self._reader.pid, pman.hostmsg)
+            ProcHelpers.kill_pids(self._reader.pid, kill_children=True, must_die=False, pman=pman)
             self._reader = None
 
     def __enter__(self):

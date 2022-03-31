@@ -30,7 +30,7 @@ class NdlRunner:
         process failure.
         """
 
-        return f"the 'ndlrunner' process{self._proc.hostmsg}"
+        return f"the 'ndlrunner' process{self._pman.hostmsg}"
 
     def _unexpected_line_error_prefix(self, line):
         """
@@ -112,13 +112,13 @@ class NdlRunner:
 
         regex = f"^.*{self._ndlrunner_bin} .*{self._ifname}.*$"
         ProcHelpers.kill_processes(regex, log=True, name="stale 'ndlrunner' process",
-                                   proc=self._proc)
+                                   pman=self._pman)
 
         ldist_str = ",".join([str(val) for val in self._ldist])
         cmd = f"{self._ndlrunner_bin} -l {ldist_str} "
         cmd += f"{self._ifname}"
 
-        self._ndlrunner = self._proc.run_async(cmd)
+        self._ndlrunner = self._pman.run_async(cmd)
 
     def _collect(self, dpcnt, tlimit):
         """
@@ -162,7 +162,7 @@ class NdlRunner:
           * tlimit - the measurements time limit in seconds.
         """
 
-        msg = f"Start measuring RTD{self._proc.hostmsg}, collecting {dpcnt} datapoints"
+        msg = f"Start measuring RTD{self._pman.hostmsg}, collecting {dpcnt} datapoints"
         if tlimit:
             msg += f", time limit is {Human.duration(tlimit)}"
         _LOG.info(msg)
@@ -179,20 +179,20 @@ class NdlRunner:
 
         self._stop_ndlrunner()
 
-        _LOG.info("Finished measuring RTD%s", self._proc.hostmsg)
+        _LOG.info("Finished measuring RTD%s", self._pman.hostmsg)
 
     def prepare(self):
         """Prepare to start measurements."""
 
         # Ensure the kernel is fresh enough.
-        kver = KernelVersion.get_kver(proc=self._proc)
+        kver = KernelVersion.get_kver(pman=self._pman)
         if KernelVersion.kver_lt(kver, "5.1-rc1"):
-            raise Error(f"version of the running kernel{self._proc.hostmsg} is {kver}, but it "
+            raise Error(f"version of the running kernel{self._pman.hostmsg} is {kver}, but it "
                         f"does not support the ETF qdisc.\nPlease, use kernel version 5.1 or "
                         f"newer")
 
         try:
-            self._nmcli = _Nmcli.Nmcli(proc=self._proc)
+            self._nmcli = _Nmcli.Nmcli(pman=self._pman)
         except ErrorNotSupported:
             pass
         else:
@@ -200,7 +200,7 @@ class NdlRunner:
             # by NetworkManager, the configuration may get reset at any point. Therefore, detach the
             # network interface from NetworkManager.
             _LOG.info("Detaching network interface '%s' from NetworkManager%s",
-                      self._ifname, self._proc.hostmsg)
+                      self._ifname, self._pman.hostmsg)
             self._nmcli.unmanage(self._ifname)
 
         # Ensure the interface exists and has carrier. It must be brought up before we can check the
@@ -212,7 +212,7 @@ class NdlRunner:
         ipaddr = self._netif.get_ipv4_addr(default=None)
         if ipaddr:
             _LOG.debug("network interface '%s'%s has IP address '%s'",
-                       self._ifname, self._proc.hostmsg, ipaddr)
+                       self._ifname, self._pman.hostmsg, ipaddr)
         else:
             ipaddr = self._netif.get_unique_ipv4_addr()
             ipaddr += "/16"
@@ -220,7 +220,7 @@ class NdlRunner:
             # Ensure the IP was set.
             self._netif.get_ipv4_addr()
             _LOG.info("Assigned IP address '%s' to interface '%s'%s",
-                      ipaddr, self._ifname, self._proc.hostmsg)
+                      ipaddr, self._ifname, self._pman.hostmsg)
 
         self._drv.load(unload=True, opts=f"ifname={self._ifname}")
 
@@ -228,23 +228,23 @@ class NdlRunner:
         # 'phc2sys' process in background in order to keep the host and NIC clocks in sync.
 
         # Get the TAI offset first.
-        stdout, _ = self._proc.run_verify(f"{self._ndlrunner_bin} --tai-offset")
+        stdout, _ = self._pman.run_verify(f"{self._ndlrunner_bin} --tai-offset")
         tai_offset = self._get_line(prefix="TAI offset", line=stdout)
         if not Trivial.is_int(tai_offset):
             raise Error(f"unexpected 'ndlrunner --tai-offset' output:\n{stdout}")
 
-        _LOG.info("Configuring the ETF qdisc%s", self._proc.hostmsg)
+        _LOG.info("Configuring the ETF qdisc%s", self._pman.hostmsg)
         self._etfqdisc.configure()
-        _LOG.info("Starting NIC-to-system clock synchronization process%s", self._proc.hostmsg)
+        _LOG.info("Starting NIC-to-system clock synchronization process%s", self._pman.hostmsg)
         self._etfqdisc.start_phc2sys(tai_offset=int(tai_offset))
 
     def _verify_input_args(self):
         """Verify and adjust the constructor input arguments."""
 
         # Validate the 'ndlrunner' helper path.
-        if not FSHelpers.isexe(self._ndlrunner_bin, proc=self._proc):
+        if not FSHelpers.isexe(self._ndlrunner_bin, pman=self._pman):
             raise Error(f"bad 'ndlrunner' helper path '{self._ndlrunner_bin}' - does not exist"
-                        f"{self._proc.hostmsg} or not an executable file")
+                        f"{self._pman.hostmsg} or not an executable file")
 
     def _stop_ndlrunner(self):
         """Make 'ndlrunner' process to terminate."""
@@ -258,14 +258,14 @@ class NdlRunner:
         _, _, exitcode = ndlrunner.wait(timeout=5)
         if exitcode is None:
             _LOG.warning("the 'ndlrunner' program PID %d%s failed to exit, killing it",
-                         ndlrunner.pid, self._proc.hostmsg)
+                         ndlrunner.pid, self._pman.hostmsg)
             ProcHelpers.kill_pids(ndlrunner.pid, kill_children=True, must_die=False,
-                                  proc=self._proc)
+                                  pman=self._pman)
 
-    def __init__(self, proc, netif, res, ndlrunner_bin, ldist=None):
+    def __init__(self, pman, netif, res, ndlrunner_bin, ldist=None):
         """
         The class constructor. The arguments are as follows.
-          * proc - the 'Proc' or 'SSH' object that defines the host to run the measurements on.
+          * pman - the process manager object that defines the host to run the measurements on.
           * netif - the 'NetIface' object of network device used for measurements.
           * res - the 'WORawResult' object to store the results at.
           * ndlrunner_bin - path to the 'ndlrunner' helper.
@@ -274,7 +274,7 @@ class NdlRunner:
           *         [5000000, 50000000].
         """
 
-        self._proc = proc
+        self._pman = pman
         self._netif = netif
         self._res = res
         self._ndlrunner_bin = ndlrunner_bin
@@ -296,11 +296,11 @@ class NdlRunner:
         self._verify_input_args()
 
         self._progress = _ProgressLine.ProgressLine(period=1)
-        self._drv = KernelModule.KernelModule("ndl", proc=proc)
+        self._drv = KernelModule.KernelModule("ndl", pman=pman)
 
-        mntpath = FSHelpers.mount_debugfs(proc=proc)
+        mntpath = FSHelpers.mount_debugfs(pman=pman)
         self._rtd_path = mntpath.joinpath(f"{self._drv.name}/rtd")
-        self._etfqdisc = _ETFQdisc.ETFQdisc(netif, proc=proc)
+        self._etfqdisc = _ETFQdisc.ETFQdisc(netif, pman=pman)
 
     def close(self):
         """Stop the measurements."""
@@ -322,8 +322,8 @@ class NdlRunner:
             self._nmcli.close()
             self._nmcli = None
 
-        if getattr(self, "_proc", None):
-            self._proc = None
+        if getattr(self, "_pman", None):
+            self._pman = None
 
         # Unload our driver.
         if getattr(self, "_drv", None):

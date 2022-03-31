@@ -68,7 +68,7 @@ class WultRunner:
                         raise ValueError
                 except ValueError:
                     _LOG.debug("unexpected line in ftrace buffer%s:\n%s",
-                               self._proc.hostmsg, line.msg)
+                               self._pman.hostmsg, line.msg)
                     continue
 
                 yielded_lines += 1
@@ -165,7 +165,7 @@ class WultRunner:
             # Start collecting statistics.
             self._stcoll.start()
 
-        msg = f"Start measuring CPU {self._res.cpunum}{self._proc.hostmsg}, collecting {dpcnt} " \
+        msg = f"Start measuring CPU {self._res.cpunum}{self._pman.hostmsg}, collecting {dpcnt} " \
               f"datapoints"
         if tlimit:
             msg += f", time limit is {Human.duration(tlimit)}"
@@ -191,7 +191,7 @@ class WultRunner:
         finally:
             self._progress.update(collected_cnt, self._max_latency, final=True)
 
-        _LOG.info("Finished measuring CPU %d%s", self._res.cpunum, self._proc.hostmsg)
+        _LOG.info("Finished measuring CPU %d%s", self._res.cpunum, self._pman.hostmsg)
 
         # Check if there were any bug/warning messages in 'dmesg'.
         dmesg = ""
@@ -216,10 +216,10 @@ class WultRunner:
         """Get kernel boot parameters."""
 
         try:
-            with self._proc.open("/proc/cmdline", "r") as fobj:
+            with self._pman.open("/proc/cmdline", "r") as fobj:
                 return fobj.read().strip()
         except Error as err:
-            raise Error(f"failed to read cmdline parameters{self._proc.hostmsg}") from err
+            raise Error(f"failed to read cmdline parameters{self._pman.hostmsg}") from err
 
     def prepare(self):
         """Prepare for starting the measurements."""
@@ -227,7 +227,7 @@ class WultRunner:
         # The 'irqbalance' service usually causes problems by binding the delayed events (NIC
         # interrupts) to CPUs different form the measured one. Stop the service.
         if self._ep.dev.drvname == "wult_igb":
-            self._sysctl = Systemctl.Systemctl(proc=self._proc)
+            self._sysctl = Systemctl.Systemctl(pman=self._pman)
             self._has_irqbalance = self._sysctl.is_active("irqbalance")
             if self._has_irqbalance:
                 _LOG.info("Stopping the 'irqbalance' service")
@@ -271,7 +271,7 @@ class WultRunner:
 
         # Initialize statistics collection.
         if self._stconf:
-            self._stcoll = WultStatsCollect.WultStatsCollect(self._proc, self._res)
+            self._stcoll = WultStatsCollect.WultStatsCollect(self._pman, self._res)
             self._stcoll.apply_stconf(self._stconf)
             _LOG.info("Configured the following statistics: %s", ", ".join(self._stconf["include"]))
 
@@ -280,11 +280,11 @@ class WultRunner:
 
         # Make sure a supported idle driver is in use.
         path = Path("/sys/devices/system/cpu/cpuidle/current_driver")
-        with self._proc.open(path, "r") as fobj:
+        with self._pman.open(path, "r") as fobj:
             drvname = fobj.read().strip()
 
         if drvname == "none":
-            errmsg = f"no idle driver in use{self._proc.hostmsg}"
+            errmsg = f"no idle driver in use{self._pman.hostmsg}"
             try:
                 cmdline = self._get_cmdline()
             except Error as err:
@@ -299,14 +299,14 @@ class WultRunner:
         supported = ("intel_idle", "acpi_idle")
         if drvname not in supported:
             supported = ", ".join(supported)
-            raise Error(f"unsupported idle driver '{drvname}'{self._proc.hostmsg},\n"
+            raise Error(f"unsupported idle driver '{drvname}'{self._pman.hostmsg},\n"
                         f"only the following drivers are supported: {supported}")
 
-    def __init__(self, proc, dev, res, ldist=None, intr_focus=None, early_intr=None,
+    def __init__(self, pman, dev, res, ldist=None, intr_focus=None, early_intr=None,
                  tsc_cal_time=10, dcbuf_size=None, rcsobj=None, stconf=None):
         """
         The class constructor. The arguments are as follows.
-          * proc - the 'Proc' or 'SSH' object that defines the host to run the measurements on.
+          * pman - the process manager object that defines the host to run the measurements on.
           * dev - the delayed event device object created by 'Devices.WultDevice()'.
           * res - the 'WORawResult' object to store the results at.
           * ldist - a pair of numbers specifying the launch distance range. The default value is
@@ -323,7 +323,7 @@ class WultRunner:
                      should be collected. By default no statistics will be collected.
         """
 
-        self._proc = proc
+        self._pman = pman
         self._dev = dev
         self._res = res
         self._ldist = ldist
@@ -354,11 +354,11 @@ class WultRunner:
         self._validate_sut()
 
         self._progress = _ProgressLine.ProgressLine(period=1)
-        self._ep = EventsProvider.EventsProvider(dev, res.cpunum, proc, ldist=self._ldist,
+        self._ep = EventsProvider.EventsProvider(dev, res.cpunum, pman, ldist=self._ldist,
                                                  intr_focus=self._intr_focus,
                                                  early_intr=self._early_intr,
                                                  dcbuf_size=self._dcbuf_size)
-        self._ftrace = _FTrace.FTrace(proc=proc, timeout=self._timeout)
+        self._ftrace = _FTrace.FTrace(pman=pman, timeout=self._timeout)
 
         if self._ep.dev.drvname == "wult_tdt" and self._intr_focus:
             raise Error("the 'tdt' driver does not support the interrupt latency focused "
@@ -367,7 +367,7 @@ class WultRunner:
         if self._ep.dev.drvname == "wult_tdt" and self._early_intr:
             raise Error("the 'tdt' driver does not support the early interrupt feature")
 
-        self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, proc, self._ep.dev.drvname,
+        self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, pman, self._ep.dev.drvname,
                                                       intr_focus=self._intr_focus,
                                                       early_intr=self._early_intr,
                                                       tsc_cal_time=tsc_cal_time, rcsobj=rcsobj)
@@ -375,8 +375,8 @@ class WultRunner:
     def close(self):
         """Stop the measurements."""
 
-        if getattr(self, "_proc", None):
-            self._proc = None
+        if getattr(self, "_pman", None):
+            self._pman = None
         else:
             return
 
