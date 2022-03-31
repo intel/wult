@@ -90,6 +90,14 @@ def get_csres_colname(csname):
 
     return f"{csname}%"
 
+def _mangle(info):
+    """This function mangles the initially loaded dictionary and adds useful fields there."""
+
+    for key, val in info.items():
+        val["metric"] = key
+
+    return info
+
 class Defs:
     """This class provides API to the datapoints CSV file definitions (AKA 'defs')."""
 
@@ -149,4 +157,4 @@ class Defs:
         self.vanilla_info = None
         self.path = Deploy.find_app_data("wult", Path(f"defs/{name}.yml"), appname=name,
                                          descr=f"{name} datapoints definitions file")
-        self.info = self.vanilla_info = YAML.load(self.path)
+        self.info = self.vanilla_info = _mangle(YAML.load(self.path))
