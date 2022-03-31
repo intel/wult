@@ -15,16 +15,16 @@ import pandas
 
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.parsers import IPMIParser
-from wultlibs.htmlreport.tabs.stats import _StatsTabGroup, _StatsTab
+from wultlibs.htmlreport.tabs.stats import _StatsTab, _StatsTabContainer
 
 
-class IPMITabBuilder(_StatsTabGroup.StatsTabGroupBuilder):
+class IPMITabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
     """
     This class provides the capability of populating the IPMI statistics tab.
 
     Public methods overview:
-    1. Generate a 'StatsTabGroup' instance containing a group of sub-tabs which display different
-       IPMI statistics.
+    1. Generate a 'StatsTabContainerDC' instance containing a group of sub-tabs which display
+       different IPMI statistics.
        * 'get_tab_group()'
     """
 
@@ -33,8 +33,8 @@ class IPMITabBuilder(_StatsTabGroup.StatsTabGroupBuilder):
 
     def get_tab_group(self):
         """
-        Generate a 'StatsTabGroup' instance containing a group of sub-tabs which display different
-        IPMI statistics.
+        Generate a 'StatsTabContainerDC' instance containing a group of sub-tabs which display
+        different IPMI statistics.
         """
 
         col_sets = [set(sdf.columns) for sdf in self._reports.values()]
@@ -60,12 +60,12 @@ class IPMITabBuilder(_StatsTabGroup.StatsTabGroupBuilder):
 
             # Only add a tab group for 'metric' if any tabs were generated to populate it.
             if coltabs:
-                mgroups.append(_StatsTabGroup.StatsTabGroup(metric, coltabs))
+                mgroups.append(_StatsTabContainer.StatsTabContainerDC(metric, coltabs))
 
         if not mgroups:
             raise Error(f"no common {self.name} metrics between reports.")
 
-        return _StatsTabGroup.StatsTabGroup(self.name, mgroups)
+        return _StatsTabContainer.StatsTabContainerDC(self.name, mgroups)
 
     def _categorise_cols(self, ipmi):
         """
@@ -132,7 +132,7 @@ class IPMITabBuilder(_StatsTabGroup.StatsTabGroupBuilder):
         The class constructor. Adding an IPMI statistics group tab will create an 'IPMI'
         sub-directory and store sub-tabs inside it. Sub-tabs will represent all of the metrics
         stored in the raw IPMI statistics file. The arguments are the same as in
-        '_StatsTabGroup.StatsTabGroupBuilder'.
+        '_StatsTabContainer.StatsTabContainerBuilderBase'.
         """
 
         self._time_colname = "timestamp"

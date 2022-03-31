@@ -20,7 +20,7 @@ from wultlibs.htmlreport.tabs import _BaseTab
 _LOG = logging.getLogger()
 
 
-class StatsTab(_BaseTab.BaseTabDC):
+class StatsTabDC(_BaseTab.BaseTabDC):
     """
     This class defines what is expected by the JavaScript side when adding a statistics tab to HTML
     reports.
@@ -31,7 +31,7 @@ class StatsTabBuilder:
     This base class provides the capability of populating a statistics tab.
 
     Public methods overview:
-    1. Generate an 'StatsTab' instance containing plots and a summary table which represent all
+    1. Generate a 'StatsTabDC' instance containing plots and a summary table which represent all
        of the statistics found during initialisation.
        * 'get_tab()'
     """
@@ -53,8 +53,8 @@ class StatsTabBuilder:
 
     def get_tab(self):
         """
-        Returns a 'StatsTab' instance which contains an aggregate of all of the statistics found
-        in 'stats_paths', provided to the class constructor. This 'StatsTab' can then be used to
+        Returns a 'StatsTabDC' instance which contains an aggregate of all of the statistics found
+        in 'stats_paths', provided to the class constructor. This 'StatsTabDC' can then be used to
         populate an HTML tab.
         """
 
@@ -68,7 +68,7 @@ class StatsTabBuilder:
         except Exception as err:
             raise Error(f"failed to generate summary table: {err}") from None
 
-        return StatsTab(self.title, plotpaths, self.smry_path.relative_to(self._basedir))
+        return StatsTabDC(self.title, plotpaths, self.smry_path.relative_to(self._basedir))
 
     def _init_plots(self):
         """
@@ -99,7 +99,7 @@ class StatsTabBuilder:
 
         self._plots.append(h)
 
-    def __init__(self, reports, outdir, basedir, metric_name, metric_colname, time_colname, defs):
+    def __init__(self, reports, outdir, basedir, metric, metric_colname, time_colname, defs):
         """
         The class constructor. Adding a stats tab will create a 'metricname' sub-directory and
         store plots and the summary table in it. Arguments are as follows:
@@ -107,7 +107,7 @@ class StatsTabBuilder:
                      '{reportid: stats_df}'
          * outdir - the output directory in which to create the 'metricname' sub-directory.
          * basedir - base directory of the report. All paths should be made relative to this.
-         * metric_name - name of the metric to create the tab for.
+         * metric - name of the metric to create the tab for.
          * metric_colname - name of the column in the 'stats_df's which contains data for
                            'metricname'.
          * time_colname - name of the column in the 'stats_df's which represents the elpased time.
@@ -115,7 +115,7 @@ class StatsTabBuilder:
         """
 
         # File system-friendly tab name.
-        self.name = metric_name
+        self.name = metric
         self._basedir = basedir
         self._outdir = outdir / self.name
         self.smry_path = self._outdir / "summary-table.txt"

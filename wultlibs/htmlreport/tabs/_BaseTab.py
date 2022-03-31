@@ -33,11 +33,11 @@ class BaseTabDC:
 
 
 @dataclass
-class TabCollectionDC:
+class TabContainerDC:
     """
     This class defines what is expected by the JavaScript side when adding a set of tabs to the
     report.
     """
 
     name: str
-    tabs: Union["TabCollectionDC", List[BaseTabDC]]
+    tabs: Union["TabContainerDC", List[BaseTabDC]]

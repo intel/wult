@@ -22,22 +22,22 @@ from wultlibs.htmlreport.tabs.stats import _StatsTab
 _LOG = logging.getLogger()
 
 
-class StatsTabGroup(_BaseTab.TabCollectionDC):
+class StatsTabContainerDC(_BaseTab.TabContainerDC):
     """
     This class defines what is expected by the JavaScript side when adding a group of statistics
     tabs to HTML reports.
     """
 
-class StatsTabGroupBuilder:
+class StatsTabContainerBuilderBase:
     """
     This base class can be inherited from to populate a group of statistics tabs.
 
     This base class requires child classes to implement the following methods:
     1. Read a raw statistics file and convert the statistics data into a pandas Dataframe.
        * '_read_stats_file()'
-    2. Generate a 'StatsTabGroup' instance containing sub-tabs which represent statistics contained
-       within the group. This method provides an interface for the child classes. '_get_tab_group()'
-       contains common logic which can be used to implement this method.
+    2. Generate a 'StatsTabCollectionBuilderBase' instance containing sub-tabs which represent
+       statistics contained within the group. This method provides an interface for the child
+       classes. '_get_tab_group()' contains common logic which can be used to implement this method.
        * 'get_tab_group()'
     """
 
@@ -46,16 +46,16 @@ class StatsTabGroupBuilder:
 
     def get_tab_group(self):
         """
-        Returns a 'StatsTabGroup' instance containing sub-tabs which represent metrics within the
-        raw statistic files.
+        Returns a 'StatsTabContainerDC' instance containing sub-tabs which represent metrics within
+        the raw statistic files.
         """
 
         raise NotImplementedError()
 
     def _get_tab_group(self, tab_metrics, time_colname):
         """
-        Returns a 'StatsTabGroup' instance containing sub-tabs which represent statistics contained
-        within the group.
+        Returns a 'StatsTabContainerDC' instance containing sub-tabs which represent statistics
+        contained within the group.
          * tab_metrics - a dictionary in the format {'metricname': 'metric_colname'} where
                          'metric_colname' refers to the name of the column in the pandas Dataframe
                          produced by 'self._read_stats_file()' which represents the metric.
@@ -74,7 +74,7 @@ class StatsTabGroupBuilder:
         for tbldr in tbldrs:
             tabs.append(tbldr.get_tab())
 
-        return StatsTabGroup(self.name, tabs)
+        return StatsTabContainerDC(self.name, tabs)
 
     def _read_stats_file(self, path):
         """

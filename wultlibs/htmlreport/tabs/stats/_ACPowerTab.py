@@ -13,16 +13,16 @@ This module provides the capability of populating the AC Power statistics Tab.
 import pandas
 
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.htmlreport.tabs.stats import _StatsTabGroup
+from wultlibs.htmlreport.tabs.stats import _StatsTabContainer
 
 
-class ACPowerTabBuilder(_StatsTabGroup.StatsTabGroupBuilder):
+class ACPowerTabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
     """
     This class provides the capability of populating the AC Power statistics tab.
 
     Public methods overview:
-    1. Generate a 'StatsTabGroup' instance containing sub-tabs which represent ACPower statistics
-       contained within the group.
+    1. Generate a 'StatsTabContainerDC' instance containing sub-tabs which represent ACPower
+       statistics contained within the group.
        * 'get_tab_group()'
     """
     # File system-friendly tab name.
@@ -53,8 +53,8 @@ class ACPowerTabBuilder(_StatsTabGroup.StatsTabGroupBuilder):
 
     def get_tab_group(self):
         """
-        Returns a 'StatsTabGroup' instance containing AC Power sub-tabs which are tabs for metrics
-        within the ACPower raw stastics file.
+        Returns a 'StatsTabContainerDC' instance containing AC Power sub-tabs which are tabs for
+        metrics within the ACPower raw statistics file.
         """
 
         # This dictionary tells the parent class which metric is represented by which column in the
@@ -68,7 +68,7 @@ class ACPowerTabBuilder(_StatsTabGroup.StatsTabGroupBuilder):
         """
         The class constructor. Adding an ACPower tab will create an 'ACPower' sub-directory and
         store plots and the summary table in it. The arguments are the same as in
-        '_StatsTabGroup.StatsTabGroupBuilder'.
+        '_StatsTabContainer.StatsTabContainerBuilderBase'.
         """
 
         self._time_colname = "T"
