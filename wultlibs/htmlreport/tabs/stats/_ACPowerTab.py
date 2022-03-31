@@ -34,6 +34,9 @@ class ACPowerTabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
         file at 'path'.
         """
 
+        time_colname = "T"
+        metric_colname = "P"
+
         sdf = pandas.DataFrame()
 
         try:
@@ -43,11 +46,17 @@ class ACPowerTabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
             raise Error(f"unable to parse CSV '{path}': {err}.") from None
 
         # Confirm that the time column name is in the CSV headers.
-        if self._time_colname not in sdf:
-            raise Error(f"column '{self._time_colname}' not found in statistics file '{path}'.")
+        if time_colname not in sdf:
+            raise Error(f"column '{time_colname}' not found in statistics file '{path}'.")
 
         # Convert Time column from time since epoch to time since the first data point was recorded.
-        sdf[self._time_colname] = sdf[self._time_colname] - sdf[self._time_colname][0]
+        sdf[time_colname] = sdf[time_colname] - sdf[time_colname][0]
+
+        metrics = {
+            metric_colname: self._metric,
+            time_colname: self._time_metric
+        }
+        sdf.rename(columns=metrics, inplace=True)
 
         return sdf
 
@@ -57,12 +66,7 @@ class ACPowerTabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
         metrics within the ACPower raw statistics file.
         """
 
-        # This dictionary tells the parent class which metric is represented by which column in the
-        # statistics dataframes.
-        metrics = {
-            "ACPower": "P",
-        }
-        return super()._get_tab_group(metrics, self._time_colname).tabs[0]
+        return super()._get_tab_group({self._metric: self._metric}, self._time_metric).tabs[0]
 
     def __init__(self, stats_paths, outdir, bmname):
         """
@@ -71,6 +75,7 @@ class ACPowerTabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
         '_StatsTabContainer.StatsTabContainerBuilderBase'.
         """
 
-        self._time_colname = "T"
+        self._metric = "ACPower"
+        self._time_metric = "Time"
 
         super().__init__(stats_paths, outdir, bmname, "defs/acpower.yml", ["acpower.raw.txt"])
