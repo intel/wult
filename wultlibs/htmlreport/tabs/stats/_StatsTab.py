@@ -10,29 +10,19 @@
 This module provides the capability of populating a statistic tab.
 """
 
-import logging
-
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.htmlreport import _SummaryTable, _ScatterPlot, _Histogram
 from wultlibs import DFSummary
 from wultlibs.htmlreport.tabs import _Tabs
 
-_LOG = logging.getLogger()
-
-
-class StatsTabDC(_Tabs.DataTabDC):
-    """
-    This class defines what is expected by the JavaScript side when adding a statistics tab to HTML
-    reports.
-    """
 
 class StatsTabBuilder:
     """
     This base class provides the capability of populating a statistics tab.
 
     Public methods overview:
-    1. Generate a 'StatsTabDC' instance containing plots and a summary table which represent all
-       of the statistics found during initialisation.
+    1. Generate a '_BaseTab.BaseTabDC' instance containing plots and a summary table which represent
+       all of the statistics found during initialisation.
        * 'get_tab()'
     """
 
@@ -53,9 +43,9 @@ class StatsTabBuilder:
 
     def get_tab(self):
         """
-        Returns a 'StatsTabDC' instance which contains an aggregate of all of the statistics found
-        in 'stats_paths', provided to the class constructor. This 'StatsTabDC' can then be used to
-        populate an HTML tab.
+        Returns a '_BaseTab.BaseTabDC' instance which contains an aggregate of all of the statistics
+        found in 'stats_paths', provided to the class constructor. This '_BaseTab.BaseTabDC' can
+        then be used to populate an HTML tab.
         """
 
         plotpaths = []
@@ -68,7 +58,7 @@ class StatsTabBuilder:
         except Exception as err:
             raise Error(f"failed to generate summary table: {err}") from None
 
-        return StatsTabDC(self.title, plotpaths, self.smry_path.relative_to(self._basedir))
+        return _Tabs.DataTabDC(self.title, plotpaths, self.smry_path.relative_to(self._basedir))
 
     def _init_plots(self):
         """
