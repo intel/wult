@@ -125,7 +125,7 @@ def get_kver_ktree(ktree, split=False, pman=None, makecmd=None):
 
     try:
         kver = pman.run_verify(cmd)[0].strip()
-    except pman.Error as err:
+    except Error as err:
         raise Error("cannot detect kernel version in '%s':\n%s\nMake sure kernel sources are "
                     "configured." % (ktree, err)) from err
 
