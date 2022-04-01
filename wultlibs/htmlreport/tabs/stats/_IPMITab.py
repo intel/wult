@@ -17,6 +17,7 @@ from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import Defs
 from wultlibs.parsers import IPMIParser
 from wultlibs.htmlreport.tabs.stats import _StatsTab, _StatsTabContainer
+from wultlibs.htmlreport.tabs import _Tabs
 
 
 class IPMITabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
@@ -24,7 +25,7 @@ class IPMITabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
     This class provides the capability of populating the IPMI statistics tab.
 
     Public methods overview:
-    1. Generate a 'StatsTabContainerDC' instance containing a group of sub-tabs which display
+    1. Generate a '_Tabs.ContainerTabDC' instance containing a group of sub-tabs which display
        different IPMI statistics.
        * 'get_tab_group()'
     """
@@ -34,7 +35,7 @@ class IPMITabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
 
     def get_tab_group(self):
         """
-        Generate a 'StatsTabContainerDC' instance containing a group of sub-tabs which display
+        Generate a '_Tabs.ContainerTabDC' instance containing a group of sub-tabs which display
         different IPMI statistics.
         """
 
@@ -63,12 +64,12 @@ class IPMITabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
 
             # Only add a tab group for 'metric' if any tabs were generated to populate it.
             if coltabs:
-                mgroups.append(_StatsTabContainer.StatsTabContainerDC(metric, coltabs))
+                mgroups.append(_Tabs.ContainerTabDC(metric, coltabs))
 
         if not mgroups:
             raise Error(f"no common {self.name} metrics between reports.")
 
-        return _StatsTabContainer.StatsTabContainerDC(self.name, mgroups)
+        return _Tabs.ContainerTabDC(self.name, mgroups)
 
     def _categorise_cols(self, ipmi):
         """

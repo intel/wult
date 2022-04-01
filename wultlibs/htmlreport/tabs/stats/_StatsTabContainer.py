@@ -20,12 +20,6 @@ from wultlibs.htmlreport.tabs.stats import _StatsTab
 _LOG = logging.getLogger()
 
 
-class StatsTabContainerDC(_Tabs.ContainerTabDC):
-    """
-    This class defines what is expected by the JavaScript side when adding a group of statistics
-    tabs to HTML reports.
-    """
-
 class StatsTabContainerBuilderBase:
     """
     This base class can be inherited from to populate a group of statistics tabs.
@@ -44,7 +38,7 @@ class StatsTabContainerBuilderBase:
 
     def get_tab_group(self):
         """
-        Returns a 'StatsTabContainerDC' instance containing sub-tabs which represent metrics within
+        Returns a '_Tabs.ContainerTabDC' instance containing sub-tabs which represent metrics within
         the raw statistic files.
         """
 
@@ -52,7 +46,7 @@ class StatsTabContainerBuilderBase:
 
     def _get_tab_group(self, metric_defs, time_defs):
         """
-        Returns a 'StatsTabContainerDC' instance containing sub-tabs which represent statistics
+        Returns a '_Tabs.ContainerTabDC' instance containing sub-tabs which represent statistics
         contained within the group.
          * metric_defs - a list of dictionaries containing the definitions for the metrics included
                          in this tab group.
@@ -70,7 +64,7 @@ class StatsTabContainerBuilderBase:
         for tbldr in tbldrs:
             tabs.append(tbldr.get_tab())
 
-        return StatsTabContainerDC(self.name, tabs)
+        return _Tabs.ContainerTabDC(self.name, tabs)
 
     def _read_stats_file(self, path):
         """

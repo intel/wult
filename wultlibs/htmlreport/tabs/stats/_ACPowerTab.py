@@ -22,9 +22,9 @@ class ACPowerTabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
     This class provides the capability of populating the AC Power statistics tab.
 
     Public methods overview:
-    1. Generate a 'StatsTabContainerDC' instance containing sub-tabs which represent ACPower
-       statistics contained within the group.
-       * 'get_tab_group()'
+    1. Generate a '_Tabs.DataTabDC' instance containing a summary table and plots describing data in
+       raw AC Power statistics files.
+        * 'get_tab_group()'
     """
     # File system-friendly tab name.
     name = "ACPower"
@@ -63,8 +63,8 @@ class ACPowerTabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
 
     def get_tab_group(self):
         """
-        Returns a 'StatsTabContainerDC' instance containing AC Power sub-tabs which are tabs for
-        metrics within the ACPower raw statistics file.
+        Returns a '_Tabs.DataTabDC' instance containing a summary table and plots describing data in
+        raw AC Power statistics files.
         """
 
         defs = Defs.Defs("acpower").info
