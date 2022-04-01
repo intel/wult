@@ -52,22 +52,19 @@ class StatsTabContainerBuilderBase:
 
         raise NotImplementedError()
 
-    def _get_tab_group(self, tab_metrics, time_colname):
+    def _get_tab_group(self, tab_metrics, time_metric):
         """
         Returns a 'StatsTabContainerDC' instance containing sub-tabs which represent statistics
         contained within the group.
-         * tab_metrics - a dictionary in the format {'metricname': 'metric_colname'} where
-                         'metric_colname' refers to the name of the column in the pandas Dataframe
-                         produced by 'self._read_stats_file()' which represents the metric.
-         * time_colname - name of the column in the pandas DataFrames produced by
-                          'self._read_stats_file()' which represents the elapsed time.
+         * tab_metrics - a list of metrics to include in the tab container.
+         * time_metric - the metric which represents the time elapsed.
         """
 
         # Create child tabs.
         tbldrs = []
-        for metric, colname in tab_metrics.items():
+        for metric in tab_metrics:
             tab = _StatsTab.StatsTabBuilder(self._reports, self._outdir, self._basedir, metric,
-                                            colname, time_colname, self._defs)
+                                            time_metric, self._defs)
             tbldrs.append(tab)
 
         tabs = []

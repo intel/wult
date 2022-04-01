@@ -55,7 +55,7 @@ class IPMITabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
                 defs[col]["title"] = col
 
                 coltab = _StatsTab.StatsTabBuilder(self._reports, mtab_outdir, self._basedir, col,
-                                                   col, self._time_metric, defs)
+                                                   self._time_metric, defs)
                 coltabs.append(coltab.get_tab())
 
             # Only add a tab group for 'metric' if any tabs were generated to populate it.

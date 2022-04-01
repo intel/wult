@@ -45,7 +45,7 @@ class StatsTabBuilder:
                            fmt="{:.2f}")
 
         for rep, df in self._reports.items():
-            smry_dict = DFSummary.calc_col_smry(df, self._metric_colname, self.smry_funcs)
+            smry_dict = DFSummary.calc_col_smry(df, self.name, self.smry_funcs)
             for fname in self.smry_funcs:
                 smrytbl.add_smry_func(rep, self.title, fname, smry_dict[fname])
 
@@ -80,7 +80,7 @@ class StatsTabBuilder:
 
         # Initialise scatter plot.
         s_path = self._outdir / f"{self.name}-scatter.html"
-        s = _ScatterPlot.ScatterPlot(self._time_colname, self._metric_colname, s_path,
+        s = _ScatterPlot.ScatterPlot(self._time_metric, self.name, s_path,
                                      self._time_defs["title"], self._metric_defs["title"],
                                      self._time_defs["short_unit"], self._metric_defs["short_unit"])
 
@@ -91,7 +91,7 @@ class StatsTabBuilder:
 
         # Initialise histogram.
         h_path = self._outdir / f"{self.name}-histogram.html"
-        h = _Histogram.Histogram(self._metric_colname, h_path, self._metric_defs["title"],
+        h = _Histogram.Histogram(self.name, h_path, self._metric_defs["title"],
                                  self._metric_defs["short_unit"])
 
         for reportid, df in self._reports.items():
@@ -99,7 +99,7 @@ class StatsTabBuilder:
 
         self._plots.append(h)
 
-    def __init__(self, reports, outdir, basedir, metric, metric_colname, time_colname, defs):
+    def __init__(self, reports, outdir, basedir, metric, time_metric, defs):
         """
         The class constructor. Adding a stats tab will create a 'metricname' sub-directory and
         store plots and the summary table in it. Arguments are as follows:
@@ -108,9 +108,7 @@ class StatsTabBuilder:
          * outdir - the output directory in which to create the 'metricname' sub-directory.
          * basedir - base directory of the report. All paths should be made relative to this.
          * metric - name of the metric to create the tab for.
-         * metric_colname - name of the column in the 'stats_df's which contains data for
-                           'metricname'.
-         * time_colname - name of the column in the 'stats_df's which represents the elpased time.
+         * time_metric - name of the metric which represents the elpased time.
          * defs - dictionary containing the definitions for this metric.
         """
 
@@ -126,9 +124,8 @@ class StatsTabBuilder:
             raise Error(f"failed to create directory '{self._outdir}': {err}") from None
 
         self._metric_defs = defs[self.name]
-        self._metric_colname = metric_colname
-        self._time_defs = defs["Time"]
-        self._time_colname = time_colname
+        self._time_defs = defs[time_metric]
+        self._time_metric = time_metric
         self.title = self._metric_defs["title"]
         self.descr = self._metric_defs["descr"]
 
@@ -143,12 +140,12 @@ class StatsTabBuilder:
         # Reduce 'reports' to only the metric and time columns which are needed for this tab.
         self._reports = {}
         for reportid, df in reports.items():
-            if self._metric_colname in df:
-                self._reports[reportid] = df[[self._metric_colname, self._time_colname]].copy()
+            if self.name in df:
+                self._reports[reportid] = df[[self.name, self._time_metric]].copy()
 
         if not self._reports:
             raise Error(f"failed to generate '{self.name}' tab: no data under column"
-                        f"'{self._metric_colname}' provided.")
+                        f"'{self.name}' provided.")
 
 
         self._plots = []
