@@ -19,23 +19,17 @@ from wultlibs.htmlreport import _SummaryTable
 from wultlibs.htmlreport.tabs.metrictab import _PlotsBuilder
 from wultlibs.htmlreport.tabs import _Tabs
 
-class MetricTabDC(_Tabs.DataTabDC):
-    """
-    This class defines what is expected by the JavaScript side when adding a Metric tab to HTML
-    reports.
-    """
-
 
 class MetricTabBuilder:
     """
-    This class provides the functionality to build 'MetricTab' instances.
+    This class provides the functionality to build '_Tabs.DataTabDC' instances.
 
     Public methods overview:
     1. Add a summary table to the tab.
        * 'add_smrytbl()'
     2. Add plots to the tab.
        * 'add_plots()'
-    3. Generate 'MetricTab' instance.
+    3. Generate 'DataTabDC' instance.
        * 'get_tab()'
     """
 
@@ -121,12 +115,14 @@ class MetricTabBuilder:
         self._ppaths = ppaths
 
     def get_tab(self):
-        """Returns a 'MetricTab' instance representative of the data already added to the class."""
+        """
+        Returns a '_Tabs.DataTabDC' instance representative of the data already added to the class.
+        """
 
         ppaths = [p.relative_to(self._basedir) for p in self._ppaths]
         smrytblpath = self._smrytblpath.relative_to(self._basedir)
 
-        return MetricTabDC(self.tabname, ppaths, smrytblpath)
+        return _Tabs.DataTabDC(self.tabname, ppaths, smrytblpath)
 
     def __init__(self, tabname, rsts, outdir):
         """
