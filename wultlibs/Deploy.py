@@ -545,8 +545,8 @@ def _deploy_helpers(args, pman):
     for pyhelper in args.pyhelpers:
         srcdir = helpersrc / pyhelper
         _LOG.debug("copying helper %s:\n  '%s' -> '%s'", pyhelper, srcdir, args.ctmpdir)
-        pman = LocalProcessManager.LocalProcessManager()
-        pman.rsync(f"{srcdir}", args.ctmpdir, remotesrc=False, remotedst=False)
+        lpman = LocalProcessManager.LocalProcessManager()
+        lpman.rsync(f"{srcdir}", args.ctmpdir, remotesrc=False, remotedst=False)
 
     # Build stand-alone version of every python helper.
     for pyhelper in args.pyhelpers:
