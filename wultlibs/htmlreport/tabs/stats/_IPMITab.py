@@ -16,11 +16,11 @@ import pandas
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import Defs
 from wultlibs.parsers import IPMIParser
-from wultlibs.htmlreport.tabs.stats import _StatsTab, _StatsTabContainer
+from wultlibs.htmlreport.tabs.stats import _StatsTab, _StatsTabBuilderBase
 from wultlibs.htmlreport.tabs import _Tabs
 
 
-class IPMITabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
+class IPMITabBuilder(_StatsTabBuilderBase.StatsTabBuilderBase):
     """
     This class provides the capability of populating the IPMI statistics tab.
 

@@ -20,26 +20,19 @@ from wultlibs.htmlreport.tabs.stats import _StatsTab
 _LOG = logging.getLogger()
 
 
-class StatsTabContainerBuilderBase:
+class StatsTabBuilderBase:
     """
     This base class can be inherited from to populate a group of statistics tabs.
 
     This base class requires child classes to implement the following methods:
     1. Read a raw statistics file and convert the statistics data into a pandas Dataframe.
        * '_read_stats_file()'
-    2. Generate a 'StatsTabCollectionBuilderBase' instance containing sub-tabs which represent
-       statistics contained within the group. This method provides an interface for the child
-       classes. '_get_tab_group()' contains common logic which can be used to implement this method.
-       * 'get_tab_group()'
     """
 
     # File system-friendly tab name.
     name = None
 
-    def get_tab_group(self):
         """
-        Returns a '_Tabs.ContainerTabDC' instance containing sub-tabs which represent metrics within
-        the raw statistic files.
         """
 
         raise NotImplementedError()
