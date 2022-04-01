@@ -55,7 +55,7 @@ class IPMITabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
                 defs[col]["title"] = col
 
                 coltab = _StatsTab.StatsTabBuilder(self._reports, mtab_outdir, self._basedir, col,
-                                                   col, self._time_colname, defs)
+                                                   col, self._time_metric, defs)
                 coltabs.append(coltab.get_tab())
 
             # Only add a tab group for 'metric' if any tabs were generated to populate it.
@@ -90,6 +90,8 @@ class IPMITabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
         'path'.
         """
 
+        time_colname = "timestamp"
+
         def _ipmi_to_df(ipmi):
             """Convert IPMIParser dict to pandas DataFrame."""
 
@@ -118,13 +120,14 @@ class IPMITabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
             sdf = pandas.concat([sdf, df], ignore_index=True)
 
         # Confirm that the time column is in the Dataframe.
-        if self._time_colname not in sdf:
-            raise Error(f"column '{self._time_colname}' not found in statistics file '{path}'.")
+        if time_colname not in sdf:
+            raise Error(f"column '{time_colname}' not found in statistics file '{path}'.")
 
         # Convert Time column from time stamp to time since the first data point was recorded.
-        sdf[self._time_colname] = sdf[self._time_colname] - sdf[self._time_colname][0]
-        sdf[self._time_colname] = sdf[self._time_colname] / numpy.timedelta64(1, "s")
+        sdf[time_colname] = sdf[time_colname] - sdf[time_colname][0]
+        sdf[time_colname] = sdf[time_colname] / numpy.timedelta64(1, "s")
 
+        sdf = sdf.rename(columns={time_colname: self._time_metric})
         return sdf
 
     def __init__(self, stats_paths, outdir, bmname):
@@ -135,7 +138,7 @@ class IPMITabBuilder(_StatsTabContainer.StatsTabContainerBuilderBase):
         '_StatsTabContainer.StatsTabContainerBuilderBase'.
         """
 
-        self._time_colname = "timestamp"
+        self._time_metric = "Time"
 
         # Metrics in IPMI statistics can be represented by multiple columns. For example the
         # "FanSpeed" of several different fans can be measured and represented in columns "Fan1",
