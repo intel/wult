@@ -20,7 +20,7 @@ from wultlibs.htmlreport.tabs.stats import _StatsTab
 _LOG = logging.getLogger()
 
 
-class StatsTabContainerDC(_Tabs.TabContainerDC):
+class StatsTabContainerDC(_Tabs.ContainerTabDC):
     """
     This class defines what is expected by the JavaScript side when adding a group of statistics
     tabs to HTML reports.

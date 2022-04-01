@@ -33,11 +33,12 @@ class DataTabDC:
 
 
 @dataclass
-class TabContainerDC:
+class ContainerTabDC:
     """
-    This class defines what is expected by the JavaScript side when adding a set of tabs to the
-    report.
+    This class defines what is expected by the JavaScript side when adding a container tab to HTML
+    report. A "container tab" is defined as tab which contains child tabs. Child tabs can either be
+    container tabs or data tabs.
     """
 
     name: str
-    tabs: Union["TabContainerDC", List[DataTabDC]]
+    tabs: Union["ContainerTabDC", List[DataTabDC]]
