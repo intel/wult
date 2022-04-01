@@ -14,8 +14,6 @@ from pathlib import Path
 import logging
 
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from wultlibs.htmlreport.tabs import _Tabs
-from wultlibs.htmlreport.tabs.stats import _StatsTab
 
 _LOG = logging.getLogger()
 
@@ -42,28 +40,6 @@ class StatsTabBuilderBase:
         """
 
         raise NotImplementedError()
-
-    def _get_tab_group(self, metric_defs, time_defs):
-        """
-        Returns a '_Tabs.ContainerTabDC' instance containing sub-tabs which represent statistics
-        contained within the group.
-         * metric_defs - a list of dictionaries containing the definitions for the metrics included
-                         in this tab group.
-         * time_defs - dictionary containing the definitions for the elapsed time.
-        """
-
-        # Create child tabs.
-        tbldrs = []
-        for defs in metric_defs:
-            tab = _StatsTab.StatsTabBuilder(self._reports, self._outdir, self._basedir, defs,
-                                            time_defs)
-            tbldrs.append(tab)
-
-        tabs = []
-        for tbldr in tbldrs:
-            tabs.append(tbldr.get_tab())
-
-        return _Tabs.ContainerTabDC(self.name, tabs)
 
     def _read_stats_file(self, path):
         """

@@ -13,7 +13,7 @@ This module provides the capability of populating the AC Power statistics Tab.
 import pandas
 
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.htmlreport.tabs.stats import _StatsTabBuilderBase
+from wultlibs.htmlreport.tabs.stats import _StatsTab, _StatsTabBuilderBase
 from wultlibs import Defs
 
 
@@ -68,7 +68,10 @@ class ACPowerTabBuilder(_StatsTabBuilderBase.StatsTabBuilderBase):
         """
 
         defs = Defs.Defs("acpower").info
-        return super()._get_tab_group([defs["ACPower"]], defs["Time"] ).tabs[0]
+
+        dtab_bldr = _StatsTab.StatsTabBuilder(self._reports, self._outdir, self._basedir,
+                                              defs["ACPower"], defs["Time"])
+        return dtab_bldr.get_tab()
 
     def __init__(self, stats_paths, outdir):
         """
