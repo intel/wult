@@ -434,7 +434,7 @@ def start_command(args):
             raise Error("statistics collection is not supported on your system")
         stconf = WultStatsCollect.parse_stats(args.stats, args.stats_intervals)
 
-    pman = ToolsCommon.get_pman(args, args.hostname)
+    pman = ToolsCommon.get_pman(args)
 
     if Deploy.is_deploy_needed(pman, OWN_NAME, pyhelpers=["stats-collect"]):
         msg = f"'{OWN_NAME}' drivers are not up-to-date{pman.hostmsg}, " \
@@ -572,7 +572,7 @@ def report_command(args):
 def load_command(args):
     """Implements the 'load' command."""
 
-    pman = ToolsCommon.get_pman(args, args.hostname)
+    pman = ToolsCommon.get_pman(args)
     with Devices.WultDevice(args.devid, 0, pman, dmesg=True, force=args.force) as dev:
         with EventsProvider.EventsProvider(dev, 0, pman) as ep:
             ep.unload = not args.no_unload

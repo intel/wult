@@ -207,7 +207,7 @@ def parse_arguments():
 def start_command(args):
     """Implements the 'start' command."""
 
-    pman = ToolsCommon.get_pman(args, args.hostname)
+    pman = ToolsCommon.get_pman(args)
 
     if not args.reportid and pman.is_remote:
         prefix = pman.hostname

@@ -641,7 +641,7 @@ def deploy_command(args):
         # helpers.
         args.ctmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-")
 
-    with contextlib.closing(ToolsCommon.get_pman(args, args.hostname)) as pman:
+    with contextlib.closing(ToolsCommon.get_pman(args)) as pman:
         if not FSHelpers.which("make", default=None, pman=pman):
             raise Error(f"please, install the 'make' tool{pman.hostmsg}")
 
