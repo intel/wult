@@ -21,7 +21,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Deploy
 from wultlibs.htmlreport.tabs import _Tabs
 from wultlibs.htmlreport.tabs.stats import _ACPowerTab, _IPMITab
-from wultlibs.htmlreport.tabs.metrictab import _MetricTab
+from wultlibs.htmlreport.tabs.metrictab import _MetricDataTabBuilder
 
 _LOG = logging.getLogger()
 
@@ -185,12 +185,12 @@ class ReportBase:
             exclude_axes = list(itertools.product(x_axes, y_axes))
             plot_axes = [axes for axes in plot_axes if axes not in exclude_axes]
 
-        tabs = []
-        tab_names = [y for _, y in plot_axes]
-        tab_names += self.chist + self.hist
-        tab_names = Trivial.list_dedup(tab_names)
+        dtabs = []
+        tab_metrics = [y for _, y in plot_axes]
+        tab_metrics += self.chist + self.hist
+        tab_metrics = Trivial.list_dedup(tab_metrics)
 
-        for metric in tab_names:
+        for metric in tab_metrics:
             _LOG.info("Generating %s tab.", metric)
 
             tab_plots = []
@@ -204,12 +204,12 @@ class ReportBase:
 
             smry_metrics = Trivial.list_dedup(smry_metrics)
 
-            metric_tab = _MetricTab.MetricTabBuilder(metric, self.rsts, self.outdir)
-            metric_tab.add_smrytbl(smry_metrics, self._smry_funcs)
-            metric_tab.add_plots(tab_plots, self.hist, self.chist, self._hov_colnames)
-            tabs.append(metric_tab.get_tab())
+            dtab_bldr = _MetricDataTabBuilder.MetricDataTabBuilder(metric, self.rsts, self.outdir)
+            dtab_bldr.add_smrytbl(smry_metrics, self._smry_funcs)
+            dtab_bldr.add_plots(tab_plots, self.hist, self.chist, self._hov_colnames)
+            dtabs.append(dtab_bldr.get_tab())
 
-        return tabs
+        return dtabs
 
     def _generate_stats_tabs(self, stats_paths):
         """

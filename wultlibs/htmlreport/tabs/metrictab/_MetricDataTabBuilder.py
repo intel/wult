@@ -20,9 +20,10 @@ from wultlibs.htmlreport.tabs.metrictab import _PlotsBuilder
 from wultlibs.htmlreport.tabs import _Tabs
 
 
-class MetricTabBuilder:
+class MetricDataTabBuilder:
     """
-    This class provides the functionality to build '_Tabs.DataTabDC' instances.
+    This class provides the functionality to build '_Tabs.DataTabDC' instances which contain data
+    for a given metric.
 
     Public methods overview:
     1. Add a summary table to the tab.
