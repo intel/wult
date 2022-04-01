@@ -17,9 +17,9 @@ from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import Trivial
 from wultlibs.htmlreport import _SummaryTable
 from wultlibs.htmlreport.tabs.metrictab import _PlotsBuilder
-from wultlibs.htmlreport.tabs import _BaseTab
+from wultlibs.htmlreport.tabs import _Tabs
 
-class MetricTabDC(_BaseTab.BaseTabDC):
+class MetricTabDC(_Tabs.DataTabDC):
     """
     This class defines what is expected by the JavaScript side when adding a Metric tab to HTML
     reports.

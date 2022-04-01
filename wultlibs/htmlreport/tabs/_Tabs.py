@@ -16,13 +16,13 @@ from pathlib import Path
 
 
 @dataclass
-class BaseTabDC:
+class DataTabDC:
     """
-    This class defines what is expected by the JavaScript side when adding a Metric tab to HTML
-    reports.
+    This dataclass defines what is expected by the JavaScript side when adding a data tab to HTML
+    reports. A "data tab" is defined as a tab which contains data such as a summary table and plots.
     """
 
-    # The metric is used as the tab name.
+    # The name is used as the tab label.
     name: str
 
     # Relative paths to any 'plotly' plots to include in the tab.
@@ -40,4 +40,4 @@ class TabContainerDC:
     """
 
     name: str
-    tabs: Union["TabContainerDC", List[BaseTabDC]]
+    tabs: Union["TabContainerDC", List[DataTabDC]]

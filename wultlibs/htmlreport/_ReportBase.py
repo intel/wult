@@ -19,7 +19,7 @@ from pathlib import Path
 from pepclibs.helperlibs import Trivial, FSHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Deploy
-from wultlibs.htmlreport.tabs import _BaseTab
+from wultlibs.htmlreport.tabs import _Tabs
 from wultlibs.htmlreport.tabs.stats import _ACPowerTab, _IPMITab
 from wultlibs.htmlreport.tabs.metrictab import _MetricTab
 
@@ -277,10 +277,10 @@ class ReportBase:
 
         tabs = []
         # Convert Dataclasses to dictionaries so that they are JSON serialisable.
-        tabs.append(dataclasses.asdict(_BaseTab.TabContainerDC("Results", metric_tabs)))
+        tabs.append(dataclasses.asdict(_Tabs.TabContainerDC("Results", metric_tabs)))
 
         if stats_tabs:
-            tabs.append(dataclasses.asdict(_BaseTab.TabContainerDC("Stats", tabs=stats_tabs)))
+            tabs.append(dataclasses.asdict(_Tabs.TabContainerDC("Stats", tabs=stats_tabs)))
         else:
             _LOG.info("All statistics have been skipped therefore the report will not contain a "
                       "'Stats' tab.")

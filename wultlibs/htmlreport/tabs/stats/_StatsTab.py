@@ -15,12 +15,12 @@ import logging
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.htmlreport import _SummaryTable, _ScatterPlot, _Histogram
 from wultlibs import DFSummary
-from wultlibs.htmlreport.tabs import _BaseTab
+from wultlibs.htmlreport.tabs import _Tabs
 
 _LOG = logging.getLogger()
 
 
-class StatsTabDC(_BaseTab.BaseTabDC):
+class StatsTabDC(_Tabs.DataTabDC):
     """
     This class defines what is expected by the JavaScript side when adding a statistics tab to HTML
     reports.
