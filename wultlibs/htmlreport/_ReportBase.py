@@ -238,7 +238,7 @@ class ReportBase:
 
             _LOG.info("Generating '%s' tab.", tbldr.name)
             try:
-                tabs.append(tbldr.get_tab_group())
+                tabs.append(tbldr.get_tab())
             except Error as err:
                 _LOG.info("Skipping '%s' statistics: %s", tab_builder.name, err)
                 continue

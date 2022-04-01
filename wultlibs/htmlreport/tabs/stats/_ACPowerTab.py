@@ -24,7 +24,7 @@ class ACPowerTabBuilder(_StatsTabBuilderBase.StatsTabBuilderBase):
     Public methods overview:
     1. Generate a '_Tabs.DataTabDC' instance containing a summary table and plots describing data in
        raw AC Power statistics files.
-        * 'get_tab_group()'
+        * 'get_tab()'
     """
     # File system-friendly tab name.
     name = "ACPower"
@@ -61,7 +61,7 @@ class ACPowerTabBuilder(_StatsTabBuilderBase.StatsTabBuilderBase):
 
         return sdf
 
-    def get_tab_group(self):
+    def get_tab(self):
         """
         Returns a '_Tabs.DataTabDC' instance containing a summary table and plots describing data in
         raw AC Power statistics files.

@@ -27,13 +27,13 @@ class IPMITabBuilder(_StatsTabBuilderBase.StatsTabBuilderBase):
     Public methods overview:
     1. Generate a '_Tabs.ContainerTabDC' instance containing a group of sub-tabs which display
        different IPMI statistics.
-       * 'get_tab_group()'
+       * 'get_tab()'
     """
 
     # File system-friendly tab name.
     name = "IPMI"
 
-    def get_tab_group(self):
+    def get_tab(self):
         """
         Generate a '_Tabs.ContainerTabDC' instance containing a group of sub-tabs which display
         different IPMI statistics.
