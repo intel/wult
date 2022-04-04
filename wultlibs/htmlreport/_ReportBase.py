@@ -277,10 +277,10 @@ class ReportBase:
 
         tabs = []
         # Convert Dataclasses to dictionaries so that they are JSON serialisable.
-        tabs.append(dataclasses.asdict(_Tabs.ContainerTabDC("Results", metric_tabs)))
+        tabs.append(dataclasses.asdict(_Tabs.CTabDC("Results", metric_tabs)))
 
         if stats_tabs:
-            tabs.append(dataclasses.asdict(_Tabs.ContainerTabDC("Stats", tabs=stats_tabs)))
+            tabs.append(dataclasses.asdict(_Tabs.CTabDC("Stats", tabs=stats_tabs)))
         else:
             _LOG.info("All statistics have been skipped therefore the report will not contain a "
                       "'Stats' tab.")

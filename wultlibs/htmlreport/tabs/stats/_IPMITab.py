@@ -25,8 +25,8 @@ class IPMITabBuilder(_StatsTabBuilderBase.StatsTabBuilderBase):
     This class provides the capability of populating the IPMI statistics tab.
 
     Public methods overview:
-    1. Generate a '_Tabs.ContainerTabDC' instance containing a group of sub-tabs which display
-       different IPMI statistics.
+    1. Generate a '_Tabs.CTabDC' instance containing a group of sub-tabs which display different
+       IPMI statistics.
        * 'get_tab()'
     """
 
@@ -35,7 +35,7 @@ class IPMITabBuilder(_StatsTabBuilderBase.StatsTabBuilderBase):
 
     def get_tab(self):
         """
-        Generate a '_Tabs.ContainerTabDC' instance containing a group of sub-tabs which display
+        Generate a '_Tabs.CTabDC' instance containing a group of sub-tabs which display
         different IPMI statistics.
         """
 
@@ -64,12 +64,12 @@ class IPMITabBuilder(_StatsTabBuilderBase.StatsTabBuilderBase):
 
             # Only add a tab group for 'metric' if any tabs were generated to populate it.
             if coltabs:
-                mgroups.append(_Tabs.ContainerTabDC(metric, coltabs))
+                mgroups.append(_Tabs.CTabDC(metric, coltabs))
 
         if not mgroups:
             raise Error(f"no common {self.name} metrics between reports.")
 
-        return _Tabs.ContainerTabDC(self.name, mgroups)
+        return _Tabs.CTabDC(self.name, mgroups)
 
     def _categorise_cols(self, ipmi):
         """

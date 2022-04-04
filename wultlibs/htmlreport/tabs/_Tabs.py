@@ -33,7 +33,7 @@ class DTabDC:
 
 
 @dataclass
-class ContainerTabDC:
+class CTabDC:
     """
     This class defines what is expected by the JavaScript side when adding a container tab to HTML
     report. A "container tab" is defined as tab which contains child tabs. Child tabs can either be
@@ -41,4 +41,4 @@ class ContainerTabDC:
     """
 
     name: str
-    tabs: Union["ContainerTabDC", List[DTabDC]]
+    tabs: Union["CTabDC", List[DTabDC]]
