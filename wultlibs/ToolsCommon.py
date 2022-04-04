@@ -19,7 +19,7 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, ProcessManager, Logging, YAML
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import Devices
+from wultlibs import DFSummary, Devices
 from wultlibs.helperlibs import ReportID, Human
 from wultlibs.rawresultlibs import RORawResult
 
@@ -412,7 +412,7 @@ def calc_command(args):
     """Implements the 'calc' command  for the 'wult' and 'ndl' tools."""
 
     if args.list_funcs:
-        for name, descr in RORawResult.get_smry_funcs():
+        for name, descr in DFSummary.get_smry_funcs():
             _LOG.info("%s: %s", name, descr)
         return
 
