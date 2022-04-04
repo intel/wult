@@ -25,7 +25,7 @@ class StatsTabBuilderBase:
     This base class requires child classes to implement the following methods:
     1. Read a raw statistics file and convert the statistics data into a pandas Dataframe.
        * '_read_stats_file()'
-    2. Generate a '_Tabs.DataTabDC' or '_Tabs.ContainerTabDC' instance which represent statistics
+    2. Generate a '_Tabs.DTabDC' or '_Tabs.ContainerTabDC' instance which represent statistics
        found in raw statistics file. This method provides an interface for the child classes.
        * 'get_tab()'
     """
@@ -35,7 +35,7 @@ class StatsTabBuilderBase:
 
     def get_tab(self):
         """
-        Returns a '_Tabs.DataTabDC' or '_Tabs.ContainerTabDC' instance which represent statistics
+        Returns a '_Tabs.DTabDC' or '_Tabs.ContainerTabDC' instance which represent statistics
         found in raw statistics file. This method should be implemented by any child class.
         """
 

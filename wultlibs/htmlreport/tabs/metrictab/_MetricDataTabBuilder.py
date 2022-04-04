@@ -22,7 +22,7 @@ from wultlibs.htmlreport.tabs import _Tabs
 
 class MetricDataTabBuilder:
     """
-    This class provides the functionality to build '_Tabs.DataTabDC' instances which contain data
+    This class provides the functionality to build '_Tabs.DTabDC' instances which contain data
     for a given metric.
 
     Public methods overview:
@@ -30,7 +30,7 @@ class MetricDataTabBuilder:
        * 'add_smrytbl()'
     2. Add plots to the tab.
        * 'add_plots()'
-    3. Generate 'DataTabDC' instance.
+    3. Generate '_Tabs.DTabDC' instance.
        * 'get_tab()'
     """
 
@@ -117,13 +117,13 @@ class MetricDataTabBuilder:
 
     def get_tab(self):
         """
-        Returns a '_Tabs.DataTabDC' instance representative of the data already added to the class.
+        Returns a '_Tabs.DTabDC' instance representative of the data already added to the class.
         """
 
         ppaths = [p.relative_to(self._basedir) for p in self._ppaths]
         smrytblpath = self._smrytblpath.relative_to(self._basedir)
 
-        return _Tabs.DataTabDC(self.tabname, ppaths, smrytblpath)
+        return _Tabs.DTabDC(self.tabname, ppaths, smrytblpath)
 
     def __init__(self, tabname, rsts, outdir):
         """

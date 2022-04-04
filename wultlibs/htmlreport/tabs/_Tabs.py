@@ -16,7 +16,7 @@ from pathlib import Path
 
 
 @dataclass
-class DataTabDC:
+class DTabDC:
     """
     This dataclass defines what is expected by the JavaScript side when adding a data tab to HTML
     reports. A "data tab" is defined as a tab which contains data such as a summary table and plots.
@@ -41,4 +41,4 @@ class ContainerTabDC:
     """
 
     name: str
-    tabs: Union["ContainerTabDC", List[DataTabDC]]
+    tabs: Union["ContainerTabDC", List[DTabDC]]

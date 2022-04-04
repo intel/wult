@@ -21,8 +21,8 @@ class StatsTabBuilder:
     This base class provides the capability of populating a statistics tab.
 
     Public methods overview:
-    1. Generate a '_BaseTab.BaseTabDC' instance containing plots and a summary table which represent
-       all of the statistics found during initialisation.
+    1. Generate a '_Tabs.DTabDC' instance containing plots and a summary table which represent all
+       of the statistics found during initialisation.
        * 'get_tab()'
     """
 
@@ -43,9 +43,9 @@ class StatsTabBuilder:
 
     def get_tab(self):
         """
-        Returns a '_BaseTab.BaseTabDC' instance which contains an aggregate of all of the statistics
-        found in 'stats_paths', provided to the class constructor. This '_BaseTab.BaseTabDC' can
-        then be used to populate an HTML tab.
+        Returns a '_Tabs.DTabDC' instance which contains an aggregate of all of the statistics found
+        in 'stats_paths', provided to the class constructor. This '_Tabs.DTabDC' can then be used to
+        populate an HTML tab.
         """
 
         plotpaths = []
@@ -58,7 +58,7 @@ class StatsTabBuilder:
         except Exception as err:
             raise Error(f"failed to generate summary table: {err}") from None
 
-        return _Tabs.DataTabDC(self.title, plotpaths, self.smry_path.relative_to(self._basedir))
+        return _Tabs.DTabDC(self.title, plotpaths, self.smry_path.relative_to(self._basedir))
 
     def _init_plots(self):
         """
