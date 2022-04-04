@@ -291,9 +291,9 @@ def is_deploy_needed(pman, toolname, helpers=None, pyhelpers=None):
             datapath = find_app_data("wult", _HELPERS_SRC_SUBPATH / pyhelper, appname=toolname)
             srcpaths = []
             dstpaths = []
-            pman = LocalProcessManager.LocalProcessManager()
+            lpman = LocalProcessManager.LocalProcessManager()
 
-            for deployable in _get_deployables(datapath, pman):
+            for deployable in _get_deployables(datapath, lpman):
                 if datapath.joinpath(deployable).exists():
                     # This case is relevant for running wult from sources - python helpers are
                     # in the 'helpers/pyhelper' directory.
