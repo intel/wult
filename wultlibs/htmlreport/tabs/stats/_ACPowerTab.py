@@ -77,7 +77,7 @@ class ACPowerTabBuilder(_StatsTabBuilderBase.StatsTabBuilderBase):
         """
         The class constructor. Adding an ACPower tab will create an 'ACPower' sub-directory and
         store plots and the summary table in it. The arguments are the same as in
-        '_StatsTabContainer.StatsTabContainerBuilderBase'.
+        '_StatsTabBuilderBase.StatsTabBuilderBase'.
         """
 
         self._metric = "ACPower"

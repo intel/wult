@@ -139,7 +139,7 @@ class IPMITabBuilder(_StatsTabBuilderBase.StatsTabBuilderBase):
         The class constructor. Adding an IPMI statistics group tab will create an 'IPMI'
         sub-directory and store sub-tabs inside it. Sub-tabs will represent all of the metrics
         stored in the raw IPMI statistics file. The arguments are the same as in
-        '_StatsTabContainer.StatsTabContainerBuilderBase'.
+        '_StatsTabBuilderBase.StatsTabBuilderBase'.
         """
 
         self._time_metric = "Time"
