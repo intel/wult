@@ -17,7 +17,7 @@ from pathlib import Path
 import pandas
 from pepclibs.helperlibs import YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
-from wultlibs import Defs, DFSummary
+from wultlibs import DFSummary, MetricDefs
 from wultlibs.rawresultlibs import _RawResultBase
 
 _LOG = logging.getLogger()
@@ -425,7 +425,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         if not toolver:
             raise Error(f"bad '{self.info_path}' format - the 'toolver' key is missing")
 
-        self.defs = Defs.Defs(self.info["toolname"])
+        self.defs = MetricDefs.MetricDefs(self.info["toolname"])
 
         # All column names in the CSV file.
         self._read_colnames()

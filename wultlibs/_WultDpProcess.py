@@ -15,7 +15,7 @@ import time
 import logging
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs import CStates
-from wultlibs import Defs
+from wultlibs import MetricDefs
 from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
@@ -90,7 +90,7 @@ class DatapointProcessor:
 
         # Add the C-state percentages.
         for field in self._cs_fields:
-            cyc_filed = Defs.get_cscyc_colname(Defs.get_csname(field))
+            cyc_filed = MetricDefs.get_cscyc_colname(MetricDefs.get_csname(field))
 
             # In case of POLL state, calculate only CC0%.
             if self._is_poll_idle(dp) and cyc_filed != "CC0Cyc":
@@ -106,7 +106,7 @@ class DatapointProcessor:
                 if dp[field] > 300:
                     loglevel = logging.WARNING
 
-                csname = Defs.get_csname(field)
+                csname = MetricDefs.get_csname(field)
                 _LOG.log(loglevel, "too high %s residency of %.1f%%, using 100%% instead. The "
                                    "datapoint is:\n%s", csname, dp[field], Human.dict2str(dp))
                 dp[field] = 100.0
@@ -118,7 +118,7 @@ class DatapointProcessor:
 
             non_cc1_cyc = 0
             for field in dp.keys():
-                if Defs.is_cscyc_colname(field) and Defs.get_csname(field) != "CC1":
+                if MetricDefs.is_cscyc_colname(field) and MetricDefs.get_csname(field) != "CC1":
                     non_cc1_cyc += dp[field]
 
             dp["CC1Derived%"] = (dp["TotCyc"] - non_cc1_cyc) / dp["TotCyc"] * 100.0
@@ -481,19 +481,19 @@ class DatapointProcessor:
 
         raw_fields = list(rawdp.keys())
 
-        defs = Defs.Defs("wult")
+        defs = MetricDefs.MetricDefs("wult")
         defs.populate_cstates(raw_fields)
 
         self._cs_fields = []
         self._has_cstates = False
 
         for field in raw_fields:
-            csname = Defs.get_csname(field, default=None)
+            csname = MetricDefs.get_csname(field, default=None)
             if not csname:
                 # Not a C-state field.
                 continue
             self._has_cstates = True
-            self._cs_fields.append(Defs.get_csres_colname(csname))
+            self._cs_fields.append(MetricDefs.get_csres_colname(csname))
 
         self._us_fields_set = {field for field, vals in defs.info.items() \
                                if vals.get("unit") == "microsecond"}

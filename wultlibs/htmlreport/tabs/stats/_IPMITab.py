@@ -14,7 +14,7 @@ import numpy
 import pandas
 
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import Defs
+from wultlibs import MetricDefs
 from wultlibs.parsers import IPMIParser
 from wultlibs.htmlreport.tabs.stats import _StatsTab, _StatsTabBuilderBase
 from wultlibs.htmlreport.tabs import _Tabs
@@ -42,7 +42,7 @@ class IPMITabBuilder(_StatsTabBuilderBase.StatsTabBuilderBase):
         col_sets = [set(sdf.columns) for sdf in self._reports.values()]
         common_cols = set.intersection(*col_sets)
 
-        defs = Defs.Defs("ipmi")
+        defs = MetricDefs.MetricDefs("ipmi")
 
         mgroups = []
         for metric, colnames in self._metrics.items():
