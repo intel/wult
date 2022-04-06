@@ -313,19 +313,20 @@ class RORawResult(_RawResultBase.RawResultBase):
         """Read the datapoints CSV file header, fetch and validate its column names."""
 
         try:
-            self.colnames = list(pandas.read_csv(self.dp_path, nrows=0))
+            colnames = list(pandas.read_csv(self.dp_path, nrows=0))
         except Exception as err:
             raise Error(f"failed to load CSV file {self.dp_path}:\n{err}") from None
 
-        self.defs.populate_cstates(self.colnames)
-        self.colnames_set = set(self.colnames)
+        self.defs.populate_cstates(colnames)
 
-        # By default set the columns selector only to the columns present in the defs file.
-        self._csel = []
-        defs_colnames = set(self.defs.info.keys())
-        for colname in self.colnames:
-            if colname in defs_colnames:
-                self._csel.append(colname)
+        # Ignore column names which are not present in the definitions.
+        self.colnames = []
+        for colname in colnames:
+            if colname in self.defs.info:
+                self.colnames.append(colname)
+
+
+        self.colnames_set = set(self.colnames)
 
     def save(self, dirpath, reportid=None):
         """
