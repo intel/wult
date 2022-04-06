@@ -16,8 +16,7 @@ reports.
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import Trivial
 from wultlibs.htmlreport import _SummaryTable
-from wultlibs.htmlreport.tabs.metrictab import _PlotsBuilder
-from wultlibs.htmlreport.tabs import _Tabs
+from wultlibs.htmlreport.tabs import _PlotsBuilder, _Tabs
 
 
 class MetricDataTabBuilder:

@@ -19,9 +19,8 @@ from pathlib import Path
 from pepclibs.helperlibs import Trivial, FSHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Deploy
-from wultlibs.htmlreport.tabs import _Tabs
+from wultlibs.htmlreport.tabs import _MetricDataTabBuilder, _Tabs
 from wultlibs.htmlreport.tabs.stats import _ACPowerTab, _IPMITab
-from wultlibs.htmlreport.tabs.metrictab import _MetricDataTabBuilder
 
 _LOG = logging.getLogger()
 
