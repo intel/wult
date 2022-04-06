@@ -19,7 +19,7 @@ from pathlib import Path
 from pepclibs.helperlibs import Trivial, FSHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Deploy
-from wultlibs.htmlreport.tabs import _MetricDataTabBuilder, _Tabs
+from wultlibs.htmlreport.tabs import _MetricTabBuilder, _Tabs
 from wultlibs.htmlreport.tabs.stats import _ACPowerTab, _IPMITab
 
 _LOG = logging.getLogger()
@@ -203,7 +203,7 @@ class ReportBase:
 
             smry_metrics = Trivial.list_dedup(smry_metrics)
 
-            dtab_bldr = _MetricDataTabBuilder.MetricDataTabBuilder(metric, self.rsts, self.outdir)
+            dtab_bldr = _MetricTabBuilder.MetricTabBuilder(metric, self.rsts, self.outdir)
             dtab_bldr.add_smrytbl(smry_metrics, self._smry_funcs)
             dtab_bldr.add_plots(tab_plots, self.hist, self.chist, self._hov_colnames)
             dtabs.append(dtab_bldr.get_tab())
