@@ -15,6 +15,17 @@ from pepclibs.helperlibs import YAML
 from wultlibs import Deploy
 
 
+def get_fsname(metric):
+    """Given a metric, returns a file-system and URL safe name."""
+
+    # If 'metric' contains "%", we maintain the meaning by replacing with "Percent".
+    metric = metric.replace("%", "Percent")
+
+    # Filter out any remaining non-alphanumeric characters.
+    metric = ''.join([c for c in metric if c.isalnum()])
+    return metric
+
+
 class DefsBase:
     """
     This base class can be inherited from to provide an API to the datapoints CSV file definitions
@@ -51,11 +62,14 @@ class DefsBase:
         """This function mangles the initially loaded dictionary and adds useful values there."""
 
         metric_key = "metric"
+        fsname_key = "fsname"
 
         for key, val in info.items():
             val[metric_key] = key
+            val[fsname_key] = get_fsname(key)
 
         self._populate_cstate_keys.append(metric_key)
+        self._populate_cstate_keys.append(fsname_key)
 
         return info
 
