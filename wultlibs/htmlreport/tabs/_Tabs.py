@@ -37,7 +37,8 @@ class CTabDC:
     """
     This class defines what is expected by the JavaScript side when adding a container tab to HTML
     report. A "container tab" is defined as tab which contains child tabs. Child tabs can either be
-    container tabs or data tabs.
+    container tabs or data tabs. In other words, container tabs are non-leaf tabs in the HTML report
+    tabs hierarchy.
     """
 
     name: str
