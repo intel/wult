@@ -260,12 +260,16 @@ class RORawResult(_RawResultBase.RawResultBase):
                 try:
                     expr = pandas.eval(rsel)
                 except ValueError as err:
-                    if "data type must provide an itemsize" in str(err):
-                        # Some older versions of the default "numexpr" engine has a bug, and this is
-                        # a workaround. We just try the "python" engine instead.
-                        expr = pandas.eval(rsel, engine="python")
-                    else:
-                        raise
+                    # For some reasons on some distros the default "numexpr" engin fails with
+                    # various errors, such as:
+                    #   * ValueError: data type must provide an itemsize
+                    #   * ValueError: unknown type str128
+                    #
+                    # We are not sure how to properly fix these, but we noticed that often the
+                    # "python" engine works fine. Therefore, re-trying with the "python" engine.
+                    _LOG.debug("pandas.eval(engine='numexpr') failed: %s\nTrying "
+                               "pandas.eval(engine='python')", str(err))
+                    expr = pandas.eval(rsel, engine="python")
             except Exception as err:
                 raise Error(f"failed to evaluate expression '{rsel}': {err}\nMake sure you use "
                             f"correct CSV column names, which are also case-sensitive.") from err
