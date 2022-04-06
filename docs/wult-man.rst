@@ -74,21 +74,21 @@ USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 Compile and deploy wult helpers and drivers to the SUT (System Under
 Test), which can be either local or a remote host, depending on the '-H'
 option.The drivers are searched for in the following directories (and in
-the following order) on the local host: /usr/bin/drivers/idle,
+the following order) on the local host: ./drivers/idle,
 $WULT_DATA_PATH/drivers/idle (if 'WULT_DATA_PATH' environment variable
 is defined), $HOME/.local/share/wult/drivers/idle,
 /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The
 wult tool also depends on the following helpers: stats-collect. These
 helpers will be compiled on the SUT and deployed to the SUT. The sources
 of the helpers are searched for in the following paths (and in the
-following order) on the local host: /usr/bin/helpers,
-$WULT_DATA_PATH/helpers (if 'WULT_DATA_PATH' environment variable is
-defined), $HOME/.local/share/wult/helpers,
-/usr/local/share/wult/helpers, /usr/share/wult/helpers. By default,
-helpers are deployed to the path defined by the WULT_HELPERSPATH
-environment variable. If the variable is not defined, helpers are
-deployed to '$HOME/.local/bin', where '$HOME' is the home directory of
-user 'USERNAME' on host 'HOST' (see '--host' and '--username' options).
+following order) on the local host: ./helpers, $WULT_DATA_PATH/helpers
+(if 'WULT_DATA_PATH' environment variable is defined),
+$HOME/.local/share/wult/helpers, /usr/local/share/wult/helpers,
+/usr/share/wult/helpers. By default, helpers are deployed to the path
+defined by the WULT_HELPERSPATH environment variable. If the variable is
+not defined, helpers are deployed to '$HOME/.local/bin', where '$HOME'
+is the home directory of user 'USERNAME' on host 'HOST' (see '--host'
+and '--username' options).
 
 OPTIONS *'wult* deploy'
 =======================
@@ -104,9 +104,7 @@ OPTIONS *'wult* deploy'
 
 **--kernel-src** *KSRC*
    Path to the Linux kernel sources to build the drivers against. The
-   default is '/lib/modules/$(uname -r)/build' on the SUT. In case of
-   deploying to a remote host, this is the path on the remote host
-   (HOSTNAME).
+   default is host, this is the path on the remote host (HOSTNAME).
 
 **-H** *HOSTNAME*, **--host** *HOSTNAME*
    Name of the host to run the command on.
@@ -118,7 +116,7 @@ OPTIONS *'wult* deploy'
 **-K** *PRIVKEY*, **--priv-key** *PRIVKEY*
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
-   paths like '~/.ssh'.
+   paths like
 
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
@@ -153,7 +151,7 @@ OPTIONS *'wult* scan'
 **-K** *PRIVKEY*, **--priv-key** *PRIVKEY*
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
-   paths like '~/.ssh'.
+   paths like
 
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
@@ -203,7 +201,7 @@ OPTIONS *'wult* load'
 **-K** *PRIVKEY*, **--priv-key** *PRIVKEY*
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
-   paths like '~/.ssh'.
+   paths like
 
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
@@ -249,7 +247,7 @@ OPTIONS *'wult* start'
 **-K** *PRIVKEY*, **--priv-key** *PRIVKEY*
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
-   paths like '~/.ssh'.
+   paths like
 
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
@@ -258,7 +256,11 @@ OPTIONS *'wult* start'
    How many datapoints should the test result include, default is
    1000000. Note, unless the '--start-over' option is used, the
    pre-existing datapoints are taken into account. For example, if the
-   test result already has 6000 datapoints and memory.
+   test result already has 6000 datapoints and '-c 10000' is used, the
+   tool will collect 4000 datapoints and exit. Warning: collecting too
+   many datapoints may result in a very large test result file, which
+   will be difficult to process later, because that would require a lot
+   of memory.
 
 **--time-limit** *LIMIT*
    The measurement time limit, i.e., for how long the SUT should be
@@ -266,8 +268,10 @@ OPTIONS *'wult* start'
    handy specifiers as well: {'d': 'days', 'h': 'hours', 'm': 'minutes',
    's': 'seconds'}. For example
 
-when either the time limit is reached, or the required amount of
-datapoints is collected.
+seconds. Value '0' means "no time limit", and this is the default. If
+this option is used along with the '--datapoints' option, then
+measurements will stop as when either the time limit is reached, or the
+required amount of datapoints is collected.
 
 **--rfilt** *RFILT*
    The row filter: remove all the rows satisfying the filter expression.
@@ -318,9 +322,10 @@ datapoints is collected.
    power meter statistics. You can also specify the statistics you do
    not want to be collected by pre-pending the '!' symbol. For example,
    'all,!turbostat' would mean: collect all the statistics supported by
-   the SUT, except for 'turbostat'. Use the '--list-stats' option to get
-   more information about available statistics. By default, only
-   'sysinfo' statistics are collected.
+   the SUT, except for
+
+available statistics. By default, only 'sysinfo' statistics are
+collected.
 
 **--stats-intervals** *STATS_INTERVALS*
    The intervals for statistics. Statistics collection is based on doing
@@ -345,12 +350,12 @@ datapoints is collected.
    single value if you want launch distance to be precisely that value
    all the time. The default unit is microseconds, but you can use the
    following specifiers as well: {'ms': 'milliseconds', 'us':
-   'microseconds', 'ns': 'nanoseconds'}. For example, '--ldist 10us,5ms'
-   would be a [10,5000] microseconds range. Too small values may cause
-   failures or prevent the SUT from reaching deep C-states. If the range
-   starts with 0, the minimum possible launch distance value allowed by
-   the delayed event source will be used. The optimal launch distance
-   range is system-specific.
+   'microseconds', 'ns':
+
+microseconds range. Too small values may cause failures or prevent the
+SUT from reaching deep C-states. If the range starts with 0, the minimum
+possible launch distance value allowed by the delayed event source will
+be used. The optimal launch distance range is system-specific.
 
 **--cpunum** *CPUNUM*
    The logical CPU number to measure, default is CPU 0.
@@ -361,12 +366,12 @@ datapoints is collected.
    there is an interrupt, the CPU wakes up and continues running the
    instructions after the 'mwait'. The CPU first runs some housekeeping
    code, and only then the interrupts get enabled and the CPU jumps to
-   the interrupt handler. Wult measures 'WakeLatency' during the
-   "housekeeping" stage, and 'IntrLatency' is measured in the interrupt
-   handler. However, the 'WakeLatency' measurement takes time and
-   affects the measured 'IntrLatency'. This option disables
-   'WakeLatency' measurements, which improves 'IntrLatency'
-   measurements' accuracy.
+   the interrupt handler. Wult measures
+
+in the interrupt handler. However, the 'WakeLatency' measurement takes
+time and affects the measured 'IntrLatency'. This option disables
+'WakeLatency' measurements, which improves 'IntrLatency' measurements'
+accuracy.
 
 **--tsc-cal-time** *TSC_CAL_TIME*
    Wult receives raw datapoints from the driver, then processes them,
@@ -408,13 +413,13 @@ datapoints is collected.
    interrupt, it will not jump to the interrupt handler, but instead,
    continue running some 'cpuidle' housekeeping code. After this, the
    'cpuidle' subsystem enables interrupts, and the CPU jumps to the
-   interrupt hanlder. Therefore, there is a tiny delay the 'cpuidle'
-   subsystem adds on top of the hardware C-state latency. For fast
-   C-states like C1, this tiny delay may even be measurable on some
-   platforms. This option allows to measure that delay. It makes wult
-   enable interrupts before linux enters the C-state. This option is
-   generally a crude option along with '--intr-focus'. When this option
-   is used, often it makes sense to use '--intr-focus' at the same time.
+   interrupt hanlder. Therefore, there is a tiny delay the
+
+C-states like C1, this tiny delay may even be measurable on some
+platforms. This option allows to measure that delay. It makes wult
+enable interrupts before linux enters the C-state. This option is
+generally a crude option along with '--intr-focus'. When this option is
+used, often it makes sense to use '-- intr-focus' at the same time.
 
 **--dirty-cpu-cache**
    Deeper C-states like Intel CPU core C6 flush the CPU cache before
@@ -430,7 +435,7 @@ datapoints is collected.
    lines, wult filles a 2MiB buffer with zeroes before requesting a
    C-state. This buffer is reffered to as "dirty cache buffer", or
    "dcbuf". This option allows for changing the dcbuf size. For example,
-   in order to make it 4MiB, use '--dcbuf-size=4MiB'.
+   in order to make it 4MiB, use '--dcbuf- size=4MiB'.
 
 **--report**
    Generate an HTML report for collected results (same as calling
@@ -521,14 +526,14 @@ OPTIONS *'wult* report'
 **--hist** *HIST*
    A comma-separated list of CSV column names (or python style regular
    expressions matching the names) to add a histogram for, default is
-   '.*Latency'. Use '--list-columns' to get the list of the available
-   column names. Use value 'none' to disable histograms.
+   names. Use value 'none' to disable histograms.
 
 **--chist** *CHIST*
    A comma-separated list of CSV column names (or python style regular
    expressions matching the names) to add a cumulative distribution for,
    default is 'None'. Use '--list-columns' to get the list of the
-   available column names. Use value
+   available column names. Use value 'none' to disable cumulative
+   histograms.
 
 **--reportids** *REPORTIDS*
    Every input raw result comes with a report ID. This report ID is
@@ -546,7 +551,9 @@ OPTIONS *'wult* report'
    The report title description - any text describing this report as
    whole, or path to a file containing the overall report description.
    For example, if the report compares platform A and platform B, the
-   description could be something like
+   description could be something like 'platform A vs B comparison'.
+   This text will be included into the very beginning of the resulting
+   HTML report.
 
 **--relocatable** *RELOCATABLE*
    By default the generated report includes references to the raw test
@@ -627,6 +634,8 @@ OPTIONS *'wult* filter'
    names or python style regular expressions matching the names. For
    example expression
 
+columns' to get the list of the available column names.
+
 **--csel** *CSEL*
    The columns selector: remove all column except for those specified in
    the selector. The syntax is the same as for '--cfilt'.
@@ -634,7 +643,7 @@ OPTIONS *'wult* filter'
 **--human-readable**
    By default the result 'filter' command print the result as a CSV file
    to the standard output. This option can be used to dump the result in
-   a more human-readable form.
+   a more human- readable form.
 
 **-o** *OUTDIR*, **--outdir** *OUTDIR*
    By default the resulting CSV lines are printed to the standard
@@ -647,7 +656,7 @@ OPTIONS *'wult* filter'
 
 **--reportid** *REPORTID*
    Report ID of the filtered version of the result (can only be used
-   with '--outdir').
+   with '-- outdir').
 
 COMMAND *'wult* calc'
 =====================
@@ -695,6 +704,8 @@ OPTIONS *'wult* calc'
    columns filter is just a comma-separated list of the CSV file column
    names or python style regular expressions matching the names. For
    example expression
+
+columns' to get the list of the available column names.
 
 **--csel** *CSEL*
    The columns selector: remove all column except for those specified in
