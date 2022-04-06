@@ -22,6 +22,10 @@ class TabBuilderBase:
     """
     This base class can be inherited from to populate a group of statistics tabs.
 
+    For classes with names such as '_XStatsTabBuilder' and the 'Builder' suffix, their purpose is to
+    produce a tab containing data from 'XStats'. These classes do not represent the tab itself but a
+    builder which creates those tabs.
+
     This base class requires child classes to implement the following methods:
     1. Read a raw statistics file and convert the statistics data into a 'pandas.DataFrame'.
        * '_read_stats_file()'
