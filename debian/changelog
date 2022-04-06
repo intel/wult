@@ -1,3 +1,9 @@
+wult (1.9.20) unstable; urgency=low
+
+  * Fix crash when using 'wult calc --rsel'.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 06 Apr 2022 15:07:33 +0300
+
 wult (1.9.19) unstable; urgency=low
 
   * wult report: fix crash introduced in version 1.9.18.
