@@ -137,7 +137,8 @@ class MetricTabBuilder:
         self._rsts = rsts
         self._refres = rsts[0]
         self._basedir = outdir
-        self.outdir = outdir / tabname
+        self._fsname = self._refres.defs.info[tabname]["fsname"]
+        self.outdir = outdir / self._fsname
         self._pbuilder = None
         self._ppaths = []
 
