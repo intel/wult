@@ -7,7 +7,7 @@
 # Authors: Adam Hawley <adam.james.hawley@intel.com>
 
 """
-This module provides the capability of populating a statistic tab.
+This module provides the capability of populating a statistics data tab.
 """
 
 from pepclibs.helperlibs.Exceptions import Error
@@ -16,9 +16,9 @@ from wultlibs import DFSummary
 from wultlibs.htmlreport.tabs import _Tabs
 
 
-class StatsTabBuilder:
+class DTabBuilder:
     """
-    This base class provides the capability of populating a statistics tab.
+    This base class provides the capability of populating a statistics data tab.
 
     Public methods overview:
     1. Generate a '_Tabs.DTabDC' instance containing plots and a summary table which represent all

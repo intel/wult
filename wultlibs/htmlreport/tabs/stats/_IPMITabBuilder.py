@@ -16,7 +16,7 @@ import pandas
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import MetricDefs
 from wultlibs.parsers import IPMIParser
-from wultlibs.htmlreport.tabs.stats import _StatsTab, _TabBuilderBase
+from wultlibs.htmlreport.tabs.stats import _DTabBuilder, _TabBuilderBase
 from wultlibs.htmlreport.tabs import _Tabs
 
 
@@ -58,7 +58,7 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
                 col_defs["title"] = col
                 col_defs["metric"] = col
 
-                coltab = _StatsTab.StatsTabBuilder(self._reports, mtab_outdir, self._basedir,
+                coltab = _DTabBuilder.DTabBuilder(self._reports, mtab_outdir, self._basedir,
                                                    col_defs, defs.info[self._time_metric])
                 coltabs.append(coltab.get_tab())
 
