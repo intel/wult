@@ -31,9 +31,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         """
 
         if not colnames:
-            if self.df is None:
-                self.load_df()
-            colnames = list(self.df)
+            colnames = self.colnames
 
         non_numeric = []
         for colname in colnames:
@@ -48,9 +46,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         """
 
         if not colnames:
-            if self.df is None:
-                self.load_df()
-            colnames = list(self.df)
+            colnames = self.colnames
 
         numeric = []
         for colname in colnames:
@@ -153,7 +149,7 @@ class RORawResult(_RawResultBase.RawResultBase):
             self.load_df()
 
         if not regexs:
-            all_colnames = list(self.df)
+            all_colnames = self.colnames
         else:
             all_colnames = self.find_colnames(regexs, must_find_all=True)
 
