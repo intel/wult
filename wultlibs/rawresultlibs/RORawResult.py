@@ -79,8 +79,8 @@ class RORawResult(_RawResultBase.RawResultBase):
     def set_rfilt(self, rfilt):
         """
         Set the rows filter: the CSV rows matching the 'rfilt' expression will be excluded from the
-        dataframe during the next dataframe operation like 'load_df()'. Use 'None' to disable rows
-        filter.
+        'pandas.DataFrame' during the next 'pandas.DataFrame' operation like 'load_df()'. Use 'None'
+        to disable rows filter.
 
         The 'rfilt' argument should be a valid pandas python expression that can be used in
         'pandas.eval()'. For example, the '(SilentTime < 10000) and (PC6% == 0)' filter will exclude
@@ -93,8 +93,8 @@ class RORawResult(_RawResultBase.RawResultBase):
     def set_rsel(self, rsel):
         """
         Set the rows selector: only the CSV rows matching the 'rsel' expression will be added to the
-        dataframe during the next dataframe operation like 'load_df()'. The 'rsel' argument is
-        similar to the 'rfilt' argument in the 'set_rfilt()' method.
+        'pandas.DataFrame' during the next 'pandas.DataFrame' operation like 'load_df()'. The 'rsel'
+        argument is similar to the 'rfilt' argument in the 'set_rfilt()' method.
         """
 
         self._rsel = self._mangle_eval_expr(rsel)
@@ -102,8 +102,8 @@ class RORawResult(_RawResultBase.RawResultBase):
     def set_cfilt(self, regexs):
         """
         Set the columns filter: the CSV columns with names in 'regexs' (or matching a regular
-        expression in 'regexs') will be excluded from the dataframe during the next dataframe
-        operation like 'load_df()'. Use 'None' to disable columns filter.
+        expression in 'regexs') will be excluded from the 'pandas.DataFrame' during the next
+        'pandas.DataFrame' operation like 'load_df()'. Use 'None' to disable columns filter.
         """
 
         if regexs:
@@ -112,8 +112,8 @@ class RORawResult(_RawResultBase.RawResultBase):
     def set_csel(self, regexs):
         """
         Set the columns selector: only the CSV columns with names in 'regexs' (or matching a regular
-        expression in 'regexs') will be included into the dataframe ('self.df') during the next
-        dataframe operation like 'load_df()'. Use 'None' to disable the selector.
+        expression in 'regexs') will be included into the 'pandas.DataFrame' ('self.df') during the
+        next 'pandas.DataFrame' operation like 'load_df()'. Use 'None' to disable the selector.
         """
 
         if regexs:
@@ -121,9 +121,9 @@ class RORawResult(_RawResultBase.RawResultBase):
 
     def calc_smrys(self, regexs=None, funcnames=None, all_funcs=False):
         """
-        Calculate summary functions specified in 'funcnames' for columns matching 'regexs', and
-        save the result in 'self.smrys'. By default this method calculates the summaries for all
-        columns in the currently loaded dataframe and uses the default functions functions.
+        Calculate summary functions specified in 'funcnames' for columns matching 'regexs', and save
+        the result in 'self.smrys'. By default this method calculates the summaries for all columns
+        in the currently loaded 'pandas.DataFrame' and uses the default functions functions.
 
         The 'regexs' argument should be a list of column names or regular expressions, which will be
         applied to column names. The 'funcnames' argument must be a list of function names.
@@ -185,7 +185,7 @@ class RORawResult(_RawResultBase.RawResultBase):
             self.smrys[colname] = subdict
 
     def _load_csv(self, **kwargs):
-        """Read the datapoints CSV file into a pandas dataframe and validate it."""
+        """Read the datapoints CSV file into a 'pandas.DataFrame' and validate it."""
 
         _LOG.info("Loading test result '%s'.", self.dp_path)
 
@@ -261,7 +261,7 @@ class RORawResult(_RawResultBase.RawResultBase):
     def load_df(self, **kwargs):
         """
         If the datapoints CSV file has not been read yet ('self.df' is 'None'), read it into the
-        'self.df' pandas dataframe. Then apply all the configured filters and selectors to
+        'self.df' 'pandas.DataFrame'. Then apply all the configured filters and selectors to
         'self.df'. The keyword arguments ('kwargs') are passed as is to 'pandas.read_csv()'.
         """
 

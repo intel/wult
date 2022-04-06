@@ -54,7 +54,8 @@ class PlotsBuilder:
 
     def _create_hover_text(self, res, df, xcolname, ycolname):
         """
-        Create and return a list containing hover text for every datapoint in the 'df' dataframe.
+        Create and return a list containing hover text for every datapoint in the 'pandas.DataFrame'
+        'df'.
         """
 
         _LOG.debug("Preparing hover text for '%s vs %s'", ycolname, xcolname)

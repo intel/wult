@@ -7,7 +7,7 @@
 # Authors: Adam Hawley <adam.james.hawley@intel.com>
 
 """
-This module provides the capability of populating the AC Power statistics Tab.
+This module provides the capability of populating the AC Power statistics tab.
 """
 
 import pandas
@@ -31,7 +31,7 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
 
     def _read_stats_file(self, path):
         """
-        Returns a pandas DataFrame containing the data stored in the raw AC Power statistics CSV
+        Returns a 'pandas.DataFrame' containing the data stored in the raw AC Power statistics CSV
         file at 'path'.
         """
 

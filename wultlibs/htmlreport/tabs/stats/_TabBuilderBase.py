@@ -23,7 +23,7 @@ class TabBuilderBase:
     This base class can be inherited from to populate a group of statistics tabs.
 
     This base class requires child classes to implement the following methods:
-    1. Read a raw statistics file and convert the statistics data into a pandas Dataframe.
+    1. Read a raw statistics file and convert the statistics data into a 'pandas.DataFrame'.
        * '_read_stats_file()'
     2. Generate a '_Tabs.DTabDC' or '_Tabs.CTabDC' instance which represent statistics found in raw
        statistics file. This method provides an interface for the child classes.
@@ -43,7 +43,8 @@ class TabBuilderBase:
 
     def _read_stats_file(self, path):
         """
-        Returns a pandas DataFrame containing the data stored in the raw statistics file at 'path'.
+        Returns a 'pandas.DataFrame' containing the data stored in the raw statistics file at
+        'path'.
         """
 
         raise NotImplementedError()

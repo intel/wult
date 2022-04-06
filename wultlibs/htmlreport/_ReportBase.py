@@ -296,8 +296,8 @@ class ReportBase:
 
     def _mangle_loaded_res(self, res): # pylint: disable=no-self-use, unused-argument
         """
-        This method is called for every dataframe corresponding to the just loaded CSV file. The
-        subclass can override this method to mangle the dataframe.
+        This method is called for every 'pandas.DataFrame' corresponding to the just loaded CSV
+        file. The subclass can override this method to mangle the 'pandas.DataFrame'.
         """
 
         for colname in res.df:
@@ -312,7 +312,8 @@ class ReportBase:
                 _LOG.debug("dropping empty column '%s'", colname)
                 res.df.drop(colname, axis="columns", inplace=True)
 
-        # Update columns lists in case some of the columns were removed from the loaded dataframe.
+        # Update columns lists in case some of the columns were removed from the loaded
+        # 'pandas.Dataframe'.
         for name in ("_smry_colnames", "xaxes", "yaxes", "hist", "chist"):
             colnames = []
             for colname in getattr(self, name):
@@ -349,7 +350,7 @@ class ReportBase:
             res.load_df()
 
             # We'll be dropping columns and adding temporary columns, so we'll affect the original
-            # dataframe. This is more efficient than creating copies.
+            # 'pandas.DataFrame'. This is more efficient than creating copies.
             self._mangle_loaded_res(res)
 
         # Some columns from the axes lists could have been dropped, update the lists.
@@ -359,8 +360,8 @@ class ReportBase:
         """Generate the HTML report and store the result in 'self.outdir'.
 
         Important note: this method will modify the input test results in 'self.rsts'. This is done
-        for effeciency purposes, to avoid copying the potentially large amounts of data (pandas
-        dataframes).
+        for effeciency purposes, to avoid copying the potentially large amounts of data
+        (instances of 'pandas.DataFrame').
         """
 
         # Load the required datapoints into memory.

@@ -48,7 +48,7 @@ class Plot:
     @staticmethod
     def _is_numeric_col(df, colname):
         """
-        Returns 'True' if column 'colname' in pandas DataFrame 'df' consists of numerical data,
+        Returns 'True' if column 'colname' in 'pandas.DataFrame' 'df' consists of numerical data,
         otherwise returns 'False'.  Helper for child classes to dictate styling based on whether a
         column is numeric or not.
         """
@@ -60,8 +60,8 @@ class Plot:
 
     def add_df(self, df, name, hover_text=None):
         """
-        Add a single pandas DataFrame of data to the plot.
-         * df - pandas DataFrame containing the data to be plotted for that test run.
+        Add a single 'pandas.DataFrame' of data to the plot.
+         * df - 'pandas.DataFrame' containing the data to be plotted for that test run.
          * name - plots with multiple sets of data will include a legend indicating which plot
                   points are from which set of data. This 'name' parameter will be used to label
                   the data given when this function is called.
@@ -74,8 +74,8 @@ class Plot:
 
     def generate(self):
         """
-        Generates a plotly diagram based on the data in the pandas DataFrames saved with
-        'self.add_df()'. Then saves it to a file at the output path 'self.outpath'.
+        Generates a plotly diagram based on the data in all instances of 'pandas.DataFrame' saved
+        with 'self.add_df()'. Then saves it to a file at the output path 'self.outpath'.
         """
 
         try:

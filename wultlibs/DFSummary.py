@@ -7,7 +7,8 @@
 # Authors: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module provides the capability of calculating summarising statistics for a given DataFrame.
+This module provides the capability of calculating summarising statistics for a given
+'pandas.DataFrame'.
 """
 
 import numpy
@@ -90,8 +91,8 @@ def filter_smry_funcs(funcs, default_funcs=None):
 
 def calc_col_smry(df, colname, funcnames=None):
     """
-    Calculate summary function 'funcname' for pandas DataFrame column 'colname' in DataFrame 'df'
-    and return the resulting dictionary. Note, 'smry' comes from "summary".
+    Calculate summary function 'funcname' for 'pandas.DataFrame' column 'colname' in
+    'pandas.DataFrame' 'df' and return the resulting dictionary. Note, 'smry' comes from "summary".
     """
 
     fmap = {"min" : "idxmin", "min_index" : "idxmin", "max" : "idxmax", "max_index" : "idxmax",

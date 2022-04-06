@@ -62,7 +62,7 @@ class DTabBuilder:
 
     def _init_plots(self):
         """
-        Initialise the plots and populate them using the pandas Dataframe objects in
+        Initialise the plots and populate them using the 'pandas.DataFrame' objects in
         'self._reports'.
         """
 

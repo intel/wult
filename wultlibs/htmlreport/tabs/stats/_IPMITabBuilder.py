@@ -90,14 +90,14 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
 
     def _read_stats_file(self, path):
         """
-        Returns a pandas DataFrame containing the data stored in the raw IPMI statistics file at
+        Returns a 'pandas.DataFrame' containing the data stored in the raw IPMI statistics file at
         'path'.
         """
 
         time_colname = "timestamp"
 
         def _ipmi_to_df(ipmi):
-            """Convert IPMIParser dict to pandas DataFrame."""
+            """Convert IPMIParser dict to 'pandas.DataFrame'."""
 
             # Reduce IPMI values from ('value', 'unit') to just 'value'.
             # If "no reading" is parsed in a line of a raw IPMI file, 'None' is returned. In this
@@ -120,10 +120,10 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
 
         for i in ipmi_gen:
             df = _ipmi_to_df(i)
-            # Append dataset for a single timestamp to the main Dataframe.
+            # Append dataset for a single timestamp to the main 'pandas.DataFrame'.
             sdf = pandas.concat([sdf, df], ignore_index=True)
 
-        # Confirm that the time column is in the Dataframe.
+        # Confirm that the time column is in the 'pandas.DataFrame'.
         if time_colname not in sdf:
             raise Error(f"column '{time_colname}' not found in statistics file '{path}'.")
 
