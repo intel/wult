@@ -72,14 +72,14 @@ USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 Compile and deploy ndl helpers and drivers to the SUT (System Under
 Test), which can be either local or a remote host, depending on the '-H'
 option.The drivers are searched for in the following directories (and in
-the following order) on the local host: /usr/bin/drivers/idle,
+the following order) on the local host: ./drivers/idle,
 $NDL_DATA_PATH/drivers/idle (if 'NDL_DATA_PATH' environment variable is
 defined), $HOME/.local/share/wult/drivers/idle,
 /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The ndl
 tool also depends on the following helpers: ndlrunner. These helpers
 will be compiled on the SUT and deployed to the SUT. The sources of the
 helpers are searched for in the following paths (and in the following
-order) on the local host: /usr/bin/helpers, $NDL_DATA_PATH/helpers (if
+order) on the local host: ./helpers, $NDL_DATA_PATH/helpers (if
 'NDL_DATA_PATH' environment variable is defined),
 $HOME/.local/share/wult/helpers, /usr/local/share/wult/helpers,
 /usr/share/wult/helpers. By default, helpers are deployed to the path
@@ -102,9 +102,7 @@ OPTIONS *'ndl* deploy'
 
 **--kernel-src** *KSRC*
    Path to the Linux kernel sources to build the drivers against. The
-   default is '/lib/modules/$(uname -r)/build' on the SUT. In case of
-   deploying to a remote host, this is the path on the remote host
-   (HOSTNAME).
+   default is host, this is the path on the remote host (HOSTNAME).
 
 **-H** *HOSTNAME*, **--host** *HOSTNAME*
    Name of the host to run the command on.
@@ -116,7 +114,7 @@ OPTIONS *'ndl* deploy'
 **-K** *PRIVKEY*, **--priv-key** *PRIVKEY*
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
-   paths like '~/.ssh'.
+   paths like
 
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
@@ -151,7 +149,7 @@ OPTIONS *'ndl* scan'
 **-K** *PRIVKEY*, **--priv-key** *PRIVKEY*
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
-   paths like '~/.ssh'.
+   paths like
 
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
@@ -193,7 +191,7 @@ OPTIONS *'ndl* start'
 **-K** *PRIVKEY*, **--priv-key** *PRIVKEY*
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
-   paths like '~/.ssh'.
+   paths like
 
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
@@ -202,7 +200,11 @@ OPTIONS *'ndl* start'
    How many datapoints should the test result include, default is
    1000000. Note, unless the '--start-over' option is used, the
    pre-existing datapoints are taken into account. For example, if the
-   test result already has 6000 datapoints and memory.
+   test result already has 6000 datapoints and '-c 10000' is used, the
+   tool will collect 4000 datapoints and exit. Warning: collecting too
+   many datapoints may result in a very large test result file, which
+   will be difficult to process later, because that would require a lot
+   of memory.
 
 **--time-limit** *LIMIT*
    The measurement time limit, i.e., for how long the SUT should be
@@ -210,8 +212,10 @@ OPTIONS *'ndl* start'
    handy specifiers as well: {'d': 'days', 'h': 'hours', 'm': 'minutes',
    's': 'seconds'}. For example
 
-when either the time limit is reached, or the required amount of
-datapoints is collected.
+seconds. Value '0' means "no time limit", and this is the default. If
+this option is used along with the '--datapoints' option, then
+measurements will stop as when either the time limit is reached, or the
+required amount of datapoints is collected.
 
 **-o** *OUTDIR*, **--outdir** *OUTDIR*
    Path to the directory to store the results at.
@@ -237,6 +241,10 @@ datapoints is collected.
    but you can use the following specifiers as well: {'ms':
    'milliseconds', 'us': 'microseconds',
 
+[500,100000] microseconds range. Note, too low values may cause failures
+or prevent the SUT from reaching deep C-states. The optimal value is
+system- specific.
+
 **--rfilt** *RFILT*
    The row filter: remove all the rows satisfying the filter expression.
    Here is an example of an expression: '(WakeLatency < 10000) \| (PC6%
@@ -260,7 +268,7 @@ datapoints is collected.
    will contain 100000 datapoints, all of them will have RTD bigger than
    50 microseconds. But what if you do not want to simply discard the
    other datapoints, because they are also interesting? Well, add the
-   '--keep-filtered' option. The result will contain, say, 150000
+   '--keep- filtered' option. The result will contain, say, 150000
    datapoints, 100000 of which will have RTD value greater than 50.
 
 **--report**
@@ -345,14 +353,14 @@ OPTIONS *'ndl* report'
 **--hist** *HIST*
    A comma-separated list of CSV column names (or python style regular
    expressions matching the names) to add a histogram for, default is
-   'RTD'. Use '--list-columns' to get the list of the available column
-   names. Use value 'none' to disable histograms.
+   'RTD'. Use
 
 **--chist** *CHIST*
    A comma-separated list of CSV column names (or python style regular
    expressions matching the names) to add a cumulative distribution for,
    default is 'RTD'. Use '--list-columns' to get the list of the
-   available column names. Use value
+   available column names. Use value 'none' to disable cumulative
+   histograms.
 
 **--reportids** *REPORTIDS*
    Every input raw result comes with a report ID. This report ID is
@@ -370,7 +378,9 @@ OPTIONS *'ndl* report'
    The report title description - any text describing this report as
    whole, or path to a file containing the overall report description.
    For example, if the report compares platform A and platform B, the
-   description could be something like
+   description could be something like 'platform A vs B comparison'.
+   This text will be included into the very beginning of the resulting
+   HTML report.
 
 **--relocatable** *RELOCATABLE*
    By default the generated report includes references to the raw test
@@ -437,6 +447,8 @@ OPTIONS *'ndl* filter'
    names or python style regular expressions matching the names. For
    example expression
 
+columns' to get the list of the available column names.
+
 **--csel** *CSEL*
    The columns selector: remove all column except for those specified in
    the selector. The syntax is the same as for '--cfilt'.
@@ -444,7 +456,7 @@ OPTIONS *'ndl* filter'
 **--human-readable**
    By default the result 'filter' command print the result as a CSV file
    to the standard output. This option can be used to dump the result in
-   a more human-readable form.
+   a more human- readable form.
 
 **-o** *OUTDIR*, **--outdir** *OUTDIR*
    By default the resulting CSV lines are printed to the standard
@@ -457,7 +469,7 @@ OPTIONS *'ndl* filter'
 
 **--reportid** *REPORTID*
    Report ID of the filtered version of the result (can only be used
-   with '--outdir').
+   with '-- outdir').
 
 COMMAND *'ndl* calc'
 ====================
@@ -505,6 +517,8 @@ OPTIONS *'ndl* calc'
    columns filter is just a comma-separated list of the CSV file column
    names or python style regular expressions matching the names. For
    example expression
+
+columns' to get the list of the available column names.
 
 **--csel** *CSEL*
    The columns selector: remove all column except for those specified in
