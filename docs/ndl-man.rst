@@ -281,7 +281,7 @@ COMMAND *'ndl* report'
 usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--rfilt RFILT] [--rsel
 RSEL] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist
 CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR]
-[--relocatable RELOCATABLE] [--list-columns] respaths [respaths ...]
+[--relocatable] [--list-columns] respaths [respaths ...]
 
 Create an HTML report for one or multiple test results.
 
@@ -382,17 +382,11 @@ OPTIONS *'ndl* report'
    This text will be included into the very beginning of the resulting
    HTML report.
 
-**--relocatable** *RELOCATABLE*
-   By default the generated report includes references to the raw test
-   results and report assets (such as CSS/JS files). At the file-system
-   level, symlinks are created to the assets and results. This means
-   that if the original files are moved somewhere, or the generated
-   report is moved to another system, it may end up with broken links to
-   these files. This option accepts 2 possible values: 'copy' and
-   'symlink'. In the case of the 'copy' value, raw results and report
-   assets will be copied to the report output directory, which will make
-   the report relocatable, but at the expense of increased disk space
-   consumption. The 'symlink' value corresponds to the default behavior.
+**--relocatable**
+   Generate a report which contains a copy of the raw test results. With
+   this option, viewers of the report will be able to browse raw logs
+   and statistics files which are copied across with the raw test
+   results.
 
 **--list-columns**
    Print the list of the available column names and exit.
