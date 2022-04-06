@@ -13,11 +13,11 @@ This module provides the capability of populating the AC Power statistics Tab.
 import pandas
 
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.htmlreport.tabs.stats import _StatsTab, _StatsTabBuilderBase
+from wultlibs.htmlreport.tabs.stats import _StatsTab, _TabBuilderBase
 from wultlibs import MetricDefs
 
 
-class ACPowerTabBuilder(_StatsTabBuilderBase.StatsTabBuilderBase):
+class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
     """
     This class provides the capability of populating the AC Power statistics tab.
 
@@ -77,7 +77,7 @@ class ACPowerTabBuilder(_StatsTabBuilderBase.StatsTabBuilderBase):
         """
         The class constructor. Adding an ACPower tab will create an 'ACPower' sub-directory and
         store plots and the summary table in it. The arguments are the same as in
-        '_StatsTabBuilderBase.StatsTabBuilderBase'.
+        '_TabBuilderBase.TabBuilderBase'.
         """
 
         self._metric = "ACPower"

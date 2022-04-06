@@ -18,7 +18,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 _LOG = logging.getLogger()
 
 
-class StatsTabBuilderBase:
+class TabBuilderBase:
     """
     This base class can be inherited from to populate a group of statistics tabs.
 

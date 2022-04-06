@@ -16,11 +16,11 @@ import pandas
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import MetricDefs
 from wultlibs.parsers import IPMIParser
-from wultlibs.htmlreport.tabs.stats import _StatsTab, _StatsTabBuilderBase
+from wultlibs.htmlreport.tabs.stats import _StatsTab, _TabBuilderBase
 from wultlibs.htmlreport.tabs import _Tabs
 
 
-class IPMITabBuilder(_StatsTabBuilderBase.StatsTabBuilderBase):
+class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
     """
     This class provides the capability of populating the IPMI statistics tab.
 
@@ -139,7 +139,7 @@ class IPMITabBuilder(_StatsTabBuilderBase.StatsTabBuilderBase):
         The class constructor. Adding an IPMI statistics group tab will create an 'IPMI'
         sub-directory and store sub-tabs inside it. Sub-tabs will represent all of the metrics
         stored in the raw IPMI statistics file. The arguments are the same as in
-        '_StatsTabBuilderBase.StatsTabBuilderBase'.
+        '_TabBuilderBase.TabBuilderBase'.
         """
 
         self._time_metric = "Time"
