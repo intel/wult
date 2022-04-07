@@ -30,7 +30,6 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
        * 'get_tab()'
     """
 
-    # File system-friendly tab name.
     name = "IPMI"
 
     def get_tab(self):

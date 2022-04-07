@@ -14,6 +14,7 @@ from pathlib import Path
 import logging
 
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
+from wultlibs import DefsBase
 
 _LOG = logging.getLogger()
 
@@ -34,7 +35,7 @@ class TabBuilderBase:
        * 'get_tab()'
     """
 
-    # File system-friendly tab name.
+    # The name of the statistics represented in the produced tab.
     name = None
 
     def get_tab(self):
@@ -113,7 +114,7 @@ class TabBuilderBase:
 
         self._reports = {}
         self._basedir = outdir
-        self._outdir = outdir / self.name
+        self._outdir = outdir / DefsBase.get_fsname(self.name)
 
         try:
             self._outdir.mkdir(parents=True, exist_ok=True)

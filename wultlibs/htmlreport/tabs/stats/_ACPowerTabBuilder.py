@@ -26,7 +26,7 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
        raw AC Power statistics files.
         * 'get_tab()'
     """
-    # File system-friendly tab name.
+
     name = "ACPower"
 
     def _read_stats_file(self, path):
