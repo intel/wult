@@ -15,7 +15,6 @@ import sys
 import time
 import zipfile
 import logging
-import contextlib
 from pathlib import Path
 from pepclibs.helperlibs import LocalProcessManager, Trivial, FSHelpers, Logging, ArgParse
 from pepclibs.helperlibs import WrapExceptions
@@ -641,7 +640,7 @@ def deploy_command(args):
         # helpers.
         args.ctmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-")
 
-    with contextlib.closing(ToolsCommon.get_pman(args)) as pman:
+    with ToolsCommon.get_pman(args) as pman:
         if not FSHelpers.which("make", default=None, pman=pman):
             raise Error(f"please, install the 'make' tool{pman.hostmsg}")
 

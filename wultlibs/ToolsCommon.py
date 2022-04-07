@@ -216,7 +216,10 @@ FUNCS_DESCR = """Comma-separated list of summary functions to calculate. By defa
 LIST_FUNCS_DESCR = "Print the list of the available summary functions."
 
 def get_pman(args):
-    """Returns the process manager object for host 'hostname'."""
+    """
+    Returns the process manager object for host 'hostname'. The returned object should either be
+    used with a 'with' statement, or closed with the 'close()' method.
+    """
 
     if args.hostname == "localhost":
         username = privkeypath = timeout = None

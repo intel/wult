@@ -12,6 +12,7 @@
 
 import sys
 import logging
+import contextlib
 from pathlib import Path
 
 try:
@@ -207,50 +208,58 @@ def parse_arguments():
 def start_command(args):
     """Implements the 'start' command."""
 
-    pman = ToolsCommon.get_pman(args)
+    with contextlib.ExitStack() as stack:
+        pman = ToolsCommon.get_pman(args)
+        stack.enter_context(pman)
 
-    if not args.reportid and pman.is_remote:
-        prefix = pman.hostname
-    else:
-        prefix = None
-    args.reportid = ReportID.format_reportid(prefix=prefix, reportid=args.reportid,
-                                             strftime=f"{OWN_NAME}-%Y%m%d")
+        if not args.reportid and pman.is_remote:
+            prefix = pman.hostname
+        else:
+            prefix = None
+        args.reportid = ReportID.format_reportid(prefix=prefix, reportid=args.reportid,
+                                                 strftime=f"{OWN_NAME}-%Y%m%d")
 
-    if not args.outdir:
-        args.outdir = Path(f"./{args.reportid}")
-    if args.tlimit:
-        args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
+        if not args.outdir:
+            args.outdir = Path(f"./{args.reportid}")
+        if args.tlimit:
+            args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
 
-    args.ldist = ToolsCommon.parse_ldist(args.ldist)
+        args.ldist = ToolsCommon.parse_ldist(args.ldist)
 
-    # Figure out the helper path.
-    helpers_path = Deploy.get_helpers_deploy_path(pman, OWN_NAME)
-    ndlrunner_bin = helpers_path / "ndlrunner"
+        # Figure out the helper path.
+        helpers_path = Deploy.get_helpers_deploy_path(pman, OWN_NAME)
+        ndlrunner_bin = helpers_path / "ndlrunner"
 
-    if Deploy.is_deploy_needed(pman, OWN_NAME, helpers=["ndlrunner"]):
-        msg = f"'{OWN_NAME}' helpers and/or drivers are not up-to-date{pman.hostmsg}, " \
-              f"please run: {OWN_NAME} deploy"
-        if pman.is_remote:
-            msg += f" -H {pman.hostname}"
-        LOG.warning(msg)
+        if Deploy.is_deploy_needed(pman, OWN_NAME, helpers=["ndlrunner"]):
+            msg = f"'{OWN_NAME}' helpers and/or drivers are not up-to-date{pman.hostmsg}, " \
+                  f"please run: {OWN_NAME} deploy"
+            if pman.is_remote:
+                msg += f" -H {pman.hostname}"
+            LOG.warning(msg)
 
-    if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
-        raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
-    args.dpcnt = int(args.dpcnt)
+        if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
+            raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
+        args.dpcnt = int(args.dpcnt)
 
-    with WORawResult.NdlWORawResult(args.reportid, args.outdir, VERSION) as res:
+        res = WORawResult.NdlWORawResult(args.reportid, args.outdir, VERSION)
+        stack.enter_context(res)
+
         ToolsCommon.setup_stdout_logging(OWN_NAME, res.logs_path)
         ToolsCommon.set_filters(args, res)
 
-        with NetIface.NetIface(args.ifname, pman=pman) as netif:
-            info = netif.get_pci_info()
-            if info.get("aspm_enabled"):
-                LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "
-                           "the measured latency.", args.ifname)
+        netif = NetIface.NetIface(args.ifname, pman=pman)
+        stack.enter_context(netif)
 
-            with NdlRunner.NdlRunner(pman, netif, res, ndlrunner_bin, ldist=args.ldist) as runner:
-                runner.prepare()
-                runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit)
+        info = netif.get_pci_info()
+        if info.get("aspm_enabled"):
+            LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "
+                       "the measured latency.", args.ifname)
+
+        runner = NdlRunner.NdlRunner(pman, netif, res, ndlrunner_bin, ldist=args.ldist)
+        stack.enter_context(runner)
+
+        runner.prepare()
+        runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit)
 
     if not args.report:
         return

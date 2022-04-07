@@ -434,47 +434,48 @@ def start_command(args):
             raise Error("statistics collection is not supported on your system")
         stconf = WultStatsCollect.parse_stats(args.stats, args.stats_intervals)
 
-    pman = ToolsCommon.get_pman(args)
-
-    if Deploy.is_deploy_needed(pman, OWN_NAME, pyhelpers=["stats-collect"]):
-        msg = f"'{OWN_NAME}' drivers are not up-to-date{pman.hostmsg}, " \
-              f"please run: {OWN_NAME} deploy"
-        if pman.is_remote:
-            msg += f" -H {pman.hostname}"
-        LOG.warning(msg)
-
-    if not args.reportid and pman.is_remote:
-        prefix = pman.hostname
-    else:
-        prefix = None
-    args.reportid = ReportID.format_reportid(prefix=prefix, reportid=args.reportid,
-                                             strftime=f"{OWN_NAME}-{args.devid}-%Y%m%d",
-                                             additional_chars=REPORTID_ADDITIONAL_CHARS)
-
-    if not args.outdir:
-        args.outdir = Path(f"./{args.reportid}")
-    if args.tlimit:
-        args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
-    if args.ldist:
-        args.ldist = ToolsCommon.parse_ldist(args.ldist)
-
-    if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
-        raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
-    args.dpcnt = int(args.dpcnt)
-
-    args.tsc_cal_time = Human.parse_duration(args.tsc_cal_time, default_unit="s",
-                                            name="TSC calculation time")
-
-    if args.dirty_cpu_cache:
-        if not args.dcbuf_size:
-            args.dcbuf_size = "2MiB"
-
-        args.dcbuf_size = Human.parse_bytesize(args.dcbuf_size)
-        if args.dcbuf_size <= 0:
-            raise Error(f"bad dirty CPU cache buffer size '{args.dcbuf_size}', must be a positive "
-                        f"integer")
-
     with contextlib.ExitStack() as stack:
+        pman = ToolsCommon.get_pman(args)
+        stack.enter_context(pman)
+
+        if Deploy.is_deploy_needed(pman, OWN_NAME, pyhelpers=["stats-collect"]):
+            msg = f"'{OWN_NAME}' drivers are not up-to-date{pman.hostmsg}, " \
+                  f"please run: {OWN_NAME} deploy"
+            if pman.is_remote:
+                msg += f" -H {pman.hostname}"
+            LOG.warning(msg)
+
+        if not args.reportid and pman.is_remote:
+            prefix = pman.hostname
+        else:
+            prefix = None
+        args.reportid = ReportID.format_reportid(prefix=prefix, reportid=args.reportid,
+                                                 strftime=f"{OWN_NAME}-{args.devid}-%Y%m%d",
+                                                 additional_chars=REPORTID_ADDITIONAL_CHARS)
+
+        if not args.outdir:
+            args.outdir = Path(f"./{args.reportid}")
+        if args.tlimit:
+            args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
+        if args.ldist:
+            args.ldist = ToolsCommon.parse_ldist(args.ldist)
+
+        if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
+            raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
+        args.dpcnt = int(args.dpcnt)
+
+        args.tsc_cal_time = Human.parse_duration(args.tsc_cal_time, default_unit="s",
+                                                name="TSC calculation time")
+
+        if args.dirty_cpu_cache:
+            if not args.dcbuf_size:
+                args.dcbuf_size = "2MiB"
+
+            args.dcbuf_size = Human.parse_bytesize(args.dcbuf_size)
+            if args.dcbuf_size <= 0:
+                raise Error(f"bad dirty CPU cache buffer size '{args.dcbuf_size}', must be a "
+                            f"positive integer")
+
         cpuinfo = CPUInfo.CPUInfo(pman=pman)
         stack.enter_context(cpuinfo)
 
@@ -572,12 +573,12 @@ def report_command(args):
 def load_command(args):
     """Implements the 'load' command."""
 
-    pman = ToolsCommon.get_pman(args)
-    with Devices.WultDevice(args.devid, 0, pman, dmesg=True, force=args.force) as dev:
-        with EventsProvider.EventsProvider(dev, 0, pman) as ep:
-            ep.unload = not args.no_unload
-            ep.prepare()
-            LOG.info("Loaded the '%s' %s delayed event driver", ep.dev.drvname, OWN_NAME)
+    with ToolsCommon.get_pman(args) as pman:
+        with Devices.WultDevice(args.devid, 0, pman, dmesg=True, force=args.force) as dev:
+            with EventsProvider.EventsProvider(dev, 0, pman) as ep:
+                ep.unload = not args.no_unload
+                ep.prepare()
+                LOG.info("Loaded the '%s' %s delayed event driver", ep.dev.drvname, OWN_NAME)
 
 def main():
     """Script entry point."""
