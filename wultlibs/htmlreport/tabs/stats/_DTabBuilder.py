@@ -35,7 +35,7 @@ class DTabBuilder:
                            fmt="{:.2f}")
 
         for rep, df in self._reports.items():
-            smry_dict = DFSummary.calc_col_smry(df, self.name, self.smry_funcs)
+            smry_dict = DFSummary.calc_col_smry(df, self._metric, self.smry_funcs)
             for fname in self.smry_funcs:
                 smrytbl.add_smry_func(rep, self.title, fname, smry_dict[fname])
 
@@ -69,8 +69,8 @@ class DTabBuilder:
         self._plots = []
 
         # Initialise scatter plot.
-        s_path = self._outdir / f"{self.name}-scatter.html"
-        s = _ScatterPlot.ScatterPlot(self._time_metric, self.name, s_path,
+        s_path = self._outdir / f"{self._fsname}-scatter.html"
+        s = _ScatterPlot.ScatterPlot(self._time_metric, self._metric, s_path,
                                      self._time_defs["title"], self._metric_defs["title"],
                                      self._time_defs["short_unit"], self._metric_defs["short_unit"])
 
@@ -80,8 +80,8 @@ class DTabBuilder:
         self._plots.append(s)
 
         # Initialise histogram.
-        h_path = self._outdir / f"{self.name}-histogram.html"
-        h = _Histogram.Histogram(self.name, h_path, self._metric_defs["title"],
+        h_path = self._outdir / f"{self._fsname}-histogram.html"
+        h = _Histogram.Histogram(self._metric, h_path, self._metric_defs["title"],
                                  self._metric_defs["short_unit"])
 
         for reportid, df in self._reports.items():
@@ -102,9 +102,10 @@ class DTabBuilder:
         """
 
         # File system-friendly tab name.
-        self.name = metric_defs["metric"]
+        self._fsname = metric_defs["fsname"]
+        self._metric = metric_defs["metric"]
         self._basedir = basedir
-        self._outdir = outdir / self.name
+        self._outdir = outdir / self._fsname
         self.smry_path = self._outdir / "summary-table.txt"
 
         try:
@@ -113,7 +114,6 @@ class DTabBuilder:
             raise Error(f"failed to create directory '{self._outdir}': {err}") from None
 
         self._metric_defs = metric_defs
-        self._metric = self.name
         self._time_defs = time_defs
         self._time_metric = time_defs["metric"]
         self.title = self._metric_defs["title"]
@@ -130,12 +130,12 @@ class DTabBuilder:
         # Reduce 'reports' to only the metric and time columns which are needed for this tab.
         self._reports = {}
         for reportid, df in reports.items():
-            if self.name in df:
-                self._reports[reportid] = df[[self.name, self._time_metric]].copy()
+            if self._metric in df:
+                self._reports[reportid] = df[[self._metric, self._time_metric]].copy()
 
         if not self._reports:
-            raise Error(f"failed to generate '{self.name}' tab: no data under column"
-                        f"'{self.name}' provided.")
+            raise Error(f"failed to generate '{self.title}' tab: no data under column"
+                        f"'{self._metric}' provided.")
 
 
         self._plots = []
