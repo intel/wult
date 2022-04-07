@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2021 Intel Corporation
+# Copyright (C) 2019-2022 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Authors: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -17,13 +17,6 @@ from wultlibs.htmlreport import _ScatterPlot, _Histogram
 
 _LOG = logging.getLogger()
 
-def _colname_to_fname(colname):
-    """
-    Turn column name 'colname' into a file name, replacing problematic characters that browsers
-    may refuse.
-    """
-
-    return colname.replace("%", "_pcnt").replace("/", "-to-")
 
 class PlotsBuilder:
     """
@@ -117,10 +110,12 @@ class PlotsBuilder:
         yaxis_defs = refdefs.info.get(ymetric, {})
         xaxis_label = xaxis_defs.get("title", xmetric)
         yaxis_label = yaxis_defs.get("title", xmetric)
+        xaxis_fsname = xaxis_defs.get("fsname", xaxis_label)
+        yaxis_fsname = yaxis_defs.get("fsname", yaxis_label)
         xaxis_unit = self._get_base_si_unit(xaxis_defs.get("short_unit", ""))
         yaxis_unit = self._get_base_si_unit(yaxis_defs.get("short_unit", ""))
 
-        fname = _colname_to_fname(ymetric) + "-vs-" + _colname_to_fname(xmetric) + ".html"
+        fname = yaxis_fsname + "-vs-" + xaxis_fsname + ".html"
         outpath = self.outdir / fname
 
         plot = _ScatterPlot.ScatterPlot(xmetric, ymetric, outpath, xaxis_label=xaxis_label,
@@ -144,7 +139,8 @@ class PlotsBuilder:
         """
 
         ymetric = "Count"
-        fname = _colname_to_fname(ymetric) + "-vs-" + _colname_to_fname(xmetric) + ".html"
+        xmetric_fsname = self._refdefs.info[xmetric]["fsname"]
+        fname = ymetric + "-vs-" + xmetric_fsname + ".html"
         outpath = self.outdir / fname
 
         hst = _Histogram.Histogram(xmetric, outpath, xaxis_label=xaxis_label, xbins=xbins,
@@ -164,7 +160,8 @@ class PlotsBuilder:
         """
 
         ymetric = "Percentile"
-        fname = _colname_to_fname(ymetric) + "-vs-" + _colname_to_fname(xmetric) + ".html"
+        xmetric_fsname = self._refdefs.info[xmetric]["fsname"]
+        fname = ymetric + "-vs-" + xmetric_fsname + ".html"
         outpath = self.outdir / fname
         chst = _Histogram.Histogram(xmetric, outpath, xaxis_label=xaxis_label,
                                     xaxis_unit=xaxis_unit, xbins=xbins, cumulative=True)
