@@ -29,7 +29,7 @@ class DefsBase:
        * 'get_new_colname()'
 
     Optionally child classes can override the '_mangle()' method which mangles the initially loaded
-    dictionary to provide more helpful fields.
+    dictionary to provide more helpful values.
     """
 
     def is_cs_colname(self, colname):
@@ -47,12 +47,15 @@ class DefsBase:
 
         raise NotImplementedError()
 
-    @staticmethod
-    def _mangle(info):
-        """This function mangles the initially loaded dictionary and adds useful fields there."""
+    def _mangle(self, info):
+        """This function mangles the initially loaded dictionary and adds useful values there."""
+
+        metric_key = "metric"
 
         for key, val in info.items():
-            val["metric"] = key
+            val[metric_key] = key
+
+        self._populate_cstate_keys.append(metric_key)
 
         return info
 
@@ -89,9 +92,10 @@ class DefsBase:
 
                 info[new_colname] = colinfo.copy()
 
-                # Correct title and description to refer to real C-state names.
-                info[new_colname]["title"] = info[new_colname]["title"].replace(colcsname, csname)
-                info[new_colname]["descr"] = info[new_colname]["descr"].replace(colcsname, csname)
+                # Correct all info dicts which need populating to refer to real C-state names.
+                for key in self._populate_cstate_keys:
+                    if key in info[new_colname]:
+                        info[new_colname][key] = info[new_colname][key].replace(colcsname, csname)
 
         self.info = info
 
@@ -104,6 +108,10 @@ class DefsBase:
         self.name = name
         self.info = None
         self.vanilla_info = None
+
+        # List of info keys to populate with C-states when 'populate_cstates()' is called.
+        self._populate_cstate_keys = ["title", "descr"]
+
         self.path = Deploy.find_app_data("wult", Path(f"defs/{name}.yml"), appname=name,
                                          descr=f"{name} datapoints definitions file")
         self.info = self.vanilla_info = self._mangle(YAML.load(self.path))
