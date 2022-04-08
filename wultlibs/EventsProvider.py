@@ -147,35 +147,6 @@ class EventsProvider:
             with self._pman.open(self._dcbuf_size_path, "w") as fobj:
                 fobj.write(f"{self._dcbuf_size}")
 
-    def close(self):
-        """Uninitialize everything (unload kernel drivers, etc)."""
-
-        if getattr(self, "_pman", None):
-            self._pman = None
-        else:
-            return
-
-        if self.unload:
-            if getattr(self, "_drv", None):
-                with contextlib.suppress(Error):
-                    self._drv.unload()
-            if getattr(self, "_main_drv", None):
-                with contextlib.suppress(Error):
-                    self._main_drv.unload()
-            self._drv = None
-
-            # Bind the device back to the original driver.
-            saved_drvname = getattr(self, "_saved_drvname", None)
-            if saved_drvname and saved_drvname != self.dev.drvname:
-                _LOG.info("Binding device '%s' back to driver '%s'",
-                          self.dev.info["devid"], self._saved_drvname)
-                try:
-                    self.dev.bind(self._saved_drvname)
-                except Error as err:
-                    _LOG.error("failed to bind device '%s' back to driver '%s':\n %s",
-                               self.dev.info["devid"], self._saved_drvname, err)
-            self._saved_drvname = None
-
     def __init__(self, dev, cpunum, pman, ldist=None, intr_focus=None, early_intr=None,
                  dcbuf_size=None):
         """
@@ -224,6 +195,43 @@ class EventsProvider:
               f" * Device ID: {self.dev.info['devid']}\n" \
               f"   - {self.dev.info['descr']}"
         _LOG.info(msg)
+
+    def close(self):
+        """Uninitialize everything (unload kernel drivers, etc)."""
+
+        if getattr(self, "unload", None):
+            if getattr(self, "_drv", None):
+                with contextlib.suppress(Error):
+                    self._drv.unload()
+            if getattr(self, "_main_drv", None):
+                with contextlib.suppress(Error):
+                    self._main_drv.unload()
+
+            # Bind the device back to the original driver.
+            saved_drvname = getattr(self, "_saved_drvname", None)
+            if saved_drvname and saved_drvname != self.dev.drvname:
+                _LOG.info("Binding device '%s' back to driver '%s'",
+                          self.dev.info["devid"], self._saved_drvname)
+                try:
+                    self.dev.bind(self._saved_drvname)
+                except Error as err:
+                    _LOG.error("failed to bind device '%s' back to driver '%s':\n %s",
+                               self.dev.info["devid"], self._saved_drvname, err)
+            self._saved_drvname = None
+
+        if getattr(self, "_main_drv", None):
+            self._main_drv.close()
+            self._main_drv = None
+
+        if getattr(self, "_drv", None):
+            self._drv.close()
+            self._drv = None
+
+        if getattr(self, "dev", None):
+            self.dev = None
+
+        if getattr(self, "_pman", None):
+            self._pman = None
 
     def __enter__(self):
         """Enter the run-time context."""
