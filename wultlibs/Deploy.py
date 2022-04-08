@@ -16,8 +16,8 @@ import time
 import zipfile
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import LocalProcessManager, Trivial, FSHelpers, Logging, ArgParse
-from pepclibs.helperlibs import ClassHelpers
+from pepclibs.helperlibs import ProcessManager, LocalProcessManager, Trivial, FSHelpers, Logging
+from pepclibs.helperlibs import ClassHelpers, ArgParse
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import ToolsCommon
 from wultlibs.helperlibs import KernelVersion, RemoteHelpers
@@ -138,13 +138,11 @@ def _get_deployables(srcpath, pman=None):
     drivers source code directory 'srcpath' on a host defined by 'pman'.
     """
 
-    if not pman:
-        pman = LocalProcessManager.LocalProcessManager()
-
-    cmd = f"make --silent -C '{srcpath}' list_deployables"
-    deployables, _ = pman.run_verify(cmd)
-    if deployables:
-        deployables = Trivial.split_csv_line(deployables, sep=" ")
+    with ProcessManager.pman_or_local(pman) as wpman:
+        cmd = f"make --silent -C '{srcpath}' list_deployables"
+        deployables, _ = wpman.run_verify(cmd)
+        if deployables:
+            deployables = Trivial.split_csv_line(deployables, sep=" ")
 
     return deployables
 
@@ -157,7 +155,8 @@ def _get_pyhelper_dependencies(script_path):
 
     # All pyhelpers implement the '--print-module-paths' option, which prints the dependencies.
     cmd = f"{script_path} --print-module-paths"
-    stdout, _ = LocalProcessManager.LocalProcessManager().run_verify(cmd)
+    with LocalProcessManager.LocalProcessManager() as lpman:
+        stdout, _ = lpman.run_verify(cmd)
     return [Path(path) for path in stdout.splitlines()]
 
 def find_app_data(prjname, subpath, appname=None, descr=None):
@@ -290,21 +289,22 @@ def is_deploy_needed(pman, toolname, helpers=None, pyhelpers=None):
             datapath = find_app_data("wult", _HELPERS_SRC_SUBPATH / pyhelper, appname=toolname)
             srcpaths = []
             dstpaths = []
-            lpman = LocalProcessManager.LocalProcessManager()
 
-            for deployable in _get_deployables(datapath, lpman):
-                if datapath.joinpath(deployable).exists():
-                    # This case is relevant for running wult from sources - python helpers are
-                    # in the 'helpers/pyhelper' directory.
-                    srcpath = datapath
-                else:
-                    # When wult is installed with 'pip', the python helpers go to the "bindir",
-                    # and they are not installed to the data directory.
-                    srcpath = FSHelpers.which(deployable).parent
+            with LocalProcessManager.LocalProcessManager() as lpman:
+                for deployable in _get_deployables(datapath, lpman):
+                    if datapath.joinpath(deployable).exists():
+                        # This case is relevant for running wult from sources - python helpers are
+                        # in the 'helpers/pyhelper' directory.
+                        srcpath = datapath
+                    else:
+                        # When wult is installed with 'pip', the python helpers go to the "bindir",
+                        # and they are not installed to the data directory.
+                        srcpath = FSHelpers.which(deployable).parent
 
-                srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
-                dstpaths.append(helpers_deploy_path / deployable)
-            dinfos[pyhelper] = {"src" : srcpaths, "dst" : dstpaths}
+                    srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
+                    dstpaths.append(helpers_deploy_path / deployable)
+
+                dinfos[pyhelper] = {"src" : srcpaths, "dst" : dstpaths}
 
     # We are about to get timestamps for local and remote files. Take into account the possible time
     # shift between local and remote systems.
@@ -544,8 +544,8 @@ def _deploy_helpers(args, pman):
     for pyhelper in args.pyhelpers:
         srcdir = helpersrc / pyhelper
         _LOG.debug("copying helper %s:\n  '%s' -> '%s'", pyhelper, srcdir, args.ctmpdir)
-        lpman = LocalProcessManager.LocalProcessManager()
-        lpman.rsync(f"{srcdir}", args.ctmpdir, remotesrc=False, remotedst=False)
+        with LocalProcessManager.LocalProcessManager() as lpman:
+            lpman.rsync(f"{srcdir}", args.ctmpdir, remotesrc=False, remotedst=False)
 
     # Build stand-alone version of every python helper.
     for pyhelper in args.pyhelpers:
