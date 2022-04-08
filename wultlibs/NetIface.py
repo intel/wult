@@ -18,7 +18,7 @@ import time
 import contextlib
 from pathlib import Path
 from collections import namedtuple
-from pepclibs.helperlibs import FSHelpers, LocalProcessManager, Trivial
+from pepclibs.helperlibs import FSHelpers, LocalProcessManager, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
 from wultlibs import LsPCI
 
@@ -312,9 +312,6 @@ class NetIface:
         interface).
         """
 
-        if not pman:
-            pman = LocalProcessManager.LocalProcessManager()
-
         self._ifid = ifid
         self._pman = pman
         self.ifname = None
@@ -323,8 +320,13 @@ class NetIface:
         self._saved_ip_info = {}
         self._ip_tool_present = None
 
+        self._close_pman = pman is None
+
+        if not self._pman:
+            self._pman = LocalProcessManager.LocalProcessManager()
+
         sysfsbase = _SYSFSBASE.joinpath(ifid)
-        if FSHelpers.isdir(sysfsbase, pman=pman):
+        if FSHelpers.isdir(sysfsbase, pman=self._pman):
             # 'ifid' is a network interface name.
             self.ifname = ifid
             self._sysfsbase = sysfsbase
@@ -338,9 +340,8 @@ class NetIface:
             self._sysfsbase = _SYSFSBASE.joinpath(self.ifname)
 
     def close(self):
-        """Stop the measurements."""
-        if getattr(self, "_pman", None):
-            self._pman = None
+        """Uninitialize the class object."""
+        ClassHelpers.close(self, close_attrs=("_pman",))
 
     def __enter__(self):
         """Enter the runtime context."""
