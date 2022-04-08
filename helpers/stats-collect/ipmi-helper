@@ -77,7 +77,6 @@ def main():
     """Script entry point."""
 
     args = parse_arguments()
-    pman = LocalProcessManager.LocalProcessManager()
 
     if (args.user or args.password) and not args.host:
         raise Error("please, specify the host: '--user' and '--password' require '--host'")
@@ -98,37 +97,38 @@ def main():
         cmd += f" -P '{args.password}'"
     cmd += " sdr list full"
 
-    if not args.host:
-        # Make sure the IPMI Linux kernel modules are loaded.
-        pman.run_verify("modprobe ipmi_devintf")
-        pman.run_verify("modprobe ipmi_si")
+    with LocalProcessManager.LocalProcessManager() as pman:
+        if not args.host:
+            # Make sure the IPMI Linux kernel modules are loaded.
+            pman.run_verify("modprobe ipmi_devintf")
+            pman.run_verify("modprobe ipmi_si")
 
-    interval = delta = args.interval
-    retries = count = 0
+        interval = delta = args.interval
+        retries = count = 0
 
-    while True:
-        start = time.time()
-        try:
-            output, _ = pman.run_verify(cmd)
-        except Error:
-            if retries >= args.retries:
-                # Too many failures.
-                raise
-            retries += 1
-            continue
-        else:
-            LOG.info("timestamp | %s", time.strftime("%Y_%m_%d_%T", time.localtime(start)))
-            LOG.info(output)
-            retries = 0
-            delta = time.time() - start
-        finally:
-            if delta < interval:
-                time.sleep(interval-delta)
+        while True:
+            start = time.time()
+            try:
+                output, _ = pman.run_verify(cmd)
+            except Error:
+                if retries >= args.retries:
+                    # Too many failures.
+                    raise
+                retries += 1
+                continue
+            else:
+                LOG.info("timestamp | %s", time.strftime("%Y_%m_%d_%T", time.localtime(start)))
+                LOG.info(output)
+                retries = 0
+                delta = time.time() - start
+            finally:
+                if delta < interval:
+                    time.sleep(interval-delta)
 
-        if args.count:
-            count += 1
-            if count >= args.count:
-                break
+            if args.count:
+                count += 1
+                if count >= args.count:
+                    break
 
 # The very first script entry point."""
 if __name__ == "__main__":
