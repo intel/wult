@@ -10,13 +10,15 @@
 This module contains misc. helper functions related to processes (tasks).
 """
 
+# pylint: disable=redefined-argument-from-local
+
 import os
 import re
 import time
 import logging
 import contextlib
 from pepclibs.helperlibs.Exceptions import Error
-from pepclibs.helperlibs import LocalProcessManager, Trivial
+from pepclibs.helperlibs import ProcessManager, Trivial
 
 _LOG = logging.getLogger()
 
@@ -73,9 +75,6 @@ def kill_pids(pids, sig: str = "SIGTERM", kill_children: bool = False, must_die:
             with contextlib.suppress(OSError):
                 os.waitpid(0, os.WNOHANG)
 
-    if not pman:
-        pman = LocalProcessManager.LocalProcessManager()
-
     if not pids:
         return
 
@@ -93,75 +92,77 @@ def kill_pids(pids, sig: str = "SIGTERM", kill_children: bool = False, must_die:
     if (kill_children or must_die) and not killing:
         raise Error(f"'children' and 'must_die' arguments cannot be used with '{sig}' signal")
 
-    if kill_children:
-        # Find all the children of the process.
-        for pid in pids:
-            children, _, exitcode = pman.run(f"pgrep -P {pid}", join=False)
-            if exitcode != 0:
-                break
-            pids += [child.strip() for child in children]
+    with ProcessManager.pman_or_local(pman) as wpman:
+        if kill_children:
+            # Find all the children of the process.
+            for pid in pids:
+                children, _, exitcode = wpman.run(f"pgrep -P {pid}", join=False)
+                if exitcode != 0:
+                    break
+                pids += [child.strip() for child in children]
 
-    pids_spc = " ".join(pids)
-    pids_comma = ",".join(pids)
-    _LOG.debug("sending '%s' signal to the following process%s: %s",
-               sig, pman.hostmsg, pids_comma)
+        pids_spc = " ".join(pids)
+        pids_comma = ",".join(pids)
+        _LOG.debug("sending '%s' signal to the following process%s: %s",
+                   sig, pman.hostmsg, pids_comma)
 
-    try:
-        pman.run_verify(f"kill -{sig} -- {pids_spc}")
-    except Error as err:
-        if not killing:
-            raise Error(f"failed to send signal '{sig}' to PIDs '{pids_comma}'{pman.hostmsg}:\n"
-                        f"{err}") from err
-        # Some error happened on the first attempt. We've seen a couple of situations when this
-        # happens.
-        # 1. Most often, a PID does not exist anymore, the process exited already (race condition).
-        # 2 One of the processes in the list is owned by a different user (e.g., root). Let's call
-        #   it process A. We have no permissions to kill process A, but we can kill other processes
-        #   in the 'pids' list. But often killing other processes in the 'pids' list will make
-        #   process A exit. This is why we do not error out just yet.
-        #
-        # So the strategy is to do the second signal sending round and often times it happens
-        # without errors, and all the processes that we want to kill just go away.
-    if not killing:
-        return
-
-    # Give the processes up to 4 seconds to die.
-    timeout = 4
-    start_time = time.time()
-    while time.time() - start_time <= timeout:
-        collect_zombies(pman)
-        _, _, exitcode = pman.run(f"kill -0 -- {pids_spc}")
-        if exitcode == 1:
-            return
-        time.sleep(0.2)
-
-    if _is_sigterm(sig):
-        # Something refused to die, try SIGKILL.
         try:
-            pman.run_verify(f"kill -9 -- {pids_spc}")
+            pman.run_verify(f"kill -{sig} -- {pids_spc}")
         except Error as err:
-            # It is fine if one of the processes exited meanwhile.
-            if "No such process" not in str(err):
-                raise
-        collect_zombies(pman)
-        if not must_die:
+            if not killing:
+                raise Error(f"failed to send signal '{sig}' to PIDs '{pids_comma}'{pman.hostmsg}:\n"
+                            f"{err}") from err
+            # Some error happened on the first attempt. We've seen a couple of situations when this
+            # happens.
+            # 1. Most often, a PID does not exist anymore, the process exited already (race
+            #    condition).
+            # 2 One of the processes in the list is owned by a different user (e.g., root). Let's
+            #   call it process A. We have no permissions to kill process A, but we can kill other
+            #   processes in the 'pids' list. But often killing other processes in the 'pids' list
+            #   will make process A exit. This is why we do not error out just yet. So the strategy
+            #   is to do the second signal sending round and often times it happens without errors,
+            #   and all the processes that we want to kill just go away.
+        if not killing:
             return
+
         # Give the processes up to 4 seconds to die.
         timeout = 4
         start_time = time.time()
         while time.time() - start_time <= timeout:
             collect_zombies(pman)
             _, _, exitcode = pman.run(f"kill -0 -- {pids_spc}")
-            if exitcode != 0:
+            if exitcode == 1:
                 return
             time.sleep(0.2)
 
-    # Something refused to die, find out what.
-    msg, _, = pman.run_verify(f"ps -f {pids_spc}", join=False)
-    if len(msg) < 2:
-        msg = pids_comma
+        if _is_sigterm(sig):
+            # Something refused to die, try SIGKILL.
+            try:
+                pman.run_verify(f"kill -9 -- {pids_spc}")
+            except Error as err:
+                # It is fine if one of the processes exited meanwhile.
+                if "No such process" not in str(err):
+                    raise
+            collect_zombies(pman)
+            if not must_die:
+                return
+            # Give the processes up to 4 seconds to die.
+            timeout = 4
+            start_time = time.time()
+            while time.time() - start_time <= timeout:
+                collect_zombies(pman)
+                _, _, exitcode = pman.run(f"kill -0 -- {pids_spc}")
+                if exitcode != 0:
+                    return
+                time.sleep(0.2)
 
-    raise Error(f"one of the following processes{pman.hostmsg} did not die after 'SIGKILL': {msg}")
+        # Something refused to die, find out what.
+        msg, _, = pman.run_verify(f"ps -f {pids_spc}", join=False)
+        if len(msg) < 2:
+            msg = pids_comma
+
+        raise Error(f"one of the following processes{pman.hostmsg} did not die after 'SIGKILL': "
+                    f"{msg}")
 
 def find_processes(regex: str, pman=None):
     """
@@ -174,24 +175,23 @@ def find_processes(regex: str, pman=None):
     Returns a list of tuples containing the PID and the command line.
     """
 
-    if not pman:
-        pman = LocalProcessManager.LocalProcessManager()
-
     cmd = "ps axo pid,args"
-    stdout, stderr = pman.run_verify(cmd, join=False)
 
-    if len(stdout) < 2:
-        raise Error(f"no processes found at all{pman.hostmsg}\nExecuted this command:\n{cmd}\n"
-                    f"stdout:\n{stdout}\nstderr:{stderr}\n")
+    with ProcessManager.pman_or_local(pman) as wpman:
+        stdout, stderr = wpman.run_verify(cmd, join=False)
 
-    procs = []
-    for line in stdout[1:]:
-        pid, comm = line.strip().split(" ", 1)
-        pid = int(pid)
-        if pman.hostname == "localhost" and pid == Trivial.get_pid():
-            continue
-        if re.search(regex, comm):
-            procs.append((int(pid), comm))
+        if len(stdout) < 2:
+            raise Error(f"no processes found at all{wpman.hostmsg}\nExecuted this command:\n{cmd}\n"
+                        f"stdout:\n{stdout}\nstderr:{stderr}\n")
+
+        procs = []
+        for line in stdout[1:]:
+            pid, comm = line.strip().split(" ", 1)
+            pid = int(pid)
+            if wpman.hostname == "localhost" and pid == Trivial.get_pid():
+                continue
+            if re.search(regex, comm):
+                procs.append((int(pid), comm))
 
     return procs
 
@@ -217,22 +217,21 @@ def kill_processes(regex: str, sig: str = "SIGTERM", log: bool = False, name: st
     Returns the list of found and killed processes.
     """
 
-    if not pman:
-        pman = LocalProcessManager.LocalProcessManager()
+    with ProcessManager.pman_or_local(pman) as wpman:
+        procs = find_processes(regex, pman=wpman)
+        if not procs:
+            return []
 
-    procs = find_processes(regex, pman=pman)
-    if not procs:
-        return []
+        if not name:
+            name = "the following process(es)"
 
-    if not name:
-        name = "the following process(es)"
+        pids = [pid for pid, _ in procs]
+        if log:
+            pids_str = ", ".join([str(pid) for pid in pids])
+            _LOG.info("Sending '%s' signal to %s%s, PID(s): %s",
+                      sig, name, wpman.hostmsg, pids_str)
 
-    pids = [pid for pid, _ in procs]
-    if log:
-        pids_str = ", ".join([str(pid) for pid in pids])
-        _LOG.info("Sending '%s' signal to %s%s, PID(s): %s",
-                  sig, name, pman.hostmsg, pids_str)
+        killing = _is_sigterm(sig) or _is_sigkill(sig)
+        kill_pids(pids, sig=sig, kill_children=killing, pman=wpman)
 
-    killing = _is_sigterm(sig) or _is_sigkill(sig)
-    kill_pids(pids, sig=sig, kill_children=killing, pman=pman)
-    return procs
+        return procs
