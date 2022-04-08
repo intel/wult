@@ -298,27 +298,31 @@ class _IntelI210(_PCIDevice):
         name.
         """
 
-        netif = None
         try:
-            netif = NetIface.NetIface(devid, pman=pman)
-        except ErrorNotFound:
-            pass
+            netif = None
+            try:
+                netif = NetIface.NetIface(devid, pman=pman)
+            except ErrorNotFound:
+                pass
 
-        if netif:
-            # Make sure the device is not used for networking, because we are about to unbind it
-            # from the driver. This check makes sure users do not lose networking by specifying
-            # wrong device by a mistake.
-            if not force and netif.getstate() == "up":
-                msg = ""
-                if devid != netif.ifname:
-                    msg = f" (network interface '{netif.ifname}')"
+            if netif:
+                # Make sure the device is not used for networking, because we are about to unbind it
+                # from the driver. This check makes sure users do not lose networking by specifying
+                # wrong device by a mistake.
+                if not force and netif.getstate() == "up":
+                    msg = ""
+                    if devid != netif.ifname:
+                        msg = f" (network interface '{netif.ifname}')"
 
-                raise Error(f"refusing to use device '{devid}'{msg}{pman.hostmsg}: "
-                            f"it is up and might be used for networking. Please, bring it down "
-                            f"if you want to use it for wult measurements.")
-            hwaddr = netif.hwaddr
-        else:
-            hwaddr = devid
+                    raise Error(f"refusing to use device '{devid}'{msg}{pman.hostmsg}: "
+                                f"it is up and might be used for networking. Please, bring it down "
+                                f"if you want to use it for wult measurements.")
+                hwaddr = netif.hwaddr
+            else:
+                hwaddr = devid
+        finally:
+            if netif:
+                netif.close()
 
         super().__init__(hwaddr, cpunum, pman, dmesg=dmesg)
 
