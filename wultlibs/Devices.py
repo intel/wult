@@ -98,6 +98,7 @@ class _WultDeviceBase:
 
     def close(self):
         """Uninitialize the device."""
+
         if getattr(self, "_pman", None):
             self._pman = None
         if getattr(self, "dmesg_obj", None):
@@ -251,7 +252,8 @@ class _PCIDevice(_WultDeviceBase):
                                 f"path {path} does not exist")
 
         self._devpath = FSHelpers.abspath(path, pman=self._pman)
-        self._pci_info = LsPCI.LsPCI(pman).get_info(Path(self._devpath).name)
+        with LsPCI.LsPCI(pman) as lspci:
+            self._pci_info = lspci.get_info(Path(self._devpath).name)
 
         if self.supported_devices and self._pci_info["devid"] not in self.supported_devices:
             supported = ["%s - %s" % (key, val) for key, val in self.supported_devices.items()]
@@ -427,20 +429,21 @@ def scan_devices(pman, devtypes=None):
                     yield timerdev.info["devid"], timerdev.info["alias"], timerdev.info["descr"]
 
     if "i210" in devtypes:
-        for pci_info in LsPCI.LsPCI(pman).get_devices():
-            pci_id = pci_info["devid"]
-            if not _IntelI210.supported_devices.get(pci_id):
-                continue
+        with LsPCI.LsPCI(pman) as lspci:
+            for pci_info in lspci.get_devices():
+                pci_id = pci_info["devid"]
+                if not _IntelI210.supported_devices.get(pci_id):
+                    continue
 
-            devid = pci_info['pciaddr']
+                devid = pci_info['pciaddr']
 
-            # Find out the Linux network interface name for this NIC, if any.
-            ifname = None
-            with contextlib.suppress(Error):
-                with NetIface.NetIface(devid, pman=pman) as netif:
-                    ifname = netif.ifname
+                # Find out the Linux network interface name for this NIC, if any.
+                ifname = None
+                with contextlib.suppress(Error):
+                    with NetIface.NetIface(devid, pman=pman) as netif:
+                        ifname = netif.ifname
 
-            descr = _IntelI210.supported_devices.get(pci_id)
-            descr += f". PCI address {pci_info['pciaddr']}, Vendor ID {pci_info['vendorid']}, " \
-                     f"Device ID {devid}."
-            yield devid, ifname, descr
+                descr = _IntelI210.supported_devices.get(pci_id)
+                descr += f". PCI address {pci_info['pciaddr']}, Vendor ID " \
+                         f"{pci_info['vendorid']}, Device ID {devid}."
+                yield devid, ifname, descr
