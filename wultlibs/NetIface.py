@@ -156,7 +156,9 @@ class NetIface:
 
     def get_pci_info(self):
         """Return network interface PCI information."""
-        return LsPCI.LsPCI(pman=self._pman).get_info(self.hwaddr)
+
+        with LsPCI.LsPCI(pman=self._pman) as lspci:
+            return lspci.get_info(self.hwaddr)
 
     def up(self): # pylint: disable=invalid-name
         """Bring the network interface up."""
