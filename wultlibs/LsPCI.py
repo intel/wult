@@ -10,7 +10,7 @@
 
 import re
 from pepclibs.helperlibs.Exceptions import ErrorNotSupported, Error
-from pepclibs.helperlibs import FSHelpers, LocalProcessManager
+from pepclibs.helperlibs import FSHelpers, LocalProcessManager, ClassHelpers
 
 class LsPCI:
     """This is a wrapper class for 'lspci' tool."""
@@ -101,11 +101,26 @@ class LsPCI:
     def __init__(self, pman=None):
         """Class constructor."""
 
-        if not pman:
-            pman = LocalProcessManager.LocalProcessManager()
-
         self._pman = pman
         self._lspci_bin = "lspci"
 
-        if not FSHelpers.which(self._lspci_bin, default=None, pman=pman):
-            raise ErrorNotSupported(f"the '{self._lspci_bin}' tool is not installed{pman.hostmsg}")
+        self._close_pman = pman is None
+
+        if not self._pman:
+            self._pman = LocalProcessManager.LocalProcessManager()
+
+        if not FSHelpers.which(self._lspci_bin, default=None, pman=self._pman):
+            raise ErrorNotSupported(f"the '{self._lspci_bin}' tool is not "
+                                    f"installed{self._pman.hostmsg}")
+
+    def close(self):
+        """Uninitialize the class object."""
+        ClassHelpers.close(self, close_attrs=("_pman",))
+
+    def __enter__(self):
+        """Enter the runtime context."""
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Exit the runtime context."""
+        self.close()
