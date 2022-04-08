@@ -11,7 +11,7 @@ This module provides API to NetworkManger's nmcli tool.
 """
 
 import re
-from pepclibs.helperlibs import Trivial, FSHelpers, LocalProcessManager
+from pepclibs.helperlibs import Trivial, FSHelpers, LocalProcessManager, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 
 class Nmcli:
@@ -82,19 +82,19 @@ class Nmcli:
         (local host by default).
         """
 
-        if not pman:
-            pman = LocalProcessManager.LocalProcessManager()
-
         self._pman = pman
         self._saved_managed = {}
+        self._close_pman = pman is None
+
+        if not self._pman:
+            self._pman = LocalProcessManager.LocalProcessManager()
 
         if not FSHelpers.which("nmcli", default=None, pman=pman):
             raise ErrorNotSupported(f"the 'nmcli' tool is not installed{pman.hostmsg}")
 
     def close(self):
-        """Stop the measurements."""
-        if getattr(self, "_pman", None):
-            self._pman = None
+        """Uninitialize the object."""
+        ClassHelpers.close(self, close_attrs=("_pman",))
 
     def __enter__(self):
         """Enter the runtime context."""
