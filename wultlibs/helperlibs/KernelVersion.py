@@ -13,7 +13,7 @@ This module contains helper functions for dealing with Linux kernel version numb
 import re
 from collections import namedtuple
 from pepclibs.helperlibs.Exceptions import Error
-from pepclibs.helperlibs import LocalProcessManager
+from pepclibs.helperlibs import ProcessManager
 
 # The resource owner information namedtuple "type".
 SplitKver = namedtuple("SplitKver", ["major", "minor", "stable", "rc", "localver"])
@@ -95,13 +95,11 @@ def get_kver(split=False, pman=None):
     the details).
     """
 
-    if not pman:
-        pman = LocalProcessManager.LocalProcessManager()
-
-    kver = pman.run_verify("uname -r")[0].strip()
-    if split:
-        return split_kver(kver)
-    return kver
+    with ProcessManager.pman_or_local(pman) as wpman:
+        kver = wpman.run_verify("uname -r")[0].strip()
+        if split:
+            return split_kver(kver)
+        return kver
 
 def get_kver_ktree(ktree, split=False, pman=None, makecmd=None):
     """
@@ -116,18 +114,16 @@ def get_kver_ktree(ktree, split=False, pman=None, makecmd=None):
     The 'split' and 'pman' arguments are the same as in 'get_kver()'.
     """
 
-    if not pman:
-        pman = LocalProcessManager.LocalProcessManager()
+    with ProcessManager.pman_or_local(pman) as wpman:
+        if not makecmd:
+            makecmd = "make -C '%s'" % ktree
+        cmd = makecmd + " --quiet -- kernelrelease"
 
-    if not makecmd:
-        makecmd = "make -C '%s'" % ktree
-    cmd = makecmd + " --quiet -- kernelrelease"
-
-    try:
-        kver = pman.run_verify(cmd)[0].strip()
-    except Error as err:
-        raise Error("cannot detect kernel version in '%s':\n%s\nMake sure kernel sources are "
-                    "configured." % (ktree, err)) from err
+        try:
+            kver = wpman.run_verify(cmd)[0].strip()
+        except Error as err:
+            raise Error("cannot detect kernel version in '%s':\n%s\nMake sure kernel sources are "
+                        "configured." % (ktree, err)) from err
 
     if split:
         return split_kver(kver)
@@ -139,17 +135,16 @@ def get_kver_bin(path, split=False, pman=None):
     'get_kver()'.
     """
 
-    if not pman:
-        pman = LocalProcessManager.LocalProcessManager()
-
     cmd = f"file -- {path}"
-    stdout = pman.run_verify(cmd)[0].strip()
 
-    msg = f"ran this command: {cmd}, got output:\n{stdout}"
+    with ProcessManager.pman_or_local(pman) as wpman:
+        stdout = wpman.run_verify(cmd)[0].strip()
 
-    matchobj = re.match(r".* Linux kernel.* executable .*", stdout)
-    if not matchobj:
-        raise Error(f"file at '{path}'{pman.hostmsg} is not a Linux kernel binary file\n{msg}")
+        msg = f"ran this command: {cmd}, got output:\n{stdout}"
+
+        matchobj = re.match(r".* Linux kernel.* executable .*", stdout)
+        if not matchobj:
+            raise Error(f"file at '{path}'{wpman.hostmsg} is not a Linux kernel binary file\n{msg}")
 
     matchobj = re.match(r".* version ([^ ]+) .*", stdout)
     if not matchobj:
