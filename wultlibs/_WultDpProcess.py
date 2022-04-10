@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2021 Intel Corporation
+# Copyright (C) 2019-2022 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -90,7 +90,7 @@ class DatapointProcessor:
 
         # Add the C-state percentages.
         for field in self._cs_fields:
-            cyc_filed = MetricDefs.get_cscyc_colname(MetricDefs.get_csname(field))
+            cyc_filed = MetricDefs.get_cscyc_metric(MetricDefs.get_csname(field))
 
             # In case of POLL state, calculate only CC0%.
             if self._is_poll_idle(dp) and cyc_filed != "CC0Cyc":
@@ -118,7 +118,7 @@ class DatapointProcessor:
 
             non_cc1_cyc = 0
             for field in dp.keys():
-                if MetricDefs.is_cscyc_colname(field) and MetricDefs.get_csname(field) != "CC1":
+                if MetricDefs.is_cscyc_metric(field) and MetricDefs.get_csname(field) != "CC1":
                     non_cc1_cyc += dp[field]
 
             dp["CC1Derived%"] = (dp["TotCyc"] - non_cc1_cyc) / dp["TotCyc"] * 100.0
@@ -493,7 +493,7 @@ class DatapointProcessor:
                 # Not a C-state field.
                 continue
             self._has_cstates = True
-            self._cs_fields.append(MetricDefs.get_csres_colname(csname))
+            self._cs_fields.append(MetricDefs.get_csres_metric(csname))
 
         self._us_fields_set = {field for field, vals in defs.info.items() \
                                if vals.get("unit") == "microsecond"}

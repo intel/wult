@@ -17,41 +17,41 @@ from wultlibs import DefsBase
 # functions.
 _RAISE = object()
 
-def is_cscyc_colname(colname):
-    """Returns 'True' if 'colname' is a C-state cycles count CSV column name."""
+def is_cscyc_metric(metric):
+    """Returns 'True' if 'metric' is a C-state cycles count metric."""
 
-    return (colname.startswith("CC") or colname.startswith("PC")) and \
-            colname.endswith("Cyc") and len(colname) > 5
+    return (metric.startswith("CC") or metric.startswith("PC")) and \
+            metric.endswith("Cyc") and len(metric) > 5
 
-def is_csres_colname(colname):
-    """Returns 'True' if 'colname' is a C-state residency CSV column name."""
+def is_csres_metric(metric):
+    """Returns 'True' if 'metric' is a C-state residency metric."""
 
-    return (colname.startswith("CC") or colname.startswith("PC")) and \
-            colname.endswith("%") and len(colname) > 3
+    return (metric.startswith("CC") or metric.startswith("PC")) and \
+            metric.endswith("%") and len(metric) > 3
 
-def is_cs_colname(colname):
-    """Returns 'True' if 'colname' is a C-state residency or cycles counter CSV column name."""
+def is_cs_metric(metric):
+    """Returns 'True' if 'metric' is a C-state residency or cycles counter metric."""
 
-    return is_csres_colname(colname) or is_cscyc_colname(colname)
+    return is_csres_metric(metric) or is_cscyc_metric(metric)
 
-def get_csname(colname, default=_RAISE):
+def get_csname(metric, default=_RAISE):
     """
-    If 'colname' is a CSV column name related to a C-state, then returns the C-state name
-    string. Otherwise raises an exception, unless the 'default' argument is passed, in which
-    case it returns this argument instead of raising an exception.
+    If 'metric' is a metric related to a C-state, then returns the C-state name string. Otherwise
+    raises an exception, unless the 'default' argument is passed, in which case it returns this
+    argument instead of raising an exception.
     """
 
     csname = None
-    if colname.endswith("Cyc"):
-        csname = colname[:-3]
+    if metric.endswith("Cyc"):
+        csname = metric[:-3]
         if csname.endswith("Derived"):
             csname = csname[:-len("Derived")]
-    elif colname.endswith("%"):
-        csname = colname[:-1]
+    elif metric.endswith("%"):
+        csname = metric[:-1]
 
-    if not csname or not (colname.startswith("CC") or colname.startswith("PC")):
+    if not csname or not (metric.startswith("CC") or metric.startswith("PC")):
         if default is _RAISE:
-            raise Error(f"cannot get C-state name for CSV column '{colname}'")
+            raise Error(f"cannot get C-state name for metric '{metric}'")
         return default
 
     return csname
@@ -72,18 +72,18 @@ def is_package_cs(csname):
 
     return csname.startswith("PC") and len(csname) > 2
 
-def get_cscyc_colname(csname):
+def get_cscyc_metric(csname):
     """
     Given 'csname' is a C-state name, this method retruns the corresponding C-state cycles count
-    CSV column name.
+    metric.
     """
 
     return f"{csname}Cyc"
 
-def get_csres_colname(csname):
+def get_csres_metric(csname):
     """
     Given 'csname' is a C-state name, this method retruns the corresponding C-state residency
-    CSV column name.
+    metric.
     """
 
     return f"{csname}%"
@@ -99,12 +99,12 @@ class MetricDefs(DefsBase.DefsBase):
     def get_new_metric(self, metric, csname):
         """Returns a new version of metric name 'metric' for the C-state 'csname'."""
 
-        if is_cscyc_colname(metric):
-            return get_cscyc_colname(csname)
+        if is_cscyc_metric(metric):
+            return get_cscyc_metric(csname)
 
-        return get_csres_colname(csname)
+        return get_csres_metric(csname)
 
     def is_cs_metric(self, metric):
         """Returns 'True' if 'metric' is a C-state residency metric."""
 
-        return is_cs_colname(metric)
+        return is_cs_metric(metric)
