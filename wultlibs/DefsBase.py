@@ -7,7 +7,7 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module provides the base class for APIs to the datapoints CSV file definitions (AKA 'defs').
+This module provides the base class for APIs to the definitions (AKA 'defs') files.
 """
 
 from pathlib import Path
@@ -32,29 +32,29 @@ class DefsBase:
     (AKA 'defs').
 
     This base class requires child classes to implement the following methods:
-    1. Return 'True' if a given 'colname' is a C-state residency CSV column name.
-       * 'is_cs_colname()'
-    2. Return the C-state name string for the C-state represented in 'colname'.
+    1. Return 'True' if a given 'metric' is a C-state residency metric.
+       * 'is_cs_metric()'
+    2. Return the C-state name string for the C-state represented in a given metric name 'metric'.
        * 'get_csname()'
-    3. Return a new version of column 'colname' for the C-state 'csname'.
-       * 'get_new_colname()'
+    3. Return a new version of a given metric name 'metric' for a C-state 'csname'.
+       * 'get_new_metric()'
 
     Optionally child classes can override the '_mangle()' method which mangles the initially loaded
     dictionary to provide more helpful values.
     """
 
-    def is_cs_colname(self, colname):
-        """Returns 'True' if 'colname' is a C-state residency CSV column name."""
+    def is_cs_metric(self, metric):
+        """Returns 'True' if 'metric' is a C-state residency metric."""
 
         raise NotImplementedError()
 
-    def get_csname(self, colname):
-        """Returns the C-state name string for the C-state represented in 'colname'."""
+    def get_csname(self, metric):
+        """Returns the C-state name string for the C-state represented in 'metric'."""
 
         raise NotImplementedError()
 
-    def get_new_colname(self, colname, csname):
-        """Returns a new version of column 'colname' for the C-state 'csname'."""
+    def get_new_metric(self, metric, csname):
+        """Returns a new version of metric name 'metric' for the C-state 'csname'."""
 
         raise NotImplementedError()
 
@@ -80,36 +80,36 @@ class DefsBase:
         the platform, there may be different amount of C-states with different names.
 
         This method should should be invoked to populate the definitions dictionary with the C-state
-        information for a specific platform. The 'hdr' argument is the CSV file header containing
-        the list of CSV column names.
+        information for a specific platform. The 'hdr' argument is a list of metrics for which the
+        definitions dictionary should be populated.
         """
 
         if self.info is not self.vanilla_info:
             # Already populated.
             return
 
-        # Filter hdr to only C-state columns.
-        hdr = [hdrname for hdrname in hdr if self.is_cs_colname(hdrname)]
+        # Filter hdr to only C-state metrics.
+        hdr = [hdrname for hdrname in hdr if self.is_cs_metric(hdrname)]
 
         # Copy all keys one-by-one to preserve the order.
         info = {}
-        for colname, colinfo in self.vanilla_info.items():
-            if not self.is_cs_colname(colname) or "Cx" not in colname:
-                info[colname] = colinfo
+        for metric, minfo in self.vanilla_info.items():
+            if not self.is_cs_metric(metric) or "Cx" not in metric:
+                info[metric] = minfo
                 continue
 
-            colcsname = self.get_csname(colname)
+            mcsname = self.get_csname(metric)
 
             for hdrname in hdr:
                 csname = self.get_csname(hdrname)
-                new_colname = self.get_new_colname(colname, csname)
+                new_metric = self.get_new_metric(metric, csname)
 
-                info[new_colname] = colinfo.copy()
+                info[new_metric] = minfo.copy()
 
                 # Correct all info dicts which need populating to refer to real C-state names.
                 for key in self._populate_cstate_keys:
-                    if key in info[new_colname]:
-                        info[new_colname][key] = info[new_colname][key].replace(colcsname, csname)
+                    if key in info[new_metric]:
+                        info[new_metric][key] = info[new_metric][key].replace(mcsname, csname)
 
         self.info = info
 

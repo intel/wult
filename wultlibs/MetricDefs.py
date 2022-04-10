@@ -91,20 +91,20 @@ def get_csres_colname(csname):
 class MetricDefs(DefsBase.DefsBase):
     """This class provides API to the datapoints CSV file definitions (AKA 'defs')."""
 
-    def get_csname(self, colname):
-        """Returns the C-state name string for the C-state represented in 'colname'."""
+    def get_csname(self, metric):
+        """Returns the C-state name string for the C-state represented in 'metric'."""
 
-        return get_csname(colname)
+        return get_csname(metric)
 
-    def get_new_colname(self, colname, csname):
-        """Returns a new version of column 'colname' for the C-state 'csname'."""
+    def get_new_metric(self, metric, csname):
+        """Returns a new version of metric name 'metric' for the C-state 'csname'."""
 
-        if is_cscyc_colname(colname):
+        if is_cscyc_colname(metric):
             return get_cscyc_colname(csname)
 
         return get_csres_colname(csname)
 
-    def is_cs_colname(self, colname):
-        """Returns 'True' if 'colname' is a C-state residency CSV column name."""
+    def is_cs_metric(self, metric):
+        """Returns 'True' if 'metric' is a C-state residency metric."""
 
-        return is_cs_colname(colname)
+        return is_cs_colname(metric)
