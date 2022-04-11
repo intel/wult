@@ -17,7 +17,7 @@ import zipfile
 import logging
 from pathlib import Path
 from pepclibs.helperlibs import LocalProcessManager, Trivial, FSHelpers, Logging, ArgParse
-from pepclibs.helperlibs import WrapExceptions
+from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import ToolsCommon
 from wultlibs.helperlibs import KernelVersion, RemoteHelpers
@@ -465,7 +465,7 @@ def _create_standalone_python_script(script, pyhelperdir):
 
         # Make 'zipobj' raies exceptions of typ 'Error', so that we do not have to wrap every
         # 'zipobj' operation into 'try/except'.
-        zipobj = WrapExceptions.WrapExceptions(zipobj)
+        zipobj = ClassHelpers.WrapExceptions(zipobj)
 
         # Put the script to the archive under the '__main__.py' name.
         zipobj.write(script_path, arcname="./__main__.py")
