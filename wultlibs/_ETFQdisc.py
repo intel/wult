@@ -13,7 +13,7 @@ discipline).
 
 import re
 import logging
-from pepclibs.helperlibs import ToolChecker, LocalProcessManager
+from pepclibs.helperlibs import ToolChecker, LocalProcessManager, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import KernelVersion, ProcHelpers
 
@@ -151,7 +151,7 @@ class ETFQdisc():
         self._netif = netif
         self._ifname = netif.ifname
 
-        self._close_proc = pman is None
+        self._close_pman = pman is None
 
         self._tchk = None
         self._tc_bin = None
@@ -187,18 +187,7 @@ class ETFQdisc():
                                   pman=self._pman)
             self._phc2sys_proc = None
 
-        for attr in ("_tchk",):
-            obj = getattr(self, attr, None)
-            if obj:
-                obj.close()
-                setattr(self, attr, None)
-
-        for attr in ("_netif", "_pman",):
-            obj = getattr(self, attr, None)
-            if obj:
-                if getattr(self, f"_close{attr}", False):
-                    getattr(obj, "close")()
-                setattr(self, attr, None)
+        ClassHelpers.close(self, unref_attrs=("_pman",), close_attrs=("_tchk", "_pman"))
 
     def __enter__(self):
         """Enter the runtime context."""
