@@ -692,10 +692,6 @@ class Client:
                 self._sock.shutdown(socket.SHUT_RDWR)
                 self._sock.close()
 
-    def __del__(self):
-        """The destructor."""
-        self.close()
-
     def __enter__(self):
         """Enter the run-time context."""
         return self
@@ -810,10 +806,6 @@ class Server:
             with contextlib.suppress(OSError):
                 os.remove(self._uspath)
 
-    def __del__(self):
-        """The destructor."""
-        self.close()
-
     def __enter__(self):
         """Enter the run-time context."""
         return self
@@ -890,20 +882,18 @@ def main():
 
     collector = StatsCollector()
 
-    server = Server(unix=args.unix, port=args.port, sutname=args.sutname)
-    server.start_listening()
+    with Server(unix=args.unix, port=args.port, sutname=args.sutname) as server:
+        server.start_listening()
+        LOG.debug("commands delimiter is '\\n%s'", DELIMITER)
 
-    LOG.debug("commands delimiter is '\\n%s'", DELIMITER)
-
-    while True:
-        with server.wait_for_client() as client:
-            try:
-                handle_client(client, collector)
-            except ClientDisconnected as err:
-                LOG.debug(err)
-            except ExitCommand:
-                break
-    server.close()
+        while True:
+            with server.wait_for_client() as client:
+                try:
+                    handle_client(client, collector)
+                except ClientDisconnected as err:
+                    LOG.debug(err)
+                except ExitCommand:
+                    break
 
     LOG.debug("exiting")
     return 0
