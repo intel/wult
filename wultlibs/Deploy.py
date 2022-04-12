@@ -384,7 +384,7 @@ def _deploy_drivers(args, pman):
 
     stdout, stderr, exitcode = pman.run(cmd)
     if exitcode != 0:
-        msg = pman.cmd_failed_msg(cmd, stdout, stderr, exitcode)
+        msg = pman.get_cmd_failure_msg(cmd, stdout, stderr, exitcode)
         if "synth_event_" in stderr:
             msg += "\n\nLooks like synthetic events support is disabled in your kernel, enable " \
                    "the 'CONFIG_SYNTH_EVENTS' kernel configuration option."

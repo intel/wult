@@ -731,7 +731,7 @@ class _Collector:
                 pass
 
             if exitcode is not None:
-                msg = self._pman.cmd_failed_msg(self._cmd, logdata, None, exitcode)
+                msg = self._pman.get_cmd_failure_msg(self._cmd, logdata, None, exitcode)
                 if not logdata:
                     msg += f"\nCheck '{self._logpath}'{self._pman.hostmsg} for details"
                 raise Error(msg)
@@ -810,7 +810,7 @@ class _Collector:
             stdout, stderr, exitcode = self._ssht.wait(timeout=1, capture_output=True)
 
             if exitcode is not None:
-                raise Error(pman.cmd_failed_msg(cmd, stdout, stderr, exitcode, startmsg=msg))
+                raise Error(pman.get_cmd_failure_msg(cmd, stdout, stderr, exitcode, startmsg=msg))
 
             try:
                 self._connect()

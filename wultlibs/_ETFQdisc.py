@@ -46,7 +46,7 @@ class ETFQdisc():
 
         stdout, stderr, exitcode = self._pman.run(cmd)
         if exitcode:
-            errmsg = self._pman.cmd_failed_msg(cmd, stdout, stderr, exitcode)
+            errmsg = self._pman.get_cmd_failure_msg(cmd, stdout, stderr, exitcode)
             errors = ("Operation not supported", "Specified qdisc not found")
             if any(err in stderr for err in errors):
                 errmsg += "\n\n"
@@ -92,7 +92,7 @@ class ETFQdisc():
         stdout, stderr, exitcode = self._phc2sys_proc.wait(timeout=1)
         if exitcode is not None:
             raise Error("can't synchronize the NIC and system clocks, 'phc2sys' exited:\n%s"
-                        % self._phc2sys_proc.cmd_failed_msg(stdout, stderr, exitcode))
+                        % self._phc2sys_proc.get_cmd_failure_msg(stdout, stderr, exitcode))
 
     def configure(self):
         """Configure the ETF qdisc."""

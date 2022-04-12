@@ -38,7 +38,7 @@ class Nmcli:
         if exitcode:
             if "not found" in stderr or "not running" in stderr:
                 return False
-            raise Error(self._pman.cmd_failed_msg(cmd, stdout, stderr, exitcode))
+            raise Error(self._pman.get_cmd_failure_msg(cmd, stdout, stderr, exitcode))
 
         pattern = r"^GENERAL.STATE:\s+\d+ \((.+)\)$"
         match = re.match(pattern, stdout)

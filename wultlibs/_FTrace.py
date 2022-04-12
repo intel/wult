@@ -75,7 +75,7 @@ class FTrace:
 
             # The process has terminated or printed something to standard error.
             if exitcode is not None or stderr:
-                msg = self._reader.cmd_failed_msg(stdout, stderr, exitcode)
+                msg = self._reader.get_cmd_failure_msg(stdout, stderr, exitcode)
                 raise Error(f"the function trace reader process has exited unexpectedly:\n{msg}")
 
             for line in stdout:
