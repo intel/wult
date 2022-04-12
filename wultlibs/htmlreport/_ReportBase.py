@@ -220,17 +220,19 @@ class ReportBase:
 
         _LOG.info("Generating statistics tabs.")
 
-        tab_builders = [
-            _ACPowerTabBuilder.ACPowerTabBuilder,
-            _TurbostatTabBuilder.TurbostatTabBuilder,
-            _IPMITabBuilder.IPMITabBuilder
-        ]
+        mcpus = {res.reportid: str(res.info["cpunum"]) for res in self.rsts if "cpunum" in res.info}
+
+        tab_builders = {
+            _ACPowerTabBuilder.ACPowerTabBuilder: {},
+            _TurbostatTabBuilder.TurbostatTabBuilder: {"measured_cpus": mcpus},
+            _IPMITabBuilder.IPMITabBuilder: {}
+        }
 
         tabs = []
 
-        for tab_builder in tab_builders:
+        for tab_builder, args in tab_builders.items():
             try:
-                tbldr = tab_builder(stats_paths, self.outdir)
+                tbldr = tab_builder(stats_paths, self.outdir, **args)
             except ErrorNotFound as err:
                 _LOG.info("Skipping '%s' tab as '%s' statistics not found for all reports.",
                           tab_builder.name, tab_builder.name)

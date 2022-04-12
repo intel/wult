@@ -11,7 +11,7 @@ This module provides the capability of populating the turbostat statistics tab.
 """
 
 from wultlibs.htmlreport.tabs import _Tabs
-from wultlibs.htmlreport.tabs.stats.turbostat import _TotalsL2TabBuilder
+from wultlibs.htmlreport.tabs.stats.turbostat import _MCPUL2TabBuilder, _TotalsL2TabBuilder
 
 class TurbostatTabBuilder:
     """
@@ -36,7 +36,7 @@ class TurbostatTabBuilder:
         return _Tabs.CTabDC(self.name, l2_tabs)
 
 
-    def __init__(self, stats_paths, outdir):
+    def __init__(self, stats_paths, outdir, measured_cpus=None):
         """
         The class constructor. Adding a turbostat statistics container tab will create a "Turbostat"
         sub-directory and store level 2 tabs inside it. Level 2 tabs will represent metrics stored
@@ -44,6 +44,9 @@ class TurbostatTabBuilder:
          * stats_paths - dictionary in the format {'reportid': 'statistics_directory_path'}.
            This class will use these directories to locate raw turbostat statistic files.
          * outdir - the output directory in which to create the sub-directory for the turbostat tab.
+         * measured_cpus - dictionary in the format {'reportid': 'measured_cpu'} where
+                           'measured_cpu' is the CPU that was being tested during the workload. If
+                           not provided, the "Measured CPU" tab will not be generated.
         """
 
         self._time_metric = "Time"
@@ -51,3 +54,8 @@ class TurbostatTabBuilder:
         self.l2tab_bldrs = []
         self.l2tab_bldrs.append(_TotalsL2TabBuilder.TotalsL2TabBuilder(stats_paths,
                                                                        outdir / self.name, outdir))
+
+        if measured_cpus:
+            self.l2tab_bldrs.append(_MCPUL2TabBuilder.MCPUL2TabBuilder(stats_paths,
+                                                                       outdir / self.name,
+                                                                       outdir, measured_cpus))
