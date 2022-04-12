@@ -13,7 +13,7 @@ load, and use various delayed event devices and drivers (e.g., the I210 network 
 
 import logging
 import contextlib
-from pepclibs.helperlibs import FSHelpers, KernelModule, Trivial
+from pepclibs.helperlibs import FSHelpers, KernelModule, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import Devices
 
@@ -219,19 +219,7 @@ class EventsProvider:
                                self.dev.info["devid"], self._saved_drvname, err)
             self._saved_drvname = None
 
-        if getattr(self, "_main_drv", None):
-            self._main_drv.close()
-            self._main_drv = None
-
-        if getattr(self, "_drv", None):
-            self._drv.close()
-            self._drv = None
-
-        if getattr(self, "dev", None):
-            self.dev = None
-
-        if getattr(self, "_pman", None):
-            self._pman = None
+        ClassHelpers.close(self, unref_attrs=("dev", "_pman"), close_attrs=("_main_drv", "_drv"))
 
     def __enter__(self):
         """Enter the run-time context."""
