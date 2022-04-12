@@ -20,7 +20,8 @@ from pepclibs.helperlibs import Trivial, FSHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Deploy
 from wultlibs.htmlreport.tabs import _MetricTabBuilder, _Tabs
-from wultlibs.htmlreport.tabs.stats import _ACPowerTabBuilder, _IPMITabBuilder, _TurbostatTabBuilder
+from wultlibs.htmlreport.tabs.stats import _ACPowerTabBuilder, _IPMITabBuilder
+from wultlibs.htmlreport.tabs.stats.turbostat import _TurbostatTabBuilder
 
 _LOG = logging.getLogger()
 

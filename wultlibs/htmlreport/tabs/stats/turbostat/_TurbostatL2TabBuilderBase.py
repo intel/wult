@@ -7,7 +7,7 @@
 # Authors: Adam Hawley <adam.james.hawley@intel.com>
 
 """
-This module provides the capability of populating the turbostat statistics tab.
+This module contains the base class for turbostat level 2 tab builder classes.
 """
 
 import pandas
@@ -17,34 +17,28 @@ from wultlibs.htmlreport.tabs import _Tabs
 from wultlibs.parsers import TurbostatParser
 from wultlibs import MetricDefs
 
-class TurbostatTabBuilder(_TabBuilderBase.TabBuilderBase):
+class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
     """
-    This class provides the capability of populating the turbostat statistics tab.
+    The base class for turbostat level 2 tab builder classes.
+
+    'level 2 turbostat tabs' refer to tabs in the second level of tabs in the turbostat tab
+    hierarchy. For each level 2 turbostat tab, we parse raw turbostat statistics files differently.
+    Therefore this base class expects child classes to implement '_turbostat_to_df()'.
 
     Public methods overview:
-    1. Generate a '_Tabs.CTabDC' instance containing sub-tabs which represent different turbostat
+    1. Generate a '_Tabs.CTabDC' instance containing data tabs which represent different turbostat
        metrics.
-       * 'get_tab_group()'
+       * 'get_tab()'
+
+    This base class requires child classes to implement the following methods:
+    1. Convert a 'TurbostatParser' dict to 'pandas.DataFrame'.
+       * '_turbostat_to_df()'
     """
 
-    name = "Turbostat"
-
-    def _turbostat_to_df(self, tstat):
+    def _turbostat_to_df(self, tstat, path):
         """Convert 'TurbostatParser' dict to 'pandas.DataFrame'."""
 
-        _time_colname = "Time_Of_Day_Seconds"
-        totals = tstat["totals"]
-
-        # 'tstat_reduced' is a reduced version of the 'TurbostatParser' dict which should contain
-        # only the columns we want to include in the report. Initialise it by adding the timestamp
-        # column.
-        tstat_reduced = {self._time_metric: [totals[_time_colname]]}
-
-        for metric, colname in self._metrics.items():
-            if colname in totals:
-                tstat_reduced[metric] = [totals[colname]]
-
-        return pandas.DataFrame.from_dict(tstat_reduced)
+        raise NotImplementedError()
 
     def _read_stats_file(self, path):
         """
@@ -58,7 +52,7 @@ class TurbostatTabBuilder(_TabBuilderBase.TabBuilderBase):
             tstat_gen = TurbostatParser.TurbostatParser(path)
 
             for tstat in tstat_gen.next():
-                df = self._turbostat_to_df(tstat)
+                df = self._turbostat_to_df(tstat, path)
                 sdf = pandas.concat([sdf, df], ignore_index=True)
         except Exception as err:
             raise Error(f"error reading raw statistics file '{path}': {err}.") from None
@@ -74,28 +68,27 @@ class TurbostatTabBuilder(_TabBuilderBase.TabBuilderBase):
 
     def get_tab(self):
         """
-        Returns a '_Tabs.CTabDC' instance containing turbostat sub-tabs which are tabs for metrics
-        within the turbostat raw stastics file.
+        Returns a '_Tabs.CTabDC' instance containing tabs which represent different metrics within
+        the turbostat raw stastics file.
         """
 
         defs = MetricDefs.MetricDefs("turbostat")
-        totals_tabs = []
+        child_tabs = []
         for metric in self._metrics:
             mdefs = defs.info[metric]
             dtab = _DTabBuilder.DTabBuilder(self._reports, self.outdir / mdefs["fsname"],
-                                            self.outdir, mdefs, defs.info[self._time_metric])
-            totals_tabs.append(dtab.get_tab())
-        totals_ctab = _Tabs.CTabDC("Totals", totals_tabs)
+                                            self._basedir, mdefs, defs.info[self._time_metric])
+            child_tabs.append(dtab.get_tab())
 
-        return _Tabs.CTabDC(self.name, [totals_ctab])
+        return _Tabs.CTabDC(self.name, child_tabs)
 
 
-    def __init__(self, stats_paths, outdir):
+    def __init__(self, stats_paths, outdir, basedir):
         """
-        The class constructor. Adding a turbostat statistics group tab will create a 'Turbostat'
-        sub-directory and store sub-tabs inside it.  Sub-tabs will represent metrics stored in the
-        raw turbostat statistics file. The arguments are the same as in
-        '_StatsTabGroup.StatsTabGroupBuilder'.
+        The class constructor. Adding a turbostat level 2 tab will create a sub-directory and store
+        data tabs inside it for metrics stored in the raw turbostat statistics file.  The arguments
+        are the same as in '_TabBuilderBase.TabBuilderBase' except for:
+         * basedir - base directory of the report. All asset paths will be made relative to this.
         """
 
         self._time_metric = "Time"
@@ -108,3 +101,4 @@ class TurbostatTabBuilder(_TabBuilderBase.TabBuilderBase):
         }
 
         super().__init__(stats_paths, outdir, ["turbostat.raw.txt"])
+        self._basedir = basedir
