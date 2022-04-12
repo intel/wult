@@ -25,8 +25,7 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
     This class provides the capability of populating the IPMI statistics tab.
 
     Public methods overview:
-    1. Generate a '_Tabs.CTabDC' instance containing a group of sub-tabs which display different
-       IPMI statistics.
+    1. Generate a '_Tabs.CTabDC' instance containing tabs which display different IPMI statistics.
        * 'get_tab()'
     """
 
@@ -34,8 +33,7 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
 
     def get_tab(self):
         """
-        Generate a '_Tabs.CTabDC' instance containing a group of sub-tabs which display
-        different IPMI statistics.
+        Generate a '_Tabs.CTabDC' instance containing tabs which display different IPMI statistics.
         """
 
         col_sets = [set(sdf.columns) for sdf in self._reports.values()]
@@ -43,7 +41,7 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
 
         defs = MetricDefs.MetricDefs("ipmi")
 
-        mgroups = []
+        metric_ctabs = []
         for metric, colnames in self._metrics.items():
             coltabs = []
             mtab_outdir = self._outdir / metric
@@ -61,14 +59,14 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
                                                    col_defs, defs.info[self._time_metric])
                 coltabs.append(coltab.get_tab())
 
-            # Only add a tab group for 'metric' if any tabs were generated to populate it.
+            # Only add a container tab for 'metric' if any data tabs were generated to populate it.
             if coltabs:
-                mgroups.append(_Tabs.CTabDC(metric, coltabs))
+                metric_ctabs.append(_Tabs.CTabDC(metric, coltabs))
 
-        if not mgroups:
+        if not metric_ctabs:
             raise Error(f"no common {self.name} metrics between reports.")
 
-        return _Tabs.CTabDC(self.name, mgroups)
+        return _Tabs.CTabDC(self.name, metric_ctabs)
 
     def _categorise_cols(self, ipmi):
         """
@@ -135,9 +133,9 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
 
     def __init__(self, stats_paths, outdir):
         """
-        The class constructor. Adding an IPMI statistics group tab will create an 'IPMI'
-        sub-directory and store sub-tabs inside it. Sub-tabs will represent all of the metrics
-        stored in the raw IPMI statistics file. The arguments are the same as in
+        The class constructor. Adding an IPMI statistics container tab will create an 'IPMI'
+        sub-directory and store tabs inside it. These tabs will represent all of the metrics stored
+        in the raw IPMI statistics file. The arguments are the same as in
         '_TabBuilderBase.TabBuilderBase'.
         """
 
