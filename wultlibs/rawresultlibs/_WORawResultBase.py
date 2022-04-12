@@ -169,10 +169,6 @@ class WORawResultBase(_RawResultBase.RawResultBase):
         #  * toolname - name of the tool creating the report.
         #  * toolver - version of the tool creating the report.
 
-    def __del__(self):
-        """The destructor."""
-        self.close()
-
     def close(self):
         """Stop the experiment."""
 
@@ -182,14 +178,14 @@ class WORawResultBase(_RawResultBase.RawResultBase):
 
         # Remove results if no datapoints was collected.
         dp_path = getattr(self, "dp_path", None)
-        with contextlib.suppress(Exception):
-            paths = []
-            if (not dp_path or not dp_path.exists()) or dp_path.stat().st_size == 0:
-                paths = getattr(self, "_created_paths", [])
+        paths = []
+        if (not dp_path or not dp_path.exists()) or dp_path.stat().st_size == 0:
+            paths = getattr(self, "_created_paths", [])
 
-            for path in paths:
-                if not path.exists():
-                    continue
+        for path in paths:
+            if not path.exists():
+                continue
+            with contextlib.suppress(Exception):
                 if path.is_dir():
                     shutil.rmtree(path)
                 elif path.is_file():

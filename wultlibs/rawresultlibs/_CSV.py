@@ -131,10 +131,6 @@ class WritableCSV:
         else:
             self._create()
 
-    def __del__(self):
-        """The destructor."""
-        self.close()
-
     def close(self):
         """Stop the experiment."""
 
