@@ -16,7 +16,7 @@ import logging
 import contextlib
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from pepclibs.helperlibs import Systemctl
+from pepclibs.helperlibs import Systemctl, ClassHelpers
 from wultlibs import EventsProvider, _FTrace, _ProgressLine, _WultDpProcess, WultStatsCollect
 from wultlibs.helperlibs import Human
 
@@ -375,30 +375,6 @@ class WultRunner:
     def close(self):
         """Stop the measurements."""
 
-        if getattr(self, "_pman", None):
-            self._pman = None
-        else:
-            return
-
-        if getattr(self, "_dev", None):
-            self._dev = None
-
-        if getattr(self, "_dpp", None):
-            self._dpp.close()
-            self._dpp = None
-
-        if getattr(self, "_stcoll", None):
-            self._stcoll.close()
-            self._stcoll = None
-
-        if getattr(self, "_ep", None):
-            self._ep.close()
-            self._ep = None
-
-        if getattr(self, "_ftrace", None):
-            self._ftrace.close()
-            self._ftrace = None
-
         if getattr(self, "_has_irqbalance") and getattr(self, "_sysctl"):
             _LOG.info("Starting the previously stopped 'irqbalance' service")
             try:
@@ -409,7 +385,10 @@ class WultRunner:
                 # not start it again, probably because there is only one CPU.
                 _LOG.warning("failed to start the previously stoopped 'irqbalance' service:\n%s",
                              err)
-            self._sysctl = None
+
+        unref_attrs = ("_sysctl", "_dev", "_pman")
+        close_attrs = ("_dpp", "_stcoll", "_ep", "_ftrace")
+        ClassHelpers.close(self, unref_attrs=unref_attrs, close_attrs=close_attrs)
 
     def __enter__(self):
         """Enter the run-time context."""

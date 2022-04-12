@@ -13,8 +13,9 @@ saves the results.
 
 import time
 import logging
-from pepclibs.helperlibs.Exceptions import Error
 from pepclibs import CStates
+from pepclibs.helperlibs import ClassHelpers
+from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import MetricDefs
 from wultlibs.helperlibs import Human
 
@@ -584,11 +585,7 @@ class DatapointProcessor:
 
     def close(self):
         """Close the datapoint processor."""
-
-        if getattr(self, "_pman", None):
-            self._pman = None
-        else:
-            return
+        ClassHelpers.close(self, close_attrs=("_pman",))
 
     def __enter__(self):
         """Enter the run-time context."""

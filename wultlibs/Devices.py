@@ -17,7 +17,7 @@ compatible wult devices.
 import contextlib
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import FSHelpers, Dmesg
+from pepclibs.helperlibs import FSHelpers, Dmesg, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from wultlibs import NetIface, LsPCI
 
@@ -98,12 +98,7 @@ class _WultDeviceBase:
 
     def close(self):
         """Uninitialize the device."""
-
-        if getattr(self, "_pman", None):
-            self._pman = None
-        if getattr(self, "dmesg_obj", None):
-            self.dmesg_obj.close()
-            self.dmesg_obj = None
+        ClassHelpers.close(self, close_attrs=("_pman", "dmesg_obj"))
 
     def __enter__(self):
         """Enter the run-time context."""

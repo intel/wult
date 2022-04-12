@@ -14,7 +14,7 @@ result.
 import time
 import logging
 import contextlib
-from pepclibs.helperlibs import Trivial, FSHelpers, KernelModule
+from pepclibs.helperlibs import Trivial, FSHelpers, KernelModule, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs import _ProgressLine, _Nmcli, _ETFQdisc
 from wultlibs.helperlibs import KernelVersion, ProcHelpers, Human
@@ -305,30 +305,18 @@ class NdlRunner:
     def close(self):
         """Stop the measurements."""
 
-        if getattr(self, "_etfqdisc", None):
-            self._etfqdisc.close()
-            self._etfqdisc = None
-
         if getattr(self, "_ndlrunner", None):
             self._stop_ndlrunner()
-            self._ndlrunner = None
-
         if getattr(self, "_netif", None):
             self._netif.down()
-            self._netif = None
-
         if getattr(self, "_nmcli", None):
             self._nmcli.restore_managed()
-            self._nmcli.close()
-            self._nmcli = None
-
-        if getattr(self, "_pman", None):
-            self._pman = None
-
-        # Unload our driver.
         if getattr(self, "_drv", None):
             self._drv.unload()
-            self._drv = None
+
+        unref_attrs = ("_ndlrunner", "_netif", "_nmcli", "_drv", "_pman")
+        close_attrs = ("_etfqdisc", "_nmcli")
+        ClassHelpers.close(self, unref_attrs=unref_attrs, close_attrs=close_attrs)
 
     def __enter__(self):
         """Enter the run-time context."""

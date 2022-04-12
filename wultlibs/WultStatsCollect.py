@@ -11,7 +11,7 @@ This module is just a "glue" layer between "WultRunner" and "StatsCollect".
 """
 
 import logging
-import contextlib
+from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.statscollectlibs import StatsCollect, StatsHelpers
 
@@ -99,18 +99,7 @@ class WultStatsCollect:
 
     def close(self):
         """Close the statistics collector."""
-
-        if getattr(self, "_stcoll", None):
-            with contextlib.suppress(Error):
-                self._stcoll.close()
-            self._stcoll = None
-
-        if getattr(self, "_pman", None):
-            self._pman = None
-
-    def __del__(self):
-        """The destructor."""
-        self.close()
+        ClassHelpers.close(self, unref_attrs=("_pman",), close_attrs=("_stcoll",))
 
     def __enter__(self):
         """Enter the run-time context."""

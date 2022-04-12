@@ -11,7 +11,7 @@ This module provides API for dealing with Linux function trace buffer.
 """
 
 import logging
-from pepclibs.helperlibs import FSHelpers
+from pepclibs.helperlibs import FSHelpers, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorTimeOut
 from wultlibs.helperlibs import ProcHelpers
 
@@ -96,14 +96,14 @@ class FTrace:
         self.timeout = timeout
         self.raw_line = None
 
-        mntpoint = FSHelpers.mount_debugfs(pman=pman)
+        mntpoint = FSHelpers.mount_debugfs(pman=self._pman)
         self.ftpath = mntpoint.joinpath("tracing/trace")
         self.ftpipe_path = mntpoint.joinpath("tracing/trace_pipe")
 
         for path in (self.ftpath, self.ftpipe_path):
-            if not FSHelpers.isfile(path, pman=pman):
+            if not FSHelpers.isfile(path, pman=self._pman):
                 raise ErrorNotSupported(f"linux kernel function trace file was not found at "
-                                        f"'{path}'{pman.hostmsg}")
+                                        f"'{path}'{self._pman.hostmsg}")
 
         cmd = f"cat {self.ftpipe_path}"
         name = "stale wult function trace reader process"
@@ -114,17 +114,14 @@ class FTrace:
     def close(self):
         """Stop following the function trace buffer."""
 
-        if getattr(self, "_pman", None):
-            pman = self._pman
-            self._pman = None
-        else:
-            return
-
-        if getattr(self, "_reader", None) and getattr(self._reader, "pid", None):
+        if getattr(self, "_pman", None) and getattr(self, "_reader", None) and \
+                                            getattr(self._reader, "pid", None):
             _LOG.debug("killing the function trace reader process PID %d%s",
-                       self._reader.pid, pman.hostmsg)
-            ProcHelpers.kill_pids(self._reader.pid, kill_children=True, must_die=False, pman=pman)
-            self._reader = None
+                       self._reader.pid, self._pman.hostmsg)
+            ProcHelpers.kill_pids(self._reader.pid, kill_children=True, must_die=False,
+                                  pman=self._pman)
+
+        ClassHelpers.close(self, unref_attrs=("_pman", "_reader"))
 
     def __enter__(self):
         """Enter the run-time context."""
