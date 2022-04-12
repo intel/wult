@@ -104,14 +104,14 @@ def kill_pids(pids, sig: str = "SIGTERM", kill_children: bool = False, must_die:
         pids_spc = " ".join(pids)
         pids_comma = ",".join(pids)
         _LOG.debug("sending '%s' signal to the following process%s: %s",
-                   sig, pman.hostmsg, pids_comma)
+                   sig, wpman.hostmsg, pids_comma)
 
         try:
-            pman.run_verify(f"kill -{sig} -- {pids_spc}")
+            wpman.run_verify(f"kill -{sig} -- {pids_spc}")
         except Error as err:
             if not killing:
-                raise Error(f"failed to send signal '{sig}' to PIDs '{pids_comma}'{pman.hostmsg}:\n"
-                            f"{err}") from err
+                raise Error(f"failed to send signal '{sig}' to PIDs "
+                            f"'{pids_comma}'{wpman.hostmsg}:\n{err}") from err
             # Some error happened on the first attempt. We've seen a couple of situations when this
             # happens.
             # 1. Most often, a PID does not exist anymore, the process exited already (race
@@ -129,8 +129,8 @@ def kill_pids(pids, sig: str = "SIGTERM", kill_children: bool = False, must_die:
         timeout = 4
         start_time = time.time()
         while time.time() - start_time <= timeout:
-            collect_zombies(pman)
-            _, _, exitcode = pman.run(f"kill -0 -- {pids_spc}")
+            collect_zombies(wpman)
+            _, _, exitcode = wpman.run(f"kill -0 -- {pids_spc}")
             if exitcode == 1:
                 return
             time.sleep(0.2)
@@ -138,30 +138,30 @@ def kill_pids(pids, sig: str = "SIGTERM", kill_children: bool = False, must_die:
         if _is_sigterm(sig):
             # Something refused to die, try SIGKILL.
             try:
-                pman.run_verify(f"kill -9 -- {pids_spc}")
+                wpman.run_verify(f"kill -9 -- {pids_spc}")
             except Error as err:
                 # It is fine if one of the processes exited meanwhile.
                 if "No such process" not in str(err):
                     raise
-            collect_zombies(pman)
+            collect_zombies(wpman)
             if not must_die:
                 return
             # Give the processes up to 4 seconds to die.
             timeout = 4
             start_time = time.time()
             while time.time() - start_time <= timeout:
-                collect_zombies(pman)
-                _, _, exitcode = pman.run(f"kill -0 -- {pids_spc}")
+                collect_zombies(wpman)
+                _, _, exitcode = wpman.run(f"kill -0 -- {pids_spc}")
                 if exitcode != 0:
                     return
                 time.sleep(0.2)
 
         # Something refused to die, find out what.
-        msg, _, = pman.run_verify(f"ps -f {pids_spc}", join=False)
+        msg, _, = wpman.run_verify(f"ps -f {pids_spc}", join=False)
         if len(msg) < 2:
             msg = pids_comma
 
-        raise Error(f"one of the following processes{pman.hostmsg} did not die after 'SIGKILL': "
+        raise Error(f"one of the following processes{wpman.hostmsg} did not die after 'SIGKILL': "
                     f"{msg}")
 
 def find_processes(regex: str, pman=None):
