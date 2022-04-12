@@ -99,12 +99,12 @@ class TabBuilderBase:
 
     def __init__(self, stats_paths, outdir, stats_files):
         """
-        The class constructor. Adding a statistics group tab will create a sub-directory and store
-        sub-tabs inside it. Sub-tabs will represent all of the metrics stored in 'stats_file'.
+        The class constructor. Adding a statistics container tab will create a sub-directory and
+        store tabs inside it. These tabs will represent all of the metrics stored in 'stats_file'.
         Arguments are as follows:
          * stats_paths - dictionary in the format {'reportid': 'statistics_directory_path'}.
            This class will use these directories to locate raw statistic files.
-         * outdir - the output directory in which to create the sub-directory for this tab group.
+         * outdir - the output directory in which to create the sub-directory for the container tab.
          * stats_files - a list of the possible names of the raw statistics file.
         """
 
