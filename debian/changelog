@@ -1,7 +1,8 @@
-wult (1.9.20) unstable; urgency=low
+wult (1.9.21) unstable; urgency=low
 
   * wult report: removed symbolic links to raw result files.
   * wult report: changed '--relocatable' to be a binary option.
+  * wult report: added turbostat statistics tab.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com> __ADD_DATE__
 
