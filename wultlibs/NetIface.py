@@ -19,7 +19,7 @@ import contextlib
 from pathlib import Path
 from collections import namedtuple
 from pepclibs.helperlibs import FSHelpers, LocalProcessManager, Trivial, ClassHelpers
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import LsPCI
 
 _LOG = logging.getLogger()
@@ -143,17 +143,6 @@ class NetIface:
 
         return value.strip() == "1"
 
-    def _check_ip_tool_present(self):
-        """Verifies that the "ip" tool is available."""
-
-        if self._ip_tool_present:
-            return
-
-        if not FSHelpers.which("ip", default=None, pman=self._pman):
-            raise ErrorNotSupported(f"the 'ip' tool is not installed{self._pman.hostmsg}.\nThis "
-                                    f"tool is part of the 'iproute2' project, please install it.")
-        self._ip_tool_present = True
-
     def get_pci_info(self):
         """Return network interface PCI information."""
 
@@ -163,13 +152,11 @@ class NetIface:
     def up(self): # pylint: disable=invalid-name
         """Bring the network interface up."""
 
-        self._check_ip_tool_present()
         self._pman.run_verify(f"ip link set dev {self.ifname} up")
 
     def down(self):
         """Bring the network interface down."""
 
-        self._check_ip_tool_present()
         self._pman.run_verify(f"ip link set dev {self.ifname} down")
 
     def getstate(self):
@@ -205,7 +192,6 @@ class NetIface:
         and return the output.
         """
 
-        self._check_ip_tool_present()
         stdout, _ = self._pman.run_verify(f"ip address show {self.ifname}")
         return _parse_ip_address_show(stdout)
 
@@ -231,7 +217,6 @@ class NetIface:
         format. The previous IP address can later be restored with 'restore_ipv4_addr()'.
         """
 
-        self._check_ip_tool_present()
         self._saved_ip_info = self.get_ip_info()
         self._pman.run_verify(f"ip address add {ip} dev {self.ifname}")
 
@@ -243,8 +228,6 @@ class NetIface:
 
         if not self._saved_ip_info:
             return
-
-        self._check_ip_tool_present()
 
         info = self._saved_ip_info
         cmd = "add"

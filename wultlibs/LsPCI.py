@@ -9,8 +9,8 @@
 """This module can be used to get information about PCI devices in system."""
 
 import re
-from pepclibs.helperlibs.Exceptions import ErrorNotSupported, Error
-from pepclibs.helperlibs import FSHelpers, LocalProcessManager, ClassHelpers
+from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs import LocalProcessManager, ClassHelpers
 
 class LsPCI:
     """This is a wrapper class for 'lspci' tool."""
@@ -108,10 +108,6 @@ class LsPCI:
 
         if not self._pman:
             self._pman = LocalProcessManager.LocalProcessManager()
-
-        if not FSHelpers.which(self._lspci_bin, default=None, pman=self._pman):
-            raise ErrorNotSupported(f"the '{self._lspci_bin}' tool is not "
-                                    f"installed{self._pman.hostmsg}")
 
     def close(self):
         """Uninitialize the class object."""

@@ -622,9 +622,6 @@ def deploy_command(args):
     args.stmpdir = None # Temporary directory on the SUT.
     args.ctmpdir = None # Temporary directory on the controller (local host).
 
-    if not FSHelpers.which("rsync", default=None):
-        raise Error("please, install the 'rsync' tool")
-
     if not args.timeout:
         args.timeout = 8
     else:
@@ -641,9 +638,6 @@ def deploy_command(args):
         args.ctmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-")
 
     with ToolsCommon.get_pman(args) as pman:
-        if not FSHelpers.which("make", default=None, pman=pman):
-            raise Error(f"please, install the 'make' tool{pman.hostmsg}")
-
         if pman.is_remote or not args.ctmpdir:
             args.stmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-", pman=pman)
         else:

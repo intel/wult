@@ -11,8 +11,8 @@ This module provides API to NetworkManger's nmcli tool.
 """
 
 import re
-from pepclibs.helperlibs import Trivial, FSHelpers, LocalProcessManager, ClassHelpers
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
+from pepclibs.helperlibs import Trivial, LocalProcessManager, ClassHelpers
+from pepclibs.helperlibs.Exceptions import Error
 
 class Nmcli:
     """API to the nmcli tool."""
@@ -88,9 +88,6 @@ class Nmcli:
 
         if not self._pman:
             self._pman = LocalProcessManager.LocalProcessManager()
-
-        if not FSHelpers.which("nmcli", default=None, pman=pman):
-            raise ErrorNotSupported(f"the 'nmcli' tool is not installed{pman.hostmsg}")
 
     def close(self):
         """Uninitialize the object."""
