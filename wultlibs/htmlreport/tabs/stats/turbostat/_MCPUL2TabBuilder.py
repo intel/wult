@@ -17,10 +17,8 @@ class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
     """
     This class provides the capability of populating the "Measured CPU" turbostat level 2 tab.
 
-    Public methods overview:
-    1. Generate a '_Tabs.CTabDC' instance containing data tabs which represent different turbostat
-       metrics for each measured CPU.
-       * 'get_tab()'
+    See base class '_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase' for public methods
+    overview.
     """
 
     name = "MeasuredCPU"

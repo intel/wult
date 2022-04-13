@@ -17,10 +17,8 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
     """
     This class provides the capability of populating the "Totals" turbostat level 2 tab.
 
-    Public methods overview:
-    1. Generate a level 2 tab (an '_Tabs.CTabDC' instance) containing  data tabs which represent
-       summaries of different turbostat metrics.
-       * 'get_tab()'
+    See base class '_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase' for public methods
+    overview.
     """
 
     name = "Totals"
