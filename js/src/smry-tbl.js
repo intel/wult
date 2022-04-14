@@ -110,18 +110,10 @@ class SummaryTable extends ReportTable {
             })
     }
 
-    /**
-     * Returns pixel width of table based on the number of sets of results shown in the report.
-     * @return {Number} no. of pixels to set the width of the table to.
-     */
-    getWidth () {
-        return Math.min(100, 20 * (this.cols - 2))
-    }
-
     render () {
         return this.template
             ? html`
-                <table width="${this.getWidth(this.smrystbl)}%">
+                <table width="${this.getWidth(this.cols)}%">
                     ${this.template}
                 </table>
             `

@@ -65,12 +65,12 @@ export class ReportTable extends LitElement {
     `;
 
     /**
-     * Returns pixel width of table based on the number of sets of results shown in the report.
-     * @return {Number} no. of pixels to set the width of the table to.
+     * Returns pixel width of table based on the number of columns in the table.
+     * @param {Number} ncols number of columns in the table.
+     * @return {Number} number of pixels to set the width of the table to.
      */
-    getWidth (table) {
-        const nkeys = Object.keys(table).length
-        return Math.min(100, 20 * nkeys)
+    getWidth (ncols) {
+        return Math.min(100, 20 * (ncols - 2))
     }
 
     /**

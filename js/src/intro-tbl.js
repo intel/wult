@@ -36,7 +36,7 @@ class IntroTable extends ReportTable {
                                 'statistics and results to the report directory.'
 
         return html`
-        <table width="${this.getWidth(this.introtbl)}%">
+        <table width="${this.getWidth(Object.keys(this.introtbl).length)}%">
             <tr>
             ${Object.keys(this.introtbl).map((header) => html`<th>${header}</th>`)}
             </tr>
