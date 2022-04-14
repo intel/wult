@@ -21,9 +21,9 @@ import { cache } from 'lit/directives/cache.js'
  */
 export class WultTab extends LitElement {
     static properties = {
-      tabname: { type: String },
-      info: { type: Object },
-      visible: { type: Boolean, attribute: false }
+        tabname: { type: String },
+        info: { type: Object },
+        visible: { type: Boolean, attribute: false }
     };
 
     /**
@@ -31,15 +31,15 @@ export class WultTab extends LitElement {
      * sets the 'visible' attribute accordingly.
      */
     checkVisible (mutationsList, observer) {
-      for (const mutation of mutationsList) {
-        if (mutation.attributeName === 'active') {
-          if (this.tabname === mutation.target.id) {
-            this.visible = true
-          } else {
-            this.visible = false
-          }
+        for (const mutation of mutationsList) {
+            if (mutation.attributeName === 'active') {
+                if (this.tabname === mutation.target.id) {
+                    this.visible = true
+                } else {
+                    this.visible = false
+                }
+            }
         }
-      }
     }
 
     /**
@@ -47,24 +47,24 @@ export class WultTab extends LitElement {
      * document-connected element.
      */
     connectedCallback () {
-      super.connectedCallback()
-      // Adds event listener so that the tab will re-evaulate 'visible' every time the user clicks
-      // to see if the tab has been opened. Read relevant docs here:
-      // https://lit.dev/docs/components/events/#adding-event-listeners-to-other-elements
+        super.connectedCallback()
+        // Adds event listener so that the tab will re-evaulate 'visible' every time the user clicks
+        // to see if the tab has been opened. Read relevant docs here:
+        // https://lit.dev/docs/components/events/#adding-event-listeners-to-other-elements
 
-      // WultTabs are contained by SlTabPanel components which gain the 'active'
-      // attribute when the respective tab is active. Therefore we observe
-      // changes on that SlTabPanel and when it becomes active, we know that
-      // this tab is visible.
+        // WultTabs are contained by SlTabPanel components which gain the 'active'
+        // attribute when the respective tab is active. Therefore we observe
+        // changes on that SlTabPanel and when it becomes active, we know that
+        // this tab is visible.
 
-      // Bind the callback to 'this' instance so that it can access class properties.
-      const mutationCallback = this.checkVisible.bind(this)
+        // Bind the callback to 'this' instance so that it can access class properties.
+        const mutationCallback = this.checkVisible.bind(this)
 
-      // Options for the observer (which mutations to observe).
-      const config = { attributes: true }
+        // Options for the observer (which mutations to observe).
+        const config = { attributes: true }
 
-      this.observer = new MutationObserver(mutationCallback)
-      this.observer.observe(this.parentElement, config)
+        this.observer = new MutationObserver(mutationCallback)
+        this.observer.observe(this.parentElement, config)
     }
 
     /**
@@ -72,25 +72,25 @@ export class WultTab extends LitElement {
      * does not attempt to trigger the handler when it is no longer accessible.
      */
     disconnectedCallback () {
-      super.disconnectedCallback()
-      this.observer.disconnect()
+        super.disconnectedCallback()
+        this.observer.disconnect()
     }
 
     /**
      * Provides the template for when the tab is visible (active).
      */
     visibleTemplate () {
-      throw new Error("Inherit from this class and implement 'visibleTemplate'.")
+        throw new Error("Inherit from this class and implement 'visibleTemplate'.")
     }
 
     render () {
-      // Use 'cache()' to cache tabs which means their content will be saved after being loaded for
-      // the first time and does not need to be re-generated every time.
-      return html`
-      ${cache(this.visible
-        ? html`${this.visibleTemplate()}`
-        : html``
-      )}`
+        // Use 'cache()' to cache tabs which means their content will be saved after being loaded for
+        // the first time and does not need to be re-generated every time.
+        return html`
+        ${cache(this.visible
+            ? html`${this.visibleTemplate()}`
+            : html``
+    )}`
     }
 }
 

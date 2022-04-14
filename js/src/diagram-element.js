@@ -30,11 +30,11 @@ class DiagramElement extends LitElement {
   `;
 
     static properties = {
-      path: { type: String }
+        path: { type: String }
     };
 
     render () {
-      return html`
+        return html`
             <div class="plot">
                 <iframe seamless="seamless" frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
             </div>

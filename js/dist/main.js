@@ -301,15 +301,19 @@
         }
     `;getWidth(t){const e=Object.keys(t).length;return Math.min(100,20*e)}}customElements.define("report-table",bs),customElements.define("intro-tbl",class extends bs{static properties={introtbl:{type:Object}};render(){return this.introtbl?(this.link_keys=this.introtbl.link_keys,delete this.introtbl.link_keys,z`
         <table width="${this.getWidth(this.introtbl)}%">
-        <tr>
-        ${Object.keys(this.introtbl).map((t=>z`<th>${t} </th>`))}
-        </tr>
-        ${Object.entries(this.introtbl.Title).map((([t,e])=>z`
             <tr>
-            <td class="td-colname"> ${e} </td>
-            ${Object.entries(this.introtbl).map((([s,i])=>"Title"!==s?z`<td class="td-value"> ${this.link_keys.includes(t)?i[t]?z`<a href=${i[t]}> ${e} </a>`:z`<abbr title=${'Regenerate the report with "wult report --relocatable" to copy statistics and results to the report directory.'}>Not available</abbr>`:i[t]} </td>`:z``))}
+            ${Object.keys(this.introtbl).map((t=>z`<th>${t}</th>`))}
             </tr>
-        `))}
+            ${Object.entries(this.introtbl.Title).map((([t,e])=>z`
+                <tr>
+                <td class="td-colname"> ${e} </td>
+                ${Object.entries(this.introtbl).map((([s,i])=>"Title"!==s?z`
+                        <td class="td-value">
+                            ${this.link_keys.includes(t)?i[t]?z`<a href=${i[t]}> ${e} </a>`:z`<abbr title=${'Regenerate the report with "wult report --relocatable" to copy statistics and results to the report directory.'}>Not available</abbr>`:i[t]}
+                        </td>
+                    `:z``))}
+                </tr>
+            `))}
         </table>
       `):z``}});var gs,ms=ce`
   ${Ne}
@@ -654,7 +658,7 @@
         <slot></slot>
       </div>
     `}};Ms.styles=Us,ut([Fe({reflect:!0})],Ms.prototype,"name",2),ut([Fe({type:Boolean,reflect:!0})],Ms.prototype,"active",2),Ms=ut([De("sl-tab-panel")],Ms);const{H:Os}=X,zs=(t,e)=>{var s,i;return void 0===e?void 0!==(null===(s=t)||void 0===s?void 0:s._$litType$):(null===(i=t)||void 0===i?void 0:i._$litType$)===e},Hs=()=>document.createComment(""),Ns=(t,e,s)=>{var i;const r=t._$AA.parentNode,o=void 0===e?t._$AB:e._$AA;if(void 0===s){const e=r.insertBefore(Hs(),o),i=r.insertBefore(Hs(),o);s=new Os(e,i,t,t.options)}else{const e=s._$AB.nextSibling,n=s._$AM,a=n!==t;if(a){let e;null===(i=s._$AQ)||void 0===i||i.call(s,t),s._$AM=t,void 0!==s._$AP&&(e=t._$AU)!==n._$AU&&s._$AP(e)}if(e!==o||a){let t=s._$AA;for(;t!==e;){const e=t.nextSibling;r.insertBefore(t,o),t=e}}}return s},Ls={},Rs=(t,e=Ls)=>t._$AH=e,Bs=t=>t._$AH,Is=(js=class extends class{constructor(t){}get _$AU(){return this._$AM._$AU}_$AT(t,e,s){this._$Ct=t,this._$AM=e,this._$Ci=s}_$AS(t,e){return this.update(t,e)}update(t,e){return this.render(...e)}}{constructor(t){super(t),this.tt=new WeakMap}render(t){return[t]}update(t,[e]){if(zs(this.it)&&(!zs(e)||this.it.strings!==e.strings)){const e=Bs(t).pop();let s=this.tt.get(this.it.strings);if(void 0===s){const t=document.createDocumentFragment();s=R(N,t),s.setConnected(!1),this.tt.set(this.it.strings,s)}Rs(s,[e]),Ns(s,void 0,e)}if(zs(e)){if(!zs(this.it)||this.it.strings!==e.strings){const s=this.tt.get(e.strings);if(void 0!==s){const e=Bs(s).pop();(t=>{t._$AR()})(t),Ns(t,void 0,e),Rs(t,[e])}}this.it=e}else this.it=void 0;return this.render(e)}},(...t)=>({_$litDirective$:js,values:t}));var js;class Ds extends et{static properties={tabname:{type:String},info:{type:Object},visible:{type:Boolean,attribute:!1}};checkVisible(t,e){for(const e of t)"active"===e.attributeName&&(this.tabname===e.target.id?this.visible=!0:this.visible=!1)}connectedCallback(){super.connectedCallback();const t=this.checkVisible.bind(this);this.observer=new MutationObserver(t),this.observer.observe(this.parentElement,{attributes:!0})}disconnectedCallback(){super.disconnectedCallback(),this.observer.disconnect()}visibleTemplate(){throw new Error("Inherit from this class and implement 'visibleTemplate'.")}render(){return z`
-      ${Is(this.visible?z`${this.visibleTemplate()}`:z``)}`}}customElements.define("wult-tab",Ds);class Ws extends et{static styles=o`
+        ${Is(this.visible?z`${this.visibleTemplate()}`:z``)}`}}customElements.define("wult-tab",Ds);class Ws extends et{static styles=o`
     .plot {
         position: relative;
         height: 100%;
@@ -670,26 +674,24 @@
                 <iframe seamless="seamless" frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
             </div>
         `}}customElements.define("diagram-element",Ws),customElements.define("smry-tbl",class extends bs{static properties={src:{type:String},template:{attribute:!1}};parseMetric(t){const e=t[0].split("|");return z`
-        <td rowspan=${t[1]} class="td-colname">
-            <abbr title=${e[1]}>${e[0]}</abbr>
-        </td>
-      `}parseSummaryFunc(t){const[e,s]=t.split("|");return z`
-        <td class="td-value">
-            ${s?z`<abbr title=${s}>${e}</abbr>`:z`${e}`}
-        </td>
-      `}async parseSrc(){let t,e=z``;for await(const s of async function*(t){const e=new TextDecoder("utf-8"),s=(await fetch(t)).body.getReader();let{value:i,done:r}=await s.read();i=i?e.decode(i,{stream:!0}):"";const o=/\r\n|\n|\r/gm;let n=0;for(;;){const t=o.exec(i);if(t)yield i.substring(n,t.index),n=o.lastIndex;else{if(r)break;const t=i.substr(n);({value:i,done:r}=await s.read()),i=t+(i?e.decode(i,{stream:!0}):""),n=o.lastIndex=0}}n<i.length&&(yield i.substr(n))}(this.src)){const i=s.split(";"),r=i[0];if(i.shift(),"H"===r)for(const t of i)e=z`${e}<th>${t}</th>`,this.cols=this.cols+1;else if("M"===r)t=this.parseMetric(i);else{const s=z`
-            ${i.map((t=>this.parseSummaryFunc(t)))}
-          `;e=z`
-          ${e}
-          <tr>
-            ${t}
-            ${s}
-          </tr>
-          `,t&&(t=void 0)}}return e}constructor(){super(),this.cols=0}connectedCallback(){super.connectedCallback(),this.parseSrc().then((t=>{this.template=t}))}getWidth(){return Math.min(100,20*(this.cols-2))}render(){return this.template?z`
-            <table width="${this.getWidth(this.smrystbl)}%">
-            ${this.template}
-            </table>
-        `:z``}});class Fs extends Ds{static styles=o`
+            <td rowspan=${t[1]} class="td-colname">
+                <abbr title=${e[1]}>${e[0]}</abbr>
+            </td>
+        `}parseSummaryFunc(t){const[e,s]=t.split("|");return z`
+            <td class="td-value">
+                ${s?z`<abbr title=${s}>${e}</abbr>`:z`${e}`}
+            </td>
+        `}async parseSrc(){let t,e=z``;for await(const s of async function*(t){const e=new TextDecoder("utf-8"),s=(await fetch(t)).body.getReader();let{value:i,done:r}=await s.read();i=i?e.decode(i,{stream:!0}):"";const o=/\r\n|\n|\r/gm;let n=0;for(;;){const t=o.exec(i);if(t)yield i.substring(n,t.index),n=o.lastIndex;else{if(r)break;const t=i.substr(n);({value:i,done:r}=await s.read()),i=t+(i?e.decode(i,{stream:!0}):""),n=o.lastIndex=0}}n<i.length&&(yield i.substr(n))}(this.src)){const i=s.split(";"),r=i[0];if(i.shift(),"H"===r)for(const t of i)e=z`${e}<th>${t}</th>`,this.cols=this.cols+1;else if("M"===r)t=this.parseMetric(i);else{const s=z`${i.map((t=>this.parseSummaryFunc(t)))}`;e=z`
+                    ${e}
+                    <tr>
+                      ${t}
+                      ${s}
+                    </tr>
+                `,t&&(t=void 0)}}return e}constructor(){super(),this.cols=0}connectedCallback(){super.connectedCallback(),this.parseSrc().then((t=>{this.template=t}))}getWidth(){return Math.min(100,20*(this.cols-2))}render(){return this.template?z`
+                <table width="${this.getWidth(this.smrystbl)}%">
+                    ${this.template}
+                </table>
+            `:z``}});class Fs extends Ds{static styles=o`
         .grid {
             display: grid;
             width: 100%;
@@ -700,7 +702,9 @@
             <br>
             <smry-tbl .src="${this.smrytblpath}"></smry-tbl>
             <div class="grid">
-            ${this.paths.map((t=>z`<diagram-element path="${t}"></diagram-element>`))}
+                ${this.paths.map((t=>z`
+                    <diagram-element path="${t}"></diagram-element>
+                `))}
             </div>
         `}render(){return super.render()}}customElements.define("wult-metric-tab",Fs);class Vs extends et{static styles=o`
       /*
@@ -719,21 +723,21 @@
         height: auto !important;
       }
     `;static properties={tabFile:{type:String},tabs:{type:Object,attribute:!1},fetchFailed:{type:Boolean,attribute:!1}};updated(t){t.has("tabFile")&&fetch(this.tabFile).then((t=>t.json())).then((t=>{this.tabs=t}))}tabTemplate(t){return t.tabs?z`
-          <sl-tab-group>
-            ${t.tabs.map((t=>z`
-             <sl-tab slot="nav" panel="${t.name}">${t.name}</sl-tab>
-             <sl-tab-panel id="${t.name}" name="${t.name}">${this.tabTemplate(t)}</sl-tab-panel>
-             `))}
-          </sl-tab-group>
+                <sl-tab-group>
+                    ${t.tabs.map((t=>z`
+                        <sl-tab slot="nav" panel="${t.name}">${t.name}</sl-tab>
+                        <sl-tab-panel id="${t.name}" name="${t.name}">${this.tabTemplate(t)}</sl-tab-panel>
+                    `))}
+                </sl-tab-group>
         `:z`
-      <wult-metric-tab tabname="${t.name}" .smrytblpath="${t.smrytblpath}" .paths="${t.ppaths}" .dir="${t.dir}" ></wult-metric-tab>
-      `}render(){return this.tabs?z`
-        <sl-tab-group>
-          ${this.tabs.map((t=>z`
-              <sl-tab slot="nav" panel="${t.name}">${t.name}</sl-tab>
-              <sl-tab-panel name="${t.name}">${this.tabTemplate(t)}</sl-tab-panel>
-            `))}
-        </sl-tab-group>
+            <wult-metric-tab tabname="${t.name}" .smrytblpath="${t.smrytblpath}" .paths="${t.ppaths}" .dir="${t.dir}" ></wult-metric-tab>
+        `}render(){return this.tabs?z`
+            <sl-tab-group>
+                ${this.tabs.map((t=>z`
+                    <sl-tab slot="nav" panel="${t.name}">${t.name}</sl-tab>
+                    <sl-tab-panel name="${t.name}">${this.tabTemplate(t)}</sl-tab-panel>
+                `))}
+            </sl-tab-group>
       `:z``}}customElements.define("tab-group",Vs);class qs extends et{static properties={src:{type:String},reportInfo:{type:Object,attribute:!1},fetchFailed:{type:Boolean,attribute:!1}};async connectedCallback(){super.connectedCallback();try{const t=await fetch(this.src);this.reportInfo=await t.json(),this.toolname=this.reportInfo.toolname,this.titleDescr=this.reportInfo.title_descr,this.tabFile=this.reportInfo.tab_file,this.introtbl=this.reportInfo.intro_tbl}catch(t){t instanceof TypeError&&(this.fetchFailed=!0)}}corsWarning(){return z`
         <sl-alert variant="danger" open>
           Warning: it looks like you might be trying to view this report
@@ -742,17 +746,17 @@
             here.</a>
           </sl-alert>
       `}render(){return this.fetchFailed?this.corsWarning():z`
-        <h1>${this.toolname} report</h1>
-        <br>
+            <h1>${this.toolname} report</h1>
+            <br>
 
-        ${this.titleDescr?z`
-        <p class="title_descr">${this.titleDescr}</p>
-        <br>
-        `:z``}
+            ${this.titleDescr?z`
+                <p class="title_descr">${this.titleDescr}</p>
+                <br>
+                `:z``}
 
 
-        <intro-tbl .introtbl='${this.introtbl}'></intro-tbl>
-        <br>
+            <intro-tbl .introtbl='${this.introtbl}'></intro-tbl>
+            <br>
 
-        <tab-group .tabFile="${this.tabFile}"></tab-group>
+            <tab-group .tabFile="${this.tabFile}"></tab-group>
         `}}customElements.define("report-page",qs),es("shoelace")})();
