@@ -72,6 +72,49 @@ export class ReportTable extends LitElement {
         const nkeys = Object.keys(table).length
         return Math.min(100, 20 * nkeys)
     }
+
+    /**
+     * Generator of lines within the file at URL 'fileURL'.
+     */
+    async * makeTextFileLineIterator (fileURL) {
+        const utf8Decoder = new TextDecoder('utf-8')
+        const response = await fetch(fileURL)
+        const reader = response.body.getReader()
+        let { value: chunk, done: readerDone } = await reader.read()
+        chunk = chunk ? utf8Decoder.decode(chunk, { stream: true }) : ''
+
+        const re = /\r\n|\n|\r/gm
+        let startIndex = 0
+
+        for (;;) {
+            const result = re.exec(chunk)
+            if (!result) {
+                if (readerDone) {
+                    // Stop the generator if the whole file has been parsed.
+                    break
+                }
+
+                // No new-line found but reader has not finished parsing file so call 'read()' and wait for
+                // the reader to return more of the file. Then process that combined with any remaining
+                // unprocessed file content.
+                const remainder = chunk.substr(startIndex);
+                ({ value: chunk, done: readerDone } = await reader.read())
+                chunk = remainder + (chunk ? utf8Decoder.decode(chunk, { stream: true }) : '')
+                startIndex = re.lastIndex = 0
+                continue
+            }
+
+            // New-line found, so return substring from after the previous new-line to this new-line.
+            yield chunk.substring(startIndex, result.index)
+            startIndex = re.lastIndex
+        }
+
+        if (startIndex < chunk.length) {
+            // End of file reached and no more new-line characters found so yield any remaining unprocessed
+            // content.
+            yield chunk.substr(startIndex)
+        }
+    }
 }
 
 customElements.define('report-table', ReportTable)
