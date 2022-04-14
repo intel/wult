@@ -78,10 +78,8 @@ export class ReportPage extends LitElement {
                 : html``
             }
 
-
-            <intro-tbl .introtbl='${this.introtbl}'></intro-tbl>
+            <intro-tbl .src=${this.introtbl}></intro-tbl>
             <br>
-
             <tab-group .tabFile="${this.tabFile}"></tab-group>
         `
     }

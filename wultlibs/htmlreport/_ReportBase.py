@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2021 Intel Corporation
+# Copyright (C) 2019-2022 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Authors: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -19,6 +19,7 @@ from pathlib import Path
 from pepclibs.helperlibs import Trivial, FSHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Deploy
+from wultlibs.htmlreport import _IntroTable
 from wultlibs.htmlreport.tabs import _MetricTabBuilder, _Tabs
 from wultlibs.htmlreport.tabs.stats import _ACPowerTabBuilder, _IPMITabBuilder
 from wultlibs.htmlreport.tabs.stats.turbostat import _TurbostatTabBuilder
@@ -44,81 +45,91 @@ class ReportBase:
             raise Error(f"could not generate report: failed to JSON dump '{descr}' to '{path}':"
                         f"{err}") from None
 
+    def _validate_intro_table_path(self, path):
+        """
+        Validates a path by checking if the path is contained within the report 'outdir'. If it is
+        valid, the path is made relative to the outdir. If the path is not valid, returns 'None'.
+        """
+
+        if self.outdir not in path.parents:
+            # If the path points to somewhere outside of the report directory, don't
+            # include it in the intro table.
+            return None
+
+        # If the path points to inside the report directory then make it relative to
+        # the output directory so that the output directory is relocatable. That is,
+        # the whole directory can be moved or copied without breaking the link.
+        return path.relative_to(self.outdir)
+
+    def _add_intro_tbl_links(self, label, paths):
+        """
+        Add links in 'paths' to the 'intro_tbl' dictionary. Arguments are as follows:
+            * paths - dictionary in the format {Report ID: Path to Link to}.
+            * label - the label that will be shown in the intro table for these links.
+        """
+
+        if not paths:
+            return
+
+        # Only show hovertext suggesting the use of '--relocatable' if the report is not already
+        # relocatable.
+        if self.relocatable:
+            hovertext = ""
+        else:
+            hovertext = "Regenerate the report with 'wult report --relocatable' to " + \
+                                    "copy statistics and results to the report directory."
+
+        row = self._intro_tbl.create_row(label)
+
+        for res in self.rsts:
+            reportid = res.reportid
+            path = paths.get(reportid, None)
+
+            if path:
+                path = self._validate_intro_table_path(path)
+
+            if not path:
+                row.add_cell(reportid, path, hovertext=hovertext)
+            else:
+                row.add_cell(reportid, label, link=path)
+
     def _prepare_intro_table(self, stats_paths, logs_paths, descr_paths):
         """
         Create the intro table, which is the very first table in the report and it shortly
         summarizes the entire report. The 'stats_paths' should be a dictionary indexed by report ID
         and containing the stats directory path. Similarly, the 'logs_paths' and 'descr_paths'
-        contains paths to the logs and the test result description files.
+        contains paths to the logs and the test result description files. Returns the path of the
+        intro table file generated.
         """
-
-        intro_tbl = {}
-        intro_tbl["Title"] = {}
-        # Keys of values to turn into links (e.g. paths).
-        link_keys = []
-        for res in self.rsts:
-            intro_tbl[res.reportid] = {}
-
         # Add tool information.
-        key = "tool_info"
-        intro_tbl["Title"][key] = "Data collection tool"
+        tinfo_row = self._intro_tbl.create_row("Data collection tool")
         for res in self.rsts:
-            intro_tbl[res.reportid][key] = f"{res.info['toolname'].capitalize()} version " \
-                                         f"{res.info['toolver']}"
+            tool_info = f"{res.info['toolname'].capitalize()} version {res.info['toolver']}"
+            tinfo_row.add_cell(res.reportid, tool_info)
 
         # Add datapoint counts.
-        key = "datapoints_cnt"
-        intro_tbl["Title"][key] = "Datapoints Count"
+        dcount_row = self._intro_tbl.create_row("Datapoints Count")
         for res in self.rsts:
-            intro_tbl[res.reportid][key] = len(res.df.index)
+            dcount_row.add_cell(res.reportid, len(res.df.index))
 
         # Add measurement resolution.
-        for res in self.rsts:
-            key = "device_resolution"
-            resolution = res.info.get("resolution")
-            if resolution:
-                intro_tbl["Title"][key] = "Device Resolution"
-                intro_tbl[res.reportid][key] = f"{resolution}ns"
-
-        def add_intro_tbl_links(key, title, paths):
-            """
-            Add links in 'paths' to the 'intro_tbl' dictionary. Arguments are as follows:
-             * paths - dictionary in the format {Report ID: Path to Link to}.
-             * key - the key which will be used to store the links in the 'intro_tbl' dictionary.
-             * title - the label that will be shown in the intro table for these links.
-            """
-
-            if not paths:
-                return
-
-            intro_tbl["Title"][key] = title
-            link_keys.append(key)
-
+        if all("resolution" in res.info for res in self.rsts):
+            dres_row = self._intro_tbl.create_row("Device Resolution")
             for res in self.rsts:
-                path = paths.get(res.reportid, None)
-                if path:
-                    if self.outdir not in path.parents:
-                        # If the path points to somewhere outside of the report directory, don't
-                        # include it in the intro table.
-                        path = None
-                    else:
-                        # If the path points to inside the report directory then make it relative to
-                        # the output directory so that the output directory is relocatable. That is,
-                        # the whole directory can be moved or copied without breaking the link.
-                        path = path.relative_to(self.outdir)
+                dres_row.add_cell(res.reportid, f"{res.info['resolution']}ns")
 
-                intro_tbl[res.reportid][key] = path
 
         # Add links to the stats directories.
-        add_intro_tbl_links("stats", "Statistics", stats_paths)
+        self._add_intro_tbl_links("Statistics", stats_paths)
         # Add links to the logs directories.
-        add_intro_tbl_links("logs", "Logs", logs_paths)
+        self._add_intro_tbl_links("Logs", logs_paths)
         # Add links to the descriptions.
-        add_intro_tbl_links("descr", "Test Description", descr_paths)
+        self._add_intro_tbl_links("Test Description", descr_paths)
 
-        intro_tbl["link_keys"] = link_keys
+        intro_tbl_path = self.outdir / "info_table.txt"
+        self._intro_tbl.generate(intro_tbl_path)
 
-        return intro_tbl
+        return intro_tbl_path.relative_to(self.outdir)
 
     def _copy_raw_data(self):
         """Copy raw test results to the output directory."""
@@ -570,6 +581,9 @@ class ReportBase:
         self._refres = rsts[0]
         # The raw reference result information.
         self._refinfo = self._refres.info
+
+        # The intro table which appears at the top of all reports.
+        self._intro_tbl = _IntroTable.IntroTable()
 
         # Names of columns in the datapoints CSV file to provide the summary function values for
         # (e.g., median, 99th percentile). The summaries will show up in the summary tables (one

@@ -11,6 +11,13 @@
 import { until } from 'lit/directives/until.js'
 import { LitElement, css, html } from 'lit'
 
+export class InvalidTableFileException {
+    constructor (msg) {
+        this.message = msg
+        this.name = 'InvalidTableFileException'
+    }
+}
+
 /**
  * Contains CSS and helper functions for tables.
  * @class Table
