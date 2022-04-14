@@ -17,11 +17,6 @@ import { ReportTable } from './report-table.js'
  * @extends {ReportTable}
  */
 class SummaryTable extends ReportTable {
-    static properties = {
-        src: { type: String },
-        template: { attribute: false }
-    };
-
     /**
      * Helper function for 'parseSrc()'. Converts the semi-colon separated values of a metric line
      * in the summary table text format to its HTML template.
@@ -94,7 +89,7 @@ class SummaryTable extends ReportTable {
                 }
             }
         }
-        return template
+        return html`<table width=${this.getWidth(this.cols)}>${template}</table>`
     }
 
     constructor () {
@@ -108,16 +103,6 @@ class SummaryTable extends ReportTable {
             .then((template) => {
                 this.template = template
             })
-    }
-
-    render () {
-        return this.template
-            ? html`
-                <table width="${this.getWidth(this.cols)}%">
-                    ${this.template}
-                </table>
-            `
-            : html``
     }
 }
 

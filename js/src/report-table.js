@@ -8,7 +8,8 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import { LitElement, css } from 'lit'
+import { until } from 'lit/directives/until.js'
+import { LitElement, css, html } from 'lit'
 
 /**
  * Contains CSS and helper functions for tables.
@@ -16,6 +17,11 @@ import { LitElement, css } from 'lit'
  * @extends {LitElement}
  */
 export class ReportTable extends LitElement {
+    static properties = {
+        src: { type: String },
+        template: { attribute: false }
+    };
+
     static styles = css`
         table {
             table-layout: fixed;
@@ -114,6 +120,15 @@ export class ReportTable extends LitElement {
             // content.
             yield chunk.substr(startIndex)
         }
+    }
+
+    render () {
+        if (!this.src) {
+            return html``
+        }
+
+        const template = this.parseSrc()
+        return html`${until(template, html``)}`
     }
 }
 
