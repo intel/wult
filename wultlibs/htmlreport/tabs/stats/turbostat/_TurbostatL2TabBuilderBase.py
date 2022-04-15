@@ -175,15 +175,19 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         # If no sub tabs were generated then return 'None'.
         return None
 
-    def _populate_tab_hierarchy(self, req_cstates):
+    def _populate_tab_hierarchy(self, hw_cstates, req_cstates):
         """Populate the tab hierarchy with the C-states provided as arguments."""
 
         self._tab_hierarchy["C-states"] = {
+            "Hardware": {"dtabs":[]},
             "Requested": {"dtabs": []}
         }
 
         for cs in req_cstates:
             self._tab_hierarchy["C-states"]["Requested"]["dtabs"].append(f"Req{cs}%")
+
+        for cs in hw_cstates:
+            self._tab_hierarchy["C-states"]["Hardware"]["dtabs"].append(f"C{cs}%")
 
     def get_tab(self):
         """
@@ -191,17 +195,19 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         the turbostat raw statistics file.
         """
 
+        common_hw_cstates = set.intersection(*[set(lst) for lst in self._hw_cstates])
         common_req_cstates = set.intersection(*[set(lst) for lst in self._req_cstates])
 
+        defs = _DefsBase.CSDefsBase("turbostat")
+        defs.populate_cstates(common_hw_cstates.union(common_req_cstates))
+
         # Maintain the order of C-states as they appeared in the raw turbostat statistic files.
-        cstates_for_populating = [cs for cs in self._req_cstates[0] if cs in common_req_cstates]
+        req_cstates = [cs for cs in self._req_cstates[0] if cs in common_req_cstates]
+        hw_cstates = [cs for cs in self._hw_cstates[0] if cs in common_hw_cstates]
 
         # Populate the tab hierarchy with C-state related tabs for C-states which are common to all
         # sets of results.
-        self._populate_tab_hierarchy(cstates_for_populating)
-
-        defs = _DefsBase.CSDefsBase("turbostat")
-        defs.populate_cstates(common_req_cstates)
+        self._populate_tab_hierarchy(hw_cstates, req_cstates)
 
         # Find metrics which are common to all raw turbostat statistic files.
         metric_sets = [set(sdf.columns) for sdf in self._reports.values()]
