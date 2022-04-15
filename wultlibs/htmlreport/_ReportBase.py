@@ -93,13 +93,12 @@ class ReportBase:
             else:
                 row.add_cell(reportid, label, link=path)
 
-    def _prepare_intro_table(self, stats_paths, logs_paths, descr_paths):
+    def _prepare_intro_table(self, stats_paths, logs_paths):
         """
         Create the intro table, which is the very first table in the report and it shortly
         summarizes the entire report. The 'stats_paths' should be a dictionary indexed by report ID
-        and containing the stats directory path. Similarly, the 'logs_paths' and 'descr_paths'
-        contains paths to the logs and the test result description files. Returns the path of the
-        intro table file generated.
+        and containing the stats directory path. Similarly, the 'logs_paths' contains paths to the
+        logs. Returns the path of the intro table file generated.
         """
         # Add tool information.
         tinfo_row = self._intro_tbl.create_row("Data collection tool")
@@ -127,8 +126,6 @@ class ReportBase:
         self._add_intro_tbl_links("Statistics", stats_paths)
         # Add links to the logs directories.
         self._add_intro_tbl_links("Logs", logs_paths)
-        # Add links to the descriptions.
-        self._add_intro_tbl_links("Test Description", descr_paths)
 
         intro_tbl_path = self.outdir / "info_table.txt"
         self._intro_tbl.generate(intro_tbl_path)
@@ -142,8 +139,6 @@ class ReportBase:
         stats_paths = {}
         # Paths to the logs directory.
         logs_paths = {}
-        # Paths to test reports' description files.
-        descr_paths = {}
 
         for res in self.rsts:
             resdir = res.dirpath
@@ -169,10 +164,7 @@ class ReportBase:
             else:
                 logs_paths[res.reportid] = None
 
-            if res.descr_path.is_file():
-                descr_paths[res.reportid] = resdir / res.descr_path.name
-
-        return stats_paths, logs_paths, descr_paths
+        return stats_paths, logs_paths
 
     def _copy_asset(self, src, descr, dst):
         """
@@ -275,14 +267,14 @@ class ReportBase:
             raise Error(f"failed to create directory '{self.outdir}': {err}") from None
 
         # Copy raw data and assets.
-        stats_paths, logs_paths, descr_paths = self._copy_raw_data()
+        stats_paths, logs_paths = self._copy_raw_data()
         for src, descr in self._assets:
             self._copy_asset(Path(src), descr, self.outdir / src)
 
         # 'report_info' stores data used by the Javascript to generate the main report page
         # including the intro table, the file path of the tabs JSON dump and the toolname.
         report_info = {}
-        report_info["intro_tbl"] = self._prepare_intro_table(stats_paths, logs_paths, descr_paths)
+        report_info["intro_tbl"] = self._prepare_intro_table(stats_paths, logs_paths)
         report_info["toolname"] = self._refinfo["toolname"].title()
 
         metric_tabs = self._generate_metric_tabs()
