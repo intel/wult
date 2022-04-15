@@ -15,7 +15,6 @@ A raw test result is a directory containing the following files.
  * info.yml - a YAML file containing miscellaneous test information, such as the report ID.
  * logs - optional directory containing wult run logs.
  * stats - optional directory containing various statistics, such as 'lscpu'.
- * description.txt - optional file containing free-form descritpion of this test result.
 """
 
 from pathlib import Path
@@ -105,9 +104,8 @@ class RawResultBase:
         self.info_path = self.dirpath.joinpath("info.yml")
         self.logs_path = self.dirpath.joinpath("logs")
         self.stats_path = self.dirpath.joinpath("stats")
-        self.descr_path = self.dirpath.joinpath("description.txt")
 
-        for name in ("dp_path", "info_path", "descr_path"):
+        for name in ("dp_path", "info_path"):
             path = getattr(self, name)
             if path.exists() and not path.is_file():
                 raise Error(f"path '{path}' exists, but it is not a regular file")

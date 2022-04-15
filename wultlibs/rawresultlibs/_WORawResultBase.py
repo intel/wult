@@ -34,7 +34,7 @@ class WORawResultBase(_RawResultBase.RawResultBase):
 
         if self.dirpath.exists():
             # Only accept empty output directory.
-            paths = (self.dp_path, self.info_path, self.logs_path, self.stats_path, self.descr_path)
+            paths = (self.dp_path, self.info_path, self.logs_path, self.stats_path)
             for path in paths:
                 if path.exists():
                     raise ErrorExists(f"cannot use path '{self.dirpath}' as the output directory, "
