@@ -77,7 +77,7 @@ class ReportBase:
             hovertext = ""
         else:
             hovertext = "Regenerate the report with 'wult report --relocatable' to " + \
-                                    "copy statistics and results to the report directory."
+                        "copy statistics and results to the report directory."
 
         row = self._intro_tbl.create_row(label)
 
@@ -118,6 +118,10 @@ class ReportBase:
             for res in self.rsts:
                 dres_row.add_cell(res.reportid, f"{res.info['resolution']}ns")
 
+        # Add measured CPU.
+        mcpu_row = self._intro_tbl.create_row("Measured CPU")
+        for res in self.rsts:
+            mcpu_row.add_cell(res.reportid, str(res.info.get("cpunum", _IntroTable.NA_TEXT)))
 
         # Add links to the stats directories.
         self._add_intro_tbl_links("Statistics", stats_paths)

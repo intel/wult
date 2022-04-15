@@ -15,7 +15,7 @@ from pepclibs.helperlibs import Trivial
 
 
 # Text to display if a value is not available for a given set of results.
-_NA_TEXT = "Not available"
+NA_TEXT = "Not available"
 
 def format_none(val):
     """
@@ -53,7 +53,7 @@ class _TableRow:
         will make the text clickable. Clicking the text will take the user to 'link'.
         """
 
-        value = value if value else _NA_TEXT
+        value = value if value else NA_TEXT
         self.res_cells[reportid] = _TableCellDC(value, format_none(hovertext), format_none(link))
 
     def __init__(self, value, hovertext=None, link=None):
@@ -112,7 +112,7 @@ class IntroTable:
 
                     # If this row has no cell for 'reportid', show an empty cell with '_NA_TEXT'.
                     if cell is None:
-                        cell = _TableCellDC(_NA_TEXT)
+                        cell = _TableCellDC(NA_TEXT)
 
                     line += f";{cell.value}|{cell.hovertext}|{cell.link}"
 
