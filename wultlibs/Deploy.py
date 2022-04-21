@@ -368,8 +368,15 @@ def _deploy_drivers(args, pman):
         raise Error(f"version of the kernel{pman.hostmsg} is {kver}, and it is not new enough.\n"
                     f"Please, use kernel version {args.minkver} or newer.")
 
-    _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'", pman.hostname, drvsrc, args.stmpdir)
-    pman.rsync(f"{drvsrc}/", args.stmpdir / "drivers", remotesrc=False, remotedst=True)
+    if pman.is_remote:
+        _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'",
+                   pman.hostname, drvsrc, args.stmpdir)
+        remotedst = True
+    else:
+        _LOG.debug("copying the drivers:\n   '%s' -> '%s'", drvsrc, args.stmpdir)
+        remotedst = False
+
+    pman.rsync(f"{drvsrc}/", args.stmpdir / "drivers", remotesrc=False, remotedst=remotedst)
     drvsrc = args.stmpdir / "drivers"
 
     kmodpath = Path(f"/lib/modules/{kver}")
