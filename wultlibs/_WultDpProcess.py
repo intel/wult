@@ -585,7 +585,7 @@ class DatapointProcessor:
 
     def close(self):
         """Close the datapoint processor."""
-        ClassHelpers.close(self, close_attrs=("_pman",))
+        ClassHelpers.close(self, unref_attrs=("_pman",))
 
     def __enter__(self):
         """Enter the run-time context."""
