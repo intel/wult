@@ -242,7 +242,7 @@ class NdlRunner:
         """Verify and adjust the constructor input arguments."""
 
         # Validate the 'ndlrunner' helper path.
-        if not FSHelpers.isexe(self._ndlrunner_bin, pman=self._pman):
+        if not self._pman.is_exe(self._ndlrunner_bin):
             raise Error(f"bad 'ndlrunner' helper path '{self._ndlrunner_bin}' - does not exist"
                         f"{self._pman.hostmsg} or not an executable file")
 

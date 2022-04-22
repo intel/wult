@@ -16,7 +16,7 @@ import time
 import zipfile
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import ProcessManager, LocalProcessManager, Trivial, FSHelpers, Logging
+from pepclibs.helperlibs import ProcessManager, LocalProcessManager, Trivial, Logging
 from pepclibs.helperlibs import ClassHelpers, ArgParse
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import ToolsCommon
@@ -118,7 +118,7 @@ def _get_module_path(pman, name):
         return None
 
     modpath = Path(stdout.strip())
-    if FSHelpers.isfile(modpath, pman):
+    if pman.is_file(modpath):
         return modpath
     return None
 
@@ -129,7 +129,7 @@ def get_helpers_deploy_path(pman, toolname):
 
     helpers_path = os.environ.get(f"{toolname.upper()}_HELPERSPATH")
     if not helpers_path:
-        helpers_path = FSHelpers.get_homedir(pman=pman) / _HELPERS_LOCAL_DIR / "bin"
+        helpers_path = pman.get_homedir(pman) / _HELPERS_LOCAL_DIR / "bin"
     return Path(helpers_path)
 
 def _get_deployables(srcpath, pman=None):
@@ -299,7 +299,7 @@ def is_deploy_needed(pman, toolname, helpers=None, pyhelpers=None):
                     else:
                         # When wult is installed with 'pip', the python helpers go to the "bindir",
                         # and they are not installed to the data directory.
-                        srcpath = FSHelpers.which(deployable).parent
+                        srcpath = lpman.which(deployable).parent
 
                     srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
                     dstpaths.append(helpers_deploy_path / deployable)
@@ -318,7 +318,7 @@ def is_deploy_needed(pman, toolname, helpers=None, pyhelpers=None):
         src_mtime = get_newest_mtime(src)
         for dst in dinfo["dst"]:
             try:
-                dst_mtime = FSHelpers.get_mtime(dst, pman)
+                dst_mtime = pman.get_mtime(dst)
             except ErrorNotFound:
                 deployable_not_found(dst)
 
@@ -353,9 +353,9 @@ def _deploy_drivers(args, pman):
         if not args.ksrc:
             args.ksrc = Path(f"/lib/modules/{kver}/build")
     else:
-        args.ksrc = FSHelpers.abspath(args.ksrc, pman=pman)
+        args.ksrc = pman.abspath(args.ksrc)
 
-    if not FSHelpers.isdir(args.ksrc, pman=pman):
+    if not pman.is_dir(args.ksrc):
         raise Error(f"kernel sources directory '{args.ksrc}' does not exist{pman.hostmsg}")
 
     if not kver:
@@ -380,7 +380,7 @@ def _deploy_drivers(args, pman):
     drvsrc = args.stmpdir / "drivers"
 
     kmodpath = Path(f"/lib/modules/{kver}")
-    if not FSHelpers.isdir(kmodpath, pman=pman):
+    if not pman.is_dir(kmodpath):
         raise Error(f"kernel modules directory '{kmodpath}' does not exist{pman.hostmsg}")
 
     # Build the drivers on the SUT.
@@ -401,7 +401,7 @@ def _deploy_drivers(args, pman):
 
     # Deploy the drivers.
     dstdir = kmodpath / _DRV_SRC_SUBPATH
-    FSHelpers.mkdir(dstdir, parents=True, exist_ok=True, pman=pman)
+    pman.mkdir(dstdir, parents=True, exist_ok=True)
 
     for name in _get_deployables(drvsrc, pman):
         installed_module = _get_module_path(pman, name)
@@ -435,7 +435,9 @@ def _create_standalone_python_script(script, pyhelperdir):
     name.
     """
 
-    script_path = FSHelpers.which(script)
+    with LocalProcessManager.LocalProcessManager() as lpman:
+        script_path = lpman.which(script)
+
     deps = _get_pyhelper_dependencies(script_path)
 
     # Create an empty '__init__.py' file. We will be adding it to the sub-directories of the
@@ -588,7 +590,7 @@ def _deploy_helpers(args, pman):
             _log_cmd_output(args, stdout, stderr)
 
     # Make sure the the destination deployment directory exists.
-    FSHelpers.mkdir(deploy_path, parents=True, exist_ok=True, pman=pman)
+    pman.mkdir(deploy_path, parents=True, exist_ok=True)
 
     # Deploy all helpers.
     _LOG.info("Deploying helpers to '%s'%s", deploy_path, pman.hostmsg)
@@ -619,9 +621,9 @@ def _remove_deploy_tmpdir(args, pman, success=True):
             _LOG.debug(" * On the SUT: %s", stmpdir)
     else:
         if ctmpdir:
-            FSHelpers.rm_minus_rf(args.ctmpdir, pman=pman)
+            pman.rmtree(args.ctmpdir)
         if stmpdir:
-            FSHelpers.rm_minus_rf(args.stmpdir, pman=pman)
+            pman.rmtree(args.stmpdir)
 
 def deploy_command(args):
     """Implements the 'deploy' command for the 'wult' and 'ndl' tools."""
@@ -642,11 +644,12 @@ def deploy_command(args):
     if args.pyhelpers:
         # Local temporary directory is only needed for creating stand-alone version of python
         # helpers.
-        args.ctmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-")
+        with LocalProcessManager.LocalProcessManager() as lpman:
+            args.ctmpdir = lpman.mkdtemp(prefix=f"{args.toolname}-")
 
     with ToolsCommon.get_pman(args) as pman:
         if pman.is_remote or not args.ctmpdir:
-            args.stmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-", pman=pman)
+            args.stmpdir = pman.mkdtemp(prefix=f"{args.toolname}-")
         else:
             args.stmpdir = args.ctmpdir
 

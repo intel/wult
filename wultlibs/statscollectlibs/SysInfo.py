@@ -11,7 +11,6 @@ This module implements collecting the "system information" type of statistics.
 """
 
 import logging
-from pepclibs.helperlibs import FSHelpers
 from pepclibs.helperlibs.Exceptions import Error
 
 _LOG = logging.getLogger()
@@ -112,7 +111,7 @@ def collect_before(outdir, pman):
     the data in the 'outdir' directory on the SUT.
     """
 
-    FSHelpers.mkdir(outdir, parents=True, exist_ok=True, pman=pman)
+    pman.mkdir(outdir, parents=True, exist_ok=True)
 
     cmdinfos = {}
 

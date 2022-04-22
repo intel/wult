@@ -17,7 +17,7 @@ compatible wult devices.
 import contextlib
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import FSHelpers, Dmesg, ClassHelpers
+from pepclibs.helperlibs import Dmesg, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from wultlibs import NetIface, LsPCI
 
@@ -129,10 +129,10 @@ class _PCIDevice(_WultDeviceBase):
         """
 
         drvpath = Path(f"{self._devpath}/driver")
-        if not FSHelpers.exists(drvpath, pman=self._pman):
+        if not self._pman.exists(drvpath):
             return (None, None)
 
-        drvpath = FSHelpers.abspath(drvpath, pman=self._pman)
+        drvpath = self._pman.abspath(drvpath)
         drvname = Path(drvpath).name
         return (drvname, drvpath)
 
@@ -154,7 +154,7 @@ class _PCIDevice(_WultDeviceBase):
                   f"{self._pman.hostmsg}"
 
         drvpath = Path(f"/sys/bus/pci/drivers/{drvname}")
-        if not FSHelpers.exists(drvpath, pman=self._pman):
+        if not self._pman.exists(drvpath):
             raise Error(f"{failmsg}':\npath '{drvpath}' does not exist{self._pman.hostmsg}")
 
         cur_drvname = self.get_driver_name()
@@ -242,11 +242,11 @@ class _PCIDevice(_WultDeviceBase):
         self._devpath = None
 
         path = Path(f"/sys/bus/pci/devices/{self._devid}")
-        if not FSHelpers.exists(path, pman=pman):
+        if not pman.exists(path):
             raise ErrorNotFound(f"cannot find device '{self._devid}'{self._pman.hostmsg}:\n"
                                 f"path {path} does not exist")
 
-        self._devpath = FSHelpers.abspath(path, pman=self._pman)
+        self._devpath = self._pman.abspath(path)
         with LsPCI.LsPCI(pman) as lspci:
             self._pci_info = lspci.get_info(Path(self._devpath).name)
 

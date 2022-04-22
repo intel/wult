@@ -15,7 +15,7 @@ import socket
 import logging
 import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import LocalProcessManager, FSHelpers, Trivial, ClassHelpers
+from pepclibs.helperlibs import LocalProcessManager, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
 from wultlibs.helperlibs import KernelVersion, ProcHelpers, RemoteHelpers
 from wultlibs.statscollectlibs import SysInfo
@@ -685,7 +685,7 @@ class _Collector:
 
         # Discover path to 'stats-collect'.
         if not self._sc_path:
-            self._sc_path = FSHelpers.which("stats-collect", pman=self._pman)
+            self._sc_path = self._pman.which("stats-collect")
 
         is_root = ProcHelpers.is_root(pman=self._pman)
 
@@ -694,7 +694,7 @@ class _Collector:
             # because when the PID 1 process of the namespace is killed, all other processes get
             # automatically killed. This helps to easily and reliably clean up processes upon exit.
             # But creating a PID namespace requires 'root'.
-            self._unshare_path = FSHelpers.which("unshare", default=None, pman=self._pman)
+            self._unshare_path = self._pman.which("unshare", must_find=False)
             if not self._unshare_path:
                 _LOG.warning("the 'unshare' tool is missing%s, it is recommended to have it "
                              "installed. This tool is part of the 'util-linux' project",
@@ -704,7 +704,7 @@ class _Collector:
             # We are trying to run 'stats-collect' with high priority, because we want the
             # statistics to be collected at steady intervals. The 'nice' tool helps changing the
             # priority of the process.
-            self._nice_path = FSHelpers.which("nice", default=None, pman=self._pman)
+            self._nice_path = self._pman.which("nice", must_find=False)
             if not self._nice_path:
                 _LOG.warning("the 'nice' tool is missing%s, it is recommended to have it "
                              "installed. This tool is part of the 'coreutils' project",
@@ -755,7 +755,7 @@ class _Collector:
                   f"socket {self._uspath}{self._pman.hostmsg}"
 
             try:
-                if FSHelpers.issocket(Path(self._uspath), pman=self._pman):
+                if self._pman.is_socket(Path(self._uspath)):
                     return
             except Error as err:
                 msg = f"{msg}\nBut checking the file path failed: {err}"
@@ -889,26 +889,26 @@ class _Collector:
         """
 
         if not self.outdir:
-            self.outdir = FSHelpers.mktemp(prefix="stats-collect-", pman=self._pman)
+            self.outdir = self._pman.mkdtemp(prefix="stats-collect-")
             self._outdir_created = True
             _LOG.debug("created output directory '%s'%s", self.outdir, self._pman.hostmsg)
         else:
             try:
-                FSHelpers.mkdir(self.outdir, parents=True, pman=self._pman)
+                self._pman.mkdir(self.outdir, parents=True)
             except ErrorExists:
                 pass
             else:
                 self._outdir_created = True
 
         self._logsdir = self.outdir / "logs"
-        FSHelpers.mkdir(self._logsdir, exist_ok=True, pman=self._pman)
+        self._pman.mkdir(self._logsdir, exist_ok=True)
 
         if discovery:
             # The statistics collected during discovery belong to the logs.
             self._statsdir = self._logsdir / "discovery-stats"
         else:
             self._statsdir = self.outdir / "stats"
-        FSHelpers.mkdir(self._statsdir, exist_ok=True, pman=self._pman)
+        self._pman.mkdir(self._statsdir, exist_ok=True)
 
     def configure(self, discovery=False):
         """Configure statistic collectors."""
@@ -1048,7 +1048,7 @@ class _Collector:
             # Remove the output directory if we created it.
             if getattr(self, "_outdir_created", None):
                 with contextlib.suppress(Exception):
-                    FSHelpers.rm_minus_rf(self.outdir, pman=self._pman)
+                    self._pman.rmtree(self.outdir)
                 self._outdir_created = None
 
             if getattr(self, "_close_pman", None):

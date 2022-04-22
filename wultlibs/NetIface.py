@@ -58,7 +58,7 @@ def _get_ifinfos(pman):
 
         devpath = None
         with contextlib.suppress(Error):
-            devpath = FSHelpers.abspath(path / "device", pman=pman)
+            devpath = pman.abspath(path / "device")
         if not devpath:
             continue
 
@@ -170,7 +170,7 @@ class NetIface:
         """Disable IPv6 for the network interface."""
 
         path = Path("/proc/sys/net/ipv6/conf/{self.ifname}/disable_ipv6")
-        if FSHelpers.isfile(path, pman=self._pman):
+        if self._pman.is_file(path):
             with self._pman.open(path, "w") as fobj:
                 fobj.write("1")
 
@@ -247,12 +247,12 @@ class NetIface:
 
         # The "device" symlink leads to the sysfs subdirectory corresponding to the underlying NIC.
         path = self._sysfsbase / "device"
-        if not FSHelpers.exists(path, pman=self._pman):
+        if not self._pman.exists(path):
             raise ErrorNotFound(f"cannot find network interface '{self.ifname}':\n"
                                 f"path '{path}' does not exist{self._pman.hostmsg}'")
 
         # The name of the subdirectory is the hardware address.
-        path = FSHelpers.abspath(path, pman=self._pman)
+        path = self._pman.abspath(path)
         return path.name
 
     def _raise_iface_not_found(self):
@@ -311,7 +311,7 @@ class NetIface:
             self._pman = LocalProcessManager.LocalProcessManager()
 
         sysfsbase = _SYSFSBASE.joinpath(ifid)
-        if FSHelpers.isdir(sysfsbase, pman=self._pman):
+        if self._pman.is_dir(sysfsbase):
             # 'ifid' is a network interface name.
             self.ifname = ifid
             self._sysfsbase = sysfsbase

@@ -101,7 +101,7 @@ class FTrace:
         self.ftpipe_path = mntpoint.joinpath("tracing/trace_pipe")
 
         for path in (self.ftpath, self.ftpipe_path):
-            if not FSHelpers.isfile(path, pman=self._pman):
+            if not self._pman.is_file(path):
                 raise ErrorNotSupported(f"linux kernel function trace file was not found at "
                                         f"'{path}'{self._pman.hostmsg}")
 
