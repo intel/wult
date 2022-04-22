@@ -15,7 +15,7 @@ from pepclibs.helperlibs import Trivial
 
 
 # Text to display if a value is not available for a given set of results.
-NA_TEXT = "Not available"
+_NA_TEXT = "Not available"
 
 def format_none(val):
     """
@@ -46,14 +46,16 @@ class _TableCellDC:
 class _TableRow:
     """This class represents a row within the intro table."""
 
-    def add_cell(self, reportid, value, hovertext=None, link=None):
+    def add_cell(self, reportid, value=None, hovertext=None, link=None):
         """
         Add a cell to the row. The cell will be in the 'reportid' column and show 'value' as text.
-        If provided, 'hovertext' will be shown when a report viewer hovers over the cell and 'link'
-        will make the text clickable. Clicking the text will take the user to 'link'.
+        If 'value' is 'None' or not provided, a default text will be used to show that the value is
+        not available. If 'hovertext' is provided, it will be shown when a report viewer hovers over
+        the cell. Similarly, 'link' will make the text clickable if provided. Clicking the text in
+        the cell will then take the user to 'link'.
         """
 
-        value = value if value else NA_TEXT
+        value = value if value else _NA_TEXT
         self.res_cells[reportid] = _TableCellDC(value, format_none(hovertext), format_none(link))
 
     def __init__(self, value, hovertext=None, link=None):
@@ -112,7 +114,7 @@ class IntroTable:
 
                     # If this row has no cell for 'reportid', show an empty cell with '_NA_TEXT'.
                     if cell is None:
-                        cell = _TableCellDC(NA_TEXT)
+                        cell = _TableCellDC(_NA_TEXT)
 
                     line += f";{cell.value}|{cell.hovertext}|{cell.link}"
 
