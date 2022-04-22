@@ -52,10 +52,11 @@ class TurbostatTabBuilder:
         self._time_metric = "Time"
 
         self.l2tab_bldrs = []
-        self.l2tab_bldrs.append(_TotalsL2TabBuilder.TotalsL2TabBuilder(stats_paths,
-                                                                       outdir / self.name, outdir))
 
         if measured_cpus:
             self.l2tab_bldrs.append(_MCPUL2TabBuilder.MCPUL2TabBuilder(stats_paths,
                                                                        outdir / self.name,
                                                                        outdir, measured_cpus))
+
+        self.l2tab_bldrs.append(_TotalsL2TabBuilder.TotalsL2TabBuilder(stats_paths,
+                                                                       outdir / self.name, outdir))
