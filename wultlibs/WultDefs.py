@@ -88,7 +88,7 @@ def get_csres_metric(csname):
 
     return f"{csname}%"
 
-class WultDefs(_DefsBase.DefsBase):
+class WultDefs(_DefsBase.CSDefsBase):
     """This class provides API to the datapoints CSV file definitions (AKA 'defs')."""
 
     def get_csname(self, metric):

@@ -28,8 +28,42 @@ def get_fsname(metric):
 
 class DefsBase:
     """
-    This base class can be inherited from to provide an API to the datapoints CSV file definitions
-    (AKA 'defs').
+    This base class can be inherited from to provide an API to the YAML definitions files (AKA
+    'defs').
+    """
+
+    @staticmethod
+    def _mangle(info):
+        """This function mangles the initially loaded dictionary and adds useful values there."""
+
+        metric_key = "metric"
+        fsname_key = "fsname"
+
+        for key, val in info.items():
+            val[metric_key] = key
+            val[fsname_key] = get_fsname(key)
+
+        return info
+
+    def __init__(self, name):
+        """
+        The class constructor. The arguments are as follows.
+          * name - name of the tool to load the definitions for (e.g., 'wult').
+        """
+
+        self.name = name
+        self.info = None
+        self.vanilla_info = None
+
+        self.path = Deploy.find_app_data("wult", Path(f"defs/{name}.yml"),
+                                         descr=f"{name} definitions file")
+        self.info = self.vanilla_info = self._mangle(YAML.load(self.path))
+
+class CSDefsBase(DefsBase):
+    """
+    This base class can be inherited from to provide an API to the YAML definitions files (AKA
+    'defs'). This class extends 'DefsBase' to add the 'populate_cstates' method which can be used
+    to populate the defitions dictionary with the C-state information for a specific platform.
 
     This base class requires child classes to implement the following methods:
     1. Return 'True' if a given 'metric' is a C-state residency metric.
@@ -57,21 +91,6 @@ class DefsBase:
         """Returns a new version of metric name 'metric' for the C-state 'csname'."""
 
         raise NotImplementedError()
-
-    def _mangle(self, info):
-        """This function mangles the initially loaded dictionary and adds useful values there."""
-
-        metric_key = "metric"
-        fsname_key = "fsname"
-
-        for key, val in info.items():
-            val[metric_key] = key
-            val[fsname_key] = get_fsname(key)
-
-        self._populate_cstate_keys.append(metric_key)
-        self._populate_cstate_keys.append(fsname_key)
-
-        return info
 
     def populate_cstates(self, hdr):
         """
@@ -114,18 +133,9 @@ class DefsBase:
         self.info = info
 
     def __init__(self, name):
-        """
-        The class constructor. The arguments are as follows.
-          * name - name of the tool to load the definitions for (e.g., 'wult').
-        """
-
-        self.name = name
-        self.info = None
-        self.vanilla_info = None
+        """Class constructor. Arguments are the same as in base class 'DefsBase'."""
 
         # List of info keys to populate with C-states when 'populate_cstates()' is called.
-        self._populate_cstate_keys = ["title", "descr"]
+        self._populate_cstate_keys = ["title", "descr", "metric", "fsname"]
 
-        self.path = Deploy.find_app_data("wult", Path(f"defs/{name}.yml"),
-                                         descr=f"{name} datapoints definitions file")
-        self.info = self.vanilla_info = self._mangle(YAML.load(self.path))
+        super().__init__(name)

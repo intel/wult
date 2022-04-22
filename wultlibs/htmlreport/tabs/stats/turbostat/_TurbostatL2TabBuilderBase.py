@@ -15,7 +15,7 @@ from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.htmlreport.tabs.stats import _TabBuilderBase, _DTabBuilder
 from wultlibs.htmlreport.tabs import _Tabs
 from wultlibs.parsers import TurbostatParser
-from wultlibs import WultDefs
+from wultlibs import _DefsBase
 
 class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
     """
@@ -72,7 +72,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         the turbostat raw stastics file.
         """
 
-        defs = WultDefs.WultDefs("turbostat")
+        defs = _DefsBase.CSDefsBase("turbostat")
         child_tabs = []
         for metric in self._metrics:
             mdefs = defs.info[metric]

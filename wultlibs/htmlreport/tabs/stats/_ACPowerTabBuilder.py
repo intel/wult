@@ -14,7 +14,7 @@ import pandas
 
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.htmlreport.tabs.stats import _DTabBuilder, _TabBuilderBase
-from wultlibs import WultDefs
+from wultlibs import _DefsBase
 
 
 class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
@@ -67,7 +67,7 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
         raw AC Power statistics files.
         """
 
-        defs = WultDefs.WultDefs("acpower").info
+        defs = _DefsBase.DefsBase("acpower").info
 
         dtab_bldr = _DTabBuilder.DTabBuilder(self._reports, self._outdir, self._basedir,
                                               defs["ACPower"], defs["Time"])
