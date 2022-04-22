@@ -11,7 +11,7 @@ This module provides API to the datapoints CSV file definitions (AKA 'defs').
 """
 
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import DefsBase
+from wultlibs import _DefsBase
 
 # A unique object used as the default value for the 'default' keyword argument in various
 # functions.
@@ -88,7 +88,7 @@ def get_csres_metric(csname):
 
     return f"{csname}%"
 
-class MetricDefs(DefsBase.DefsBase):
+class MetricDefs(_DefsBase.DefsBase):
     """This class provides API to the datapoints CSV file definitions (AKA 'defs')."""
 
     def get_csname(self, metric):
