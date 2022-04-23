@@ -77,18 +77,18 @@ class CSDefsBase(DefsBase):
     dictionary to provide more helpful values.
     """
 
-    def is_cs_metric(self, metric):
+    def is_csmetric(self, metric):
         """Returns 'True' if 'metric' is a C-state residency metric."""
 
         raise NotImplementedError()
 
     def get_csname(self, metric):
-        """Returns the C-state name string for the C-state represented in 'metric'."""
+        """Returns the name of the C-state represented in 'metric'."""
 
         raise NotImplementedError()
 
-    def get_new_metric(self, metric, csname):
-        """Returns a new version of metric name 'metric' for the C-state 'csname'."""
+    def get_csmetric(self, metric, csname):
+        """Returns a version of 'metric' populated with the C-state name 'csname'."""
 
         raise NotImplementedError()
 
@@ -108,12 +108,12 @@ class CSDefsBase(DefsBase):
             return
 
         # Filter hdr to only C-state metrics.
-        hdr = [hdrname for hdrname in hdr if self.is_cs_metric(hdrname)]
+        hdr = [hdrname for hdrname in hdr if self.is_csmetric(hdrname)]
 
         # Copy all keys one-by-one to preserve the order.
         info = {}
         for metric, minfo in self.vanilla_info.items():
-            if not self.is_cs_metric(metric) or "Cx" not in metric:
+            if not self.is_csmetric(metric) or "Cx" not in metric:
                 info[metric] = minfo
                 continue
 
@@ -121,7 +121,7 @@ class CSDefsBase(DefsBase):
 
             for hdrname in hdr:
                 csname = self.get_csname(hdrname)
-                new_metric = self.get_new_metric(metric, csname)
+                new_metric = self.get_csmetric(metric, csname)
 
                 info[new_metric] = minfo.copy()
 

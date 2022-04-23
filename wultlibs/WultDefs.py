@@ -92,19 +92,19 @@ class WultDefs(_DefsBase.CSDefsBase):
     """This class provides API to the datapoints CSV file definitions (AKA 'defs')."""
 
     def get_csname(self, metric):
-        """Returns the C-state name string for the C-state represented in 'metric'."""
+        """Returns the name of the C-state represented in 'metric'."""
 
         return get_csname(metric)
 
-    def get_new_metric(self, metric, csname):
-        """Returns a new version of metric name 'metric' for the C-state 'csname'."""
+    def get_csmetric(self, metric, csname):
+        """Returns a version of 'metric' populated with the C-state name 'csname'."""
 
         if is_cscyc_metric(metric):
             return get_cscyc_metric(csname)
 
         return get_csres_metric(csname)
 
-    def is_cs_metric(self, metric):
+    def is_csmetric(self, metric):
         """Returns 'True' if 'metric' is a C-state residency metric."""
 
         return is_cs_metric(metric)
