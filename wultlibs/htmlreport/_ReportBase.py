@@ -254,7 +254,9 @@ class ReportBase:
             try:
                 tabs.append(tbldr.get_tab())
             except Error as err:
-                _LOG.info("Skipping '%s' statistics: %s", tab_builder.name, err)
+                _LOG.info("Skipping '%s' statistics: error occurred during tab generation.",
+                          tab_builder.name)
+                _LOG.debug(err)
                 continue
 
         return tabs
