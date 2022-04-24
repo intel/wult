@@ -241,6 +241,7 @@ class WultRunner:
         _LOG.debug("delayed event resolution %dns", resolution)
 
         # Save the test setup information in the info.yml file.
+        self._res.info["date"] = time.strftime("%d %b %Y")
         self._res.info["devid"] = self._ep.dev.info["devid"]
         self._res.info["devdescr"] = self._ep.dev.info["descr"]
         self._res.info["resolution"] = resolution

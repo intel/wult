@@ -101,10 +101,15 @@ class ReportBase:
         logs. Returns the path of the intro table file generated.
         """
         # Add tool information.
-        tinfo_row = self._intro_tbl.create_row("Data collection tool")
+        tinfo_row = self._intro_tbl.create_row("Data Collection Tool")
         for res in self.rsts:
             tool_info = f"{res.info['toolname'].capitalize()} version {res.info['toolver']}"
             tinfo_row.add_cell(res.reportid, tool_info)
+
+        # Add run date.
+        date_row = self._intro_tbl.create_row("Collection Date")
+        for res in self.rsts:
+            date_row.add_cell(res.reportid, res.info.get("date"))
 
         # Add datapoint counts.
         dcount_row = self._intro_tbl.create_row("Datapoints Count")
