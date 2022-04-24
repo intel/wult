@@ -126,6 +126,6 @@ class DefsBase:
         # List of info keys to populate with C-states when 'populate_cstates()' is called.
         self._populate_cstate_keys = ["title", "descr"]
 
-        self.path = Deploy.find_app_data("wult", Path(f"defs/{name}.yml"), appname=name,
+        self.path = Deploy.find_app_data("wult", Path(f"defs/{name}.yml"),
                                          descr=f"{name} datapoints definitions file")
         self.info = self.vanilla_info = self._mangle(YAML.load(self.path))
