@@ -73,22 +73,27 @@ def get_csres_metric(csname):
     return f"{csname}%"
 
 class WultDefs(_DefsBase.CSDefsBase):
-    """This class provides API to the datapoints CSV file definitions (AKA 'defs')."""
+    """
+    This class provides an API to the datapoints CSV file definitions (AKA 'defs'). This class
+    extends from '_DefsBase.CSDefsBase' by overloading 'populate_cstates()'.
+    """
 
-    def get_csname(self, metric):
-        """Returns the name of the C-state represented in 'metric'."""
+    def populate_cstates(self, hdr): # pylint: disable=arguments-renamed
+        """
+        Populate the definitions dictionary with the C-state information for a specific platform.
 
-        return get_csname(metric)
+        Rather than taking a list of C-states like 'super().populate_cstates()', this function
+        accepts a datapoints CSV file header 'hdr' which is a list of the column names in the file.
+        Then it extracts the C-states represented in these column names and populates the
+        definitions dictionary acccordingly.
+        """
 
-    def get_csmetric(self, metric, csname):
-        """Returns a version of 'metric' populated with the C-state name 'csname'."""
+        csnames = set()
+        for colname in hdr:
+            if is_cs_metric(colname):
+                # 'super().populate_cstates()' expects C-states to not include the leading "P" or
+                # "C" representing whether the C-state is a package or core C-state.
+                csname = get_csname(colname)[1:]
+                csnames.add(csname)
 
-        if is_cscyc_metric(metric):
-            return get_cscyc_metric(csname)
-
-        return get_csres_metric(csname)
-
-    def is_csmetric(self, metric):
-        """Returns 'True' if 'metric' is a C-state residency metric."""
-
-        return is_cs_metric(metric)
+        super().populate_cstates(csnames)

@@ -30,6 +30,9 @@ class DefsBase:
     """
     This base class can be inherited from to provide an API to the YAML definitions files (AKA
     'defs').
+
+    Optionally child classes can override the '_mangle()' method which mangles the initially loaded
+    dictionary to provide more helpful values.
     """
 
     @staticmethod
@@ -63,67 +66,40 @@ class CSDefsBase(DefsBase):
     This base class can be inherited from to provide an API to the YAML definitions files (AKA
     'defs'). This class extends 'DefsBase' to add the 'populate_cstates' method which can be used
     to populate the defitions dictionary with the C-state information for a specific platform.
-
-    This base class requires child classes to implement the following methods:
-    1. Returns 'True' if 'metric' is a C-state residency metric.
-       * 'is_csmetric()'
-    2. Returns the name of the C-state represented in 'metric'.
-       * 'get_csname()'
-    3. Returns a version of 'metric' populated with the C-state name 'csname'.
-       * 'get_csmetric()'
-
-    Optionally child classes can override the '_mangle()' method which mangles the initially loaded
-    dictionary to provide more helpful values.
     """
 
-    def is_csmetric(self, metric):
-        """Returns 'True' if 'metric' is a C-state residency metric."""
-
-        raise NotImplementedError()
-
-    def get_csname(self, metric):
-        """Returns the name of the C-state represented in 'metric'."""
-
-        raise NotImplementedError()
-
-    def get_csmetric(self, metric, csname):
-        """Returns a version of 'metric' populated with the C-state name 'csname'."""
-
-        raise NotImplementedError()
-
-    def populate_cstates(self, hdr):
+    def populate_cstates(self, csnames):
         """
-        The definitions YAML file does not contain information about C-states supported by various
-        platforms. It only defines general core and package C-states ('CCx' and 'PCx'). Depending on
-        the platform, there may be different amount of C-states with different names.
+        Definitions YAML files do not contain information about C-states supported by various
+        platforms, they only use a generic C-state "Cx".  Depending on the platform, there may be a
+        different amount of C-states with different names.
 
-        This method should should be invoked to populate the definitions dictionary with the C-state
-        information for a specific platform. The 'hdr' argument is a list of metrics for which the
-        definitions dictionary should be populated.
+        This method should be invoked to populate the definitions dictionary with the C-state
+        information for a specific platform. The 'csnames' argument is the list of C-state names to
+        replace the "Cx" metric with.
         """
 
-        # Filter hdr to only C-state metrics.
-        hdr = [hdrname for hdrname in hdr if self.is_csmetric(hdrname)]
+        pattern = "Cx"
 
         # Copy all keys one-by-one to preserve the order.
         info = {}
         for metric, minfo in self.info.items():
-            if not self.is_csmetric(metric) or "Cx" not in metric:
+            if pattern not in metric:
                 info[metric] = minfo
                 continue
 
-            mcsname = self.get_csname(metric)
+            for csname in csnames:
+                new_metric = metric.replace(pattern, csname)
 
-            for hdrname in hdr:
-                csname = self.get_csname(hdrname)
-                new_metric = self.get_csmetric(metric, csname)
+                if new_metric in info:
+                    continue
 
                 info[new_metric] = minfo.copy()
 
                 # Correct all info dicts which need populating to refer to real C-state names.
                 for key in self._populate_cstate_keys:
                     if key in info[new_metric]:
-                        info[new_metric][key] = info[new_metric][key].replace(mcsname, csname)
+                        info[new_metric][key] = info[new_metric][key].replace(pattern, csname)
 
         self.info = info
 
