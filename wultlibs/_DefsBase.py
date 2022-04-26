@@ -53,11 +53,10 @@ class DefsBase:
 
         self.name = name
         self.info = None
-        self.vanilla_info = None
 
         self.path = Deploy.find_app_data("wult", Path(f"defs/{name}.yml"),
                                          descr=f"{name} definitions file")
-        self.info = self.vanilla_info = self._mangle(YAML.load(self.path))
+        self.info = self._mangle(YAML.load(self.path))
 
 class CSDefsBase(DefsBase):
     """
@@ -103,16 +102,12 @@ class CSDefsBase(DefsBase):
         definitions dictionary should be populated.
         """
 
-        if self.info is not self.vanilla_info:
-            # Already populated.
-            return
-
         # Filter hdr to only C-state metrics.
         hdr = [hdrname for hdrname in hdr if self.is_csmetric(hdrname)]
 
         # Copy all keys one-by-one to preserve the order.
         info = {}
-        for metric, minfo in self.vanilla_info.items():
+        for metric, minfo in self.info.items():
             if not self.is_csmetric(metric) or "Cx" not in metric:
                 info[metric] = minfo
                 continue
