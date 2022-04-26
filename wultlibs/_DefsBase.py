@@ -66,12 +66,12 @@ class CSDefsBase(DefsBase):
     to populate the defitions dictionary with the C-state information for a specific platform.
 
     This base class requires child classes to implement the following methods:
-    1. Return 'True' if a given 'metric' is a C-state residency metric.
-       * 'is_cs_metric()'
-    2. Return the C-state name string for the C-state represented in a given metric name 'metric'.
+    1. Returns 'True' if 'metric' is a C-state residency metric.
+       * 'is_csmetric()'
+    2. Returns the name of the C-state represented in 'metric'.
        * 'get_csname()'
-    3. Return a new version of a given metric name 'metric' for a C-state 'csname'.
-       * 'get_new_metric()'
+    3. Returns a version of 'metric' populated with the C-state name 'csname'.
+       * 'get_csmetric()'
 
     Optionally child classes can override the '_mangle()' method which mangles the initially loaded
     dictionary to provide more helpful values.
