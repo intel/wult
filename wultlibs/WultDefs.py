@@ -56,22 +56,6 @@ def get_csname(metric, default=_RAISE):
 
     return csname
 
-def is_core_cs(csname):
-    """
-    If 'csname' is a core C-state name, returns 'True'. Returns 'False' otherwise (even if
-    'csname' is not a valid C-state name).
-    """
-
-    return csname.startswith("CC") and len(csname) > 2
-
-def is_package_cs(csname):
-    """
-    If 'csname' is a package C-state name, returns 'True'. Returns 'False' otherwise (even if
-    'csname' is not a valid C-state name).
-    """
-
-    return csname.startswith("PC") and len(csname) > 2
-
 def get_cscyc_metric(csname):
     """
     Given 'csname' is a C-state name, this method retruns the corresponding C-state cycles count
