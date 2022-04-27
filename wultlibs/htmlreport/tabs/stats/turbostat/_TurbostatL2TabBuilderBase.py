@@ -39,18 +39,51 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
 
         raise NotImplementedError()
 
+    def _extract_cstates(self, tstat):
+        """
+        Extract the C-states with data in 'tstat', the dictionary produced by 'TurbostatParser'.
+        """
+
+        req_cstates = []
+        hw_cstates = []
+
+        for key in tstat["totals"]:
+            # Each requestable C-state has a column in the raw turbostat statistics file in the
+            # format "Cx%".
+            if key.startswith("C") and key.endswith("%"):
+                req_cstates.append(key[:-1])
+                continue
+
+            # Each core/logical CPU hardware C-state has a column in the raw turbostat statistics
+            # file in the format "CPU%cx".
+            if key.startswith("CPU%"):
+                hw_cstates.append(key[4:].upper())
+                continue
+
+        self._hw_cstates.append(hw_cstates)
+        self._req_cstates.append(req_cstates)
+        return hw_cstates, req_cstates
+
     def _read_stats_file(self, path):
         """
         Returns a 'pandas.DataFrame' containing the data stored in the raw turbostat statistics file
         at 'path'.
         """
 
-        sdf = pandas.DataFrame()
-
         try:
-            tstat_gen = TurbostatParser.TurbostatParser(path)
+            tstat_gen = TurbostatParser.TurbostatParser(path).next()
 
-            for tstat in tstat_gen.next():
+            # Use the first turbostat snapshot to see which hardware and requestable C-states the
+            # platform under test has.
+            tstat = next(tstat_gen)
+            self._extract_cstates(tstat)
+
+            # Initialise the stats 'pandas.DataFrame' ('sdf') with data from the first 'tstat'
+            # dictionary.
+            sdf = self._turbostat_to_df(tstat, path)
+
+            # Add the rest of the data from the raw turbostat statistics file to 'sdf'.
+            for tstat in tstat_gen:
                 df = self._turbostat_to_df(tstat, path)
                 sdf = pandas.concat([sdf, df], ignore_index=True)
         except Exception as err:
@@ -149,6 +182,11 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
 
         self._time_metric = "Time"
         self.outdir = outdir
+
+        # Store C-states for which there is data in each raw turbostat statistics file. A list of
+        # lists where each file has its own sub-list of C-states.
+        self._hw_cstates = []
+        self._req_cstates = []
 
         # Dictionary in the format {'metric': 'colname'} where 'colname' in the raw turbostat
         # statistics file represents 'metric'.
