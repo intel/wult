@@ -21,7 +21,7 @@ class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
     overview.
     """
 
-    name = "MeasuredCPU"
+    name = "Measured CPU"
 
     def _get_cpus_tstat(self, tstat):
         """
