@@ -8,6 +8,10 @@
 
 """
 This module contains the base class for turbostat level 2 tab builder classes.
+
+'Level 2 turbostat tabs' refer to tabs in the second level of tabs in the turbostat tab hierarchy.
+For each level 2 turbostat tab, we parse raw turbostat statistics files differently.  Therefore this
+base class expects child classes to implement '_turbostat_to_df()'.
 """
 
 import pandas
@@ -21,22 +25,13 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
     """
     The base class for turbostat level 2 tab builder classes.
 
-    'level 2 turbostat tabs' refer to tabs in the second level of tabs in the turbostat tab
-    hierarchy. For each level 2 turbostat tab, we parse raw turbostat statistics files differently.
-    Therefore this base class expects child classes to implement '_turbostat_to_df()'.
-
-    Public methods overview:
-    1. Generate a '_Tabs.CTabDC' instance containing data tabs which represent different turbostat
-       metrics.
-       * 'get_tab()'
-
     This base class requires child classes to implement the following methods:
-    1. Convert a 'TurbostatParser' dict to 'pandas.DataFrame'.
+    1. Convert the 'tstat' dictionary produced by 'TurbostatParser' to a 'pandas.DataFrame'.
        * '_turbostat_to_df()'
     """
 
     def _turbostat_to_df(self, tstat, path):
-        """Convert 'TurbostatParser' dict to 'pandas.DataFrame'."""
+        """Convert the 'tstat' dictionary produced by 'TurbostatParser' to a 'pandas.DataFrame'."""
 
         raise NotImplementedError()
 
@@ -69,7 +64,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
     def get_tab(self):
         """
         Returns a '_Tabs.CTabDC' instance containing tabs which represent different metrics within
-        the turbostat raw stastics file.
+        the turbostat raw statistics file.
         """
 
         defs = _DefsBase.CSDefsBase("turbostat")

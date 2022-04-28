@@ -8,6 +8,8 @@
 
 """
 This module provides the capability of populating the "Measured CPU" turbostat level 2 tab.
+
+Please, refer to '_TurbostatL2TabBuilderBase' for more information about level 2 tabs.
 """
 
 import pandas
@@ -16,23 +18,20 @@ from wultlibs.htmlreport.tabs.stats.turbostat import _TurbostatL2TabBuilderBase
 class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
     """
     This class provides the capability of populating the "Measured CPU" turbostat level 2 tab.
-
-    See base class '_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase' for public methods
-    overview.
     """
 
     name = "Measured CPU"
 
     def _get_cpus_tstat(self, tstat):
         """
-        Get a dictionary in the format {'cpu': 'tstat_subdict'}' from a 'TurbostatParser' dict
-        'tstat' where 'tstat_subdict' is a sub-dictionary of 'tstat' but limited to only the
-        turbostat statistics for that CPU.
+        Get a dictionary in the format {'cpu': 'tstat_subdict'}' from the 'tstat' dictionary
+        produced by 'TurbostatParser', where 'tstat_subdict' is a sub-dictionary of 'tstat' limited
+        to turbostat statistics only for the 'cpu' CPU.
         """
 
         cpus_tstat = {}
 
-        # Only return Turbostat data for measured CPUs.
+        # Only return turbostat data for measured CPUs.
         cpus_to_keep = set(self._statdir_to_mcpu.values())
 
         # Traverse dictionary looking for measured CPUs.
@@ -51,16 +50,15 @@ class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
         return cpus_tstat
 
     def _turbostat_to_df(self, tstat, path):
-        """Convert 'TurbostatParser' dict to 'pandas.DataFrame'."""
+        """Convert the 'tstat' dictionary produced by 'TurbostatParser' to a 'pandas.DataFrame'."""
 
         _time_colname = "Time_Of_Day_Seconds"
         totals = tstat["totals"]
         cpu_tstat = self._get_cpus_tstat(tstat)
         mcpu = self._statdir_to_mcpu[path.parent]
 
-        # 'tstat_reduced' is a reduced version of the 'TurbostatParser' dict which should contain
-        # only the columns we want to include in the report. Initialise it by adding the timestamp
-        # column.
+        # 'tstat_reduced' is a reduced version of the 'tstat' which contains only the columns we
+        # want to include in the report. Initialize it by adding the timestamp column.
         tstat_reduced = {self._time_metric: [totals[_time_colname]]}
 
         for metric, colname in self._metrics.items():

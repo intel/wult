@@ -8,6 +8,8 @@
 
 """
 This module provides the capability of populating the "Totals" turbostat level 2 tab.
+
+Please, refer to '_TurbostatL2TabBuilderBase' for more information about level 2 tabs.
 """
 
 import pandas
@@ -16,22 +18,18 @@ from wultlibs.htmlreport.tabs.stats.turbostat import _TurbostatL2TabBuilderBase
 class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
     """
     This class provides the capability of populating the "Totals" turbostat level 2 tab.
-
-    See base class '_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase' for public methods
-    overview.
     """
 
     name = "Totals"
 
     def _turbostat_to_df(self, tstat, path=None):
-        """Convert 'TurbostatParser' dict to 'pandas.DataFrame'."""
+        """Convert the 'tstat' dictionary produced by 'TurbostatParser' to a 'pandas.DataFrame'."""
 
         _time_colname = "Time_Of_Day_Seconds"
         totals = tstat["totals"]
 
-        # 'tstat_reduced' is a reduced version of the 'TurbostatParser' dict which should contain
-        # only the columns we want to include in the report. Initialise it by adding the timestamp
-        # column.
+        # 'tstat_reduced' is a reduced version of the 'tstat' which contains only the columns we
+        # want to include in the report. Initialise it by adding the timestamp column.
         tstat_reduced = {self._time_metric: [totals[_time_colname]]}
 
         for metric, colname in self._metrics.items():
