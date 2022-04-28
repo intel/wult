@@ -19,9 +19,6 @@ MAX_REPORID_LEN = 64
 # The special characters allowed in the report ID.
 SPECIAL_CHARS = "-.,_~"
 
-# Just a unique object used as default value in few places.
-_RAISE = object()
-
 def get_charset_descr(additional_chars=""):
     """
     Returns a string describing the allow report ID characters. The 'additional_chars' argument is a
@@ -55,32 +52,25 @@ def format_reportid(prefix=None, separator="-", reportid=None, strftime="%Y%m%d-
 
     return validate_reportid(result, additional_chars=additional_chars)
 
-def validate_reportid(reportid, additional_chars=None, default=_RAISE):
+def validate_reportid(reportid, additional_chars=None):
     """
     We limit the characters which can be used in report IDs to those which are safe to use in URLs,
     and this function validates a report ID in 'reportid' against the allowed set of characters. The
     characters are ACSII alphanumeric characters, "-", ".", "_", and "~". The 'additional_chars'
     argument is the same as in 'get_charset_descr()'.
-
-    By default this function raises an exception if 'reportid' is invalid, but if the 'default'
-    argument is provided, the 'default' value is returned instead.
     """
 
     if len(reportid) > MAX_REPORID_LEN:
-        if default is _RAISE:
-            raise Error(f"too long run ID ({len(reportid)} characters), the maximum allowed length "
-                        f"is {MAX_REPORID_LEN} characters")
-        return default
+        raise Error(f"too long run ID ({len(reportid)} characters), the maximum allowed length is "
+                    f"{MAX_REPORID_LEN} characters")
 
     if not additional_chars:
         additional_chars = ""
 
     chars = SPECIAL_CHARS + additional_chars
     if not re.match(rf"^[A-Za-z0-9{chars}]+$", reportid):
-        if default is _RAISE:
-            charset_descr = get_charset_descr() + additional_chars
-            raise Error(f"bad run ID '{reportid}'\n"
-                        f"Please, use only the following characters: {charset_descr}")
-        return default
+        charset_descr = get_charset_descr() + additional_chars
+        raise Error(f"bad run ID '{reportid}'\n"
+                    f"Please, use only the following characters: {charset_descr}")
 
     return reportid
