@@ -34,7 +34,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
        * '_turbostat_to_df()'
     """
 
-    def _turbostat_to_df(self, tstat, path):
+    def _turbostat_to_df(self, tstat, metrics, path):
         """Convert the 'tstat' dictionary produced by 'TurbostatParser' to a 'pandas.DataFrame'."""
 
         raise NotImplementedError()
@@ -64,6 +64,23 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         self._req_cstates.append(req_cstates)
         return hw_cstates, req_cstates
 
+    def _populate_metrics(self, hw_cstates, req_cstates):
+        """
+        This is a helper function for '_read_stats_file()'. Returns a metrics dictionary with
+        metrics representing the C-states given as arguments. The returned dictionary decides which
+        metrics '_turbostat_to_df()' will extract from 'tstat' and is in the same format as
+        'self._metrics'.
+        """
+
+        populated_metrics = self._metrics.copy()
+        for cs in req_cstates:
+            populated_metrics[f"Req{cs}%"] = f"{cs}%"
+
+        for cs in hw_cstates:
+            populated_metrics[f"C{cs}%"] = f"CPU%{cs.lower()}"
+
+        return populated_metrics
+
     def _read_stats_file(self, path):
         """
         Returns a 'pandas.DataFrame' containing the data stored in the raw turbostat statistics file
@@ -76,15 +93,20 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             # Use the first turbostat snapshot to see which hardware and requestable C-states the
             # platform under test has.
             tstat = next(tstat_gen)
-            self._extract_cstates(tstat)
+            hw_cstates, req_cstates = self._extract_cstates(tstat)
+
+            # Populate a metrics dictionary based on 'self._metrics' for the C-states with data
+            # in 'tstat'. This is so that 'self._turbostat_to_df()' knows which metrics to extract
+            # from 'tstat'.
+            populated_metrics = self._populate_metrics(hw_cstates, req_cstates)
 
             # Initialise the stats 'pandas.DataFrame' ('sdf') with data from the first 'tstat'
             # dictionary.
-            sdf = self._turbostat_to_df(tstat, path)
+            sdf = self._turbostat_to_df(tstat, populated_metrics, path)
 
             # Add the rest of the data from the raw turbostat statistics file to 'sdf'.
             for tstat in tstat_gen:
-                df = self._turbostat_to_df(tstat, path)
+                df = self._turbostat_to_df(tstat, populated_metrics, path)
                 sdf = pandas.concat([sdf, df], ignore_index=True)
         except Exception as err:
             raise Error(f"error reading raw statistics file '{path}': {err}.") from None
