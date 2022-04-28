@@ -13,10 +13,6 @@ This module provides API to the datapoints CSV file definitions (AKA 'defs').
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import _DefsBase
 
-# A unique object used as the default value for the 'default' keyword argument in various
-# functions.
-_RAISE = object()
-
 def is_cscyc_metric(metric):
     """Returns 'True' if 'metric' is a C-state cycles count metric."""
 
@@ -34,11 +30,11 @@ def is_cs_metric(metric):
 
     return is_csres_metric(metric) or is_cscyc_metric(metric)
 
-def get_csname(metric, default=_RAISE):
+def get_csname(metric, must_get=True):
     """
     If 'metric' is a metric related to a C-state, then returns the C-state name string. Otherwise
-    raises an exception, unless the 'default' argument is passed, in which case it returns this
-    argument instead of raising an exception.
+    raises an exception, unless the 'must_get' argument is 'False', in which case it returns 'None'
+    instead of raising an exception.
     """
 
     csname = None
@@ -50,9 +46,9 @@ def get_csname(metric, default=_RAISE):
         csname = metric[:-1]
 
     if not csname or not (metric.startswith("CC") or metric.startswith("PC")):
-        if default is _RAISE:
+        if must_get:
             raise Error(f"cannot get C-state name for metric '{metric}'")
-        return default
+        return None
 
     return csname
 

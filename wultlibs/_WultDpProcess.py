@@ -489,7 +489,7 @@ class DatapointProcessor:
         self._has_cstates = False
 
         for field in raw_fields:
-            csname = WultDefs.get_csname(field, default=None)
+            csname = WultDefs.get_csname(field, must_get=False)
             if not csname:
                 # Not a C-state field.
                 continue
