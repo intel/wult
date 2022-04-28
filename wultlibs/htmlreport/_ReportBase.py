@@ -16,9 +16,10 @@ import itertools
 import json
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import Trivial, FSHelpers
+from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Deploy
+from wultlibs.helperlibs import FSHelpers
 from wultlibs.htmlreport import _IntroTable
 from wultlibs.htmlreport.tabs import _MetricTabBuilder, _Tabs
 from wultlibs.htmlreport.tabs.stats import _ACPowerTabBuilder, _IPMITabBuilder

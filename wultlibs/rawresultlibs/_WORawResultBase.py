@@ -13,8 +13,9 @@ This module base class for wirte-only raw test result classes.
 import os
 import shutil
 import contextlib
-from pepclibs.helperlibs import FSHelpers, YAML
+from pepclibs.helperlibs import YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
+from wultlibs.helperlibs import FSHelpers
 from wultlibs.rawresultlibs import _CSV, _RawResultBase
 from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
 

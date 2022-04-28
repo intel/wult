@@ -13,8 +13,9 @@ load, and use various delayed event devices and drivers (e.g., the I210 network 
 
 import logging
 import contextlib
-from pepclibs.helperlibs import FSHelpers, KernelModule, Trivial, ClassHelpers
+from pepclibs.helperlibs import KernelModule, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
+from wultlibs.helperlibs import FSHelpers
 from wultlibs import Devices
 
 _LOG = logging.getLogger()

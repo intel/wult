@@ -18,8 +18,9 @@ import time
 import contextlib
 from pathlib import Path
 from collections import namedtuple
-from pepclibs.helperlibs import FSHelpers, LocalProcessManager, Trivial, ClassHelpers
+from pepclibs.helperlibs import LocalProcessManager, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
+from wultlibs.helperlibs import FSHelpers
 from wultlibs import LsPCI
 
 _LOG = logging.getLogger()
