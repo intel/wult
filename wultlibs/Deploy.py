@@ -129,7 +129,7 @@ def get_helpers_deploy_path(pman, toolname):
 
     helpers_path = os.environ.get(f"{toolname.upper()}_HELPERSPATH")
     if not helpers_path:
-        helpers_path = pman.get_homedir(pman) / _HELPERS_LOCAL_DIR / "bin"
+        helpers_path = pman.get_homedir() / _HELPERS_LOCAL_DIR / "bin"
     return Path(helpers_path)
 
 def _get_deployables(srcpath, pman=None):
