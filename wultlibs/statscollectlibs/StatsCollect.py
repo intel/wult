@@ -796,7 +796,8 @@ class _Collector:
 
         ssh_opts = pman.get_ssh_opts()
         cmd = f"ssh -L {self._ssht_port}:{self._uspath} -N {ssh_opts} {pman.hostname}"
-        self._ssht = LocalProcessManager.LocalProcessManager().run_async(cmd)
+        with LocalProcessManager.LocalProcessManager() as lpman:
+            self._ssht = lpman.run_async(cmd)
 
         # Wait the tunnel to get established.
         start_time = time.time()
