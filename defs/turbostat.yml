@@ -10,6 +10,16 @@ CC0%:
     unit: "%"
     short_unit: "%"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+ReqCx%:
+    title: "ReqCx%"
+    descr: >-
+        The residency percentage that Linux requested Cx during the workload. Note that these are
+        software, reflecting what was requested.
+    type: "float"
+    unit: "%"
+    short_unit: "%"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+    drop_empty: True
 Time:
     title: "Time Elapsed"
     descr: "Time elapsed since first measurement was taken."
