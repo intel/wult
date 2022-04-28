@@ -989,6 +989,8 @@ class _Collector:
 
         self.stinfo = DEFAULT_STINFO.copy()
 
+        # Whether the 'self._pman' object should be closed.
+        self._close_pman = False
         # The commant to start 'stats-collect'.
         self._cmd = None
 
@@ -1048,6 +1050,8 @@ class _Collector:
                     FSHelpers.rm_minus_rf(self.outdir, pman=self._pman)
                 self._outdir_created = None
 
+            if getattr(self, "_close_pman", None):
+                self._pman.close()
             self._pman = None
 
     def __enter__(self):
@@ -1103,6 +1107,9 @@ class _OutOfBandCollector(_Collector):
         # Call the base class constructor.
         pman = LocalProcessManager.LocalProcessManager()
         super().__init__(pman, sutname, outdir=outdir, sc_path=sc_path)
+
+        # Make sure we close the process manager.
+        self._close_pman = True
 
         # Cleanup 'self.stinfo' by removing in-band statistics.
         for stname in list(self.stinfo):
