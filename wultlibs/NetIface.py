@@ -25,10 +25,6 @@ from wultlibs import LsPCI
 
 _LOG = logging.getLogger()
 
-# A unique object used as the default value for the 'default' keyword argument in various
-# functions.
-_RAISE = object()
-
 # Base path to the network information in the sysfs filesystem.
 _SYSFSBASE = Path("/sys/class/net")
 
@@ -196,19 +192,19 @@ class NetIface:
         stdout, _ = self._pman.run_verify(f"ip address show {self.ifname}")
         return _parse_ip_address_show(stdout)
 
-    def get_ipv4_addr(self, default=_RAISE):
+    def get_ipv4_addr(self, must_get=True):
         """
         Returns IPv4 address of the network interface. If it does not have an IP address, this
-        method raises an exception. However, the 'default' argument overrides this behavior and
-        makes this function return 'default' instead.
+        method raises an exception. However, the 'must_get' argument overrides this behavior and
+        makes this function return 'None' instead.
         """
 
         info = self.get_ip_info()
         if "ipv4" not in info:
-            if default is _RAISE:
+            if must_get:
                 raise Error(f"interface '{self.ifname}'{self._pman.hostmsg} does not have an IPv4 "
                             f"address")
-            return default
+            return None
 
         return info["ipv4"]["ip"]
 

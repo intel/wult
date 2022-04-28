@@ -209,7 +209,7 @@ class NdlRunner:
         self._netif.wait_for_carrier(10)
 
         # Make sure the network interface has an IP address.
-        ipaddr = self._netif.get_ipv4_addr(default=None)
+        ipaddr = self._netif.get_ipv4_addr(must_get=False)
         if ipaddr:
             _LOG.debug("network interface '%s'%s has IP address '%s'",
                        self._ifname, self._pman.hostmsg, ipaddr)
