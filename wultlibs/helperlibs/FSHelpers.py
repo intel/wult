@@ -20,7 +20,7 @@ from pepclibs.helperlibs import ProcessManager
 from pepclibs.helperlibs.Exceptions import ErrorExists
 
 # pylint: disable=wildcard-import,unused-wildcard-import
-from pepclibs.helperlibs.Human import *
+from pepclibs.helperlibs.FSHelpers import *
 
 # Default debugfs mount point.
 DEBUGFS_MOUNT_POINT = Path("/sys/kernel/debug")
