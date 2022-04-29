@@ -106,14 +106,14 @@ class PlotsBuilder:
         """
 
         refdefs = rsts[0].defs
-        xaxis_defs = refdefs.info.get(xmetric, {})
-        yaxis_defs = refdefs.info.get(ymetric, {})
-        xaxis_label = xaxis_defs.get("title", xmetric)
-        yaxis_label = yaxis_defs.get("title", xmetric)
-        xaxis_fsname = xaxis_defs.get("fsname", xaxis_label)
-        yaxis_fsname = yaxis_defs.get("fsname", yaxis_label)
-        xaxis_unit = self._get_base_si_unit(xaxis_defs.get("short_unit", ""))
-        yaxis_unit = self._get_base_si_unit(yaxis_defs.get("short_unit", ""))
+        xaxis_def = refdefs.info.get(xmetric, {})
+        yaxis_def = refdefs.info.get(ymetric, {})
+        xaxis_label = xaxis_def.get("title", xmetric)
+        yaxis_label = yaxis_def.get("title", xmetric)
+        xaxis_fsname = xaxis_def.get("fsname", xaxis_label)
+        yaxis_fsname = yaxis_def.get("fsname", yaxis_label)
+        xaxis_unit = self._get_base_si_unit(xaxis_def.get("short_unit", ""))
+        yaxis_unit = self._get_base_si_unit(yaxis_def.get("short_unit", ""))
 
         fname = yaxis_fsname + "-vs-" + xaxis_fsname + ".html"
         outpath = self.outdir / fname
@@ -195,9 +195,9 @@ class PlotsBuilder:
 
         xbins = get_xbins(xmetric)
 
-        xaxis_defs = self._refdefs.info.get(xmetric, {})
-        xaxis_label = xaxis_defs.get("title", xmetric)
-        xaxis_unit = self._get_base_si_unit(xaxis_defs.get("short_unit", ""))
+        xaxis_def = self._refdefs.info.get(xmetric, {})
+        xaxis_label = xaxis_def.get("title", xmetric)
+        xaxis_unit = self._get_base_si_unit(xaxis_def.get("short_unit", ""))
 
         ppaths = []
         if hist:
@@ -210,8 +210,8 @@ class PlotsBuilder:
     def __init__(self, ref_defs, hov_metrics, opacity, outdir):
         """
         The class constructor. The arguments are as follows:
-         * ref_defs - Defs dictionary from a 'RORawResult' instance. Used to find the correct units
-                      to use in the plots.
+         * ref_defs - the definitions dictionary that will be used for finding the correct units for
+                      metrics to use in the plots.
          * hov_metrics - a mapping from report_id to metric names which should be included in the
                          hovertext of scatter plots.
          * opacity - opacity of plot points on scatter diagrams.

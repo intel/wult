@@ -51,12 +51,12 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
 
                 # Since we use column names which aren't known until runtime as tab titles, use the
                 # defs for the metric but overwrite the 'title' attribute.
-                col_defs = defs.info[metric]
-                col_defs["title"] = col
-                col_defs["metric"] = col
+                col_def = defs.info[metric]
+                col_def["title"] = col
+                col_def["metric"] = col
 
                 coltab = _DTabBuilder.DTabBuilder(self._reports, mtab_outdir, self._basedir,
-                                                   col_defs, defs.info[self._time_metric])
+                                                   col_def, defs.info[self._time_metric])
                 coltabs.append(coltab.get_tab())
 
             # Only add a container tab for 'metric' if any data tabs were generated to populate it.

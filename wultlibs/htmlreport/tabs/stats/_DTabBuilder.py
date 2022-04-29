@@ -30,7 +30,7 @@ class DTabBuilder:
 
         smrytbl = _SummaryTable.SummaryTable()
 
-        smrytbl.add_metric(self.title, self._metric_defs["short_unit"], self.descr,
+        smrytbl.add_metric(self.title, self._metric_def["short_unit"], self.descr,
                            fmt="{:.2f}")
 
         for rep, df in self._reports.items():
@@ -70,8 +70,8 @@ class DTabBuilder:
         # Initialise scatter plot.
         s_path = self._outdir / f"{self._fsname}-scatter.html"
         s = _ScatterPlot.ScatterPlot(self._time_metric, self._metric, s_path,
-                                     self._time_defs["title"], self._metric_defs["title"],
-                                     self._time_defs["short_unit"], self._metric_defs["short_unit"])
+                                     self._time_def["title"], self._metric_def["title"],
+                                     self._time_def["short_unit"], self._metric_def["short_unit"])
 
         for reportid, df in self._reports.items():
             s.add_df(s.reduce_df_density(df, reportid), reportid)
@@ -80,15 +80,15 @@ class DTabBuilder:
 
         # Initialise histogram.
         h_path = self._outdir / f"{self._fsname}-histogram.html"
-        h = _Histogram.Histogram(self._metric, h_path, self._metric_defs["title"],
-                                 self._metric_defs["short_unit"])
+        h = _Histogram.Histogram(self._metric, h_path, self._metric_def["title"],
+                                 self._metric_def["short_unit"])
 
         for reportid, df in self._reports.items():
             h.add_df(df, reportid)
 
         self._plots.append(h)
 
-    def __init__(self, reports, outdir, basedir, metric_defs, time_defs):
+    def __init__(self, reports, outdir, basedir, metric_def, time_def):
         """
         The class constructor. Adding a stats tab will create a 'metricname' sub-directory and
         store plots and the summary table in it. Arguments are as follows:
@@ -96,13 +96,13 @@ class DTabBuilder:
                      '{reportid: stats_df}'
          * outdir - the output directory in which to create the 'metricname' sub-directory.
          * basedir - base directory of the report. All paths should be made relative to this.
-         * metric_defs - dictionary containing the definitions for this metric.
-         * time_defs - dictionary containing the definitions for the elapsed time.
+         * metric_def - dictionary containing the definition for this metric.
+         * time_def - dictionary containing the definition for the elapsed time.
         """
 
         # File system-friendly tab name.
-        self._fsname = metric_defs["fsname"]
-        self._metric = metric_defs["metric"]
+        self._fsname = metric_def["fsname"]
+        self._metric = metric_def["metric"]
         self._basedir = basedir
         self._outdir = outdir / self._fsname
         self.smry_path = self._outdir / "summary-table.txt"
@@ -112,18 +112,18 @@ class DTabBuilder:
         except OSError as err:
             raise Error(f"failed to create directory '{self._outdir}': {err}") from None
 
-        self._metric_defs = metric_defs
-        self._time_defs = time_defs
-        self._time_metric = time_defs["metric"]
-        self.title = self._metric_defs["title"]
-        self.descr = self._metric_defs["descr"]
+        self._metric_def = metric_def
+        self._time_def = time_def
+        self._time_metric = time_def["metric"]
+        self.title = self._metric_def["title"]
+        self.descr = self._metric_def["descr"]
 
         # List of functions to provide in the summary tables.
         smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
                       "std")
 
         # Only use a summary function if it is included in the default funcs for this statistic.
-        default_funcs = set(self._metric_defs["default_funcs"])
+        default_funcs = set(self._metric_def["default_funcs"])
         self.smry_funcs = DFSummary.filter_smry_funcs(smry_funcs, default_funcs)
 
         # Reduce 'reports' to only the metric and time columns which are needed for this tab.
