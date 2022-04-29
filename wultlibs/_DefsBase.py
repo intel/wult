@@ -39,12 +39,9 @@ class DefsBase:
     def _mangle(info):
         """This function mangles the initially loaded dictionary and adds useful values there."""
 
-        metric_key = "metric"
-        fsname_key = "fsname"
-
         for key, val in info.items():
-            val[metric_key] = key
-            val[fsname_key] = get_fsname(key)
+            val["metric"] = key
+            val["fsname"] = get_fsname(key)
 
         return info
 
