@@ -60,20 +60,17 @@ class _WultDeviceBase:
             return f"New kernel messages{self._pman.hostmsg}:\n{new_msgs}"
         return ""
 
-    def __init__(self, devid, cpunum, pman, dmesg=None):
+    def __init__(self, devid, cpunum, pman, dmesg=True):
         """
         The class constructor. The arguments are as follows.
           * devid - device ID. What the "ID" is depends on the device type.
           * pman - the host process manager object defining the host to operate on.
           * cpunum - the measured CPU number.
-          * dmesg - 'True' to enable 'dmesg' output checks (default), 'False' to disable them.
+          * dmesg - 'True' to enable 'dmesg' output checks, 'False' to disable them.
         """
 
         if not devid:
             raise Error("device ID was not provided")
-
-        if dmesg is None:
-            dmesg = True
 
         self._devid = devid
         self._cpunum = cpunum
@@ -98,7 +95,7 @@ class _WultDeviceBase:
 
     def close(self):
         """Uninitialize the device."""
-        ClassHelpers.close(self, close_attrs=("_pman", "dmesg_obj"))
+        ClassHelpers.close(self, unref_attrs=("_pman",), close_attrs=("dmesg_obj",))
 
     def __enter__(self):
         """Enter the run-time context."""
