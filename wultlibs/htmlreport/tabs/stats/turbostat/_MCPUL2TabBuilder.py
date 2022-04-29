@@ -44,7 +44,7 @@ class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
                         cpus_tstat[cpunum] = {**core["totals"], **tstats}
 
                     # If all measured CPUs have already been extracted then return.
-                    if set(cpus_tstat.keys()) - cpus_to_keep == set():
+                    if cpus_to_keep - set(cpus_tstat.keys()) == set():
                         return cpus_tstat
 
         return cpus_tstat
