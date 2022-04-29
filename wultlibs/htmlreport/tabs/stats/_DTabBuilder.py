@@ -15,7 +15,6 @@ from wultlibs.htmlreport import _SummaryTable, _ScatterPlot, _Histogram
 from wultlibs import DFSummary
 from wultlibs.htmlreport.tabs import _Tabs
 
-
 class DTabBuilder:
     """
     This base class provides the capability of populating a statistics data tab.
