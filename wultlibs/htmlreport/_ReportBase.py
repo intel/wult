@@ -187,8 +187,12 @@ class ReportBase:
         asset_path = Deploy.find_app_data(self._projname, src, descr=descr)
         FSHelpers.move_copy_link(asset_path, dst, "copy", exist_ok=True)
 
-    def _generate_metric_tabs(self):
-        """Generate 'Metric Tabs' which contain the plots and summary tables for each metric."""
+    def _generate_results_tabs(self):
+        """
+        Generate and return a list of sub-tabs for the results tab. The results tab includes the
+        main metrics, such as "WakeLatency". The elements of the returned list are tab dataclass
+        objects, such as 'DTabDC'.
+        """
 
         for res in self.rsts:
             _LOG.debug("calculate summary functions for '%s'", res.reportid)
@@ -230,9 +234,14 @@ class ReportBase:
 
     def _generate_stats_tabs(self, stats_paths):
         """
-        Generate statistics tabs using the appropriate tab generator for each statistic.
-        'stats_paths' is a dictionary mapping in the format: {Report ID: Stats directory path} where
-        the stats directory path is the directory to check for raw statistics files.
+        Generate and return a list sub-tabs for the statistics tab. The statistics tab includes
+        metrics from the statistics collectors, such as 'turbostat'.
+
+        The 'stats_paths' argument is a dictionary mapping in the following format:
+           {Report ID: Stats directory path}
+        where "stats directory path" is the directory containing raw statistics files.
+
+        The elements of the returned list are tab dataclass objects, such as 'CTabDC'.
         """
 
         _LOG.info("Generating statistics tabs.")
@@ -289,7 +298,7 @@ class ReportBase:
         report_info["intro_tbl"] = self._prepare_intro_table(stats_paths, logs_paths)
         report_info["toolname"] = self._refinfo["toolname"].title()
 
-        metric_tabs = self._generate_metric_tabs()
+        results_tabs = self._generate_results_tabs()
 
         try:
             stats_tabs = self._generate_stats_tabs(stats_paths)
@@ -299,7 +308,7 @@ class ReportBase:
 
         tabs = []
         # Convert Dataclasses to dictionaries so that they are JSON serialisable.
-        tabs.append(dataclasses.asdict(_Tabs.CTabDC("Results", metric_tabs)))
+        tabs.append(dataclasses.asdict(_Tabs.CTabDC("Results", results_tabs)))
 
         if stats_tabs:
             tabs.append(dataclasses.asdict(_Tabs.CTabDC("Stats", tabs=stats_tabs)))
