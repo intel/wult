@@ -50,7 +50,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         for key in tstat["totals"]:
             # Each requestable C-state has a column in the raw turbostat statistics file in the
             # format "Cx%".
-            if key.startswith("C") and key.endswith("%"):
+            if key.startswith("C") and key[1].isdigit() and key.endswith("%"):
                 req_cstates.append(key[:-1])
                 continue
 
