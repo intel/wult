@@ -25,7 +25,7 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
     This class provides the capability of populating the IPMI statistics tab.
 
     Public methods overview:
-    1. Generate a '_Tabs.CTabDC' instance containing tabs which display different IPMI statistics.
+    1. Generate a '_Tabs.CTabDC' instance containing tabs which display IPMI statistics.
        * 'get_tab()'
     """
 
@@ -33,7 +33,18 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
 
     def get_tab(self):
         """
-        Generate a '_Tabs.CTabDC' instance containing tabs which display different IPMI statistics.
+        Generate a '_Tabs.CTabDC' instance containing tabs which display IPMI statistics. The
+        container tab will contain another container tab for each of the following categories:
+
+            1. "Fan Speed"
+            2. "Temperature"
+            3. "Power"
+
+        Each of these container tabs contain data tabs for each IPMI metric which is common to all
+        results. For example, the "Fan Speed" container tab might contain several data tabs titled
+        "Fan1", "Fan2" etc. if each raw IPMI statistics file contains these measurements. If there
+        were no common IPMI metrics between all of the results for a given category, the container
+        tab will not be generated.
         """
 
         col_sets = [set(sdf.columns) for sdf in self._reports.values()]

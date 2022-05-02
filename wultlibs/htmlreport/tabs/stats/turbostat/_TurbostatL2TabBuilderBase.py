@@ -191,8 +191,16 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
 
     def get_tab(self):
         """
-        Returns a '_Tabs.CTabDC' instance containing tabs which represent different metrics within
-        the turbostat raw statistics file.
+        Returns a '_Tabs.CTabDC' instance, titled 'self.name', containing tabs which represent
+        different metrics within raw turbostat statistic files.
+
+        The container tab returned by this function will contain a "CC0%" data tab and a "C-states"
+        container tab. The "C-states" container tab will contain two further container tabs,
+        "Hardware" and "Requested", which will contain data tabs representing hardware and
+        requestable C-states respectively.
+
+        Note that the hierarchy of the tabs will will only include turbostat metrics which are
+        common to all results.
         """
 
         common_hw_cstates = set.intersection(*[set(lst) for lst in self._hw_cstates])

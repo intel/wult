@@ -41,7 +41,7 @@ class TabBuilderBase:
     def get_tab(self):
         """
         Returns a '_Tabs.DTabDC' or '_Tabs.CTabDC' instance which represent statistics found in raw
-        statistics file. This method should be implemented by any child class.
+        statistic files. This method should be implemented by a child class.
         """
 
         raise NotImplementedError()

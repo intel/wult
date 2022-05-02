@@ -26,7 +26,13 @@ class TurbostatTabBuilder:
 
     def get_tab(self):
         """
-        Returns a '_Tabs.CTabDC' instance containing turbostat level 2 tabs.
+        Returns a '_Tabs.CTabDC' instance containing turbostat level 2 tabs:
+
+        1. If 'measured_cpus' was provided to the constructor, a "Measured CPU" container tab will
+        be generated containing turbostat tabs which visualise turbostat data for the CPU under
+        test.
+        2. A "Totals" container tab will be generated containing turbostat tabs which
+        visualise the turbostat system summaries.
         """
 
         l2_tabs = []
