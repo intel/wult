@@ -295,17 +295,9 @@ def build_arguments_parser():
     subpars.add_argument("--relocatable", action="store_true", help=ToolsCommon.RELOCATABLE_DESCR)
     subpars.add_argument("--list-columns", action="store_true", help=ToolsCommon.LIST_COLUMNS_DESCR)
 
-    text = f"""Generate HTML report with a pre-defined set of diagrams and histograms. This option
-               is mutually exclusive with '--xaxes', '--yaxes', '--hist', '--chist', therefore
-               cannot be used in combination with any of these options. This option can be set to
-               'small', 'medium' or 'large'. Here are the regular expressions for each setting:
-               small: {{XAXES='{WultReport.SMALL_XAXES}', YAXES='{WultReport.SMALL_YAXES}',
-               HIST='{WultReport.SMALL_HIST}', CHIST='{WultReport.SMALL_CHIST}'}} medium:
-               {{XAXES='{WultReport.MEDIUM_XAXES}', YAXES='{WultReport.MEDIUM_YAXES}',
-               HIST='{WultReport.MEDIUM_HIST}', CHIST='{WultReport.MEDIUM_CHIST}'}} large:
-               {{XAXES='{WultReport.LARGE_XAXES}', YAXES='{WultReport.LARGE_YAXES}',
-               HIST='{WultReport.LARGE_HIST}', CHIST='{WultReport.LARGE_CHIST}'}}
-            """.replace("%", "%%")
+    text = """Generate HTML report with a pre-defined set of diagrams and histograms. Possible
+              values: 'small', 'medium' or 'large'. This option is mutually exclusive with
+              '--xaxes', '--yaxes', '--hist', '--chist'."""
     subpars.add_argument("--size", dest="report_size", type=str, help=text)
 
     text = f"""One or multiple {OWN_NAME} test result paths."""
