@@ -21,7 +21,7 @@ from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.htmlreport.tabs.stats import _TabBuilderBase, _DTabBuilder
 from wultlibs.htmlreport.tabs import _Tabs
 from wultlibs.parsers import TurbostatParser
-from wultlibs import _DefsBase
+from wultlibs import _DefsBase, TurbostatDefs
 
 _LOG = logging.getLogger()
 
@@ -136,8 +136,8 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
                                        {"dtabs": [metric3, metric4...]}
                            }
          * outdir - path of the directory in which to store the generated tabs.
-         * defs - '_DefsBase.DefsBase' instance which contains all of the definitions for the
-                  metrics which appear in 'tab_hierarchy'.
+         * defs - 'TurbostatDefs.TurbostatDefs' instance which contains all of the definitions for
+                   the metrics which appear in 'tab_hierarchy'.
         """
 
         # Sub-tabs which will be contained by the returned container tab.
@@ -206,7 +206,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         common_hw_cstates = set.intersection(*[set(lst) for lst in self._hw_cstates])
         common_req_cstates = set.intersection(*[set(lst) for lst in self._req_cstates])
 
-        defs = _DefsBase.DefsBase("turbostat")
+        defs = TurbostatDefs.TurbostatDefs()
         defs.populate_cstates(common_hw_cstates.union(common_req_cstates))
 
         # Maintain the order of C-states as they appeared in the raw turbostat statistic files.
