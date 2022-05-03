@@ -3,8 +3,8 @@
 #
 # Definitions for raw Turbostat statistics files.
 
-CC0%:
-    title: "CC0%"
+Busy%:
+    title: "Busy%"
     descr: >-
         The proportion of cycles during the workload which were spent in a busy state.
     unit: "%"

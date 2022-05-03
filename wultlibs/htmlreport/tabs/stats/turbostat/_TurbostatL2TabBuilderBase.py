@@ -247,7 +247,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         # Dictionary in the format {'metric': 'colname'} where 'colname' in the raw turbostat
         # statistics file represents 'metric'.
         self._metrics = {
-            "CC0%": "Busy%"
+            "Busy%": "Busy%"
         }
 
         # Add data tabs for all the metrics in 'self._metrics' to the tab hierarchy.
