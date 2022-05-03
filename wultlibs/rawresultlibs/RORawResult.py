@@ -415,7 +415,6 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         if toolname == "wult":
             self.defs = WultDefs.WultDefs(colnames)
-            self.defs.populate_cstates(colnames)
         else:
             self.defs = _DefsBase.DefsBase(toolname)
 

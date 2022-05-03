@@ -102,3 +102,23 @@ class WultDefs(_DefsBase.DefsBase):
         """
 
         super().__init__("wult")
+
+        ccnames = []
+        pcnames = []
+
+        for metric in hdr:
+            if not metric.endswith("%"):
+                continue
+
+            if metric.startswith("CC"):
+                # Exclude CC0 and CC1Derived.
+                if "Derived" in metric or "CC0" in metric:
+                    continue
+                ccnames.append(metric[:-1])
+            elif metric.startswith("PC") and metric.endswith("%") and len(metric) > 3:
+                pcnames.append(metric[:-1])
+
+        placeholders_info = [{ "values" : ccnames, "placeholder" : "CCx"},
+                             { "values" : pcnames, "placeholder" : "PCx"}]
+
+        super()._mangle_placeholders(placeholders_info)
