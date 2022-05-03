@@ -93,3 +93,8 @@ class WultDefs(_DefsBase.DefsBase):
                 csnames.add(csname)
 
         super().populate_cstates(csnames)
+
+    def __init__(self):
+        """The class constructor."""
+
+        super().__init__("wult")

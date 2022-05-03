@@ -426,7 +426,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         if not toolver:
             raise Error(f"bad '{self.info_path}' format - the 'toolver' key is missing")
 
-        self.defs = WultDefs.WultDefs(self.info["toolname"])
+        self.defs = WultDefs.WultDefs()
 
         # All column names in the CSV file.
         self._read_colnames()

@@ -482,7 +482,7 @@ class DatapointProcessor:
 
         raw_fields = list(rawdp.keys())
 
-        defs = WultDefs.WultDefs("wult")
+        defs = WultDefs.WultDefs()
         defs.populate_cstates(raw_fields)
 
         self._cs_fields = []
