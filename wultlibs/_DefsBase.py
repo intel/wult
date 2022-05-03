@@ -35,15 +35,14 @@ class DefsBase:
     dictionary to provide more helpful values.
     """
 
-    @staticmethod
-    def _mangle(info):
-        """This function mangles the initially loaded dictionary and adds useful values there."""
+    def _mangle(self):
+        """
+        Mangle the initially loaded 'self.yaml' dictionary.
+        """
 
-        for key, val in info.items():
+        for key, val in self.info.items():
             val["metric"] = key
             val["fsname"] = get_fsname(key)
-
-        return info
 
     def populate_cstates(self, csnames):
         """
@@ -89,8 +88,9 @@ class DefsBase:
         self.name = name
         self.info = None
 
+        self._populate_cstate_keys = ["title", "descr", "metric", "fsname"]
+
         self.path = Deploy.find_app_data("wult", Path(f"defs/{name}.yml"),
                                          descr=f"{name} definitions file")
-        self.info = self._mangle(YAML.load(self.path))
-
-        self._populate_cstate_keys = ["title", "descr", "metric", "fsname"]
+        self.info = YAML.load(self.path)
+        self._mangle()
