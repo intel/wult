@@ -94,7 +94,11 @@ class WultDefs(_DefsBase.DefsBase):
 
         super().populate_cstates(csnames)
 
-    def __init__(self):
-        """The class constructor."""
+    def __init__(self, hdr):
+        """
+        The class constructor. The arguments are as follows.
+          * hdr - the wult datapoints CSV file header in form of a list. The header is basically a
+                  list of "raw" wult metrics.
+        """
 
         super().__init__("wult")

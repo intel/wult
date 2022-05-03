@@ -414,7 +414,7 @@ class RORawResult(_RawResultBase.RawResultBase):
             raise Error(f"failed to load CSV file {self.dp_path}:\n{err}") from None
 
         if toolname == "wult":
-            self.defs = WultDefs.WultDefs()
+            self.defs = WultDefs.WultDefs(colnames)
             self.defs.populate_cstates(colnames)
         else:
             self.defs = _DefsBase.DefsBase(toolname)
