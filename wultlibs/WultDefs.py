@@ -69,30 +69,7 @@ def get_csres_metric(csname):
     return f"{csname}%"
 
 class WultDefs(_DefsBase.DefsBase):
-    """
-    This class provides an API to the datapoints CSV file definitions (AKA 'defs'). This class
-    extends from '_DefsBase.DefsBase' by overloading 'populate_cstates()'.
-    """
-
-    def populate_cstates(self, hdr): # pylint: disable=arguments-renamed
-        """
-        Populate the definitions dictionary with the C-state information for a specific platform.
-
-        Rather than taking a list of C-states like 'super().populate_cstates()', this function
-        accepts a datapoints CSV file header 'hdr' which is a list of the column names in the file.
-        Then it extracts the C-states represented in these column names and populates the
-        definitions dictionary acccordingly.
-        """
-
-        csnames = set()
-        for colname in hdr:
-            if is_cs_metric(colname):
-                # 'super().populate_cstates()' expects C-states to not include the leading "P" or
-                # "C" representing whether the C-state is a package or core C-state.
-                csname = get_csname(colname)[1:]
-                csnames.add(csname)
-
-        super().populate_cstates(csnames)
+    """This class provides an API to the datapoints CSV file definitions (AKA 'defs')."""
 
     def __init__(self, hdr):
         """
