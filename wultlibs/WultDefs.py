@@ -68,10 +68,10 @@ def get_csres_metric(csname):
 
     return f"{csname}%"
 
-class WultDefs(_DefsBase.CSDefsBase):
+class WultDefs(_DefsBase.DefsBase):
     """
     This class provides an API to the datapoints CSV file definitions (AKA 'defs'). This class
-    extends from '_DefsBase.CSDefsBase' by overloading 'populate_cstates()'.
+    extends from '_DefsBase.DefsBase' by overloading 'populate_cstates()'.
     """
 
     def populate_cstates(self, hdr): # pylint: disable=arguments-renamed

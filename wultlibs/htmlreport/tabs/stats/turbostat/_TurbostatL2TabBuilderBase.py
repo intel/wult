@@ -206,7 +206,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         common_hw_cstates = set.intersection(*[set(lst) for lst in self._hw_cstates])
         common_req_cstates = set.intersection(*[set(lst) for lst in self._req_cstates])
 
-        defs = _DefsBase.CSDefsBase("turbostat")
+        defs = _DefsBase.DefsBase("turbostat")
         defs.populate_cstates(common_hw_cstates.union(common_req_cstates))
 
         # Maintain the order of C-states as they appeared in the raw turbostat statistic files.

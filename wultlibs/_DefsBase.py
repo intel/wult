@@ -45,26 +45,6 @@ class DefsBase:
 
         return info
 
-    def __init__(self, name):
-        """
-        The class constructor. The arguments are as follows.
-          * name - name of the tool to load the definitions for (e.g., 'wult').
-        """
-
-        self.name = name
-        self.info = None
-
-        self.path = Deploy.find_app_data("wult", Path(f"defs/{name}.yml"),
-                                         descr=f"{name} definitions file")
-        self.info = self._mangle(YAML.load(self.path))
-
-class CSDefsBase(DefsBase):
-    """
-    This base class can be inherited from to provide an API to the YAML definitions files (AKA
-    'defs'). This class extends 'DefsBase' to add the 'populate_cstates' method which can be used
-    to populate the defitions dictionary with the C-state information for a specific platform.
-    """
-
     def populate_cstates(self, csnames):
         """
         Definitions YAML files do not contain information about C-states supported by various
@@ -101,9 +81,16 @@ class CSDefsBase(DefsBase):
         self.info = info
 
     def __init__(self, name):
-        """Class constructor. Arguments are the same as in base class 'DefsBase'."""
+        """
+        The class constructor. The arguments are as follows.
+          * name - name of the tool to load the definitions for (e.g., 'wult').
+        """
 
-        # List of info keys to populate with C-states when 'populate_cstates()' is called.
+        self.name = name
+        self.info = None
+
+        self.path = Deploy.find_app_data("wult", Path(f"defs/{name}.yml"),
+                                         descr=f"{name} definitions file")
+        self.info = self._mangle(YAML.load(self.path))
+
         self._populate_cstate_keys = ["title", "descr", "metric", "fsname"]
-
-        super().__init__(name)
