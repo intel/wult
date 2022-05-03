@@ -7,7 +7,7 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module provides the base class for APIs to the definitions (AKA 'defs') files.
+This module provides the base class for metrics definitoins (AKA 'defs').
 """
 
 from pathlib import Path
@@ -25,13 +25,7 @@ def get_fsname(metric):
     return metric
 
 class DefsBase:
-    """
-    This base class can be inherited from to provide an API to the YAML definitions files (AKA
-    'defs').
-
-    Optionally child classes can override the '_mangle()' method which mangles the initially loaded
-    dictionary to provide more helpful values.
-    """
+    """The base class for metrics definitoins (AKA 'defs')."""
 
     def _mangle_placeholders(self, placeholders_info):
         """

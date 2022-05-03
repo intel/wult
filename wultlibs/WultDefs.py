@@ -7,7 +7,7 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module provides API to the datapoints CSV file definitions (AKA 'defs').
+This module provides API to wult metrics definitions (AKA 'defs').
 """
 
 from pepclibs.helperlibs.Exceptions import Error
@@ -69,7 +69,7 @@ def get_csres_metric(csname):
     return f"{csname}%"
 
 class WultDefs(_DefsBase.DefsBase):
-    """This class provides an API to the datapoints CSV file definitions (AKA 'defs')."""
+    """This class provides API to wult metrics definitions (AKA 'defs')."""
 
     def __init__(self, hdr):
         """
