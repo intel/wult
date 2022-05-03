@@ -17,7 +17,7 @@ from pathlib import Path
 import pandas
 from pepclibs.helperlibs import YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
-from wultlibs import DFSummary, WultDefs
+from wultlibs import DFSummary, WultDefs, _DefsBase
 from wultlibs.rawresultlibs import _RawResultBase
 
 _LOG = logging.getLogger()
@@ -313,25 +313,6 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         return list(found.keys())
 
-    def _read_colnames(self):
-        """Read the datapoints CSV file header, fetch and validate its column names."""
-
-        try:
-            colnames = list(pandas.read_csv(self.dp_path, nrows=0))
-        except Exception as err:
-            raise Error(f"failed to load CSV file {self.dp_path}:\n{err}") from None
-
-        self.defs.populate_cstates(colnames)
-
-        # Ignore column names which are not present in the definitions.
-        self.colnames = []
-        for colname in colnames:
-            if colname in self.defs.info:
-                self.colnames.append(colname)
-
-
-        self.colnames_set = set(self.colnames)
-
     def save(self, dirpath, reportid=None):
         """
         Save the test result at path 'dirpath', optionally change the report ID with 'reportid'.
@@ -426,7 +407,22 @@ class RORawResult(_RawResultBase.RawResultBase):
         if not toolver:
             raise Error(f"bad '{self.info_path}' format - the 'toolver' key is missing")
 
-        self.defs = WultDefs.WultDefs()
+        # Read the the column names from the CSV file.
+        try:
+            colnames = list(pandas.read_csv(self.dp_path, nrows=0))
+        except Exception as err:
+            raise Error(f"failed to load CSV file {self.dp_path}:\n{err}") from None
 
-        # All column names in the CSV file.
-        self._read_colnames()
+        if toolname == "wult":
+            self.defs = WultDefs.WultDefs()
+            self.defs.populate_cstates(colnames)
+        else:
+            self.defs = _DefsBase.DefsBase(toolname)
+
+        # Exclude column names which are not present in the definitions.
+        self.colnames = []
+        for colname in colnames:
+            if colname in self.defs.info:
+                self.colnames.append(colname)
+
+        self.colnames_set = set(self.colnames)
