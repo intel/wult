@@ -34,7 +34,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
        * '_turbostat_to_df()'
     """
 
-    def _turbostat_to_df(self, tstat, metrics, path):
+    def _turbostat_to_df(self, tstat, defs, path):
         """Convert the 'tstat' dictionary produced by 'TurbostatParser' to a 'pandas.DataFrame'."""
 
         raise NotImplementedError()
@@ -94,19 +94,15 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             # platform under test has.
             tstat = next(tstat_gen)
             hw_cstates, req_cstates = self._extract_cstates(tstat)
-
-            # Populate a metrics dictionary based on 'self._metrics' for the C-states with data
-            # in 'tstat'. This is so that 'self._turbostat_to_df()' knows which metrics to extract
-            # from 'tstat'.
-            populated_metrics = self._populate_metrics(hw_cstates, req_cstates)
+            defs = TurbostatDefs.TurbostatDefs(hw_cstates + req_cstates)
 
             # Initialise the stats 'pandas.DataFrame' ('sdf') with data from the first 'tstat'
             # dictionary.
-            sdf = self._turbostat_to_df(tstat, populated_metrics, path)
+            sdf = self._turbostat_to_df(tstat, defs, path)
 
             # Add the rest of the data from the raw turbostat statistics file to 'sdf'.
             for tstat in tstat_gen:
-                df = self._turbostat_to_df(tstat, populated_metrics, path)
+                df = self._turbostat_to_df(tstat, defs, path)
                 sdf = pandas.concat([sdf, df], ignore_index=True)
         except Exception as err:
             raise Error(f"error reading raw statistics file '{path}': {err}.") from None
