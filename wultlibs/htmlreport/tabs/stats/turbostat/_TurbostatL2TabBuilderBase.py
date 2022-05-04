@@ -35,7 +35,14 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
     """
 
     def _turbostat_to_df(self, tstat, defs, path):
-        """Convert the 'tstat' dictionary produced by 'TurbostatParser' to a 'pandas.DataFrame'."""
+        """
+        Convert the 'tstat' dictionary to a 'pandas.DataFrame'. Arguments are as follows:
+         * tstat - dictionary produced by 'TurbostatParser'.
+         * defs - 'TurbostatDefs.TurbostatDefs' instance containing the metrics to extract from
+                  'tstat'.
+         * path - path of the original raw turbostat statistics file which was parsed to produce
+                  'tstat'.
+        """
 
         raise NotImplementedError()
 

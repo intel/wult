@@ -23,7 +23,10 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
     name = "Totals"
 
     def _turbostat_to_df(self, tstat, defs, path=None):
-        """Convert the 'tstat' dictionary produced by 'TurbostatParser' to a 'pandas.DataFrame'."""
+        """
+        Convert the 'tstat' dictionary produced by 'TurbostatParser' to a 'pandas.DataFrame'. See
+        base class '_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase' for arguments.
+        """
 
         _time_colname = "Time_Of_Day_Seconds"
         totals = tstat["totals"]
