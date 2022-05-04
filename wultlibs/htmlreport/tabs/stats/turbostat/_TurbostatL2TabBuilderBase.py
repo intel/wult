@@ -71,23 +71,6 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         self._req_cstates.append(req_cstates)
         return hw_cstates, req_cstates
 
-    def _populate_metrics(self, hw_cstates, req_cstates):
-        """
-        This is a helper function for '_read_stats_file()'. Returns a metrics dictionary with
-        metrics representing the C-states given as arguments. The returned dictionary decides which
-        metrics '_turbostat_to_df()' will extract from 'tstat' and is in the same format as
-        'self._metrics'.
-        """
-
-        populated_metrics = self._metrics.copy()
-        for cs in req_cstates:
-            populated_metrics[f"{cs}%"] = f"{cs}%"
-
-        for cs in hw_cstates:
-            populated_metrics[f"CPU%{cs.lower()}"] = f"CPU%{cs.lower()}"
-
-        return populated_metrics
-
     def _read_stats_file(self, path):
         """
         Returns a 'pandas.DataFrame' containing the data stored in the raw turbostat statistics file
