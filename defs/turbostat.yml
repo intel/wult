@@ -20,8 +20,8 @@ CCx%:
     short_unit: "%"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
     drop_empty: True
-ReqCx%:
-    title: "ReqCx%"
+Cx%:
+    title: "Cx%"
     descr: >-
         The residency percentage that Linux requested Cx during the workload. Note that these are
         software, reflecting what was requested.

@@ -74,7 +74,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
 
         populated_metrics = self._metrics.copy()
         for cs in req_cstates:
-            populated_metrics[f"Req{cs}%"] = f"{cs}%"
+            populated_metrics[f"{cs}%"] = f"{cs}%"
 
         for cs in hw_cstates:
             populated_metrics[f"C{cs}%"] = f"CPU%{cs.lower()}"
@@ -184,7 +184,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         }
 
         for cs in req_cstates:
-            self._tab_hierarchy["C-states"]["Requested"]["dtabs"].append(f"Req{cs}%")
+            self._tab_hierarchy["C-states"]["Requested"]["dtabs"].append(f"{cs}%")
 
         for cs in hw_cstates:
             self._tab_hierarchy["C-states"]["Hardware"]["dtabs"].append(f"C{cs}%")
