@@ -203,11 +203,11 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         common to all results.
         """
 
+        # Find C-states which are common to all test results.
         common_hw_cstates = set.intersection(*[set(lst) for lst in self._hw_cstates])
         common_req_cstates = set.intersection(*[set(lst) for lst in self._req_cstates])
 
-        defs = TurbostatDefs.TurbostatDefs()
-        defs.populate_cstates(common_hw_cstates.union(common_req_cstates))
+        defs = TurbostatDefs.TurbostatDefs(common_hw_cstates.union(common_req_cstates))
 
         # Maintain the order of C-states as they appeared in the raw turbostat statistic files.
         req_cstates = [cs for cs in self._req_cstates[0] if cs in common_req_cstates]

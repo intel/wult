@@ -50,7 +50,13 @@ class TurbostatDefs(_DefsBase.DefsBase):
 
         self.info = info
 
-    def __init__(self):
-        """The class constructor."""
+    def __init__(self, cstates):
+        """
+        The class constructor. Arguments are as follows:
+         * cstates - a list of C-states parsed from raw turbostat statistic files.
+        """
 
         super().__init__("turbostat")
+
+        placeholders_info = [{"values": cstates, "placeholder": "Cx"}]
+        self._mangle_placeholders(placeholders_info)
