@@ -23,5 +23,6 @@ class TurbostatDefs(_DefsBase.DefsBase):
 
         super().__init__("turbostat")
 
-        placeholders_info = [{"values": cstates, "placeholder": "Cx"}]
+        placeholders_info = [{"values": cstates, "placeholder": "Cx"},
+                             {"values": [cs.lower() for cs in cstates], "placeholder": "cx"}]
         self._mangle_placeholders(placeholders_info)

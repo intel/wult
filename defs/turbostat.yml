@@ -10,10 +10,10 @@ Busy%:
     unit: "%"
     short_unit: "%"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
-CCx%:
-    title: "CCx%"
+CPU%cx:
+    title: "CPU%cx"
     descr: >-
-        The percentage residency in core idle state CCx. These numbers are from hardware
+        The percentage residency in core idle state ccx. These numbers are from hardware
         residency counters.
     type: "float"
     unit: "%"
