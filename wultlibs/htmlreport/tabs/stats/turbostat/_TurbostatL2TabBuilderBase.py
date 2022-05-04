@@ -107,7 +107,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
 
         return sdf
 
-    def _build_ctab(self, name, tab_hierarchy, outdir, defs):
+    def _build_ctab(self, name, tab_hierarchy, outdir):
         """
         This is a helper function for 'get_tab()'. Build a container tab according to the
         'tab_hierarchy' dictionary. If no sub-tabs can be generated then returns 'None'.
@@ -123,8 +123,6 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
                                        {"dtabs": [metric3, metric4...]}
                            }
          * outdir - path of the directory in which to store the generated tabs.
-         * defs - 'TurbostatDefs.TurbostatDefs' instance which contains all of the definitions for
-                   the metrics which appear in 'tab_hierarchy'.
         """
 
         # Sub-tabs which will be contained by the returned container tab.
@@ -136,7 +134,8 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             for metric in tab_hierarchy["dtabs"]:
                 try:
                     tab = _DTabBuilder.DTabBuilder(self._reports, outdir, self._basedir,
-                                                   defs.info[metric], defs.info[self._time_metric])
+                                                   self._defs.info[metric],
+                                                   self._defs.info[self._time_metric])
                     sub_tabs.append(tab.get_tab())
                 except Error as err:
                     _LOG.info("Skipping '%s' tab in turbostat '%s' tab: error occured during tab "
@@ -152,7 +151,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             # Tabs not labelled by the "dtabs" key in the tab hierarchy are container tabs. For each
             # sub container tab, recursively call 'self._build_ctab()'.
             subdir = Path(outdir) / _DefsBase.get_fsname(tab_name)
-            subtab = self._build_ctab(tab_name, sub_hierarchy, subdir, defs)
+            subtab = self._build_ctab(tab_name, sub_hierarchy, subdir)
             if subtab:
                 sub_tabs.append(subtab)
 
@@ -194,8 +193,6 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         common_hw_cstates = set.intersection(*[set(lst) for lst in self._hw_cstates])
         common_req_cstates = set.intersection(*[set(lst) for lst in self._req_cstates])
 
-        defs = TurbostatDefs.TurbostatDefs(common_hw_cstates.union(common_req_cstates))
-
         # Maintain the order of C-states as they appeared in the raw turbostat statistic files.
         req_cstates = [cs for cs in self._req_cstates[0] if cs in common_req_cstates]
         hw_cstates = [cs for cs in self._hw_cstates[0] if cs in common_hw_cstates]
@@ -213,7 +210,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             self._reports[reportid] = sdf[list(common_metrics)]
 
         # Build L2 CTab with hierarchy represented in 'self._tab_hierarchy'.
-        return self._build_ctab(self.name, self._tab_hierarchy, self.outdir, defs)
+        return self._build_ctab(self.name, self._tab_hierarchy, self.outdir)
 
     def __init__(self, stats_paths, outdir, basedir):
         """
