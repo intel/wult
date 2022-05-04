@@ -22,7 +22,7 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
 
     name = "Totals"
 
-    def _turbostat_to_df(self, tstat, defs, path=None):
+    def _turbostat_to_df(self, tstat, path=None):
         """
         Convert the 'tstat' dictionary produced by 'TurbostatParser' to a 'pandas.DataFrame'. See
         base class '_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase' for arguments.
@@ -35,7 +35,7 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
         # want to include in the report. Initialise it by adding the timestamp column.
         tstat_reduced = {self._time_metric: [totals[_time_colname]]}
 
-        for metric in defs.info:
+        for metric in self._defs.info:
             if metric == self._time_metric:
                 continue
             if metric in totals:

@@ -49,7 +49,7 @@ class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
 
         return cpus_tstat
 
-    def _turbostat_to_df(self, tstat, defs, path):
+    def _turbostat_to_df(self, tstat, path):
         """
         Convert the 'tstat' dictionary produced by 'TurbostatParser' to a 'pandas.DataFrame'. See
         base class '_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase' for arguments.
@@ -64,7 +64,7 @@ class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
         # want to include in the report. Initialize it by adding the timestamp column.
         tstat_reduced = {self._time_metric: [totals[_time_colname]]}
 
-        for metric in defs.info:
+        for metric in self._defs.info:
             if metric == self._time_metric:
                 continue
 

@@ -34,12 +34,10 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
        * '_turbostat_to_df()'
     """
 
-    def _turbostat_to_df(self, tstat, defs, path):
+    def _turbostat_to_df(self, tstat, path):
         """
         Convert the 'tstat' dictionary to a 'pandas.DataFrame'. Arguments are as follows:
          * tstat - dictionary produced by 'TurbostatParser'.
-         * defs - 'TurbostatDefs.TurbostatDefs' instance containing the metrics to extract from
-                  'tstat'.
          * path - path of the original raw turbostat statistics file which was parsed to produce
                   'tstat'.
         """
@@ -91,11 +89,11 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
 
             # Initialise the stats 'pandas.DataFrame' ('sdf') with data from the first 'tstat'
             # dictionary.
-            sdf = self._turbostat_to_df(tstat, self._defs, path)
+            sdf = self._turbostat_to_df(tstat, path)
 
             # Add the rest of the data from the raw turbostat statistics file to 'sdf'.
             for tstat in tstat_gen:
-                df = self._turbostat_to_df(tstat, self._defs, path)
+                df = self._turbostat_to_df(tstat, path)
                 sdf = pandas.concat([sdf, df], ignore_index=True)
         except Exception as err:
             raise Error(f"error reading raw statistics file '{path}': {err}.") from None
