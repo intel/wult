@@ -52,18 +52,11 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         req_cstates = []
         hw_cstates = []
 
-        for key in tstat["totals"]:
-            # Each requestable C-state has a column in the raw turbostat statistics file in the
-            # format "Cx%".
-            if key.startswith("C") and key[1].isdigit() and key.endswith("%"):
-                req_cstates.append(key[:-1])
-                continue
-
-            # Each core/logical CPU hardware C-state has a column in the raw turbostat statistics
-            # file in the format "CPU%cx".
-            if key.startswith("CPU%"):
-                hw_cstates.append(key[4:].upper())
-                continue
+        for metric in tstat["totals"]:
+            if TurbostatDefs.is_reqcs_metric(metric):
+                req_cstates.append(metric[:-1])
+            elif TurbostatDefs.is_hwcs_metric(metric):
+                hw_cstates.append(metric[4:].upper())
 
         self._hw_cstates.append(hw_cstates)
         self._req_cstates.append(req_cstates)

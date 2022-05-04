@@ -12,6 +12,22 @@ This module provides API to turbostat metrics definitions (AKA 'defs').
 
 from wultlibs import _DefsBase
 
+def is_reqcs_metric(metric):
+    """
+    Returns 'True' or 'False' based on whether 'metric' is a metric which represents a requestable
+    C-state.
+    """
+
+    return metric.startswith("C") and metric[1].isdigit() and metric.endswith("%")
+
+def is_hwcs_metric(metric):
+    """
+    Returns 'True' or 'False' based on whether 'metric' is a metric which represents a hardware
+    C-state.
+    """
+
+    return metric.startswith("CPU%")
+
 class TurbostatDefs(_DefsBase.DefsBase):
     """This module provides API to turbostat metrics definitions (AKA 'defs')."""
 
