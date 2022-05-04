@@ -154,15 +154,25 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         # If no sub tabs were generated then return 'None'.
         return None
 
-    @staticmethod
-    def _get_tab_hierarchy(hw_cstates, req_cstates):
-        """Get the tab hierarchy which is populated using the C-states provided as arguments."""
+    def _get_tab_hierarchy(self):
+        """
+        Get the tab hierarchy which is populated using the C-states in 'self._hw_cstates' and
+        'self._req_cstates'.
+        """
 
         tab_hierarchy = {"dtabs": ["Busy%"]}
         tab_hierarchy["C-states"] = {
             "Hardware": {"dtabs":[]},
             "Requested": {"dtabs": []}
         }
+
+        # Find C-states which are common to all test results.
+        common_hw_cstates = set.intersection(*[set(lst) for lst in self._hw_cstates])
+        common_req_cstates = set.intersection(*[set(lst) for lst in self._req_cstates])
+
+        # Maintain the order of C-states as they appeared in the raw turbostat statistic files.
+        req_cstates = [cs for cs in self._req_cstates[0] if cs in common_req_cstates]
+        hw_cstates = [cs for cs in self._hw_cstates[0] if cs in common_hw_cstates]
 
         for cs in req_cstates:
             tab_hierarchy["C-states"]["Requested"]["dtabs"].append(f"{cs}%")
@@ -186,17 +196,9 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         common to all results.
         """
 
-        # Find C-states which are common to all test results.
-        common_hw_cstates = set.intersection(*[set(lst) for lst in self._hw_cstates])
-        common_req_cstates = set.intersection(*[set(lst) for lst in self._req_cstates])
-
-        # Maintain the order of C-states as they appeared in the raw turbostat statistic files.
-        req_cstates = [cs for cs in self._req_cstates[0] if cs in common_req_cstates]
-        hw_cstates = [cs for cs in self._hw_cstates[0] if cs in common_hw_cstates]
-
-        # Get a tab hierarchy with C-state related tabs for C-states which are common to all sets of
-        # results.
-        tab_hierarchy = self._get_tab_hierarchy(hw_cstates, req_cstates)
+        # All raw turbostat statistic files have been parsed so we can now get a tab hierarchy with
+        # C-state related tabs for C-states which are common to all sets of results.
+        tab_hierarchy = self._get_tab_hierarchy()
 
         # Find metrics which are common to all raw turbostat statistic files.
         metric_sets = [set(sdf.columns) for sdf in self._reports.values()]
