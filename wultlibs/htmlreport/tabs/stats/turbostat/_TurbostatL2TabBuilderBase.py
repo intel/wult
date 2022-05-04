@@ -232,14 +232,8 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         self._hw_cstates = []
         self._req_cstates = []
 
-        # Dictionary in the format {'metric': 'colname'} where 'colname' in the raw turbostat
-        # statistics file represents 'metric'.
-        self._metrics = {
-            "Busy%": "Busy%"
-        }
-
         # Add data tabs for all the metrics in 'self._metrics' to the tab hierarchy.
-        self._tab_hierarchy = {"dtabs": list(self._metrics)}
+        self._tab_hierarchy = {"dtabs": ["Busy%"]}
 
         super().__init__(stats_paths, outdir, ["turbostat.raw.txt"])
         self._basedir = basedir
