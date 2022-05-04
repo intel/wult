@@ -161,19 +161,23 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         # If no sub tabs were generated then return 'None'.
         return None
 
-    def _populate_tab_hierarchy(self, hw_cstates, req_cstates):
-        """Populate the tab hierarchy with the C-states provided as arguments."""
+    @staticmethod
+    def _get_tab_hierarchy(hw_cstates, req_cstates):
+        """Get the tab hierarchy which is populated using the C-states provided as arguments."""
 
-        self._tab_hierarchy["C-states"] = {
+        tab_hierarchy = {"dtabs": ["Busy%"]}
+        tab_hierarchy["C-states"] = {
             "Hardware": {"dtabs":[]},
             "Requested": {"dtabs": []}
         }
 
         for cs in req_cstates:
-            self._tab_hierarchy["C-states"]["Requested"]["dtabs"].append(f"{cs}%")
+            tab_hierarchy["C-states"]["Requested"]["dtabs"].append(f"{cs}%")
 
         for cs in hw_cstates:
-            self._tab_hierarchy["C-states"]["Hardware"]["dtabs"].append(f"CPU%{cs.lower()}")
+            tab_hierarchy["C-states"]["Hardware"]["dtabs"].append(f"CPU%{cs.lower()}")
+
+        return tab_hierarchy
 
     def get_tab(self):
         """
@@ -197,9 +201,9 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         req_cstates = [cs for cs in self._req_cstates[0] if cs in common_req_cstates]
         hw_cstates = [cs for cs in self._hw_cstates[0] if cs in common_hw_cstates]
 
-        # Populate the tab hierarchy with C-state related tabs for C-states which are common to all
-        # sets of results.
-        self._populate_tab_hierarchy(hw_cstates, req_cstates)
+        # Get a tab hierarchy with C-state related tabs for C-states which are common to all sets of
+        # results.
+        tab_hierarchy = self._get_tab_hierarchy(hw_cstates, req_cstates)
 
         # Find metrics which are common to all raw turbostat statistic files.
         metric_sets = [set(sdf.columns) for sdf in self._reports.values()]
@@ -210,7 +214,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             self._reports[reportid] = sdf[list(common_metrics)]
 
         # Build L2 CTab with hierarchy represented in 'self._tab_hierarchy'.
-        return self._build_ctab(self.name, self._tab_hierarchy, self.outdir)
+        return self._build_ctab(self.name, tab_hierarchy, self.outdir)
 
     def __init__(self, stats_paths, outdir, basedir):
         """
@@ -231,9 +235,6 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         # lists where each file has its own sub-list of C-states.
         self._hw_cstates = []
         self._req_cstates = []
-
-        # Add data tabs for all the metrics in 'self._metrics' to the tab hierarchy.
-        self._tab_hierarchy = {"dtabs": ["Busy%"]}
 
         super().__init__(stats_paths, outdir, ["turbostat.raw.txt"])
         self._basedir = basedir
