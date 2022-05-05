@@ -13,6 +13,21 @@ from wultlibs import _DefsBase
 class IPMIDefs(_DefsBase.DefsBase):
     """This class provides an API to the IPMI definitions (AKA 'defs')."""
 
+    @staticmethod
+    def get_metric_from_unit(unit):
+        """
+        Get the name of an IPMI metric which is measured using 'unit'. If a metric is not found,
+        returns 'None'.
+        """
+
+        if unit == "RPM":
+            return "FanSpeed"
+        if unit == "degrees C":
+            return "Temperature"
+        if unit == "Watts":
+            return "Power"
+        return None
+
     def __init__(self):
         """The class constructor."""
 
