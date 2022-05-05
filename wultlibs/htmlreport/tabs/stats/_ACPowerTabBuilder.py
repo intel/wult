@@ -67,11 +67,15 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
         raw AC Power statistics files.
         """
 
-        defs = _DefsBase.DefsBase("acpower").info
+        defs = _DefsBase.DefsBase("acpower")
 
         dtab_bldr = _DTabBuilder.DTabBuilder(self._reports, self._outdir, self._basedir,
-                                              defs["ACPower"], defs["Time"])
-        return dtab_bldr.get_tab()
+                                             defs.info[self._metric], defs.info[self._time_metric])
+        tab = dtab_bldr.get_tab()
+
+        # By default the tab will be titled 'self._metric'. Change the title to "ACPower".
+        tab.name = self.name
+        return tab
 
     def __init__(self, stats_paths, outdir):
         """
@@ -80,7 +84,7 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
         '_TabBuilderBase.TabBuilderBase'.
         """
 
-        self._metric = "ACPower"
-        self._time_metric = "Time"
+        self._metric = "P"
+        self._time_metric = "T"
 
         super().__init__(stats_paths, outdir, ["acpower.raw.txt"])
