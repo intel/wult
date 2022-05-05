@@ -88,13 +88,9 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
 
         for colname, val in ipmi.items():
             unit = val[1]
-            if unit == "RPM":
-                self._metrics["FanSpeed"].add(colname)
-            elif unit == "degrees C":
-                self._metrics["Temperature"].add(colname)
-            elif unit == "Watts":
-                self._metrics["Power"].add(colname)
-
+            metric = self._defs.get_metric_from_unit(unit)
+            if metric:
+                self._metrics[metric].add(colname)
 
     def _read_stats_file(self, path):
         """
