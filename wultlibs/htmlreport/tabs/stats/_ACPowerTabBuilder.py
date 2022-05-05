@@ -35,9 +35,6 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
         file at 'path'.
         """
 
-        time_colname = "T"
-        metric_colname = "P"
-
         sdf = pandas.DataFrame()
 
         try:
@@ -46,18 +43,12 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
         except pandas.errors.ParserError as err:
             raise Error(f"unable to parse CSV '{path}': {err}.") from None
 
-        # Confirm that the time column name is in the CSV headers.
-        if time_colname not in sdf:
-            raise Error(f"column '{time_colname}' not found in statistics file '{path}'.")
+        # Confirm that the time metric is in the CSV headers.
+        if self._time_metric not in sdf:
+            raise Error(f"column '{self._time_metric}' not found in statistics file '{path}'.")
 
         # Convert Time column from time since epoch to time since the first data point was recorded.
-        sdf[time_colname] = sdf[time_colname] - sdf[time_colname][0]
-
-        metrics = {
-            metric_colname: self._metric,
-            time_colname: self._time_metric
-        }
-        sdf.rename(columns=metrics, inplace=True)
+        sdf[self._time_metric] = sdf[self._time_metric] - sdf[self._time_metric][0]
 
         return sdf
 
