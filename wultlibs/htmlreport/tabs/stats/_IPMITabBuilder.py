@@ -14,7 +14,7 @@ import numpy
 import pandas
 
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import _DefsBase
+from wultlibs import _DefsBase, IPMIDefs
 from wultlibs.parsers import IPMIParser
 from wultlibs.htmlreport.tabs.stats import _DTabBuilder, _TabBuilderBase
 from wultlibs.htmlreport.tabs import _Tabs
@@ -50,8 +50,7 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
         col_sets = [set(sdf.columns) for sdf in self._reports.values()]
         common_cols = set.intersection(*col_sets)
 
-        defs = _DefsBase.DefsBase("ipmi")
-
+        defs = IPMIDefs.IPMIDefs()
         metric_ctabs = []
         for metric, colnames in self._metrics.items():
             coltabs = []
@@ -69,7 +68,7 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
                 col_def["metric"] = col
 
                 coltab = _DTabBuilder.DTabBuilder(self._reports, mtab_outdir, self._basedir,
-                                                   col_def, defs.info[self._time_metric])
+                                                  col_def, defs.info[self._time_metric])
                 coltabs.append(coltab.get_tab())
 
             # Only add a container tab for 'metric' if any data tabs were generated to populate it.
