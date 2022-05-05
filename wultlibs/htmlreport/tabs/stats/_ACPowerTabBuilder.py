@@ -27,7 +27,7 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
         * 'get_tab()'
     """
 
-    name = "ACPower"
+    name = "AC Power"
 
     def _read_stats_file(self, path):
         """
@@ -73,7 +73,7 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
                                              defs.info[self._metric], defs.info[self._time_metric])
         tab = dtab_bldr.get_tab()
 
-        # By default the tab will be titled 'self._metric'. Change the title to "ACPower".
+        # By default the tab will be titled 'self._metric'. Change the title to "AC Power".
         tab.name = self.name
         return tab
 
