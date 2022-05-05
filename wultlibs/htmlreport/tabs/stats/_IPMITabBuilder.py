@@ -50,7 +50,6 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
         col_sets = [set(sdf.columns) for sdf in self._reports.values()]
         common_cols = set.intersection(*col_sets)
 
-        defs = IPMIDefs.IPMIDefs()
         metric_ctabs = []
         for metric, colnames in self._metrics.items():
             coltabs = []
@@ -62,18 +61,18 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
                 # Since we use column names which aren't known until runtime as tab titles, use the
                 # defs for the metric but overwrite the 'title', 'metric' and 'fsname' attributes.
                 # Use 'copy' so that 'defs.info' can be used to create the container tab.
-                col_def = defs.info[metric].copy()
+                col_def = self._defs.info[metric].copy()
                 col_def["title"] = col
                 col_def["fsname"] = _DefsBase.get_fsname(col)
                 col_def["metric"] = col
 
                 coltab = _DTabBuilder.DTabBuilder(self._reports, mtab_outdir, self._basedir,
-                                                  col_def, defs.info[self._time_metric])
+                                                  col_def, self._defs.info[self._time_metric])
                 coltabs.append(coltab.get_tab())
 
             # Only add a container tab for 'metric' if any data tabs were generated to populate it.
             if coltabs:
-                metric_ctabs.append(_Tabs.CTabDC(defs.info[metric]["title"], coltabs))
+                metric_ctabs.append(_Tabs.CTabDC(self._defs.info[metric]["title"], coltabs))
 
         if not metric_ctabs:
             raise Error(f"no common {self.name} metrics between reports.")
@@ -151,6 +150,7 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
         '_TabBuilderBase.TabBuilderBase'.
         """
 
+        self._defs = IPMIDefs.IPMIDefs()
         self._time_metric = "Time"
 
         # Metrics in IPMI statistics can be represented by multiple columns. For example the
