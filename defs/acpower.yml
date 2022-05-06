@@ -4,7 +4,7 @@
 # Definitions for ACPower CSV file.
 
 P:
-    title: "P"
+    title: "AC Power"
     descr: >-
         A/C power of the SUT (System Under Test). Measured using an external A/C power meter at the wall
         socket level.
@@ -12,7 +12,7 @@ P:
     short_unit: "W"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
 T:
-    title: "T"
+    title: "Time Elapsed"
     descr: "Time elapsed since first measurement was taken."
     unit: "second"
     short_unit: "s"
