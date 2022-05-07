@@ -67,7 +67,7 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
                 col_def["metric"] = col
 
                 coltab = _DTabBuilder.DTabBuilder(self._reports, mtab_outdir, self._basedir,
-                                                  col_def, self._defs.info[self._time_metric])
+                                                  col_def)
                 scatter_axes = [(self._defs.info[self._time_metric], col_def)]
                 coltab.add_plots(scatter_axes, [col_def])
                 coltabs.append(coltab.get_tab())

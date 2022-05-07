@@ -129,7 +129,7 @@ class DTabBuilder:
         for mdef in chist:
             self._add_histogram(mdef, cumulative=True)
 
-    def __init__(self, reports, outdir, basedir, metric_def, time_def):
+    def __init__(self, reports, outdir, basedir, metric_def):
         """
         The class constructor. Adding a stats tab will create a 'metricname' sub-directory and
         store plots and the summary table in it. Arguments are as follows:
@@ -138,7 +138,6 @@ class DTabBuilder:
          * outdir - the output directory in which to create the 'metricname' sub-directory.
          * basedir - base directory of the report. All paths should be made relative to this.
          * metric_def - dictionary containing the definition for this metric.
-         * time_def - dictionary containing the definition for the elapsed time.
         """
 
         self._reports = reports
@@ -155,8 +154,6 @@ class DTabBuilder:
             raise Error(f"failed to create directory '{self._outdir}': {err}") from None
 
         self._metric_def = metric_def
-        self._time_def = time_def
-        self._time_metric = time_def["metric"]
         self.title = self._metric_def["title"]
         self.descr = self._metric_def["descr"]
 

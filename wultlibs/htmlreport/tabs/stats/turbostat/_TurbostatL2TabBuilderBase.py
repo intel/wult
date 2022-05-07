@@ -127,8 +127,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             for metric in tab_hierarchy["dtabs"]:
                 try:
                     tab = _DTabBuilder.DTabBuilder(self._reports, outdir, self._basedir,
-                                                   self._defs.info[metric],
-                                                   self._defs.info[self._time_metric])
+                                                   self._defs.info[metric])
                     scatter_axes = [(self._defs.info[self._time_metric], self._defs.info[metric])]
                     tab.add_plots(scatter_axes, [self._defs.info[metric]])
                     sub_tabs.append(tab.get_tab())

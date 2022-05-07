@@ -57,8 +57,7 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
         """
 
         dtab_bldr = _DTabBuilder.DTabBuilder(self._reports, self._outdir, self._basedir,
-                                             self._defs.info[self._power_metric],
-                                             self._defs.info[self._time_metric])
+                                             self._defs.info[self._power_metric])
         scatter_axes = [(self._defs.info[self._time_metric], self._defs.info[self._power_metric])]
         dtab_bldr.add_plots(scatter_axes, [self._defs.info[self._power_metric]])
         tab = dtab_bldr.get_tab()
