@@ -20,14 +20,16 @@ class DTabBuilder:
     This base class provides the capability of populating a statistics data tab.
 
     Public methods overview:
-    1. Add plots to the tab.
+    1. Add a summary table to the tab.
+       * 'add_smrytbl()'
+    2. Add plots to the tab.
        * 'add_plots()'
-    2. Generate a '_Tabs.DTabDC' instance containing plots added with 'add_plots()' and a summary
+    3. Generate a '_Tabs.DTabDC' instance containing plots added with 'add_plots()' and a summary
        table which represent all of the statistics found during initialisation.
        * 'get_tab()'
     """
 
-    def _prepare_smrys_tbl(self, smry_metrics):
+    def add_smrytbl(self, smry_metrics):
         """
         Construct a 'SummaryTable' to summarise 'smry_metrics' in the results given to the
         constructor as 'reports'. Note, 'smry_metrics' should be a list of definitions dictionaries
@@ -66,11 +68,6 @@ class DTabBuilder:
         for plot in self._plots:
             plot.generate()
             plotpaths.append(plot.outpath.relative_to(self._basedir))
-
-        try:
-            self._prepare_smrys_tbl([self._metric_def])
-        except Exception as err:
-            raise Error(f"failed to generate summary table: {err}") from None
 
         return _Tabs.DTabDC(self.title, plotpaths, self.smry_path.relative_to(self._basedir))
 

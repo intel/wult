@@ -70,6 +70,7 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
                                                   col_def)
                 scatter_axes = [(self._defs.info[self._time_metric], col_def)]
                 coltab.add_plots(scatter_axes, [col_def])
+                coltab.add_smrytbl([col_def])
                 coltabs.append(coltab.get_tab())
 
             # Only add a container tab for 'metric' if any data tabs were generated to populate it.
