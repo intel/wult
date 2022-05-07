@@ -55,8 +55,6 @@ class TurbostatTabBuilder:
                            not provided, the "Measured CPU" tab will not be generated.
         """
 
-        self._time_metric = "Time"
-
         self.l2tab_bldrs = []
 
         if measured_cpus:
