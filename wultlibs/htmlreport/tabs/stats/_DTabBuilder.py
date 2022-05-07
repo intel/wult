@@ -20,8 +20,10 @@ class DTabBuilder:
     This base class provides the capability of populating a statistics data tab.
 
     Public methods overview:
-    1. Generate a '_Tabs.DTabDC' instance containing plots and a summary table which represent all
-       of the statistics found during initialisation.
+    1. Add plots to the tab.
+       * 'add_plots()'
+    2. Generate a '_Tabs.DTabDC' instance containing plots added with 'add_plots()' and a summary
+       table which represent all of the statistics found during initialisation.
        * 'get_tab()'
     """
 
@@ -61,7 +63,7 @@ class DTabBuilder:
 
     def _add_scatter(self, xdef, ydef):
         """
-        Helper function for '_init_plots()'. Add a scatter plot to the report. Arguments are as
+        Helper function for 'add_plots()'. Add a scatter plot to the report. Arguments are as
         follows:
          * xdef - definitions dictionary for the metric on the X-axis.
          * ydef - definitions dictionary for the metric on the Y-axis.
@@ -80,7 +82,7 @@ class DTabBuilder:
 
     def _add_histogram(self, mdef, cumulative=False):
         """
-        Helper function for '_init_plots()'. Add a histogram to the report for metric with
+        Helper function for 'add_plots()'. Add a histogram to the report for metric with
         definitions dictionary 'mdef'.
         """
 
@@ -98,10 +100,10 @@ class DTabBuilder:
 
         self._plots.append(h)
 
-    def _init_plots(self, plot_axes=None, hist=None, chist=None):
+    def add_plots(self, plot_axes=None, hist=None, chist=None):
         """
-        Initialise the plots and populate them using the 'pandas.DataFrame' objects in
-        'self._reports'. Arguments are as follows:
+        Initialise the plots and populate them using the 'pandas.DataFrame' objects in 'reports'
+        which was provided to the class constructor. Arguments are as follows:
          * plot_axes - tuples of defs which represent axes to create scatter plots for in the format
                        (xdef, ydef).
          * hist - a list of defs which represent metrics to create histograms for.
@@ -109,7 +111,7 @@ class DTabBuilder:
         """
 
         if (plot_axes is None) and (hist is None) and (chist is None):
-            raise Error("no arguments provided for '_init_plots()', unable to generate plots.")
+            raise Error("no arguments provided for 'add_plots()', unable to generate plots.")
 
         if plot_axes is None:
             plot_axes = []
@@ -175,9 +177,4 @@ class DTabBuilder:
             raise Error(f"failed to generate '{self.title}' tab: no data under column"
                         f"'{self._metric}' provided.")
 
-
         self._plots = []
-        try:
-            self._init_plots([(self._time_def, self._metric_def)], [self._metric_def])
-        except Exception as err:
-            raise Error(f"failed to initialise plots: {err}") from None

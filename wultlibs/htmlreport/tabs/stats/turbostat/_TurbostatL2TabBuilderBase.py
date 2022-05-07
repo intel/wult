@@ -129,6 +129,8 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
                     tab = _DTabBuilder.DTabBuilder(self._reports, outdir, self._basedir,
                                                    self._defs.info[metric],
                                                    self._defs.info[self._time_metric])
+                    scatter_axes = [(self._defs.info[self._time_metric], self._defs.info[metric])]
+                    tab.add_plots(scatter_axes, [self._defs.info[metric]])
                     sub_tabs.append(tab.get_tab())
                 except Error as err:
                     _LOG.info("Skipping '%s' tab in turbostat '%s' tab: error occured during tab "
