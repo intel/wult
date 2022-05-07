@@ -299,7 +299,7 @@
         table .td-funcname {
             text-align: left;
         }
-    `;getWidth(t){return Math.min(100,20*(t-2))}async*makeTextFileLineIterator(t){const e=new TextDecoder("utf-8"),s=(await fetch(t)).body.getReader();let{value:i,done:r}=await s.read();i=i?e.decode(i,{stream:!0}):"";const o=/\r\n|\n|\r/gm;let n=0;for(;;){const t=o.exec(i);if(t)yield i.substring(n,t.index),n=o.lastIndex;else{if(r)break;const t=i.substr(n);({value:i,done:r}=await s.read()),i=t+(i?e.decode(i,{stream:!0}):""),n=o.lastIndex=0}}n<i.length&&(yield i.substr(n))}render(){if(!this.src)return z``;const t=this.parseSrc();return z`${zs(t,z``)}`}}customElements.define("report-table",Ns),customElements.define("intro-tbl",class extends Ns{parseHeaderLine(t){const e=t.split(";");return z`
+    `;getWidth(t){return Math.min(100,20*(t-2))}async*makeTextFileLineIterator(t){const e=new TextDecoder("utf-8"),s=(await fetch(t)).body.getReader();let{value:i,done:r}=await s.read();i=i?e.decode(i,{stream:!0}):"";const o=/\r\n|\n|\r/gm;let n=0;for(;;){const t=o.exec(i);if(t)yield i.substring(n,t.index),n=o.lastIndex;else{if(r)break;const t=i.substr(n);({value:i,done:r}=await s.read()),i=t+(i?e.decode(i,{stream:!0}):""),n=o.lastIndex=0}}n<i.length&&(yield i.substr(n))}render(){if(!this.src)return z``;const t=this.parseSrc();return z`${zs(t,z``)}`}}customElements.define("report-table",Ns),customElements.define("intro-tbl",class extends Ns{parseHeader(t){const e=t.split(";");return z`
             <tr>
                 ${e.map((t=>z`<th>${t}</th>`))}
             </tr>
@@ -311,7 +311,7 @@
                     <td>
                         ${n}
                     </td>
-                `}return z`<tr>${e}</tr>`}async parseSrc(){const t=this.makeTextFileLineIterator(this.src);let e=await t.next();if(e=e.value,!e.startsWith("H;"))throw new Hs("first line in intro table should be a header row.");e=e.slice(2);let s=this.parseHeaderLine(e);for await(let e of t){if(!e.startsWith("R;"))throw new Hs("lines following the first should all be normal table rows.");e=e.slice(2),s=z`${s}${this.parseRow(e)}`}return z`<table>${s}</table>`}});var Ls,Rs=ce`
+                `}return z`<tr>${e}</tr>`}async parseSrc(){const t=this.makeTextFileLineIterator(this.src);let e=await t.next();if(e=e.value,!e.startsWith("H;"))throw new Hs("first line in intro table file should be a header.");e=e.slice(2);let s=this.parseHeader(e);for await(let e of t){if(!e.startsWith("R;"))throw new Hs("lines following the first should all be normal table rows.");e=e.slice(2),s=z`${s}${this.parseRow(e)}`}return z`<table>${s}</table>`}});var Ls,Rs=ce`
   ${Ne}
 
   :host {
@@ -714,11 +714,19 @@
         display: block !important;
         height: auto !important;
       }
+
+      /*
+       * The hierarchy of tabs can go up to and beyond 5 levels of depth. Remove the padding on
+       * tab panels so that there is no space between each level of tabs.
+       */
+      .tab-panel::part(base) {
+        padding: 0px 0px;
+      }
     `;static properties={tabFile:{type:String},tabs:{type:Object,attribute:!1},fetchFailed:{type:Boolean,attribute:!1}};updated(t){t.has("tabFile")&&fetch(this.tabFile).then((t=>t.json())).then((t=>{this.tabs=t}))}tabTemplate(t){return t.tabs?z`
                 <sl-tab-group>
                     ${t.tabs.map((t=>z`
                         <sl-tab slot="nav" panel="${t.name}">${t.name}</sl-tab>
-                        <sl-tab-panel id="${t.name}" name="${t.name}">${this.tabTemplate(t)}</sl-tab-panel>
+                        <sl-tab-panel class="tab-panel" id="${t.name}" name="${t.name}">${this.tabTemplate(t)}</sl-tab-panel>
                     `))}
                 </sl-tab-group>
         `:z`
@@ -727,7 +735,7 @@
             <sl-tab-group>
                 ${this.tabs.map((t=>z`
                     <sl-tab slot="nav" panel="${t.name}">${t.name}</sl-tab>
-                    <sl-tab-panel name="${t.name}">${this.tabTemplate(t)}</sl-tab-panel>
+                    <sl-tab-panel class="tab-panel" name="${t.name}">${this.tabTemplate(t)}</sl-tab-panel>
                 `))}
             </sl-tab-group>
       `:z``}}customElements.define("tab-group",ri);class oi extends et{static properties={src:{type:String},reportInfo:{type:Object,attribute:!1},fetchFailed:{type:Boolean,attribute:!1}};async connectedCallback(){super.connectedCallback();try{const t=await fetch(this.src);this.reportInfo=await t.json(),this.toolname=this.reportInfo.toolname,this.titleDescr=this.reportInfo.title_descr,this.tabFile=this.reportInfo.tab_file,this.introtbl=this.reportInfo.intro_tbl}catch(t){t instanceof TypeError&&(this.fetchFailed=!0)}}corsWarning(){return z`

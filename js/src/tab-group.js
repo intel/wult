@@ -38,6 +38,14 @@ class TabGroup extends LitElement {
         display: block !important;
         height: auto !important;
       }
+
+      /*
+       * The hierarchy of tabs can go up to and beyond 5 levels of depth. Remove the padding on
+       * tab panels so that there is no space between each level of tabs.
+       */
+      .tab-panel::part(base) {
+        padding: 0px 0px;
+      }
     `
 
     static properties = {
@@ -71,7 +79,7 @@ class TabGroup extends LitElement {
                 <sl-tab-group>
                     ${tab.tabs.map((innerTab) => html`
                         <sl-tab slot="nav" panel="${innerTab.name}">${innerTab.name}</sl-tab>
-                        <sl-tab-panel id="${innerTab.name}" name="${innerTab.name}">${this.tabTemplate(innerTab)}</sl-tab-panel>
+                        <sl-tab-panel class="tab-panel" id="${innerTab.name}" name="${innerTab.name}">${this.tabTemplate(innerTab)}</sl-tab-panel>
                     `)}
                 </sl-tab-group>
         `
@@ -90,7 +98,7 @@ class TabGroup extends LitElement {
             <sl-tab-group>
                 ${this.tabs.map((tab) => html`
                     <sl-tab slot="nav" panel="${tab.name}">${tab.name}</sl-tab>
-                    <sl-tab-panel name="${tab.name}">${this.tabTemplate(tab)}</sl-tab-panel>
+                    <sl-tab-panel class="tab-panel" name="${tab.name}">${this.tabTemplate(tab)}</sl-tab-panel>
                 `
     )}
             </sl-tab-group>
