@@ -27,8 +27,12 @@ class DTabBuilder:
        * 'get_tab()'
     """
 
-    def _prepare_smrys_tbl(self):
-        """Construct a 'SummaryTable' to summarise the statistics added with '_add_stats()'."""
+    def _prepare_smrys_tbl(self, smry_metrics):
+        """
+        Construct a 'SummaryTable' to summarise 'smry_metrics' in the results given to the
+        constructor as 'reports'. Note, 'smry_metrics' should be a list of definitions dictionaries
+        for the metrics which should be included in the summary table.
+        """
 
         # List of functions to provide in the summary tables.
         smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
@@ -36,17 +40,18 @@ class DTabBuilder:
 
         smrytbl = _SummaryTable.SummaryTable()
 
-        smrytbl.add_metric(self.title, self._metric_def["short_unit"], self.descr,
-                           fmt="{:.2f}")
+        for metric in smry_metrics:
+            smrytbl.add_metric(metric["title"], metric["short_unit"], metric["descr"], fmt="{:.2f}")
 
-        for rep, df in self._reports.items():
-            # Only use a summary function if it is included in the default funcs for this metric.
-            default_funcs = set(self._metric_def["default_funcs"])
-            smry_funcs = DFSummary.filter_smry_funcs(smry_funcs, default_funcs)
+            for rep, df in self._reports.items():
+                # Only use a summary function if it is included in the default funcs for this
+                # metric.
+                default_funcs = set(metric["default_funcs"])
+                smry_funcs = DFSummary.filter_smry_funcs(smry_funcs, default_funcs)
 
-            smry_dict = DFSummary.calc_col_smry(df, self._metric, smry_funcs)
-            for fname in smry_funcs:
-                smrytbl.add_smry_func(rep, self.title, fname, smry_dict[fname])
+                smry_dict = DFSummary.calc_col_smry(df, metric["metric"], smry_funcs)
+                for fname in smry_funcs:
+                    smrytbl.add_smry_func(rep, metric["title"], fname, smry_dict[fname])
 
         smrytbl.generate(self.smry_path)
 
@@ -63,7 +68,7 @@ class DTabBuilder:
             plotpaths.append(plot.outpath.relative_to(self._basedir))
 
         try:
-            self._prepare_smrys_tbl()
+            self._prepare_smrys_tbl([self._metric_def])
         except Exception as err:
             raise Error(f"failed to generate summary table: {err}") from None
 
