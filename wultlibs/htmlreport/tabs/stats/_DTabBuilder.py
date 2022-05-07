@@ -78,15 +78,20 @@ class DTabBuilder:
 
         self._plots.append(s)
 
-    def _add_histogram(self, mdef):
+    def _add_histogram(self, mdef, cumulative=False):
         """
         Helper function for '_init_plots()'. Add a histogram to the report for metric with
         definitions dictionary 'mdef'.
         """
 
         # Initialise histogram.
-        h_path = self._outdir / f"Count-vs-{mdef['fsname']}.html"
-        h = _Histogram.Histogram(mdef["metric"], h_path, mdef["title"], mdef["short_unit"])
+        if cumulative:
+            h_path = self._outdir / f"Percentile-vs-{mdef['fsname']}.html"
+        else:
+            h_path = self._outdir / f"Count-vs-{mdef['fsname']}.html"
+
+        h = _Histogram.Histogram(mdef["metric"], h_path, mdef["title"], mdef["short_unit"],
+                                 cumulative=cumulative)
 
         for reportid, df in self._reports.items():
             h.add_df(df, reportid)
