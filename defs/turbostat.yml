@@ -10,6 +10,13 @@ Busy%:
     unit: "%"
     short_unit: "%"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+Bzy_MHz:
+    title: "Bzy_MHz"
+    descr: >-
+        The average clock rate while the CPU was not idle.
+    unit: "megahertz"
+    short_unit: "MHz"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 CPU%cx:
     title: "CPU%cx"
     descr: >-
