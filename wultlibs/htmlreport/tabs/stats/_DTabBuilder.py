@@ -30,14 +30,22 @@ class DTabBuilder:
     def _prepare_smrys_tbl(self):
         """Construct a 'SummaryTable' to summarise the statistics added with '_add_stats()'."""
 
+        # List of functions to provide in the summary tables.
+        smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
+                      "std")
+
         smrytbl = _SummaryTable.SummaryTable()
 
         smrytbl.add_metric(self.title, self._metric_def["short_unit"], self.descr,
                            fmt="{:.2f}")
 
         for rep, df in self._reports.items():
-            smry_dict = DFSummary.calc_col_smry(df, self._metric, self.smry_funcs)
-            for fname in self.smry_funcs:
+            # Only use a summary function if it is included in the default funcs for this metric.
+            default_funcs = set(self._metric_def["default_funcs"])
+            smry_funcs = DFSummary.filter_smry_funcs(smry_funcs, default_funcs)
+
+            smry_dict = DFSummary.calc_col_smry(df, self._metric, smry_funcs)
+            for fname in smry_funcs:
                 smrytbl.add_smry_func(rep, self.title, fname, smry_dict[fname])
 
         smrytbl.generate(self.smry_path)
@@ -156,13 +164,5 @@ class DTabBuilder:
         self._metric_def = metric_def
         self.title = self._metric_def["title"]
         self.descr = self._metric_def["descr"]
-
-        # List of functions to provide in the summary tables.
-        smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
-                      "std")
-
-        # Only use a summary function if it is included in the default funcs for this statistic.
-        default_funcs = set(self._metric_def["default_funcs"])
-        self.smry_funcs = DFSummary.filter_smry_funcs(smry_funcs, default_funcs)
 
         self._plots = []
