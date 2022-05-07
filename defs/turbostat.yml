@@ -17,6 +17,14 @@ Bzy_MHz:
     unit: "megahertz"
     short_unit: "MHz"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+Avg_MHz:
+    title: "Avg_MHz"
+    descr: >-
+        The number of cycles executed divided by time elapsed. Note that this includes idle-time
+        when 0 instructions are executed.
+    unit: "megahertz"
+    short_unit: "MHz"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 CPU%cx:
     title: "CPU%cx"
     descr: >-
