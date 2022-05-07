@@ -59,13 +59,8 @@ class DTabBuilder:
 
         return _Tabs.DTabDC(self.title, plotpaths, self.smry_path.relative_to(self._basedir))
 
-    def _init_plots(self):
-        """
-        Initialise the plots and populate them using the 'pandas.DataFrame' objects in
-        'self._reports'.
-        """
-
-        self._plots = []
+    def _add_scatter(self):
+        """Helper function for '_init_plots()'. Add a scatter plot to the report."""
 
         # Initialise scatter plot.
         s_path = self._outdir / f"{self._fsname}-scatter.html"
@@ -78,6 +73,9 @@ class DTabBuilder:
 
         self._plots.append(s)
 
+    def _add_histogram(self):
+        """Helper function for '_init_plots()'. Add a histogram to the report."""
+
         # Initialise histogram.
         h_path = self._outdir / f"{self._fsname}-histogram.html"
         h = _Histogram.Histogram(self._metric, h_path, self._metric_def["title"],
@@ -87,6 +85,17 @@ class DTabBuilder:
             h.add_df(df, reportid)
 
         self._plots.append(h)
+
+    def _init_plots(self):
+        """
+        Initialise the plots and populate them using the 'pandas.DataFrame' objects in
+        'self._reports'.
+        """
+
+        self._plots = []
+
+        self._add_scatter()
+        self._add_histogram()
 
     def __init__(self, reports, outdir, basedir, metric_def, time_def):
         """
