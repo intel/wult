@@ -98,28 +98,34 @@ class DTabBuilder:
 
         self._plots.append(h)
 
-    def _init_plots(self, plot_axes=None, hist=None):
+    def _init_plots(self, plot_axes=None, hist=None, chist=None):
         """
         Initialise the plots and populate them using the 'pandas.DataFrame' objects in
         'self._reports'. Arguments are as follows:
          * plot_axes - tuples of defs which represent axes to create scatter plots for in the format
                        (xdef, ydef).
          * hist - a list of defs which represent metrics to create histograms for.
+         * chist - a list of defs which represent metrics to create cumulative histograms for.
         """
 
-        if (plot_axes is None) and (hist is None):
+        if (plot_axes is None) and (hist is None) and (chist is None):
             raise Error("no arguments provided for '_init_plots()', unable to generate plots.")
 
         if plot_axes is None:
             plot_axes = []
         if hist is None:
             hist = []
+        if chist is None:
+            chist = []
 
         for xdef, ydef in plot_axes:
             self._add_scatter(xdef, ydef)
 
         for mdef in hist:
             self._add_histogram(mdef)
+
+        for mdef in chist:
+            self._add_histogram(mdef, cumulative=True)
 
     def __init__(self, reports, outdir, basedir, metric_def, time_def):
         """
