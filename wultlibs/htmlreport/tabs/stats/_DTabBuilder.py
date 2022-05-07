@@ -141,6 +141,7 @@ class DTabBuilder:
          * time_def - dictionary containing the definition for the elapsed time.
         """
 
+        self._reports = reports
         # File system-friendly tab name.
         self._fsname = metric_def["fsname"]
         self._metric = metric_def["metric"]
@@ -166,15 +167,5 @@ class DTabBuilder:
         # Only use a summary function if it is included in the default funcs for this statistic.
         default_funcs = set(self._metric_def["default_funcs"])
         self.smry_funcs = DFSummary.filter_smry_funcs(smry_funcs, default_funcs)
-
-        # Reduce 'reports' to only the metric and time columns which are needed for this tab.
-        self._reports = {}
-        for reportid, df in reports.items():
-            if self._metric in df:
-                self._reports[reportid] = df[[self._metric, self._time_metric]].copy()
-
-        if not self._reports:
-            raise Error(f"failed to generate '{self.title}' tab: no data under column"
-                        f"'{self._metric}' provided.")
 
         self._plots = []
