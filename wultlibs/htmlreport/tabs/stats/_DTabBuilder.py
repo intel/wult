@@ -93,15 +93,20 @@ class DTabBuilder:
 
         self._plots.append(h)
 
-    def _init_plots(self):
+    def _init_plots(self, plot_axes=None):
         """
         Initialise the plots and populate them using the 'pandas.DataFrame' objects in
-        'self._reports'.
+        'self._reports'. Arguments are as follows:
+         * plot_axes - tuples of defs which represent axes to create scatter plots for in the format
+                       (xdef, ydef).
         """
 
-        self._plots = []
+        if plot_axes is None:
+            plot_axes = []
 
-        self._add_scatter(self._time_def, self._metric_def)
+        for xdef, ydef in plot_axes:
+            self._add_scatter(xdef, ydef)
+
         self._add_histogram(self._metric_def)
 
     def __init__(self, reports, outdir, basedir, metric_def, time_def):
@@ -155,6 +160,6 @@ class DTabBuilder:
 
         self._plots = []
         try:
-            self._init_plots()
+            self._init_plots([(self._time_def, self._metric_def)])
         except Exception as err:
             raise Error(f"failed to initialise plots: {err}") from None
