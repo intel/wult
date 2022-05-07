@@ -78,13 +78,15 @@ class DTabBuilder:
 
         self._plots.append(s)
 
-    def _add_histogram(self):
-        """Helper function for '_init_plots()'. Add a histogram to the report."""
+    def _add_histogram(self, mdef):
+        """
+        Helper function for '_init_plots()'. Add a histogram to the report for metric with
+        definitions dictionary 'mdef'.
+        """
 
         # Initialise histogram.
-        h_path = self._outdir / f"{self._fsname}-histogram.html"
-        h = _Histogram.Histogram(self._metric, h_path, self._metric_def["title"],
-                                 self._metric_def["short_unit"])
+        h_path = self._outdir / f"Count-vs-{mdef['fsname']}.html"
+        h = _Histogram.Histogram(mdef["metric"], h_path, mdef["title"], mdef["short_unit"])
 
         for reportid, df in self._reports.items():
             h.add_df(df, reportid)
@@ -100,7 +102,7 @@ class DTabBuilder:
         self._plots = []
 
         self._add_scatter(self._time_def, self._metric_def)
-        self._add_histogram()
+        self._add_histogram(self._metric_def)
 
     def __init__(self, reports, outdir, basedir, metric_def, time_def):
         """
