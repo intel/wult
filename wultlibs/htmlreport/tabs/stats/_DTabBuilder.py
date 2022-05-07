@@ -102,6 +102,9 @@ class DTabBuilder:
          * hist - a list of defs which represent metrics to create histograms for.
         """
 
+        if (plot_axes is None) and (hist is None):
+            raise Error("no arguments provided for '_init_plots()', unable to generate plots.")
+
         if plot_axes is None:
             plot_axes = []
         if hist is None:
