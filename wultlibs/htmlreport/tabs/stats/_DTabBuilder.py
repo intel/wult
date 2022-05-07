@@ -59,14 +59,19 @@ class DTabBuilder:
 
         return _Tabs.DTabDC(self.title, plotpaths, self.smry_path.relative_to(self._basedir))
 
-    def _add_scatter(self):
-        """Helper function for '_init_plots()'. Add a scatter plot to the report."""
+    def _add_scatter(self, xdef, ydef):
+        """
+        Helper function for '_init_plots()'. Add a scatter plot to the report. Arguments are as
+        follows:
+         * xdef - definitions dictionary for the metric on the X-axis.
+         * ydef - definitions dictionary for the metric on the Y-axis.
+        """
 
         # Initialise scatter plot.
-        s_path = self._outdir / f"{self._fsname}-scatter.html"
-        s = _ScatterPlot.ScatterPlot(self._time_metric, self._metric, s_path,
-                                     self._time_def["title"], self._metric_def["title"],
-                                     self._time_def["short_unit"], self._metric_def["short_unit"])
+        fname = f"{ydef['fsname']}-vs-{xdef['fsname']}.html"
+        s_path = self._outdir / fname
+        s = _ScatterPlot.ScatterPlot(xdef["metric"], ydef["metric"], s_path, xdef["title"],
+                                     ydef["title"], xdef["short_unit"], ydef["short_unit"])
 
         for reportid, df in self._reports.items():
             s.add_df(s.reduce_df_density(df, reportid), reportid)
@@ -94,7 +99,7 @@ class DTabBuilder:
 
         self._plots = []
 
-        self._add_scatter()
+        self._add_scatter(self._time_def, self._metric_def)
         self._add_histogram()
 
     def __init__(self, reports, outdir, basedir, metric_def, time_def):
