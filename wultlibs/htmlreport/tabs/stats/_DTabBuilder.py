@@ -153,7 +153,7 @@ class DTabBuilder:
         self._reports = reports
         # File system-friendly tab name.
         self._fsname = metric_def["fsname"]
-        self._metric = metric_def["metric"]
+        self.title = metric_def["title"]
         self._basedir = basedir
         self._outdir = outdir / self._fsname
         self.smry_path = self._outdir / "summary-table.txt"
@@ -162,9 +162,5 @@ class DTabBuilder:
             self._outdir.mkdir(parents=True, exist_ok=True)
         except OSError as err:
             raise Error(f"failed to create directory '{self._outdir}': {err}") from None
-
-        self._metric_def = metric_def
-        self.title = self._metric_def["title"]
-        self.descr = self._metric_def["descr"]
 
         self._plots = []
