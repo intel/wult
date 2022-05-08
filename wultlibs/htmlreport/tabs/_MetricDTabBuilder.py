@@ -88,7 +88,7 @@ class MetricDTabBuilder:
 
         hist = self.tabname in set(hist)
         chist = self.tabname in set(chist)
-        ppaths += self._pbuilder.build_histograms(self._rsts, self.tabname , hist=hist, chist=chist)
+        ppaths += self._pbuilder.build_histograms(self.tabname, hist, chist)
         return ppaths
 
     def add_plots(self, plot_axes, hist, chist, hover_metrics):

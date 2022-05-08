@@ -156,17 +156,18 @@ class PlotsBuilder:
         hst.generate()
         return outpath
 
-    def build_histograms(self, rsts, xmetric, hist=False, chist=False):
+    def build_histograms(self, xmetric, hist=False, chist=False):
         """
         Create a histogram and/or cumulative histogram with 'xmetric' on the x-axis using data from
-        'rsts'. Returns the filepath of the generated plot HTML.
+        'rsts' which is provided to the class during initialisation. Returns the filepath of the
+        generated plot HTML.
         """
 
         def get_xbins(xcolname):
             """Returns the 'xbins' dictionary for plotly's 'Histogram()' method."""
 
             xmin, xmax = (float("inf"), -float("inf"))
-            for res in rsts:
+            for res in self._rsts:
                 # In case of non-numeric column there is only one x-value per bin.
                 if not res.is_numeric(xcolname):
                     return {"size" : 1}
