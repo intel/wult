@@ -132,10 +132,11 @@ class PlotsBuilder:
         plot.generate()
         return outpath
 
-    def _build_histogram(self, rsts, xmetric, xbins, xaxis_label, xaxis_unit, cumulative=False):
+    def _build_histogram(self, xmetric, xbins, xaxis_label, xaxis_unit, cumulative=False):
         """
-        Create histogram with 'xmetric' on the x-axis data from 'rsts'. Returns the filepath of the
-        generated plot HTML.
+        Helper function for 'build_histograms()'. Create a histogram or cumulative histogram with
+        'xmetric' on the x-axis data from 'self._rsts'. Returns the filepath of the generated plot
+        HTML.
         """
 
         if cumulative:
@@ -148,7 +149,7 @@ class PlotsBuilder:
         hst = _Histogram.Histogram(xmetric, outpath, xaxis_label, xaxis_unit, xbins=xbins,
                                    cumulative=cumulative)
 
-        for res in rsts:
+        for res in self._rsts:
             df = res.df
             df[xmetric] = self._base_unit(df, xmetric)
             hst.add_df(df, res.reportid)
@@ -184,10 +185,10 @@ class PlotsBuilder:
 
         ppaths = []
         if hist:
-            ppaths.append(self._build_histogram(rsts, xmetric, xbins, xaxis_label, xaxis_unit))
+            ppaths.append(self._build_histogram(xmetric, xbins, xaxis_label, xaxis_unit))
 
         if chist:
-            ppaths.append(self._build_histogram(rsts, xmetric, xbins, xaxis_label, xaxis_unit,
+            ppaths.append(self._build_histogram(xmetric, xbins, xaxis_label, xaxis_unit,
                                                 cumulative=True))
         return ppaths
 
