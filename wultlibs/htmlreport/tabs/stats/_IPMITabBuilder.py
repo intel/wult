@@ -66,8 +66,8 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
                 col_def["fsname"] = _DefsBase.get_fsname(col)
                 col_def["metric"] = col
 
-                coltab = _DTabBuilder.DTabBuilder(self._reports, mtab_outdir, self._basedir,
-                                                  col_def)
+                coltab = _DTabBuilder.DTabBuilder(self._reports, mtab_outdir, col_def,
+                                                  self._basedir)
                 scatter_axes = [(self._defs.info[self._time_metric], col_def)]
                 coltab.add_plots(scatter_axes, [col_def])
                 coltab.add_smrytbl([col_def])

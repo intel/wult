@@ -126,8 +126,8 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         if "dtabs" in tab_hierarchy:
             for metric in tab_hierarchy["dtabs"]:
                 try:
-                    tab = _DTabBuilder.DTabBuilder(self._reports, outdir, self._basedir,
-                                                   self._defs.info[metric])
+                    tab = _DTabBuilder.DTabBuilder(self._reports, outdir, self._defs.info[metric],
+                                                   self._basedir)
                     scatter_axes = [(self._defs.info[self._time_metric], self._defs.info[metric])]
                     tab.add_plots(scatter_axes, [self._defs.info[metric]])
                     tab.add_smrytbl([self._defs.info[metric]])

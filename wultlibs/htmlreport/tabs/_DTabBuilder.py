@@ -139,24 +139,29 @@ class DTabBuilder:
         for mdef in chist:
             self._add_histogram(mdef, cumulative=True)
 
-    def __init__(self, reports, outdir, basedir, metric_def):
+    def __init__(self, reports, outdir, metric_def, basedir=None):
         """
         The class constructor. Adding a data tab will create a sub-directory named after the metric
         in 'metric_def' and store plots and the summary table in it. Arguments are as follows:
          * reports - dictionary containing the data for each report:
                      '{reportid: dataframe}'
          * outdir - the output directory in which to create the 'metricname' sub-directory.
-         * basedir - base directory of the report. All paths should be made relative to this.
          * metric_def - dictionary containing the definition for this metric.
+         * basedir - base directory of the report. All paths should be made relative to this.
+                     Defaults to 'outdir'.
         """
 
         self._reports = reports
         # File system-friendly tab name.
         self._fsname = metric_def["fsname"]
         self.title = metric_def["title"]
-        self._basedir = basedir
         self._outdir = outdir / self._fsname
         self.smry_path = self._outdir / "summary-table.txt"
+
+        if basedir is None:
+            self._basedir = outdir
+        else:
+            self._basedir = basedir
 
         try:
             self._outdir.mkdir(parents=True, exist_ok=True)
