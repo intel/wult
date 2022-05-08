@@ -157,12 +157,12 @@ class PlotsBuilder:
 
     def build_histograms(self, rsts, xmetric, hist=False, chist=False):
         """
-        Create histograms and/or cumulative histograms with 'xmetric' on the x-axis using data from
+        Create a histogram and/or cumulative histogram with 'xmetric' on the x-axis using data from
         'rsts'. Returns the filepath of the generated plot HTML.
         """
 
         def get_xbins(xcolname):
-            """Returns the 'xbins' dictinary for plotly's 'Histrogram()' method."""
+            """Returns the 'xbins' dictionary for plotly's 'Histogram()' method."""
 
             xmin, xmax = (float("inf"), -float("inf"))
             for res in rsts:
