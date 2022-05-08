@@ -7,7 +7,7 @@
 # Authors: Adam Hawley <adam.james.hawley@intel.com>
 
 """
-This module provides the capability of populating a statistics data tab.
+This module provides the capability of populating a data tab.
 """
 
 from pepclibs.helperlibs.Exceptions import Error
@@ -17,7 +17,7 @@ from wultlibs.htmlreport.tabs import _Tabs
 
 class DTabBuilder:
     """
-    This base class provides the capability of populating a statistics data tab.
+    This base class provides the capability of populating a data tab.
 
     Public methods overview:
     1. Add a summary table to the tab.
@@ -25,7 +25,7 @@ class DTabBuilder:
     2. Add plots to the tab.
        * 'add_plots()'
     3. Generate a '_Tabs.DTabDC' instance containing plots added with 'add_plots()' and a summary
-       table which represent all of the statistics found during initialisation.
+       table added with 'add_smrytbl()'.
        * 'get_tab()'
     """
 
@@ -59,9 +59,9 @@ class DTabBuilder:
 
     def get_tab(self):
         """
-        Returns a '_Tabs.DTabDC' instance which contains an aggregate of all of the statistics found
-        in 'stats_paths', provided to the class constructor. This '_Tabs.DTabDC' can then be used to
-        populate an HTML tab.
+        Returns a '_Tabs.DTabDC' instance which contains an aggregate of all of the data given to
+        the class constructor in 'reports', provided to the class constructor. This '_Tabs.DTabDC'
+        can then be used to populate an HTML tab.
         """
 
         plotpaths = []
@@ -141,10 +141,10 @@ class DTabBuilder:
 
     def __init__(self, reports, outdir, basedir, metric_def):
         """
-        The class constructor. Adding a stats tab will create a 'metricname' sub-directory and
-        store plots and the summary table in it. Arguments are as follows:
-         * reports - dictionary containing the statistics data for each report:
-                     '{reportid: stats_df}'
+        The class constructor. Adding a data tab will create a sub-directory named after the metric
+        in 'metric_def' and store plots and the summary table in it. Arguments are as follows:
+         * reports - dictionary containing the data for each report:
+                     '{reportid: dataframe}'
          * outdir - the output directory in which to create the 'metricname' sub-directory.
          * basedir - base directory of the report. All paths should be made relative to this.
          * metric_def - dictionary containing the definition for this metric.
