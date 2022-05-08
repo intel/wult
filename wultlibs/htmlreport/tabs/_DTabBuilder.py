@@ -118,7 +118,7 @@ class DTabBuilder:
 
         self._plots.append(h)
 
-    def add_plots(self, plot_axes=None, hist=None, chist=None):
+    def add_plots(self, plot_axes=None, hist=None, chist=None, hover_defs=None):
         """
         Initialise the plots and populate them using the 'pandas.DataFrame' objects in 'reports'
         which was provided to the class constructor. Arguments are as follows:
@@ -126,6 +126,7 @@ class DTabBuilder:
                        (xdef, ydef).
          * hist - a list of defs which represent metrics to create histograms for.
          * chist - a list of defs which represent metrics to create cumulative histograms for.
+         * hover_defs - specifies which metrics hovertext in plots should be generated for.
         """
 
         if (plot_axes is None) and (hist is None) and (chist is None):
@@ -139,7 +140,7 @@ class DTabBuilder:
             chist = []
 
         for xdef, ydef in plot_axes:
-            self._add_scatter(xdef, ydef)
+            self._add_scatter(xdef, ydef, hover_defs)
 
         for mdef in hist:
             self._add_histogram(mdef)
