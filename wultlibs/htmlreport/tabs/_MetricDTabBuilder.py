@@ -94,18 +94,22 @@ class MetricDTabBuilder:
         ppaths += self._pbuilder.build_histograms(self.tabname, hist, chist)
         return ppaths
 
-    def add_plots(self, plot_axes, hist, chist, hover_metrics=None):
+    def add_plots(self, plot_axes, hist, chist, hover_defs=None):
         """
         Generate and add plots to the tab.
         Arguments are as follows:
          * plot_axes - tuples of axes to create scatter plots for in the format (xaxis, yaxis).
          * hist - metrics to create histograms for.
          * chist - metrics to create cumulative histograms for.
-         * hover_metrics - specifies which metrics hovertext in plots should be generated for.
+         * hover_defs - specifies which metrics hovertext in plots should be generated for.
+                        Defaults to the metrics given to the constructor as 'hover_metrics'.
         """
 
-        if hover_metrics is None:
+        if hover_defs is None:
             hover_metrics = self._hover_metrics
+        else:
+            metric_names = [mdef["metric"] for mdef in hover_defs]
+            hover_metrics = {reportid: metric_names for reportid in self._rsts}
 
         # The diagram/histogram transparency level. It is helpful to have some transparency in case
         # there are several test results rendered on the same diagram.
