@@ -45,7 +45,7 @@ class PlotsBuilder:
             df.loc[:, base_colname] = df[colname] / 1000000
         return df[base_colname]
 
-    def _create_hover_text(self, res, df, xcolname, ycolname):
+    def _create_hover_text(self, hov_defs, df, xcolname, ycolname):
         """
         Create and return a list containing hover text for every datapoint in the 'pandas.DataFrame'
         'df'.
@@ -58,19 +58,19 @@ class PlotsBuilder:
         #  o fmts - the hover text format.
         colnames = []
         fmts = []
-        for colname in self._hov_metrics[res.reportid]:
+        for mdef in hov_defs:
+            colname = mdef["metric"]
             if colname not in df:
                 continue
             if colname in (xcolname, ycolname):
                 # The X and Y datapoint values will be added automatically.
                 continue
 
-            defs = res.defs.info[colname]
             fmt = f"{colname}: {{"
-            if defs["type"] == "float":
+            if mdef["type"] == "float":
                 fmt += ":.2f"
             fmt += "}"
-            unit = defs.get("short_unit")
+            unit = mdef.get("short_unit")
             if unit and unit not in colname:
                 fmt += f"{unit}"
 
@@ -124,7 +124,8 @@ class PlotsBuilder:
 
         for res in self._rsts:
             df = plot.reduce_df_density(res.df, res.reportid)
-            text = self._create_hover_text(res, df, xmetric, ymetric)
+            hov_defs = [self._refdefs.info[metric] for metric in self._hov_metrics[res.reportid]]
+            text = self._create_hover_text(hov_defs, df, xmetric, ymetric)
             df[xmetric] = self._base_unit(df, xmetric)
             df[ymetric] = self._base_unit(df, ymetric)
             plot.add_df(df, res.reportid, text)
