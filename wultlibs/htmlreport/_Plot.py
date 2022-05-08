@@ -45,19 +45,16 @@ _LOG = logging.getLogger()
 class Plot:
     """This class provides the common defaults and logic for producing plotly diagrams."""
 
-    @staticmethod
-    def get_hover_text(hov_defs, df, xcolname, ycolname):
+    def get_hover_text(self, hov_defs, df):
         """
         Create and return a list containing hover text for every datapoint in the 'pandas.DataFrame'
         'df'. Arguments are as follows:
          * hov_defs - a list of definitions dictionaries which represent metrics for which hovertext
                       should be generated.
          * df - the 'pandas.DataFrame' which contains the datapoints to label.
-         * xcolname - the column of 'df' which represents the X-axis in the plot.
-         * ycolname - the column of 'df' which represents the Y-axis in the plot.
         """
 
-        _LOG.debug("Preparing hover text for '%s vs %s'", ycolname, xcolname)
+        _LOG.debug("Preparing hover text for '%s vs %s'", self.ycolname, self.xcolname)
 
         # The loop below creates the following objects.
         #  o colnames - names of the columns to include to the hover text.
@@ -68,7 +65,7 @@ class Plot:
             colname = mdef["metric"]
             if colname not in df:
                 continue
-            if colname in (xcolname, ycolname):
+            if colname in (self.xcolname, self.ycolname):
                 # The X and Y datapoint values will be added automatically.
                 continue
 
