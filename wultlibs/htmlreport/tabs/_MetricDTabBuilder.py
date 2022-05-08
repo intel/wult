@@ -94,7 +94,7 @@ class MetricDTabBuilder:
         ppaths += self._pbuilder.build_histograms(self.tabname, hist, chist)
         return ppaths
 
-    def add_plots(self, plot_axes, hist, chist, hover_metrics):
+    def add_plots(self, plot_axes, hist, chist, hover_metrics=None):
         """
         Generate and add plots to the tab.
         Arguments are as follows:
@@ -103,6 +103,9 @@ class MetricDTabBuilder:
          * chist - metrics to create cumulative histograms for.
          * hover_metrics - specifies which metrics hovertext in plots should be generated for.
         """
+
+        if hover_metrics is None:
+            hover_metrics = self._hover_metrics
 
         # The diagram/histogram transparency level. It is helpful to have some transparency in case
         # there are several test results rendered on the same diagram.
