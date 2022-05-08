@@ -105,8 +105,7 @@ class MetricDTabBuilder:
         # there are several test results rendered on the same diagram.
         opacity = 0.8 if len(self._rsts) > 1 else 1
 
-        self._pbuilder = _PlotsBuilder.PlotsBuilder(self._refres.defs, hover_metrics, opacity,
-                                                    self.outdir)
+        self._pbuilder = _PlotsBuilder.PlotsBuilder(self._rsts, hover_metrics, opacity, self.outdir)
 
         ppaths = []
         ppaths += self._generate_scatter_plots(plot_axes)

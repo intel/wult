@@ -191,11 +191,11 @@ class PlotsBuilder:
                                                 cumulative=True))
         return ppaths
 
-    def __init__(self, ref_defs, hov_metrics, opacity, outdir):
+    def __init__(self, rsts, hov_metrics, opacity, outdir):
         """
         The class constructor. The arguments are as follows:
-         * ref_defs - the definitions dictionary that will be used for finding the correct units for
-                      metrics to use in the plots.
+         * rsts - list of 'RORawResult' objects representing the raw test results to generate the
+                  plots for.
          * hov_metrics - a mapping from report_id to metric names which should be included in the
                          hovertext of scatter plots.
          * opacity - opacity of plot points on scatter diagrams.
@@ -206,6 +206,7 @@ class PlotsBuilder:
         self._opacity = opacity
         self.outdir = outdir
 
+        self._rsts = rsts
         # The reference definitions - it contains helpful information about every CSV file column,
         # for example the title, units, and so on.
-        self._refdefs = ref_defs
+        self._refdefs = rsts[0].defs
