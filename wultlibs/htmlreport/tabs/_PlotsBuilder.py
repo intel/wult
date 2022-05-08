@@ -156,6 +156,24 @@ class PlotsBuilder:
         hst.generate()
         return outpath
 
+    def _get_xbins(self, xcolname):
+        """
+        Helper function for 'build_histograms()'. Returns the 'xbins' dictionary for plotly's
+        'Histogram()' method.
+        """
+
+        xmin, xmax = (float("inf"), -float("inf"))
+        for res in self._rsts:
+            # In case of non-numeric column there is only one x-value per bin.
+            if not res.is_numeric(xcolname):
+                return {"size" : 1}
+
+            xdata = self._base_unit(res.df, xcolname)
+            xmin = min(xmin, xdata.min())
+            xmax = max(xmax, xdata.max())
+
+        return {"size" : (xmax - xmin) / 1000}
+
     def build_histograms(self, xmetric, hist=False, chist=False):
         """
         Create a histogram and/or cumulative histogram with 'xmetric' on the x-axis using data from
@@ -163,22 +181,7 @@ class PlotsBuilder:
         generated plot HTML.
         """
 
-        def get_xbins(xcolname):
-            """Returns the 'xbins' dictionary for plotly's 'Histogram()' method."""
-
-            xmin, xmax = (float("inf"), -float("inf"))
-            for res in self._rsts:
-                # In case of non-numeric column there is only one x-value per bin.
-                if not res.is_numeric(xcolname):
-                    return {"size" : 1}
-
-                xdata = self._base_unit(res.df, xcolname)
-                xmin = min(xmin, xdata.min())
-                xmax = max(xmax, xdata.max())
-
-            return {"size" : (xmax - xmin) / 1000}
-
-        xbins = get_xbins(xmetric)
+        xbins = self._get_xbins(xmetric)
 
         xaxis_def = self._refdefs.info.get(xmetric, {})
         xaxis_label = xaxis_def.get("title", xmetric)
