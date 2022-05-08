@@ -72,12 +72,15 @@ class DTabBuilder:
 
         return _Tabs.DTabDC(self.title, plotpaths, self.smry_path.relative_to(self._basedir))
 
-    def _add_scatter(self, xdef, ydef):
+    def _add_scatter(self, xdef, ydef, hover_defs=None):
         """
         Helper function for 'add_plots()'. Add a scatter plot to the report. Arguments are as
         follows:
          * xdef - definitions dictionary for the metric on the X-axis.
          * ydef - definitions dictionary for the metric on the Y-axis.
+         * hover_defs - a list of definitions dictionaries which represent metrics for which
+                        hovertext should be generated. By default, only includes hovertext for
+                        'xdef' and 'ydef'.
         """
 
         # Initialise scatter plot.
@@ -87,7 +90,11 @@ class DTabBuilder:
                                      ydef["title"], xdef["short_unit"], ydef["short_unit"])
 
         for reportid, df in self._reports.items():
-            s.add_df(s.reduce_df_density(df, reportid), reportid)
+            if hover_defs is not None:
+                hovertext = s.get_hover_text(hover_defs, df)
+            else:
+                hovertext = None
+            s.add_df(s.reduce_df_density(df, reportid), reportid, hovertext)
 
         self._plots.append(s)
 
