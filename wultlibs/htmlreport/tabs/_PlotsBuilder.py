@@ -99,15 +99,15 @@ class PlotsBuilder:
             return "s"
         return unit
 
-    def build_scatter(self, rsts, xmetric, ymetric):
+    def build_scatter(self, xmetric, ymetric):
         """
         Create scatter plots with 'xmetric' on the x-axis and 'ymetric' on the y-axis using data
-        from 'rsts'. Returns the filepath of the generated plot HTML.
+        from 'rsts' which is provided to the class during initialisation. Returns the filepath of
+        the generated plot HTML.
         """
 
-        refdefs = rsts[0].defs
-        xaxis_def = refdefs.info.get(xmetric, {})
-        yaxis_def = refdefs.info.get(ymetric, {})
+        xaxis_def = self._refdefs.info.get(xmetric, {})
+        yaxis_def = self._refdefs.info.get(ymetric, {})
         xaxis_label = xaxis_def.get("title", xmetric)
         yaxis_label = yaxis_def.get("title", xmetric)
         xaxis_fsname = xaxis_def.get("fsname", xaxis_label)
@@ -122,7 +122,7 @@ class PlotsBuilder:
                                         yaxis_label=yaxis_label, xaxis_unit=xaxis_unit,
                                         yaxis_unit=yaxis_unit)
 
-        for res in rsts:
+        for res in self._rsts:
             df = plot.reduce_df_density(res.df, res.reportid)
             text = self._create_hover_text(res, df, xmetric, ymetric)
             df[xmetric] = self._base_unit(df, xmetric)

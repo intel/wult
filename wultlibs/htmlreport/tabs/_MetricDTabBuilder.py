@@ -77,7 +77,7 @@ class MetricDTabBuilder:
 
         ppaths = []
         for xcolname, ycolname in plot_axes:
-            ppath = self._pbuilder.build_scatter(self._rsts, xcolname, ycolname)
+            ppath = self._pbuilder.build_scatter(xcolname, ycolname)
             ppaths.append(ppath)
         return ppaths
 
