@@ -29,16 +29,17 @@ class DTabBuilder:
        * 'get_tab()'
     """
 
-    def add_smrytbl(self, smry_metrics):
+    def add_smrytbl(self, smry_metrics, smry_funcs=None):
         """
-        Construct a 'SummaryTable' to summarise 'smry_metrics' in the results given to the
-        constructor as 'reports'. Note, 'smry_metrics' should be a list of definitions dictionaries
-        for the metrics which should be included in the summary table.
+        Construct a 'SummaryTable' to summarise 'smry_funcs' for 'smry_metrics' in the results given
+        to the constructor as 'reports'. Note, 'smry_metrics' should be a list of definitions
+        dictionaries for the metrics which should be included in the summary table.
         """
 
         # List of functions to provide in the summary tables.
-        smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
-                      "std")
+        if smry_funcs is None:
+            smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
+                          "std")
 
         smrytbl = _SummaryTable.SummaryTable()
 
