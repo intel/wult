@@ -132,17 +132,21 @@ class PlotsBuilder:
         plot.generate()
         return outpath
 
-    def _build_histogram(self, rsts, xmetric, xbins, xaxis_label, xaxis_unit):
+    def _build_histogram(self, rsts, xmetric, xbins, xaxis_label, xaxis_unit, cumulative=False):
         """
         Create histogram with 'xmetric' on the x-axis data from 'rsts'. Returns the filepath of the
         generated plot HTML.
         """
 
-        fname = f"Count-vs-{self._refdefs.info[xmetric]['fsname']}.html"
+        if cumulative:
+            fname = f"Count-vs-{self._refdefs.info[xmetric]['fsname']}.html"
+        else:
+            fname = f"Percentile-vs-{self._refdefs.info[xmetric]['fsname']}.html"
+
         outpath = self.outdir / fname
 
-        hst = _Histogram.Histogram(xmetric, outpath, xaxis_label=xaxis_label, xbins=xbins,
-                                   xaxis_unit=xaxis_unit)
+        hst = _Histogram.Histogram(xmetric, outpath, xaxis_label, xaxis_unit, xbins=xbins,
+                                   cumulative=cumulative)
 
         for res in rsts:
             df = res.df
