@@ -125,7 +125,7 @@ class MetricDTabBuilder:
 
         return _Tabs.DTabDC(self.tabname, ppaths, smrytblpath)
 
-    def __init__(self, rsts, outdir, metric_def, basedir=None):
+    def __init__(self, rsts, outdir, metric_def, basedir=None, hover_metrics=None):
         """
         The class constructor. Arguments as follows:
          * rsts - sets of results containing the data to represent in this tab.
@@ -134,6 +134,8 @@ class MetricDTabBuilder:
          * metric_def - dictionary containing the definition for the metric represented by this tab.
          * basedir - base directory of the report. All paths should be made relative to this.
                      Defaults to 'outdir'.
+         * hover_metrics - a mapping from report_id to metric names which should be included in the
+                           hovertext of scatter plots.
         """
 
         self.tabname = metric_def["metric"]
@@ -143,6 +145,7 @@ class MetricDTabBuilder:
         self.outdir = outdir / self._fsname
         self._pbuilder = None
         self._ppaths = []
+        self._hover_metrics = hover_metrics
 
         if basedir is None:
             self._basedir = outdir
