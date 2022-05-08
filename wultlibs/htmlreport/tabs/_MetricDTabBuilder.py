@@ -122,23 +122,29 @@ class MetricDTabBuilder:
 
         return _Tabs.DTabDC(self.tabname, ppaths, smrytblpath)
 
-    def __init__(self, rsts, outdir, metric_def):
+    def __init__(self, rsts, outdir, metric_def, basedir=None):
         """
         The class constructor. Arguments as follows:
          * rsts - sets of results containing the data to represent in this tab.
          * outdir - the output directory, in which to create the tab sub-dictionary which will
                     contain plot HTML files and summary table files.
          * metric_def - dictionary containing the definition for the metric represented by this tab.
+         * basedir - base directory of the report. All paths should be made relative to this.
+                     Defaults to 'outdir'.
         """
 
         self.tabname = metric_def["metric"]
         self._rsts = rsts
         self._refres = rsts[0]
-        self._basedir = outdir
         self._fsname = metric_def["fsname"]
         self.outdir = outdir / self._fsname
         self._pbuilder = None
         self._ppaths = []
+
+        if basedir is None:
+            self._basedir = outdir
+        else:
+            self._basedir = basedir
 
         self._smrytblpath = self.outdir / "summary-table.txt"
 
