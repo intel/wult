@@ -15,6 +15,7 @@ reports.
 
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import Trivial
+from wultlibs import DFSummary
 from wultlibs.htmlreport import _SummaryTable
 from wultlibs.htmlreport.tabs import _PlotsBuilder, _Tabs
 
@@ -32,7 +33,7 @@ class MetricDTabBuilder:
        * 'get_tab()'
     """
 
-    def add_smrytbl(self, smry_metrics, smry_funcs):
+    def add_smrytbl(self, smry_metrics, smry_funcs=None):
         """
         Summaries table includes values like average and median values for a single metric (column).
         It "summarizes" the metric. This function creates and dumps the summary table for this tab.
@@ -40,6 +41,8 @@ class MetricDTabBuilder:
         """
 
         smry_tbl = _SummaryTable.SummaryTable()
+        if smry_funcs is None:
+            smry_funcs = DFSummary.get_smry_funcs()
 
         # Summaries are calculated only for numeric metrics. Tab metric name is represented by
         # 'smrytblpath.name', this should come first.
