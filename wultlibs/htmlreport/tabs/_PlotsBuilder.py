@@ -155,25 +155,6 @@ class PlotsBuilder:
         hst.generate()
         return outpath
 
-    def _build_chistogram(self, rsts, xmetric, xbins, xaxis_label, xaxis_unit):
-        """
-        Create cumulative histograms  with 'xmetric' on the x-axis data from 'rsts'.  Returns the
-        filepath of the generated plot HTML.
-        """
-
-        ymetric = "Percentile"
-        xmetric_fsname = self._refdefs.info[xmetric]["fsname"]
-        fname = ymetric + "-vs-" + xmetric_fsname + ".html"
-        outpath = self.outdir / fname
-        chst = _Histogram.Histogram(xmetric, outpath, xaxis_label=xaxis_label,
-                                    xaxis_unit=xaxis_unit, xbins=xbins, cumulative=True)
-        for res in rsts:
-            df = res.df
-            df[xmetric] = self._base_unit(df, xmetric)
-            chst.add_df(df, res.reportid)
-        chst.generate()
-        return outpath
-
     def build_histograms(self, rsts, xmetric, hist=False, chist=False):
         """
         Create histograms and/or cumulative histograms with 'xmetric' on the x-axis using data from
