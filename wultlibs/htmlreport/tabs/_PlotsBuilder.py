@@ -134,17 +134,15 @@ class PlotsBuilder:
 
     def _build_histogram(self, rsts, xmetric, xbins, xaxis_label, xaxis_unit):
         """
-        Create histograms  with 'xmetric' on the x-axis data from 'rsts'.  Returns the filepath of
-        the generated plot HTML.
+        Create histogram with 'xmetric' on the x-axis data from 'rsts'. Returns the filepath of the
+        generated plot HTML.
         """
 
-        ymetric = "Count"
-        xmetric_fsname = self._refdefs.info[xmetric]["fsname"]
-        fname = ymetric + "-vs-" + xmetric_fsname + ".html"
+        fname = f"Count-vs-{self._refdefs.info[xmetric]['fsname']}.html"
         outpath = self.outdir / fname
 
         hst = _Histogram.Histogram(xmetric, outpath, xaxis_label=xaxis_label, xbins=xbins,
-                                    xaxis_unit=xaxis_unit)
+                                   xaxis_unit=xaxis_unit)
 
         for res in rsts:
             df = res.df
