@@ -46,6 +46,52 @@ class Plot:
     """This class provides the common defaults and logic for producing plotly diagrams."""
 
     @staticmethod
+    def get_hover_text(hov_defs, df, xcolname, ycolname):
+        """
+        Create and return a list containing hover text for every datapoint in the 'pandas.DataFrame'
+        'df'. Arguments are as follows:
+         * hov_defs - a list of definitions dictionaries which represent metrics for which hovertext
+                      should be generated.
+         * df - the 'pandas.DataFrame' which contains the datapoints to label.
+         * xcolname - the column of 'df' which represents the X-axis in the plot.
+         * ycolname - the column of 'df' which represents the Y-axis in the plot.
+        """
+
+        _LOG.debug("Preparing hover text for '%s vs %s'", ycolname, xcolname)
+
+        # The loop below creates the following objects.
+        #  o colnames - names of the columns to include to the hover text.
+        #  o fmts - the hover text format.
+        colnames = []
+        fmts = []
+        for mdef in hov_defs:
+            colname = mdef["metric"]
+            if colname not in df:
+                continue
+            if colname in (xcolname, ycolname):
+                # The X and Y datapoint values will be added automatically.
+                continue
+
+            fmt = f"{colname}: {{"
+            if mdef.get("type") == "float":
+                fmt += ":.2f"
+            fmt += "}"
+            unit = mdef.get("short_unit")
+            if unit and unit not in colname:
+                fmt += f"{unit}"
+
+            colnames.append(colname)
+            fmts.append(fmt)
+
+        text = []
+        fmt = "<br>".join(fmts)
+
+        for row in df[colnames].itertuples(index=False):
+            text.append(fmt.format(*row))
+
+        return text
+
+    @staticmethod
     def _is_numeric_col(df, colname):
         """
         Returns 'True' if column 'colname' in 'pandas.DataFrame' 'df' consists of numerical data,
