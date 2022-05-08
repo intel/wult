@@ -206,7 +206,8 @@ class PlotsBuilder:
             ppaths.append(self._build_histogram(rsts, xmetric, xbins, xaxis_label, xaxis_unit))
 
         if chist:
-            ppaths.append(self._build_chistogram(rsts, xmetric, xbins, xaxis_label, xaxis_unit))
+            ppaths.append(self._build_histogram(rsts, xmetric, xbins, xaxis_label, xaxis_unit,
+                                                cumulative=True))
         return ppaths
 
     def __init__(self, ref_defs, hov_metrics, opacity, outdir):
