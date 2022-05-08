@@ -225,7 +225,8 @@ class ReportBase:
 
             smry_metrics = Trivial.list_dedup(smry_metrics)
 
-            dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(metric, self.rsts, self.outdir)
+            metric_def = self._refres.defs.info[metric]
+            dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, metric_def)
             dtab_bldr.add_smrytbl(smry_metrics, self._smry_funcs)
             dtab_bldr.add_plots(tab_plots, self.hist, self.chist, self._hov_colnames)
             dtabs.append(dtab_bldr.get_tab())
