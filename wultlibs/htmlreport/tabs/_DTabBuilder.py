@@ -129,8 +129,8 @@ class DTabBuilder:
          * hover_defs - specifies which metrics hovertext in plots should be generated for.
         """
 
-        if (plot_axes is None) and (hist is None) and (chist is None):
-            raise Error("no arguments provided for 'add_plots()', unable to generate plots.")
+        if plot_axes is None and hist is None and chist is None:
+            raise Error("BUG: no arguments provided for 'add_plots()', unable to generate plots.")
 
         if plot_axes is None:
             plot_axes = []
