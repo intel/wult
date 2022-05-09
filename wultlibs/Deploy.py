@@ -368,15 +368,8 @@ def _deploy_drivers(args, pman):
         raise Error(f"version of the kernel{pman.hostmsg} is {kver}, and it is not new enough.\n"
                     f"Please, use kernel version {args.minkver} or newer.")
 
-    if pman.is_remote:
-        _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'",
-                   pman.hostname, drvsrc, args.stmpdir)
-        remotedst = True
-    else:
-        _LOG.debug("copying the drivers:\n   '%s' -> '%s'", drvsrc, args.stmpdir)
-        remotedst = False
-
-    pman.rsync(f"{drvsrc}/", args.stmpdir / "drivers", remotesrc=False, remotedst=remotedst)
+    _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'", pman.hostname, drvsrc, args.stmpdir)
+    pman.rsync(f"{drvsrc}/", args.stmpdir / "drivers", remotesrc=False, remotedst=pman.is_remote)
     drvsrc = args.stmpdir / "drivers"
 
     kmodpath = Path(f"/lib/modules/{kver}")
@@ -408,7 +401,7 @@ def _deploy_drivers(args, pman):
         srcpath = drvsrc / f"{name}.ko"
         dstpath = dstdir / f"{name}.ko"
         _LOG.info("Deploying driver '%s' to '%s'%s", name, dstpath, pman.hostmsg)
-        pman.rsync(srcpath, dstpath, remotesrc=True, remotedst=True)
+        pman.rsync(srcpath, dstpath, remotesrc=pman.is_remote, remotedst=pman.is_remote)
 
         if installed_module and installed_module.resolve() != dstpath.resolve():
             _LOG.debug("removing old module '%s'%s", installed_module, pman.hostmsg)
@@ -577,7 +570,7 @@ def _deploy_helpers(args, pman):
         srcdir = helpersrc/ helper
         _LOG.debug("copying helper '%s' to %s:\n  '%s' -> '%s'",
                    helper, pman.hostname, srcdir, args.stmpdir)
-        pman.rsync(f"{srcdir}", args.stmpdir, remotesrc=False, remotedst=True)
+        pman.rsync(f"{srcdir}", args.stmpdir, remotesrc=False, remotedst=pman.is_remote)
 
     deploy_path = get_helpers_deploy_path(pman, args.toolname)
 
@@ -605,7 +598,8 @@ def _deploy_helpers(args, pman):
         stdout, stderr = pman.run_verify(cmd)
         _log_cmd_output(args, stdout, stderr)
 
-        pman.rsync(str(helpersdst) + "/bin/", deploy_path, remotesrc=True, remotedst=True)
+        pman.rsync(str(helpersdst) + "/bin/", deploy_path,
+                   remotesrc=pman.is_remote, remotedst=pman.is_remote)
 
 def _remove_deploy_tmpdir(args, pman, success=True):
     """Remove temporary files."""
