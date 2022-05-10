@@ -60,7 +60,7 @@ static int set_bool(struct wult_info *wi, bool *boolptr, bool val)
 {
 	int err = 0;
 
-	spin_lock(&wi->enable_lock);
+	mutex_lock(&wi->enable_mutex);
 	if (*boolptr == val || !wi->enabled)
 		*boolptr = val;
 	else
@@ -69,7 +69,7 @@ static int set_bool(struct wult_info *wi, bool *boolptr, bool val)
 		 * interrupt focus mode.
 		 */
 		err = -EBUSY;
-	spin_unlock(&wi->enable_lock);
+	mutex_unlock(&wi->enable_mutex);
 
 	return err;
 }
@@ -205,7 +205,7 @@ static ssize_t dfs_read_rw_u64_file(struct file *file, char __user *user_buf,
 	if (err)
 		return err;
 
-	spin_lock(&wi->enable_lock);
+	mutex_lock(&wi->enable_mutex);
 	if (!strcmp(dent->d_name.name, LDIST_FROM_FNAME)) {
 		val = wi->ldist_from;
 	} else if (!strcmp(dent->d_name.name, LDIST_TO_FNAME)) {
@@ -213,7 +213,7 @@ static ssize_t dfs_read_rw_u64_file(struct file *file, char __user *user_buf,
 	} else {
 		err = -EINVAL;
 	}
-	spin_unlock(&wi->enable_lock);
+	mutex_unlock(&wi->enable_mutex);
 
 	if (err) {
 		res = -EINVAL;
@@ -254,7 +254,7 @@ static ssize_t dfs_write_rw_u64_file(struct file *file,
 		goto out;
 	}
 
-	spin_lock(&wi->enable_lock);
+	mutex_lock(&wi->enable_mutex);
 	if (wi->enabled) {
 		/* Forbid changes if measurements are enabled. */
 		err = -EBUSY;
@@ -276,14 +276,14 @@ static ssize_t dfs_write_rw_u64_file(struct file *file,
 	} else {
 		goto out_unlock;
 	}
-	spin_unlock(&wi->enable_lock);
+	mutex_unlock(&wi->enable_mutex);
 
 out:
 	debugfs_file_put(dent);
 	return len;
 
 out_unlock:
-	spin_unlock(&wi->enable_lock);
+	mutex_unlock(&wi->enable_mutex);
 	debugfs_file_put(dent);
 	return err;
 }
@@ -335,9 +335,9 @@ static int set_dcbuf_size(struct wult_info *wi, unsigned long size)
 	if (!dcbuf)
 		return -EINVAL;
 
-	spin_lock(&wi->enable_lock);
+	mutex_lock(&wi->enable_mutex);
 	if (wi->enabled) {
-		spin_unlock(&wi->enable_lock);
+		mutex_unlock(&wi->enable_mutex);
 		vfree(dcbuf);
 		return -EBUSY;
 	}
@@ -345,7 +345,7 @@ static int set_dcbuf_size(struct wult_info *wi, unsigned long size)
 		vfree(wi->dcbuf);
 	wi->dcbuf = dcbuf;
 	wi->dcbuf_size = size;
-	spin_unlock(&wi->enable_lock);
+	mutex_unlock(&wi->enable_mutex);
 
 	return 0;
 }

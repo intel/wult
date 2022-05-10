@@ -17,7 +17,6 @@
 #include <linux/random.h>
 #include <linux/slab.h>
 #include <linux/smp.h>
-#include <linux/spinlock.h>
 #include <linux/vmalloc.h>
 #include <asm/div64.h>
 #include <asm/tsc.h>
@@ -44,7 +43,7 @@ int wult_enable(void)
 {
 	int err = 0;
 
-	spin_lock(&wi->enable_lock);
+	mutex_lock(&wi->enable_mutex);
 	if (wi->enabled)
 		goto out_unlock;
 
@@ -60,19 +59,19 @@ int wult_enable(void)
 	wake_up(&wi->armer_wq);
 
 out_unlock:
-	spin_unlock(&wi->enable_lock);
+	mutex_unlock(&wi->enable_mutex);
 	return err;
 }
 
 /* Disable the measurements. */
 void wult_disable(void)
 {
-	spin_lock(&wi->enable_lock);
+	mutex_lock(&wi->enable_mutex);
 	if (wi->enabled) {
 		wi->enabled = false;
 		wult_tracer_disable(wi);
 	}
-	spin_unlock(&wi->enable_lock);
+	mutex_unlock(&wi->enable_mutex);
 }
 
 /*
@@ -105,7 +104,7 @@ static u64 pick_ldist(void)
 	u64 ldist;
 
 	/*
-	 * Note, we do not grab the 'wi->enable_lock' here because no one can
+	 * Note, we do not grab the 'wi->enable_mutex' here because no one can
 	 * change 'wi->ldist_from' and 'wi->ldist_to' while measurements are
 	 * going on.
 	 */
@@ -252,16 +251,16 @@ static int armer_kthread(void *data)
 			goto error;
 
 		/* Send the last measurement data to user-space. */
-		spin_lock(&wi->enable_lock);
+		mutex_lock(&wi->enable_mutex);
 		if (wi->enabled) {
 			err = wult_tracer_send_data(wi);
 			if (err) {
-				spin_unlock(&wi->enable_lock);
+				mutex_unlock(&wi->enable_mutex);
 				wult_err("failed to send data out, error %d", err);
 				goto error;
 			}
 		}
-		spin_unlock(&wi->enable_lock);
+		mutex_unlock(&wi->enable_mutex);
 	}
 
 	wult_dbg("exiting");
@@ -296,7 +295,7 @@ static void init_wdi(struct wult_device_info *wdi)
 	wi->cpunum = cpunum;
 	wi->ldist_from = max(wdi->ldist_min, DEFAULT_LDIST_FROM);
 	wi->ldist_to = min(wdi->ldist_max, DEFAULT_LDIST_TO);
-	spin_lock_init(&wi->enable_lock);
+	mutex_init(&wi->enable_mutex);
 	init_waitqueue_head(&wi->armer_wq);
 }
 

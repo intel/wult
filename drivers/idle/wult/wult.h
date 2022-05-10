@@ -12,7 +12,6 @@
 #include <linux/math64.h>
 #include <linux/mutex.h>
 #include <linux/printk.h>
-#include <linux/spinlock.h>
 #include <linux/wait.h>
 #include "tracer.h"
 
@@ -139,7 +138,7 @@ struct wult_info {
 	 * following fields of this structure: 'enabled', 'intr_focus',
 	 * 'early_intr', 'ldist_from', 'ldist_to'.
 	 */
-	spinlock_t enable_lock;
+	struct mutex enable_mutex;
 	/*
 	 * A buffer that is filled with data before entering a C-state in order
 	 * to make CPU cache contain dirty data (the "dirty CPU cache" feature).
