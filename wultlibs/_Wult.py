@@ -80,7 +80,7 @@ def build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    Deploy.add_deploy_cmdline_args(subparsers, OWN_NAME, Deploy.deploy_command, drivers=True,
+    Deploy.add_deploy_cmdline_args(subparsers, OWN_NAME, deploy_command, drivers=True,
                                    pyhelpers=["stats-collect"], argcomplete=argcomplete)
 
     #
@@ -397,6 +397,11 @@ def check_settings(pman, dev, csinfo, cpunum, devid):
             if powerctl.is_cpu_feature_enabled("c1e_autopromote", cpunum):
                 LOG.notice("C1E autopromote is enabled, all %s requests are converted to C1E.",
                             enabled_cstates[0])
+
+def deploy_command(args):
+    """Implements the 'deploy' command."""
+
+    Deploy.deploy_command(args)
 
 def list_stats():
     """Print information about statistics."""

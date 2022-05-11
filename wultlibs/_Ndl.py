@@ -55,7 +55,7 @@ def build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    Deploy.add_deploy_cmdline_args(subparsers, OWN_NAME, Deploy.deploy_command, drivers=True,
+    Deploy.add_deploy_cmdline_args(subparsers, OWN_NAME, deploy_command, drivers=True,
                                    helpers=["ndlrunner"], argcomplete=argcomplete)
 
     #
@@ -204,6 +204,11 @@ def parse_arguments():
     args.devtypes = ("i210",)
 
     return args
+
+def deploy_command(args):
+    """Implements the 'deploy' command."""
+
+    Deploy.deploy_command(args)
 
 def start_command(args):
     """Implements the 'start' command."""
