@@ -19,7 +19,6 @@ from pathlib import Path
 from pepclibs.helperlibs import ProcessManager, LocalProcessManager, Trivial, Logging
 from pepclibs.helperlibs import ClassHelpers, ArgParse
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from wultlibs import ToolsCommon
 from wultlibs.helperlibs import KernelVersion, RemoteHelpers
 
 _HELPERS_LOCAL_DIR = Path(".local")
@@ -619,21 +618,11 @@ def _remove_deploy_tmpdir(args, pman, success=True):
         if stmpdir:
             pman.rmtree(args.stmpdir)
 
-def deploy_command(args):
+def deploy(args, pman):
     """Implements the 'deploy' command for the 'wult' and 'ndl' tools."""
 
     args.stmpdir = None # Temporary directory on the SUT.
     args.ctmpdir = None # Temporary directory on the controller (local host).
-
-    if not args.timeout:
-        args.timeout = 8
-    else:
-        args.timeout = Trivial.str_to_num(args.timeout)
-    if not args.username:
-        args.username = "root"
-
-    if args.privkey and not args.privkey.is_file():
-        raise Error(f"path '{args.privkey}' does not exist or it is not a file")
 
     if args.pyhelpers:
         # Local temporary directory is only needed for creating stand-alone version of python
@@ -641,18 +630,17 @@ def deploy_command(args):
         with LocalProcessManager.LocalProcessManager() as lpman:
             args.ctmpdir = lpman.mkdtemp(prefix=f"{args.toolname}-")
 
-    with ToolsCommon.get_pman(args) as pman:
-        if pman.is_remote or not args.ctmpdir:
-            args.stmpdir = pman.mkdtemp(prefix=f"{args.toolname}-")
-        else:
-            args.stmpdir = args.ctmpdir
+    if pman.is_remote or not args.ctmpdir:
+        args.stmpdir = pman.mkdtemp(prefix=f"{args.toolname}-")
+    else:
+        args.stmpdir = args.ctmpdir
 
-        success = True
-        try:
-            _deploy_drivers(args, pman)
-            _deploy_helpers(args, pman)
-        except:
-            success = False
-            raise
-        finally:
-            _remove_deploy_tmpdir(args, pman, success=success)
+    success = True
+    try:
+        _deploy_drivers(args, pman)
+        _deploy_helpers(args, pman)
+    except:
+        success = False
+        raise
+    finally:
+        _remove_deploy_tmpdir(args, pman, success=success)

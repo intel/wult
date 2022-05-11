@@ -401,7 +401,8 @@ def check_settings(pman, dev, csinfo, cpunum, devid):
 def deploy_command(args):
     """Implements the 'deploy' command."""
 
-    Deploy.deploy_command(args)
+    with ToolsCommon.get_pman(args) as pman:
+        Deploy.deploy(args, pman)
 
 def list_stats():
     """Print information about statistics."""
