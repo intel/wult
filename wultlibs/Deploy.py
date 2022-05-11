@@ -7,7 +7,7 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module provides various functions impelementing the 'wult' and 'ndl' tools deployment.
+This module provides API for deploying the 'wult' and 'ndl' tools.
 """
 
 import os
