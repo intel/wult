@@ -580,9 +580,9 @@ class Deploy:
 
         The difference about helpers and pyhelpers.
         1. Helpers are stand-alone tools residing in the 'helpers' subdirectory. They do not depend
-           on any module/capability provided by this project. An example would be a stand-alone C
-           program. Helpers are deployed by compiling them on the SUT using 'make' and installing
-           them using 'make install'.
+           on any python module or capability provided by this project. An example would be a
+           stand-alone C program. Helpers are deployed by compiling them on the SUT using 'make' and
+           installing them using 'make install'.
         2. Python helpers (pyhelpers) are helper tools written in python (e.g., 'stats-collect').
            They also reside in the 'helpers' subdirectory, but they are not totally independent.
            They depend on multiple modules that come with 'wult' project (e.g.,
