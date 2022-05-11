@@ -6,30 +6,30 @@
 Busy%:
     title: "Busy%"
     descr: >-
-        The proportion of cycles during the workload which were spent in a busy state.
+        The proportion of time spent in a busy state, as opposed to an idle state. In other words,
+        this is the C0 state residency.
     unit: "%"
     short_unit: "%"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 Bzy_MHz:
     title: "Bzy_MHz"
     descr: >-
-        The average clock rate while the CPU was not idle.
+        The average CPU frequency in C0 state (C0 state is the state when the CPU executes
+        instructions, as opposed to an idle state, where the CPU does not execute instructions).
     unit: "megahertz"
     short_unit: "MHz"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 Avg_MHz:
     title: "Avg_MHz"
     descr: >-
-        The number of cycles executed divided by time elapsed. Note that this includes idle-time
-        when 0 instructions are executed.
+        The average CPU frequency. Includes both idle and non-idle periods.
     unit: "megahertz"
     short_unit: "MHz"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 CPU%cx:
     title: "CPU%cx"
     descr: >-
-        The percentage residency in core idle state ccx. These numbers are from hardware
-        residency counters.
+        The percentage of time spent in the ccx hardware C-state.
     type: "float"
     unit: "%"
     short_unit: "%"
@@ -38,8 +38,8 @@ CPU%cx:
 Cx%:
     title: "Cx%"
     descr: >-
-        The residency percentage that Linux requested Cx during the workload. Note that these are
-        software, reflecting what was requested.
+        The percentage of time spent in the Cx requestable C-state. Note, this number does not come
+        from the hardware, it is calculated by the operating system.
     type: "float"
     unit: "%"
     short_unit: "%"
@@ -47,6 +47,6 @@ Cx%:
     drop_empty: True
 Time:
     title: "Time Elapsed"
-    descr: "Time elapsed since first measurement was taken."
+    descr: "Time elapsed since the start of the measurements."
     unit: "second"
     short_unit: "s"

@@ -13,6 +13,6 @@ P:
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
 T:
     title: "Time Elapsed"
-    descr: "Time elapsed since first measurement was taken."
+    descr: "Time elapsed since the start of the measurements."
     unit: "second"
     short_unit: "s"
