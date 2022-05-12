@@ -87,7 +87,7 @@ class FTrace:
     def __init__(self, pman, timeout=30):
         """
         Class constructor. The arguments are as follows.
-          * pman - the process manager object object that defines the host to operate on.
+          * pman - the process manager object that defines the host to operate on.
           * timeout - longest time in seconds to wait for data in the trace buffer.
         """
 
