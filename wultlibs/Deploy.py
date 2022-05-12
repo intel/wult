@@ -34,7 +34,7 @@ import contextlib
 from pathlib import Path
 from pepclibs.helperlibs import ProcessManager, LocalProcessManager, Trivial, Logging
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
 
 _HELPERS_LOCAL_DIR = Path(".local")
@@ -59,6 +59,10 @@ _TOOLS_INFO = {
             },
             "stc-agent" : {
                 "category" : "pyhelpers",
+            },
+            "wultrunner" : {
+                "category" : "bpfhelpers",
+                "minkver"  : "5.15",
             },
         },
     },
@@ -158,7 +162,7 @@ def find_pyhelper_path(pyhelper, deployable=None):
     example.
       * To find path to the "stc-agent" python helper program, use:
         find_pyhelper_path("stc-agent")
-      * To find path to the "ipmi-helper" program which belongs to the "stc-agent" python heper,
+      * To find path to the "ipmi-helper" program which belongs to the "stc-agent" python helper,
         use:
         find_pyhelper_path("stc-agent", deployable="ipmi-helper")
     """
@@ -249,16 +253,33 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
     if cats["bpfhelpers"]:
+        text = """Deploy the eBPF helpers necessary for the 'hrtimer' method. This is a new
+                  experimental method that does not require kernel drivers and instead, uses an eBPF
+                  program to schedule delayed events and collect measurement data."""
+        parser.add_argument("--deploy-bpf", action="store_true", help=text)
+
         text = """eBPF helpers sources consist of 2 components: the user-space component and the
                   eBPF component. The user-space component is distributed as a source code, and must
-                  be compiled. The eBPF component is distributed as both source code and compiled
-                  form.  Therefore, the eBPF component is not compiled by default. This option is
-                  meant to be used by wult developers to re-compile the eBPF component f it was
-                  modified."""
-        arg = parser.add_argument("--rebuild-bpf", action="store_true", help=text)
+                  be compiled. The eBPF component is distributed as both source code and in binary
+                  (compiled) form. By default, the eBPF component is not re-compiled. This option is
+                  meant to be used by wult developers to re-compile the eBPF component if it was
+                  modified. This option can only be used if the '--deploy-bpf' option was
+                  specified."""
+        parser.add_argument("--rebuild-bpf", action="store_true", help=text)
 
     text = f"""Build {what} locally, instead of building on HOSTNAME (the SUT)."""
-    arg = parser.add_argument("--local-build", dest="lbuild", action="store_true", help=text)
+    parser.add_argument("--local-build", dest="lbuild", action="store_true", help=text)
+
+    text = f"""When '{toolname}' is deployed, a random temporary directory is used. Use this option
+               provide a custom path instead. It will be used as a temporary directory on both
+               local and remote hosts. This option is meant for debugging purposes."""
+    arg = parser.add_argument("--tmpdir-path", help=text)
+    if argcomplete:
+        arg.completer = argcomplete.completers.DirectoriesCompleter()
+
+    text = f"""Do not remove the temporary directories created while deploying '{toolname}'. This
+               option is meant for debugging purposes."""
+    parser.add_argument("--keep-tmpdir", action="store_true", help=text)
 
     ArgParse.add_ssh_options(parser)
 
@@ -453,14 +474,31 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         """Creates a temporary directory on the SUT and returns its path."""
 
         if not self._stmpdir:
-            self._stmpdir = self._spman.mkdtemp(prefix=f"{self._toolname}-")
+            self._stmpdir_created = True
+            if not self._tmpdir_path:
+                self._stmpdir = self._spman.mkdtemp(prefix=f"{self._toolname}-")
+            else:
+                self._stmpdir = self._tmpdir_path
+                try:
+                    self._spman.mkdir(self._stmpdir, parents=True, exist_ok=False)
+                except ErrorExists:
+                    self._stmpdir_created = False
+
         return self._stmpdir
 
     def _get_ctmpdir(self):
         """Creates a temporary directory on the controller and returns its path."""
 
         if not self._ctmpdir:
-            self._ctmpdir = self._cpman.mkdtemp(prefix=f"{self._toolname}-")
+            self._ctmpdir_created = True
+            if not self._tmpdir_path:
+                self._ctmpdir = self._cpman.mkdtemp(prefix=f"{self._toolname}-")
+            else:
+                self._ctmpdir = self._tmpdir_path
+                try:
+                    self._cpman.mkdir(self._ctmpdir, parents=True, exist_ok=False)
+                except ErrorExists:
+                    self._ctmpdir_created = False
         return self._ctmpdir
 
     def _adjust_installables(self):
@@ -478,7 +516,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 del self._insts[installable]
             self._cats["pyhelpers"] = {}
 
-        # Exclude installables whith unsatisfied minimum kernel version requirements.
+        # Exclude installables with unsatisfied minimum kernel version requirements.
         for installable in list(self._insts):
             try:
                 self._check_minkver(installable)
@@ -529,7 +567,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 ksrc_path = Path(f"/lib/modules/{self._kver}/build")
                 self._ksrc = self._bpman.abspath(ksrc_path)
             if not self._ksrc and ksrc_required:
-                raise Error(f"canont find kernel sources: '{ksrc_path}' does not "
+                raise Error(f"cannot find kernel sources: '{ksrc_path}' does not "
                             f"exist{self._bpman.hostmsg}")
         else:
             if not self._bpman.is_dir(self._ksrc):
@@ -713,7 +751,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 local_path = find_pyhelper_path(pyhelper, deployable=deployable)
                 _create_standalone_pyhelper(local_path, basedir)
 
-        # And copy the "standoline-ized" version of python helpers to the SUT.
+        # And copy the "standalone-ized" version of python helpers to the SUT.
         if self._spman.is_remote:
             for pyhelper in self._cats["pyhelpers"]:
                 srcdir = ctmpdir / pyhelper
@@ -949,19 +987,14 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             # explicit check here will generate an nice error message in case 'cc' is not available.
             self._tchk.check_tool("cc")
 
-        remove_tmpdirs = True
         try:
             self._deploy_drivers()
             self._deploy_helpers()
-        except:
-            if self._debug:
-                remove_tmpdirs = False
-            raise
         finally:
-            self._remove_tmpdirs(remove_tmpdirs=remove_tmpdirs)
+            self._remove_tmpdirs()
 
-    def __init__(self, toolname, pman=None, ksrc=None, lbuild=False, rebuild_bpf=False,
-                 debug=False):
+    def __init__(self, toolname, pman=None, ksrc=None, lbuild=False, deploy_bpf=False,
+                 rebuild_bpf=False, tmpdir_path=None, keep_tmpdir=False, debug=False):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool to create the deployment object for.
@@ -970,8 +1003,13 @@ class Deploy(ClassHelpers.SimpleCloseContext):
           * ksrc - path to the kernel sources to compile drivers against.
           * lbuild - by default, everything is built on the SUT, but if 'lbuild' is 'True', then
                      everything is built on the local host.
+          * deploy_bpf - if 'True', deploy eBPF helpers as well.
           * rebuild_bpf - if 'toolname' comes with an eBPF helper, re-build the the eBPF component
                            of the helper if this argument is 'True'. Do not re-build otherwise.
+          * tmpdir_path - if provided, use this path as a temporary directory (by default, a random
+                           temporary directory is created).
+          * keep_tmpdir - if 'False', remove the temporary directory when finished. If 'True', do
+                          not remove it.
           * debug - if 'True', be more verbose and do not remove the temporary directories in case
                     of a failure.
         """
@@ -980,9 +1018,14 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._spman = pman
         self._ksrc = ksrc
         self._lbuild = lbuild
+        self._deploy_bpf = deploy_bpf
         self._rebuild_bpf = rebuild_bpf
+        self._tmpdir_path = tmpdir_path
+        self._keep_tmpdir = keep_tmpdir
         self._debug = debug
 
+        if self._tmpdir_path:
+            self._tmpdir_path = Path(self._tmpdir_path)
         self._close_spman = pman is None
 
         self._cpman = None   # Process manager associated with the controller (local host).
@@ -990,22 +1033,27 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._stmpdir = None # Temporary directory on the SUT.
         self._ctmpdir = None # Temporary directory on the controller (local host).
         self._btmpdir = None # Temporary directory on the build host.
+        self._stmpdir_created = None # Temp. directory on the SUT has been created.
+        self._ctmpdir_created = None # Temp. directory on the controller has been created.
         self._kver = None    # Version of the kernel to compile the drivers for.
         self._tchk = None
 
         # Installables information.
-        self._insts = None
+        self._insts = {}
         # Lists of installables in every category.
-        self._cats = None
+        self._cats = { cat : {} for cat in _CATEGORIES }
 
         if self._toolname not in _TOOLS_INFO:
             raise Error(f"BUG: unsupported tool '{toolname}'")
 
-        self._insts = _TOOLS_INFO[self._toolname]["installables"].copy()
+        if self._rebuild_bpf and not self._deploy_bpf:
+            raise Error("'--rebuild-bpf' can only be used with '--deploy-bpf'")
 
-        self._cats = { cat : {} for cat in _CATEGORIES }
-        for name, info in self._insts.items():
-            self._cats[info["category"]][name] = info.copy()
+        for name, info in _TOOLS_INFO[self._toolname]["installables"].items():
+            if not self._deploy_bpf and info["category"] == "bpfhelpers":
+                continue
+            self._insts[name] = info.copy()
+            self._cats[info["category"]] = { name : info.copy()}
 
         self._cpman = LocalProcessManager.LocalProcessManager()
         if not self._spman:
@@ -1018,11 +1066,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         self._tchk = ToolChecker.ToolChecker(pman=self._bpman)
 
-    def _remove_tmpdirs(self, remove_tmpdirs=True):
-        """
-        Remove temporary directories. The arguments are as follows.
-          * remove_tmpdirs - remove temporary directories if 'True', preserve them otherwise.
-        """
+    def _remove_tmpdirs(self):
+        """Remove temporary directories."""
 
         spman = getattr(self, "_spman", None)
         cpman = getattr(self, "_cpman", None)
@@ -1032,17 +1077,17 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         ctmpdir = getattr(self, "_ctmpdir", None)
         stmpdir = getattr(self, "_stmpdir", None)
 
-        if remove_tmpdirs:
-            if stmpdir:
-                spman.rmtree(self._stmpdir)
-            if ctmpdir and ctmpdir is not stmpdir:
-                cpman.rmtree(self._ctmpdir)
-        else:
-            _LOG.info("Preserved the following temporary directories for debugging purposes:")
+        if self._keep_tmpdir:
+            _LOG.info("Preserved the following temporary directories:")
             if stmpdir:
                 _LOG.info(" * On the SUT (%s): %s", spman.hostname, stmpdir)
             if ctmpdir and ctmpdir is not stmpdir:
                 _LOG.info(" * On the controller (%s): %s", cpman.hostname, ctmpdir)
+        else:
+            if stmpdir and self._stmpdir_created:
+                spman.rmtree(self._stmpdir)
+            if ctmpdir and cpman is not spman and self._ctmpdir_created:
+                cpman.rmtree(self._ctmpdir)
 
     def close(self):
         """Uninitialize the object."""

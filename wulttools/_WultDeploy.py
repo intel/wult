@@ -15,8 +15,9 @@ from wultlibs import Deploy, ToolsCommon
 def deploy_command(args):
     """Implements the 'deploy' command."""
 
-    with ToolsCommon.get_pman(args) as pman, \
-         Deploy.Deploy(args.toolname, pman=pman, ksrc=args.ksrc,
-                lbuild=args.lbuild, rebuild_bpf=args.rebuild_bpf,
-                debug=args.debug) as depl:
-        depl.deploy()
+    with ToolsCommon.get_pman(args) as pman:
+        with Deploy.Deploy(args.toolname, pman=pman, ksrc=args.ksrc, lbuild=args.lbuild,
+                           deploy_bpf=args.deploy_bpf, rebuild_bpf=args.rebuild_bpf,
+                           tmpdir_path=args.tmpdir_path, keep_tmpdir=args.keep_tmpdir,
+                           debug=args.debug) as depl:
+            depl.deploy()
