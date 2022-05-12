@@ -118,14 +118,18 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
     drivers = _TOOLS_INFO[toolname].get("drivers", None)
     shelpers = _TOOLS_INFO[toolname].get("shelpers", [])
     pyhelpers = _TOOLS_INFO[toolname].get("pyhelpers", [])
+    bpfhelpers = _TOOLS_INFO[toolname].get("bpfhelpers", [])
 
     what = ""
-    if (shelpers or pyhelpers) and drivers:
-        what = "helpers and drivers"
-    elif shelpers or pyhelpers:
-        what = "helpers"
-    else:
+    if shelpers or pyhelpers or bpfhelpers:
+        if drivers:
+            what = "helpers and drivers"
+        else:
+            what = "helpers"
+    elif drivers:
         what = "drivers"
+    else:
+        raise Error("BUG: no helpers and no drivers")
 
     envarname = f"{toolname.upper()}_DATA_PATH"
     searchdirs = [f"{Path(sys.argv[0]).parent}/%s",
@@ -145,7 +149,7 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
                      following order) on the local host: {drvsearch}."""
     if shelpers or pyhelpers:
         helpersearch = ", ".join([name % str(_HELPERS_SRC_SUBPATH) for name in searchdirs])
-        helpernames = ", ".join(shelpers + pyhelpers)
+        helpernames = ", ".join(shelpers + pyhelpers + bpfhelpers)
         descr += f"""The {toolname} tool also depends on the following helpers: {helpernames}.
                      These helpers will be compiled on the SUT and deployed to the SUT. The sources
                      of the helpers are searched for in the following paths (and in the following
@@ -460,7 +464,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             self._bpman.rsync(f"{srcdir}", self._btmpdir, remotesrc=False,
                               remotedst=self._bpman.is_remote)
 
-        # Build non-python helpers.
+        # Build simple helpers.
         for shelper in self._shelpers:
             _LOG.info("Compiling simple helper '%s'%s", shelper, self._bpman.hostmsg)
             helperpath = f"{self._btmpdir}/{shelper}"
@@ -495,6 +499,68 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                            pyhelper, self._spman.hostname, srcdir, self._stmpdir)
                 self._spman.rsync(f"{srcdir}", self._stmpdir, remotesrc=False, remotedst=True)
 
+    def _get_libbpf_path(self):
+        """Search for 'libbpf.a' library in the kernel sources and return its path."""
+
+        # The location of 'libbpf.a' may vary, check several known paths.
+        path_suffixes = ("tools/lib/bpf", "tools/bpf/resolve_btfids/libbpf", "libbpf")
+        tried_paths = []
+        for path_sfx in path_suffixes:
+            path = self._ksrc / path_sfx / "libbpf.a"
+            tried_paths.append(str(path))
+            if self._bpman.is_file(path):
+                return path
+
+        tried = "\n * ".join(tried_paths)
+        raise ErrorNotFound(f"failed to find 'libbpf.a', tried the following paths"
+                            f"{self._bpman.hostmsg}:\n * {tried}")
+
+    def _build_libbpf(self):
+        """Build 'libbpf.a' in the kernel sources."""
+
+        cmd = f"make -C '{self._ksrc}/tools/lib/bpf'"
+        self._bpman.run_verify(cmd)
+
+    def _prepare_bpfhelpers(self, helpersrc):
+        """
+        Build and prepare eBPF helpers for deployment. The arguments are as follows:
+          * helpersrc - path to the helpers base directory on the controller.
+        """
+
+        from pepclibs.helperlibs import ToolChecker # pylint: disable=import-outside-toplevel
+
+        # Copy eBPF helpers to the temporary directory on the build host.
+        for bpfhelper in self._bpfhelpers:
+            srcdir = helpersrc/ bpfhelper
+            _LOG.debug("copying eBPF helper '%s' to %s:\n  '%s' -> '%s'",
+                       bpfhelper, self._bpman.hostname, srcdir, self._btmpdir)
+            self._bpman.rsync(srcdir, self._btmpdir, remotesrc=False,
+                              remotedst=self._bpman.is_remote)
+
+        # eBPF helpers require 'bpftool' and 'clang' to be installed on the build host.
+        with ToolChecker.ToolChecker(pman=self._bpman) as tchk:
+            bpftool_path = tchk.check_tool("bpftool")
+            clang_path = tchk.check_tool("clang")
+
+        # eBPF helpers also require 'libbpf.a', which should be in the kernel source.
+        try:
+            libbpf_path = self._get_libbpf_path()
+        except ErrorNotFound as find_err:
+            try:
+                self._build_libbpf()
+            except Error as build_err:
+                raise Error(f"{build_err}\n{find_err}") from build_err
+
+            libbpf_path = self._get_libbpf_path()
+
+        # Build eBPF helpers.
+        for bpfhelper in self._bpfhelpers:
+            _LOG.info("Compiling eBPF helper '%s'%s", bpfhelper, self._bpman.hostmsg)
+            cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{self._ksrc}' " \
+                  f"CLANG='{clang_path}' BPFTOOL='{bpftool_path}' LIBBPF={libbpf_path}"
+            stdout, stderr = self._bpman.run_verify(cmd)
+            self._log_cmd_output(stdout, stderr)
+
     def _deploy_helpers(self):
         """Deploy helpers (including python helpers) to the SUT."""
 
@@ -503,7 +569,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if not self._spman.is_remote:
             self._pyhelpers = []
 
-        all_helpers = self._shelpers + self._pyhelpers
+        all_helpers = self._shelpers + self._pyhelpers + self._bpfhelpers
         if not all_helpers:
             return
 
@@ -523,6 +589,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         self._prepare_shelpers(helpersrc)
         self._prepare_pyhelpers(helpersrc)
+        self._prepare_bpfhelpers(helpersrc)
 
         deploy_path = get_helpers_deploy_path(self._toolname, self._spman)
 
@@ -718,6 +785,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._drivers = None
         self._shelpers = []
         self._pyhelpers = []
+        self._bpfhelpers = []
 
         self._cpman = LocalProcessManager.LocalProcessManager()
         if not self._spman:
