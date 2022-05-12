@@ -213,7 +213,7 @@ class Deploy:
     This module provides API for deploying the 'wult' and 'ndl' tools. Provides the following
     methods.
 
-     * 'deploy()' - deploy everything (drivers, helpers) to the SUT.
+     * 'deploy()' - deploy everything (drivers, helper programs) to the SUT.
      * 'is_deploy_needed()' - check if re-deployment is needed.
      * 'add_cmdline_args()' - add deployment-relaged command line arguments.
     """
@@ -227,9 +227,9 @@ class Deploy:
         """
 
         what = ""
-        if (self._helpers or self._pyhelpers) and self._drivers:
+        if (self._shelpers or self._pyhelpers) and self._drivers:
             what = "helpers and drivers"
-        elif self._helpers or self._pyhelpers:
+        elif self._shelpers or self._pyhelpers:
             what = "helpers"
         else:
             what = "drivers"
@@ -247,9 +247,9 @@ class Deploy:
             drvsearch = ", ".join([name % str(_DRV_SRC_SUBPATH) for name in searchdirs])
             descr += f"""The drivers are searched for in the following directories (and in the
                          following order) on the local host: {drvsearch}."""
-        if self._helpers or self._pyhelpers:
+        if self._shelpers or self._pyhelpers:
             helpersearch = ", ".join([name % str(_HELPERS_SRC_SUBPATH) for name in searchdirs])
-            helpernames = ", ".join(self._helpers + self._pyhelpers)
+            helpernames = ", ".join(self._shelpers + self._pyhelpers)
             descr += f"""The {self._toolname} tool also depends on the following helpers:
                          {helpernames}. These helpers will be compiled on the SUT and deployed to
                          the SUT. The sources of the helpers are searched for in the following paths
@@ -272,15 +272,10 @@ class Deploy:
         ArgParse.add_ssh_options(parser)
 
         parser.set_defaults(func=func)
-        parser.set_defaults(helpers=self._helpers)
-        parser.set_defaults(pyhelpers=self._pyhelpers)
 
     @staticmethod
     def _get_newest_mtime(paths):
-        """
-        This is a helper for 'is_deploy_needed()' which finds and returns the most recent
-        modification of files in paths 'paths'.
-        """
+        """Find and return the most recent modification time of files in paths 'paths'."""
 
         newest = 0
         for path in paths:
@@ -301,10 +296,7 @@ class Deploy:
         return newest
 
     def _deployable_not_found(self, what):
-        """
-        This is a helper for 'is_deploy_needed()' which raises an exception in case a required
-        driver or helper was not found on the SUT.
-        """
+        """Raise an exception in case a required driver or helper was not found on the SUT."""
 
         err = f"{what} was not found on {self._spman.hostmsg}. Please, run:\n" \
               f"{self._toolname} deploy"
@@ -313,10 +305,7 @@ class Deploy:
         raise Error(err)
 
     def _get_module_path(self, name):
-        """
-        This is a helper for 'is_deploy_needed()' which returns path to installed module 'name'.
-        Returns 'None', if the module was not found.
-        """
+        """Return path to installed module 'name'. Returns 'None', if the module was not found."""
 
         cmd = f"modinfo -n {name}"
         stdout, _, exitcode = self._spman.run(cmd)
@@ -329,9 +318,7 @@ class Deploy:
         return None
 
     def get_helpers_deploy_path(self):
-        """
-        Returns path to the helpers deployment directory on the SUT.
-        """
+        """Return path to the helpers deployment directory on the SUT."""
 
         helpers_path = os.environ.get(f"{self._toolname.upper()}_HELPERSPATH")
         if not helpers_path:
@@ -359,17 +346,16 @@ class Deploy:
         dinfos["drivers"] = {"src" : [srcpath], "dst" : dstpaths}
 
         # Add non-python helpers' deploy information.
-        if self._helpers or self._pyhelpers:
+        if self._shelpers or self._pyhelpers:
             helpers_deploy_path = self.get_helpers_deploy_path()
 
-        if self._helpers:
-            for helper in self._helpers:
-                srcpath = find_app_data("wult", _HELPERS_SRC_SUBPATH / helper,
-                                        appname=self._toolname)
-                dstpaths = []
-                for deployable in _get_deployables(srcpath):
-                    dstpaths.append(helpers_deploy_path / deployable)
-                dinfos[helper] = {"src" : [srcpath], "dst" : dstpaths}
+        for shelper in self._shelpers:
+            srcpath = find_app_data("wult", _HELPERS_SRC_SUBPATH / shelper,
+                                    appname=self._toolname)
+            dstpaths = []
+            for deployable in _get_deployables(srcpath):
+                dstpaths.append(helpers_deploy_path / deployable)
+            dinfos[shelper] = {"src" : [srcpath], "dst" : dstpaths}
 
         # Add python helpers' deploy information. Note, python helpers are deployed only to the
         # remote host. The local copy of python helpers comes via 'setup.py'. Therefore, check them
@@ -429,37 +415,37 @@ class Deploy:
             if stderr:
                 _LOG.log(Logging.ERRINFO, stderr)
 
-    def _prepare_helpers(self, helpersrc):
+    def _prepare_shelpers(self, helpersrc):
         """
-        Build and prepare python helpers for deployment. The arguments are as follows:
-          * helpersrc - bath to the helpers base directory on the controller.
+        Build and prepare simple helpers for deployment. The arguments are as follows:
+          * helpersrc - path to the helpers base directory on the controller.
         """
 
-        # Copy non-python helpers to the temporary directory on the SUT.
-        for helper in self._helpers:
-            srcdir = helpersrc/ helper
-            _LOG.debug("copying helper '%s' to %s:\n  '%s' -> '%s'",
-                       helper, self._spman.hostname, srcdir, self._stmpdir)
+        # Copy simple helpers to the temporary directory on the SUT.
+        for shelper in self._shelpers:
+            srcdir = helpersrc/ shelper
+            _LOG.debug("copying simple helper '%s' to %s:\n  '%s' -> '%s'",
+                       shelper, self._spman.hostname, srcdir, self._stmpdir)
             self._spman.rsync(f"{srcdir}", self._stmpdir, remotesrc=False,
                               remotedst=self._spman.is_remote)
 
         # Build non-python helpers on the SUT.
-        for helper in self._helpers:
-            _LOG.info("Compiling helper '%s'%s", helper, self._spman.hostmsg)
-            helperpath = f"{self._stmpdir}/{helper}"
+        for shelper in self._shelpers:
+            _LOG.info("Compiling simple helper '%s'%s", shelper, self._spman.hostmsg)
+            helperpath = f"{self._stmpdir}/{shelper}"
             stdout, stderr = self._spman.run_verify(f"make -C '{helperpath}'")
             self._log_cmd_output(stdout, stderr)
 
     def _prepare_pyhelpers(self, helpersrc):
         """
         Build and prepare python helpers for deployment. The arguments are as follows:
-          * helpersrc - bath to the helpers base directory on the controller.
+          * helpersrc - path to the helpers base directory on the controller.
         """
 
         # Copy python helpers to the temporary directory on the controller.
         for pyhelper in self._pyhelpers:
             srcdir = helpersrc / pyhelper
-            _LOG.debug("copying helper %s:\n  '%s' -> '%s'", pyhelper, srcdir, self._ctmpdir)
+            _LOG.debug("copying python helper %s:\n  '%s' -> '%s'", pyhelper, srcdir, self._ctmpdir)
             self._cpman.rsync(f"{srcdir}", self._ctmpdir, remotesrc=False, remotedst=False)
 
         # Build stand-alone version of every python helper.
@@ -474,7 +460,7 @@ class Deploy:
         if self._spman.is_remote:
             for pyhelper in self._pyhelpers:
                 srcdir = self._ctmpdir / pyhelper
-                _LOG.debug("copying helper '%s' to %s:\n  '%s' -> '%s'",
+                _LOG.debug("copying python helper '%s' to %s:\n  '%s' -> '%s'",
                            pyhelper, self._spman.hostname, srcdir, self._stmpdir)
                 self._spman.rsync(f"{srcdir}", self._stmpdir, remotesrc=False, remotedst=True)
 
@@ -486,7 +472,7 @@ class Deploy:
         if not self._spman.is_remote:
             self._pyhelpers = []
 
-        all_helpers = self._helpers + self._pyhelpers
+        all_helpers = self._shelpers + self._pyhelpers
         if not all_helpers:
             return
 
@@ -504,7 +490,7 @@ class Deploy:
             if not helperdir.is_dir():
                 raise Error(f"path '{helperdir}' does not exist or it is not a directory")
 
-        self._prepare_helpers(helpersrc)
+        self._prepare_shelpers(helpersrc)
         self._prepare_pyhelpers(helpersrc)
 
         deploy_path = self.get_helpers_deploy_path()
@@ -592,20 +578,14 @@ class Deploy:
         """
         Deploy all the required material to the SUT (drivers, helpers, etc).
 
-        The difference about helpers and pyhelpers.
-        1. Helpers are stand-alone tools residing in the 'helpers' subdirectory. They do not depend
-           on any python module or capability provided by this project. An example would be a
-           stand-alone C program. Helpers are deployed by compiling them on the SUT using 'make' and
-           installing them using 'make install'.
-        2. Python helpers (pyhelpers) are helper tools written in python (e.g., 'stats-collect').
-           They also reside in the 'helpers' subdirectory, but they are not totally independent.
-           They depend on multiple modules that come with 'wult' project (e.g.,
-           'helperlibs/LocalProcessManager.py'). Therefore, in order to deploy python helpers, we
-           need to deploy the dependencies. And the way we do this depends on whether we deploy to
-           the local system or to a remote system. In case of the local system, python helpers are
-           deployed by 'setup.py', just the 'wult' tool is deployed. In case of a remote system, we
-           build and deploy a stand-alone version of the helper using python '__main__.py' + zip
-           archive mechanism.
+        We distinguish between 3 type of helper programs, or just helpers: simple helpers and python
+        helpers.
+
+        1. Simple helpers (shelpers) are stand-alone independent programs, which come in form of a
+           single executable file.
+        2. Python helpers (pyhelpers) are helper programs written in python. Unlike simple helpers,
+           they are not totally independent, but they depend on various python modules. Deploying a
+           python helpers is trickier because all python modules should also be deployed.
         """
 
         try:
@@ -689,7 +669,7 @@ class Deploy:
         self._ksrc = None    # Path to the kernel sources to compile the drivers for.
 
         self._drivers = None
-        self._helpers = []
+        self._shelpers = []
         self._pyhelpers = []
 
         self._cpman = LocalProcessManager.LocalProcessManager()
@@ -702,7 +682,7 @@ class Deploy:
             self._init_kernel_info("5.6")
         elif self._toolname == "ndl":
             self._drivers = True
-            self._helpers = ["ndlrunner"]
+            self._shelpers = ["ndlrunner"]
             self._init_kernel_info("5.1-rc1")
         else:
             raise Error(f"BUG: unsupported tool '{toolname}'")
