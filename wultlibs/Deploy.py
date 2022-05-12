@@ -36,20 +36,6 @@ def get_helpers_deploy_path(pman, toolname):
         helpers_path = pman.get_homedir() / _HELPERS_LOCAL_DIR / "bin"
     return Path(helpers_path)
 
-def _get_deployables(srcpath, pman=None):
-    """
-    Returns the list of "deployables" (driver names or helper tool names) provided by tools or
-    drivers source code directory 'srcpath' on a host defined by 'pman'.
-    """
-
-    with ProcessManager.pman_or_local(pman) as wpman:
-        cmd = f"make --silent -C '{srcpath}' list_deployables"
-        deployables, _ = wpman.run_verify(cmd)
-        if deployables:
-            deployables = Trivial.split_csv_line(deployables, sep=" ")
-
-    return deployables
-
 def find_app_data(prjname, subpath, appname=None, descr=None):
     """
     Search for application 'appname' data. The data are searched for in the 'subpath' sub-path of
@@ -101,6 +87,20 @@ def find_app_data(prjname, subpath, appname=None, descr=None):
 
     raise Error(f"cannot find {descr}, searched in the following directories on local host:\n"
                 f"{dirs}")
+
+def _get_deployables(srcpath, pman=None):
+    """
+    Returns the list of "deployables" (driver names or helper tool names) provided by tools or
+    drivers source code directory 'srcpath' on a host defined by 'pman'.
+    """
+
+    with ProcessManager.pman_or_local(pman) as wpman:
+        cmd = f"make --silent -C '{srcpath}' list_deployables"
+        deployables, _ = wpman.run_verify(cmd)
+        if deployables:
+            deployables = Trivial.split_csv_line(deployables, sep=" ")
+
+    return deployables
 
 def _get_pyhelper_dependencies(script_path):
     """
