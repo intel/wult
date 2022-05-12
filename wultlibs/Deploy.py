@@ -429,31 +429,32 @@ class Deploy:
             if stderr:
                 _LOG.log(Logging.ERRINFO, stderr)
 
-    def _deploy_helpers(self):
-        """Deploy helpers (including python helpers) to the SUT."""
+    def _prepare_helpers(self, helpersrc):
+        """
+        Build and prepare python helpers for deployment. The arguments are as follows:
+          * helpersrc - bath to the helpers base directory on the controller.
+        """
 
-        # Python helpers need to be deployd only to a remote host. The local host already has them
-        # deployed by 'setup.py'.
-        if not self._spman.is_remote:
-            self._pyhelpers = []
+        # Copy non-python helpers to the temporary directory on the SUT.
+        for helper in self._helpers:
+            srcdir = helpersrc/ helper
+            _LOG.debug("copying helper '%s' to %s:\n  '%s' -> '%s'",
+                       helper, self._spman.hostname, srcdir, self._stmpdir)
+            self._spman.rsync(f"{srcdir}", self._stmpdir, remotesrc=False,
+                              remotedst=self._spman.is_remote)
 
-        helpers = self._helpers + self._pyhelpers
-        if not helpers:
-            return
+        # Build non-python helpers on the SUT.
+        for helper in self._helpers:
+            _LOG.info("Compiling helper '%s'%s", helper, self._spman.hostmsg)
+            helperpath = f"{self._stmpdir}/{helper}"
+            stdout, stderr = self._spman.run_verify(f"make -C '{helperpath}'")
+            self._log_cmd_output(stdout, stderr)
 
-        # We assume all helpers are in the same base directory.
-        helper_path = _HELPERS_SRC_SUBPATH/f"{helpers[0]}"
-        helpersrc = find_app_data("wult", helper_path, descr=f"{self._toolname} helper sources")
-        helpersrc = helpersrc.parent
-
-        if not helpersrc.is_dir():
-            raise Error(f"path '{helpersrc}' does not exist or it is not a directory")
-
-        # Make sure all helpers are available.
-        for helper in helpers:
-            helperdir = helpersrc / helper
-            if not helperdir.is_dir():
-                raise Error(f"path '{helperdir}' does not exist or it is not a directory")
+    def _prepare_pyhelpers(self, helpersrc):
+        """
+        Build and prepare python helpers for deployment. The arguments are as follows:
+          * helpersrc - bath to the helpers base directory on the controller.
+        """
 
         # Copy python helpers to the temporary directory on the controller.
         for pyhelper in self._pyhelpers:
@@ -477,23 +478,36 @@ class Deploy:
                            pyhelper, self._spman.hostname, srcdir, self._stmpdir)
                 self._spman.rsync(f"{srcdir}", self._stmpdir, remotesrc=False, remotedst=True)
 
-        # Copy non-python helpers to the temporary directory on the SUT.
-        for helper in self._helpers:
-            srcdir = helpersrc/ helper
-            _LOG.debug("copying helper '%s' to %s:\n  '%s' -> '%s'",
-                       helper, self._spman.hostname, srcdir, self._stmpdir)
-            self._spman.rsync(f"{srcdir}", self._stmpdir, remotesrc=False,
-                              remotedst=self._spman.is_remote)
+    def _deploy_helpers(self):
+        """Deploy helpers (including python helpers) to the SUT."""
+
+        # Python helpers need to be deployd only to a remote host. The local host already has them
+        # deployed by 'setup.py'.
+        if not self._spman.is_remote:
+            self._pyhelpers = []
+
+        all_helpers = self._helpers + self._pyhelpers
+        if not all_helpers:
+            return
+
+        # We assume all helpers are in the same base directory.
+        helper_path = _HELPERS_SRC_SUBPATH/f"{all_helpers[0]}"
+        helpersrc = find_app_data("wult", helper_path, descr=f"{self._toolname} helper sources")
+        helpersrc = helpersrc.parent
+
+        if not helpersrc.is_dir():
+            raise Error(f"path '{helpersrc}' does not exist or it is not a directory")
+
+        # Make sure all helpers are available.
+        for helper in all_helpers:
+            helperdir = helpersrc / helper
+            if not helperdir.is_dir():
+                raise Error(f"path '{helperdir}' does not exist or it is not a directory")
+
+        self._prepare_helpers(helpersrc)
+        self._prepare_pyhelpers(helpersrc)
 
         deploy_path = self.get_helpers_deploy_path()
-
-        # Build the non-python helpers on the SUT.
-        if self._helpers:
-            for helper in self._helpers:
-                _LOG.info("Compiling helper '%s'%s", helper, self._spman.hostmsg)
-                helperpath = f"{self._stmpdir}/{helper}"
-                stdout, stderr = self._spman.run_verify(f"make -C '{helperpath}'")
-                self._log_cmd_output(stdout, stderr)
 
         # Make sure the the destination deployment directory exists.
         self._spman.mkdir(deploy_path, parents=True, exist_ok=True)
@@ -504,7 +518,7 @@ class Deploy:
         helpersdst = self._stmpdir / "helpers_deployed"
         _LOG.debug("deploying helpers to '%s'%s", helpersdst, self._spman.hostmsg)
 
-        for helper in helpers:
+        for helper in all_helpers:
             helperpath = f"{self._stmpdir}/{helper}"
 
             cmd = f"make -C '{helperpath}' install PREFIX='{helpersdst}'"
