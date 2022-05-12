@@ -26,87 +26,6 @@ _HELPERS_SRC_SUBPATH = Path("helpers")
 
 _LOG = logging.getLogger()
 
-def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=None, pyhelpers=None,
-                            argcomplete=None):
-    """
-    Add the the 'deploy' command. The input arguments are as follows.
-      o subparsers - the 'argparse' subparsers to add the 'deploy' command to.
-      o toolname - name of the tool the command line arguments belong to.
-      o func - the 'deploy' command handling function.
-      o drivers - whether out-of-tree kernel drivers have to be deployed to the SUT.
-      o helpers - list of helpers required to be deployed on the SUT.
-      o pyhelpers - list of python helpers required to be deployed on the SUT.
-      o argcomplete - optional 'argcomplete' command-line arguments completer object.
-
-      The difference about helpers and pyhelpers.
-      1. Helpers are stand-alone tools residing in the 'helpers' subdirectory. They do not depend on
-         any module/capability provided by this project. An example would be a stand-alone C
-         program. Helpers are deployed by compiling them on the SUT using 'make' and installing them
-         using 'make install'.
-      2. Python helpers (pyhelpers) are helper tools written in python (e.g., 'stats-collect'). They
-         also reside in the 'helpers' subdirectory, but they are not totally independent. They
-         depend on multiple modules that come with 'wult' project (e.g.,
-         'helperlibs/LocalProcessManager.py'). Therefore, in order to deploy python helpers, we need
-         to deploy the dependencies. And the way we do this depends on whether we deploy to the
-         local system or to a remote system. In case of the local system, python helpers are
-         deployed by 'setup.py', just the 'wult' tool is deployed. In case of a remote system, we
-         build and deploy a stand-alone version of the helper using python '__main__.py' + zip
-         archive mechanism.
-    """
-
-    if not helpers:
-        helpers = []
-    if not pyhelpers:
-        pyhelpers = []
-
-    what = ""
-    if (helpers or pyhelpers) and drivers:
-        what = "helpers and drivers"
-    elif helpers or pyhelpers:
-        what = "helpers"
-    else:
-        what = "drivers"
-
-    envarname = f"{toolname.upper()}_DATA_PATH"
-    searchdirs = [f"{Path(sys.argv[0]).parent}/%s",
-                  f"${envarname}/%s (if '{envarname}' environment variable is defined)",
-                  "$HOME/.local/share/wult/%s",
-                  "/usr/local/share/wult/%s", "/usr/share/wult/%s"]
-
-    text = f"Compile and deploy {toolname} {what}."
-    descr = f"""Compile and deploy {toolname} {what} to the SUT (System Under Test), which can be
-                either local or a remote host, depending on the '-H' option."""
-    if drivers:
-        drvsearch = ", ".join([dirname % str(_DRV_SRC_SUBPATH) for dirname in searchdirs])
-        descr += f"""The drivers are searched for in the following directories (and in the following
-                     order) on the local host: {drvsearch}."""
-    if helpers or pyhelpers:
-        helpersearch = ", ".join([dirname % str(_HELPERS_SRC_SUBPATH) for dirname in searchdirs])
-        helpernames = ", ".join(helpers + pyhelpers)
-        descr += f"""The {toolname} tool also depends on the following helpers: {helpernames}. These
-                     helpers will be compiled on the SUT and deployed to the SUT. The sources of the
-                     helpers are searched for in the following paths (and in the following order) on
-                     the local host: {helpersearch}. By default, helpers are deployed to the path
-                     defined by the {toolname.upper()}_HELPERSPATH environment variable. If the
-                     variable is not defined, helpers are deployed to
-                     '$HOME/{_HELPERS_LOCAL_DIR}/bin', where '$HOME' is the home directory of user
-                     'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
-    parser = subparsers.add_parser("deploy", help=text, description=descr)
-
-    if drivers:
-        text = """Path to the Linux kernel sources to build the drivers against. The default is
-                  '/lib/modules/$(uname -r)/build' on the SUT. In case of deploying to a remote
-                  host, this is the path on the remote host (HOSTNAME)."""
-        arg = parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text)
-        if argcomplete:
-            arg.completer = argcomplete.completers.DirectoriesCompleter()
-
-    ArgParse.add_ssh_options(parser)
-
-    parser.set_defaults(func=func)
-    parser.set_defaults(helpers=helpers)
-    parser.set_defaults(pyhelpers=pyhelpers)
-
 def get_helpers_deploy_path(pman, toolname):
     """
     Get helpers deployment path for 'toolname' on the system associated with the 'pman' object.
@@ -306,7 +225,65 @@ class Deploy:
 
      * 'deploy()' - deploy everything (drivers, helpers) to the SUT.
      * 'is_deploy_needed()' - check if re-deployment is needed.
+     * 'add_cmdline_args()' - add deployment-relaged command line arguments.
     """
+
+    def add_deploy_cmdline_args(self, subparsers, func, argcomplete=None):
+        """
+        Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
+          * subparsers - the 'argparse' subparsers to add the 'deploy' command to.
+          * func - the 'deploy' command handling function.
+          * argcomplete - optional 'argcomplete' command-line arguments completer object.
+        """
+
+        what = ""
+        if (self._helpers or self._pyhelpers) and self._drivers:
+            what = "helpers and drivers"
+        elif self._helpers or self._pyhelpers:
+            what = "helpers"
+        else:
+            what = "drivers"
+
+        envarname = f"{self._toolname.upper()}_DATA_PATH"
+        searchdirs = [f"{Path(sys.argv[0]).parent}/%s",
+                      f"${envarname}/%s (if '{envarname}' environment variable is defined)",
+                      "$HOME/.local/share/wult/%s",
+                      "/usr/local/share/wult/%s", "/usr/share/wult/%s"]
+
+        text = f"Compile and deploy {self._toolname} {what}."
+        descr = f"""Compile and deploy {self._toolname} {what} to the SUT (System Under Test), which
+                    can be either local or a remote host, depending on the '-H' option."""
+        if self._drivers:
+            drvsearch = ", ".join([name % str(_DRV_SRC_SUBPATH) for name in searchdirs])
+            descr += f"""The drivers are searched for in the following directories (and in the
+                         following order) on the local host: {drvsearch}."""
+        if self._helpers or self._pyhelpers:
+            helpersearch = ", ".join([name % str(_HELPERS_SRC_SUBPATH) for name in searchdirs])
+            helpernames = ", ".join(self._helpers + self._pyhelpers)
+            descr += f"""The {self._toolname} tool also depends on the following helpers:
+                         {helpernames}. These helpers will be compiled on the SUT and deployed to
+                         the SUT. The sources of the helpers are searched for in the following paths
+                         (and in the following order) on the local host: {helpersearch}. By default,
+                         helpers are deployed to the path defined by the
+                         {self._toolname.upper()}_HELPERSPATH environment variable. If the variable
+                         is not defined, helpers are deployed to '$HOME/{_HELPERS_LOCAL_DIR}/bin',
+                         where '$HOME' is the home directory of user 'USERNAME' on host 'HOST' (see
+                         '--host' and '--username' options)."""
+        parser = subparsers.add_parser("deploy", help=text, description=descr)
+
+        if self._drivers:
+            text = """Path to the Linux kernel sources to build the drivers against. The default is
+                      '/lib/modules/$(uname -r)/build' on the SUT. In case of deploying to a remote
+                      host, this is the path on the remote host (HOSTNAME)."""
+            arg = parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text)
+            if argcomplete:
+                arg.completer = argcomplete.completers.DirectoriesCompleter()
+
+        ArgParse.add_ssh_options(parser)
+
+        parser.set_defaults(func=func)
+        parser.set_defaults(helpers=self._helpers)
+        parser.set_defaults(pyhelpers=self._pyhelpers)
 
     @staticmethod
     def _get_newest_mtime(paths):
@@ -598,7 +575,24 @@ class Deploy:
         self._spman.run_verify("sync")
 
     def deploy(self):
-        """Deploy all the required material to the SUT (drivers, helpers, etc)."""
+        """
+        Deploy all the required material to the SUT (drivers, helpers, etc).
+
+        The difference about helpers and pyhelpers.
+        1. Helpers are stand-alone tools residing in the 'helpers' subdirectory. They do not depend
+           on any module/capability provided by this project. An example would be a stand-alone C
+           program. Helpers are deployed by compiling them on the SUT using 'make' and installing
+           them using 'make install'.
+        2. Python helpers (pyhelpers) are helper tools written in python (e.g., 'stats-collect').
+           They also reside in the 'helpers' subdirectory, but they are not totally independent.
+           They depend on multiple modules that come with 'wult' project (e.g.,
+           'helperlibs/LocalProcessManager.py'). Therefore, in order to deploy python helpers, we
+           need to deploy the dependencies. And the way we do this depends on whether we deploy to
+           the local system or to a remote system. In case of the local system, python helpers are
+           deployed by 'setup.py', just the 'wult' tool is deployed. In case of a remote system, we
+           build and deploy a stand-alone version of the helper using python '__main__.py' + zip
+           archive mechanism.
+        """
 
         try:
             # Local temporary directory is required in these cases:

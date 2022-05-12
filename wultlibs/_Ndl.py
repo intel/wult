@@ -55,8 +55,8 @@ def build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    Deploy.add_deploy_cmdline_args(subparsers, OWN_NAME, deploy_command, drivers=True,
-                                   helpers=["ndlrunner"], argcomplete=argcomplete)
+    with Deploy.Deploy(OWN_NAME) as depl:
+        depl.add_deploy_cmdline_args(subparsers, deploy_command, argcomplete=argcomplete)
 
     #
     # Create parsers for the "scan" command.

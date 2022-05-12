@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python*
 #
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
@@ -80,8 +80,8 @@ def build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    Deploy.add_deploy_cmdline_args(subparsers, OWN_NAME, deploy_command, drivers=True,
-                                   pyhelpers=["stats-collect"], argcomplete=argcomplete)
+    with Deploy.Deploy(OWN_NAME) as depl:
+        depl.add_deploy_cmdline_args(subparsers, deploy_command, argcomplete=argcomplete)
 
     #
     # Create parsers for the "scan" command.
