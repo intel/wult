@@ -26,16 +26,6 @@ _HELPERS_SRC_SUBPATH = Path("helpers")
 
 _LOG = logging.getLogger()
 
-def get_helpers_deploy_path(pman, toolname):
-    """
-    Get helpers deployment path for 'toolname' on the system associated with the 'pman' object.
-    """
-
-    helpers_path = os.environ.get(f"{toolname.upper()}_HELPERSPATH")
-    if not helpers_path:
-        helpers_path = pman.get_homedir() / _HELPERS_LOCAL_DIR / "bin"
-    return Path(helpers_path)
-
 def find_app_data(prjname, subpath, appname=None, descr=None):
     """
     Search for application 'appname' data. The data are searched for in the 'subpath' sub-path of
@@ -338,6 +328,16 @@ class Deploy:
             return modpath
         return None
 
+    def get_helpers_deploy_path(self):
+        """
+        Returns path to the helpers deployment directory on the SUT.
+        """
+
+        helpers_path = os.environ.get(f"{self._toolname.upper()}_HELPERSPATH")
+        if not helpers_path:
+            helpers_path = self._spman.get_homedir() / _HELPERS_LOCAL_DIR / "bin"
+        return Path(helpers_path)
+
     def is_deploy_needed(self):
         """
         Wult and other tools require additional helper programs and drivers to be installed on the
@@ -360,7 +360,7 @@ class Deploy:
 
         # Add non-python helpers' deploy information.
         if self._helpers or self._pyhelpers:
-            helpers_deploy_path = get_helpers_deploy_path(self._spman, self._toolname)
+            helpers_deploy_path = self.get_helpers_deploy_path()
 
         if self._helpers:
             for helper in self._helpers:
@@ -485,7 +485,7 @@ class Deploy:
             self._spman.rsync(f"{srcdir}", self._stmpdir, remotesrc=False,
                               remotedst=self._spman.is_remote)
 
-        deploy_path = get_helpers_deploy_path(self._spman, self._toolname)
+        deploy_path = self.get_helpers_deploy_path()
 
         # Build the non-python helpers on the SUT.
         if self._helpers:
