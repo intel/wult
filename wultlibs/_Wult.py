@@ -354,7 +354,6 @@ def parse_arguments():
 
     args = parser.parse_args()
     args.toolname = OWN_NAME
-    args.minkver = "5.6"
     args.devtypes = Devices.DEVTYPES
 
     return args
@@ -401,8 +400,9 @@ def check_settings(pman, dev, csinfo, cpunum, devid):
 def deploy_command(args):
     """Implements the 'deploy' command."""
 
-    with ToolsCommon.get_pman(args) as pman:
-        Deploy.deploy(args, pman)
+    with ToolsCommon.get_pman(args) as pman, \
+         Deploy.Deploy(OWN_NAME, pman=pman, debug=args.debug) as depl:
+        depl.deploy()
 
 def list_stats():
     """Print information about statistics."""
@@ -436,12 +436,13 @@ def start_command(args):
         pman = ToolsCommon.get_pman(args)
         stack.enter_context(pman)
 
-        if Deploy.is_deploy_needed(pman, OWN_NAME, pyhelpers=["stats-collect"]):
-            msg = f"'{OWN_NAME}' drivers are not up-to-date{pman.hostmsg}, " \
-                  f"please run: {OWN_NAME} deploy"
-            if pman.is_remote:
-                msg += f" -H {pman.hostname}"
-            LOG.warning(msg)
+        with Deploy.Deploy(OWN_NAME, pman=pman, debug=args.debug) as depl:
+            if depl.is_deploy_needed():
+                msg = f"'{OWN_NAME}' drivers are not up-to-date{pman.hostmsg}, " \
+                      f"please run: {OWN_NAME} deploy"
+                if pman.is_remote:
+                    msg += f" -H {pman.hostname}"
+                LOG.warning(msg)
 
         if not args.reportid and pman.is_remote:
             prefix = pman.hostname

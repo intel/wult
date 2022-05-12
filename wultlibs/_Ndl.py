@@ -200,7 +200,6 @@ def parse_arguments():
 
     args = parser.parse_args()
     args.toolname = OWN_NAME
-    args.minkver = "5.1-rc1"
     args.devtypes = ("i210",)
 
     return args
@@ -208,7 +207,9 @@ def parse_arguments():
 def deploy_command(args):
     """Implements the 'deploy' command."""
 
-    Deploy.deploy_command(args)
+    with ToolsCommon.get_pman(args) as pman, \
+         Deploy.Deploy(OWN_NAME, pman=pman, debug=args.debug) as depl:
+        depl.deploy()
 
 def start_command(args):
     """Implements the 'start' command."""
@@ -235,12 +236,13 @@ def start_command(args):
         helpers_path = Deploy.get_helpers_deploy_path(pman, OWN_NAME)
         ndlrunner_bin = helpers_path / "ndlrunner"
 
-        if Deploy.is_deploy_needed(pman, OWN_NAME, helpers=["ndlrunner"]):
-            msg = f"'{OWN_NAME}' helpers and/or drivers are not up-to-date{pman.hostmsg}, " \
-                  f"please run: {OWN_NAME} deploy"
-            if pman.is_remote:
-                msg += f" -H {pman.hostname}"
-            LOG.warning(msg)
+        with Deploy.Deploy(OWN_NAME, pman=pman, debug=args.debug) as depl:
+            if depl.is_deploy_needed():
+                msg = f"'{OWN_NAME}' helpers and/or drivers are not up-to-date{pman.hostmsg}, " \
+                      f"please run: {OWN_NAME} deploy"
+                if pman.is_remote:
+                    msg += f" -H {pman.hostname}"
+                LOG.warning(msg)
 
         if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
             raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
