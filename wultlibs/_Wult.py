@@ -246,20 +246,6 @@ def build_arguments_parser():
               use '--intr-focus' at the same time."""
     subpars.add_argument("--early-intr", action="store_true", help=text)
 
-    text = f"""Deeper C-states like Intel CPU core C6 flush the CPU cache before entering the
-               C-state. Therefore, the dirty CPU cache lines must be written back to the main memory
-               before entering the C-state. This may increase C-state latency observed by the
-               operating system. If this option is used, {OWN_NAME} will try to "dirty" the measured
-               CPU cache before requesting C-states. This is done by writing zeroes to a
-               pre-allocated 2MiB buffer."""
-    subpars.add_argument("--dirty-cpu-cache", action="store_true", help=text)
-
-    text = f"""By default, in order to make CPU cache be filled with dirty cache lines, {OWN_NAME}
-               filles a 2MiB buffer with zeroes before requesting a C-state. This buffer is reffered
-               to as "dirty cache buffer", or "dcbuf". This option allows for changing the dcbuf
-               size. For example, in order to make it 4MiB, use '--dcbuf-size=4MiB'."""
-    subpars.add_argument("--dcbuf-size", help=text)
-
     subpars.add_argument("--report", action="store_true", help=ToolsCommon.START_REPORT_DESCR)
 
     text = f"""By default {OWN_NAME} does not accept network card as a measurement device if its
@@ -423,9 +409,6 @@ def start_command(args):
         list_stats()
         return
 
-    if args.dcbuf_size and not args.dirty_cpu_cache:
-        raise Error("'--dcbuf-size' option must be used together with '--dirty-cpu-cache' option")
-
     stconf = None
     if args.stats and args.stats != "none":
         if not WultStatsCollect.STATS_NAMES:
@@ -466,15 +449,6 @@ def start_command(args):
         args.tsc_cal_time = Human.parse_duration(args.tsc_cal_time, default_unit="s",
                                                 name="TSC calculation time")
 
-        if args.dirty_cpu_cache:
-            if not args.dcbuf_size:
-                args.dcbuf_size = "2MiB"
-
-            args.dcbuf_size = Human.parse_bytesize(args.dcbuf_size)
-            if args.dcbuf_size <= 0:
-                raise Error(f"bad dirty CPU cache buffer size '{args.dcbuf_size}', must be a "
-                            f"positive integer")
-
         cpuinfo = CPUInfo.CPUInfo(pman=pman)
         stack.enter_context(cpuinfo)
 
@@ -496,7 +470,7 @@ def start_command(args):
 
         runner = WultRunner.WultRunner(pman, dev, res, ldist=args.ldist, intr_focus=args.intr_focus,
                                        early_intr=args.early_intr, tsc_cal_time=args.tsc_cal_time,
-                                       dcbuf_size=args.dcbuf_size, rcsobj=rcsobj, stconf=stconf)
+                                       rcsobj=rcsobj, stconf=stconf)
         stack.enter_context(runner)
 
         runner.unload = not args.no_unload

@@ -38,9 +38,6 @@
 /* Name of debugfs file for enabling early interrupts. */
 #define EARLY_INTR_FNAME "early_intr"
 
-/* Name of debugfs file for changing the CPU cache dirtying buffer size. */
-#define DCBUF_SIZE_FNAME "dcbuf_size"
-
 static int set_enabled(bool enabled)
 {
 	int err = 0;
@@ -296,107 +293,6 @@ static const struct file_operations dfs_ops_rw_u64 = {
 	.llseek = default_llseek,
 };
 
-static ssize_t dfs_read_uint_file(struct file *file, char __user *user_buf,
-				  size_t count, loff_t *ppos)
-{
-	struct dentry *dent = file->f_path.dentry;
-	struct wult_info *wi = file->private_data;
-	char buf[16];
-	int err, len;
-	ssize_t res;
-	unsigned int val;
-
-	err = debugfs_file_get(dent);
-	if (err)
-		return err;
-
-	if (!strcmp(dent->d_name.name, DCBUF_SIZE_FNAME)) {
-		val = wi->dcbuf_size;
-	} else {
-		res = -EINVAL;
-		goto out;
-	}
-
-	len = snprintf(buf, ARRAY_SIZE(buf), "%u\n", val);
-	res = simple_read_from_buffer(user_buf, count, ppos, buf, len);
-out:
-	debugfs_file_put(dent);
-	return res;
-}
-
-static int set_dcbuf_size(struct wult_info *wi, unsigned long size)
-{
-	char *dcbuf;
-
-	if (size > WULT_DCBUF_MAX_SIZE)
-		return -EINVAL;
-
-	dcbuf = vmalloc(size);
-	if (!dcbuf)
-		return -EINVAL;
-
-	mutex_lock(&wi->enable_mutex);
-	if (wi->enabled) {
-		mutex_unlock(&wi->enable_mutex);
-		vfree(dcbuf);
-		return -EBUSY;
-	}
-	if (wi->dcbuf)
-		vfree(wi->dcbuf);
-	wi->dcbuf = dcbuf;
-	wi->dcbuf_size = size;
-	mutex_unlock(&wi->enable_mutex);
-
-	return 0;
-}
-
-static ssize_t dfs_write_uint_file(struct file *file,
-				   const char __user *user_buf,
-				   size_t count, loff_t *ppos)
-{
-	struct dentry *dent = file->f_path.dentry;
-	struct wult_info *wi = file->private_data;
-	int err;
-	ssize_t len;
-	char buf[32];
-	unsigned long val;
-
-	err = debugfs_file_get(dent);
-	if (err)
-		return err;
-
-	len = simple_write_to_buffer(buf, ARRAY_SIZE(buf), ppos, user_buf,
-				     count);
-	if (len < 0) {
-		err = len;
-		goto out;
-	}
-
-	buf[len] = '\0';
-	err = kstrtoul(buf, 0, &val);
-	if (err)
-		goto out;
-
-	if (!strcmp(dent->d_name.name, DCBUF_SIZE_FNAME))
-		err = set_dcbuf_size(wi, val);
-	else
-		err = -EINVAL;
-
-out:
-	debugfs_file_put(dent);
-	if (err)
-		return err;
-	return len;
-}
-
-/* Wult debugfs operations for R/W files backed by 'unsigned int' variables. */
-static const struct file_operations dfs_ops_uint = {
-	.read = dfs_read_uint_file,
-	.write = dfs_write_uint_file,
-	.open = simple_open,
-	.llseek = default_llseek,
-};
-
 int wult_uapi_device_register(struct wult_info *wi)
 {
 	wi->dfsroot = debugfs_create_dir(DRIVER_NAME, NULL);
@@ -419,8 +315,6 @@ int wult_uapi_device_register(struct wult_info *wi)
 			    &dfs_ops_rw_u64);
 	debugfs_create_file(LDIST_TO_FNAME, 0644, wi->dfsroot, wi,
 			    &dfs_ops_rw_u64);
-	debugfs_create_file(DCBUF_SIZE_FNAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_uint);
 
 	return 0;
 }

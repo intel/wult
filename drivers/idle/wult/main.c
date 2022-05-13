@@ -375,11 +375,6 @@ void wult_unregister(void)
 	kthread_stop(wi->armer);
 	wult_tracer_exit(wi);
 
-	if (wi->dcbuf) {
-		vfree(wi->dcbuf);
-		wi->dcbuf = NULL;
-	}
-
 	mutex_lock(&wi->dev_mutex);
 	wi->wdi = NULL;
 	mutex_unlock(&wi->dev_mutex);
