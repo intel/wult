@@ -17,7 +17,7 @@ import contextlib
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from pepclibs.helperlibs import Systemctl, ClassHelpers
-from wultlibs import WultEventsProvider, _ProgressLine, _WultDpProcess, WultStatsCollect
+from wultlibs import WultRawDataProvider, _ProgressLine, _WultDpProcess, WultStatsCollect
 from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
@@ -36,7 +36,7 @@ class WultRunner:
         datapoints that passed the filters.
         """
 
-        datapoints = self._ep.get_datapoints()
+        datapoints = self._prov.get_datapoints()
         rawdp = next(datapoints)
 
         _LOG.info("Calculating TSC rate for %s", Human.duration(self._dpp.tsc_cal_time))
@@ -118,7 +118,7 @@ class WultRunner:
 
         collected_cnt = 0
         try:
-            self._ep.start()
+            self._prov.start()
             collected_cnt = self._collect(dpcnt, tlimit, keep_rawdp)
         except Error as err:
             dmesg = ""
@@ -168,24 +168,24 @@ class WultRunner:
 
         # The 'irqbalance' service usually causes problems by binding the delayed events (NIC
         # interrupts) to CPUs different form the measured one. Stop the service.
-        if self._ep.dev.drvname == "wult_igb":
+        if self._dev.drvname == "wult_igb":
             self._sysctl = Systemctl.Systemctl(pman=self._pman)
             self._has_irqbalance = self._sysctl.is_active("irqbalance")
             if self._has_irqbalance:
                 _LOG.info("Stopping the 'irqbalance' service")
                 self._sysctl.stop("irqbalance")
 
-        self._ep.unload = self.unload
-        self._ep.prepare()
+        self._prov.unload = self.unload
+        self._prov.prepare()
 
         # Validate the delayed event resolution.
-        resolution = self._ep.get_resolution()
+        resolution = self._prov.get_resolution()
         _LOG.debug("delayed event resolution %dns", resolution)
 
         # Save the test setup information in the info.yml file.
         self._res.info["date"] = time.strftime("%d %b %Y")
-        self._res.info["devid"] = self._ep.dev.info["devid"]
-        self._res.info["devdescr"] = self._ep.dev.info["descr"]
+        self._res.info["devid"] = self._dev.info["devid"]
+        self._res.info["devdescr"] = self._dev.info["descr"]
         self._res.info["resolution"] = resolution
         self._res.info["intr_focus"] = self._intr_focus
         self._res.info["early_intr"] = self._early_intr
@@ -274,7 +274,7 @@ class WultRunner:
         self.unload = True
 
         self._dpp = None
-        self._ep = None
+        self._prov = None
         self._timeout = 10
         self._progress = None
         self._max_latency = 0
@@ -289,19 +289,20 @@ class WultRunner:
         self._validate_sut()
 
         self._progress = _ProgressLine.ProgressLine(period=1)
-        self._ep = WultEventsProvider.WultEventsProvider(dev, res.cpunum, pman,
-                                                         timeout=self._timeout, ldist=self._ldist,
-                                                         intr_focus=self._intr_focus,
-                                                         early_intr=self._early_intr)
+        self._prov = WultRawDataProvider.WultRawDataProvider(dev, res.cpunum, pman,
+                                                             timeout=self._timeout,
+                                                             ldist=self._ldist,
+                                                             intr_focus=self._intr_focus,
+                                                             early_intr=self._early_intr)
 
-        if self._ep.dev.drvname == "wult_tdt" and self._intr_focus:
+        if self._dev.drvname == "wult_tdt" and self._intr_focus:
             raise Error("the 'tdt' driver does not support the interrupt latency focused "
                         "measurements")
 
-        if self._ep.dev.drvname == "wult_tdt" and self._early_intr:
+        if self._dev.drvname == "wult_tdt" and self._early_intr:
             raise Error("the 'tdt' driver does not support the early interrupt feature")
 
-        self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, pman, self._ep.dev.drvname,
+        self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, pman, self._dev.drvname,
                                                       intr_focus=self._intr_focus,
                                                       early_intr=self._early_intr,
                                                       tsc_cal_time=tsc_cal_time, rcsobj=rcsobj)
@@ -321,7 +322,7 @@ class WultRunner:
                              err)
 
         unref_attrs = ("_sysctl", "_dev", "_pman")
-        close_attrs = ("_dpp", "_stcoll", "_ep")
+        close_attrs = ("_dpp", "_stcoll", "_prov")
         ClassHelpers.close(self, unref_attrs=unref_attrs, close_attrs=close_attrs)
 
     def __enter__(self):

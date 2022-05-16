@@ -7,8 +7,8 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module implements the "WultEventsProvider" class, which provides API to discover, load, and use
-various wult delayd event devices and drivers (e.g., the I210 network card).
+This module implements the "WultRawDataProvider" class, which provides API for reading raw wult
+datapoints, as well as intitializing wult devices.
 """
 
 import logging
@@ -20,21 +20,22 @@ from wultlibs import Devices, _FTrace
 
 _LOG = logging.getLogger()
 
-class _EventsProviderBase:
+class _RawDataProviderBase:
     """
-    The base class for wult events provider classes.
+    The base class for wult raw data provider classes.
     """
 
     def __init__(self, dev, cpunum, pman, timeout=None, ldist=None, intr_focus=None,
                  early_intr=None):
         """
         Initialize a class instance for device 'dev'. The arguments are as follows.
-          * dev - the delayed event device object created with 'Devices.WultDevice()'.
+          * dev - the wult delayed event device object created with 'Devices.WultDevice()'.
           * cpunum - the measured CPU number.
           * pman - the process manager object defining host to operate on.
-          * timeout - the maximum amount of seconts to wait for an event. Default is 10 seconds.
+          * timeout - the maximum amount of seconts to wait for a raw datapoint. Default is 10
+                      seconds.
           * ldist - a pair of numbers specifying the launch distance range. The default value is
-                    specific to the delayed event driver.
+                    specific to the delayed event device.
           * intr_focus - enable inerrupt latency focused measurements ('WakeLatency' is not measured
                          in this case, only 'IntrLatency').
           * early_intr - enable intrrupts before entering the C-state.
@@ -69,9 +70,9 @@ class _EventsProviderBase:
         self.close()
 
 
-class _DrvEventsProvider(_EventsProviderBase):
+class _DrvRawDataProvider(_RawDataProviderBase):
     """
-    The events provider class implementation for devices which are controlled by a wult device
+    The raw data provider class implementation for devices which are controlled by a wult kernel
     driver.
     """
 
@@ -95,7 +96,7 @@ class _DrvEventsProvider(_EventsProviderBase):
 
     def get_datapoints(self):
         """
-        This generator reads the trace buffer and yields raw datapoints in form of a dictionary. The
+        This generator reads the trace buffer and yields raw datapoints in form of dictionary. The
         dictionary keys are the ftrace field names, the values are the integer values of the fields.
         """
 
@@ -204,15 +205,15 @@ class _DrvEventsProvider(_EventsProviderBase):
                             f"{self._pman.hostmsg} and write {ldist} to it:\n\t{err}") from err
 
     def get_resolution(self):
-        """Returns resolution of the delayed event devices in nanoseconds."""
+        """Returns resolution of the delayed event device in nanoseconds."""
 
         try:
             path = self._basedir / "resolution_nsec"
             with self._pman.open(path, "r") as fobj:
                 resolution = fobj.read().strip()
         except Error as err:
-            raise Error(f"failed to read the delayed event resolution from '{path}'"
-                        f"{self._pman.hostmsg}:\n{err}") from err
+            raise Error(f"failed to read the '{self.dev.info['devid']}' delayed event device "
+                        f"resolution from '{path}'{self._pman.hostmsg}:\n{err}") from err
 
         return Trivial.str_to_num(resolution)
 
@@ -255,7 +256,7 @@ class _DrvEventsProvider(_EventsProviderBase):
                  early_intr=None):
         """
         Initialize a class instance. The arguments are documented in
-        '_EventsProviderBase.__init__()'.
+        '_RawDataProviderBase.__init__()'.
         """
 
         super().__init__(dev, cpunum, pman, ldist=ldist, intr_focus=intr_focus,
@@ -313,15 +314,15 @@ class _DrvEventsProvider(_EventsProviderBase):
         super().close()
 
 
-def WultEventsProvider(dev, cpunum, pman, timeout=None, ldist=None, intr_focus=None,
+def WultRawDataProvider(dev, cpunum, pman, timeout=None, ldist=None, intr_focus=None,
                        early_intr=None):
     """
-    Create and return an events provider class suitable for device 'dev'. The arguments are the
-    same as in '_EventsProviderBase.__init__()'.
+    Create and return a raw data provider class suitable for a delayed event device 'dev'. The
+    arguments are the same as in '_RawDataProviderBase.__init__()'.
     """
 
     if dev.drvname:
-        return _DrvEventsProvider(dev, cpunum, pman, timeout=timeout, ldist=ldist,
-                                  intr_focus=intr_focus, early_intr=early_intr)
+        return _DrvRawDataProvider(dev, cpunum, pman, timeout=timeout, ldist=ldist,
+                                   intr_focus=intr_focus, early_intr=early_intr)
 
     raise Error(f"BUG: unsupported device '{dev.info['name']}'")
