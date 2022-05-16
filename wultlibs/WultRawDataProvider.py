@@ -16,61 +16,11 @@ import contextlib
 from pepclibs.helperlibs import KernelModule, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from wultlibs.helperlibs import FSHelpers
-from wultlibs import Devices, _FTrace
+from wultlibs import Devices, _FTrace, _RawDataProvider
 
 _LOG = logging.getLogger()
 
-class _RawDataProviderBase:
-    """
-    The base class for wult raw data provider classes.
-    """
-
-    def __init__(self, dev, cpunum, pman, timeout=None, ldist=None, intr_focus=None,
-                 early_intr=None):
-        """
-        Initialize a class instance for device 'dev'. The arguments are as follows.
-          * dev - the wult delayed event device object created with 'Devices.WultDevice()'.
-          * cpunum - the measured CPU number.
-          * pman - the process manager object defining host to operate on.
-          * timeout - the maximum amount of seconts to wait for a raw datapoint. Default is 10
-                      seconds.
-          * ldist - a pair of numbers specifying the launch distance range. The default value is
-                    specific to the delayed event device.
-          * intr_focus - enable inerrupt latency focused measurements ('WakeLatency' is not measured
-                         in this case, only 'IntrLatency').
-          * early_intr - enable intrrupts before entering the C-state.
-        """
-
-        self.dev = dev
-        self._cpunum = cpunum
-        self._pman = pman
-        self._timoeut = timeout
-        self._ldist = ldist
-        self._intr_focus = intr_focus
-        self._early_intr = early_intr
-
-        if not timeout:
-            self._timeout = 10
-
-        msg = f"Using device '{self.dev.info['name']}'{pman.hostmsg}:\n" \
-              f" * Device ID: {self.dev.info['devid']}\n" \
-              f"   - {self.dev.info['descr']}"
-        _LOG.info(msg)
-
-    def close(self):
-        """Uninitialize everything."""
-        ClassHelpers.close(self, unref_attrs=("dev", "_pman"))
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
-
-
-class _DrvRawDataProvider(_RawDataProviderBase):
+class _DrvRawDataProvider(_RawDataProvider.RawDataProviderBase):
     """
     The raw data provider class implementation for devices which are controlled by a wult kernel
     driver.
