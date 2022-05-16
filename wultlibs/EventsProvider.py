@@ -20,7 +20,49 @@ from wultlibs import Devices
 
 _LOG = logging.getLogger()
 
-class EventsProvider:
+class _EventsProviderBase:
+    """
+    The base class for events provider classes.
+    """
+
+    def __init__(self, dev, cpunum, pman, ldist=None, intr_focus=None, early_intr=None):
+        """
+        Initialize a class instance for device 'dev'. The arguments are as follows.
+          * dev - the delayed event device object created with 'Devices.WultDevice()'.
+          * cpunum - the measured CPU number.
+          * pman - the process manager object defining host to operate on.
+          * ldist - a pair of numbers specifying the launch distance range. The default value is
+                    specific to the delayed event driver.
+          * intr_focus - enable inerrupt latency focused measurements ('WakeLatency' is not measured
+                         in this case, only 'IntrLatency').
+          * early_intr - enable intrrupts before entering the C-state.
+        """
+
+        self.dev = dev
+        self._cpunum = cpunum
+        self._pman = pman
+        self._ldist = ldist
+        self._intr_focus = intr_focus
+        self._early_intr = early_intr
+
+        msg = f"Using device '{self.dev.info['name']}'{pman.hostmsg}:\n" \
+              f" * Device ID: {self.dev.info['devid']}\n" \
+              f"   - {self.dev.info['descr']}"
+        _LOG.info(msg)
+
+    def close(self):
+        """Uninitialize everything."""
+        ClassHelpers.close(self, unref_attrs=("dev", "_pman"))
+
+    def __enter__(self):
+        """Enter the run-time context."""
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Exit the runtime context."""
+        self.close()
+
+class EventsProvider(_EventsProviderBase):
     """
     This class provides an easy to use API for using the kernel wult framework: finding and loading
     delayed event provider drivers, starting the measurements, etc.
@@ -146,23 +188,13 @@ class EventsProvider:
 
     def __init__(self, dev, cpunum, pman, ldist=None, intr_focus=None, early_intr=None):
         """
-        Initialize a class instance for a PCI device 'devid'. The arguments are as follows.
-          * dev - the delayed event device object created by 'Devices.WultDevice()'.
-          * cpunum - the measured CPU number.
-          * pman - the process manager object defining host to operate on.
-          * ldist - a pair of numbers specifying the launch distance range. The default value is
-                    specific to the delayed event driver.
-          * intr_focus - enable inerrupt latency focused measurements ('WakeLatency' is not measured
-                         in this case, only 'IntrLatency').
-          * early_intr - enable intrrupts before entering the C-state.
+        Initialize a class instance. The arguments are documented in
+        '_EventsProviderBase.__init__()'.
         """
 
-        self.dev = dev
-        self._cpunum = cpunum
-        self._pman = pman
-        self._ldist = ldist
-        self._intr_focus = intr_focus
-        self._early_intr = early_intr
+        super().__init__(dev, cpunum, pman, ldist=ldist, intr_focus=intr_focus,
+                         early_intr=early_intr)
+
         self._drv = None
         self._saved_drvname = None
         self._basedir = None
@@ -181,11 +213,6 @@ class EventsProvider:
         self._enabled_path = self._basedir / "enabled"
         self._intr_focus_path = self._basedir / "intr_focus"
         self._early_intr_path = self._basedir / "early_intr"
-
-        msg = f"Compatible device '{self.dev.info['name']}'{pman.hostmsg}:\n" \
-              f" * Device ID: {self.dev.info['devid']}\n" \
-              f"   - {self.dev.info['descr']}"
-        _LOG.info(msg)
 
     def close(self):
         """Uninitialize everything (unload kernel drivers, etc)."""
@@ -210,12 +237,6 @@ class EventsProvider:
                                self.dev.info["devid"], self._saved_drvname, err)
             self._saved_drvname = None
 
-        ClassHelpers.close(self, unref_attrs=("dev", "_pman"), close_attrs=("_main_drv", "_drv"))
+        ClassHelpers.close(self, close_attrs=("_main_drv", "_drv"))
 
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
+        super().close()
