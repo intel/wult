@@ -66,9 +66,8 @@ class DTabBuilder:
         """
 
         plotpaths = []
-        for plot in self._plots:
-            plot.generate()
-            plotpaths.append(plot.outpath.relative_to(self._basedir))
+        for path in self._ppaths:
+            plotpaths.append(path.relative_to(self._basedir))
 
         return _Tabs.DTabDC(self.title, plotpaths, self.smry_path.relative_to(self._basedir))
 
@@ -96,7 +95,8 @@ class DTabBuilder:
                 hovertext = None
             s.add_df(s.reduce_df_density(df, reportid), reportid, hovertext)
 
-        self._plots.append(s)
+        s.generate()
+        self._ppaths.append(s_path)
 
     def _add_histogram(self, mdef, cumulative=False):
         """
@@ -116,7 +116,8 @@ class DTabBuilder:
         for reportid, df in self._reports.items():
             h.add_df(df, reportid)
 
-        self._plots.append(h)
+        h.generate()
+        self._ppaths.append(h_path)
 
     def add_plots(self, plot_axes=None, hist=None, chist=None, hover_defs=None):
         """
@@ -177,4 +178,5 @@ class DTabBuilder:
         except OSError as err:
             raise Error(f"failed to create directory '{self._outdir}': {err}") from None
 
-        self._plots = []
+        # Paths of plots generated for this tab.
+        self._ppaths = []
