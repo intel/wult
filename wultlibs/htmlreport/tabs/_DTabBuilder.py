@@ -65,11 +65,10 @@ class DTabBuilder:
         can then be used to populate an HTML tab.
         """
 
-        plotpaths = []
-        for path in self._ppaths:
-            plotpaths.append(path.relative_to(self._basedir))
+        ppaths = [p.relative_to(self._basedir) for p in self._ppaths]
+        smry_path = self.smry_path.relative_to(self._basedir)
 
-        return _Tabs.DTabDC(self.title, plotpaths, self.smry_path.relative_to(self._basedir))
+        return _Tabs.DTabDC(self.title, ppaths, smry_path)
 
     def _add_scatter(self, xdef, ydef, hover_defs=None):
         """
