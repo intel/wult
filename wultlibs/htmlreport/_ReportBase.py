@@ -46,22 +46,6 @@ class ReportBase:
             raise Error(f"could not generate report: failed to JSON dump '{descr}' to '{path}':"
                         f"{err}") from None
 
-    def _validate_intro_table_path(self, path):
-        """
-        Validates a path by checking if the path is contained within the report 'outdir'. If it is
-        valid, the path is made relative to the outdir. If the path is not valid, returns 'None'.
-        """
-
-        if self.outdir not in path.parents:
-            # If the path points to somewhere outside of the report directory, don't
-            # include it in the intro table.
-            return None
-
-        # If the path points to inside the report directory then make it relative to
-        # the output directory so that the output directory is relocatable. That is,
-        # the whole directory can be moved or copied without breaking the link.
-        return path.relative_to(self.outdir)
-
     def _add_intro_tbl_links(self, label, paths):
         """
         Add links in 'paths' to the 'intro_tbl' dictionary. Arguments are as follows:
@@ -69,30 +53,25 @@ class ReportBase:
             * label - the label that will be shown in the intro table for these links.
         """
 
-        if not paths:
-            return
+        valid_paths = {}
+        for res in self.rsts:
+            reportid = res.reportid
+            path = paths.get(reportid)
 
-        # Only show hovertext suggesting the use of '--relocatable' if the report is not already
-        # relocatable.
-        if self.relocatable:
-            hovertext = ""
-        else:
-            hovertext = "Regenerate the report with 'wult report --relocatable' to " + \
-                        "copy statistics and results to the report directory."
+            # Do not add links for 'label' if 'paths' does not contain a link for every result or
+            # if a path points to somewhere outside of the report directory.
+            if path is None or self.outdir not in path.parents:
+                return
+
+            # If the path points to inside the report directory then make it relative to the output
+            # directory so that the output directory is relocatable. That is, the whole directory
+            # can be moved or copied without breaking the link.
+            valid_paths[reportid] = path.relative_to(self.outdir)
 
         row = self._intro_tbl.create_row(label)
 
-        for res in self.rsts:
-            reportid = res.reportid
-            path = paths.get(reportid, None)
-
-            if path:
-                path = self._validate_intro_table_path(path)
-
-            if not path:
-                row.add_cell(reportid, path, hovertext=hovertext)
-            else:
-                row.add_cell(reportid, label, link=path)
+        for reportid, path in valid_paths.items():
+            row.add_cell(reportid, label, link=path)
 
     def _prepare_intro_table(self, stats_paths, logs_paths):
         """
