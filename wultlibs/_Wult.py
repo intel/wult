@@ -30,7 +30,7 @@ from pepclibs.msr import PowerCtl
 from wultlibs.helperlibs import ReportID, Human
 from wultlibs.htmlreport import WultReport
 from wultlibs.rawresultlibs import WORawResult
-from wultlibs import Deploy, ToolsCommon, Devices, EventsProvider, WultRunner, WultStatsCollect
+from wultlibs import Deploy, ToolsCommon, Devices, WultEventsProvider, WultRunner, WultStatsCollect
 
 VERSION = "1.9.21"
 OWN_NAME = "wult"
@@ -548,7 +548,7 @@ def load_command(args):
 
     with ToolsCommon.get_pman(args) as pman:
         with Devices.WultDevice(args.devid, 0, pman, dmesg=True, force=args.force) as dev:
-            with EventsProvider.EventsProvider(dev, 0, pman) as ep:
+            with WultEventsProvider.WultEventsProvider(dev, 0, pman) as ep:
                 ep.unload = not args.no_unload
                 ep.prepare()
                 LOG.info("Loaded the '%s' %s delayed event driver", ep.dev.drvname, OWN_NAME)

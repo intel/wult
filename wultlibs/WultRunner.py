@@ -17,7 +17,7 @@ import contextlib
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from pepclibs.helperlibs import Systemctl, ClassHelpers
-from wultlibs import EventsProvider, _FTrace, _ProgressLine, _WultDpProcess, WultStatsCollect
+from wultlibs import WultEventsProvider, _FTrace, _ProgressLine, _WultDpProcess, WultStatsCollect
 from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
@@ -349,9 +349,9 @@ class WultRunner:
         self._validate_sut()
 
         self._progress = _ProgressLine.ProgressLine(period=1)
-        self._ep = EventsProvider.EventsProvider(dev, res.cpunum, pman, ldist=self._ldist,
-                                                 intr_focus=self._intr_focus,
-                                                 early_intr=self._early_intr)
+        self._ep = WultEventsProvider.WultEventsProvider(dev, res.cpunum, pman, ldist=self._ldist,
+                                                         intr_focus=self._intr_focus,
+                                                         early_intr=self._early_intr)
         self._ftrace = _FTrace.FTrace(pman=pman, timeout=self._timeout)
 
         if self._ep.dev.drvname == "wult_tdt" and self._intr_focus:

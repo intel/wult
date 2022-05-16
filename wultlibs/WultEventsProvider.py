@@ -7,8 +7,8 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module implements the "EventsProvider" class, which provides an easy to use API to discover,
-load, and use various delayed event devices and drivers (e.g., the I210 network card).
+This module implements the "WultEventsProvider" class, which provides API to discover, load, and use
+various wult delayd event devices and drivers (e.g., the I210 network card).
 """
 
 import logging
@@ -22,7 +22,7 @@ _LOG = logging.getLogger()
 
 class _EventsProviderBase:
     """
-    The base class for events provider classes.
+    The base class for wult events provider classes.
     """
 
     def __init__(self, dev, cpunum, pman, ldist=None, intr_focus=None, early_intr=None):
@@ -242,7 +242,8 @@ class _DrvEventsProvider(_EventsProviderBase):
 
         super().close()
 
-def EventsProvider(dev, cpunum, pman, ldist=None, intr_focus=None, early_intr=None):
+
+def WultEventsProvider(dev, cpunum, pman, ldist=None, intr_focus=None, early_intr=None):
     """
     Create and return an events provider class suitable for device 'dev'. The arguments are the
     same as in '_EventsProviderBase.__init__()'.
