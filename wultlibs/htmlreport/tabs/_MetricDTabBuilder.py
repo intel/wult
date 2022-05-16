@@ -84,13 +84,16 @@ class MetricDTabBuilder:
             ppaths.append(ppath)
         return ppaths
 
-    def _generate_histograms(self, hist, chist):
+    def _generate_histograms(self, hist=None, chist=None):
         """Generate the histograms."""
 
         ppaths = []
 
-        hist = self.tabname in set(hist)
-        chist = self.tabname in set(chist)
+        if hist is not None:
+            hist = self.tabname in set(hist)
+        if chist is not None:
+            chist = self.tabname in set(chist)
+
         ppaths += self._pbuilder.build_histograms(self.tabname, hist, chist)
         return ppaths
 
