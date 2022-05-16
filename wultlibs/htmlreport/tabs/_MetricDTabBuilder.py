@@ -71,7 +71,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                     val = res.smrys[metric][funcname]
                     smry_tbl.add_smry_func(res.reportid, metric, funcname,  val)
         try:
-            smry_tbl.generate(self._smrytblpath)
+            smry_tbl.generate(self.smry_path)
         except Error as err:
             raise Error("Failed to generate summary table.") from err
 
@@ -136,7 +136,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         """
 
         ppaths = [p.relative_to(self._basedir) for p in self._ppaths]
-        smrytblpath = self._smrytblpath.relative_to(self._basedir)
+        smrytblpath = self.smry_path.relative_to(self._basedir)
 
         return _Tabs.DTabDC(self.tabname, ppaths, smrytblpath)
 
@@ -164,4 +164,3 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         super().__init__(reports, outdir, metric_def, basedir)
 
         self.outdir = outdir / self._fsname
-        self._smrytblpath = self.outdir / "summary-table.txt"
