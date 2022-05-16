@@ -62,10 +62,11 @@ class _EventsProviderBase:
         """Exit the runtime context."""
         self.close()
 
-class EventsProvider(_EventsProviderBase):
+
+class _DrvEventsProvider(_EventsProviderBase):
     """
-    This class provides an easy to use API for using the kernel wult framework: finding and loading
-    delayed event provider drivers, starting the measurements, etc.
+    The events provider class implementation for devices which are controlled by a wult device
+    driver.
     """
 
     def _unload(self):
@@ -240,3 +241,15 @@ class EventsProvider(_EventsProviderBase):
         ClassHelpers.close(self, close_attrs=("_main_drv", "_drv"))
 
         super().close()
+
+def EventsProvider(dev, cpunum, pman, ldist=None, intr_focus=None, early_intr=None):
+    """
+    Create and return an events provider class suitable for device 'dev'. The arguments are the
+    same as in '_EventsProviderBase.__init__()'.
+    """
+
+    if dev.drvname:
+        return _DrvEventsProvider(dev, cpunum, pman, ldist=ldist, intr_focus=intr_focus,
+                                  early_intr=early_intr)
+
+    raise Error(f"BUG: unsupported device '{dev.info['name']}'")
