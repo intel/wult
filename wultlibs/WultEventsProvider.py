@@ -14,9 +14,9 @@ various wult delayd event devices and drivers (e.g., the I210 network card).
 import logging
 import contextlib
 from pepclibs.helperlibs import KernelModule, Trivial, ClassHelpers
-from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from wultlibs.helperlibs import FSHelpers
-from wultlibs import Devices
+from wultlibs import Devices, _FTrace
 
 _LOG = logging.getLogger()
 
@@ -25,12 +25,14 @@ class _EventsProviderBase:
     The base class for wult events provider classes.
     """
 
-    def __init__(self, dev, cpunum, pman, ldist=None, intr_focus=None, early_intr=None):
+    def __init__(self, dev, cpunum, pman, timeout=None, ldist=None, intr_focus=None,
+                 early_intr=None):
         """
         Initialize a class instance for device 'dev'. The arguments are as follows.
           * dev - the delayed event device object created with 'Devices.WultDevice()'.
           * cpunum - the measured CPU number.
           * pman - the process manager object defining host to operate on.
+          * timeout - the maximum amount of seconts to wait for an event. Default is 10 seconds.
           * ldist - a pair of numbers specifying the launch distance range. The default value is
                     specific to the delayed event driver.
           * intr_focus - enable inerrupt latency focused measurements ('WakeLatency' is not measured
@@ -41,9 +43,13 @@ class _EventsProviderBase:
         self.dev = dev
         self._cpunum = cpunum
         self._pman = pman
+        self._timoeut = timeout
         self._ldist = ldist
         self._intr_focus = intr_focus
         self._early_intr = early_intr
+
+        if not timeout:
+            self._timeout = 10
 
         msg = f"Using device '{self.dev.info['name']}'{pman.hostmsg}:\n" \
               f" * Device ID: {self.dev.info['devid']}\n" \
@@ -68,6 +74,64 @@ class _DrvEventsProvider(_EventsProviderBase):
     The events provider class implementation for devices which are controlled by a wult device
     driver.
     """
+
+    def _validate_datapoint(self, fields, vals):
+        """
+        This is a helper function for 'get_datapoints()' which checks that every raw datapoint
+        from the trace buffer has the same fields in the same order.
+        """
+
+        if len(fields) != len(self._fields) or len(vals) != len(self._fields) or \
+           not all(f1 == f2 for f1, f2 in zip(fields, self._fields)):
+            old_fields = ", ".join(self._fields)
+            new_fields = ", ".join(fields)
+            raise Error(f"the very first raw datapoint has different fields comparing to a new "
+                        f"datapointhad\n"
+                        f"First datapoint fields count: {len(fields)}\n"
+                        f"New datapoint fields count: {len(self._fields)}\n"
+                        f"Fist datapoint fields:\n{old_fields}\n"
+                        f"New datapoint fields:\n{new_fields}\n\n"
+                        f"New datapoint full ftrace line:\n{self._ftrace.raw_line}")
+
+    def get_datapoints(self):
+        """
+        This generator reads the trace buffer and yields raw datapoints in form of a dictionary. The
+        dictionary keys are the ftrace field names, the values are the integer values of the fields.
+        """
+
+        last_line = None
+        yielded_lines = 0
+
+        try:
+            for line in self._ftrace.getlines():
+                # Wult output format should be: field1=val1 field2=val2, and so on. Parse the line
+                # and get the list of (field, val) pairs: [(field1, val1), (field2, val2), ... ].
+                try:
+                    if not line.msg:
+                        raise ValueError
+                    pairs = [pair.split("=") for pair in line.msg.split()]
+                    fields, vals = zip(*pairs)
+                    if len(fields) != len(vals):
+                        raise ValueError
+                except ValueError:
+                    _LOG.debug("unexpected line in ftrace buffer%s:\n%s",
+                               self._pman.hostmsg, line.msg)
+                    continue
+
+                yielded_lines += 1
+                last_line = line.msg
+
+                if self._fields:
+                    self._validate_datapoint(fields, vals)
+                else:
+                    self._fields = fields
+
+                yield dict(zip(fields, [int(val) for val in vals]))
+        except ErrorTimeOut as err:
+            msg = f"{err}\nCount of wult ftrace lines read so far: {yielded_lines}"
+            if last_line:
+                msg = f"{msg}\nLast seen wult ftrace line:\n{last_line}"
+            raise ErrorTimeOut(msg) from err
 
     def _unload(self):
         """Unload all the previously loaded wult kernel drivers."""
@@ -187,7 +251,8 @@ class _DrvEventsProvider(_EventsProviderBase):
             with self._pman.open(self._early_intr_path, "w") as fobj:
                 fobj.write("1")
 
-    def __init__(self, dev, cpunum, pman, ldist=None, intr_focus=None, early_intr=None):
+    def __init__(self, dev, cpunum, pman, timeout=None, ldist=None, intr_focus=None,
+                 early_intr=None):
         """
         Initialize a class instance. The arguments are documented in
         '_EventsProviderBase.__init__()'.
@@ -201,6 +266,8 @@ class _DrvEventsProvider(_EventsProviderBase):
         self._basedir = None
         self._enabled_path = None
         self._main_drv = None
+        self._ftrace = None
+        self._fields = None
 
         # This is a debugging option that allows to disable automatic wult modules unloading on
         # 'close()'.
@@ -209,11 +276,14 @@ class _DrvEventsProvider(_EventsProviderBase):
         self._main_drv = KernelModule.KernelModule("wult", pman=pman, dmesg=dev.dmesg_obj)
         self._drv = KernelModule.KernelModule(self.dev.drvname, pman=pman, dmesg=dev.dmesg_obj)
 
+        self._ftrace = _FTrace.FTrace(pman=self._pman, timeout=self._timeout)
+
         mntpoint = FSHelpers.mount_debugfs(pman=pman)
         self._basedir = mntpoint / "wult"
         self._enabled_path = self._basedir / "enabled"
         self._intr_focus_path = self._basedir / "intr_focus"
         self._early_intr_path = self._basedir / "early_intr"
+
 
     def close(self):
         """Uninitialize everything (unload kernel drivers, etc)."""
@@ -238,19 +308,20 @@ class _DrvEventsProvider(_EventsProviderBase):
                                self.dev.info["devid"], self._saved_drvname, err)
             self._saved_drvname = None
 
-        ClassHelpers.close(self, close_attrs=("_main_drv", "_drv"))
+        ClassHelpers.close(self, close_attrs=("_main_drv", "_drv", "_ftrace"))
 
         super().close()
 
 
-def WultEventsProvider(dev, cpunum, pman, ldist=None, intr_focus=None, early_intr=None):
+def WultEventsProvider(dev, cpunum, pman, timeout=None, ldist=None, intr_focus=None,
+                       early_intr=None):
     """
     Create and return an events provider class suitable for device 'dev'. The arguments are the
     same as in '_EventsProviderBase.__init__()'.
     """
 
     if dev.drvname:
-        return _DrvEventsProvider(dev, cpunum, pman, ldist=ldist, intr_focus=intr_focus,
-                                  early_intr=early_intr)
+        return _DrvEventsProvider(dev, cpunum, pman, timeout=timeout, ldist=ldist,
+                                  intr_focus=intr_focus, early_intr=early_intr)
 
     raise Error(f"BUG: unsupported device '{dev.info['name']}'")

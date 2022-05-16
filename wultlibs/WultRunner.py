@@ -17,7 +17,7 @@ import contextlib
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from pepclibs.helperlibs import Systemctl, ClassHelpers
-from wultlibs import WultEventsProvider, _FTrace, _ProgressLine, _WultDpProcess, WultStatsCollect
+from wultlibs import WultEventsProvider, _ProgressLine, _WultDpProcess, WultStatsCollect
 from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
@@ -28,64 +28,6 @@ _MAX_FTRACE_BAD_LINES = 10
 class WultRunner:
     """Run wake latency measurement experiments."""
 
-    def _validate_datapoint(self, fields, vals):
-        """
-        This is a helper function for '_get_datapoints()' which checks that every raw datapoint
-        from the trace buffer has the same fields in the same order.
-        """
-
-        if len(fields) != len(self._fields) or len(vals) != len(self._fields) or \
-           not all(f1 == f2 for f1, f2 in zip(fields, self._fields)):
-            old_fields = ", ".join(self._fields)
-            new_fields = ", ".join(fields)
-            raise Error(f"the very first raw datapoint has different fields comparing to a new "
-                        f"datapointhad\n"
-                        f"First datapoint fields count: {len(fields)}\n"
-                        f"New datapoint fields count: {len(self._fields)}\n"
-                        f"Fist datapoint fields:\n{old_fields}\n"
-                        f"New datapoint fields:\n{new_fields}\n\n"
-                        f"New datapoint full ftrace line:\n{self._ftrace.raw_line}")
-
-    def _get_datapoints(self):
-        """
-        This generators reads the trace buffer and yields raw datapoints in form of a dictionary.
-        The dictionary values are of integer type.
-        """
-
-        last_line = None
-        yielded_lines = 0
-
-        try:
-            for line in self._ftrace.getlines():
-                # Wult output format should be: field1=val1 field2=val2, and so on. Parse the line
-                # and get the list of (field, val) pairs: [(field1, val1), (field2, val2), ... ].
-                try:
-                    if not line.msg:
-                        raise ValueError
-                    pairs = [pair.split("=") for pair in line.msg.split()]
-                    fields, vals = zip(*pairs)
-                    if len(fields) != len(vals):
-                        raise ValueError
-                except ValueError:
-                    _LOG.debug("unexpected line in ftrace buffer%s:\n%s",
-                               self._pman.hostmsg, line.msg)
-                    continue
-
-                yielded_lines += 1
-                last_line = line.msg
-
-                if self._fields:
-                    self._validate_datapoint(fields, vals)
-                else:
-                    self._fields = fields
-
-                yield dict(zip(fields, [int(val) for val in vals]))
-        except ErrorTimeOut as err:
-            msg = f"{err}\nCount of wult ftrace lines read so far: {yielded_lines}"
-            if last_line:
-                msg = f"{msg}\nLast seen wult ftrace line:\n{last_line}"
-            raise ErrorTimeOut(msg) from err
-
     def _collect(self, dpcnt, tlimit, keep_rawdp):
         """
         Collect datapoints and stop when either the CSV file has 'dpcnt' datapoints in total or when
@@ -94,7 +36,7 @@ class WultRunner:
         datapoints that passed the filters.
         """
 
-        datapoints = self._get_datapoints()
+        datapoints = self._ep.get_datapoints()
         rawdp = next(datapoints)
 
         _LOG.info("Calculating TSC rate for %s", Human.duration(self._dpp.tsc_cal_time))
@@ -333,9 +275,7 @@ class WultRunner:
 
         self._dpp = None
         self._ep = None
-        self._ftrace = None
         self._timeout = 10
-        self._fields = None
         self._progress = None
         self._max_latency = 0
         self._sysctl = None
@@ -349,10 +289,10 @@ class WultRunner:
         self._validate_sut()
 
         self._progress = _ProgressLine.ProgressLine(period=1)
-        self._ep = WultEventsProvider.WultEventsProvider(dev, res.cpunum, pman, ldist=self._ldist,
+        self._ep = WultEventsProvider.WultEventsProvider(dev, res.cpunum, pman,
+                                                         timeout=self._timeout, ldist=self._ldist,
                                                          intr_focus=self._intr_focus,
                                                          early_intr=self._early_intr)
-        self._ftrace = _FTrace.FTrace(pman=pman, timeout=self._timeout)
 
         if self._ep.dev.drvname == "wult_tdt" and self._intr_focus:
             raise Error("the 'tdt' driver does not support the interrupt latency focused "
@@ -381,7 +321,7 @@ class WultRunner:
                              err)
 
         unref_attrs = ("_sysctl", "_dev", "_pman")
-        close_attrs = ("_dpp", "_stcoll", "_ep", "_ftrace")
+        close_attrs = ("_dpp", "_stcoll", "_ep")
         ClassHelpers.close(self, unref_attrs=unref_attrs, close_attrs=close_attrs)
 
     def __enter__(self):
