@@ -46,7 +46,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         # Summaries are calculated only for numeric metrics. Tab metric name is represented by
         # 'smrytblpath.name', this should come first.
-        metrics = [self.tabname] if self._refres.is_numeric(self.tabname) else []
+        metrics = [self._tabmetric] if self._refres.is_numeric(self._tabmetric) else []
         metrics += [metric for metric in smry_metrics if self._refres.is_numeric(metric)]
         # Dedupe the list so that each metric only appears once.
         metrics = Trivial.list_dedup(metrics)
@@ -90,11 +90,11 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         ppaths = []
 
         if hist is not None:
-            hist = self.tabname in set(hist)
+            hist = self._tabmetric in set(hist)
         if chist is not None:
-            chist = self.tabname in set(chist)
+            chist = self._tabmetric in set(chist)
 
-        ppaths += self._pbuilder.build_histograms(self.tabname, hist, chist)
+        ppaths += self._pbuilder.build_histograms(self._tabmetric, hist, chist)
         return ppaths
 
     def add_plots(self, plot_axes=None, hist=None, chist=None, hover_defs=None):
@@ -144,7 +144,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                            hovertext of scatter plots.
         """
 
-        self.tabname = metric_def["metric"]
+        self._tabmetric = metric_def["metric"]
         self._rsts = rsts
         self._refres = rsts[0]
         self._pbuilder = None
@@ -155,4 +155,4 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         super().__init__(reports, outdir, metric_def, basedir)
 
         # Rename the title of the tab to the tab metric.
-        self.title = self.tabname
+        self.title = self._tabmetric
