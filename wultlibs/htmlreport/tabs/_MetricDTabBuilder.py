@@ -17,9 +17,9 @@ from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import Trivial
 from wultlibs import DFSummary
 from wultlibs.htmlreport import _SummaryTable
-from wultlibs.htmlreport.tabs import _PlotsBuilder, _Tabs
+from wultlibs.htmlreport.tabs import _DTabBuilder, _PlotsBuilder, _Tabs
 
-class MetricDTabBuilder:
+class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
     """
     This class provides the functionality to build '_Tabs.DTabDC' instances which contain data
     for a given metric.
@@ -173,3 +173,6 @@ class MetricDTabBuilder:
             self.outdir.mkdir(parents=True, exist_ok=True)
         except OSError as err:
             raise Error(f"failed to create directory '{self.outdir}': {err}") from None
+
+        reports = {res.reportid: res.df for res in rsts}
+        super().__init__(reports, outdir, metric_def, basedir)
