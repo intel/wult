@@ -156,23 +156,12 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         self.tabname = metric_def["metric"]
         self._rsts = rsts
         self._refres = rsts[0]
-        self._fsname = metric_def["fsname"]
-        self.outdir = outdir / self._fsname
         self._pbuilder = None
         self._ppaths = []
         self._hover_metrics = hover_metrics
 
-        if basedir is None:
-            self._basedir = outdir
-        else:
-            self._basedir = basedir
-
-        self._smrytblpath = self.outdir / "summary-table.txt"
-
-        try:
-            self.outdir.mkdir(parents=True, exist_ok=True)
-        except OSError as err:
-            raise Error(f"failed to create directory '{self.outdir}': {err}") from None
-
         reports = {res.reportid: res.df for res in rsts}
         super().__init__(reports, outdir, metric_def, basedir)
+
+        self.outdir = outdir / self._fsname
+        self._smrytblpath = self.outdir / "summary-table.txt"
