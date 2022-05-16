@@ -116,7 +116,7 @@ class ReportBase:
         # Add links to the logs directories.
         self._add_intro_tbl_links("Logs", logs_paths)
 
-        intro_tbl_path = self.outdir / "info_table.txt"
+        intro_tbl_path = self.outdir / "intro_table.txt"
         self._intro_tbl.generate(intro_tbl_path)
 
         return intro_tbl_path.relative_to(self.outdir)
