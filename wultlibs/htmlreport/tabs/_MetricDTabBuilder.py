@@ -97,7 +97,7 @@ class MetricDTabBuilder:
         ppaths += self._pbuilder.build_histograms(self.tabname, hist, chist)
         return ppaths
 
-    def add_plots(self, plot_axes, hist=None, chist=None, hover_defs=None):
+    def add_plots(self, plot_axes=None, hist=None, chist=None, hover_defs=None):
         """
         Generate and add plots to the tab.
         Arguments are as follows:
@@ -107,6 +107,9 @@ class MetricDTabBuilder:
          * hover_defs - specifies which metrics hovertext in plots should be generated for.
                         Defaults to the metrics given to the constructor as 'hover_metrics'.
         """
+
+        if plot_axes is None and hist is None and chist is None:
+            raise Error("BUG: no arguments provided for 'add_plots()', unable to generate plots.")
 
         if hover_defs is None:
             hover_metrics = self._hover_metrics
@@ -121,7 +124,9 @@ class MetricDTabBuilder:
         self._pbuilder = _PlotsBuilder.PlotsBuilder(self._rsts, hover_metrics, opacity, self.outdir)
 
         ppaths = []
-        ppaths += self._generate_scatter_plots(plot_axes)
+        if plot_axes is not None:
+            ppaths += self._generate_scatter_plots(plot_axes)
+
         ppaths += self._generate_histograms(hist, chist)
         self._ppaths = ppaths
 
