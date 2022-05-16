@@ -17,7 +17,7 @@ from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import Trivial
 from wultlibs import DFSummary
 from wultlibs.htmlreport import _SummaryTable
-from wultlibs.htmlreport.tabs import _DTabBuilder, _PlotsBuilder, _Tabs
+from wultlibs.htmlreport.tabs import _DTabBuilder, _PlotsBuilder
 
 class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
     """
@@ -131,16 +131,6 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         ppaths += self._generate_histograms(hist, chist)
         self._ppaths = ppaths
 
-    def get_tab(self):
-        """
-        Returns a '_Tabs.DTabDC' instance representative of the data already added to the class.
-        """
-
-        ppaths = [p.relative_to(self._basedir) for p in self._ppaths]
-        smrytblpath = self.smry_path.relative_to(self._basedir)
-
-        return _Tabs.DTabDC(self.tabname, ppaths, smrytblpath)
-
     def __init__(self, rsts, outdir, metric_def, basedir=None, hover_metrics=None):
         """
         The class constructor. Arguments as follows:
@@ -163,3 +153,6 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         reports = {res.reportid: res.df for res in rsts}
         super().__init__(reports, outdir, metric_def, basedir)
+
+        # Rename the title of the tab to the tab metric.
+        self.title = self.tabname
