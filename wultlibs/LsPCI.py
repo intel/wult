@@ -62,7 +62,7 @@ class LsPCI:
         [[[[<domain>]:]<bus>]:][<slot>][.[<func>]].
         """
 
-        cmd = f"{self._lspci_bin} -D -n -vv -s {devaddr}"
+        cmd = f"{self._lspci_path} -D -n -vv -s {devaddr}"
         stdout, _ = self._pman.run_verify(cmd, join=False)
         if not stdout:
             raise Error(f"failed to get information for PCI slot: {devaddr}")
@@ -72,7 +72,7 @@ class LsPCI:
     def get_devices(self):
         """Generator yields device info as dictionary for each device. """
 
-        cmd = f"{self._lspci_bin} -D -n -v"
+        cmd = f"{self._lspci_path} -D -n -v"
         stdout, _ = self._pman.run_verify(cmd, join=False)
 
         # The output structure is as follows:
@@ -102,7 +102,7 @@ class LsPCI:
         """Class constructor."""
 
         self._pman = pman
-        self._lspci_bin = "lspci"
+        self._lspci_path = "lspci"
 
         self._close_pman = pman is None
 

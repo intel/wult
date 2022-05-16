@@ -99,7 +99,7 @@ class ETFQdisc():
 
         _LOG.debug("setting up ETF qdisc with handover delta %d nanoseconds", self._handover_delta)
 
-        stdout, _ = self._pman.run_verify("%s -V" % self._tc_bin)
+        stdout, _ = self._pman.run_verify("%s -V" % self._tc_path)
         match = re.match(r"^tc utility, iproute2-(ss)?(.*)$", stdout.strip())
         if not match:
             raise Error(f"failed to parse version number of the 'tc' tool{self._pman.hostmsg}")
@@ -112,11 +112,11 @@ class ETFQdisc():
 
         self.reset_root_qdisc()
 
-        cmd = f"{self._tc_bin} qdisc replace dev {self._ifname} parent root handle 100 mqprio " \
+        cmd = f"{self._tc_path} qdisc replace dev {self._ifname} parent root handle 100 mqprio " \
               f"num_tc 3 map 2 2 1 0 2 2 2 2 2 2 2 2 2 2 2 2 queues 1@0 1@1 2@2 hw 0"
         self._run_tc_cmd(cmd)
 
-        cmd = f"{self._tc_bin} qdisc add dev {self._ifname} parent 100:1 etf offload clockid " \
+        cmd = f"{self._tc_path} qdisc add dev {self._ifname} parent 100:1 etf offload clockid " \
               f"CLOCK_TAI delta {self._handover_delta}"
         self._run_tc_cmd(cmd)
 
@@ -126,16 +126,16 @@ class ETFQdisc():
                    self._pman.hostmsg)
         self._netif.wait_for_carrier(10)
 
-    def __init__(self, netif, tc_bin="tc", handover_delta=500000, phc2sys_bin="phc2sys",
+    def __init__(self, netif, tc_path="tc", handover_delta=500000, phc2sys_path="phc2sys",
                  pman=None):
         """
         Class constructor. The arguments are as follows.
           * netif - the 'NetIface' object of network device used for measurements.
-          * tc_bin - path to the 'tc' tool that should be used for setting up the ETF qdisc.
+          * tc_path - path to the 'tc' tool that should be used for setting up the ETF qdisc.
           * handover_delta - the qdisc delta - the time offset in microseconds when the qdisc hands
                              the packet over to the network driver.
-          * phc2sys_bin - path to the 'phc2sys' tool that will be run in background and periodically
-                          synchronize the host and NIC clock.
+          * phc2sys_path - path to the 'phc2sys' tool that will be run in background and
+                           periodically synchronize the host and NIC clock.
           * pman - the process manager object that defines the host to configure the ETF qdisc on
                    (default is the local host).
 
@@ -154,9 +154,9 @@ class ETFQdisc():
         self._close_pman = pman is None
 
         self._tchk = None
-        self._tc_bin = None
+        self._tc_path = None
 
-        self._phc2sys_bin = None
+        self._phc2sys_path = None
         self._phc2sys_proc = None
 
         self._handover_delta = None
@@ -169,8 +169,8 @@ class ETFQdisc():
 
         self._tchk = ToolChecker.ToolChecker(pman=self._pman)
 
-        self._tc_bin = self._tchk.check_tool(tc_bin)
-        self._phc2sys_bin = self._tchk.check_tool(phc2sys_bin)
+        self._tc_path = self._tchk.check_tool(tc_path)
+        self._phc2sys_path = self._tchk.check_tool(phc2sys_path)
 
         self._old_tc_err_msg = f"the 'tc' tool installed{self._pman.hostmsg} is not new enough " \
                                f"and does not support the ETF qdisc.\nPlease, install 'tc' " \

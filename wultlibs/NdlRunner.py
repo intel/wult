@@ -110,12 +110,12 @@ class NdlRunner:
     def _start_ndlrunner(self):
         """Start the 'ndlrunner' process on the measured system."""
 
-        regex = f"^.*{self._ndlrunner_bin} .*{self._ifname}.*$"
+        regex = f"^.*{self._ndlrunner_path} .*{self._ifname}.*$"
         ProcHelpers.kill_processes(regex, log=True, name="stale 'ndlrunner' process",
                                    pman=self._pman)
 
         ldist_str = ",".join([str(val) for val in self._ldist])
-        cmd = f"{self._ndlrunner_bin} -l {ldist_str} "
+        cmd = f"{self._ndlrunner_path} -l {ldist_str} "
         cmd += f"{self._ifname}"
 
         self._ndlrunner = self._pman.run_async(cmd)
@@ -228,7 +228,7 @@ class NdlRunner:
         # 'phc2sys' process in background in order to keep the host and NIC clocks in sync.
 
         # Get the TAI offset first.
-        stdout, _ = self._pman.run_verify(f"{self._ndlrunner_bin} --tai-offset")
+        stdout, _ = self._pman.run_verify(f"{self._ndlrunner_path} --tai-offset")
         tai_offset = self._get_line(prefix="TAI offset", line=stdout)
         if not Trivial.is_int(tai_offset):
             raise Error(f"unexpected 'ndlrunner --tai-offset' output:\n{stdout}")
@@ -242,8 +242,8 @@ class NdlRunner:
         """Verify and adjust the constructor input arguments."""
 
         # Validate the 'ndlrunner' helper path.
-        if not self._pman.is_exe(self._ndlrunner_bin):
-            raise Error(f"bad 'ndlrunner' helper path '{self._ndlrunner_bin}' - does not exist"
+        if not self._pman.is_exe(self._ndlrunner_path):
+            raise Error(f"bad 'ndlrunner' helper path '{self._ndlrunner_path}' - does not exist"
                         f"{self._pman.hostmsg} or not an executable file")
 
     def _stop_ndlrunner(self):
@@ -262,13 +262,13 @@ class NdlRunner:
             ProcHelpers.kill_pids(ndlrunner.pid, kill_children=True, must_die=False,
                                   pman=self._pman)
 
-    def __init__(self, pman, netif, res, ndlrunner_bin, ldist=None):
+    def __init__(self, pman, netif, res, ndlrunner_path, ldist=None):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
           * netif - the 'NetIface' object of network device used for measurements.
           * res - the 'WORawResult' object to store the results at.
-          * ndlrunner_bin - path to the 'ndlrunner' helper.
+          * ndlrunner_path - path to the 'ndlrunner' helper.
           * ldist - a pair of numbers specifying the launch distance range in nanoseconds (how far
           *         in the future the delayed network packets should be scheduled). Default is
           *         [5000000, 50000000].
@@ -277,7 +277,7 @@ class NdlRunner:
         self._pman = pman
         self._netif = netif
         self._res = res
-        self._ndlrunner_bin = ndlrunner_bin
+        self._ndlrunner_path = ndlrunner_path
         self._ldist = ldist
         self._ifname = netif.ifname
 
