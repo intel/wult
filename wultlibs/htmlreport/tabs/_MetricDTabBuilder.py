@@ -97,13 +97,13 @@ class MetricDTabBuilder:
         ppaths += self._pbuilder.build_histograms(self.tabname, hist, chist)
         return ppaths
 
-    def add_plots(self, plot_axes, hist, chist, hover_defs=None):
+    def add_plots(self, plot_axes, hist=None, chist=None, hover_defs=None):
         """
         Generate and add plots to the tab.
         Arguments are as follows:
          * plot_axes - tuples of axes to create scatter plots for in the format (xaxis, yaxis).
-         * hist - metrics to create histograms for.
-         * chist - metrics to create cumulative histograms for.
+         * hist - metrics to create histograms for, defaults to 'None'.
+         * chist - metrics to create cumulative histograms for, defaults to 'None'.
          * hover_defs - specifies which metrics hovertext in plots should be generated for.
                         Defaults to the metrics given to the constructor as 'hover_metrics'.
         """
