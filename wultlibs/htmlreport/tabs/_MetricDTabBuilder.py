@@ -121,7 +121,8 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         # there are several test results rendered on the same diagram.
         opacity = 0.8 if len(self._rsts) > 1 else 1
 
-        self._pbuilder = _PlotsBuilder.PlotsBuilder(self._rsts, hover_metrics, opacity, self.outdir)
+        self._pbuilder = _PlotsBuilder.PlotsBuilder(self._rsts, hover_metrics, opacity,
+                                                    self._outdir)
 
         ppaths = []
         if plot_axes is not None:
@@ -162,5 +163,3 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         reports = {res.reportid: res.df for res in rsts}
         super().__init__(reports, outdir, metric_def, basedir)
-
-        self.outdir = outdir / self._fsname
