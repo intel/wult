@@ -26,9 +26,6 @@
 #define LDIST_FROM_FNAME "ldist_from_nsec"
 #define LDIST_TO_FNAME   "ldist_to_nsec"
 
-/* Name of debugfs file for exposing the launch distance resolution. */
-#define LDIST_RES_FNAME "resolution_nsec"
-
 /* Name of debugfs file for starting and stopping the measurements. */
 #define ENABLED_FNAME "enabled"
 
@@ -167,8 +164,6 @@ static ssize_t dfs_read_ro_u64_file(struct file *file, char __user *user_buf,
 		val = wi->wdi->ldist_min;
 	} else if (!strcmp(dent->d_name.name, LDIST_MAX_FNAME)) {
 		val = wi->wdi->ldist_max;
-	} else if (!strcmp(dent->d_name.name, LDIST_RES_FNAME)) {
-		val = wi->wdi->ldist_gran;
 	} else {
 		res = -EINVAL;
 		goto out;
@@ -308,8 +303,6 @@ int wult_uapi_device_register(struct wult_info *wi)
 	debugfs_create_file(LDIST_MIN_FNAME, 0444, wi->dfsroot, wi,
 			    &dfs_ops_ro_u64);
 	debugfs_create_file(LDIST_MAX_FNAME, 0444, wi->dfsroot, wi,
-			    &dfs_ops_ro_u64);
-	debugfs_create_file(LDIST_RES_FNAME, 0444, wi->dfsroot, wi,
 			    &dfs_ops_ro_u64);
 	debugfs_create_file(LDIST_FROM_FNAME, 0644, wi->dfsroot, wi,
 			    &dfs_ops_rw_u64);
