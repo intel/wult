@@ -12,15 +12,14 @@ datapoints, as well as intitializing wult devices.
 """
 
 import logging
-import contextlib
-from pepclibs.helperlibs import KernelModule, Trivial, ClassHelpers
+from pepclibs.helperlibs import Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from wultlibs.helperlibs import FSHelpers
-from wultlibs import Devices, _FTrace, _RawDataProvider
+from wultlibs import _FTrace, _RawDataProvider, Devices
 
 _LOG = logging.getLogger()
 
-class _DrvRawDataProvider(_RawDataProvider.RawDataProviderBase):
+class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     """
     The raw data provider class implementation for devices which are controlled by a wult kernel
     driver.
@@ -84,34 +83,6 @@ class _DrvRawDataProvider(_RawDataProvider.RawDataProviderBase):
                 msg = f"{msg}\nLast seen wult ftrace line:\n{last_line}"
             raise ErrorTimeOut(msg) from err
 
-    def _unload(self):
-        """Unload all the previously loaded wult kernel drivers."""
-
-        # Unload all the possible wult device drivers.
-        for drvname in Devices.DRVNAMES:
-            drv = KernelModule.KernelModule(drvname, pman=self._pman, dmesg=self.dev.dmesg_obj)
-            drv.unload()
-            drv.close()
-
-        self._main_drv.unload()
-
-    def _load(self): # pylint: disable=arguments-differ
-        """Load all the necessary Linux drivers."""
-
-        # Load the main driver ('wult').
-        self._main_drv.load(opts=f"cpunum={self._cpunum}")
-
-        # Load the delayed event driver ('wult').
-        try:
-            self._drv.load()
-        except Error:
-            try:
-                self._main_drv.unload()
-            except Error as err1:
-                _LOG.warning("failed to unload module '%s'%s:\n%s", self._main_drv.name,
-                             self._pman.hostmsg, err1)
-            raise
-
     def start(self):
         """Start the latency measurements."""
 
@@ -158,7 +129,7 @@ class _DrvRawDataProvider(_RawDataProvider.RawDataProviderBase):
         """Prepare to start the measurements."""
 
         # Unload wult drivers if they were loaded.
-        self._unload()
+        self._unload(everything=True)
 
         # Unbind the wult delayed event device from its current driver, if any.
         prev_drvname = self.dev.unbind() # pylint: disable=assignment-from-none
@@ -191,18 +162,15 @@ class _DrvRawDataProvider(_RawDataProvider.RawDataProviderBase):
         '_RawDataProviderBase.__init__()'.
         """
 
-        super().__init__(dev, cpunum, pman, ldist=ldist, intr_focus=intr_focus,
-                         early_intr=early_intr)
+        drvnames = ("wult", dev.drvname)
+        all_drvnames = Devices.DRVNAMES
+        super().__init__(dev, cpunum, pman, drvnames, all_drvnames, ldist=ldist,
+                         intr_focus=intr_focus, early_intr=early_intr)
 
-        self._drv = None
         self._basedir = None
         self._enabled_path = None
-        self._main_drv = None
         self._ftrace = None
         self._fields = None
-
-        self._main_drv = KernelModule.KernelModule("wult", pman=pman, dmesg=dev.dmesg_obj)
-        self._drv = KernelModule.KernelModule(self.dev.drvname, pman=pman, dmesg=dev.dmesg_obj)
 
         self._ftrace = _FTrace.FTrace(pman=self._pman, timeout=self._timeout)
 
@@ -214,18 +182,9 @@ class _DrvRawDataProvider(_RawDataProvider.RawDataProviderBase):
 
 
     def close(self):
-        """Uninitialize everything (unload kernel drivers, etc)."""
+        """Uninitialize everything."""
 
-        if getattr(self, "unload", None):
-            if getattr(self, "_drv", None):
-                with contextlib.suppress(Error):
-                    self._drv.unload()
-            if getattr(self, "_main_drv", None):
-                with contextlib.suppress(Error):
-                    self._main_drv.unload()
-
-        ClassHelpers.close(self, close_attrs=("_main_drv", "_drv", "_ftrace"))
-
+        ClassHelpers.close(self, close_attrs=("_ftrace"))
         super().close()
 
 
