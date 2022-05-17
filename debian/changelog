@@ -4,6 +4,7 @@ wult (1.9.21) unstable; urgency=low
   * wult report: changed '--relocatable' to be a binary option.
   * wult report: added turbostat statistics tab.
   * wult: removed 'start --dirty-cpu-cache' option/capability.
+  * wult: removed 'wult load' debug command.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com> __ADD_DATE__
 
