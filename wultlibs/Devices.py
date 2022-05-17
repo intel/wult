@@ -10,8 +10,8 @@
 This module provides an abstraction for a device that can be used as a source of delayed events
 (e.g., the I210 network card). This module basically provides 2 methods - 'WultDevice()' and
 'scan_devices()'. The former is a factory method that figures out what wult device object to return
-(wult device class API is defined by '_WultDeviceBase'. The latter scans the target host for
-compatible wult devices.
+(wult device class API is defined by '_DeviceBase'. The latter scans the target host for compatible
+wult devices.
 """
 
 import time
@@ -33,7 +33,7 @@ _MAX_RESOLUTION = 100
 
 _LOG = logging.getLogger()
 
-class _WultDeviceBase:
+class _DeviceBase:
     """
     This is the base class for wult delayed event devices. It has 2 purposes.
        * Implement common functionality.
@@ -114,8 +114,7 @@ class _WultDeviceBase:
         if cls.drvname:
             DRVNAMES.add(cls.drvname)
 
-
-class _PCIDevice(_WultDeviceBase):
+class _PCIDevice(_DeviceBase):
     """This class represents a PCI device that can be used for as a source of delayed events."""
 
     # Subclasses can define this dictionary to limit list of supported PCI devices.
@@ -238,7 +237,7 @@ class _PCIDevice(_WultDeviceBase):
         return drvname
 
     def __init__(self, devid, cpunum, pman, dmesg=None):
-        """The class constructor. The arguments are the same as in '_WultDeviceBase.__init__()'."""
+        """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
 
         super().__init__(devid, cpunum, pman, dmesg=dmesg)
 
@@ -303,7 +302,7 @@ class _IntelI210(_PCIDevice):
         """
         The class constructor. The 'force' argument can be used to initialize I210 device for
         measurements even if its network interface state is "up". Other arguments are the same as in
-        '_WultDeviceBase.__init__()'. The 'devid' can be be the PCI address or the network interface
+        '_DeviceBase.__init__()'. The 'devid' can be be the PCI address or the network interface
         name.
         """
 
@@ -341,7 +340,7 @@ class _IntelI210(_PCIDevice):
         # I210 NIC clock has 1 nanosecond resolution.
         self.info["resolution"] = 1
 
-class _TSCDeadlineTimer(_WultDeviceBase):
+class _TSCDeadlineTimer(_DeviceBase):
     """
     This class represents the TSC deadline timer (TDT). TDT is a LAPIC feature supported by modern
     Intel CPUs. TDT allows to schedule a timer interrupt to happen in the future when TSC reaches
@@ -353,7 +352,7 @@ class _TSCDeadlineTimer(_WultDeviceBase):
     alias = "tsc-deadline-timer"
 
     def __init__(self, devid, cpunum, pman, dmesg=None):
-        """The class constructor. The arguments are the same as in '_WultDeviceBase.__init__()'."""
+        """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
 
         errmsg = f"device '{devid}' is not supported for CPU {cpunum}{pman.hostmsg}."
         if devid not in self.supported_devices and devid != self.alias:
@@ -374,7 +373,7 @@ class _TSCDeadlineTimer(_WultDeviceBase):
         # TSC resolution is 1 cycle, but we assume it is 1 nanosecond.
         self.info["resolution"] = 1
 
-class _LinuxHRTimer(_WultDeviceBase):
+class _LinuxHRTimer(_DeviceBase):
     """
     This class represents Linux High Resolution Timers (hrtimers). Hrtimer is basically a Linux
     kernel API for using hardware timers in a platform-independent manner. On a modern Intel CPUs,
@@ -438,7 +437,7 @@ class _LinuxHRTimer(_WultDeviceBase):
         return resolution
 
     def __init__(self, devid, cpunum, pman, dmesg=None):
-        """The class constructor. The arguments are the same as in '_WultDeviceBase.__init__()'."""
+        """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
 
         if devid not in self.supported_devices and devid != self.alias:
             raise ErrorNotSupported(f"device '{devid}' is not supported for CPU "
@@ -455,7 +454,7 @@ class _LinuxHRTimer(_WultDeviceBase):
 def WultDevice(devid, cpunum, pman, dmesg=None, force=False):
     """
     The wult device object factory - creates and returns the correct type of wult device object
-    depending on 'devid'. The arguments are the same as in '_WultDeviceBase.__init__()'.
+    depending on 'devid'. The arguments are the same as in '_DeviceBase.__init__()'.
     """
 
     if devid in _TSCDeadlineTimer.supported_devices or devid in _TSCDeadlineTimer.alias:
