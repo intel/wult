@@ -30,7 +30,7 @@ from pepclibs.msr import PowerCtl
 from wultlibs.helperlibs import ReportID, Human
 from wultlibs.htmlreport import WultReport
 from wultlibs.rawresultlibs import WORawResult
-from wultlibs import Deploy, ToolsCommon, Devices, WultRawDataProvider, WultRunner, WultStatsCollect
+from wultlibs import Deploy, ToolsCommon, Devices, WultRunner, WultStatsCollect
 
 VERSION = "1.9.21"
 OWN_NAME = "wult"
@@ -90,31 +90,6 @@ def build_arguments_parser():
     descr = """Scan for compatible device."""
     subpars = subparsers.add_parser("scan", help=text, description=descr)
     subpars.set_defaults(func=ToolsCommon.scan_command)
-
-    ArgParse.add_ssh_options(subpars)
-
-    #
-    # Create parsers for the "load" command.
-    #
-    text = f"Load {OWN_NAME} drivers and exit."
-    descr = f"""Load {OWN_NAME} drivers and exit without starting the measurements."""
-    subpars = subparsers.add_parser("load", help=text, description=descr)
-    subpars.set_defaults(func=load_command)
-
-    text = """This command exists for debugging and troubleshooting purposes. Please, do not use for
-              other reasons. keep in mind that if the the specified \'devid\' device was bound to
-              some driver (e.g., a network driver), it will be unbinded and with this option It
-              won't be binded back."""
-
-    subpars.add_argument("--no-unload", action="store_true", help=text)
-
-    text = f"""By default {OWN_NAME} refuses to load network card drivers if its Linux network
-               interface is in an active state, such as "up". Use '--force' to disable this safety
-               mechanism. Use '--force' option with caution."""
-    subpars.add_argument("--force", action="store_true", help=text)
-
-    text = "The device ID, same as in the 'start' command."""
-    subpars.add_argument("devid", help=text)
 
     ArgParse.add_ssh_options(subpars)
 
@@ -542,16 +517,6 @@ def report_command(args):
     rep.relocatable = args.relocatable
     rep.set_hover_colnames(HOVER_COLNAME_REGEXS)
     rep.generate()
-
-def load_command(args):
-    """Implements the 'load' command."""
-
-    with ToolsCommon.get_pman(args) as pman:
-        with Devices.WultDevice(args.devid, 0, pman, dmesg=True, force=args.force) as dev:
-            with WultRawDataProvider.WultRawDataProvider(dev, 0, pman) as prov:
-                prov.unload = not args.no_unload
-                prov.prepare()
-                LOG.info("Loaded the '%s' %s delayed event driver", prov.dev.drvname, OWN_NAME)
 
 def main():
     """Script entry point."""

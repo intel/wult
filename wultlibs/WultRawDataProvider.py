@@ -163,12 +163,8 @@ class _DrvRawDataProvider(_RawDataProvider.RawDataProviderBase):
         # Unbind the wult delayed event device from its current driver, if any.
         self._saved_drvname = self.dev.unbind() # pylint: disable=assignment-from-none
         if self._saved_drvname:
-            if self.unload:
-                word = "Temporarily unbinded"
-            else:
-                word = "Unbinded"
-            _LOG.info("%s device '%s' from driver '%s'",
-                      word, self.dev.info["devid"], self._saved_drvname)
+            _LOG.info("Unbinded device '%s' from driver '%s'",
+                      self.dev.info["devid"], self._saved_drvname)
 
         # Load wult drivers.
         self._load()
@@ -206,10 +202,6 @@ class _DrvRawDataProvider(_RawDataProvider.RawDataProviderBase):
         self._main_drv = None
         self._ftrace = None
         self._fields = None
-
-        # This is a debugging option that allows to disable automatic wult modules unloading on
-        # 'close()'.
-        self.unload = True
 
         self._main_drv = KernelModule.KernelModule("wult", pman=pman, dmesg=dev.dmesg_obj)
         self._drv = KernelModule.KernelModule(self.dev.drvname, pman=pman, dmesg=dev.dmesg_obj)
