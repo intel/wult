@@ -14,10 +14,11 @@ This module provides an abstraction for a device that can be used as a source of
 compatible wult devices.
 """
 
-import contextlib
+import time
 import logging
+import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import Dmesg, ClassHelpers
+from pepclibs.helperlibs import Dmesg, ClassHelpers, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from wultlibs import NetIface, LsPCI
 
@@ -26,6 +27,9 @@ DRVNAMES = set()
 
 # All supported device types.
 DEVTYPES = ("i210", "tdt", "hrtimer")
+
+# The maximum expected device clock resolution in nanoseconds.
+_MAX_RESOLUTION = 100
 
 _LOG = logging.getLogger()
 
@@ -91,7 +95,7 @@ class _WultDeviceBase:
         #           with a capital letter and end with a dot.
         #
         # Each subclass is free to add more information to this dictionary.
-        self.info = {"name" : None, "devid" : None, "descr" : None}
+        self.info = {"name": None, "devid": None, "descr": None, "resolution": None}
 
     def close(self):
         """Uninitialize the device."""
@@ -318,6 +322,9 @@ class _IntelI210(_PCIDevice):
 
         super().__init__(hwaddr, cpunum, pman, dmesg=dmesg)
 
+        # I210 NIC clock has 1 nanosecond resolution.
+        self.info["resolution"] = 1
+
 class _TSCDeadlineTimer(_WultDeviceBase):
     """
     This class represents the TSC deadline timer (TDT). TDT is a LAPIC feature supported by modern
@@ -349,6 +356,8 @@ class _TSCDeadlineTimer(_WultDeviceBase):
         self.info["devid"] = devid
         self.info["alias"] = self.alias
         self.info["descr"] = self.supported_devices["tdt"]
+        # TSC resolution is 1 cycle, but we assume it is 1 nanosecond.
+        self.info["resolution"] = 1
 
 class _LinuxHRTimer(_WultDeviceBase):
     """
@@ -365,6 +374,54 @@ class _LinuxHRTimer(_WultDeviceBase):
     supported_devices = {"hrtimer" : "Linux High Resolution Timer"}
     alias = "hrt"
 
+    def _get_resoluion(self):
+        """Returns Linux High Resolution Timer resolution in nanoseconds."""
+
+        errmsg_prefix = "Linux High Resolution Timer"
+        errmsg_suffix = "The resulution was aquired by running the following command" \
+                        "{self._pman.hostmsg}:\n\t{cmd}"
+
+        # Get hrtimer resolution in seconds and convert to nanoseconds.
+        if self._pman.is_remote:
+            code = "int(time.clock_getres(time.CLOCK_MONOTONIC) * 1000000000)"
+            cmd = f"python -c 'import time; {code}'"
+            resolution = self._pman.run_verify(cmd)[0].strip()
+
+            if not Trivial.is_int(resolution):
+                raise Error(f"{errmsg_prefix}: bad resolution '{resolution}' - should be an "
+                            f"integer amount of nandoseconds.\n{errmsg_suffix}")
+        else:
+            resolution = time.clock_getres(time.CLOCK_MONOTONIC) * 1000000000
+
+        resolution = int(resolution)
+
+        if resolution < 1:
+            raise Error(f"{errmsg_prefix}: bad resolution of 0 nanoseconds.\n{errmsg_suffix}")
+
+        if resolution > 1:
+            msg = f"{errmsg_prefix}: poor resolution of '{resolution}' nanoseconds."
+
+            try:
+                with self._pman.open("/proc/cmdline", "r") as fobj:
+                    cmdline = fobj.read().strip()
+            except Error as err:
+                _LOG.debug("failed to read cmdline parameters%s: %s", self._pman.hostmsg, err)
+                cmdline = ""
+
+            if "highres=off" in cmdline:
+                msg += "\nYour system uses the 'highres=off' kernel boot parameter, try " \
+                       "removing it."
+            else:
+                msg += "\nMake sure your kernel has high resolution timers enabled " \
+                       "(CONFIG_HIGH_RES_TIMERS)."
+
+            if resolution > _MAX_RESOLUTION:
+                raise Error(msg)
+
+            _LOG.warning(msg)
+
+        return resolution
+
     def __init__(self, devid, cpunum, pman, dmesg=None):
         """The class constructor. The arguments are the same as in '_WultDeviceBase.__init__()'."""
 
@@ -378,6 +435,8 @@ class _LinuxHRTimer(_WultDeviceBase):
         self.info["devid"] = devid
         self.info["alias"] = self.alias
         self.info["descr"] = self.supported_devices["hrtimer"]
+        self.info["resolution"] = self._get_resoluion()
+
 
 def WultDevice(devid, cpunum, pman, dmesg=None, force=False):
     """
