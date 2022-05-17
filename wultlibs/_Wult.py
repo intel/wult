@@ -315,7 +315,6 @@ def parse_arguments():
 
     args = parser.parse_args()
     args.toolname = OWN_NAME
-    args.devtypes = Devices.DEVTYPES
 
     return args
 
@@ -324,7 +323,7 @@ def check_settings(pman, dev, csinfo, cpunum, devid):
     Some settings of the SUT may lead to results that are potentially confusing for the user. This
     function looks for such settings and if found, prints a notice message.
       * pman - the process manager object that defines the host to run the measurements on.
-      * dev - the delayed event device object created by 'Devices.WultDevice()'.
+      * dev - the delayed event device object created by 'Devices.GetDevice()'.
       * devid - the ID of the device used for measuring the latency.
       * csinfo - cstate info from 'CStates.get_cstates_info()'.
       * cpunum - the logical CPU number to measure.
@@ -435,7 +434,8 @@ def start_command(args):
         ToolsCommon.setup_stdout_logging(OWN_NAME, res.logs_path)
         ToolsCommon.set_filters(args, res)
 
-        dev = Devices.WultDevice(args.devid, args.cpunum, pman, dmesg=True, force=args.force)
+        dev = Devices.GetDevice(OWN_NAME, args.devid, args.cpunum, pman, dmesg=True,
+                                force=args.force)
         stack.enter_context(dev)
 
         rcsobj = CStates.ReqCStates(pman=pman)

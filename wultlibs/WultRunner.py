@@ -224,7 +224,7 @@ class WultRunner:
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
-          * dev - the delayed event device object created by 'Devices.WultDevice()'.
+          * dev - the delayed event device object created by 'Devices.GetDevice()'.
           * res - the 'WORawResult' object to store the results at.
           * ldist - a pair of numbers specifying the launch distance range. The default value is
                     specific to the delayed event driver.

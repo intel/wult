@@ -26,7 +26,7 @@ class RawDataProviderBase:
                  early_intr=None):
         """
         Initialize a class instance for device 'dev'. The arguments are as follows.
-          * dev - the device object created with 'Devices.WultDevice()'.
+          * dev - the device object created with 'Devices.GetDevice()'.
           * cpunum - the measured CPU number.
           * pman - the process manager object defining host to operate on.
           * timeout - the maximum amount of seconts to wait for a raw datapoint. Default is 10
@@ -106,7 +106,7 @@ class DrvRawDataProviderBase(RawDataProviderBase):
         if not everything:
             return
 
-        # Unload all the possible wult device drivers.
+        # Unload all the possible device drivers.
         for drvname in self._all_drvnames:
             if drvname in unloaded:
                 continue

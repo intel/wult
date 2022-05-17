@@ -369,7 +369,7 @@ def scan_command(args):
     pman = get_pman(args)
 
     msg = ""
-    for info in Devices.scan_devices(pman, args.devtypes):
+    for info in Devices.scan_devices(args.toolname, pman):
         msg += f" * Device ID: {info['devid']}\n"
         if info["alias"]:
             msg += f"   - Alias: {info['alias']}\n"

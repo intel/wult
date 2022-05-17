@@ -7,11 +7,12 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module provides an abstraction for a device that can be used as a source of delayed events
-(e.g., the I210 network card). This module basically provides 2 methods - 'WultDevice()' and
-'scan_devices()'. The former is a factory method that figures out what wult device object to return
-(wult device class API is defined by '_DeviceBase'. The latter scans the target host for compatible
-wult devices.
+This module provides an abstraction for a device that can be used as the source of raw datapoints
+for wult and ndl tools.
+
+This module provides the following methods.
+  * GetDevice() - a factory for creating and returning device class objects.
+  * scan_devices() - scan for compatible devices.
 """
 
 import time
@@ -25,20 +26,13 @@ from wultlibs import NetIface, LsPCI
 # All the possible wult device driver names.
 DRVNAMES = set()
 
-# All supported device types.
-DEVTYPES = ("i210", "tdt", "hrtimer")
-
 # The maximum expected device clock resolution in nanoseconds.
 _MAX_RESOLUTION = 100
 
 _LOG = logging.getLogger()
 
 class _DeviceBase:
-    """
-    This is the base class for wult delayed event devices. It has 2 purposes.
-       * Implement common functionality.
-       * Define the API that subclasses (particular device types) have to implement.
-    """
+    """This is the base class for device classes."""
 
     def bind(self, drvname): # pylint: disable=no-self-use, unused-argument
         """Bind the device to the 'drvname' driver."""
@@ -65,7 +59,7 @@ class _DeviceBase:
         """
         The class constructor. The arguments are as follows.
           * devid - device ID. What the "ID" is depends on the device type.
-          * pman - the host process manager object defining the host to operate on.
+          * pman - the process manager object defining the host to operate on.
           * cpunum - the measured CPU number.
           * drvname - name of the kernel driver which will be uses for handling this device.
           * dmesg - 'True' to enable 'dmesg' output checks, 'False' to disable them.
@@ -256,7 +250,7 @@ class _PCIDevice(_DeviceBase):
             supported = ["%s - %s" % (key, val) for key, val in self.supported_devices.items()]
             supported = "\n * ".join(supported)
             if drvname:
-                drvtext = f" by wult driver {self.drvname}"
+                drvtext = f" by driver {self.drvname}"
             raise ErrorNotSupported(f"PCI device '{self._pci_info['pciaddr']}' (PCI ID "
                                     f"{self._pci_info['devid']}) is not supported{drvtext}.\n"
                                     f"Here is the list of supported PCI IDs:\n* {supported}")
@@ -321,7 +315,7 @@ class _IntelI210(_PCIDevice):
 
                     raise Error(f"refusing to use device '{devid}'{msg}{pman.hostmsg}: "
                                 f"it is up and might be used for networking. Please, bring it down "
-                                f"if you want to use it for wult measurements.")
+                                f"if you want to use it for measurements.")
                 hwaddr = netif.hwaddr
                 alias = netif.ifname
             else:
@@ -445,11 +439,12 @@ class _WultHRTimer(_DeviceBase):
         self.info["descr"] = self.supported_devices["hrtimer"]
         self.info["resolution"] = self._get_resoluion()
 
-
-def WultDevice(devid, cpunum, pman, dmesg=None, force=False):
+def GetDevice(toolname, devid, cpunum, pman, dmesg=None, force=False):
     """
-    The wult device object factory - creates and returns the correct type of wult device object
-    depending on 'devid'. The arguments are the same as in '_DeviceBase.__init__()'.
+    The device object factory - creates and returns the correct type of device object
+    depending on the tool and 'devid'. The arguments are as follows:
+      * toolname - name of the tool to create a device object for ("wult" or "ndl").
+      * other arguments documented in '_DeviceBase.__init__()'.
     """
 
     if devid in _WultTSCDeadlineTimer.supported_devices or devid in _WultTSCDeadlineTimer.alias:
@@ -458,16 +453,24 @@ def WultDevice(devid, cpunum, pman, dmesg=None, force=False):
     if devid in _WultHRTimer.supported_devices or devid in _WultHRTimer.alias:
         return _WultHRTimer(devid, cpunum, pman, dmesg=dmesg)
 
+    if toolname == "wult":
+        drvname = "wult_igb"
+    elif toolname == "ndl":
+        drvname = "ndl"
+    else:
+        raise Error(f"BUG: bad tool name '{toolname}'")
+
     try:
-        return _IntelI210(devid, cpunum, pman, drvname="wult_i210", dmesg=dmesg, force=force)
+        return _IntelI210(devid, cpunum, pman, drvname=drvname, dmesg=dmesg, force=force)
     except ErrorNotSupported as err:
         raise ErrorNotSupported(f"unsupported device '{devid}'{pman.hostmsg}") from err
 
-def scan_devices(pman, devtypes=None):
+def scan_devices(toolname, pman):
     """
-    Scan the host defined by 'pman' for compatible devices. The 'devtypes' argument can be
-    used to limit the scan to only certain type of devices. Supported device types are 'i210' for
-    Intel i210 NIC and 'tdt' for TSC deadline timer. Scanning all devices by default.
+    Scan the host defined by 'pman' for devices suitable for the 'toolname' tool. The arguments are
+    as follows.
+      * toolname - name of the tool scan for ("wult" or "ndl").
+      * pman - the process manager object defining the host to scan on.
 
     For every compatible device, yields a dictionary with the following keys.
      * devid - device ID of the found compatible device
@@ -477,26 +480,28 @@ def scan_devices(pman, devtypes=None):
      * resolution - device clock resolution in nanoseconds.
     """
 
-    if devtypes is None:
-        devtypes = DEVTYPES
-
-    if "tdt" in devtypes:
+    if toolname == "wult":
         for devid in _WultTSCDeadlineTimer.supported_devices:
             with contextlib.suppress(Error):
                 with _WultTSCDeadlineTimer(devid, 0, pman, dmesg=False) as timerdev:
                     yield timerdev.info
 
-    if "hrtimer" in devtypes:
         for devid in _WultHRTimer.supported_devices:
             with contextlib.suppress(Error):
                 with _WultHRTimer(devid, 0, pman, dmesg=False) as timerdev:
                     yield timerdev.info
 
-    if "i210" in devtypes:
-        with LsPCI.LsPCI(pman) as lspci:
-            for pci_info in lspci.get_devices():
-                with contextlib.suppress(ErrorNotSupported):
-                    devid = pci_info['pciaddr']
-                    with _IntelI210(devid, 0, pman, drvname="wult_i210", dmesg=False,
-                                    force=True) as i210dev:
-                        yield i210dev.info
+    if toolname == "wult":
+        drvname = "wult_igb"
+    elif toolname == "ndl":
+        drvname = "ndl"
+    else:
+        raise Error(f"BUG: bad tool name '{toolname}'")
+
+    with LsPCI.LsPCI(pman) as lspci:
+        for pci_info in lspci.get_devices():
+            with contextlib.suppress(ErrorNotSupported):
+                devid = pci_info['pciaddr']
+                with _IntelI210(devid, 0, pman, drvname=drvname, dmesg=False,
+                                force=True) as i210dev:
+                    yield i210dev.info

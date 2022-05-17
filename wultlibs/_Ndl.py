@@ -200,7 +200,6 @@ def parse_arguments():
 
     args = parser.parse_args()
     args.toolname = OWN_NAME
-    args.devtypes = ("i210",)
 
     return args
 
