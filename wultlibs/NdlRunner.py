@@ -44,7 +44,7 @@ class NdlRunner:
     def _get_lines(self):
         """This generator to reads the 'ndlrunner' helper output and yields it line by line."""
 
-        timeout = 1.0 + self._ldist[1]/1000000000
+        timeout = 4.0 + self._ldist[1]/1000000000
 
         while True:
             stdout, stderr, exitcode = self._ndlrunner.wait(timeout=timeout, lines=[16, None],
