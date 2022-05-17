@@ -161,10 +161,9 @@ class _DrvRawDataProvider(_RawDataProvider.RawDataProviderBase):
         self._unload()
 
         # Unbind the wult delayed event device from its current driver, if any.
-        self._saved_drvname = self.dev.unbind() # pylint: disable=assignment-from-none
-        if self._saved_drvname:
-            _LOG.info("Unbinded device '%s' from driver '%s'",
-                      self.dev.info["devid"], self._saved_drvname)
+        prev_drvname = self.dev.unbind() # pylint: disable=assignment-from-none
+        if prev_drvname:
+            _LOG.info("Unbinded device '%s' from driver '%s'", self.dev.info["devid"], prev_drvname)
 
         # Load wult drivers.
         self._load()
@@ -196,7 +195,6 @@ class _DrvRawDataProvider(_RawDataProvider.RawDataProviderBase):
                          early_intr=early_intr)
 
         self._drv = None
-        self._saved_drvname = None
         self._basedir = None
         self._enabled_path = None
         self._main_drv = None
@@ -225,18 +223,6 @@ class _DrvRawDataProvider(_RawDataProvider.RawDataProviderBase):
             if getattr(self, "_main_drv", None):
                 with contextlib.suppress(Error):
                     self._main_drv.unload()
-
-            # Bind the device back to the original driver.
-            saved_drvname = getattr(self, "_saved_drvname", None)
-            if saved_drvname and saved_drvname != self.dev.drvname:
-                _LOG.info("Binding device '%s' back to driver '%s'",
-                          self.dev.info["devid"], self._saved_drvname)
-                try:
-                    self.dev.bind(self._saved_drvname)
-                except Error as err:
-                    _LOG.error("failed to bind device '%s' back to driver '%s':\n %s",
-                               self.dev.info["devid"], self._saved_drvname, err)
-            self._saved_drvname = None
 
         ClassHelpers.close(self, close_attrs=("_main_drv", "_drv", "_ftrace"))
 

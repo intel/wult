@@ -232,6 +232,9 @@ class _PCIDevice(_WultDeviceBase):
         _LOG.debug("unbinded device '%s' from driver '%s'%s\n%s", self._pci_info["pciaddr"],
                    drvname, self._pman.hostmsg, self.get_new_dmesg())
 
+        if not self._orig_drvname:
+            self._orig_drvname = drvname
+
         return drvname
 
     def __init__(self, devid, cpunum, pman, dmesg=None):
@@ -241,6 +244,8 @@ class _PCIDevice(_WultDeviceBase):
 
         self._pci_info = None
         self._devpath = None
+        # Name of the driver the device was bound too before 'bind()' was called.
+        self._orig_drvname = None
 
         path = Path(f"/sys/bus/pci/devices/{self._devid}")
         if not pman.exists(path):
@@ -270,6 +275,16 @@ class _PCIDevice(_WultDeviceBase):
         self.info["descr"] += f". PCI address {self._pci_info['pciaddr']}, Vendor ID " \
                               f"{self._pci_info['vendorid']}, Device ID {self._pci_info['devid']}."
         self.info["aspm_enabled"] = self._pci_info["aspm_enabled"]
+
+    def close(self):
+        """Uninitialize the device."""
+
+        if getattr(self, "_orig_drvname", None):
+            with contextlib.suppress(Error):
+                self.unbind()
+                self.bind(self._orig_drvname)
+
+        super().close()
 
 class _IntelI210(_PCIDevice):
     """
