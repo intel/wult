@@ -329,14 +329,17 @@ class _IntelI210(_PCIDevice):
                                 f"it is up and might be used for networking. Please, bring it down "
                                 f"if you want to use it for wult measurements.")
                 hwaddr = netif.hwaddr
+                alias = netif.ifname
             else:
                 hwaddr = devid
+                alias = None
         finally:
             if netif:
                 netif.close()
 
         super().__init__(hwaddr, cpunum, pman, dmesg=dmesg)
 
+        self.info["alias"] = alias
         # I210 NIC clock has 1 nanosecond resolution.
         self.info["resolution"] = 1
 
@@ -501,19 +504,7 @@ def scan_devices(pman, devtypes=None):
     if "i210" in devtypes:
         with LsPCI.LsPCI(pman) as lspci:
             for pci_info in lspci.get_devices():
-                pci_id = pci_info["devid"]
-                if not _IntelI210.supported_devices.get(pci_id):
-                    continue
-
-                devid = pci_info['pciaddr']
-
-                # Find out the Linux network interface name for this NIC, if any.
-                ifname = None
-                with contextlib.suppress(Error):
-                    with NetIface.NetIface(devid, pman=pman) as netif:
-                        ifname = netif.ifname
-
-                descr = _IntelI210.supported_devices.get(pci_id)
-                descr += f". PCI address {pci_info['pciaddr']}, Vendor ID " \
-                         f"{pci_info['vendorid']}, Device ID {devid}."
-                yield devid, ifname, descr
+                with contextlib.suppress(ErrorNotSupported):
+                    devid = pci_info['pciaddr']
+                    with _IntelI210(devid, 0, pman, dmesg=False, force=True) as i210dev:
+                        yield i210dev.info["devid"], i210dev.info["alias"], i210dev.info["descr"]
