@@ -55,7 +55,7 @@
  * How many times in a row we allow the RTD register to contain zero. If it is always zero, this
  * indicates that something is misconfigured and we are not measuring anything.
  */
-#define ZERO_RTD_LIMIT 10
+#define ZERO_RTD_LIMIT 64
 
 /*
  * How many times in a row it is OK if arming a delayed packet fails. Sometimes it may happen
