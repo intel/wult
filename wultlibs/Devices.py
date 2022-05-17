@@ -264,12 +264,10 @@ class _PCIDevice(_WultDeviceBase):
                                     f"{self.drvname}.\nHere is the list of supported PCI IDs:\n* "
                                     f"{supported}")
 
-        self.info["name"] = "Intel I210"
         self.info["devid"] = self._pci_info["pciaddr"]
         if self.supported_devices:
             self.info["descr"] = self.supported_devices[self._pci_info["devid"]]
         else:
-            self.info["name"] = self._pci_info["name"]
             self.info["descr"] = self.info['name'].capitalize()
 
         self.info["descr"] += f". PCI address {self._pci_info['pciaddr']}, Vendor ID " \
@@ -370,7 +368,6 @@ class _TSCDeadlineTimer(_WultDeviceBase):
 
         super().__init__(devid, cpunum, pman, dmesg=dmesg)
 
-        self.info["name"] = "tdt"
         self.info["devid"] = devid
         self.info["alias"] = self.alias
         self.info["descr"] = self.supported_devices["tdt"]
@@ -449,7 +446,6 @@ class _LinuxHRTimer(_WultDeviceBase):
 
         super().__init__(devid, cpunum, pman, dmesg=dmesg)
 
-        self.info["name"] = "hrtimer"
         self.info["devid"] = devid
         self.info["alias"] = self.alias
         self.info["descr"] = self.supported_devices["hrtimer"]
