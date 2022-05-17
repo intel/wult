@@ -479,11 +479,12 @@ def scan_devices(pman, devtypes=None):
     used to limit the scan to only certain type of devices. Supported device types are 'i210' for
     Intel i210 NIC and 'tdt' for TSC deadline timer. Scanning all devices by default.
 
-    Yields tuples of the following elements:
+    For every compatible device, yields a dictionary with the following keys.
      * devid - device ID of the found compatible device
      * alias - device ID aliases for the device ('None' if there are no aliases). Alias is just
                another device ID for the same device.
-     * descr - short device description
+     * descr - short device description.
+     * resolution - device clock resolution in nanoseconds.
     """
 
     if devtypes is None:
@@ -493,13 +494,13 @@ def scan_devices(pman, devtypes=None):
         for devid in _TSCDeadlineTimer.supported_devices:
             with contextlib.suppress(Error):
                 with _TSCDeadlineTimer(devid, 0, pman, dmesg=False) as timerdev:
-                    yield timerdev.info["devid"], timerdev.info["alias"], timerdev.info["descr"]
+                    yield timerdev.info
 
     if "hrtimer" in devtypes:
         for devid in _LinuxHRTimer.supported_devices:
             with contextlib.suppress(Error):
                 with _LinuxHRTimer(devid, 0, pman, dmesg=False) as timerdev:
-                    yield timerdev.info["devid"], timerdev.info["alias"], timerdev.info["descr"]
+                    yield timerdev.info
 
     if "i210" in devtypes:
         with LsPCI.LsPCI(pman) as lspci:
@@ -507,4 +508,4 @@ def scan_devices(pman, devtypes=None):
                 with contextlib.suppress(ErrorNotSupported):
                     devid = pci_info['pciaddr']
                     with _IntelI210(devid, 0, pman, dmesg=False, force=True) as i210dev:
-                        yield i210dev.info["devid"], i210dev.info["alias"], i210dev.info["descr"]
+                        yield i210dev.info
