@@ -178,37 +178,13 @@ class WultRunner:
         self._prov.unload = self.unload
         self._prov.prepare()
 
-        # Validate the delayed event resolution.
-        resolution = self._prov.get_resolution()
-        _LOG.debug("delayed event resolution %dns", resolution)
-
         # Save the test setup information in the info.yml file.
         self._res.info["date"] = time.strftime("%d %b %Y")
         self._res.info["devid"] = self._dev.info["devid"]
         self._res.info["devdescr"] = self._dev.info["descr"]
-        self._res.info["resolution"] = resolution
+        self._res.info["resolution"] = self._dev.info["resolution"]
         self._res.info["intr_focus"] = self._intr_focus
         self._res.info["early_intr"] = self._early_intr
-
-        errmsg = None
-        if resolution > 1:
-            errmsg = f"delayed event device {self._res.info['devid']} has poor resolution of " \
-                     f"{resolution}ns"
-
-        if errmsg:
-            if resolution > 100:
-                if "timer" in self._res.info["devdescr"]:
-                    errmsg += "\nMake sure your kernel has high resolution timers enabled " \
-                              "(CONFIG_HIGH_RES_TIMERS)"
-
-                    with contextlib.suppress(Error):
-                        cmdline = self._get_cmdline()
-                        if "highres=off" in cmdline:
-                            errmsg += "\nYour system uses the 'highres=off' kernel boot " \
-                                      "parameter, try removing it"
-
-                raise Error(errmsg)
-            _LOG.warning(errmsg)
 
         # Initialize statistics collection.
         if self._stconf:

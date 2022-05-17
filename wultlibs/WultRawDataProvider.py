@@ -154,19 +154,6 @@ class _DrvRawDataProvider(_RawDataProvider.RawDataProviderBase):
                 raise Error(f"can't to change launch disatance range\nfailed to open '{ldist_path}'"
                             f"{self._pman.hostmsg} and write {ldist} to it:\n\t{err}") from err
 
-    def get_resolution(self):
-        """Returns resolution of the delayed event device in nanoseconds."""
-
-        try:
-            path = self._basedir / "resolution_nsec"
-            with self._pman.open(path, "r") as fobj:
-                resolution = fobj.read().strip()
-        except Error as err:
-            raise Error(f"failed to read the '{self.dev.info['devid']}' delayed event device "
-                        f"resolution from '{path}'{self._pman.hostmsg}:\n{err}") from err
-
-        return Trivial.str_to_num(resolution)
-
     def prepare(self):
         """Prepare to start the measurements."""
 
