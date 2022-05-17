@@ -373,6 +373,7 @@ def scan_command(args):
         msg += f" * Device ID: {info['devid']}\n"
         if info["alias"]:
             msg += f"   - Alias: {info['alias']}\n"
+        msg += f"   - Resolution: {info['resolution']} ns\n"
         msg += f"   - Description: {info['descr']}\n"
 
     if not msg:
