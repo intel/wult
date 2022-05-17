@@ -337,7 +337,7 @@ class _IntelI210(_PCIDevice):
         # I210 NIC clock has 1 nanosecond resolution.
         self.info["resolution"] = 1
 
-class _TSCDeadlineTimer(_DeviceBase):
+class _WultTSCDeadlineTimer(_DeviceBase):
     """
     This class represents the TSC deadline timer (TDT). TDT is a LAPIC feature supported by modern
     Intel CPUs. TDT allows to schedule a timer interrupt to happen in the future when TSC reaches
@@ -369,15 +369,15 @@ class _TSCDeadlineTimer(_DeviceBase):
         # TSC resolution is 1 cycle, but we assume it is 1 nanosecond.
         self.info["resolution"] = 1
 
-class _LinuxHRTimer(_DeviceBase):
+class _WultHRTimer(_DeviceBase):
     """
     This class represents Linux High Resolution Timers (hrtimers). Hrtimer is basically a Linux
     kernel API for using hardware timers in a platform-independent manner. On a modern Intel CPUs,
     hrtimers typically use TSC deadline timer under the hood, but may also use LAPIC timers. So this
-    device may end up using the same hardware as '_TSCDeadlineTimer'. But the '_TSCDeadlineTimer' is
-    a bit more precise because it directly acesses the TDT hardware registers and it is not affected
-    by Linux hrtimers sybsystem overhead. On the other hand, hrtimers work with both LAPIC and TSC
-    deadline timers.
+    device may end up using the same hardware as '_WultTSCDeadlineTimer'. But the
+    '_WultTSCDeadlineTimer' is a bit more precise because it directly acesses the TDT hardware
+    registers and it is not affected by Linux hrtimers sybsystem overhead. On the other hand,
+    hrtimers work with both LAPIC and TSC deadline timers.
     """
 
     supported_devices = {"hrtimer" : "Linux High Resolution Timer"}
@@ -452,11 +452,11 @@ def WultDevice(devid, cpunum, pman, dmesg=None, force=False):
     depending on 'devid'. The arguments are the same as in '_DeviceBase.__init__()'.
     """
 
-    if devid in _TSCDeadlineTimer.supported_devices or devid in _TSCDeadlineTimer.alias:
-        return _TSCDeadlineTimer(devid, cpunum, pman, dmesg=dmesg)
+    if devid in _WultTSCDeadlineTimer.supported_devices or devid in _WultTSCDeadlineTimer.alias:
+        return _WultTSCDeadlineTimer(devid, cpunum, pman, dmesg=dmesg)
 
-    if devid in _LinuxHRTimer.supported_devices or devid in _LinuxHRTimer.alias:
-        return _LinuxHRTimer(devid, cpunum, pman, dmesg=dmesg)
+    if devid in _WultHRTimer.supported_devices or devid in _WultHRTimer.alias:
+        return _WultHRTimer(devid, cpunum, pman, dmesg=dmesg)
 
     try:
         return _IntelI210(devid, cpunum, pman, drvname="wult_i210", dmesg=dmesg, force=force)
@@ -481,15 +481,15 @@ def scan_devices(pman, devtypes=None):
         devtypes = DEVTYPES
 
     if "tdt" in devtypes:
-        for devid in _TSCDeadlineTimer.supported_devices:
+        for devid in _WultTSCDeadlineTimer.supported_devices:
             with contextlib.suppress(Error):
-                with _TSCDeadlineTimer(devid, 0, pman, dmesg=False) as timerdev:
+                with _WultTSCDeadlineTimer(devid, 0, pman, dmesg=False) as timerdev:
                     yield timerdev.info
 
     if "hrtimer" in devtypes:
-        for devid in _LinuxHRTimer.supported_devices:
+        for devid in _WultHRTimer.supported_devices:
             with contextlib.suppress(Error):
-                with _LinuxHRTimer(devid, 0, pman, dmesg=False) as timerdev:
+                with _WultHRTimer(devid, 0, pman, dmesg=False) as timerdev:
                     yield timerdev.info
 
     if "i210" in devtypes:
