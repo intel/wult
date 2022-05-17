@@ -288,19 +288,20 @@ class WultRunner:
 
         self._validate_sut()
 
-        self._progress = _ProgressLine.ProgressLine(period=1)
-        self._prov = WultRawDataProvider.WultRawDataProvider(dev, res.cpunum, pman,
-                                                             timeout=self._timeout,
-                                                             ldist=self._ldist,
-                                                             intr_focus=self._intr_focus,
-                                                             early_intr=self._early_intr)
-
         if self._dev.drvname == "wult_tdt" and self._intr_focus:
             raise Error("the 'tdt' driver does not support the interrupt latency focused "
                         "measurements")
 
         if self._dev.drvname == "wult_tdt" and self._early_intr:
             raise Error("the 'tdt' driver does not support the early interrupt feature")
+
+        self._progress = _ProgressLine.ProgressLine(period=1)
+
+        self._prov = WultRawDataProvider.WultRawDataProvider(dev, res.cpunum, pman,
+                                                             timeout=self._timeout,
+                                                             ldist=self._ldist,
+                                                             intr_focus=self._intr_focus,
+                                                             early_intr=self._early_intr)
 
         self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, pman, self._dev.drvname,
                                                       intr_focus=self._intr_focus,
