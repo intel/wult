@@ -132,17 +132,13 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         self._unload(everything=True)
 
         # Unbind the wult delayed event device from its current driver, if any.
-        prev_drvname = self.dev.unbind() # pylint: disable=assignment-from-none
-        if prev_drvname:
-            _LOG.info("Unbinded device '%s' from driver '%s'", self.dev.info["devid"], prev_drvname)
+        self.dev.unbind()
 
         # Load wult drivers.
         self._load()
 
         # Bind the delayed event device to its wult driver.
-        _LOG.info("Binding device '%s' to driver '%s'",
-                  self.dev.info["devid"], self.dev.drvname)
-        self.dev.bind(self.dev.drvname)
+        self.dev.bind()
 
         if self._ldist:
             self._set_launch_distance()

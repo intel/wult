@@ -34,8 +34,11 @@ _LOG = logging.getLogger()
 class _DeviceBase:
     """This is the base class for device classes."""
 
-    def bind(self, drvname): # pylint: disable=no-self-use, unused-argument
-        """Bind the device to the 'drvname' driver."""
+    def bind(self, drvname=None): # pylint: disable=no-self-use
+        """
+        Bind the device its driver. The arguments are as follows.
+          * drvname - name of the driver to bind to (wult/ndl driver by default).
+        """
 
     def unbind(self): # pylint: disable=no-self-use
         """
@@ -135,11 +138,13 @@ class _PCIDevice(_DeviceBase):
 
         return self._get_driver()[0]
 
-    def bind(self, drvname):
-        """Bind the PCI device to driver 'drvname'."""
+    def bind(self, drvname=None):
+        """Bind the PCI device to driver 'drvname' (wult/ndl driver by default)."""
 
-        _LOG.debug("binding device '%s' to driver '%s'%s",
-                   self._pci_info["pciaddr"], drvname, self._pman.hostmsg)
+        if not drvname:
+            drvname = self.drvname
+
+        _LOG.info("Binding device '%s' to driver '%s'", self.info["devid"], drvname)
 
         failmsg = f"failed to bind device '{self._pci_info['pciaddr']}' to driver '{drvname}'" \
                   f"{self._pman.hostmsg}"
@@ -219,8 +224,9 @@ class _PCIDevice(_DeviceBase):
         if self._get_driver()[1]:
             raise Error(f"{failmsg}:\npath '{drvpath}' still exists\n{self.get_new_dmesg()}")
 
-        _LOG.debug("unbinded device '%s' from driver '%s'%s\n%s", self._pci_info["pciaddr"],
-                   drvname, self._pman.hostmsg, self.get_new_dmesg())
+        _LOG.info("Unbinded device '%s' from driver '%s'%s", self.info["devid"], drvname,
+                  self._pman.hostmsg)
+        _LOG.debug(self.get_new_dmesg())
 
         if not self._orig_drvname:
             self._orig_drvname = drvname
@@ -271,7 +277,7 @@ class _PCIDevice(_DeviceBase):
         if getattr(self, "_orig_drvname", None):
             with contextlib.suppress(Error):
                 self.unbind()
-                self.bind(self._orig_drvname)
+                self.bind(drvname=self._orig_drvname)
 
         super().close()
 
