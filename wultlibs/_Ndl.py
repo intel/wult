@@ -23,7 +23,7 @@ except ImportError:
 
 from pepclibs.helperlibs import Logging, ArgParse, Trivial
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import Deploy, ToolsCommon, NdlRunner, NetIface
+from wultlibs import Deploy, ToolsCommon, NdlRunner, Devices
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs.htmlreport import NdlReport
@@ -246,17 +246,20 @@ def start_command(args):
         ToolsCommon.setup_stdout_logging(OWN_NAME, res.logs_path)
         ToolsCommon.set_filters(args, res)
 
-        netif = NetIface.NetIface(args.devid, pman=pman)
-        stack.enter_context(netif)
+        dev = Devices.GetDevice(OWN_NAME, args.devid, pman, dmesg=True)
+        stack.enter_context(dev)
 
-        ToolsCommon.start_command_check_network(args, pman, netif)
+        if not dev.netif:
+            raise Error(dev.netif_err)
 
-        info = netif.get_pci_info()
+        ToolsCommon.start_command_check_network(args, pman, dev.netif)
+
+        info = dev.netif.get_pci_info()
         if info.get("aspm_enabled"):
             LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "
                        "the measured latency.", args.devid)
 
-        runner = NdlRunner.NdlRunner(pman, netif, res, ndlrunner_path, ldist=args.ldist)
+        runner = NdlRunner.NdlRunner(pman, dev.netif, res, ndlrunner_path, ldist=args.ldist)
         stack.enter_context(runner)
 
         runner.prepare()

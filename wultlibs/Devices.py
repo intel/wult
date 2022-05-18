@@ -292,10 +292,12 @@ class _IntelI210(_PCIDevice):
         """
 
         self.netif = None
+        self.netif_err = None
 
         try:
             self.netif = NetIface.NetIface(devid, pman=pman)
         except ErrorNotFound as err:
+            self.netif_err = err
             _LOG.debug(err)
 
         if self.netif:
