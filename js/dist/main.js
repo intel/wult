@@ -788,10 +788,16 @@
         .tab-panel::part(base) {
             padding: 0px 0px;
         }
+        /*
+         * Also reduce the bottom padding of tabs as it makes them easier to read.
+         */
+        .tab::part(base) {
+            padding-bottom: var(--sl-spacing-x-small);
+        }
     `;static properties={tabFile:{type:String},tabs:{type:Object,attribute:!1},fetchFailed:{type:Boolean,attribute:!1}};updated(t){t.has("tabFile")&&fetch(this.tabFile).then((t=>t.json())).then((t=>{this.tabs=t}))}tabTemplate(t){return t.tabs?z`
                 <sl-tab-group>
                     ${t.tabs.map((t=>z`
-                        <sl-tab slot="nav" panel="${t.name}">${t.name}</sl-tab>
+                        <sl-tab class="tab" slot="nav" panel="${t.name}">${t.name}</sl-tab>
                         <sl-tab-panel class="tab-panel" id="${t.name}" name="${t.name}">${this.tabTemplate(t)}</sl-tab-panel>
                     `))}
                 </sl-tab-group>
@@ -800,7 +806,7 @@
         `}render(){return this.tabs?z`
             <sl-tab-group>
                 ${this.tabs.map((t=>z`
-                    <sl-tab slot="nav" panel="${t.name}">${t.name}</sl-tab>
+                    <sl-tab class="tab" slot="nav" panel="${t.name}">${t.name}</sl-tab>
                     <sl-tab-panel class="tab-panel" name="${t.name}">${this.tabTemplate(t)}</sl-tab-panel>
                 `))}
             </sl-tab-group>

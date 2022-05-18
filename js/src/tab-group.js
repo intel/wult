@@ -46,6 +46,12 @@ class TabGroup extends LitElement {
         .tab-panel::part(base) {
             padding: 0px 0px;
         }
+        /*
+         * Also reduce the bottom padding of tabs as it makes them easier to read.
+         */
+        .tab::part(base) {
+            padding-bottom: var(--sl-spacing-x-small);
+        }
     `
 
     static properties = {
@@ -78,7 +84,7 @@ class TabGroup extends LitElement {
             return html`
                 <sl-tab-group>
                     ${tab.tabs.map((innerTab) => html`
-                        <sl-tab slot="nav" panel="${innerTab.name}">${innerTab.name}</sl-tab>
+                        <sl-tab class="tab" slot="nav" panel="${innerTab.name}">${innerTab.name}</sl-tab>
                         <sl-tab-panel class="tab-panel" id="${innerTab.name}" name="${innerTab.name}">${this.tabTemplate(innerTab)}</sl-tab-panel>
                     `)}
                 </sl-tab-group>
@@ -97,7 +103,7 @@ class TabGroup extends LitElement {
         return html`
             <sl-tab-group>
                 ${this.tabs.map((tab) => html`
-                    <sl-tab slot="nav" panel="${tab.name}">${tab.name}</sl-tab>
+                    <sl-tab class="tab" slot="nav" panel="${tab.name}">${tab.name}</sl-tab>
                     <sl-tab-panel class="tab-panel" name="${tab.name}">${this.tabTemplate(tab)}</sl-tab-panel>
                 `
     )}
