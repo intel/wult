@@ -217,6 +217,16 @@ def start_command(args):
         pman = ToolsCommon.get_pman(args)
         stack.enter_context(pman)
 
+        with Deploy.Deploy(OWN_NAME, pman=pman, debug=args.debug) as depl:
+            if depl.is_deploy_needed():
+                msg = f"'{OWN_NAME}' helpers and/or drivers are not up-to-date{pman.hostmsg}, " \
+                      f"please run: {OWN_NAME} deploy"
+                if pman.is_remote:
+                    msg += f" -H {pman.hostname}"
+                LOG.warning(msg)
+
+            ndlrunner_path = depl.get_helpers_deploy_path() / "ndlrunner"
+
         if not args.reportid and pman.is_remote:
             prefix = pman.hostname
         else:
@@ -230,16 +240,6 @@ def start_command(args):
             args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
 
         args.ldist = ToolsCommon.parse_ldist(args.ldist)
-
-        with Deploy.Deploy(OWN_NAME, pman=pman, debug=args.debug) as depl:
-            if depl.is_deploy_needed():
-                msg = f"'{OWN_NAME}' helpers and/or drivers are not up-to-date{pman.hostmsg}, " \
-                      f"please run: {OWN_NAME} deploy"
-                if pman.is_remote:
-                    msg += f" -H {pman.hostname}"
-                LOG.warning(msg)
-
-            ndlrunner_path = depl.get_helpers_deploy_path() / "ndlrunner"
 
         if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
             raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
