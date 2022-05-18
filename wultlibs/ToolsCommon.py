@@ -505,6 +505,28 @@ def start_command_reportid(args, pman):
                                     strftime=f"{args.toolname}-{args.devid}-%Y%m%d",
                                     additional_chars=_REPORTID_ADDITIONAL_CHARS)
 
+def start_command_check_network(args, pman, netif):
+    """
+    In case the device that is used for measurement is a network card, check that it is not in the
+    'up' state. This makes sure users do not lose networking by specifying a wrong device by a
+    mistake.
+    """
+
+    if args.force:
+        return
+
+    # Make sure the device is not used for networking and users do not lose networking by
+    # specifying a wrong device by a mistake.
+    if netif.getstate() == "up":
+        msg = ""
+        if args.devid != netif.ifname:
+            msg = f" (network interface '{netif.ifname}')"
+
+        raise Error(f"refusing to use device '{args.devid}'{msg}{pman.hostmsg}: it is up and "
+                    f"might be used for networking. Please, bring it down if you want to use "
+                    "it for measurements.")
+
+
 def report_command_outdir(args, rsts):
     """Return the default or user-provided output directory path for the 'report' command."""
 
