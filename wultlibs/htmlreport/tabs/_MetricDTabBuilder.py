@@ -53,9 +53,9 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         for metric in metrics:
             # Create row in the summary table for each metric.
-            defs = self._refres.defs.info[metric]
-            fmt = "{:.2f}" if defs["type"] == "float" else None
-            smry_tbl.add_metric(metric, defs["short_unit"], defs["descr"], fmt)
+            mdef = self._refres.defs.info[metric]
+            fmt = "{:.2f}" if mdef["type"] == "float" else None
+            smry_tbl.add_metric(metric, mdef["short_unit"], mdef["descr"], fmt)
 
             # Select only those functions that are present in all test results. For example, 'std'
             # will not be present if the result has only one datapoint. In this case, we need to
