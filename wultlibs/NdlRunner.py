@@ -262,11 +262,12 @@ class NdlRunner:
             ProcHelpers.kill_pids(ndlrunner.pid, kill_children=True, must_die=False,
                                   pman=self._pman)
 
-    def __init__(self, pman, netif, res, ndlrunner_path, ldist=None):
+    def __init__(self, pman, dev, res, ndlrunner_path, ldist=None):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
-          * netif - the 'NetIface' object of network device used for measurements.
+          * dev - the network device object to use for measurements (created with
+                  'Devices.GetDevice()').
           * res - the 'WORawResult' object to store the results at.
           * ndlrunner_path - path to the 'ndlrunner' helper.
           * ldist - a pair of numbers specifying the launch distance range in nanoseconds (how far
@@ -275,12 +276,13 @@ class NdlRunner:
         """
 
         self._pman = pman
-        self._netif = netif
+        self._dev = dev
         self._res = res
         self._ndlrunner_path = ndlrunner_path
         self._ldist = ldist
-        self._ifname = netif.ifname
 
+        self._netif = self._dev.netif
+        self._ifname = self._netif.ifname
         self._ndl_lines = None
         self._drv = None
         self._rtd_path = None
@@ -300,7 +302,7 @@ class NdlRunner:
 
         mntpath = FSHelpers.mount_debugfs(pman=pman)
         self._rtd_path = mntpath.joinpath(f"{self._drv.name}/rtd")
-        self._etfqdisc = _ETFQdisc.ETFQdisc(netif, pman=pman)
+        self._etfqdisc = _ETFQdisc.ETFQdisc(self._netif, pman=pman)
 
     def close(self):
         """Stop the measurements."""
@@ -314,7 +316,7 @@ class NdlRunner:
         if getattr(self, "_drv", None):
             self._drv.unload()
 
-        unref_attrs = ("_ndlrunner", "_netif", "_nmcli", "_drv", "_pman")
+        unref_attrs = ("_ndlrunner", "_netif", "_dev", "_nmcli", "_drv", "_pman")
         close_attrs = ("_etfqdisc", "_nmcli")
         ClassHelpers.close(self, unref_attrs=unref_attrs, close_attrs=close_attrs)
 

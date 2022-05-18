@@ -78,7 +78,7 @@ class DrvRawDataProviderBase(RawDataProviderBase):
         loaded = []
         for drvobj in self._drvobjs:
             try:
-                drvobj.load(opts=f"cpunum={self._cpunum}")
+                drvobj.load(opts=self._drvinfo[drvobj.name]["params"])
                 loaded.append(drvobj)
             except Error:
                 # Unload the loaded drivers.
@@ -115,24 +115,31 @@ class DrvRawDataProviderBase(RawDataProviderBase):
                                            dmesg=self.dev.dmesg_obj) as drvobj:
                 drvobj.unload()
 
-    def __init__(self, dev, cpunum, pman, drvnames, all_drvnames, timeout=None, ldist=None,
+    def __init__(self, dev, cpunum, pman, drvinfo, all_drvnames, timeout=None, ldist=None,
                  intr_focus=None, early_intr=None):
         """
         Initialize a class instance. The arguments are as follows.
-          * drvnames - list of required driver names.
+          * drvinfo - a dictionary describing the kernel drivers to load/unload.
           * all_drvnames - list of all possible driver names.
           * All other arguments are the same as in '_RawDataProviderBase.__init__()'.
+
+        The 'drvinfo' dictionary schema is as follows.
+          { drvname1: { "params" : <modulue parameters> },
+            drvname2: { "params" : <modulue parameters> },
+           ... etc ... }
+
+          * drvname - driver name.
+          * parmas - driver module parameters.
         """
 
         super().__init__(dev, cpunum, pman, ldist=ldist, intr_focus=intr_focus,
                          early_intr=early_intr)
 
-        self._drvnames = drvnames
+        self._drvinfo = drvinfo
         self._all_drvnames = all_drvnames
-
         self._drvobjs = []
 
-        for drvname in self._drvnames:
+        for drvname in self._drvinfo.keys():
             drvobj = KernelModule.KernelModule(drvname, pman=pman, dmesg=dev.dmesg_obj)
             self._drvobjs.append(drvobj)
 

@@ -158,9 +158,11 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         '_RawDataProviderBase.__init__()'.
         """
 
-        drvnames = ("wult", dev.drvname)
+        drvinfo = { "wult" : { "params" : f"cpunum={cpunum}" },
+                     dev.drvname : { "params" : None }}
         all_drvnames = Devices.DRVNAMES
-        super().__init__(dev, cpunum, pman, drvnames, all_drvnames, ldist=ldist,
+
+        super().__init__(dev, cpunum, pman, drvinfo, all_drvnames, ldist=ldist,
                          intr_focus=intr_focus, early_intr=early_intr)
 
         self._basedir = None
