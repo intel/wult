@@ -765,29 +765,29 @@
                 `))}
             </div>
         `}render(){return super.render()}}customElements.define("wult-metric-tab",oi);class ni extends et{static styles=o`
-      /*
-      * By default, inactive Shoelace tabs have 'display: none' which breaks Plotly
-      * legends. Therefore we make inactive tabs invisible in our own way using the
-      * following two css classes:
-      */
-      sl-tab-panel{
-        display: block !important;
-        height: 0px !important;
-        overflow: hidden;
-      }
+        /*
+         * By default, inactive Shoelace tabs have 'display: none' which breaks Plotly legends.
+         * Therefore we make inactive tabs invisible in our own way using the following two css
+         * classes:
+         */
+        sl-tab-panel{
+            display: block !important;
+            height: 0px !important;
+            overflow: hidden;
+        }
 
-      sl-tab-panel[active] {
-        display: block !important;
-        height: auto !important;
-      }
+        sl-tab-panel[active] {
+            display: block !important;
+            height: auto !important;
+        }
 
-      /*
-       * The hierarchy of tabs can go up to and beyond 5 levels of depth. Remove the padding on
-       * tab panels so that there is no space between each level of tabs.
-       */
-      .tab-panel::part(base) {
-        padding: 0px 0px;
-      }
+        /*
+         * The hierarchy of tabs can go up to and beyond 5 levels of depth. Remove the padding on
+         * tab panels so that there is no space between each level of tabs.
+         */
+        .tab-panel::part(base) {
+            padding: 0px 0px;
+        }
     `;static properties={tabFile:{type:String},tabs:{type:Object,attribute:!1},fetchFailed:{type:Boolean,attribute:!1}};updated(t){t.has("tabFile")&&fetch(this.tabFile).then((t=>t.json())).then((t=>{this.tabs=t}))}tabTemplate(t){return t.tabs?z`
                 <sl-tab-group>
                     ${t.tabs.map((t=>z`
