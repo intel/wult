@@ -29,6 +29,11 @@ _HELPERS_SRC_SUBPATH = Path("helpers")
 
 _LOG = logging.getLogger()
 
+# By default 'ReportID' module does not allow for the ":" character, but it is part of the PCI
+# address, and we allow for PCI addresses as device IDs. Here are few constants that we use to
+# extend the default allowed report ID characters set.
+_REPORTID_ADDITIONAL_CHARS = ":"
+
 # Description for the '--datapoints' option of the 'start' command.
 DATAPOINTS_DESCR = """How many datapoints should the test result include, default is 1000000. Note,
                       unless the '--start-over' option is used, the pre-existing datapoints are
@@ -57,18 +62,12 @@ START_OVER_DESCR = """If the output directory already contains the datapoints CS
 # Description for the '--outdir' option of the 'start' command.
 START_OUTDIR_DESCR = """Path to the directory to store the results at."""
 
-# Description for the '--reportid' option of the 'start' command.
-def get_start_reportid_descr(allowed_chars):
-    """
-    Returns description for the '--reportid' option of the 'start' command. The 'allowed_chars'
-    argument should be the allowed report ID characters description string.
-    """
-
-    descr = f"""Any string which may serve as an identifier of this run. By default report ID is the
-                current date, prefixed with the remote host name in case the '-H' option was used:
-                [hostname-]YYYYMMDD. For example, "20150323" is a report ID for a run made on March
-                23, 2015. The allowed characters are: {allowed_chars}."""
-    return descr
+_REPORTID_CHARS_DESCR = ReportID.get_charset_descr(additional_chars=_REPORTID_ADDITIONAL_CHARS)
+START_REPORTID_DESCR = f"""Any string which may serve as an identifier of this run. By default
+                           report ID is the current date, prefixed with the remote host name in case
+                           the '-H' option was used: [hostname-]YYYYMMDD. For example, "20150323" is
+                           a report ID for a run made on March 23, 2015. The allowed characters are:
+                           {_REPORTID_CHARS_DESCR}."""
 
 # Description for the '--report' option of the 'start' command.
 START_REPORT_DESCR = """Generate an HTML report for collected results (same as calling 'report'
@@ -440,14 +439,12 @@ def calc_command(args):
     _LOG.info("Datapoints count: %d", len(res.df))
     YAML.dump(res.smrys, sys.stdout, float_format="%.2f")
 
-def open_raw_results(respaths, toolname, reportids=None, reportid_additional_chars=None):
+def open_raw_results(respaths, toolname, reportids=None):
     """
     Opens the input raw test results, and returns the list of 'RORawResult' objects.
       * respaths - list of paths to raw results.
       * toolname - name of the tool opening raw results.
       * reportids - list of reportids to override report IDs in raw results.
-      * reportid_additional_chars - string of characters allowed in report ID on top of default
-                                    characters.
     """
 
     if reportids:
@@ -466,7 +463,7 @@ def open_raw_results(respaths, toolname, reportids=None, reportid_additional_cha
     rsts = []
     for respath, reportid in zip(respaths, reportids):
         if reportid:
-            ReportID.validate_reportid(reportid, additional_chars=reportid_additional_chars)
+            ReportID.validate_reportid(reportid, additional_chars=_REPORTID_ADDITIONAL_CHARS)
 
         res = RORawResult.RORawResult(respath, reportid=reportid)
         if toolname != res.info["toolname"]:
@@ -486,3 +483,34 @@ def list_result_columns(rsts):
         for colname in rst.colnames:
             if colname in rst.defs.info:
                 _LOG.info("  * %s: %s", colname, rst.defs.info[colname]["title"])
+
+def start_command_reportid(args, pman):
+    """
+    If user provided report ID for the 'start' command, this function validates it and returns.
+    Otherwise, it generates the default report ID and returns it.
+    """
+
+    if not args.reportid and pman.is_remote:
+        prefix = pman.hostname
+    else:
+        prefix = None
+
+    return ReportID.format_reportid(prefix=prefix, reportid=args.reportid,
+                                    strftime=f"{args.toolname}-{args.devid}-%Y%m%d",
+                                    additional_chars=_REPORTID_ADDITIONAL_CHARS)
+
+def report_command_outdir(args, rsts):
+    """Return the default or user-provided output directory path for the 'report' command."""
+
+    if args.outdir is not None:
+        return args.outdir
+
+    if len(args.respaths) > 1:
+        outdir = ReportID.format_reportid(prefix=f"{args.toolname}-report",
+                                          reportid=rsts[0].reportid,
+                                          additional_chars=_REPORTID_ADDITIONAL_CHARS)
+    else:
+        outdir = args.respaths[0]
+
+    _LOG.info("Report output directory: %s", outdir)
+    return Path(outdir)

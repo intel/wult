@@ -24,7 +24,7 @@ except ImportError:
 from pepclibs.helperlibs import Logging, ArgParse, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import Deploy, ToolsCommon, NdlRunner, NetIface
-from wultlibs.helperlibs import ReportID, Human
+from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs.htmlreport import NdlReport
 
@@ -87,8 +87,7 @@ def build_arguments_parser():
     if argcomplete:
         arg.completer = argcomplete.completers.DirectoriesCompleter()
 
-    text = ToolsCommon.get_start_reportid_descr(ReportID.get_charset_descr())
-    subpars.add_argument("--reportid", help=text)
+    subpars.add_argument("--reportid", help=ToolsCommon.START_REPORTID_DESCR)
 
     text = f"""The launch distance in microseconds. This tool works by scheduling a delayed network
                packet, then sleeping and waiting for the packet to be sent. This step is referred to
@@ -227,12 +226,7 @@ def start_command(args):
 
             ndlrunner_path = depl.get_helpers_deploy_path() / "ndlrunner"
 
-        if not args.reportid and pman.is_remote:
-            prefix = pman.hostname
-        else:
-            prefix = None
-        args.reportid = ReportID.format_reportid(prefix=prefix, reportid=args.reportid,
-                                                 strftime=f"{OWN_NAME}-%Y%m%d")
+        args.reportid = ToolsCommon.start_command_reportid(args, pman)
 
         if not args.outdir:
             args.outdir = Path(f"./{args.reportid}")
@@ -297,15 +291,7 @@ def report_command(args):
     if args.even_dpcnt:
         ToolsCommon.even_up_dpcnt(rsts)
 
-    if args.outdir is None:
-        if len(args.respaths) > 1:
-            args.outdir = ReportID.format_reportid(prefix=f"{OWN_NAME}-report",
-                                                   reportid=rsts[0].reportid)
-        else:
-            args.outdir = args.respaths[0]
-
-        args.outdir = Path(args.outdir)
-        LOG.info("Generating report into: %s", args.outdir)
+    args.outdir = ToolsCommon.report_command_outdir(args, rsts)
 
     rep = NdlReport.NdlReport(rsts, args.outdir, title_descr=args.title_descr,
                                       xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,

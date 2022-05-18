@@ -27,19 +27,13 @@ from pepclibs.helperlibs import Logging, ArgParse, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs import CStates, CPUInfo
 from pepclibs.msr import PowerCtl
-from wultlibs.helperlibs import ReportID, Human
+from wultlibs.helperlibs import Human
 from wultlibs.htmlreport import WultReport
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs import Deploy, ToolsCommon, Devices, WultRunner, WultStatsCollect
 
 VERSION = "1.9.21"
 OWN_NAME = "wult"
-
-# By default 'ReportID' module does not allow for the ":" character, but it is part of the PCI
-# address, and we allow for PCI addresses as device IDs. Here are few constants that we use to
-# extend the default allowed report ID characters set.
-REPORTID_ADDITIONAL_CHARS = ":"
-REPORTID_CHARS_DESCR = ReportID.get_charset_descr(additional_chars=REPORTID_ADDITIONAL_CHARS)
 
 # Regular expressions for the datapoint CSV file columns names that should show up in the hover
 # text of the scatter plot. The middle element selects all the core and package C-state residency
@@ -122,8 +116,7 @@ def build_arguments_parser():
     if argcomplete:
         arg.completer = argcomplete.completers.DirectoriesCompleter()
 
-    text = ToolsCommon.get_start_reportid_descr(REPORTID_CHARS_DESCR)
-    subpars.add_argument("--reportid", help=text)
+    subpars.add_argument("--reportid", help=ToolsCommon.START_REPORTID_DESCR)
 
     text = """Comma-separated list of statistics to collect. The statistics are collected in
               parallel with measuring C-state latency. They are stored in the the "stats"
@@ -401,13 +394,7 @@ def start_command(args):
                     msg += f" -H {pman.hostname}"
                 LOG.warning(msg)
 
-        if not args.reportid and pman.is_remote:
-            prefix = pman.hostname
-        else:
-            prefix = None
-        args.reportid = ReportID.format_reportid(prefix=prefix, reportid=args.reportid,
-                                                 strftime=f"{OWN_NAME}-{args.devid}-%Y%m%d",
-                                                 additional_chars=REPORTID_ADDITIONAL_CHARS)
+        args.reportid = ToolsCommon.start_command_reportid(args, pman)
 
         if not args.outdir:
             args.outdir = Path(f"./{args.reportid}")
@@ -487,8 +474,7 @@ def report_command(args):
             else:
                 setattr(args, name, None)
 
-    rsts = ToolsCommon.open_raw_results(args.respaths, args.toolname, reportids=args.reportids,
-                                        reportid_additional_chars=REPORTID_ADDITIONAL_CHARS)
+    rsts = ToolsCommon.open_raw_results(args.respaths, args.toolname, reportids=args.reportids)
 
     if args.list_columns:
         ToolsCommon.list_result_columns(rsts)
@@ -500,16 +486,7 @@ def report_command(args):
     if args.even_dpcnt:
         ToolsCommon.even_up_dpcnt(rsts)
 
-    if args.outdir is None:
-        if len(args.respaths) > 1:
-            args.outdir = ReportID.format_reportid(prefix=f"{OWN_NAME}-report",
-                                                   reportid=rsts[0].reportid,
-                                                   additional_chars=REPORTID_ADDITIONAL_CHARS)
-        else:
-            args.outdir = args.respaths[0]
-
-        args.outdir = Path(args.outdir)
-        LOG.info("Generating report into: %s", args.outdir)
+    args.outdir = ToolsCommon.report_command_outdir(args, rsts)
 
     rep = WultReport.WultReport(rsts, args.outdir, title_descr=args.title_descr,
                                         xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
