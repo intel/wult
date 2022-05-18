@@ -9,6 +9,7 @@
  */
 
 import { LitElement, html, css } from '../node_modules/lit/index.js'
+import '@shoelace-style/shoelace/dist/components/spinner/spinner.js'
 
 /**
  * Responsible for creating a 'div' element containing a plot.
@@ -27,6 +28,12 @@ class DiagramElement extends LitElement {
         height: 100%;
         width: 100%;
     }
+    .loading {
+        display: flex;
+        justify-content: center;
+        padding: 5% 0%;
+        font-size: 15vw;
+    }
   `;
 
     static properties = {
@@ -43,8 +50,8 @@ class DiagramElement extends LitElement {
 
     render () {
         return html`
-            <div id="loading">
-                <p>Loading plot...</p>
+            <div id="loading" class="loading">
+                <sl-spinner></sl-spinner>
             </div>
             <div class="plot">
                 <iframe @load=${this.hideLoading} seamless="seamless" frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
