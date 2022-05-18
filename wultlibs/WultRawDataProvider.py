@@ -155,22 +155,36 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                  early_intr=None):
         """
         Initialize a class instance. The arguments are as follows.
-          * dev - same as in '_RawDataProviderBase.__init__()'.
+          * dev - the device object created with 'Devices.GetDevice()'.
           * cpunum - the measured CPU number.
-          * Rest of the arguments are the same as in '_RawDataProviderBase.__init__()'.
+          * pman - the process manager object defining host to operate on.
+          * timeout - the maximum amount of seconts to wait for a raw datapoint. Default is 10
+                      seconds.
+          * ldist - a pair of numbers specifying the launch distance range. The default value is
+                    specific to the delayed event device.
+          * intr_focus - enable inerrupt latency focused measurements ('WakeLatency' is not measured
+                         in this case, only 'IntrLatency').
+          * early_intr - enable intrrupts before entering the C-state.
         """
 
         drvinfo = { "wult" : { "params" : f"cpunum={cpunum}" },
                      dev.drvname : { "params" : None }}
         all_drvnames = Devices.DRVNAMES
 
-        super().__init__(dev, pman, drvinfo, all_drvnames, ldist=ldist,
-                         intr_focus=intr_focus, early_intr=early_intr)
+        super().__init__(dev, pman, drvinfo, all_drvnames)
+
+        self._timeout = timeout
+        self._ldist = ldist
+        self._intr_focus = intr_focus
+        self._early_intr = early_intr
 
         self._basedir = None
         self._enabled_path = None
         self._ftrace = None
         self._fields = None
+
+        if not timeout:
+            self._timeout = 10
 
         self._ftrace = _FTrace.FTrace(pman=self._pman, timeout=self._timeout)
 
