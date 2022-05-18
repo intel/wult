@@ -130,14 +130,6 @@ class _PCIDevice(_DeviceBase):
         drvname = Path(drvpath).name
         return (drvname, drvpath)
 
-    def get_driver_name(self):
-        """
-        Returns name of the driver the PCI device is bound to, or 'None' in case it is not bound to
-        any driver.
-        """
-
-        return self._get_driver()[0]
-
     def bind(self, drvname=None):
         """Bind the PCI device to driver 'drvname' (wult/ndl driver by default)."""
 
@@ -153,7 +145,7 @@ class _PCIDevice(_DeviceBase):
         if not self._pman.exists(drvpath):
             raise Error(f"{failmsg}':\npath '{drvpath}' does not exist{self._pman.hostmsg}")
 
-        cur_drvname = self.get_driver_name()
+        cur_drvname = self._get_driver()[0]
         if cur_drvname == drvname:
             _LOG.debug("device '%s' is already bound to driver '%s'%s",
                        self._pci_info["pciaddr"], drvname, self._pman.hostmsg)
