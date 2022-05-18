@@ -22,12 +22,10 @@ class RawDataProviderBase:
     The base class for raw data provider classes.
     """
 
-    def __init__(self, dev, cpunum, pman, timeout=None, ldist=None, intr_focus=None,
-                 early_intr=None):
+    def __init__(self, dev, pman, timeout=None, ldist=None, intr_focus=None, early_intr=None):
         """
         Initialize a class instance for device 'dev'. The arguments are as follows.
           * dev - the device object created with 'Devices.GetDevice()'.
-          * cpunum - the measured CPU number.
           * pman - the process manager object defining host to operate on.
           * timeout - the maximum amount of seconts to wait for a raw datapoint. Default is 10
                       seconds.
@@ -39,7 +37,6 @@ class RawDataProviderBase:
         """
 
         self.dev = dev
-        self._cpunum = cpunum
         self._pman = pman
         self._timoeut = timeout
         self._ldist = ldist
@@ -115,8 +112,8 @@ class DrvRawDataProviderBase(RawDataProviderBase):
                                            dmesg=self.dev.dmesg_obj) as drvobj:
                 drvobj.unload()
 
-    def __init__(self, dev, cpunum, pman, drvinfo, all_drvnames, timeout=None, ldist=None,
-                 intr_focus=None, early_intr=None):
+    def __init__(self, dev, pman, drvinfo, all_drvnames, timeout=None, ldist=None, intr_focus=None,
+                 early_intr=None):
         """
         Initialize a class instance. The arguments are as follows.
           * drvinfo - a dictionary describing the kernel drivers to load/unload.
@@ -132,8 +129,7 @@ class DrvRawDataProviderBase(RawDataProviderBase):
           * parmas - driver module parameters.
         """
 
-        super().__init__(dev, cpunum, pman, ldist=ldist, intr_focus=intr_focus,
-                         early_intr=early_intr)
+        super().__init__(dev, pman, ldist=ldist, intr_focus=intr_focus, early_intr=early_intr)
 
         self._drvinfo = drvinfo
         self._all_drvnames = all_drvnames

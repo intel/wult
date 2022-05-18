@@ -154,15 +154,17 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     def __init__(self, dev, cpunum, pman, timeout=None, ldist=None, intr_focus=None,
                  early_intr=None):
         """
-        Initialize a class instance. The arguments are documented in
-        '_RawDataProviderBase.__init__()'.
+        Initialize a class instance. The arguments are as follows.
+          * dev - same as in '_RawDataProviderBase.__init__()'.
+          * cpunum - the measured CPU number.
+          * Rest of the arguments are the same as in '_RawDataProviderBase.__init__()'.
         """
 
         drvinfo = { "wult" : { "params" : f"cpunum={cpunum}" },
                      dev.drvname : { "params" : None }}
         all_drvnames = Devices.DRVNAMES
 
-        super().__init__(dev, cpunum, pman, drvinfo, all_drvnames, ldist=ldist,
+        super().__init__(dev, pman, drvinfo, all_drvnames, ldist=ldist,
                          intr_focus=intr_focus, early_intr=early_intr)
 
         self._basedir = None
