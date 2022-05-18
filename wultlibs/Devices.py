@@ -58,12 +58,11 @@ class _DeviceBase:
             return f"New kernel messages{self._pman.hostmsg}:\n{new_msgs}"
         return ""
 
-    def __init__(self, devid, cpunum, pman, drvname=None, dmesg=True):
+    def __init__(self, devid, pman, drvname=None, dmesg=True):
         """
         The class constructor. The arguments are as follows.
           * devid - device ID. What the "ID" is depends on the device type.
           * pman - the process manager object defining the host to operate on.
-          * cpunum - the measured CPU number.
           * drvname - name of the kernel driver which will be uses for handling this device.
           * dmesg - 'True' to enable 'dmesg' output checks, 'False' to disable them.
         """
@@ -72,7 +71,6 @@ class _DeviceBase:
             raise Error("device ID was not provided")
 
         self._devid = devid
-        self._cpunum = cpunum
         self._pman = pman
         self.drvname = drvname
         self.dmesg_obj = None
@@ -225,10 +223,10 @@ class _PCIDevice(_DeviceBase):
 
         return drvname
 
-    def __init__(self, devid, cpunum, pman, drvname=None, dmesg=None):
+    def __init__(self, devid, pman, drvname=None, dmesg=None):
         """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
 
-        super().__init__(devid, cpunum, pman, drvname=drvname, dmesg=dmesg)
+        super().__init__(devid, pman, drvname=drvname, dmesg=dmesg)
 
         self._pci_info = None
         self._devpath = None
@@ -287,7 +285,7 @@ class _IntelI210(_PCIDevice):
         '157c' : 'Intel I210 (serdes flashless)',
         '1539' : 'Intel I211 (copper)'}
 
-    def __init__(self, devid, cpunum, pman, drvname=None, dmesg=None, force=False):
+    def __init__(self, devid, pman, drvname=None, dmesg=None, force=False):
         """
         The class constructor. The 'force' argument can be used to initialize I210 device for
         measurements even if its network interface state is "up". Other arguments are the same as in
@@ -320,7 +318,7 @@ class _IntelI210(_PCIDevice):
             hwaddr = devid
             alias = None
 
-        super().__init__(hwaddr, cpunum, pman, drvname=drvname, dmesg=dmesg)
+        super().__init__(hwaddr, pman, drvname=drvname, dmesg=dmesg)
 
         self.info["alias"] = alias
         # I210 NIC clock has 1 nanosecond resolution.
@@ -342,8 +340,13 @@ class _WultTSCDeadlineTimer(_DeviceBase):
     supported_devices = {"tdt" : "TSC deadline timer"}
     alias = "tsc-deadline-timer"
 
-    def __init__(self, devid, cpunum, pman, dmesg=None):
-        """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
+    def __init__(self, devid, pman, cpunum=0, dmesg=None):
+        """
+        The class constructor. The arguments are as follows.
+          * devid - same as in '_DeviceBase.__init__()'.
+          * cpunum - measured CPU number.
+          * Rest of the arguments are the same as in '_DeviceBase.__init__()'.
+        """
 
         errmsg = f"device '{devid}' is not supported for CPU {cpunum}{pman.hostmsg}."
         if devid not in self.supported_devices and devid != self.alias:
@@ -356,7 +359,7 @@ class _WultTSCDeadlineTimer(_DeviceBase):
                 raise ErrorNotSupported(f"{errmsg}\nCurrent clockevent device is {clkname}, "
                                         f"should be 'lapic-deadline' (see {path})")
 
-        super().__init__(devid, cpunum, pman, drvname="wult_tdt", dmesg=dmesg)
+        super().__init__(devid, pman, drvname="wult_tdt", dmesg=dmesg)
 
         self.info["devid"] = devid
         self.info["alias"] = self.alias
@@ -427,33 +430,35 @@ class _WultHRTimer(_DeviceBase):
 
         return resolution
 
-    def __init__(self, devid, cpunum, pman, dmesg=None):
+    def __init__(self, devid, pman, dmesg=None):
         """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
 
         if devid not in self.supported_devices and devid != self.alias:
-            raise ErrorNotSupported(f"device '{devid}' is not supported for CPU "
-                                    f"{cpunum}{pman.hostmsg}.")
+            raise ErrorNotSupported(f"device '{devid}' is not supported{pman.hostmsg}.")
 
-        super().__init__(devid, cpunum, pman, drvname="wult_hrtimer", dmesg=dmesg)
+        super().__init__(devid, pman, drvname="wult_hrtimer", dmesg=dmesg)
 
         self.info["devid"] = devid
         self.info["alias"] = self.alias
         self.info["descr"] = self.supported_devices["hrtimer"]
         self.info["resolution"] = self._get_resoluion()
 
-def GetDevice(toolname, devid, cpunum, pman, dmesg=None, force=False):
+def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None, force=False):
     """
     The device object factory - creates and returns the correct type of device object
     depending on the tool and 'devid'. The arguments are as follows:
       * toolname - name of the tool to create a device object for ("wult" or "ndl").
+      * devid - same as in '_DeviceBase.__init__()'.
+      * pman - same as in '_DeviceBase.__init__()'.
+      * cpunum - measured CPU number.
       * other arguments documented in '_DeviceBase.__init__()'.
     """
 
     if devid in _WultTSCDeadlineTimer.supported_devices or devid in _WultTSCDeadlineTimer.alias:
-        return _WultTSCDeadlineTimer(devid, cpunum, pman, dmesg=dmesg)
+        return _WultTSCDeadlineTimer(devid, pman, cpunum=cpunum, dmesg=dmesg)
 
     if devid in _WultHRTimer.supported_devices or devid in _WultHRTimer.alias:
-        return _WultHRTimer(devid, cpunum, pman, dmesg=dmesg)
+        return _WultHRTimer(devid, pman, dmesg=dmesg)
 
     if toolname == "wult":
         drvname = "wult_igb"
@@ -463,7 +468,7 @@ def GetDevice(toolname, devid, cpunum, pman, dmesg=None, force=False):
         raise Error(f"BUG: bad tool name '{toolname}'")
 
     try:
-        return _IntelI210(devid, cpunum, pman, drvname=drvname, dmesg=dmesg, force=force)
+        return _IntelI210(devid, pman, drvname=drvname, dmesg=dmesg, force=force)
     except ErrorNotSupported as err:
         raise ErrorNotSupported(f"unsupported device '{devid}'{pman.hostmsg}") from err
 
@@ -485,12 +490,12 @@ def scan_devices(toolname, pman):
     if toolname == "wult":
         for devid in _WultTSCDeadlineTimer.supported_devices:
             with contextlib.suppress(Error):
-                with _WultTSCDeadlineTimer(devid, 0, pman, dmesg=False) as timerdev:
+                with _WultTSCDeadlineTimer(devid, pman, dmesg=False) as timerdev:
                     yield timerdev.info
 
         for devid in _WultHRTimer.supported_devices:
             with contextlib.suppress(Error):
-                with _WultHRTimer(devid, 0, pman, dmesg=False) as timerdev:
+                with _WultHRTimer(devid, pman, dmesg=False) as timerdev:
                     yield timerdev.info
 
     if toolname == "wult":
@@ -504,6 +509,6 @@ def scan_devices(toolname, pman):
         for pci_info in lspci.get_devices():
             with contextlib.suppress(ErrorNotSupported):
                 devid = pci_info['pciaddr']
-                with _IntelI210(devid, 0, pman, drvname=drvname, dmesg=False,
+                with _IntelI210(devid, pman, drvname=drvname, dmesg=False,
                                 force=True) as i210dev:
                     yield i210dev.info

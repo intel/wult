@@ -421,7 +421,7 @@ def start_command(args):
         ToolsCommon.setup_stdout_logging(OWN_NAME, res.logs_path)
         ToolsCommon.set_filters(args, res)
 
-        dev = Devices.GetDevice(OWN_NAME, args.devid, args.cpunum, pman, dmesg=True,
+        dev = Devices.GetDevice(OWN_NAME, args.devid, pman, cpunum=args.cpunum, dmesg=True,
                                 force=args.force)
         stack.enter_context(dev)
 
