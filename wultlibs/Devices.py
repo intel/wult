@@ -285,33 +285,20 @@ class _IntelI210(_PCIDevice):
         '157c' : 'Intel I210 (serdes flashless)',
         '1539' : 'Intel I211 (copper)'}
 
-    def __init__(self, devid, pman, drvname=None, dmesg=None, force=False):
+    def __init__(self, devid, pman, drvname=None, dmesg=None):
         """
-        The class constructor. The 'force' argument can be used to initialize I210 device for
-        measurements even if its network interface state is "up". Other arguments are the same as in
-        '_DeviceBase.__init__()'. The 'devid' can be be the PCI address or the network interface
-        name.
+        The class constructor. The arguments are the same as in '_DeviceBase.__init__()'. Note,
+        'devid' can be be the PCI address or the network interface name.
         """
 
         self.netif = None
 
         try:
             self.netif = NetIface.NetIface(devid, pman=pman)
-        except ErrorNotFound:
-            pass
+        except ErrorNotFound as err:
+            _LOG.debug(err)
 
         if self.netif:
-            # Make sure the device is not used for networking, because we are about to unbind it
-            # from the driver. This check makes sure users do not lose networking by specifying
-            # wrong device by a mistake.
-            if not force and self.netif.getstate() == "up":
-                msg = ""
-                if devid != self.netif.ifname:
-                    msg = f" (network interface '{self.netif.ifname}')"
-
-                raise Error(f"refusing to use device '{devid}'{msg}{pman.hostmsg}: "
-                            f"it is up and might be used for networking. Please, bring it down "
-                            f"if you want to use it for measurements.")
             hwaddr = self.netif.hwaddr
             alias = self.netif.ifname
         else:
@@ -443,7 +430,7 @@ class _WultHRTimer(_DeviceBase):
         self.info["descr"] = self.supported_devices["hrtimer"]
         self.info["resolution"] = self._get_resoluion()
 
-def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None, force=False):
+def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
     """
     The device object factory - creates and returns the correct type of device object
     depending on the tool and 'devid'. The arguments are as follows:
@@ -468,7 +455,7 @@ def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None, force=False):
         raise Error(f"BUG: bad tool name '{toolname}'")
 
     try:
-        return _IntelI210(devid, pman, drvname=drvname, dmesg=dmesg, force=force)
+        return _IntelI210(devid, pman, drvname=drvname, dmesg=dmesg)
     except ErrorNotSupported as err:
         raise ErrorNotSupported(f"unsupported device '{devid}'{pman.hostmsg}") from err
 
@@ -509,6 +496,5 @@ def scan_devices(toolname, pman):
         for pci_info in lspci.get_devices():
             with contextlib.suppress(ErrorNotSupported):
                 devid = pci_info['pciaddr']
-                with _IntelI210(devid, pman, drvname=drvname, dmesg=False,
-                                force=True) as i210dev:
+                with _IntelI210(devid, pman, drvname=drvname, dmesg=False) as i210dev:
                     yield i210dev.info

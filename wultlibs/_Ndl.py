@@ -249,6 +249,8 @@ def start_command(args):
         netif = NetIface.NetIface(args.devid, pman=pman)
         stack.enter_context(netif)
 
+        ToolsCommon.start_command_check_network(args, pman, netif)
+
         info = netif.get_pci_info()
         if info.get("aspm_enabled"):
             LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "

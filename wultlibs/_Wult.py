@@ -417,9 +417,11 @@ def start_command(args):
         ToolsCommon.setup_stdout_logging(OWN_NAME, res.logs_path)
         ToolsCommon.set_filters(args, res)
 
-        dev = Devices.GetDevice(OWN_NAME, args.devid, pman, cpunum=args.cpunum, dmesg=True,
-                                force=args.force)
+        dev = Devices.GetDevice(OWN_NAME, args.devid, pman, cpunum=args.cpunum, dmesg=True)
         stack.enter_context(dev)
+
+        if getattr(dev, "netif", None):
+            ToolsCommon.start_command_check_network(args, pman, dev.netif)
 
         rcsobj = CStates.ReqCStates(pman=pman)
         csinfo = rcsobj.get_cpu_cstates_info(res.cpunum)
