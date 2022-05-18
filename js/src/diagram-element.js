@@ -2,7 +2,7 @@
  * -*- coding: utf-8 -*-
  * vim: ts=4 sw=4 tw=100 et ai si
  *
- * Copyright (C) 2019-2021 Intel, Inc.
+ * Copyright (C) 2019-2022 Intel, Inc.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Author: Adam Hawley <adam.james.hawley@intel.com>
@@ -33,10 +33,21 @@ class DiagramElement extends LitElement {
         path: { type: String }
     };
 
+    /**
+     * Hides the loading indicator once the diagram 'iframe' has finished loading. Intended to be
+     * called when a 'load' event is detected.
+     */
+    hideLoading () {
+        this.renderRoot.querySelector('#loading').style.display = 'none'
+    }
+
     render () {
         return html`
+            <div id="loading">
+                <p>Loading plot...</p>
+            </div>
             <div class="plot">
-                <iframe seamless="seamless" frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
+                <iframe @load=${this.hideLoading} seamless="seamless" frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
             </div>
         `
     }
