@@ -57,10 +57,11 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
                     continue
 
                 # Since we use column names which aren't known until runtime as tab titles, use the
-                # defs for the metric but overwrite the 'title', 'name' and 'fsname' attributes.
-                # Use 'copy' so that 'defs.info' can be used to create the container tab.
+                # defs for the metric but overwrite the 'name' and 'fsname' attributes. Use 'copy'
+                # so that 'defs.info' can be used to create the container tab.
                 col_def = self._defs.info[metric].copy()
-                col_def["title"] = col
+                # Don't overwrite the 'title' attribute so that the metric name is shown in plots
+                # and the summary table.
                 col_def["fsname"] = _DefsBase.get_fsname(col)
                 col_def["name"] = col
 
@@ -69,6 +70,10 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
                 scatter_axes = [(self._defs.info[self._time_metric], col_def)]
                 coltab.add_plots(scatter_axes, [col_def])
                 coltab.add_smrytbl([col_def])
+
+                # The tab will automatically use the title from 'col_def' to name the tab. Rename it
+                # to 'col' so that the tab is named after the turbostat column.
+                coltab.title = col
                 coltabs.append(coltab.get_tab())
 
             # Only add a container tab for 'metric' if any data tabs were generated to populate it.
