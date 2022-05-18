@@ -303,39 +303,42 @@ class _IntelI210(_PCIDevice):
         name.
         """
 
+        self.netif = None
+
         try:
-            netif = None
-            try:
-                netif = NetIface.NetIface(devid, pman=pman)
-            except ErrorNotFound:
-                pass
+            self.netif = NetIface.NetIface(devid, pman=pman)
+        except ErrorNotFound:
+            pass
 
-            if netif:
-                # Make sure the device is not used for networking, because we are about to unbind it
-                # from the driver. This check makes sure users do not lose networking by specifying
-                # wrong device by a mistake.
-                if not force and netif.getstate() == "up":
-                    msg = ""
-                    if devid != netif.ifname:
-                        msg = f" (network interface '{netif.ifname}')"
+        if self.netif:
+            # Make sure the device is not used for networking, because we are about to unbind it
+            # from the driver. This check makes sure users do not lose networking by specifying
+            # wrong device by a mistake.
+            if not force and self.netif.getstate() == "up":
+                msg = ""
+                if devid != self.netif.ifname:
+                    msg = f" (network interface '{self.netif.ifname}')"
 
-                    raise Error(f"refusing to use device '{devid}'{msg}{pman.hostmsg}: "
-                                f"it is up and might be used for networking. Please, bring it down "
-                                f"if you want to use it for measurements.")
-                hwaddr = netif.hwaddr
-                alias = netif.ifname
-            else:
-                hwaddr = devid
-                alias = None
-        finally:
-            if netif:
-                netif.close()
+                raise Error(f"refusing to use device '{devid}'{msg}{pman.hostmsg}: "
+                            f"it is up and might be used for networking. Please, bring it down "
+                            f"if you want to use it for measurements.")
+            hwaddr = self.netif.hwaddr
+            alias = self.netif.ifname
+        else:
+            hwaddr = devid
+            alias = None
 
         super().__init__(hwaddr, cpunum, pman, drvname=drvname, dmesg=dmesg)
 
         self.info["alias"] = alias
         # I210 NIC clock has 1 nanosecond resolution.
         self.info["resolution"] = 1
+
+    def close(self):
+        """Uninitialize the device."""
+
+        ClassHelpers.close(self, close_attrs=("netif",))
+        super().close()
 
 class _WultTSCDeadlineTimer(_DeviceBase):
     """
