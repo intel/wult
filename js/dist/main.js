@@ -733,7 +733,7 @@
                 <sl-spinner></sl-spinner>
             </div>
             <div class="plot">
-                <iframe @load=${this.hideLoading} seamless="seamless" frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
+                <iframe @load=${this.hideLoading} seamless frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
             </div>
         `}}customElements.define("diagram-element",ri),customElements.define("smry-tbl",class extends Ns{parseMetric(t){const e=t[0].split("|");return z`
             <td rowspan=${t[1]} class="td-colname">

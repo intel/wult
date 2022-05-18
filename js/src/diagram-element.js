@@ -54,7 +54,7 @@ class DiagramElement extends LitElement {
                 <sl-spinner></sl-spinner>
             </div>
             <div class="plot">
-                <iframe @load=${this.hideLoading} seamless="seamless" frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
+                <iframe @load=${this.hideLoading} seamless frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
             </div>
         `
     }
