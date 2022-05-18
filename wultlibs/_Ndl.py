@@ -116,6 +116,7 @@ def build_arguments_parser():
     text = """Generate an HTML report for collected results (same as calling 'report' command with
               default arguments)."""
     subpars.add_argument("--report", action="store_true", help=text)
+    subpars.add_argument("--force", action="store_true", help=ToolsCommon.START_FORCE_DESCR)
 
     text = """The network interface backed by the NIC to use for latency measurements. Today only
               Intel I210 and I211 NICs are supported. Please, specify NIC's network interface name

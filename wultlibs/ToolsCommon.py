@@ -73,6 +73,12 @@ START_REPORTID_DESCR = f"""Any string which may serve as an identifier of this r
 START_REPORT_DESCR = """Generate an HTML report for collected results (same as calling 'report'
                         command with default arguments)."""
 
+# Description for the '--force' option of the 'start' command.
+START_FORCE_DESCR = """By default a network card is not accepted as a measurement device if it is "
+                       used by a Linux network interface and the interface is in an active state, "
+                       such as "up". Use '--force' to disable this safety mechanism. Use it with "
+                       caution."""
+
 # Description for the '--outdir' option of the 'report' command.
 def get_report_outdir_descr(toolname):
     """

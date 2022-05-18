@@ -215,11 +215,7 @@ def build_arguments_parser():
     subpars.add_argument("--early-intr", action="store_true", help=text)
 
     subpars.add_argument("--report", action="store_true", help=ToolsCommon.START_REPORT_DESCR)
-
-    text = f"""By default {OWN_NAME} does not accept network card as a measurement device if its
-               Linux network interface is in an active state, such as "up". Use '--force' to disable
-               this safety mechanism. Use '--force' option with caution."""
-    subpars.add_argument("--force", action="store_true", help=text)
+    subpars.add_argument("--force", action="store_true", help=ToolsCommon.START_FORCE_DESCR)
 
     text = """The ID of the device to use for measuring the latency. For example, it can be a PCI
               address of the Intel I210 device, or "tdt" for the TSC deadline timer block of the
