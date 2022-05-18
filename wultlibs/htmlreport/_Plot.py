@@ -62,7 +62,7 @@ class Plot:
         colnames = []
         fmts = []
         for mdef in hov_defs:
-            colname = mdef["metric"]
+            colname = mdef["name"]
             if colname not in df:
                 continue
             if colname in (self.xcolname, self.ycolname):

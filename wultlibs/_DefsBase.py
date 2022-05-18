@@ -77,7 +77,7 @@ class DefsBase:
         """
 
         # The sub-keys to look and substitute the placeholders in.
-        mangle_subkeys = { "title", "descr", "fsname", "metric" }
+        mangle_subkeys = { "title", "descr", "fsname", "name" }
 
         for pinfo in placeholders_info:
             values = pinfo["values"]
@@ -114,7 +114,7 @@ class DefsBase:
         """Mangle the initially loaded 'self.info' dictionary."""
 
         for key, val in self.info.items():
-            val["metric"] = key
+            val["name"] = key
             val["fsname"] = get_fsname(key)
 
     def __init__(self, name):
@@ -126,7 +126,7 @@ class DefsBase:
         self.name = name
         self.info = None
 
-        self._populate_cstate_keys = ["title", "descr", "metric", "fsname"]
+        self._populate_cstate_keys = ["title", "descr", "name", "fsname"]
 
         self.path = Deploy.find_app_data("wult", Path(f"defs/{name}.yml"),
                                          descr=f"{name} definitions file")

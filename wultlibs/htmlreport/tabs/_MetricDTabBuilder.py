@@ -114,7 +114,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         if hover_defs is None:
             hover_metrics = self._hover_metrics
         else:
-            metric_names = [mdef["metric"] for mdef in hover_defs]
+            metric_names = [mdef["name"] for mdef in hover_defs]
             hover_metrics = {reportid: metric_names for reportid in self._rsts}
 
         # The diagram/histogram transparency level. It is helpful to have some transparency in case
@@ -144,7 +144,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                            hovertext of scatter plots.
         """
 
-        self._tabmetric = metric_def["metric"]
+        self._tabmetric = metric_def["name"]
         self._rsts = rsts
         self._refres = rsts[0]
         self._pbuilder = None

@@ -59,12 +59,12 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
                     continue
 
                 # Since we use column names which aren't known until runtime as tab titles, use the
-                # defs for the metric but overwrite the 'title', 'metric' and 'fsname' attributes.
+                # defs for the metric but overwrite the 'title', 'name' and 'fsname' attributes.
                 # Use 'copy' so that 'defs.info' can be used to create the container tab.
                 col_def = self._defs.info[metric].copy()
                 col_def["title"] = col
                 col_def["fsname"] = _DefsBase.get_fsname(col)
-                col_def["metric"] = col
+                col_def["name"] = col
 
                 coltab = _DTabBuilder.DTabBuilder(self._reports, mtab_outdir, col_def,
                                                   self._basedir)

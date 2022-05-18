@@ -52,7 +52,7 @@ class DTabBuilder:
                 default_funcs = set(metric["default_funcs"])
                 smry_funcs = DFSummary.filter_smry_funcs(smry_funcs, default_funcs)
 
-                smry_dict = DFSummary.calc_col_smry(df, metric["metric"], smry_funcs)
+                smry_dict = DFSummary.calc_col_smry(df, metric["name"], smry_funcs)
                 for fname in smry_funcs:
                     smrytbl.add_smry_func(rep, metric["title"], fname, smry_dict[fname])
 
@@ -84,7 +84,7 @@ class DTabBuilder:
         # Initialise scatter plot.
         fname = f"{ydef['fsname']}-vs-{xdef['fsname']}.html"
         s_path = self._outdir / fname
-        s = _ScatterPlot.ScatterPlot(xdef["metric"], ydef["metric"], s_path, xdef["title"],
+        s = _ScatterPlot.ScatterPlot(xdef["name"], ydef["name"], s_path, xdef["title"],
                                      ydef["title"], xdef["short_unit"], ydef["short_unit"])
 
         for reportid, df in self._reports.items():
@@ -109,7 +109,7 @@ class DTabBuilder:
         else:
             h_path = self._outdir / f"Count-vs-{mdef['fsname']}.html"
 
-        h = _Histogram.Histogram(mdef["metric"], h_path, mdef["title"], mdef["short_unit"],
+        h = _Histogram.Histogram(mdef["name"], h_path, mdef["title"], mdef["short_unit"],
                                  cumulative=cumulative)
 
         for reportid, df in self._reports.items():
