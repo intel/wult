@@ -121,7 +121,7 @@ def build_arguments_parser():
     text = """The network interface backed by the NIC to use for latency measurements. Today only
               Intel I210 and I211 NICs are supported. Please, specify NIC's network interface name
               (e.g., eth0)."""
-    subpars.add_argument("ifname", help=text)
+    subpars.add_argument("devid", metavar="ifname", help=text)
 
     #
     # Create parsers for the "report" command.
@@ -251,13 +251,13 @@ def start_command(args):
         ToolsCommon.setup_stdout_logging(OWN_NAME, res.logs_path)
         ToolsCommon.set_filters(args, res)
 
-        netif = NetIface.NetIface(args.ifname, pman=pman)
+        netif = NetIface.NetIface(args.devid, pman=pman)
         stack.enter_context(netif)
 
         info = netif.get_pci_info()
         if info.get("aspm_enabled"):
             LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "
-                       "the measured latency.", args.ifname)
+                       "the measured latency.", args.devid)
 
         runner = NdlRunner.NdlRunner(pman, netif, res, ndlrunner_path, ldist=args.ldist)
         stack.enter_context(runner)
