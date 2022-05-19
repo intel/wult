@@ -14,11 +14,10 @@ result.
 import time
 import logging
 import contextlib
-from pepclibs.helperlibs import Trivial, KernelModule, ClassHelpers
+from pepclibs.helperlibs import Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
-from wultlibs import _ProgressLine, _Nmcli, _ETFQdisc
+from wultlibs import _ProgressLine, _Nmcli, _ETFQdisc, NdlRawDataProvider
 from wultlibs.helperlibs import KernelVersion, ProcHelpers, Human, FSHelpers
-
 _LOG = logging.getLogger()
 
 class NdlRunner:
@@ -222,7 +221,7 @@ class NdlRunner:
             _LOG.info("Assigned IP address '%s' to interface '%s'%s",
                       ipaddr, self._ifname, self._pman.hostmsg)
 
-        self._drv.load(unload=True, opts=f"ifname={self._ifname}")
+        self._prov.prepare()
 
         # We use the ETF qdisc for scheduling delayed network packets. Configure it and start the
         # 'phc2sys' process in background in order to keep the host and NIC clocks in sync.
@@ -284,7 +283,7 @@ class NdlRunner:
         self._netif = self._dev.netif
         self._ifname = self._netif.ifname
         self._ndl_lines = None
-        self._drv = None
+        self._prov = None
         self._rtd_path = None
         self._ndlrunner = None
         self._progress = None
@@ -298,10 +297,12 @@ class NdlRunner:
         self._verify_input_args()
 
         self._progress = _ProgressLine.ProgressLine(period=1)
-        self._drv = KernelModule.KernelModule("ndl", pman=pman)
+
+        self._prov = NdlRawDataProvider.NdlRawDataProvider(dev, pman, ldist=self._ldist)
 
         mntpath = FSHelpers.mount_debugfs(pman=pman)
-        self._rtd_path = mntpath.joinpath(f"{self._drv.name}/rtd")
+        drvname = self._prov.drvobjs[0].name
+        self._rtd_path = mntpath.joinpath(f"{drvname}/rtd")
         self._etfqdisc = _ETFQdisc.ETFQdisc(self._netif, pman=pman)
 
     def close(self):
@@ -313,11 +314,9 @@ class NdlRunner:
             self._netif.down()
         if getattr(self, "_nmcli", None):
             self._nmcli.restore_managed()
-        if getattr(self, "_drv", None):
-            self._drv.unload()
 
-        close_attrs = ("_etfqdisc", "_nmcli", "_drv")
-        unref_attrs = ("_ndlrunner", "_netif", "_dev", "_drv", "_pman")
+        close_attrs = ("_etfqdisc", "_prov", "_nmcli")
+        unref_attrs = ("_ndlrunner", "_netif", "_dev", "_pman")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)
 
     def __enter__(self):

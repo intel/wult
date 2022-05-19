@@ -127,11 +127,10 @@ class DrvRawDataProviderBase(RawDataProviderBase):
     def close(self):
         """Uninitialize everything."""
 
-        if getattr(self, "_drvobjs", None):
+        if getattr(self, "drvobjs", None):
             with contextlib.suppress(Error):
                 self._unload()
 
-        if getattr(self, "_drvobjs", None):
             for drvobj in self.drvobjs:
                 with contextlib.suppress(Error):
                     drvobj.close()
