@@ -387,25 +387,26 @@ class _WultHRTimer(_DeviceBase):
         """Returns Linux High Resolution Timer resolution in nanoseconds."""
 
         errmsg_prefix = "Linux High Resolution Timer"
-        errmsg_suffix = "The resulution was aquired by running the following command" \
-                        "{self._pman.hostmsg}:\n\t{cmd}"
+        errmsg_suffix = f"The resulution was aquired by running the following command" \
+                        f"{self._pman.hostmsg}"
 
         # Get hrtimer resolution in seconds and convert to nanoseconds.
+        cmd = "time.clock_getres(time.CLOCK_MONOTONIC) * 1000000000"
         if self._pman.is_remote:
-            code = "int(time.clock_getres(time.CLOCK_MONOTONIC) * 1000000000)"
-            cmd = f"python -c 'import time; {code}'"
+            cmd = f"python -c 'import time; print(int({cmd}))'"
             resolution = self._pman.run_verify(cmd)[0].strip()
 
             if not Trivial.is_int(resolution):
                 raise Error(f"{errmsg_prefix}: bad resolution '{resolution}' - should be an "
-                            f"integer amount of nandoseconds.\n{errmsg_suffix}")
+                            f"integer amount of nandoseconds.\n{errmsg_suffix}:\n\t{cmd}")
         else:
             resolution = time.clock_getres(time.CLOCK_MONOTONIC) * 1000000000
 
         resolution = int(resolution)
 
         if resolution < 1:
-            raise Error(f"{errmsg_prefix}: bad resolution of 0 nanoseconds.\n{errmsg_suffix}")
+            raise Error(f"{errmsg_prefix}: bad resolution of 0 nanoseconds.\n{errmsg_suffix}" \
+                        f"\n\t{cmd}")
 
         if resolution > 1:
             msg = f"{errmsg_prefix}: poor resolution of '{resolution}' nanoseconds."
