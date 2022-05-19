@@ -16,7 +16,7 @@ Temperature:
         Temperature from a temperature sensor built into the SUT (System Under Test). Collected via
         IPMI.
     unit: "degrees C"
-    short_unit: "°c"
+    short_unit: "°C"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
 Power:
     title: "AC Power"
