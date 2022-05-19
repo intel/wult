@@ -187,7 +187,7 @@ class ETFQdisc():
                                   pman=self._pman)
             self._phc2sys_proc = None
 
-        ClassHelpers.close(self, unref_attrs=("_pman",), close_attrs=("_tchk", "_pman"))
+        ClassHelpers.close(self, close_attrs=("_tchk", "_pman"))
 
     def __enter__(self):
         """Enter the runtime context."""
