@@ -59,7 +59,7 @@ class DrvRawDataProviderBase(RawDataProviderBase):
         """Load all the necessary kernel drivers."""
 
         loaded = []
-        for drvobj in self._drvobjs:
+        for drvobj in self.drvobjs:
             try:
                 drvobj.load(opts=self._drvinfo[drvobj.name]["params"])
                 loaded.append(drvobj)
@@ -82,7 +82,7 @@ class DrvRawDataProviderBase(RawDataProviderBase):
 
         unloaded = set()
 
-        for drvobj in reversed(self._drvobjs):
+        for drvobj in reversed(self.drvobjs):
             drvobj.unload()
             unloaded.add(drvobj.name)
 
@@ -118,11 +118,11 @@ class DrvRawDataProviderBase(RawDataProviderBase):
 
         self._drvinfo = drvinfo
         self._all_drvnames = all_drvnames
-        self._drvobjs = []
+        self.drvobjs = []
 
         for drvname in self._drvinfo.keys():
             drvobj = KernelModule.KernelModule(drvname, pman=pman, dmesg=dev.dmesg_obj)
-            self._drvobjs.append(drvobj)
+            self.drvobjs.append(drvobj)
 
     def close(self):
         """Uninitialize everything."""
@@ -132,9 +132,9 @@ class DrvRawDataProviderBase(RawDataProviderBase):
                 self._unload()
 
         if getattr(self, "_drvobjs", None):
-            for drvobj in self._drvobjs:
+            for drvobj in self.drvobjs:
                 with contextlib.suppress(Error):
                     drvobj.close()
-            self._drvobjs = []
+            self.drvobjs = []
 
         super().close()
