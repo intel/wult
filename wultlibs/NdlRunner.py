@@ -17,7 +17,7 @@ import contextlib
 from pepclibs.helperlibs import Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs import _ProgressLine, _Nmcli, _ETFQdisc, NdlRawDataProvider
-from wultlibs.helperlibs import KernelVersion, ProcHelpers, Human
+from wultlibs.helperlibs import ProcHelpers, Human
 _LOG = logging.getLogger()
 
 class NdlRunner:
@@ -182,13 +182,6 @@ class NdlRunner:
 
     def prepare(self):
         """Prepare to start measurements."""
-
-        # Ensure the kernel is fresh enough.
-        kver = KernelVersion.get_kver(pman=self._pman)
-        if KernelVersion.kver_lt(kver, "5.1-rc1"):
-            raise Error(f"version of the running kernel{self._pman.hostmsg} is {kver}, but it "
-                        f"does not support the ETF qdisc.\nPlease, use kernel version 5.1 or "
-                        f"newer")
 
         try:
             self._nmcli = _Nmcli.Nmcli(pman=self._pman)
