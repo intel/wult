@@ -51,6 +51,7 @@ class TabGroup extends LitElement {
          */
         .tab::part(base) {
             padding-bottom: var(--sl-spacing-x-small);
+            font-family: Arial, sans-serif;
         }
     `
 

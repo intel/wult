@@ -793,6 +793,7 @@
          */
         .tab::part(base) {
             padding-bottom: var(--sl-spacing-x-small);
+            font-family: Arial, sans-serif;
         }
     `;static properties={tabFile:{type:String},tabs:{type:Object,attribute:!1},fetchFailed:{type:Boolean,attribute:!1}};updated(t){t.has("tabFile")&&fetch(this.tabFile).then((t=>t.json())).then((t=>{this.tabs=t}))}tabTemplate(t){return t.tabs?z`
                 <sl-tab-group>
