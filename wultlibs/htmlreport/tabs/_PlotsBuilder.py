@@ -12,11 +12,7 @@ This module provides the capability of generating plots and diagrams using the "
 Metric Tabs.
 """
 
-import logging
 from wultlibs.htmlreport import _ScatterPlot, _Histogram
-
-_LOG = logging.getLogger()
-
 
 class PlotsBuilder:
     """
