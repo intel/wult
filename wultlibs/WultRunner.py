@@ -117,6 +117,8 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             self._prov.start()
             self._collect(dpcnt, tlimit, keep_rawdp)
         except Error as err:
+            self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
+
             if self._stcoll:
                 with contextlib.suppress(Error):
                     self._stcoll.stop()
@@ -128,7 +130,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                 dmesg = "\n" + self._dev.get_new_dmesg()
 
             raise Error(f"{err}{dmesg}") from err
-        finally:
+        else:
             self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
 
         _LOG.info("Finished measuring CPU %d%s", self._res.cpunum, self._pman.hostmsg)
