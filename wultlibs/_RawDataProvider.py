@@ -74,22 +74,13 @@ class DrvRawDataProviderBase(RawDataProviderBase):
                          possible drivers.
         """
 
-        unloaded = set()
-
-        for drvobj in reversed(self.drvobjs):
-            drvobj.unload()
-            unloaded.add(drvobj.name)
-
-        if not everything:
-            return
-
-        # Unload all the possible device drivers.
-        for drvname in Devices.ALL_DRVNAMES:
-            if drvname in unloaded:
-                continue
-
-            with KernelModule.KernelModule(drvname, pman=self._pman,
-                                           dmesg=self.dev.dmesg_obj) as drvobj:
+        if everything:
+            for drvname in Devices.ALL_DRVNAMES:
+                with KernelModule.KernelModule(drvname, pman=self._pman,
+                                               dmesg=self.dev.dmesg_obj) as drvobj:
+                    drvobj.unload()
+        else:
+            for drvobj in reversed(self.drvobjs):
                 drvobj.unload()
 
     def __init__(self, dev, pman, drvinfo):
