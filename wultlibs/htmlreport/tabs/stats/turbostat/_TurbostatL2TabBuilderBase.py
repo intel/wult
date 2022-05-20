@@ -162,7 +162,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         'self._req_cstates'.
         """
 
-        tab_hierarchy = {"dtabs": ["Busy%", "Bzy_MHz", "Avg_MHz"]}
+        tab_hierarchy = {"dtabs": ["Busy%", "Bzy_MHz", "Avg_MHz", "CorWatt"]}
         tab_hierarchy["C-states"] = {
             "Hardware": {"dtabs":[]},
             "Requested": {"dtabs": []}

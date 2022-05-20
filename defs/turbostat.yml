@@ -45,6 +45,14 @@ Cx%:
     short_unit: "%"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
     drop_empty: True
+CorWatt:
+    title: "CorWatt"
+    descr: >-
+        CPU core power. Measured using the core RAPL domain.
+    type: "float"
+    unit: "Watt"
+    short_unit: "W"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 Time:
     title: "Time Elapsed"
     descr: "Time elapsed since the start of the measurements."
