@@ -11,6 +11,7 @@ This module provides API for dealing with Linux function trace buffer.
 """
 
 import logging
+import contextlib
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorTimeOut
 from wultlibs.helperlibs import ProcHelpers, FSHelpers
@@ -94,11 +95,14 @@ class FTrace:
         self._reader = None
         self._pman = pman
         self.timeout = timeout
+
+        self._debugfs_mntpoint = None
+        self._unmount_debugfs = None
         self.raw_line = None
 
-        mntpoint, _ = FSHelpers.mount_debugfs(pman=self._pman)
-        self.ftpath = mntpoint.joinpath("tracing/trace")
-        self.ftpipe_path = mntpoint.joinpath("tracing/trace_pipe")
+        self._debugfs_mntpoint, self._unmount_debugfs = FSHelpers.mount_debugfs(pman=self._pman)
+        self.ftpath = self._debugfs_mntpoint.joinpath("tracing/trace")
+        self.ftpipe_path = self._debugfs_mntpoint.joinpath("tracing/trace_pipe")
 
         for path in (self.ftpath, self.ftpipe_path):
             if not self._pman.is_file(path):
@@ -120,6 +124,10 @@ class FTrace:
                        self._reader.pid, self._pman.hostmsg)
             ProcHelpers.kill_pids(self._reader.pid, kill_children=True, must_die=False,
                                   pman=self._pman)
+
+        if getattr(self, "_unmount_debugfs", None):
+            with contextlib.suppress(Error):
+                self._pman.run(f"unmount {self._debugfs_mntpoint}")
 
         ClassHelpers.close(self, unref_attrs=("_reader", "_pman"))
 
