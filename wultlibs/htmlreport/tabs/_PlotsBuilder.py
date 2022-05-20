@@ -87,7 +87,7 @@ class PlotsBuilder:
                                 f"result '{res.reportid}'.")
 
             df = plot.reduce_df_density(res.df, res.reportid)
-            hov_defs = [self._refdefs.info[metric] for metric in self._hov_metrics[res.reportid]]
+            hov_defs = [res.defs.info[metric] for metric in self._hov_metrics[res.reportid]]
             text = plot.get_hover_text(hov_defs, df)
             df[xmetric] = self._base_unit(df, xmetric)
             df[ymetric] = self._base_unit(df, ymetric)
