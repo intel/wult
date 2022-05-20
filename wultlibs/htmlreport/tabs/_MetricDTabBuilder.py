@@ -13,11 +13,14 @@ This module defines what is expected by the JavaScript side when adding a Metric
 reports.
 """
 
+import logging
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import Trivial
 from wultlibs import DFSummary
 from wultlibs.htmlreport import _SummaryTable
 from wultlibs.htmlreport.tabs import _DTabBuilder, _PlotsBuilder
+
+_LOG = logging.getLogger()
 
 class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
     """
@@ -79,7 +82,12 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         """Generate the scatter plots."""
 
         ppaths = []
+
         for xcolname, ycolname in plot_axes:
+            if not all(xcolname in res.df and ycolname in res.df for res in self._rsts):
+                _LOG.warning("skipping scatter plot '%s' vs '%s' since not all results have data "
+                             "for both.", ycolname, xcolname)
+                continue
             ppath = self._pbuilder.build_scatter(xcolname, ycolname)
             ppaths.append(ppath)
         return ppaths
