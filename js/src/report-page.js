@@ -27,6 +27,12 @@ export class ReportPage extends LitElement {
     }
 
     static styles = css`
+        .report-head {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .report-title {
             font-family: Arial, sans-serif;
         }
@@ -73,18 +79,18 @@ export class ReportPage extends LitElement {
         }
 
         return html`
-            <h1 class="report-title">${this.toolname} report</h1>
-            <br>
+            <div class="report-head">
+                <h1 class="report-title">${this.toolname} report</h1>
+                ${this.titleDescr
+                    ? html`
+                    <p class="title_descr">${this.titleDescr}</p>
+                    <br>
+                    `
+                    : html``
+                }
 
-            ${this.titleDescr
-                ? html`
-                <p class="title_descr">${this.titleDescr}</p>
-                <br>
-                `
-                : html``
-            }
-
-            <intro-tbl .src=${this.introtbl}></intro-tbl>
+                <intro-tbl .src=${this.introtbl}></intro-tbl>
+            </div>
             <br>
             <tab-group .tabFile="${this.tabFile}"></tab-group>
         `

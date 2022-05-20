@@ -812,6 +812,12 @@
                 `))}
             </sl-tab-group>
       `:z``}}customElements.define("tab-group",ni);class ai extends et{static properties={src:{type:String},reportInfo:{type:Object,attribute:!1},fetchFailed:{type:Boolean,attribute:!1}};static styles=o`
+        .report-head {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .report-title {
             font-family: Arial, sans-serif;
         }
@@ -823,15 +829,15 @@
             here.</a>
           </sl-alert>
       `}render(){return this.fetchFailed?this.corsWarning():z`
-            <h1 class="report-title">${this.toolname} report</h1>
-            <br>
+            <div class="report-head">
+                <h1 class="report-title">${this.toolname} report</h1>
+                ${this.titleDescr?z`
+                    <p class="title_descr">${this.titleDescr}</p>
+                    <br>
+                    `:z``}
 
-            ${this.titleDescr?z`
-                <p class="title_descr">${this.titleDescr}</p>
-                <br>
-                `:z``}
-
-            <intro-tbl .src=${this.introtbl}></intro-tbl>
+                <intro-tbl .src=${this.introtbl}></intro-tbl>
+            </div>
             <br>
             <tab-group .tabFile="${this.tabFile}"></tab-group>
         `}}customElements.define("report-page",ai),es("shoelace")})();
