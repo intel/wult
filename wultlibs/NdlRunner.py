@@ -316,9 +316,9 @@ class NdlRunner:
         if getattr(self, "_drv", None):
             self._drv.unload()
 
-        unref_attrs = ("_ndlrunner", "_netif", "_dev", "_nmcli", "_drv", "_pman")
-        close_attrs = ("_etfqdisc", "_nmcli")
-        ClassHelpers.close(self, unref_attrs=unref_attrs, close_attrs=close_attrs)
+        close_attrs = ("_etfqdisc", "_nmcli", "_drv")
+        unref_attrs = ("_ndlrunner", "_netif", "_dev", "_drv", "_pman")
+        ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)
 
     def __enter__(self):
         """Enter the run-time context."""
