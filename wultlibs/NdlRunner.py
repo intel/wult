@@ -168,6 +168,9 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
                 print("\r", end="")
                 _LOG.notice("interrupted, stopping the measurements")
 
+            with contextlib.suppress(Error):
+                self._prov.stop()
+
             if is_ctrl_c:
                 raise
 
@@ -177,8 +180,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
             raise Error(f"{err}{dmesg}") from err
         else:
             self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
-
-        self._prov.stop()
+            self._prov.stop()
 
         _LOG.info("Finished measuring RTD%s", self._pman.hostmsg)
 
