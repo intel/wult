@@ -170,7 +170,24 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         self._progress.start()
         try:
             self._collect(dpcnt, tlimit)
-        finally:
+        except (KeyboardInterrupt, Error) as err:
+            self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
+
+            is_ctrl_c = isinstance(err, KeyboardInterrupt)
+            if is_ctrl_c:
+                # In Linux Ctrl-c prints '^C' on the terminal. Make sure the next output line does
+                # not look messy.
+                print("\r", end="")
+                _LOG.notice("interrupted, stopping the measurements")
+
+            if is_ctrl_c:
+                raise
+
+            dmesg = ""
+            with contextlib.suppress(Error):
+                dmesg = "\n" + self._dev.get_new_dmesg()
+            raise Error(f"{err}{dmesg}") from err
+        else:
             self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
 
         self._stop_ndlrunner()

@@ -116,8 +116,15 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         try:
             self._prov.start()
             self._collect(dpcnt, tlimit, keep_rawdp)
-        except Error as err:
+        except (KeyboardInterrupt, Error) as err:
             self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
+
+            is_ctrl_c = isinstance(err, KeyboardInterrupt)
+            if is_ctrl_c:
+                # In Linux Ctrl-c prints '^C' on the terminal. Make sure the next output line does
+                # not look messy.
+                print("\r", end="")
+                _LOG.notice("interrupted, stopping the measurements")
 
             if self._stcoll:
                 with contextlib.suppress(Error):
@@ -125,10 +132,12 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                 with contextlib.suppress(Error):
                     self._stcoll.copy_stats()
 
+            if is_ctrl_c:
+                raise
+
             dmesg = ""
             with contextlib.suppress(Error):
                 dmesg = "\n" + self._dev.get_new_dmesg()
-
             raise Error(f"{err}{dmesg}") from err
         else:
             self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
