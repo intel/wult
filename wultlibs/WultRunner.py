@@ -126,6 +126,9 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                 print("\r", end="")
                 _LOG.notice("interrupted, stopping the measurements")
 
+            with contextlib.suppress(Error):
+                self._prov.stop()
+
             if self._stcoll:
                 with contextlib.suppress(Error):
                     # We do not consider Ctrl-c as an error, so collect the system infromation in
@@ -143,6 +146,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             raise Error(f"{err}{dmesg}") from err
         else:
             self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
+            self._prov.stop()
 
         _LOG.info("Finished measuring CPU %d%s", self._res.cpunum, self._pman.hostmsg)
 

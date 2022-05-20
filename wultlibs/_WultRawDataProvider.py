@@ -83,10 +83,16 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
             raise ErrorTimeOut(msg) from err
 
     def start(self):
-        """Start the latency measurements."""
+        """Start the measurements."""
 
         with self._pman.open(self._enabled_path, "w") as fobj:
             fobj.write("1")
+
+    def stop(self):
+        """Stop the measurements."""
+
+        with self._pman.open(self._enabled_path, "w") as fobj:
+            fobj.write("0")
 
     def _set_launch_distance(self):
         """Set launch distance limits to driver."""
