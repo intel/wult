@@ -121,7 +121,7 @@ class FTrace:
             ProcHelpers.kill_pids(self._reader.pid, kill_children=True, must_die=False,
                                   pman=self._pman)
 
-        ClassHelpers.close(self, unref_attrs=("_pman", "_reader"))
+        ClassHelpers.close(self, unref_attrs=("_reader", "_pman"))
 
     def __enter__(self):
         """Enter the run-time context."""

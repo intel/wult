@@ -96,7 +96,7 @@ class _DeviceBase:
 
     def close(self):
         """Uninitialize the device."""
-        ClassHelpers.close(self, unref_attrs=("_pman",), close_attrs=("dmesg_obj",))
+        ClassHelpers.close(self, close_attrs=("dmesg_obj",), unref_attrs=("_pman",))
 
     def __enter__(self):
         """Enter the run-time context."""

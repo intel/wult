@@ -459,7 +459,7 @@ class StatsCollect:
 
     def close(self):
         """Close the statistics collector."""
-        ClassHelpers.close(self, unref_attrs=("_pman",), close_attrs=("_oobcoll", "_inbcoll"))
+        ClassHelpers.close(self, close_attrs=("_oobcoll", "_inbcoll"), unref_attrs=("_pman",))
 
     def __enter__(self):
         """Enter the run-time context."""

@@ -99,7 +99,7 @@ class WultStatsCollect:
 
     def close(self):
         """Close the statistics collector."""
-        ClassHelpers.close(self, unref_attrs=("_pman",), close_attrs=("_stcoll",))
+        ClassHelpers.close(self, close_attrs=("_stcoll",), unref_attrs=("_pman",))
 
     def __enter__(self):
         """Enter the run-time context."""

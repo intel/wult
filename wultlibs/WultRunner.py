@@ -298,9 +298,9 @@ class WultRunner:
                 _LOG.warning("failed to start the previously stoopped 'irqbalance' service:\n%s",
                              err)
 
+        close_attrs = ("_dpp", "_prov", "_stcoll")
         unref_attrs = ("_sysctl", "_dev", "_pman")
-        close_attrs = ("_dpp", "_stcoll", "_prov")
-        ClassHelpers.close(self, unref_attrs=unref_attrs, close_attrs=close_attrs)
+        ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)
 
     def __enter__(self):
         """Enter the run-time context."""
