@@ -16,7 +16,7 @@ import logging
 import contextlib
 from pepclibs.helperlibs import Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
-from wultlibs import _ProgressLine, _Nmcli, _ETFQdisc, NdlRawDataProvider
+from wultlibs import _ProgressLine, _Nmcli, _ETFQdisc, _NdlRawDataProvider
 from wultlibs.helperlibs import ProcHelpers, Human
 _LOG = logging.getLogger()
 
@@ -291,7 +291,7 @@ class NdlRunner:
 
         self._progress = _ProgressLine.ProgressLine(period=1)
 
-        self._prov = NdlRawDataProvider.NdlRawDataProvider(dev, pman, ldist=self._ldist)
+        self._prov = _NdlRawDataProvider.NdlRawDataProvider(dev, pman, ldist=self._ldist)
 
         drvname = self._prov.drvobjs[0].name
         self._rtd_path = self._prov.debugfs_mntpoint.joinpath(f"{drvname}/rtd")

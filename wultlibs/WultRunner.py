@@ -17,7 +17,7 @@ import contextlib
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from pepclibs.helperlibs import ClassHelpers
-from wultlibs import WultRawDataProvider, _ProgressLine, _WultDpProcess, WultStatsCollect
+from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess, WultStatsCollect
 from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
@@ -257,11 +257,11 @@ class WultRunner:
 
         self._progress = _ProgressLine.ProgressLine(period=1)
 
-        self._prov = WultRawDataProvider.WultRawDataProvider(dev, res.cpunum, pman,
-                                                             timeout=self._timeout,
-                                                             ldist=self._ldist,
-                                                             intr_focus=self._intr_focus,
-                                                             early_intr=self._early_intr)
+        self._prov = _WultRawDataProvider.WultRawDataProvider(dev, res.cpunum, pman,
+                                                              timeout=self._timeout,
+                                                              ldist=self._ldist,
+                                                              intr_focus=self._intr_focus,
+                                                              early_intr=self._early_intr)
 
         self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, pman, self._dev.drvname,
                                                       intr_focus=self._intr_focus,
