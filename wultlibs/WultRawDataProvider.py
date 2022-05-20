@@ -194,7 +194,6 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         self._intr_focus_path = self._basedir / "intr_focus"
         self._early_intr_path = self._basedir / "early_intr"
 
-
     def close(self):
         """Uninitialize everything."""
 
