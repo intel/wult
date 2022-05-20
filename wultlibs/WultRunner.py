@@ -128,7 +128,9 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
 
             if self._stcoll:
                 with contextlib.suppress(Error):
-                    self._stcoll.stop()
+                    # We do not consider Ctrl-c as an error, so collect the system infromation in
+                    # that case.
+                    self._stcoll.stop(sysinfo=is_ctrl_c)
                 with contextlib.suppress(Error):
                     self._stcoll.copy_stats()
 

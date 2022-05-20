@@ -41,11 +41,11 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
         _LOG.info("Starting statistics collectors")
         self._stcoll.start()
 
-    def stop(self):
+    def stop(self, sysinfo=True):
         """Stop collecting statistics."""
 
         _LOG.info("Stopping statistics collectors")
-        self._stcoll.stop()
+        self._stcoll.stop(sysinfo=sysinfo)
 
     def apply_stconf(self, stconf):
         """Configure the statistics according to the 'stconf' dictionary contents."""
