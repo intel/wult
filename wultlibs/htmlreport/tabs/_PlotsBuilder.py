@@ -12,6 +12,7 @@ This module provides the capability of generating plots and diagrams using the "
 Metric Tabs.
 """
 
+from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.htmlreport import _ScatterPlot, _Histogram
 
 class PlotsBuilder:
@@ -79,6 +80,12 @@ class PlotsBuilder:
                                         yaxis_unit=yaxis_unit)
 
         for res in self._rsts:
+            # Check that each result contains data for 'xmetric' and 'ymetric'.
+            for metric in [xmetric, ymetric]:
+                if metric not in res.df:
+                    raise Error(f"cannot build scatter plots. Metric '{metric}' not available for "
+                                f"result '{res.reportid}'.")
+
             df = plot.reduce_df_density(res.df, res.reportid)
             hov_defs = [self._refdefs.info[metric] for metric in self._hov_metrics[res.reportid]]
             text = plot.get_hover_text(hov_defs, df)
@@ -137,6 +144,11 @@ class PlotsBuilder:
         'rsts' which is provided to the class during initialisation. Returns the filepath of the
         generated plot HTML.
         """
+
+        # Check that all results contain data for 'xmetric'.
+        if any(xmetric not in res.df for res in self._rsts):
+            raise Error(f"cannot build histograms. Metric '{xmetric}' not available for all "
+                        f"results.")
 
         xbins = self._get_xbins(xmetric)
 
