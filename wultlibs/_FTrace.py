@@ -50,7 +50,7 @@ class FTraceLine():
             procinfo, self.cpunum, self.flags, self.timestamp, self.func, self.msg = split
             self.procname, self.pid = procinfo.split("-")
 
-class FTrace:
+class FTrace(ClassHelpers.SimpleCloseContext):
     """This class represents the Linux function trace buffer."""
 
     def _clear(self):
@@ -130,11 +130,3 @@ class FTrace:
                 self._pman.run(f"unmount {self._debugfs_mntpoint}")
 
         ClassHelpers.close(self, unref_attrs=("_reader", "_pman"))
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()

@@ -29,7 +29,7 @@ def parse_stats(stnames, intervals):
 
     return stconf
 
-class WultStatsCollect:
+class WultStatsCollect(ClassHelpers.SimpleCloseContext):
     """
     The statistics collector class. Built on top of 'StatsCollect', but simplifies the API a little
     bit for wult usage scenario.
@@ -100,11 +100,3 @@ class WultStatsCollect:
     def close(self):
         """Close the statistics collector."""
         ClassHelpers.close(self, close_attrs=("_stcoll",), unref_attrs=("_pman",))
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()

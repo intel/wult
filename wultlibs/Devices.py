@@ -31,7 +31,7 @@ _MAX_RESOLUTION = 100
 
 _LOG = logging.getLogger()
 
-class _DeviceBase:
+class _DeviceBase(ClassHelpers.SimpleCloseContext):
     """This is the base class for device classes."""
 
     def bind(self, drvname=None): # pylint: disable=no-self-use
@@ -97,14 +97,6 @@ class _DeviceBase:
     def close(self):
         """Uninitialize the device."""
         ClassHelpers.close(self, close_attrs=("dmesg_obj",), unref_attrs=("_pman",))
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
 
 class _PCIDevice(_DeviceBase):
     """This class represents a PCI device that can be used for as a source of delayed events."""

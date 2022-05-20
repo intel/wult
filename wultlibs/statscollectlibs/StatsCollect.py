@@ -175,7 +175,7 @@ def _get_max_interval(stinfo):
 
     return 0
 
-class StatsCollect:
+class StatsCollect(ClassHelpers.SimpleCloseContext):
     """
     This class provides API for collecting SUT statistics, such as 'turbostat' data and AC power.
 
@@ -461,16 +461,7 @@ class StatsCollect:
         """Close the statistics collector."""
         ClassHelpers.close(self, close_attrs=("_oobcoll", "_inbcoll"), unref_attrs=("_pman",))
 
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
-
-
-class _Collector:
+class _Collector(ClassHelpers.SimpleCloseContext):
     """
     The base statistics collector class, contains the parts shared between the inband and
     out-of-band collectors.
@@ -1054,14 +1045,6 @@ class _Collector:
             if getattr(self, "_close_pman", None):
                 self._pman.close()
             self._pman = None
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
 
 class _InBandCollector(_Collector):
     """

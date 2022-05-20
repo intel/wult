@@ -25,7 +25,7 @@ _LOG = logging.getLogger()
 # Maximum count of unexpected lines in the trace buffer we tolerate.
 _MAX_FTRACE_BAD_LINES = 10
 
-class WultRunner:
+class WultRunner(ClassHelpers.SimpleCloseContext):
     """Run wake latency measurement experiments."""
 
     def _collect(self, dpcnt, tlimit, keep_rawdp):
@@ -274,11 +274,3 @@ class WultRunner:
         close_attrs = ("_dpp", "_prov", "_stcoll")
         unref_attrs = ("_dev", "_pman")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()

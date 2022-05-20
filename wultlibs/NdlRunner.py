@@ -20,7 +20,7 @@ from wultlibs import _ProgressLine, _Nmcli, _ETFQdisc, _NdlRawDataProvider
 from wultlibs.helperlibs import ProcHelpers, Human
 _LOG = logging.getLogger()
 
-class NdlRunner:
+class NdlRunner(ClassHelpers.SimpleCloseContext):
     """Run the latency measurements."""
 
     def _ndlrunner_error_prefix(self):
@@ -310,11 +310,3 @@ class NdlRunner:
         close_attrs = ("_etfqdisc", "_prov", "_nmcli")
         unref_attrs = ("_ndlrunner", "_netif", "_dev", "_pman")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()

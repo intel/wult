@@ -21,7 +21,7 @@ from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
 
-class DatapointProcessor:
+class DatapointProcessor(ClassHelpers.SimpleCloseContext):
     """
     The datapoint processor class implements raw datapoint processing. Takes raw datapoints on
     input and provides processed datapoints on output. Processing includes filtering unwanted
@@ -585,11 +585,3 @@ class DatapointProcessor:
     def close(self):
         """Close the datapoint processor."""
         ClassHelpers.close(self, unref_attrs=("_pman",))
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()

@@ -12,7 +12,7 @@ import re
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import LocalProcessManager, ClassHelpers
 
-class LsPCI:
+class LsPCI(ClassHelpers.SimpleCloseContext):
     """This is a wrapper class for 'lspci' tool."""
 
     @staticmethod
@@ -112,11 +112,3 @@ class LsPCI:
     def close(self):
         """Uninitialize the class object."""
         ClassHelpers.close(self, close_attrs=("_pman",))
-
-    def __enter__(self):
-        """Enter the runtime context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()

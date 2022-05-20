@@ -13,13 +13,13 @@ This module base class for wirte-only raw test result classes.
 import os
 import shutil
 import contextlib
-from pepclibs.helperlibs import YAML
+from pepclibs.helperlibs import YAML, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
 from wultlibs.helperlibs import FSHelpers
 from wultlibs.rawresultlibs import _CSV, _RawResultBase
 from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
 
-class WORawResultBase(_RawResultBase.RawResultBase):
+class WORawResultBase(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext):
     """This class represents a write-only raw test result."""
 
     def set_rfilt(self, rfilt):
@@ -191,11 +191,3 @@ class WORawResultBase(_RawResultBase.RawResultBase):
                     shutil.rmtree(path)
                 elif path.is_file():
                     os.remove(path)
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()

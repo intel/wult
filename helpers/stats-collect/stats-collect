@@ -27,7 +27,7 @@ import logging
 import tempfile
 import argparse
 import contextlib
-from pepclibs.helperlibs import Logging, ArgParse, LocalProcessManager, Trivial
+from pepclibs.helperlibs import Logging, ArgParse, LocalProcessManager, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import ProcHelpers
 
@@ -621,7 +621,7 @@ class StatsCollector:
         self._collectors = {}
         self.failed_collectors = set()
 
-class Client:
+class Client(ClassHelpers.SimpleCloseContext):
     """This class represent a network client."""
 
     def get_command(self):
@@ -692,15 +692,7 @@ class Client:
                 self._sock.shutdown(socket.SHUT_RDWR)
                 self._sock.close()
 
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
-
-class Server:
+class Server(ClassHelpers.SimpleCloseContext):
     """This class represents 'stats-collect' as a network server."""
 
     def wait_for_client(self):
@@ -805,14 +797,6 @@ class Server:
         if getattr(self, "_uspath", None):
             with contextlib.suppress(OSError):
                 os.remove(self._uspath)
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
 
 def handle_command(cmd, collector):
     """Handle a single command from the client."""

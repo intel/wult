@@ -209,7 +209,7 @@ def _create_standalone_pyhelper(pyhelper, outdir):
         raise Error(f"cannot change '{standalone_path}' file mode to {oct(mode)}:\n{err}") from err
 
 
-class Deploy:
+class Deploy(ClassHelpers.SimpleCloseContext):
     """
     This module provides API for deploying the 'wult' and 'ndl' tools. Provides the following
     methods.
@@ -714,11 +714,3 @@ class Deploy:
     def close(self):
         """Uninitialize the object."""
         ClassHelpers.close(self, close_attrs=("_cpman", "_spman"))
-
-    def __enter__(self):
-        """Enter the runtime context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()

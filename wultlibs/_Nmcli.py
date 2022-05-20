@@ -14,7 +14,7 @@ import re
 from pepclibs.helperlibs import Trivial, LocalProcessManager, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 
-class Nmcli:
+class Nmcli(ClassHelpers.SimpleCloseContext):
     """API to the nmcli tool."""
 
     def _toggle_managed(self, ifname, managed):
@@ -92,11 +92,3 @@ class Nmcli:
     def close(self):
         """Uninitialize the object."""
         ClassHelpers.close(self, close_attrs=("_pman",))
-
-    def __enter__(self):
-        """Enter the runtime context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()

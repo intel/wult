@@ -19,7 +19,7 @@ from wultlibs.helperlibs import KernelVersion, ProcHelpers
 
 _LOG = logging.getLogger()
 
-class ETFQdisc():
+class ETFQdisc(ClassHelpers.SimpleCloseContext):
     """
     This module provides API for configuring the ETF (Earliest Tx time First) qdisc (queuing
     discipline).
@@ -188,11 +188,3 @@ class ETFQdisc():
             self._phc2sys_proc = None
 
         ClassHelpers.close(self, close_attrs=("_tchk", "_pman"))
-
-    def __enter__(self):
-        """Enter the runtime context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()

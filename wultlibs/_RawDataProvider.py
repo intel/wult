@@ -18,7 +18,7 @@ from wultlibs.helperlibs import FSHelpers
 
 _LOG = logging.getLogger()
 
-class RawDataProviderBase:
+class RawDataProviderBase(ClassHelpers.SimpleCloseContext):
     """
     The base class for raw data provider classes.
     """
@@ -41,14 +41,6 @@ class RawDataProviderBase:
     def close(self):
         """Uninitialize everything."""
         ClassHelpers.close(self, unref_attrs=("dev", "_pman"))
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
 
 class DrvRawDataProviderBase(RawDataProviderBase):
     """

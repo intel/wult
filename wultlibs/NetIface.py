@@ -95,7 +95,7 @@ def _parse_ip_address_show(raw):
 
     return info
 
-class NetIface:
+class NetIface(ClassHelpers.SimpleCloseContext):
     """API for managing network interfaces in Linux."""
 
     def get_unique_ipv4_addr(self):
@@ -324,11 +324,3 @@ class NetIface:
     def close(self):
         """Uninitialize the class object."""
         ClassHelpers.close(self, close_attrs=("_pman",))
-
-    def __enter__(self):
-        """Enter the runtime context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()

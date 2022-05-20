@@ -13,11 +13,12 @@ This module provides API for reading and writing CSV files.
 import csv
 import logging
 from pathlib import Path
+from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 
 _LOG = logging.getLogger()
 
-class WritableCSV:
+class WritableCSV(ClassHelpers.SimpleCloseContext):
     """This class represents a write-only CSV file."""
 
     def _continue(self):
@@ -138,11 +139,3 @@ class WritableCSV:
             self.flush()
             self._fobj.close()
             self._fobj = None
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
