@@ -14,7 +14,7 @@ data.
 import logging
 import contextlib
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import _RawDataProvider, Devices
+from wultlibs import _RawDataProvider
 from wultlibs.helperlibs import ProcHelpers
 
 _LOG = logging.getLogger()
@@ -80,9 +80,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         """
 
         drvinfo = {dev.drvname : {"params" : f"ifname={dev.netif.ifname}"}}
-        all_drvnames = Devices.DRVNAMES
-
-        super().__init__(dev, pman, drvinfo, all_drvnames)
+        super().__init__(dev, pman, drvinfo)
 
         self.ndlrunner_path = ndlrunner_path
         self._timeout = timeout

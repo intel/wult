@@ -23,8 +23,8 @@ from pepclibs.helperlibs import Dmesg, ClassHelpers, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from wultlibs import NetIface, LsPCI
 
-# All the possible wult device driver names.
-DRVNAMES = set()
+# All the possible wult/ndl device driver names in order suitable for uloading.
+ALL_DRVNAMES = ("ndl", "wult_igb", "wult_hrtimer", "wult_tdt")
 
 # The maximum expected device clock resolution in nanoseconds.
 _MAX_RESOLUTION = 100
@@ -78,9 +78,6 @@ class _DeviceBase(ClassHelpers.SimpleCloseContext):
         if dmesg:
             self.dmesg_obj = Dmesg.Dmesg(pman=self._pman)
             self.dmesg_obj.run(capture=True)
-
-        if drvname:
-            DRVNAMES.add(drvname)
 
         # Device information dictionary. Every subclass is expected to provide the following keys.
         # * name - device name (string). Should be short (1-2 words), preferably human-readable.

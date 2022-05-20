@@ -14,6 +14,7 @@ import logging
 import contextlib
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import ClassHelpers, KernelModule
+from wultlibs import Devices
 from wultlibs.helperlibs import FSHelpers
 
 _LOG = logging.getLogger()
@@ -83,7 +84,7 @@ class DrvRawDataProviderBase(RawDataProviderBase):
             return
 
         # Unload all the possible device drivers.
-        for drvname in self._all_drvnames:
+        for drvname in Devices.ALL_DRVNAMES:
             if drvname in unloaded:
                 continue
 
@@ -91,11 +92,10 @@ class DrvRawDataProviderBase(RawDataProviderBase):
                                            dmesg=self.dev.dmesg_obj) as drvobj:
                 drvobj.unload()
 
-    def __init__(self, dev, pman, drvinfo, all_drvnames):
+    def __init__(self, dev, pman, drvinfo):
         """
         Initialize a class instance. The arguments are as follows.
           * drvinfo - a dictionary describing the kernel drivers to load/unload.
-          * all_drvnames - list of all possible driver names.
           * All other arguments are the same as in '_RawDataProviderBase.__init__()'.
 
         The 'drvinfo' dictionary schema is as follows.
@@ -110,7 +110,6 @@ class DrvRawDataProviderBase(RawDataProviderBase):
         super().__init__(dev, pman)
 
         self._drvinfo = drvinfo
-        self._all_drvnames = all_drvnames
         self.drvobjs = []
 
         self.debugfs_mntpoint = None

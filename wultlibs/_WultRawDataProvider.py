@@ -14,7 +14,7 @@ datapoints, as well as intitializing wult devices.
 import logging
 from pepclibs.helperlibs import Trivial, ClassHelpers, Systemctl
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from wultlibs import _FTrace, _RawDataProvider, Devices
+from wultlibs import _FTrace, _RawDataProvider
 
 _LOG = logging.getLogger()
 
@@ -183,9 +183,7 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         drvinfo = { "wult" : { "params" : f"cpunum={cpunum}" },
                      dev.drvname : { "params" : None }}
-        all_drvnames = Devices.DRVNAMES
-
-        super().__init__(dev, pman, drvinfo, all_drvnames)
+        super().__init__(dev, pman, drvinfo)
 
         self._timeout = timeout
         self._ldist = ldist
