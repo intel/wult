@@ -175,7 +175,6 @@ class WultRunner:
                 _LOG.info("Stopping the 'irqbalance' service")
                 self._sysctl.stop("irqbalance")
 
-        self._prov.unload = self.unload
         self._prov.prepare()
 
         # Save the test setup information in the info.yml file.
@@ -244,10 +243,6 @@ class WultRunner:
         self._intr_focus = intr_focus
         self._early_intr = early_intr
         self._stconf = stconf
-
-        # This is a debugging option that allows to disable automatic wult modules unloading on
-        # 'close()'.
-        self.unload = True
 
         self._dpp = None
         self._prov = None
