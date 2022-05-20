@@ -715,7 +715,7 @@ class Deploy:
 
     def close(self):
         """Uninitialize the object."""
-        ClassHelpers.close(self, unref_attrs=("_spman",), close_attrs=("_cpman",))
+        ClassHelpers.close(self, close_attrs=("_cpman", "_spman"))
 
     def __enter__(self):
         """Enter the runtime context."""
