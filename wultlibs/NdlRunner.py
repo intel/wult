@@ -17,7 +17,7 @@ import contextlib
 from pepclibs.helperlibs import Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs import _ProgressLine, _Nmcli, _ETFQdisc, _NdlRawDataProvider
-from wultlibs.helperlibs import ProcHelpers, Human
+from wultlibs.helperlibs import Human
 _LOG = logging.getLogger()
 
 class NdlRunner(ClassHelpers.SimpleCloseContext):
@@ -46,10 +46,11 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         timeout = 4.0 + self._ldist[1]/1000000000
 
         while True:
-            stdout, stderr, exitcode = self._ndlrunner.wait(timeout=timeout, lines=[16, None],
-                                                            join=False)
+            stdout, stderr, exitcode = self._prov.ndlrunner.wait(timeout=timeout, lines=[16, None],
+                                                                 join=False)
             if exitcode is not None:
-                msg = self._ndlrunner.get_cmd_failure_msg(stdout, stderr, exitcode, timeout=timeout)
+                msg = self._prov.ndlrunner.get_cmd_failure_msg(stdout, stderr, exitcode,
+                                                               timeout=timeout)
                 raise Error(f"{self._ndlrunner_error_prefix()} has exited unexpectedly\n{msg}")
             if stderr:
                 raise Error(f"{self._ndlrunner_error_prefix()} printed an error message:\n"
@@ -106,19 +107,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         while True:
             yield self._get_latency()
 
-    def _start_ndlrunner(self):
-        """Start the 'ndlrunner' process on the measured system."""
-
-        regex = f"^.*{self._ndlrunner_path} .*{self._ifname}.*$"
-        ProcHelpers.kill_processes(regex, log=True, name="stale 'ndlrunner' process",
-                                   pman=self._pman)
-
-        ldist_str = ",".join([str(val) for val in self._ldist])
-        cmd = f"{self._ndlrunner_path} -l {ldist_str} "
-        cmd += f"{self._ifname}"
-
-        self._ndlrunner = self._pman.run_async(cmd)
-
     def _collect(self, dpcnt, tlimit):
         """
         Collect datapoints and stop when the CSV file has 'dpcnt' datapoints in total, or when
@@ -164,7 +152,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
             msg += f", time limit is {Human.duration(tlimit)}"
         _LOG.info(msg)
 
-        self._start_ndlrunner()
+        self._prov.start()
         self._res.write_info()
 
         self._progress.start()
@@ -190,7 +178,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         else:
             self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
 
-        self._stop_ndlrunner()
+        self._prov.stop()
 
         _LOG.info("Finished measuring RTD%s", self._pman.hostmsg)
 
@@ -234,7 +222,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         # 'phc2sys' process in background in order to keep the host and NIC clocks in sync.
 
         # Get the TAI offset first.
-        stdout, _ = self._pman.run_verify(f"{self._ndlrunner_path} --tai-offset")
+        stdout, _ = self._pman.run_verify(f"{self._prov.ndlrunner_path} --tai-offset")
         tai_offset = self._get_line(prefix="TAI offset", line=stdout)
         if not Trivial.is_int(tai_offset):
             raise Error(f"unexpected 'ndlrunner --tai-offset' output:\n{stdout}")
@@ -243,30 +231,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         self._etfqdisc.configure()
         _LOG.info("Starting NIC-to-system clock synchronization process%s", self._pman.hostmsg)
         self._etfqdisc.start_phc2sys(tai_offset=int(tai_offset))
-
-    def _verify_input_args(self):
-        """Verify and adjust the constructor input arguments."""
-
-        # Validate the 'ndlrunner' helper path.
-        if not self._pman.is_exe(self._ndlrunner_path):
-            raise Error(f"bad 'ndlrunner' helper path '{self._ndlrunner_path}' - does not exist"
-                        f"{self._pman.hostmsg} or not an executable file")
-
-    def _stop_ndlrunner(self):
-        """Make 'ndlrunner' process to terminate."""
-
-        ndlrunner = self._ndlrunner
-        self._ndlrunner = None
-        with contextlib.suppress(Error):
-            ndlrunner.stdin.write("q\n".encode("utf8"))
-            ndlrunner.stdin.flush()
-
-        _, _, exitcode = ndlrunner.wait(timeout=5)
-        if exitcode is None:
-            _LOG.warning("the 'ndlrunner' program PID %d%s failed to exit, killing it",
-                         ndlrunner.pid, self._pman.hostmsg)
-            ProcHelpers.kill_pids(ndlrunner.pid, kill_children=True, must_die=False,
-                                  pman=self._pman)
 
     def __init__(self, pman, dev, res, ndlrunner_path, ldist=None):
         """
@@ -284,7 +248,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         self._pman = pman
         self._dev = dev
         self._res = res
-        self._ndlrunner_path = ndlrunner_path
         self._ldist = ldist
 
         self._netif = self._dev.netif
@@ -292,7 +255,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         self._ndl_lines = None
         self._prov = None
         self._rtd_path = None
-        self._ndlrunner = None
         self._progress = None
         self._etfqdisc = None
         self._nmcli = None
@@ -300,11 +262,10 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         if not self._ldist:
             self._ldist = [5000000, 50000000]
 
-        self._verify_input_args()
-
         self._progress = _ProgressLine.ProgressLine(period=1)
 
-        self._prov = _NdlRawDataProvider.NdlRawDataProvider(dev, pman, ldist=self._ldist)
+        self._prov = _NdlRawDataProvider.NdlRawDataProvider(dev, ndlrunner_path, pman,
+                                                            ldist=self._ldist)
 
         drvname = self._prov.drvobjs[0].name
         self._rtd_path = self._prov.debugfs_mntpoint.joinpath(f"{drvname}/rtd")
@@ -313,13 +274,11 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
     def close(self):
         """Stop the measurements."""
 
-        if getattr(self, "_ndlrunner", None):
-            self._stop_ndlrunner()
         if getattr(self, "_netif", None):
             self._netif.down()
         if getattr(self, "_nmcli", None):
             self._nmcli.restore_managed()
 
         close_attrs = ("_etfqdisc", "_prov", "_nmcli")
-        unref_attrs = ("_ndlrunner", "_netif", "_dev", "_pman")
+        unref_attrs = ("_netif", "_dev", "_pman")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)
