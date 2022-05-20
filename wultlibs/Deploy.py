@@ -18,6 +18,7 @@ from pathlib import Path
 from pepclibs.helperlibs import ProcessManager, LocalProcessManager, Trivial, Logging
 from pepclibs.helperlibs import ClassHelpers, ArgParse
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
+from wultlibs import ToolsCommon
 from wultlibs.helperlibs import RemoteHelpers
 
 _HELPERS_LOCAL_DIR = Path(".local")
@@ -615,11 +616,10 @@ class Deploy:
         finally:
             self._remove_tmpdirs(remove_tmpdirs=remove_tmpdirs)
 
-    def _init_kernel_info(self, minkver):
+    def _init_kernel_info(self):
         """
         Discover kernel version and kernel sources path which will be needed for building the out of
         tree drivers. The arguments are as follows.
-          * minkver - the minimum required kernel version number.
         """
 
         from wultlibs.helperlibs import KernelVersion # pylint: disable=import-outside-toplevel
@@ -642,9 +642,7 @@ class Deploy:
         _LOG.debug("Kernel sources path: %s", self._ksrc)
         _LOG.debug("Kernel version: %s", self._kver)
 
-        if KernelVersion.kver_lt(self._kver, minkver):
-            raise Error(f"version of the kernel{self._spman.hostmsg} is {self._kver}, and it is "
-                        f"not new enough.\nPlease, use kernel version {minkver} or newer.")
+        ToolsCommon.check_kver(self._toolname, self._spman, kver=self._kver)
 
     def __init__(self, toolname, pman=None, debug=False):
         """
@@ -679,13 +677,13 @@ class Deploy:
         if self._toolname == "wult":
             self._drivers = True
             self._pyhelpers = ["stats-collect"]
-            self._init_kernel_info("5.6")
         elif self._toolname == "ndl":
             self._drivers = True
             self._shelpers = ["ndlrunner"]
-            self._init_kernel_info("5.1-rc1")
         else:
             raise Error(f"BUG: unsupported tool '{toolname}'")
+
+        self._init_kernel_info()
 
     def _remove_tmpdirs(self, remove_tmpdirs=True):
         """

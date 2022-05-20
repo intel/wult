@@ -236,6 +236,33 @@ def get_pman(args):
     return ProcessManager.get_pman(args.hostname, username=username, privkeypath=privkeypath,
                                    timeout=timeout)
 
+def check_kver(toolname, pman, kver=None):
+    """
+    Check if the SUT is using new enough kernel version. The arguments are as follows.
+      * toolname - name of the tool to check kernel version for.
+      * pman - process manager object of the target system.
+      * kver - version of the kernel on the target system (wll be discovered if not provided).
+    """
+
+    from wultlibs.helperlibs import KernelVersion # pylint: disable=import-outside-toplevel
+
+    if not kver:
+        kver = KernelVersion.get_kver(pman=pman)
+
+    _tools_info = {
+        "wult" : {
+            "minkver" : "5.6",
+        },
+        "ndl" : {
+            "minkver" : "5.2",
+        },
+    }
+
+    minkver = _tools_info[toolname]["minkver"]
+    if KernelVersion.kver_lt(kver, minkver):
+        raise Error(f"version of Linux kernel{pman.hostmsg} is {kver}, and it is not new enough "
+                    f"for {toolname}.\nPlease, use kernel version {minkver} or newer.")
+
 def _validate_range(rng, what, single_ok):
     """Implements 'parse_ldist()'."""
 
