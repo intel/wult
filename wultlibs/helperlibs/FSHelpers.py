@@ -234,7 +234,11 @@ def mount_debugfs(mnt=None, pman=None):
     """
     Mount the debugfs file-system to 'mnt' on the host. By default it is mounted to
     'DEBUGFS_MOUNT_POINT'. The 'pman' argument defines the host to mount debugfs on (default is the
-    local host). Returns the mount point path.
+    local host).
+
+    Returns a tuple of the following elements.
+      * mount point path.
+      * 'True' if debugfs was mounted by this function, 'False' it it has already been mounted.
     """
 
     if not mnt:
@@ -248,7 +252,7 @@ def mount_debugfs(mnt=None, pman=None):
     for mntinfo in get_mount_points(pman=pman):
         if mntinfo.fstype == "debugfs" and Path(mntinfo.mntpoint) == mnt:
             # Already mounted.
-            return mnt
+            return mnt, False
 
     pman.run_verify(f"mount -t debugfs none '{mnt}'")
-    return mnt
+    return mnt, True

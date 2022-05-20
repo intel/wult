@@ -188,7 +188,7 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         self._ftrace = _FTrace.FTrace(pman=self._pman, timeout=self._timeout)
 
-        mntpoint = FSHelpers.mount_debugfs(pman=pman)
+        mntpoint, _ = FSHelpers.mount_debugfs(pman=pman)
         self._basedir = mntpoint / "wult"
         self._enabled_path = self._basedir / "enabled"
         self._intr_focus_path = self._basedir / "intr_focus"

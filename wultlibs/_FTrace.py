@@ -96,7 +96,7 @@ class FTrace:
         self.timeout = timeout
         self.raw_line = None
 
-        mntpoint = FSHelpers.mount_debugfs(pman=self._pman)
+        mntpoint, _ = FSHelpers.mount_debugfs(pman=self._pman)
         self.ftpath = mntpoint.joinpath("tracing/trace")
         self.ftpipe_path = mntpoint.joinpath("tracing/trace_pipe")
 

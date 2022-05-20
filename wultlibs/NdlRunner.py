@@ -300,7 +300,7 @@ class NdlRunner:
 
         self._prov = NdlRawDataProvider.NdlRawDataProvider(dev, pman, ldist=self._ldist)
 
-        mntpath = FSHelpers.mount_debugfs(pman=pman)
+        mntpath, _ = FSHelpers.mount_debugfs(pman=pman)
         drvname = self._prov.drvobjs[0].name
         self._rtd_path = mntpath.joinpath(f"{drvname}/rtd")
         self._etfqdisc = _ETFQdisc.ETFQdisc(self._netif, pman=pman)
