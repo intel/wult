@@ -31,9 +31,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
     def _collect(self, dpcnt, tlimit, keep_rawdp):
         """
         Collect datapoints and stop when either the CSV file has 'dpcnt' datapoints in total or when
-        collection time exceeds 'tlimit' (value '0' or 'None' means "no limit"). Returns count of
-        collected datapoints. If the filters were configured, the returned value counts only those
-        datapoints that passed the filters.
+        collection time exceeds 'tlimit' (value '0' or 'None' means "no limit").
         """
 
         datapoints = self._prov.get_datapoints()
@@ -51,6 +49,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         timeout = self._timeout * 1.5
         start_time = last_rawdp_time = time.time()
         collected_cnt = 0
+        max_latency = 0
         tsc_rate_printed = False
 
         for rawdp in datapoints:
@@ -78,8 +77,8 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                     # The data point has not been added (e.g., because it did not pass row filters).
                     continue
 
-                self._max_latency = max(dp[latkey], self._max_latency)
-                self._progress.update(collected_cnt, self._max_latency)
+                max_latency = max(dp[latkey], max_latency)
+                self._progress.update(collected_cnt, max_latency)
                 last_rawdp_time = time.time()
 
                 collected_cnt += 1
@@ -88,8 +87,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
 
             if tlimit and time.time() - start_time > tlimit or collected_cnt >= dpcnt:
                 break
-
-        return collected_cnt
 
     def run(self, dpcnt=1000000, tlimit=None, keep_rawdp=False):
         """
@@ -116,10 +113,9 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         # Start printing the progress.
         self._progress.start()
 
-        collected_cnt = 0
         try:
             self._prov.start()
-            collected_cnt = self._collect(dpcnt, tlimit, keep_rawdp)
+            self._collect(dpcnt, tlimit, keep_rawdp)
         except Error as err:
             dmesg = ""
             with contextlib.suppress(Error):
@@ -131,7 +127,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                     self._stcoll.copy_stats()
             raise Error(f"{err}{dmesg}") from err
         finally:
-            self._progress.update(collected_cnt, self._max_latency, final=True)
+            self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
 
         _LOG.info("Finished measuring CPU %d%s", self._res.cpunum, self._pman.hostmsg)
 
@@ -239,7 +235,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._prov = None
         self._timeout = 10
         self._progress = None
-        self._max_latency = 0
         self._stcoll = None
 
         if res.info["toolname"] != "wult":

@@ -49,7 +49,10 @@ class ProgressLine:
         rate = dpcnt / (time.time() - self._start_ts)
         print(f"\rDatapoints: {dpcnt}, max. latency: {maxlat:.2f} us, "
               f"rate: {rate:.2f} datapoints/sec\r", end=end, flush=True)
+
         self._printed = True
+        self.dpcnt = dpcnt
+        self.maxlat = maxlat
 
     def __init__(self, period=1):
         """
@@ -66,6 +69,10 @@ class ProgressLine:
         self._start_ts = None
         # Whether progress information was printed at least once.
         self._printed = False
+        # Last printed datapoints count.
+        self.dpcnt = 0
+        # Last printed latency.
+        self.maxlat = 0
 
         if _LOG.getEffectiveLevel() > logging.INFO or not sys.stdout.isatty():
             self.enabled = False

@@ -122,9 +122,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
     def _collect(self, dpcnt, tlimit):
         """
         Collect datapoints and stop when the CSV file has 'dpcnt' datapoints in total, or when
-        collection time exceeds 'tlimit' (value '0' or 'None' means "no limit"). Returns count of
-        collected datapoints. If the filters were configured, the returned value counts only those
-        datapoints that passed the filters.
+        collection time exceeds 'tlimit' (value '0' or 'None' means "no limit").
         """
 
         datapoints = self._get_datapoints()
@@ -134,25 +132,25 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         self._res.csv.add_header(dp.keys())
 
         collected_cnt = 0
+        max_rtd = 0
         start_time = time.time()
+
         for dp in datapoints:
             if tlimit and time.time() - start_time > tlimit:
                 break
 
-            self._max_rtd = max(dp["RTD"], self._max_rtd)
+            max_rtd = max(dp["RTD"], max_rtd)
             _LOG.debug("launch distance: RTD %.2f (max %.2f), LDist %.2f",
-                       dp["RTD"], self._max_rtd, dp["LDist"])
+                       dp["RTD"], max_rtd, dp["LDist"])
 
             if not self._res.add_csv_row(dp):
                 continue
 
             collected_cnt += 1
-            self._progress.update(collected_cnt, self._max_rtd)
+            self._progress.update(collected_cnt, max_rtd)
 
             if collected_cnt >= dpcnt:
                 break
-
-        return collected_cnt
 
     def run(self, dpcnt=1000000, tlimit=None):
         """
@@ -170,11 +168,10 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         self._res.write_info()
 
         self._progress.start()
-        collected_cnt = 0
         try:
-            collected_cnt = self._collect(dpcnt, tlimit)
+            self._collect(dpcnt, tlimit)
         finally:
-            self._progress.update(collected_cnt, self._max_rtd, final=True)
+            self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
 
         self._stop_ndlrunner()
 
@@ -280,7 +277,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         self._rtd_path = None
         self._ndlrunner = None
         self._progress = None
-        self._max_rtd = 0
         self._etfqdisc = None
         self._nmcli = None
 
