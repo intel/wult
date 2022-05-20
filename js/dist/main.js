@@ -810,7 +810,11 @@
                     <sl-tab-panel class="tab-panel" name="${t.name}">${this.tabTemplate(t)}</sl-tab-panel>
                 `))}
             </sl-tab-group>
-      `:z``}}customElements.define("tab-group",ni);class ai extends et{static properties={src:{type:String},reportInfo:{type:Object,attribute:!1},fetchFailed:{type:Boolean,attribute:!1}};async connectedCallback(){super.connectedCallback();try{const t=await fetch(this.src);this.reportInfo=await t.json(),this.toolname=this.reportInfo.toolname,this.titleDescr=this.reportInfo.title_descr,this.tabFile=this.reportInfo.tab_file,this.introtbl=this.reportInfo.intro_tbl}catch(t){t instanceof TypeError&&(this.fetchFailed=!0)}}corsWarning(){return z`
+      `:z``}}customElements.define("tab-group",ni);class ai extends et{static properties={src:{type:String},reportInfo:{type:Object,attribute:!1},fetchFailed:{type:Boolean,attribute:!1}};static styles=o`
+        .report-title {
+            font-family: Arial, sans-serif;
+        }
+    `;async connectedCallback(){super.connectedCallback();try{const t=await fetch(this.src);this.reportInfo=await t.json(),this.toolname=this.reportInfo.toolname,this.titleDescr=this.reportInfo.title_descr,this.tabFile=this.reportInfo.tab_file,this.introtbl=this.reportInfo.intro_tbl}catch(t){t instanceof TypeError&&(this.fetchFailed=!0)}}corsWarning(){return z`
         <sl-alert variant="danger" open>
           Warning: it looks like you might be trying to view this report
           locally.  See our documentation on how to do that <a
@@ -818,7 +822,7 @@
             here.</a>
           </sl-alert>
       `}render(){return this.fetchFailed?this.corsWarning():z`
-            <h1>${this.toolname} report</h1>
+            <h1 class="report-title">${this.toolname} report</h1>
             <br>
 
             ${this.titleDescr?z`

@@ -8,7 +8,7 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import { LitElement, html } from 'lit'
+import { LitElement, html, css } from 'lit'
 import '@shoelace-style/shoelace/dist/components/alert/alert'
 
 import './intro-tbl'
@@ -25,6 +25,12 @@ export class ReportPage extends LitElement {
         reportInfo: { type: Object, attribute: false },
         fetchFailed: { type: Boolean, attribute: false }
     }
+
+    static styles = css`
+        .report-title {
+            font-family: Arial, sans-serif;
+        }
+    `
 
     async connectedCallback () {
         super.connectedCallback()
@@ -67,7 +73,7 @@ export class ReportPage extends LitElement {
         }
 
         return html`
-            <h1>${this.toolname} report</h1>
+            <h1 class="report-title">${this.toolname} report</h1>
             <br>
 
             ${this.titleDescr
