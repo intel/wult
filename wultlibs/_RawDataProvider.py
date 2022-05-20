@@ -14,6 +14,7 @@ import logging
 import contextlib
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import ClassHelpers, KernelModule
+from wultlibs.helperlibs import FSHelpers
 
 _LOG = logging.getLogger()
 
@@ -120,9 +121,14 @@ class DrvRawDataProviderBase(RawDataProviderBase):
         self._all_drvnames = all_drvnames
         self.drvobjs = []
 
+        self.debugfs_mntpoint = None
+        self._unmount_debugfs = None
+
         for drvname in self._drvinfo.keys():
             drvobj = KernelModule.KernelModule(drvname, pman=pman, dmesg=dev.dmesg_obj)
             self.drvobjs.append(drvobj)
+
+        self.debugfs_mntpoint, self._unmount_debugfs = FSHelpers.mount_debugfs(pman=pman)
 
     def close(self):
         """Uninitialize everything."""
@@ -135,5 +141,9 @@ class DrvRawDataProviderBase(RawDataProviderBase):
                 with contextlib.suppress(Error):
                     drvobj.close()
             self.drvobjs = []
+
+        if getattr(self, "_unmount_debugfs", None):
+            with contextlib.suppress(Error):
+                self._pman.run("unmount {self.debugfs_mntpoint}")
 
         super().close()

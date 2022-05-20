@@ -17,7 +17,7 @@ import contextlib
 from pepclibs.helperlibs import Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs import _ProgressLine, _Nmcli, _ETFQdisc, NdlRawDataProvider
-from wultlibs.helperlibs import KernelVersion, ProcHelpers, Human, FSHelpers
+from wultlibs.helperlibs import KernelVersion, ProcHelpers, Human
 _LOG = logging.getLogger()
 
 class NdlRunner:
@@ -300,9 +300,8 @@ class NdlRunner:
 
         self._prov = NdlRawDataProvider.NdlRawDataProvider(dev, pman, ldist=self._ldist)
 
-        mntpath, _ = FSHelpers.mount_debugfs(pman=pman)
         drvname = self._prov.drvobjs[0].name
-        self._rtd_path = mntpath.joinpath(f"{drvname}/rtd")
+        self._rtd_path = self._prov.debugfs_mntpoint.joinpath(f"{drvname}/rtd")
         self._etfqdisc = _ETFQdisc.ETFQdisc(self._netif, pman=pman)
 
     def close(self):

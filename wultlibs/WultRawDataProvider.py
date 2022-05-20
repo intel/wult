@@ -14,7 +14,6 @@ datapoints, as well as intitializing wult devices.
 import logging
 from pepclibs.helperlibs import Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from wultlibs.helperlibs import FSHelpers
 from wultlibs import _FTrace, _RawDataProvider, Devices
 
 _LOG = logging.getLogger()
@@ -188,8 +187,7 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         self._ftrace = _FTrace.FTrace(pman=self._pman, timeout=self._timeout)
 
-        mntpoint, _ = FSHelpers.mount_debugfs(pman=pman)
-        self._basedir = mntpoint / "wult"
+        self._basedir = self.debugfs_mntpoint / "wult"
         self._enabled_path = self._basedir / "enabled"
         self._intr_focus_path = self._basedir / "intr_focus"
         self._early_intr_path = self._basedir / "early_intr"
