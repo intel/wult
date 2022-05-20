@@ -176,7 +176,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         if self._stconf:
             self._stcoll = WultStatsCollect.WultStatsCollect(self._pman, self._res)
             self._stcoll.apply_stconf(self._stconf)
-            _LOG.info("Configured the following statistics: %s", ", ".join(self._stconf["include"]))
 
     def _validate_sut(self):
         """Check the SUT to insure we have everything to measure it."""

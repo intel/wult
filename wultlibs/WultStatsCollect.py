@@ -38,11 +38,13 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
     def start(self):
         """Start collecting statistics."""
 
+        _LOG.info("Starting statistics collectors")
         self._stcoll.start()
 
     def stop(self):
         """Stop collecting statistics."""
 
+        _LOG.info("Stopping statistics collectors")
         self._stcoll.stop()
 
     def apply_stconf(self, stconf):
@@ -57,6 +59,7 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
             self._stcoll.set_prop("acpower", "devnode", devnode)
 
         StatsHelpers.apply_stconf(self._stcoll, stconf)
+        _LOG.info("Configuring the following statistics: %s", ", ".join(stconf["include"]))
         self._stcoll.configure()
 
     def copy_stats(self):
@@ -72,6 +75,7 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
 
         _LOG.debug("copy in-band statistics from '%s:%s' to '%s'",
                    self._pman.hostname, routdir, self._outdir)
+        _LOG.info("Copying collected statistics from %s", self._pman.hostname)
 
         # We add trailing slash to the remote directory path in order to make rsync copy the
         # contents of the remote directory, but not the directory itself.
