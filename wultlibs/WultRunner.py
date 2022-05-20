@@ -16,7 +16,7 @@ import logging
 import contextlib
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from pepclibs.helperlibs import Systemctl, ClassHelpers
+from pepclibs.helperlibs import ClassHelpers
 from wultlibs import WultRawDataProvider, _ProgressLine, _WultDpProcess, WultStatsCollect
 from wultlibs.helperlibs import Human
 
@@ -166,15 +166,6 @@ class WultRunner:
     def prepare(self):
         """Prepare for starting the measurements."""
 
-        # The 'irqbalance' service usually causes problems by binding the delayed events (NIC
-        # interrupts) to CPUs different form the measured one. Stop the service.
-        if self._dev.drvname == "wult_igb":
-            self._sysctl = Systemctl.Systemctl(pman=self._pman)
-            self._has_irqbalance = self._sysctl.is_active("irqbalance")
-            if self._has_irqbalance:
-                _LOG.info("Stopping the 'irqbalance' service")
-                self._sysctl.stop("irqbalance")
-
         self._prov.prepare()
 
         # Save the test setup information in the info.yml file.
@@ -249,8 +240,6 @@ class WultRunner:
         self._timeout = 10
         self._progress = None
         self._max_latency = 0
-        self._sysctl = None
-        self._has_irqbalance = None
         self._stcoll = None
 
         if res.info["toolname"] != "wult":
@@ -282,19 +271,8 @@ class WultRunner:
     def close(self):
         """Stop the measurements."""
 
-        if getattr(self, "_has_irqbalance") and getattr(self, "_sysctl"):
-            _LOG.info("Starting the previously stopped 'irqbalance' service")
-            try:
-                self._sysctl.start("irqbalance")
-            except Error as err:
-                # We saw failures here on a system that was running irqbalance, but the user
-                # offlined all the CPUs except for CPU0. We were able to stop the service, but could
-                # not start it again, probably because there is only one CPU.
-                _LOG.warning("failed to start the previously stoopped 'irqbalance' service:\n%s",
-                             err)
-
         close_attrs = ("_dpp", "_prov", "_stcoll")
-        unref_attrs = ("_sysctl", "_dev", "_pman")
+        unref_attrs = ("_dev", "_pman")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)
 
     def __enter__(self):

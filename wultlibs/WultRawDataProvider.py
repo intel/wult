@@ -12,7 +12,7 @@ datapoints, as well as intitializing wult devices.
 """
 
 import logging
-from pepclibs.helperlibs import Trivial, ClassHelpers
+from pepclibs.helperlibs import Trivial, ClassHelpers, Systemctl
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from wultlibs import _FTrace, _RawDataProvider, Devices
 
@@ -127,6 +127,15 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     def prepare(self):
         """Prepare to start the measurements."""
 
+        if self.dev.drvname == "wult_igb":
+            # The 'irqbalance' service usually causes problems by binding the delayed events (NIC
+            # interrupts) to CPUs different form the measured one. Stop the service.
+            self._sysctl = Systemctl.Systemctl(pman=self._pman)
+            if self._sysctl.is_active("irqbalance"):
+                _LOG.info("Stopping the 'irqbalance' service")
+                self._sysctl.stop("irqbalance")
+                self._irqbalance_stopped = True
+
         # Unload wult drivers if they were loaded.
         self._unload(everything=True)
 
@@ -177,9 +186,12 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         self._intr_focus = intr_focus
         self._early_intr = early_intr
 
+        self._ftrace = None
+        self._sysctl = None
+        self._irqbalance_stopped = False
+
         self._basedir = None
         self._enabled_path = None
-        self._ftrace = None
         self._fields = None
 
         if not timeout:
@@ -195,7 +207,18 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     def close(self):
         """Uninitialize everything."""
 
-        ClassHelpers.close(self, close_attrs=("_ftrace"))
+        if getattr(self, "_irqbalance_stopped"):
+            _LOG.info("Starting the previously stopped 'irqbalance' service")
+            try:
+                self._sysctl.start("irqbalance")
+            except Error as err:
+                # We saw failures here on a system that was running irqbalance, but the user
+                # offlined all the CPUs except for CPU0. We were able to stop the service, but could
+                # not start it again, probably because there is only one CPU.
+                _LOG.warning("failed to start the previously stoopped 'irqbalance' service:\n%s",
+                             err)
+
+        ClassHelpers.close(self, close_attrs=("_sysctl", "_ftrace"))
         super().close()
 
 
