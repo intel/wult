@@ -22,6 +22,17 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
 
     name = "Totals"
 
+    def _get_tab_hierarchy(self):
+        """
+        Extends '_get_tab_hierarchy()' from the parent class to add tabs specifically for this
+        level 2 turbostat tab as they are not added by 'super()._get_tab_hierarchy()'.
+        """
+
+        harchy = super()._get_tab_hierarchy()
+        # Add the "PkgWatt" metric.
+        harchy["dtabs"].append("PkgWatt")
+        return harchy
+
     def _turbostat_to_df(self, tstat, path=None):
         """
         Convert the 'tstat' dictionary produced by 'TurbostatParser' to a 'pandas.DataFrame'. See
