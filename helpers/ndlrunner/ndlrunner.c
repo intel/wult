@@ -2,7 +2,7 @@
  * -*- coding: utf-8 -*-
  * vim: ts=8 sw=8 tw=100 noet ai si
  *
- * Copyright (C) 2019-2021 Intel Corporation
+ * Copyright (C) 2019-2022 Intel Corporation
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
