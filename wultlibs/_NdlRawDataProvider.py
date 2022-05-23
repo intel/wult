@@ -65,6 +65,8 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
             ProcHelpers.kill_pids(self.ndlrunner.pid, kill_children=True, must_die=False,
                                   pman=self._pman)
 
+        self.ndlrunner = None
+
     def _get_lines(self):
         """This generator reads the 'ndlrunner' helper output and yields it line by line."""
 
