@@ -8,7 +8,7 @@
 
 """
 This module implements the "WultRawDataProvider" class, which provides API for reading raw wult
-datapoints, as well as intitializing wult devices.
+datapoints, as well as initializing wult devices.
 """
 
 import logging
@@ -35,7 +35,7 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
             old_fields = ", ".join(self._fields)
             new_fields = ", ".join(fields)
             raise Error(f"the very first raw datapoint has different fields comparing to a new "
-                        f"datapointhad\n"
+                        f"datapoint\n"
                         f"First datapoint fields count: {len(fields)}\n"
                         f"New datapoint fields count: {len(self._fields)}\n"
                         f"Fist datapoint fields:\n{old_fields}\n"
@@ -127,7 +127,7 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                 with self._pman.open(ldist_path, "w") as fobj:
                     fobj.write(str(ldist))
             except Error as err:
-                raise Error(f"can't to change launch disatance range\nfailed to open '{ldist_path}'"
+                raise Error(f"can't to change launch distance range\nfailed to open '{ldist_path}'"
                             f"{self._pman.hostmsg} and write {ldist} to it:\n\t{err}") from err
 
     def prepare(self):
@@ -172,13 +172,13 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
           * dev - the device object created with 'Devices.GetDevice()'.
           * cpunum - the measured CPU number.
           * pman - the process manager object defining host to operate on.
-          * timeout - the maximum amount of seconts to wait for a raw datapoint. Default is 10
+          * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
                       seconds.
           * ldist - a pair of numbers specifying the launch distance range. The default value is
                     specific to the delayed event device.
-          * intr_focus - enable inerrupt latency focused measurements ('WakeLatency' is not measured
-                         in this case, only 'IntrLatency').
-          * early_intr - enable intrrupts before entering the C-state.
+          * intr_focus - enable interrupt latency focused measurements ('WakeLatency' is not
+                         measured in this case, only 'IntrLatency').
+          * early_intr - enable interrupts before entering the C-state.
         """
 
         drvinfo = { "wult" : { "params" : f"cpunum={cpunum}" },
@@ -219,7 +219,7 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                 # We saw failures here on a system that was running irqbalance, but the user
                 # offlined all the CPUs except for CPU0. We were able to stop the service, but could
                 # not start it again, probably because there is only one CPU.
-                _LOG.warning("failed to start the previously stoopped 'irqbalance' service:\n%s",
+                _LOG.warning("failed to start the previously stopped 'irqbalance' service:\n%s",
                              err)
 
         ClassHelpers.close(self, close_attrs=("_sysctl", "_ftrace"))

@@ -238,7 +238,7 @@ def mount_debugfs(mnt=None, pman=None):
 
     Returns a tuple of the following elements.
       * mount point path.
-      * 'True' if debugfs was mounted by this function, 'False' it it has already been mounted.
+      * 'True' if debugfs was mounted by this function, 'False' it has already been mounted before.
     """
 
     if not mnt:

@@ -131,7 +131,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
 
             if self._stcoll:
                 with contextlib.suppress(Error):
-                    # We do not consider Ctrl-c as an error, so collect the system infromation in
+                    # We do not consider Ctrl-c as an error, so collect the system information in
                     # that case.
                     self._stcoll.stop(sysinfo=is_ctrl_c)
                 with contextlib.suppress(Error):
@@ -232,10 +232,10 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
           * res - the 'WORawResult' object to store the results at.
           * ldist - a pair of numbers specifying the launch distance range. The default value is
                     specific to the delayed event driver.
-          * intr_focus - enable inerrupt latency focused measurements ('WakeLatency' is not measured
-                         in this case, only 'IntrLatency').
-          * early_intr - enable intrrupts before entering the C-state.
-          * tsc_cal_time - amount of senconds to use for calculating TSC rate.
+          * intr_focus - enable interrupt latency focused measurements ('WakeLatency' is not
+                         measured in this case, only 'IntrLatency').
+          * early_intr - enable interrupts before entering the C-state.
+          * tsc_cal_time - amount of seconds to use for calculating TSC rate.
           * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
           * stconf - the statistics configuration, a dictionary describing the statistics that
                      should be collected. By default no statistics will be collected.

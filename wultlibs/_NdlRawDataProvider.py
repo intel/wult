@@ -36,7 +36,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     def _unexpected_line_error_prefix(self, line):
         """
         Forms and returns the starting part of an error message related to an unexpected line
-        recieved from the 'ndlrunner' process.
+        received from the 'ndlrunner' process.
         """
 
         return f"received the following unexpected line from {self._ndlrunner_error_prefix()}:\n" \

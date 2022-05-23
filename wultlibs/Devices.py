@@ -23,7 +23,7 @@ from pepclibs.helperlibs import Dmesg, ClassHelpers, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from wultlibs import NetIface, LsPCI
 
-# All the possible wult/ndl device driver names in order suitable for uloading.
+# All the possible wult/ndl device driver names in order suitable for unloading.
 ALL_DRVNAMES = ("ndl", "wult_igb", "wult_hrtimer", "wult_tdt")
 
 # The maximum expected device clock resolution in nanoseconds.
@@ -351,8 +351,8 @@ class _WultHRTimer(_DeviceBase):
     kernel API for using hardware timers in a platform-independent manner. On a modern Intel CPUs,
     hrtimers typically use TSC deadline timer under the hood, but may also use LAPIC timers. So this
     device may end up using the same hardware as '_WultTSCDeadlineTimer'. But the
-    '_WultTSCDeadlineTimer' is a bit more precise because it directly acesses the TDT hardware
-    registers and it is not affected by Linux hrtimers sybsystem overhead. On the other hand,
+    '_WultTSCDeadlineTimer' is a bit more precise because it directly accesses the TDT hardware
+    registers and it is not affected by Linux hrtimers subsystem overhead. On the other hand,
     hrtimers work with both LAPIC and TSC deadline timers.
     """
 
@@ -363,7 +363,7 @@ class _WultHRTimer(_DeviceBase):
         """Returns Linux High Resolution Timer resolution in nanoseconds."""
 
         errmsg_prefix = "Linux High Resolution Timer"
-        errmsg_suffix = f"The resulution was aquired by running the following command" \
+        errmsg_suffix = f"The resolution was acquired by running the following command" \
                         f"{self._pman.hostmsg}"
 
         # Get hrtimer resolution in seconds and convert to nanoseconds.

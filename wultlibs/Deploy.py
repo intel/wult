@@ -126,8 +126,8 @@ def _create_standalone_pyhelper(pyhelper, outdir):
     deps = _get_pyhelper_dependencies(pyhelper_path)
 
     # Create an empty '__init__.py' file. We will be adding it to the sub-directories of the
-    # depenencies. For example, if one of the dependencies is 'helperlibs/Trivial.py', we'll have to
-    # add '__init__.py' to 'wultlibs/' and 'helperlibs'.
+    # dependencies. For example, if one of the dependencies is 'helperlibs/Trivial.py', we'll have
+    # to add '__init__.py' to 'wultlibs/' and 'helperlibs'.
     init_path = outdir / "__init__.py"
     try:
         with init_path.open("w+"):
@@ -157,7 +157,7 @@ def _create_standalone_pyhelper(pyhelper, outdir):
             raise Error(f"faild to initialize a zip archive from file "
                         f"'{standalone_path}':\n{err}") from err
 
-        # Make 'zipobj' raies exceptions of typ 'Error', so that we do not have to wrap every
+        # Make 'zipobj' raises exceptions of type 'Error', so that we do not have to wrap every
         # 'zipobj' operation into 'try/except'.
         zipobj = ClassHelpers.WrapExceptions(zipobj)
 
@@ -175,14 +175,14 @@ def _create_standalone_pyhelper(pyhelper, outdir):
                 try:
                     idx = src.parts.index("helperlibs")
                 except ValueError:
-                    raise Error(f"python helper script '{pyhelper}' has bad depenency '{src}' - "
+                    raise Error(f"python helper script '{pyhelper}' has bad dependency '{src}' - "
                                 f"the path does not have the 'wultlibs' or 'helperlibs' component "
                                 f"in it.") from None
 
             dst = Path(*src.parts[idx:])
             zipobj.write(src, arcname=dst)
 
-            # Collecect all directory paths present in the dependencies. They are all python
+            # Collect all directory paths present in the dependencies. They are all python
             # packages and we'll have to ensure we have the '__init__.py' file in each of the
             # sub-directory.
             pkgdir = dst.parent
@@ -216,7 +216,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
      * 'deploy()' - deploy everything (drivers, helper programs) to the SUT.
      * 'is_deploy_needed()' - check if re-deployment is needed.
-     * 'add_cmdline_args()' - add deployment-relaged command line arguments.
+     * 'add_cmdline_args()' - add deployment-related command line arguments.
     """
 
     def add_deploy_cmdline_args(self, subparsers, func, argcomplete=None):
@@ -468,7 +468,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
     def _deploy_helpers(self):
         """Deploy helpers (including python helpers) to the SUT."""
 
-        # Python helpers need to be deployd only to a remote host. The local host already has them
+        # Python helpers need to be deployed only to a remote host. The local host already has them
         # deployed by 'setup.py'.
         if not self._spman.is_remote:
             self._pyhelpers = []
