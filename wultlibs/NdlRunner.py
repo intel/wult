@@ -14,9 +14,9 @@ result.
 import time
 import logging
 import contextlib
-from pepclibs.helperlibs import Trivial, ClassHelpers
+from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
-from wultlibs import _ProgressLine, _Nmcli, _ETFQdisc, _NdlRawDataProvider
+from wultlibs import _ProgressLine, _Nmcli, _NdlRawDataProvider
 from wultlibs.helperlibs import Human
 _LOG = logging.getLogger()
 
@@ -136,20 +136,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
         self._prov.prepare()
 
-        # We use the ETF qdisc for scheduling delayed network packets. Configure it and start the
-        # 'phc2sys' process in background in order to keep the host and NIC clocks in sync.
-
-        # Get the TAI offset first.
-        stdout, _ = self._pman.run_verify(f"{self._prov.ndlrunner_path} --tai-offset")
-        tai_offset = self._prov._get_line(prefix="TAI offset", line=stdout)
-        if not Trivial.is_int(tai_offset):
-            raise Error(f"unexpected 'ndlrunner --tai-offset' output:\n{stdout}")
-
-        _LOG.info("Configuring the ETF qdisc%s", self._pman.hostmsg)
-        self._etfqdisc.configure()
-        _LOG.info("Starting NIC-to-system clock synchronization process%s", self._pman.hostmsg)
-        self._etfqdisc.start_phc2sys(tai_offset=int(tai_offset))
-
     def __init__(self, pman, dev, res, ndlrunner_path, ldist=None):
         """
         The class constructor. The arguments are as follows.
@@ -173,7 +159,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         self._prov = None
         self._rtd_path = None
         self._progress = None
-        self._etfqdisc = None
         self._nmcli = None
 
         if not self._ldist:
@@ -186,7 +171,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
         drvname = self._prov.drvobjs[0].name
         self._rtd_path = self._prov.debugfs_mntpoint.joinpath(f"{drvname}/rtd")
-        self._etfqdisc = _ETFQdisc.ETFQdisc(self._netif, pman=pman)
 
     def close(self):
         """Stop the measurements."""
@@ -196,6 +180,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         if getattr(self, "_nmcli", None):
             self._nmcli.restore_managed()
 
-        close_attrs = ("_etfqdisc", "_prov", "_nmcli")
+        close_attrs = ("_prov", "_nmcli")
         unref_attrs = ("_netif", "_dev", "_pman")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)

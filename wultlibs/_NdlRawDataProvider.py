@@ -13,9 +13,9 @@ data.
 
 import logging
 import contextlib
-from pepclibs.helperlibs import Trivial
+from pepclibs.helperlibs import Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import _RawDataProvider
+from wultlibs import _RawDataProvider, _ETFQdisc
 from wultlibs.helperlibs import ProcHelpers
 
 _LOG = logging.getLogger()
@@ -47,7 +47,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         ldist_str = ",".join([str(val) for val in self._ldist])
         cmd = f"{self.ndlrunner_path} -l {ldist_str} "
-        cmd += f"{self._ifname}"
+        cmd += f"{self.dev.netif.ifname}"
 
         self.ndlrunner = self._pman.run_async(cmd)
 
@@ -148,9 +148,23 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         self._load()
 
         # Kill stale 'ndlrunner' process, if any.
-        regex = f"^.*{self.ndlrunner_path} .*{self._ifname}.*$"
+        regex = f"^.*{self.ndlrunner_path} .*{self.dev.netif.ifname}.*$"
         ProcHelpers.kill_processes(regex, log=True, name="stale 'ndlrunner' process",
                                    pman=self._pman)
+
+        # We use the ETF qdisc for scheduling delayed network packets. Configure it and start the
+        # 'phc2sys' process in background in order to keep the host and NIC clocks in sync.
+
+        # Get the TAI offset first.
+        stdout, _ = self._pman.run_verify(f"{self.ndlrunner_path} --tai-offset")
+        tai_offset = self._get_line(prefix="TAI offset", line=stdout)
+        if not Trivial.is_int(tai_offset):
+            raise Error(f"unexpected 'ndlrunner --tai-offset' output:\n{stdout}")
+
+        _LOG.info("Configuring the ETF qdisc%s", self._pman.hostmsg)
+        self._etfqdisc.configure()
+        _LOG.info("Starting NIC-to-system clock synchronization process%s", self._pman.hostmsg)
+        self._etfqdisc.start_phc2sys(tai_offset=int(tai_offset))
 
     def __init__(self, dev, ndlrunner_path, pman, timeout=None, ldist=None):
         """
@@ -171,8 +185,8 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         self._ldist = ldist
 
         self.ndlrunner = None
-        self._ifname = self.dev.netif.ifname
         self._ndl_lines = None
+        self._etfqdisc = None
 
         if not timeout:
             self._timeout = 10
@@ -182,6 +196,8 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
             raise Error(f"bad 'ndlrunner' helper path '{self.ndlrunner_path}' - does not exist"
                         f"{self._pman.hostmsg} or not an executable file")
 
+        self._etfqdisc = _ETFQdisc.ETFQdisc(self.dev.netif, pman=self._pman)
+
     def close(self):
         """Stop the measurements."""
 
@@ -189,5 +205,8 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
             with contextlib.suppress(Error):
                 self._stop_ndlrunner()
             self.ndlrunner = None
+
+        close_attrs = ("_etfqdisc",)
+        ClassHelpers.close(self, close_attrs=close_attrs)
 
         super().close()
