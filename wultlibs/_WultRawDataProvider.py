@@ -7,14 +7,14 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module implements the "WultRawDataProvider" class, which provides API for reading raw wult
-datapoints, as well as initializing wult devices.
+This module provides API for reading raw wult datapoints, as well as initializing wult devices.
 """
 
 import logging
 from pepclibs.helperlibs import Trivial, ClassHelpers, Systemctl, Human
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from wultlibs import _FTrace, _RawDataProvider
+from wultlibs.helperlibs import ProcHelpers
 
 _LOG = logging.getLogger()
 
@@ -210,13 +210,154 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         super().close()
 
 
-def WultRawDataProvider(dev, cpunum, pman, timeout=None, ldist=None, early_intr=None):
+class _WultrunnerRawDataProvider(_RawDataProvider.RawDataProviderBase):
+    """
+    The raw data provider class implementation for devices which are controlled by the 'wultrunner'
+    program.
+    """
+
+    def _wultrunner_error_prefix(self):
+        """
+        Forms and returns the starting part of an error message related to a general 'wultrunner'
+        process failure.
+        """
+
+        return f"the 'wultrunner' process{self._pman.hostmsg}"
+
+    def _get_lines(self):
+        """This generator reads the 'wultrunner' helper output and yields it line by line."""
+
+        timeout = 4.0 + self._ldist[1]/1000000000
+
+        while True:
+            stdout, stderr, exitcode = self._wultrunner.wait(timeout=timeout, lines=[16, None],
+                                                             join=False)
+            if exitcode is not None:
+                msg = self._wultrunner.get_cmd_failure_msg(stdout, stderr, exitcode,
+                                                           timeout=timeout)
+                raise Error(f"{self._wultrunner_error_prefix()} has exited unexpectedly\n{msg}")
+            if stderr:
+                raise Error(f"{self._wultrunner_error_prefix()} printed an error message:\n"
+                            f"{''.join(stderr)}")
+            if not stdout:
+                raise Error(f"{self._wultrunner_error_prefix()} did not provide any output for "
+                            f"{timeout} seconds")
+
+            for line in stdout:
+                yield line
+
+    def get_datapoints(self):
+        """
+        This generator receives data from 'wultrunner' and yields datapoints in form of a
+        dictionary. The keys are metric names and values are metric values.
+        """
+
+        line = None
+        yielded_lines = 0
+        hdr = None
+        types = []
+
+        try:
+            for line in self._get_lines():
+                line = line.strip()
+                vals = Trivial.split_csv_line(line)
+                if not hdr:
+                    # The very first line is the CSV header.
+                    hdr = vals
+                    continue
+
+                if len(vals) != len(hdr):
+                    raise Error("unexpected line from 'wultrunner'{self._pman.hostmsg}:\n{line}")
+
+                if not types:
+                    # Figure out the types of various values.
+                    for val in vals:
+                        if Trivial.is_int(val):
+                            types.append(int)
+                        elif Trivial.is_float(val):
+                            types.append(float)
+                        else:
+                            types.append(str)
+
+                dp = dict(zip(hdr, [tp(val) for tp, val in zip(types, vals)]))
+                yielded_lines += 1
+                yield dp
+        except ErrorTimeOut as err:
+            msg = f"{err}\nCount of 'wultrunner' lines read so far: {yielded_lines}"
+            if line:
+                msg = f"{msg}\nLast seen 'wultrunner' line:\n{line}"
+            raise ErrorTimeOut(msg) from err
+
+    def _start_wultrunner(self):
+        """Start the 'wultrunner' process on the measured system."""
+
+        ldist_str = ",".join([str(val) for val in self._ldist])
+        cmd = f"{self._wultrunner_path} -c {self._cpunum} -l {ldist_str} "
+        self._wultrunner = self._pman.run_async(cmd)
+
+    def _stop_wultrunner(self):
+        """Make 'wultrunner' process to terminate."""
+
+        _LOG.debug("stopping 'wultrunner'")
+        self._wultrunner.stdin.write("q\n".encode("utf8"))
+        self._wultrunner.stdin.flush()
+
+        _, _, exitcode = self._wultrunner.wait(timeout=5)
+        if exitcode is None:
+            _LOG.warning("the 'wultrunner' program PID %d%s failed to exit, killing it",
+                         self._wultrunner.pid, self._pman.hostmsg)
+            ProcHelpers.kill_pids(self._wultrunner.pid, kill_children=True, must_die=False,
+                                  pman=self._pman)
+
+        self._wultrunner = None
+
+    def start(self):
+        """Start the  measurements."""
+        self._start_wultrunner()
+
+    def stop(self):
+        """Stop the  measurements."""
+        self._stop_wultrunner()
+
+    def prepare(self):
+        """Prepare to start the measurements."""
+
+        # Kill stale 'wultrunner' process, if any.
+        regex = f"^.*{self._wultrunner_path} .*$"
+        ProcHelpers.kill_processes(regex, log=True, name="stale 'wultrunner' process",
+                                   pman=self._pman)
+
+    def __init__(self, dev, cpunum, wultrunner_path, pman, timeout=None, ldist=None):
+        """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
+
+        super().__init__(dev, pman)
+
+        self._cpunum = cpunum
+        self._wultrunner_path = wultrunner_path
+        self._timeout = timeout
+        self._ldist = ldist
+
+        self._wultrunner = None
+        self._wult_lines = None
+
+        if not timeout:
+            self._timeout = 10
+
+        # Validate the 'wultrunner' helper path.
+        if not self._pman.is_exe(self._wultrunner_path):
+            raise Error(f"bad 'wultrunner' helper path '{self._wultrunner_path}' - does not exist"
+                        f"{self._pman.hostmsg} or not an executable file")
+
+
+def WultRawDataProvider(dev, cpunum, pman, wultrunner_path=None, timeout=None, ldist=None,
+                        early_intr=None):
     """
     Create and return a raw data provider class suitable for a delayed event device 'dev'. The
     arguments are the same as in '_RawDataProviderBase.__init__()'.
       * dev - the device object created with 'Devices.GetDevice()'.
       * cpunum - the measured CPU number.
       * pman - the process manager object defining host to operate on.
+      * wultrunner_path - path to the 'wultrunner' program.
       * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
                   seconds.
       * ldist - a pair of numbers specifying the launch distance range. The default value is
@@ -227,5 +368,8 @@ def WultRawDataProvider(dev, cpunum, pman, timeout=None, ldist=None, early_intr=
     if dev.drvname:
         return _DrvRawDataProvider(dev, cpunum, pman, timeout=timeout, ldist=ldist,
                                    early_intr=early_intr)
+    if not wultrunner_path:
+        raise Error("BUG: the 'wultrunner' program path was not specified")
 
-    raise Error(f"BUG: unsupported device '{dev.info['devid']}'{pman.hostmsg}")
+    return _WultrunnerRawDataProvider(dev, cpunum, wultrunner_path, pman, timeout=timeout,
+                                      ldist=ldist)
