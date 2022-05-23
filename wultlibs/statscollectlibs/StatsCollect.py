@@ -207,12 +207,12 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         if self._oobcoll:
             self._oobcoll.start()
 
-    def stop(self):
+    def stop(self, sysinfo=True):
         """Stop collecting the statistics."""
 
-        self._inbcoll.stop()
+        self._inbcoll.stop(sysinfo=sysinfo)
         if self._oobcoll:
-            self._oobcoll.stop()
+            self._oobcoll.stop(sysinfo=sysinfo)
 
     def get_max_interval(self):
         """
