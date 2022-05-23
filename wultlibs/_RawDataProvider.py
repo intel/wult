@@ -34,9 +34,8 @@ class RawDataProviderBase(ClassHelpers.SimpleCloseContext):
         self.dev = dev
         self._pman = pman
 
-        msg = f"Using device '{self.dev.info['name']}'{pman.hostmsg}:\n" \
-              f" * Device ID: {self.dev.info['devid']}\n" \
-              f"   - {self.dev.info['descr']}"
+        msg = f"Using device '{self.dev.info['devid']}'{pman.hostmsg}:\n" \
+              f" * {self.dev.info['descr']}"
         _LOG.info(msg)
 
     def close(self):

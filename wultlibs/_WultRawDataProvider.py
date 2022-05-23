@@ -237,4 +237,4 @@ def WultRawDataProvider(dev, cpunum, pman, timeout=None, ldist=None, intr_focus=
         return _DrvRawDataProvider(dev, cpunum, pman, timeout=timeout, ldist=ldist,
                                    intr_focus=intr_focus, early_intr=early_intr)
 
-    raise Error(f"BUG: unsupported device '{dev.info['name']}'")
+    raise Error(f"BUG: unsupported device '{dev.info['devid']}'{pman.hostmsg}")

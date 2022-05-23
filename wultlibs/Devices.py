@@ -80,8 +80,6 @@ class _DeviceBase(ClassHelpers.SimpleCloseContext):
             self.dmesg_obj.run(capture=True)
 
         # Device information dictionary. Every subclass is expected to provide the following keys.
-        # * name - device name (string). Should be short (1-2 words), preferably human-readable.
-        #          Should not be capitalized, unless it is necessary (e.g., in case of an acronym).
         # * devid - canonical device ID (string). Does not have to be the same as the 'devid'
         #           argument. Instead, it should be the best type of ID the device can be found on
         #           the system. E.g., in case of PCI devices it would be the PCI address.
@@ -89,7 +87,7 @@ class _DeviceBase(ClassHelpers.SimpleCloseContext):
         #           with a capital letter and end with a dot.
         #
         # Each subclass is free to add more information to this dictionary.
-        self.info = {"name": None, "devid": None, "descr": None, "resolution": None}
+        self.info = {"devid": None, "descr": None, "resolution": None}
 
     def close(self):
         """Uninitialize the device."""
@@ -244,7 +242,7 @@ class _PCIDevice(_DeviceBase):
         if self.supported_devices:
             self.info["descr"] = self.supported_devices[self._pci_info["devid"]]
         else:
-            self.info["descr"] = self.info['name'].capitalize()
+            self.info["descr"] = "Unknown device"
 
         self.info["descr"] += f". PCI address {self._pci_info['pciaddr']}, Vendor ID " \
                               f"{self._pci_info['vendorid']}, Device ID {self._pci_info['devid']}."
