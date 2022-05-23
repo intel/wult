@@ -163,7 +163,7 @@ class DTabBuilder:
         self._reports = reports
         # File system-friendly tab name.
         self._fsname = metric_def["fsname"]
-        self.title = metric_def["title"]
+        self.title = metric_def["name"]
         self._outdir = outdir / self._fsname
         self.smry_path = self._outdir / "summary-table.txt"
 
