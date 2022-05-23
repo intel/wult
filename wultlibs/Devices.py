@@ -414,7 +414,7 @@ class _WultHRTimerBase(_DeviceBase):
 
         self.info["devid"] = devid
         self.info["alias"] = self.alias
-        self.info["descr"] = self.supported_devices["hrtimer"]
+        self.info["descr"] = self.supported_devices["hrt"]
         self.info["resolution"] = self._get_resoluion()
 
 class _WultHRTimer(_WultHRTimerBase):
@@ -422,8 +422,8 @@ class _WultHRTimer(_WultHRTimerBase):
     The High Resolution Timers (hrtimer) device controlled by the 'wult_hrtimer' driver.
     """
 
-    supported_devices = {"hrtimer" : "Linux High Resolution Timer"}
-    alias = "hrt"
+    supported_devices = {"hrt" : "Linux High Resolution Timer"}
+    alias = "hrtimer"
 
     def __init__(self, devid, pman, drvname=None, dmesg=None):
         """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
