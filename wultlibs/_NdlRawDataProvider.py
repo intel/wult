@@ -14,8 +14,8 @@ data.
 import logging
 import contextlib
 from pepclibs.helperlibs import Trivial, ClassHelpers
-from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import _RawDataProvider, _ETFQdisc
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
+from wultlibs import _RawDataProvider, _ETFQdisc, _Nmcli
 from wultlibs.helperlibs import ProcHelpers
 
 _LOG = logging.getLogger()
@@ -141,20 +141,35 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         """Stop the  measurements."""
 
         self._stop_ndlrunner()
-        self._etfqdisc._stop_phc2sys()
+        self._etfqdisc.stop_phc2sys()
+        if self._nmcli:
+            self._nmcli.restore_managed()
 
     def prepare(self):
         """Prepare to start the measurements."""
 
         # Unload the ndl driver if it is loaded.
         self._unload(everything=True)
-        # Load the ndl driver.
-        self._load()
 
         # Kill stale 'ndlrunner' process, if any.
         regex = f"^.*{self._ndlrunner_path} .*{self.dev.netif.ifname}.*$"
         ProcHelpers.kill_processes(regex, log=True, name="stale 'ndlrunner' process",
                                    pman=self._pman)
+
+        try:
+            self._nmcli = _Nmcli.Nmcli(pman=self._pman)
+        except ErrorNotSupported:
+            pass
+        else:
+            # We have to configure the I210 network interface in a special way, but if it is managed
+            # by NetworkManager, the configuration may get reset at any point. Therefore, detach the
+            # network interface from NetworkManager.
+            _LOG.info("Detaching network interface '%s' from NetworkManager%s",
+                      self.dev.netif.ifname, self._pman.hostmsg)
+            self._nmcli.unmanage(self.dev.netif.ifname)
+
+        # Load the ndl driver.
+        self._load()
 
         # We use the ETF qdisc for scheduling delayed network packets. Configure it and start the
         # 'phc2sys' process in background in order to keep the host and NIC clocks in sync.
@@ -191,6 +206,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         self._ndlrunner = None
         self._ndl_lines = None
         self._etfqdisc = None
+        self._nmcli = None
 
         if not timeout:
             self._timeout = 10
@@ -210,7 +226,11 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                 self._stop_ndlrunner()
             self._ndlrunner = None
 
-        close_attrs = ("_etfqdisc",)
+        if getattr(self, "_nmcli", None):
+            with contextlib.suppress(Error):
+                self._nmcli.restore_managed()
+
+        close_attrs = ("_etfqdisc", "_nmcli")
         ClassHelpers.close(self, close_attrs=close_attrs)
 
         super().close()

@@ -15,8 +15,8 @@ import time
 import logging
 import contextlib
 from pepclibs.helperlibs import ClassHelpers
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
-from wultlibs import _ProgressLine, _Nmcli, _NdlRawDataProvider
+from pepclibs.helperlibs.Exceptions import Error
+from wultlibs import _ProgressLine, _NdlRawDataProvider
 from wultlibs.helperlibs import Human
 _LOG = logging.getLogger()
 
@@ -103,18 +103,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
     def prepare(self):
         """Prepare to start measurements."""
 
-        try:
-            self._nmcli = _Nmcli.Nmcli(pman=self._pman)
-        except ErrorNotSupported:
-            pass
-        else:
-            # We have to configure the I210 network interface in a special way, but if it is managed
-            # by NetworkManager, the configuration may get reset at any point. Therefore, detach the
-            # network interface from NetworkManager.
-            _LOG.info("Detaching network interface '%s' from NetworkManager%s",
-                      self._ifname, self._pman.hostmsg)
-            self._nmcli.unmanage(self._ifname)
-
         # Ensure the interface exists and has carrier. It must be brought up before we can check the
         # carrier status.
         self._netif.up()
@@ -159,7 +147,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         self._prov = None
         self._rtd_path = None
         self._progress = None
-        self._nmcli = None
 
         if not self._ldist:
             self._ldist = [5000000, 50000000]
@@ -177,9 +164,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
         if getattr(self, "_netif", None):
             self._netif.down()
-        if getattr(self, "_nmcli", None):
-            self._nmcli.restore_managed()
 
-        close_attrs = ("_prov", "_nmcli")
+        close_attrs = ("_prov",)
         unref_attrs = ("_netif", "_dev", "_pman")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)
