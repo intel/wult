@@ -22,7 +22,7 @@ _LOG = logging.getLogger()
 
 class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     """
-    The raw data provider class implementation the ndl tool.
+    The raw data provider class implementation for the ndl tool.
     """
 
     def _ndlrunner_error_prefix(self):
