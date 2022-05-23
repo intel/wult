@@ -343,7 +343,7 @@ class _WultTSCDeadlineTimer(_DeviceBase):
     """
 
     supported_devices = {"tdt" : "TSC deadline timer"}
-    alias = "tsc-deadline-timer"
+    alias = None
 
     def __init__(self, devid, pman, cpunum=0, dmesg=None):
         """
@@ -432,30 +432,41 @@ class _WultHRTBase(_DeviceBase):
 
         return resolution
 
-    def __init__(self, devid, pman, drvname=None, dmesg=None):
+    def __init__(self, devid, pman, drvname=None, helpername=None, dmesg=None):
         """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
 
         if devid not in self.supported_devices and devid != self.alias:
             raise ErrorNotSupported(f"device '{devid}' is not supported{pman.hostmsg}.")
 
-        super().__init__(devid, pman, drvname=drvname, dmesg=dmesg)
+        super().__init__(devid, pman, drvname=drvname, helpername=helpername, dmesg=dmesg)
 
         self.info["devid"] = devid
         self.info["alias"] = self.alias
-        self.info["descr"] = self.supported_devices["hrt"]
         self.info["resolution"] = self._get_resoluion()
 
 class _WultHRT(_WultHRTBase):
-    """
-    The High Resolution Timers device controlled by the 'wult_hrt' driver.
-    """
+    """The High Resolution Timers device controlled by the 'wult_hrt' driver."""
 
-    supported_devices = {"hrt" : "Linux High Resolution Timer"}
+    supported_devices = {"hrt" : "Linux High Resolution Timer (via kernel driver)"}
 
     def __init__(self, devid, pman, dmesg=None):
         """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
 
         super().__init__(devid, pman, drvname="wult_hrt", dmesg=dmesg)
+
+        self.info["descr"] = self.supported_devices["hrt"]
+
+class _WultHRTimer(_WultHRTBase):
+    """The High Resolution Timers device controlled by an eBPF program (no kernel driver)."""
+
+    supported_devices = {"hrtimer" : "Linux High Resolution Timer (via eBPF)"}
+
+    def __init__(self, devid, pman, dmesg=None):
+        """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
+
+        super().__init__(devid, pman, helpername="wultrunner", dmesg=dmesg)
+
+        self.info["descr"] = self.supported_devices["hrtimer"]
 
 def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
     """
@@ -474,6 +485,9 @@ def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
 
         if devid in _WultHRT.supported_devices or devid == _WultHRT.alias:
             return _WultHRT(devid, pman, dmesg=dmesg)
+
+        if devid in _WultHRTimer.supported_devices or devid == _WultHRTimer.alias:
+            return _WultHRTimer(devid, pman, dmesg=dmesg)
 
     if toolname == "wult":
         clsname = "_WultIntelI210"
@@ -511,6 +525,11 @@ def scan_devices(toolname, pman):
         for devid in _WultHRT.supported_devices:
             with contextlib.suppress(Error):
                 with _WultHRT(devid, pman, dmesg=False) as timerdev:
+                    yield timerdev.info
+
+        for devid in _WultHRTimer.supported_devices:
+            with contextlib.suppress(Error):
+                with _WultHRTimer(devid, pman, dmesg=False) as timerdev:
                     yield timerdev.info
 
     if toolname == "wult":
