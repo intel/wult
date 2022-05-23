@@ -63,7 +63,7 @@
  * drifted too much and our launch distance was very small, so that we ended up trying to arm a
  * packet in the past.
  */
-#define ARM_FAIL_LIMIT 4
+#define ARM_FAIL_LIMIT 32
 
 /*
  * Error queue message buffer size.
