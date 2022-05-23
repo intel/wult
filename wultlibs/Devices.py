@@ -345,19 +345,15 @@ class _WultTSCDeadlineTimer(_DeviceBase):
         # TSC resolution is 1 cycle, but we assume it is 1 nanosecond.
         self.info["resolution"] = 1
 
-class _WultHRTimer(_DeviceBase):
+class _WultHRTimerBase(_DeviceBase):
     """
-    This class represents Linux High Resolution Timers (hrtimers). Hrtimer is basically a Linux
+    Base class for Linux High Resolution Timer (hrtimers) devices. Hrtimer is basically a Linux
     kernel API for using hardware timers in a platform-independent manner. On a modern Intel CPUs,
-    hrtimers typically use TSC deadline timer under the hood, but may also use LAPIC timers. So this
-    device may end up using the same hardware as '_WultTSCDeadlineTimer'. But the
-    '_WultTSCDeadlineTimer' is a bit more precise because it directly accesses the TDT hardware
-    registers and it is not affected by Linux hrtimers subsystem overhead. On the other hand,
-    hrtimers work with both LAPIC and TSC deadline timers.
+    hrtimers typically use TSC deadline timer under the hood, but may also use LAPIC timers.
     """
 
-    supported_devices = {"hrtimer" : "Linux High Resolution Timer"}
-    alias = "hrt"
+    supported_devices = {}
+    alias = None
 
     def _get_resoluion(self):
         """Returns Linux High Resolution Timer resolution in nanoseconds."""
@@ -408,18 +404,31 @@ class _WultHRTimer(_DeviceBase):
 
         return resolution
 
-    def __init__(self, devid, pman, dmesg=None):
+    def __init__(self, devid, pman, drvname=None, dmesg=None):
         """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
 
         if devid not in self.supported_devices and devid != self.alias:
             raise ErrorNotSupported(f"device '{devid}' is not supported{pman.hostmsg}.")
 
-        super().__init__(devid, pman, drvname="wult_hrtimer", dmesg=dmesg)
+        super().__init__(devid, pman, drvname=drvname, dmesg=dmesg)
 
         self.info["devid"] = devid
         self.info["alias"] = self.alias
         self.info["descr"] = self.supported_devices["hrtimer"]
         self.info["resolution"] = self._get_resoluion()
+
+class _WultHRTimer(_WultHRTimerBase):
+    """
+    The High Resolution Timers (hrtimer) device controlled by the 'wult_hrtimer' driver.
+    """
+
+    supported_devices = {"hrtimer" : "Linux High Resolution Timer"}
+    alias = "hrt"
+
+    def __init__(self, devid, pman, drvname=None, dmesg=None):
+        """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
+
+        super().__init__(devid, pman, drvname="wult_hrtimer", dmesg=dmesg)
 
 def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
     """
