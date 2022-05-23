@@ -13,6 +13,7 @@ data.
 
 import logging
 import contextlib
+from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import _RawDataProvider
 from wultlibs.helperlibs import ProcHelpers
@@ -23,6 +24,23 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     """
     The raw data provider class implementation the ndl tool.
     """
+
+    def _ndlrunner_error_prefix(self):
+        """
+        Forms and returns the starting part of an error message related to a general 'ndlrunner'
+        process failure.
+        """
+
+        return f"the 'ndlrunner' process{self._pman.hostmsg}"
+
+    def _unexpected_line_error_prefix(self, line):
+        """
+        Forms and returns the starting part of an error message related to an unexpected line
+        recieved from the 'ndlrunner' process.
+        """
+
+        return f"received the following unexpected line from {self._ndlrunner_error_prefix()}:\n" \
+               f"{line}"
 
     def _start_ndlrunner(self):
         """Start the 'ndlrunner' process on the measured system."""
@@ -46,6 +64,72 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                          self.ndlrunner.pid, self._pman.hostmsg)
             ProcHelpers.kill_pids(self.ndlrunner.pid, kill_children=True, must_die=False,
                                   pman=self._pman)
+
+    def _get_lines(self):
+        """This generator reads the 'ndlrunner' helper output and yields it line by line."""
+
+        timeout = 4.0 + self._ldist[1]/1000000000
+
+        while True:
+            stdout, stderr, exitcode = self.ndlrunner.wait(timeout=timeout, lines=[16, None],
+                                                           join=False)
+            if exitcode is not None:
+                msg = self.ndlrunner.get_cmd_failure_msg(stdout, stderr, exitcode, timeout=timeout)
+                raise Error(f"{self._ndlrunner_error_prefix()} has exited unexpectedly\n{msg}")
+            if stderr:
+                raise Error(f"{self._ndlrunner_error_prefix()} printed an error message:\n"
+                            f"{''.join(stderr)}")
+            if not stdout:
+                raise Error(f"{self._ndlrunner_error_prefix()} did not provide any output for "
+                            f"{timeout} seconds")
+
+            for line in stdout:
+                yield line
+
+    def _get_line(self, prefix="", line=None):
+        """Read, validate, and return the next 'ndlrunner' line."""
+
+        if not line:
+            line = next(self._ndl_lines)
+        prefix = f"ndlrunner: {prefix}: "
+        if not line.startswith(prefix):
+            msg = self._unexpected_line_error_prefix(line)
+            raise Error(f"{msg}\nExpected a line with the following prefix instead:\n{prefix}")
+        return line[len(prefix):]
+
+    def _get_latency(self):
+        """
+        Read the next latency data line from the 'ndlrunner' helper, parse it, and return the
+        resulting dictionary.
+        """
+
+        line = self._get_line(prefix="datapoint")
+        line = Trivial.split_csv_line(line)
+
+        if len(line) != 2:
+            msg = self._unexpected_line_error_prefix(line)
+            raise Error(f"{msg}\nExpected 2 comma-separated integers, got {len(line)}")
+
+        for val in line:
+            if not Trivial.is_int(val):
+                msg = self._unexpected_line_error_prefix(line)
+                raise Error(f"{msg}\n: Expected 2 comma-separated integers, got a non-integer "
+                            f"'{val}'")
+
+        # Convert nanoseconds to microseconds.
+        line = [int(val)/1000 for val in line]
+        return {"RTD" : line[0], "LDist" : line[1]}
+
+    def get_datapoints(self):
+        """
+        This generator receives data from 'ndlrunner' and yields datapoints in form of a dictionary.
+        The keys are metric names and values are metric values.
+        """
+
+        self._ndl_lines = self._get_lines()
+
+        while True:
+            yield self._get_latency()
 
     def start(self):
         """Start the  measurements."""
@@ -88,6 +172,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         self.ndlrunner = None
         self._ifname = self.dev.netif.ifname
+        self._ndl_lines = None
 
         if not timeout:
             self._timeout = 10

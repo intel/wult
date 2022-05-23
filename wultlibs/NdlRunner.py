@@ -23,97 +23,13 @@ _LOG = logging.getLogger()
 class NdlRunner(ClassHelpers.SimpleCloseContext):
     """Run the latency measurements."""
 
-    def _ndlrunner_error_prefix(self):
-        """
-        Forms and returns the starting part of an error message related to a general 'ndlrunner'
-        process failure.
-        """
-
-        return f"the 'ndlrunner' process{self._pman.hostmsg}"
-
-    def _unexpected_line_error_prefix(self, line):
-        """
-        Forms and returns the starting part of an error message related to an unexpected line
-        recieved from the 'ndlrunner' process.
-        """
-
-        return f"received the following unexpected line from {self._ndlrunner_error_prefix()}:\n" \
-               f"{line}"
-
-    def _get_lines(self):
-        """This generator to reads the 'ndlrunner' helper output and yields it line by line."""
-
-        timeout = 4.0 + self._ldist[1]/1000000000
-
-        while True:
-            stdout, stderr, exitcode = self._prov.ndlrunner.wait(timeout=timeout, lines=[16, None],
-                                                                 join=False)
-            if exitcode is not None:
-                msg = self._prov.ndlrunner.get_cmd_failure_msg(stdout, stderr, exitcode,
-                                                               timeout=timeout)
-                raise Error(f"{self._ndlrunner_error_prefix()} has exited unexpectedly\n{msg}")
-            if stderr:
-                raise Error(f"{self._ndlrunner_error_prefix()} printed an error message:\n"
-                            f"{''.join(stderr)}")
-            if not stdout:
-                raise Error(f"{self._ndlrunner_error_prefix()} did not provide any output for "
-                            f"{timeout} seconds")
-
-            for line in stdout:
-                yield line
-
-    def _get_line(self, prefix="", line=None):
-        """Read, validate, and return the next 'ndlrunner' line."""
-
-        if not line:
-            line = next(self._ndl_lines)
-        prefix = f"ndlrunner: {prefix}: "
-        if not line.startswith(prefix):
-            msg = self._unexpected_line_error_prefix(line)
-            raise Error(f"{msg}\nExpected a line with the following prefix instead:\n{prefix}")
-        return line[len(prefix):]
-
-    def _get_latency(self):
-        """
-        Read the next latency data line from the 'ndlrunner' helper, parse it, and ireturn the
-        resulting dictionary.
-        """
-
-        line = self._get_line(prefix="datapoint")
-        line = Trivial.split_csv_line(line)
-
-        if len(line) != 2:
-            msg = self._unexpected_line_error_prefix(line)
-            raise Error(f"{msg}\nExpected 2 comma-separated integers, got {len(line)}")
-
-        for val in line:
-            if not Trivial.is_int(val):
-                msg = self._unexpected_line_error_prefix(line)
-                raise Error(f"{msg}\n: Expected 2 comma-separated integers, got a non-integer "
-                            f"'{val}'")
-
-        # Convert nanoseconds to microseconds.
-        line = [int(val)/1000 for val in line]
-        return {"RTD" : line[0], "LDist" : line[1]}
-
-    def _get_datapoints(self):
-        """
-        This generator yields datapoints as a dictionary with keys being CSV column names and data
-        being values.
-        """
-
-        self._ndl_lines = self._get_lines()
-
-        while True:
-            yield self._get_latency()
-
     def _collect(self, dpcnt, tlimit):
         """
         Collect datapoints and stop when the CSV file has 'dpcnt' datapoints in total, or when
         collection time exceeds 'tlimit' (value '0' or 'None' means "no limit").
         """
 
-        datapoints = self._get_datapoints()
+        datapoints = self._prov.get_datapoints()
 
         # Populate the CSV header first.
         dp = next(datapoints)
@@ -225,7 +141,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
         # Get the TAI offset first.
         stdout, _ = self._pman.run_verify(f"{self._prov.ndlrunner_path} --tai-offset")
-        tai_offset = self._get_line(prefix="TAI offset", line=stdout)
+        tai_offset = self._prov._get_line(prefix="TAI offset", line=stdout)
         if not Trivial.is_int(tai_offset):
             raise Error(f"unexpected 'ndlrunner --tai-offset' output:\n{stdout}")
 
@@ -254,7 +170,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
         self._netif = self._dev.netif
         self._ifname = self._netif.ifname
-        self._ndl_lines = None
         self._prov = None
         self._rtd_path = None
         self._progress = None
