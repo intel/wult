@@ -167,19 +167,7 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
     def __init__(self, dev, cpunum, pman, timeout=None, ldist=None, intr_focus=None,
                  early_intr=None):
-        """
-        Initialize a class instance. The arguments are as follows.
-          * dev - the device object created with 'Devices.GetDevice()'.
-          * cpunum - the measured CPU number.
-          * pman - the process manager object defining host to operate on.
-          * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
-                      seconds.
-          * ldist - a pair of numbers specifying the launch distance range. The default value is
-                    specific to the delayed event device.
-          * intr_focus - enable interrupt latency focused measurements ('WakeLatency' is not
-                         measured in this case, only 'IntrLatency').
-          * early_intr - enable interrupts before entering the C-state.
-        """
+        """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
 
         drvinfo = { "wult" : { "params" : f"cpunum={cpunum}" },
                      dev.drvname : { "params" : None }}
@@ -231,6 +219,16 @@ def WultRawDataProvider(dev, cpunum, pman, timeout=None, ldist=None, intr_focus=
     """
     Create and return a raw data provider class suitable for a delayed event device 'dev'. The
     arguments are the same as in '_RawDataProviderBase.__init__()'.
+      * dev - the device object created with 'Devices.GetDevice()'.
+      * cpunum - the measured CPU number.
+      * pman - the process manager object defining host to operate on.
+      * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
+                  seconds.
+      * ldist - a pair of numbers specifying the launch distance range. The default value is
+                specific to the delayed event device.
+      * intr_focus - enable interrupt latency focused measurements ('WakeLatency' is not
+                     measured in this case, only 'IntrLatency').
+      * early_intr - enable interrupts before entering the C-state.
     """
 
     if dev.drvname:
