@@ -161,6 +161,3 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         reports = {res.reportid: res.df for res in rsts}
         super().__init__(reports, outdir, metric_def, basedir)
-
-        # Rename the title of the tab to the tab metric.
-        self.title = self._tabmetric
