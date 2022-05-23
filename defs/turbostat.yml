@@ -4,7 +4,7 @@
 # Definitions for raw Turbostat statistics files.
 
 Busy%:
-    title: "Busy%"
+    title: "Busy percent"
     descr: >-
         The proportion of time spent in a busy state, as opposed to an idle state. In other words,
         this is the C0 state residency.
@@ -12,7 +12,7 @@ Busy%:
     short_unit: "%"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 Bzy_MHz:
-    title: "Bzy_MHz"
+    title: "Busy frequency"
     descr: >-
         The average CPU frequency in C0 state (C0 state is the state when the CPU executes
         instructions, as opposed to an idle state, where the CPU does not execute instructions).
@@ -20,14 +20,14 @@ Bzy_MHz:
     short_unit: "MHz"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 Avg_MHz:
-    title: "Avg_MHz"
+    title: "Average frequency"
     descr: >-
         The average CPU frequency. Includes both idle and non-idle periods.
     unit: "megahertz"
     short_unit: "MHz"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 CPU%cx:
-    title: "CPU%cx"
+    title: "ccx core C-state residency"
     descr: >-
         The percentage of time spent in the ccx hardware C-state.
     type: "float"
@@ -36,7 +36,7 @@ CPU%cx:
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
     drop_empty: True
 Cx%:
-    title: "Cx%"
+    title: "Cx requested percent"
     descr: >-
         The percentage of time spent in the Cx requestable C-state. Note, this number does not come
         from the hardware, it is calculated by the operating system.
@@ -46,7 +46,7 @@ Cx%:
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
     drop_empty: True
 CorWatt:
-    title: "CorWatt"
+    title: "Core power"
     descr: >-
         CPU core power. Measured using the core RAPL domain.
     type: "float"
@@ -54,7 +54,7 @@ CorWatt:
     short_unit: "W"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 PkgWatt:
-    title: "PkgWatt"
+    title: "Package power"
     descr: >-
         Package power. Measured using the core RAPL domain.
     type: "float"
