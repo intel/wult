@@ -94,6 +94,15 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
             raise Error("can't synchronize the NIC and system clocks, 'phc2sys' exited:\n%s"
                         % self._phc2sys_proc.get_cmd_failure_msg(stdout, stderr, exitcode))
 
+    def stop_phc2sys(self):
+        """ Stop the 'phc2sys' process."""
+
+        _LOG.debug("killing the the phc2sys process PID %d%s",
+                   self._phc2sys_proc.pid, self._pman.hostmsg)
+        ProcHelpers.kill_pids(self._phc2sys_proc.pid, kill_children=True, must_die=False,
+                              pman=self._pman)
+        self._phc2sys_proc = None
+
     def configure(self):
         """Configure the ETF qdisc."""
 
@@ -181,10 +190,7 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
         """Stop the measurements."""
 
         if getattr(self, "_phc2sys_proc", None):
-            _LOG.debug("killing the the phc2sys process PID %d%s",
-                       self._phc2sys_proc.pid, self._pman.hostmsg)
-            ProcHelpers.kill_pids(self._phc2sys_proc.pid, kill_children=True, must_die=False,
-                                  pman=self._pman)
+            self.stop_phc2sys()
             self._phc2sys_proc = None
 
         ClassHelpers.close(self, close_attrs=("_tchk", "_pman"))
