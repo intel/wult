@@ -249,9 +249,6 @@ def start_command(args):
         dev = Devices.GetDevice(OWN_NAME, args.devid, pman, dmesg=True)
         stack.enter_context(dev)
 
-        if not dev.netif:
-            raise Error(dev.netif_err)
-
         ToolsCommon.start_command_check_network(args, pman, dev.netif)
 
         info = dev.netif.get_pci_info()

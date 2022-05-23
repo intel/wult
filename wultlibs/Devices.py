@@ -258,9 +258,9 @@ class _PCIDevice(_DeviceBase):
 
         super().close()
 
-class _IntelI210(_PCIDevice):
+class _IntelI210Base(_PCIDevice):
     """
-    This class extends the '_PCIDevice' class with 'Intel I210' NIC support.
+    Base class for Intel I210 NIC devices.
     """
 
     supported_devices = {
@@ -272,19 +272,25 @@ class _IntelI210(_PCIDevice):
         '157c' : 'Intel I210 (serdes flashless)',
         '1539' : 'Intel I211 (copper)'}
 
-    def __init__(self, devid, pman, drvname=None, dmesg=None):
+    def __init__(self, devid, pman, drvname=None, helpername=None, no_netif_ok=True, dmesg=None):
         """
-        The class constructor. The arguments are the same as in '_DeviceBase.__init__()'. Note,
-        'devid' can be be the PCI address or the network interface name.
+        The class constructor. The arguments are as follows.
+          * helpername - name of the helper tool required for handling this device.
+          * no_netif_ok - if 'True', the network interface does not have to exist for the NIC,
+                          othewise raises an exception if the network interface does not exist.
+          * other arguments are the same as in '_DeviceBase.__init__()'.
+
+        Note, 'devid' can be be the PCI address or the network interface name.
         """
 
+        self.helpername = helpername
         self.netif = None
-        self.netif_err = None
 
         try:
             self.netif = NetIface.NetIface(devid, pman=pman)
         except ErrorNotFound as err:
-            self.netif_err = err
+            if not no_netif_ok:
+                raise
             _LOG.debug(err)
 
         if self.netif:
@@ -305,6 +311,27 @@ class _IntelI210(_PCIDevice):
 
         ClassHelpers.close(self, close_attrs=("netif",))
         super().close()
+
+class _WultIntelI210(_IntelI210Base):
+    """
+    The Intel I210 NIC device for wult.
+    """
+
+    def __init__(self, devid, pman, dmesg=None):
+        """The arguments are the same as in '_WultIntelI210.__init__()'."""
+
+        super().__init__(devid, pman, drvname="wult_igb", dmesg=dmesg)
+
+class _NdlIntelI210(_IntelI210Base):
+    """
+    The Intel I210 NIC device for ndl.
+    """
+
+    def __init__(self, devid, pman, dmesg=None):
+        """The arguments are the same as in '_WultIntelI210.__init__()'."""
+
+        super().__init__(devid, pman, drvname="ndl", helpername="ndlrunner", no_netif_ok=False,
+                         dmesg=dmesg)
 
 class _WultTSCDeadlineTimer(_DeviceBase):
     """
@@ -446,14 +473,14 @@ def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
         return _WultHRTimer(devid, pman, dmesg=dmesg)
 
     if toolname == "wult":
-        drvname = "wult_igb"
+        clsname = "_WultIntelI210"
     elif toolname == "ndl":
-        drvname = "ndl"
+        clsname = "_NdlIntelI210"
     else:
         raise Error(f"BUG: bad tool name '{toolname}'")
 
     try:
-        return _IntelI210(devid, pman, drvname=drvname, dmesg=dmesg)
+        return globals().get(clsname)(devid, pman, dmesg=dmesg)
     except ErrorNotSupported as err:
         raise ErrorNotSupported(f"unsupported device '{devid}'{pman.hostmsg}") from err
 
@@ -484,9 +511,9 @@ def scan_devices(toolname, pman):
                     yield timerdev.info
 
     if toolname == "wult":
-        drvname = "wult_igb"
+        clsname = "_WultIntelI210"
     elif toolname == "ndl":
-        drvname = "ndl"
+        clsname = "_NdlIntelI210"
     else:
         raise Error(f"BUG: bad tool name '{toolname}'")
 
@@ -494,5 +521,5 @@ def scan_devices(toolname, pman):
         for pci_info in lspci.get_devices():
             with contextlib.suppress(ErrorNotSupported):
                 devid = pci_info['pciaddr']
-                with _IntelI210(devid, pman, drvname=drvname, dmesg=False) as i210dev:
+                with globals().get(clsname)(devid, pman, dmesg=False) as i210dev:
                     yield i210dev.info
