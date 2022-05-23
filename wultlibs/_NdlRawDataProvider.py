@@ -139,7 +139,9 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
     def stop(self):
         """Stop the  measurements."""
+
         self._stop_ndlrunner()
+        self._etfqdisc._stop_phc2sys()
 
     def prepare(self):
         """Prepare to start the measurements."""
