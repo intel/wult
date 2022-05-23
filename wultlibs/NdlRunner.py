@@ -103,25 +103,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
     def prepare(self):
         """Prepare to start measurements."""
 
-        # Ensure the interface exists and has carrier. It must be brought up before we can check the
-        # carrier status.
-        self._netif.up()
-        self._netif.wait_for_carrier(10)
-
-        # Make sure the network interface has an IP address.
-        ipaddr = self._netif.get_ipv4_addr(must_get=False)
-        if ipaddr:
-            _LOG.debug("network interface '%s'%s has IP address '%s'",
-                       self._ifname, self._pman.hostmsg, ipaddr)
-        else:
-            ipaddr = self._netif.get_unique_ipv4_addr()
-            ipaddr += "/16"
-            self._netif.set_ipv4_addr(ipaddr)
-            # Ensure the IP was set.
-            self._netif.get_ipv4_addr()
-            _LOG.info("Assigned IP address '%s' to interface '%s'%s",
-                      ipaddr, self._ifname, self._pman.hostmsg)
-
         self._prov.prepare()
 
     def __init__(self, pman, dev, res, ndlrunner_path, ldist=None):
@@ -142,8 +123,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         self._res = res
         self._ldist = ldist
 
-        self._netif = self._dev.netif
-        self._ifname = self._netif.ifname
         self._prov = None
         self._rtd_path = None
         self._progress = None
@@ -162,9 +141,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
     def close(self):
         """Stop the measurements."""
 
-        if getattr(self, "_netif", None):
-            self._netif.down()
-
         close_attrs = ("_prov",)
-        unref_attrs = ("_netif", "_dev", "_pman")
+        unref_attrs = ("_dev", "_pman")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)

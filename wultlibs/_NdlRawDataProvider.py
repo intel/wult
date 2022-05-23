@@ -47,7 +47,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         ldist_str = ",".join([str(val) for val in self._ldist])
         cmd = f"{self._ndlrunner_path} -l {ldist_str} "
-        cmd += f"{self.dev.netif.ifname}"
+        cmd += f"{self._netif.ifname}"
 
         self._ndlrunner = self._pman.run_async(cmd)
 
@@ -142,6 +142,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         self._stop_ndlrunner()
         self._etfqdisc.stop_phc2sys()
+        self._netif.down()
         if self._nmcli:
             self._nmcli.restore_managed()
 
@@ -152,7 +153,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         self._unload(everything=True)
 
         # Kill stale 'ndlrunner' process, if any.
-        regex = f"^.*{self._ndlrunner_path} .*{self.dev.netif.ifname}.*$"
+        regex = f"^.*{self._ndlrunner_path} .*{self._netif.ifname}.*$"
         ProcHelpers.kill_processes(regex, log=True, name="stale 'ndlrunner' process",
                                    pman=self._pman)
 
@@ -165,8 +166,28 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
             # by NetworkManager, the configuration may get reset at any point. Therefore, detach the
             # network interface from NetworkManager.
             _LOG.info("Detaching network interface '%s' from NetworkManager%s",
-                      self.dev.netif.ifname, self._pman.hostmsg)
-            self._nmcli.unmanage(self.dev.netif.ifname)
+                      self._netif.ifname, self._pman.hostmsg)
+            self._nmcli.unmanage(self._netif.ifname)
+
+        # Ensure the network interface exists and has carrier. It must be brought up before we can
+        # check the carrier status.
+        self._netif.up()
+        self._netif.wait_for_carrier(10)
+
+        # Make sure the network interface has an IP address.
+        ipaddr = self._netif.get_ipv4_addr(must_get=False)
+        if ipaddr:
+            _LOG.debug("network interface '%s'%s has IP address '%s'",
+                       self._netif.ifname, self._pman.hostmsg, ipaddr)
+        else:
+            ipaddr = self._netif.get_unique_ipv4_addr()
+            ipaddr += "/16"
+            self._netif.set_ipv4_addr(ipaddr)
+            # Ensure the IP was set.
+            self._netif.get_ipv4_addr()
+            _LOG.info("Assigned IP address '%s' to interface '%s'%s",
+                      ipaddr, self._netif.ifname, self._pman.hostmsg)
+
 
         # Load the ndl driver.
         self._load()
@@ -202,6 +223,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         self._ndlrunner_path = ndlrunner_path
         self._timeout = timeout
         self._ldist = ldist
+        self._netif = self.dev.netif
 
         self._ndlrunner = None
         self._ndl_lines = None
@@ -216,7 +238,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
             raise Error(f"bad 'ndlrunner' helper path '{self._ndlrunner_path}' - does not exist"
                         f"{self._pman.hostmsg} or not an executable file")
 
-        self._etfqdisc = _ETFQdisc.ETFQdisc(self.dev.netif, pman=self._pman)
+        self._etfqdisc = _ETFQdisc.ETFQdisc(self._netif, pman=self._pman)
 
     def close(self):
         """Stop the measurements."""
@@ -226,11 +248,16 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                 self._stop_ndlrunner()
             self._ndlrunner = None
 
+        if getattr(self, "_netif", None):
+            with contextlib.suppress(Error):
+                self._netif.down()
+
         if getattr(self, "_nmcli", None):
             with contextlib.suppress(Error):
                 self._nmcli.restore_managed()
 
+        unref_attrs = ("_netif",)
         close_attrs = ("_etfqdisc", "_nmcli")
-        ClassHelpers.close(self, close_attrs=close_attrs)
+        ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)
 
         super().close()
