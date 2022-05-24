@@ -55,9 +55,9 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         return numeric
 
-    def is_numeric(self, colname):
-        """Returns 'True' if column 'colname' has numeric values, otherwise returns 'False'."""
-        return colname in self.get_numeric_metrics(metrics=[colname])
+    def is_numeric(self, metric):
+        """Returns 'True' if metric 'metric' has numeric values, otherwise returns 'False'."""
+        return metric in self.get_numeric_metrics(metrics=[metric])
 
     def _mangle_eval_expr(self, expr):
         """
