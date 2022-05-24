@@ -135,7 +135,10 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
 
     text = f"Compile and deploy {toolname} {what}."
     descr = f"""Compile and deploy {toolname} {what} to the SUT (System Under Test), which can be
-                either local or a remote host, depending on the '-H' option."""
+                can be either local or a remote host, depending on the '-H' option. By default,
+                everything is built on the SUT, but the '--local-build' can be used for building
+                on the local system."""
+
     if drivers:
         drvsearch = ", ".join([name % str(_DRV_SRC_SUBPATH) for name in searchdirs])
         descr += f"""The drivers are searched for in the following directories (and in the
@@ -155,11 +158,15 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
 
     if drivers:
         text = """Path to the Linux kernel sources to build the drivers against. The default is
-                  '/lib/modules/$(uname -r)/build' on the SUT. In case of deploying to a remote
-                  host, this is the path on the remote host (HOSTNAME)."""
+                  '/lib/modules/$(uname -r)/build' on the SUT. If '--local-build' was used, then
+                  the path is considered to be on the local system, rather than the SUT."""
+
         arg = parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text)
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
+
+    text = f"""Build {what} locally, instead of building on HOSTNAME (the SUT)."""
+    arg = parser.add_argument("--local-build", dest="lbuild", action="store_true", help=text)
 
     ArgParse.add_ssh_options(parser)
 
@@ -445,19 +452,19 @@ class Deploy(ClassHelpers.SimpleCloseContext):
           * helpersrc - path to the helpers base directory on the controller.
         """
 
-        # Copy simple helpers to the temporary directory on the SUT.
+        # Copy simple helpers to the temporary directory on the build host.
         for shelper in self._shelpers:
             srcdir = helpersrc/ shelper
             _LOG.debug("copying simple helper '%s' to %s:\n  '%s' -> '%s'",
-                       shelper, self._spman.hostname, srcdir, self._stmpdir)
-            self._spman.rsync(f"{srcdir}", self._stmpdir, remotesrc=False,
-                              remotedst=self._spman.is_remote)
+                       shelper, self._bpman.hostname, srcdir, self._btmpdir)
+            self._bpman.rsync(f"{srcdir}", self._btmpdir, remotesrc=False,
+                              remotedst=self._bpman.is_remote)
 
-        # Build non-python helpers on the SUT.
+        # Build non-python helpers.
         for shelper in self._shelpers:
-            _LOG.info("Compiling simple helper '%s'%s", shelper, self._spman.hostmsg)
-            helperpath = f"{self._stmpdir}/{shelper}"
-            stdout, stderr = self._spman.run_verify(f"make -C '{helperpath}'")
+            _LOG.info("Compiling simple helper '%s'%s", shelper, self._bpman.hostmsg)
+            helperpath = f"{self._btmpdir}/{shelper}"
+            stdout, stderr = self._bpman.run_verify(f"make -C '{helperpath}'")
             self._log_cmd_output(stdout, stderr)
 
     def _prepare_pyhelpers(self, helpersrc):
@@ -529,9 +536,16 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         _LOG.debug("deploying helpers to '%s'%s", helpersdst, self._spman.hostmsg)
 
         for helper in all_helpers:
-            helperpath = f"{self._stmpdir}/{helper}"
+            bhelperpath = f"{self._btmpdir}/{helper}"
+            shelperpath = f"{self._stmpdir}/{helper}"
 
-            cmd = f"make -C '{helperpath}' install PREFIX='{helpersdst}'"
+            if self._lbuild and self._spman.is_remote:
+                # We built the helpers locally, but have to install them on a remote SUT. Copy them
+                # to the SUT first.
+                self._spman.rsync(str(bhelperpath) + "/", shelperpath,
+                                  remotesrc=self._bpman.is_remote, remotedst=self._spman.is_remote)
+
+            cmd = f"make -C '{shelperpath}' install PREFIX='{helpersdst}'"
             stdout, stderr = self._spman.run_verify(cmd)
             self._log_cmd_output(stdout, stderr)
 
@@ -547,26 +561,26 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if not drvsrc.is_dir():
             raise Error(f"path '{drvsrc}' does not exist or it is not a directory")
 
-        _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'",
-                   self._spman.hostname, drvsrc, self._stmpdir)
-        self._spman.rsync(f"{drvsrc}/", self._stmpdir / "drivers", remotesrc=False,
-                          remotedst=self._spman.is_remote)
-        drvsrc = self._stmpdir / "drivers"
+        _LOG.debug("copying driver sources to %s:\n   '%s' -> '%s'",
+                   self._bpman.hostname, drvsrc, self._btmpdir)
+        self._bpman.rsync(f"{drvsrc}/", self._btmpdir / "drivers", remotesrc=False,
+                          remotedst=self._bpman.is_remote)
+        drvsrc = self._btmpdir / "drivers"
 
         kmodpath = Path(f"/lib/modules/{self._kver}")
         if not self._spman.is_dir(kmodpath):
             raise Error(f"kernel modules directory '{kmodpath}' does not "
                         f"exist{self._spman.hostmsg}")
 
-        # Build the drivers on the SUT.
-        _LOG.info("Compiling the drivers%s", self._spman.hostmsg)
+        # Build the drivers.
+        _LOG.info("Compiling the drivers%s", self._bpman.hostmsg)
         cmd = f"make -C '{drvsrc}' KSRC='{self._ksrc}'"
         if self._debug:
             cmd += " V=1"
 
-        stdout, stderr, exitcode = self._spman.run(cmd)
+        stdout, stderr, exitcode = self._bpman.run(cmd)
         if exitcode != 0:
-            msg = self._spman.get_cmd_failure_msg(cmd, stdout, stderr, exitcode)
+            msg = self._bpman.get_cmd_failure_msg(cmd, stdout, stderr, exitcode)
             if "synth_event_" in stderr:
                 msg += "\n\nLooks like synthetic events support is disabled in your kernel, " \
                        "enable the 'CONFIG_SYNTH_EVENTS' kernel configuration option."
@@ -578,12 +592,12 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         dstdir = kmodpath / _DRV_SRC_SUBPATH
         self._spman.mkdir(dstdir, parents=True, exist_ok=True)
 
-        for name in _get_deployables(drvsrc, self._spman):
+        for name in _get_deployables(drvsrc, self._bpman):
             installed_module = self._get_module_path(name)
             srcpath = drvsrc / f"{name}.ko"
             dstpath = dstdir / f"{name}.ko"
             _LOG.info("Deploying driver '%s' to '%s'%s", name, dstpath, self._spman.hostmsg)
-            self._spman.rsync(srcpath, dstpath, remotesrc=self._spman.is_remote,
+            self._spman.rsync(srcpath, dstpath, remotesrc=self._bpman.is_remote,
                               remotedst=self._spman.is_remote)
 
             if installed_module and installed_module.resolve() != dstpath.resolve():
@@ -615,9 +629,10 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         try:
             # Local temporary directory is required in these cases:
             #   1. We are deploying to the local host.
-            #   2. We are deploying python helpers. Regardless of the target host, we need a local
+            #   2. We are building locally.
+            #   3. We are deploying python helpers. Regardless of the target host, we need a local
             #      temporary directory for creating stand-alone versions of the helpers.
-            if not self._spman.is_remote or self._pyhelpers:
+            if self._lbuild or not self._spman.is_remote or self._pyhelpers:
                 self._ctmpdir = self._cpman.mkdtemp(prefix=f"{self._toolname}-")
 
             if self._spman.is_remote:
@@ -627,6 +642,11 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         except Exception as err:
             self._remove_tmpdirs()
             raise Error(f"failed to deploy the '{self._toolname}' tool: {err}") from err
+
+        if self._lbuild:
+            self._btmpdir = self._ctmpdir
+        else:
+            self._btmpdir = self._stmpdir
 
         remove_tmpdirs = True
         try:
@@ -649,31 +669,33 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         self._kver = None
         if not self._ksrc:
-            self._kver = KernelVersion.get_kver(pman=self._spman)
+            self._kver = KernelVersion.get_kver(pman=self._bpman)
             if not self._ksrc:
                 self._ksrc = Path(f"/lib/modules/{self._kver}/build")
 
-        if not self._spman.is_dir(self._ksrc):
+        if not self._bpman.is_dir(self._ksrc):
             raise Error(f"kernel sources directory '{self._ksrc}' does not "
-                        f"exist{self._spman.hostmsg}")
+                        f"exist{self._bpman.hostmsg}")
 
-        self._ksrc = self._spman.abspath(self._ksrc)
+        self._ksrc = self._bpman.abspath(self._ksrc)
 
         if not self._kver:
-            self._kver = KernelVersion.get_kver_ktree(self._ksrc, pman=self._spman)
+            self._kver = KernelVersion.get_kver_ktree(self._ksrc, pman=self._bpman)
 
         _LOG.debug("Kernel sources path: %s", self._ksrc)
         _LOG.debug("Kernel version: %s", self._kver)
 
-        ToolsCommon.check_kver(self._toolname, self._spman, kver=self._kver)
+        ToolsCommon.check_kver(self._toolname, self._bpman, kver=self._kver)
 
-    def __init__(self, toolname, pman=None, ksrc=None, debug=False):
+    def __init__(self, toolname, pman=None, ksrc=None, lbuild=False, debug=False):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool to create the deployment object for.
           * pman - the process manager object that defines the SUT to deploy to (local host by
                    default).
-          * ksrc - path to the kernel sources to compile drivers against on the SUT.
+          * ksrc - path to the kernel sources to compile drivers against.
+          * lbuild - by default, everything is built on the SUT, but if 'lbuild' is 'True', then
+                     everything is built on the local host.
           * debug - if 'True', be more verbose and do not remove the temporary directories in case
                     of a failure.
         """
@@ -681,13 +703,16 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._toolname = toolname
         self._spman = pman
         self._ksrc = ksrc
+        self._lbuild = lbuild
         self._debug = debug
 
         self._close_spman = pman is None
 
         self._cpman = None   # Process manager associated with the controller (local host).
+        self._bpman = None   # Process manager associated with the build host.
         self._stmpdir = None # Temporary directory on the SUT.
         self._ctmpdir = None # Temporary directory on the controller (local host).
+        self._btmpdir = None # Temporary directory on the build host.
         self._kver = None    # Version of the kernel to compile the drivers for.
 
         self._drivers = None
@@ -700,6 +725,11 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         if self._toolname not in _TOOLS_INFO:
             raise Error(f"BUG: unsupported tool '{toolname}'")
+
+        if self._lbuild:
+            self._bpman = self._cpman
+        else:
+            self._bpman = self._spman
 
         for attr, val in _TOOLS_INFO[self._toolname].items():
             setattr(self, f"_{attr}", val)
@@ -734,4 +764,4 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
     def close(self):
         """Uninitialize the object."""
-        ClassHelpers.close(self, close_attrs=("_cpman", "_spman"))
+        ClassHelpers.close(self, close_attrs=("_cpman", "_spman"), unref_attrs=("_bpman",))

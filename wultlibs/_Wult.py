@@ -349,7 +349,8 @@ def deploy_command(args):
     """Implements the 'deploy' command."""
 
     with ToolsCommon.get_pman(args) as pman, \
-         Deploy.Deploy(OWN_NAME, pman=pman, ksrc=args.ksrc, debug=args.debug) as depl:
+         Deploy.Deploy(OWN_NAME, pman=pman, ksrc=args.ksrc, lbuild=args.lbuild,
+                       debug=args.debug) as depl:
         depl.deploy()
 
 def list_stats():
