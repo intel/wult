@@ -29,8 +29,8 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
         """
 
         harchy = super()._get_tab_hierarchy()
-        # Add the "PkgWatt" metric.
-        harchy["dtabs"].append("PkgWatt")
+        # Add the "PkgWatt" and "GFXWatt" metrics.
+        harchy["dtabs"] += ["PkgWatt", "GFXWatt"]
         return harchy
 
     def _turbostat_to_df(self, tstat, path=None):

@@ -67,6 +67,15 @@ PkgWatt:
     unit: "Watt"
     short_unit: "W"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+GFXWatt:
+    title: "Graphics power"
+    descr: >-
+        Graphics power. Measured using the GPU RAPL domain. Retrieved from the "GFXWatt" turbostat
+        column.
+    type: "float"
+    unit: "Watt"
+    short_unit: "W"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 Time:
     title: "Time Elapsed"
     descr: >-
