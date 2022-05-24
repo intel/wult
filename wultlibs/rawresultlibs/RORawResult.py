@@ -222,7 +222,7 @@ class RORawResult(_RawResultBase.RawResultBase):
                 self._load_csv(usecols=csel, **kwargs)
             csel = None
         else:
-            # We cannot drop columns yet, because rows selector may refer the columns.
+            # We cannot drop columns yet, because rows selector may refer to the columns.
             if load_csv:
                 self._load_csv(**kwargs)
 
@@ -232,7 +232,7 @@ class RORawResult(_RawResultBase.RawResultBase):
                 try:
                     expr = pandas.eval(rsel)
                 except ValueError as err:
-                    # For some reasons on some distros the default "numexpr" engin fails with
+                    # For some reasons on some distros the default "numexpr" engine fails with
                     # various errors, such as:
                     #   * ValueError: data type must provide an itemsize
                     #   * ValueError: unknown type str128
@@ -365,8 +365,8 @@ class RORawResult(_RawResultBase.RawResultBase):
                        string.
 
         Note, the constructor does not load the potentially huge test result data into the memory.
-        It only loads the 'info.yml' file and figures out the colum names list. The data are loaded
-        "on-demand" by the 'load_df()' and other methods.
+        It only loads the 'info.yml' file and figures out which metrics have been measured. The data
+        are loaded "on-demand" by 'load_df()' and other methods.
         """
 
         super().__init__(dirpath)
