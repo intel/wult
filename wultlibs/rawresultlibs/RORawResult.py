@@ -40,24 +40,24 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         return non_numeric
 
-    def get_numeric_colnames(self, colnames=None):
+    def get_numeric_metrics(self, metrics=None):
         """
-        Returns the list of numeric colnames in the 'colnames' list (all colnames by default).
+        Returns the list of numeric metrics in the 'metrics' list (all metrics by default).
         """
 
-        if not colnames:
-            colnames = self.colnames
+        if not metrics:
+            metrics = self.colnames
 
         numeric = []
-        for colname in colnames:
-            if self.defs.info[colname]["type"] in ("int", "float"):
-                numeric.append(colname)
+        for metric in metrics:
+            if self.defs.info[metric]["type"] in ("int", "float"):
+                numeric.append(metric)
 
         return numeric
 
     def is_numeric(self, colname):
         """Returns 'True' if column 'colname' has numeric values, otherwise returns 'False'."""
-        return colname in self.get_numeric_colnames(colnames=[colname])
+        return colname in self.get_numeric_metrics(metrics=[colname])
 
     def _mangle_eval_expr(self, expr):
         """
@@ -154,7 +154,7 @@ class RORawResult(_RawResultBase.RawResultBase):
             all_colnames = self.find_colnames(regexs, must_find_all=True)
 
         # Exclude columns with non-numeric data.
-        colnames = self.get_numeric_colnames(colnames=all_colnames)
+        colnames = self.get_numeric_metrics(metrics=all_colnames)
 
         # Make sure we have some columns to work with.
         if not colnames:
