@@ -103,6 +103,68 @@ def get_helpers_deploy_path(toolname, pman):
         helpers_path = pman.get_homedir() / _HELPERS_LOCAL_DIR / "bin"
     return Path(helpers_path)
 
+def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
+    """
+    Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
+      * toolname - name of the tool to add the 'deploy' command for.
+      * subparsers - the 'argparse' subparsers to add the 'deploy' command to.
+      * func - the 'deploy' command handling function.
+      * argcomplete - optional 'argcomplete' command-line arguments completer object.
+    """
+
+    if toolname not in _TOOLS_INFO:
+        raise Error(f"BUG: unsupported tool '{toolname}'")
+
+    drivers = _TOOLS_INFO[toolname].get("drivers", None)
+    shelpers = _TOOLS_INFO[toolname].get("shelpers", [])
+    pyhelpers = _TOOLS_INFO[toolname].get("pyhelpers", [])
+
+    what = ""
+    if (shelpers or pyhelpers) and drivers:
+        what = "helpers and drivers"
+    elif shelpers or pyhelpers:
+        what = "helpers"
+    else:
+        what = "drivers"
+
+    envarname = f"{toolname.upper()}_DATA_PATH"
+    searchdirs = [f"{Path(sys.argv[0]).parent}/%s",
+                  f"${envarname}/%s (if '{envarname}' environment variable is defined)",
+                  "$HOME/.local/share/wult/%s",
+                  "/usr/local/share/wult/%s", "/usr/share/wult/%s"]
+
+    text = f"Compile and deploy {toolname} {what}."
+    descr = f"""Compile and deploy {toolname} {what} to the SUT (System Under Test), which can be
+                either local or a remote host, depending on the '-H' option."""
+    if drivers:
+        drvsearch = ", ".join([name % str(_DRV_SRC_SUBPATH) for name in searchdirs])
+        descr += f"""The drivers are searched for in the following directories (and in the
+                     following order) on the local host: {drvsearch}."""
+    if shelpers or pyhelpers:
+        helpersearch = ", ".join([name % str(_HELPERS_SRC_SUBPATH) for name in searchdirs])
+        helpernames = ", ".join(shelpers + pyhelpers)
+        descr += f"""The {toolname} tool also depends on the following helpers: {helpernames}.
+                     These helpers will be compiled on the SUT and deployed to the SUT. The sources
+                     of the helpers are searched for in the following paths (and in the following
+                     order) on the local host: {helpersearch}. By default, helpers are deployed to
+                     the path defined by the {toolname.upper()}_HELPERSPATH environment
+                     variable. If the variable is not defined, helpers are deployed to
+                     '$HOME/{_HELPERS_LOCAL_DIR}/bin', where '$HOME' is the home directory of user
+                     'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
+    parser = subparsers.add_parser("deploy", help=text, description=descr)
+
+    if drivers:
+        text = """Path to the Linux kernel sources to build the drivers against. The default is
+                  '/lib/modules/$(uname -r)/build' on the SUT. In case of deploying to a remote
+                  host, this is the path on the remote host (HOSTNAME)."""
+        arg = parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text)
+        if argcomplete:
+            arg.completer = argcomplete.completers.DirectoriesCompleter()
+
+    ArgParse.add_ssh_options(parser)
+
+    parser.set_defaults(func=func)
+
 def _get_deployables(srcpath, pman=None):
     """
     Returns the list of "deployables" (driver names or helper tool names) provided by tools or
@@ -242,61 +304,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
      * 'is_deploy_needed()' - check if re-deployment is needed.
      * 'add_cmdline_args()' - add deployment-related command line arguments.
     """
-
-    def add_deploy_cmdline_args(self, subparsers, func, argcomplete=None):
-        """
-        Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
-          * subparsers - the 'argparse' subparsers to add the 'deploy' command to.
-          * func - the 'deploy' command handling function.
-          * argcomplete - optional 'argcomplete' command-line arguments completer object.
-        """
-
-        what = ""
-        if (self._shelpers or self._pyhelpers) and self._drivers:
-            what = "helpers and drivers"
-        elif self._shelpers or self._pyhelpers:
-            what = "helpers"
-        else:
-            what = "drivers"
-
-        envarname = f"{self._toolname.upper()}_DATA_PATH"
-        searchdirs = [f"{Path(sys.argv[0]).parent}/%s",
-                      f"${envarname}/%s (if '{envarname}' environment variable is defined)",
-                      "$HOME/.local/share/wult/%s",
-                      "/usr/local/share/wult/%s", "/usr/share/wult/%s"]
-
-        text = f"Compile and deploy {self._toolname} {what}."
-        descr = f"""Compile and deploy {self._toolname} {what} to the SUT (System Under Test), which
-                    can be either local or a remote host, depending on the '-H' option."""
-        if self._drivers:
-            drvsearch = ", ".join([name % str(_DRV_SRC_SUBPATH) for name in searchdirs])
-            descr += f"""The drivers are searched for in the following directories (and in the
-                         following order) on the local host: {drvsearch}."""
-        if self._shelpers or self._pyhelpers:
-            helpersearch = ", ".join([name % str(_HELPERS_SRC_SUBPATH) for name in searchdirs])
-            helpernames = ", ".join(self._shelpers + self._pyhelpers)
-            descr += f"""The {self._toolname} tool also depends on the following helpers:
-                         {helpernames}. These helpers will be compiled on the SUT and deployed to
-                         the SUT. The sources of the helpers are searched for in the following paths
-                         (and in the following order) on the local host: {helpersearch}. By default,
-                         helpers are deployed to the path defined by the
-                         {self._toolname.upper()}_HELPERSPATH environment variable. If the variable
-                         is not defined, helpers are deployed to '$HOME/{_HELPERS_LOCAL_DIR}/bin',
-                         where '$HOME' is the home directory of user 'USERNAME' on host 'HOST' (see
-                         '--host' and '--username' options)."""
-        parser = subparsers.add_parser("deploy", help=text, description=descr)
-
-        if self._drivers:
-            text = """Path to the Linux kernel sources to build the drivers against. The default is
-                      '/lib/modules/$(uname -r)/build' on the SUT. In case of deploying to a remote
-                      host, this is the path on the remote host (HOSTNAME)."""
-            arg = parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text)
-            if argcomplete:
-                arg.completer = argcomplete.completers.DirectoriesCompleter()
-
-        ArgParse.add_ssh_options(parser)
-
-        parser.set_defaults(func=func)
 
     @staticmethod
     def _get_newest_mtime(paths):
@@ -663,7 +670,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
     def __init__(self, toolname, pman=None, ksrc=None, debug=False):
         """
         The class constructor. The arguments are as follows.
-          * toolname - name of the tool the command line arguments belong to.
+          * toolname - name of the tool to create the deployment object for.
           * pman - the process manager object that defines the SUT to deploy to (local host by
                    default).
           * ksrc - path to the kernel sources to compile drivers against on the SUT.
