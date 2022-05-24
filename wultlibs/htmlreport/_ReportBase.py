@@ -307,7 +307,7 @@ class ReportBase:
         self._copy_asset("js/index.html", "root HTML page of the report.",
                          self.outdir / "index.html")
 
-    def _mangle_loaded_res(self, res): # pylint: disable=no-self-use, unused-argument
+    def _mangle_loaded_res(self, res):
         """
         This method is called for every 'pandas.DataFrame' corresponding to the just loaded CSV
         file. The subclass can override this method to mangle the 'pandas.DataFrame'.
