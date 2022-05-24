@@ -25,18 +25,18 @@ _LOG = logging.getLogger()
 class RORawResult(_RawResultBase.RawResultBase):
     """This class represents a read-only raw test result."""
 
-    def get_non_numeric_colnames(self, colnames=None):
+    def get_non_numeric_metrics(self, metrics=None):
         """
-        Returns the list of non-numeric colnames in the 'colnames' list (all colnames by default).
+        Returns the list of non-numeric metrics in the 'metrics' list (all metrics by default).
         """
 
-        if not colnames:
-            colnames = self.colnames
+        if not metrics:
+            metrics = self.colnames
 
         non_numeric = []
-        for colname in colnames:
-            if self.defs.info[colname]["type"] not in ("int", "float"):
-                non_numeric.append(colname)
+        for metric in metrics:
+            if self.defs.info[metric]["type"] not in ("int", "float"):
+                non_numeric.append(metric)
 
         return non_numeric
 
@@ -161,7 +161,7 @@ class RORawResult(_RawResultBase.RawResultBase):
             msg = "no columns to calculate summary functions for"
             if all_colnames:
                 msg += ".\nThese columns were excluded because they are not numeric: "
-                msg += " ,".join(self.get_non_numeric_colnames(colnames=all_colnames))
+                msg += " ,".join(self.get_non_numeric_metrics(metrics=all_colnames))
             raise ErrorNotFound(msg)
 
         if not funcnames:

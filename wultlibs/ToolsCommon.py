@@ -462,7 +462,7 @@ def calc_command(args):
     res = RORawResult.RORawResult(args.respath)
     apply_filters(args, res)
 
-    non_numeric = res.get_non_numeric_colnames()
+    non_numeric = res.get_non_numeric_metrics()
     if non_numeric and (args.csel or args.cfilt):
         non_numeric = ", ".join(non_numeric)
         _LOG.warning("skipping non-numeric column(s): %s", non_numeric)
