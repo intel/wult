@@ -313,34 +313,34 @@ class ReportBase:
         file. The subclass can override this method to mangle the 'pandas.DataFrame'.
         """
 
-        for colname in res.df:
-            defs = res.defs.info.get(colname)
+        for metric in res.df:
+            defs = res.defs.info.get(metric)
             if not defs:
                 continue
 
             # Some columns should be dropped if they are "empty", i.e., contain only zero values.
             # For example, the C-state residency columns may be empty. This usually means that the
             # C-state was either disabled or just does not exist.
-            if defs.get("drop_empty") and not res.df[colname].any():
-                _LOG.debug("dropping empty column '%s'", colname)
-                res.df.drop(colname, axis="columns", inplace=True)
+            if defs.get("drop_empty") and not res.df[metric].any():
+                _LOG.debug("dropping empty column '%s'", metric)
+                res.df.drop(metric, axis="columns", inplace=True)
 
         # Update columns lists in case some of the columns were removed from the loaded
         # 'pandas.Dataframe'.
         for name in ("_smry_metrics", "xaxes", "yaxes", "hist", "chist"):
-            colnames = []
-            for colname in getattr(self, name):
-                if colname in res.df:
-                    colnames.append(colname)
-            setattr(self, name, colnames)
+            metrics = []
+            for metric in getattr(self, name):
+                if metric in res.df:
+                    metrics.append(metric)
+            setattr(self, name, metrics)
 
         for name in ("_hov_metrics", ):
-            colnames = []
+            metrics = []
             val = getattr(self, name)
-            for colname in val[res.reportid]:
-                if colname in res.df:
-                    colnames.append(colname)
-            val[res.reportid] = colnames
+            for metric in val[res.reportid]:
+                if metric in res.df:
+                    metrics.append(metric)
+            val[res.reportid] = metrics
         return res.df
 
     def _load_results(self):
