@@ -437,7 +437,7 @@ class ReportBase:
                                  "in the definitions file at '%s'", metric, res.defs.path)
             self._hov_metrics[res.reportid] = metrics
 
-    def _init_colnames(self):
+    def _init_metrics(self):
         """
         Assign default values to the diagram/histogram metrics and remove possible duplication in
         user-provided input.
@@ -446,10 +446,10 @@ class ReportBase:
         for name in ("xaxes", "yaxes", "hist", "chist"):
             if getattr(self, name):
                 # Convert list of regular expressions into list of names.
-                colnames = self._refres.find_metrics(getattr(self, name))
+                metrics = self._refres.find_metrics(getattr(self, name))
             else:
-                colnames = []
-            setattr(self, name, colnames)
+                metrics = []
+            setattr(self, name, metrics)
 
         # Ensure '_hov_metrics' dictionary is initialized.
         self.set_hover_metrics(())
@@ -596,7 +596,7 @@ class ReportBase:
         self._more_metrics = []
 
         self._validate_init_args()
-        self._init_colnames()
+        self._init_metrics()
 
         # We'll provide summaries for every metric participating in at least one diagram.
         smry_metrics = Trivial.list_dedup(self.yaxes + self.xaxes + self.hist + self.chist)
