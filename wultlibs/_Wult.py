@@ -35,11 +35,10 @@ from wultlibs import Deploy, ToolsCommon, Devices, WultRunner, WultStatsCollect
 VERSION = "1.9.21"
 OWN_NAME = "wult"
 
-# Regular expressions for the datapoint CSV file columns names that should show up in the hover
-# text of the scatter plot. The middle element selects all the core and package C-state residency
-# columns.
-HOVER_COLNAME_REGEXS = [".*Latency", "IntrOff", ".*Delay", "LDist", "ReqCState", r"[PC]C.+%",
-                        "SMI.*", "NMI.*"]
+# Regular expressions for the metrics that should show up in the hover text of the scatter plot. The
+# middle element selects all the core and package C-state residency columns.
+HOVER_METRIC_REGEXS = [".*Latency", "IntrOff", ".*Delay", "LDist", "ReqCState", r"[PC]C.+%",
+                       "SMI.*", "NMI.*"]
 
 LOG = logging.getLogger()
 Logging.setup_logger(prefix=OWN_NAME)
@@ -443,7 +442,7 @@ def start_command(args):
     rsts = ToolsCommon.open_raw_results([args.outdir], args.toolname)
     rep = WultReport.WultReport(rsts, args.outdir, title_descr=args.reportid)
     rep.relocatable = False
-    rep.set_hover_metrics(HOVER_COLNAME_REGEXS)
+    rep.set_hover_metrics(HOVER_METRIC_REGEXS)
     rep.generate()
 
 def report_command(args):
@@ -490,7 +489,7 @@ def report_command(args):
                                         xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
                                         chist=args.chist)
     rep.relocatable = args.relocatable
-    rep.set_hover_metrics(HOVER_COLNAME_REGEXS)
+    rep.set_hover_metrics(HOVER_METRIC_REGEXS)
     rep.generate()
 
 def main():
