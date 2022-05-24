@@ -16,7 +16,7 @@ import logging
 import contextlib
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import _ProgressLine, _NdlRawDataProvider
+from wultlibs import Deploy, _ProgressLine, _NdlRawDataProvider
 from wultlibs.helperlibs import Human
 _LOG = logging.getLogger()
 
@@ -105,14 +105,13 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
         self._prov.prepare()
 
-    def __init__(self, pman, dev, res, ndlrunner_path, ldist=None):
+    def __init__(self, pman, dev, res, ldist=None):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
           * dev - the network device object to use for measurements (created with
                   'Devices.GetDevice()').
           * res - the 'WORawResult' object to store the results at.
-          * ndlrunner_path - path to the 'ndlrunner' helper.
           * ldist - a pair of numbers specifying the launch distance range in nanoseconds (how far
           *         in the future the delayed network packets should be scheduled). Default is
           *         [5000000, 50000000].
@@ -132,6 +131,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
         self._progress = _ProgressLine.ProgressLine(period=1)
 
+        ndlrunner_path = Deploy.get_helpers_deploy_path("ndl", pman) / dev.helpername
         self._prov = _NdlRawDataProvider.NdlRawDataProvider(dev, ndlrunner_path, pman,
                                                             ldist=self._ldist)
 

@@ -79,6 +79,18 @@ def find_app_data(prjname, subpath, appname=None, descr=None):
     raise Error(f"cannot find {descr}, searched in the following directories on local host:\n"
                 f"{dirs}")
 
+def get_helpers_deploy_path(toolname, pman):
+    """
+    Return path to the helpers deployment. The arguments are as follows.
+      * toolname - name of the tool to get the helpers deployment path for.
+      * pman - the process managemer object defining the host the helpers are deployed to.
+    """
+
+    helpers_path = os.environ.get(f"{toolname.upper()}_HELPERSPATH")
+    if not helpers_path:
+        helpers_path = pman.get_homedir() / _HELPERS_LOCAL_DIR / "bin"
+    return Path(helpers_path)
+
 def _get_deployables(srcpath, pman=None):
     """
     Returns the list of "deployables" (driver names or helper tool names) provided by tools or
@@ -318,14 +330,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             return modpath
         return None
 
-    def get_helpers_deploy_path(self):
-        """Return path to the helpers deployment directory on the SUT."""
-
-        helpers_path = os.environ.get(f"{self._toolname.upper()}_HELPERSPATH")
-        if not helpers_path:
-            helpers_path = self._spman.get_homedir() / _HELPERS_LOCAL_DIR / "bin"
-        return Path(helpers_path)
-
     def is_deploy_needed(self):
         """
         Wult and other tools require additional helper programs and drivers to be installed on the
@@ -348,7 +352,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         # Add non-python helpers' deploy information.
         if self._shelpers or self._pyhelpers:
-            helpers_deploy_path = self.get_helpers_deploy_path()
+            helpers_deploy_path = get_helpers_deploy_path(self._toolname, self._spman)
 
         for shelper in self._shelpers:
             srcpath = find_app_data("wult", _HELPERS_SRC_SUBPATH / shelper,
@@ -494,7 +498,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._prepare_shelpers(helpersrc)
         self._prepare_pyhelpers(helpersrc)
 
-        deploy_path = self.get_helpers_deploy_path()
+        deploy_path = get_helpers_deploy_path(self._toolname, self._spman)
 
         # Make sure the the destination deployment directory exists.
         self._spman.mkdir(deploy_path, parents=True, exist_ok=True)

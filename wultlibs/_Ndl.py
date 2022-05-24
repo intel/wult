@@ -225,8 +225,6 @@ def start_command(args):
                     msg += f" -H {pman.hostname}"
                 LOG.warning(msg)
 
-            ndlrunner_path = depl.get_helpers_deploy_path() / "ndlrunner"
-
         args.reportid = ToolsCommon.start_command_reportid(args, pman)
 
         if not args.outdir:
@@ -256,7 +254,7 @@ def start_command(args):
             LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "
                        "the measured latency.", args.devid)
 
-        runner = NdlRunner.NdlRunner(pman, dev, res, ndlrunner_path, ldist=args.ldist)
+        runner = NdlRunner.NdlRunner(pman, dev, res, ldist=args.ldist)
         stack.enter_context(runner)
 
         runner.prepare()
