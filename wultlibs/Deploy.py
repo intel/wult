@@ -27,6 +27,18 @@ _HELPERS_SRC_SUBPATH = Path("helpers")
 
 _LOG = logging.getLogger()
 
+# Information about tools dependencies.
+_TOOLS_INFO = {
+    "wult": {
+        "drivers":  True,
+        "pyhelpers":  ["stats-collect", ],
+    },
+    "ndl": {
+        "drivers": True,
+        "shelpers": ["ndlrunner", ],
+    },
+}
+
 def find_app_data(prjname, subpath, appname=None, descr=None):
     """
     Search for application 'appname' data. The data are searched for in the 'subpath' sub-path of
@@ -679,14 +691,11 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if not self._spman:
             self._spman = self._cpman
 
-        if self._toolname == "wult":
-            self._drivers = True
-            self._pyhelpers = ["stats-collect"]
-        elif self._toolname == "ndl":
-            self._drivers = True
-            self._shelpers = ["ndlrunner"]
-        else:
+        if self._toolname not in _TOOLS_INFO:
             raise Error(f"BUG: unsupported tool '{toolname}'")
+
+        for attr, val in _TOOLS_INFO[self._toolname].items():
+            setattr(self, f"_{attr}", val)
 
         self._init_kernel_info()
 
