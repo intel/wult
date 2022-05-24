@@ -175,7 +175,7 @@ class ReportBase:
 
         for res in self.rsts:
             _LOG.debug("calculate summary functions for '%s'", res.reportid)
-            res.calc_smrys(regexs=self._smry_colnames, funcnames=self._smry_funcs)
+            res.calc_smrys(regexs=self._smry_metrics, funcnames=self._smry_funcs)
 
         plot_axes = [(x, y) for x, y in itertools.product(self.xaxes, self.yaxes) if x != y]
 
@@ -327,7 +327,7 @@ class ReportBase:
 
         # Update columns lists in case some of the columns were removed from the loaded
         # 'pandas.Dataframe'.
-        for name in ("_smry_colnames", "xaxes", "yaxes", "hist", "chist"):
+        for name in ("_smry_metrics", "xaxes", "yaxes", "hist", "chist"):
             colnames = []
             for colname in getattr(self, name):
                 if colname in res.df:
@@ -347,7 +347,7 @@ class ReportBase:
         """Load the test results from the CSV file and/or apply the columns selector."""
 
         _LOG.debug("summaries will be calculated for these columns: %s",
-                   ", ".join(self._smry_colnames))
+                   ", ".join(self._smry_metrics))
         _LOG.debug("additional colnames: %s", ", ".join(self._more_colnames))
 
         for res in self.rsts:
@@ -358,7 +358,7 @@ class ReportBase:
                 if colname in res.colnames_set:
                     colnames.append(colname)
 
-            csel = Trivial.list_dedup(self._smry_colnames + colnames)
+            csel = Trivial.list_dedup(self._smry_metrics + colnames)
             res.set_csel(csel)
             res.load_df()
 
@@ -583,10 +583,9 @@ class ReportBase:
         # The intro table which appears at the top of all reports.
         self._intro_tbl = _IntroTable.IntroTable()
 
-        # Names of columns in the datapoints CSV file to provide the summary function values for
-        # (e.g., median, 99th percentile). The summaries will show up in the summary tables (one
-        # table per metric).
-        self._smry_colnames = None
+        # Names of metrics to provide the summary function values for (e.g., median, 99th
+        # percentile). The summaries will show up in the summary tables (one table per metric).
+        self._smry_metrics = None
         # List of functions to provide in the summary tables.
         self._smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg",
                             "min", "std")
@@ -599,19 +598,18 @@ class ReportBase:
         self._validate_init_args()
         self._init_colnames()
 
-        # We'll provide summaries for every column participating in at least one diagram.
-        smry_colnames = Trivial.list_dedup(self.yaxes + self.xaxes + self.hist + self.chist)
-        # Summary functions table includes all test results, but the results may have a bit
-        # different set of column names (e.g., they were collected with different wult versions # or
-        # using different methods, or on different systems). Therefore, include only common columns
-        # into it.
-        self._smry_colnames = []
-        for colname in smry_colnames:
+        # We'll provide summaries for every metric participating in at least one diagram.
+        smry_metrics = Trivial.list_dedup(self.yaxes + self.xaxes + self.hist + self.chist)
+        # Summary table includes all test results, but the results may have data for different
+        # metrics (e.g. they were collected with different wult versions, using different methods,
+        # or on different systems). Therefore, only include metrics common to all test results.
+        self._smry_metrics = []
+        for metric in smry_metrics:
             for res in rsts:
-                if colname not in res.colnames_set:
+                if metric not in res.colnames_set:
                     break
             else:
-                self._smry_colnames.append(colname)
+                self._smry_metrics.append(metric)
 
         self._init_assets()
 
