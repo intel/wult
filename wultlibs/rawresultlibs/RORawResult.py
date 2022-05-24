@@ -107,7 +107,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         """
 
         if regexs:
-            self._cfilt = self.find_colnames(regexs, must_find_all=True)
+            self._cfilt = self.find_metrics(regexs, must_find_all=True)
 
     def set_csel(self, regexs):
         """
@@ -117,7 +117,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         """
 
         if regexs:
-            self._csel = self.find_colnames(regexs, must_find_all=True)
+            self._csel = self.find_metrics(regexs, must_find_all=True)
 
     def calc_smrys(self, regexs=None, funcnames=None, all_funcs=False):
         """
@@ -151,7 +151,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         if not regexs:
             all_colnames = self.colnames
         else:
-            all_colnames = self.find_colnames(regexs, must_find_all=True)
+            all_colnames = self.find_metrics(regexs, must_find_all=True)
 
         # Exclude columns with non-numeric data.
         colnames = self.get_numeric_metrics(metrics=all_colnames)
@@ -274,14 +274,14 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self._load_df(force_reload=True, **kwargs)
 
-    def find_colnames(self, regexs, must_find_any=True, must_find_all=False):
+    def find_metrics(self, regexs, must_find_any=True, must_find_all=False):
         """
-        Among the list of the column names of this test result, find column names that match regular
+        Among the list of the metrics of this test result, find metrics that match regular
         expressions in 'regexs'. The arguments are as follows.
           * regexs - an iterable collection or regular expressions to match.
           * must_find_any - if 'True', raise an 'ErrorNotFound' exception in case of no matching
-                            columns. If 'False', just return an empty list in case of no matching
-                            columns.
+                            metrics. If 'False', just return an empty list in case of no matching
+                            metrics.
           * must_find_all - if 'True', raise an 'ErrorNotFound' exception if any of the regular
                             expressions in 'regexs' did not match.
         """
@@ -289,10 +289,10 @@ class RORawResult(_RawResultBase.RawResultBase):
         found = {}
         for regex in regexs:
             matched = False
-            for colname in self.colnames:
+            for metric in self.colnames:
                 try:
-                    if re.fullmatch(regex, colname):
-                        found[colname] = regex
+                    if re.fullmatch(regex, metric):
+                        found[metric] = regex
                         matched = True
                 except re.error as err:
                     raise Error(f"bad regular expression '{regex}': {err}") from err

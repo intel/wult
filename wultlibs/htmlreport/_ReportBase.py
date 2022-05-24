@@ -180,8 +180,8 @@ class ReportBase:
         plot_axes = [(x, y) for x, y in itertools.product(self.xaxes, self.yaxes) if x != y]
 
         if self.exclude_xaxes and self.exclude_yaxes:
-            x_axes = self._refres.find_colnames([self.exclude_xaxes])
-            y_axes = self._refres.find_colnames([self.exclude_yaxes])
+            x_axes = self._refres.find_metrics([self.exclude_xaxes])
+            y_axes = self._refres.find_metrics([self.exclude_yaxes])
             exclude_axes = list(itertools.product(x_axes, y_axes))
             plot_axes = [axes for axes in plot_axes if axes not in exclude_axes]
 
@@ -393,7 +393,7 @@ class ReportBase:
         """
 
         for res in self.rsts:
-            self._hov_metrics[res.reportid] = res.find_colnames(regexs, must_find_any=False)
+            self._hov_metrics[res.reportid] = res.find_metrics(regexs, must_find_any=False)
 
     def _drop_absent_colnames(self):
         """
@@ -446,7 +446,7 @@ class ReportBase:
         for name in ("xaxes", "yaxes", "hist", "chist"):
             if getattr(self, name):
                 # Convert list of regular expressions into list of names.
-                colnames = self._refres.find_colnames(getattr(self, name))
+                colnames = self._refres.find_metrics(getattr(self, name))
             else:
                 colnames = []
             setattr(self, name, colnames)
