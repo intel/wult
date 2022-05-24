@@ -206,7 +206,7 @@ class ReportBase:
 
             metric_def = self._refres.defs.info[metric]
             dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, metric_def,
-                                                             hover_metrics=self._hov_colnames)
+                                                             hover_metrics=self._hov_metrics)
             dtab_bldr.add_smrytbl(smry_metrics, self._smry_funcs)
             dtab_bldr.add_plots(tab_plots, self.hist, self.chist)
             dtabs.append(dtab_bldr.get_tab())
@@ -334,7 +334,7 @@ class ReportBase:
                     colnames.append(colname)
             setattr(self, name, colnames)
 
-        for name in ("_hov_colnames", ):
+        for name in ("_hov_metrics", ):
             colnames = []
             val = getattr(self, name)
             for colname in val[res.reportid]:
@@ -351,14 +351,14 @@ class ReportBase:
         _LOG.debug("additional colnames: %s", ", ".join(self._more_colnames))
 
         for res in self.rsts:
-            _LOG.debug("hover colnames: %s", ", ".join(self._hov_colnames[res.reportid]))
+            _LOG.debug("hover metrics: %s", ", ".join(self._hov_metrics[res.reportid]))
 
-            colnames = []
-            for colname in self._hov_colnames[res.reportid] + self._more_colnames:
-                if colname in res.colnames_set:
-                    colnames.append(colname)
+            metrics = []
+            for metric in self._hov_metrics[res.reportid] + self._more_colnames:
+                if metric in res.colnames_set:
+                    metrics.append(metric)
 
-            csel = Trivial.list_dedup(self._smry_metrics + colnames)
+            csel = Trivial.list_dedup(self._smry_metrics + metrics)
             res.set_csel(csel)
             res.load_df()
 
@@ -383,17 +383,17 @@ class ReportBase:
         # Put together the final HTML report.
         self._generate_report()
 
-    def set_hover_colnames(self, regexs):
+    def set_hover_metrics(self, regexs):
         """
-        This methods allows for specifying CSV file column names that have to be included to the
-        hover test on the scatter plot. The 'regexs' argument should be a list of hover text colum
-        name regular expressions. In other words, each element of the list will be treated as a
-        regular expression. Every CSV colum name will be matched against this regular expression,
-        and matched column names will be added to the hover text.
+        This methods allows for specifying metrics that have to be included to the hover text on the
+        scatter plot. The 'regexs' argument should be a list of hover text metric regular
+        expressions. In other words, each element of the list will be treated as a regular
+        expression. Every metric will be matched against this regular expression, and matched
+        metrics will be added to the hover text.
         """
 
         for res in self.rsts:
-            self._hov_colnames[res.reportid] = res.find_colnames(regexs, must_find_any=False)
+            self._hov_metrics[res.reportid] = res.find_colnames(regexs, must_find_any=False)
 
     def _drop_absent_colnames(self):
         """
@@ -407,40 +407,40 @@ class ReportBase:
             intersection = set(getattr(self, name))
             for res in self.rsts:
                 intersection = intersection & res.colnames_set
-            colnames = []
-            for colname in getattr(self, name):
-                if colname in intersection:
-                    colnames.append(colname)
+            metrics = []
+            for metric in getattr(self, name):
+                if metric in intersection:
+                    metrics.append(metric)
                 else:
                     _LOG.warning("dropping column '%s' from '%s' because it is not present in one "
-                                 "of the results", colname, name)
-            setattr(self, name, colnames)
+                                 "of the results", metric, name)
+            setattr(self, name, metrics)
 
         for name in lists:
             for res in self.rsts:
-                colnames = []
-                for colname in getattr(self, name):
-                    if colname in res.defs.info:
-                        colnames.append(colname)
+                metrics = []
+                for metric in getattr(self, name):
+                    if metric in res.defs.info:
+                        metrics.append(metric)
                     else:
                         _LOG.warning("dropping column '%s' from '%s' because it is not present in "
-                                     "the definitions file at '%s'", colname, name, res.defs.path)
-            setattr(self, name, colnames)
+                                     "the definitions file at '%s'", metric, name, res.defs.path)
+            setattr(self, name, metrics)
 
         for res in self.rsts:
-            colnames = []
-            for colname in self._hov_colnames[res.reportid]:
-                if colname in res.defs.info:
-                    colnames.append(colname)
+            metrics = []
+            for metric in self._hov_metrics[res.reportid]:
+                if metric in res.defs.info:
+                    metrics.append(metric)
                 else:
-                    _LOG.warning("dropping column '%s' from hover text because it is not present "
-                                 "in the definitions file at '%s'", colname, res.defs.path)
-            self._hov_colnames[res.reportid] = colnames
+                    _LOG.warning("dropping metric '%s' from hover text because it is not present "
+                                 "in the definitions file at '%s'", metric, res.defs.path)
+            self._hov_metrics[res.reportid] = metrics
 
     def _init_colnames(self):
         """
-        Assign default values to the diagram/histogram column names and remove possible
-        duplication in user-provided input.
+        Assign default values to the diagram/histogram metrics and remove possible duplication in
+        user-provided input.
         """
 
         for name in ("xaxes", "yaxes", "hist", "chist"):
@@ -451,8 +451,8 @@ class ReportBase:
                 colnames = []
             setattr(self, name, colnames)
 
-        # Ensure '_hov_colnames' dictionary is initialized.
-        self.set_hover_colnames(())
+        # Ensure '_hov_metrics' dictionary is initialized.
+        self.set_hover_metrics(())
 
         self._drop_absent_colnames()
 
@@ -589,9 +589,9 @@ class ReportBase:
         # List of functions to provide in the summary tables.
         self._smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg",
                             "min", "std")
-        # Per-test result list of column names to include into the hover text of the scatter plot.
+        # Per-test result list of metrics to include into the hover text of the scatter plot.
         # By default only the x and y axis values are included.
-        self._hov_colnames = {}
+        self._hov_metrics = {}
         # Additional columns to load, if they exist in the CSV file.
         self._more_colnames = []
 

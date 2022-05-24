@@ -443,7 +443,7 @@ def start_command(args):
     rsts = ToolsCommon.open_raw_results([args.outdir], args.toolname)
     rep = WultReport.WultReport(rsts, args.outdir, title_descr=args.reportid)
     rep.relocatable = False
-    rep.set_hover_colnames(HOVER_COLNAME_REGEXS)
+    rep.set_hover_metrics(HOVER_COLNAME_REGEXS)
     rep.generate()
 
 def report_command(args):
@@ -490,7 +490,7 @@ def report_command(args):
                                         xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
                                         chist=args.chist)
     rep.relocatable = args.relocatable
-    rep.set_hover_colnames(HOVER_COLNAME_REGEXS)
+    rep.set_hover_metrics(HOVER_COLNAME_REGEXS)
     rep.generate()
 
 def main():
