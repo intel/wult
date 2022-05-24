@@ -61,9 +61,9 @@ class RORawResult(_RawResultBase.RawResultBase):
 
     def _mangle_eval_expr(self, expr):
         """
-        Mangle a pandas python expression that we use for row filters and selectors. Some of the CSV
-        file column names may have symbols like '%' (e.g., in 'CC1%'), which cannot be used in
-        pandas python expressions, and this method solves the problem.
+        Mangle a 'pandas' python expression that we use for row filters and selectors. Some of the
+        'pandas.DataFrame' column names may have symbols like '%' (e.g., in 'CC1%'), which cannot be
+        used in 'pandas' python expressions, this method solves this problem.
         """
 
         if expr is None:
