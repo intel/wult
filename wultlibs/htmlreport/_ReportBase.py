@@ -318,14 +318,14 @@ class ReportBase:
             if not defs:
                 continue
 
-            # Some columns should be dropped if they are "empty", i.e., contain only zero values.
-            # For example, the C-state residency columns may be empty. This usually means that the
-            # C-state was either disabled or just does not exist.
+            # Some columns should be dropped from 'res.df' if they are "empty", i.e. contain only
+            # zero values. For example, the C-state residency columns may be empty. This usually
+            # means that the C-state was either disabled or just does not exist.
             if defs.get("drop_empty") and not res.df[metric].any():
                 _LOG.debug("dropping empty column '%s'", metric)
                 res.df.drop(metric, axis="columns", inplace=True)
 
-        # Update columns lists in case some of the columns were removed from the loaded
+        # Update metric lists in case some of the respective columns were removed from the loaded
         # 'pandas.Dataframe'.
         for name in ("_smry_metrics", "xaxes", "yaxes", "hist", "chist"):
             metrics = []
