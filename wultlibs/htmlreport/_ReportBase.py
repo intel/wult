@@ -344,17 +344,17 @@ class ReportBase:
         return res.df
 
     def _load_results(self):
-        """Load the test results from the CSV file and/or apply the columns selector."""
+        """Load the test results from the CSV file and/or apply the metrics selector."""
 
         _LOG.debug("summaries will be calculated for these columns: %s",
                    ", ".join(self._smry_metrics))
-        _LOG.debug("additional colnames: %s", ", ".join(self._more_colnames))
+        _LOG.debug("additional colnames: %s", ", ".join(self._more_metrics))
 
         for res in self.rsts:
             _LOG.debug("hover metrics: %s", ", ".join(self._hov_metrics[res.reportid]))
 
             metrics = []
-            for metric in self._hov_metrics[res.reportid] + self._more_colnames:
+            for metric in self._hov_metrics[res.reportid] + self._more_metrics:
                 if metric in res.colnames_set:
                     metrics.append(metric)
 
@@ -366,7 +366,7 @@ class ReportBase:
             # 'pandas.DataFrame'. This is more efficient than creating copies.
             self._mangle_loaded_res(res)
 
-        # Some columns from the axes lists could have been dropped, update the lists.
+        # Some metrics from the axes lists could have been dropped, update the lists.
         self._drop_absent_colnames()
 
     def generate(self):
@@ -592,8 +592,8 @@ class ReportBase:
         # Per-test result list of metrics to include into the hover text of the scatter plot.
         # By default only the x and y axis values are included.
         self._hov_metrics = {}
-        # Additional columns to load, if they exist in the CSV file.
-        self._more_colnames = []
+        # Additional metrics to load, if the results contain data for them.
+        self._more_metrics = []
 
         self._validate_init_args()
         self._init_colnames()
