@@ -633,12 +633,12 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             self._kver = KernelVersion.get_kver(pman=self._spman)
             if not self._ksrc:
                 self._ksrc = Path(f"/lib/modules/{self._kver}/build")
-        else:
-            self._ksrc = self._spman.abspath(self._ksrc)
 
         if not self._spman.is_dir(self._ksrc):
             raise Error(f"kernel sources directory '{self._ksrc}' does not "
                         f"exist{self._spman.hostmsg}")
+
+        self._ksrc = self._spman.abspath(self._ksrc)
 
         if not self._kver:
             self._kver = KernelVersion.get_kver_ktree(self._ksrc, pman=self._spman)
@@ -648,18 +648,20 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         ToolsCommon.check_kver(self._toolname, self._spman, kver=self._kver)
 
-    def __init__(self, toolname, pman=None, debug=False):
+    def __init__(self, toolname, pman=None, ksrc=None, debug=False):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool the command line arguments belong to.
           * pman - the process manager object that defines the SUT to deploy to (local host by
                    default).
+          * ksrc - path to the kernel sources to compile drivers against on the SUT.
           * debug - if 'True', be more verbose and do not remove the temporary directories in case
                     of a failure.
         """
 
         self._toolname = toolname
         self._spman = pman
+        self._ksrc = ksrc
         self._debug = debug
 
         self._close_spman = pman is None
@@ -668,7 +670,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._stmpdir = None # Temporary directory on the SUT.
         self._ctmpdir = None # Temporary directory on the controller (local host).
         self._kver = None    # Version of the kernel to compile the drivers for.
-        self._ksrc = None    # Path to the kernel sources to compile the drivers for.
 
         self._drivers = None
         self._shelpers = []
