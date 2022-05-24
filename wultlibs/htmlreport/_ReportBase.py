@@ -367,7 +367,7 @@ class ReportBase:
             self._mangle_loaded_res(res)
 
         # Some metrics from the axes lists could have been dropped, update the lists.
-        self._drop_absent_colnames()
+        self._drop_absent_metrics()
 
     def generate(self):
         """Generate the HTML report and store the result in 'self.outdir'.
@@ -395,10 +395,10 @@ class ReportBase:
         for res in self.rsts:
             self._hov_metrics[res.reportid] = res.find_metrics(regexs, must_find_any=False)
 
-    def _drop_absent_colnames(self):
+    def _drop_absent_metrics(self):
         """
-        Verify that test results provide the columns in 'xaxes', 'yaxes', 'hist' and 'chist'. Drop
-        the absent columns. Also drop uknown columns (those not present in the "definitions").
+        Verify that test results provide the metrics in 'xaxes', 'yaxes', 'hist' and 'chist'. Drop
+        the absent metrics. Also drop unknown metrics (those not present in the "definitions").
         """
 
         lists = ("xaxes", "yaxes", "hist", "chist")
@@ -454,7 +454,7 @@ class ReportBase:
         # Ensure '_hov_metrics' dictionary is initialized.
         self.set_hover_metrics(())
 
-        self._drop_absent_colnames()
+        self._drop_absent_metrics()
 
         # Both X- and Y-axes are required for scatter plots.
         if not self.xaxes or not self.yaxes:
