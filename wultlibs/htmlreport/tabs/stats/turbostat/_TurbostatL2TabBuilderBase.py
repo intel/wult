@@ -125,6 +125,10 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         # them and append them to 'sub_tabs'.
         if "dtabs" in tab_hierarchy:
             for metric in tab_hierarchy["dtabs"]:
+                if not all(metric in sdf for sdf in self._reports.values()):
+                    _LOG.info("Skipping '%s' tab in turbostat '%s' tab: one or more results do not "
+                              "contain data for this metric.", metric, self.name)
+                    continue
                 try:
                     tab = _DTabBuilder.DTabBuilder(self._reports, outdir, self._defs.info[metric],
                                                    self._basedir)
