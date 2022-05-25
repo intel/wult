@@ -383,9 +383,6 @@ class RORawResult(_RawResultBase.RawResultBase):
             except OSError as err:
                 raise Error(f"failed to access '{attr}': {err}") from err
 
-        # Unknown columns in the CSV file.
-        self._ignored_colnames = None
-
         self.df = None
         self.smrys = None
         self.metrics = []
