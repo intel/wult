@@ -121,18 +121,18 @@ class RORawResult(_RawResultBase.RawResultBase):
 
     def calc_smrys(self, regexs=None, funcnames=None, all_funcs=False):
         """
-        Calculate summary functions specified in 'funcnames' for columns matching 'regexs', and save
-        the result in 'self.smrys'. By default this method calculates the summaries for all columns
+        Calculate summary functions specified in 'funcnames' for metrics matching 'regexs', and save
+        the result in 'self.smrys'. By default this method calculates the summaries for all metrics
         in the currently loaded 'pandas.DataFrame' and uses the default functions functions.
 
-        The 'regexs' argument should be a list of column names or regular expressions, which will be
-        applied to column names. The 'funcnames' argument must be a list of function names.
+        The 'regexs' argument should be a list of metrics or regular expressions, which will be
+        applied to metrics. The 'funcnames' argument must be a list of function names.
 
-        Each column has the "default functions" associated with this column. These are just function
-        names which generally make sense for this column. By default ('all_funcs' is 'False'), this
+        Each metric has the "default functions" associated with this metric. These are just function
+        names which generally make sense for this metric. By default ('all_funcs' is 'False'), this
         method uses only the default functions. If, for example, 'funcnames' specifies the 'avg'
         function, and 'avg' function is not in the default functions list for the 'SilentTime'
-        column, it will not be applied (will be skipped). So the result ('self.smrys') will not
+        metric, it will not be applied (will be skipped). So the result ('self.smrys') will not
         include 'avg' for 'SilentTime'. However, if 'avg' is in the list of default functions for
         the 'WakeLatency' column, and it was specified in 'funcnames', it will be applied and will
         show up in the result.
@@ -142,47 +142,47 @@ class RORawResult(_RawResultBase.RawResultBase):
         'funcnames' for all columns without looking at the default functions list.
 
         The result ('self.smrys') is a dictionary of dictionaries. The top level dictionary keys
-        are column names and the sub-dictionary keys are function names.
+        are metrics and the sub-dictionary keys are function names.
         """
 
         if self.df is None:
             self.load_df()
 
         if not regexs:
-            all_colnames = self.metrics
+            all_metrics = self.metrics
         else:
-            all_colnames = self.find_metrics(regexs, must_find_all=True)
+            all_metrics = self.find_metrics(regexs, must_find_all=True)
 
-        # Exclude columns with non-numeric data.
-        colnames = self.get_numeric_metrics(metrics=all_colnames)
+        # Exclude metrics with non-numeric data.
+        metrics = self.get_numeric_metrics(metrics=all_metrics)
 
-        # Make sure we have some columns to work with.
-        if not colnames:
-            msg = "no columns to calculate summary functions for"
-            if all_colnames:
-                msg += ".\nThese columns were excluded because they are not numeric: "
-                msg += " ,".join(self.get_non_numeric_metrics(metrics=all_colnames))
+        # Make sure we have some metrics to work with.
+        if not metrics:
+            msg = "no metrics to calculate summary functions for"
+            if all_metrics:
+                msg += ".\nThese metrics were excluded because they are not numeric: "
+                msg += " ,".join(self.get_non_numeric_metrics(metrics=all_metrics))
             raise ErrorNotFound(msg)
 
         if not funcnames:
             funcnames = [funcname for funcname, _ in DFSummary.get_smry_funcs()]
 
         self.smrys = {}
-        for colname in colnames:
+        for metric in metrics:
             if all_funcs:
                 smry_fnames = funcnames
             else:
-                default_funcs = self.defs.info[colname].get("default_funcs", None)
+                default_funcs = self.defs.info[metric].get("default_funcs", None)
                 smry_fnames = DFSummary.filter_smry_funcs(funcnames, default_funcs)
 
-            subdict = DFSummary.calc_col_smry(self.df, colname, smry_fnames)
+            subdict = DFSummary.calc_col_smry(self.df, metric, smry_fnames)
 
-            coldef = self.defs.info[colname]
-            restype = getattr(builtins, coldef["type"])
+            mdef = self.defs.info[metric]
+            restype = getattr(builtins, mdef["type"])
             for func, datum in subdict.items():
                 subdict[func] = restype(datum)
 
-            self.smrys[colname] = subdict
+            self.smrys[metric] = subdict
 
     def _load_csv(self, **kwargs):
         """Read the datapoints CSV file into a 'pandas.DataFrame' and validate it."""
