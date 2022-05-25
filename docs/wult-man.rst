@@ -1,5 +1,5 @@
 ====
-wult
+WULT
 ====
 
 :Date:   Manual
@@ -50,9 +50,6 @@ COMMANDS
 **wult** *scan*
    Scan for device id.
 
-**wult** *load*
-   Load wult drivers and exit.
-
 **wult** *start*
    Start the measurements.
 
@@ -68,15 +65,17 @@ COMMANDS
 COMMAND *'wult* deploy'
 =======================
 
-usage: wult deploy [-h] [-q] [-d] [--kernel-src KSRC] [-H HOSTNAME] [-U
-USERNAME] [-K PRIVKEY] [-T TIMEOUT]
+usage: wult deploy [-h] [-q] [-d] [--kernel-src KSRC] [--local-build]
+[-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
 Compile and deploy wult helpers and drivers to the SUT (System Under
-Test), which can be either local or a remote host, depending on the '-H'
-option.The drivers are searched for in the following directories (and in
-the following order) on the local host: ./drivers/idle,
-$WULT_DATA_PATH/drivers/idle (if 'WULT_DATA_PATH' environment variable
-is defined), $HOME/.local/share/wult/drivers/idle,
+Test), which can be can be either local or a remote host, depending on
+the '-H' option. By default, everything is built on the SUT, but the
+'--local-build' can be used for building on the local system.The drivers
+are searched for in the following directories (and in the following
+order) on the local host: ./drivers/idle, $WULT_DATA_PATH/drivers/idle
+(if 'WULT_DATA_PATH' environment variable is defined),
+$HOME/.local/share/wult/drivers/idle,
 /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The
 wult tool also depends on the following helpers: stats-collect. These
 helpers will be compiled on the SUT and deployed to the SUT. The sources
@@ -104,7 +103,12 @@ OPTIONS *'wult* deploy'
 
 **--kernel-src** *KSRC*
    Path to the Linux kernel sources to build the drivers against. The
-   default is host, this is the path on the remote host (HOSTNAME).
+   default is the path is considered to be on the local system, rather
+   than the SUT.
+
+**--local-build**
+   Build helpers and drivers locally, instead of building on HOSTNAME
+   (the SUT).
 
 **-H** *HOSTNAME*, **--host** *HOSTNAME*
    Name of the host to run the command on.
@@ -156,56 +160,6 @@ OPTIONS *'wult* scan'
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
 
-COMMAND *'wult* load'
-=====================
-
-usage: wult load [-h] [-q] [-d] [--no-unload] [--force] [-H HOSTNAME]
-[-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] devid
-
-Load wult drivers and exit without starting the measurements.
-
-**devid**
-   The device ID, same as in the 'start' command.
-
-OPTIONS *'wult* load'
-=====================
-
-**-h**
-   Show this help message and exit.
-
-**-q**
-   Be quiet.
-
-**-d**
-   Print debugging information.
-
-**--no-unload**
-   This command exists for debugging and troubleshooting purposes.
-   Please, do not use for other reasons. keep in mind that if the the
-   specified 'devid' device was bound to some driver (e.g., a network
-   driver), it will be unbinded and with this option It won't be binded
-   back.
-
-**--force**
-   By default wult refuses to load network card drivers if its Linux
-   network interface is in an active state, such as "up". Use '--force'
-   to disable this safety mechanism. Use '--force' option with caution.
-
-**-H** *HOSTNAME*, **--host** *HOSTNAME*
-   Name of the host to run the command on.
-
-**-U** *USERNAME*, **--username** *USERNAME*
-   Name of the user to use for logging into the remote host over SSH.
-   The default user name is 'root'.
-
-**-K** *PRIVKEY*, **--priv-key** *PRIVKEY*
-   Path to the private SSH key that should be used for logging into the
-   remote host. By default the key is automatically found from standard
-   paths like
-
-**-T** *TIMEOUT*, **--timeout** *TIMEOUT*
-   SSH connect timeout in seconds, default is 8.
-
 COMMAND *'wult* start'
 ======================
 
@@ -214,8 +168,8 @@ PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--rfilt RFILT]
 [--rsel RSEL] [--keep-filtered] [-o OUTDIR] [--reportid REPORTID]
 [--stats STATS] [--stats-intervals STATS_INTERVALS] [--list-stats] [-l
 LDIST] [--cpunum CPUNUM] [--intr-focus] [--tsc-cal-time TSC_CAL_TIME]
-[--keep-raw-data] [--no-unload] [--early-intr] [--dirty-cpu-cache]
-[--dcbuf-size DCBUF_SIZE] [--report] [--force] devid
+[--keep-raw-data] [--no-unload] [--early-intr] [--report] [--force]
+devid
 
 Start measuring and recording C-state latency.
 
@@ -421,31 +375,15 @@ enable interrupts before linux enters the C-state. This option is
 generally a crude option along with '--intr-focus'. When this option is
 used, often it makes sense to use '-- intr-focus' at the same time.
 
-**--dirty-cpu-cache**
-   Deeper C-states like Intel CPU core C6 flush the CPU cache before
-   entering the C-state. Therefore, the dirty CPU cache lines must be
-   written back to the main memory before entering the C-state. This may
-   increase C-state latency observed by the operating system. If this
-   option is used, wult will try to "dirty" the measured CPU cache
-   before requesting C-states. This is done by writing zeroes to a
-   pre-allocated 2MiB buffer.
-
-**--dcbuf-size** *DCBUF_SIZE*
-   By default, in order to make CPU cache be filled with dirty cache
-   lines, wult filles a 2MiB buffer with zeroes before requesting a
-   C-state. This buffer is reffered to as "dirty cache buffer", or
-   "dcbuf". This option allows for changing the dcbuf size. For example,
-   in order to make it 4MiB, use '--dcbuf- size=4MiB'.
-
 **--report**
    Generate an HTML report for collected results (same as calling
    'report' command with default arguments).
 
 **--force**
-   By default wult does not accept network card as a measurement device
-   if its Linux network interface is in an active state, such as "up".
-   Use '--force' to disable this safety mechanism. Use '--force' option
-   with caution.
+   By default a network card is not accepted as a measurement device if
+   it is " used by a Linux network interface and the interface is in an
+   active state, " such as "up". Use '--force' to disable this safety
+   mechanism. Use it with " caution.
 
 COMMAND *'wult* report'
 =======================
@@ -566,17 +504,9 @@ OPTIONS *'wult* report'
 
 **--size** *REPORT_SIZE*
    Generate HTML report with a pre-defined set of diagrams and
-   histograms. This option is mutually exclusive with '--xaxes',
-   '--yaxes', '--hist', '--chist', therefore cannot be used in
-   combination with any of these options. This option can be set to
-   'small', 'medium' or 'large'. Here are the regular expressions for
-   each setting: small: {XAXES='SilentTime', YAXES='.*Latency',
-   HIST='.*Latency', CHIST='None'} medium: {XAXES='SilentTime',
-   YAXES='.*Latency,.*Delay', HIST='.*Latency,.*Delay',
-   CHIST='.*Latency'} large: {XAXES='SilentTime,LDist',
-   YAXES='.*Latency.*,.*Delay(?!Cyc).*,[PC]C.+%,SilentTime,ReqCState',
-   HIST='.*Latency.*,.*Delay(?!Cyc).*,[PC]C.+%,SilentTime,ReqCState,LDist',
-   CHIST='.*Latency'}
+   histograms. Possible values: 'small', 'medium' or 'large'. This
+   option is mutually exclusive with '--xaxes', '--yaxes', '--hist',
+   '--chist'.
 
 COMMAND *'wult* filter'
 =======================
@@ -717,7 +647,11 @@ columns' to get the list of the available column names.
 AUTHORS
 =======
 
-**wult** was written by Artem Bityutskiy <dedekind1@gmail.com>.
+::
+
+   Artem Bityutskiy
+
+dedekind1@gmail.com
 
 DISTRIBUTION
 ============

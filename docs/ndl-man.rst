@@ -1,5 +1,5 @@
 ===
-ndl
+NDL
 ===
 
 :Date:   Manual
@@ -66,15 +66,17 @@ COMMANDS
 COMMAND *'ndl* deploy'
 ======================
 
-usage: ndl deploy [-h] [-q] [-d] [--kernel-src KSRC] [-H HOSTNAME] [-U
-USERNAME] [-K PRIVKEY] [-T TIMEOUT]
+usage: ndl deploy [-h] [-q] [-d] [--kernel-src KSRC] [--local-build] [-H
+HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
 Compile and deploy ndl helpers and drivers to the SUT (System Under
-Test), which can be either local or a remote host, depending on the '-H'
-option.The drivers are searched for in the following directories (and in
-the following order) on the local host: ./drivers/idle,
-$NDL_DATA_PATH/drivers/idle (if 'NDL_DATA_PATH' environment variable is
-defined), $HOME/.local/share/wult/drivers/idle,
+Test), which can be can be either local or a remote host, depending on
+the '-H' option. By default, everything is built on the SUT, but the
+'--local-build' can be used for building on the local system.The drivers
+are searched for in the following directories (and in the following
+order) on the local host: ./drivers/idle, $NDL_DATA_PATH/drivers/idle
+(if 'NDL_DATA_PATH' environment variable is defined),
+$HOME/.local/share/wult/drivers/idle,
 /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The ndl
 tool also depends on the following helpers: ndlrunner. These helpers
 will be compiled on the SUT and deployed to the SUT. The sources of the
@@ -102,7 +104,12 @@ OPTIONS *'ndl* deploy'
 
 **--kernel-src** *KSRC*
    Path to the Linux kernel sources to build the drivers against. The
-   default is host, this is the path on the remote host (HOSTNAME).
+   default is the path is considered to be on the local system, rather
+   than the SUT.
+
+**--local-build**
+   Build helpers and drivers locally, instead of building on HOSTNAME
+   (the SUT).
 
 **-H** *HOSTNAME*, **--host** *HOSTNAME*
    Name of the host to run the command on.
@@ -160,7 +167,7 @@ COMMAND *'ndl* start'
 usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
 [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid
 REPORTID] [-l LDIST] [--rfilt RFILT] [--rsel RSEL] [--keep-filtered]
-[--report] ifname
+[--report] [--force] ifname
 
 Start measuring and recording the latency data.
 
@@ -225,8 +232,8 @@ required amount of datapoints is collected.
    report ID is the current date, prefixed with the remote host name in
    case the '-H' option was used: [hostname-]YYYYMMDD. For example,
    "20150323" is a report ID for a run made on March 23, 2015. The
-   allowed characters are: ACSII alphanumeric, '-', '.', ',', '_', and
-   '~'.
+   allowed characters are: ACSII alphanumeric, '-', '.', ',', '_', '~',
+   and ':'.
 
 **-l** *LDIST*, **--ldist** *LDIST*
    The launch distance in microseconds. This tool works by scheduling a
@@ -274,6 +281,12 @@ system- specific.
 **--report**
    Generate an HTML report for collected results (same as calling
    'report' command with default arguments).
+
+**--force**
+   By default a network card is not accepted as a measurement device if
+   it is " used by a Linux network interface and the interface is in an
+   active state, " such as "up". Use '--force' to disable this safety
+   mechanism. Use it with " caution.
 
 COMMAND *'ndl* report'
 ======================
@@ -530,7 +543,11 @@ columns' to get the list of the available column names.
 AUTHORS
 =======
 
-**ndl** was written by Artem Bityutskiy <dedekind1@gmail.com>.
+::
+
+   Artem Bityutskiy
+
+dedekind1@gmail.com
 
 DISTRIBUTION
 ============
