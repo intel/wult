@@ -9,10 +9,10 @@
 """This module can be used to get information about PCI devices in system."""
 
 import re
-from pepclibs.helperlibs.Exceptions import ErrorNotSupported, Error
-from pepclibs.helperlibs import FSHelpers, Procs
+from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs import LocalProcessManager, ClassHelpers
 
-class LsPCI:
+class LsPCI(ClassHelpers.SimpleCloseContext):
     """This is a wrapper class for 'lspci' tool."""
 
     @staticmethod
@@ -62,8 +62,8 @@ class LsPCI:
         [[[[<domain>]:]<bus>]:][<slot>][.[<func>]].
         """
 
-        cmd = f"{self._lspci_bin} -D -n -vv -s {devaddr}"
-        stdout, _ = self._proc.run_verify(cmd, join=False)
+        cmd = f"{self._lspci_path} -D -n -vv -s {devaddr}"
+        stdout, _ = self._pman.run_verify(cmd, join=False)
         if not stdout:
             raise Error(f"failed to get information for PCI slot: {devaddr}")
 
@@ -72,8 +72,8 @@ class LsPCI:
     def get_devices(self):
         """Generator yields device info as dictionary for each device. """
 
-        cmd = f"{self._lspci_bin} -D -n -v"
-        stdout, _ = self._proc.run_verify(cmd, join=False)
+        cmd = f"{self._lspci_path} -D -n -v"
+        stdout, _ = self._pman.run_verify(cmd, join=False)
 
         # The output structure is as follows:
         #
@@ -98,14 +98,17 @@ class LsPCI:
                     yield self._parse_dev_info(lines)
                 lines = [line]
 
-    def __init__(self, proc=None):
+    def __init__(self, pman=None):
         """Class constructor."""
 
-        if not proc:
-            proc = Procs.Proc()
+        self._pman = pman
+        self._lspci_path = "lspci"
 
-        self._proc = proc
-        self._lspci_bin = "lspci"
+        self._close_pman = pman is None
 
-        if not FSHelpers.which(self._lspci_bin, default=None, proc=proc):
-            raise ErrorNotSupported(f"the '{self._lspci_bin}' tool is not installed{proc.hostmsg}")
+        if not self._pman:
+            self._pman = LocalProcessManager.LocalProcessManager()
+
+    def close(self):
+        """Uninitialize the class object."""
+        ClassHelpers.close(self, close_attrs=("_pman",))

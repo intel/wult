@@ -8,7 +8,15 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import { LitElement, css } from 'lit'
+import { until } from 'lit/directives/until.js'
+import { LitElement, css, html } from 'lit'
+
+export class InvalidTableFileException {
+    constructor (msg) {
+        this.message = msg
+        this.name = 'InvalidTableFileException'
+    }
+}
 
 /**
  * Contains CSS and helper functions for tables.
@@ -16,6 +24,11 @@ import { LitElement, css } from 'lit'
  * @extends {LitElement}
  */
 export class ReportTable extends LitElement {
+    static properties = {
+        src: { type: String },
+        template: { attribute: false }
+    };
+
     static styles = css`
         table {
             table-layout: fixed;
@@ -65,12 +78,64 @@ export class ReportTable extends LitElement {
     `;
 
     /**
-     * Returns pixel width of table based on the number of sets of results shown in the report.
-     * @return {Number} no. of pixels to set the width of the table to.
+     * Returns pixel width of table based on the number of columns in the table.
+     * @param {Number} ncols number of columns in the table.
+     * @return {Number} number of pixels to set the width of the table to.
      */
-    getWidth (table) {
-      const nkeys = Object.keys(table).length
-      return Math.min(100, 20 * nkeys)
+    getWidth (ncols) {
+        return Math.min(100, 20 * (ncols - 2))
+    }
+
+    /**
+     * Generator of lines within the file at URL 'fileURL'.
+     */
+    async * makeTextFileLineIterator (fileURL) {
+        const utf8Decoder = new TextDecoder('utf-8')
+        const response = await fetch(fileURL)
+        const reader = response.body.getReader()
+        let { value: chunk, done: readerDone } = await reader.read()
+        chunk = chunk ? utf8Decoder.decode(chunk, { stream: true }) : ''
+
+        const re = /\r\n|\n|\r/gm
+        let startIndex = 0
+
+        for (;;) {
+            const result = re.exec(chunk)
+            if (!result) {
+                if (readerDone) {
+                    // Stop the generator if the whole file has been parsed.
+                    break
+                }
+
+                // No new-line found but reader has not finished parsing file so call 'read()' and wait for
+                // the reader to return more of the file. Then process that combined with any remaining
+                // unprocessed file content.
+                const remainder = chunk.substr(startIndex);
+                ({ value: chunk, done: readerDone } = await reader.read())
+                chunk = remainder + (chunk ? utf8Decoder.decode(chunk, { stream: true }) : '')
+                startIndex = re.lastIndex = 0
+                continue
+            }
+
+            // New-line found, so return substring from after the previous new-line to this new-line.
+            yield chunk.substring(startIndex, result.index)
+            startIndex = re.lastIndex
+        }
+
+        if (startIndex < chunk.length) {
+            // End of file reached and no more new-line characters found so yield any remaining unprocessed
+            // content.
+            yield chunk.substr(startIndex)
+        }
+    }
+
+    render () {
+        if (!this.src) {
+            return html``
+        }
+
+        const template = this.parseSrc()
+        return html`${until(template, html``)}`
     }
 }
 

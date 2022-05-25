@@ -2,7 +2,7 @@
  * -*- coding: utf-8 -*-
  * vim: ts=8 sw=8 tw=100 noet ai si
  *
- * Copyright (C) 2019-2021 Intel Corporation
+ * Copyright (C) 2019-2022 Intel Corporation
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -55,7 +55,7 @@
  * How many times in a row we allow the RTD register to contain zero. If it is always zero, this
  * indicates that something is misconfigured and we are not measuring anything.
  */
-#define ZERO_RTD_LIMIT 10
+#define ZERO_RTD_LIMIT 64
 
 /*
  * How many times in a row it is OK if arming a delayed packet fails. Sometimes it may happen
@@ -63,7 +63,7 @@
  * drifted too much and our launch distance was very small, so that we ended up trying to arm a
  * packet in the past.
  */
-#define ARM_FAIL_LIMIT 4
+#define ARM_FAIL_LIMIT 32
 
 /*
  * Error queue message buffer size.

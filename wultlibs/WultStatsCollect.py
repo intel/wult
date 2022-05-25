@@ -11,7 +11,7 @@ This module is just a "glue" layer between "WultRunner" and "StatsCollect".
 """
 
 import logging
-import contextlib
+from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.statscollectlibs import StatsCollect, StatsHelpers
 
@@ -29,7 +29,7 @@ def parse_stats(stnames, intervals):
 
     return stconf
 
-class WultStatsCollect:
+class WultStatsCollect(ClassHelpers.SimpleCloseContext):
     """
     The statistics collector class. Built on top of 'StatsCollect', but simplifies the API a little
     bit for wult usage scenario.
@@ -38,31 +38,34 @@ class WultStatsCollect:
     def start(self):
         """Start collecting statistics."""
 
+        _LOG.info("Starting statistics collectors")
         self._stcoll.start()
 
-    def stop(self):
+    def stop(self, sysinfo=True):
         """Stop collecting statistics."""
 
-        self._stcoll.stop()
+        _LOG.info("Stopping statistics collectors")
+        self._stcoll.stop(sysinfo=sysinfo)
 
     def apply_stconf(self, stconf):
         """Configure the statistics according to the 'stconf' dictionary contents."""
 
         if stconf["discover"] or "acpower" in stconf["include"]:
             # Assume that power meter is configured to match the SUT name.
-            if self._proc.is_remote:
-                devnode = self._proc.hostname
+            if self._pman.is_remote:
+                devnode = self._pman.hostname
             else:
                 devnode = "default"
             self._stcoll.set_prop("acpower", "devnode", devnode)
 
         StatsHelpers.apply_stconf(self._stcoll, stconf)
+        _LOG.info("Configuring the following statistics: %s", ", ".join(stconf["include"]))
         self._stcoll.configure()
 
     def copy_stats(self):
         """Copy collected statistics and statistics log from remote SUT to the local system."""
 
-        if not self._proc.is_remote:
+        if not self._pman.is_remote:
             return
 
         _, routdir = self._stcoll.get_outdirs()
@@ -71,20 +74,21 @@ class WultStatsCollect:
             return
 
         _LOG.debug("copy in-band statistics from '%s:%s' to '%s'",
-                   self._proc.hostname, routdir, self._outdir)
+                   self._pman.hostname, routdir, self._outdir)
+        _LOG.info("Copying collected statistics from %s", self._pman.hostname)
 
         # We add trailing slash to the remote directory path in order to make rsync copy the
         # contents of the remote directory, but not the directory itself.
-        self._proc.rsync(f"{routdir}/", self._outdir, opts="rltD", remotesrc=True, remotedst=False)
+        self._pman.rsync(f"{routdir}/", self._outdir, opts="rltD", remotesrc=True, remotedst=False)
 
-    def __init__(self, proc, res):
+    def __init__(self, pman, res):
         """
         The class constructor. The arguments are as follows.
-          * proc - the 'Proc' or 'SSH' object that defines the host to collect the statistics about.
+          * pman - the process manager object that defines the host to collect the statistics about.
           * res - the 'WORawResult' object to store the results at.
           """
 
-        self._proc = proc
+        self._pman = pman
         self._outdir = res.dirpath
         self._stcoll = None
 
@@ -95,27 +99,8 @@ class WultStatsCollect:
         except OSError as err:
             raise Error(f"failed to create directory '{path}': {err}") from None
 
-        self._stcoll = StatsCollect.StatsCollect(proc, local_outdir=self._outdir.resolve())
+        self._stcoll = StatsCollect.StatsCollect(pman, local_outdir=self._outdir.resolve())
 
     def close(self):
         """Close the statistics collector."""
-
-        if getattr(self, "_stcoll", None):
-            with contextlib.suppress(Error):
-                self._stcoll.close()
-            self._stcoll = None
-
-        if getattr(self, "_proc", None):
-            self._proc = None
-
-    def __del__(self):
-        """The destructor."""
-        self.close()
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
+        ClassHelpers.close(self, close_attrs=("_stcoll",), unref_attrs=("_pman",))

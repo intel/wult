@@ -11,15 +11,14 @@ This module implements collecting the "system information" type of statistics.
 """
 
 import logging
-from pepclibs.helperlibs import FSHelpers
 from pepclibs.helperlibs.Exceptions import Error
 
 _LOG = logging.getLogger()
 
-def _run_commands(cmdinfos, proc):
+def _run_commands(cmdinfos, pman):
     """Execute the commands specified in the 'cmdinfos' dictionary."""
 
-    if proc.is_remote:
+    if pman.is_remote:
         # In case of a remote host, it is much more effecient to run all commands in one go, because
         # in this case only one SSH session needs to be established.
         cmd = ""
@@ -28,7 +27,7 @@ def _run_commands(cmdinfos, proc):
 
         cmd += " wait"
         try:
-            proc.run_verify(cmd, shell=True)
+            pman.run_verify(cmd, shell=True)
         except Error as err:
             _LOG.warning("Some system statistics were not collected")
             _LOG.debug(str(err))
@@ -37,13 +36,13 @@ def _run_commands(cmdinfos, proc):
         errors = []
         for cmdinfo in cmdinfos.values():
             try:
-                procs.append(proc.run_async(cmdinfo["cmd"], shell=True))
+                procs.append(pman.run_async(cmdinfo["cmd"], shell=True))
             except Error as err:
                 errors.append(str(err))
 
         for cmd_proc in procs:
             try:
-                cmd_proc.wait_for_cmd(capture_output=False, timeout=5*60)
+                cmd_proc.wait(capture_output=False, timeout=5*60)
             except Error as err:
                 errors.append(str(err))
 
@@ -51,13 +50,13 @@ def _run_commands(cmdinfos, proc):
             _LOG.warning("Not all the system statistics were collected, here are the failures\n%s",
                          "\nNext error:\n".join(errors))
 
-def _collect_totals(outdir, when, proc):
+def _collect_totals(outdir, when, pman):
     """
     This is a helper for collecting the global statistics which may change after a workload has been
     run on the SUT. For example, 'dmesg' may have additional lines, come 'cpufreq' sysfs files may
     change, etc. We collect this sort of information twice - before and after the workload.
 
-    The 'outdir' is path on the SUT defined by the 'proc' object and the 'when' argument should be a
+    The 'outdir' is path on the SUT defined by the 'pman' object and the 'when' argument should be a
     "before" or "after" string.
     """
 
@@ -101,17 +100,18 @@ def _collect_totals(outdir, when, proc):
     cmdinfo["outfile"] = outfile
     cmdinfo["cmd"] = f"cat /proc/interrupts > '{outfile}' 2>&1"
 
-    return _run_commands(cmdinfos, proc)
+    return _run_commands(cmdinfos, pman)
 
-def collect_before(outdir, proc):
+def collect_before(outdir, pman):
     """
-    Collect information about the SUT (System Under Test) defined by 'proc' (an 'SSH' or 'Proc'
-    object). This function is supposed to be called before running a workload on the SUT. It will
-    collect various global data like the contents of the '/proc/cmdline' file, the 'lspci' output,
-    and store the data in the 'outdir' directory on the SUT.
+    Collect information about a host defined by th 'pman' process manager object.
+
+    This function is supposed to be called before running a workload on the SUT. It will collect
+    various global data like the contents of the '/proc/cmdline' file, the 'lspci' output, and store
+    the data in the 'outdir' directory on the SUT.
     """
 
-    FSHelpers.mkdir(outdir, parents=True, exist_ok=True, proc=proc)
+    pman.mkdir(outdir, parents=True, exist_ok=True)
 
     cmdinfos = {}
 
@@ -175,16 +175,17 @@ def collect_before(outdir, proc):
     cmdinfo["outfile"] = outfile
     cmdinfo["cmd"] = f"sysctl --all > '{outfile}' 2>&1"
 
-    _run_commands(cmdinfos, proc)
-    _collect_totals(outdir, "before", proc)
+    _run_commands(cmdinfos, pman)
+    _collect_totals(outdir, "before", pman)
 
-def collect_after(outdir, proc):
+def collect_after(outdir, pman):
     """
-    Collect information about the SUT (System Under Test) defined by 'proc' (an 'SSH' or 'Proc'
-    object). This function is supposed to be called after running a workload on the SUT. It will
-    collect the information that may change after the workload. For example, the 'dmesg' output may
-    contain new lines, so it is beneficial to have a 'dmesg' snapshot before and after the
-    workload. The data will be stored in the 'outdir' directory on the SUT.
+    Collect information about a host defined by th 'pman' process manager object.
+
+    This function is supposed to be called after running a workload on the SUT. It will collect the
+    information that may change after the workload. For example, the 'dmesg' output may contain new
+    lines, so it is beneficial to have a 'dmesg' snapshot before and after the workload. The data
+    will be stored in the 'outdir' directory on the SUT.
     """
 
-    _collect_totals(outdir, "after", proc)
+    _collect_totals(outdir, "after", pman)

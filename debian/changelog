@@ -1,3 +1,15 @@
+wult (1.10.0) unstable; urgency=low
+
+  * wult report: removed symbolic links to raw result files.
+  * wult report: changed '--relocatable' to be a binary option.
+  * wult report: added turbostat statistics tab.
+  * wult: removed 'start --dirty-cpu-cache' option/capability.
+  * wult: removed 'wult load' debug command.
+  * wult/ndl deploy: fix '--kernel-src' option which did not work.
+  * wult/ndl deploy: add '--local-build' option.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com> Wed, 25 May 2022 16:43:11 +0300
+
 wult (1.9.20) unstable; urgency=low
 
   * Fix crash when using 'wult calc --rsel'.

@@ -17,9 +17,9 @@ this module require the  'args' object which represents the command-line argumen
 import sys
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import Trivial, Procs, SSH, Logging, YAML
+from pepclibs.helperlibs import Trivial, ProcessManager, Logging, YAML
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import Devices
+from wultlibs import DFSummary, Devices
 from wultlibs.helperlibs import ReportID, Human
 from wultlibs.rawresultlibs import RORawResult
 
@@ -28,6 +28,11 @@ _DRV_SRC_SUBPATH = Path("drivers/idle")
 _HELPERS_SRC_SUBPATH = Path("helpers")
 
 _LOG = logging.getLogger()
+
+# By default 'ReportID' module does not allow for the ":" character, but it is part of the PCI
+# address, and we allow for PCI addresses as device IDs. Here are few constants that we use to
+# extend the default allowed report ID characters set.
+_REPORTID_ADDITIONAL_CHARS = ":"
 
 # Description for the '--datapoints' option of the 'start' command.
 DATAPOINTS_DESCR = """How many datapoints should the test result include, default is 1000000. Note,
@@ -57,22 +62,22 @@ START_OVER_DESCR = """If the output directory already contains the datapoints CS
 # Description for the '--outdir' option of the 'start' command.
 START_OUTDIR_DESCR = """Path to the directory to store the results at."""
 
-# Description for the '--reportid' option of the 'start' command.
-def get_start_reportid_descr(allowed_chars):
-    """
-    Returns description for the '--reportid' option of the 'start' command. The 'allowed_chars'
-    argument should be the allowed report ID characters description string.
-    """
-
-    descr = f"""Any string which may serve as an identifier of this run. By default report ID is the
-                current date, prefixed with the remote host name in case the '-H' option was used:
-                [hostname-]YYYYMMDD. For example, "20150323" is a report ID for a run made on March
-                23, 2015. The allowed characters are: {allowed_chars}."""
-    return descr
+_REPORTID_CHARS_DESCR = ReportID.get_charset_descr(additional_chars=_REPORTID_ADDITIONAL_CHARS)
+START_REPORTID_DESCR = f"""Any string which may serve as an identifier of this run. By default
+                           report ID is the current date, prefixed with the remote host name in case
+                           the '-H' option was used: [hostname-]YYYYMMDD. For example, "20150323" is
+                           a report ID for a run made on March 23, 2015. The allowed characters are:
+                           {_REPORTID_CHARS_DESCR}."""
 
 # Description for the '--report' option of the 'start' command.
 START_REPORT_DESCR = """Generate an HTML report for collected results (same as calling 'report'
                         command with default arguments)."""
+
+# Description for the '--force' option of the 'start' command.
+START_FORCE_DESCR = """By default a network card is not accepted as a measurement device if it is "
+                       used by a Linux network interface and the interface is in an active state, "
+                       such as "up". Use '--force' to disable this safety mechanism. Use it with "
+                       caution."""
 
 # Description for the '--outdir' option of the 'report' command.
 def get_report_outdir_descr(toolname):
@@ -140,15 +145,9 @@ TITLE_DESCR = """The report title description - any text describing this report 
                  the resulting HTML report."""
 
 # Description for the '--relocatable' option of the 'report' command.
-RELOCATABLE_DESCR = """By default the generated report includes references to the raw test results
-                       and report assets (such as CSS/JS files). At the file-system level, symlinks
-                       are created to the assets and results. This means that if the original files
-                       are moved somewhere, or the generated report is moved to another system, it
-                       may end up with broken links to these files. This option accepts 2 possible
-                       values: 'copy' and 'symlink'. In the case of the 'copy' value, raw results
-                       and report assets will be copied to the report output directory, which will
-                       make the report relocatable, but at the expense of increased disk space
-                       consumption. The 'symlink' value corresponds to the default behavior."""
+RELOCATABLE_DESCR = """Generate a report which contains a copy of the raw test results. With this
+                       option, viewers of the report will be able to browse raw logs and statistics
+                       files which are copied across with the raw test results."""
 
 # Description for the '--list-columns' option of the 'report' and other commands.
 LIST_COLUMNS_DESCR = "Print the list of the available column names and exit."
@@ -221,13 +220,48 @@ FUNCS_DESCR = """Comma-separated list of summary functions to calculate. By defa
 # Description for the '--list-funcs' option of the 'calc' command.
 LIST_FUNCS_DESCR = "Print the list of the available summary functions."
 
-def get_proc(args, hostname):
-    """Returns an "SSH" or 'Procs' object for host 'hostname'."""
+def get_pman(args):
+    """
+    Returns the process manager object for host 'hostname'. The returned object should either be
+    used with a 'with' statement, or closed with the 'close()' method.
+    """
 
-    if hostname == "localhost":
-        return Procs.Proc()
-    return SSH.SSH(hostname=hostname, username=args.username, privkeypath=args.privkey,
-                   timeout=args.timeout)
+    if args.hostname == "localhost":
+        username = privkeypath = timeout = None
+    else:
+        username = args.username
+        privkeypath = args.privkey
+        timeout = args.timeout
+
+    return ProcessManager.get_pman(args.hostname, username=username, privkeypath=privkeypath,
+                                   timeout=timeout)
+
+def check_kver(toolname, pman, kver=None):
+    """
+    Check if the SUT is using new enough kernel version. The arguments are as follows.
+      * toolname - name of the tool to check kernel version for.
+      * pman - process manager object of the target system.
+      * kver - version of the kernel on the target system (wll be discovered if not provided).
+    """
+
+    from wultlibs.helperlibs import KernelVersion # pylint: disable=import-outside-toplevel
+
+    if not kver:
+        kver = KernelVersion.get_kver(pman=pman)
+
+    _tools_info = {
+        "wult" : {
+            "minkver" : "5.6",
+        },
+        "ndl" : {
+            "minkver" : "5.2",
+        },
+    }
+
+    minkver = _tools_info[toolname]["minkver"]
+    if KernelVersion.kver_lt(kver, minkver):
+        raise Error(f"version of Linux kernel{pman.hostmsg} is {kver}, and it is not new enough "
+                    f"for {toolname}.\nPlease, use kernel version {minkver} or newer.")
 
 def _validate_range(rng, what, single_ok):
     """Implements 'parse_ldist()'."""
@@ -258,19 +292,6 @@ def _validate_range(rng, what, single_ok):
         vals.append(vals[0])
 
     return vals
-
-def validate_relocatable_arg(arg):
-    """
-    Validate that a given argument 'arg' is valid for the 'relocatable' option. If the argument is
-    valid, it is returned. If the argument is not valid, an Error is raised.
-    """
-
-    if not arg:
-        return "symlink"
-    if arg not in ("copy", "symlink"):
-        raise Error(f"bad '--relocatable' value '{arg}', use one of: "
-                    f"copy, symlink")
-    return arg
 
 def setup_stdout_logging(toolname, logs_path):
     """
@@ -377,20 +398,21 @@ def apply_filters(args, res):
 def scan_command(args):
     """Implements the 'scan' command for the 'wult' and 'ndl' tools."""
 
-    proc = get_proc(args, args.hostname)
+    pman = get_pman(args)
 
     msg = ""
-    for devid, alias, descr in Devices.scan_devices(proc, args.devtypes):
-        msg += f" * Device ID: {devid}\n"
-        if alias:
-            msg += f"   - Alias: {alias}\n"
-        msg += f"   - Description: {descr}\n"
+    for info in Devices.scan_devices(args.toolname, pman):
+        msg += f" * Device ID: {info['devid']}\n"
+        if info["alias"]:
+            msg += f"   - Alias: {info['alias']}\n"
+        msg += f"   - Resolution: {info['resolution']} ns\n"
+        msg += f"   - Description: {info['descr']}\n"
 
     if not msg:
         _LOG.info("No %s compatible devices found", args.toolname)
         return
 
-    _LOG.info("Compatible device(s)%s:\n%s", proc.hostmsg, msg.rstrip())
+    _LOG.info("Compatible device(s)%s:\n%s", pman.hostmsg, msg.rstrip())
 
 def filter_command(args):
     """Implements the 'filter' command for the 'wult' and 'ndl' tools."""
@@ -398,7 +420,7 @@ def filter_command(args):
     res = RORawResult.RORawResult(args.respath)
 
     if args.list_columns:
-        for colname in res.colnames:
+        for colname in res.metrics:
             _LOG.info("%s: %s", colname, res.defs.info[colname]["title"])
         return
 
@@ -426,7 +448,7 @@ def calc_command(args):
     """Implements the 'calc' command  for the 'wult' and 'ndl' tools."""
 
     if args.list_funcs:
-        for name, descr in RORawResult.get_smry_funcs():
+        for name, descr in DFSummary.get_smry_funcs():
             _LOG.info("%s: %s", name, descr)
         return
 
@@ -440,7 +462,7 @@ def calc_command(args):
     res = RORawResult.RORawResult(args.respath)
     apply_filters(args, res)
 
-    non_numeric = res.get_non_numeric_colnames()
+    non_numeric = res.get_non_numeric_metrics()
     if non_numeric and (args.csel or args.cfilt):
         non_numeric = ", ".join(non_numeric)
         _LOG.warning("skipping non-numeric column(s): %s", non_numeric)
@@ -450,14 +472,12 @@ def calc_command(args):
     _LOG.info("Datapoints count: %d", len(res.df))
     YAML.dump(res.smrys, sys.stdout, float_format="%.2f")
 
-def open_raw_results(respaths, toolname, reportids=None, reportid_additional_chars=None):
+def open_raw_results(respaths, toolname, reportids=None):
     """
     Opens the input raw test results, and returns the list of 'RORawResult' objects.
       * respaths - list of paths to raw results.
       * toolname - name of the tool opening raw results.
       * reportids - list of reportids to override report IDs in raw results.
-      * reportid_additional_chars - string of characters allowed in report ID on top of default
-                                    characters.
     """
 
     if reportids:
@@ -476,7 +496,7 @@ def open_raw_results(respaths, toolname, reportids=None, reportid_additional_cha
     rsts = []
     for respath, reportid in zip(respaths, reportids):
         if reportid:
-            ReportID.validate_reportid(reportid, additional_chars=reportid_additional_chars)
+            ReportID.validate_reportid(reportid, additional_chars=_REPORTID_ADDITIONAL_CHARS)
 
         res = RORawResult.RORawResult(respath, reportid=reportid)
         if toolname != res.info["toolname"]:
@@ -493,6 +513,59 @@ def list_result_columns(rsts):
 
     for rst in rsts:
         _LOG.info("Column names in '%s':", rst.dirpath)
-        for colname in rst.colnames:
+        for colname in rst.metrics:
             if colname in rst.defs.info:
                 _LOG.info("  * %s: %s", colname, rst.defs.info[colname]["title"])
+
+def start_command_reportid(args, pman):
+    """
+    If user provided report ID for the 'start' command, this function validates it and returns.
+    Otherwise, it generates the default report ID and returns it.
+    """
+
+    if not args.reportid and pman.is_remote:
+        prefix = pman.hostname
+    else:
+        prefix = None
+
+    return ReportID.format_reportid(prefix=prefix, reportid=args.reportid,
+                                    strftime=f"{args.toolname}-{args.devid}-%Y%m%d",
+                                    additional_chars=_REPORTID_ADDITIONAL_CHARS)
+
+def start_command_check_network(args, pman, netif):
+    """
+    In case the device that is used for measurement is a network card, check that it is not in the
+    'up' state. This makes sure users do not lose networking by specifying a wrong device by a
+    mistake.
+    """
+
+    if args.force:
+        return
+
+    # Make sure the device is not used for networking and users do not lose networking by
+    # specifying a wrong device by a mistake.
+    if netif.getstate() == "up":
+        msg = ""
+        if args.devid != netif.ifname:
+            msg = f" (network interface '{netif.ifname}')"
+
+        raise Error(f"refusing to use device '{args.devid}'{msg}{pman.hostmsg}: it is up and "
+                    f"might be used for networking. Please, bring it down if you want to use "
+                    "it for measurements.")
+
+
+def report_command_outdir(args, rsts):
+    """Return the default or user-provided output directory path for the 'report' command."""
+
+    if args.outdir is not None:
+        return args.outdir
+
+    if len(args.respaths) > 1:
+        outdir = ReportID.format_reportid(prefix=f"{args.toolname}-report",
+                                          reportid=rsts[0].reportid,
+                                          additional_chars=_REPORTID_ADDITIONAL_CHARS)
+    else:
+        outdir = args.respaths[0]
+
+    _LOG.info("Report output directory: %s", outdir)
+    return Path(outdir)

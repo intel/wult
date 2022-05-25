@@ -11,9 +11,10 @@ This module provides API for dealing with Linux function trace buffer.
 """
 
 import logging
-from pepclibs.helperlibs import FSHelpers
+import contextlib
+from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorTimeOut
-from wultlibs.helperlibs import ProcHelpers
+from wultlibs.helperlibs import ProcHelpers, FSHelpers
 
 _LOG = logging.getLogger()
 
@@ -49,14 +50,14 @@ class FTraceLine():
             procinfo, self.cpunum, self.flags, self.timestamp, self.func, self.msg = split
             self.procname, self.pid = procinfo.split("-")
 
-class FTrace:
+class FTrace(ClassHelpers.SimpleCloseContext):
     """This class represents the Linux function trace buffer."""
 
     def _clear(self):
         """Clear the function trace buffer."""
 
         _LOG.debug("clearing the trace buffer")
-        with self._proc.open(self.ftpath, "w+") as fobj:
+        with self._pman.open(self._paths["trace"], "w+") as fobj:
             fobj.write("0")
 
     def getlines(self):
@@ -65,17 +66,17 @@ class FTrace:
         """
 
         while True:
-            stdout, stderr, exitcode = self._reader.wait_for_cmd(timeout=self.timeout,
-                                                                 lines=[32, None], join=False)
+            stdout, stderr, exitcode = self._reader.wait(timeout=self.timeout, lines=[32, None],
+                                                         join=False)
 
             if not stdout and not stderr and exitcode is None:
                 raise ErrorTimeOut(f"no data in trace buffer for {self._reader.timeout} seconds"
-                                   f"{self._proc.hostmsg}")
+                                   f"{self._pman.hostmsg}")
 
 
             # The process has terminated or printed something to standard error.
             if exitcode is not None or stderr:
-                msg = self._reader.cmd_failed_msg(stdout, stderr, exitcode)
+                msg = self._reader.get_cmd_failure_msg(stdout, stderr, exitcode)
                 raise Error(f"the function trace reader process has exited unexpectedly:\n{msg}")
 
             for line in stdout:
@@ -84,53 +85,65 @@ class FTrace:
                 self.raw_line = line.strip()
                 yield FTraceLine(line)
 
-    def __init__(self, proc, timeout=30):
+    def __init__(self, pman, timeout=30):
         """
         Class constructor. The arguments are as follows.
-          * proc - the 'Proc' or 'SSH' object that defines the host to operate on. This object will
-                   keep a 'proc' reference and use it in various methods.
+          * pman - the process manager object that defines the host to operate on.
           * timeout - longest time in seconds to wait for data in the trace buffer.
         """
 
         self._reader = None
-        self._proc = proc
+        self._pman = pman
         self.timeout = timeout
+
+        self._paths = {}
+        self._debugfs_mntpoint = None
+        self._unmount_debugfs = None
+        self._disable_tracing = None
         self.raw_line = None
 
-        mntpoint = FSHelpers.mount_debugfs(proc=proc)
-        self.ftpath = mntpoint.joinpath("tracing/trace")
-        self.ftpipe_path = mntpoint.joinpath("tracing/trace_pipe")
+        self._debugfs_mntpoint, self._unmount_debugfs = FSHelpers.mount_debugfs(pman=self._pman)
+        self._paths["trace"] = self._debugfs_mntpoint.joinpath("tracing/trace")
+        self._paths["trace_pipe"] = self._debugfs_mntpoint.joinpath("tracing/trace_pipe")
+        self._paths["tracing_on"] = self._debugfs_mntpoint.joinpath("tracing/tracing_on")
 
-        for path in (self.ftpath, self.ftpipe_path):
-            if not FSHelpers.isfile(path, proc=proc):
-                raise ErrorNotSupported(f"linux kernel function trace file was not found at "
-                                        f"'{path}'{proc.hostmsg}")
+        for path in self._paths.values():
+            if not self._pman.is_file(path):
+                raise ErrorNotSupported(f"linux ftrace file '{path}' not found{self._pman.hostmsg}")
 
-        cmd = f"cat {self.ftpipe_path}"
+        cmd = f"cat {self._paths['trace_pipe']}"
         name = "stale wult function trace reader process"
-        ProcHelpers.kill_processes(cmd, log=True, name=name, proc=self._proc)
+        ProcHelpers.kill_processes(cmd, log=True, name=name, pman=self._pman)
+
+        # Enable tracing if necessary.
+        with self._pman.open(self._paths["tracing_on"], "w+") as fobj:
+            val = fobj.read()
+            if val.strip() != "1":
+                _LOG.debug("enabling tracing")
+                fobj.write("1")
+                self._disable_tracing = True
+
         self._clear()
-        self._reader = self._proc.run_async(cmd)
+        self._reader = self._pman.run_async(cmd)
 
     def close(self):
         """Stop following the function trace buffer."""
 
-        if getattr(self, "_proc", None):
-            proc = self._proc
-            self._proc = None
-        else:
-            return
-
-        if getattr(self, "_reader", None) and getattr(self._reader, "pid", None):
+        if getattr(self, "_pman", None) and getattr(self, "_reader", None) and \
+                                            getattr(self._reader, "pid", None):
             _LOG.debug("killing the function trace reader process PID %d%s",
-                       self._reader.pid, proc.hostmsg)
-            ProcHelpers.kill_pids(self._reader.pid, kill_children=True, must_die=False, proc=proc)
-            self._reader = None
+                       self._reader.pid, self._pman.hostmsg)
+            ProcHelpers.kill_pids(self._reader.pid, kill_children=True, must_die=False,
+                                  pman=self._pman)
 
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
+        if getattr(self, "_disable_tracing", None):
+            with contextlib.suppress(Error):
+                with self._pman.open(self._paths["tracing_on"], "w+") as fobj:
+                    fobj.write("0")
+                self._disable_tracing = False
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
+        if getattr(self, "_unmount_debugfs", None):
+            with contextlib.suppress(Error):
+                self._pman.run(f"unmount {self._debugfs_mntpoint}")
+
+        ClassHelpers.close(self, unref_attrs=("_reader", "_pman"))

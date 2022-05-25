@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2021 Intel Corporation
+# Copyright (C) 2019-2022 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -13,14 +13,15 @@ saves the results.
 
 import time
 import logging
-from pepclibs.helperlibs.Exceptions import Error
 from pepclibs import CStates
-from wultlibs import Defs
+from pepclibs.helperlibs import ClassHelpers
+from pepclibs.helperlibs.Exceptions import Error
+from wultlibs import WultDefs
 from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
 
-class DatapointProcessor:
+class DatapointProcessor(ClassHelpers.SimpleCloseContext):
     """
     The datapoint processor class implements raw datapoint processing. Takes raw datapoints on
     input and provides processed datapoints on output. Processing includes filtering unwanted
@@ -90,7 +91,7 @@ class DatapointProcessor:
 
         # Add the C-state percentages.
         for field in self._cs_fields:
-            cyc_filed = Defs.get_cscyc_colname(Defs.get_csname(field))
+            cyc_filed = WultDefs.get_cscyc_metric(WultDefs.get_csname(field))
 
             # In case of POLL state, calculate only CC0%.
             if self._is_poll_idle(dp) and cyc_filed != "CC0Cyc":
@@ -106,7 +107,7 @@ class DatapointProcessor:
                 if dp[field] > 300:
                     loglevel = logging.WARNING
 
-                csname = Defs.get_csname(field)
+                csname = WultDefs.get_csname(field)
                 _LOG.log(loglevel, "too high %s residency of %.1f%%, using 100%% instead. The "
                                    "datapoint is:\n%s", csname, dp[field], Human.dict2str(dp))
                 dp[field] = 100.0
@@ -118,7 +119,7 @@ class DatapointProcessor:
 
             non_cc1_cyc = 0
             for field in dp.keys():
-                if Defs.is_cscyc_colname(field) and Defs.get_csname(field) != "CC1":
+                if WultDefs.is_cscyc_metric(field) and WultDefs.get_csname(field) != "CC1":
                     non_cc1_cyc += dp[field]
 
             dp["CC1Derived%"] = (dp["TotCyc"] - non_cc1_cyc) / dp["TotCyc"] * 100.0
@@ -388,7 +389,7 @@ class DatapointProcessor:
 
     def _calculate_tsc_rate(self, rawdp):
         """
-        TSC rate is calculated using 'BICyc' and 'BIMonotinic' raw datapoint fields. These fields
+        TSC rate is calculated using 'BICyc' and 'BIMonotonic' raw datapoint fields. These fields
         are read one after another with interrupts disabled. The former is "TSC cycles Before Idle",
         the latter stands for "Monotonic time Before Idle". The "Before Idle" part is not relevant
         here at all, it just tells that these counters were read just before the system enters an
@@ -406,7 +407,7 @@ class DatapointProcessor:
 
         if rawdp["SMICnt"] != 0 or rawdp["NMICnt"] != 0:
             # Do not use this datapoint, there was an SMI or NMI, and there is a chance that it
-            # happened between the 'BICyc' and 'BIMonotinic' reads, which may skew our TSC rate
+            # happened between the 'BICyc' and 'BIMonotonic' reads, which may skew our TSC rate
             # calculations.
             _LOG.debug("NMI/SMI detected, won't use the datapoint for TSC rate calculations:\n%s",
                        Human.dict2str(rawdp))
@@ -415,11 +416,11 @@ class DatapointProcessor:
         if not self._tsc1:
             # We are called for the first time.
             self._tsc1 = rawdp["BICyc"]
-            self._ts1 = rawdp["BIMonotinic"]
+            self._ts1 = rawdp["BIMonotonic"]
             return
 
         tsc2 = rawdp["BICyc"]
-        ts2 = rawdp["BIMonotinic"]
+        ts2 = rawdp["BIMonotonic"]
 
         # Bear in mind that 'ts' is in nanoseconds.
         if ts2 - self._ts1 < self.tsc_cal_time * 1000000000:
@@ -481,19 +482,18 @@ class DatapointProcessor:
 
         raw_fields = list(rawdp.keys())
 
-        defs = Defs.Defs("wult")
-        defs.populate_cstates(raw_fields)
+        defs = WultDefs.WultDefs(raw_fields)
 
         self._cs_fields = []
         self._has_cstates = False
 
         for field in raw_fields:
-            csname = Defs.get_csname(field, default=None)
+            csname = WultDefs.get_csname(field, must_get=False)
             if not csname:
                 # Not a C-state field.
                 continue
             self._has_cstates = True
-            self._cs_fields.append(Defs.get_csres_colname(csname))
+            self._cs_fields.append(WultDefs.get_csres_metric(csname))
 
         self._us_fields_set = {field for field, vals in defs.info.items() \
                                if vals.get("unit") == "microsecond"}
@@ -517,7 +517,7 @@ class DatapointProcessor:
         close = False
         try:
             if rcsobj is None:
-                rcsobj = CStates.ReqCStates(proc=self._proc)
+                rcsobj = CStates.ReqCStates(pman=self._pman)
                 close = True
             csinfo = rcsobj.get_cpu_cstates_info(self._cpunum)
         finally:
@@ -529,18 +529,18 @@ class DatapointProcessor:
             if not info["disable"]:
                 break
         else:
-            raise Error(f"no idle states are enabled on CPU {self._cpunum}{self._proc.hostmsg}")
+            raise Error(f"no idle states are enabled on CPU {self._cpunum}{self._pman.hostmsg}")
 
         self._csmap = {}
         for csname, cstate in csinfo.items():
             self._csmap[cstate["index"]] = csname
 
-    def __init__(self, cpunum, proc, drvname, intr_focus=None, early_intr=None, tsc_cal_time=10,
+    def __init__(self, cpunum, pman, drvname, intr_focus=None, early_intr=None, tsc_cal_time=10,
                  rcsobj=None):
         """
         The class constructor. The arguments are as follows.
           * cpunum - the measured CPU number.
-          * proc - the 'Proc' or 'SSH' object that defines the host to run the measurements on.
+          * pman - the process manager object that defines the host to run the measurements on.
           * drvname - name of the driver providing the datapoints
           * intr_focus - enable interrupt latency focused measurements ('WakeLatency' is not
           *              measured in this case, only 'IntrLatency').
@@ -550,7 +550,7 @@ class DatapointProcessor:
         """
 
         self._cpunum = cpunum
-        self._proc = proc
+        self._pman = pman
         self._drvname = drvname
         self._intr_focus = intr_focus
         self._early_intr = early_intr
@@ -584,16 +584,4 @@ class DatapointProcessor:
 
     def close(self):
         """Close the datapoint processor."""
-
-        if getattr(self, "_proc", None):
-            self._proc = None
-        else:
-            return
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
+        ClassHelpers.close(self, unref_attrs=("_pman",))

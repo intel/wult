@@ -3,16 +3,16 @@
 #
 # Definitions for ACPower CSV file.
 
-ACPower:
+P:
     title: "AC Power"
     descr: >-
         A/C power of the SUT (System Under Test). Measured using an external A/C power meter at the wall
         socket level.
     unit: "Watt"
     short_unit: "W"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
-Time:
+    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
+T:
     title: "Time Elapsed"
-    descr: "Time elapsed since first measurement was taken."
+    descr: "Time elapsed since the start of the measurements."
     unit: "second"
     short_unit: "s"

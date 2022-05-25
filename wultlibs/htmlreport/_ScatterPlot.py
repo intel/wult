@@ -27,11 +27,11 @@ class ScatterPlot(_Plot.Plot):
 
     def reduce_df_density(self, rawdf, reportid):
         """
-        This function reduces the density of the dataframe 'rawdf'. The problem it solves is that
-        that there are thousands and thousands of "uninteresting" datapoints per one "interesting"
-        datapoint (an outlier). And if the total amount of datapoints is huge (say, 10000000), a web
-        browser simply cannot show it because the plot is too large (gigabytes). So what we are
-        trying to do is to:
+        This function reduces the density of the 'pandas.DataFrame' 'rawdf'. The problem it solves
+        is that that there are thousands and thousands of "uninteresting" datapoints per one
+        "interesting" datapoint (an outlier). And if the total amount of datapoints is huge (say,
+        10000000), a web browser simply cannot show it because the plot is too large (gigabytes). So
+        what we are trying to do is to:
         1. Split the scatter plot on NxN squares, where N is the bins count.
         2. Calculate how many datapoints each square contains (the 2D histogram).
         3. If a square has few datapoints, these are outliers, we leave them alone. "Few" is defined
@@ -45,9 +45,9 @@ class ScatterPlot(_Plot.Plot):
         def _map_non_numeric(colname):
             """
             In order to reduce density for a non-numeric column, we need to map that column to
-            unique numbers, find datapoints to keep, and then reduce the dataframe. This function
-            does exactly that - maps a non-numeric column 'colname' to unique numbers and returns
-            the corresponding pandas series object.
+            unique numbers, find datapoints to keep, and then reduce the 'pandas.DataFrame'. This
+            function does exactly that - maps a non-numeric column 'colname' to unique numbers and
+            returns the corresponding pandas series object.
             """
 
             if not self._is_numeric_col(df, colname):
@@ -63,8 +63,8 @@ class ScatterPlot(_Plot.Plot):
         _LOG.info("Reducing density for report ID '%s', diagram '%s vs %s'",
                   reportid, self.yaxis_label, self.xaxis_label)
 
-        # Create a new dataframe with just the X- and Y-columns, which we'll be reducing. It should
-        # be a bit more optimal than reducing the bigger original dataframe.
+        # Create a new 'pandas.DataFrame' with just the X- and Y-columns, which we'll be reducing.
+        # It should be a bit more optimal than reducing the bigger original 'pandas.DataFrame'.
         df = rawdf[[self.xcolname, self.ycolname]]
 
         xdata = _map_non_numeric(self.xcolname)
@@ -72,7 +72,7 @@ class ScatterPlot(_Plot.Plot):
 
         # Crete a histogram for the columns in question.
         hist, xbins, ybins = numpy.histogram2d(xdata, ydata, bins_cnt)
-        # Turn the histogram into a dataframe.
+        # Turn the histogram into a 'pandas.DataFrame'.
         hist = pandas.DataFrame(hist, dtype=int)
 
         hist_max = hist.max().max()
@@ -92,16 +92,16 @@ class ScatterPlot(_Plot.Plot):
         # Create a copy of the histogram, but populate it with zeroes.
         cur_hist = pandas.DataFrame(0, columns=hist.columns, index=hist.index)
 
-        # Calculate bin indexes for all the X and Y values in the dataframe.
+        # Calculate bin indexes for all the X and Y values in the 'pandas.DataFrame'.
         xindeces = numpy.digitize(xdata, xbins[:-1])
         yindeces = numpy.digitize(ydata, ybins[:-1])
 
-        # This is how many datapoints we are going to have in the reduced dataframe.
+        # This is how many datapoints we are going to have in the reduced 'pandas.DataFrame'.
         reduced_datapoints_cnt = hist.values.sum()
         _LOG.debug("reduced datapoints count is %d", reduced_datapoints_cnt)
 
         # Here we'll store 'df' indexes of the rows that will be included into the resulting
-        # reduced dataframe.
+        # reduced 'pandas.DataFrame'.
         copy_cols = []
 
         for idx in range(0, len(df)):
@@ -114,7 +114,7 @@ class ScatterPlot(_Plot.Plot):
             cur_hist.at[xidx, yidx] += 1
             copy_cols.append(idx)
 
-        # Include all the colums in reduced version of the dataframe.
+        # Include all the colums in reduced version of the 'pandas.DataFrame'.
         return rawdf.loc[copy_cols]
 
     def add_df(self, df, name, hover_text=None):

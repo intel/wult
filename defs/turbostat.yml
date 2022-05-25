@@ -1,0 +1,85 @@
+# -*- coding: utf-8 -*-
+# vim: ts=4 sw=4 tw=100 et ai si
+#
+# Definitions for raw Turbostat statistics files.
+
+Busy%:
+    title: "Busy percent"
+    descr: >-
+        The proportion of time spent in a busy state, as opposed to an idle state. In other words,
+        this is the C0 state residency. Retrieved from the "Busy%" turbostat column.
+    unit: "%"
+    short_unit: "%"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+Bzy_MHz:
+    title: "Busy frequency"
+    descr: >-
+        The average CPU frequency in C0 state (C0 state is the state when the CPU executes
+        instructions, as opposed to an idle state, where the CPU does not execute instructions).
+        Retrieved from the "Bzy_MHz" turbostat column.
+    unit: "megahertz"
+    short_unit: "MHz"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+Avg_MHz:
+    title: "Average frequency"
+    descr: >-
+        The average CPU frequency. Includes both idle and non-idle periods. Retrieved from the
+        "Avg_MHz" turbostat column.
+    unit: "megahertz"
+    short_unit: "MHz"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+CPU%cx:
+    title: "ccx core C-state residency"
+    descr: >-
+        The percentage of time spent in the ccx hardware C-state. Retrieved from the "CPU%cx"
+        turbostat column.
+    type: "float"
+    unit: "%"
+    short_unit: "%"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+    drop_empty: True
+Cx%:
+    title: "Cx requested percent"
+    descr: >-
+        The percentage of time spent in the Cx requestable C-state. Note, this number does not come
+        from the hardware, it is calculated by the operating system. Retrieved from the "Cx%"
+        turbostat column.
+    type: "float"
+    unit: "%"
+    short_unit: "%"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+    drop_empty: True
+CorWatt:
+    title: "Core power"
+    descr: >-
+        CPU core power. Measured using the core RAPL domain. Retrieved from the "CorWatt" turbostat
+        column.
+    type: "float"
+    unit: "Watt"
+    short_unit: "W"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+PkgWatt:
+    title: "Package power"
+    descr: >-
+        Package power. Measured using the core RAPL domain. Retrieved from the "PkgWatt" turbostat
+        column.
+    type: "float"
+    unit: "Watt"
+    short_unit: "W"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+GFXWatt:
+    title: "Graphics power"
+    descr: >-
+        Graphics power. Measured using the GPU RAPL domain. Retrieved from the "GFXWatt" turbostat
+        column.
+    type: "float"
+    unit: "Watt"
+    short_unit: "W"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+Time:
+    title: "Time Elapsed"
+    descr: >-
+        Time elapsed since the start of the measurements. Derived from the "Time_Of_Day_Seconds"
+        turbostat column.
+    unit: "second"
+    short_unit: "s"

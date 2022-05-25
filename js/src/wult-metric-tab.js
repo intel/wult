@@ -30,27 +30,27 @@ class WultMetricTab extends WultTab {
   `;
 
     static properties = {
-      paths: { type: Array },
-      smrytblpath: { type: String }
+        paths: { type: Array },
+        smrytblpath: { type: String }
     }
 
     /**
      * Provides the template for when the tab is visible (active).
      */
     visibleTemplate () {
-      return html`
+        return html`
             <br>
             <smry-tbl .src="${this.smrytblpath}"></smry-tbl>
             <div class="grid">
-            ${this.paths.map((path) =>
-                    html`<diagram-element path="${path}"></diagram-element>`
-            )}
+                ${this.paths.map((path) => html`
+                    <diagram-element path="${path}"></diagram-element>
+                `)}
             </div>
         `
     }
 
     render () {
-      return super.render()
+        return super.render()
     }
 }
 

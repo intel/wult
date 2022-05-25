@@ -8,7 +8,7 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import { LitElement, html } from 'lit'
+import { LitElement, html, css } from 'lit'
 import '@shoelace-style/shoelace/dist/components/alert/alert'
 
 import './intro-tbl'
@@ -21,26 +21,38 @@ import './tab-group'
  */
 export class ReportPage extends LitElement {
     static properties = {
-      src: { type: String },
-      reportInfo: { type: Object, attribute: false },
-      fetchFailed: { type: Boolean, attribute: false }
+        src: { type: String },
+        reportInfo: { type: Object, attribute: false },
+        fetchFailed: { type: Boolean, attribute: false }
     }
 
-    async connectedCallback () {
-      super.connectedCallback()
-      try {
-        const resp = await fetch(this.src)
-        this.reportInfo = await resp.json()
-        this.toolname = this.reportInfo.toolname
-        this.titleDescr = this.reportInfo.title_descr
-        this.tabFile = this.reportInfo.tab_file
-        this.introtbl = this.reportInfo.intro_tbl
-      } catch (err) {
-        // Catching a CORS error caused by viewing reports locally.
-        if (err instanceof TypeError) {
-          this.fetchFailed = true
+    static styles = css`
+        .report-head {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-      }
+
+        .report-title {
+            font-family: Arial, sans-serif;
+        }
+    `
+
+    async connectedCallback () {
+        super.connectedCallback()
+        try {
+            const resp = await fetch(this.src)
+            this.reportInfo = await resp.json()
+            this.toolname = this.reportInfo.toolname
+            this.titleDescr = this.reportInfo.title_descr
+            this.tabFile = this.reportInfo.tab_file
+            this.introtbl = this.reportInfo.intro_tbl
+        } catch (err) {
+        // Catching a CORS error caused by viewing reports locally.
+            if (err instanceof TypeError) {
+                this.fetchFailed = true
+            }
+        }
     }
 
     /**
@@ -51,7 +63,7 @@ export class ReportPage extends LitElement {
      * locally.
      */
     corsWarning () {
-      return html`
+        return html`
         <sl-alert variant="danger" open>
           Warning: it looks like you might be trying to view this report
           locally.  See our documentation on how to do that <a
@@ -62,27 +74,25 @@ export class ReportPage extends LitElement {
     }
 
     render () {
-      if (this.fetchFailed) {
-        return this.corsWarning()
-      }
-
-      return html`
-        <h1>${this.toolname} report</h1>
-        <br>
-
-        ${this.titleDescr
-        ? html`
-        <p class="title_descr">${this.titleDescr}</p>
-        <br>
-        `
-        : html``
+        if (this.fetchFailed) {
+            return this.corsWarning()
         }
 
+        return html`
+            <div class="report-head">
+                <h1 class="report-title">${this.toolname} report</h1>
+                ${this.titleDescr
+                    ? html`
+                    <p class="title_descr">${this.titleDescr}</p>
+                    <br>
+                    `
+                    : html``
+                }
 
-        <intro-tbl .introtbl='${this.introtbl}'></intro-tbl>
-        <br>
-
-        <tab-group .tabFile="${this.tabFile}"></tab-group>
+                <intro-tbl .src=${this.introtbl}></intro-tbl>
+            </div>
+            <br>
+            <tab-group .tabFile="${this.tabFile}"></tab-group>
         `
     }
 }

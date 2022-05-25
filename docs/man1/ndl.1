@@ -1,4 +1,4 @@
-.TH ndl "1" Manual
+.TH NDL "1" Manual
 .SH NAME
 ndl
 .SH SYNOPSIS
@@ -49,9 +49,9 @@ Filter datapoints out of a test result.
 \fBndl\fR \fI\,calc\/\fR
 Calculate summary functions for a ndl test result.
 .SH COMMAND \fI\,'ndl deploy'\/\fR
-usage: ndl deploy [-h] [-q] [-d] [--kernel-src KSRC] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
+usage: ndl deploy [-h] [-q] [-d] [--kernel-src KSRC] [--local-build] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
-Compile and deploy ndl helpers and drivers to the SUT (System Under Test), which can be either local or a remote host, depending on the '\-H' option.The drivers are searched for in the following directories (and in the following order) on the local host: ./drivers/idle, $NDL_DATA_PATH/drivers/idle (if 'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/drivers/idle, /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The ndl tool also depends on the following helpers: ndlrunner. These helpers will be compiled on the SUT and deployed to the SUT. The sources of the helpers are searched for in the following paths (and in the following order) on the local host: ./helpers, $NDL_DATA_PATH/helpers (if 'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/helpers, /usr/local/share/wult/helpers, /usr/share/wult/helpers. By default, helpers are deployed to the path defined by the NDL_HELPERSPATH environment variable. If the variable is not defined, helpers are deployed to '$HOME/.local/bin', where '$HOME' is the home directory of user 'USERNAME' on host 'HOST' (see '\-\-host' and '\-\-username' options).
+Compile and deploy ndl helpers and drivers to the SUT (System Under Test), which can be can be either local or a remote host, depending on the '\-H' option. By default, everything is built on the SUT, but the '\-\-local\-build' can be used for building on the local system.The drivers are searched for in the following directories (and in the following order) on the local host: ./drivers/idle, $NDL_DATA_PATH/drivers/idle (if 'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/drivers/idle, /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The ndl tool also depends on the following helpers: ndlrunner. These helpers will be compiled on the SUT and deployed to the SUT. The sources of the helpers are searched for in the following paths (and in the following order) on the local host: ./helpers, $NDL_DATA_PATH/helpers (if 'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/helpers, /usr/local/share/wult/helpers, /usr/share/wult/helpers. By default, helpers are deployed to the path defined by the NDL_HELPERSPATH environment variable. If the variable is not defined, helpers are deployed to '$HOME/.local/bin', where '$HOME' is the home directory of user 'USERNAME' on host 'HOST' (see '\-\-host' and '\-\-username' options).
 
 .SH OPTIONS \fI\,'ndl deploy'\/\fR
 .TP
@@ -69,8 +69,12 @@ Print debugging information.
 .TP
 \fB\-\-kernel\-src\fR \fI\,KSRC\/\fR
 Path to the Linux kernel sources to build the drivers against. The default is
-'/lib/modules/$(uname \-r)/build' on the SUT. In case of deploying to a remote
-host, this is the path on the remote host (HOSTNAME).
+'/lib/modules/$(uname \-r)/build' on the SUT. If '\-\-local\-build' was used, then
+the path is considered to be on the local system, rather than the SUT.
+
+.TP
+\fB\-\-local\-build\fR
+Build helpers and drivers locally, instead of building on HOSTNAME (the SUT).
 
 .TP
 \fB\-H\fR \fI\,HOSTNAME\/\fR, \fB\-\-host\fR \fI\,HOSTNAME\/\fR
@@ -129,7 +133,8 @@ host. By default the key is automatically found from standard paths like
 SSH connect timeout in seconds, default is 8.
 
 .SH COMMAND \fI\,'ndl start'\/\fR
-usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid REPORTID] [-l LDIST] [--rfilt RFILT] [--rsel RSEL] [--keep-filtered] [--report] ifname
+usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid REPORTID] [-l LDIST] [--rfilt RFILT] [--rsel RSEL] [--keep-filtered] [--report] [--force]
+                 ifname
 
 Start measuring and recording the latency data.
 
@@ -202,7 +207,7 @@ Any string which may serve as an identifier of this run. By default report ID
 is the current date, prefixed with the remote host name in case the '\-H'
 option was used: [hostname\-]YYYYMMDD. For example, "20150323" is a report ID
 for a run made on March 23, 2015. The allowed characters are: ACSII
-alphanumeric, '\-', '.', ',', '_', and '~'.
+alphanumeric, '\-', '.', ',', '_', '~', and ':'.
 
 .TP
 \fB\-l\fR \fI\,LDIST\/\fR, \fB\-\-ldist\fR \fI\,LDIST\/\fR
@@ -253,9 +258,15 @@ which will have RTD value greater than 50.
 Generate an HTML report for collected results (same as calling 'report'
 command with default arguments).
 
+.TP
+\fB\-\-force\fR
+By default a network card is not accepted as a measurement device if it is "
+used by a Linux network interface and the interface is in an active state, "
+such as "up". Use '\-\-force' to disable this safety mechanism. Use it with "
+caution.
+
 .SH COMMAND \fI\,'ndl report'\/\fR
-usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--rfilt RFILT] [--rsel RSEL] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR] [--relocatable RELOCATABLE]
-                  [--list-columns]
+usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--rfilt RFILT] [--rsel RSEL] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR] [--relocatable] [--list-columns]
                   respaths [respaths ...]
 
 Create an HTML report for one or multiple test results.
@@ -363,16 +374,10 @@ like 'platform A vs B comparison'. This text will be included into the very
 beginning of the resulting HTML report.
 
 .TP
-\fB\-\-relocatable\fR \fI\,RELOCATABLE\/\fR
-By default the generated report includes references to the raw test results
-and report assets (such as CSS/JS files). At the file\-system level, symlinks
-are created to the assets and results. This means that if the original files
-are moved somewhere, or the generated report is moved to another system, it
-may end up with broken links to these files. This option accepts 2 possible
-values: 'copy' and 'symlink'. In the case of the 'copy' value, raw results and
-report assets will be copied to the report output directory, which will make
-the report relocatable, but at the expense of increased disk space
-consumption. The 'symlink' value corresponds to the default behavior.
+\fB\-\-relocatable\fR
+Generate a report which contains a copy of the raw test results. With this
+option, viewers of the report will be able to browse raw logs and statistics
+files which are copied across with the raw test results.
 
 .TP
 \fB\-\-list\-columns\fR
@@ -519,8 +524,12 @@ to get the list of supported functions.
 Print the list of the available summary functions.
 
 .SH AUTHORS
-.B ndl
-was written by Artem Bityutskiy <dedekind1@gmail.com>.
+.nf
+Artem Bityutskiy
+.fi.nf
+dedekind1@gmail.com
+.fi
+
 .SH DISTRIBUTION
 The latest version of ndl may be downloaded from
 .UR https://github.com/intel/ndl

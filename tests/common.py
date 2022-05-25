@@ -15,7 +15,7 @@ import logging
 import subprocess
 from pathlib import Path
 import pytest
-from pepclibs.helperlibs import Exceptions
+from pepclibs.helperlibs.Exceptions import Error
 
 logging.basicConfig(level=logging.DEBUG)
 _LOG = logging.getLogger()
@@ -32,7 +32,7 @@ class CmdLineRunner():
         try:
             result = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as err:
-            raise Exceptions.Error(str(err))
+            raise Error(str(err)) from err
 
         if not result:
             return None
@@ -65,7 +65,7 @@ class CmdLineRunner():
         self._tmpdir = str(tmpdir)
         self._devid = devid
 
-        tooldir = Path(__file__).parents[1].resolve()
+        tooldir = Path(__file__).parents[1].resolve() # pylint: disable=no-member
         testdataroot = tooldir / "tests" / "testdata"
         self._tool_path = tooldir / toolname
         assert self._tool_path.exists()

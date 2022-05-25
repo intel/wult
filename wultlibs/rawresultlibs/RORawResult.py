@@ -17,7 +17,7 @@ from pathlib import Path
 import pandas
 from pepclibs.helperlibs import YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
-from wultlibs import Defs, DFSummary
+from wultlibs import DFSummary, WultDefs, _DefsBase
 from wultlibs.rawresultlibs import _RawResultBase
 
 _LOG = logging.getLogger()
@@ -25,52 +25,52 @@ _LOG = logging.getLogger()
 class RORawResult(_RawResultBase.RawResultBase):
     """This class represents a read-only raw test result."""
 
-    def get_non_numeric_colnames(self, colnames=None):
+    def get_non_numeric_metrics(self, metrics=None):
         """
-        Returns the list of non-numeric colnames in the 'colnames' list (all colnames by default).
+        Returns the list of non-numeric metrics in the 'metrics' list (all metrics by default).
         """
 
-        if not colnames:
-            colnames = self.colnames
+        if not metrics:
+            metrics = self.metrics
 
         non_numeric = []
-        for colname in colnames:
-            if self.defs.info[colname]["type"] not in ("int", "float"):
-                non_numeric.append(colname)
+        for metric in metrics:
+            if self.defs.info[metric]["type"] not in ("int", "float"):
+                non_numeric.append(metric)
 
         return non_numeric
 
-    def get_numeric_colnames(self, colnames=None):
+    def get_numeric_metrics(self, metrics=None):
         """
-        Returns the list of numeric colnames in the 'colnames' list (all colnames by default).
+        Returns the list of numeric metrics in the 'metrics' list (all metrics by default).
         """
 
-        if not colnames:
-            colnames = self.colnames
+        if not metrics:
+            metrics = self.metrics
 
         numeric = []
-        for colname in colnames:
-            if self.defs.info[colname]["type"] in ("int", "float"):
-                numeric.append(colname)
+        for metric in metrics:
+            if self.defs.info[metric]["type"] in ("int", "float"):
+                numeric.append(metric)
 
         return numeric
 
-    def is_numeric(self, colname):
-        """Returns 'True' if column 'colname' has numeric values, otherwise returns 'False'."""
-        return colname in self.get_numeric_colnames(colnames=[colname])
+    def is_numeric(self, metric):
+        """Returns 'True' if metric 'metric' has numeric values, otherwise returns 'False'."""
+        return metric in self.get_numeric_metrics(metrics=[metric])
 
     def _mangle_eval_expr(self, expr):
         """
-        Mangle a pandas python expression that we use for row filters and selectors. Some of the CSV
-        file column names may have symbols like '%' (e.g., in 'CC1%'), which cannot be used in
-        pandas python expressions, and this method solves the problem.
+        Mangle a 'pandas' python expression that we use for row filters and selectors. Some of the
+        'pandas.DataFrame' column names may have symbols like '%' (e.g., in 'CC1%'), which cannot be
+        used in 'pandas' python expressions, this method solves this problem.
         """
 
         if expr is None:
             return None
 
         expr = str(expr)
-        for colname in self.colnames:
+        for colname in self.metrics:
             expr = expr.replace(colname, f"self.df['{colname}']")
         # The special 'index' name represents the row number (first data row has index '0').
         expr = re.sub("(?!')index(?!')", "self.df.index", expr)
@@ -79,8 +79,8 @@ class RORawResult(_RawResultBase.RawResultBase):
     def set_rfilt(self, rfilt):
         """
         Set the rows filter: the CSV rows matching the 'rfilt' expression will be excluded from the
-        dataframe during the next dataframe operation like 'load_df()'. Use 'None' to disable rows
-        filter.
+        'pandas.DataFrame' during the next 'pandas.DataFrame' operation like 'load_df()'. Use 'None'
+        to disable rows filter.
 
         The 'rfilt' argument should be a valid pandas python expression that can be used in
         'pandas.eval()'. For example, the '(SilentTime < 10000) and (PC6% == 0)' filter will exclude
@@ -93,8 +93,8 @@ class RORawResult(_RawResultBase.RawResultBase):
     def set_rsel(self, rsel):
         """
         Set the rows selector: only the CSV rows matching the 'rsel' expression will be added to the
-        dataframe during the next dataframe operation like 'load_df()'. The 'rsel' argument is
-        similar to the 'rfilt' argument in the 'set_rfilt()' method.
+        'pandas.DataFrame' during the next 'pandas.DataFrame' operation like 'load_df()'. The 'rsel'
+        argument is similar to the 'rfilt' argument in the 'set_rfilt()' method.
         """
 
         self._rsel = self._mangle_eval_expr(rsel)
@@ -102,62 +102,37 @@ class RORawResult(_RawResultBase.RawResultBase):
     def set_cfilt(self, regexs):
         """
         Set the columns filter: the CSV columns with names in 'regexs' (or matching a regular
-        expression in 'regexs') will be excluded from the dataframe during the next dataframe
-        operation like 'load_df()'. Use 'None' to disable columns filter.
+        expression in 'regexs') will be excluded from the 'pandas.DataFrame' during the next
+        'pandas.DataFrame' operation like 'load_df()'. Use 'None' to disable columns filter.
         """
 
         if regexs:
-            self._cfilt = self.find_colnames(regexs, must_find_all=True)
+            self._cfilt = self.find_metrics(regexs, must_find_all=True)
 
     def set_csel(self, regexs):
         """
         Set the columns selector: only the CSV columns with names in 'regexs' (or matching a regular
-        expression in 'regexs') will be included into the dataframe ('self.df') during the next
-        dataframe operation like 'load_df()'. Use 'None' to disable the selector.
+        expression in 'regexs') will be included into the 'pandas.DataFrame' ('self.df') during the
+        next 'pandas.DataFrame' operation like 'load_df()'. Use 'None' to disable the selector.
         """
 
         if regexs:
-            self._csel = self.find_colnames(regexs, must_find_all=True)
-
-    def _get_column_funcnames(self, colname, funcnames, all_funcs):
-        """
-        A helper for 'calc_smrys()', which figures out the list of summary functions to compute for
-        column 'colname'.
-        """
-
-        coldef = self.defs.info[colname]
-
-        fnames = []
-        for funcname in funcnames:
-            # We do not need the description, calling this method just to let it validate the
-            # function name.
-            DFSummary.get_smry_func_descr(funcname)
-
-            if "default_funcs" in coldef and coldef["default_funcs"] != "all" and not all_funcs:
-                # Skip functions that are not in the "default functions" list for this column.
-                if funcname not in coldef["default_funcs"]:
-                    # Take into account that defs may contain 'N%' that matches all percentiles.
-                    if not (funcname.endswith("%") and "N%" in coldef["default_funcs"]):
-                        continue
-
-            fnames.append(funcname)
-
-        return fnames
+            self._csel = self.find_metrics(regexs, must_find_all=True)
 
     def calc_smrys(self, regexs=None, funcnames=None, all_funcs=False):
         """
-        Calculate summary functions specified in 'funcnames' for columns matching 'regexs', and
-        save the result in 'self.smrys'. By default this method calculates the summaries for all
-        columns in the currently loaded dataframe and uses the default functions functions.
+        Calculate summary functions specified in 'funcnames' for metrics matching 'regexs', and save
+        the result in 'self.smrys'. By default this method calculates the summaries for all metrics
+        in the currently loaded 'pandas.DataFrame' and uses the default functions functions.
 
-        The 'regexs' argument should be a list of column names or regular expressions, which will be
-        applied to column names. The 'funcnames' argument must be a list of function names.
+        The 'regexs' argument should be a list of metrics or regular expressions, which will be
+        applied to metrics. The 'funcnames' argument must be a list of function names.
 
-        Each column has the "default functions" associated with this column. These are just function
-        names which generally make sense for this column. By default ('all_funcs' is 'False'), this
+        Each metric has the "default functions" associated with this metric. These are just function
+        names which generally make sense for this metric. By default ('all_funcs' is 'False'), this
         method uses only the default functions. If, for example, 'funcnames' specifies the 'avg'
         function, and 'avg' function is not in the default functions list for the 'SilentTime'
-        column, it will not be applied (will be skipped). So the result ('self.smrys') will not
+        metric, it will not be applied (will be skipped). So the result ('self.smrys') will not
         include 'avg' for 'SilentTime'. However, if 'avg' is in the list of default functions for
         the 'WakeLatency' column, and it was specified in 'funcnames', it will be applied and will
         show up in the result.
@@ -167,53 +142,50 @@ class RORawResult(_RawResultBase.RawResultBase):
         'funcnames' for all columns without looking at the default functions list.
 
         The result ('self.smrys') is a dictionary of dictionaries. The top level dictionary keys
-        are column names and the sub-dictionary keys are function names.
+        are metrics and the sub-dictionary keys are function names.
         """
 
         if self.df is None:
             self.load_df()
 
         if not regexs:
-            all_colnames = self.colnames
+            all_metrics = self.metrics
         else:
-            all_colnames = self.find_colnames(regexs, must_find_all=True)
+            all_metrics = self.find_metrics(regexs, must_find_all=True)
 
-        # Exclude columns with non-numeric data.
-        colnames = self.get_numeric_colnames(colnames=all_colnames)
+        # Exclude metrics with non-numeric data.
+        metrics = self.get_numeric_metrics(metrics=all_metrics)
 
-        # Make sure we have some columns to work with.
-        if not colnames:
-            msg = "no columns to calculate summary functions for"
-            if all_colnames:
-                msg += ".\nThese columns were excluded because they are not numeric: "
-                msg += " ,".join(self.get_non_numeric_colnames(colnames=all_colnames))
+        # Make sure we have some metrics to work with.
+        if not metrics:
+            msg = "no metrics to calculate summary functions for"
+            if all_metrics:
+                msg += ".\nThese metrics were excluded because they are not numeric: "
+                msg += " ,".join(self.get_non_numeric_metrics(metrics=all_metrics))
             raise ErrorNotFound(msg)
 
         if not funcnames:
             funcnames = [funcname for funcname, _ in DFSummary.get_smry_funcs()]
 
-        # Turn 'N%' into 99%, 99.9%, 99.99%, and 99.999%.
-        fnames = []
-        for fname in funcnames:
-            if fname != "N%":
-                fnames.append(fname)
-            else:
-                fnames += ["99%", "99.9%", "99.99%", "99.999%"]
-
         self.smrys = {}
-        for colname in colnames:
-            smry_fnames = self._get_column_funcnames(colname, fnames, all_funcs)
-            subdict = DFSummary.calc_col_smry(self.df, colname, smry_fnames)
+        for metric in metrics:
+            if all_funcs:
+                smry_fnames = funcnames
+            else:
+                default_funcs = self.defs.info[metric].get("default_funcs", None)
+                smry_fnames = DFSummary.filter_smry_funcs(funcnames, default_funcs)
 
-            coldef = self.defs.info[colname]
-            restype = getattr(builtins, coldef["type"])
+            subdict = DFSummary.calc_col_smry(self.df, metric, smry_fnames)
+
+            mdef = self.defs.info[metric]
+            restype = getattr(builtins, mdef["type"])
             for func, datum in subdict.items():
                 subdict[func] = restype(datum)
 
-            self.smrys[colname] = subdict
+            self.smrys[metric] = subdict
 
     def _load_csv(self, **kwargs):
-        """Read the datapoints CSV file into a pandas dataframe and validate it."""
+        """Read the datapoints CSV file into a 'pandas.DataFrame' and validate it."""
 
         _LOG.info("Loading test result '%s'.", self.dp_path)
 
@@ -241,7 +213,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         """
 
         rsel = self._get_rsel()
-        csel = self._get_csel(self.colnames)
+        csel = self._get_csel(self.metrics)
 
         load_csv = force_reload or self.df is None
 
@@ -250,7 +222,7 @@ class RORawResult(_RawResultBase.RawResultBase):
                 self._load_csv(usecols=csel, **kwargs)
             csel = None
         else:
-            # We cannot drop columns yet, because rows selector may refer the columns.
+            # We cannot drop columns yet, because rows selector may refer to the columns.
             if load_csv:
                 self._load_csv(**kwargs)
 
@@ -260,7 +232,7 @@ class RORawResult(_RawResultBase.RawResultBase):
                 try:
                     expr = pandas.eval(rsel)
                 except ValueError as err:
-                    # For some reasons on some distros the default "numexpr" engin fails with
+                    # For some reasons on some distros the default "numexpr" engine fails with
                     # various errors, such as:
                     #   * ValueError: data type must provide an itemsize
                     #   * ValueError: unknown type str128
@@ -289,7 +261,7 @@ class RORawResult(_RawResultBase.RawResultBase):
     def load_df(self, **kwargs):
         """
         If the datapoints CSV file has not been read yet ('self.df' is 'None'), read it into the
-        'self.df' pandas dataframe. Then apply all the configured filters and selectors to
+        'self.df' 'pandas.DataFrame'. Then apply all the configured filters and selectors to
         'self.df'. The keyword arguments ('kwargs') are passed as is to 'pandas.read_csv()'.
         """
 
@@ -302,14 +274,14 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self._load_df(force_reload=True, **kwargs)
 
-    def find_colnames(self, regexs, must_find_any=True, must_find_all=False):
+    def find_metrics(self, regexs, must_find_any=True, must_find_all=False):
         """
-        Among the list of the column names of this test result, find column names that match regular
+        Among the list of the metrics of this test result, find metrics that match regular
         expressions in 'regexs'. The arguments are as follows.
           * regexs - an iterable collection or regular expressions to match.
           * must_find_any - if 'True', raise an 'ErrorNotFound' exception in case of no matching
-                            columns. If 'False', just return an empty list in case of no matching
-                            columns.
+                            metrics. If 'False', just return an empty list in case of no matching
+                            metrics.
           * must_find_all - if 'True', raise an 'ErrorNotFound' exception if any of the regular
                             expressions in 'regexs' did not match.
         """
@@ -317,16 +289,16 @@ class RORawResult(_RawResultBase.RawResultBase):
         found = {}
         for regex in regexs:
             matched = False
-            for colname in self.colnames:
+            for metric in self.metrics:
                 try:
-                    if re.fullmatch(regex, colname):
-                        found[colname] = regex
+                    if re.fullmatch(regex, metric):
+                        found[metric] = regex
                         matched = True
                 except re.error as err:
                     raise Error(f"bad regular expression '{regex}': {err}") from err
 
             if not matched:
-                colnames_str = ", ".join(self.colnames)
+                colnames_str = ", ".join(self.metrics)
                 msg = f"no matches for column '{regex}' in the following list of available " \
                       f"columns:\n  {colnames_str}"
                 if must_find_all:
@@ -334,31 +306,12 @@ class RORawResult(_RawResultBase.RawResultBase):
                 _LOG.debug(msg)
 
         if not found and must_find_any:
-            colnames_str = ", ".join(self.colnames)
+            colnames_str = ", ".join(self.metrics)
             regexs_str = ", ".join(regexs)
             raise ErrorNotFound(f"no matches for the following column name(s):\n  {regexs_str}\n"
                                 f"in the following list of available columns:\n  {colnames_str}")
 
         return list(found.keys())
-
-    def _read_colnames(self):
-        """Read the datapoints CSV file header, fetch and validate its column names."""
-
-        try:
-            colnames = list(pandas.read_csv(self.dp_path, nrows=0))
-        except Exception as err:
-            raise Error(f"failed to load CSV file {self.dp_path}:\n{err}") from None
-
-        self.defs.populate_cstates(colnames)
-
-        # Ignore column names which are not present in the definitions.
-        self.colnames = []
-        for colname in colnames:
-            if colname in self.defs.info:
-                self.colnames.append(colname)
-
-
-        self.colnames_set = set(self.colnames)
 
     def save(self, dirpath, reportid=None):
         """
@@ -412,8 +365,8 @@ class RORawResult(_RawResultBase.RawResultBase):
                        string.
 
         Note, the constructor does not load the potentially huge test result data into the memory.
-        It only loads the 'info.yml' file and figures out the colum names list. The data are loaded
-        "on-demand" by the 'load_df()' and other methods.
+        It only loads the 'info.yml' file and figures out which metrics have been measured. The data
+        are loaded "on-demand" by 'load_df()' and other methods.
         """
 
         super().__init__(dirpath)
@@ -430,13 +383,10 @@ class RORawResult(_RawResultBase.RawResultBase):
             except OSError as err:
                 raise Error(f"failed to access '{attr}': {err}") from err
 
-        # Unknown columns in the CSV file.
-        self._ignored_colnames = None
-
         self.df = None
         self.smrys = None
-        self.colnames = []
-        self.colnames_set = set()
+        self.metrics = []
+        self.metrics_set = set()
 
         self.info = YAML.load(self.info_path)
         if reportid:
@@ -454,7 +404,21 @@ class RORawResult(_RawResultBase.RawResultBase):
         if not toolver:
             raise Error(f"bad '{self.info_path}' format - the 'toolver' key is missing")
 
-        self.defs = Defs.Defs(self.info["toolname"])
+        # Read the metrics from the column names in the CSV file.
+        try:
+            metrics = list(pandas.read_csv(self.dp_path, nrows=0))
+        except Exception as err:
+            raise Error(f"failed to load CSV file {self.dp_path}:\n{err}") from None
 
-        # All column names in the CSV file.
-        self._read_colnames()
+        if toolname == "wult":
+            self.defs = WultDefs.WultDefs(metrics)
+        else:
+            self.defs = _DefsBase.DefsBase(toolname)
+
+        # Exclude metrics which are not present in the definitions.
+        self.metrics = []
+        for metric in metrics:
+            if metric in self.defs.info:
+                self.metrics.append(metric)
+
+        self.metrics_set = set(self.metrics)

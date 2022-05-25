@@ -13,12 +13,13 @@ This module base class for wirte-only raw test result classes.
 import os
 import shutil
 import contextlib
-from pepclibs.helperlibs import FSHelpers, YAML
+from pepclibs.helperlibs import YAML, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
+from wultlibs.helperlibs import FSHelpers
 from wultlibs.rawresultlibs import _CSV, _RawResultBase
 from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
 
-class WORawResultBase(_RawResultBase.RawResultBase):
+class WORawResultBase(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext):
     """This class represents a write-only raw test result."""
 
     def set_rfilt(self, rfilt):
@@ -34,7 +35,7 @@ class WORawResultBase(_RawResultBase.RawResultBase):
 
         if self.dirpath.exists():
             # Only accept empty output directory.
-            paths = (self.dp_path, self.info_path, self.logs_path, self.stats_path, self.descr_path)
+            paths = (self.dp_path, self.info_path, self.logs_path, self.stats_path)
             for path in paths:
                 if path.exists():
                     raise ErrorExists(f"cannot use path '{self.dirpath}' as the output directory, "
@@ -169,10 +170,6 @@ class WORawResultBase(_RawResultBase.RawResultBase):
         #  * toolname - name of the tool creating the report.
         #  * toolver - version of the tool creating the report.
 
-    def __del__(self):
-        """The destructor."""
-        self.close()
-
     def close(self):
         """Stop the experiment."""
 
@@ -182,23 +179,15 @@ class WORawResultBase(_RawResultBase.RawResultBase):
 
         # Remove results if no datapoints was collected.
         dp_path = getattr(self, "dp_path", None)
-        with contextlib.suppress(Exception):
-            paths = []
-            if (not dp_path or not dp_path.exists()) or dp_path.stat().st_size == 0:
-                paths = getattr(self, "_created_paths", [])
+        paths = []
+        if (not dp_path or not dp_path.exists()) or dp_path.stat().st_size == 0:
+            paths = getattr(self, "_created_paths", [])
 
-            for path in paths:
-                if not path.exists():
-                    continue
+        for path in paths:
+            if not path.exists():
+                continue
+            with contextlib.suppress(Exception):
                 if path.is_dir():
                     shutil.rmtree(path)
                 elif path.is_file():
                     os.remove(path)
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()

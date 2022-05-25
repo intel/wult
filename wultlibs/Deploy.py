@@ -1,26 +1,25 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2021 Intel Corporation
+# Copyright (C) 2019-2022 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module provides various functions impelementing the 'wult' and 'ndl' tools deployment.
+This module provides API for deploying the 'wult' and 'ndl' tools.
 """
 
 import os
 import sys
 import time
-import zipfile
 import logging
-import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import Procs, Trivial, FSHelpers, Logging, ArgParse, WrapExceptions
+from pepclibs.helperlibs import ProcessManager, LocalProcessManager, Trivial, Logging
+from pepclibs.helperlibs import ClassHelpers, ArgParse
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import ToolsCommon
-from wultlibs.helperlibs import KernelVersion, RemoteHelpers
+from wultlibs.helperlibs import RemoteHelpers
 
 _HELPERS_LOCAL_DIR = Path(".local")
 _DRV_SRC_SUBPATH = Path("drivers/idle")
@@ -28,136 +27,17 @@ _HELPERS_SRC_SUBPATH = Path("helpers")
 
 _LOG = logging.getLogger()
 
-def add_deploy_cmdline_args(subparsers, toolname, func, drivers=True, helpers=None, pyhelpers=None,
-                            argcomplete=None):
-    """
-    Add the the 'deploy' command. The input arguments are as follows.
-      o subparsers - the 'argparse' subparsers to add the 'deploy' command to.
-      o toolname - name of the tool the command line arguments belong to.
-      o func - the 'deploy' command handling function.
-      o drivers - whether out-of-tree kernel drivers have to be deployed to the SUT.
-      o helpers - list of helpers required to be deployed on the SUT.
-      o pyhelpers - list of python helpers required to be deployed on the SUT.
-      o argcomplete - optional 'argcomplete' command-line arguments completer object.
-
-      The difference about helpers and pyhelpers.
-      1. Helpers are stand-alone tools residing in the 'helpers' subdirectory. They do not depend on
-         any module/capability provided by this project. An example would be a stand-alone C
-         program. Helpers are deployed by compiling them on the SUT using 'make' and installing them
-         using 'make install'.
-      2. Python helpers (pyhelpers) are helper tools written in python (e.g., 'stats-collect'). They
-         also reside in the 'helpers subdirectory, but they are not totally independent. They depend
-         on multiple modules that come with 'wult' project (e.g., 'helperlibs/Procs.py').
-         Therefore, in order to deploy python helpers, we need to deploy the dependencies. And the
-         way we do this depends on whether we deploy to the local system or to a remote system. In
-         case of the local system, python helpers are deployed by 'setup.py', just the 'wult' tool
-         is deployed. In case of a remote system, we build and deploy a stand-alone version of the
-         helper using python '__main__.py' + zip archive mechanism.
-    """
-
-    if not helpers:
-        helpers = []
-    if not pyhelpers:
-        pyhelpers = []
-
-    what = ""
-    if (helpers or pyhelpers) and drivers:
-        what = "helpers and drivers"
-    elif helpers or pyhelpers:
-        what = "helpers"
-    else:
-        what = "drivers"
-
-    envarname = f"{toolname.upper()}_DATA_PATH"
-    searchdirs = [f"{Path(sys.argv[0]).parent}/%s",
-                  f"${envarname}/%s (if '{envarname}' environment variable is defined)",
-                  "$HOME/.local/share/wult/%s",
-                  "/usr/local/share/wult/%s", "/usr/share/wult/%s"]
-
-    text = f"Compile and deploy {toolname} {what}."
-    descr = f"""Compile and deploy {toolname} {what} to the SUT (System Under Test), which can be
-                either local or a remote host, depending on the '-H' option."""
-    if drivers:
-        drvsearch = ", ".join([dirname % str(_DRV_SRC_SUBPATH) for dirname in searchdirs])
-        descr += f"""The drivers are searched for in the following directories (and in the following
-                     order) on the local host: {drvsearch}."""
-    if helpers or pyhelpers:
-        helpersearch = ", ".join([dirname % str(_HELPERS_SRC_SUBPATH) for dirname in searchdirs])
-        helpernames = ", ".join(helpers + pyhelpers)
-        descr += f"""The {toolname} tool also depends on the following helpers: {helpernames}. These
-                     helpers will be compiled on the SUT and deployed to the SUT. The sources of the
-                     helpers are searched for in the following paths (and in the following order) on
-                     the local host: {helpersearch}. By default, helpers are deployed to the path
-                     defined by the {toolname.upper()}_HELPERSPATH environment variable. If the
-                     variable is not defined, helpers are deployed to
-                     '$HOME/{_HELPERS_LOCAL_DIR}/bin', where '$HOME' is the home directory of user
-                     'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
-    parser = subparsers.add_parser("deploy", help=text, description=descr)
-
-    if drivers:
-        text = """Path to the Linux kernel sources to build the drivers against. The default is
-                  '/lib/modules/$(uname -r)/build' on the SUT. In case of deploying to a remote
-                  host, this is the path on the remote host (HOSTNAME)."""
-        arg = parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text)
-        if argcomplete:
-            arg.completer = argcomplete.completers.DirectoriesCompleter()
-
-    ArgParse.add_ssh_options(parser)
-
-    parser.set_defaults(func=func)
-    parser.set_defaults(helpers=helpers)
-    parser.set_defaults(pyhelpers=pyhelpers)
-
-def _get_module_path(proc, name):
-    """Return path to installed module. Return 'None', if module not found."""
-
-    cmd = f"modinfo -n {name}"
-    stdout, _, exitcode = proc.run(cmd)
-    if exitcode != 0:
-        return None
-
-    modpath = Path(stdout.strip())
-    if FSHelpers.isfile(modpath, proc):
-        return modpath
-    return None
-
-def get_helpers_deploy_path(proc, toolname):
-    """
-    Get helpers deployment path for 'toolname' on the system associated with the 'proc' object.
-    """
-
-    helpers_path = os.environ.get(f"{toolname.upper()}_HELPERSPATH")
-    if not helpers_path:
-        helpers_path = FSHelpers.get_homedir(proc=proc) / _HELPERS_LOCAL_DIR / "bin"
-    return Path(helpers_path)
-
-def _get_deployables(srcpath, proc=None):
-    """
-    Returns the list of "deployables" (driver names or helper tool names) provided by tools or
-    drivers source code directory 'srcpath' on a host defined by 'proc'.
-    """
-
-    if not proc:
-        proc = Procs.Proc()
-
-    cmd = f"make --silent -C '{srcpath}' list_deployables"
-    deployables, _ = proc.run_verify(cmd)
-    if deployables:
-        deployables = Trivial.split_csv_line(deployables, sep=" ")
-
-    return deployables
-
-def _get_pyhelper_dependencies(script_path):
-    """
-    Find and return a python helper script (pyhelper) dependencies. Only wult module dependencies
-    are returned. An example of such a dependency would be:
-        /usr/lib/python3.9/site-packages/helperlibs/Trivial.py
-    """
-
-    # All pyhelpers implement the '--print-module-paths' option, which prints the dependencies.
-    cmd = f"{script_path} --print-module-paths"
-    stdout, _ = Procs.Proc().run_verify(cmd)
-    return [Path(path) for path in stdout.splitlines()]
+# Information about tools dependencies.
+_TOOLS_INFO = {
+    "wult": {
+        "drivers":  True,
+        "pyhelpers":  ["stats-collect", ],
+    },
+    "ndl": {
+        "drivers": True,
+        "shelpers": ["ndlrunner", ],
+    },
+}
 
 def find_app_data(prjname, subpath, appname=None, descr=None):
     """
@@ -211,25 +91,230 @@ def find_app_data(prjname, subpath, appname=None, descr=None):
     raise Error(f"cannot find {descr}, searched in the following directories on local host:\n"
                 f"{dirs}")
 
-def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
+def get_helpers_deploy_path(toolname, pman):
     """
-    Wult and other tools require additional helper programs and drivers to be installed on the SUT.
-    This function tries to analyze the SUT and figure out whether drivers and helper programs are
-    present and up-to-date. Returns 'True' if re-deployment is needed, and 'False' otherwise.
-
-    This function works by simply matching the modification date of sources and binaries for every
-    required helper and driver. If sources have later date, then re-deployment is probably needed.
-      * proc - the 'Proc' or 'SSH' object associated with the SUT.
-      * toolname - name of the tool to check the necessity of deployment for (e.g., "wult").
-      o helpers - list of helpers required to be deployed on the SUT.
-      o pyhelpers - list of python helpers required to be deployed on the SUT.
+    Return path to the helpers deployment. The arguments are as follows.
+      * toolname - name of the tool to get the helpers deployment path for.
+      * pman - the process managemer object defining the host the helpers are deployed to.
     """
 
-    def get_newest_mtime(paths):
-        """
-        Scan list of paths 'paths', find and return the most recent modification time (mtime) among
-        files in 'path' and (in case 'path' is irectory) every file under 'path'.
-        """
+    helpers_path = os.environ.get(f"{toolname.upper()}_HELPERSPATH")
+    if not helpers_path:
+        helpers_path = pman.get_homedir() / _HELPERS_LOCAL_DIR / "bin"
+    return Path(helpers_path)
+
+def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
+    """
+    Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
+      * toolname - name of the tool to add the 'deploy' command for.
+      * subparsers - the 'argparse' subparsers to add the 'deploy' command to.
+      * func - the 'deploy' command handling function.
+      * argcomplete - optional 'argcomplete' command-line arguments completer object.
+    """
+
+    if toolname not in _TOOLS_INFO:
+        raise Error(f"BUG: unsupported tool '{toolname}'")
+
+    drivers = _TOOLS_INFO[toolname].get("drivers", None)
+    shelpers = _TOOLS_INFO[toolname].get("shelpers", [])
+    pyhelpers = _TOOLS_INFO[toolname].get("pyhelpers", [])
+
+    what = ""
+    if (shelpers or pyhelpers) and drivers:
+        what = "helpers and drivers"
+    elif shelpers or pyhelpers:
+        what = "helpers"
+    else:
+        what = "drivers"
+
+    envarname = f"{toolname.upper()}_DATA_PATH"
+    searchdirs = [f"{Path(sys.argv[0]).parent}/%s",
+                  f"${envarname}/%s (if '{envarname}' environment variable is defined)",
+                  "$HOME/.local/share/wult/%s",
+                  "/usr/local/share/wult/%s", "/usr/share/wult/%s"]
+
+    text = f"Compile and deploy {toolname} {what}."
+    descr = f"""Compile and deploy {toolname} {what} to the SUT (System Under Test), which can be
+                can be either local or a remote host, depending on the '-H' option. By default,
+                everything is built on the SUT, but the '--local-build' can be used for building
+                on the local system."""
+
+    if drivers:
+        drvsearch = ", ".join([name % str(_DRV_SRC_SUBPATH) for name in searchdirs])
+        descr += f"""The drivers are searched for in the following directories (and in the
+                     following order) on the local host: {drvsearch}."""
+    if shelpers or pyhelpers:
+        helpersearch = ", ".join([name % str(_HELPERS_SRC_SUBPATH) for name in searchdirs])
+        helpernames = ", ".join(shelpers + pyhelpers)
+        descr += f"""The {toolname} tool also depends on the following helpers: {helpernames}.
+                     These helpers will be compiled on the SUT and deployed to the SUT. The sources
+                     of the helpers are searched for in the following paths (and in the following
+                     order) on the local host: {helpersearch}. By default, helpers are deployed to
+                     the path defined by the {toolname.upper()}_HELPERSPATH environment
+                     variable. If the variable is not defined, helpers are deployed to
+                     '$HOME/{_HELPERS_LOCAL_DIR}/bin', where '$HOME' is the home directory of user
+                     'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
+    parser = subparsers.add_parser("deploy", help=text, description=descr)
+
+    if drivers:
+        text = """Path to the Linux kernel sources to build the drivers against. The default is
+                  '/lib/modules/$(uname -r)/build' on the SUT. If '--local-build' was used, then
+                  the path is considered to be on the local system, rather than the SUT."""
+
+        arg = parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text)
+        if argcomplete:
+            arg.completer = argcomplete.completers.DirectoriesCompleter()
+
+    text = f"""Build {what} locally, instead of building on HOSTNAME (the SUT)."""
+    arg = parser.add_argument("--local-build", dest="lbuild", action="store_true", help=text)
+
+    ArgParse.add_ssh_options(parser)
+
+    parser.set_defaults(func=func)
+
+def _get_deployables(srcpath, pman=None):
+    """
+    Returns the list of "deployables" (driver names or helper tool names) provided by tools or
+    drivers source code directory 'srcpath' on a host defined by 'pman'.
+    """
+
+    with ProcessManager.pman_or_local(pman) as wpman:
+        cmd = f"make --silent -C '{srcpath}' list_deployables"
+        deployables, _ = wpman.run_verify(cmd)
+        if deployables:
+            deployables = Trivial.split_csv_line(deployables, sep=" ")
+
+    return deployables
+
+def _get_pyhelper_dependencies(script_path):
+    """
+    Find and return a python helper script (pyhelper) dependencies. Only wult module dependencies
+    are returned. An example of such a dependency would be:
+        /usr/lib/python3.9/site-packages/helperlibs/Trivial.py
+    """
+
+    # All pyhelpers implement the '--print-module-paths' option, which prints the dependencies.
+    cmd = f"{script_path} --print-module-paths"
+    with LocalProcessManager.LocalProcessManager() as lpman:
+        stdout, _ = lpman.run_verify(cmd)
+    return [Path(path) for path in stdout.splitlines()]
+
+def _create_standalone_pyhelper(pyhelper, outdir):
+    """
+    Create a standalone version of a python program. The arguments are as follows.
+      * pyhelper - name of the script to create the stand-alone version for. This script is supposed
+                   to be already installed on the controller, and should be in 'PATH', This method
+                   will execute it on the controller with the '--print-module-paths', which this
+                   script is supposed to support. This option will provide the list of modules the
+                   script depends on.
+      * outdir - path to the output directory. The standalone version of the script will be saved in
+                 this directory under the "'pyhelper'.standalone" name.
+    """
+
+    import zipfile # pylint: disable=import-outside-toplevel
+
+    with LocalProcessManager.LocalProcessManager() as lpman:
+        pyhelper_path = lpman.which(pyhelper)
+
+    deps = _get_pyhelper_dependencies(pyhelper_path)
+
+    # Create an empty '__init__.py' file. We will be adding it to the sub-directories of the
+    # dependencies. For example, if one of the dependencies is 'helperlibs/Trivial.py', we'll have
+    # to add '__init__.py' to 'wultlibs/' and 'helperlibs'.
+    init_path = outdir / "__init__.py"
+    try:
+        with init_path.open("w+"):
+            pass
+    except OSError as err:
+        raise Error(f"failed to create file '{init_path}:\n{err}'") from None
+
+    try:
+        # pylint: disable=consider-using-with
+        fobj = zipobj = None
+
+        # Start creating the stand-alone version of the python helper script: create an empty
+        # file and write # python shebang there.
+        standalone_path = outdir / f"{pyhelper}.standalone"
+        try:
+            fobj = standalone_path.open("bw+")
+            fobj.write("#!/usr/bin/python3\n".encode("utf8"))
+        except OSError as err:
+            raise Error(f"failed to create and initialize file '{standalone_path}:\n{err}") from err
+
+        # Create a zip archive in the 'standalone_path' file. The idea is that this file will start
+        # with python shebang, and then include compressed version the script and its dependencies.
+        # Python interpreter is smart and can run such zip archives.
+        try:
+            zipobj = zipfile.ZipFile(fobj, "w", compression=zipfile.ZIP_DEFLATED)
+        except Exception as err:
+            raise Error(f"faild to initialize a zip archive from file "
+                        f"'{standalone_path}':\n{err}") from err
+
+        # Make 'zipobj' raises exceptions of type 'Error', so that we do not have to wrap every
+        # 'zipobj' operation into 'try/except'.
+        zipobj = ClassHelpers.WrapExceptions(zipobj)
+
+        # Put the python helper script to the archive under the '__main__.py' name.
+        zipobj.write(pyhelper_path, arcname="./__main__.py")
+
+        pkgdirs = set()
+
+        for src in deps:
+            # Form the destination path. It is just part of the source path staring from the
+            # 'wultlibs' of 'helperlibs' components.
+            try:
+                idx = src.parts.index("wultlibs")
+            except ValueError:
+                try:
+                    idx = src.parts.index("helperlibs")
+                except ValueError:
+                    raise Error(f"python helper script '{pyhelper}' has bad dependency '{src}' - "
+                                f"the path does not have the 'wultlibs' or 'helperlibs' component "
+                                f"in it.") from None
+
+            dst = Path(*src.parts[idx:])
+            zipobj.write(src, arcname=dst)
+
+            # Collect all directory paths present in the dependencies. They are all python
+            # packages and we'll have to ensure we have the '__init__.py' file in each of the
+            # sub-directory.
+            pkgdir = dst.parent
+            for idx, _ in enumerate(pkgdir.parts):
+                pkgdirs.add(Path(*pkgdir.parts[:idx+1]))
+
+        # Ensure the '__init__.py' file is present in all sub-directories.
+        zipped_files = {Path(name) for name in zipobj.namelist()}
+        for pkgdir in pkgdirs:
+            path = pkgdir / "__init__.py"
+            if path not in zipped_files:
+                zipobj.write(init_path, arcname=pkgdir / "__init__.py")
+    finally:
+        if zipobj:
+            zipobj.close()
+        if fobj:
+            fobj.close()
+
+    # Make the standalone file executable.
+    try:
+        mode = standalone_path.stat().st_mode | 0o777
+        standalone_path.chmod(mode)
+    except OSError as err:
+        raise Error(f"cannot change '{standalone_path}' file mode to {oct(mode)}:\n{err}") from err
+
+
+class Deploy(ClassHelpers.SimpleCloseContext):
+    """
+    This module provides API for deploying the 'wult' and 'ndl' tools. Provides the following
+    methods.
+
+     * 'deploy()' - deploy everything (drivers, helper programs) to the SUT.
+     * 'is_deploy_needed()' - check if re-deployment is needed.
+     * 'add_cmdline_args()' - add deployment-related command line arguments.
+    """
+
+    @staticmethod
+    def _get_newest_mtime(paths):
+        """Find and return the most recent modification time of files in paths 'paths'."""
 
         newest = 0
         for path in paths:
@@ -249,409 +334,434 @@ def is_deploy_needed(proc, toolname, helpers=None, pyhelpers=None):
             raise Error(f"no files found in the following paths:\n{paths_str}")
         return newest
 
-    def deployable_not_found(what):
-        """Called when a helper of driver was not found on the SUT to raise an exception."""
+    def _deployable_not_found(self, what):
+        """Raise an exception in case a required driver or helper was not found on the SUT."""
 
-        err = f"{what} was not found on {proc.hostmsg}. Please, run:\n{toolname} deploy"
-        if proc.is_remote:
-            err += f" -H {proc.hostname}"
+        err = f"{what} was not found on {self._spman.hostmsg}. Please, run:\n" \
+              f"{self._toolname} deploy"
+        if self._spman.is_remote:
+            err += f" -H {self._spman.hostname}"
         raise Error(err)
 
+    def _get_module_path(self, name):
+        """Return path to installed module 'name'. Returns 'None', if the module was not found."""
 
-    # Build the deploy information dictionary. Start with drivers.
-    dinfos = {}
-    srcpath = find_app_data("wult", _DRV_SRC_SUBPATH / toolname, appname=toolname)
-    dstpaths = []
-    for deployable in _get_deployables(srcpath):
-        dstpath = _get_module_path(proc, deployable)
-        if not dstpath:
-            deployable_not_found(f"the '{deployable}' kernel module")
-        dstpaths.append(_get_module_path(proc, deployable))
-    dinfos["drivers"] = {"src" : [srcpath], "dst" : dstpaths}
+        cmd = f"modinfo -n {name}"
+        stdout, _, exitcode = self._spman.run(cmd)
+        if exitcode != 0:
+            return None
 
-    # Add non-python helpers' deploy information.
-    if helpers or pyhelpers:
-        helpers_deploy_path = get_helpers_deploy_path(proc, toolname)
+        modpath = Path(stdout.strip())
+        if self._spman.is_file(modpath):
+            return modpath
+        return None
 
-    if helpers:
-        for helper in helpers:
-            srcpath = find_app_data("wult", _HELPERS_SRC_SUBPATH / helper, appname=toolname)
+    def is_deploy_needed(self):
+        """
+        Wult and other tools require additional helper programs and drivers to be installed on the
+        SUT. This method tries to analyze the SUT and figure out whether drivers and helper programs
+        are installed on the SUT and are up-to-date.
+
+        Returns 'True' if re-deployment is needed, and 'False' otherwise.
+        """
+
+        # Build the deploy information dictionary. Start with drivers.
+        dinfos = {}
+        srcpath = find_app_data("wult", _DRV_SRC_SUBPATH / self._toolname, appname=self._toolname)
+        dstpaths = []
+        for deployable in _get_deployables(srcpath):
+            dstpath = self._get_module_path(deployable)
+            if not dstpath:
+                self._deployable_not_found(f"the '{deployable}' kernel module")
+            dstpaths.append(self._get_module_path(deployable))
+        dinfos["drivers"] = {"src" : [srcpath], "dst" : dstpaths}
+
+        # Add non-python helpers' deploy information.
+        if self._shelpers or self._pyhelpers:
+            helpers_deploy_path = get_helpers_deploy_path(self._toolname, self._spman)
+
+        for shelper in self._shelpers:
+            srcpath = find_app_data("wult", _HELPERS_SRC_SUBPATH / shelper,
+                                    appname=self._toolname)
             dstpaths = []
             for deployable in _get_deployables(srcpath):
                 dstpaths.append(helpers_deploy_path / deployable)
-            dinfos[helper] = {"src" : [srcpath], "dst" : dstpaths}
+            dinfos[shelper] = {"src" : [srcpath], "dst" : dstpaths}
 
-    # Add python helpers' deploy information. Note, python helpers are deployed only to the remote
-    # host. The local copy of python helpers comes via 'setup.py'. Therefore, check them only for
-    # the remote case.
-    if pyhelpers and proc.is_remote:
-        for pyhelper in pyhelpers:
-            datapath = find_app_data("wult", _HELPERS_SRC_SUBPATH / pyhelper, appname=toolname)
-            srcpaths = []
-            dstpaths = []
-            for deployable in _get_deployables(datapath, Procs.Proc()):
-                if datapath.joinpath(deployable).exists():
-                    # This case is relevant for running wult from sources - python helpers are
-                    # in the 'helpers/pyhelper' directory.
-                    srcpath = datapath
-                else:
-                    # When wult is installed with 'pip', the python helpers go to the "bindir",
-                    # and they are not installed to the data directory.
-                    srcpath = FSHelpers.which(deployable).parent
+        # Add python helpers' deploy information. Note, python helpers are deployed only to the
+        # remote host. The local copy of python helpers comes via 'setup.py'. Therefore, check them
+        # only for the remote case.
+        if self._pyhelpers and self._spman.is_remote:
+            for pyhelper in self._pyhelpers:
+                datapath = find_app_data("wult", _HELPERS_SRC_SUBPATH / pyhelper,
+                                         appname=self._toolname)
+                srcpaths = []
+                dstpaths = []
 
-                srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
-                dstpaths.append(helpers_deploy_path / deployable)
-            dinfos[pyhelper] = {"src" : srcpaths, "dst" : dstpaths}
+                for deployable in _get_deployables(datapath, self._cpman):
+                    if datapath.joinpath(deployable).exists():
+                        # This case is relevant for running wult from sources - python helpers are
+                        # in the 'helpers/pyhelper' directory.
+                        srcpath = datapath
+                    else:
+                        # When wult is installed with 'pip', the python helpers go to the "bindir",
+                        # and they are not installed to the data directory.
+                        srcpath = self._cpman.which(deployable).parent
 
-    # We are about to get timestamps for local and remote files. Take into account the possible time
-    # shift between local and remote systems.
-    time_delta = 0
-    if proc.is_remote:
-        time_delta = time.time() - RemoteHelpers.time_time(proc=proc)
+                    srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
+                    dstpaths.append(helpers_deploy_path / deployable)
 
-    # Compare source and destination files' timestamps.
-    for what, dinfo in dinfos.items():
-        src = dinfo["src"]
-        src_mtime = get_newest_mtime(src)
-        for dst in dinfo["dst"]:
-            try:
-                dst_mtime = FSHelpers.get_mtime(dst, proc)
-            except ErrorNotFound:
-                deployable_not_found(dst)
+                    dinfos[pyhelper] = {"src" : srcpaths, "dst" : dstpaths}
 
-            if src_mtime > time_delta + dst_mtime:
-                src_str = ", ".join([str(path) for path in src])
-                _LOG.debug("%s src time %d + %d > dst_mtime %d\nsrc: %s\ndst %s",
-                           what, src_mtime, time_delta, dst_mtime, src_str, dst)
-                return True
+        # We are about to get timestamps for local and remote files. Take into account the possible
+        # time shift between local and remote systems.
+        time_delta = 0
+        if self._spman.is_remote:
+            time_delta = time.time() - RemoteHelpers.time_time(pman=self._spman)
 
-    return False
-
-def _log_cmd_output(args, stdout, stderr):
-    """Print output of a command in case debugging is enabled."""
-
-    if args.debug:
-        if stdout:
-            _LOG.log(Logging.ERRINFO, stdout)
-        if stderr:
-            _LOG.log(Logging.ERRINFO, stderr)
-
-def _deploy_drivers(args, proc):
-    """Deploy drivers to the SUT represented by 'proc'."""
-
-    drvsrc = find_app_data("wult", _DRV_SRC_SUBPATH/f"{args.toolname}",
-                           descr=f"{args.toolname} drivers sources")
-    if not drvsrc.is_dir():
-        raise Error(f"path '{drvsrc}' does not exist or it is not a directory")
-
-    kver = None
-    if not args.ksrc:
-        kver = KernelVersion.get_kver(proc=proc)
-        if not args.ksrc:
-            args.ksrc = Path(f"/lib/modules/{kver}/build")
-    else:
-        args.ksrc = FSHelpers.abspath(args.ksrc, proc=proc)
-
-    if not FSHelpers.isdir(args.ksrc, proc=proc):
-        raise Error(f"kernel sources directory '{args.ksrc}' does not exist{proc.hostmsg}")
-
-    if not kver:
-        kver = KernelVersion.get_kver_ktree(args.ksrc, proc=proc)
-
-    _LOG.info("Kernel sources path: %s", args.ksrc)
-    _LOG.info("Kernel version: %s", kver)
-
-    if KernelVersion.kver_lt(kver, args.minkver):
-        raise Error(f"version of the kernel{proc.hostmsg} is {kver}, and it is not new enough.\n"
-                    f"Please, use kernel version {args.minkver} or newer.")
-
-    _LOG.debug("copying the drivers to %s:\n   '%s' -> '%s'", proc.hostname, drvsrc, args.stmpdir)
-    proc.rsync(f"{drvsrc}/", args.stmpdir / "drivers", remotesrc=False, remotedst=True)
-    drvsrc = args.stmpdir / "drivers"
-
-    kmodpath = Path(f"/lib/modules/{kver}")
-    if not FSHelpers.isdir(kmodpath, proc=proc):
-        raise Error(f"kernel modules directory '{kmodpath}' does not exist{proc.hostmsg}")
-
-    # Build the drivers on the SUT.
-    _LOG.info("Compiling the drivers%s", proc.hostmsg)
-    cmd = f"make -C '{drvsrc}' KSRC='{args.ksrc}'"
-    if args.debug:
-        cmd += " V=1"
-
-    stdout, stderr, exitcode = proc.run(cmd)
-    if exitcode != 0:
-        msg = proc.cmd_failed_msg(cmd, stdout, stderr, exitcode)
-        if "synth_event_" in stderr:
-            msg += "\n\nLooks like synthetic events support is disabled in your kernel, enable " \
-                   "the 'CONFIG_SYNTH_EVENTS' kernel configuration option."
-        raise Error(msg)
-
-    _log_cmd_output(args, stdout, stderr)
-
-    # Deploy the drivers.
-    dstdir = kmodpath / _DRV_SRC_SUBPATH
-    FSHelpers.mkdir(dstdir, parents=True, exist_ok=True, proc=proc)
-
-    for name in _get_deployables(drvsrc, proc):
-        installed_module = _get_module_path(proc, name)
-        srcpath = drvsrc / f"{name}.ko"
-        dstpath = dstdir / f"{name}.ko"
-        _LOG.info("Deploying driver '%s' to '%s'%s", name, dstpath, proc.hostmsg)
-        proc.rsync(srcpath, dstpath, remotesrc=True, remotedst=True)
-
-        if installed_module and installed_module.resolve() != dstpath.resolve():
-            _LOG.debug("removing old module '%s'%s", installed_module, proc.hostmsg)
-            proc.run_verify(f"rm -f '{installed_module}'")
-
-    stdout, stderr = proc.run_verify(f"depmod -a -- '{kver}'")
-    _log_cmd_output(args, stdout, stderr)
-
-    # Potentially the deployed driver may crash the system before it gets to write-back data
-    # to the file-system (e.g., what 'depmod' modified). This may lead to subsequent boot
-    # problems. So sync the file-system now.
-    proc.run_verify("sync")
-
-def _create_standalone_python_script(script, pyhelperdir):
-    """
-    Create a standalone version of a python script 'script'. The 'pyhelperdir' argument is path to
-    the python helper sources directory on the local host. The script hast to be aready installed
-    installed on the local host.
-
-    The 'script' depends on wult modules, but this function creates a single file version of it. The
-    file will be an executable zip archive containing 'script' and all the wult dependencies it has.
-
-    The resulting standalone script will be saved in 'pyhelperdir' under the 'script'.standalone
-    name.
-    """
-
-    script_path = FSHelpers.which(script)
-    deps = _get_pyhelper_dependencies(script_path)
-
-    # Create an empty '__init__.py' file. We will be adding it to the sub-directories of the
-    # depenencies. For example, if one of the dependencies is 'helperlibs/Trivial.py',
-    # we'll have to add '__init__.py' to 'wultlibs/' and 'helperlibs'.
-    init_path = pyhelperdir / "__init__.py"
-    try:
-        with init_path.open("w+"):
-            pass
-    except OSError as err:
-        raise Error(f"failed to create file '{init_path}:\n{err}'") from None
-
-    # pylint: disable=consider-using-with
-    try:
-        fobj = zipobj = None
-
-        # Start creating the stand-alone version of the script: create an empty file and write
-        # python shebang there.
-        standalone_path = pyhelperdir / f"{script}.standalone"
-        try:
-            fobj = standalone_path.open("bw+")
-            fobj.write("#!/usr/bin/python3\n".encode("utf8"))
-        except OSError as err:
-            raise Error(f"failed to create and initialize file '{standalone_path}:\n{err}") from err
-
-        # Create a zip archive in the 'standalone_path' file. The idea is that this file will start
-        # with python shebang, and then include compressed version the script and its dependencies.
-        # Python interpreter is smart and can run such zip archives.
-        try:
-            zipobj = zipfile.ZipFile(fobj, "w", compression=zipfile.ZIP_DEFLATED)
-        except Exception as err:
-            raise Error(f"faild to initialize a zip archive from file "
-                        f"'{standalone_path}':\n{err}") from err
-
-        # Make 'zipobj' raies exceptions of typ 'Error', so that we do not have to wrap every
-        # 'zipobj' operation into 'try/except'.
-        zipobj = WrapExceptions.WrapExceptions(zipobj)
-
-        # Put the script to the archive under the '__main__.py' name.
-        zipobj.write(script_path, arcname="./__main__.py")
-
-        pkgdirs = set()
-
-        for src in deps:
-            # Form the destination path. It is just part of the source path staring from the
-            # 'wultlibs' of 'helperlibs' components.
-            try:
-                idx = src.parts.index("wultlibs")
-            except ValueError:
+        # Compare source and destination files' timestamps.
+        for what, dinfo in dinfos.items():
+            src = dinfo["src"]
+            src_mtime = self._get_newest_mtime(src)
+            for dst in dinfo["dst"]:
                 try:
-                    idx = src.parts.index("helperlibs")
-                except ValueError:
-                    raise Error(f"script '{script}' has bad depenency '{src}' - the path does not "
-                                f"have the 'wultlibs' or 'helperlibs' component in it.") from None
+                    dst_mtime = self._spman.get_mtime(dst)
+                except ErrorNotFound:
+                    self._deployable_not_found(dst)
 
-            dst = Path(*src.parts[idx:])
-            zipobj.write(src, arcname=dst)
+                if src_mtime > time_delta + dst_mtime:
+                    src_str = ", ".join([str(path) for path in src])
+                    _LOG.debug("%s src time %d + %d > dst_mtime %d\nsrc: %s\ndst %s",
+                               what, src_mtime, time_delta, dst_mtime, src_str, dst)
+                    return True
 
-            # Collecect all directory paths present in the dependencies. They are all python
-            # packages and we'll have to ensure we have the '__init__.py' file in each of the
-            # sub-directory.
-            pkgdir = dst.parent
-            for idx, _ in enumerate(pkgdir.parts):
-                pkgdirs.add(Path(*pkgdir.parts[:idx+1]))
+        return False
 
-        # Ensure the '__init__.py' file is present in all sub-directories.
-        zipped_files = {Path(name) for name in zipobj.namelist()}
-        for pkgdir in pkgdirs:
-            path = pkgdir / "__init__.py"
-            if path not in zipped_files:
-                zipobj.write(init_path, arcname=pkgdir / "__init__.py")
-    finally:
-        if zipobj:
-            zipobj.close()
-        if fobj:
-            fobj.close()
-    # pylint: enable=consider-using-with
+    def _log_cmd_output(self, stdout, stderr):
+        """Print output of a command in case debugging is enabled."""
 
-    # Make the standalone file executable.
-    try:
-        mode = standalone_path.stat().st_mode | 0o777
-        standalone_path.chmod(mode)
-    except OSError as err:
-        raise Error(f"cannot change '{standalone_path}' file mode to {oct(mode)}:\n{err}") from err
+        if self._debug:
+            if stdout:
+                _LOG.log(Logging.ERRINFO, stdout)
+            if stderr:
+                _LOG.log(Logging.ERRINFO, stderr)
 
-def _deploy_helpers(args, proc):
-    """Deploy helpers (including python helpers) to the SUT represented by 'proc'."""
+    def _prepare_shelpers(self, helpersrc):
+        """
+        Build and prepare simple helpers for deployment. The arguments are as follows:
+          * helpersrc - path to the helpers base directory on the controller.
+        """
 
-    # Python helpers need to be deployd only to a remote host. The local host already has them
-    # deployed by 'setup.py'.
-    if not proc.is_remote:
-        args.pyhelpers = []
+        # Copy simple helpers to the temporary directory on the build host.
+        for shelper in self._shelpers:
+            srcdir = helpersrc/ shelper
+            _LOG.debug("copying simple helper '%s' to %s:\n  '%s' -> '%s'",
+                       shelper, self._bpman.hostname, srcdir, self._btmpdir)
+            self._bpman.rsync(f"{srcdir}", self._btmpdir, remotesrc=False,
+                              remotedst=self._bpman.is_remote)
 
-    helpers = args.helpers + args.pyhelpers
-    if not helpers:
-        return
+        # Build non-python helpers.
+        for shelper in self._shelpers:
+            _LOG.info("Compiling simple helper '%s'%s", shelper, self._bpman.hostmsg)
+            helperpath = f"{self._btmpdir}/{shelper}"
+            stdout, stderr = self._bpman.run_verify(f"make -C '{helperpath}'")
+            self._log_cmd_output(stdout, stderr)
 
-    # We assume all helpers are in the same base directory.
-    helper_path = _HELPERS_SRC_SUBPATH/f"{helpers[0]}"
-    helpersrc = find_app_data("wult", helper_path, descr=f"{args.toolname} helper sources")
-    helpersrc = helpersrc.parent
+    def _prepare_pyhelpers(self, helpersrc):
+        """
+        Build and prepare python helpers for deployment. The arguments are as follows:
+          * helpersrc - path to the helpers base directory on the controller.
+        """
 
-    if not helpersrc.is_dir():
-        raise Error(f"path '{helpersrc}' does not exist or it is not a directory")
+        # Copy python helpers to the temporary directory on the controller.
+        for pyhelper in self._pyhelpers:
+            srcdir = helpersrc / pyhelper
+            _LOG.debug("copying python helper %s:\n  '%s' -> '%s'", pyhelper, srcdir, self._ctmpdir)
+            self._cpman.rsync(f"{srcdir}", self._ctmpdir, remotesrc=False, remotedst=False)
 
-    # Make sure all helpers are available.
-    for helper in helpers:
-        helperdir = helpersrc / helper
-        if not helperdir.is_dir():
-            raise Error(f"path '{helperdir}' does not exist or it is not a directory")
+        # Build stand-alone version of every python helper.
+        for pyhelper in self._pyhelpers:
+            _LOG.info("Building a stand-alone version of '%s'", pyhelper)
+            basedir = self._ctmpdir / pyhelper
+            deployables = _get_deployables(basedir)
+            for name in deployables:
+                _create_standalone_pyhelper(name, basedir)
 
-    # Copy python helpers to the temporary directory on the controller.
-    for pyhelper in args.pyhelpers:
-        srcdir = helpersrc / pyhelper
-        _LOG.debug("copying helper %s:\n  '%s' -> '%s'",
-                   pyhelper, srcdir, args.ctmpdir)
-        Procs.Proc().rsync(f"{srcdir}", args.ctmpdir, remotesrc=False, remotedst=False)
+        # And copy the "standoline-ized" version of python helpers to the SUT.
+        if self._spman.is_remote:
+            for pyhelper in self._pyhelpers:
+                srcdir = self._ctmpdir / pyhelper
+                _LOG.debug("copying python helper '%s' to %s:\n  '%s' -> '%s'",
+                           pyhelper, self._spman.hostname, srcdir, self._stmpdir)
+                self._spman.rsync(f"{srcdir}", self._stmpdir, remotesrc=False, remotedst=True)
 
-    # Build stand-alone version of every python helper.
-    for pyhelper in args.pyhelpers:
-        _LOG.info("Building a stand-alone version of '%s'", pyhelper)
-        basedir = args.ctmpdir / pyhelper
-        deployables = _get_deployables(basedir)
-        for name in deployables:
-            _create_standalone_python_script(name, basedir)
+    def _deploy_helpers(self):
+        """Deploy helpers (including python helpers) to the SUT."""
 
-    # And copy the "standoline-ized" version of python helpers to the SUT.
-    if proc.is_remote:
-        for pyhelper in args.pyhelpers:
-            srcdir = args.ctmpdir / pyhelper
-            _LOG.debug("copying helper '%s' to %s:\n  '%s' -> '%s'",
-                       pyhelper, proc.hostname, srcdir, args.stmpdir)
-            proc.rsync(f"{srcdir}", args.stmpdir, remotesrc=False, remotedst=True)
+        # Python helpers need to be deployed only to a remote host. The local host already has them
+        # deployed by 'setup.py'.
+        if not self._spman.is_remote:
+            self._pyhelpers = []
 
-    # Copy non-python helpers to the temporary directory on the SUT.
-    for helper in args.helpers:
-        srcdir = helpersrc/ helper
-        _LOG.debug("copying helper '%s' to %s:\n  '%s' -> '%s'",
-                   helper, proc.hostname, srcdir, args.stmpdir)
-        proc.rsync(f"{srcdir}", args.stmpdir, remotesrc=False, remotedst=True)
+        all_helpers = self._shelpers + self._pyhelpers
+        if not all_helpers:
+            return
 
-    deploy_path = get_helpers_deploy_path(proc, args.toolname)
+        # We assume all helpers are in the same base directory.
+        helper_path = _HELPERS_SRC_SUBPATH/f"{all_helpers[0]}"
+        helpersrc = find_app_data("wult", helper_path, descr=f"{self._toolname} helper sources")
+        helpersrc = helpersrc.parent
 
-    # Build the non-python helpers on the SUT.
-    if args.helpers:
-        for helper in args.helpers:
-            _LOG.info("Compiling helper '%s'%s", helper, proc.hostmsg)
-            helperpath = f"{args.stmpdir}/{helper}"
-            stdout, stderr = proc.run_verify(f"make -C '{helperpath}'")
-            _log_cmd_output(args, stdout, stderr)
+        if not helpersrc.is_dir():
+            raise Error(f"path '{helpersrc}' does not exist or it is not a directory")
 
-    # Make sure the the destination deployment directory exists.
-    FSHelpers.mkdir(deploy_path, parents=True, exist_ok=True, proc=proc)
+        # Make sure all helpers are available.
+        for helper in all_helpers:
+            helperdir = helpersrc / helper
+            if not helperdir.is_dir():
+                raise Error(f"path '{helperdir}' does not exist or it is not a directory")
 
-    # Deploy all helpers.
-    _LOG.info("Deploying helpers to '%s'%s", deploy_path, proc.hostmsg)
+        self._prepare_shelpers(helpersrc)
+        self._prepare_pyhelpers(helpersrc)
 
-    helpersdst = args.stmpdir / "helpers_deployed"
-    _LOG.debug("deploying helpers to '%s'%s", helpersdst, proc.hostmsg)
+        deploy_path = get_helpers_deploy_path(self._toolname, self._spman)
 
-    for helper in helpers:
-        helperpath = f"{args.stmpdir}/{helper}"
+        # Make sure the the destination deployment directory exists.
+        self._spman.mkdir(deploy_path, parents=True, exist_ok=True)
 
-        cmd = f"make -C '{helperpath}' install PREFIX='{helpersdst}'"
-        stdout, stderr = proc.run_verify(cmd)
-        _log_cmd_output(args, stdout, stderr)
+        # Deploy all helpers.
+        _LOG.info("Deploying helpers to '%s'%s", deploy_path, self._spman.hostmsg)
 
-        proc.rsync(str(helpersdst) + "/bin/", deploy_path, remotesrc=True, remotedst=True)
+        helpersdst = self._stmpdir / "helpers_deployed"
+        _LOG.debug("deploying helpers to '%s'%s", helpersdst, self._spman.hostmsg)
 
-def _remove_deploy_tmpdir(args, proc, success=True):
-    """Remove temporary files."""
+        for helper in all_helpers:
+            bhelperpath = f"{self._btmpdir}/{helper}"
+            shelperpath = f"{self._stmpdir}/{helper}"
 
-    ctmpdir = getattr(args, "ctmpdir", None)
-    stmpdir = getattr(args, "stmpdir", None)
+            if self._lbuild and self._spman.is_remote:
+                # We built the helpers locally, but have to install them on a remote SUT. Copy them
+                # to the SUT first.
+                self._spman.rsync(str(bhelperpath) + "/", shelperpath,
+                                  remotesrc=self._bpman.is_remote, remotedst=self._spman.is_remote)
 
-    if args.debug and not success:
-        _LOG.debug("preserved the following temporary directories for debugging purposes:")
-        if ctmpdir:
-            _LOG.debug(" * On the local host: %s", ctmpdir)
-        if stmpdir and stmpdir != ctmpdir:
-            _LOG.debug(" * On the SUT: %s", stmpdir)
-    else:
-        if ctmpdir:
-            FSHelpers.rm_minus_rf(args.ctmpdir, proc=proc)
-        if stmpdir:
-            FSHelpers.rm_minus_rf(args.stmpdir, proc=proc)
+            cmd = f"make -C '{shelperpath}' install PREFIX='{helpersdst}'"
+            stdout, stderr = self._spman.run_verify(cmd)
+            self._log_cmd_output(stdout, stderr)
 
-def deploy_command(args):
-    """Implements the 'deploy' command for the 'wult' and 'ndl' tools."""
+            self._spman.rsync(str(helpersdst) + "/bin/", deploy_path,
+                              remotesrc=self._spman.is_remote,
+                              remotedst=self._spman.is_remote)
 
-    args.stmpdir = None # Temporary directory on the SUT.
-    args.ctmpdir = None # Temporary directory on the controller (local host).
+    def _deploy_drivers(self):
+        """Deploy drivers to the SUT."""
 
-    if not FSHelpers.which("rsync", default=None):
-        raise Error("please, install the 'rsync' tool")
+        drvsrc = find_app_data("wult", _DRV_SRC_SUBPATH/f"{self._toolname}",
+                               descr=f"{self._toolname} drivers sources")
+        if not drvsrc.is_dir():
+            raise Error(f"path '{drvsrc}' does not exist or it is not a directory")
 
-    if not args.timeout:
-        args.timeout = 8
-    else:
-        args.timeout = Trivial.str_to_num(args.timeout)
-    if not args.username:
-        args.username = "root"
+        _LOG.debug("copying driver sources to %s:\n   '%s' -> '%s'",
+                   self._bpman.hostname, drvsrc, self._btmpdir)
+        self._bpman.rsync(f"{drvsrc}/", self._btmpdir / "drivers", remotesrc=False,
+                          remotedst=self._bpman.is_remote)
+        drvsrc = self._btmpdir / "drivers"
 
-    if args.privkey and not args.privkey.is_file():
-        raise Error(f"path '{args.privkey}' does not exist or it is not a file")
+        kmodpath = Path(f"/lib/modules/{self._kver}")
+        if not self._spman.is_dir(kmodpath):
+            raise Error(f"kernel modules directory '{kmodpath}' does not "
+                        f"exist{self._spman.hostmsg}")
 
-    if args.pyhelpers:
-        # Local temporary directory is only needed for creating stand-alone version of python
-        # helpers.
-        args.ctmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-")
+        # Build the drivers.
+        _LOG.info("Compiling the drivers%s", self._bpman.hostmsg)
+        cmd = f"make -C '{drvsrc}' KSRC='{self._ksrc}'"
+        if self._debug:
+            cmd += " V=1"
 
-    with contextlib.closing(ToolsCommon.get_proc(args, args.hostname)) as proc:
-        if not FSHelpers.which("make", default=None, proc=proc):
-            raise Error(f"please, install the 'make' tool{proc.hostmsg}")
+        stdout, stderr, exitcode = self._bpman.run(cmd)
+        if exitcode != 0:
+            msg = self._bpman.get_cmd_failure_msg(cmd, stdout, stderr, exitcode)
+            if "synth_event_" in stderr:
+                msg += "\n\nLooks like synthetic events support is disabled in your kernel, " \
+                       "enable the 'CONFIG_SYNTH_EVENTS' kernel configuration option."
+            raise Error(msg)
 
-        if proc.is_remote or not args.ctmpdir:
-            args.stmpdir = FSHelpers.mktemp(prefix=f"{args.toolname}-", proc=proc)
-        else:
-            args.stmpdir = args.ctmpdir
+        self._log_cmd_output(stdout, stderr)
 
-        success = True
+        # Deploy the drivers.
+        dstdir = kmodpath / _DRV_SRC_SUBPATH
+        self._spman.mkdir(dstdir, parents=True, exist_ok=True)
+
+        for name in _get_deployables(drvsrc, self._bpman):
+            installed_module = self._get_module_path(name)
+            srcpath = drvsrc / f"{name}.ko"
+            dstpath = dstdir / f"{name}.ko"
+            _LOG.info("Deploying driver '%s' to '%s'%s", name, dstpath, self._spman.hostmsg)
+            self._spman.rsync(srcpath, dstpath, remotesrc=self._bpman.is_remote,
+                              remotedst=self._spman.is_remote)
+
+            if installed_module and installed_module.resolve() != dstpath.resolve():
+                _LOG.debug("removing old module '%s'%s", installed_module, self._spman.hostmsg)
+                self._spman.run_verify(f"rm -f '{installed_module}'")
+
+        stdout, stderr = self._spman.run_verify(f"depmod -a -- '{self._kver}'")
+        self._log_cmd_output(stdout, stderr)
+
+        # Potentially the deployed driver may crash the system before it gets to write-back data
+        # to the file-system (e.g., what 'depmod' modified). This may lead to subsequent boot
+        # problems. So sync the file-system now.
+        self._spman.run_verify("sync")
+
+    def deploy(self):
+        """
+        Deploy all the required material to the SUT (drivers, helpers, etc).
+
+        We distinguish between 3 type of helper programs, or just helpers: simple helpers and python
+        helpers.
+
+        1. Simple helpers (shelpers) are stand-alone independent programs, which come in form of a
+           single executable file.
+        2. Python helpers (pyhelpers) are helper programs written in python. Unlike simple helpers,
+           they are not totally independent, but they depend on various python modules. Deploying a
+           python helpers is trickier because all python modules should also be deployed.
+        """
+
         try:
-            _deploy_drivers(args, proc)
-            _deploy_helpers(args, proc)
+            # Local temporary directory is required in these cases:
+            #   1. We are deploying to the local host.
+            #   2. We are building locally.
+            #   3. We are deploying python helpers. Regardless of the target host, we need a local
+            #      temporary directory for creating stand-alone versions of the helpers.
+            if self._lbuild or not self._spman.is_remote or self._pyhelpers:
+                self._ctmpdir = self._cpman.mkdtemp(prefix=f"{self._toolname}-")
+
+            if self._spman.is_remote:
+                self._stmpdir = self._spman.mkdtemp(prefix=f"{self._toolname}-")
+            else:
+                self._stmpdir = self._ctmpdir
+        except Exception as err:
+            self._remove_tmpdirs()
+            raise Error(f"failed to deploy the '{self._toolname}' tool: {err}") from err
+
+        if self._lbuild:
+            self._btmpdir = self._ctmpdir
+        else:
+            self._btmpdir = self._stmpdir
+
+        remove_tmpdirs = True
+        try:
+            self._deploy_drivers()
+            self._deploy_helpers()
         except:
-            success = False
+            if self._debug:
+                remove_tmpdirs = False
             raise
         finally:
-            _remove_deploy_tmpdir(args, proc, success=success)
+            self._remove_tmpdirs(remove_tmpdirs=remove_tmpdirs)
+
+    def _init_kernel_info(self):
+        """
+        Discover kernel version and kernel sources path which will be needed for building the out of
+        tree drivers. The arguments are as follows.
+        """
+
+        from wultlibs.helperlibs import KernelVersion # pylint: disable=import-outside-toplevel
+
+        self._kver = None
+        if not self._ksrc:
+            self._kver = KernelVersion.get_kver(pman=self._bpman)
+            if not self._ksrc:
+                self._ksrc = Path(f"/lib/modules/{self._kver}/build")
+
+        if not self._bpman.is_dir(self._ksrc):
+            raise Error(f"kernel sources directory '{self._ksrc}' does not "
+                        f"exist{self._bpman.hostmsg}")
+
+        self._ksrc = self._bpman.abspath(self._ksrc)
+
+        if not self._kver:
+            self._kver = KernelVersion.get_kver_ktree(self._ksrc, pman=self._bpman)
+
+        _LOG.debug("Kernel sources path: %s", self._ksrc)
+        _LOG.debug("Kernel version: %s", self._kver)
+
+        ToolsCommon.check_kver(self._toolname, self._bpman, kver=self._kver)
+
+    def __init__(self, toolname, pman=None, ksrc=None, lbuild=False, debug=False):
+        """
+        The class constructor. The arguments are as follows.
+          * toolname - name of the tool to create the deployment object for.
+          * pman - the process manager object that defines the SUT to deploy to (local host by
+                   default).
+          * ksrc - path to the kernel sources to compile drivers against.
+          * lbuild - by default, everything is built on the SUT, but if 'lbuild' is 'True', then
+                     everything is built on the local host.
+          * debug - if 'True', be more verbose and do not remove the temporary directories in case
+                    of a failure.
+        """
+
+        self._toolname = toolname
+        self._spman = pman
+        self._ksrc = ksrc
+        self._lbuild = lbuild
+        self._debug = debug
+
+        self._close_spman = pman is None
+
+        self._cpman = None   # Process manager associated with the controller (local host).
+        self._bpman = None   # Process manager associated with the build host.
+        self._stmpdir = None # Temporary directory on the SUT.
+        self._ctmpdir = None # Temporary directory on the controller (local host).
+        self._btmpdir = None # Temporary directory on the build host.
+        self._kver = None    # Version of the kernel to compile the drivers for.
+
+        self._drivers = None
+        self._shelpers = []
+        self._pyhelpers = []
+
+        self._cpman = LocalProcessManager.LocalProcessManager()
+        if not self._spman:
+            self._spman = self._cpman
+
+        if self._toolname not in _TOOLS_INFO:
+            raise Error(f"BUG: unsupported tool '{toolname}'")
+
+        if self._lbuild:
+            self._bpman = self._cpman
+        else:
+            self._bpman = self._spman
+
+        for attr, val in _TOOLS_INFO[self._toolname].items():
+            setattr(self, f"_{attr}", val)
+
+        self._init_kernel_info()
+
+    def _remove_tmpdirs(self, remove_tmpdirs=True):
+        """
+        Remove temporary directories. The arguments are as follows.
+          * remove_tmpdirs - remove temporary directories if 'True', preserve them otherwise.
+        """
+
+        spman = getattr(self, "_spman", None)
+        cpman = getattr(self, "_cpman", None)
+        if not cpman or not spman:
+            return
+
+        ctmpdir = getattr(self, "_ctmpdir", None)
+        stmpdir = getattr(self, "_stmpdir", None)
+
+        if remove_tmpdirs:
+            if stmpdir:
+                spman.rmtree(self._stmpdir)
+            if ctmpdir and ctmpdir is not stmpdir:
+                cpman.rmtree(self._ctmpdir)
+        else:
+            _LOG.info("Preserved the following temporary directories for debugging purposes:")
+            if stmpdir:
+                _LOG.info(" * On the SUT (%s): %s", spman.hostname, stmpdir)
+            if ctmpdir and ctmpdir is not stmpdir:
+                _LOG.info(" * On the controller (%s): %s", cpman.hostname, ctmpdir)
+
+    def close(self):
+        """Uninitialize the object."""
+        ClassHelpers.close(self, close_attrs=("_cpman", "_spman"), unref_attrs=("_bpman",))

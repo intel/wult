@@ -13,10 +13,9 @@ This module provides API for collecting SUT statistics.
 import time
 import socket
 import logging
-import threading
 import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import Procs, FSHelpers, Trivial
+from pepclibs.helperlibs import LocalProcessManager, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
 from wultlibs.helperlibs import KernelVersion, ProcHelpers, RemoteHelpers
 from wultlibs.statscollectlibs import SysInfo
@@ -176,7 +175,7 @@ def _get_max_interval(stinfo):
 
     return 0
 
-class StatsCollect:
+class StatsCollect(ClassHelpers.SimpleCloseContext):
     """
     This class provides API for collecting SUT statistics, such as 'turbostat' data and AC power.
 
@@ -208,12 +207,12 @@ class StatsCollect:
         if self._oobcoll:
             self._oobcoll.start()
 
-    def stop(self):
+    def stop(self, sysinfo=True):
         """Stop collecting the statistics."""
 
-        self._inbcoll.stop()
+        self._inbcoll.stop(sysinfo=sysinfo)
         if self._oobcoll:
-            self._oobcoll.stop()
+            self._oobcoll.stop(sysinfo=sysinfo)
 
     def get_max_interval(self):
         """
@@ -398,28 +397,27 @@ class StatsCollect:
             stnames |= self._oobcoll.discover()
         return stnames
 
-    def __init__(self, proc, local_outdir=None, remote_outdir=None, sc_path=None):
+    def __init__(self, pman, local_outdir=None, remote_outdir=None, sc_path=None):
         """
         Initialize a class instance. The arguments are as follows.
           * local_outdir - output directory path on the local host for storing the local
                            'stats-collect' tool logs and results (the collected statistics).
                            The out-of-band statistics are always collected by the local
                            'stats-collect' instance, so it's logs and results will be stored in
-                           'local_outdir'. However, if the SUT is the local host ('procs' is a
-                           'Proc' object), the in-band 'stats-collect' logs and results are stored
-                           in the 'local_outdir' directory, and the out-of-band 'stats-collect' is
-                           not used at all.
+                           'local_outdir'. However, if the SUT is the local host, the in-band
+                           'stats-collect' logs and results are stored in the 'local_outdir'
+                           directory, and the out-of-band 'stats-collect' is not used at all.
           * remote_outdir - output directory path on the remote host (the SUT) for storing the
                             remote 'stats-collect' logs and results (the collected statistics). If
-                            the SUT is a remote host ('procs' is an 'SSH' object), the
-                            'remote_outdir' will be used for 'stats-collect' logs and in-band
-                            statistics. Otherwise, this path won't be used at all.
-          * proc - 'Proc' or 'SSH' object associated with the SUT (the host to collect the
-                   statistics for). Note, a reference to the 'proc' object will be saved and it will
+                            the SUT is a remote host, the 'remote_outdir' will be used for
+                            'stats-collect' logs and in-band statistics. Otherwise, this path won't
+                            be used at all.
+          * pman - the process manager object associated with the SUT (the host to collect the
+                   statistics for). Note, a reference to the 'pman' object will be saved and it will
                    be used in various methods, so it has to be kept connected. The reference will be
-                   dropped once the 'close()' method is invoked.
-          * sc_path - path to the 'stats-collect' tool on local host and (if any) remote host
-                      (supposed to be the same on both).
+                   dropped once the 'close()' method is invoked.  * sc_path - path to the
+                   'stats-collect' tool on local host and (if any) remote host (supposed to be the
+                   same on both).
 
         The collected statistics will be stored in the 'stats' sub-directory of the output
         directory, the 'stats-collects' logs will be stored in the 'logs' sub-directory. Use
@@ -429,14 +427,11 @@ class StatsCollect:
         directory gets removed in the 'close()' method.
         """
 
-        self._proc = proc
+        self._pman = pman
 
         # The in-band and out-of-band statistics collector objects.
         self._inbcoll = None
         self._oobcoll = None
-
-        # Prevents race conditions related to calling 'close()' from the destructor and directly.
-        self._close_lock = threading.Lock()
 
         if local_outdir:
             local_outdir = Path(local_outdir)
@@ -449,57 +444,24 @@ class StatsCollect:
                 raise Error(f"path '{remote_outdir}' is not absolute.\nPlease, provide absolute "
                             f"path for remote output directory")
 
-        if proc.is_remote:
+        if pman.is_remote:
             inb_outdir = remote_outdir
             oob_outdir = local_outdir
         else:
             inb_outdir = local_outdir
             oob_outdir = -1 # Just a bogus value, should not be used.
 
-        self._inbcoll = _InBandCollector(proc, outdir=inb_outdir, sc_path=sc_path)
-        # Do not create the out-of-band collector if 'proc' represents the local host. Out-of-band
+        self._inbcoll = _InBandCollector(pman, outdir=inb_outdir, sc_path=sc_path)
+        # Do not create the out-of-band collector if 'pman' represents the local host. Out-of-band
         # collectors by definition run on a host different to the SUT.
-        if proc.is_remote:
-            self._oobcoll = _OutOfBandCollector(proc.hostname, outdir=oob_outdir, sc_path=sc_path)
+        if pman.is_remote:
+            self._oobcoll = _OutOfBandCollector(pman.hostname, outdir=oob_outdir, sc_path=sc_path)
 
     def close(self):
-        """
-        Close the statistics collector. The 'proc' parameter is a 'Proc' or 'SSH' object
-        representing associated with the host the statistics were collected for.
-        """
+        """Close the statistics collector."""
+        ClassHelpers.close(self, close_attrs=("_oobcoll", "_inbcoll"), unref_attrs=("_pman",))
 
-        acquired = self._close_lock.acquire(timeout=1) # pylint: disable=consider-using-with
-        if not acquired:
-            return
-
-        try:
-            if getattr(self, "_oobcoll", None):
-                self._oobcoll.close()
-                self._oobcoll = None
-            if getattr(self, "_inbcoll", None):
-                self._inbcoll.close()
-                self._inbcoll = None
-            if getattr(self, "_proc", None):
-                self._proc = None
-        finally:
-            self._close_lock.release()
-
-    def __del__(self):
-        """The destructor."""
-
-        with contextlib.suppress(Exception):
-            self.close()
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
-
-
-class _Collector:
+class _Collector(ClassHelpers.SimpleCloseContext):
     """
     The base statistics collector class, contains the parts shared between the inband and
     out-of-band collectors.
@@ -576,7 +538,7 @@ class _Collector:
             cmd += " " + arg
 
         sc_str = f"'stats-collect' at {self._sc_id}"
-        check_log_msg = f"Check 'stats-collect' log file{self._proc.hostmsg}':\n{self._logpath}"
+        check_log_msg = f"Check 'stats-collect' log file{self._pman.hostmsg}':\n{self._logpath}"
 
         _LOG.debug("sending the following command to %s:\n%s", sc_str, cmd)
 
@@ -665,7 +627,7 @@ class _Collector:
             stnames.remove("sysinfo")
             if sysinfo:
                 _LOG.info("Collecting %s system information", self._sutname)
-                SysInfo.collect_before(self._statsdir / "sysinfo", self._proc)
+                SysInfo.collect_before(self._statsdir / "sysinfo", self._pman)
 
         if not stnames:
             return
@@ -682,7 +644,7 @@ class _Collector:
             stnames.remove("sysinfo")
             if sysinfo:
                 _LOG.info("Collecting more %s system information", self._sutname)
-                SysInfo.collect_after(self._statsdir / "sysinfo", self._proc)
+                SysInfo.collect_after(self._statsdir / "sysinfo", self._pman)
 
         if not stnames:
             return
@@ -714,30 +676,30 @@ class _Collector:
 
         # Discover path to 'stats-collect'.
         if not self._sc_path:
-            self._sc_path = FSHelpers.which("stats-collect", proc=self._proc)
+            self._sc_path = self._pman.which("stats-collect")
 
-        is_root = ProcHelpers.is_root(proc=self._proc)
+        is_root = ProcHelpers.is_root(pman=self._pman)
 
         if not self._unshare_path and is_root:
             # Unshare is used for running 'stats-collect' in a separate PID namespace. We do this
             # because when the PID 1 process of the namespace is killed, all other processes get
             # automatically killed. This helps to easily and reliably clean up processes upon exit.
             # But creating a PID namespace requires 'root'.
-            self._unshare_path = FSHelpers.which("unshare", default=None, proc=self._proc)
+            self._unshare_path = self._pman.which("unshare", must_find=False)
             if not self._unshare_path:
                 _LOG.warning("the 'unshare' tool is missing%s, it is recommended to have it "
                              "installed. This tool is part of the 'util-linux' project",
-                             self._proc.hostmsg)
+                             self._pman.hostmsg)
 
         if not self._nice_path and is_root:
             # We are trying to run 'stats-collect' with high priority, because we want the
             # statistics to be collected at steady intervals. The 'nice' tool helps changing the
             # priority of the process.
-            self._nice_path = FSHelpers.which("nice", default=None, proc=self._proc)
+            self._nice_path = self._pman.which("nice", must_find=False)
             if not self._nice_path:
                 _LOG.warning("the 'nice' tool is missing%s, it is recommended to have it "
                              "installed. This tool is part of the 'coreutils' project",
-                             self._proc.hostmsg)
+                             self._pman.hostmsg)
 
     def _fetch_stat_collect_socket_path(self):
         """
@@ -749,20 +711,20 @@ class _Collector:
         # Spend max. 5 secs waiting for 'stats-collect' to startup and print the socket file path.
         attempts = 0
         while not self._uspath and attempts < 5:
-            _, _, exitcode = self._sc.wait_for_cmd(timeout=1, capture_output=False)
+            _, _, exitcode = self._sc.wait(timeout=1, capture_output=False)
             attempts += 1
 
             logdata = logerr = None
             try:
-                with self._proc.open(self._logpath, "r") as fobj:
+                with self._pman.open(self._logpath, "r") as fobj:
                     logdata = fobj.read()
             except Error as logerr:
                 pass
 
             if exitcode is not None:
-                msg = self._proc.cmd_failed_msg(self._cmd, logdata, None, exitcode)
+                msg = self._pman.get_cmd_failure_msg(self._cmd, logdata, None, exitcode)
                 if not logdata:
-                    msg += f"\nCheck '{self._logpath}'{self._proc.hostmsg} for details"
+                    msg += f"\nCheck '{self._logpath}'{self._pman.hostmsg} for details"
                 raise Error(msg)
 
             if not logdata:
@@ -779,12 +741,12 @@ class _Collector:
         if self._uspath:
             _LOG.debug("stats-collect PID: %d, socket file path: %s", self._sc.pid, self._uspath)
 
-            self._sc_id = f"{self._proc.hostname}:{self._uspath}"
+            self._sc_id = f"{self._pman.hostname}:{self._uspath}"
             msg = f"stats-collect (PID {self._sc.pid}) that reported it is listening on Unix " \
-                  f"socket {self._uspath}{self._proc.hostmsg}"
+                  f"socket {self._uspath}{self._pman.hostmsg}"
 
             try:
-                if FSHelpers.issocket(Path(self._uspath), proc=self._proc):
+                if self._pman.is_socket(Path(self._uspath)):
                     return
             except Error as err:
                 msg = f"{msg}\nBut checking the file path failed: {err}"
@@ -795,11 +757,11 @@ class _Collector:
             if exitcode is None:
                 with contextlib.suppress(Error):
                     ProcHelpers.kill_pids([self._sc.pid, ], kill_children=True, must_die=False,
-                                          proc=self._proc)
+                                          pman=self._pman)
 
             msg = f"failed to extract socket file path from 'stats-collect' log\n" \
                   f"The command was: {self._cmd}\n" \
-                  f"The log is in '{self._logpath}'{self._proc.hostmsg}"
+                  f"The log is in '{self._logpath}'{self._pman.hostmsg}"
 
         if logerr:
             msg += f"\nFailed to read the log file: {logerr}"
@@ -818,27 +780,29 @@ class _Collector:
         forward TCP stream between a local TCP port the remote Unix socket.
         """
 
-        proc = self._proc
+        pman = self._pman
         self._ssht_port = RemoteHelpers.get_free_port()
-        self._sc_id = f"{self._ssht_port}:{proc.hostname}:{self._uspath}"
+        self._sc_id = f"{self._ssht_port}:{pman.hostname}:{self._uspath}"
 
 
-        ssh_opts = proc.get_ssh_opts()
-        cmd = f"ssh -L {self._ssht_port}:{self._uspath} -N {ssh_opts} {proc.hostname}"
-        self._ssht = Procs.Proc().run_async(cmd)
+        ssh_opts = pman.get_ssh_opts()
+        cmd = f"ssh -L {self._ssht_port}:{self._uspath} -N {ssh_opts} {pman.hostname}"
+        with LocalProcessManager.LocalProcessManager() as lpman:
+            self._ssht = lpman.run_async(cmd)
 
         # Wait the tunnel to get established.
         start_time = time.time()
-        timeout = max(proc.connection_timeout, 5)
-        msg = f"failed to establish SSH tunnel between localhost and {proc.hostname} " \
+        timeout = max(pman.connection_timeout, 5)
+        msg = f"failed to establish SSH tunnel between localhost and {pman.hostname} " \
               f"with this command:\n{cmd}"
 
         while time.time() - start_time <= timeout:
             _LOG.debug("trying to connect to localhost:%s", self._ssht_port)
-            stdout, stderr, exitcode = self._ssht.wait_for_cmd(timeout=1, capture_output=True) # pylint: disable=no-member
+            # pylint: disable=no-member
+            stdout, stderr, exitcode = self._ssht.wait(timeout=1, capture_output=True)
 
             if exitcode is not None:
-                raise Error(proc.cmd_failed_msg(cmd, stdout, stderr, exitcode, startmsg=msg))
+                raise Error(pman.get_cmd_failure_msg(cmd, stdout, stderr, exitcode, startmsg=msg))
 
             try:
                 self._connect()
@@ -849,7 +813,7 @@ class _Collector:
                 return
 
         raise Error(f"{msg}\nTried for {timeout} seconds, but could not connect to "
-                    f"localhost:{self._ssht_port}\nCheck '{self._logpath}'{proc.hostmsg} for "
+                    f"localhost:{self._ssht_port}\nCheck '{self._logpath}'{pman.hostmsg} for "
                     f"details")
 
     def _get_unshare_version(self):
@@ -858,7 +822,7 @@ class _Collector:
         'stats-collect' is going to be executed.
         """
 
-        stdout, _ = self._proc.run_verify(f"{self._unshare_path} --version")
+        stdout, _ = self._pman.run_verify(f"{self._unshare_path} --version")
         # The expected output example: unshare from util-linux 2.35.2.
         return stdout.split(" ")[-1].strip()
 
@@ -868,19 +832,19 @@ class _Collector:
         self._init_paths()
 
         # Kill a possibly running stale 'stats-collect' process.
-        msg = f"stale {self._sc_path} process{self._proc.hostmsg}"
-        ProcHelpers.kill_processes(self._sc_search, log=True, name=msg, proc=self._proc)
-        if self._proc.is_remote:
+        msg = f"stale {self._sc_path} process{self._pman.hostmsg}"
+        ProcHelpers.kill_processes(self._sc_search, log=True, name=msg, pman=self._pman)
+        if self._pman.is_remote:
             # Kill a possibly running stale SSH tunnel process.
-            msg = f"stale stats-collect SSH tunnel process{self._proc.hostmsg}"
-            ProcHelpers.kill_processes(self._ssht_search, log=True, name=msg, proc=self._proc)
+            msg = f"stale stats-collect SSH tunnel process{self._pman.hostmsg}"
+            ProcHelpers.kill_processes(self._ssht_search, log=True, name=msg, pman=self._pman)
 
         # Format the command for executing 'stats-collect'.
         self._cmd = f"{self._sc_path} --sut-name {self._sutname}"
         if _LOG.getEffectiveLevel() == logging.DEBUG:
             self._cmd = f"{self._cmd} -d"
 
-        self._logpath = self._logsdir / f"stats-collect-{self._proc.hostname}.log.txt"
+        self._logpath = self._logsdir / f"stats-collect-{self._pman.hostname}.log.txt"
         self._cmd = f"{self._cmd} > '{self._logpath}' 2>&1"
 
         # And format the 'stats-collect' command prefix.
@@ -901,10 +865,10 @@ class _Collector:
         if cmd_prefix:
             self._cmd = f"{cmd_prefix} {self._cmd}"
 
-        self._sc = self._proc.run_async(self._cmd, shell=True)
+        self._sc = self._pman.run_async(self._cmd, shell=True)
         self._fetch_stat_collect_socket_path()
 
-        if self._proc.is_remote:
+        if self._pman.is_remote:
             # 'stats-collect' runs on the SUT and we cannot connect to the Unix socket file
             # directly. Setup SSH forwarding.
             self._setup_stats_collect_ssh_forwarding()
@@ -916,26 +880,26 @@ class _Collector:
         """
 
         if not self.outdir:
-            self.outdir = FSHelpers.mktemp(prefix="stats-collect-", proc=self._proc)
+            self.outdir = self._pman.mkdtemp(prefix="stats-collect-")
             self._outdir_created = True
-            _LOG.debug("created output directory '%s'%s", self.outdir, self._proc.hostmsg)
+            _LOG.debug("created output directory '%s'%s", self.outdir, self._pman.hostmsg)
         else:
             try:
-                FSHelpers.mkdir(self.outdir, parents=True, proc=self._proc)
+                self._pman.mkdir(self.outdir, parents=True)
             except ErrorExists:
                 pass
             else:
                 self._outdir_created = True
 
         self._logsdir = self.outdir / "logs"
-        FSHelpers.mkdir(self._logsdir, exist_ok=True, proc=self._proc)
+        self._pman.mkdir(self._logsdir, exist_ok=True)
 
         if discovery:
             # The statistics collected during discovery belong to the logs.
             self._statsdir = self._logsdir / "discovery-stats"
         else:
             self._statsdir = self.outdir / "stats"
-        FSHelpers.mkdir(self._statsdir, exist_ok=True, proc=self._proc)
+        self._pman.mkdir(self._statsdir, exist_ok=True)
 
     def configure(self, discovery=False):
         """Configure statistic collectors."""
@@ -948,7 +912,7 @@ class _Collector:
 
         if not stnames:
             _LOG.debug("skip starting stats-collect%s - no statistics collectors",
-                       self._proc.hostmsg)
+                       self._pman.hostmsg)
             if sysinfo:
                 self._init_outdir(discovery=False)
             return
@@ -998,29 +962,29 @@ class _Collector:
 
         return {stname for stname, stinfo in self.stinfo.items() if stinfo["enabled"]}
 
-    def __init__(self, proc, sutname, outdir=None, sc_path=None):
+    def __init__(self, pman, sutname, outdir=None, sc_path=None):
         """
         Initialize a class instance. The input arguments are as follows.
-          * proc - a 'Proc' or 'SSH' object associated with the host to run 'stats-collect' on.
+          * pman - a process manager associated with the host to run 'stats-collect' on.
           * outdir - path to the directory to store the logs and the collected statistics. Stored in
                      a temporary directory if not provided.
           * sutname - name of the System Under Test. Will be used for messages and searching for
                       stale 'stats-collect' process instances for the same SUT.
-          * sc_path - path to 'stats-collect' on the host defined by 'proc'. Searched for in '$PATH'
+          * sc_path - path to 'stats-collect' on the host defined by 'pman'. Searched for in '$PATH'
                       if not provided.
         """
 
-        self._proc = proc
+        self._pman = pman
         self._sutname = sutname
         self.outdir = outdir
         self._sc_path = sc_path
 
         self.stinfo = DEFAULT_STINFO.copy()
 
+        # Whether the 'self._pman' object should be closed.
+        self._close_pman = False
         # The commant to start 'stats-collect'.
         self._cmd = None
-        # Prevents race conditions related to calling 'close()' from the destructor and directly.
-        self._close_lock = threading.Lock()
 
         # Paths to the 'unshare' and 'nice' tools on the same host where 'stats-collect' runs.
         self._unshare_path = None
@@ -1051,56 +1015,36 @@ class _Collector:
     def close(self):
         """Close the statistics collector."""
 
-        acquired = self._close_lock.acquire(timeout=1) # pylint: disable=consider-using-with
-        if not acquired:
-            return
-
-        try:
-            if getattr(self, "_sock", None):
-                if self._start_time:
-                    with contextlib.suppress(Exception):
-                        self._send_command("stop")
+        if getattr(self, "_sock", None):
+            if self._start_time:
                 with contextlib.suppress(Exception):
-                    self._send_command("exit")
+                    self._send_command("stop")
+            with contextlib.suppress(Exception):
+                self._send_command("exit")
+            with contextlib.suppress(Exception):
+                self._disconnect()
+            self._sock = None
+
+        if getattr(self, "_pman", None):
+            if self._ssht:
                 with contextlib.suppress(Exception):
-                    self._disconnect()
-                self._sock = None
+                    ProcHelpers.kill_processes(self._ssht_search, pman=self._pman)
+                self._ssht = None
 
-            if getattr(self, "_proc", None):
-                if self._ssht:
-                    with contextlib.suppress(Exception):
-                        ProcHelpers.kill_processes(self._ssht_search, proc=self._proc)
-                    self._ssht = None
+            if self._sc:
+                with contextlib.suppress(Exception):
+                    ProcHelpers.kill_processes(self._sc_search, pman=self._pman)
+                self._sc = None
 
-                if self._sc:
-                    with contextlib.suppress(Exception):
-                        ProcHelpers.kill_processes(self._sc_search, proc=self._proc)
-                    self._sc = None
+            # Remove the output directory if we created it.
+            if getattr(self, "_outdir_created", None):
+                with contextlib.suppress(Exception):
+                    self._pman.rmtree(self.outdir)
+                self._outdir_created = None
 
-                # Remove the output directory if we created it.
-                if getattr(self, "_outdir_created", None):
-                    with contextlib.suppress(Exception):
-                        FSHelpers.rm_minus_rf(self.outdir, proc=self._proc)
-                    self._outdir_created = None
-
-                self._proc = None
-        finally:
-            self._close_lock.release()
-
-
-    def __del__(self):
-        """The destructor."""
-
-        with contextlib.suppress(Exception):
-            self.close()
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
+            if getattr(self, "_close_pman", None):
+                self._pman.close()
+            self._pman = None
 
 class _InBandCollector(_Collector):
     """
@@ -1108,13 +1052,13 @@ class _InBandCollector(_Collector):
     the SUT and statistics collectors also run on the SUT.
     """
 
-    def __init__(self, proc, outdir=None, sc_path=None):
+    def __init__(self, pman, outdir=None, sc_path=None):
         """
         Initialize a class instance. The arguments are the same as in 'StatsCollect.__init__()'.
         """
 
         # Call the base class constructor.
-        super().__init__(proc, proc.hostname, outdir=outdir, sc_path=sc_path)
+        super().__init__(pman, pman.hostname, outdir=outdir, sc_path=sc_path)
 
         # Cleanup 'self.stinfo' by removing out-of-band statistics.
         for stname in list(self.stinfo):
@@ -1145,7 +1089,11 @@ class _OutOfBandCollector(_Collector):
         """
 
         # Call the base class constructor.
-        super().__init__(Procs.Proc(), sutname, outdir=outdir, sc_path=sc_path)
+        pman = LocalProcessManager.LocalProcessManager()
+        super().__init__(pman, sutname, outdir=outdir, sc_path=sc_path)
+
+        # Make sure we close the process manager.
+        self._close_pman = True
 
         # Cleanup 'self.stinfo' by removing in-band statistics.
         for stname in list(self.stinfo):

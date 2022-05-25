@@ -27,7 +27,7 @@ import logging
 import tempfile
 import argparse
 import contextlib
-from pepclibs.helperlibs import Logging, ArgParse, Procs, Trivial
+from pepclibs.helperlibs import Logging, ArgParse, LocalProcessManager, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import ProcHelpers
 
@@ -236,8 +236,9 @@ class _BaseCollector:
         if not self._configured:
             self._error("the colletor was not configured")
 
-        self._proc = Procs.Proc().run_async(self._command, stderr=self._fobj, stdout=self._fobj,
-                                            newgrp=True)
+        self._pman = LocalProcessManager.LocalProcessManager()
+        self._proc = self._pman.run_async(self._command, stderr=self._fobj, stdout=self._fobj,
+                                          newgrp=True)
 
     def end(self):
         """Stop collecting and get the resulting statistics."""
@@ -264,7 +265,7 @@ class _BaseCollector:
     def save(self):
         """Save the collected statistics."""
 
-        _, _, exitcode = self._proc.wait_for_cmd(timeout=10, capture_output=False)
+        _, _, exitcode = self._proc.wait(timeout=10, capture_output=False)
         self._sync()
         if exitcode is None:
             self._error("PID %d refused to exit", self._proc.pid)
@@ -311,7 +312,11 @@ class _BaseCollector:
         #
         # These attributes are internal to this base class.
         #
+
         self._fobj = None
+        # The local process manager object.
+        self._pman = None
+        # The statistics collection process.
         self._proc = None
         self._outpath = None
 
@@ -329,8 +334,12 @@ class _BaseCollector:
     def __del__(self):
         """Class destructor."""
 
+        if getattr(self, "_pman", None):
+            self._pman.close()
+            self._pman = None
         if getattr(self, "_fobj", None):
             self._fobj.close()
+            self._fobj = None
 
 class TurbostatCollector(_BaseCollector):
     """This class represents the turbostat statistics collector."""
@@ -427,7 +436,8 @@ class ACPowerCollector(_BaseCollector):
 
         # Note, we assume that the power meter is generally initialized and configured outside of
         # 'stats-collect'. Here we only set the interval.
-        Procs.Proc().run_verify(f"{cmd} set interval {self.props['interval']}")
+        with LocalProcessManager.LocalProcessManager() as pman:
+            pman.run_verify(f"{cmd} set interval {self.props['interval']}")
 
         items = "T,P,I,V,S,Q,Phi,Fv,Vrange,Irange"
         self._command = f"{cmd} read {items}"
@@ -611,7 +621,7 @@ class StatsCollector:
         self._collectors = {}
         self.failed_collectors = set()
 
-class Client:
+class Client(ClassHelpers.SimpleCloseContext):
     """This class represent a network client."""
 
     def get_command(self):
@@ -682,19 +692,7 @@ class Client:
                 self._sock.shutdown(socket.SHUT_RDWR)
                 self._sock.close()
 
-    def __del__(self):
-        """The destructor."""
-        self.close()
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
-
-class Server:
+class Server(ClassHelpers.SimpleCloseContext):
     """This class represents 'stats-collect' as a network server."""
 
     def wait_for_client(self):
@@ -800,18 +798,6 @@ class Server:
             with contextlib.suppress(OSError):
                 os.remove(self._uspath)
 
-    def __del__(self):
-        """The destructor."""
-        self.close()
-
-    def __enter__(self):
-        """Enter the run-time context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
-
 def handle_command(cmd, collector):
     """Handle a single command from the client."""
 
@@ -880,20 +866,18 @@ def main():
 
     collector = StatsCollector()
 
-    server = Server(unix=args.unix, port=args.port, sutname=args.sutname)
-    server.start_listening()
+    with Server(unix=args.unix, port=args.port, sutname=args.sutname) as server:
+        server.start_listening()
+        LOG.debug("commands delimiter is '\\n%s'", DELIMITER)
 
-    LOG.debug("commands delimiter is '\\n%s'", DELIMITER)
-
-    while True:
-        with server.wait_for_client() as client:
-            try:
-                handle_client(client, collector)
-            except ClientDisconnected as err:
-                LOG.debug(err)
-            except ExitCommand:
-                break
-    server.close()
+        while True:
+            with server.wait_for_client() as client:
+                try:
+                    handle_client(client, collector)
+                except ClientDisconnected as err:
+                    LOG.debug(err)
+                except ExitCommand:
+                    break
 
     LOG.debug("exiting")
     return 0

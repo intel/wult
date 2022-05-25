@@ -12,7 +12,6 @@
 #include <linux/math64.h>
 #include <linux/mutex.h>
 #include <linux/printk.h>
-#include <linux/spinlock.h>
 #include <linux/wait.h>
 #include "tracer.h"
 
@@ -24,9 +23,6 @@
 
 /* The coarsest supported launch distance granularity, nanoseconds. */
 #define WULT_MAX_LDIST_GRANULARITY 100000000
-
-/* The maximum allowed size for the CPU cache dirtying buffer. */
-#define WULT_DCBUF_MAX_SIZE (16 * 1024 * 1024)
 
 #ifndef DRIVER_NAME
 #define DRIVER_NAME "wult"
@@ -139,13 +135,7 @@ struct wult_info {
 	 * following fields of this structure: 'enabled', 'intr_focus',
 	 * 'early_intr', 'ldist_from', 'ldist_to'.
 	 */
-	spinlock_t enable_lock;
-	/*
-	 * A buffer that is filled with data before entering a C-state in order
-	 * to make CPU cache contain dirty data (the "dirty CPU cache" feature).
-	 */
-	char *dcbuf;
-	unsigned int dcbuf_size;
+	struct mutex enable_mutex;
 	/* Wult tracer information. */
 	struct wult_tracer_info ti;
 	/* The armer thread. */

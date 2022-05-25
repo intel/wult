@@ -45,10 +45,53 @@ _LOG = logging.getLogger()
 class Plot:
     """This class provides the common defaults and logic for producing plotly diagrams."""
 
+    def get_hover_text(self, hov_defs, df):
+        """
+        Create and return a list containing hover text for every datapoint in the 'pandas.DataFrame'
+        'df'. Arguments are as follows:
+         * hov_defs - a list of definitions dictionaries which represent metrics for which hovertext
+                      should be generated.
+         * df - the 'pandas.DataFrame' which contains the datapoints to label.
+        """
+
+        _LOG.debug("Preparing hover text for '%s vs %s'", self.ycolname, self.xcolname)
+
+        # The loop below creates the following objects.
+        #  o colnames - names of the columns to include to the hover text.
+        #  o fmts - the hover text format.
+        colnames = []
+        fmts = []
+        for mdef in hov_defs:
+            colname = mdef["name"]
+            if colname not in df:
+                continue
+            if colname in (self.xcolname, self.ycolname):
+                # The X and Y datapoint values will be added automatically.
+                continue
+
+            fmt = f"{colname}: {{"
+            if mdef.get("type") == "float":
+                fmt += ":.2f"
+            fmt += "}"
+            unit = mdef.get("short_unit")
+            if unit and unit not in colname:
+                fmt += f"{unit}"
+
+            colnames.append(colname)
+            fmts.append(fmt)
+
+        text = []
+        fmt = "<br>".join(fmts)
+
+        for row in df[colnames].itertuples(index=False):
+            text.append(fmt.format(*row))
+
+        return text
+
     @staticmethod
     def _is_numeric_col(df, colname):
         """
-        Returns 'True' if column 'colname' in pandas DataFrame 'df' consists of numerical data,
+        Returns 'True' if column 'colname' in 'pandas.DataFrame' 'df' consists of numerical data,
         otherwise returns 'False'.  Helper for child classes to dictate styling based on whether a
         column is numeric or not.
         """
@@ -60,8 +103,8 @@ class Plot:
 
     def add_df(self, df, name, hover_text=None):
         """
-        Add a single pandas DataFrame of data to the plot.
-         * df - pandas DataFrame containing the data to be plotted for that test run.
+        Add a single 'pandas.DataFrame' of data to the plot.
+         * df - 'pandas.DataFrame' containing the data to be plotted for that test run.
          * name - plots with multiple sets of data will include a legend indicating which plot
                   points are from which set of data. This 'name' parameter will be used to label
                   the data given when this function is called.
@@ -74,8 +117,8 @@ class Plot:
 
     def generate(self):
         """
-        Generates a plotly diagram based on the data in the pandas DataFrames saved with
-        'self.add_df()'. Then saves it to a file at the output path 'self.outpath'.
+        Generates a plotly diagram based on the data in all instances of 'pandas.DataFrame' saved
+        with 'self.add_df()'. Then saves it to a file at the output path 'self.outpath'.
         """
 
         try:
@@ -101,9 +144,19 @@ class Plot:
                  "ticksuffix": self.xaxis_unit,
                  "title": self.xaxis_label}
 
+        # The default axis configuration uses an SI prefix for units (e.g. ms, ks, etc.).  For
+        # percent values, just round the value to 3 significant figures and do not include an SI
+        # prefix.
+        if self.xaxis_unit == "%":
+            xaxis["tickformat"] = ".3r"
+
         yaxis = {**_AXIS,
                  "ticksuffix": self.yaxis_unit,
                  "title": self.yaxis_label}
+
+        # See comment above regarding SI prefixes. Here we do the same but for the Y-axis.
+        if self.yaxis_unit == "%":
+            yaxis["tickformat"] = ".3r"
 
         layout = {"showlegend"  : True,
                   "hovermode"   : "closest",

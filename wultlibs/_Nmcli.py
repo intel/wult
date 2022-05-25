@@ -11,10 +11,10 @@ This module provides API to NetworkManger's nmcli tool.
 """
 
 import re
-from pepclibs.helperlibs import Trivial, FSHelpers, Procs
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
+from pepclibs.helperlibs import Trivial, LocalProcessManager, ClassHelpers
+from pepclibs.helperlibs.Exceptions import Error
 
-class Nmcli:
+class Nmcli(ClassHelpers.SimpleCloseContext):
     """API to the nmcli tool."""
 
     def _toggle_managed(self, ifname, managed):
@@ -25,7 +25,7 @@ class Nmcli:
         else:
             state = "no"
 
-        self._proc.run_verify(f"nmcli dev set '{ifname}' managed {state}")
+        self._pman.run_verify(f"nmcli dev set '{ifname}' managed {state}")
 
     def is_managed(self, ifname):
         """
@@ -34,11 +34,11 @@ class Nmcli:
         """
 
         cmd = f"nmcli --fields GENERAL.STATE dev show '{ifname}'"
-        stdout, stderr, exitcode = self._proc.run(cmd)
+        stdout, stderr, exitcode = self._pman.run(cmd)
         if exitcode:
             if "not found" in stderr or "not running" in stderr:
                 return False
-            raise Error(self._proc.cmd_failed_msg(cmd, stdout, stderr, exitcode))
+            raise Error(self._pman.get_cmd_failure_msg(cmd, stdout, stderr, exitcode))
 
         pattern = r"^GENERAL.STATE:\s+\d+ \((.+)\)$"
         match = re.match(pattern, stdout)
@@ -76,32 +76,19 @@ class Nmcli:
 
         self._saved_managed = {}
 
-    def __init__(self, proc=None):
+    def __init__(self, pman=None):
         """
-        Initialize a class instance for the host associated with the 'proc' object. By default it is
-        is going to be the local host, but 'proc' can be used to pass a connected 'SSH' object, in
-        which case all operation will be done on the remote host. This object will keep a 'proc'
-        reference and use it in various methods.
+        Initialize a class instance for the host associated with the 'pman' process manager object
+        (local host by default).
         """
 
-        if not proc:
-            proc = Procs.Proc()
-
-        self._proc = proc
+        self._pman = pman
         self._saved_managed = {}
+        self._close_pman = pman is None
 
-        if not FSHelpers.which("nmcli", default=None, proc=proc):
-            raise ErrorNotSupported(f"the 'nmcli' tool is not installed{proc.hostmsg}")
+        if not self._pman:
+            self._pman = LocalProcessManager.LocalProcessManager()
 
     def close(self):
-        """Stop the measurements."""
-        if getattr(self, "_proc", None):
-            self._proc = None
-
-    def __enter__(self):
-        """Enter the runtime context."""
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context."""
-        self.close()
+        """Uninitialize the object."""
+        ClassHelpers.close(self, close_attrs=("_pman",))
