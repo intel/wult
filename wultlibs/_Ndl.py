@@ -28,7 +28,7 @@ from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs.htmlreport import NdlReport
 
-VERSION = "1.3.13"
+VERSION = "1.3.14"
 OWN_NAME = "ndl"
 
 LOG = logging.getLogger()

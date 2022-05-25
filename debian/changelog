@@ -1,4 +1,4 @@
-wult (1.9.21) unstable; urgency=low
+wult (1.10.0) unstable; urgency=low
 
   * wult report: removed symbolic links to raw result files.
   * wult report: changed '--relocatable' to be a binary option.
@@ -8,7 +8,7 @@ wult (1.9.21) unstable; urgency=low
   * wult/ndl deploy: fix '--kernel-src' option which did not work.
   * wult/ndl deploy: add '--local-build' option.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com> __ADD_DATE__
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com> Wed, 25 May 2022 16:43:11 +0300
 
 wult (1.9.20) unstable; urgency=low
 
