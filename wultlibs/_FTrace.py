@@ -57,7 +57,7 @@ class FTrace(ClassHelpers.SimpleCloseContext):
         """Clear the function trace buffer."""
 
         _LOG.debug("clearing the trace buffer")
-        with self._pman.open(self.ftpath, "w+") as fobj:
+        with self._pman.open(self._paths["trace"], "w+") as fobj:
             fobj.write("0")
 
     def getlines(self):
@@ -96,20 +96,18 @@ class FTrace(ClassHelpers.SimpleCloseContext):
         self._pman = pman
         self.timeout = timeout
 
-        self._debugfs_mntpoint = None
-        self._unmount_debugfs = None
+        self._paths = {}
         self.raw_line = None
 
         self._debugfs_mntpoint, self._unmount_debugfs = FSHelpers.mount_debugfs(pman=self._pman)
-        self.ftpath = self._debugfs_mntpoint.joinpath("tracing/trace")
-        self.ftpipe_path = self._debugfs_mntpoint.joinpath("tracing/trace_pipe")
+        self._paths["trace"] = self._debugfs_mntpoint.joinpath("tracing/trace")
+        self._paths["trace_pipe"] = self._debugfs_mntpoint.joinpath("tracing/trace_pipe")
 
-        for path in (self.ftpath, self.ftpipe_path):
+        for path in self._paths.values():
             if not self._pman.is_file(path):
-                raise ErrorNotSupported(f"linux kernel function trace file was not found at "
-                                        f"'{path}'{self._pman.hostmsg}")
+                raise ErrorNotSupported(f"linux ftrace file '{path}' not found{self._pman.hostmsg}")
 
-        cmd = f"cat {self.ftpipe_path}"
+        cmd = f"cat {self._paths['trace_pipe']}"
         name = "stale wult function trace reader process"
         ProcHelpers.kill_processes(cmd, log=True, name=name, pman=self._pman)
         self._clear()
