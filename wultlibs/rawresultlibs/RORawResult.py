@@ -31,7 +31,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         """
 
         if not metrics:
-            metrics = self.colnames
+            metrics = self.metrics
 
         non_numeric = []
         for metric in metrics:
@@ -46,7 +46,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         """
 
         if not metrics:
-            metrics = self.colnames
+            metrics = self.metrics
 
         numeric = []
         for metric in metrics:
@@ -70,7 +70,7 @@ class RORawResult(_RawResultBase.RawResultBase):
             return None
 
         expr = str(expr)
-        for colname in self.colnames:
+        for colname in self.metrics:
             expr = expr.replace(colname, f"self.df['{colname}']")
         # The special 'index' name represents the row number (first data row has index '0').
         expr = re.sub("(?!')index(?!')", "self.df.index", expr)
@@ -149,7 +149,7 @@ class RORawResult(_RawResultBase.RawResultBase):
             self.load_df()
 
         if not regexs:
-            all_colnames = self.colnames
+            all_colnames = self.metrics
         else:
             all_colnames = self.find_metrics(regexs, must_find_all=True)
 
@@ -213,7 +213,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         """
 
         rsel = self._get_rsel()
-        csel = self._get_csel(self.colnames)
+        csel = self._get_csel(self.metrics)
 
         load_csv = force_reload or self.df is None
 
@@ -289,7 +289,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         found = {}
         for regex in regexs:
             matched = False
-            for metric in self.colnames:
+            for metric in self.metrics:
                 try:
                     if re.fullmatch(regex, metric):
                         found[metric] = regex
@@ -298,7 +298,7 @@ class RORawResult(_RawResultBase.RawResultBase):
                     raise Error(f"bad regular expression '{regex}': {err}") from err
 
             if not matched:
-                colnames_str = ", ".join(self.colnames)
+                colnames_str = ", ".join(self.metrics)
                 msg = f"no matches for column '{regex}' in the following list of available " \
                       f"columns:\n  {colnames_str}"
                 if must_find_all:
@@ -306,7 +306,7 @@ class RORawResult(_RawResultBase.RawResultBase):
                 _LOG.debug(msg)
 
         if not found and must_find_any:
-            colnames_str = ", ".join(self.colnames)
+            colnames_str = ", ".join(self.metrics)
             regexs_str = ", ".join(regexs)
             raise ErrorNotFound(f"no matches for the following column name(s):\n  {regexs_str}\n"
                                 f"in the following list of available columns:\n  {colnames_str}")
@@ -388,7 +388,7 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self.df = None
         self.smrys = None
-        self.colnames = []
+        self.metrics = []
         self.colnames_set = set()
 
         self.info = YAML.load(self.info_path)
@@ -407,21 +407,21 @@ class RORawResult(_RawResultBase.RawResultBase):
         if not toolver:
             raise Error(f"bad '{self.info_path}' format - the 'toolver' key is missing")
 
-        # Read the the column names from the CSV file.
+        # Read the metrics from the column names in the CSV file.
         try:
-            colnames = list(pandas.read_csv(self.dp_path, nrows=0))
+            metrics = list(pandas.read_csv(self.dp_path, nrows=0))
         except Exception as err:
             raise Error(f"failed to load CSV file {self.dp_path}:\n{err}") from None
 
         if toolname == "wult":
-            self.defs = WultDefs.WultDefs(colnames)
+            self.defs = WultDefs.WultDefs(metrics)
         else:
             self.defs = _DefsBase.DefsBase(toolname)
 
-        # Exclude column names which are not present in the definitions.
-        self.colnames = []
-        for colname in colnames:
-            if colname in self.defs.info:
-                self.colnames.append(colname)
+        # Exclude metrics which are not present in the definitions.
+        self.metrics = []
+        for metric in metrics:
+            if metric in self.defs.info:
+                self.metrics.append(metric)
 
-        self.colnames_set = set(self.colnames)
+        self.colnames_set = set(self.metrics)

@@ -420,7 +420,7 @@ def filter_command(args):
     res = RORawResult.RORawResult(args.respath)
 
     if args.list_columns:
-        for colname in res.colnames:
+        for colname in res.metrics:
             _LOG.info("%s: %s", colname, res.defs.info[colname]["title"])
         return
 
@@ -513,7 +513,7 @@ def list_result_columns(rsts):
 
     for rst in rsts:
         _LOG.info("Column names in '%s':", rst.dirpath)
-        for colname in rst.colnames:
+        for colname in rst.metrics:
             if colname in rst.defs.info:
                 _LOG.info("  * %s: %s", colname, rst.defs.info[colname]["title"])
 
