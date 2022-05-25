@@ -531,31 +531,31 @@ class ReportBase:
         The class constructor. The arguments are as follows.
           * rsts - list of 'RORawResult' objects representing the raw test results to generate the
                    HTML report for.
-          * outdir - the output directory path to store the HTML report at.
+          * outdir - the path at which to store the output directory of the HTML report.
           * title_descr - a string describing this report or a file path containing the description.
-          *               The description will be put at the top part of the HTML report. It should
-          *               describe the report in general (e.g., it compares platform A to platform
-          *               B). By default no title description is added to the HTML report.
-          * xaxes - list of regular expressions matching datapoints CSV file column names to use for
-                    the X axis of scatter plot diagrams. A scatter plot will be generated for each
-                    combination of 'xaxes' and 'yaxes' column name pair (except for the pairs in
-                    'exclude_xaxes'/'exclude_yaxes'). Default is the first column in the datapoints
-                    CSV file.
-          * yaxes - list of regular expressions matching datapoints CSV file column names to use for
-                    the Y axis of scatter plot diagrams. Default is the second column in the
+                          The description will be put at the top part of the HTML report. It should
+                          describe the report in general (e.g. it compares platform A to platform
+                          B). By default no title description is added to the HTML report.
+          * xaxes - list of regular expressions matching metrics to use for the X-axis of scatter
+                    plot diagrams. A scatter plot will be generated for each combination of 'xaxes'
+                    and 'yaxes' metric pair (except for pairs from 'exclude_xaxes' and
+                    'exclude_yaxes'). Default is the first metric represented by a column in the
                     datapoints CSV file.
-          * hist - list of regular expressions matching datapoints CSV file column names to create a
-                   histogram for. Default is the first column in the datapoints CSV file. An empty
+          * yaxes - list of regular expressions matching metrics to use for the Y-axis of scatter
+                    plot diagrams. Default is the second metric represented by a column in the
+                    datapoints CSV file.
+          * hist - list of regular expressions matching metrics to create a histogram for. Default
+                   is the first metric represented by a column in the datapoints CSV file. An empty
                    string can be used to disable histograms.
-          * chist - list of regular expressions matching datapoints CSV file column names to create
-                    a cumulative histogram for. Default is he first column in the datapoints CSV
+          * chist - list of regular expressions matching metrics to create a cumulative histogram
+                    for. Default is the first metric represented by a column in the datapoints CSV
                     file. An empty string can be used to disable cumulative histograms.
           * exclude_xaxes - by default all diagrams of X- vs Y-axes combinations will be created.
-                            The 'exclude_xaxes' is a list regular expressions matching datapoints
-                            CSV file column names. There will be no scatter plot for each
-                            combinations of 'exclude_xaxes' and 'exclude_yaxes'. In other words,
-                            this argument along with 'exclude_yaxes' allows for excluding some
-                            diagrams from the 'xaxes' and 'yaxes' combinations.
+                            The 'exclude_xaxes' is a list regular expressions matching metrics.
+                            There will be no scatter plot for each combination of 'exclude_xaxes'
+                            and 'exclude_yaxes'. In other words, this argument along with
+                            'exclude_yaxes' allows for excluding some diagrams from the 'xaxes' and
+                            'yaxes' combinations.
           * exclude_yaxes - same as 'exclude_xaxes', but for Y-axes.
         """
 
