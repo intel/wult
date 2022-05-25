@@ -39,7 +39,7 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "unsigned int", .name = "IntrOff" },
 	{ .type = "unsigned int", .name = "ReqCState" },
 	{ .type = "u64", .name = "BICyc" },
-	{ .type = "u64", .name = "BIMonotinic" },
+	{ .type = "u64", .name = "BIMonotonic" },
 	{ .type = "u64", .name = "AICyc1" },
 	{ .type = "u64", .name = "AICyc2" },
 	{ .type = "u64", .name = "IntrCyc1" },
