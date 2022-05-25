@@ -160,13 +160,16 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         # If no sub tabs were generated then return 'None'.
         return None
 
-    def _get_tab_hierarchy(self):
+    def _get_tab_hierarchy(self, common_metrics):
         """
-        Get the tab hierarchy which is populated using the C-states in 'self._hw_cstates' and
-        'self._req_cstates'.
+        Get the tab hierarchy which is populated with 'common_metrics' and using the C-states in
+        'self._hw_cstates' and 'self._req_cstates'.
         """
 
-        tab_hierarchy = {"dtabs": ["Busy%", "Bzy_MHz", "Avg_MHz", "CorWatt"]}
+        base_dtabs = ["Busy%", "Bzy_MHz", "Avg_MHz", "CorWatt"]
+        base_dtabs = [metric for metric in base_dtabs if metric in common_metrics]
+
+        tab_hierarchy = {"dtabs": base_dtabs}
         tab_hierarchy["C-states"] = {
             "Hardware": {"dtabs":[]},
             "Requested": {"dtabs": []}
@@ -202,10 +205,6 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         common to all results.
         """
 
-        # All raw turbostat statistic files have been parsed so we can now get a tab hierarchy with
-        # C-state related tabs for C-states which are common to all sets of results.
-        tab_hierarchy = self._get_tab_hierarchy()
-
         # Find metrics which are common to all raw turbostat statistic files.
         metric_sets = [set(sdf.columns) for sdf in self._reports.values()]
         common_metrics = set.intersection(*metric_sets)
@@ -213,6 +212,10 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         # Limit metrics to only those which are common to all test results.
         for reportid, sdf in self._reports.items():
             self._reports[reportid] = sdf[list(common_metrics)]
+
+        # All raw turbostat statistic files have been parsed so we can now get a tab hierarchy with
+        # tabs which are common to all sets of results.
+        tab_hierarchy = self._get_tab_hierarchy(common_metrics)
 
         # Build L2 CTab with hierarchy represented in 'self._tab_hierarchy'.
         return self._build_ctab(self.name, tab_hierarchy, self.outdir)
