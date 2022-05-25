@@ -5,6 +5,8 @@ wult (1.9.21) unstable; urgency=low
   * wult report: added turbostat statistics tab.
   * wult: removed 'start --dirty-cpu-cache' option/capability.
   * wult: removed 'wult load' debug command.
+  * wult/ndl deploy: fix '--kernel-src' option which did not work.
+  * wult/ndl deploy: add '--local-build' option.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com> __ADD_DATE__
 
