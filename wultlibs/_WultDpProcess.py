@@ -389,7 +389,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
     def _calculate_tsc_rate(self, rawdp):
         """
-        TSC rate is calculated using 'BICyc' and 'BIMonotinic' raw datapoint fields. These fields
+        TSC rate is calculated using 'BICyc' and 'BIMonotonic' raw datapoint fields. These fields
         are read one after another with interrupts disabled. The former is "TSC cycles Before Idle",
         the latter stands for "Monotonic time Before Idle". The "Before Idle" part is not relevant
         here at all, it just tells that these counters were read just before the system enters an
@@ -407,7 +407,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         if rawdp["SMICnt"] != 0 or rawdp["NMICnt"] != 0:
             # Do not use this datapoint, there was an SMI or NMI, and there is a chance that it
-            # happened between the 'BICyc' and 'BIMonotinic' reads, which may skew our TSC rate
+            # happened between the 'BICyc' and 'BIMonotonic' reads, which may skew our TSC rate
             # calculations.
             _LOG.debug("NMI/SMI detected, won't use the datapoint for TSC rate calculations:\n%s",
                        Human.dict2str(rawdp))
@@ -416,11 +416,11 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         if not self._tsc1:
             # We are called for the first time.
             self._tsc1 = rawdp["BICyc"]
-            self._ts1 = rawdp["BIMonotinic"]
+            self._ts1 = rawdp["BIMonotonic"]
             return
 
         tsc2 = rawdp["BICyc"]
-        ts2 = rawdp["BIMonotinic"]
+        ts2 = rawdp["BIMonotonic"]
 
         # Bear in mind that 'ts' is in nanoseconds.
         if ts2 - self._ts1 < self.tsc_cal_time * 1000000000:
