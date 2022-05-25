@@ -389,7 +389,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         self.df = None
         self.smrys = None
         self.metrics = []
-        self.colnames_set = set()
+        self.metrics_set = set()
 
         self.info = YAML.load(self.info_path)
         if reportid:
@@ -424,4 +424,4 @@ class RORawResult(_RawResultBase.RawResultBase):
             if metric in self.defs.info:
                 self.metrics.append(metric)
 
-        self.colnames_set = set(self.metrics)
+        self.metrics_set = set(self.metrics)

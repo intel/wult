@@ -355,7 +355,7 @@ class ReportBase:
 
             metrics = []
             for metric in self._hov_metrics[res.reportid] + self._more_metrics:
-                if metric in res.colnames_set:
+                if metric in res.metrics_set:
                     metrics.append(metric)
 
             csel = Trivial.list_dedup(self._smry_metrics + metrics)
@@ -406,7 +406,7 @@ class ReportBase:
         for name in lists:
             intersection = set(getattr(self, name))
             for res in self.rsts:
-                intersection = intersection & res.colnames_set
+                intersection = intersection & res.metrics_set
             metrics = []
             for metric in getattr(self, name):
                 if metric in intersection:
@@ -606,7 +606,7 @@ class ReportBase:
         self._smry_metrics = []
         for metric in smry_metrics:
             for res in rsts:
-                if metric not in res.colnames_set:
+                if metric not in res.metrics_set:
                     break
             else:
                 self._smry_metrics.append(metric)
