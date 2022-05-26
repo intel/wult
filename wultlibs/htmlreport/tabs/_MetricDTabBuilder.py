@@ -94,19 +94,6 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         super()._add_scatter(xdef, ydef, hover_defs)
         return self._ppaths[-1]
 
-    def _generate_histograms(self, hist=None, chist=None):
-        """Generate the histograms."""
-
-        ppaths = []
-
-        if hist is not None:
-            hist = self._tabmetric in set(hist)
-        if chist is not None:
-            chist = self._tabmetric in set(chist)
-
-        ppaths += self._pbuilder.build_histograms(self._tabmetric, hist, chist)
-        return ppaths
-
     def add_plots(self, plot_axes=None, hist=None, chist=None, hover_defs=None):
         """
         Generate and add plots to the tab.
@@ -149,7 +136,12 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                 ppath = self._add_scatter(xdef, ydef, hover_defs)
                 ppaths.append(ppath)
 
-        ppaths += self._generate_histograms(hist, chist)
+        if hist is not None:
+            hist = self._tabmetric in set(hist)
+        if chist is not None:
+            chist = self._tabmetric in set(chist)
+
+        ppaths += self._pbuilder.build_histograms(self._tabmetric, hist, chist)
         self._ppaths = ppaths
 
     def __init__(self, rsts, outdir, metric_def, basedir=None, hover_metrics=None):
