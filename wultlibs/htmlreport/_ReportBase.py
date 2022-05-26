@@ -198,7 +198,9 @@ class ReportBase:
             for axes in plot_axes:
                 if metric in axes:
                     # Only add plots which have the tab metric on one of the axes.
-                    tab_plots.append(axes)
+                    xdef = self._refres.defs.info[axes[0]]
+                    ydef = self._refres.defs.info[axes[1]]
+                    tab_plots.append((xdef, ydef,))
                     # Only add metrics shown in the diagrams to the summary table.
                     smry_metrics += axes
 

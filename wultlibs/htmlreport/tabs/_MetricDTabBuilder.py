@@ -111,7 +111,8 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         """
         Generate and add plots to the tab.
         Arguments are as follows:
-         * plot_axes - tuples of axes to create scatter plots for in the format (xaxis, yaxis).
+         * plot_axes - tuples of defs which represent axes to create scatter plots for in the format
+                       (xdef, ydef).
          * hist - metrics to create histograms for, defaults to 'None'.
          * chist - metrics to create cumulative histograms for, defaults to 'None'.
          * hover_defs - specifies which metrics hovertext in plots should be generated for.
@@ -140,13 +141,11 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         ppaths = []
         if plot_axes is not None:
-            for xcolname, ycolname in plot_axes:
-                if not all(xcolname in res.df and ycolname in res.df for res in self._rsts):
+            for xdef, ydef in plot_axes:
+                if not all(xdef["name"] in res.df and ydef["name"] in res.df for res in self._rsts):
                     _LOG.warning("skipping scatter plot '%s' vs '%s' since not all results have "
-                                 "data for both.", ycolname, xcolname)
+                                 "data for both.", ydef, xdef)
                     continue
-                xdef = self._refres.defs.info[xcolname]
-                ydef = self._refres.defs.info[ycolname]
                 ppath = self._add_scatter(xdef, ydef, hover_defs)
                 ppaths.append(ppath)
 
