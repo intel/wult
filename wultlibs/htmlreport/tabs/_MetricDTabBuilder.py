@@ -78,7 +78,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         except Error as err:
             raise Error("Failed to generate summary table.") from err
 
-    def _build_scatter(self, xdef, ydef):
+    def _build_scatter(self, xdef, ydef, hover_defs):
         """
         Create a scatter plot with the metric represented by 'xdef' on the X-axis and the metric
         represented by 'ydef' on the Y-axis using data from 'rsts' which is provided to the class
@@ -90,10 +90,6 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
             for res in self._rsts:
                 res.df[mdef["name"]] = self._pbuilder.base_unit(res.df, mdef["name"])
 
-        hover_defs = {}
-        for reportid, metrics in self._hover_metrics.items():
-            hover_defs[reportid] = [self._refres.defs.info[m] for m in metrics]
-
         super()._add_scatter(xdef, ydef, hover_defs)
         return self._ppaths[-1]
 
@@ -102,6 +98,10 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         ppaths = []
 
+        hover_defs = {}
+        for reportid, metrics in self._hover_metrics.items():
+            hover_defs[reportid] = [self._refres.defs.info[m] for m in metrics]
+
         for xcolname, ycolname in plot_axes:
             if not all(xcolname in res.df and ycolname in res.df for res in self._rsts):
                 _LOG.warning("skipping scatter plot '%s' vs '%s' since not all results have data "
@@ -109,7 +109,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                 continue
             xdef = self._refres.defs.info[xcolname]
             ydef = self._refres.defs.info[ycolname]
-            ppath = self._build_scatter(xdef, ydef)
+            ppath = self._build_scatter(xdef, ydef, hover_defs)
             ppaths.append(ppath)
         return ppaths
 
