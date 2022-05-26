@@ -94,12 +94,16 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         super()._add_scatter(xdef, ydef, hover_defs)
         return self._ppaths[-1]
 
-    def _build_histogram(self, xmetric, xbins, xaxis_label, xaxis_unit, cumulative=False):
+    def _build_histogram(self, mdef, xbins, cumulative=False):
         """
         Helper function for 'build_histograms()'. Create a histogram or cumulative histogram with
-        'xmetric' on the x-axis data from 'self._rsts'. Returns the filepath of the generated plot
-        HTML.
+        metric 'mdef' on the X-axis with data from 'self._rsts'. Returns the filepath of the
+        generated plot HTML.
         """
+
+        xmetric = mdef["name"]
+        xaxis_label = mdef["title"]
+        xaxis_unit = self._pbuilder.get_base_si_unit(mdef.get("short_unit", ""))
 
         if cumulative:
             fname = f"Count-vs-{self._refres.defs.info[xmetric]['fsname']}.html"
@@ -151,16 +155,13 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         xbins = self._get_xbins(xmetric)
 
         xaxis_def = self._refres.defs.info.get(xmetric, {})
-        xaxis_label = xaxis_def.get("title", xmetric)
-        xaxis_unit = self._pbuilder.get_base_si_unit(xaxis_def.get("short_unit", ""))
 
         ppaths = []
         if hist:
-            ppaths.append(self._build_histogram(xmetric, xbins, xaxis_label, xaxis_unit))
+            ppaths.append(self._build_histogram(xaxis_def, xbins))
 
         if chist:
-            ppaths.append(self._build_histogram(xmetric, xbins, xaxis_label, xaxis_unit,
-                                                cumulative=True))
+            ppaths.append(self._build_histogram(xaxis_def, xbins, cumulative=True))
         return ppaths
 
     def add_plots(self, plot_axes=None, hist=None, chist=None, hover_defs=None):
