@@ -27,7 +27,7 @@ class PlotsBuilder:
         * build_scatter()
     """
 
-    def _base_unit(self, df, colname):
+    def base_unit(self, df, colname):
         """
         Convert columns with 'microsecond' units to seconds, and return the converted column.
         """
@@ -43,7 +43,7 @@ class PlotsBuilder:
         return df[base_colname]
 
     @staticmethod
-    def _get_base_si_unit(unit):
+    def get_base_si_unit(unit):
         """
         Plotly will handle SI unit prefixes therefore we should provide only the base unit.
         Several defs list 'us' as the 'short_unit' which includes the prefix so should be
@@ -64,9 +64,9 @@ class PlotsBuilder:
         """
 
         for mdef in xdef, ydef:
-            mdef["short_unit"] = self._get_base_si_unit(mdef["short_unit"])
+            mdef["short_unit"] = self.get_base_si_unit(mdef["short_unit"])
             for res in self._rsts:
-                res.df[mdef["name"]] = self._base_unit(res.df, mdef["name"])
+                res.df[mdef["name"]] = self.base_unit(res.df, mdef["name"])
 
         fname = f"{ydef['fsname']}-vs-{xdef['fsname']}.html"
         s_path = self.outdir / fname
@@ -100,7 +100,7 @@ class PlotsBuilder:
 
         for res in self._rsts:
             df = res.df
-            df[xmetric] = self._base_unit(df, xmetric)
+            df[xmetric] = self.base_unit(df, xmetric)
             hst.add_df(df, res.reportid)
         hst.generate()
         return outpath
@@ -117,7 +117,7 @@ class PlotsBuilder:
             if not res.is_numeric(xcolname):
                 return {"size" : 1}
 
-            xdata = self._base_unit(res.df, xcolname)
+            xdata = self.base_unit(res.df, xcolname)
             xmin = min(xmin, xdata.min())
             xmax = max(xmax, xdata.max())
 
@@ -139,7 +139,7 @@ class PlotsBuilder:
 
         xaxis_def = self._refdefs.info.get(xmetric, {})
         xaxis_label = xaxis_def.get("title", xmetric)
-        xaxis_unit = self._get_base_si_unit(xaxis_def.get("short_unit", ""))
+        xaxis_unit = self.get_base_si_unit(xaxis_def.get("short_unit", ""))
 
         ppaths = []
         if hist:
