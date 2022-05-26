@@ -94,19 +94,6 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         super()._add_scatter(xdef, ydef, hover_defs)
         return self._ppaths[-1]
 
-    def _build_histogram(self, mdef, xbins, cumulative=False):
-        """
-        Helper function for 'build_histograms()'. Create a histogram or cumulative histogram with
-        metric 'mdef' on the X-axis with data from 'self._rsts'. Returns the filepath of the
-        generated plot HTML.
-        """
-
-        for res in self._rsts:
-            res.df[mdef["name"]] = self._pbuilder.base_unit(res.df, mdef["name"])
-
-        super()._add_histogram(mdef, cumulative, xbins)
-        return self._ppaths[-1]
-
     def _get_xbins(self, xcolname):
         """
         Helper function for 'build_histograms()'. Returns the 'xbins' dictionary for plotly's
@@ -139,14 +126,19 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         xbins = self._get_xbins(xmetric)
 
-        xaxis_def = self._refres.defs.info.get(xmetric, {})
+        mdef = self._refres.defs.info.get(xmetric, {})
+
+        for res in self._rsts:
+            res.df[mdef["name"]] = self._pbuilder.base_unit(res.df, mdef["name"])
 
         ppaths = []
         if hist:
-            ppaths.append(self._build_histogram(xaxis_def, xbins))
+            super()._add_histogram(mdef, xbins=xbins)
+            ppaths.append(self._ppaths[-1])
 
         if chist:
-            ppaths.append(self._build_histogram(xaxis_def, xbins, cumulative=True))
+            super()._add_histogram(mdef, True, xbins)
+            ppaths.append(self._ppaths[-1])
         return ppaths
 
     def add_plots(self, plot_axes=None, hist=None, chist=None, hover_defs=None):
