@@ -10,10 +10,13 @@
 This module provides the capability of populating a data tab.
 """
 
+import logging
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.htmlreport import _SummaryTable, _ScatterPlot, _Histogram
 from wultlibs import DFSummary
 from wultlibs.htmlreport.tabs import _Tabs
+
+_LOG = logging.getLogger()
 
 class DTabBuilder:
     """
@@ -139,13 +142,26 @@ class DTabBuilder:
         if chist is None:
             chist = []
 
+        sdfs = self._reports.values()
         for xdef, ydef in plot_axes:
+            if not all(xdef["name"] in sdf and ydef["name"] in sdf for sdf in sdfs):
+                _LOG.warning("skipping scatter plot '%s' vs '%s' since not all results have data "
+                             "for both.", ydef["name"], xdef["name"])
+                continue
             self._add_scatter(xdef, ydef, hover_defs)
 
         for mdef in hist:
+            if not all(mdef["name"] in sdf for sdf in sdfs):
+                _LOG.warning("skipping histogram for metric '%s' since not all results have data "
+                             "for this metric.", mdef["name"])
+                continue
             self._add_histogram(mdef)
 
         for mdef in chist:
+            if not all(mdef["name"] in sdf for sdf in sdfs):
+                _LOG.warning("skipping cumulative histogram for metric '%s' since not all results "
+                             "have data for this metric.", mdef["name"])
+                continue
             self._add_histogram(mdef, cumulative=True)
 
     def __init__(self, reports, outdir, metric_def, basedir=None):
