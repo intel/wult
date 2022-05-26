@@ -12,17 +12,10 @@ This module provides the capability of generating plots and diagrams using the "
 Metric Tabs.
 """
 
-from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.htmlreport import _Histogram
-
 class PlotsBuilder:
     """
     This class provides the capability of generating plots and diagrams using the "Plotly"
     library for Metric Tabs.
-
-    Public method overview:
-    1. Build histograms and cumulative histograms.
-        * build_histograms()
     """
 
     def base_unit(self, df, colname):
@@ -53,75 +46,6 @@ class PlotsBuilder:
         if unit == "us":
             return "s"
         return unit
-
-    def _build_histogram(self, xmetric, xbins, xaxis_label, xaxis_unit, cumulative=False):
-        """
-        Helper function for 'build_histograms()'. Create a histogram or cumulative histogram with
-        'xmetric' on the x-axis data from 'self._rsts'. Returns the filepath of the generated plot
-        HTML.
-        """
-
-        if cumulative:
-            fname = f"Count-vs-{self._refdefs.info[xmetric]['fsname']}.html"
-        else:
-            fname = f"Percentile-vs-{self._refdefs.info[xmetric]['fsname']}.html"
-
-        outpath = self.outdir / fname
-
-        hst = _Histogram.Histogram(xmetric, outpath, xaxis_label, xaxis_unit, xbins=xbins,
-                                   cumulative=cumulative)
-
-        for res in self._rsts:
-            df = res.df
-            df[xmetric] = self.base_unit(df, xmetric)
-            hst.add_df(df, res.reportid)
-        hst.generate()
-        return outpath
-
-    def _get_xbins(self, xcolname):
-        """
-        Helper function for 'build_histograms()'. Returns the 'xbins' dictionary for plotly's
-        'Histogram()' method.
-        """
-
-        xmin, xmax = (float("inf"), -float("inf"))
-        for res in self._rsts:
-            # In case of non-numeric column there is only one x-value per bin.
-            if not res.is_numeric(xcolname):
-                return {"size" : 1}
-
-            xdata = self.base_unit(res.df, xcolname)
-            xmin = min(xmin, xdata.min())
-            xmax = max(xmax, xdata.max())
-
-        return {"size" : (xmax - xmin) / 1000}
-
-    def build_histograms(self, xmetric, hist=False, chist=False):
-        """
-        Create a histogram and/or cumulative histogram with 'xmetric' on the x-axis using data from
-        'rsts' which is provided to the class during initialisation. Returns the filepath of the
-        generated plot HTML.
-        """
-
-        # Check that all results contain data for 'xmetric'.
-        if any(xmetric not in res.df for res in self._rsts):
-            raise Error(f"cannot build histograms. Metric '{xmetric}' not available for all "
-                        f"results.")
-
-        xbins = self._get_xbins(xmetric)
-
-        xaxis_def = self._refdefs.info.get(xmetric, {})
-        xaxis_label = xaxis_def.get("title", xmetric)
-        xaxis_unit = self.get_base_si_unit(xaxis_def.get("short_unit", ""))
-
-        ppaths = []
-        if hist:
-            ppaths.append(self._build_histogram(xmetric, xbins, xaxis_label, xaxis_unit))
-
-        if chist:
-            ppaths.append(self._build_histogram(xmetric, xbins, xaxis_label, xaxis_unit,
-                                                cumulative=True))
-        return ppaths
 
     def __init__(self, rsts, hov_metrics, opacity, outdir):
         """

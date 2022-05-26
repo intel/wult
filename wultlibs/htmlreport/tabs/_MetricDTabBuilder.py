@@ -17,7 +17,7 @@ import logging
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import Trivial
 from wultlibs import DFSummary
-from wultlibs.htmlreport import _SummaryTable
+from wultlibs.htmlreport import _Histogram, _SummaryTable
 from wultlibs.htmlreport.tabs import _DTabBuilder, _PlotsBuilder
 
 _LOG = logging.getLogger()
@@ -94,6 +94,75 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         super()._add_scatter(xdef, ydef, hover_defs)
         return self._ppaths[-1]
 
+    def _build_histogram(self, xmetric, xbins, xaxis_label, xaxis_unit, cumulative=False):
+        """
+        Helper function for 'build_histograms()'. Create a histogram or cumulative histogram with
+        'xmetric' on the x-axis data from 'self._rsts'. Returns the filepath of the generated plot
+        HTML.
+        """
+
+        if cumulative:
+            fname = f"Count-vs-{self._refres.defs.info[xmetric]['fsname']}.html"
+        else:
+            fname = f"Percentile-vs-{self._refres.defs.info[xmetric]['fsname']}.html"
+
+        outpath = self._outdir / fname
+
+        hst = _Histogram.Histogram(xmetric, outpath, xaxis_label, xaxis_unit, xbins=xbins,
+                                   cumulative=cumulative)
+
+        for res in self._rsts:
+            df = res.df
+            df[xmetric] = self._pbuilder.base_unit(df, xmetric)
+            hst.add_df(df, res.reportid)
+        hst.generate()
+        return outpath
+
+    def _get_xbins(self, xcolname):
+        """
+        Helper function for 'build_histograms()'. Returns the 'xbins' dictionary for plotly's
+        'Histogram()' method.
+        """
+
+        xmin, xmax = (float("inf"), -float("inf"))
+        for res in self._rsts:
+            # In case of non-numeric column there is only one x-value per bin.
+            if not res.is_numeric(xcolname):
+                return {"size" : 1}
+
+            xdata = self._pbuilder.base_unit(res.df, xcolname)
+            xmin = min(xmin, xdata.min())
+            xmax = max(xmax, xdata.max())
+
+        return {"size" : (xmax - xmin) / 1000}
+
+    def build_histograms(self, xmetric, hist=False, chist=False):
+        """
+        Create a histogram and/or cumulative histogram with 'xmetric' on the x-axis using data from
+        'rsts' which is provided to the class during initialisation. Returns the filepath of the
+        generated plot HTML.
+        """
+
+        # Check that all results contain data for 'xmetric'.
+        if any(xmetric not in res.df for res in self._rsts):
+            raise Error(f"cannot build histograms. Metric '{xmetric}' not available for all "
+                        f"results.")
+
+        xbins = self._get_xbins(xmetric)
+
+        xaxis_def = self._refres.defs.info.get(xmetric, {})
+        xaxis_label = xaxis_def.get("title", xmetric)
+        xaxis_unit = self._pbuilder.get_base_si_unit(xaxis_def.get("short_unit", ""))
+
+        ppaths = []
+        if hist:
+            ppaths.append(self._build_histogram(xmetric, xbins, xaxis_label, xaxis_unit))
+
+        if chist:
+            ppaths.append(self._build_histogram(xmetric, xbins, xaxis_label, xaxis_unit,
+                                                cumulative=True))
+        return ppaths
+
     def add_plots(self, plot_axes=None, hist=None, chist=None, hover_defs=None):
         """
         Generate and add plots to the tab.
@@ -141,7 +210,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         if chist is not None:
             chist = self._tabmetric in set(chist)
 
-        ppaths += self._pbuilder.build_histograms(self._tabmetric, hist, chist)
+        ppaths += self.build_histograms(self._tabmetric, hist, chist)
         self._ppaths = ppaths
 
     def __init__(self, rsts, outdir, metric_def, basedir=None, hover_metrics=None):
