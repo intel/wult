@@ -56,21 +56,21 @@ class PlotsBuilder:
             return "s"
         return unit
 
-    def build_scatter(self, xmetric, ymetric):
+    def build_scatter(self, xdef, ydef):
         """
-        Create scatter plots with 'xmetric' on the x-axis and 'ymetric' on the y-axis using data
-        from 'rsts' which is provided to the class during initialisation. Returns the filepath of
-        the generated plot HTML.
+        Create scatter plots with the metric represented by 'xdef' on the X-axis and the metric
+        represented by 'ydef' on the Y-axis using data from 'rsts' which is provided to the class
+        during initialisation. Returns the filepath of the generated plot HTML.
         """
 
-        xaxis_def = self._refdefs.info.get(xmetric, {})
-        yaxis_def = self._refdefs.info.get(ymetric, {})
-        xaxis_label = xaxis_def.get("title", xmetric)
-        yaxis_label = yaxis_def.get("title", xmetric)
-        xaxis_fsname = xaxis_def.get("fsname", xaxis_label)
-        yaxis_fsname = yaxis_def.get("fsname", yaxis_label)
-        xaxis_unit = self._get_base_si_unit(xaxis_def.get("short_unit", ""))
-        yaxis_unit = self._get_base_si_unit(yaxis_def.get("short_unit", ""))
+        xmetric = xdef["name"]
+        ymetric = ydef["name"]
+        xaxis_label = xdef.get("title", xdef)
+        yaxis_label = ydef.get("title", xdef)
+        xaxis_fsname = xdef.get("fsname", xaxis_label)
+        yaxis_fsname = ydef.get("fsname", yaxis_label)
+        xaxis_unit = self._get_base_si_unit(xdef.get("short_unit", ""))
+        yaxis_unit = self._get_base_si_unit(ydef.get("short_unit", ""))
 
         fname = yaxis_fsname + "-vs-" + xaxis_fsname + ".html"
         outpath = self.outdir / fname

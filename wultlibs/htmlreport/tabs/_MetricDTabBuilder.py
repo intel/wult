@@ -88,7 +88,9 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                 _LOG.warning("skipping scatter plot '%s' vs '%s' since not all results have data "
                              "for both.", ycolname, xcolname)
                 continue
-            ppath = self._pbuilder.build_scatter(xcolname, ycolname)
+            xdef = self._refres.defs.info[xcolname]
+            ydef = self._refres.defs.info[ycolname]
+            ppath = self._pbuilder.build_scatter(xdef, ydef)
             ppaths.append(ppath)
         return ppaths
 
