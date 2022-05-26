@@ -79,9 +79,9 @@ class DTabBuilder:
         follows:
          * xdef - definitions dictionary for the metric on the X-axis.
          * ydef - definitions dictionary for the metric on the Y-axis.
-         * hover_defs - a list of definitions dictionaries which represent metrics for which
-                        hovertext should be generated. By default, only includes hovertext for
-                        'xdef' and 'ydef'.
+         * hover_defs - a mapping between report id and lists of definitions dictionaries which
+                        represent metrics for which hovertext should be generated for that result.
+                        By default, only includes hovertext for 'xdef' and 'ydef'.
         """
 
         # Initialise scatter plot.
@@ -92,7 +92,7 @@ class DTabBuilder:
 
         for reportid, df in self._reports.items():
             if hover_defs is not None:
-                hovertext = s.get_hover_text(hover_defs, df)
+                hovertext = s.get_hover_text(hover_defs[reportid], df)
             else:
                 hovertext = None
             s.add_df(s.reduce_df_density(df, reportid), reportid, hovertext)
