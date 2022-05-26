@@ -94,26 +94,6 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         super()._add_scatter(xdef, ydef, hover_defs)
         return self._ppaths[-1]
 
-    def _generate_scatter_plots(self, plot_axes):
-        """Generate the scatter plots."""
-
-        ppaths = []
-
-        hover_defs = {}
-        for reportid, metrics in self._hover_metrics.items():
-            hover_defs[reportid] = [self._refres.defs.info[m] for m in metrics]
-
-        for xcolname, ycolname in plot_axes:
-            if not all(xcolname in res.df and ycolname in res.df for res in self._rsts):
-                _LOG.warning("skipping scatter plot '%s' vs '%s' since not all results have data "
-                             "for both.", ycolname, xcolname)
-                continue
-            xdef = self._refres.defs.info[xcolname]
-            ydef = self._refres.defs.info[ycolname]
-            ppath = self._add_scatter(xdef, ydef, hover_defs)
-            ppaths.append(ppath)
-        return ppaths
-
     def _generate_histograms(self, hist=None, chist=None):
         """Generate the histograms."""
 
@@ -154,9 +134,21 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         self._pbuilder = _PlotsBuilder.PlotsBuilder(self._rsts, hover_metrics, opacity,
                                                     self._outdir)
 
+        hover_defs = {}
+        for reportid, metrics in self._hover_metrics.items():
+            hover_defs[reportid] = [self._refres.defs.info[m] for m in metrics]
+
         ppaths = []
         if plot_axes is not None:
-            ppaths += self._generate_scatter_plots(plot_axes)
+            for xcolname, ycolname in plot_axes:
+                if not all(xcolname in res.df and ycolname in res.df for res in self._rsts):
+                    _LOG.warning("skipping scatter plot '%s' vs '%s' since not all results have "
+                                 "data for both.", ycolname, xcolname)
+                    continue
+                xdef = self._refres.defs.info[xcolname]
+                ydef = self._refres.defs.info[ycolname]
+                ppath = self._add_scatter(xdef, ydef, hover_defs)
+                ppaths.append(ppath)
 
         ppaths += self._generate_histograms(hist, chist)
         self._ppaths = ppaths
