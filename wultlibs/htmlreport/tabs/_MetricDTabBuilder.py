@@ -17,7 +17,7 @@ import logging
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import Trivial
 from wultlibs import DFSummary
-from wultlibs.htmlreport import _Histogram, _SummaryTable
+from wultlibs.htmlreport import _SummaryTable
 from wultlibs.htmlreport.tabs import _DTabBuilder, _PlotsBuilder
 
 _LOG = logging.getLogger()
@@ -101,26 +101,11 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         generated plot HTML.
         """
 
-        xmetric = mdef["name"]
-        xaxis_label = mdef["title"]
-        xaxis_unit = self._pbuilder.get_base_si_unit(mdef.get("short_unit", ""))
-
-        if cumulative:
-            fname = f"Count-vs-{self._refres.defs.info[xmetric]['fsname']}.html"
-        else:
-            fname = f"Percentile-vs-{self._refres.defs.info[xmetric]['fsname']}.html"
-
-        outpath = self._outdir / fname
-
-        hst = _Histogram.Histogram(xmetric, outpath, xaxis_label, xaxis_unit, xbins=xbins,
-                                   cumulative=cumulative)
-
         for res in self._rsts:
-            df = res.df
-            df[xmetric] = self._pbuilder.base_unit(df, xmetric)
-            hst.add_df(df, res.reportid)
-        hst.generate()
-        return outpath
+            res.df[mdef["name"]] = self._pbuilder.base_unit(res.df, mdef["name"])
+
+        super()._add_histogram(mdef, cumulative, xbins)
+        return self._ppaths[-1]
 
     def _get_xbins(self, xcolname):
         """
