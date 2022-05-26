@@ -78,11 +78,12 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         except Error as err:
             raise Error("Failed to generate summary table.") from err
 
-    def _build_scatter(self, xdef, ydef, hover_defs):
+    def _add_scatter(self, xdef, ydef, hover_defs=None):
         """
         Create a scatter plot with the metric represented by 'xdef' on the X-axis and the metric
         represented by 'ydef' on the Y-axis using data from 'rsts' which is provided to the class
-        during initialisation. Returns the filepath of the generated plot HTML.
+        during initialisation. Returns the filepath of the generated plot HTML. Arguments are the
+        same as in '_DTabBuilder._add_scatter()'.
         """
 
         for mdef in xdef, ydef:
@@ -109,7 +110,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                 continue
             xdef = self._refres.defs.info[xcolname]
             ydef = self._refres.defs.info[ycolname]
-            ppath = self._build_scatter(xdef, ydef, hover_defs)
+            ppath = self._add_scatter(xdef, ydef, hover_defs)
             ppaths.append(ppath)
         return ppaths
 
