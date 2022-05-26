@@ -100,10 +100,11 @@ class DTabBuilder:
         s.generate()
         self._ppaths.append(s_path)
 
-    def _add_histogram(self, mdef, cumulative=False):
+    def _add_histogram(self, mdef, cumulative=False, xbins=None):
         """
         Helper function for 'add_plots()'. Add a histogram to the report for metric with
-        definitions dictionary 'mdef'.
+        definitions dictionary 'mdef'. See '_Histogram.Histogram' for details of 'cumulative' and
+        'xbins' arguments.
         """
 
         # Initialise histogram.
@@ -113,7 +114,7 @@ class DTabBuilder:
             h_path = self._outdir / f"Count-vs-{mdef['fsname']}.html"
 
         h = _Histogram.Histogram(mdef["name"], h_path, mdef["title"], mdef["short_unit"],
-                                 cumulative=cumulative)
+                                 cumulative=cumulative, xbins=xbins)
 
         for reportid, df in self._reports.items():
             h.add_df(df, reportid)
