@@ -63,38 +63,23 @@ class PlotsBuilder:
         during initialisation. Returns the filepath of the generated plot HTML.
         """
 
-        xmetric = xdef["name"]
-        ymetric = ydef["name"]
-        xaxis_label = xdef.get("title", xdef)
-        yaxis_label = ydef.get("title", xdef)
-        xaxis_fsname = xdef.get("fsname", xaxis_label)
-        yaxis_fsname = ydef.get("fsname", yaxis_label)
-        xaxis_unit = self._get_base_si_unit(xdef.get("short_unit", ""))
-        yaxis_unit = self._get_base_si_unit(ydef.get("short_unit", ""))
+        for mdef in xdef, ydef:
+            mdef["short_unit"] = self._get_base_si_unit(mdef["short_unit"])
+            for res in self._rsts:
+                res.df[mdef["name"]] = self._base_unit(res.df, mdef["name"])
 
-        fname = yaxis_fsname + "-vs-" + xaxis_fsname + ".html"
-        outpath = self.outdir / fname
-
-        plot = _ScatterPlot.ScatterPlot(xmetric, ymetric, outpath, xaxis_label=xaxis_label,
-                                        yaxis_label=yaxis_label, xaxis_unit=xaxis_unit,
-                                        yaxis_unit=yaxis_unit)
+        fname = f"{ydef['fsname']}-vs-{xdef['fsname']}.html"
+        s_path = self.outdir / fname
+        s = _ScatterPlot.ScatterPlot(xdef["name"], ydef["name"], s_path, xdef["title"],
+                                     ydef["title"], xdef["short_unit"], ydef["short_unit"])
 
         for res in self._rsts:
-            # Check that each result contains data for 'xmetric' and 'ymetric'.
-            for metric in [xmetric, ymetric]:
-                if metric not in res.df:
-                    raise Error(f"cannot build scatter plots. Metric '{metric}' not available for "
-                                f"result '{res.reportid}'.")
-
-            df = plot.reduce_df_density(res.df, res.reportid)
             hov_defs = [res.defs.info[metric] for metric in self._hov_metrics[res.reportid]]
-            text = plot.get_hover_text(hov_defs, df)
-            df[xmetric] = self._base_unit(df, xmetric)
-            df[ymetric] = self._base_unit(df, ymetric)
-            plot.add_df(df, res.reportid, text)
+            hovertext = s.get_hover_text(hov_defs, res.df)
+            s.add_df(s.reduce_df_density(res.df, res.reportid), res.reportid, hovertext)
 
-        plot.generate()
-        return outpath
+        s.generate()
+        return s_path
 
     def _build_histogram(self, xmetric, xbins, xaxis_label, xaxis_unit, cumulative=False):
         """
