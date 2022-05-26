@@ -17,7 +17,7 @@ import logging
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import Trivial
 from wultlibs import DFSummary
-from wultlibs.htmlreport import _SummaryTable
+from wultlibs.htmlreport import _ScatterPlot, _SummaryTable
 from wultlibs.htmlreport.tabs import _DTabBuilder, _PlotsBuilder
 
 _LOG = logging.getLogger()
@@ -78,6 +78,31 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         except Error as err:
             raise Error("Failed to generate summary table.") from err
 
+    def _build_scatter(self, xdef, ydef):
+        """
+        Create a scatter plot with the metric represented by 'xdef' on the X-axis and the metric
+        represented by 'ydef' on the Y-axis using data from 'rsts' which is provided to the class
+        during initialisation. Returns the filepath of the generated plot HTML.
+        """
+
+        for mdef in xdef, ydef:
+            mdef["short_unit"] = self._pbuilder.get_base_si_unit(mdef["short_unit"])
+            for res in self._rsts:
+                res.df[mdef["name"]] = self._pbuilder.base_unit(res.df, mdef["name"])
+
+        fname = f"{ydef['fsname']}-vs-{xdef['fsname']}.html"
+        s_path = self._outdir / fname
+        s = _ScatterPlot.ScatterPlot(xdef["name"], ydef["name"], s_path, xdef["title"],
+                                     ydef["title"], xdef["short_unit"], ydef["short_unit"])
+
+        for res in self._rsts:
+            hov_defs = [res.defs.info[metric] for metric in self._hover_metrics[res.reportid]]
+            hovertext = s.get_hover_text(hov_defs, res.df)
+            s.add_df(s.reduce_df_density(res.df, res.reportid), res.reportid, hovertext)
+
+        s.generate()
+        return s_path
+
     def _generate_scatter_plots(self, plot_axes):
         """Generate the scatter plots."""
 
@@ -90,7 +115,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                 continue
             xdef = self._refres.defs.info[xcolname]
             ydef = self._refres.defs.info[ycolname]
-            ppath = self._pbuilder.build_scatter(xdef, ydef)
+            ppath = self._build_scatter(xdef, ydef)
             ppaths.append(ppath)
         return ppaths
 

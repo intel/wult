@@ -13,7 +13,7 @@ Metric Tabs.
 """
 
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.htmlreport import _ScatterPlot, _Histogram
+from wultlibs.htmlreport import _Histogram
 
 class PlotsBuilder:
     """
@@ -23,8 +23,6 @@ class PlotsBuilder:
     Public method overview:
     1. Build histograms and cumulative histograms.
         * build_histograms()
-    2. Build scatter plots.
-        * build_scatter()
     """
 
     def base_unit(self, df, colname):
@@ -55,31 +53,6 @@ class PlotsBuilder:
         if unit == "us":
             return "s"
         return unit
-
-    def build_scatter(self, xdef, ydef):
-        """
-        Create scatter plots with the metric represented by 'xdef' on the X-axis and the metric
-        represented by 'ydef' on the Y-axis using data from 'rsts' which is provided to the class
-        during initialisation. Returns the filepath of the generated plot HTML.
-        """
-
-        for mdef in xdef, ydef:
-            mdef["short_unit"] = self.get_base_si_unit(mdef["short_unit"])
-            for res in self._rsts:
-                res.df[mdef["name"]] = self.base_unit(res.df, mdef["name"])
-
-        fname = f"{ydef['fsname']}-vs-{xdef['fsname']}.html"
-        s_path = self.outdir / fname
-        s = _ScatterPlot.ScatterPlot(xdef["name"], ydef["name"], s_path, xdef["title"],
-                                     ydef["title"], xdef["short_unit"], ydef["short_unit"])
-
-        for res in self._rsts:
-            hov_defs = [res.defs.info[metric] for metric in self._hov_metrics[res.reportid]]
-            hovertext = s.get_hover_text(hov_defs, res.df)
-            s.add_df(s.reduce_df_density(res.df, res.reportid), res.reportid, hovertext)
-
-        s.generate()
-        return s_path
 
     def _build_histogram(self, xmetric, xbins, xaxis_label, xaxis_unit, cumulative=False):
         """
