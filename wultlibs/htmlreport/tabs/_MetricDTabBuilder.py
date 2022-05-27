@@ -147,8 +147,8 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         Arguments are as follows:
          * plot_axes - tuples of defs which represent axes to create scatter plots for in the format
                        (xdef, ydef).
-         * hist - metrics to create histograms for, defaults to 'None'.
-         * chist - metrics to create cumulative histograms for, defaults to 'None'.
+         * hist - a list of defs which represent metrics to create histograms for.
+         * chist - a list of defs which represent metrics to create cumulative histograms for.
          * hover_defs - specifies which metrics hovertext in plots should be generated for.
                         Defaults to the metrics given to the constructor as 'hover_metrics'.
         """
@@ -176,27 +176,27 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
             ppath = self._add_scatter(xdef, ydef, hover_defs)
             ppaths.append(ppath)
 
-        if self._tabmetric not in hist and self._tabmetric not in chist:
-            self._ppaths = ppaths
-            return
+        for mdef in hist:
+            if not all(mdef["name"] in res.df for res in self._rsts):
+                _LOG.warning("skipping histogram for metric '%s' since not all results have data "
+                             "for this metric.", mdef["name"])
+                continue
 
-        # Check that all results contain data for 'xmetric'.
-        if any(self._tabmetric not in res.df for res in self._rsts):
-            raise Error(f"cannot build histograms. Metric '{self._tabmetric}' not available for "
-                         "all results.")
-
-        xbins = self._get_xbins(self._tabmetric)
-
-        mdef = self._refres.defs.info.get(self._tabmetric, {})
-
-        for res in self._rsts:
-            res.df[mdef["name"]] = self.base_unit(res.df, mdef["name"])
-
-        if self._tabmetric in hist:
+            for res in self._rsts:
+                res.df[mdef["name"]] = self.base_unit(res.df, mdef["name"])
+            xbins = self._get_xbins(mdef["name"])
             super()._add_histogram(mdef, xbins=xbins)
             ppaths.append(self._ppaths[-1])
 
-        if self._tabmetric in chist:
+        for mdef in chist:
+            if not all(mdef["name"] in res.df for res in self._rsts):
+                _LOG.warning("skipping cumulative histogram for metric '%s' since not all results "
+                             "have data for this metric.", mdef["name"])
+                continue
+
+            for res in self._rsts:
+                res.df[mdef["name"]] = self.base_unit(res.df, mdef["name"])
+            xbins = self._get_xbins(mdef["name"])
             super()._add_histogram(mdef, True, xbins)
             ppaths.append(self._ppaths[-1])
         self._ppaths = ppaths
