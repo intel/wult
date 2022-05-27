@@ -569,8 +569,10 @@ class Deploy(ClassHelpers.SimpleCloseContext):
     def _deploy_helpers(self):
         """Deploy helpers (including python helpers) to the SUT."""
 
-        # Python helpers need to be deployed only to a remote host. The local host already has them
-        # deployed by 'setup.py'.
+        # Python helpers need to be deployed only to a remote host. The local host should already ve
+        # them:
+        #   * either deployed via 'setup.py'.
+        #   * or if running from source code, present in the source code.
         if not self._spman.is_remote:
             self._pyhelpers = []
 
