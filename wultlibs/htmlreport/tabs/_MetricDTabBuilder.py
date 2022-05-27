@@ -13,14 +13,11 @@ This module defines what is expected by the JavaScript side when adding a Metric
 reports.
 """
 
-import logging
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import Trivial
 from wultlibs import DFSummary
 from wultlibs.htmlreport import _SummaryTable
 from wultlibs.htmlreport.tabs import _DTabBuilder
-
-_LOG = logging.getLogger()
 
 class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
     """
