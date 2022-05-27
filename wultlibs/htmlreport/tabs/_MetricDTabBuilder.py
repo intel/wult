@@ -153,24 +153,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         return super()._add_histogram(mdef, cumulative, xbins)
 
-    def add_plots(self, plot_axes=None, hist=None, chist=None, hover_defs=None):
-        """
-        Generate and add plots to the tab.
-        Arguments are as follows:
-         * plot_axes - tuples of defs which represent axes to create scatter plots for in the format
-                       (xdef, ydef).
-         * hist - a list of defs which represent metrics to create histograms for.
-         * chist - a list of defs which represent metrics to create cumulative histograms for.
-         * hover_defs - specifies which metrics hovertext in plots should be generated for.
-                        Defaults to the metrics given to the constructor as 'hover_metrics'.
-        """
-
-        if hover_defs is None:
-            hover_defs = self._hover_metrics
-
-        super().add_plots(plot_axes, hist, chist, hover_defs)
-
-    def __init__(self, rsts, outdir, metric_def, basedir=None, hover_metrics=None):
+    def __init__(self, rsts, outdir, metric_def, basedir=None):
         """
         The class constructor. Arguments as follows:
          * rsts - sets of results containing the data to represent in this tab.
@@ -179,15 +162,12 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
          * metric_def - dictionary containing the definition for the metric represented by this tab.
          * basedir - base directory of the report. All paths should be made relative to this.
                      Defaults to 'outdir'.
-         * hover_metrics - a mapping from 'reportid' to defs of metrics which should be included in
-                           the hovertext of scatter plots.
         """
 
         self._tabmetric = metric_def["name"]
         self._rsts = rsts
         self._refres = rsts[0]
         self._ppaths = []
-        self._hover_metrics = hover_metrics
 
         reports = {res.reportid: res.df for res in rsts}
         super().__init__(reports, outdir, metric_def, basedir)
