@@ -156,19 +156,25 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         if plot_axes is None and hist is None and chist is None:
             raise Error("BUG: no arguments provided for 'add_plots()', unable to generate plots.")
 
+        if plot_axes is None:
+            plot_axes = []
+        if hist is None:
+            hist = []
+        if chist is None:
+            chist = []
+
         hover_defs = {}
         for reportid, metrics in self._hover_metrics.items():
             hover_defs[reportid] = [self._refres.defs.info[m] for m in metrics]
 
         ppaths = []
-        if plot_axes is not None:
-            for xdef, ydef in plot_axes:
-                if not all(xdef["name"] in res.df and ydef["name"] in res.df for res in self._rsts):
-                    _LOG.warning("skipping scatter plot '%s' vs '%s' since not all results have "
-                                 "data for both.", ydef, xdef)
-                    continue
-                ppath = self._add_scatter(xdef, ydef, hover_defs)
-                ppaths.append(ppath)
+        for xdef, ydef in plot_axes:
+            if not all(xdef["name"] in res.df and ydef["name"] in res.df for res in self._rsts):
+                _LOG.warning("skipping scatter plot '%s' vs '%s' since not all results have data "
+                             "for both.", ydef, xdef)
+                continue
+            ppath = self._add_scatter(xdef, ydef, hover_defs)
+            ppaths.append(ppath)
 
         if self._tabmetric not in hist and self._tabmetric not in chist:
             self._ppaths = ppaths
