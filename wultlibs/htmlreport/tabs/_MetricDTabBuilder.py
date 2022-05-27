@@ -14,7 +14,6 @@ reports.
 """
 
 from pepclibs.helperlibs.Exceptions import Error
-from pepclibs.helperlibs import Trivial
 from wultlibs.htmlreport import _SummaryTable
 from wultlibs.htmlreport.tabs import _DTabBuilder
 
@@ -41,19 +40,24 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         # Summaries are calculated only for numeric metrics. Tab metric name is represented by
         # 'smrytblpath.name', this should come first.
-        metrics = [self._tabmdef["name"]] if self._refres.is_numeric(self._tabmdef["name"]) else []
-        metrics += [metric for metric in smry_metrics if self._refres.is_numeric(metric)]
+        metrics = [self._tabmdef] if self._refres.is_numeric(self._tabmdef["name"]) else []
+        metrics += [mdef for mdef in smry_metrics if self._refres.is_numeric(mdef["name"])]
+
         # Dedupe the list so that each metric only appears once.
-        metrics = Trivial.list_dedup(metrics)
+        deduped_metrics = []
+        seen_metrics = set()
+        for mdef in metrics:
+            if mdef["name"] not in seen_metrics:
+                seen_metrics.add(mdef["name"])
+                deduped_metrics.append(mdef)
 
         smry_tbl = _SummaryTable.SummaryTable()
         if smry_funcs is None:
             smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
                           "std")
 
-        for metric in metrics:
+        for mdef in deduped_metrics:
             # Create row in the summary table for each metric.
-            mdef = self._refres.defs.info[metric]
             fmt = "{:.2f}" if mdef["type"] == "float" else None
             smry_tbl.add_metric(mdef["title"], mdef["short_unit"], mdef["descr"], fmt)
 
@@ -62,14 +66,14 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
             # exclude the 'std' function.
             funcs = []
             for funcname in smry_funcs:
-                if all(res.smrys[metric].get(funcname) for res in self._rsts):
+                if all(res.smrys[mdef["name"]].get(funcname) for res in self._rsts):
                     funcs.append(funcname)
 
             # Populate each row with summary functions for each result.
             for res in self._rsts:
                 for funcname in funcs:
-                    val = res.smrys[metric][funcname]
-                    smry_tbl.add_smry_func(res.reportid, mdef["title"], funcname,  val)
+                    val = res.smrys[mdef["name"]][funcname]
+                    smry_tbl.add_smry_func(res.reportid, mdef["title"], funcname, val)
         try:
             smry_tbl.generate(self.smry_path)
         except Error as err:

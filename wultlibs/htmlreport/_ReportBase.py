@@ -211,10 +211,11 @@ class ReportBase:
                     smry_metrics += axes
 
             smry_metrics = Trivial.list_dedup(smry_metrics)
+            smry_defs = [self._refres.defs.info[metric] for metric in smry_metrics]
 
             metric_def = self._refres.defs.info[metric]
             dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, metric_def)
-            dtab_bldr.add_smrytbl(smry_metrics, self._smry_funcs)
+            dtab_bldr.add_smrytbl(smry_defs, self._smry_funcs)
 
             hist_metrics = [metric_def] if metric in self.hist else []
             chist_metrics = [metric_def] if metric in self.chist else []
