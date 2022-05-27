@@ -16,8 +16,8 @@ import logging
 import contextlib
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from pepclibs.helperlibs import ClassHelpers
-from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess, WultStatsCollect
+from pepclibs.helperlibs import ClassHelpers, LocalProcessManager
+from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess, WultStatsCollect, Deploy
 from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
@@ -193,7 +193,16 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
 
         # Initialize statistics collection.
         if self._stconf:
-            self._stcoll = WultStatsCollect.WultStatsCollect(self._pman, self._res)
+            local_scpath = Deploy.find_pyhelper_path("stats-collect", "stats-collect")
+            if self._pman.is_remote:
+                with LocalProcessManager.LocalProcessManager() as lpman:
+                    remote_scpath = lpman.which("stats-collect")
+            else:
+                remote_scpath = None
+
+            self._stcoll = WultStatsCollect.WultStatsCollect(self._pman, self._res,
+                                                             local_scpath=local_scpath,
+                                                             remote_scpath=remote_scpath)
             self._stcoll.apply_stconf(self._stconf)
 
     def _validate_sut(self):
