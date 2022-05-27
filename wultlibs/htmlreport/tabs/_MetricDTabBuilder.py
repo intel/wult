@@ -165,41 +165,12 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                         Defaults to the metrics given to the constructor as 'hover_metrics'.
         """
 
-        if plot_axes is None and hist is None and chist is None:
-            raise Error("BUG: no arguments provided for 'add_plots()', unable to generate plots.")
-
-        if plot_axes is None:
-            plot_axes = []
-        if hist is None:
-            hist = []
-        if chist is None:
-            chist = []
         if hover_defs is None:
             hover_defs = {}
             for reportid, metrics in self._hover_metrics.items():
                 hover_defs[reportid] = [self._refres.defs.info[m] for m in metrics]
 
-        sdfs = self._reports.values()
-        for xdef, ydef in plot_axes:
-            if not all(xdef["name"] in sdf and ydef["name"] in sdf for sdf in sdfs):
-                _LOG.warning("skipping scatter plot '%s' vs '%s' since not all results have data "
-                             "for both.", ydef, xdef)
-                continue
-            self._add_scatter(xdef, ydef, hover_defs)
-
-        for mdef in hist:
-            if not all(mdef["name"] in sdf for sdf in sdfs):
-                _LOG.warning("skipping histogram for metric '%s' since not all results have data "
-                             "for this metric.", mdef["name"])
-                continue
-            self._add_histogram(mdef)
-
-        for mdef in chist:
-            if not all(mdef["name"] in sdf for sdf in sdfs):
-                _LOG.warning("skipping cumulative histogram for metric '%s' since not all results "
-                             "have data for this metric.", mdef["name"])
-                continue
-            self._add_histogram(mdef, True)
+        super().add_plots(plot_axes, hist, chist, hover_defs)
 
     def __init__(self, rsts, outdir, metric_def, basedir=None, hover_metrics=None):
         """
