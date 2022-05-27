@@ -108,6 +108,26 @@ def get_helpers_deploy_path(toolname, pman):
         helpers_path = pman.get_homedir() / _HELPERS_LOCAL_DIR / "bin"
     return Path(helpers_path)
 
+def find_pyhelper_path(pyhelper, deployable):
+    """Find and return path to python helper program '{pyhelper}' on the local system."""
+
+    with LocalProcessManager.LocalProcessManager() as lpman:
+        try:
+            pyhelper_path = lpman.which(deployable)
+        except ErrorNotFound as err1:
+            _LOG.debug(err1)
+
+            try:
+                subpath = _HELPERS_SRC_SUBPATH / pyhelper / deployable
+                pyhelper_path = find_app_data("wult", subpath, "wult")
+            except ErrorNotFound as err2:
+                errmsg = str(err1).capitalize() + "\n" + str(err2).capitalize()
+                raise Error(f"failed to find '{pyhelper}' on the local system.\n{errmsg}") from err2
+
+        pyhelper_path = lpman.abspath(pyhelper_path)
+
+    return pyhelper_path
+
 def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
     """
     Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
@@ -208,22 +228,20 @@ def _get_pyhelper_dependencies(script_path):
         stdout, _ = lpman.run_verify(cmd)
     return [Path(path) for path in stdout.splitlines()]
 
-def _create_standalone_pyhelper(pyhelper, outdir):
+def _create_standalone_pyhelper(pyhelper_path, outdir):
     """
     Create a standalone version of a python program. The arguments are as follows.
-      * pyhelper - name of the script to create the stand-alone version for. This script is supposed
-                   to be already installed on the controller, and should be in 'PATH', This method
-                   will execute it on the controller with the '--print-module-paths', which this
-                   script is supposed to support. This option will provide the list of modules the
-                   script depends on.
+      * pyhelper_path - path to the python helper program on the local system. This method will
+                        execute it on with the '--print-module-paths' option, which this it is
+                        supposed to support. This option will provide the list of modules the python
+                        helper program depends on.
       * outdir - path to the output directory. The standalone version of the script will be saved in
                  this directory under the "'pyhelper'.standalone" name.
     """
 
     import zipfile # pylint: disable=import-outside-toplevel
 
-    with LocalProcessManager.LocalProcessManager() as lpman:
-        pyhelper_path = lpman.which(pyhelper)
+    pyhelper = pyhelper_path.name
 
     deps = _get_pyhelper_dependencies(pyhelper_path)
 
@@ -493,8 +511,9 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             _LOG.info("Building a stand-alone version of '%s'", pyhelper)
             basedir = self._ctmpdir / pyhelper
             deployables = _get_deployables(basedir)
-            for name in deployables:
-                _create_standalone_pyhelper(name, basedir)
+            for deployable in deployables:
+                local_path = find_pyhelper_path(pyhelper, deployable)
+                _create_standalone_pyhelper(local_path, basedir)
 
         # And copy the "standoline-ized" version of python helpers to the SUT.
         if self._spman.is_remote:
