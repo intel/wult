@@ -33,9 +33,9 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
     def add_smrytbl(self, smry_metrics, smry_funcs=None):
         """
-        Summaries table includes values like average and median values for a single metric (column).
-        It "summarizes" the metric. This function creates and dumps the summary table for this tab.
-        This means that it includes summaries of all the metrics referenced in this tab.
+        Overrides 'super().add_smrytbl()', refer to that method for more information. Results have
+        summaries pre-calculated therefore we do not have to calculate them in this method as the
+        parent class does.
         """
 
         # Summaries are calculated only for numeric metrics. Tab metric name is represented by
