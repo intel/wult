@@ -139,6 +139,20 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         return {"size" : (xmax - xmin) / 1000}
 
+    def _add_histogram(self, mdef, cumulative=False, xbins=None):
+        """
+        Extends 'super()._add_histogram()' by addding custom binning and ensuring that the data has
+        been scaled.
+        """
+
+        for sdf in self._reports.values():
+            sdf[mdef["name"]] = self.base_unit(sdf, mdef["name"])
+
+        if xbins is None:
+            xbins = self._get_xbins(mdef["name"])
+
+        return super()._add_histogram(mdef, cumulative, xbins)
+
     def add_plots(self, plot_axes=None, hist=None, chist=None, hover_defs=None):
         """
         Generate and add plots to the tab.
@@ -178,22 +192,14 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                 _LOG.warning("skipping histogram for metric '%s' since not all results have data "
                              "for this metric.", mdef["name"])
                 continue
-
-            for sdf in sdfs:
-                sdf[mdef["name"]] = self.base_unit(sdf, mdef["name"])
-            xbins = self._get_xbins(mdef["name"])
-            super()._add_histogram(mdef, xbins=xbins)
+            self._add_histogram(mdef)
 
         for mdef in chist:
             if not all(mdef["name"] in sdf for sdf in sdfs):
                 _LOG.warning("skipping cumulative histogram for metric '%s' since not all results "
                              "have data for this metric.", mdef["name"])
                 continue
-
-            for sdf in sdfs:
-                sdf[mdef["name"]] = self.base_unit(sdf, mdef["name"])
-            xbins = self._get_xbins(mdef["name"])
-            super()._add_histogram(mdef, True, xbins)
+            self._add_histogram(mdef, True)
 
     def __init__(self, rsts, outdir, metric_def, basedir=None, hover_metrics=None):
         """
