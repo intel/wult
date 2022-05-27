@@ -18,8 +18,7 @@ from pathlib import Path
 from pepclibs.helperlibs import ProcessManager, LocalProcessManager, Trivial, Logging
 from pepclibs.helperlibs import ClassHelpers, ArgParse
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from wultlibs import ToolsCommon
-from wultlibs.helperlibs import RemoteHelpers
+from wultlibs.helperlibs import RemoteHelpers, KernelVersion
 
 _HELPERS_LOCAL_DIR = Path(".local")
 _DRV_SRC_SUBPATH = Path("drivers/idle")
@@ -30,12 +29,14 @@ _LOG = logging.getLogger()
 # Information about tools dependencies.
 _TOOLS_INFO = {
     "wult": {
+        "minkver" : "5.6",
         "deps": {
             "drivers":  True,
             "pyhelpers":  ["stats-collect", ],
         },
     },
     "ndl": {
+        "minkver" : "5.2",
         "deps": {
             "drivers": True,
             "shelpers": ["ndlrunner", ],
@@ -730,13 +731,20 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         finally:
             self._remove_tmpdirs(remove_tmpdirs=remove_tmpdirs)
 
+    def _check_kver(self):
+        """Check if the SUT is using new enough kernel version."""
+
+        minkver = _TOOLS_INFO[self._toolname]["minkver"]
+        if KernelVersion.kver_lt(self._kver, minkver):
+            raise Error(f"version of Linux kernel{self._bpman.hostmsg} is {self._kver}, and it is "
+                        f"not new enough for {self._toolname}.\nPlease, use kernel version "
+                        f"{minkver} or newer.")
+
     def _init_kernel_info(self):
         """
         Discover kernel version and kernel sources path which will be needed for building the out of
         tree drivers. The arguments are as follows.
         """
-
-        from wultlibs.helperlibs import KernelVersion # pylint: disable=import-outside-toplevel
 
         self._kver = None
         if not self._ksrc:
@@ -756,7 +764,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         _LOG.debug("Kernel sources path: %s", self._ksrc)
         _LOG.debug("Kernel version: %s", self._kver)
 
-        ToolsCommon.check_kver(self._toolname, self._bpman, kver=self._kver)
+        self._check_kver()
 
     def __init__(self, toolname, pman=None, ksrc=None, lbuild=False, debug=False):
         """
