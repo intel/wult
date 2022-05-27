@@ -125,24 +125,6 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         super()._add_scatter(xdef, ydef, hover_defs)
 
-    def _get_xbins(self, mdef):
-        """
-        Helper function for 'build_histograms()'. Returns the 'xbins' dictionary for plotly's
-        'Histogram()' method.
-        """
-
-        xmin, xmax = (float("inf"), -float("inf"))
-        for res in self._rsts:
-            # In case of non-numeric column there is only one x-value per bin.
-            if not res.is_numeric(mdef["name"]):
-                return {"size" : 1}
-
-            xdata = self.base_unit(res.df, mdef)
-            xmin = min(xmin, xdata.min())
-            xmax = max(xmax, xdata.max())
-
-        return {"size" : (xmax - xmin) / 1000}
-
     def _add_histogram(self, mdef, cumulative=False, xbins=None):
         """
         Extends 'super()._add_histogram()' by addding custom binning and ensuring that the data has
@@ -153,7 +135,18 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
             sdf[mdef["name"]] = self.base_unit(sdf, mdef)
 
         if xbins is None:
-            xbins = self._get_xbins(mdef)
+            # Calculate custom bins.
+            xmin, xmax = (float("inf"), -float("inf"))
+            for res in self._rsts:
+                # In case of non-numeric column there is only one x-value per bin.
+                if not res.is_numeric(mdef["name"]):
+                    return {"size" : 1}
+
+                xdata = self.base_unit(res.df, mdef)
+                xmin = min(xmin, xdata.min())
+                xmax = max(xmax, xdata.max())
+
+            xbins = {"size" : (xmax - xmin) / 1000}
 
         return super()._add_histogram(mdef, cumulative, xbins)
 
