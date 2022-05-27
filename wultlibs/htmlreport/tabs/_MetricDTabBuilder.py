@@ -112,35 +112,6 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         return {"size" : (xmax - xmin) / 1000}
 
-    def build_histograms(self, xmetric, hist=False, chist=False):
-        """
-        Create a histogram and/or cumulative histogram with 'xmetric' on the x-axis using data from
-        'rsts' which is provided to the class during initialisation. Returns the filepath of the
-        generated plot HTML.
-        """
-
-        # Check that all results contain data for 'xmetric'.
-        if any(xmetric not in res.df for res in self._rsts):
-            raise Error(f"cannot build histograms. Metric '{xmetric}' not available for all "
-                        f"results.")
-
-        xbins = self._get_xbins(xmetric)
-
-        mdef = self._refres.defs.info.get(xmetric, {})
-
-        for res in self._rsts:
-            res.df[mdef["name"]] = self._pbuilder.base_unit(res.df, mdef["name"])
-
-        ppaths = []
-        if hist:
-            super()._add_histogram(mdef, xbins=xbins)
-            ppaths.append(self._ppaths[-1])
-
-        if chist:
-            super()._add_histogram(mdef, True, xbins)
-            ppaths.append(self._ppaths[-1])
-        return ppaths
-
     def add_plots(self, plot_axes=None, hist=None, chist=None, hover_defs=None):
         """
         Generate and add plots to the tab.
@@ -183,12 +154,29 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                 ppath = self._add_scatter(xdef, ydef, hover_defs)
                 ppaths.append(ppath)
 
-        if hist is not None:
-            hist = self._tabmetric in set(hist)
-        if chist is not None:
-            chist = self._tabmetric in set(chist)
+        if self._tabmetric not in hist and self._tabmetric not in chist:
+            self._ppaths = ppaths
+            return
 
-        ppaths += self.build_histograms(self._tabmetric, hist, chist)
+        # Check that all results contain data for 'xmetric'.
+        if any(self._tabmetric not in res.df for res in self._rsts):
+            raise Error(f"cannot build histograms. Metric '{self._tabmetric}' not available for "
+                         "all results.")
+
+        xbins = self._get_xbins(self._tabmetric)
+
+        mdef = self._refres.defs.info.get(self._tabmetric, {})
+
+        for res in self._rsts:
+            res.df[mdef["name"]] = self._pbuilder.base_unit(res.df, mdef["name"])
+
+        if self._tabmetric in hist:
+            super()._add_histogram(mdef, xbins=xbins)
+            ppaths.append(self._ppaths[-1])
+
+        if self._tabmetric in chist:
+            super()._add_histogram(mdef, True, xbins)
+            ppaths.append(self._ppaths[-1])
         self._ppaths = ppaths
 
     def __init__(self, rsts, outdir, metric_def, basedir=None, hover_metrics=None):
