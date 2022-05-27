@@ -18,35 +18,6 @@ class PlotsBuilder:
     library for Metric Tabs.
     """
 
-    def base_unit(self, df, colname):
-        """
-        Convert columns with 'microsecond' units to seconds, and return the converted column.
-        """
-
-        # This is not generic, but today we have to deal only with microseconds, so this is good
-        # enough.
-        if self._refdefs.info[colname].get("unit") != "microsecond":
-            return df[colname]
-
-        base_colname = f"{colname}_base"
-        if base_colname not in df:
-            df.loc[:, base_colname] = df[colname] / 1000000
-        return df[base_colname]
-
-    @staticmethod
-    def get_base_si_unit(unit):
-        """
-        Plotly will handle SI unit prefixes therefore we should provide only the base unit.
-        Several defs list 'us' as the 'short_unit' which includes the prefix so should be
-        reduced to just the base unit 's'.
-        """
-
-        # This is not generic, but today we have to deal only with microseconds, so this is good
-        # enough.
-        if unit == "us":
-            return "s"
-        return unit
-
     def __init__(self, rsts, hov_metrics, opacity, outdir):
         """
         The class constructor. The arguments are as follows:

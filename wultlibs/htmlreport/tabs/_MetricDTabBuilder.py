@@ -78,6 +78,35 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         except Error as err:
             raise Error("Failed to generate summary table.") from err
 
+    def base_unit(self, df, colname):
+        """
+        Convert columns with 'microsecond' units to seconds, and return the converted column.
+        """
+
+        # This is not generic, but today we have to deal only with microseconds, so this is good
+        # enough.
+        if self._refres.defs.info[colname].get("unit") != "microsecond":
+            return df[colname]
+
+        base_colname = f"{colname}_base"
+        if base_colname not in df:
+            df.loc[:, base_colname] = df[colname] / 1000000
+        return df[base_colname]
+
+    @staticmethod
+    def get_base_si_unit(unit):
+        """
+        Plotly will handle SI unit prefixes therefore we should provide only the base unit.
+        Several defs list 'us' as the 'short_unit' which includes the prefix so should be
+        reduced to just the base unit 's'.
+        """
+
+        # This is not generic, but today we have to deal only with microseconds, so this is good
+        # enough.
+        if unit == "us":
+            return "s"
+        return unit
+
     def _add_scatter(self, xdef, ydef, hover_defs=None):
         """
         Create a scatter plot with the metric represented by 'xdef' on the X-axis and the metric
@@ -87,9 +116,9 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         """
 
         for mdef in xdef, ydef:
-            mdef["short_unit"] = self._pbuilder.get_base_si_unit(mdef["short_unit"])
+            mdef["short_unit"] = self.get_base_si_unit(mdef["short_unit"])
             for res in self._rsts:
-                res.df[mdef["name"]] = self._pbuilder.base_unit(res.df, mdef["name"])
+                res.df[mdef["name"]] = self.base_unit(res.df, mdef["name"])
 
         super()._add_scatter(xdef, ydef, hover_defs)
         return self._ppaths[-1]
@@ -106,7 +135,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
             if not res.is_numeric(xcolname):
                 return {"size" : 1}
 
-            xdata = self._pbuilder.base_unit(res.df, xcolname)
+            xdata = self.base_unit(res.df, xcolname)
             xmin = min(xmin, xdata.min())
             xmax = max(xmax, xdata.max())
 
@@ -168,7 +197,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         mdef = self._refres.defs.info.get(self._tabmetric, {})
 
         for res in self._rsts:
-            res.df[mdef["name"]] = self._pbuilder.base_unit(res.df, mdef["name"])
+            res.df[mdef["name"]] = self.base_unit(res.df, mdef["name"])
 
         if self._tabmetric in hist:
             super()._add_histogram(mdef, xbins=xbins)
