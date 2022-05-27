@@ -397,9 +397,14 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
             stnames |= self._oobcoll.discover()
         return stnames
 
-    def __init__(self, pman, local_outdir=None, remote_outdir=None, sc_path=None):
+    def __init__(self, pman, local_outdir=None, remote_outdir=None, local_scpath=None,
+                 remote_scpath=None):
         """
         Initialize a class instance. The arguments are as follows.
+          * pman - the process manager object associated with the SUT (the host to collect the
+                   statistics for). Note, a reference to the 'pman' object will be saved and it will
+                   be used in various methods, so it has to be kept connected. The reference will be
+                   dropped once the 'close()' method is invoked.
           * local_outdir - output directory path on the local host for storing the local
                            'stats-collect' tool logs and results (the collected statistics).
                            The out-of-band statistics are always collected by the local
@@ -412,12 +417,8 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
                             the SUT is a remote host, the 'remote_outdir' will be used for
                             'stats-collect' logs and in-band statistics. Otherwise, this path won't
                             be used at all.
-          * pman - the process manager object associated with the SUT (the host to collect the
-                   statistics for). Note, a reference to the 'pman' object will be saved and it will
-                   be used in various methods, so it has to be kept connected. The reference will be
-                   dropped once the 'close()' method is invoked.  * sc_path - path to the
-                   'stats-collect' tool on local host and (if any) remote host (supposed to be the
-                   same on both).
+          * local_scpath - path to the 'stats-collect' tool on the local host.
+          * remote_scpath - path to the 'stats-collect' tool on the remote host (the SUT).
 
         The collected statistics will be stored in the 'stats' sub-directory of the output
         directory, the 'stats-collects' logs will be stored in the 'logs' sub-directory. Use
@@ -447,15 +448,19 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         if pman.is_remote:
             inb_outdir = remote_outdir
             oob_outdir = local_outdir
+            inb_scpath = remote_scpath
+            oob_scpath = local_scpath
         else:
             inb_outdir = local_outdir
             oob_outdir = -1 # Just a bogus value, should not be used.
+            inb_scpath = local_scpath
+            oob_scpath = -1
 
-        self._inbcoll = _InBandCollector(pman, outdir=inb_outdir, sc_path=sc_path)
+        self._inbcoll = _InBandCollector(pman, outdir=inb_outdir, scpath=inb_scpath)
         # Do not create the out-of-band collector if 'pman' represents the local host. Out-of-band
         # collectors by definition run on a host different to the SUT.
         if pman.is_remote:
-            self._oobcoll = _OutOfBandCollector(pman.hostname, outdir=oob_outdir, sc_path=sc_path)
+            self._oobcoll = _OutOfBandCollector(pman.hostname, outdir=oob_outdir, scpath=oob_scpath)
 
     def close(self):
         """Close the statistics collector."""
@@ -675,8 +680,8 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         """
 
         # Discover path to 'stats-collect'.
-        if not self._sc_path:
-            self._sc_path = self._pman.which("stats-collect")
+        if not self.scpath:
+            self.scpath = self._pman.which("stats-collect")
 
         is_root = ProcHelpers.is_root(pman=self._pman)
 
@@ -832,7 +837,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         self._init_paths()
 
         # Kill a possibly running stale 'stats-collect' process.
-        msg = f"stale {self._sc_path} process{self._pman.hostmsg}"
+        msg = f"stale {self.scpath} process{self._pman.hostmsg}"
         ProcHelpers.kill_processes(self._sc_search, log=True, name=msg, pman=self._pman)
         if self._pman.is_remote:
             # Kill a possibly running stale SSH tunnel process.
@@ -840,7 +845,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
             ProcHelpers.kill_processes(self._ssht_search, log=True, name=msg, pman=self._pman)
 
         # Format the command for executing 'stats-collect'.
-        self._cmd = f"{self._sc_path} --sut-name {self._sutname}"
+        self._cmd = f"{self.scpath} --sut-name {self._sutname}"
         if _LOG.getEffectiveLevel() == logging.DEBUG:
             self._cmd = f"{self._cmd} -d"
 
@@ -962,7 +967,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         return {stname for stname, stinfo in self.stinfo.items() if stinfo["enabled"]}
 
-    def __init__(self, pman, sutname, outdir=None, sc_path=None):
+    def __init__(self, pman, sutname, outdir=None, scpath=None):
         """
         Initialize a class instance. The input arguments are as follows.
           * pman - a process manager associated with the host to run 'stats-collect' on.
@@ -970,14 +975,14 @@ class _Collector(ClassHelpers.SimpleCloseContext):
                      a temporary directory if not provided.
           * sutname - name of the System Under Test. Will be used for messages and searching for
                       stale 'stats-collect' process instances for the same SUT.
-          * sc_path - path to 'stats-collect' on the host defined by 'pman'. Searched for in '$PATH'
-                      if not provided.
+          * scpath - path to 'stats-collect' on the host defined by 'pman'. Searched for in '$PATH'
+                     if not provided.
         """
 
         self._pman = pman
         self._sutname = sutname
         self.outdir = outdir
-        self._sc_path = sc_path
+        self.scpath = scpath
 
         self.stinfo = DEFAULT_STINFO.copy()
 
@@ -996,7 +1001,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         self._logpath = None
 
         # The 'stats-collect' process search pattern.
-        self._sc_search = f"{self._sc_path} --sut-name {self._sutname}"
+        self._sc_search = f"{self.scpath} --sut-name {self._sutname}"
         # The SSH tunnel process search pattern.
         self._ssht_search = f"ssh -L .*:.*stats-collect-{self._sutname}-.* -N"
 
@@ -1052,13 +1057,13 @@ class _InBandCollector(_Collector):
     the SUT and statistics collectors also run on the SUT.
     """
 
-    def __init__(self, pman, outdir=None, sc_path=None):
+    def __init__(self, pman, outdir=None, scpath=None):
         """
         Initialize a class instance. The arguments are the same as in 'StatsCollect.__init__()'.
         """
 
         # Call the base class constructor.
-        super().__init__(pman, pman.hostname, outdir=outdir, sc_path=sc_path)
+        super().__init__(pman, pman.hostname, outdir=outdir, scpath=scpath)
 
         # Cleanup 'self.stinfo' by removing out-of-band statistics.
         for stname in list(self.stinfo):
@@ -1078,7 +1083,7 @@ class _OutOfBandCollector(_Collector):
     collects information about the SUT by talking to SUT's BMC module via the network.
     """
 
-    def __init__(self, sutname, outdir=None, sc_path=None):
+    def __init__(self, sutname, outdir=None, scpath=None):
         """
         Initialize a class instance. The 'sutname' argument is name of the SUT to collect the
         statistics for. This string will be passed over to 'stats-collect' and will affect its
@@ -1090,7 +1095,7 @@ class _OutOfBandCollector(_Collector):
 
         # Call the base class constructor.
         pman = LocalProcessManager.LocalProcessManager()
-        super().__init__(pman, sutname, outdir=outdir, sc_path=sc_path)
+        super().__init__(pman, sutname, outdir=outdir, scpath=scpath)
 
         # Make sure we close the process manager.
         self._close_pman = True
