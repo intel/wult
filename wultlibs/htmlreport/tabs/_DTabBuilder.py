@@ -57,7 +57,10 @@ class DTabBuilder:
                 for fname in smry_funcs:
                     smrytbl.add_smry_func(rep, metric["title"], fname, smry_dict[fname])
 
-        smrytbl.generate(self.smry_path)
+        try:
+            smrytbl.generate(self.smry_path)
+        except Error as err:
+            raise Error("Failed to generate summary table.") from err
 
     def get_tab(self):
         """
