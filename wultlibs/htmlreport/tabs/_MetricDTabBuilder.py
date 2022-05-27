@@ -116,8 +116,8 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         for mdef in xdef, ydef:
             mdef["short_unit"] = self.get_base_si_unit(mdef["short_unit"])
-            for res in self._rsts:
-                res.df[mdef["name"]] = self.base_unit(res.df, mdef["name"])
+            for sdf in self._reports.values():
+                sdf[mdef["name"]] = self.base_unit(sdf, mdef["name"])
 
         super()._add_scatter(xdef, ydef, hover_defs)
 
