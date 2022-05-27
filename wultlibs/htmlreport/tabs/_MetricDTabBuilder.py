@@ -160,10 +160,10 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
             hist = []
         if chist is None:
             chist = []
-
-        hover_defs = {}
-        for reportid, metrics in self._hover_metrics.items():
-            hover_defs[reportid] = [self._refres.defs.info[m] for m in metrics]
+        if hover_defs is None:
+            hover_defs = {}
+            for reportid, metrics in self._hover_metrics.items():
+                hover_defs[reportid] = [self._refres.defs.info[m] for m in metrics]
 
         for xdef, ydef in plot_axes:
             if not all(xdef["name"] in res.df and ydef["name"] in res.df for res in self._rsts):
