@@ -81,11 +81,13 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
         # contents of the remote directory, but not the directory itself.
         self._pman.rsync(f"{routdir}/", self._outdir, opts="rltD", remotesrc=True, remotedst=False)
 
-    def __init__(self, pman, res):
+    def __init__(self, pman, res, local_scpath=None, remote_scpath=None):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to collect the statistics about.
           * res - the 'WORawResult' object to store the results at.
+          * local_scpath - path to the 'stats-collect' python helper tool on the local system.
+          * remote_scpath - path to the 'stats-collect' python helper tool on the remote system.
           """
 
         self._pman = pman
@@ -99,7 +101,9 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
         except OSError as err:
             raise Error(f"failed to create directory '{path}': {err}") from None
 
-        self._stcoll = StatsCollect.StatsCollect(pman, local_outdir=self._outdir.resolve())
+        self._stcoll = StatsCollect.StatsCollect(pman, local_outdir=self._outdir.resolve(),
+                                                 local_scpath=local_scpath,
+                                                 remote_scpath=remote_scpath)
 
     def close(self):
         """Close the statistics collector."""
