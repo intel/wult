@@ -41,7 +41,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         # Summaries are calculated only for numeric metrics. Tab metric name is represented by
         # 'smrytblpath.name', this should come first.
-        metrics = [self._tabmetric] if self._refres.is_numeric(self._tabmetric) else []
+        metrics = [self._tabmdef["name"]] if self._refres.is_numeric(self._tabmdef["name"]) else []
         metrics += [metric for metric in smry_metrics if self._refres.is_numeric(metric)]
         # Dedupe the list so that each metric only appears once.
         metrics = Trivial.list_dedup(metrics)
@@ -158,7 +158,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                      Defaults to 'outdir'.
         """
 
-        self._tabmetric = metric_def["name"]
+        self._tabmdef = metric_def
         self._rsts = rsts
         self._refres = rsts[0]
 
