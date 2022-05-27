@@ -466,7 +466,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             srcdir = helpersrc/ shelper
             _LOG.debug("copying simple helper '%s' to %s:\n  '%s' -> '%s'",
                        shelper, self._bpman.hostname, srcdir, self._btmpdir)
-            self._bpman.rsync(f"{srcdir}", self._btmpdir, remotesrc=False,
+            self._bpman.rsync(srcdir, self._btmpdir, remotesrc=False,
                               remotedst=self._bpman.is_remote)
 
         # Build simple helpers.
@@ -486,7 +486,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         for pyhelper in self._pyhelpers:
             srcdir = helpersrc / pyhelper
             _LOG.debug("copying python helper %s:\n  '%s' -> '%s'", pyhelper, srcdir, self._ctmpdir)
-            self._cpman.rsync(f"{srcdir}", self._ctmpdir, remotesrc=False, remotedst=False)
+            self._cpman.rsync(srcdir, self._ctmpdir, remotesrc=False, remotedst=False)
 
         # Build stand-alone version of every python helper.
         for pyhelper in self._pyhelpers:
@@ -502,7 +502,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 srcdir = self._ctmpdir / pyhelper
                 _LOG.debug("copying python helper '%s' to %s:\n  '%s' -> '%s'",
                            pyhelper, self._spman.hostname, srcdir, self._stmpdir)
-                self._spman.rsync(f"{srcdir}", self._stmpdir, remotesrc=False, remotedst=True)
+                self._spman.rsync(srcdir, self._stmpdir, remotesrc=False, remotedst=True)
 
     def _get_libbpf_path(self):
         """Search for 'libbpf.a' library in the kernel sources and return its path."""
