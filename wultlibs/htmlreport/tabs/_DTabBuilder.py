@@ -130,7 +130,8 @@ class DTabBuilder:
                        (xdef, ydef).
          * hist - a list of defs which represent metrics to create histograms for.
          * chist - a list of defs which represent metrics to create cumulative histograms for.
-         * hover_defs - specifies which metrics hovertext in plots should be generated for.
+         * hover_defs - a mapping from 'reportid' to defs of metrics which should be included in
+                        the hovertext of scatter plots.
         """
 
         if plot_axes is None and hist is None and chist is None:
