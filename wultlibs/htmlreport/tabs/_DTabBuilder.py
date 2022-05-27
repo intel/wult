@@ -39,12 +39,10 @@ class DTabBuilder:
         dictionaries for the metrics which should be included in the summary table.
         """
 
-        # List of functions to provide in the summary tables.
+        smrytbl = _SummaryTable.SummaryTable()
         if smry_funcs is None:
             smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
                           "std")
-
-        smrytbl = _SummaryTable.SummaryTable()
 
         for metric in smry_metrics:
             smrytbl.add_metric(metric["title"], metric["short_unit"], metric["descr"], fmt="{:.2f}")

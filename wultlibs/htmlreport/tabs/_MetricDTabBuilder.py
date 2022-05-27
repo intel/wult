@@ -15,7 +15,6 @@ reports.
 
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import Trivial
-from wultlibs import DFSummary
 from wultlibs.htmlreport import _SummaryTable
 from wultlibs.htmlreport.tabs import _DTabBuilder
 
@@ -40,16 +39,17 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         This means that it includes summaries of all the metrics referenced in this tab.
         """
 
-        smry_tbl = _SummaryTable.SummaryTable()
-        if smry_funcs is None:
-            smry_funcs = DFSummary.get_smry_funcs()
-
         # Summaries are calculated only for numeric metrics. Tab metric name is represented by
         # 'smrytblpath.name', this should come first.
         metrics = [self._tabmetric] if self._refres.is_numeric(self._tabmetric) else []
         metrics += [metric for metric in smry_metrics if self._refres.is_numeric(metric)]
         # Dedupe the list so that each metric only appears once.
         metrics = Trivial.list_dedup(metrics)
+
+        smry_tbl = _SummaryTable.SummaryTable()
+        if smry_funcs is None:
+            smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
+                          "std")
 
         for metric in metrics:
             # Create row in the summary table for each metric.
