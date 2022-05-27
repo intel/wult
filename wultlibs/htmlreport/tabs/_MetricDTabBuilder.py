@@ -165,32 +165,33 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
             for reportid, metrics in self._hover_metrics.items():
                 hover_defs[reportid] = [self._refres.defs.info[m] for m in metrics]
 
+        sdfs = self._reports.values()
         for xdef, ydef in plot_axes:
-            if not all(xdef["name"] in res.df and ydef["name"] in res.df for res in self._rsts):
+            if not all(xdef["name"] in sdf and ydef["name"] in sdf for sdf in sdfs):
                 _LOG.warning("skipping scatter plot '%s' vs '%s' since not all results have data "
                              "for both.", ydef, xdef)
                 continue
             self._add_scatter(xdef, ydef, hover_defs)
 
         for mdef in hist:
-            if not all(mdef["name"] in res.df for res in self._rsts):
+            if not all(mdef["name"] in sdf for sdf in sdfs):
                 _LOG.warning("skipping histogram for metric '%s' since not all results have data "
                              "for this metric.", mdef["name"])
                 continue
 
-            for res in self._rsts:
-                res.df[mdef["name"]] = self.base_unit(res.df, mdef["name"])
+            for sdf in sdfs:
+                sdf[mdef["name"]] = self.base_unit(sdf, mdef["name"])
             xbins = self._get_xbins(mdef["name"])
             super()._add_histogram(mdef, xbins=xbins)
 
         for mdef in chist:
-            if not all(mdef["name"] in res.df for res in self._rsts):
+            if not all(mdef["name"] in sdf for sdf in sdfs):
                 _LOG.warning("skipping cumulative histogram for metric '%s' since not all results "
                              "have data for this metric.", mdef["name"])
                 continue
 
-            for res in self._rsts:
-                res.df[mdef["name"]] = self.base_unit(res.df, mdef["name"])
+            for sdf in sdfs:
+                sdf[mdef["name"]] = self.base_unit(sdf, mdef["name"])
             xbins = self._get_xbins(mdef["name"])
             super()._add_histogram(mdef, True, xbins)
 
