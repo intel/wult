@@ -78,14 +78,18 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         except Error as err:
             raise Error("Failed to generate summary table.") from err
 
-    def base_unit(self, df, colname):
+    @staticmethod
+    def base_unit(df, mdef):
         """
-        Convert columns with 'microsecond' units to seconds, and return the converted column.
+        Convert column represented by metric in 'mdef' with 'microsecond' units to seconds, and
+        return the converted column.
         """
+
+        colname = mdef["name"]
 
         # This is not generic, but today we have to deal only with microseconds, so this is good
         # enough.
-        if self._refres.defs.info[colname].get("unit") != "microsecond":
+        if mdef.get("unit") != "microsecond":
             return df[colname]
 
         base_colname = f"{colname}_base"
@@ -117,7 +121,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         for mdef in xdef, ydef:
             mdef["short_unit"] = self.get_base_si_unit(mdef["short_unit"])
             for sdf in self._reports.values():
-                sdf[mdef["name"]] = self.base_unit(sdf, mdef["name"])
+                sdf[mdef["name"]] = self.base_unit(sdf, mdef)
 
         super()._add_scatter(xdef, ydef, hover_defs)
 
@@ -133,7 +137,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
             if not res.is_numeric(xcolname):
                 return {"size" : 1}
 
-            xdata = self.base_unit(res.df, xcolname)
+            xdata = self.base_unit(res.df, self._refres.defs.info[xcolname])
             xmin = min(xmin, xdata.min())
             xmax = max(xmax, xdata.max())
 
@@ -146,7 +150,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         """
 
         for sdf in self._reports.values():
-            sdf[mdef["name"]] = self.base_unit(sdf, mdef["name"])
+            sdf[mdef["name"]] = self.base_unit(sdf, mdef)
 
         if xbins is None:
             xbins = self._get_xbins(mdef["name"])
