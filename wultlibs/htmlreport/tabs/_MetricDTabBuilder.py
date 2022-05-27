@@ -111,8 +111,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         """
         Create a scatter plot with the metric represented by 'xdef' on the X-axis and the metric
         represented by 'ydef' on the Y-axis using data from 'rsts' which is provided to the class
-        during initialisation. Returns the filepath of the generated plot HTML. Arguments are the
-        same as in '_DTabBuilder._add_scatter()'.
+        during initialisation. Arguments are the same as in '_DTabBuilder._add_scatter()'.
         """
 
         for mdef in xdef, ydef:
@@ -121,7 +120,6 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                 res.df[mdef["name"]] = self.base_unit(res.df, mdef["name"])
 
         super()._add_scatter(xdef, ydef, hover_defs)
-        return self._ppaths[-1]
 
     def _get_xbins(self, xcolname):
         """
@@ -167,14 +165,12 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         for reportid, metrics in self._hover_metrics.items():
             hover_defs[reportid] = [self._refres.defs.info[m] for m in metrics]
 
-        ppaths = []
         for xdef, ydef in plot_axes:
             if not all(xdef["name"] in res.df and ydef["name"] in res.df for res in self._rsts):
                 _LOG.warning("skipping scatter plot '%s' vs '%s' since not all results have data "
                              "for both.", ydef, xdef)
                 continue
-            ppath = self._add_scatter(xdef, ydef, hover_defs)
-            ppaths.append(ppath)
+            self._add_scatter(xdef, ydef, hover_defs)
 
         for mdef in hist:
             if not all(mdef["name"] in res.df for res in self._rsts):
@@ -186,7 +182,6 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                 res.df[mdef["name"]] = self.base_unit(res.df, mdef["name"])
             xbins = self._get_xbins(mdef["name"])
             super()._add_histogram(mdef, xbins=xbins)
-            ppaths.append(self._ppaths[-1])
 
         for mdef in chist:
             if not all(mdef["name"] in res.df for res in self._rsts):
@@ -198,8 +193,6 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                 res.df[mdef["name"]] = self.base_unit(res.df, mdef["name"])
             xbins = self._get_xbins(mdef["name"])
             super()._add_histogram(mdef, True, xbins)
-            ppaths.append(self._ppaths[-1])
-        self._ppaths = ppaths
 
     def __init__(self, rsts, outdir, metric_def, basedir=None, hover_metrics=None):
         """
