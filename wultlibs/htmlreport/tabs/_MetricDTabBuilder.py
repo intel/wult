@@ -18,7 +18,7 @@ from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import Trivial
 from wultlibs import DFSummary
 from wultlibs.htmlreport import _SummaryTable
-from wultlibs.htmlreport.tabs import _DTabBuilder, _PlotsBuilder
+from wultlibs.htmlreport.tabs import _DTabBuilder
 
 _LOG = logging.getLogger()
 
@@ -156,19 +156,6 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         if plot_axes is None and hist is None and chist is None:
             raise Error("BUG: no arguments provided for 'add_plots()', unable to generate plots.")
 
-        if hover_defs is None:
-            hover_metrics = self._hover_metrics
-        else:
-            metric_names = [mdef["name"] for mdef in hover_defs]
-            hover_metrics = {reportid: metric_names for reportid in self._rsts}
-
-        # The diagram/histogram transparency level. It is helpful to have some transparency in case
-        # there are several test results rendered on the same diagram.
-        opacity = 0.8 if len(self._rsts) > 1 else 1
-
-        self._pbuilder = _PlotsBuilder.PlotsBuilder(self._rsts, hover_metrics, opacity,
-                                                    self._outdir)
-
         hover_defs = {}
         for reportid, metrics in self._hover_metrics.items():
             hover_defs[reportid] = [self._refres.defs.info[m] for m in metrics]
@@ -224,7 +211,6 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         self._tabmetric = metric_def["name"]
         self._rsts = rsts
         self._refres = rsts[0]
-        self._pbuilder = None
         self._ppaths = []
         self._hover_metrics = hover_metrics
 
