@@ -1,3 +1,10 @@
+wult (1.10.1) unstable; urgency=low
+
+  * wult deploy: fix deploying from sources.
+  * wult start --stats: fix statistics collection when run from sources.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com> _DATE_HERE_
+
 wult (1.10.0) unstable; urgency=low
 
   * wult report: removed symbolic links to raw result files.
