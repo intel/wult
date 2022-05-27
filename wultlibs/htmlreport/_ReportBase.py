@@ -190,6 +190,12 @@ class ReportBase:
         tab_metrics += self.chist + self.hist
         tab_metrics = Trivial.list_dedup(tab_metrics)
 
+        # Convert 'self._hov_metrics' to contain definitions for each metric.
+        hover_defs = {}
+        reports = {res.reportid: res for res in self.rsts}
+        for reportid, metrics in self._hov_metrics.items():
+            hover_defs[reportid] = [reports[reportid].defs.info[m] for m in metrics]
+
         for metric in tab_metrics:
             _LOG.info("Generating %s tab.", metric)
 
@@ -208,7 +214,7 @@ class ReportBase:
 
             metric_def = self._refres.defs.info[metric]
             dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, metric_def,
-                                                             hover_metrics=self._hov_metrics)
+                                                             hover_metrics=hover_defs)
             dtab_bldr.add_smrytbl(smry_metrics, self._smry_funcs)
             hist_metrics = [metric_def] if metric in self.hist else []
             chist_metrics = [metric_def] if metric in self.chist else []

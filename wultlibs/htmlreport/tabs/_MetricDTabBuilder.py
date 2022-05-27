@@ -166,9 +166,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         """
 
         if hover_defs is None:
-            hover_defs = {}
-            for reportid, metrics in self._hover_metrics.items():
-                hover_defs[reportid] = [self._refres.defs.info[m] for m in metrics]
+            hover_defs = self._hover_metrics
 
         super().add_plots(plot_axes, hist, chist, hover_defs)
 
@@ -181,8 +179,8 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
          * metric_def - dictionary containing the definition for the metric represented by this tab.
          * basedir - base directory of the report. All paths should be made relative to this.
                      Defaults to 'outdir'.
-         * hover_metrics - a mapping from report_id to metric names which should be included in the
-                           hovertext of scatter plots.
+         * hover_metrics - a mapping from 'reportid' to defs of metrics which should be included in
+                           the hovertext of scatter plots.
         """
 
         self._tabmetric = metric_def["name"]
