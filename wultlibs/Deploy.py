@@ -93,8 +93,8 @@ def find_app_data(prjname, subpath, appname=None, descr=None):
     searched = [str(s) for s in searched]
     dirs = " * " + "\n * ".join(searched)
 
-    raise Error(f"cannot find {descr}, searched in the following directories on local host:\n"
-                f"{dirs}")
+    raise ErrorNotFound(f"cannot find {descr}, searched in the following directories on local "
+                        f"host:\n{dirs}")
 
 def get_helpers_deploy_path(toolname, pman):
     """
