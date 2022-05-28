@@ -16,7 +16,7 @@ import shutil
 from pathlib import Path
 from operator import itemgetter
 from collections import namedtuple
-from pepclibs.helperlibs import ProcessManager
+from pepclibs.helperlibs import ProcessManager, Trivial
 from pepclibs.helperlibs.Exceptions import ErrorExists
 
 # pylint: disable=wildcard-import,unused-wildcard-import
@@ -149,22 +149,43 @@ def lsdir(path, must_exist=True, pman=None):
     default, 'path' is assumed to be on the local host.
     """
 
+    def _get_ftype(st_mode):
+        """Return ls-style type string by 'stat.st_mode' value."""
+
+        if stat.S_ISDIR(st_mode):
+            ftype = "/"
+        elif stat.S_ISLNK(st_mode):
+            ftype = "@"
+        elif stat.S_ISSOCK(st_mode):
+            ftype = "="
+        elif stat.S_ISFIFO(st_mode):
+            ftype = "|"
+        else:
+            ftype = ""
+
+        return ftype
+
     path = Path(path)
 
     if pman and pman.is_remote:
         if not must_exist and not pman.exists(path):
             return
 
-        stdout, _ = pman.run_verify(f"ls -c -1 --file-type -- '{path}'", join=False)
-        if not stdout:
-            return
+        # A small python program to get the list of directories with some metadata.
+        cmd = f"""python -c 'import os
+path = "{path}"
+for entry in os.listdir(path):
+    stinfo = os.lstat(os.path.join(path, entry))
+    print(entry, stinfo.st_mode, stinfo.st_ctime)'"""
 
-        for entry in (entry.strip() for entry in stdout):
-            ftype = ""
-            if entry[-1] in "/=>@|":
-                ftype = entry[-1]
-                entry = entry[:-1]
-            yield (entry, Path(f"{path}/{entry}"), ftype)
+        stdout, _ = pman.run_verify(cmd, shell=True)
+
+        entries = {}
+        for line in stdout.splitlines():
+            entry, st_mode, st_ctime = Trivial.split_csv_line(line.strip(), sep=" ")
+
+            entries[entry] = {"name" : entry, "ctime" : float(st_ctime)}
+            entries[entry]["ftype"] = _get_ftype(int(st_mode))
     else:
         if not must_exist and not path.exists():
             return
@@ -184,22 +205,10 @@ def lsdir(path, must_exist=True, pman=None):
                 raise Error(f"'stat()' failed for '{entry}':\n{err}") from None
 
             entries[entry] = {"name" : entry, "ctime" : stinfo.st_ctime}
+            entries[entry]["ftype"] = _get_ftype(stinfo.st_mode)
 
-            if stat.S_ISDIR(stinfo.st_mode):
-                ftype = "/"
-            elif stat.S_ISLNK(stinfo.st_mode):
-                ftype = "@"
-            elif stat.S_ISSOCK(stinfo.st_mode):
-                ftype = "="
-            elif stat.S_ISFIFO(stinfo.st_mode):
-                ftype = "|"
-            else:
-                ftype = ""
-
-            entries[entry]["ftype"] = ftype
-
-        for einfo in sorted(entries.values(), key=itemgetter("ctime"), reverse=True):
-            yield (einfo["name"], path / einfo["name"], einfo["ftype"])
+    for einfo in sorted(entries.values(), key=itemgetter("ctime"), reverse=True):
+        yield (einfo["name"], path / einfo["name"], einfo["ftype"])
 
 def get_mount_points(pman=None):
     """
