@@ -1,6 +1,5 @@
 PREFIX ?= /tmp/ndlrunner
 BINDIR := $(PREFIX)/bin
-CC ?= $(CROSS_COMPILE)gcc
 TOOLNAME = ndlrunner
 
 all: $(TOOLNAME)
