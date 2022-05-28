@@ -135,9 +135,9 @@ def move_copy_link(src, dst, action="symlink", exist_ok=False):
 
 def lsdir(path, must_exist=True, pman=None):
     """
-    For each directory entry in 'path', yield the ('name', 'path', 'type') tuple, where 'name' is
-    the direntry name, 'path' is full directory entry path, and 'type' is the file type indicator
-    (see 'ls --file-type' for details).
+    For each directory entry in 'path', yield the ('name', 'path', 'mode') tuple, where 'name' is
+    the direntry name, 'path' is full directory entry path, and 'mode' is the 'os.lstat().st_mode'
+    value for the directory entry.
 
     The directory entries are yielded in ctime (creation time) order.
 
@@ -148,22 +148,6 @@ def lsdir(path, must_exist=True, pman=None):
     The 'pman' argument is the process manger object which defines the host 'path' resides on. By
     default, 'path' is assumed to be on the local host.
     """
-
-    def _get_ftype(st_mode):
-        """Return ls-style type string by 'stat.st_mode' value."""
-
-        if stat.S_ISDIR(st_mode):
-            ftype = "/"
-        elif stat.S_ISLNK(st_mode):
-            ftype = "@"
-        elif stat.S_ISSOCK(st_mode):
-            ftype = "="
-        elif stat.S_ISFIFO(st_mode):
-            ftype = "|"
-        else:
-            ftype = ""
-
-        return ftype
 
     path = Path(path)
 
@@ -182,10 +166,8 @@ for entry in os.listdir(path):
 
         entries = {}
         for line in stdout.splitlines():
-            entry, st_mode, st_ctime = Trivial.split_csv_line(line.strip(), sep=" ")
-
-            entries[entry] = {"name" : entry, "ctime" : float(st_ctime)}
-            entries[entry]["ftype"] = _get_ftype(int(st_mode))
+            entry, mode, ctime = Trivial.split_csv_line(line.strip(), sep=" ")
+            entries[entry] = {"name": entry, "ctime": float(ctime), "mode": int(mode)}
     else:
         if not must_exist and not path.exists():
             return
@@ -204,11 +186,10 @@ for entry in os.listdir(path):
             except OSError as err:
                 raise Error(f"'stat()' failed for '{entry}':\n{err}") from None
 
-            entries[entry] = {"name" : entry, "ctime" : stinfo.st_ctime}
-            entries[entry]["ftype"] = _get_ftype(stinfo.st_mode)
+            entries[entry] = {"name": entry, "ctime": stinfo.st_ctime, "mode": stinfo.st_mode}
 
     for einfo in sorted(entries.values(), key=itemgetter("ctime"), reverse=True):
-        yield (einfo["name"], path / einfo["name"], einfo["ftype"])
+        yield (einfo["name"], path / einfo["name"], einfo["mode"])
 
 def get_mount_points(pman=None):
     """

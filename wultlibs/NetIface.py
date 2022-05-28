@@ -11,6 +11,7 @@ This module provides API for managing network interfaces in Linux.
 """
 
 import re
+import stat
 import logging
 import ipaddress
 import random
@@ -48,8 +49,8 @@ def _get_ifinfos(pman):
     * device HW address
     """
 
-    for ifname, path, typ in FSHelpers.lsdir(_SYSFSBASE, pman=pman):
-        if typ != "@":
+    for ifname, path, mode in FSHelpers.lsdir(_SYSFSBASE, pman=pman):
+        if not stat.S_ISLNK(mode):
             # We expect a symlink.
             continue
 
