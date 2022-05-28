@@ -100,7 +100,7 @@ def get_helpers_deploy_path(toolname, pman):
     """
     Return path to the helpers deployment. The arguments are as follows.
       * toolname - name of the tool to get the helpers deployment path for.
-      * pman - the process managemer object defining the host the helpers are deployed to.
+      * pman - the process manager object defining the host the helpers are deployed to.
     """
 
     helpers_path = os.environ.get(f"{toolname.upper()}_HELPERSPATH")
@@ -274,7 +274,7 @@ def _create_standalone_pyhelper(pyhelper_path, outdir):
         try:
             zipobj = zipfile.ZipFile(fobj, "w", compression=zipfile.ZIP_DEFLATED)
         except Exception as err:
-            raise Error(f"faild to initialize a zip archive from file "
+            raise Error(f"failed to initialize a zip archive from file "
                         f"'{standalone_path}':\n{err}") from err
 
         # Make 'zipobj' raises exceptions of type 'Error', so that we do not have to wrap every
@@ -561,7 +561,9 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             self._bpman.rsync(srcdir, self._btmpdir, remotesrc=False,
                               remotedst=self._bpman.is_remote)
 
-        # eBPF helpers require 'bpftool' and 'clang' to be installed on the build host.
+        # eBPF helpers require 'bpftool' and 'clang' to be installed on the build host. They are
+        # called from the 'Makefile', so an explicit check here will generate a user-friendly
+        # message if one of them is not installed.
         with ToolChecker.ToolChecker(pman=self._bpman) as tchk:
             bpftool_path = tchk.check_tool("bpftool")
             clang_path = tchk.check_tool("clang")
@@ -588,8 +590,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
     def _deploy_helpers(self):
         """Deploy helpers (including python helpers) to the SUT."""
 
-        # Python helpers need to be deployed only to a remote host. The local host should already ve
-        # them:
+        # Python helpers need to be deployed only to a remote host. The local host should already
+        # have them:
         #   * either deployed via 'setup.py'.
         #   * or if running from source code, present in the source code.
         if not self._spman.is_remote:
