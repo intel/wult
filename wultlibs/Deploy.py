@@ -16,7 +16,7 @@ import time
 import logging
 from pathlib import Path
 from pepclibs.helperlibs import ProcessManager, LocalProcessManager, Trivial, Logging
-from pepclibs.helperlibs import ClassHelpers, ArgParse
+from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
 
@@ -551,8 +551,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
           * helpersrc - path to the helpers base directory on the controller.
         """
 
-        from pepclibs.helperlibs import ToolChecker # pylint: disable=import-outside-toplevel
-
         # Copy eBPF helpers to the temporary directory on the build host.
         for bpfhelper in self._bpfhelpers:
             srcdir = helpersrc/ bpfhelper
@@ -742,6 +740,11 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             self._btmpdir = self._ctmpdir
         else:
             self._btmpdir = self._stmpdir
+
+        # Make sure 'cc' is available on the build host - it'll be executed by 'Makefile', so an
+        # explicit check here will generate an nice error message in case 'cc' is not available.
+        with ToolChecker.ToolChecker(pman=self._bpman) as tchk:
+            tchk.check_tool("cc")
 
         remove_tmpdirs = True
         try:
