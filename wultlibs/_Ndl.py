@@ -143,7 +143,7 @@ def build_arguments_parser():
     subpars.add_argument("--reportids", help=ToolsCommon.REPORTIDS_DESCR)
     subpars.add_argument("--title-descr", help=ToolsCommon.TITLE_DESCR)
     subpars.add_argument("--relocatable", action="store_true", help=ToolsCommon.RELOCATABLE_DESCR)
-    subpars.add_argument("--list-columns", action="store_true", help=ToolsCommon.LIST_COLUMNS_DESCR)
+    subpars.add_argument("--list-metrics", action="store_true", help=ToolsCommon.LIST_METRICS_DESCR)
 
     text = f"""One or multiple {OWN_NAME} test result paths."""
     subpars.add_argument("respaths", nargs="+", type=Path, help=text)
@@ -162,7 +162,7 @@ def build_arguments_parser():
     subpars.add_argument("--human-readable", action="store_true",
                          help=ToolsCommon.FILTER_HUMAN_DESCR)
     subpars.add_argument("-o", "--outdir", type=Path, help=ToolsCommon.FILTER_OUTDIR_DESCR)
-    subpars.add_argument("--list-columns", action="store_true", help=ToolsCommon.LIST_COLUMNS_DESCR)
+    subpars.add_argument("--list-metrics", action="store_true", help=ToolsCommon.LIST_METRICS_DESCR)
     subpars.add_argument("--reportid", help=ToolsCommon.FILTER_REPORTID_DESCR)
 
     text = f"The {OWN_NAME} test result path to filter."
@@ -282,7 +282,7 @@ def report_command(args):
 
     rsts = ToolsCommon.open_raw_results(args.respaths, args.toolname, reportids=args.reportids)
 
-    if args.list_columns:
+    if args.list_metrics:
         ToolsCommon.list_result_columns(rsts)
         return
 

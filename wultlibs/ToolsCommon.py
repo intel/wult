@@ -149,8 +149,8 @@ RELOCATABLE_DESCR = """Generate a report which contains a copy of the raw test r
                        option, viewers of the report will be able to browse raw logs and statistics
                        files which are copied across with the raw test results."""
 
-# Description for the '--list-columns' option of the 'report' and other commands.
-LIST_COLUMNS_DESCR = "Print the list of the available column names and exit."
+# Description for the '--list-metrics' option of the 'report' and other commands.
+LIST_METRICS_DESCR = "Print the list of the available metrics and exit."
 
 # Description for the 'filter' command.
 FILT_DESCR = """Filter datapoints out of a test result by removing CSV rows and columns according to
@@ -392,7 +392,7 @@ def filter_command(args):
 
     res = RORawResult.RORawResult(args.respath)
 
-    if args.list_columns:
+    if args.list_metrics:
         for colname in res.metrics:
             _LOG.info("%s: %s", colname, res.defs.info[colname]["title"])
         return
