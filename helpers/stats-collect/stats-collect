@@ -107,7 +107,7 @@ def print_module_paths():
     Print paths to all modules other than standard.
     """
 
-    for mobj in sys.modules:
+    for mobj in sys.modules.values():
         path = getattr(mobj, "__file__", None)
         if not path:
             continue
