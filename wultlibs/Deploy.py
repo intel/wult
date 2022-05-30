@@ -108,8 +108,24 @@ def get_helpers_deploy_path(toolname, pman):
         helpers_path = pman.get_homedir() / _HELPERS_LOCAL_DIR / "bin"
     return Path(helpers_path)
 
-def find_pyhelper_path(pyhelper, deployable):
-    """Find and return path to python helper program '{pyhelper}' on the local system."""
+def find_pyhelper_path(pyhelper, deployable=None):
+    """
+    Find and return path to python helper 'pyhelper' on the local system.
+      * pyhelper - the python helper name.
+      * deployable - name of the program to find.
+
+    Note about 'pyhelper' vs 'deployable'. Python helpers may come with additional "deployables".
+    For example, "stats-collect" comes with the 'ipmi-helper' tool that it uses. Here is a usage
+    example.
+      * To find path to the "stats-collect" python helper program, use:
+        find_pyhelper_path("stats-collect")
+      * To find path to the "ipmi-helper" program which belongs to the "stats-collect" python heper,
+        use:
+        find_pyhelper_path("stats-collect", deployable="ipmi-helper")
+    """
+
+    if not deployable:
+        deployable = pyhelper
 
     with LocalProcessManager.LocalProcessManager() as lpman:
         try:
@@ -511,7 +527,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             basedir = self._ctmpdir / pyhelper
             deployables = _get_deployables(basedir)
             for deployable in deployables:
-                local_path = find_pyhelper_path(pyhelper, deployable)
+                local_path = find_pyhelper_path(pyhelper, deployable=deployable)
                 _create_standalone_pyhelper(local_path, basedir)
 
         # And copy the "standoline-ized" version of python helpers to the SUT.

@@ -193,7 +193,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
 
         # Initialize statistics collection.
         if self._stconf:
-            local_scpath = Deploy.find_pyhelper_path("stats-collect", "stats-collect")
+            local_scpath = Deploy.find_pyhelper_path("stats-collect")
             if self._pman.is_remote:
                 with LocalProcessManager.LocalProcessManager() as lpman:
                     remote_scpath = lpman.which("stats-collect")
