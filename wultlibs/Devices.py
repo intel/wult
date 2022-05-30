@@ -519,7 +519,9 @@ def scan_devices(toolname, pman):
 
     with LsPCI.LsPCI(pman) as lspci:
         for pci_info in lspci.get_devices():
+            cls = globals().get(clsname)
+            if not cls.supported_devices.get(pci_info['devid']):
+                continue
             with contextlib.suppress(ErrorNotSupported):
-                devid = pci_info['pciaddr']
-                with globals().get(clsname)(devid, pman, dmesg=False) as i210dev:
+                with cls(pci_info['pciaddr'], pman, dmesg=False) as i210dev:
                     yield i210dev.info
