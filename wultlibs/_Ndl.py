@@ -159,7 +159,8 @@ def build_arguments_parser():
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     subpars.add_argument("--exclude-metrics", action=ArgParse.OrderedArg, dest="mexclude",
                          help=ToolsCommon.MEXCLUDE_DESCR)
-    subpars.add_argument("--csel", action=ArgParse.OrderedArg, help=ToolsCommon.CSEL_DESCR)
+    subpars.add_argument("--include-metrics", action=ArgParse.OrderedArg, dest="minclude",
+                         help=ToolsCommon.CSEL_DESCR)
     subpars.add_argument("--human-readable", action="store_true",
                          help=ToolsCommon.FILTER_HUMAN_DESCR)
     subpars.add_argument("-o", "--outdir", type=Path, help=ToolsCommon.FILTER_OUTDIR_DESCR)
@@ -182,7 +183,8 @@ def build_arguments_parser():
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     subpars.add_argument("--exclude-metrics", action=ArgParse.OrderedArg, dest="mexclude",
                          help=ToolsCommon.MEXCLUDE_DESCR)
-    subpars.add_argument("--csel", action=ArgParse.OrderedArg, help=ToolsCommon.CSEL_DESCR)
+    subpars.add_argument("--include-metrics", action=ArgParse.OrderedArg, dest="minclude",
+                         help=ToolsCommon.CSEL_DESCR)
     subpars.add_argument("-f", "--funcs", help=ToolsCommon.FUNCS_DESCR)
     subpars.add_argument("--list-funcs", action="store_true", help=ToolsCommon.LIST_FUNCS_DESCR)
 

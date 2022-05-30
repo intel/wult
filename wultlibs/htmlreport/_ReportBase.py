@@ -370,8 +370,8 @@ class ReportBase:
                 if metric in res.metrics_set:
                     metrics.append(metric)
 
-            csel = Trivial.list_dedup(self._smry_metrics + metrics)
-            res.set_csel(csel)
+            minclude = Trivial.list_dedup(self._smry_metrics + metrics)
+            res.set_minclude(minclude)
             res.load_df()
 
             # We'll be dropping columns and adding temporary columns, so we'll affect the original

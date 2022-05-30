@@ -34,7 +34,7 @@ class RawResultBase:
         self._rfilt = None
         self._mexclude = None
         self._rsel = None
-        self._csel = None
+        self._minclude = None
 
     def _get_rsel(self):
         """Merge row filter and selector and return the result."""
@@ -60,11 +60,11 @@ class RawResultBase:
         Return list of filtered column names.
         """
 
-        if not self._csel and not self._mexclude:
+        if not self._minclude and not self._mexclude:
             return None
 
-        csel = self._csel
-        if self._csel is None:
+        csel = self._minclude
+        if self._minclude is None:
             csel = colnames
 
         mexclude = self._mexclude
@@ -90,7 +90,7 @@ class RawResultBase:
         self._rfilt = None
         self._mexclude = None
         self._rsel = None
-        self._csel = None
+        self._minclude = None
 
         if not dirpath:
             raise Error("raw test results directory path was not specified")

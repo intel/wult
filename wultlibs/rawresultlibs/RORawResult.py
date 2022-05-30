@@ -109,15 +109,15 @@ class RORawResult(_RawResultBase.RawResultBase):
         if regexs:
             self._mexclude = self.find_metrics(regexs, must_find_all=True)
 
-    def set_csel(self, regexs):
+    def set_minclude(self, regexs):
         """
-        Set the columns selector: only the CSV columns with names in 'regexs' (or matching a regular
+        Set the metrics to include: only the metrics with names in 'regexs' (or matching a regular
         expression in 'regexs') will be included into the 'pandas.DataFrame' ('self.df') during the
-        next 'pandas.DataFrame' operation like 'load_df()'. Use 'None' to disable the selector.
+        next 'pandas.DataFrame' operation like 'load_df()'.
         """
 
         if regexs:
-            self._csel = self.find_metrics(regexs, must_find_all=True)
+            self._minclude = self.find_metrics(regexs, must_find_all=True)
 
     def calc_smrys(self, regexs=None, funcnames=None, all_funcs=False):
         """

@@ -192,7 +192,7 @@ MEXCLUDE_DESCR = """The metrics to exclude. Expects a comma-separated list of th
                     and all metrics with 'Cyc' in their name. Use '--list-metrics' to get the list
                     of the available metrics."""
 
-# Description for the '--csel' option of the 'filter' command.
+# Description for the '--include-metrics' option of the 'filter' command.
 CSEL_DESCR = """The columns selector: remove all column except for those specified in the selector.
                 The syntax is the same as for '--exclude-metrics'."""
 
@@ -335,10 +335,10 @@ def even_up_dpcnt(rsts):
 
 def set_filters(args, res):
     """
-    This is a helper function for the following command-line options: '--rsel', '--rfilt', '--csel',
-    '--exclude-metrics'. The 'args' argument should be an 'helperlibs.ArgParse' object, where all
-    the above mentioned options are represented by the 'oargs' (ordered arguments) field. The 'res'
-    argument is 'RORawResult' or 'WORawResultBase' object.
+    This is a helper function for the following command-line options: '--rsel', '--rfilt',
+    '--include-metrics', '--exclude-metrics'. The 'args' argument should be an 'helperlibs.ArgParse'
+    object, where all the above mentioned options are represented by the 'oargs' (ordered arguments)
+    field.  The 'res' argument is 'RORawResult' or 'WORawResultBase' object.
     """
 
     def set_filter(res, ops):
@@ -346,8 +346,9 @@ def set_filters(args, res):
 
         res.clear_filts()
         for name, expr in ops.items():
-            # The '--csel' and '--exclude-metrics' options may have comma-separated list of metrics.
-            if name in ("csel", "mexclude"):
+            # The '--include-metrics' and '--exclude-metrics' options may have comma-separated list
+            # of metrics.
+            if name in ("minclude", "mexclude"):
                 expr = Trivial.split_csv_line(expr)
             getattr(res, f"set_{name}")(expr)
 
@@ -435,7 +436,7 @@ def calc_command(args):
     apply_filters(args, res)
 
     non_numeric = res.get_non_numeric_metrics()
-    if non_numeric and (args.csel or args.mexclude):
+    if non_numeric and (args.minclude or args.mexclude):
         non_numeric = ", ".join(non_numeric)
         _LOG.warning("skipping non-numeric column(s): %s", non_numeric)
 
