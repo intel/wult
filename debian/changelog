@@ -2,8 +2,9 @@ wult (1.10.1) unstable; urgency=low
 
   * wult deploy: fix deploying from sources.
   * wult start --stats: fix statistics collection when run from sources.
+  * wult stats: fix standalone stats-collect depenencies.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com> _DATE_HERE_
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com> Mon, 30 May 2022 15:19:16 +0300
 
 wult (1.10.0) unstable; urgency=low
 
