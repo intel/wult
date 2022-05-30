@@ -479,16 +479,16 @@ def open_raw_results(respaths, toolname, reportids=None):
 
     return rsts
 
-def list_result_columns(rsts):
+def list_result_metrics(rsts):
     """
-    Implements the '--list-columns' option by printing the column names for each raw result 'rsts'.
+    Implements the '--list-metrics' option by printing the metrics for each raw result 'rsts'.
     """
 
     for rst in rsts:
-        _LOG.info("Column names in '%s':", rst.dirpath)
-        for colname in rst.metrics:
-            if colname in rst.defs.info:
-                _LOG.info("  * %s: %s", colname, rst.defs.info[colname]["title"])
+        _LOG.info("Metrics in '%s':", rst.dirpath)
+        for metric in rst.metrics:
+            if metric in rst.defs.info:
+                _LOG.info("  * %s: %s", metric, rst.defs.info[metric]["title"])
 
 def start_command_reportid(args, pman):
     """

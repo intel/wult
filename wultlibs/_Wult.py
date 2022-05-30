@@ -474,7 +474,7 @@ def report_command(args):
     rsts = ToolsCommon.open_raw_results(args.respaths, args.toolname, reportids=args.reportids)
 
     if args.list_metrics:
-        ToolsCommon.list_result_columns(rsts)
+        ToolsCommon.list_result_metrics(rsts)
         return
 
     for res in rsts:
