@@ -103,7 +103,7 @@ EVEN_UP_DP_DESCR = """Even up datapoints count before generating the report. Thi
 # Description for the '--xaxes' option of the 'report' command.
 XAXES_DESCR = """A comma-separated list of CSV column names (or python style regular expressions
                  matching the names) to use on X-axes of the scatter plot(s), default is '%s'. Use
-                 '--list-columns' to get the list of the available column names. Use value 'none' to
+                 '--list-metrics' to get the list of the available metrics. Use value 'none' to
                  disable scatter plots."""
 
 # Description for the '--yaxes' option of the 'report' command.
@@ -111,19 +111,19 @@ YAXES_DESCR = """A comma-separated list of CSV column names (or python style reg
                  matching the names) to use on the Y-axes for the scatter plot(s). If multiple CSV
                  column names are specified for the X- or Y-axes, then the report will include
                  multiple scatter plots for all the X- and Y-axes combinations. The default is '%s'.
-                 Use '--list-columns' to get the list of the available column names. se value 'none'
-                 to disable scatter plots."""
+                 Use '--list-metrics' to get the list of the available metrics. se value 'none' to
+                 disable scatter plots."""
 
 # Description for the '--hist' option of the 'report' command.
 HIST_DESCR = """A comma-separated list of CSV column names (or python style regular expressions
-                matching the names) to add a histogram for, default is '%s'. Use '--list-columns' to
-                get the list of the available column names. Use value 'none' to disable histograms.
+                matching the names) to add a histogram for, default is '%s'. Use '--list-metrics' to
+                get the list of the available metrics. Use value 'none' to disable histograms.
                 """
 
 # Description for the '--chist' option of the 'report' command.
 CHIST_DESCR = """A comma-separated list of CSV column names (or python style regular expressions
                  matching the names) to add a cumulative distribution for, default is '%s'. Use
-                 '--list-columns' to get the list of the available column names. Use value 'none' to
+                 '--list-metrics' to get the list of the available metrics. Use value 'none' to
                  disable cumulative histograms."""
 
 # Description for the '--reportids' option of the 'report' command.
