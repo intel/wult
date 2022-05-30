@@ -705,6 +705,32 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         # problems. So sync the file-system now.
         self._spman.run_verify("sync")
 
+    def _init_kernel_info(self):
+        """
+        Discover kernel version and kernel sources path which will be needed for building the out of
+        tree drivers. The arguments are as follows.
+        """
+
+        self._kver = None
+        if not self._ksrc:
+            self._kver = KernelVersion.get_kver(pman=self._bpman)
+            if not self._ksrc:
+                self._ksrc = Path(f"/lib/modules/{self._kver}/build")
+
+        if not self._bpman.is_dir(self._ksrc):
+            raise Error(f"kernel sources directory '{self._ksrc}' does not "
+                        f"exist{self._bpman.hostmsg}")
+
+        self._ksrc = self._bpman.abspath(self._ksrc)
+
+        if not self._kver:
+            self._kver = KernelVersion.get_kver_ktree(self._ksrc, pman=self._bpman)
+
+        _LOG.debug("Kernel sources path: %s", self._ksrc)
+        _LOG.debug("Kernel version: %s", self._kver)
+
+        self._check_kver()
+
     def deploy(self):
         """
         Deploy all the required material to the SUT (drivers, helpers, etc).
@@ -718,6 +744,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
            they are not totally independent, but they depend on various python modules. Deploying a
            python helpers is trickier because all python modules should also be deployed.
         """
+
+        self._init_kernel_info()
 
         try:
             # Local temporary directory is required in these cases:
@@ -766,32 +794,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                         f"not new enough for {self._toolname}.\nPlease, use kernel version "
                         f"{minkver} or newer.")
 
-    def _init_kernel_info(self):
-        """
-        Discover kernel version and kernel sources path which will be needed for building the out of
-        tree drivers. The arguments are as follows.
-        """
-
-        self._kver = None
-        if not self._ksrc:
-            self._kver = KernelVersion.get_kver(pman=self._bpman)
-            if not self._ksrc:
-                self._ksrc = Path(f"/lib/modules/{self._kver}/build")
-
-        if not self._bpman.is_dir(self._ksrc):
-            raise Error(f"kernel sources directory '{self._ksrc}' does not "
-                        f"exist{self._bpman.hostmsg}")
-
-        self._ksrc = self._bpman.abspath(self._ksrc)
-
-        if not self._kver:
-            self._kver = KernelVersion.get_kver_ktree(self._ksrc, pman=self._bpman)
-
-        _LOG.debug("Kernel sources path: %s", self._ksrc)
-        _LOG.debug("Kernel version: %s", self._kver)
-
-        self._check_kver()
-
     def __init__(self, toolname, pman=None, ksrc=None, lbuild=False, debug=False):
         """
         The class constructor. The arguments are as follows.
@@ -839,8 +841,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         for attr, val in _TOOLS_INFO[self._toolname]["deps"].items():
             setattr(self, f"_{attr}", val)
-
-        self._init_kernel_info()
 
     def _remove_tmpdirs(self, remove_tmpdirs=True):
         """
