@@ -336,7 +336,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
      * 'deploy()' - deploy everything (drivers, helper programs) to the SUT.
      * 'is_deploy_needed()' - check if re-deployment is needed.
-     * 'add_cmdline_args()' - add deployment-related command line arguments.
     """
 
     @staticmethod
