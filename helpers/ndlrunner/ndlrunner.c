@@ -47,7 +47,7 @@
 #define PACKET_SIZE (sizeof(uint64_t) + sizeof(MAGIC))
 
 /*
- * Size of the buffer for reading commands from standard output.
+ * Size of the buffer for reading commands from standard input.
  */
 #define CMD_BUF_SIZE 512
 
