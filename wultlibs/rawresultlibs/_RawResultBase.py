@@ -33,7 +33,7 @@ class RawResultBase:
 
         self._exclude = None
         self._mexclude = None
-        self._rsel = None
+        self._include = None
         self._minclude = None
 
     def _get_rsel(self):
@@ -41,11 +41,11 @@ class RawResultBase:
 
         expr = None
 
-        if self._rsel:
+        if self._include:
             if self._exclude:
-                expr = f"({self._rsel}) and not ({self._exclude})"
+                expr = f"({self._include}) and not ({self._exclude})"
             else:
-                expr = self._rsel
+                expr = self._include
         else:
             if self._exclude:
                 expr = f"not ({self._exclude})"
@@ -89,7 +89,7 @@ class RawResultBase:
         # The row and column filters and selectors.
         self._exclude = None
         self._mexclude = None
-        self._rsel = None
+        self._include = None
         self._minclude = None
 
         if not dirpath:

@@ -102,7 +102,7 @@ def build_arguments_parser():
     subpars.add_argument("-l", "--ldist", default="5000,50000", help=text)
 
     subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.EXCL_START_DESCR)
-    subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
+    subpars.add_argument("--include", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     text = f"""{ToolsCommon.KEEP_FILTERED_DESCR} Here is an example. Suppose you want to collect
                100000 datapoints where RTD is greater than 50 microseconds. In this case, you can
                use these options: -c 100000 --exclude="RTD > 50". The result will contain 100000
@@ -133,7 +133,7 @@ def build_arguments_parser():
     subpars.add_argument("-o", "--outdir", type=Path,
                          help=ToolsCommon.get_report_outdir_descr(OWN_NAME))
     subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.EXCL_DESCR)
-    subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
+    subpars.add_argument("--include", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
                          help=ToolsCommon.EVEN_UP_DP_DESCR)
     subpars.add_argument("-x", "--xaxes", help=ToolsCommon.XAXES_DESCR % get_axes_default('xaxes'))
@@ -156,7 +156,7 @@ def build_arguments_parser():
     subpars.set_defaults(func=ToolsCommon.filter_command)
 
     subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.EXCL_DESCR)
-    subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
+    subpars.add_argument("--include", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     subpars.add_argument("--exclude-metrics", action=ArgParse.OrderedArg, dest="mexclude",
                          help=ToolsCommon.MEXCLUDE_DESCR)
     subpars.add_argument("--include-metrics", action=ArgParse.OrderedArg, dest="minclude",
@@ -180,7 +180,7 @@ def build_arguments_parser():
     subpars.set_defaults(func=ToolsCommon.calc_command)
 
     subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.EXCL_DESCR)
-    subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
+    subpars.add_argument("--include", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     subpars.add_argument("--exclude-metrics", action=ArgParse.OrderedArg, dest="mexclude",
                          help=ToolsCommon.MEXCLUDE_DESCR)
     subpars.add_argument("--include-metrics", action=ArgParse.OrderedArg, dest="minclude",

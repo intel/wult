@@ -155,8 +155,8 @@ LIST_METRICS_DESCR = "Print the list of the available metrics and exit."
 # Description for the 'filter' command.
 FILT_DESCR = """Filter datapoints out of a test result by removing CSV rows and metrics according to
                 specified criteria. The criteria is specified using the row and metric filter and
-                selector options ('--rsel', '--exclude-metrics', etc). The options may be specified multiple
-                times."""
+                selector options ('--include', '--exclude-metrics', etc). The options may be
+                specified multiple times."""
 
 _EXCL_DESCR_BASE = """Datapoints to exclude: remove all the datapoints satisfying the expression
                       'EXCLUDE'. Here is an example of an expression: '(WakeLatency < 10000) |
@@ -174,12 +174,12 @@ EXCL_DESCR = f"""{_EXCL_DESCR_BASE} The detailed expression syntax can be found 
                  datapoint in the results. For example, expression 'index >= 10' will get rid of all
                  datapoints except for the first 10 ones."""
 
-# Description for the '--rsel' option of the 'filter' command.
+# Description for the '--include' option of the 'filter' command.
 RSEL_DESCR = """The row selector: remove all rows except for those satisfying the selector
-                expression. In other words, the selector is just an inverse filter: '--rsel expr' is
+                expression. In other words, the selector is just an inverse filter: '--include expr' is
                 the same as '--exclude "not (expr)"'."""
 
-KEEP_FILTERED_DESCR = """If the '--exclude' / '--rsel' options are used, then the datapoints not
+KEEP_FILTERED_DESCR = """If the '--exclude' / '--include' options are used, then the datapoints not
                          matching the selector or matching the filter are discarded. This is the
                          default behavior which can be changed with this option. If
                          '--keep-filtered' has been specified, then all datapoints are saved in
@@ -335,7 +335,7 @@ def even_up_dpcnt(rsts):
 
 def set_filters(args, res):
     """
-    This is a helper function for the following command-line options: '--rsel', '--exclude',
+    This is a helper function for the following command-line options: '--include', '--exclude',
     '--include-metrics', '--exclude-metrics'. The 'args' argument should be an 'helperlibs.ArgParse'
     object, where all the above mentioned options are represented by the 'oargs' (ordered arguments)
     field.  The 'res' argument is 'RORawResult' or 'WORawResultBase' object.

@@ -90,14 +90,15 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self._exclude = self._mangle_eval_expr(exclude)
 
-    def set_rsel(self, rsel):
+    def set_include(self, include):
         """
-        Set the rows selector: only the CSV rows matching the 'rsel' expression will be added to the
-        'pandas.DataFrame' during the next 'pandas.DataFrame' operation like 'load_df()'. The 'rsel'
-        argument is similar to the 'exclude' argument in the 'set_exclude()' method.
+        Set the datapoints to include: only the datapoints matching the 'include' expression will be
+        added to the 'pandas.DataFrame' during the next 'pandas.DataFrame' operation like
+        'load_df()'. The 'include' argument is similar to the 'exclude' argument in the
+        'set_exclude()' method.
         """
 
-        self._rsel = self._mangle_eval_expr(rsel)
+        self._include = self._mangle_eval_expr(include)
 
     def set_mexclude(self, regexs):
         """

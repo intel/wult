@@ -26,9 +26,9 @@ class WORawResultBase(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseCont
         """Save the 'exclude' value, which describes which datapoints to exclude."""
         self._exclude = exclude
 
-    def set_rsel(self, rsel):
-        """Save row selector value."""
-        self._rsel = rsel
+    def set_include(self, include):
+        """Save the 'include' value, which describes which datapoints to include."""
+        self._include = include
 
     def _init_outdir(self):
         """Initialize the output directory for writing or appending test results."""
