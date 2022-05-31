@@ -385,8 +385,7 @@ static int parse_options(int argc, char * const *argv)
 				exit(0);
 				break;
 			case 'v':
-				if (!verbose)
-					verbose = 1;
+				verbose = 1;
 				break;
 			case 'h':
 				print_help();
