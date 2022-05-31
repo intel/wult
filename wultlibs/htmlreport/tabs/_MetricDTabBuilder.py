@@ -120,7 +120,9 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         """
 
         for mdef in xdef, ydef:
-            mdef["short_unit"] = self.get_base_si_unit(mdef["short_unit"])
+            # Remove unit prefixes ("u", "m", "k", etc.) so we have the base unit ("s", "m", "Hz").
+            # If no unit is available, set it to 'None'.
+            mdef["short_unit"] = self.get_base_si_unit(mdef.get("short_unit"))
             for sdf in self._reports.values():
                 sdf[mdef["name"]] = self.base_unit(sdf, mdef)
 
