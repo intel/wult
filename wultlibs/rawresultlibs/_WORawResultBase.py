@@ -83,10 +83,10 @@ class WORawResultBase(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseCont
     def _get_include(self):
         """Get mangled and merged datapoints selector expression."""
 
-        if not self._mangled_rsel:
+        if not self._mangled_include:
             include = super()._get_include()
-            self._mangled_rsel = self._mangle_eval_expr(include)
-        return self._mangled_rsel
+            self._mangled_include = self._mangle_eval_expr(include)
+        return self._mangled_include
 
     def _try_filters(self, dp): # pylint: disable=unused-argument
         """
@@ -156,7 +156,7 @@ class WORawResultBase(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseCont
         # The writable CSV file object.
         self.csv = None
         self.reportid = reportid
-        self._mangled_rsel = None
+        self._mangled_include = None
         self.keep_filtered = False
         self._created_paths = []
 
