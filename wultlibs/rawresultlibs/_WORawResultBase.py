@@ -94,14 +94,14 @@ class WORawResultBase(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseCont
         filters because it matches the expression. Otherwise returns 'False'.
         """
 
-        rsel = self._get_include()
+        include = self._get_include()
         passed = False
         try:
             # The 'eval()' expressions use the datapoint argument 'dp'.
-            passed = (not rsel) or eval(rsel) # pylint: disable=eval-used
+            passed = (not include) or eval(include) # pylint: disable=eval-used
         except SyntaxError as err:
-            raise Error(f"failed to evaluate expression '{rsel}'. Make sure you use correct CSV "
-                        f"column names, which are also case-sensitive.") from err
+            raise Error(f"failed to evaluate expression '{include}'. Make sure you use correct "
+                        f"metric names, which are also case-sensitive.") from err
 
         return passed
 
