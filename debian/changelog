@@ -1,6 +1,7 @@
 wult (1.10.2) unstable; urgency=low
 
   * wult: fix missing C-states residencies (regression in 1.10.0).
+  * wult report: fix '--size large'.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com> DATE
 
