@@ -5,7 +5,7 @@ TOOLNAME = ndlrunner
 all: $(TOOLNAME)
 
 %: %.c
-	$(CC) $(CFLAGS) -fstack-protector -lpthread $< -o $@
+	$(CC) $(CFLAGS) -fstack-protector $< -o $@
 
 clean:
 	rm -rf $(TOOLNAME)
