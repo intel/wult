@@ -84,16 +84,14 @@ class WultDefs(_DefsBase.DefsBase):
         pcnames = []
 
         for metric in hdr:
-            if not metric.endswith("%"):
+            csname = get_csname(metric, must_get=False)
+            if not csname:
                 continue
 
-            if metric.startswith("CC"):
-                # Exclude CC0 and CC1Derived.
-                if "Derived" in metric or "CC0" in metric:
-                    continue
-                ccnames.append(metric[:-1])
-            elif metric.startswith("PC") and metric.endswith("%") and len(metric) > 3:
-                pcnames.append(metric[:-1])
+            if csname.startswith("CC"):
+                ccnames.append(csname)
+            else:
+                pcnames.append(csname)
 
         placeholders_info = [{ "values" : ccnames, "placeholder" : "CCx"},
                              { "values" : pcnames, "placeholder" : "PCx"}]
