@@ -101,8 +101,7 @@ def build_arguments_parser():
                the SUT from reaching deep C-states. The optimal value is system-specific."""
     subpars.add_argument("-l", "--ldist", default="5000,50000", help=text)
 
-    subpars.add_argument("--exclude", action=ArgParse.OrderedArg,
-                         help=ToolsCommon.RFILT_START_DESCR)
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.EXCL_START_DESCR)
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     text = f"""{ToolsCommon.KEEP_FILTERED_DESCR} Here is an example. Suppose you want to collect
                100000 datapoints where RTD is greater than 50 microseconds. In this case, you can
@@ -133,7 +132,7 @@ def build_arguments_parser():
 
     subpars.add_argument("-o", "--outdir", type=Path,
                          help=ToolsCommon.get_report_outdir_descr(OWN_NAME))
-    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_DESCR)
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.EXCL_DESCR)
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
                          help=ToolsCommon.EVEN_UP_DP_DESCR)
@@ -156,7 +155,7 @@ def build_arguments_parser():
     subpars = subparsers.add_parser("filter", help=text, description=ToolsCommon.FILT_DESCR)
     subpars.set_defaults(func=ToolsCommon.filter_command)
 
-    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_DESCR)
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.EXCL_DESCR)
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     subpars.add_argument("--exclude-metrics", action=ArgParse.OrderedArg, dest="mexclude",
                          help=ToolsCommon.MEXCLUDE_DESCR)
@@ -180,7 +179,7 @@ def build_arguments_parser():
     subpars = subparsers.add_parser("calc", help=text, description=descr)
     subpars.set_defaults(func=ToolsCommon.calc_command)
 
-    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_DESCR)
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.EXCL_DESCR)
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     subpars.add_argument("--exclude-metrics", action=ArgParse.OrderedArg, dest="mexclude",
                          help=ToolsCommon.MEXCLUDE_DESCR)
