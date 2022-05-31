@@ -185,17 +185,16 @@ KEEP_FILTERED_DESCR = """If the '--rfilt' / '--rsel' options are used, then the 
                          '--keep-filtered' has been specified, then all datapoints are saved in
                          result."""
 
-# Description for the '--cfilt' option of the 'filter' command.
-CFILT_DESCR = """The columns filter: remove all column specified in the filter. The columns filter
-                 is just a comma-separated list of the CSV file column names or python style regular
-                 expressions matching the names. For example expression
-                 'SilentTime,WarmupDelay,.*Cyc', would remove columns 'SilentTime', 'WarmupDelay'
-                 and all columns with 'Cyc' in the column name. Use '--list-columns' to get the list
-                 of the available column names."""
+# Description for the '--exclude-metrics' option of the 'filter' command.
+MEXCLUDE_DESCR = """The metrics to exclude. Expects a comma-separated list of the metrics or python
+                    style regular expressions matching the names. For example, the expression
+                    'SilentTime,WarmupDelay,.*Cyc', would remove metrics 'SilentTime', 'WarmupDelay'
+                    and all metrics with 'Cyc' in their name. Use '--list-metrics' to get the list
+                    of the available metrics."""
 
 # Description for the '--csel' option of the 'filter' command.
 CSEL_DESCR = """The columns selector: remove all column except for those specified in the selector.
-                The syntax is the same as for '--cfilt'."""
+                The syntax is the same as for '--exclude-metrics'."""
 
 # Discription for the '--human-readable' option of the 'filter' command.
 FILTER_HUMAN_DESCR = """By default the result 'filter' command print the result as a CSV file to the
