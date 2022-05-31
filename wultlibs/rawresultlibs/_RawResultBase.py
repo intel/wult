@@ -31,7 +31,7 @@ class RawResultBase:
     def clear_filts(self):
         """Clear all the filters and selectors for both rows and columns."""
 
-        self._rfilt = None
+        self._exclude = None
         self._mexclude = None
         self._rsel = None
         self._minclude = None
@@ -42,13 +42,13 @@ class RawResultBase:
         expr = None
 
         if self._rsel:
-            if self._rfilt:
-                expr = f"({self._rsel}) and not ({self._rfilt})"
+            if self._exclude:
+                expr = f"({self._rsel}) and not ({self._exclude})"
             else:
                 expr = self._rsel
         else:
-            if self._rfilt:
-                expr = f"not ({self._rfilt})"
+            if self._exclude:
+                expr = f"not ({self._exclude})"
             else:
                 expr = None
 
@@ -87,7 +87,7 @@ class RawResultBase:
         self.info = {}
 
         # The row and column filters and selectors.
-        self._rfilt = None
+        self._exclude = None
         self._mexclude = None
         self._rsel = None
         self._minclude = None

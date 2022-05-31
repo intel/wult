@@ -22,9 +22,9 @@ from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
 class WORawResultBase(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext):
     """This class represents a write-only raw test result."""
 
-    def set_rfilt(self, rfilt):
-        """Save row filter value."""
-        self._rfilt = rfilt
+    def set_exclude(self, exclude):
+        """Save the 'exclude' value, which describes which datapoints to exclude."""
+        self._exclude = exclude
 
     def set_rsel(self, rsel):
         """Save row selector value."""

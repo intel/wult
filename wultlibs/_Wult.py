@@ -99,11 +99,12 @@ def build_arguments_parser():
                          help=ToolsCommon.DATAPOINTS_DESCR)
     subpars.add_argument("--time-limit", dest="tlimit", metavar="LIMIT",
                          help=ToolsCommon.TIME_LIMIT_DESCR)
-    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_START_DESCR)
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg,
+                         help=ToolsCommon.RFILT_START_DESCR)
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     text = f"""{ToolsCommon.KEEP_FILTERED_DESCR} Here is an example. Suppose you want to collect
                100000 datapoints where PC6 residency is greater than 0. In this case, you can use
-               these options: -c 100000 --rfilt="PC6%% == 0". The result will contain 100000
+               these options: -c 100000 --exclude="PC6%% == 0". The result will contain 100000
                datapoints, all of them will have non-zero PC6 residency. But what if you do not want
                to simply discard the other datapoints, because they are also interesting? Well, add
                the '--keep-filtered' option. The result will contain, say, 150000 datapoints, 100000
@@ -230,7 +231,7 @@ def build_arguments_parser():
 
     subpars.add_argument("-o", "--outdir", type=Path,
                          help=ToolsCommon.get_report_outdir_descr(OWN_NAME))
-    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_DESCR)
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_DESCR)
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
                          help=ToolsCommon.EVEN_UP_DP_DESCR)
@@ -258,7 +259,7 @@ def build_arguments_parser():
     subpars = subparsers.add_parser("filter", help=text, description=ToolsCommon.FILT_DESCR)
     subpars.set_defaults(func=ToolsCommon.filter_command)
 
-    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_DESCR)
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_DESCR)
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     subpars.add_argument("--exclude-metrics", action=ArgParse.OrderedArg, dest="mexclude",
                          help=ToolsCommon.MEXCLUDE_DESCR)
@@ -282,7 +283,7 @@ def build_arguments_parser():
     subpars = subparsers.add_parser("calc", help=text, description=descr)
     subpars.set_defaults(func=ToolsCommon.calc_command)
 
-    subpars.add_argument("--rfilt", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_DESCR)
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.RFILT_DESCR)
     subpars.add_argument("--rsel", action=ArgParse.OrderedArg, help=ToolsCommon.RSEL_DESCR)
     subpars.add_argument("--exclude-metrics", action=ArgParse.OrderedArg, dest="mexclude",
                          help=ToolsCommon.MEXCLUDE_DESCR)

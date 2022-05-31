@@ -76,25 +76,25 @@ class RORawResult(_RawResultBase.RawResultBase):
         expr = re.sub("(?!')index(?!')", "self.df.index", expr)
         return expr
 
-    def set_rfilt(self, rfilt):
+    def set_exclude(self, exclude):
         """
-        Set the rows filter: the CSV rows matching the 'rfilt' expression will be excluded from the
-        'pandas.DataFrame' during the next 'pandas.DataFrame' operation like 'load_df()'. Use 'None'
-        to disable rows filter.
+        Set the datapoints to exclude: the datapoints matching the 'exclude' expression will be
+        excluded from the 'pandas.DataFrame' during the next 'pandas.DataFrame' operation like
+        'load_df()'.
 
-        The 'rfilt' argument should be a valid pandas python expression that can be used in
+        The 'exclude' argument should be a valid pandas python expression that can be used in
         'pandas.eval()'. For example, the '(SilentTime < 10000) and (PC6% == 0)' filter will exclude
         all the datapoints with silent time smaller than 10 usec and zero package C-state #6
         residency. Please, refer to 'pandas.eval()' documentation for more information.
         """
 
-        self._rfilt = self._mangle_eval_expr(rfilt)
+        self._exclude = self._mangle_eval_expr(exclude)
 
     def set_rsel(self, rsel):
         """
         Set the rows selector: only the CSV rows matching the 'rsel' expression will be added to the
         'pandas.DataFrame' during the next 'pandas.DataFrame' operation like 'load_df()'. The 'rsel'
-        argument is similar to the 'rfilt' argument in the 'set_rfilt()' method.
+        argument is similar to the 'exclude' argument in the 'set_exclude()' method.
         """
 
         self._rsel = self._mangle_eval_expr(rsel)

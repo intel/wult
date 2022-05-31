@@ -163,10 +163,10 @@ _RFILT_DESCR_BASE = """The row filter: remove all the rows satisfying the filter
                        filter expression will remove all rows with 'WakeLatency' smaller than 10000
                        nanoseconds or package C6 residency smaller than 1%%."""
 
-# Description for the '--rfilt' option of the 'start' command.
+# Description for the '--exclude' option of the 'start' command.
 RFILT_START_DESCR = f"""{_RFILT_DESCR_BASE} You can use any column names in the expression."""
 
-# Description for the '--rfilt' option of the 'filter' command.
+# Description for the '--exclude' option of the 'filter' command.
 RFILT_DESCR = f"""{_RFILT_DESCR_BASE} The detailed row filter expression syntax can be found in the
                   documentation for the 'eval()' function of Python 'pandas' module. You can use
                   column names in the expression, or the special word 'index' for the row number.
@@ -177,9 +177,9 @@ RFILT_DESCR = f"""{_RFILT_DESCR_BASE} The detailed row filter expression syntax 
 # Description for the '--rsel' option of the 'filter' command.
 RSEL_DESCR = """The row selector: remove all rows except for those satisfying the selector
                 expression. In other words, the selector is just an inverse filter: '--rsel expr' is
-                the same as '--rfilt "not (expr)"'."""
+                the same as '--exclude "not (expr)"'."""
 
-KEEP_FILTERED_DESCR = """If the '--rfilt' / '--rsel' options are used, then the datapoints not
+KEEP_FILTERED_DESCR = """If the '--exclude' / '--rsel' options are used, then the datapoints not
                          matching the selector or matching the filter are discarded. This is the
                          default behavior which can be changed with this option. If
                          '--keep-filtered' has been specified, then all datapoints are saved in
@@ -335,7 +335,7 @@ def even_up_dpcnt(rsts):
 
 def set_filters(args, res):
     """
-    This is a helper function for the following command-line options: '--rsel', '--rfilt',
+    This is a helper function for the following command-line options: '--rsel', '--exclude',
     '--include-metrics', '--exclude-metrics'. The 'args' argument should be an 'helperlibs.ArgParse'
     object, where all the above mentioned options are represented by the 'oargs' (ordered arguments)
     field.  The 'res' argument is 'RORawResult' or 'WORawResultBase' object.
