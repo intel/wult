@@ -91,14 +91,14 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         # Add the C-state percentages.
         for field in self._cs_fields:
-            cyc_filed = WultDefs.get_cscyc_metric(WultDefs.get_csname(field))
+            cyc_field = WultDefs.get_cscyc_metric(WultDefs.get_csname(field))
 
             # In case of POLL state, calculate only CC0%.
-            if self._is_poll_idle(dp) and cyc_filed != "CC0Cyc":
+            if self._is_poll_idle(dp) and cyc_field != "CC0Cyc":
                 dp[field] = 0
                 continue
 
-            dp[field] = dp[cyc_filed] / dp["TotCyc"] * 100.0
+            dp[field] = dp[cyc_field] / dp["TotCyc"] * 100.0
 
             if dp[field] > 100:
                 loglevel = logging.DEBUG
