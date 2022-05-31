@@ -175,9 +175,9 @@ EXCL_DESCR = f"""{_EXCL_DESCR_BASE} The detailed expression syntax can be found 
                  datapoints except for the first 10 ones."""
 
 # Description for the '--include' option of the 'filter' command.
-RSEL_DESCR = """The row selector: remove all rows except for those satisfying the selector
-                expression. In other words, the selector is just an inverse filter: '--include expr' is
-                the same as '--exclude "not (expr)"'."""
+INCL_DESCR = """Datapoints to include: remove all datapoints except for those satisfying the
+                expression 'INCLUDE'. In other words, this option is the inverse of '--exclude'.
+                This means, '--include expr' is the same as '--exclude "not (expr)"'."""
 
 KEEP_FILTERED_DESCR = """If the '--exclude' / '--include' options are used, then the datapoints not
                          matching the selector or matching the filter are discarded. This is the
