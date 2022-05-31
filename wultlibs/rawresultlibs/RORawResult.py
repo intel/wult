@@ -213,7 +213,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         file.
         """
 
-        rsel = self._get_rsel()
+        rsel = self._get_include()
         minclude = self._get_minclude(self.metrics)
 
         load_csv = force_reload or self.df is None

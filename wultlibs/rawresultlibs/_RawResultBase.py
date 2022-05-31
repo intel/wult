@@ -36,8 +36,8 @@ class RawResultBase:
         self._include = None
         self._minclude = None
 
-    def _get_rsel(self):
-        """Merge row filter and selector and return the result."""
+    def _get_include(self):
+        """Merge the expressions in 'self._include' and 'self._exclude' and return the result."""
 
         expr = None
 

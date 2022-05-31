@@ -80,12 +80,12 @@ class WORawResultBase(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseCont
             expr = expr.replace(colname, f"dp['{colname}']")
         return expr
 
-    def _get_rsel(self):
-        """Get mangled and merged row selector."""
+    def _get_include(self):
+        """Get mangled and merged datapoints selector expression."""
 
         if not self._mangled_rsel:
-            rsel = super()._get_rsel()
-            self._mangled_rsel = self._mangle_eval_expr(rsel)
+            include = super()._get_include()
+            self._mangled_rsel = self._mangle_eval_expr(include)
         return self._mangled_rsel
 
     def _try_filters(self, dp): # pylint: disable=unused-argument
@@ -94,7 +94,7 @@ class WORawResultBase(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseCont
         filters because it matches the expression. Otherwise returns 'False'.
         """
 
-        rsel = self._get_rsel()
+        rsel = self._get_include()
         passed = False
         try:
             # The 'eval()' expressions use the datapoint argument 'dp'.
