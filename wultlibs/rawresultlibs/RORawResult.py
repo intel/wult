@@ -99,15 +99,15 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self._rsel = self._mangle_eval_expr(rsel)
 
-    def set_cfilt(self, regexs):
+    def set_mexclude(self, regexs):
         """
-        Set the columns filter: the CSV columns with names in 'regexs' (or matching a regular
+        Set the metrics to exclude: the metrics with names in 'regexs' (or matching a regular
         expression in 'regexs') will be excluded from the 'pandas.DataFrame' during the next
-        'pandas.DataFrame' operation like 'load_df()'. Use 'None' to disable columns filter.
+        'pandas.DataFrame' operation like 'load_df()'.
         """
 
         if regexs:
-            self._cfilt = self.find_metrics(regexs, must_find_all=True)
+            self._mexclude = self.find_metrics(regexs, must_find_all=True)
 
     def set_csel(self, regexs):
         """

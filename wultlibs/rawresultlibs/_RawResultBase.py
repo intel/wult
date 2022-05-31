@@ -32,7 +32,7 @@ class RawResultBase:
         """Clear all the filters and selectors for both rows and columns."""
 
         self._rfilt = None
-        self._cfilt = None
+        self._mexclude = None
         self._rsel = None
         self._csel = None
 
@@ -60,21 +60,21 @@ class RawResultBase:
         Return list of filtered column names.
         """
 
-        if not self._csel and not self._cfilt:
+        if not self._csel and not self._mexclude:
             return None
 
         csel = self._csel
         if self._csel is None:
             csel = colnames
 
-        cfilt = self._cfilt
-        if self._cfilt is None:
-            cfilt = []
+        mexclude = self._mexclude
+        if self._mexclude is None:
+            mexclude = []
 
         result = []
-        cfilt_set = set(cfilt)
+        mexclude_set = set(mexclude)
         for colname in csel:
-            if colname not in cfilt_set:
+            if colname not in mexclude_set:
                 result.append(colname)
 
         return result
@@ -88,7 +88,7 @@ class RawResultBase:
 
         # The row and column filters and selectors.
         self._rfilt = None
-        self._cfilt = None
+        self._mexclude = None
         self._rsel = None
         self._csel = None
 

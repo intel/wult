@@ -153,9 +153,9 @@ RELOCATABLE_DESCR = """Generate a report which contains a copy of the raw test r
 LIST_METRICS_DESCR = "Print the list of the available metrics and exit."
 
 # Description for the 'filter' command.
-FILT_DESCR = """Filter datapoints out of a test result by removing CSV rows and columns according to
-                specified criteria. The criteria is specified using the row and column filter and
-                selector options ('--rsel', '--cfilt', etc). The options may be specified multiple
+FILT_DESCR = """Filter datapoints out of a test result by removing CSV rows and metrics according to
+                specified criteria. The criteria is specified using the row and metric filter and
+                selector options ('--rsel', '--exclude-metrics', etc). The options may be specified multiple
                 times."""
 
 _RFILT_DESCR_BASE = """The row filter: remove all the rows satisfying the filter expression. Here is
@@ -337,9 +337,9 @@ def even_up_dpcnt(rsts):
 def set_filters(args, res):
     """
     This is a helper function for the following command-line options: '--rsel', '--rfilt', '--csel',
-    '--cfilt'. The 'args' argument should be an 'helperlibs.ArgParse' object, where all the above
-    mentioned options are represented by the 'oargs' (ordered arguments) field. The 'res' argument
-    is 'RORawResult' or 'WORawResultBase' object.
+    '--exclude-metrics'. The 'args' argument should be an 'helperlibs.ArgParse' object, where all
+    the above mentioned options are represented by the 'oargs' (ordered arguments) field. The 'res'
+    argument is 'RORawResult' or 'WORawResultBase' object.
     """
 
     def set_filter(res, ops):
@@ -347,8 +347,8 @@ def set_filters(args, res):
 
         res.clear_filts()
         for name, expr in ops.items():
-            # The '--csel' and '--cfilt' options may have comma-separated list of column names.
-            if name.startswith("c"):
+            # The '--csel' and '--exclude-metrics' options may have comma-separated list of metrics.
+            if name in ("csel", "mexclude"):
                 expr = Trivial.split_csv_line(expr)
             getattr(res, f"set_{name}")(expr)
 
@@ -436,7 +436,7 @@ def calc_command(args):
     apply_filters(args, res)
 
     non_numeric = res.get_non_numeric_metrics()
-    if non_numeric and (args.csel or args.cfilt):
+    if non_numeric and (args.csel or args.mexclude):
         non_numeric = ", ".join(non_numeric)
         _LOG.warning("skipping non-numeric column(s): %s", non_numeric)
 
