@@ -204,7 +204,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             status = "disabled" if dp["IntrOff"] else "enabled"
             raise Error(f"interrupts are {status} for the datapoint, which is different from other "
                         f"observed datapoints with requested C-state '{cstate}'. The datapoint is:"
-                        f"\n{Human.dict2str(dp)}\nDropping this datapoint\n") from None
+                        f"\n{Human.dict2str(dp)}") from None
 
     def _process_time(self, dp):
         """
@@ -222,7 +222,13 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             dp["WakeLatency"] = 0
         else:
             dp["WakeLatency"] = dp["TAI"] - dp["LTime"]
+
         dp["IntrLatency"] = dp["TIntr"] - dp["LTime"]
+
+        for metric in ("LDist", "SilentTime", "IntrLatency", "WakeLatency"):
+            if dp.get(metric, 0) < 0:
+                raise Error(f"negative '{metric}' value. The datapoint is:\n"
+                            f"{Human.dict2str(dp)}") from None
 
         if self._drvname == "wult_tdt":
             # In case of 'wult_tdt' driver the time is in TSC cycles, convert to nanoseconds.
