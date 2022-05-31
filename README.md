@@ -52,6 +52,12 @@ tools as listed below. For more general information on how to use the tools, see
  * `exercise-sut start` - [Documentation](docs/exercise-sut-start.rst)
  * `exercise-sut report` - [Documentation](docs/exercise-sut-report.rst)
 
+### PBE
+ * `pbe scan` - [Documentation](docs/pbe-scan.rst)
+ * `pbe deploy` - [Documentation](docs/pbe-deploy.rst)
+ * `pbe start` - [Documentation](docs/pbe-start.rst)
+ * `pbe report` - [Documentation](docs/pbe-report.rst)
+
 # Authors and contributors
 
 * Artem Bityutskiy <dedekind1@gmail.com> - original author, project maintainer.

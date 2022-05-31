@@ -20,13 +20,15 @@ from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.helperlibs import ReportID
 from statscollecttools import ToolInfo as StcToolInfo
 from wulttools._Common import get_pman
-from wulttools.wult import ToolInfo as WultToolInfo
 from wulttools.ndl import ToolInfo as NdlToolInfo
+from wulttools.pbe import ToolInfo as PbeToolInfo
+from wulttools.wult import ToolInfo as WultToolInfo
 from wulttools.exercisesut import _Common
 
 _LOG = logging.getLogger()
 
 NDL_TOOLNAME = NdlToolInfo.TOOLNAME
+PBE_TOOLNAME = PbeToolInfo.TOOLNAME
 STC_TOOLNAME = StcToolInfo.TOOLNAME
 WULT_TOOLNAME = WultToolInfo.TOOLNAME
 
@@ -134,6 +136,9 @@ def _get_workload_cmd_formatter(pman, cpuinfo, cpuidle, args):
 
     if toolname == "benchmark":
         return _BenchmarkCmdFormatter(args)
+
+    if toolname == PBE_TOOLNAME:
+        return _PbeCmdFormatter(pman, args)
 
     return _ToolCmdFormatterBase(args)
 
@@ -771,6 +776,50 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
         """Uninitialize the class objetc."""
         ClassHelpers.close(self, unref_attrs=("_pman",))
 
+class _PbeCmdFormatter(_ToolCmdFormatterBase):
+    """A Helper class for creating 'pbe' commands."""
+
+    def _create_command(self, reportid=None):
+        """Create and return 'pbe' command."""
+
+        cmd = f"{self.toolpath} "
+        if _LOG.colored:
+            cmd += " --force-color"
+        cmd += " start"
+
+        if reportid:
+            cmd += f" --reportid {reportid} -o {self._outdir}/{reportid}"
+        else:
+            cmd += f" -o {self._outdir}"
+
+        if self._debug:
+            cmd += " -d"
+
+        toolopts = self._get_toolopts(reportid)
+        if toolopts:
+            cmd += f" {toolopts}"
+
+        if self._hostname != "localhost":
+            cmd += f" -H {self._hostname}"
+
+        return cmd
+
+    def get_command(self, props, reportid, **kwargs):
+        """Create and return 'pbe' command."""
+
+        return self._create_command(reportid=reportid)
+
+    def __init__(self, pman, args):
+        """The class constructor."""
+
+        super().__init__(args)
+
+        self._pman = pman
+
+    def close(self):
+        """Uninitialize the class object."""
+        ClassHelpers.close(self, unref_attrs=("_pman",))
+
 class BatchConfig(_Common.CmdlineRunner):
     """
     Helper class for 'exercise-sut' tool to configure and exercise SUT with different system
@@ -778,9 +827,10 @@ class BatchConfig(_Common.CmdlineRunner):
     """
 
     def deploy(self):
-        """Deploy 'ndl', 'wult' or 'stats-collect' to the SUT."""
+        """Deploy 'ndl', 'wult', 'pbe' or 'stats-collect' to the SUT."""
 
-        if self._wfmt.toolpath.name not in (WULT_TOOLNAME, NDL_TOOLNAME, STC_TOOLNAME):
+        if self._wfmt.toolpath.name not in (WULT_TOOLNAME, NDL_TOOLNAME, PBE_TOOLNAME,
+                                            STC_TOOLNAME):
             raise Error(f"deploy supported only by tools '{WULT_TOOLNAME}', '{NDL_TOOLNAME}' and "
                         f"'{STC_TOOLNAME}'")
 

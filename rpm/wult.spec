@@ -74,6 +74,7 @@ install -pDm644 docs/man1/*.1 %{buildroot}/%{_mandir}/man1/wult
 %{_bindir}/ipmi-helper
 %{_bindir}/ndl
 %{_bindir}/ndl-helper
+%{_bindir}/pbe
 %{_bindir}/stc-agent
 %{_bindir}/wult
 %{_bindir}/wult-hrt-helper
@@ -81,6 +82,7 @@ install -pDm644 docs/man1/*.1 %{buildroot}/%{_mandir}/man1/wult
 %{_datadir}/wult
 %{_mandir}/man1/exercise-sut.1*
 %{_mandir}/man1/ndl-*.1
+%{_mandir}/man1/pbe-*.1
 %{_mandir}/man1/wult-*.1
 %{_mandir}/man1/exercise-sut-*.1
 

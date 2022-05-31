@@ -25,9 +25,11 @@ from pepclibs.helperlibs.Exceptions import Error
 from statscollecttools import ToolInfo as StcToolInfo
 from wulttools.exercisesut import _BatchConfig, _BatchReport, ToolInfo
 from wulttools.ndl import ToolInfo as NdlToolInfo
+from wulttools.pbe import ToolInfo as PbeToolInfo
 from wulttools.wult import ToolInfo as WultToolInfo
 
 NDL_TOOLNAME = NdlToolInfo.TOOLNAME
+PBE_TOOLNAME = PbeToolInfo.TOOLNAME
 STC_TOOLNAME = StcToolInfo.TOOLNAME
 WULT_TOOLNAME = WultToolInfo.TOOLNAME
 
@@ -154,8 +156,9 @@ _COLLECT_OPTIONS = {
     },
     "deploy" : {
         "action" : "store_true",
-        "help" : f"""Applicable only to '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools. Run the
-                     'deploy' command before starting the measurements."""
+        "help" : f"""Applicable only to '{WULT_TOOLNAME}', '{NDL_TOOLNAME}', '{PBE_TOOLNAME}' and
+                     '{STC_TOOLNAME}' tools. Run the 'deploy' command before starting the
+                     measurements."""
     },
     "devids" : {
         "help" : f"""Applicable only to '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools.

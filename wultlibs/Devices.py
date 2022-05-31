@@ -25,7 +25,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupport
 from wultlibs import NetIface
 
 # All the possible wult/ndl device driver names in order suitable for unloading.
-ALL_DRVNAMES = ("ndl", "wult_igb", "wult_hrt", "wult_tdt")
+ALL_DRVNAMES = ("ndl", "wult_igb", "wult_hrt", "wult_tdt", "pbe")
 
 # The maximum expected device clock resolution in nanoseconds.
 _MAX_RESOLUTION = 100
@@ -545,6 +545,18 @@ class _WultTDTBPF(_DeviceBase):
         self.info["descr"] = self.supported_devices["tdt_bpf"]
         self.info["resolution"] = 1
 
+class _PbeHRTimer(_HRTimerDeviceBase):
+    """The High Resolution Timers device controlled by 'pbe'."""
+
+    supported_devices = {"hrtimer" : "Linux High Resolution Timer via 'clock_nanosleep'"}
+
+    def __init__(self, devid, pman, dmesg=None):
+        """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
+
+        super().__init__(devid, pman, drvname="pbe", dmesg=dmesg)
+
+        self.info["descr"] = self.supported_devices["hrtimer"]
+
 def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
     """
     The device object factory - creates and returns the correct type of device object
@@ -569,6 +581,10 @@ def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
         if devid in _WultTDTBPF.supported_devices:
             return _WultTDTBPF(devid, pman, dmesg=dmesg)
 
+    if toolname == "pbe":
+        if devid in _PbeHRTimer.supported_devices:
+            return _PbeHRTimer(devid, pman, dmesg=dmesg)
+
     if toolname == "wult":
         clsname = "_WultIntelI210"
     elif toolname == "ndl":
@@ -590,6 +606,13 @@ def scan_devices(toolname, pman):
 
     Yields the device object for every compatible device.
     """
+
+    if toolname == "pbe":
+        for devid in _PbeHRTimer.supported_devices:
+            with contextlib.suppress(Error):
+                with _PbeHRTimer(devid, pman, dmesg=False) as timerdev:
+                    yield timerdev
+        return
 
     if toolname == "wult":
         for devid in _WultTSCDeadlineTimer.supported_devices:

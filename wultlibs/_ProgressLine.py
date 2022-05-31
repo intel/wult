@@ -12,6 +12,7 @@ This module implements the measurement progress line.
 
 import time
 import logging
+from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
 
@@ -122,3 +123,37 @@ class NdlProgressLine(WultProgressLine):
     """
     Ndl tool progress line (same as 'wult' tool progress line).
     """
+
+class PbeProgressLine(_ProgressLineBase):
+    """
+    Pbe tool progress line.
+    """
+
+    NSEC_PER_SEC = 1000000000
+
+    def update(self, ldist):
+        """
+        Update the progress. The arguments are as follows.
+          * ldist - the currently measured launch disatnce in nanoseconds.
+        """
+
+        time_now = time.time()
+        if not self._update(False, time_now):
+            return
+
+        hldist = Human.duration_ns(ldist)
+        rate = int(self.NSEC_PER_SEC / ldist)
+        duration = Human.duration(self.get_duration())
+
+        print(f"Tot. time: {duration}, ldist: {hldist} ({rate} intr/s)")
+
+        self._printed = True
+        self.ldist = ldist
+
+    def __init__(self):
+        """The class constructor."""
+
+        super().__init__(period=0)
+
+        # Last printed launch distance.
+        self.ldist = None

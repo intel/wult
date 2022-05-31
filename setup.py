@@ -2,7 +2,7 @@
 #
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2023 Intel Corporation
+# Copyright (C) 2019-2024 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 from setuptools import setup, find_packages
 
-_TOOLNAMES = ["wult", "ndl", "exercise-sut"]
+_TOOLNAMES = ["wult", "ndl", "exercise-sut", "pbe"]
 
 def get_version(filename):
     """Fetch the project version number."""

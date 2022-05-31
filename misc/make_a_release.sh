@@ -38,7 +38,11 @@ WULT_RST_FILES="$BASEDIR/docs/wult-calc.rst
                 $BASEDIR/docs/ndl-scan.rst
                 $BASEDIR/docs/ndl-start.rst
                 $BASEDIR/docs/exercise-sut-start.rst
-                $BASEDIR/docs/exercise-sut-report.rst"
+                $BASEDIR/docs/exercise-sut-report.rst
+                $BASEDIR/docs/pbe-deploy.rst
+                $BASEDIR/docs/pbe-report.rst
+                $BASEDIR/docs/pbe-scan.rst
+                $BASEDIR/docs/pbe-start.rst"
 
 # Path to 'pepc' project sources.
 PEPC_SRC_PATH="$BASEDIR/../pepc"
