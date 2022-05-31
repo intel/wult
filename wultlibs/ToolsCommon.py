@@ -193,8 +193,8 @@ MEXCLUDE_DESCR = """The metrics to exclude. Expects a comma-separated list of th
                     of the available metrics."""
 
 # Description for the '--include-metrics' option of the 'filter' command.
-CSEL_DESCR = """The columns selector: remove all column except for those specified in the selector.
-                The syntax is the same as for '--exclude-metrics'."""
+MINCLUDE_DESCR = """The metrics to include: remove all metrics except for those specified by this
+                    option. The syntax is the same as for '--exclude-metrics'."""
 
 # Discription for the '--human-readable' option of the 'filter' command.
 FILTER_HUMAN_DESCR = """By default the result 'filter' command print the result as a CSV file to the
