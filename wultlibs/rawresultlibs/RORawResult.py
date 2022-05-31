@@ -213,25 +213,25 @@ class RORawResult(_RawResultBase.RawResultBase):
         file.
         """
 
-        rsel = self._get_include()
+        include = self._get_include()
         minclude = self._get_minclude(self.metrics)
 
         load_csv = force_reload or self.df is None
 
-        if not rsel:
+        if not include:
             if load_csv:
                 self._load_csv(usecols=minclude, **kwargs)
             minclude = None
         else:
-            # We cannot drop columns yet, because rows selector may refer to the columns.
+            # We cannot drop columns yet, because datapoint filter may refer to the columns.
             if load_csv:
                 self._load_csv(**kwargs)
 
-        if rsel:
-            _LOG.debug("applying rows selector: %s", rsel)
+        if include:
+            _LOG.debug("applying datapoint filter: %s", include)
             try:
                 try:
-                    expr = pandas.eval(rsel)
+                    expr = pandas.eval(include)
                 except ValueError as err:
                     # For some reasons on some distros the default "numexpr" engine fails with
                     # various errors, such as:
@@ -242,14 +242,14 @@ class RORawResult(_RawResultBase.RawResultBase):
                     # "python" engine works fine. Therefore, re-trying with the "python" engine.
                     _LOG.debug("pandas.eval(engine='numexpr') failed: %s\nTrying "
                                "pandas.eval(engine='python')", str(err))
-                    expr = pandas.eval(rsel, engine="python")
+                    expr = pandas.eval(include, engine="python")
             except Exception as err:
-                raise Error(f"failed to evaluate expression '{rsel}': {err}\nMake sure you use "
-                            f"correct CSV column names, which are also case-sensitive.") from err
+                raise Error(f"failed to evaluate expression '{include}': {err}\nMake sure you use "
+                            f"correct metric names, which are also case-sensitive.") from err
 
             self.df = self.df[expr].reset_index(drop=True)
             if self.df.empty:
-                raise Error(f"no data left after applying row selector(s) to CSV file "
+                raise Error(f"no data left after applying datapoint filter to CSV file "
                             f"'{self.dp_path}'")
 
         if minclude:
