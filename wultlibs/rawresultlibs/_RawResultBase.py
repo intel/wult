@@ -54,18 +54,18 @@ class RawResultBase:
 
         return expr
 
-    def _get_csel(self, colnames):
+    def _get_minclude(self, metrics):
         """
-        Merge column filter and selector and apply it to the list of column names in 'colnames'.
-        Return list of filtered column names.
+        Merge 'self._minclude' and 'self._mexclude' and apply it to the list of metrics in
+        'metrics'. Return the list of filtered metrics to include in the report.
         """
 
         if not self._minclude and not self._mexclude:
             return None
 
-        csel = self._minclude
+        minclude = self._minclude
         if self._minclude is None:
-            csel = colnames
+            minclude = metrics
 
         mexclude = self._mexclude
         if self._mexclude is None:
@@ -73,9 +73,9 @@ class RawResultBase:
 
         result = []
         mexclude_set = set(mexclude)
-        for colname in csel:
-            if colname not in mexclude_set:
-                result.append(colname)
+        for metric in minclude:
+            if metric not in mexclude_set:
+                result.append(metric)
 
         return result
 
