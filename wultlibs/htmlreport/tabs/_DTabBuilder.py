@@ -44,18 +44,19 @@ class DTabBuilder:
             smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
                           "std")
 
-        for metric in smry_metrics:
-            smrytbl.add_metric(metric["title"], metric["short_unit"], metric["descr"], fmt="{:.2f}")
+        for mdef in smry_metrics:
+            smrytbl.add_metric(mdef["title"], mdef.get("short_unit"), mdef.get("descr"),
+                               fmt="{:.2f}")
 
             for rep, df in self._reports.items():
                 # Only use a summary function if it is included in the default funcs for this
                 # metric.
-                default_funcs = set(metric["default_funcs"])
+                default_funcs = set(mdef["default_funcs"])
                 smry_funcs = DFSummary.filter_smry_funcs(smry_funcs, default_funcs)
 
-                smry_dict = DFSummary.calc_col_smry(df, metric["name"], smry_funcs)
+                smry_dict = DFSummary.calc_col_smry(df, mdef["name"], smry_funcs)
                 for fname in smry_funcs:
-                    smrytbl.add_smry_func(rep, metric["title"], fname, smry_dict[fname])
+                    smrytbl.add_smry_func(rep, mdef["title"], fname, smry_dict[fname])
 
         try:
             smrytbl.generate(self.smry_path)
