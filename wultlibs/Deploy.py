@@ -704,7 +704,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                             f"exist{self._spman.hostmsg}")
 
             # Build the drivers.
-            _LOG.info("Compiling the drivers%s", self._bpman.hostmsg)
+            _LOG.info("Compiling the drivers for kernel '%s'%s", self._kver, self._bpman.hostmsg)
             cmd = f"make -C '{drvsrc}' KSRC='{self._ksrc}'"
             if self._debug:
                 cmd += " V=1"
