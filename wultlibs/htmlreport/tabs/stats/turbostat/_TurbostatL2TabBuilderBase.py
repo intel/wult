@@ -166,7 +166,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         'self._hw_cstates' and 'self._req_cstates'.
         """
 
-        base_dtabs = ["Busy%", "Bzy_MHz", "Avg_MHz", "CorWatt", "IRQ"]
+        base_dtabs = ["Busy%", "Bzy_MHz", "Avg_MHz", "CorWatt", "IRQ", "CoreTmp"]
         base_dtabs = [metric for metric in base_dtabs if metric in common_metrics]
 
         tab_hierarchy = {"dtabs": base_dtabs}

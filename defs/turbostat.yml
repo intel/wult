@@ -76,6 +76,15 @@ GFXWatt:
     unit: "Watt"
     short_unit: "W"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+CoreTmp:
+    title: "Core temperature"
+    descr: >-
+        Core temperature. Reported by the per-core Digital Thermal Sensor. Retrieved from the
+        "CoreTmp" turbostat column.
+    type: "float"
+    unit: "degrees C"
+    short_unit: "°C"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 PkgTmp:
     title: "Package temperature"
     descr: >-
