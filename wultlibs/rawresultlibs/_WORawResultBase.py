@@ -85,10 +85,10 @@ class WORawResultBase(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseCont
         Get the datapoint filter expression. See 'super()._get_dp_filter()' for more details.
         """
 
-        if not self._mangled_include:
+        if not self._mangled_dpfilter:
             dpfilter = super()._get_dp_filter()
-            self._mangled_include = self._mangle_eval_expr(dpfilter)
-        return self._mangled_include
+            self._mangled_dpfilter = self._mangle_eval_expr(dpfilter)
+        return self._mangled_dpfilter
 
     def _try_filters(self, dp): # pylint: disable=unused-argument
         """
@@ -158,7 +158,7 @@ class WORawResultBase(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseCont
         # The writable CSV file object.
         self.csv = None
         self.reportid = reportid
-        self._mangled_include = None
+        self._mangled_dpfilter = None
         self.keep_filtered = False
         self._created_paths = []
 
