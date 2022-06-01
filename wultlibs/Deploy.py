@@ -210,6 +210,15 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
+    if bpfhelpers:
+        text = """eBPF helpers sources consist of 2 components: the user-space component and the
+                  eBPF component. The user-space component is distributed as a source code, and must
+                  be compiled. The eBPF component is distributed as both source code and compiled
+                  form.  Therefore, the eBPF component is not compiled by default. This option is
+                  meant to be used by wult developers to re-compile the eBPF component f it was
+                  modified."""
+        arg = parser.add_argument("--rebuild-bpf", action="store_true", help=text)
+
     text = f"""Build {what} locally, instead of building on HOSTNAME (the SUT)."""
     arg = parser.add_argument("--local-build", dest="lbuild", action="store_true", help=text)
 
@@ -574,14 +583,26 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             self._bpman.rsync(srcdir, self._btmpdir, remotesrc=False,
                               remotedst=self._bpman.is_remote)
 
-        # eBPF helpers require 'bpftool' and 'clang' to be installed on the build host. They are
-        # called from the 'Makefile', so an explicit check here will generate a user-friendly
-        # message if one of them is not installed.
-        with ToolChecker.ToolChecker(pman=self._bpman) as tchk:
-            bpftool_path = tchk.check_tool("bpftool")
-            clang_path = tchk.check_tool("clang")
+        if self._rebuild_bpf:
+            # In order to compile the eBPF components of eBPF helpers, the build host must have
+            # 'bpftool' and 'clang' available.
 
-        # eBPF helpers also require 'libbpf.a', which should be in the kernel source.
+            # Check for the tools called from 'Makefile' here, in order to generate a user-friendly
+            # message if one of them is not installed.
+            with ToolChecker.ToolChecker(pman=self._bpman) as tchk:
+                bpftool_path = tchk.check_tool("bpftool")
+                clang_path = tchk.check_tool("clang")
+
+            # Build the eBPF components of eBPF helpers.
+            for bpfhelper in self._bpfhelpers:
+                _LOG.info("Compiling the eBPF component of '%s'%s",
+                          bpfhelper, self._bpman.hostmsg)
+                cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{self._ksrc}' " \
+                      f"CLANG='{clang_path}' BPFTOOL='{bpftool_path}' bpf"
+                stdout, stderr = self._bpman.run_verify(cmd)
+                self._log_cmd_output(stdout, stderr)
+
+        # Check for 'libbpf.a', which should come from the kernel source.
         try:
             libbpf_path = self._get_libbpf_path()
         except ErrorNotFound as find_err:
@@ -589,14 +610,12 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 self._build_libbpf()
             except Error as build_err:
                 raise Error(f"{build_err}\n{find_err}") from build_err
-
             libbpf_path = self._get_libbpf_path()
 
         # Build eBPF helpers.
         for bpfhelper in self._bpfhelpers:
             _LOG.info("Compiling eBPF helper '%s'%s", bpfhelper, self._bpman.hostmsg)
-            cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{self._ksrc}' " \
-                  f"CLANG='{clang_path}' BPFTOOL='{bpftool_path}' LIBBPF={libbpf_path}"
+            cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{self._ksrc}' LIBBPF={libbpf_path}"
             stdout, stderr = self._bpman.run_verify(cmd)
             self._log_cmd_output(stdout, stderr)
 
@@ -809,7 +828,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                         f"not new enough for {self._toolname}.\nPlease, use kernel version "
                         f"{minkver} or newer.")
 
-    def __init__(self, toolname, pman=None, ksrc=None, lbuild=False, debug=False):
+    def __init__(self, toolname, pman=None, ksrc=None, lbuild=False, rebuild_bpf=False,
+                 debug=False):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool to create the deployment object for.
@@ -818,6 +838,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
           * ksrc - path to the kernel sources to compile drivers against.
           * lbuild - by default, everything is built on the SUT, but if 'lbuild' is 'True', then
                      everything is built on the local host.
+          * rebuild_bpf - if 'toolname' comes with an eBPF helper, re-build the the eBPF component
+                           of the helper if this argument is 'True'. Do not re-build otherwise.
           * debug - if 'True', be more verbose and do not remove the temporary directories in case
                     of a failure.
         """
@@ -826,6 +848,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._spman = pman
         self._ksrc = ksrc
         self._lbuild = lbuild
+        self._rebuild_bpf = rebuild_bpf
         self._debug = debug
 
         self._close_spman = pman is None
