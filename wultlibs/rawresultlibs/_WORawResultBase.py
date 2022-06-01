@@ -80,12 +80,14 @@ class WORawResultBase(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseCont
             expr = expr.replace(colname, f"dp['{colname}']")
         return expr
 
-    def _get_include(self):
-        """Get mangled and merged datapoints selector expression."""
+    def _get_dp_filter(self):
+        """
+        Get the datapoint filter expression. See 'super()._get_dp_filter()' for more details.
+        """
 
         if not self._mangled_include:
-            include = super()._get_include()
-            self._mangled_include = self._mangle_eval_expr(include)
+            dpfilter = super()._get_dp_filter()
+            self._mangled_include = self._mangle_eval_expr(dpfilter)
         return self._mangled_include
 
     def _try_filters(self, dp): # pylint: disable=unused-argument
@@ -94,13 +96,13 @@ class WORawResultBase(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseCont
         filters because it matches the expression. Otherwise returns 'False'.
         """
 
-        include = self._get_include()
+        dpfilter = self._get_dp_filter()
         passed = False
         try:
             # The 'eval()' expressions use the datapoint argument 'dp'.
-            passed = (not include) or eval(include) # pylint: disable=eval-used
+            passed = (not dpfilter) or eval(dpfilter) # pylint: disable=eval-used
         except SyntaxError as err:
-            raise Error(f"failed to evaluate expression '{include}'. Make sure you use correct "
+            raise Error(f"failed to evaluate expression '{dpfilter}'. Make sure you use correct "
                         f"metric names, which are also case-sensitive.") from err
 
         return passed

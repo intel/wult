@@ -213,12 +213,12 @@ class RORawResult(_RawResultBase.RawResultBase):
         file.
         """
 
-        include = self._get_include()
+        dpfilter = self._get_dp_filter()
         minclude = self._get_minclude(self.metrics)
 
         load_csv = force_reload or self.df is None
 
-        if not include:
+        if not dpfilter:
             if load_csv:
                 self._load_csv(usecols=minclude, **kwargs)
             minclude = None
@@ -227,11 +227,11 @@ class RORawResult(_RawResultBase.RawResultBase):
             if load_csv:
                 self._load_csv(**kwargs)
 
-        if include:
-            _LOG.debug("applying datapoint filter: %s", include)
+        if dpfilter:
+            _LOG.debug("applying datapoint filter: %s", dpfilter)
             try:
                 try:
-                    expr = pandas.eval(include)
+                    expr = pandas.eval(dpfilter)
                 except ValueError as err:
                     # For some reasons on some distros the default "numexpr" engine fails with
                     # various errors, such as:
@@ -242,9 +242,9 @@ class RORawResult(_RawResultBase.RawResultBase):
                     # "python" engine works fine. Therefore, re-trying with the "python" engine.
                     _LOG.debug("pandas.eval(engine='numexpr') failed: %s\nTrying "
                                "pandas.eval(engine='python')", str(err))
-                    expr = pandas.eval(include, engine="python")
+                    expr = pandas.eval(dpfilter, engine="python")
             except Exception as err:
-                raise Error(f"failed to evaluate expression '{include}': {err}\nMake sure you use "
+                raise Error(f"failed to evaluate expression '{dpfilter}': {err}\nMake sure you use "
                             f"correct metric names, which are also case-sensitive.") from err
 
             self.df = self.df[expr].reset_index(drop=True)
