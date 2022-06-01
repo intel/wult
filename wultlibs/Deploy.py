@@ -31,14 +31,14 @@ _TOOLS_INFO = {
     "wult": {
         "minkver" : "5.6",
         "deploy": {
-            "drivers":  True,
+            "drivers": ["wult", ],
             "pyhelpers":  ["stats-collect", ],
         },
     },
     "ndl": {
         "minkver" : "5.2",
         "deploy": {
-            "drivers": True,
+            "drivers": ["ndl", ],
             "shelpers": ["ndlrunner", ],
         },
     },
@@ -156,7 +156,7 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
     if toolname not in _TOOLS_INFO:
         raise Error(f"BUG: unsupported tool '{toolname}'")
 
-    drivers = _TOOLS_INFO[toolname]["deploy"].get("drivers", None)
+    drivers = _TOOLS_INFO[toolname]["deploy"].get("drivers", [])
     shelpers = _TOOLS_INFO[toolname]["deploy"].get("shelpers", [])
     pyhelpers = _TOOLS_INFO[toolname]["deploy"].get("pyhelpers", [])
     bpfhelpers = _TOOLS_INFO[toolname]["deploy"].get("bpfhelpers", [])
@@ -683,61 +683,65 @@ class Deploy(ClassHelpers.SimpleCloseContext):
     def _deploy_drivers(self):
         """Deploy drivers to the SUT."""
 
-        drvsrc = find_app_data("wult", _DRV_SRC_SUBPATH/f"{self._toolname}",
-                               descr=f"{self._toolname} drivers sources")
-        if not drvsrc.is_dir():
-            raise Error(f"path '{drvsrc}' does not exist or it is not a directory")
+        for drvname in self._drivers:
+            drvsrc = find_app_data("wult", _DRV_SRC_SUBPATH / drvname,
+                                   descr=f"{drvname} drivers sources")
+            if not drvsrc.is_dir():
+                raise Error(f"path '{drvsrc}' does not exist or it is not a directory")
 
-        _LOG.debug("copying driver sources to %s:\n   '%s' -> '%s'",
-                   self._bpman.hostname, drvsrc, self._btmpdir)
-        self._bpman.rsync(f"{drvsrc}/", self._btmpdir / "drivers", remotesrc=False,
-                          remotedst=self._bpman.is_remote)
-        drvsrc = self._btmpdir / "drivers"
+            _LOG.debug("copying driver sources to %s:\n   '%s' -> '%s'",
+                       self._bpman.hostname, drvsrc, self._btmpdir)
+            self._bpman.rsync(f"{drvsrc}/", self._btmpdir / "drivers", remotesrc=False,
+                              remotedst=self._bpman.is_remote)
+            drvsrc = self._btmpdir / "drivers"
 
-        kmodpath = Path(f"/lib/modules/{self._kver}")
-        if not self._spman.is_dir(kmodpath):
-            raise Error(f"kernel modules directory '{kmodpath}' does not "
-                        f"exist{self._spman.hostmsg}")
+            kmodpath = Path(f"/lib/modules/{self._kver}")
+            if not self._spman.is_dir(kmodpath):
+                raise Error(f"kernel modules directory '{kmodpath}' does not "
+                            f"exist{self._spman.hostmsg}")
 
-        # Build the drivers.
-        _LOG.info("Compiling the drivers%s", self._bpman.hostmsg)
-        cmd = f"make -C '{drvsrc}' KSRC='{self._ksrc}'"
-        if self._debug:
-            cmd += " V=1"
+            # Build the drivers.
+            _LOG.info("Compiling the drivers%s", self._bpman.hostmsg)
+            cmd = f"make -C '{drvsrc}' KSRC='{self._ksrc}'"
+            if self._debug:
+                cmd += " V=1"
 
-        stdout, stderr, exitcode = self._bpman.run(cmd)
-        if exitcode != 0:
-            msg = self._bpman.get_cmd_failure_msg(cmd, stdout, stderr, exitcode)
-            if "synth_event_" in stderr:
-                msg += "\n\nLooks like synthetic events support is disabled in your kernel, " \
-                       "enable the 'CONFIG_SYNTH_EVENTS' kernel configuration option."
-            raise Error(msg)
+            stdout, stderr, exitcode = self._bpman.run(cmd)
+            if exitcode != 0:
+                msg = self._bpman.get_cmd_failure_msg(cmd, stdout, stderr, exitcode)
+                if "synth_event_" in stderr:
+                    msg += "\n\nLooks like synthetic events support is disabled in your kernel, " \
+                           "enable the 'CONFIG_SYNTH_EVENTS' kernel configuration option."
+                raise Error(msg)
 
-        self._log_cmd_output(stdout, stderr)
+            self._log_cmd_output(stdout, stderr)
 
-        # Deploy the drivers.
-        dstdir = kmodpath / _DRV_SRC_SUBPATH
-        self._spman.mkdir(dstdir, parents=True, exist_ok=True)
+            # Deploy the drivers.
+            dstdir = kmodpath / _DRV_SRC_SUBPATH
+            self._spman.mkdir(dstdir, parents=True, exist_ok=True)
 
-        for name in _get_deployables(drvsrc, self._bpman):
-            installed_module = self._get_module_path(name)
-            srcpath = drvsrc / f"{name}.ko"
-            dstpath = dstdir / f"{name}.ko"
-            _LOG.info("Deploying driver '%s' to '%s'%s", name, dstpath, self._spman.hostmsg)
-            self._spman.rsync(srcpath, dstpath, remotesrc=self._bpman.is_remote,
-                              remotedst=self._spman.is_remote)
+            for name in _get_deployables(drvsrc, self._bpman):
+                installed_module = self._get_module_path(name)
+                modname = f"{name}.ko"
+                srcpath = drvsrc / modname
+                dstpath = dstdir / modname
+                _LOG.info("Deploying kernel module '%s'%s", modname, self._spman.hostmsg)
+                _LOG.debug("Deploying kernel module '%s' to '%s'%s",
+                           modname, dstpath, self._spman.hostmsg)
+                self._spman.rsync(srcpath, dstpath, remotesrc=self._bpman.is_remote,
+                                  remotedst=self._spman.is_remote)
 
-            if installed_module and installed_module.resolve() != dstpath.resolve():
-                _LOG.debug("removing old module '%s'%s", installed_module, self._spman.hostmsg)
-                self._spman.run_verify(f"rm -f '{installed_module}'")
+                if installed_module and installed_module.resolve() != dstpath.resolve():
+                    _LOG.debug("removing old module '%s'%s", installed_module, self._spman.hostmsg)
+                    self._spman.run_verify(f"rm -f '{installed_module}'")
 
-        stdout, stderr = self._spman.run_verify(f"depmod -a -- '{self._kver}'")
-        self._log_cmd_output(stdout, stderr)
+            stdout, stderr = self._spman.run_verify(f"depmod -a -- '{self._kver}'")
+            self._log_cmd_output(stdout, stderr)
 
-        # Potentially the deployed driver may crash the system before it gets to write-back data
-        # to the file-system (e.g., what 'depmod' modified). This may lead to subsequent boot
-        # problems. So sync the file-system now.
-        self._spman.run_verify("sync")
+            # Potentially the deployed driver may crash the system before it gets to write-back data
+            # to the file-system (e.g., what 'depmod' modified). This may lead to subsequent boot
+            # problems. So sync the file-system now.
+            self._spman.run_verify("sync")
 
     def _init_kernel_info(self):
         """
@@ -860,7 +864,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._btmpdir = None # Temporary directory on the build host.
         self._kver = None    # Version of the kernel to compile the drivers for.
 
-        self._drivers = None
+        self._drivers = []
         self._shelpers = []
         self._pyhelpers = []
         self._bpfhelpers = []
