@@ -107,6 +107,13 @@ SMI:
         turbostat column.
     type: "int"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+IPC:
+    title: "Instructions per cycle"
+    descr: >-
+        The number of instructions executed per-cycle by a CPU. Retrieved from the "IPC" turbostat
+        column.
+    type: "int"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 Time:
     title: "Time Elapsed"
     descr: >-
