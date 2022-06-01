@@ -89,8 +89,9 @@ class DTabBuilder:
         # Initialise scatter plot.
         fname = f"{ydef['fsname']}-vs-{xdef['fsname']}.html"
         s_path = self._outdir / fname
-        s = _ScatterPlot.ScatterPlot(xdef["name"], ydef["name"], s_path, xdef["title"],
-                                     ydef["title"], xdef["short_unit"], ydef["short_unit"])
+        s = _ScatterPlot.ScatterPlot(xdef["name"], ydef["name"], s_path, xdef.get("title"),
+                                     ydef.get("title"), xdef.get("short_unit"),
+                                     ydef.get("short_unit"))
 
         for reportid, df in self._reports.items():
             if hover_defs is not None:
@@ -115,7 +116,7 @@ class DTabBuilder:
         else:
             h_path = self._outdir / f"Count-vs-{mdef['fsname']}.html"
 
-        h = _Histogram.Histogram(mdef["name"], h_path, mdef["title"], mdef["short_unit"],
+        h = _Histogram.Histogram(mdef["name"], h_path, mdef.get("title"), mdef.get("short_unit"),
                                  cumulative=cumulative, xbins=xbins)
 
         for reportid, df in self._reports.items():
