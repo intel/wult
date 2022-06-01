@@ -30,14 +30,14 @@ _LOG = logging.getLogger()
 _TOOLS_INFO = {
     "wult": {
         "minkver" : "5.6",
-        "deps": {
+        "deploy": {
             "drivers":  True,
             "pyhelpers":  ["stats-collect", ],
         },
     },
     "ndl": {
         "minkver" : "5.2",
-        "deps": {
+        "deploy": {
             "drivers": True,
             "shelpers": ["ndlrunner", ],
         },
@@ -156,10 +156,10 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
     if toolname not in _TOOLS_INFO:
         raise Error(f"BUG: unsupported tool '{toolname}'")
 
-    drivers = _TOOLS_INFO[toolname]["deps"].get("drivers", None)
-    shelpers = _TOOLS_INFO[toolname]["deps"].get("shelpers", [])
-    pyhelpers = _TOOLS_INFO[toolname]["deps"].get("pyhelpers", [])
-    bpfhelpers = _TOOLS_INFO[toolname]["deps"].get("bpfhelpers", [])
+    drivers = _TOOLS_INFO[toolname]["deploy"].get("drivers", None)
+    shelpers = _TOOLS_INFO[toolname]["deploy"].get("shelpers", [])
+    pyhelpers = _TOOLS_INFO[toolname]["deploy"].get("pyhelpers", [])
+    bpfhelpers = _TOOLS_INFO[toolname]["deploy"].get("bpfhelpers", [])
 
     what = ""
     if shelpers or pyhelpers or bpfhelpers:
@@ -877,7 +877,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         else:
             self._bpman = self._spman
 
-        for attr, val in _TOOLS_INFO[self._toolname]["deps"].items():
+        for attr, val in _TOOLS_INFO[self._toolname]["deploy"].items():
             setattr(self, f"_{attr}", val)
 
     def _remove_tmpdirs(self, remove_tmpdirs=True):
