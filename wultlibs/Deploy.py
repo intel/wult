@@ -31,15 +31,19 @@ _TOOLS_INFO = {
     "wult": {
         "minkver" : "5.6",
         "deploy": {
-            "drivers": ["wult", ],
-            "pyhelpers":  ["stats-collect", ],
+            "drivers":    ["wult"],
+            "shelpers":   [],
+            "pyhelpers":  ["stats-collect"],
+            "bpfhelpers": [],
         },
     },
     "ndl": {
         "minkver" : "5.2",
         "deploy": {
-            "drivers": ["ndl", ],
-            "shelpers": ["ndlrunner", ],
+            "drivers":    ["ndl"],
+            "shelpers":   ["ndlrunner"],
+            "pyhelpers":  [],
+            "bpfhelpers": [],
         },
     },
 }
@@ -156,18 +160,17 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
     if toolname not in _TOOLS_INFO:
         raise Error(f"BUG: unsupported tool '{toolname}'")
 
-    drivers = _TOOLS_INFO[toolname]["deploy"].get("drivers", [])
-    shelpers = _TOOLS_INFO[toolname]["deploy"].get("shelpers", [])
-    pyhelpers = _TOOLS_INFO[toolname]["deploy"].get("pyhelpers", [])
-    bpfhelpers = _TOOLS_INFO[toolname]["deploy"].get("bpfhelpers", [])
+    names = {}
+    for name, val in _TOOLS_INFO[toolname]["deploy"].items():
+        names[name] = val
 
     what = ""
-    if shelpers or pyhelpers or bpfhelpers:
-        if drivers:
+    if names["shelpers"] or names["pyhelpers"] or names["bpfhelpers"]:
+        if names["drivers"]:
             what = "helpers and drivers"
         else:
             what = "helpers"
-    elif drivers:
+    elif names["drivers"]:
         what = "drivers"
     else:
         raise Error("BUG: no helpers and no drivers")
@@ -184,13 +187,13 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
                 everything is built on the SUT, but the '--local-build' can be used for building
                 on the local system."""
 
-    if drivers:
+    if names["drivers"]:
         drvsearch = ", ".join([name % str(_DRV_SRC_SUBPATH) for name in searchdirs])
         descr += f"""The drivers are searched for in the following directories (and in the
                      following order) on the local host: {drvsearch}."""
-    if shelpers or pyhelpers:
+    if names["shelpers"] or names["pyhelpers"]:
         helpersearch = ", ".join([name % str(_HELPERS_SRC_SUBPATH) for name in searchdirs])
-        helpernames = ", ".join(shelpers + pyhelpers + bpfhelpers)
+        helpernames = ", ".join(names["shelpers"] + names["pyhelpers"] + names["bpfhelpers"])
         descr += f"""The {toolname} tool also depends on the following helpers: {helpernames}.
                      These helpers will be compiled on the SUT and deployed to the SUT. The sources
                      of the helpers are searched for in the following paths (and in the following
@@ -201,7 +204,7 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
                      'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
 
-    if drivers:
+    if names["drivers"]:
         text = """Path to the Linux kernel sources to build the drivers against. The default is
                   '/lib/modules/$(uname -r)/build' on the SUT. If '--local-build' was used, then
                   the path is considered to be on the local system, rather than the SUT."""
@@ -210,7 +213,7 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
-    if bpfhelpers:
+    if names["bpfhelpers"]:
         text = """eBPF helpers sources consist of 2 components: the user-space component and the
                   eBPF component. The user-space component is distributed as a source code, and must
                   be compiled. The eBPF component is distributed as both source code and compiled
