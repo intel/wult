@@ -85,6 +85,12 @@ PkgTmp:
     unit: "degrees C"
     short_unit: "°C"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+IRQ:
+    title: "Interrupts"
+    descr: >-
+        The number of interrupts serviced by a CPU. Retrieved from the "IRQ" turbostat column.
+    type: "int"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 Time:
     title: "Time Elapsed"
     descr: >-
