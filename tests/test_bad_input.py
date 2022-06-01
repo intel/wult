@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2021 Intel Corporation
+# Copyright (C) 2019-2022 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Antti Laakso <antti.laakso@linux.intel.com>
@@ -35,7 +35,7 @@ def test_bad_input_data(tool):
     for cmd in ("filter", "report", "start", "calc"):
         for args in tool.bad_paths:
             if cmd == "filter":
-                args = f"--rfilt index!=0 {args}"
+                args = f"--exclude index!=0 {args}"
             with pytest.raises(Exceptions.Error):
                 tool.command(cmd, args)
 
@@ -43,9 +43,9 @@ def test_bad_filter_names(tool):
     """Test 'filter' and 'calc' commands for bad filter names."""
 
     for cmd in ("filter", "calc", "report"):
-        for argname in ("rfilt", "rsel", "cfilt", "csel"):
-            # 'report' command don't have 'cfilt' and 'csel' arguments.
-            if cmd == "report" and argname.startswith("c"):
+        for argname in ("exclude", "include", "mexclude", "minclude"):
+            # 'report' command don't have 'mexclude' and 'minclude' arguments.
+            if cmd == "report" and argname in ("mexclude", "minclude"):
                 continue
             # Need only one good testdata path.
             args = f"--{argname} 'bad_filter' {tool.good_paths[0]}"

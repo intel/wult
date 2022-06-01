@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2021 Intel Corporation
+# Copyright (C) 2019-2022 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Antti Laakso <antti.laakso@linux.intel.com>
@@ -26,5 +26,5 @@ def test_good_input_data(tool):
     for cmd in ("filter", "report", "calc"):
         for args in tool.good_paths:
             if cmd == "filter":
-                args = f"--rfilt index!=0 {args}"
+                args = f"--exclude index!=0 {args}"
             tool.command(cmd, args)
