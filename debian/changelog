@@ -1,3 +1,13 @@
+wult (1.10.3) unstable; urgency=low
+
+  * wult/ndl: rename the '--list-columns' option to '--list-metrics'.
+  * wult/ndl: rename the '--rsel' option '--include'.
+  * wult/ndl: rename the '--rfil' option '--exclude'.
+  * wult/ndl: rename the '--csel' option '--include-metrics'.
+  * wult/ndl: rename the '--cfil' option '--exclude-metrics'.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com> _DATE_HERE_
+
 wult (1.10.2) unstable; urgency=low
 
   * wult: fix missing C-states residencies (regression in 1.10.0).
