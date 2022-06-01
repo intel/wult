@@ -214,14 +214,14 @@ class RORawResult(_RawResultBase.RawResultBase):
         """
 
         dpfilter = self._get_dp_filter()
-        minclude = self._get_minclude(self.metrics)
+        metrics = self._get_filtered_metrics(self.metrics)
 
         load_csv = force_reload or self.df is None
 
         if not dpfilter:
             if load_csv:
-                self._load_csv(usecols=minclude, **kwargs)
-            minclude = None
+                self._load_csv(usecols=metrics, **kwargs)
+            metrics = None
         else:
             # We cannot drop columns yet, because datapoint filter may refer to the columns.
             if load_csv:
@@ -252,9 +252,9 @@ class RORawResult(_RawResultBase.RawResultBase):
                 raise Error(f"no data left after applying datapoint filter to CSV file "
                             f"'{self.dp_path}'")
 
-        if minclude:
-            _LOG.debug("applying metrics selector: %s", minclude)
-            self.df = self.df[minclude]
+        if metrics:
+            _LOG.debug("applying metrics selector: %s", metrics)
+            self.df = self.df[metrics]
             if self.df.empty:
                 raise Error(f"no data left after applying metric selector(s) to CSV file "
                             f"'{self.dp_path}'")

@@ -57,10 +57,10 @@ class RawResultBase:
 
         return expr
 
-    def _get_minclude(self, metrics):
+    def _get_filtered_metrics(self, metrics):
         """
-        Merge 'self._minclude' and 'self._mexclude' and apply it to the list of metrics in
-        'metrics'. Return the list of filtered metrics to include in the report.
+        Return the list of metrics to include in the report. Filter the list of metrics 'metrics' by
+        merging and applying the metric filter expressions 'self._minclude' and 'self._mexclude'.
         """
 
         if not self._minclude and not self._mexclude:
