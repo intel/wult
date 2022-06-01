@@ -31,8 +31,8 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
 
         harchy = super()._get_tab_hierarchy(common_metrics)
 
-        # Add the "PkgWatt" and "GFXWatt" metrics if they are common to all results.
-        extra_dtabs = ["PkgWatt", "GFXWatt"]
+        # Add extra metrics to the metrics in 'harchy' if they are common to all results.
+        extra_dtabs = ["PkgWatt", "GFXWatt", "PkgTmp"]
         harchy["dtabs"] += [m for m in extra_dtabs if m in common_metrics]
         return harchy
 
