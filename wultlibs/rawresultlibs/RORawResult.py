@@ -299,18 +299,18 @@ class RORawResult(_RawResultBase.RawResultBase):
                     raise Error(f"bad regular expression '{regex}': {err}") from err
 
             if not matched:
-                colnames_str = ", ".join(self.metrics)
-                msg = f"no matches for column '{regex}' in the following list of available " \
-                      f"columns:\n  {colnames_str}"
+                metrics_str = ", ".join(self.metrics)
+                msg = f"no matches for metric '{regex}' in the following list of available " \
+                      f"metrics:\n  {metrics_str}"
                 if must_find_all:
                     raise ErrorNotFound(msg)
                 _LOG.debug(msg)
 
         if not found and must_find_any:
-            colnames_str = ", ".join(self.metrics)
+            metrics_str = ", ".join(self.metrics)
             regexs_str = ", ".join(regexs)
-            raise ErrorNotFound(f"no matches for the following column name(s):\n  {regexs_str}\n"
-                                f"in the following list of available columns:\n  {colnames_str}")
+            raise ErrorNotFound(f"no matches for the following metric(s):\n  {regexs_str}\n"
+                                f"in the following list of available metrics:\n  {metrics_str}")
 
         return list(found.keys())
 
