@@ -150,8 +150,12 @@ class DTabBuilder:
         sdfs = self._reports.values()
         for xdef, ydef in plot_axes:
             if not all(xdef["name"] in sdf and ydef["name"] in sdf for sdf in sdfs):
-                _LOG.warning("skipping scatter plot '%s' vs '%s' since not all results have data "
+                _LOG.warning("skipping scatter plot '%s vs %s' since not all results have data "
                              "for both.", ydef["name"], xdef["name"])
+                continue
+            if all(not sdf[ydef["name"]].any() for sdf in sdfs):
+                _LOG.warning("skipping scatter plot '%s vs %s': no non-zero datapoints were "
+                             "found for '%s'.", ydef["title"], xdef["title"], ydef["title"])
                 continue
             self._add_scatter(xdef, ydef, hover_defs)
 
@@ -160,6 +164,10 @@ class DTabBuilder:
                 _LOG.warning("skipping histogram for metric '%s' since not all results have data "
                              "for this metric.", mdef["name"])
                 continue
+            if all(not sdf[mdef["name"]].any() for sdf in sdfs):
+                _LOG.warning("skipping histogram for metric '%s': no non-zero datapoints were "
+                             "found.", mdef["title"])
+                continue
             self._add_histogram(mdef)
 
         for mdef in chist:
@@ -167,6 +175,9 @@ class DTabBuilder:
                 _LOG.warning("skipping cumulative histogram for metric '%s' since not all results "
                              "have data for this metric.", mdef["name"])
                 continue
+            if all(not sdf[mdef["name"]].any() for sdf in sdfs):
+                _LOG.warning("skipping cumulative histogram for metric '%s': no non-zero "
+                             "datapoints were found.", mdef["title"])
             self._add_histogram(mdef, cumulative=True)
 
     def __init__(self, reports, outdir, metric_def, basedir=None):
