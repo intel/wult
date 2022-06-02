@@ -56,30 +56,30 @@
 <div class="contents topic" id="table-of-contents">
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
-<li><a class="reference internal" href="#standard-case-local-usage-model" id="id8">1 Standard case (local usage model)</a><ul>
-<li><a class="reference internal" href="#update" id="id9">1.1 Update</a></li>
-<li><a class="reference internal" href="#sut-root-access" id="id10">1.2 SUT root access</a></li>
-<li><a class="reference internal" href="#install-dependencies" id="id11">1.3 Install dependencies</a><ul>
-<li><a class="reference internal" href="#id1" id="id12">1.3.1 Kernel sources</a></li>
-<li><a class="reference internal" href="#id2" id="id13">1.3.2 OS packages</a></li>
+<li><a class="reference internal" href="#standard-case-local-usage-model" id="toc-entry-1">1 Standard case (local usage model)</a><ul>
+<li><a class="reference internal" href="#update" id="toc-entry-2">1.1 Update</a></li>
+<li><a class="reference internal" href="#sut-root-access" id="toc-entry-3">1.2 SUT root access</a></li>
+<li><a class="reference internal" href="#install-dependencies" id="toc-entry-4">1.3 Install dependencies</a><ul>
+<li><a class="reference internal" href="#kernel-sources-1" id="toc-entry-5">1.3.1 Kernel sources</a></li>
+<li><a class="reference internal" href="#os-packages-1" id="toc-entry-6">1.3.2 OS packages</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#install-pepc" id="id14">1.4 Install pepc</a></li>
-<li><a class="reference internal" href="#install-wult" id="id15">1.5 Install wult</a></li>
-<li><a class="reference internal" href="#deploy-wult-drivers" id="id16">1.6 Deploy wult drivers</a></li>
-<li><a class="reference internal" href="#tab-completions" id="id17">1.7 Tab completions</a></li>
+<li><a class="reference internal" href="#install-pepc" id="toc-entry-7">1.4 Install pepc</a></li>
+<li><a class="reference internal" href="#install-wult" id="toc-entry-8">1.5 Install wult</a></li>
+<li><a class="reference internal" href="#deploy-wult-drivers" id="toc-entry-9">1.6 Deploy wult drivers</a></li>
+<li><a class="reference internal" href="#tab-completions" id="toc-entry-10">1.7 Tab completions</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#non-standard-case-remote-usage-model" id="id18">2 Non-standard case (remote usage model)</a><ul>
-<li><a class="reference internal" href="#id3" id="id19">2.1 Update</a></li>
-<li><a class="reference internal" href="#passwordless-sut-login" id="id20">2.2 Passwordless SUT login</a></li>
-<li><a class="reference internal" href="#id4" id="id21">2.3 Install dependencies</a><ul>
-<li><a class="reference internal" href="#id5" id="id22">2.3.1 Kernel sources</a></li>
-<li><a class="reference internal" href="#id6" id="id23">2.3.2 OS packages</a></li>
+<li><a class="reference internal" href="#non-standard-case-remote-usage-model" id="toc-entry-11">2 Non-standard case (remote usage model)</a><ul>
+<li><a class="reference internal" href="#update-1" id="toc-entry-12">2.1 Update</a></li>
+<li><a class="reference internal" href="#passwordless-sut-login" id="toc-entry-13">2.2 Passwordless SUT login</a></li>
+<li><a class="reference internal" href="#install-dependencies-1" id="toc-entry-14">2.3 Install dependencies</a><ul>
+<li><a class="reference internal" href="#kernel-sources-2" id="toc-entry-15">2.3.1 Kernel sources</a></li>
+<li><a class="reference internal" href="#os-packages-2" id="toc-entry-16">2.3.2 OS packages</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#install-pepc-and-wult" id="id24">2.4 Install pepc and wult</a></li>
-<li><a class="reference internal" href="#id7" id="id25">1.6 Deploy wult drivers</a></li>
+<li><a class="reference internal" href="#install-pepc-and-wult" id="toc-entry-17">2.4 Install pepc and wult</a></li>
+<li><a class="reference internal" href="#deploy-wult-drivers-1" id="toc-entry-18">1.6 Deploy wult drivers</a></li>
 </ul>
 </li>
 </ul>
@@ -95,7 +95,7 @@ privileges. Do not use it on a production system, use it only in a lab environme
 <p><em>Wult</em> installation procedure will vary a little bit depending on whether you prefer the local or
 remote usage models (<a class="reference external" href="user-guide.html#usage-models">details here</a>).</p>
 <div class="section" id="standard-case-local-usage-model">
-<h2><a class="toc-backref" href="#id8">1 Standard case (local usage model)</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-1">1 Standard case (local usage model)</a></h2>
 <p>In the (<a class="reference external" href="user-guide.html#local-usage-model">local usage model</a>):</p>
 <ul class="simple">
 <li><em>wult</em> is installed on the SUT (System Under Test)</li>
@@ -103,28 +103,28 @@ remote usage models (<a class="reference external" href="user-guide.html#usage-m
 <li><em>wult</em> measures the SUT and stores the results on the SUT</li>
 </ul>
 <div class="section" id="update">
-<h3><a class="toc-backref" href="#id9">1.1 Update</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-2">1.1 Update</a></h3>
 <p>Before describing the installation steps, here is a how you update an existing wult
 installation.</p>
 <pre class="literal-block">
-pip install --user --upgrade git+https://github.com/intel/pepc.git&#64;release
-pip install --user --upgrade git+https://github.com/intel/wult.git&#64;release
+pip3 install --user --upgrade git+https://github.com/intel/pepc.git&#64;release
+pip3 install --user --upgrade git+https://github.com/intel/wult.git&#64;release
 sudo wult deploy
 </pre>
 </div>
 <div class="section" id="sut-root-access">
-<h3><a class="toc-backref" href="#id10">1.2 SUT root access</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-3">1.2 SUT root access</a></h3>
 <p>Make sure you have root or <cite>sudo</cite> permissions on the SUT.</p>
 </div>
 <div class="section" id="install-dependencies">
-<h3><a class="toc-backref" href="#id11">1.3 Install dependencies</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-4">1.3 Install dependencies</a></h3>
 <p><em>Wult</em> has several dependencies. First of all, the sources of the running kernel must be installed
 on the SUT. Not just kernel headers for user-space programs, but full kernel source code.</p>
 <p>Wult also requires <a class="reference external" href="https://github.com/intel/pepc">pepc</a> to be installed.
 You'll also need the tools necessary for compiling kernel drivers on the SUT: <cite>gcc</cite>, <cite>make</cite>, etc.</p>
 <p>In addition to this, <em>wult</em> requires various python packages.</p>
-<div class="section" id="id1">
-<span id="kernel-sources"></span><h4><a class="toc-backref" href="#id12">1.3.1 Kernel sources</a></h4>
+<div class="section" id="kernel-sources-1">
+<span id="kernel-sources"></span><h4><a class="toc-backref" href="#toc-entry-5">1.3.1 Kernel sources</a></h4>
 <p><em>Wult</em> comes with kernel drivers which have to be built for the kernel running on the SUT.</p>
 <p>On Fedora and Ubuntu, the sources are typically located in <tt class="docutils literal"><span class="pre">/lib/modules/&lt;kernel_version&gt;/build</span></tt>.
 The <cite>&lt;kernel_version&gt;</cite> part must match the kernel running on the SUT. In other words, it has to be
@@ -135,11 +135,11 @@ enough to just install the kernel sources package provided by the OS, e.g.:</p>
 <li>Fedora: <cite>kernel-devel</cite> package</li>
 <li>Ubuntu: <cite>linux-source</cite> package</li>
 </ul>
-<p>Advance users can provide kernel sources path vial <cite>wult deploy</cite> command line options
-(see the <a class="reference external" href="https://github.com/intel/wult/blob/master/docs/wult-man.rst">wult man page</a>).</p>
+<p>Advanced users can provide custom kernel sources path via <cite>wult deploy</cite> command line options (see
+the <a class="reference external" href="https://github.com/intel/wult/blob/master/docs/wult-man.rst">wult man page</a>).</p>
 </div>
-<div class="section" id="id2">
-<span id="os-packages"></span><h4><a class="toc-backref" href="#id13">1.3.2 OS packages</a></h4>
+<div class="section" id="os-packages-1">
+<span id="os-packages"></span><h4><a class="toc-backref" href="#toc-entry-6">1.3.2 OS packages</a></h4>
 <p>Here are the required OS packages.</p>
 <p><strong>Fedora</strong></p>
 <pre class="literal-block">
@@ -148,7 +148,7 @@ sudo dnf install -y libffi-devel redhat-rpm-config openssl-devel
 sudo dnf install -y kernel-devel
 sudo dnf install -y git python3 python3-devel python3-pip python3-numpy
 sudo dnf install -y python3-colorama python3-yaml python3-pandas
-sudo dnf install -y  python3-paramiko python3-jinja2 python3-argcomplete
+sudo dnf install -y  python3-paramiko python3-argcomplete
 </pre>
 <p><strong>Ubuntu</strong></p>
 <pre class="literal-block">
@@ -156,7 +156,7 @@ sudo apt install -y bison flex libelf-dev libssl-dev rsync procps
 sudo apt-get source linux-source
 sudo apt install -y git python3-pip python3-numpy python3-plotly
 sudo apt install -y python3-colorama python3-yaml python3-pandas
-sudo apt install -y python3-paramiko python3-jinja2 python3-argcomplete
+sudo apt install -y python3-paramiko python3-argcomplete
 </pre>
 <p><strong>Notes</strong></p>
 <ol class="arabic simple">
@@ -169,22 +169,22 @@ their git repository (see below). Otherwise it is not necessary.</li>
 </div>
 </div>
 <div class="section" id="install-pepc">
-<h3><a class="toc-backref" href="#id14">1.4 Install pepc</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-7">1.4 Install pepc</a></h3>
 <p><em>Wult</em> requires another Python3 project to be installed: <cite>pepc &lt;https://github.com/intel/pepc&gt;</cite>.
 The <cite>pepc</cite> installation steps are provided in the next section.</p>
 </div>
 <div class="section" id="install-wult">
-<h3><a class="toc-backref" href="#id15">1.5 Install wult</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-8">1.5 Install wult</a></h3>
 <p><cite>Wult</cite> and <cite>pepc</cite> are python version 3 projects, and we recommend using the <cite>pip</cite> tool for
 installing them. Here is how to install them directly from the <cite>release</cite> branch of their git
 repositories:</p>
 <pre class="literal-block">
-pip install --user --upgrade git+https://github.com/intel/pepc.git&#64;release
-pip install --user --upgrade git+https://github.com/intel/wult.git&#64;release
+pip3 install --user --upgrade git+https://github.com/intel/pepc.git&#64;release
+pip3 install --user --upgrade git+https://github.com/intel/wult.git&#64;release
 </pre>
 </div>
 <div class="section" id="deploy-wult-drivers">
-<h3><a class="toc-backref" href="#id16">1.6 Deploy wult drivers</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-9">1.6 Deploy wult drivers</a></h3>
 <p>The final step is to build and deploy wult drivers. Run this command on the SUT as &quot;root&quot;.</p>
 <pre class="literal-block">
 sudo wult deploy
@@ -194,7 +194,7 @@ sudo wult deploy
 different kernel, you have to re-run <cite>wult deploy</cite>.</p>
 </div>
 <div class="section" id="tab-completions">
-<h3><a class="toc-backref" href="#id17">1.7 Tab completions</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-10">1.7 Tab completions</a></h3>
 <p><cite>Wult</cite> and <cite>pepc</cite> tools have bash tab completions support, but this will only work if you have
 certain environment variables defined. The following commands will do it:</p>
 <pre class="literal-block">
@@ -206,25 +206,25 @@ enabled by default.</p>
 </div>
 </div>
 <div class="section" id="non-standard-case-remote-usage-model">
-<h2><a class="toc-backref" href="#id18">2 Non-standard case (remote usage model)</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-11">2 Non-standard case (remote usage model)</a></h2>
 <p>In the (<a class="reference external" href="user-guide.html#remote-usage-model">remote usage model</a>):</p>
 <ul class="simple">
 <li><em>wult</em> is installed on the controller</li>
 <li>drivers are deployed to the SUT</li>
 <li><em>wult</em> measures the SUT and stores the results on the controller</li>
 </ul>
-<div class="section" id="id3">
-<h3><a class="toc-backref" href="#id19">2.1 Update</a></h3>
+<div class="section" id="update-1">
+<h3><a class="toc-backref" href="#toc-entry-12">2.1 Update</a></h3>
 <p>Before describing the installation steps, here is a how you update an existing wult
 installation. Run the following commands on the controller:</p>
 <pre class="literal-block">
-pip install --user --upgrade git+https://github.com/intel/pepc.git&#64;release
-pip install --user --upgrade git+https://github.com/intel/wult.git&#64;release
+pip3 install --user --upgrade git+https://github.com/intel/pepc.git&#64;release
+pip3 install --user --upgrade git+https://github.com/intel/wult.git&#64;release
 sudo wult deploy -H SUTNAME
 </pre>
 </div>
 <div class="section" id="passwordless-sut-login">
-<span id="passwordless-ssh"></span><h3><a class="toc-backref" href="#id20">2.2 Passwordless SUT login</a></h3>
+<span id="passwordless-ssh"></span><h3><a class="toc-backref" href="#toc-entry-13">2.2 Passwordless SUT login</a></h3>
 <p>In case of the remote usage model, you need to configure passwordless root SSH login from the
 controller to the SUT. You are going to run <em>wult</em> as a regular user on the controller, but it will
 SSH into the SUT as <cite>root</cite>. Please, use online documentation to find out how to do this for your
@@ -259,16 +259,16 @@ ssh root&#64;SUTNAME
 usually give very good clues. Use <cite>ssh -v</cite> on the controller to get verbose messages, which also can
 give some clues.</p>
 </div>
-<div class="section" id="id4">
-<h3><a class="toc-backref" href="#id21">2.3 Install dependencies</a></h3>
+<div class="section" id="install-dependencies-1">
+<h3><a class="toc-backref" href="#toc-entry-14">2.3 Install dependencies</a></h3>
 <p>Everything is the same as in the local usage mode, but some of the dependencies should be installed
 on the controller instead of the SUT.</p>
-<div class="section" id="id5">
-<h4><a class="toc-backref" href="#id22">2.3.1 Kernel sources</a></h4>
+<div class="section" id="kernel-sources-2">
+<h4><a class="toc-backref" href="#toc-entry-15">2.3.1 Kernel sources</a></h4>
 <p>Install them on the controller, same way as in the <a class="reference external" href="#os-packages">local usage model case</a>.</p>
 </div>
-<div class="section" id="id6">
-<h4><a class="toc-backref" href="#id23">2.3.2 OS packages</a></h4>
+<div class="section" id="os-packages-2">
+<h4><a class="toc-backref" href="#toc-entry-16">2.3.2 OS packages</a></h4>
 <p>Here are the required OS packages.</p>
 <p><strong>Fedora</strong></p>
 <p>SUT:</p>
@@ -281,7 +281,7 @@ sudo dnf install -y kernel-devel
 <pre class="literal-block">
 sudo dnf install -y git python3 python3-devel python3-pip python3-numpy
 sudo dnf install -y python3-colorama python3-yaml python3-pandas
-sudo dnf install -y  python3-paramiko python3-jinja2 rsync
+sudo dnf install -y  python3-paramiko rsync
 </pre>
 <p><strong>Ubuntu</strong></p>
 <p>SUT:</p>
@@ -293,18 +293,18 @@ sudo apt-get source linux-source
 <pre class="literal-block">
 sudo apt install -y git python3-pip python3-numpy python3-plotly
 sudo apt install -y python3-colorama python3-yaml python3-pandas
-sudo apt install -y python3-paramiko python3-jinja2 rsync
+sudo apt install -y python3-paramiko rsync
 </pre>
 <p><strong>Notes</strong></p>
 <p>Same as the <a class="reference external" href="#kernel-sources">local usage model notes</a>.</p>
 </div>
 </div>
 <div class="section" id="install-pepc-and-wult">
-<h3><a class="toc-backref" href="#id24">2.4 Install pepc and wult</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-17">2.4 Install pepc and wult</a></h3>
 <p>Install them on the controller, same way as <a class="reference external" href="#install-pepc-wult">in the local usage model case</a>.</p>
 </div>
-<div class="section" id="id7">
-<h3><a class="toc-backref" href="#id25">1.6 Deploy wult drivers</a></h3>
+<div class="section" id="deploy-wult-drivers-1">
+<h3><a class="toc-backref" href="#toc-entry-18">1.6 Deploy wult drivers</a></h3>
 <p>Make sure that <a class="reference external" href="#passwordless-ssh">passwordless</a> SUT access works, then run the following command
 on the controller:</p>
 <pre class="literal-block">
