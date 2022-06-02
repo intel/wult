@@ -358,9 +358,9 @@ class ReportBase:
     def _load_results(self):
         """Load the test results from the CSV file and/or apply the metrics selector."""
 
-        _LOG.debug("summaries will be calculated for these columns: %s",
+        _LOG.debug("summaries will be calculated for these metrics: %s",
                    ", ".join(self._smry_metrics))
-        _LOG.debug("additional colnames: %s", ", ".join(self._more_metrics))
+        _LOG.debug("additional metrics: %s", ", ".join(self._more_metrics))
 
         for res in self.rsts:
             _LOG.debug("hover metrics: %s", ", ".join(self._hov_metrics[res.reportid]))
@@ -424,7 +424,7 @@ class ReportBase:
                 if metric in intersection:
                     metrics.append(metric)
                 else:
-                    _LOG.warning("dropping column '%s' from '%s' because it is not present in one "
+                    _LOG.warning("dropping metric '%s' from '%s' because it is not present in one "
                                  "of the results", metric, name)
             setattr(self, name, metrics)
 
@@ -435,7 +435,7 @@ class ReportBase:
                     if metric in res.defs.info:
                         metrics.append(metric)
                     else:
-                        _LOG.warning("dropping column '%s' from '%s' because it is not present in "
+                        _LOG.warning("dropping metric '%s' from '%s' because it is not present in "
                                      "the definitions file at '%s'", metric, name, res.defs.path)
             setattr(self, name, metrics)
 
