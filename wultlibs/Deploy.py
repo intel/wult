@@ -29,16 +29,14 @@ _LOG = logging.getLogger()
 # Information about tools dependencies.
 _TOOLS_INFO = {
     "wult": {
-        "minkver" : "5.6",
         "deploy": {
-            "drivers":    {"names": ["wult"]},
+            "drivers":    {"names": ["wult"], "minkver" : "5.6"},
             "pyhelpers":  {"names": ["stats-collect"]},
         },
     },
     "ndl": {
-        "minkver" : "5.2",
         "deploy": {
-            "drivers":    {"names": ["ndl"]},
+            "drivers":    {"names": ["ndl"], "minkver" : "5.2"},
             "shelpers":   {"names": ["ndlrunner"]},
         },
     },
@@ -742,6 +740,36 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             # problems. So sync the file-system now.
             self._spman.run_verify("sync")
 
+    def _check_minkver(self):
+        """Check if the SUT is using new enough kernel version."""
+
+        minkver = None
+        maxkver = None
+
+        for info in _TOOLS_INFO[self._toolname]["deploy"].values():
+            kver = info.get("minkver", None)
+            if not kver:
+                continue
+            if not minkver:
+                minkver = maxkver = kver
+                continue
+
+            if KernelVersion.kver_lt(kver, minkver):
+                minkver = kver
+            if KernelVersion.kver_ge(kver, maxkver):
+                maxkver = kver
+
+        if KernelVersion.kver_lt(self._kver, minkver):
+            if minkver == maxkver:
+                msg = f"Please, use kernel version {minkver} or newer."
+            else:
+                msg = f"Please, use:\n" \
+                      f" * kernel version {minkver} for partial functionaliy support\n" \
+                      f" * kernel version {maxkver} for full functionality support."
+
+            raise Error(f"version of Linux kernel{self._bpman.hostmsg} is {self._kver}, and it is "
+                        f"not new enough for {self._toolname}.\n{msg}")
+
     def _init_kernel_info(self):
         """
         Discover kernel version and kernel sources path which will be needed for building the out of
@@ -766,7 +794,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         _LOG.debug("Kernel sources path: %s", self._ksrc)
         _LOG.debug("Kernel version: %s", self._kver)
 
-        self._check_kver()
+        self._check_minkver()
 
     def deploy(self):
         """
@@ -821,15 +849,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             raise
         finally:
             self._remove_tmpdirs(remove_tmpdirs=remove_tmpdirs)
-
-    def _check_kver(self):
-        """Check if the SUT is using new enough kernel version."""
-
-        minkver = _TOOLS_INFO[self._toolname]["minkver"]
-        if KernelVersion.kver_lt(self._kver, minkver):
-            raise Error(f"version of Linux kernel{self._bpman.hostmsg} is {self._kver}, and it is "
-                        f"not new enough for {self._toolname}.\nPlease, use kernel version "
-                        f"{minkver} or newer.")
 
     def __init__(self, toolname, pman=None, ksrc=None, lbuild=False, rebuild_bpf=False,
                  debug=False):
