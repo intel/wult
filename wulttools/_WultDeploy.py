@@ -17,5 +17,6 @@ def deploy_command(args):
 
     with ToolsCommon.get_pman(args) as pman, \
          Deploy.Deploy(args.toolname, pman=pman, ksrc=args.ksrc,
-                lbuild=args.lbuild, debug=args.debug) as depl:
+                lbuild=args.lbuild, rebuild_bpf=args.rebuild_bpf,
+                debug=args.debug) as depl:
         depl.deploy()
