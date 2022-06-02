@@ -31,19 +31,15 @@ _TOOLS_INFO = {
     "wult": {
         "minkver" : "5.6",
         "deploy": {
-            "drivers":    ["wult"],
-            "shelpers":   [],
-            "pyhelpers":  ["stats-collect"],
-            "bpfhelpers": [],
+            "drivers":    {"names": ["wult"]},
+            "pyhelpers":  {"names": ["stats-collect"]},
         },
     },
     "ndl": {
         "minkver" : "5.2",
         "deploy": {
-            "drivers":    ["ndl"],
-            "shelpers":   ["ndlrunner"],
-            "pyhelpers":  [],
-            "bpfhelpers": [],
+            "drivers":    {"names": ["ndl"]},
+            "shelpers":   {"names": ["ndlrunner"]},
         },
     },
 }
@@ -160,9 +156,9 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
     if toolname not in _TOOLS_INFO:
         raise Error(f"BUG: unsupported tool '{toolname}'")
 
-    names = {}
-    for name, val in _TOOLS_INFO[toolname]["deploy"].items():
-        names[name] = val
+    names = {"drivers" : [], "shelpers" : [], "pyhelpers" : [], "bpfhelpers" : []}
+    for category, info in _TOOLS_INFO[toolname]["deploy"].items():
+        names[category] = info["names"]
 
     what = ""
     if names["shelpers"] or names["pyhelpers"] or names["bpfhelpers"]:
@@ -884,8 +880,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         else:
             self._bpman = self._spman
 
-        for attr, val in _TOOLS_INFO[self._toolname]["deploy"].items():
-            setattr(self, f"_{attr}", val)
+        for category, info in _TOOLS_INFO[self._toolname]["deploy"].items():
+            setattr(self, f"_{category}", info["names"])
 
     def _remove_tmpdirs(self, remove_tmpdirs=True):
         """
