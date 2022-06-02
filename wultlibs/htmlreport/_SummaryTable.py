@@ -75,7 +75,9 @@ class SummaryTable:
         if metricname in self.smrytbl["title"]:
             raise ErrorExists(f"Unable to add metric '{metricname}' as it has already been added.")
 
-        self._units[metricname] = unit
+        if unit is not None:
+            self._units[metricname] = unit
+
         self._formats[metricname] = fmt
 
         self.smrytbl["title"][metricname] = {
