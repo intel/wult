@@ -101,30 +101,29 @@ EVEN_UP_DP_DESCR = """Even up datapoints count before generating the report. Thi
                       results."""
 
 # Description for the '--xaxes' option of the 'report' command.
-XAXES_DESCR = """A comma-separated list of CSV column names (or python style regular expressions
-                 matching the names) to use on X-axes of the scatter plot(s), default is '%s'. Use
+XAXES_DESCR = """A comma-separated list of metrics (or python style regular expressions matching the
+                 names) to use on X-axes of the scatter plot(s), default is '%s'. Use
                  '--list-metrics' to get the list of the available metrics. Use value 'none' to
                  disable scatter plots."""
 
 # Description for the '--yaxes' option of the 'report' command.
-YAXES_DESCR = """A comma-separated list of CSV column names (or python style regular expressions
-                 matching the names) to use on the Y-axes for the scatter plot(s). If multiple CSV
-                 column names are specified for the X- or Y-axes, then the report will include
-                 multiple scatter plots for all the X- and Y-axes combinations. The default is '%s'.
-                 Use '--list-metrics' to get the list of the available metrics. se value 'none' to
-                 disable scatter plots."""
+YAXES_DESCR = """A comma-separated list of metrics (or python style regular expressions matching the
+                 names) to use on the Y-axes for the scatter plot(s). If multiple metrics are
+                 specified for the X- or Y-axes, then the report will include multiple scatter plots
+                 for all the X- and Y-axes combinations. The default is '%s'.  Use '--list-metrics'
+                 to get the list of the available metrics. Use value 'none' to disable scatter
+                 plots."""
 
 # Description for the '--hist' option of the 'report' command.
-HIST_DESCR = """A comma-separated list of CSV column names (or python style regular expressions
-                matching the names) to add a histogram for, default is '%s'. Use '--list-metrics' to
-                get the list of the available metrics. Use value 'none' to disable histograms.
-                """
+HIST_DESCR = """A comma-separated list of metrics (or python style regular expressions matching the
+                names) to add a histogram for, default is '%s'. Use '--list-metrics' to get the list
+                of the available metrics. Use value 'none' to disable histograms."""
 
 # Description for the '--chist' option of the 'report' command.
-CHIST_DESCR = """A comma-separated list of CSV column names (or python style regular expressions
-                 matching the names) to add a cumulative distribution for, default is '%s'. Use
-                 '--list-metrics' to get the list of the available metrics. Use value 'none' to
-                 disable cumulative histograms."""
+CHIST_DESCR = """A comma-separated list of metrics (or python style regular expressions matching the
+                 names) to add a cumulative distribution for, default is '%s'. Use '--list-metrics'
+                 to get the list of the available metrics. Use value 'none' to disable cumulative
+                 histograms."""
 
 # Description for the '--reportids' option of the 'report' command.
 REPORTIDS_DESCR = """Every input raw result comes with a report ID. This report ID is basically a
@@ -212,8 +211,8 @@ FILTER_REPORTID_DESCR = """Report ID of the filtered version of the result (can 
 
 # Description for the '--funcs' option of the 'calc' command.
 FUNCS_DESCR = """Comma-separated list of summary functions to calculate. By default all generally
-                 interesting functions are calculated (each column name is associated with a list of
-                 functions that make sense for this column). Use '--list-funcs' to get the list of
+                 interesting functions are calculated (each metric is associated with a list of
+                 functions that make sense for that metric). Use '--list-funcs' to get the list of
                  supported functions."""
 
 # Description for the '--list-funcs' option of the 'calc' command.
@@ -393,8 +392,8 @@ def filter_command(args):
     res = RORawResult.RORawResult(args.respath)
 
     if args.list_metrics:
-        for colname in res.metrics:
-            _LOG.info("%s: %s", colname, res.defs.info[colname]["title"])
+        for metric in res.metrics:
+            _LOG.info("%s: %s", metric, res.defs.info[metric]["title"])
         return
 
     if not getattr(args, "oargs", None):
@@ -438,7 +437,7 @@ def calc_command(args):
     non_numeric = res.get_non_numeric_metrics()
     if non_numeric and (args.minclude or args.mexclude):
         non_numeric = ", ".join(non_numeric)
-        _LOG.warning("skipping non-numeric column(s): %s", non_numeric)
+        _LOG.warning("skipping non-numeric metric(s): %s", non_numeric)
 
     res.calc_smrys(funcnames=funcnames, all_funcs=all_funcs)
 
