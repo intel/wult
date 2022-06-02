@@ -89,7 +89,7 @@ class RawResultBase:
         # This dictionary represents the info file.
         self.info = {}
 
-        # The row and column filters and selectors.
+        # The datapoint and metric filters.
         self._exclude = None
         self._mexclude = None
         self._include = None
