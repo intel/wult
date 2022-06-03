@@ -6,6 +6,7 @@ wult (1.10.3) unstable; urgency=low
   * wult/ndl: rename the '--csel' option '--include-metrics'.
   * wult/ndl: rename the '--cfil' option '--exclude-metrics'.
   * wult: do not check for 'bpftool' and 'clang' dependency unnecessarily.
+  * ndl: fail gracefully on 'ndl start tdt'.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com> _DATE_HERE_
 
