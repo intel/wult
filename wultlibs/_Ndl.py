@@ -221,14 +221,6 @@ def start_command(args):
         pman = ToolsCommon.get_pman(args)
         stack.enter_context(pman)
 
-        with Deploy.Deploy(OWN_NAME, pman=pman, debug=args.debug) as depl:
-            if depl.is_deploy_needed():
-                msg = f"'{OWN_NAME}' helpers and/or drivers are not up-to-date{pman.hostmsg}, " \
-                      f"please run: {OWN_NAME} deploy"
-                if pman.is_remote:
-                    msg += f" -H {pman.hostname}"
-                LOG.warning(msg)
-
         args.reportid = ToolsCommon.start_command_reportid(args, pman)
 
         if not args.outdir:
@@ -250,6 +242,14 @@ def start_command(args):
 
         dev = Devices.GetDevice(OWN_NAME, args.devid, pman, dmesg=True)
         stack.enter_context(dev)
+
+        with Deploy.Deploy(OWN_NAME, pman=pman, debug=args.debug) as depl:
+            if depl.is_deploy_needed():
+                msg = f"'{OWN_NAME}' helpers and/or drivers are not up-to-date{pman.hostmsg}, " \
+                      f"please run: {OWN_NAME} deploy"
+                if pman.is_remote:
+                    msg += f" -H {pman.hostname}"
+                LOG.warning(msg)
 
         ToolsCommon.start_command_check_network(args, pman, dev.netif)
 
