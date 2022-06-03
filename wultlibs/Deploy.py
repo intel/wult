@@ -178,17 +178,17 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
     if toolname not in _TOOLS_INFO:
         raise Error(f"BUG: unsupported tool '{toolname}'")
 
-    insts = { category : [] for category in _CATEGORIES }
-    for category, info in _TOOLS_INFO[toolname]["categories"].items():
-        insts[category] = info["names"]
+    cats = { cat : [] for cat in _CATEGORIES }
+    for cat, info in _TOOLS_INFO[toolname]["categories"].items():
+        cats[cat] = info["names"]
 
     what = ""
-    if insts["shelpers"] or insts["pyhelpers"] or insts["bpfhelpers"]:
-        if insts["drivers"]:
+    if cats["shelpers"] or cats["pyhelpers"] or cats["bpfhelpers"]:
+        if cats["drivers"]:
             what = "helpers and drivers"
         else:
             what = "helpers"
-    elif insts["drivers"]:
+    elif cats["drivers"]:
         what = "drivers"
     else:
         raise Error("BUG: no helpers and no drivers")
@@ -205,13 +205,13 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
                 everything is built on the SUT, but the '--local-build' can be used for building
                 on the local system."""
 
-    if insts["drivers"]:
+    if cats["drivers"]:
         drvsearch = ", ".join([name % str(_DRV_SRC_SUBPATH) for name in searchdirs])
         descr += f"""The drivers are searched for in the following directories (and in the
                      following order) on the local host: {drvsearch}."""
-    if insts["shelpers"] or insts["pyhelpers"]:
+    if cats["shelpers"] or cats["pyhelpers"]:
         helpersearch = ", ".join([name % str(_HELPERS_SRC_SUBPATH) for name in searchdirs])
-        helpernames = ", ".join(insts["shelpers"] + insts["pyhelpers"] + insts["bpfhelpers"])
+        helpernames = ", ".join(cats["shelpers"] + cats["pyhelpers"] + cats["bpfhelpers"])
         descr += f"""The {toolname} tool also depends on the following helpers: {helpernames}.
                      These helpers will be compiled on the SUT and deployed to the SUT. The sources
                      of the helpers are searched for in the following paths (and in the following
@@ -222,7 +222,7 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
                      'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
 
-    if insts["drivers"]:
+    if cats["drivers"]:
         text = """Path to the Linux kernel sources to build the drivers against. The default is
                   '/lib/modules/$(uname -r)/build' on the SUT. If '--local-build' was used, then
                   the path is considered to be on the local system, rather than the SUT."""
@@ -231,7 +231,7 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
-    if insts["bpfhelpers"]:
+    if cats["bpfhelpers"]:
         text = """eBPF helpers sources consist of 2 components: the user-space component and the
                   eBPF component. The user-space component is distributed as a source code, and must
                   be compiled. The eBPF component is distributed as both source code and compiled
@@ -449,10 +449,10 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         dinfos["drivers"] = {"src" : [srcpath], "dst" : dstpaths}
 
         # Add non-python helpers' deploy information.
-        if self._shelpers or self._pyhelpers:
+        if self._cats["shelpers"] or self._cats["pyhelpers"]:
             helpers_deploy_path = get_helpers_deploy_path(self._toolname, self._spman)
 
-        for shelper in self._shelpers:
+        for shelper in self._cats["shelpers"]:
             srcpath = find_app_data("wult", _HELPERS_SRC_SUBPATH / shelper,
                                     appname=self._toolname)
             dstpaths = []
@@ -463,8 +463,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         # Add python helpers' deploy information. Note, python helpers are deployed only to the
         # remote host. The local copy of python helpers comes via 'setup.py'. Therefore, check them
         # only for the remote case.
-        if self._pyhelpers and self._spman.is_remote:
-            for pyhelper in self._pyhelpers:
+        if self._cats["pyhelpers"] and self._spman.is_remote:
+            for pyhelper in self._cats["pyhelpers"]:
                 datapath = find_app_data("wult", _HELPERS_SRC_SUBPATH / pyhelper,
                                          appname=self._toolname)
                 srcpaths = []
@@ -525,7 +525,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         """
 
         # Copy simple helpers to the temporary directory on the build host.
-        for shelper in self._shelpers:
+        for shelper in self._cats["shelpers"]:
             srcdir = helpersrc/ shelper
             _LOG.debug("copying simple helper '%s' to %s:\n  '%s' -> '%s'",
                        shelper, self._bpman.hostname, srcdir, self._btmpdir)
@@ -533,7 +533,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                               remotedst=self._bpman.is_remote)
 
         # Build simple helpers.
-        for shelper in self._shelpers:
+        for shelper in self._cats["shelpers"]:
             _LOG.info("Compiling simple helper '%s'%s", shelper, self._bpman.hostmsg)
             helperpath = f"{self._btmpdir}/{shelper}"
             stdout, stderr = self._bpman.run_verify(f"make -C '{helperpath}'")
@@ -546,13 +546,13 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         """
 
         # Copy python helpers to the temporary directory on the controller.
-        for pyhelper in self._pyhelpers:
+        for pyhelper in self._cats["pyhelpers"]:
             srcdir = helpersrc / pyhelper
             _LOG.debug("copying python helper %s:\n  '%s' -> '%s'", pyhelper, srcdir, self._ctmpdir)
             self._cpman.rsync(srcdir, self._ctmpdir, remotesrc=False, remotedst=False)
 
         # Build stand-alone version of every python helper.
-        for pyhelper in self._pyhelpers:
+        for pyhelper in self._cats["pyhelpers"]:
             _LOG.info("Building a stand-alone version of '%s'", pyhelper)
             basedir = self._ctmpdir / pyhelper
             deployables = _get_deployables(basedir)
@@ -562,7 +562,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         # And copy the "standoline-ized" version of python helpers to the SUT.
         if self._spman.is_remote:
-            for pyhelper in self._pyhelpers:
+            for pyhelper in self._cats["pyhelpers"]:
                 srcdir = self._ctmpdir / pyhelper
                 _LOG.debug("copying python helper '%s' to %s:\n  '%s' -> '%s'",
                            pyhelper, self._spman.hostname, srcdir, self._stmpdir)
@@ -597,7 +597,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         """
 
         # Copy eBPF helpers to the temporary directory on the build host.
-        for bpfhelper in self._bpfhelpers:
+        for bpfhelper in self._cats["bpfhelpers"]:
             srcdir = helpersrc/ bpfhelper
             _LOG.debug("copying eBPF helper '%s' to %s:\n  '%s' -> '%s'",
                        bpfhelper, self._bpman.hostname, srcdir, self._btmpdir)
@@ -614,7 +614,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             clang_path = self._tchk.check_tool("clang")
 
             # Build the eBPF components of eBPF helpers.
-            for bpfhelper in self._bpfhelpers:
+            for bpfhelper in self._cats["bpfhelpers"]:
                 _LOG.info("Compiling the eBPF component of '%s'%s",
                           bpfhelper, self._bpman.hostmsg)
                 cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{self._ksrc}' " \
@@ -633,7 +633,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             libbpf_path = self._get_libbpf_path()
 
         # Build eBPF helpers.
-        for bpfhelper in self._bpfhelpers:
+        for bpfhelper in self._cats["bpfhelpers"]:
             _LOG.info("Compiling eBPF helper '%s'%s", bpfhelper, self._bpman.hostmsg)
             cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{self._ksrc}' LIBBPF={libbpf_path}"
             stdout, stderr = self._bpman.run_verify(cmd)
@@ -647,9 +647,9 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         #   * either deployed via 'setup.py'.
         #   * or if running from source code, present in the source code.
         if not self._spman.is_remote:
-            self._pyhelpers = []
+            self._cats["pyhelpers"] = []
 
-        all_helpers = self._shelpers + self._pyhelpers + self._bpfhelpers
+        all_helpers = self._cats["shelpers"] + self._cats["pyhelpers"] + self._cats["bpfhelpers"]
         if not all_helpers:
             return
 
@@ -667,11 +667,11 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             if not helperdir.is_dir():
                 raise Error(f"path '{helperdir}' does not exist or it is not a directory")
 
-        if self._shelpers:
+        if self._cats["shelpers"]:
             self._prepare_shelpers(helpersrc)
-        if self._pyhelpers:
+        if self._cats["pyhelpers"]:
             self._prepare_pyhelpers(helpersrc)
-        if self._bpfhelpers:
+        if self._cats["bpfhelpers"]:
             self._prepare_bpfhelpers(helpersrc)
 
         deploy_path = get_helpers_deploy_path(self._toolname, self._spman)
@@ -706,7 +706,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
     def _deploy_drivers(self):
         """Deploy drivers to the SUT."""
 
-        for drvname in self._drivers:
+        for drvname in self._cats["drivers"]:
             drvsrc = find_app_data("wult", _DRV_SRC_SUBPATH / drvname,
                                    descr=f"{drvname} drivers sources")
             if not drvsrc.is_dir():
@@ -844,7 +844,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             #   2. We are building locally.
             #   3. We are deploying python helpers. Regardless of the target host, we need a local
             #      temporary directory for creating stand-alone versions of the helpers.
-            if self._lbuild or not self._spman.is_remote or self._pyhelpers:
+            if self._lbuild or not self._spman.is_remote or self._cats["pyhelpers"]:
                 self._ctmpdir = self._cpman.mkdtemp(prefix=f"{self._toolname}-")
 
             if self._spman.is_remote:
@@ -908,25 +908,23 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._kver = None    # Version of the kernel to compile the drivers for.
         self._tchk = None
 
-        self._drivers = []
-        self._shelpers = []
-        self._pyhelpers = []
-        self._bpfhelpers = []
+        # Lists of installables in every category.
+        self._cats = { cat : [] for cat in _CATEGORIES }
+
+        if self._toolname not in _TOOLS_INFO:
+            raise Error(f"BUG: unsupported tool '{toolname}'")
+
+        for cat, info in _TOOLS_INFO[toolname]["categories"].items():
+            self._cats[cat] = info["names"]
 
         self._cpman = LocalProcessManager.LocalProcessManager()
         if not self._spman:
             self._spman = self._cpman
 
-        if self._toolname not in _TOOLS_INFO:
-            raise Error(f"BUG: unsupported tool '{toolname}'")
-
         if self._lbuild:
             self._bpman = self._cpman
         else:
             self._bpman = self._spman
-
-        for category, info in _TOOLS_INFO[self._toolname]["categories"].items():
-            setattr(self, f"_{category}", info["names"])
 
         self._tchk = ToolChecker.ToolChecker(pman=self._bpman)
 
