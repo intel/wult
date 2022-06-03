@@ -469,11 +469,12 @@ def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
       * other arguments documented in '_DeviceBase.__init__()'.
     """
 
-    if devid in _WultTSCDeadlineTimer.supported_devices or devid == _WultTSCDeadlineTimer.alias:
-        return _WultTSCDeadlineTimer(devid, pman, cpunum=cpunum, dmesg=dmesg)
+    if toolname == "wult":
+        if devid in _WultTSCDeadlineTimer.supported_devices or devid == _WultTSCDeadlineTimer.alias:
+            return _WultTSCDeadlineTimer(devid, pman, cpunum=cpunum, dmesg=dmesg)
 
-    if devid in _WultHRTimer.supported_devices or devid == _WultHRTimer.alias:
-        return _WultHRTimer(devid, pman, dmesg=dmesg)
+        if devid in _WultHRTimer.supported_devices or devid == _WultHRTimer.alias:
+            return _WultHRTimer(devid, pman, dmesg=dmesg)
 
     if toolname == "wult":
         clsname = "_WultIntelI210"
