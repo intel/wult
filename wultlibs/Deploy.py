@@ -42,6 +42,9 @@ _TOOLS_INFO = {
     },
 }
 
+class _ErrorKVer(Error):
+    """An exception class indicating that SUT kernel version is not new enough."""
+
 def find_app_data(prjname, subpath, appname=None, descr=None):
     """
     Search for application 'appname' data. The data are searched for in the 'subpath' sub-path of
@@ -769,8 +772,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                       f" * kernel version {minkver} for partial functionaliy support\n" \
                       f" * kernel version {maxkver} for full functionality support."
 
-            raise Error(f"version of Linux kernel{self._bpman.hostmsg} is {self._kver}, and it is "
-                        f"not new enough for {self._toolname}.\n{msg}")
+            raise _ErrorKVer(f"version of Linux kernel{self._bpman.hostmsg} is {self._kver}, and "
+                             f"it is not new enough for {self._toolname}.\n{msg}")
 
     def _init_kernel_info(self):
         """
