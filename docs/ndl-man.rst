@@ -166,8 +166,8 @@ COMMAND *'ndl* start'
 
 usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
 [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid
-REPORTID] [-l LDIST] [--rfilt RFILT] [--rsel RSEL] [--keep-filtered]
-[--report] [--force] ifname
+REPORTID] [-l LDIST] [--exclude EXCLUDE] [--include INCLUDE]
+[--keep-filtered] [--report] [--force] ifname
 
 Start measuring and recording the latency data.
 
@@ -252,31 +252,34 @@ required amount of datapoints is collected.
 or prevent the SUT from reaching deep C-states. The optimal value is
 system- specific.
 
-**--rfilt** *RFILT*
-   The row filter: remove all the rows satisfying the filter expression.
-   Here is an example of an expression: '(WakeLatency < 10000) \| (PC6%
-   < 1)'. This row filter expression will remove all rows with
-   'WakeLatency' smaller than 10000 nanoseconds or package C6 residency
-   smaller than 1%. You can use any column names in the expression.
+**--exclude** *EXCLUDE*
+   Datapoints to exclude: remove all the datapoints satisfying the
+   expression
 
-**--rsel** *RSEL*
-   The row selector: remove all rows except for those satisfying the
-   selector expression. In other words, the selector is just an inverse
-   filter: '--rsel expr' is the same as '--rfilt "not (expr)"'.
+< 1)'. This filter expression will remove all datapoints with
+'WakeLatency' smaller than 10000 nanoseconds or package C6 residency
+smaller than 1%. You can use any metrics in the expression.
+
+**--include** *INCLUDE*
+   Datapoints to include: remove all datapoints except for those
+   satisfying the expression 'INCLUDE'. In other words, this option is
+   the inverse of '-- exclude'. This means, '--include expr' is the same
+   as '--exclude "not (expr)"'.
 
 **--keep-filtered**
-   If the '--rfilt' / '--rsel' options are used, then the datapoints not
-   matching the selector or matching the filter are discarded. This is
-   the default behavior which can be changed with this option. If
-   '--keep-filtered' has been specified, then all datapoints are saved
-   in result. Here is an example. Suppose you want to collect 100000
-   datapoints where RTD is greater than 50 microseconds. In this case,
-   you can use these options: -c 100000 --rfilt="RTD > 50". The result
-   will contain 100000 datapoints, all of them will have RTD bigger than
-   50 microseconds. But what if you do not want to simply discard the
-   other datapoints, because they are also interesting? Well, add the
-   '--keep- filtered' option. The result will contain, say, 150000
-   datapoints, 100000 of which will have RTD value greater than 50.
+   If the '--exclude' / '--include' options are used, then the
+   datapoints not matching the selector or matching the filter are
+   discarded. This is the default behavior which can be changed with
+   this option. If '--keep-filtered' has been specified, then all
+   datapoints are saved in result. Here is an example. Suppose you want
+   to collect 100000 datapoints where RTD is greater than 50
+   microseconds. In this case, you can use these options: -c 100000
+   --exclude="RTD > 50". The result will contain 100000 datapoints, all
+   of them will have RTD bigger than 50 microseconds. But what if you do
+   not want to simply discard the other datapoints, because they are
+   also interesting? Well, add the '--keep-filtered' option. The result
+   will contain, say, 150000 datapoints, 100000 of which will have RTD
+   value greater than 50.
 
 **--report**
    Generate an HTML report for collected results (same as calling
@@ -291,10 +294,10 @@ system- specific.
 COMMAND *'ndl* report'
 ======================
 
-usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--rfilt RFILT] [--rsel
-RSEL] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist
-CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR]
-[--relocatable] [--list-columns] respaths [respaths ...]
+usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--exclude EXCLUDE]
+[--include INCLUDE] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist
+HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr
+TITLE_DESCR] [--relocatable] [--list-metrics] respaths [respaths ...]
 
 Create an HTML report for one or multiple test results.
 
@@ -320,22 +323,24 @@ OPTIONS *'ndl* report'
    stored in the current directory. The '<reportid>' is report ID of ndl
    test result.
 
-**--rfilt** *RFILT*
-   The row filter: remove all the rows satisfying the filter expression.
-   Here is an example of an expression: '(WakeLatency < 10000) \| (PC6%
-   < 1)'. This row filter expression will remove all rows with
-   'WakeLatency' smaller than 10000 nanoseconds or package C6 residency
-   smaller than 1%. The detailed row filter expression syntax can be
-   found in the documentation for the 'eval()' function of Python
-   'pandas' module. You can use column names in the expression, or the
-   special word 'index' for the row number. Value '0' is the header,
-   value '1' is the first row, and so on. For example, expression 'index
-   >= 10' will get rid of all data rows except for the first 10 ones.
+**--exclude** *EXCLUDE*
+   Datapoints to exclude: remove all the datapoints satisfying the
+   expression
 
-**--rsel** *RSEL*
-   The row selector: remove all rows except for those satisfying the
-   selector expression. In other words, the selector is just an inverse
-   filter: '--rsel expr' is the same as '--rfilt "not (expr)"'.
+< 1)'. This filter expression will remove all datapoints with
+'WakeLatency' smaller than 10000 nanoseconds or package C6 residency
+smaller than 1%. The detailed expression syntax can be found in the
+documentation for the 'eval()' function of Python 'pandas' module. You
+can use metrics in the expression, or the special word 'index' for the
+row number (0-based index) of a datapoint in the results. For example,
+expression 'index >= 10' will get rid of all datapoints except for the
+first 10 ones.
+
+**--include** *INCLUDE*
+   Datapoints to include: remove all datapoints except for those
+   satisfying the expression 'INCLUDE'. In other words, this option is
+   the inverse of '-- exclude'. This means, '--include expr' is the same
+   as '--exclude "not (expr)"'.
 
 **--even-up-dp-count**
    Even up datapoints count before generating the report. This option is
@@ -348,32 +353,32 @@ OPTIONS *'ndl* report'
    results.
 
 **-x** *XAXES*, **--xaxes** *XAXES*
-   A comma-separated list of CSV column names (or python style regular
+   A comma-separated list of metrics (or python style regular
    expressions matching the names) to use on X-axes of the scatter
-   plot(s), default is 'LDist'. Use '--list-columns' to get the list of
-   the available column names. Use value 'none' to disable scatter
-   plots.
+   plot(s), default is
+
+value 'none' to disable scatter plots.
 
 **-y** *YAXES*, **--yaxes** *YAXES*
-   A comma-separated list of CSV column names (or python style regular
+   A comma-separated list of metrics (or python style regular
    expressions matching the names) to use on the Y-axes for the scatter
-   plot(s). If multiple CSV column names are specified for the X- or
-   Y-axes, then the report will include multiple scatter plots for all
-   the X- and Y-axes combinations. The default is 'RTD'. Use
-   '--list-columns' to get the list of the available column names. se
-   value 'none' to disable scatter plots.
+   plot(s). If multiple metrics are specified for the X- or Y-axes, then
+   the report will include multiple scatter plots for all the X- and
+   Y-axes combinations. The default is
+
+value 'none' to disable scatter plots.
 
 **--hist** *HIST*
-   A comma-separated list of CSV column names (or python style regular
+   A comma-separated list of metrics (or python style regular
    expressions matching the names) to add a histogram for, default is
-   'RTD'. Use
+   'RTD'. Use '--list- metrics' to get the list of the available
+   metrics. Use value 'none' to disable histograms.
 
 **--chist** *CHIST*
-   A comma-separated list of CSV column names (or python style regular
+   A comma-separated list of metrics (or python style regular
    expressions matching the names) to add a cumulative distribution for,
-   default is 'RTD'. Use '--list-columns' to get the list of the
-   available column names. Use value 'none' to disable cumulative
-   histograms.
+   default is 'RTD'. Use '--list-metrics' to get the list of the
+   available metrics. Use value
 
 **--reportids** *REPORTIDS*
    Every input raw result comes with a report ID. This report ID is
@@ -401,20 +406,21 @@ OPTIONS *'ndl* report'
    and statistics files which are copied across with the raw test
    results.
 
-**--list-columns**
-   Print the list of the available column names and exit.
+**--list-metrics**
+   Print the list of the available metrics and exit.
 
 COMMAND *'ndl* filter'
 ======================
 
-usage: ndl filter [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt
-CFILT] [--csel CSEL] [--human-readable] [-o OUTDIR] [--list-columns]
-[--reportid REPORTID] respath
+usage: ndl filter [-h] [-q] [-d] [--exclude EXCLUDE] [--include INCLUDE]
+[--exclude-metrics MEXCLUDE] [--include-metrics MINCLUDE]
+[--human-readable] [-o OUTDIR] [--list-metrics] [--reportid REPORTID]
+respath
 
-Filter datapoints out of a test result by removing CSV rows and columns
+Filter datapoints out of a test result by removing CSV rows and metrics
 according to specified criteria. The criteria is specified using the row
-and column filter and selector options ('--rsel', '--cfilt', etc). The
-options may be specified multiple times.
+and metric filter and selector options ('--include',
+'--exclude-metrics', etc). The options may be specified multiple times.
 
 **respath**
    The ndl test result path to filter.
@@ -431,34 +437,36 @@ OPTIONS *'ndl* filter'
 **-d**
    Print debugging information.
 
-**--rfilt** *RFILT*
-   The row filter: remove all the rows satisfying the filter expression.
-   Here is an example of an expression: '(WakeLatency < 10000) \| (PC6%
-   < 1)'. This row filter expression will remove all rows with
-   'WakeLatency' smaller than 10000 nanoseconds or package C6 residency
-   smaller than 1%. The detailed row filter expression syntax can be
-   found in the documentation for the 'eval()' function of Python
-   'pandas' module. You can use column names in the expression, or the
-   special word 'index' for the row number. Value '0' is the header,
-   value '1' is the first row, and so on. For example, expression 'index
-   >= 10' will get rid of all data rows except for the first 10 ones.
+**--exclude** *EXCLUDE*
+   Datapoints to exclude: remove all the datapoints satisfying the
+   expression
 
-**--rsel** *RSEL*
-   The row selector: remove all rows except for those satisfying the
-   selector expression. In other words, the selector is just an inverse
-   filter: '--rsel expr' is the same as '--rfilt "not (expr)"'.
+< 1)'. This filter expression will remove all datapoints with
+'WakeLatency' smaller than 10000 nanoseconds or package C6 residency
+smaller than 1%. The detailed expression syntax can be found in the
+documentation for the 'eval()' function of Python 'pandas' module. You
+can use metrics in the expression, or the special word 'index' for the
+row number (0-based index) of a datapoint in the results. For example,
+expression 'index >= 10' will get rid of all datapoints except for the
+first 10 ones.
 
-**--cfilt** *CFILT*
-   The columns filter: remove all column specified in the filter. The
-   columns filter is just a comma-separated list of the CSV file column
-   names or python style regular expressions matching the names. For
-   example expression
+**--include** *INCLUDE*
+   Datapoints to include: remove all datapoints except for those
+   satisfying the expression 'INCLUDE'. In other words, this option is
+   the inverse of '-- exclude'. This means, '--include expr' is the same
+   as '--exclude "not (expr)"'.
 
-columns' to get the list of the available column names.
+**--exclude-metrics** *MEXCLUDE*
+   The metrics to exclude. Expects a comma-separated list of the metrics
+   or python style regular expressions matching the names. For example,
+   the expression 'SilentTime,WarmupDelay,.*Cyc', would remove metrics
+   'SilentTime',
 
-**--csel** *CSEL*
-   The columns selector: remove all column except for those specified in
-   the selector. The syntax is the same as for '--cfilt'.
+to get the list of the available metrics.
+
+**--include-metrics** *MINCLUDE*
+   The metrics to include: remove all metrics except for those specified
+   by this option. The syntax is the same as for '--exclude-metrics'.
 
 **--human-readable**
    By default the result 'filter' command print the result as a CSV file
@@ -471,8 +479,8 @@ columns' to get the list of the available column names.
    store the result at. This will create a filtered version of the input
    test result.
 
-**--list-columns**
-   Print the list of the available column names and exit.
+**--list-metrics**
+   Print the list of the available metrics and exit.
 
 **--reportid** *REPORTID*
    Report ID of the filtered version of the result (can only be used
@@ -481,8 +489,9 @@ columns' to get the list of the available column names.
 COMMAND *'ndl* calc'
 ====================
 
-usage: ndl calc [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt
-CFILT] [--csel CSEL] [-f FUNCS] [--list-funcs] respath
+usage: ndl calc [-h] [-q] [-d] [--exclude EXCLUDE] [--include INCLUDE]
+[--exclude-metrics MEXCLUDE] [--include-metrics MINCLUDE] [-f FUNCS]
+[--list-funcs] respath
 
 Calculates various summary functions for a ndl test result (e.g., the
 median value for one of the CSV columns).
@@ -502,40 +511,42 @@ OPTIONS *'ndl* calc'
 **-d**
    Print debugging information.
 
-**--rfilt** *RFILT*
-   The row filter: remove all the rows satisfying the filter expression.
-   Here is an example of an expression: '(WakeLatency < 10000) \| (PC6%
-   < 1)'. This row filter expression will remove all rows with
-   'WakeLatency' smaller than 10000 nanoseconds or package C6 residency
-   smaller than 1%. The detailed row filter expression syntax can be
-   found in the documentation for the 'eval()' function of Python
-   'pandas' module. You can use column names in the expression, or the
-   special word 'index' for the row number. Value '0' is the header,
-   value '1' is the first row, and so on. For example, expression 'index
-   >= 10' will get rid of all data rows except for the first 10 ones.
+**--exclude** *EXCLUDE*
+   Datapoints to exclude: remove all the datapoints satisfying the
+   expression
 
-**--rsel** *RSEL*
-   The row selector: remove all rows except for those satisfying the
-   selector expression. In other words, the selector is just an inverse
-   filter: '--rsel expr' is the same as '--rfilt "not (expr)"'.
+< 1)'. This filter expression will remove all datapoints with
+'WakeLatency' smaller than 10000 nanoseconds or package C6 residency
+smaller than 1%. The detailed expression syntax can be found in the
+documentation for the 'eval()' function of Python 'pandas' module. You
+can use metrics in the expression, or the special word 'index' for the
+row number (0-based index) of a datapoint in the results. For example,
+expression 'index >= 10' will get rid of all datapoints except for the
+first 10 ones.
 
-**--cfilt** *CFILT*
-   The columns filter: remove all column specified in the filter. The
-   columns filter is just a comma-separated list of the CSV file column
-   names or python style regular expressions matching the names. For
-   example expression
+**--include** *INCLUDE*
+   Datapoints to include: remove all datapoints except for those
+   satisfying the expression 'INCLUDE'. In other words, this option is
+   the inverse of '-- exclude'. This means, '--include expr' is the same
+   as '--exclude "not (expr)"'.
 
-columns' to get the list of the available column names.
+**--exclude-metrics** *MEXCLUDE*
+   The metrics to exclude. Expects a comma-separated list of the metrics
+   or python style regular expressions matching the names. For example,
+   the expression 'SilentTime,WarmupDelay,.*Cyc', would remove metrics
+   'SilentTime',
 
-**--csel** *CSEL*
-   The columns selector: remove all column except for those specified in
-   the selector. The syntax is the same as for '--cfilt'.
+to get the list of the available metrics.
+
+**--include-metrics** *MINCLUDE*
+   The metrics to include: remove all metrics except for those specified
+   by this option. The syntax is the same as for '--exclude-metrics'.
 
 **-f** *FUNCS*, **--funcs** *FUNCS*
    Comma-separated list of summary functions to calculate. By default
-   all generally interesting functions are calculated (each column name
-   is associated with a list of functions that make sense for this
-   column). Use '--list-funcs' to get the list of supported functions.
+   all generally interesting functions are calculated (each metric is
+   associated with a list of functions that make sense for that metric).
+   Use '--list-funcs' to get the list of supported functions.
 
 **--list-funcs**
    Print the list of the available summary functions.

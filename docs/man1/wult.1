@@ -133,7 +133,7 @@ host. By default the key is automatically found from standard paths like
 SSH connect timeout in seconds, default is 8.
 
 .SH COMMAND \fI\,'wult start'\/\fR
-usage: wult start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--rfilt RFILT] [--rsel RSEL] [--keep-filtered] [-o OUTDIR] [--reportid REPORTID] [--stats STATS]
+usage: wult start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--exclude EXCLUDE] [--include INCLUDE] [--keep-filtered] [-o OUTDIR] [--reportid REPORTID] [--stats STATS]
                   [--stats-intervals STATS_INTERVALS] [--list-stats] [-l LDIST] [--cpunum CPUNUM] [--intr-focus] [--tsc-cal-time TSC_CAL_TIME] [--keep-raw-data] [--no-unload] [--early-intr] [--report] [--force]
                   devid
 
@@ -199,32 +199,33 @@ stop as when either the time limit is reached, or the required amount of
 datapoints is collected.
 
 .TP
-\fB\-\-rfilt\fR \fI\,RFILT\/\fR
-The row filter: remove all the rows satisfying the filter expression. Here is
-an example of an expression: '(WakeLatency < 10000) | (PC6% < 1)'. This row
-filter expression will remove all rows with 'WakeLatency' smaller than 10000
-nanoseconds or package C6 residency smaller than 1%. You can use any column
-names in the expression.
+\fB\-\-exclude\fR \fI\,EXCLUDE\/\fR
+Datapoints to exclude: remove all the datapoints satisfying the expression
+'EXCLUDE'. Here is an example of an expression: '(WakeLatency < 10000) | (PC6%
+< 1)'. This filter expression will remove all datapoints with 'WakeLatency'
+smaller than 10000 nanoseconds or package C6 residency smaller than 1%. You
+can use any metrics in the expression.
 
 .TP
-\fB\-\-rsel\fR \fI\,RSEL\/\fR
-The row selector: remove all rows except for those satisfying the selector
-expression. In other words, the selector is just an inverse filter: '\-\-rsel
-expr' is the same as '\-\-rfilt "not (expr)"'.
+\fB\-\-include\fR \fI\,INCLUDE\/\fR
+Datapoints to include: remove all datapoints except for those satisfying the
+expression 'INCLUDE'. In other words, this option is the inverse of '\-\-
+exclude'. This means, '\-\-include expr' is the same as '\-\-exclude "not
+(expr)"'.
 
 .TP
 \fB\-\-keep\-filtered\fR
-If the '\-\-rfilt' / '\-\-rsel' options are used, then the datapoints not matching
-the selector or matching the filter are discarded. This is the default
-behavior which can be changed with this option. If '\-\-keep\-filtered' has been
-specified, then all datapoints are saved in result. Here is an example.
-Suppose you want to collect 100000 datapoints where PC6 residency is greater
-than 0. In this case, you can use these options: \-c 100000 \-\-rfilt="PC6% ==
-0". The result will contain 100000 datapoints, all of them will have non\-zero
-PC6 residency. But what if you do not want to simply discard the other
-datapoints, because they are also interesting? Well, add the '\-\-keep\-filtered'
-option. The result will contain, say, 150000 datapoints, 100000 of which will
-have non\-zero PC6 residency.
+If the '\-\-exclude' / '\-\-include' options are used, then the datapoints not
+matching the selector or matching the filter are discarded. This is the
+default behavior which can be changed with this option. If '\-\-keep\-filtered'
+has been specified, then all datapoints are saved in result. Here is an
+example. Suppose you want to collect 100000 datapoints where PC6 residency is
+greater than 0. In this case, you can use these options: \-c 100000
+\-\-exclude="PC6% == 0". The result will contain 100000 datapoints, all of them
+will have non\-zero PC6 residency. But what if you do not want to simply
+discard the other datapoints, because they are also interesting? Well, add the
+'\-\-keep\-filtered' option. The result will contain, say, 150000 datapoints,
+100000 of which will have non\-zero PC6 residency.
 
 .TP
 \fB\-o\fR \fI\,OUTDIR\/\fR, \fB\-\-outdir\fR \fI\,OUTDIR\/\fR
@@ -360,8 +361,8 @@ such as "up". Use '\-\-force' to disable this safety mechanism. Use it with "
 caution.
 
 .SH COMMAND \fI\,'wult report'\/\fR
-usage: wult report [-h] [-q] [-d] [-o OUTDIR] [--rfilt RFILT] [--rsel RSEL] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR] [--relocatable] [--list-columns]
-                   [--size REPORT_SIZE]
+usage: wult report [-h] [-q] [-d] [-o OUTDIR] [--exclude EXCLUDE] [--include INCLUDE] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR] [--relocatable]
+                   [--list-metrics] [--size REPORT_SIZE]
                    respaths [respaths ...]
 
 Create an HTML report for one or multiple test results.
@@ -391,22 +392,23 @@ there are multiple test results, the report is stored in the current
 directory. The '<reportid>' is report ID of wult test result.
 
 .TP
-\fB\-\-rfilt\fR \fI\,RFILT\/\fR
-The row filter: remove all the rows satisfying the filter expression. Here is
-an example of an expression: '(WakeLatency < 10000) | (PC6% < 1)'. This row
-filter expression will remove all rows with 'WakeLatency' smaller than 10000
-nanoseconds or package C6 residency smaller than 1%. The detailed row filter
-expression syntax can be found in the documentation for the 'eval()' function
-of Python 'pandas' module. You can use column names in the expression, or the
-special word 'index' for the row number. Value '0' is the header, value '1' is
-the first row, and so on. For example, expression 'index >= 10' will get rid
-of all data rows except for the first 10 ones.
+\fB\-\-exclude\fR \fI\,EXCLUDE\/\fR
+Datapoints to exclude: remove all the datapoints satisfying the expression
+'EXCLUDE'. Here is an example of an expression: '(WakeLatency < 10000) | (PC6%
+< 1)'. This filter expression will remove all datapoints with 'WakeLatency'
+smaller than 10000 nanoseconds or package C6 residency smaller than 1%. The
+detailed expression syntax can be found in the documentation for the 'eval()'
+function of Python 'pandas' module. You can use metrics in the expression, or
+the special word 'index' for the row number (0\-based index) of a datapoint in
+the results. For example, expression 'index >= 10' will get rid of all
+datapoints except for the first 10 ones.
 
 .TP
-\fB\-\-rsel\fR \fI\,RSEL\/\fR
-The row selector: remove all rows except for those satisfying the selector
-expression. In other words, the selector is just an inverse filter: '\-\-rsel
-expr' is the same as '\-\-rfilt "not (expr)"'.
+\fB\-\-include\fR \fI\,INCLUDE\/\fR
+Datapoints to include: remove all datapoints except for those satisfying the
+expression 'INCLUDE'. In other words, this option is the inverse of '\-\-
+exclude'. This means, '\-\-include expr' is the same as '\-\-exclude "not
+(expr)"'.
 
 .TP
 \fB\-\-even\-up\-dp\-count\fR
@@ -420,33 +422,33 @@ results.
 
 .TP
 \fB\-x\fR \fI\,XAXES\/\fR, \fB\-\-xaxes\fR \fI\,XAXES\/\fR
-A comma\-separated list of CSV column names (or python style regular
-expressions matching the names) to use on X\-axes of the scatter plot(s),
-default is 'SilentTime'. Use '\-\-list\-columns' to get the list of the available
-column names. Use value 'none' to disable scatter plots.
+A comma\-separated list of metrics (or python style regular expressions
+matching the names) to use on X\-axes of the scatter plot(s), default is
+'SilentTime'. Use '\-\-list\-metrics' to get the list of the available metrics.
+Use value 'none' to disable scatter plots.
 
 .TP
 \fB\-y\fR \fI\,YAXES\/\fR, \fB\-\-yaxes\fR \fI\,YAXES\/\fR
-A comma\-separated list of CSV column names (or python style regular
-expressions matching the names) to use on the Y\-axes for the scatter plot(s).
-If multiple CSV column names are specified for the X\- or Y\-axes, then the
-report will include multiple scatter plots for all the X\- and Y\-axes
-combinations. The default is '.*Latency'. Use '\-\-list\-columns' to get the list
-of the available column names. se value 'none' to disable scatter plots.
+A comma\-separated list of metrics (or python style regular expressions
+matching the names) to use on the Y\-axes for the scatter plot(s). If multiple
+metrics are specified for the X\- or Y\-axes, then the report will include
+multiple scatter plots for all the X\- and Y\-axes combinations. The default is
+'.*Latency'. Use '\-\-list\-metrics' to get the list of the available metrics.
+Use value 'none' to disable scatter plots.
 
 .TP
 \fB\-\-hist\fR \fI\,HIST\/\fR
-A comma\-separated list of CSV column names (or python style regular
-expressions matching the names) to add a histogram for, default is
-'.*Latency'. Use '\-\-list\-columns' to get the list of the available column
-names. Use value 'none' to disable histograms.
+A comma\-separated list of metrics (or python style regular expressions
+matching the names) to add a histogram for, default is '.*Latency'. Use '\-\-
+list\-metrics' to get the list of the available metrics. Use value 'none' to
+disable histograms.
 
 .TP
 \fB\-\-chist\fR \fI\,CHIST\/\fR
-A comma\-separated list of CSV column names (or python style regular
-expressions matching the names) to add a cumulative distribution for, default
-is 'None'. Use '\-\-list\-columns' to get the list of the available column names.
-Use value 'none' to disable cumulative histograms.
+A comma\-separated list of metrics (or python style regular expressions
+matching the names) to add a cumulative distribution for, default is 'None'.
+Use '\-\-list\-metrics' to get the list of the available metrics. Use value
+'none' to disable cumulative histograms.
 
 .TP
 \fB\-\-reportids\fR \fI\,REPORTIDS\/\fR
@@ -475,8 +477,8 @@ option, viewers of the report will be able to browse raw logs and statistics
 files which are copied across with the raw test results.
 
 .TP
-\fB\-\-list\-columns\fR
-Print the list of the available column names and exit.
+\fB\-\-list\-metrics\fR
+Print the list of the available metrics and exit.
 
 .TP
 \fB\-\-size\fR \fI\,REPORT_SIZE\/\fR
@@ -485,9 +487,9 @@ Possible values: 'small', 'medium' or 'large'. This option is mutually
 exclusive with '\-\-xaxes', '\-\-yaxes', '\-\-hist', '\-\-chist'.
 
 .SH COMMAND \fI\,'wult filter'\/\fR
-usage: wult filter [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt CFILT] [--csel CSEL] [--human-readable] [-o OUTDIR] [--list-columns] [--reportid REPORTID] respath
+usage: wult filter [-h] [-q] [-d] [--exclude EXCLUDE] [--include INCLUDE] [--exclude-metrics MEXCLUDE] [--include-metrics MINCLUDE] [--human-readable] [-o OUTDIR] [--list-metrics] [--reportid REPORTID] respath
 
-Filter datapoints out of a test result by removing CSV rows and columns according to specified criteria. The criteria is specified using the row and column filter and selector options ('\-\-rsel', '\-\-cfilt', etc). The options may be specified multiple times.
+Filter datapoints out of a test result by removing CSV rows and metrics according to specified criteria. The criteria is specified using the row and metric filter and selector options ('\-\-include', '\-\-exclude\-metrics', etc). The options may be specified multiple times.
 
 .TP
 \fBrespath\fR
@@ -507,36 +509,36 @@ Be quiet.
 Print debugging information.
 
 .TP
-\fB\-\-rfilt\fR \fI\,RFILT\/\fR
-The row filter: remove all the rows satisfying the filter expression. Here is
-an example of an expression: '(WakeLatency < 10000) | (PC6% < 1)'. This row
-filter expression will remove all rows with 'WakeLatency' smaller than 10000
-nanoseconds or package C6 residency smaller than 1%. The detailed row filter
-expression syntax can be found in the documentation for the 'eval()' function
-of Python 'pandas' module. You can use column names in the expression, or the
-special word 'index' for the row number. Value '0' is the header, value '1' is
-the first row, and so on. For example, expression 'index >= 10' will get rid
-of all data rows except for the first 10 ones.
+\fB\-\-exclude\fR \fI\,EXCLUDE\/\fR
+Datapoints to exclude: remove all the datapoints satisfying the expression
+'EXCLUDE'. Here is an example of an expression: '(WakeLatency < 10000) | (PC6%
+< 1)'. This filter expression will remove all datapoints with 'WakeLatency'
+smaller than 10000 nanoseconds or package C6 residency smaller than 1%. The
+detailed expression syntax can be found in the documentation for the 'eval()'
+function of Python 'pandas' module. You can use metrics in the expression, or
+the special word 'index' for the row number (0\-based index) of a datapoint in
+the results. For example, expression 'index >= 10' will get rid of all
+datapoints except for the first 10 ones.
 
 .TP
-\fB\-\-rsel\fR \fI\,RSEL\/\fR
-The row selector: remove all rows except for those satisfying the selector
-expression. In other words, the selector is just an inverse filter: '\-\-rsel
-expr' is the same as '\-\-rfilt "not (expr)"'.
+\fB\-\-include\fR \fI\,INCLUDE\/\fR
+Datapoints to include: remove all datapoints except for those satisfying the
+expression 'INCLUDE'. In other words, this option is the inverse of '\-\-
+exclude'. This means, '\-\-include expr' is the same as '\-\-exclude "not
+(expr)"'.
 
 .TP
-\fB\-\-cfilt\fR \fI\,CFILT\/\fR
-The columns filter: remove all column specified in the filter. The columns
-filter is just a comma\-separated list of the CSV file column names or python
-style regular expressions matching the names. For example expression
-'SilentTime,WarmupDelay,.*Cyc', would remove columns 'SilentTime',
-'WarmupDelay' and all columns with 'Cyc' in the column name. Use '\-\-list\-
-columns' to get the list of the available column names.
+\fB\-\-exclude\-metrics\fR \fI\,MEXCLUDE\/\fR
+The metrics to exclude. Expects a comma\-separated list of the metrics or
+python style regular expressions matching the names. For example, the
+expression 'SilentTime,WarmupDelay,.*Cyc', would remove metrics 'SilentTime',
+'WarmupDelay' and all metrics with 'Cyc' in their name. Use '\-\-list\-metrics'
+to get the list of the available metrics.
 
 .TP
-\fB\-\-csel\fR \fI\,CSEL\/\fR
-The columns selector: remove all column except for those specified in the
-selector. The syntax is the same as for '\-\-cfilt'.
+\fB\-\-include\-metrics\fR \fI\,MINCLUDE\/\fR
+The metrics to include: remove all metrics except for those specified by this
+option. The syntax is the same as for '\-\-exclude\-metrics'.
 
 .TP
 \fB\-\-human\-readable\fR
@@ -551,8 +553,8 @@ this option can be used to specify the output directly to store the result at.
 This will create a filtered version of the input test result.
 
 .TP
-\fB\-\-list\-columns\fR
-Print the list of the available column names and exit.
+\fB\-\-list\-metrics\fR
+Print the list of the available metrics and exit.
 
 .TP
 \fB\-\-reportid\fR \fI\,REPORTID\/\fR
@@ -560,7 +562,7 @@ Report ID of the filtered version of the result (can only be used with '\-\-
 outdir').
 
 .SH COMMAND \fI\,'wult calc'\/\fR
-usage: wult calc [-h] [-q] [-d] [--rfilt RFILT] [--rsel RSEL] [--cfilt CFILT] [--csel CSEL] [-f FUNCS] [--list-funcs] respath
+usage: wult calc [-h] [-q] [-d] [--exclude EXCLUDE] [--include INCLUDE] [--exclude-metrics MEXCLUDE] [--include-metrics MINCLUDE] [-f FUNCS] [--list-funcs] respath
 
 Calculates various summary functions for a wult test result (e.g., the median value for one of the CSV columns).
 
@@ -582,43 +584,43 @@ Be quiet.
 Print debugging information.
 
 .TP
-\fB\-\-rfilt\fR \fI\,RFILT\/\fR
-The row filter: remove all the rows satisfying the filter expression. Here is
-an example of an expression: '(WakeLatency < 10000) | (PC6% < 1)'. This row
-filter expression will remove all rows with 'WakeLatency' smaller than 10000
-nanoseconds or package C6 residency smaller than 1%. The detailed row filter
-expression syntax can be found in the documentation for the 'eval()' function
-of Python 'pandas' module. You can use column names in the expression, or the
-special word 'index' for the row number. Value '0' is the header, value '1' is
-the first row, and so on. For example, expression 'index >= 10' will get rid
-of all data rows except for the first 10 ones.
+\fB\-\-exclude\fR \fI\,EXCLUDE\/\fR
+Datapoints to exclude: remove all the datapoints satisfying the expression
+'EXCLUDE'. Here is an example of an expression: '(WakeLatency < 10000) | (PC6%
+< 1)'. This filter expression will remove all datapoints with 'WakeLatency'
+smaller than 10000 nanoseconds or package C6 residency smaller than 1%. The
+detailed expression syntax can be found in the documentation for the 'eval()'
+function of Python 'pandas' module. You can use metrics in the expression, or
+the special word 'index' for the row number (0\-based index) of a datapoint in
+the results. For example, expression 'index >= 10' will get rid of all
+datapoints except for the first 10 ones.
 
 .TP
-\fB\-\-rsel\fR \fI\,RSEL\/\fR
-The row selector: remove all rows except for those satisfying the selector
-expression. In other words, the selector is just an inverse filter: '\-\-rsel
-expr' is the same as '\-\-rfilt "not (expr)"'.
+\fB\-\-include\fR \fI\,INCLUDE\/\fR
+Datapoints to include: remove all datapoints except for those satisfying the
+expression 'INCLUDE'. In other words, this option is the inverse of '\-\-
+exclude'. This means, '\-\-include expr' is the same as '\-\-exclude "not
+(expr)"'.
 
 .TP
-\fB\-\-cfilt\fR \fI\,CFILT\/\fR
-The columns filter: remove all column specified in the filter. The columns
-filter is just a comma\-separated list of the CSV file column names or python
-style regular expressions matching the names. For example expression
-'SilentTime,WarmupDelay,.*Cyc', would remove columns 'SilentTime',
-'WarmupDelay' and all columns with 'Cyc' in the column name. Use '\-\-list\-
-columns' to get the list of the available column names.
+\fB\-\-exclude\-metrics\fR \fI\,MEXCLUDE\/\fR
+The metrics to exclude. Expects a comma\-separated list of the metrics or
+python style regular expressions matching the names. For example, the
+expression 'SilentTime,WarmupDelay,.*Cyc', would remove metrics 'SilentTime',
+'WarmupDelay' and all metrics with 'Cyc' in their name. Use '\-\-list\-metrics'
+to get the list of the available metrics.
 
 .TP
-\fB\-\-csel\fR \fI\,CSEL\/\fR
-The columns selector: remove all column except for those specified in the
-selector. The syntax is the same as for '\-\-cfilt'.
+\fB\-\-include\-metrics\fR \fI\,MINCLUDE\/\fR
+The metrics to include: remove all metrics except for those specified by this
+option. The syntax is the same as for '\-\-exclude\-metrics'.
 
 .TP
 \fB\-f\fR \fI\,FUNCS\/\fR, \fB\-\-funcs\fR \fI\,FUNCS\/\fR
 Comma\-separated list of summary functions to calculate. By default all
-generally interesting functions are calculated (each column name is associated
-with a list of functions that make sense for this column). Use '\-\-list\-funcs'
-to get the list of supported functions.
+generally interesting functions are calculated (each metric is associated with
+a list of functions that make sense for that metric). Use '\-\-list\-funcs' to
+get the list of supported functions.
 
 .TP
 \fB\-\-list\-funcs\fR
