@@ -644,9 +644,12 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             if not helperdir.is_dir():
                 raise Error(f"path '{helperdir}' does not exist or it is not a directory")
 
-        self._prepare_shelpers(helpersrc)
-        self._prepare_pyhelpers(helpersrc)
-        self._prepare_bpfhelpers(helpersrc)
+        if self._shelpers:
+            self._prepare_shelpers(helpersrc)
+        if self._pyhelpers:
+            self._prepare_pyhelpers(helpersrc)
+        if self._bpfhelpers:
+            self._prepare_bpfhelpers(helpersrc)
 
         deploy_path = get_helpers_deploy_path(self._toolname, self._spman)
 
