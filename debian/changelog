@@ -5,6 +5,7 @@ wult (1.10.3) unstable; urgency=low
   * wult/ndl: rename the '--rfil' option '--exclude'.
   * wult/ndl: rename the '--csel' option '--include-metrics'.
   * wult/ndl: rename the '--cfil' option '--exclude-metrics'.
+  * wult: do not check for 'bpftool' and 'clang' dependency unnecessarily.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com> _DATE_HERE_
 
@@ -19,7 +20,7 @@ wult (1.10.1) unstable; urgency=low
 
   * wult deploy: fix deploying from sources.
   * wult start --stats: fix statistics collection when run from sources.
-  * wult stats: fix standalone stats-collect depenencies.
+  * wult stats: fix standalone stats-collect dependencies.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com> Mon, 30 May 2022 15:19:16 +0300
 
@@ -49,7 +50,7 @@ wult (1.9.19) unstable; urgency=low
 
 wult (1.9.18) unstable; urgency=low
 
-  * wult report: added AC power and IPM statistics visualization.
+  * wult report: added AC power and IPMI statistics visualization.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 18 Mar 2022 11:28:24 +0200
 
@@ -99,7 +100,7 @@ wult (1.9.11) unstable; urgency=low
 
 wult (1.9.10) unstable; urgency=low
 
-  * wult: bugfix release: fix occaisional missing 'WakeLatencyRaw' crash.
+  * wult: bugfix release: fix occasional missing 'WakeLatencyRaw' crash.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 14 Dec 2021 10:50:40 +0200
 
