@@ -73,6 +73,9 @@ class _DeviceBase(ClassHelpers.SimpleCloseContext):
         self._devid = devid
         self._pman = pman
         self.drvname = drvname
+
+        self.helpername = None
+        self.netif = None
         self.dmesg_obj = None
 
         if dmesg:
@@ -283,24 +286,24 @@ class _IntelI210Base(_PCIDevice):
         Note, 'devid' can be be the PCI address or the network interface name.
         """
 
-        self.helpername = helpername
-        self.netif = None
-
         try:
-            self.netif = NetIface.NetIface(devid, pman=pman)
+            netif = NetIface.NetIface(devid, pman=pman)
         except ErrorNotFound as err:
             if not no_netif_ok:
                 raise
             _LOG.debug(err)
 
-        if self.netif:
-            hwaddr = self.netif.hwaddr
-            alias = self.netif.ifname
+        if netif:
+            hwaddr = netif.hwaddr
+            alias = netif.ifname
         else:
             hwaddr = devid
             alias = None
 
         super().__init__(hwaddr, pman, drvname=drvname, dmesg=dmesg)
+
+        self.helpername = helpername
+        self.netif = netif
 
         self.info["alias"] = alias
         # I210 NIC clock has 1 nanosecond resolution.
