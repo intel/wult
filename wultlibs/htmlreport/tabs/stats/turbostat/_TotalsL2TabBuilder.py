@@ -33,7 +33,7 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
 
         # Add extra metrics to the metrics in 'harchy' if they are common to all results.
         extra_dtabs = ["PkgWatt", "GFXWatt", "PkgTmp"]
-        harchy["dtabs"] += [m for m in extra_dtabs if m in common_metrics]
+        harchy["Temperature / Power"]["dtabs"] += [m for m in extra_dtabs if m in common_metrics]
         return harchy
 
     def _turbostat_to_df(self, tstat, path=None):
