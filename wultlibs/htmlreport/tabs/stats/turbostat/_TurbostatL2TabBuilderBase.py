@@ -166,13 +166,11 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         'self._hw_cstates' and 'self._req_cstates'.
         """
 
-        base_dtabs = ["Busy%", "IRQ", "SMI", "IPC"]
-        base_dtabs = [metric for metric in base_dtabs if metric in common_metrics]
-
-        tab_hierarchy = {"dtabs": base_dtabs}
-        tab_hierarchy["C-states"] = {
-            "Hardware": {"dtabs":[]},
-            "Requested": {"dtabs": []}
+        tab_hierarchy = {
+            "C-states": {
+                "Hardware": {"dtabs":[]},
+                "Requested": {"dtabs": []}
+            }
         }
 
         # Add frequency-related D-tabs to a separate C-tab.
@@ -183,6 +181,10 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         tp_metrics = ["CorWatt", "CoreTmp"]
         tp_metrics = [m for m in tp_metrics if m in common_metrics]
         tab_hierarchy["Temperature / Power"] = {"dtabs": tp_metrics}
+
+        # Add miscellaneous D-tabs to a separate C-tab.
+        misc_metrics = ["Busy%", "IRQ", "SMI", "IPC"]
+        tab_hierarchy["Misc"] = {"dtabs": [m for m in misc_metrics if m in common_metrics]}
 
         # Find C-states which are common to all test results.
         common_hw_cstates = set.intersection(*[set(lst) for lst in self._hw_cstates])
