@@ -671,13 +671,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
     def _deploy_helpers(self):
         """Deploy helpers (including python helpers) to the SUT."""
 
-        # Python helpers need to be deployed only to a remote host. The local host should already
-        # have them:
-        #   * either deployed via 'setup.py'.
-        #   * or if running from source code, present in the source code.
-        if not self._spman.is_remote:
-            self._cats["pyhelpers"] = []
-
         all_helpers = list(self._cats["shelpers"]) + list(self._cats["pyhelpers"]) + \
                       list(self._cats["bpfhelpers"])
         if not all_helpers:
@@ -796,35 +789,22 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             # problems. So sync the file-system now.
             self._spman.run_verify("sync")
 
-    def _check_minkver(self):
-        """Check if the SUT is using new enough kernel version."""
+    def _check_minkver(self, installable):
+        """
+        Check if the SUT has new enough kernel version for 'installable' to be deployed on it. The
+        argument are as follows.
+          * installable - name of the installable to check the kernel version for.
+        """
 
-        minkver = None
-        maxkver = None
-
-        for info in self._insts.values():
-            kver = info.get("minkver", None)
-            if not kver:
-                continue
-            if not minkver:
-                minkver = maxkver = kver
-                continue
-
-            if KernelVersion.kver_lt(kver, minkver):
-                minkver = kver
-            if KernelVersion.kver_ge(kver, maxkver):
-                maxkver = kver
+        minkver = self._insts[installable].get("minkver", None)
+        if not minkver:
+            return
 
         if KernelVersion.kver_lt(self._kver, minkver):
-            if minkver == maxkver:
-                msg = f"Please, use kernel version {minkver} or newer."
-            else:
-                msg = f"Please, use:\n" \
-                      f" * kernel version {minkver} for partial functionaliy support\n" \
-                      f" * kernel version {maxkver} for full functionality support."
-
+            cat = _CATEGORIES[self._insts[installable]["category"]]
             raise _ErrorKVer(f"version of Linux kernel{self._bpman.hostmsg} is {self._kver}, and "
-                             f"it is not new enough for {self._toolname}.\n{msg}")
+                             f"it is not new enough for the '{installable}' {cat}.\n"
+                             f"Please, use kernel version {minkver} or newer.")
 
     def _init_kernel_info(self):
         """
@@ -850,7 +830,38 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         _LOG.debug("Kernel sources path: %s", self._ksrc)
         _LOG.debug("Kernel version: %s", self._kver)
 
-        self._check_minkver()
+    def _adjust_installables(self):
+        """
+        Adjust the list of installables that have to be deployed to the SUT based on various
+        conditions, such as kernel version.
+        """
+
+        # Python helpers need to be deployed only to a remote host. The local host should already
+        # have them:
+        #   * either deployed via 'setup.py'.
+        #   * or if running from source code, present in the source code.
+        if not self._spman.is_remote:
+            for installable in self._cats["pyhelpes"]:
+                del self._insts[installable]
+            self._cats["pyhelpers"] = {}
+
+        # Exclude installables whith unsatisfied minimum kernel version requirements.
+        for installable in list(self._insts):
+            try:
+                self._check_minkver(installable)
+            except _ErrorKVer as err:
+                cat = self._insts[installable]["category"]
+                _LOG.notice(str(err))
+                _LOG.warning("skipping the '%s' %s installation", installable, _CATEGORIES[cat])
+
+                del self._insts[installable]
+                del self._cats[cat][installable]
+
+        # In case of wult either drivers or eBPF helpers are required.
+        if self._toolname == "wult":
+            if not self._cats["drivers"] and not self._cats["bpfhelpers"]:
+                # We have already printed the details, so we can have a short error message here.
+                raise Error("please, use newer kernel")
 
     def deploy(self):
         """
@@ -867,6 +878,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         """
 
         self._init_kernel_info()
+        self._adjust_installables()
 
         try:
             if self._spman.is_remote:
@@ -939,11 +951,11 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if self._toolname not in _TOOLS_INFO:
             raise Error(f"BUG: unsupported tool '{toolname}'")
 
-        self._insts = _TOOLS_INFO[self._toolname]["installables"]
+        self._insts = _TOOLS_INFO[self._toolname]["installables"].copy()
 
         self._cats = { cat : {} for cat in _CATEGORIES }
         for name, info in self._insts.items():
-            self._cats[info["category"]][name] = info
+            self._cats[info["category"]][name] = info.copy()
 
         self._cpman = LocalProcessManager.LocalProcessManager()
         if not self._spman:
