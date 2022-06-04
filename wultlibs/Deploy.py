@@ -475,17 +475,18 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             dstpaths.append(self._get_module_path(deployable))
         dinfos["drivers"] = {"src" : [srcpath], "dst" : dstpaths}
 
-        # Add non-python helpers' deploy information.
-        if self._cats["shelpers"] or self._cats["pyhelpers"]:
-            helpers_deploy_path = get_helpers_deploy_path(self._toolname, self._spman)
+        helpers_deploy_path = get_helpers_deploy_path(self._toolname, self._spman)
 
-        for shelper in self._cats["shelpers"]:
-            srcpath = find_app_data("wult", _HELPERS_SRC_SUBPATH / shelper,
-                                    appname=self._toolname)
-            dstpaths = []
-            for deployable in _get_deployables(srcpath):
-                dstpaths.append(helpers_deploy_path / deployable)
-            dinfos[shelper] = {"src" : [srcpath], "dst" : dstpaths}
+        # Add non-python helpers' deploy information.
+        non_pyhelpers = list(self._cats["shelpers"]) + list(self._cats["bpfhelpers"])
+        if non_pyhelpers:
+            for helper in non_pyhelpers:
+                srcpath = find_app_data("wult", _HELPERS_SRC_SUBPATH / helper,
+                                        appname=self._toolname)
+                dstpaths = []
+                for deployable in _get_deployables(srcpath):
+                    dstpaths.append(helpers_deploy_path / deployable)
+                dinfos[helper] = {"src" : [srcpath], "dst" : dstpaths}
 
         # Add python helpers' deploy information. Note, python helpers are deployed only to the
         # remote host. The local copy of python helpers comes via 'setup.py'. Therefore, check them
