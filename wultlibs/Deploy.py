@@ -8,6 +8,22 @@
 
 """
 This module provides API for deploying the 'wult' and 'ndl' tools.
+
+Terminology.
+  * category - type of an installables. Currently there are 4 categories: drivers, simple helpers
+               (shelpers), python helpers (pyhelpers), and eBPF helpers (bpfhelpers).
+  * installable - a sub-project to install on the SUT.
+  * deployable - each installable provides one or multiple deployables. For example, wult tool has
+                 an installable called "wult driver". This is not really a single driver, this is a
+                 directory, which includes multiple drivers (kernel modules). Each kernel module is
+                 a deployable.
+
+Installable vs deployable.
+  * Installables come in the form of source code. Deployables are executable programs (script,
+    binary) or kernel drivers.
+  * An installable corresponds to a directory with source code. The source code may need to be
+    compiled. The compilation results in one or several deployables.
+  * Deployables are ultimately copied to the SUT and executed on the SUT.
 """
 
 import os
@@ -29,18 +45,23 @@ _LOG = logging.getLogger()
 # Information about tools dependencies.
 _TOOLS_INFO = {
     "wult": {
-        "deploy": {
+        "categories": {
             "drivers":    {"names": ["wult"], "minkver" : "5.6"},
             "pyhelpers":  {"names": ["stats-collect"]},
         },
     },
     "ndl": {
-        "deploy": {
+        "categories": {
             "drivers":    {"names": ["ndl"], "minkver" : "5.2"},
             "shelpers":   {"names": ["ndlrunner"]},
         },
     },
 }
+
+_CATEGORIES = { "drivers"    : "kernel driver",
+                "shelpers"   : "simple helper program",
+                "pyhelpers"  : "python helper program",
+                "bpfhelpers" : "eBPF helper program"}
 
 class _ErrorKVer(Error):
     """An exception class indicating that SUT kernel version is not new enough."""
@@ -157,17 +178,17 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
     if toolname not in _TOOLS_INFO:
         raise Error(f"BUG: unsupported tool '{toolname}'")
 
-    names = {"drivers" : [], "shelpers" : [], "pyhelpers" : [], "bpfhelpers" : []}
-    for category, info in _TOOLS_INFO[toolname]["deploy"].items():
-        names[category] = info["names"]
+    insts = { category : [] for category in _CATEGORIES }
+    for category, info in _TOOLS_INFO[toolname]["categories"].items():
+        insts[category] = info["names"]
 
     what = ""
-    if names["shelpers"] or names["pyhelpers"] or names["bpfhelpers"]:
-        if names["drivers"]:
+    if insts["shelpers"] or insts["pyhelpers"] or insts["bpfhelpers"]:
+        if insts["drivers"]:
             what = "helpers and drivers"
         else:
             what = "helpers"
-    elif names["drivers"]:
+    elif insts["drivers"]:
         what = "drivers"
     else:
         raise Error("BUG: no helpers and no drivers")
@@ -184,13 +205,13 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
                 everything is built on the SUT, but the '--local-build' can be used for building
                 on the local system."""
 
-    if names["drivers"]:
+    if insts["drivers"]:
         drvsearch = ", ".join([name % str(_DRV_SRC_SUBPATH) for name in searchdirs])
         descr += f"""The drivers are searched for in the following directories (and in the
                      following order) on the local host: {drvsearch}."""
-    if names["shelpers"] or names["pyhelpers"]:
+    if insts["shelpers"] or insts["pyhelpers"]:
         helpersearch = ", ".join([name % str(_HELPERS_SRC_SUBPATH) for name in searchdirs])
-        helpernames = ", ".join(names["shelpers"] + names["pyhelpers"] + names["bpfhelpers"])
+        helpernames = ", ".join(insts["shelpers"] + insts["pyhelpers"] + insts["bpfhelpers"])
         descr += f"""The {toolname} tool also depends on the following helpers: {helpernames}.
                      These helpers will be compiled on the SUT and deployed to the SUT. The sources
                      of the helpers are searched for in the following paths (and in the following
@@ -201,7 +222,7 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
                      'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
 
-    if names["drivers"]:
+    if insts["drivers"]:
         text = """Path to the Linux kernel sources to build the drivers against. The default is
                   '/lib/modules/$(uname -r)/build' on the SUT. If '--local-build' was used, then
                   the path is considered to be on the local system, rather than the SUT."""
@@ -210,7 +231,7 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
-    if names["bpfhelpers"]:
+    if insts["bpfhelpers"]:
         text = """eBPF helpers sources consist of 2 components: the user-space component and the
                   eBPF component. The user-space component is distributed as a source code, and must
                   be compiled. The eBPF component is distributed as both source code and compiled
@@ -228,8 +249,8 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
 
 def _get_deployables(srcpath, pman=None):
     """
-    Returns the list of "deployables" (driver names or helper tool names) provided by tools or
-    drivers source code directory 'srcpath' on a host defined by 'pman'.
+    Returns the list of deployables provided by an installable at the 'srcpath' directory on the
+    host defined by 'pman'.
     """
 
     with ProcessManager.pman_or_local(pman) as wpman:
@@ -242,8 +263,8 @@ def _get_deployables(srcpath, pman=None):
 
 def _get_pyhelper_dependencies(script_path):
     """
-    Find and return a python helper script (pyhelper) dependencies. Only wult module dependencies
-    are returned. An example of such a dependency would be:
+    Find and return a python helper script (pyhelper) dependencies. An example of such a dependency
+    would be:
         /usr/lib/python3.9/site-packages/helperlibs/Trivial.py
     """
 
@@ -751,7 +772,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         minkver = None
         maxkver = None
 
-        for info in _TOOLS_INFO[self._toolname]["deploy"].values():
+        for info in _TOOLS_INFO[self._toolname]["categories"].values():
             kver = info.get("minkver", None)
             if not kver:
                 continue
@@ -904,7 +925,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         else:
             self._bpman = self._spman
 
-        for category, info in _TOOLS_INFO[self._toolname]["deploy"].items():
+        for category, info in _TOOLS_INFO[self._toolname]["categories"].items():
             setattr(self, f"_{category}", info["names"])
 
         self._tchk = ToolChecker.ToolChecker(pman=self._bpman)
