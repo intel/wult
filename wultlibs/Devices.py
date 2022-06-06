@@ -286,6 +286,7 @@ class _IntelI210Base(_PCIDevice):
         Note, 'devid' can be be the PCI address or the network interface name.
         """
 
+        netif = None
         try:
             netif = NetIface.NetIface(devid, pman=pman)
         except ErrorNotFound as err:
