@@ -444,6 +444,17 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             return modpath
         return None
 
+    def _get_ctmpdir(self):
+        """
+        Creates a temporary directory on the controller and returns its path. The reson this method
+        exists in that the temporary directory on the controller may not be needed. The method helps
+        creating it only when it is required.
+        """
+
+        if not self._ctmpdir:
+            self._ctmpdir = self._cpman.mkdtemp(prefix=f"{self._toolname}-")
+        return self._ctmpdir
+
     def is_deploy_needed(self):
         """
         Wult and other tools require additional helper programs and drivers to be installed on the
@@ -561,16 +572,18 @@ class Deploy(ClassHelpers.SimpleCloseContext):
           * helpersrc - path to the helpers base directory on the controller.
         """
 
+        ctmpdir = self._get_ctmpdir()
+
         # Copy python helpers to the temporary directory on the controller.
         for pyhelper in self._cats["pyhelpers"]:
             srcdir = helpersrc / pyhelper
-            _LOG.debug("copying python helper %s:\n  '%s' -> '%s'", pyhelper, srcdir, self._ctmpdir)
-            self._cpman.rsync(srcdir, self._ctmpdir, remotesrc=False, remotedst=False)
+            _LOG.debug("copying python helper %s:\n  '%s' -> '%s'", pyhelper, srcdir, ctmpdir)
+            self._cpman.rsync(srcdir, ctmpdir, remotesrc=False, remotedst=False)
 
         # Build stand-alone version of every python helper.
         for pyhelper in self._cats["pyhelpers"]:
             _LOG.info("Building a stand-alone version of '%s'", pyhelper)
-            basedir = self._ctmpdir / pyhelper
+            basedir = ctmpdir / pyhelper
             deployables = _get_deployables(basedir)
             for deployable in deployables:
                 local_path = find_pyhelper_path(pyhelper, deployable=deployable)
@@ -579,7 +592,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         # And copy the "standoline-ized" version of python helpers to the SUT.
         if self._spman.is_remote:
             for pyhelper in self._cats["pyhelpers"]:
-                srcdir = self._ctmpdir / pyhelper
+                srcdir = ctmpdir / pyhelper
                 _LOG.debug("copying python helper '%s' to %s:\n  '%s' -> '%s'",
                            pyhelper, self._spman.hostname, srcdir, self._stmpdir)
                 self._spman.rsync(srcdir, self._stmpdir, remotesrc=False, remotedst=True)
@@ -855,26 +868,18 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._init_kernel_info()
 
         try:
-            # Local temporary directory is required in these cases:
-            #   1. We are deploying to the local host.
-            #   2. We are building locally.
-            #   3. We are deploying python helpers. Regardless of the target host, we need a local
-            #      temporary directory for creating stand-alone versions of the helpers.
-            if self._lbuild or not self._spman.is_remote or self._cats["pyhelpers"]:
-                self._ctmpdir = self._cpman.mkdtemp(prefix=f"{self._toolname}-")
-
             if self._spman.is_remote:
                 self._stmpdir = self._spman.mkdtemp(prefix=f"{self._toolname}-")
             else:
-                self._stmpdir = self._ctmpdir
+                self._stmpdir = self._get_ctmpdir()
+
+            if self._lbuild:
+                self._btmpdir = self._get_ctmpdir()
+            else:
+                self._btmpdir = self._stmpdir
         except Exception as err:
             self._remove_tmpdirs()
             raise Error(f"failed to deploy the '{self._toolname}' tool: {err}") from err
-
-        if self._lbuild:
-            self._btmpdir = self._ctmpdir
-        else:
-            self._btmpdir = self._stmpdir
 
         # Make sure 'cc' is available on the build host - it'll be executed by 'Makefile', so an
         # explicit check here will generate an nice error message in case 'cc' is not available.
