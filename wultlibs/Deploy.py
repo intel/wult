@@ -881,9 +881,10 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             self._remove_tmpdirs()
             raise Error(f"failed to deploy the '{self._toolname}' tool: {err}") from err
 
-        # Make sure 'cc' is available on the build host - it'll be executed by 'Makefile', so an
-        # explicit check here will generate an nice error message in case 'cc' is not available.
-        self._tchk.check_tool("cc")
+        if self._cats["drivers"] or self._cats["shelpers"] or self._cats["bpfhelpers"]:
+            # Make sure 'cc' is available on the build host - it'll be executed by 'Makefile', so an
+            # explicit check here will generate an nice error message in case 'cc' is not available.
+            self._tchk.check_tool("cc")
 
         remove_tmpdirs = True
         try:
