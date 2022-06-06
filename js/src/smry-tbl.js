@@ -8,8 +8,9 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import { html } from 'lit'
+import { html, css } from 'lit'
 import { ReportTable } from './report-table.js'
+import '@shoelace-style/shoelace/dist/components/details/details.js'
 
 /**
  * Responsible for generating the summary table for a given metric.
@@ -17,6 +18,24 @@ import { ReportTable } from './report-table.js'
  * @extends {ReportTable}
  */
 class SummaryTable extends ReportTable {
+    static styles = [
+        ReportTable.styles,
+        // Add CSS for 'sl-details' in metric cells which contain metric descriptions.
+        css`
+        sl-details::part(base) {
+            max-width: 30vw;
+            font-family: Arial, sans-serif;
+            background-color: transparent;
+            border: none;
+        }
+        sl-details::part(header) {
+            font-weight: "bold";
+            padding: var(--sl-spacing-x-small) var(--sl-spacing-4x-large) var(--sl-spacing-x-small) var(--sl-spacing-x-small);
+            font-size: 12px;
+        }
+        `
+    ]
+
     /**
      * Helper function for 'parseSrc()'. Converts the semi-colon separated values of a metric line
      * in the summary table text format to its HTML template.
@@ -26,8 +45,11 @@ class SummaryTable extends ReportTable {
     parseMetric (values) {
         const cellAttrs = values[0].split('|')
         return html`
-            <td rowspan=${values[1]} class="td-colname">
-                <abbr title=${cellAttrs[1]}>${cellAttrs[0]}</abbr>
+            <td rowspan=${values[1]}>
+                <strong>${cellAttrs[0]}</strong>
+                <sl-details summary="Description">
+                    ${cellAttrs[1]}
+                </sl-details>
             </td>
         `
     }
