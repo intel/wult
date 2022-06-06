@@ -788,7 +788,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         minkver = None
         maxkver = None
 
-        for info in _TOOLS_INFO[self._toolname]["installables"].values():
+        for info in self._insts.values():
             kver = info.get("minkver", None)
             if not kver:
                 continue
@@ -924,13 +924,18 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._kver = None    # Version of the kernel to compile the drivers for.
         self._tchk = None
 
+        # Installables information.
+        self._insts = None
         # Lists of installables in every category.
-        self._cats = { cat : [] for cat in _CATEGORIES }
+        self._cats = None
 
         if self._toolname not in _TOOLS_INFO:
             raise Error(f"BUG: unsupported tool '{toolname}'")
 
-        for name, info in _TOOLS_INFO[toolname]["installables"].items():
+        self._insts = _TOOLS_INFO[self._toolname]["installables"]
+
+        self._cats = { cat : [] for cat in _CATEGORIES }
+        for name, info in self._insts.items():
             self._cats[info["category"]].append(name)
 
         self._cpman = LocalProcessManager.LocalProcessManager()
