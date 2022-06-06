@@ -42,18 +42,34 @@ _HELPERS_SRC_SUBPATH = Path("helpers")
 
 _LOG = logging.getLogger()
 
-# Information about tools dependencies.
+# Information about tools dependencies. The dictionary structure is as follows.
+#
+# Tool name.
+#   "installables" - describes all the installables for the tool.
+#     Installable name.
+#       "category" - category name of the installable (driver, simple  helper, etc).
+#       "minkver" - minimum SUT kernel version required for the installable.
 _TOOLS_INFO = {
     "wult": {
-        "categories": {
-            "drivers":    {"names": ["wult"], "minkver" : "5.6"},
-            "pyhelpers":  {"names": ["stats-collect"]},
+        "installables" : {
+            "wult" : {
+                "category" : "drivers",
+                "minkver"  : "5.6",
+            },
+            "stats-collect" : {
+                "category" : "pyhelpers",
+            },
         },
     },
     "ndl": {
-        "categories": {
-            "drivers":    {"names": ["ndl"], "minkver" : "5.2"},
-            "shelpers":   {"names": ["ndlrunner"]},
+        "installables" : {
+            "ndl" : {
+                "category" : "drivers",
+                "minkver"  : "5.2",
+            },
+            "ndlrunner" : {
+                "category" : "shelpers",
+            },
         },
     },
 }
@@ -179,8 +195,8 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
         raise Error(f"BUG: unsupported tool '{toolname}'")
 
     cats = { cat : [] for cat in _CATEGORIES }
-    for cat, info in _TOOLS_INFO[toolname]["categories"].items():
-        cats[cat] = info["names"]
+    for name, info in _TOOLS_INFO[toolname]["installables"].items():
+        cats[info["category"]].append(name)
 
     what = ""
     if cats["shelpers"] or cats["pyhelpers"] or cats["bpfhelpers"]:
@@ -772,7 +788,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         minkver = None
         maxkver = None
 
-        for info in _TOOLS_INFO[self._toolname]["categories"].values():
+        for info in _TOOLS_INFO[self._toolname]["installables"].values():
             kver = info.get("minkver", None)
             if not kver:
                 continue
@@ -914,8 +930,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if self._toolname not in _TOOLS_INFO:
             raise Error(f"BUG: unsupported tool '{toolname}'")
 
-        for cat, info in _TOOLS_INFO[toolname]["categories"].items():
-            self._cats[cat] = info["names"]
+        for name, info in _TOOLS_INFO[toolname]["installables"].items():
+            self._cats[info["category"]].append(name)
 
         self._cpman = LocalProcessManager.LocalProcessManager()
         if not self._spman:
