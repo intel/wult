@@ -1,3 +1,9 @@
+wult (1.10.4) unstable; urgency=low
+
+  * wult: fix crash with when unknown method is given (regression in 1.10.0).
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com> Mon, 06 Jun 2022 16:55:36 +0300
+
 wult (1.10.3) unstable; urgency=low
 
   * wult/ndl: rename the '--list-columns' option to '--list-metrics'.
