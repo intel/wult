@@ -586,9 +586,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
             # Check for the tools called from 'Makefile' here, in order to generate a user-friendly
             # message if one of them is not installed.
-            with ToolChecker.ToolChecker(pman=self._bpman) as tchk:
-                bpftool_path = tchk.check_tool("bpftool")
-                clang_path = tchk.check_tool("clang")
+            bpftool_path = self._tchk.check_tool("bpftool")
+            clang_path = self._tchk.check_tool("clang")
 
             # Build the eBPF components of eBPF helpers.
             for bpfhelper in self._bpfhelpers:
@@ -839,8 +838,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         # Make sure 'cc' is available on the build host - it'll be executed by 'Makefile', so an
         # explicit check here will generate an nice error message in case 'cc' is not available.
-        with ToolChecker.ToolChecker(pman=self._bpman) as tchk:
-            tchk.check_tool("cc")
+        self._tchk.check_tool("cc")
 
         remove_tmpdirs = True
         try:
@@ -884,6 +882,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._ctmpdir = None # Temporary directory on the controller (local host).
         self._btmpdir = None # Temporary directory on the build host.
         self._kver = None    # Version of the kernel to compile the drivers for.
+        self._tchk = None
 
         self._drivers = []
         self._shelpers = []
@@ -904,6 +903,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         for category, info in _TOOLS_INFO[self._toolname]["deploy"].items():
             setattr(self, f"_{category}", info["names"])
+
+        self._tchk = ToolChecker.ToolChecker(pman=self._bpman)
 
     def _remove_tmpdirs(self, remove_tmpdirs=True):
         """
@@ -933,4 +934,4 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
     def close(self):
         """Uninitialize the object."""
-        ClassHelpers.close(self, close_attrs=("_cpman", "_spman"), unref_attrs=("_bpman",))
+        ClassHelpers.close(self, close_attrs=("_tchk", "_cpman", "_spman"), unref_attrs=("_bpman",))
