@@ -678,7 +678,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if not self._spman.is_remote:
             self._cats["pyhelpers"] = []
 
-        all_helpers = self._cats["shelpers"] + self._cats["pyhelpers"] + self._cats["bpfhelpers"]
+        all_helpers = list(self._cats["shelpers"]) + list(self._cats["pyhelpers"]) + \
+                      list(self._cats["bpfhelpers"])
         if not all_helpers:
             return
 
@@ -940,9 +941,9 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         self._insts = _TOOLS_INFO[self._toolname]["installables"]
 
-        self._cats = { cat : [] for cat in _CATEGORIES }
+        self._cats = { cat : {} for cat in _CATEGORIES }
         for name, info in self._insts.items():
-            self._cats[info["category"]].append(name)
+            self._cats[info["category"]][name] = info
 
         self._cpman = LocalProcessManager.LocalProcessManager()
         if not self._spman:
