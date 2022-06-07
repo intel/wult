@@ -238,11 +238,11 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
                      'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
 
-    if cats["drivers"]:
-        text = """Path to the Linux kernel sources to build the drivers against. The default is
-                  '/lib/modules/$(uname -r)/build' on the SUT. If '--local-build' was used, then
-                  the path is considered to be on the local system, rather than the SUT."""
-
+    if cats["drivers"] or cats["bpfhelpers"]:
+        text = """Path to the Linux kernel sources to build drivers and eBPF helpers against. The
+                  default is '/lib/modules/$(uname -r)/build' on the SUT. If '--local-build' was
+                  used, then the path is considered to be on the local system, rather than the
+                  SUT."""
         arg = parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text)
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
