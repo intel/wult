@@ -416,7 +416,7 @@ def start_command(args):
         stack.enter_context(dev)
 
         with Deploy.Deploy(OWN_NAME, pman=pman, debug=args.debug) as depl:
-            if depl.is_deploy_needed():
+            if depl.is_deploy_needed(dev):
                 msg = f"'{OWN_NAME}' drivers are not up-to-date{pman.hostmsg}, " \
                       f"please run: {OWN_NAME} deploy"
                 if pman.is_remote:

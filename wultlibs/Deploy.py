@@ -422,14 +422,18 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             raise Error(f"no files found in the following paths:\n{paths_str}")
         return newest
 
-    def _deployable_not_found(self, what):
+    def _deployable_not_found(self, what, optional):
         """Raise an exception in case a required driver or helper was not found on the SUT."""
 
         err = f"{what} was not found{self._spman.hostmsg}. Please, run:\n" \
               f"{self._toolname} deploy"
         if self._spman.is_remote:
             err += f" -H {self._spman.hostname}"
-        raise Error(err)
+
+        if optional:
+            _LOG.warning(err)
+        else:
+            raise Error(err)
 
     def _get_module_path(self, name):
         """Return path to installed module 'name'. Returns 'None', if the module was not found."""
@@ -477,7 +481,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             except _ErrorKVer as err:
                 cat = self._insts[installable]["category"]
                 _LOG.notice(str(err))
-                _LOG.warning("skipping the '%s' %s installation", installable, _CATEGORIES[cat])
+                _LOG.warning("the '%s' %s can't be installed", installable, _CATEGORIES[cat])
 
                 del self._insts[installable]
                 del self._cats[cat][installable]
@@ -500,9 +504,9 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             return
 
         if KernelVersion.kver_lt(self._kver, minkver):
-            cat = _CATEGORIES[self._insts[installable]["category"]]
+            cat_descr = _CATEGORIES[self._insts[installable]["category"]]
             raise _ErrorKVer(f"version of Linux kernel{self._bpman.hostmsg} is {self._kver}, and "
-                             f"it is not new enough for the '{installable}' {cat}.\n"
+                             f"it is not new enough for the '{installable}' {cat_descr}.\n"
                              f"Please, use kernel version {minkver} or newer.")
 
     def _init_kernel_info(self):
@@ -529,43 +533,75 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         _LOG.debug("Kernel sources path: %s", self._ksrc)
         _LOG.debug("Kernel version: %s", self._kver)
 
-    def is_deploy_needed(self):
+    def is_deploy_needed(self, dev):
         """
         Wult and other tools require additional helper programs and drivers to be installed on the
-        SUT. This method tries to analyze the SUT and figure out whether drivers and helper programs
-        are installed on the SUT and are up-to-date.
+        SUT. This method tries to analyze the SUT and figure out whether the required drivers and
+        helper programs are installed on the SUT and are up-to-date. The arguments are as follows.
+          * dev - the delayed event device object created by 'Devices.GetDevice()'.
 
-        Returns 'True' if re-deployment is needed, and 'False' otherwise.
+        Returns 'True' if re-deployment is needed, and 'False' otherwise. Raises an error if a
+        critical component required for the 'dev' device is not installed on the SUT at all.
         """
 
-        # Build the deploy information dictionary. Start with drivers.
+        self._init_kernel_info()
+        self._adjust_installables()
+
+        # Strategy: first build the the deploy information dictionary 'dinfos', then check all the
+        # deployables.
         dinfos = {}
-        srcpath = find_app_data("wult", _DRV_SRC_SUBPATH / self._toolname, appname=self._toolname)
-        dstpaths = []
-        for deployable in _get_deployables(srcpath):
-            dstpath = self._get_module_path(deployable)
-            if not dstpath:
-                self._deployable_not_found(f"the '{deployable}' kernel module")
-            dstpaths.append(self._get_module_path(deployable))
-        dinfos["drivers"] = {"src" : [srcpath], "dst" : dstpaths}
+
+        # Add driver information.
+        if dev.drvname:
+            if not self._cats["drivers"]:
+                # This must be because SUT kernel version is not new enough.
+                raise Error(f"the '{dev.info['devid']}' device can't be used{self._spman.hostmsg}\n"
+                            f"Reason: drivers cannot be installed.\n"
+                            f"Please use newer kernel{self._spman.hostmsg}")
+
+            srcpath = find_app_data("wult", _DRV_SRC_SUBPATH / self._toolname,
+                                    appname=self._toolname)
+            dstpaths = []
+            for deployable in _get_deployables(srcpath):
+                if deployable != dev.drvname:
+                    continue
+                dstpath = self._get_module_path(deployable)
+                if not dstpath:
+                    self._deployable_not_found(f"the '{deployable}' kernel module", False)
+                dstpaths.append(self._get_module_path(deployable))
+
+            if not dstpaths:
+                raise Error(f"BUG: nothing provides the '{dev.drvname}' driver")
+
+            dinfos["drivers"] = {"src" : [srcpath], "dst" : dstpaths, "optional" : False}
 
         helpers_deploy_path = get_helpers_deploy_path(self._toolname, self._spman)
 
-        # Add non-python helpers' deploy information.
-        non_pyhelpers = list(self._cats["shelpers"]) + list(self._cats["bpfhelpers"])
-        if non_pyhelpers:
-            for helper in non_pyhelpers:
+        # Add non-python helpers information.
+        if dev.helpername:
+            if dev.helpername not in self._insts:
+                # This must be because SUT kernel version is not new enough.
+                cat = _TOOLS_INFO[self._toolname]["installables"][dev.helpername]["category"]
+                cat_descr = _CATEGORIES[cat]
+                raise Error(f"the '{dev.info['devid']}' device can't be used{self._spman.hostmsg}\n"
+                            f"Reason: the '{dev.helpername}' {cat_descr} cannot be installed.\n"
+                            f"Please use newer kernel{self._spman.hostmsg}")
+
+            # Add non-python helpers' deploy information.
+            for helper in list(self._cats["shelpers"]) + list(self._cats["bpfhelpers"]):
+                if helper != dev.helpername:
+                    continue
+
                 srcpath = find_app_data("wult", _HELPERS_SRC_SUBPATH / helper,
                                         appname=self._toolname)
                 dstpaths = []
                 for deployable in _get_deployables(srcpath):
                     dstpaths.append(helpers_deploy_path / deployable)
-                dinfos[helper] = {"src" : [srcpath], "dst" : dstpaths}
 
-        # Add python helpers' deploy information. Note, python helpers are deployed only to the
-        # remote host. The local copy of python helpers comes via 'setup.py'. Therefore, check them
-        # only for the remote case.
-        if self._cats["pyhelpers"] and self._spman.is_remote:
+                dinfos[helper] = {"src" : [srcpath], "dst" : dstpaths, "optional" : False}
+
+        # Add python helpers' deploy information.
+        if self._cats["pyhelpers"]:
             for pyhelper in self._cats["pyhelpers"]:
                 datapath = find_app_data("wult", _HELPERS_SRC_SUBPATH / pyhelper,
                                          appname=self._toolname)
@@ -585,7 +621,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                     srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
                     dstpaths.append(helpers_deploy_path / deployable)
 
-                    dinfos[pyhelper] = {"src" : srcpaths, "dst" : dstpaths}
+                    # Today all python helpers optional.
+                    dinfos[pyhelper] = {"src" : srcpaths, "dst" : dstpaths, "optional" : True}
 
         # We are about to get timestamps for local and remote files. Take into account the possible
         # time shift between local and remote systems.
@@ -594,19 +631,20 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             time_delta = time.time() - RemoteHelpers.time_time(pman=self._spman)
 
         # Compare source and destination files' timestamps.
-        for what, dinfo in dinfos.items():
+        for name, dinfo in dinfos.items():
             src = dinfo["src"]
             src_mtime = self._get_newest_mtime(src)
             for dst in dinfo["dst"]:
                 try:
                     dst_mtime = self._spman.get_mtime(dst)
                 except ErrorNotFound:
-                    self._deployable_not_found(dst)
+                    self._deployable_not_found(dst, dinfo["optional"])
+                    continue
 
                 if src_mtime > time_delta + dst_mtime:
                     src_str = ", ".join([str(path) for path in src])
                     _LOG.debug("%s src time %d + %d > dst_mtime %d\nsrc: %s\ndst %s",
-                               what, src_mtime, time_delta, dst_mtime, src_str, dst)
+                               name, src_mtime, time_delta, dst_mtime, src_str, dst)
                     return True
 
         return False
