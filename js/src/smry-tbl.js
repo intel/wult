@@ -9,8 +9,10 @@
  */
 
 import { html, css } from 'lit'
+import { createRef, ref } from 'lit/directives/ref.js'
 import { ReportTable } from './report-table.js'
 import '@shoelace-style/shoelace/dist/components/details/details.js'
+import '@shoelace-style/shoelace/dist/components/button/button.js'
 
 /**
  * Responsible for generating the summary table for a given metric.
@@ -35,6 +37,52 @@ class SummaryTable extends ReportTable {
         }
         `
     ]
+
+    // Add a 'ref' to the '<table>' element of the summary table.
+    tableRef = createRef()
+
+    /**
+     * Removes 'sl-details' nodes containing metric descriptions.
+     * @param tableEl - DOM Element containing summary table.
+     */
+    removeDetailsEl (tableEl) {
+        for (const child of tableEl.childNodes) {
+            if (child.tagName === 'TR') {
+                for (const grandChild of child.childNodes) {
+                    for (const cellNode of grandChild.childNodes) {
+                        if (cellNode.tagName === 'SL-DETAILS') {
+                            grandChild.removeChild(cellNode)
+                        }
+                    }
+                }
+            }
+        }
+
+        return tableEl
+    }
+
+    /**
+     * Copy the summary table to the clipboard. Excludes metric descriptions from the copied HTML.
+     */
+    copyTable () {
+        const sel = window.getSelection()
+
+        // Ignore any content which is already selected.
+        sel.removeAllRanges()
+
+        // Select a 'Range' containing the table element.
+        const range = document.createRange()
+        range.selectNodeContents(this.tableRef.value)
+        sel.addRange(range)
+
+        // Remove the 'sl-details' nodes containing metric descriptions, then copy.
+        this.removeDetailsEl(sel.anchorNode)
+        document.execCommand('copy')
+
+        // Deselect everything.
+        sel.removeAllRanges()
+        this.requestUpdate()
+    }
 
     /**
      * Helper function for 'parseSrc()'. Converts the semi-colon separated values of a metric line
@@ -111,7 +159,15 @@ class SummaryTable extends ReportTable {
                 }
             }
         }
-        return html`<table width=${this.getWidth(this.cols)}>${template}</table>`
+        template = html`<table ${ref(this.tableRef)} width=${this.getWidth(this.cols)}>${template}</table>`
+
+        // Add button to copy table to clipboard.
+        return html`
+            <div style="display:flex;">
+                ${template}
+                <sl-button style="margin-left:5px" @click=${this.copyTable}>Copy table</sl-button>
+            </div>
+        `
     }
 
     constructor () {
