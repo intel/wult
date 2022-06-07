@@ -58,12 +58,13 @@ class _DeviceBase(ClassHelpers.SimpleCloseContext):
             return f"New kernel messages{self._pman.hostmsg}:\n{new_msgs}"
         return ""
 
-    def __init__(self, devid, pman, drvname=None, dmesg=True):
+    def __init__(self, devid, pman, drvname=None, helpername=None, dmesg=True):
         """
         The class constructor. The arguments are as follows.
           * devid - device ID. What the "ID" is depends on the device type.
           * pman - the process manager object defining the host to operate on.
           * drvname - name of the kernel driver which will be uses for handling this device.
+          * helpername - name of the helper tool required for handling this device.
           * dmesg - 'True' to enable 'dmesg' output checks, 'False' to disable them.
         """
 
@@ -73,8 +74,8 @@ class _DeviceBase(ClassHelpers.SimpleCloseContext):
         self._devid = devid
         self._pman = pman
         self.drvname = drvname
+        self.helpername = helpername
 
-        self.helpername = None
         self.netif = None
         self.dmesg_obj = None
 
@@ -213,10 +214,10 @@ class _PCIDevice(_DeviceBase):
 
         return drvname
 
-    def __init__(self, devid, pman, drvname=None, dmesg=None):
+    def __init__(self, devid, pman, drvname=None, helpername=None, dmesg=None):
         """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
 
-        super().__init__(devid, pman, drvname=drvname, dmesg=dmesg)
+        super().__init__(devid, pman, drvname=drvname, helpername=helpername, dmesg=dmesg)
 
         self._pci_info = None
         self._devpath = None
@@ -278,7 +279,6 @@ class _IntelI210Base(_PCIDevice):
     def __init__(self, devid, pman, drvname=None, helpername=None, no_netif_ok=True, dmesg=None):
         """
         The class constructor. The arguments are as follows.
-          * helpername - name of the helper tool required for handling this device.
           * no_netif_ok - if 'True', the network interface does not have to exist for the NIC,
                           othewise raises an exception if the network interface does not exist.
           * other arguments are the same as in '_DeviceBase.__init__()'.
@@ -301,11 +301,9 @@ class _IntelI210Base(_PCIDevice):
             hwaddr = devid
             alias = None
 
-        super().__init__(hwaddr, pman, drvname=drvname, dmesg=dmesg)
+        super().__init__(hwaddr, pman, drvname=drvname, helpername=helpername, dmesg=dmesg)
 
-        self.helpername = helpername
         self.netif = netif
-
         self.info["alias"] = alias
         # I210 NIC clock has 1 nanosecond resolution.
         self.info["resolution"] = 1
@@ -454,7 +452,7 @@ class _WultHRTimer(_WultHRTimerBase):
     supported_devices = {"hrt" : "Linux High Resolution Timer"}
     alias = "hrtimer"
 
-    def __init__(self, devid, pman, drvname=None, dmesg=None):
+    def __init__(self, devid, pman, dmesg=None):
         """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
 
         super().__init__(devid, pman, drvname="wult_hrtimer", dmesg=dmesg)
