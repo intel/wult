@@ -192,7 +192,7 @@ def find_processes(regex, pman=None):
 
     return procs
 
-def kill_processes(regex, sig="SIGTERM", log=False, name=None, pman=None):
+def kill_processes(regex, sig="SIGTERM", kill_children=False, log=False, name=None, pman=None):
     """
     Kill or signal all processes matching the 'regex' regular expression. The arguments are as
     follows.
@@ -200,6 +200,8 @@ def kill_processes(regex, sig="SIGTERM", log=False, name=None, pman=None):
                 arguments.
       * sig - the signal to send the the processes matching 'regex'. The signal can be sepcified
               either by name or by number, default is 'SIGTERM' (terminate the process).
+      * kill_children - whether this function should also try killing the child processes. Should
+                        only be used with 'SIGTERM' and 'SIGKILL'.
       * log - If 'True', then this function also prints a message which includes the PIDs of the
               processes which are going to be signalled.
       * name - a human-readable name of the processes which are being signalled - this name will be
@@ -224,7 +226,6 @@ def kill_processes(regex, sig="SIGTERM", log=False, name=None, pman=None):
             _LOG.info("Sending '%s' signal to %s%s, PID(s): %s",
                       sig, name, wpman.hostmsg, pids_str)
 
-        killing = _is_sigterm(sig) or _is_sigkill(sig)
-        kill_pids(pids, sig=sig, kill_children=killing, pman=wpman)
+        kill_pids(pids, sig=sig, kill_children=kill_children, pman=wpman)
 
         return procs

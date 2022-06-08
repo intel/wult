@@ -154,8 +154,8 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         # Kill stale 'ndlrunner' process, if any.
         regex = f"^.*{self._ndlrunner_path} .*{self._netif.ifname}.*$"
-        ProcHelpers.kill_processes(regex, log=True, name="stale 'ndlrunner' process",
-                                   pman=self._pman)
+        ProcHelpers.kill_processes(regex, kill_children=True, log=True,
+                                   name="stale 'ndlrunner' process", pman=self._pman)
 
         try:
             self._nmcli = _Nmcli.Nmcli(pman=self._pman)

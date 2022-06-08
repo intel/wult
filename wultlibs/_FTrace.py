@@ -113,7 +113,7 @@ class FTrace(ClassHelpers.SimpleCloseContext):
 
         cmd = f"cat {self._paths['trace_pipe']}"
         name = "stale wult function trace reader process"
-        ProcHelpers.kill_processes(cmd, log=True, name=name, pman=self._pman)
+        ProcHelpers.kill_processes(cmd, kill_children=True, log=True, name=name, pman=self._pman)
 
         # Enable tracing if necessary.
         with self._pman.open(self._paths["tracing_on"], "w+") as fobj:

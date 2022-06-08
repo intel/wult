@@ -838,11 +838,13 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         # Kill a possibly running stale 'stats-collect' process.
         msg = f"stale {self.scpath} process{self._pman.hostmsg}"
-        ProcHelpers.kill_processes(self._sc_search, log=True, name=msg, pman=self._pman)
+        ProcHelpers.kill_processes(self._sc_search, kill_children=True, log=True, name=msg,
+                                   pman=self._pman)
         if self._pman.is_remote:
             # Kill a possibly running stale SSH tunnel process.
             msg = f"stale stats-collect SSH tunnel process{self._pman.hostmsg}"
-            ProcHelpers.kill_processes(self._ssht_search, log=True, name=msg, pman=self._pman)
+            ProcHelpers.kill_processes(self._ssht_search, kill_children=True, log=True, name=msg,
+                                       pman=self._pman)
 
         # Format the command for executing 'stats-collect'.
         self._cmd = f"{self.scpath} --sut-name {self._sutname}"

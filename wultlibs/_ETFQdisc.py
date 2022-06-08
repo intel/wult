@@ -81,8 +81,8 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
         """
 
         # Kill a possibly stale 'phc2sys' process.
-        ProcHelpers.kill_processes(r"^phc2sys .*", log=True, name="stale 'phc2sys' processes",
-                                   pman=self._pman)
+        ProcHelpers.kill_processes(r"^phc2sys .*", kill_children=True, log=True,
+                                   name="stale 'phc2sys' processes", pman=self._pman)
 
         freq = 1.0 / sync_period
         cmd = f"phc2sys -s CLOCK_REALTIME -c {self._ifname} -R {freq:.5} -O {tai_offset}"

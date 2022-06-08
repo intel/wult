@@ -237,7 +237,7 @@ class _BaseCollector:
         if not self._stale_search:
             return
 
-        ProcHelpers.kill_processes(self._stale_search, log=False)
+        ProcHelpers.kill_processes(self._stale_search, kill_children=True, log=False)
 
     def start(self):
         """Start collecting the statistics."""
