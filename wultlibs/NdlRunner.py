@@ -18,6 +18,7 @@ from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import Deploy, _ProgressLine, _NdlRawDataProvider
 from wultlibs.helperlibs import Human
+
 _LOG = logging.getLogger()
 
 class NdlRunner(ClassHelpers.SimpleCloseContext):
@@ -111,7 +112,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
           * pman - the process manager object that defines the host to run the measurements on.
           * dev - the network device object to use for measurements (created with
                   'Devices.GetDevice()').
-          * res - the 'WORawResult' object to store the results at.
+          * res - the 'NdlWORawResult' object to store the results at.
           * ldist - a pair of numbers specifying the launch distance range in nanoseconds (how far
           *         in the future the delayed network packets should be scheduled). Default is
           *         [5000000, 50000000].
@@ -142,5 +143,5 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         """Stop the measurements."""
 
         close_attrs = ("_prov",)
-        unref_attrs = ("_dev", "_pman")
+        unref_attrs = ("_res", "_dev", "_pman")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)

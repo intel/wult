@@ -238,7 +238,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
           * dev - the delayed event device object created by 'Devices.GetDevice()'.
-          * res - the 'WORawResult' object to store the results at.
+          * res - the 'WultWORawResult' object to store the results at.
           * ldist - a pair of numbers specifying the launch distance range. The default value is
                     specific to the delayed event driver.
           * intr_focus - enable interrupt latency focused measurements ('WakeLatency' is not
@@ -294,5 +294,5 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         """Stop the measurements."""
 
         close_attrs = ("_dpp", "_prov", "_stcoll")
-        unref_attrs = ("_dev", "_pman")
+        unref_attrs = ("_res", "_dev", "_pman")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)
