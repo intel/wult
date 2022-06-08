@@ -49,23 +49,20 @@ def is_root(pman=None):
 
     return int(stdout) == 0
 
-def kill_pids(pids, sig: str = "SIGTERM", kill_children: bool = False, must_die: bool = False,
-              pman=None):
+def kill_pids(pids, sig="SIGTERM", kill_children=False, must_die=False, pman=None):
     """
-    This function kills or signals processes with PIDs in 'pids' on the host defined by 'procs'. The
-    'pids' argument can be a collection of PID numbers ('int' or 'str' types) or a single PID
-    number.
-
-    By default the processes are killed (SIGTERM), but you can specify any signal either by name or
-    by number.
-
-    The 'children' and 'must_die' arguments must only be used when killing processes (SIGTERM or
-    SIGKILL).  The 'children' argument controls whether this function should also try killing the
-    children. If the 'must_die' argument is 'True', then this function also verifies that the
-    process(es) did actually die, and if any of them did not die, it raises an exception.
-
-    The 'pman' process manager object defines the system to kill processes on (local host by
-    default).
+    Send signal 'sig' to processes in 'pids'. The arguments are as follows.
+      * pids - an iterable collection of PIDs to signal. May contain intergers or strings. May also
+              a signel PID number.
+      * sig - the signal to send the the processes. The signal can be sepcified either by name or by
+               number, default is 'SIGTERM' (terminate the process).
+      * kill_children - whether this function should also try killing the child processes. Should
+                        only be used with 'SIGTERM' and 'SIGKILL'.
+      * must_die - whether this function should also verify that the processes did actually die, and
+                   if they did not, raise an exception. Should only be used with 'SIGTERM' and
+                   'SIGKILL'.
+      * pman - the process manager object that defines the system to signal for the processes on
+               (local host by default).
     """
 
     def collect_zombies(pman):
@@ -164,13 +161,13 @@ def kill_pids(pids, sig: str = "SIGTERM", kill_children: bool = False, must_die:
         raise Error(f"one of the following processes{wpman.hostmsg} did not die after 'SIGKILL': "
                     f"{msg}")
 
-def find_processes(regex: str, pman=None):
+def find_processes(regex, pman=None):
     """
-    Find all processes which match the 'regex' regular expression on the host defined by 'pman'. The
-    regular expression is matched against the process executable name + command-line arguments.
-
-    The 'pman' process manager object defines the system to find processes on (local host by
-    default).
+    Find all processes which match the 'regex' regular expression. The arguments are as follows.
+      * regex - the regular expression which is matched process executable name + command-line
+                arguments.
+      * pman - the process manager object that defines the system to search for the processes on
+               (local host by default).
 
     Returns a list of tuples containing the PID and the command line.
     """
@@ -195,26 +192,22 @@ def find_processes(regex: str, pman=None):
 
     return procs
 
-def kill_processes(regex: str, sig: str = "SIGTERM", log: bool = False, name: str = None,
-                   pman=None):
+def kill_processes(regex, sig="SIGTERM", log=False, name=None, pman=None):
     """
-    Kill or signal all processes matching the 'regex' regular expression on the host defined by
-    'pman'. The regular expression is matched against the process executable name + command-line
-    arguments.
+    Kill or signal all processes matching the 'regex' regular expression. The arguments are as
+    follows.
+      * regex - the regular expression which is matched process executable name + command-line
+                arguments.
+      * sig - the signal to send the the processes matching 'regex'. The signal can be sepcified
+              either by name or by number, default is 'SIGTERM' (terminate the process).
+      * log - If 'True', then this function also prints a message which includes the PIDs of the
+              processes which are going to be signalled.
+      * name - a human-readable name of the processes which are being signalled - this name will be
+               part of the printed message (if 'log' is provided).
+      * pman - the process manager object that defines the system to search for the processes on
+               (local host by default).
 
-    By default the processes are killed (SIGTERM), but you can specify any signal either by name or
-    by number.
-
-    If 'log' is 'True', then this function also prints a message which includes the PIDs of the
-    processes which are going to be killed.
-
-    The 'name' argument is a human readable name of the processes which are being killed - this name
-    will be part of the printed message.
-
-    The 'pman' process manager object defines the system to kill processes on (local host by
-    default).
-
-    Returns the list of found and killed processes.
+    Returns the list of signalled processes.
     """
 
     with ProcessManager.pman_or_local(pman) as wpman:
