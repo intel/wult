@@ -49,17 +49,6 @@ def is_root(pman=None):
 
     return int(stdout) == 0
 
-def get_child_processes(pid, pman=None):
-    """Get child processes, if any, for process ID 'pid'. Return child processes as a list."""
-
-    pids = []
-    with ProcessManager.pman_or_local(pman) as wpman:
-        children, _, exitcode = wpman.run(f"pgrep -P {pid}", join=False)
-        if exitcode == 0:
-            pids = [child.strip() for child in children]
-
-        return pids
-
 def kill_pids(pids, sig: str = "SIGTERM", kill_children: bool = False, must_die: bool = False,
               pman=None):
     """
@@ -106,10 +95,11 @@ def kill_pids(pids, sig: str = "SIGTERM", kill_children: bool = False, must_die:
     with ProcessManager.pman_or_local(pman) as wpman:
         if kill_children:
             # Find all the children of the process.
-            children = []
             for pid in pids:
-                children += get_child_processes(pid, pman=wpman)
-            pids += children
+                children, _, exitcode = wpman.run(f"pgrep -P {pid}", join=False)
+                if exitcode != 0:
+                    break
+                pids += [child.strip() for child in children]
 
         pids_spc = " ".join(pids)
         pids_comma = ",".join(pids)
@@ -235,14 +225,7 @@ def kill_processes(regex: str, sig: str = "SIGTERM", log: bool = False, name: st
         if not name:
             name = "the following process(es)"
 
-        own_pid = Trivial.get_pid()
-        pids = []
-        for pid, _ in procs:
-            children = get_child_processes(pid, pman=wpman)
-            if own_pid in children:
-                continue
-            pids.append(pid)
-
+        pids = [pid for pid, _ in procs]
         if log:
             pids_str = ", ".join([str(pid) for pid in pids])
             _LOG.info("Sending '%s' signal to %s%s, PID(s): %s",
