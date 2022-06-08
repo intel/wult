@@ -45,7 +45,7 @@ DATAPOINTS_DESCR = """How many datapoints should the test result include, defaul
 
 # Description for the '--time-limit' option of the 'start' command.
 TIME_LIMIT_DESCR = f"""The measurement time limit, i.e., for how long the SUT should be measured.
-                       The default unit is minutes, but you can use the following handy specifiers
+                       The default unit is minute, but you can use the following handy specifiers
                        as well: {Human.DURATION_SPECS_DESCR}. For example '1h25m' would be 1 hour
                        and 25 minutes, or 10m5s would be 10 minutes and 5 seconds. Value '0' means
                        "no time limit", and this is the default. If this option is used along with
