@@ -26,6 +26,22 @@ Power:
     unit: "Watt"
     short_unit: "W"
     default_funcs: ["min", "max", "avg", "med", "std", "N%"]
+Current:
+    title: "Current"
+    descr: >-
+        Current measurement from a power meter built into the SUT (System Under Test). Collected via
+        IPMI.
+    unit: "Amps"
+    short_unit: "A"
+    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
+Voltage:
+    title: "Voltage"
+    descr: >-
+        Voltage measurement from a power meter built into the SUT (System Under Test). Collected via
+        IPMI.
+    unit: "Volts"
+    short_unit: "V"
+    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
 Time:
     title: "Time Elapsed"
     descr: "Time elapsed since the start of the measurements."
