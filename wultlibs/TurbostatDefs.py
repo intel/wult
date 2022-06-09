@@ -28,6 +28,14 @@ def is_hwcs_metric(metric):
 
     return metric.startswith("CPU%")
 
+def is_pkgcs_metric(metric):
+    """
+    Returns 'True' or 'False' based on whether 'metric' is a metric which represents a hardware
+    package C-state.
+    """
+
+    return metric.startswith("Pkg%")
+
 class TurbostatDefs(_DefsBase.DefsBase):
     """This module provides API to turbostat metrics definitions (AKA 'defs')."""
 
