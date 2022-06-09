@@ -98,7 +98,7 @@ SSH connect timeout in seconds, default is 8.
 .SH COMMAND \fI\,'wult scan'\/\fR
 usage: wult scan [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
-Scan for compatible device.
+Scan for compatible devices.
 
 .SH OPTIONS \fI\,'wult scan'\/\fR
 .TP
@@ -191,12 +191,12 @@ require a lot of memory.
 \fB\-\-time\-limit\fR \fI\,LIMIT\/\fR
 The measurement time limit, i.e., for how long the SUT should be measured. The
 default unit is minutes, but you can use the following handy specifiers as
-well: {'d': 'days', 'h': 'hours', 'm': 'minutes', 's': 'seconds'}. For example
-'1h25m' would be 1 hour and 25 minutes, or 10m5s would be 10 minutes and 5
-seconds. Value '0' means "no time limit", and this is the default. If this
-option is used along with the '\-\-datapoints' option, then measurements will
-stop as when either the time limit is reached, or the required amount of
-datapoints is collected.
+well: d \- days, h \- hours, m \- minutes, s \- seconds. For example '1h25m' would
+be 1 hour and 25 minutes, or 10m5s would be 10 minutes and 5 seconds. Value
+'0' means "no time limit", and this is the default. If this option is used
+along with the '\-\-datapoints' option, then measurements will stop as when
+either the time limit is reached, or the required amount of datapoints is
+collected.
 
 .TP
 \fB\-\-exclude\fR \fI\,EXCLUDE\/\fR
@@ -277,12 +277,12 @@ distance within a range. The default range is [0,4ms], but you can override it
 with this option. Specify a comma\-separated range (e.g '\-\-ldist 10,5000'), or
 a single value if you want launch distance to be precisely that value all the
 time. The default unit is microseconds, but you can use the following
-specifiers as well: {'ms': 'milliseconds', 'us': 'microseconds', 'ns':
-'nanoseconds'}. For example, '\-\-ldist 10us,5ms' would be a [10,5000]
-microseconds range. Too small values may cause failures or prevent the SUT
-from reaching deep C\-states. If the range starts with 0, the minimum possible
-launch distance value allowed by the delayed event source will be used. The
-optimal launch distance range is system\-specific.
+specifiers as well: ms \- milliseconds, us \- microseconds, ns \- nanoseconds.
+For example, '\-\-ldist 10us,5ms' would be a [10,5000] microseconds range. Too
+small values may cause failures or prevent the SUT from reaching deep
+C\-states. If the range starts with 0, the minimum possible launch distance
+value allowed by the delayed event source will be used. The optimal launch
+distance range is system\-specific.
 
 .TP
 \fB\-\-cpunum\fR \fI\,CPUNUM\/\fR

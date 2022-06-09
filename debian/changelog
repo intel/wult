@@ -1,3 +1,9 @@
+wult (1.10.5) unstable; urgency=low
+
+  * wult: fix crashes on systems that do not have 'python' in PATH.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com> 09 Jun 2022 16:01:06 +0300
+
 wult (1.10.4) unstable; urgency=low
 
   * wult: fix crash with when unknown method is given (regression in 1.10.0).

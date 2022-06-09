@@ -132,7 +132,7 @@ COMMAND *'ndl* scan'
 usage: ndl scan [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
 [-T TIMEOUT]
 
-Scan for compatible device.
+Scan for compatible devices.
 
 OPTIONS *'ndl* scan'
 ====================
@@ -216,13 +216,13 @@ OPTIONS *'ndl* start'
 **--time-limit** *LIMIT*
    The measurement time limit, i.e., for how long the SUT should be
    measured. The default unit is minutes, but you can use the following
-   handy specifiers as well: {'d': 'days', 'h': 'hours', 'm': 'minutes',
-   's': 'seconds'}. For example
+   handy specifiers as well: d - days, h - hours, m - minutes, s -
+   seconds. For example '1h25m' would be 1 hour and 25 minutes, or 10m5s
+   would be 10 minutes and 5 seconds. Value
 
-seconds. Value '0' means "no time limit", and this is the default. If
-this option is used along with the '--datapoints' option, then
-measurements will stop as when either the time limit is reached, or the
-required amount of datapoints is collected.
+along with the '--datapoints' option, then measurements will stop as
+when either the time limit is reached, or the required amount of
+datapoints is collected.
 
 **-o** *OUTDIR*, **--outdir** *OUTDIR*
    Path to the directory to store the results at.
@@ -245,12 +245,11 @@ required amount of datapoints is collected.
    microseconds (same as '--ldist 5000,50000'). Specify a comma-
    separated range or a single value if you want launch distance to be
    precisely that value all the time. The default unit is microseconds,
-   but you can use the following specifiers as well: {'ms':
-   'milliseconds', 'us': 'microseconds',
-
-[500,100000] microseconds range. Note, too low values may cause failures
-or prevent the SUT from reaching deep C-states. The optimal value is
-system- specific.
+   but you can use the following specifiers as well: ms - milliseconds,
+   us - microseconds, ns - nanoseconds. For example, '--ldist
+   500us,100ms' would be a [500,100000] microseconds range. Note, too
+   low values may cause failures or prevent the SUT from reaching deep
+   C-states. The optimal value is system-specific.
 
 **--exclude** *EXCLUDE*
    Datapoints to exclude: remove all the datapoints satisfying the
