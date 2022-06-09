@@ -392,7 +392,8 @@ class _WultHRTimerBase(_DeviceBase):
         # Get hrtimer resolution in seconds and convert to nanoseconds.
         cmd = "time.clock_getres(time.CLOCK_MONOTONIC) * 1000000000"
         if self._pman.is_remote:
-            cmd = f"python -c 'import time; print(int({cmd}))'"
+            python_path = self._pman.get_python_path()
+            cmd = f"{python_path} -c 'import time; print(int({cmd}))'"
             resolution = self._pman.run_verify(cmd)[0].strip()
 
             if not Trivial.is_int(resolution):

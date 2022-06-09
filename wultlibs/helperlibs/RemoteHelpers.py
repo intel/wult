@@ -36,7 +36,8 @@ def get_free_port(port_type=None, pman=None):
         port_type = socket.SOCK_STREAM
 
     if pman:
-        cmd = f"python -c 'import socket;" \
+        python_path = pman.get_python_path()
+        cmd = f"{python_path} -c 'import socket;" \
               f"sock = socket.socket({socket.AF_INET}, {port_type});" \
               f"sock.bind((\"\", 0));" \
               f"port = sock.getsockname()[1];" \
