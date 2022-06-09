@@ -20,13 +20,12 @@ class IPMIDefs(_DefsBase.DefsBase):
         returns 'None'.
         """
 
-        if unit == "RPM":
-            return "FanSpeed"
-        if unit == "degrees C":
-            return "Temperature"
-        if unit == "Watts":
-            return "Power"
-        return None
+        unit_to_metrics = {
+            "RPM": "FanSpeed",
+            "degrees C": "Temperature",
+            "Watts": "Power"
+        }
+        return unit_to_metrics.get(unit)
 
     def __init__(self):
         """The class constructor."""
