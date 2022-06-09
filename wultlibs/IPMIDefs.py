@@ -23,7 +23,9 @@ class IPMIDefs(_DefsBase.DefsBase):
         unit_to_metrics = {
             "RPM": "FanSpeed",
             "degrees C": "Temperature",
-            "Watts": "Power"
+            "Watts": "Power",
+            "Amps": "Current",
+            "Volts": "Voltage"
         }
         return unit_to_metrics.get(unit)
 
