@@ -14,9 +14,8 @@ import os
 import stat
 import shutil
 from pathlib import Path
-from operator import itemgetter
 from collections import namedtuple
-from pepclibs.helperlibs import ProcessManager, Trivial
+from pepclibs.helperlibs import ProcessManager
 from pepclibs.helperlibs.Exceptions import ErrorExists
 
 # pylint: disable=wildcard-import,unused-wildcard-import
@@ -132,64 +131,6 @@ def move_copy_link(src, dst, action="symlink", exist_ok=False):
             raise Error(f"unrecognized action '{action}'")
     except (OSError, shutil.Error) as err:
         raise Error(f"cannot {action} '{src}' to '{dst}':\n{err}") from err
-
-def lsdir(path, must_exist=True, pman=None):
-    """
-    For each directory entry in 'path', yield the ('name', 'path', 'mode') tuple, where 'name' is
-    the direntry name, 'path' is full directory entry path, and 'mode' is the 'os.lstat().st_mode'
-    value for the directory entry.
-
-    The directory entries are yielded in ctime (creation time) order.
-
-    If 'path' does not exist, this function raises an exception. However, this behavior can be
-    changed with the 'must_exist' argument. If 'must_exist' is 'False, this function just returns
-    and does not yield anything.
-
-    The 'pman' argument is the process manger object which defines the host 'path' resides on. By
-    default, 'path' is assumed to be on the local host.
-    """
-
-    path = Path(path)
-
-    if pman and pman.is_remote:
-        if not must_exist and not pman.exists(path):
-            return
-
-        # A small python program to get the list of directories with some metadata.
-        cmd = f"""python -c 'import os
-path = "{path}"
-for entry in os.listdir(path):
-    stinfo = os.lstat(os.path.join(path, entry))
-    print(entry, stinfo.st_mode, stinfo.st_ctime)'"""
-
-        stdout, _ = pman.run_verify(cmd, shell=True)
-
-        entries = {}
-        for line in stdout.splitlines():
-            entry, mode, ctime = Trivial.split_csv_line(line.strip(), sep=" ")
-            entries[entry] = {"name": entry, "ctime": float(ctime), "mode": int(mode)}
-    else:
-        if not must_exist and not path.exists():
-            return
-
-        # Get list of directory entries. For a dummy dictionary out of it. We'll need it later for
-        # sorting by ctime.
-        try:
-            entries = {entry : None for entry in os.listdir(path)}
-        except OSError as err:
-            raise Error(f"failed to get list of files in '{path}':\n{err}") from None
-
-        # For each directory entry, get its file type and ctime. Fill the entry dictionary value.
-        for entry in entries:
-            try:
-                stinfo = path.joinpath(entry).lstat()
-            except OSError as err:
-                raise Error(f"'stat()' failed for '{entry}':\n{err}") from None
-
-            entries[entry] = {"name": entry, "ctime": stinfo.st_ctime, "mode": stinfo.st_mode}
-
-    for einfo in sorted(entries.values(), key=itemgetter("ctime"), reverse=True):
-        yield (einfo["name"], path / einfo["name"], einfo["mode"])
 
 def get_mount_points(pman=None):
     """

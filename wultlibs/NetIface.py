@@ -21,7 +21,6 @@ from pathlib import Path
 from collections import namedtuple
 from pepclibs.helperlibs import LocalProcessManager, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from wultlibs.helperlibs import FSHelpers
 from wultlibs import LsPCI
 
 _LOG = logging.getLogger()
@@ -49,7 +48,7 @@ def _get_ifinfos(pman):
     * device HW address
     """
 
-    for ifname, path, mode in FSHelpers.lsdir(_SYSFSBASE, pman=pman):
+    for ifname, path, mode in pman.lsdir(_SYSFSBASE):
         if not stat.S_ISLNK(mode):
             # We expect a symlink.
             continue
