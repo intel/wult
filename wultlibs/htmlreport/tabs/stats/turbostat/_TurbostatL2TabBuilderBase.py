@@ -58,8 +58,8 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             elif TurbostatDefs.is_hwcs_metric(metric):
                 hw_cstates.append(metric[4:].upper())
 
-        self._hw_cstates.append(hw_cstates)
-        self._req_cstates.append(req_cstates)
+        self._cstates["hardware"]["core"].append(hw_cstates)
+        self._cstates["requested"].append(req_cstates)
         return hw_cstates, req_cstates
 
     def _read_stats_file(self, path):
@@ -187,12 +187,12 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         tab_hierarchy["Misc"] = {"dtabs": [m for m in misc_metrics if m in common_metrics]}
 
         # Find C-states which are common to all test results.
-        common_hw_cstates = set.intersection(*[set(lst) for lst in self._hw_cstates])
-        common_req_cstates = set.intersection(*[set(lst) for lst in self._req_cstates])
+        common_hw_cs = set.intersection(*[set(lst) for lst in self._cstates["hardware"]["core"]])
+        common_req_cs = set.intersection(*[set(lst) for lst in self._cstates["requested"]])
 
         # Maintain the order of C-states as they appeared in the raw turbostat statistic files.
-        req_cstates = [cs for cs in self._req_cstates[0] if cs in common_req_cstates]
-        hw_cstates = [cs for cs in self._hw_cstates[0] if cs in common_hw_cstates]
+        req_cstates = [cs for cs in self._cstates["requested"][0] if cs in common_req_cs]
+        hw_cstates = [cs for cs in self._cstates["hardware"]["core"][0] if cs in common_hw_cs]
 
         for cs in req_cstates:
             tab_hierarchy["C-states"]["Requested"]["dtabs"].append(f"{cs}%")
@@ -246,10 +246,14 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         # property will be assigned a 'TurbostatDefs.TurbostatDefs' instance.
         self._defs = None
 
-        # Store C-states for which there is data in each raw turbostat statistics file. A list of
-        # lists where each file has its own sub-list of C-states.
-        self._hw_cstates = []
-        self._req_cstates = []
+        # Store C-states for which there is data in each raw turbostat statistics file. Each leaf
+        # value contains a list of lists where each file has its own sub-list of C-states.
+        self._cstates = {
+            "requested": [],
+            "hardware": {
+                "core": []
+            }
+        }
 
         super().__init__(stats_paths, outdir, ["turbostat.raw.txt"])
         self._basedir = basedir
