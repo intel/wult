@@ -152,6 +152,13 @@ class DTabBuilder:
                     _LOG.info("Skipping %s: no non-zero datapoints were found for '%s'.",
                               plotname, mname)
                     return True
+
+            # Check if there is a constant value for all readings.
+            if all(sdf[mname].max() == sdf[mname].min() for sdf in self._reports.values()):
+                _LOG.info("Skipping %s: all results contain only datapoints with a single value of "
+                          "'%s'.", plotname, mname)
+                return True
+
         return False
 
     def add_plots(self, plot_axes=None, hist=None, chist=None, hover_defs=None):
