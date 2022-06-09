@@ -51,14 +51,18 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
 
         req_cstates = []
         hw_cstates = []
+        pkg_cstates = []
 
         for metric in tstat["totals"]:
             if TurbostatDefs.is_reqcs_metric(metric):
                 req_cstates.append(metric[:-1])
             elif TurbostatDefs.is_hwcs_metric(metric):
                 hw_cstates.append(metric[4:].upper())
+            elif TurbostatDefs.is_pkgcs_metric(metric):
+                pkg_cstates.append(metric[5:].upper())
 
         self._cstates["hardware"]["core"].append(hw_cstates)
+        self._cstates["hardware"]["package"].append(pkg_cstates)
         self._cstates["requested"].append(req_cstates)
         return hw_cstates, req_cstates
 
@@ -251,7 +255,8 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         self._cstates = {
             "requested": [],
             "hardware": {
-                "core": []
+                "core": [],
+                "package": []
             }
         }
 
