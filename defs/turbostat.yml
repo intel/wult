@@ -28,6 +28,16 @@ Avg_MHz:
     unit: "megahertz"
     short_unit: "MHz"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+Pkg%pcx:
+    title: "pcx package C-state residency"
+    descr: >-
+        The percentage of time spent in the pcx hardware C-state. Retrieved from the "Pkg%pcx"
+        turbostat column.
+    type: "float"
+    unit: "%"
+    short_unit: "%"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+    drop_empty: True
 CPU%cx:
     title: "ccx core C-state residency"
     descr: >-
