@@ -125,6 +125,35 @@ class DTabBuilder:
         h.generate()
         self._ppaths.append(h_path)
 
+    def _skip_metric_plot(self, plotname, xdef, ydef=None):
+        """
+        Helper function for 'add_plots()'. Checks the data in 'self._reports' to see if there is
+        sufficient data to generate a plot for the metrics 'xdef' and 'ydef'. Returns 'True' or
+        'False' if the plot should be skipped or generated respectively.
+        """
+
+        if ydef is not None:
+            mdefs = [xdef, ydef]
+            plotname = f"{plotname} '{xdef['name']} vs {ydef['name']}'"
+        else:
+            mdefs = [xdef]
+            plotname = f"{plotname} '{xdef['name']}'"
+
+        for mdef in mdefs:
+            mname = mdef["name"]
+            for sdf in self._reports.values():
+                # Check if there is a column for 'metric' in every stats 'pandas.DataFrame'.
+                if mname not in sdf:
+                    _LOG.info("Skipping %s: not all results have data for '%s'.", plotname, mname)
+                    return True
+
+                # Check if all 'pandas.DataFrame's contain non-zero data for 'metric'.
+                if not sdf[mname].any():
+                    _LOG.info("Skipping %s: no non-zero datapoints were found for '%s'.",
+                              plotname, mname)
+                    return True
+        return False
+
     def add_plots(self, plot_axes=None, hist=None, chist=None, hover_defs=None):
         """
         Initialise the plots and populate them using the 'pandas.DataFrame' objects in 'reports'
@@ -147,38 +176,17 @@ class DTabBuilder:
         if chist is None:
             chist = []
 
-        sdfs = self._reports.values()
         for xdef, ydef in plot_axes:
-            if not all(xdef["name"] in sdf and ydef["name"] in sdf for sdf in sdfs):
-                _LOG.warning("skipping scatter plot '%s vs %s' since not all results have data "
-                             "for both.", ydef["name"], xdef["name"])
-                continue
-            if all(not sdf[ydef["name"]].any() for sdf in sdfs):
-                _LOG.warning("skipping scatter plot '%s vs %s': no non-zero datapoints were "
-                             "found for '%s'.", ydef["title"], xdef["title"], ydef["title"])
-                continue
-            self._add_scatter(xdef, ydef, hover_defs)
+            if not self._skip_metric_plot("scatter plot", xdef, ydef):
+                self._add_scatter(xdef, ydef, hover_defs)
 
         for mdef in hist:
-            if not all(mdef["name"] in sdf for sdf in sdfs):
-                _LOG.warning("skipping histogram for metric '%s' since not all results have data "
-                             "for this metric.", mdef["name"])
-                continue
-            if all(not sdf[mdef["name"]].any() for sdf in sdfs):
-                _LOG.warning("skipping histogram for metric '%s': no non-zero datapoints were "
-                             "found.", mdef["title"])
-                continue
-            self._add_histogram(mdef)
+            if not self._skip_metric_plot("histogram", mdef):
+                self._add_histogram(mdef)
 
         for mdef in chist:
-            if not all(mdef["name"] in sdf for sdf in sdfs):
-                _LOG.warning("skipping cumulative histogram for metric '%s' since not all results "
-                             "have data for this metric.", mdef["name"])
-                continue
-            if all(not sdf[mdef["name"]].any() for sdf in sdfs):
-                _LOG.warning("skipping cumulative histogram for metric '%s': no non-zero "
-                             "datapoints were found.", mdef["title"])
-            self._add_histogram(mdef, cumulative=True)
+            if not self._skip_metric_plot("cumulative histogram", mdef):
+                self._add_histogram(mdef, cumulative=True)
 
     def __init__(self, reports, outdir, metric_def, basedir=None):
         """
