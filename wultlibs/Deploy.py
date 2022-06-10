@@ -30,6 +30,7 @@ import os
 import sys
 import time
 import logging
+import contextlib
 from pathlib import Path
 from pepclibs.helperlibs import ProcessManager, LocalProcessManager, Trivial, Logging
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
@@ -509,28 +510,35 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                              f"it is not new enough for the '{installable}' {cat_descr}.\n"
                              f"Please, use kernel version {minkver} or newer.")
 
-    def _init_kernel_info(self):
+    def _init_kernel_info(self, ksrc_required=False):
         """
         Discover kernel version and kernel sources path which will be needed for building the out of
         tree drivers. The arguments are as follows.
+          * ksrc_required - if 'True', raises an exception if kernel sources were not found on the
+                            build host (the SUT in all cases, except for the 'self._lbuild=True'
+                            case).
         """
 
         self._kver = None
         if not self._ksrc:
             self._kver = KernelVersion.get_kver(pman=self._bpman)
-            if not self._ksrc:
-                self._ksrc = Path(f"/lib/modules/{self._kver}/build")
-
-        if not self._bpman.is_dir(self._ksrc):
-            raise Error(f"kernel sources directory '{self._ksrc}' does not "
-                        f"exist{self._bpman.hostmsg}")
-
-        self._ksrc = self._bpman.abspath(self._ksrc)
-
-        if not self._kver:
+            with contextlib.suppress(ErrorNotFound):
+                ksrc_path = Path(f"/lib/modules/{self._kver}/build")
+                self._ksrc = self._bpman.abspath(ksrc_path)
+            if not self._ksrc and ksrc_required:
+                raise Error(f"canont find kernel sources: '{ksrc_path}' does not "
+                            f"exist{self._bpman.hostmsg}")
+        else:
+            if not self._bpman.is_dir(self._ksrc):
+                raise Error(f"kernel sources directory '{self._ksrc}' does not "
+                            f"exist{self._bpman.hostmsg}")
+            self._ksrc = self._bpman.abspath(self._ksrc)
             self._kver = KernelVersion.get_kver_ktree(self._ksrc, pman=self._bpman)
 
-        _LOG.debug("Kernel sources path: %s", self._ksrc)
+        if self._ksrc:
+            _LOG.debug("Kernel sources path: %s", self._ksrc)
+        else:
+            _LOG.debug("Kernel sources path: not found%s", self._bpman.hostmsg)
         _LOG.debug("Kernel version: %s", self._kver)
 
     def is_deploy_needed(self, dev):
@@ -544,7 +552,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         critical component required for the 'dev' device is not installed on the SUT at all.
         """
 
-        self._init_kernel_info()
+        self._init_kernel_info(ksrc_required=False)
         self._adjust_installables()
 
         # Strategy: first build the the deploy information dictionary 'dinfos', then check all the
@@ -916,7 +924,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
            python helpers is trickier because all python modules should also be deployed.
         """
 
-        self._init_kernel_info()
+        self._init_kernel_info(ksrc_required=True)
         self._adjust_installables()
 
         try:
