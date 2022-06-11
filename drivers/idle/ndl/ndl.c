@@ -118,7 +118,7 @@ static int ndl_do_init(void)
 	}
 
 	/* Get the base IO memory address. */
-	i210_iomem = pci_iomap(i210_pdev, 0, 0);
+	i210_iomem = pci_ioremap_bar(i210_pdev, 0);
 
 	err = dfs_create();
 	if (err)
