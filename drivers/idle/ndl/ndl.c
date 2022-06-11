@@ -88,7 +88,7 @@ static struct pci_dev * __init find_pci_device(const struct net_device *ndev)
 		if (!pdev->driver || strcmp(pdev->driver->name, "igb"))
 			/* I210 devices are managed by the 'igb' driver. */
 			continue;
-		if (pdev->dev.driver_data == ndev)
+		if (pci_get_drvdata(pdev) == ndev)
 			break;
 	}
 
