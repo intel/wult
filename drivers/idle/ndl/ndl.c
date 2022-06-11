@@ -4,6 +4,8 @@
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
 
+#define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
+
 #include <linux/debugfs.h>
 #include <linux/err.h>
 #include <linux/fs.h>
@@ -102,14 +104,13 @@ static int ndl_do_init(void)
 
 	i210_ndev = dev_get_by_name(&init_net, ifname);
 	if (!i210_ndev) {
-		pr_err(DRIVER_NAME ": network device '%s' was not found\n",
-		       ifname);
+		pr_err("network device '%s' was not found\n", ifname);
 		return -EINVAL;
 	}
 
 	i210_pdev = find_pci_device(i210_ndev);
 	if (!i210_pdev) {
-		pr_err(DRIVER_NAME ": cannot find PCI device for network device '%s'\n",
+		pr_err("cannot find PCI device for network device '%s'\n",
 		       i210_ndev->name);
 		err = -EINVAL;
 		goto error_put_ndev;
@@ -156,7 +157,7 @@ static int ndl_netdevice_event(struct notifier_block *notifier,
 	case NETDEV_REGISTER:
 		err = ndl_do_init();
 		if (err)
-			pr_err(DRIVER_NAME ": ndl init failed:%d\n", err);
+			pr_err("init failed:%d\n", err);
 		break;
 	case NETDEV_UNREGISTER:
 		ndl_do_exit();
@@ -178,7 +179,7 @@ static int __init ndl_init(void)
 	int err;
 
 	if (!ifname) {
-		pr_err(DRIVER_NAME ": network interface name not specified\n");
+		pr_err("network interface name not specified\n");
 		return -EINVAL;
 	}
 
@@ -188,7 +189,7 @@ static int __init ndl_init(void)
 
 	err = register_netdevice_notifier(&ndl_netdevice_notifier);
 	if (err) {
-		pr_err(DRIVER_NAME ": failed to register notifier\n");
+		pr_err("failed to register notifier\n");
 		ndl_do_exit();
 	}
 
