@@ -13,6 +13,7 @@
 #include <linux/netdevice.h>
 #include <linux/pci.h>
 #include <linux/string.h>
+#include <linux/types.h>
 
 #define DRIVER_NAME "ndl"
 #define NDL_VERSION "1.0"
