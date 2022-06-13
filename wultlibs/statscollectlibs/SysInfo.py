@@ -175,6 +175,16 @@ def collect_before(outdir, pman):
     cmdinfo["outfile"] = outfile
     cmdinfo["cmd"] = f"sysctl --all > '{outfile}' 2>&1"
 
+    cmdinfos["pepc_cstates"] = cmdinfo = {}
+    outfile = outdir / "pepc_cstates.raw.txt"
+    cmdinfo["outfile"] = outfile
+    cmdinfo["cmd"] = f"pepc cstates info > '{outfile}' 2>&1"
+
+    cmdinfos["pepc_pstates"] = cmdinfo = {}
+    outfile = outdir / "pepc_pstates.raw.txt"
+    cmdinfo["outfile"] = outfile
+    cmdinfo["cmd"] = f"pepc pstates info > '{outfile}' 2>&1"
+
     _run_commands(cmdinfos, pman)
     _collect_totals(outdir, "before", pman)
 
