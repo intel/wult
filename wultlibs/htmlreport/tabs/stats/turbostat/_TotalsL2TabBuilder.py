@@ -68,6 +68,15 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
 
         return pandas.DataFrame.from_dict(tstat_reduced)
 
+    def get_tab(self):
+        """
+        Extends 'super.get_tab()' to populate the descriptions with details on how metrics are
+        summarised by turbostat.
+        """
+
+        self._defs.mangle_descriptions()
+        return super().get_tab()
+
     def __init__(self, stats_paths, outdir, basedir):
         """
         The class constructor. Adding a "totals" turbostat level 2 tab will create a "Totals"

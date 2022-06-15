@@ -11,6 +11,7 @@ This module provides API to turbostat metrics definitions (AKA 'defs').
 """
 
 from wultlibs import _DefsBase
+from wultlibs.parsers import TurbostatParser
 
 def is_reqcs_metric(metric):
     """
@@ -38,6 +39,15 @@ def is_pkgcs_metric(metric):
 
 class TurbostatDefs(_DefsBase.DefsBase):
     """This module provides API to turbostat metrics definitions (AKA 'defs')."""
+
+    def mangle_descriptions(self):
+        """Mangle turbostat metric descriptions to describe how they are summarised by turbostat."""
+
+        for metric, mdef in self.info.items():
+            method = TurbostatParser.get_aggregation_method(metric)
+            if method is not None:
+                mdef["descr"] = f"{mdef['descr']} Calculated by finding the {method} of " \
+                                f"\"{mdef['name']}\" across the system."
 
     def __init__(self, cstates):
         """
