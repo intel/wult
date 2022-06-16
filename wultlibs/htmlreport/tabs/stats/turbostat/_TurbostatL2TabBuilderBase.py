@@ -130,8 +130,8 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         if "dtabs" in tab_hierarchy:
             for metric in tab_hierarchy["dtabs"]:
                 if not all(metric in sdf for sdf in self._reports.values()):
-                    _LOG.info("Skipping '%s' tab in turbostat '%s' tab: one or more results do not "
-                              "contain data for this metric.", metric, self.name)
+                    _LOG.info("Skipping '%s' tab in '%s' tab: one or more results do not contain "
+                              "data for this metric.", metric, self.name)
                     continue
                 try:
                     tab = _DTabBuilder.DTabBuilder(self._reports, outdir, self._defs.info[metric],
@@ -141,8 +141,8 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
                     tab.add_smrytbl([self._defs.info[metric]])
                     sub_tabs.append(tab.get_tab())
                 except Error as err:
-                    _LOG.info("Skipping '%s' tab in turbostat '%s' tab: error occured during tab "
-                              "generation.", metric, self.name)
+                    _LOG.info("Skipping '%s' tab in '%s' tab: error occured during tab generation.",
+                              metric, self.name)
                     _LOG.debug(err)
 
         # Process the rest of the tabs in the tab hierarchy.
