@@ -93,7 +93,7 @@ class WultDefs(_DefsBase.DefsBase):
             else:
                 pcnames.append(csname)
 
-        placeholders_info = [{ "values" : ccnames, "placeholder" : "CCx"},
-                             { "values" : pcnames, "placeholder" : "PCx"}]
+        placeholders_info = [{ "placeholder" : "CCx", "values" : ccnames},
+                             { "placeholder" : "PCx", "values" : pcnames}]
 
         super()._mangle_placeholders(placeholders_info)

@@ -36,15 +36,15 @@ class DefsBase:
 
         The 'placeholders_info' list has the following format.
           [
-           { "values"     : list_of_values,
-             "placeholder" : placeholder },
+           { "placeholder" : placeholder,
+             "values"      : list_of_values },
            ... etc ...
           ]
 
         Every dictionary in the list provides the following components to the mangler:
-          values - list of values to substitute the placeholder with.
           placeholder - the placeholder string that has to be substituted with elements from the
                         'values' list.
+          values - list of values to substitute the placeholder with.
 
         Example.
 
@@ -61,8 +61,8 @@ class DefsBase:
 
         Suppose the platform has CC1 and CC6 C-states. The 'placeholders_info' list could be the
         following in this case:
-          [ { "values" : [ "CC1", "CC6" ],
-              "placeholder" : "CCx" } ]
+          [ { "placeholder" : "CCx",
+              "values" : [ "CC1", "CC6" ] } ]
 
         The mangler would replace the 'CCx%' placeholder metric definition with the following.
 
