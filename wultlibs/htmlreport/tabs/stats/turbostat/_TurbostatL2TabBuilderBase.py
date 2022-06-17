@@ -104,7 +104,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
 
         return sdf
 
-    def _build_ctab(self, name, tab_hierarchy, outdir):
+    def _build_ctab(self, name, tab_hierarchy, outdir, plots):
         """
         This is a helper function for 'get_tab()'. Build a container tab according to the
         'tab_hierarchy' dictionary. If no sub-tabs can be generated then returns 'None'.
@@ -120,6 +120,16 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
                                        {"dtabs": [metric3, metric4...]}
                            }
          * outdir - path of the directory in which to store the generated tabs.
+         * plots - dictionary representation of the plots to include for each metric. Schema is as
+                   follows:
+                   {
+                        Metric1:
+                            {
+                                "scatter": [(mdef1, mdef2), (mdef1, mdef5)],
+                                "hist": [mdef1, mdef2],
+                                "chist": [mdef1]
+                            }
+                   }
         """
 
         # Sub-tabs which will be contained by the returned container tab.
@@ -136,8 +146,9 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
                 try:
                     tab = _DTabBuilder.DTabBuilder(self._reports, outdir, self._defs.info[metric],
                                                    self._basedir)
-                    scatter_axes = [(self._defs.info[self._time_metric], self._defs.info[metric])]
-                    tab.add_plots(scatter_axes, [self._defs.info[metric]])
+                    if metric in plots:
+                        tab.add_plots(plots[metric].get("scatter"), plots[metric].get("hist"),
+                                      plots[metric].get("chist"))
                     tab.add_smrytbl([self._defs.info[metric]])
                     sub_tabs.append(tab.get_tab())
                 except Error as err:
@@ -154,7 +165,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             # Tabs not labelled by the "dtabs" key in the tab hierarchy are container tabs. For each
             # sub container tab, recursively call 'self._build_ctab()'.
             subdir = Path(outdir) / _DefsBase.get_fsname(tab_name)
-            subtab = self._build_ctab(tab_name, sub_hierarchy, subdir)
+            subtab = self._build_ctab(tab_name, sub_hierarchy, subdir, plots)
             if subtab:
                 sub_tabs.append(subtab)
 
@@ -243,8 +254,17 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         # tabs which are common to all sets of results.
         tab_hierarchy = self._get_tab_hierarchy(common_metrics)
 
+        # Define which plots should be generated in the data tab for a given metric.
+        plots = {}
+        for metric in common_metrics:
+            defs_info = self._defs.info
+            plots[metric] = {
+                "scatter": [(defs_info[self._time_metric], defs_info[metric])],
+                "hist": [defs_info[metric]]
+            }
+
         # Build L2 CTab with hierarchy represented in 'self._tab_hierarchy'.
-        return self._build_ctab(self.name, tab_hierarchy, self.outdir)
+        return self._build_ctab(self.name, tab_hierarchy, self.outdir, plots)
 
     def __init__(self, stats_paths, outdir, basedir):
         """
