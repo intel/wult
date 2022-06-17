@@ -16,7 +16,6 @@ from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import _DefsBase, IPMIDefs
 from wultlibs.parsers import IPMIParser
 from wultlibs.htmlreport.tabs.stats import _TabBuilderBase
-from wultlibs.htmlreport.tabs import _DTabBuilder, _Tabs
 
 class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
     """
@@ -28,6 +27,36 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
     """
 
     name = "IPMI"
+
+    def _get_tab_hierarchy(self, common_cols):
+        """
+        Helper function for 'get_tab()'. Get the tab hierarchy which is populated with IPMI column
+        names which are common to all raw IPMI statistic files 'common_cols'.
+        """
+
+        tab_hierarchy = {}
+
+        # Add fan speed-related D-tabs to a separate C-tab.
+        fspeed_cols = self._metrics["FanSpeed"]
+        tab_hierarchy["Fan Speed"] = {"dtabs": [c for c in fspeed_cols if c in common_cols]}
+
+        # Add temperature-related D-tabs to a separate C-tab.
+        temp_cols = self._metrics["Temperature"]
+        tab_hierarchy["Temperature"] = {"dtabs": [c for c in temp_cols if c in common_cols]}
+
+        # Add power-related D-tabs to a separate C-tab.
+        pwr_cols = self._metrics["Power"]
+        tab_hierarchy["AC Power"] = {"dtabs": [c for c in pwr_cols if c in common_cols]}
+
+        # Add current-related D-tabs to a separate C-tab.
+        current_cols = self._metrics["Current"]
+        tab_hierarchy["Current"] = {"dtabs": [c for c in current_cols if c in common_cols]}
+
+        # Add voltage-related D-tabs to a separate C-tab.
+        voltage_cols = self._metrics["Voltage"]
+        tab_hierarchy["Voltage"] = {"dtabs": [c for c in voltage_cols if c in common_cols]}
+
+        return tab_hierarchy
 
     def get_tab(self):
         """
@@ -48,12 +77,10 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
         col_sets = [set(sdf.columns) for sdf in self._reports.values()]
         common_cols = set.intersection(*col_sets)
 
-        metric_ctabs = []
+        # Update defs with IPMI column names for each column.
         for metric, colnames in self._metrics.items():
-            coltabs = []
-            mtab_outdir = self._outdir / metric
-            for col in colnames:
-                if col not in common_cols:
+            for colname in colnames:
+                if colname not in common_cols:
                     continue
 
                 # Since we use column names which aren't known until runtime as tab titles, use the
@@ -62,28 +89,26 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
                 col_def = self._defs.info[metric].copy()
                 # Don't overwrite the 'title' attribute so that the metric name is shown in plots
                 # and the summary table.
-                col_def["fsname"] = _DefsBase.get_fsname(col)
-                col_def["name"] = col
+                col_def["fsname"] = _DefsBase.get_fsname(colname)
+                col_def["name"] = colname
+                self._defs.info[colname] = col_def
 
-                coltab = _DTabBuilder.DTabBuilder(self._reports, mtab_outdir, col_def,
-                                                  self._basedir)
-                scatter_axes = [(self._defs.info[self._time_metric], col_def)]
-                coltab.add_plots(scatter_axes, [col_def])
-                coltab.add_smrytbl([col_def])
+        tab_hierarchy = self._get_tab_hierarchy(common_cols)
 
-                # The tab will automatically use the title from 'col_def' to name the tab. Rename it
-                # to 'col' so that the tab is named after the turbostat column.
-                coltab.title = col
-                coltabs.append(coltab.get_tab())
+        # Configure which axes plots will display in the data tabs.
+        plots = {}
+        for metric, colnames in self._metrics.items():
+            for col in colnames:
+                if col not in common_cols:
+                    continue
 
-            # Only add a container tab for 'metric' if any data tabs were generated to populate it.
-            if coltabs:
-                metric_ctabs.append(_Tabs.CTabDC(self._defs.info[metric]["title"], coltabs))
+                defs_info = self._defs.info
+                plots[col] = {
+                    "scatter": [(defs_info[self._time_metric], defs_info[col])],
+                    "hist": [defs_info[col]]
+                }
 
-        if not metric_ctabs:
-            raise Error(f"no common {self.name} metrics between reports.")
-
-        return _Tabs.CTabDC(self.name, metric_ctabs)
+        return self._build_ctab(self.name, tab_hierarchy, self._outdir, plots)
 
     def _categorise_cols(self, ipmi):
         """
