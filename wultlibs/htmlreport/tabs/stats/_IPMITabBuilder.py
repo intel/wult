@@ -152,13 +152,13 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
         '_TabBuilderBase.TabBuilderBase'.
         """
 
-        self._defs = IPMIDefs.IPMIDefs()
         self._time_metric = "Time"
 
         # Metrics in IPMI statistics can be represented by multiple columns. For example the
         # "FanSpeed" of several different fans can be measured and represented in columns "Fan1",
         # "Fan2" etc. This dictionary maps the metrics to the appropriate columns. Initialise it
         # with empty column sets for each metric.
-        self._metrics = {metric: set() for metric in self._defs.info}
+        defs = IPMIDefs.IPMIDefs()
+        self._metrics = {metric: set() for metric in defs.info}
 
-        super().__init__(stats_paths, outdir, ["ipmi.raw.txt", "ipmi-inband.raw.txt"])
+        super().__init__(stats_paths, outdir, ["ipmi.raw.txt", "ipmi-inband.raw.txt"], defs)

@@ -75,9 +75,7 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
         '_TabBuilderBase.TabBuilderBase'.
         """
 
-        self._defs = ACPowerDefs.ACPowerDefs()
-
         self._power_metric = "P"
         self._time_metric = "T"
 
-        super().__init__(stats_paths, outdir, ["acpower.raw.txt"])
+        super().__init__(stats_paths, outdir, ["acpower.raw.txt"], ACPowerDefs.ACPowerDefs())

@@ -97,7 +97,7 @@ class TabBuilderBase:
                                 f"statistics files were found in any statistics directory: "
                                 f"'{self._stats_files}'.")
 
-    def __init__(self, stats_paths, outdir, stats_files):
+    def __init__(self, stats_paths, outdir, stats_files, defs=None):
         """
         The class constructor. Adding a statistics container tab will create a sub-directory and
         store tabs inside it. These tabs will represent all of the metrics stored in 'stats_file'.
@@ -106,6 +106,8 @@ class TabBuilderBase:
            This class will use these directories to locate raw statistic files.
          * outdir - the output directory in which to create the sub-directory for the container tab.
          * stats_files - a list of the possible names of the raw statistics file.
+         * defs - a '_DefsBase.DefsBase' instance containing definitions for the metrics which
+                  should be included in the output tab.
         """
 
         if self.name is None:
@@ -115,6 +117,7 @@ class TabBuilderBase:
         self._reports = {}
         self._basedir = outdir
         self._outdir = outdir / _DefsBase.get_fsname(self.name)
+        self._defs = defs
 
         try:
             self._outdir.mkdir(parents=True, exist_ok=True)
