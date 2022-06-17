@@ -7,9 +7,10 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module provides the base class for metrics definitoins (AKA 'defs').
+This module provides the base class for metrics definitions (AKA 'defs').
 """
 
+import re
 from pathlib import Path
 from pepclibs.helperlibs import YAML
 from wultlibs import Deploy
@@ -25,7 +26,7 @@ def get_fsname(metric):
     return metric
 
 class DefsBase:
-    """The base class for metrics definitoins (AKA 'defs')."""
+    """The base class for metrics definitions (AKA 'defs')."""
 
     def _mangle_placeholders(self, placeholders_info):
         """
@@ -36,8 +37,9 @@ class DefsBase:
 
         The 'placeholders_info' list has the following format.
           [
-           { "placeholder" : placeholder,
-             "values"      : list_of_values },
+           { "placeholder"   : placeholder,
+             "values"        : list_of_values,
+             "casesensitive" : boolean_value},
            ... etc ...
           ]
 
@@ -45,6 +47,8 @@ class DefsBase:
           placeholder - the placeholder string that has to be substituted with elements from the
                         'values' list.
           values - list of values to substitute the placeholder with.
+          casesensitive - whether to use case-sensitive or case-insensitive matching and
+                          substitution. 'True' by default.
 
         Example.
 
@@ -52,7 +56,7 @@ class DefsBase:
 
            CCx%
               title: "CCx residence"
-              description: "Time in percent the CPU spent in the CCx core C-state"
+              description: "Time in percent spent in Cx core C-state. Matches turbostat CPU%cx."
               unit: "%"
 
         This metric describes core C-states. Core C-states are platform-dependent, so the real names
@@ -61,18 +65,19 @@ class DefsBase:
 
         Suppose the platform has CC1 and CC6 C-states. The 'placeholders_info' list could be the
         following in this case:
-          [ { "placeholder" : "CCx",
-              "values" : [ "CC1", "CC6" ] } ]
+          [ { "placeholder" : "Cx",
+              "values" : [ "C1", "C6" ],
+              "casesensitive" : False, } ]
 
         The mangler would replace the 'CCx%' placeholder metric definition with the following.
 
            CC1%
               title: "CC1 residence"
-              description: "Time in percent the CPU spent in the CC1 core C-state"
+              description: "Time in percent spent in C1 core C-state. Matches turbostat CPU%c1."
               unit: "%"
            CC6%
               title: "CC6 residence"
-              description: "Time in percent the CPU spent in the CC6 core C-state"
+              description: "Time in percent spent in C6 core C-state. Matches turbostat CPU%c6."
               unit: "%"
         """
 
@@ -83,8 +88,25 @@ class DefsBase:
             values = pinfo["values"]
             phld = pinfo["placeholder"]
 
+            # Whether matching and replacement should be case-sensitive or not.
+            # 1. Case-sensitive.
+            #   * Match metrics that include the placeholder in the name.
+            #   * Replace all placeholders with values in 'values'.
+            # 2. Case-insensitive.
+            #   * Match metrics that include the placeholder in the name, but accept both lower
+            #     and upper cases.
+            #   * Replace all placeholders with values in 'values'. But when replacing, if the
+            #     original value was in upper case, use upper case, otherwise use lower case
+            #     (preserve the case when replacing).
+            case_sensitive = pinfo.get("casesensitive", True)
+
+            if case_sensitive:
+                regex = re.compile(phld)
+            else:
+                regex = re.compile(phld, re.IGNORECASE)
+
             for placeholder_metric in list(self.info):
-                if phld not in placeholder_metric:
+                if not regex.search(placeholder_metric):
                     continue
 
                 # We found the placeholder metric (e.g., 'CCx%'). Build the 'replacement' dictionary
@@ -92,11 +114,21 @@ class DefsBase:
                 # 'CC6').
                 replacement = {}
                 for value in values:
-                    metric = placeholder_metric.replace(phld, value)
+                    # pylint: disable=cell-var-from-loop
+                    if case_sensitive:
+                        func = lambda mo: value
+                    else:
+                        # The replacement function. Will replace with upper-cased or lower-cased
+                        # 'value' depending on whether the replaced sub-string starts with a capital
+                        # letter.
+                        func = lambda mo: value.upper() if mo.group(0).istitle() else value.lower()
+
+                    metric = regex.sub(func, placeholder_metric)
                     replacement[metric] = self.info[placeholder_metric].copy()
-                    for subkey, val in replacement[metric].items():
+
+                    for subkey, text in replacement[metric].items():
                         if subkey in mangle_subkeys:
-                            replacement[metric][subkey] = val.replace(phld, value)
+                            replacement[metric][subkey] = regex.sub(func, text)
 
                 # Construct new 'self.info' by replacing the placeholder metric with the replacement
                 # metrics.
