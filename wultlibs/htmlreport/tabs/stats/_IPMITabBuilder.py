@@ -45,16 +45,8 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
         tab_hierarchy["Temperature"] = {"dtabs": [c for c in temp_cols if c in common_cols]}
 
         # Add power-related D-tabs to a separate C-tab.
-        pwr_cols = self._metrics["Power"]
-        tab_hierarchy["AC Power"] = {"dtabs": [c for c in pwr_cols if c in common_cols]}
-
-        # Add current-related D-tabs to a separate C-tab.
-        current_cols = self._metrics["Current"]
-        tab_hierarchy["Current"] = {"dtabs": [c for c in current_cols if c in common_cols]}
-
-        # Add voltage-related D-tabs to a separate C-tab.
-        voltage_cols = self._metrics["Voltage"]
-        tab_hierarchy["Voltage"] = {"dtabs": [c for c in voltage_cols if c in common_cols]}
+        pwr_cols = self._metrics["Power"].union(self._metrics["Current"], self._metrics["Voltage"])
+        tab_hierarchy["Power"] = {"dtabs": [c for c in pwr_cols if c in common_cols]}
 
         return tab_hierarchy
 
