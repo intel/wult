@@ -35,6 +35,11 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
         extra_dtabs = ["PkgWatt", "GFXWatt", "PkgTmp"]
         harchy["Temperature / Power"]["dtabs"] += [m for m in extra_dtabs if m in common_metrics]
 
+        # Add uncore frequency D-tab to the "Frequency" C-tab.
+        unc_metric = "UncMHz"
+        if unc_metric in common_metrics:
+            harchy["Frequency"]["dtabs"].append(unc_metric)
+
         # Add package C-states.
         hw_pkg_cs = self._get_common_elements(self._cstates["hardware"]["package"])
         for cs in hw_pkg_cs:
