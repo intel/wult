@@ -364,6 +364,12 @@ class TurbostatCollector(_BaseCollector):
         toolname = os.path.basename(self.props["toolpath"])
         self._stale_search = f"{toolname} --enable Time_Of_Day_Seconds --interval "
 
+        try:
+            self._pman.run_verify("modprobe intel_uncore_frequency")
+        except Error as err:
+            LOG.debug("unable to load 'intel_uncore_frequency' module which is required "
+                      "to collect turbostat uncore frequency measurements: %s", {str(err)})
+
     def __init__(self):
         """Initialize a class instance."""
 
