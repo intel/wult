@@ -28,6 +28,13 @@ Avg_MHz:
     unit: "megahertz"
     short_unit: "MHz"
     default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
+UncMHz:
+    title: "Uncore frequency"
+    descr: >-
+        Instantaneous samples of the uncore frequency. Retrieved from the "UncMHz" turbostat column.
+    unit: "megahertz"
+    short_unit: "MHz"
+    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 Pkg%pcx:
     title: "PCx residency"
     descr: >-
