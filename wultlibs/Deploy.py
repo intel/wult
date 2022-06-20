@@ -470,7 +470,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         #   * either deployed via 'setup.py'.
         #   * or if running from source code, present in the source code.
         if not self._spman.is_remote:
-            for installable in self._cats["pyhelpes"]:
+            for installable in self._cats["pyhelpers"]:
                 del self._insts[installable]
             self._cats["pyhelpers"] = {}
 
