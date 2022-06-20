@@ -12,6 +12,7 @@ This module provides the capability of populating the IPMI statistics Tab.
 
 import numpy
 import pandas
+from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import _DefsBase, IPMIDefs
 from wultlibs.parsers import IPMIParser
@@ -36,6 +37,10 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
 
         tab_hierarchy = {}
 
+        # Dedupe cols in 'self._metrics'.
+        for metric in self._metrics:
+            self._metrics[metric] = Trivial.list_dedup(self._metrics[metric])
+
         # Add fan speed-related D-tabs to a separate C-tab.
         fspeed_cols = self._metrics["FanSpeed"]
         tab_hierarchy["Fan Speed"] = {"dtabs": [c for c in fspeed_cols if c in common_cols]}
@@ -45,7 +50,7 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
         tab_hierarchy["Temperature"] = {"dtabs": [c for c in temp_cols if c in common_cols]}
 
         # Add power-related D-tabs to a separate C-tab.
-        pwr_cols = self._metrics["Power"].union(self._metrics["Current"], self._metrics["Voltage"])
+        pwr_cols = self._metrics["Power"] + self._metrics["Current"] + self._metrics["Voltage"]
         tab_hierarchy["Power"] = {"dtabs": [c for c in pwr_cols if c in common_cols]}
 
         return tab_hierarchy
@@ -113,7 +118,7 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
             unit = val[1]
             metric = self._defs.get_metric_from_unit(unit)
             if metric:
-                self._metrics[metric].add(colname)
+                self._metrics[metric].append(colname)
 
     def _read_stats_file(self, path):
         """
@@ -176,6 +181,6 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
         # "Fan2" etc. This dictionary maps the metrics to the appropriate columns. Initialise it
         # with empty column sets for each metric.
         defs = IPMIDefs.IPMIDefs()
-        self._metrics = {metric: set() for metric in defs.info}
+        self._metrics = {metric: [] for metric in defs.info}
 
         super().__init__(stats_paths, outdir, ["ipmi.raw.txt", "ipmi-inband.raw.txt"], defs)
