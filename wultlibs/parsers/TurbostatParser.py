@@ -19,6 +19,22 @@ from wultlibs.parsers import _ParserBase
 # The default regular expression for turbostat columns to parse.
 _COLS_REGEX = r".*\s*Avg_MHz\s+(Busy%|%Busy)\s+Bzy_MHz\s+.*"
 
+# Aggregation methods used by turbostat to summarise columns.
+SUM = "sum"
+AVG = "average"
+
+def get_aggregation_method(key):
+    """
+    Turbostat summaries are aggregations of values for all CPUs in the system. Different columns
+    are aggregated with different methods. Given a 'key', this function returns one of the
+    aggregation method constants.
+    """
+
+    # For IRQ, SMI, and C-state requests count - just return the sum.
+    if key in ("IRQ", "SMI") or re.match("^C[0-9][A-Z]?$", key):
+        return SUM
+    return AVG
+
 def _parse_turbostat_line(heading, line):
     """Parse a single turbostat line."""
 
