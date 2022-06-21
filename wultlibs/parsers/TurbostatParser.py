@@ -14,6 +14,7 @@ consist of one or multiple turbostat data tables.
 import re
 from itertools import zip_longest
 from pepclibs.helperlibs import Trivial
+from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.parsers import _ParserBase
 
 # The default regular expression for turbostat columns to parse.
@@ -66,10 +67,12 @@ def _construct_totals(packages):
         value depending on the 'key' contents.
         """
 
-        # For IRQ, SMI, and C-state requests count - just return the sum.
-        if key in ("IRQ", "SMI") or re.match("^C[0-9][A-Z]?$", key):
+        agg_method = get_aggregation_method(key)
+        if agg_method == SUM:
             return summed
-        return summed/count
+        if agg_method == AVG:
+            return summed/count
+        raise Error(f"BUG: unable to summarise turbostat column '{key}' with method '{agg_method}'")
 
     for pkginfo in packages.values():
         for coreinfo in pkginfo["cores"].values():
