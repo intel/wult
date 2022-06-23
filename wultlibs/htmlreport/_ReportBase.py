@@ -15,8 +15,9 @@ import dataclasses
 import itertools
 import json
 import logging
+import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import Trivial
+from pepclibs.helperlibs import Trivial, LocalProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Deploy
 from wultlibs.helperlibs import FSHelpers
@@ -137,6 +138,16 @@ class ReportBase:
                 try:
                     FSHelpers.copy_dir(resdir, dstpath, exist_ok=True, ignore=["html-report"])
                     FSHelpers.set_default_perm(dstpath)
+
+                    # This block of code helps on SELinux-enabled systems when the output directory
+                    # ('self.outdir') is exposed via HTTP. In this case, the output directory should
+                    # have the right SELinux attributes (e.g., 'httpd_user_content_t' in Fedora 35).
+                    # The raw wult data that we just copied does not have the SELinux attribute, and
+                    # won't be accessible via HTTPs. Run 'restorecon' tool to fix up the SELinux
+                    # attributes.
+                    with LocalProcessManager.LocalProcessManager() as lpman:
+                        with contextlib.suppress(ErrorNotFound):
+                            lpman.run_verify(f"restorecon -R {dstpath}")
                 except Error as err:
                     raise Error(f"failed to copy raw data to report directory: {err}") from None
 
