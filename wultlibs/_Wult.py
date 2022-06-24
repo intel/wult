@@ -32,7 +32,7 @@ from wultlibs.htmlreport import WultReport
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs import Deploy, ToolsCommon, Devices, WultRunner, WultStatsCollect
 
-VERSION = "1.10.5"
+VERSION = "1.10.6"
 OWN_NAME = "wult"
 
 # Regular expressions for the metrics that should show up in the hover text of the scatter plot. The

@@ -68,9 +68,10 @@ Print debugging information.
 
 .TP
 \fB\-\-kernel\-src\fR \fI\,KSRC\/\fR
-Path to the Linux kernel sources to build the drivers against. The default is
-'/lib/modules/$(uname \-r)/build' on the SUT. If '\-\-local\-build' was used, then
-the path is considered to be on the local system, rather than the SUT.
+Path to the Linux kernel sources to build drivers and eBPF helpers against.
+The default is '/lib/modules/$(uname \-r)/build' on the SUT. If '\-\-local\-build'
+was used, then the path is considered to be on the local system, rather than
+the SUT.
 
 .TP
 \fB\-\-local\-build\fR
@@ -190,7 +191,7 @@ require a lot of memory.
 .TP
 \fB\-\-time\-limit\fR \fI\,LIMIT\/\fR
 The measurement time limit, i.e., for how long the SUT should be measured. The
-default unit is minutes, but you can use the following handy specifiers as
+default unit is minute, but you can use the following handy specifiers as
 well: d \- days, h \- hours, m \- minutes, s \- seconds. For example '1h25m' would
 be 1 hour and 25 minutes, or 10m5s would be 10 minutes and 5 seconds. Value
 '0' means "no time limit", and this is the default. If this option is used
@@ -355,9 +356,9 @@ command with default arguments).
 
 .TP
 \fB\-\-force\fR
-By default a network card is not accepted as a measurement device if it is "
-used by a Linux network interface and the interface is in an active state, "
-such as "up". Use '\-\-force' to disable this safety mechanism. Use it with "
+By default a network card is not accepted as a measurement device if it is
+used by a Linux network interface and the interface is in an active state,
+such as "up". Use '\-\-force' to disable this safety mechanism. Use it with
 caution.
 
 .SH COMMAND \fI\,'wult report'\/\fR

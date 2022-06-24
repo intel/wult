@@ -102,9 +102,10 @@ OPTIONS *'wult* deploy'
    Print debugging information.
 
 **--kernel-src** *KSRC*
-   Path to the Linux kernel sources to build the drivers against. The
-   default is the path is considered to be on the local system, rather
-   than the SUT.
+   Path to the Linux kernel sources to build drivers and eBPF helpers
+   against. The default is '/lib/modules/$(uname -r)/build' on the SUT.
+   If '--local-build' was used, then the path is considered to be on the
+   local system, rather than the SUT.
 
 **--local-build**
    Build helpers and drivers locally, instead of building on HOSTNAME
@@ -218,7 +219,7 @@ OPTIONS *'wult* start'
 
 **--time-limit** *LIMIT*
    The measurement time limit, i.e., for how long the SUT should be
-   measured. The default unit is minutes, but you can use the following
+   measured. The default unit is minute, but you can use the following
    handy specifiers as well: d - days, h - hours, m - minutes, s -
    seconds. For example '1h25m' would be 1 hour and 25 minutes, or 10m5s
    would be 10 minutes and 5 seconds. Value
@@ -382,9 +383,9 @@ used, often it makes sense to use '-- intr-focus' at the same time.
 
 **--force**
    By default a network card is not accepted as a measurement device if
-   it is " used by a Linux network interface and the interface is in an
-   active state, " such as "up". Use '--force' to disable this safety
-   mechanism. Use it with " caution.
+   it is used by a Linux network interface and the interface is in an
+   active state, such as "up". Use '--force' to disable this safety
+   mechanism. Use it with caution.
 
 COMMAND *'wult* report'
 =======================
