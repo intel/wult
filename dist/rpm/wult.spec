@@ -98,6 +98,12 @@ install -pDm755 helpers/ndlrunner/ndlrunner %{buildroot}%{_bindir}/ndlrunner
 %files -n %{name}-devel
 %{_datadir}/wult/drivers
 
+# Date format: date "+%a %b %d %Y"
 %changelog
+* Fri Jun 24 2022 Artem Bityutskiy <artem.bityutskiy@linux.intel.com> - 1.10.6-1
+- wult: add package C-states to turbostat statistics.
+- wult: add current and voltage to IPMI statistics.
+- Add RPM packaging support.
+
 * Tue Jun 21 2022 Ali Erdinc Koroglu <ali.erdinc.koroglu@intel.com> - 1.10.5-1
-- Initial package
+- Initial package.
