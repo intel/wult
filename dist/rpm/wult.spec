@@ -3,7 +3,7 @@
 %bcond_without tests
 
 Name:		wult
-Version:	1.10.5
+Version:	1.10.6
 Release:	1%{?dist}
 Summary:	Tool for measuring Intel CPU C-state wake latency
 
@@ -60,11 +60,6 @@ Wult Kernel drivers
 
 %prep
 %autosetup -p1 -n %{name}-%{version}
-
-# pyyaml naming fix
-sed -i 's/pyyml/pyyaml/g' setup.py
-# pyhelpers typo
-sed -i 's/pyhelpes/pyhelpers/g' wultlibs/Deploy.py
 
 %build
 %py3_build
