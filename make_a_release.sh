@@ -64,6 +64,8 @@ ask_question "Did you specify pepc version dependency in 'setup.py'"
 
 # Change the tool version.
 sed -i -e "s/^VERSION = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"$/VERSION = \"$new_ver\"/" ./wultlibs/_Wult.py
+# Change RPM package version.
+sed -i -e "s/^Version:\(\s\+\)[0-9]\+\.[0-9]\+\.[0-9]\+$/Version:\1$new_ver/" dist/rpm/wult.spec
 
 # Update the man page.
 argparse-manpage --pyfile ./wultlibs/_Wult.py --function build_arguments_parser \
