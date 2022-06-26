@@ -11,7 +11,7 @@
 """ndl - a tool for measuring memory access latency observed by a network card."""
 
 import sys
-from wultlibs._Ndl import main
+from wulttools._Ndl import main
 
 if __name__ == "__main__":
     sys.exit(main())
