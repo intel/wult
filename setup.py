@@ -16,27 +16,15 @@ from setuptools import setup, find_packages
 
 _TOOLNAMES = ["wult", "ndl"]
 
-def get_version():
-    """Get the project version number."""
+def get_version(filename):
+    """Fetch the project version number."""
 
-    majors, minors, stables = [], [], []
-
-    for toolname in _TOOLNAMES:
-        with open(toolname, encoding="utf-8", mode="r") as fobj:
-            for line in fobj:
-                matchobj = re.match(r'^VERSION = "(\d+.\d+.\d+)"$', line)
-                if matchobj:
-                    major, minor, stable = matchobj.group(1).split(".")
-                    majors.append(int(major.strip()))
-                    minors.append(int(minor.strip()))
-                    stables.append(int(stable.strip()))
-                    break
-
-    major = sum(majors)
-    minor = sum(minors)
-    stable = sum(stables)
-
-    return f"{major}.{minor}.{stable}"
+    with open(filename, "r") as fobj:
+        for line in fobj:
+            matchobj = re.match(r'^VERSION = "(\d+.\d+.\d+)"$', line)
+            if matchobj:
+                return matchobj.group(1)
+    return None
 
 def get_data_files(installdir, subdir, exclude=None):
     """
@@ -69,7 +57,7 @@ setup(
     author="Artem Bityutskiy",
     author_email="artem.bityutskiy@linux.intel.com",
     python_requires=">=3.7",
-    version=get_version(),
+    version=get_version("wulttools/_Wult.py"),
     data_files=get_data_files("share/wult/drivers", "drivers") + \
                get_data_files("share/wult/helpers", "helpers", exclude=_PYTHON_HELPERS) + \
                get_data_files("share/wult/defs", "defs") + \
