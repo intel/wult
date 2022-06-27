@@ -59,19 +59,21 @@ def _construct_totals(packages):
     to the "totals" key of the package hierarchy.
     """
 
-    def calc_total(summed, count, key):
+    def calc_total(vals, key):
         """
         Calculate the "total" value for a piece of turbostat statistics defined by 'key'. The
-        resulting "total" value is usually the average ('summed' / 'count'), but some statistics
-        require just the sum, for example the IRQ count. This function returns te proper "total"
-        value depending on the 'key' contents.
+        resulting "total" value is usually the average, but some statistics require just the sum,
+        for example the IRQ count. This function returns the proper "total" value depending on the
+        'key' contents. Arguments are as follows:
+         * vals - an interable containing all of the different values of 'key'.
+         * key - the name of the turbostat metric which the values in 'vals' represent.
         """
 
         agg_method = get_aggregation_method(key)
         if agg_method == SUM:
-            return summed
+            return sum(vals)
         if agg_method == AVG:
-            return summed/count
+            return sum(vals)/len(vals)
         raise Error(f"BUG: unable to summarise turbostat column '{key}' with method '{agg_method}'")
 
     for pkginfo in packages.values():
@@ -80,27 +82,25 @@ def _construct_totals(packages):
             for cpuinfo in coreinfo["cpus"].values():
                 for key, val in cpuinfo.items():
                     if key not in sums:
-                        sums[key] = {"sum" : 0, "count" : 0}
-                    sums[key]["sum"] += val
-                    sums[key]["count"] += 1
+                        sums[key] = []
+                    sums[key].append(val)
 
             if "totals" not in coreinfo:
                 coreinfo["totals"] = {}
-            for key, val in sums.items():
-                coreinfo["totals"][key] = calc_total(val["sum"], val["count"], key)
+            for key, vals in sums.items():
+                coreinfo["totals"][key] = calc_total(vals, key)
 
         sums = {}
         for coreinfo in pkginfo["cores"].values():
             for key, val in coreinfo["totals"].items():
                 if key not in sums:
-                    sums[key] = {"sum" : 0, "count" : 0}
-                sums[key]["sum"] += val
-                sums[key]["count"] += 1
+                    sums[key] = []
+                sums[key].append(val)
 
         if "totals" not in pkginfo:
             pkginfo["totals"] = {}
-        for key, val in sums.items():
-            pkginfo["totals"][key] = calc_total(val["sum"], val["count"], key)
+        for key, vals in sums.items():
+            pkginfo["totals"][key] = calc_total(vals, key)
 
     # Remove the CPU information keys that are actually not CPU-level but rather core or package
     # level. We already have these keys in core or package totals.
