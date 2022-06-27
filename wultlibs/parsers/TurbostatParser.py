@@ -25,18 +25,18 @@ SUM = "sum"
 AVG = "average"
 MAX = "max"
 
-def get_aggregation_method(key):
+def get_aggregation_method(metric):
     """
-    Turbostat summaries are aggregations of values for all CPUs in the system. Different columns
-    are aggregated with different methods. Given a 'key', this function returns one of the
-    aggregation method constants.
+    Turbostat summaries are aggregations of values for all CPUs in the system. Different turbostat
+    metrics are aggregated with different methods. Given a 'metric', this function returns one of
+    the aggregation method constants.
     """
 
     # For IRQ, SMI, and C-state requests count - just return the sum.
-    if key in ("IRQ", "SMI") or re.match("^C[0-9][A-Z]?$", key):
+    if metric in ("IRQ", "SMI") or re.match("^C[0-9][A-Z]?$", metric):
         return SUM
     # For temperatures, take the maximum value.
-    if key.endswith("Tmp"):
+    if metric.endswith("Tmp"):
         return MAX
     return AVG
 
@@ -84,29 +84,29 @@ def _construct_totals(packages):
 
     for pkginfo in packages.values():
         for coreinfo in pkginfo["cores"].values():
-            sums = {}
+            metrics = {}
             for cpuinfo in coreinfo["cpus"].values():
-                for key, val in cpuinfo.items():
-                    if key not in sums:
-                        sums[key] = []
-                    sums[key].append(val)
+                for metric, val in cpuinfo.items():
+                    if metric not in metrics:
+                        metrics[metric] = []
+                    metrics[metric].append(val)
 
             if "totals" not in coreinfo:
                 coreinfo["totals"] = {}
-            for key, vals in sums.items():
-                coreinfo["totals"][key] = calc_total(vals, key)
+            for metric, vals in metrics.items():
+                coreinfo["totals"][metric] = calc_total(vals, metric)
 
-        sums = {}
+        metrics = {}
         for coreinfo in pkginfo["cores"].values():
-            for key, val in coreinfo["totals"].items():
-                if key not in sums:
-                    sums[key] = []
-                sums[key].append(val)
+            for metric, val in coreinfo["totals"].items():
+                if metric not in metrics:
+                    metrics[metric] = []
+                metrics[metric].append(val)
 
         if "totals" not in pkginfo:
             pkginfo["totals"] = {}
-        for key, vals in sums.items():
-            pkginfo["totals"][key] = calc_total(vals, key)
+        for metric, vals in metrics.items():
+            pkginfo["totals"][metric] = calc_total(vals, metric)
 
     # Remove the CPU information keys that are actually not CPU-level but rather core or package
     # level. We already have these keys in core or package totals.
@@ -122,20 +122,20 @@ def _construct_totals(packages):
     for pkginfo in packages.values():
         for coreinfo in pkginfo["cores"].values():
             for cpuinfo in coreinfo["cpus"].values():
-                for key in list(cpuinfo):
-                    if key not in common_keys:
-                        del cpuinfo[key]
+                for metric in list(cpuinfo):
+                    if metric not in common_keys:
+                        del cpuinfo[metric]
 
     # The the *_MHz totals provided by turbostat are weighted averages of the per-CPU values. The
     # weights are the amoung of cycles the CPU spent executing instructions instead of being in a
     # C-state.
     ignore_keys = ("Avg_MHz", "Bzy_MHz")
     for pkginfo in packages.values():
-        for key in ignore_keys:
-            del pkginfo["totals"][key]
+        for metric in ignore_keys:
+            del pkginfo["totals"][metric]
         for coreinfo in pkginfo["cores"].values():
-            for key in ignore_keys:
-                del coreinfo["totals"][key]
+            for metric in ignore_keys:
+                del coreinfo["totals"][metric]
 
 def _construct_the_result(totals, cpus, nontable):
     """
