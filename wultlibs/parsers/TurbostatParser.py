@@ -23,6 +23,7 @@ _COLS_REGEX = r".*\s*Avg_MHz\s+(Busy%|%Busy)\s+Bzy_MHz\s+.*"
 # Aggregation methods used by turbostat to summarise columns.
 SUM = "sum"
 AVG = "average"
+MAX = "max"
 
 def get_aggregation_method(key):
     """
@@ -34,6 +35,9 @@ def get_aggregation_method(key):
     # For IRQ, SMI, and C-state requests count - just return the sum.
     if key in ("IRQ", "SMI") or re.match("^C[0-9][A-Z]?$", key):
         return SUM
+    # For temperatures, take the maximum value.
+    if key.endswith("Tmp"):
+        return MAX
     return AVG
 
 def _parse_turbostat_line(heading, line):
@@ -74,6 +78,8 @@ def _construct_totals(packages):
             return sum(vals)
         if agg_method == AVG:
             return sum(vals)/len(vals)
+        if agg_method == MAX:
+            return max(vals)
         raise Error(f"BUG: unable to summarise turbostat column '{key}' with method '{agg_method}'")
 
     for pkginfo in packages.values():
