@@ -120,7 +120,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         if regexs:
             self._minclude = self.find_metrics(regexs, must_find_all=True)
 
-    def calc_smrys(self, regexs=None, funcnames=None, all_funcs=False):
+    def calc_smrys(self, regexs=None, funcnames=None):
         """
         Calculate summary functions specified in 'funcnames' for metrics matching 'regexs', and save
         the result in 'self.smrys'. By default this method calculates the summaries for all metrics
@@ -130,17 +130,13 @@ class RORawResult(_RawResultBase.RawResultBase):
         applied to metrics. The 'funcnames' argument must be a list of function names.
 
         Each metric has the "default functions" associated with this metric. These are just function
-        names which generally make sense for this metric. By default ('all_funcs' is 'False'), this
-        method uses only the default functions. If, for example, 'funcnames' specifies the 'avg'
-        function, and 'avg' function is not in the default functions list for the 'SilentTime'
-        metric, it will not be applied (will be skipped). So the result ('self.smrys') will not
-        include 'avg' for 'SilentTime'. However, if 'avg' is in the list of default functions for
-        the 'WakeLatency' column, and it was specified in 'funcnames', it will be applied and will
-        show up in the result.
-
-        The 'all_funcs' flag changes this behavior and disables the logic where we look at the
-        default functions. If 'all_funcs' is 'True', this method will calculate all the functions in
-        'funcnames' for all columns without looking at the default functions list.
+        names which generally make sense for this metric. By default, this method uses only the
+        default functions. If, for example, 'funcnames' specifies the 'avg' function, and 'avg'
+        function is not in the default functions list for the 'SilentTime' metric, it will not be
+        applied (will be skipped). So the result ('self.smrys') will not include 'avg' for
+        'SilentTime'. However, if 'avg' is in the list of default functions for the 'WakeLatency'
+        column, and it was specified in 'funcnames', it will be applied and will show up in the
+        result.
 
         The result ('self.smrys') is a dictionary of dictionaries. The top level dictionary keys
         are metrics and the sub-dictionary keys are function names.
@@ -170,11 +166,8 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self.smrys = {}
         for metric in metrics:
-            if all_funcs:
-                smry_fnames = funcnames
-            else:
-                default_funcs = self.defs.info[metric].get("default_funcs", None)
-                smry_fnames = DFSummary.filter_smry_funcs(funcnames, default_funcs)
+            default_funcs = self.defs.info[metric].get("default_funcs", None)
+            smry_fnames = DFSummary.filter_smry_funcs(funcnames, default_funcs)
 
             subdict = DFSummary.calc_col_smry(self.df, metric, smry_fnames)
 

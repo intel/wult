@@ -426,10 +426,8 @@ def calc_command(args):
 
     if args.funcs:
         funcnames = Trivial.split_csv_line(args.funcs)
-        all_funcs = True
     else:
         funcnames = None
-        all_funcs = False
 
     res = RORawResult.RORawResult(args.respath)
     apply_filters(args, res)
@@ -439,7 +437,7 @@ def calc_command(args):
         non_numeric = ", ".join(non_numeric)
         _LOG.warning("skipping non-numeric metric(s): %s", non_numeric)
 
-    res.calc_smrys(funcnames=funcnames, all_funcs=all_funcs)
+    res.calc_smrys(funcnames=funcnames)
 
     _LOG.info("Datapoints count: %d", len(res.df))
     YAML.dump(res.smrys, sys.stdout, float_format="%.2f")
