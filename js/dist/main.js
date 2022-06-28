@@ -1483,9 +1483,9 @@
             <br>
             ${this.smrytblpath?z`<smry-tbl .src="${this.smrytblpath}"></smry-tbl>`:z``}
             <div class="grid">
-                ${this.paths.map((t=>z`
+                ${this.paths?this.paths.map((t=>z`
                     <diagram-element path="${t}"></diagram-element>
-                `))}
+                    `)):z``}
             </div>
         `}render(){return super.render()}}customElements.define("wult-metric-tab",hs);class us extends et{static styles=i`
         /*

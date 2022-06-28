@@ -42,9 +42,11 @@ class WultMetricTab extends WultTab {
             <br>
             ${this.smrytblpath ? html`<smry-tbl .src="${this.smrytblpath}"></smry-tbl>` : html``}
             <div class="grid">
-                ${this.paths.map((path) => html`
+                ${this.paths
+                    ? this.paths.map((path) => html`
                     <diagram-element path="${path}"></diagram-element>
-                `)}
+                    `)
+                    : html``}
             </div>
         `
     }
