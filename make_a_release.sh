@@ -63,16 +63,16 @@ ask_question "Did you update 'CHANGELOG.md'"
 ask_question "Did you specify pepc version dependency in 'setup.py'"
 
 # Change the tool version.
-sed -i -e "s/^VERSION = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"$/VERSION = \"$new_ver\"/" ./wultlibs/_Wult.py
+sed -i -e "s/^VERSION = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"$/VERSION = \"$new_ver\"/" ./wulttools/_Wult.py
 # Change RPM package version.
 sed -i -e "s/^Version:\(\s\+\)[0-9]\+\.[0-9]\+\.[0-9]\+$/Version:\1$new_ver/" dist/rpm/wult.spec
 
 # Update the man page.
-argparse-manpage --pyfile ./wultlibs/_Wult.py --function build_arguments_parser \
+argparse-manpage --pyfile ./wulttools/_Wult.py --function build_arguments_parser \
                  --project-name 'wult' --author 'Artem Bityutskiy' \
                  --author-email 'dedekind1@gmail.com' --output docs/man1/wult.1 \
                  --url 'https://github.com/intel/wult'
-argparse-manpage --pyfile ./wultlibs/_Ndl.py --function build_arguments_parser \
+argparse-manpage --pyfile ./wulttools/_Ndl.py --function build_arguments_parser \
                  --project-name 'ndl' --author 'Artem Bityutskiy' \
                  --author-email 'dedekind1@gmail.com' --output docs/man1/ndl.1 \
                  --url 'https://github.com/intel/ndl'
