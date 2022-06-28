@@ -76,7 +76,7 @@ install -pDm755 helpers/ndlrunner/ndlrunner %{buildroot}%{_bindir}/ndlrunner
 
 %files
 %doc README.md
-%license dist/debian/copyright js/dist/main.js.LICENSE.txt
+%license LICENSE.md js/dist/main.js.LICENSE.txt
 %{_bindir}/ipmi-helper
 %{_bindir}/ndl
 %{_bindir}/ndlrunner
