@@ -1,5 +1,12 @@
 # Changelog
 
+Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+### Added
+- Your description
+
 ## [1.10.7] - 2022-06-28
 ### Fixed
  - Fix regression in v1.10.1: generated scatter plots were too large.
