@@ -94,11 +94,12 @@ class DTabBuilder:
                                      ydef.get("short_unit"))
 
         for reportid, df in self._reports.items():
+            reduced_df = s.reduce_df_density(df, reportid)
             if hover_defs is not None:
-                hovertext = s.get_hover_text(hover_defs[reportid], df)
+                hovertext = s.get_hover_text(hover_defs[reportid], reduced_df)
             else:
                 hovertext = None
-            s.add_df(s.reduce_df_density(df, reportid), reportid, hovertext)
+            s.add_df(reduced_df, reportid, hovertext)
 
         s.generate()
         self._ppaths.append(s_path)
