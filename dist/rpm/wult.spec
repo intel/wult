@@ -85,10 +85,10 @@ install -pDm755 helpers/ndlrunner/ndlrunner %{buildroot}%{_bindir}/ndlrunner
 %{_datadir}/wult/defs
 %{_datadir}/wult/js
 %exclude %{_datadir}/wult/helpers
-%{python3_sitelib}/wulttools
+
 %files -n python3-%{name}
 %{python3_sitelib}/wultlibs
-
+%{python3_sitelib}/wulttools
 %{python3_sitelib}/wult-*.egg-info/
 
 %files -n %{name}-devel
