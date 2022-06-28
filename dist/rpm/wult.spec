@@ -76,7 +76,7 @@ install -pDm755 helpers/ndlrunner/ndlrunner %{buildroot}%{_bindir}/ndlrunner
 
 %files
 %doc README.md
-%license debian/copyright js/dist/main.js.LICENSE.txt
+%license dist/debian/copyright js/dist/main.js.LICENSE.txt
 %{_bindir}/ipmi-helper
 %{_bindir}/ndl
 %{_bindir}/ndlrunner
@@ -85,9 +85,10 @@ install -pDm755 helpers/ndlrunner/ndlrunner %{buildroot}%{_bindir}/ndlrunner
 %{_datadir}/wult/defs
 %{_datadir}/wult/js
 %exclude %{_datadir}/wult/helpers
-
+%{python3_sitelib}/wulttools
 %files -n python3-%{name}
 %{python3_sitelib}/wultlibs
+
 %{python3_sitelib}/wult-*.egg-info/
 
 %files -n %{name}-devel
@@ -95,6 +96,9 @@ install -pDm755 helpers/ndlrunner/ndlrunner %{buildroot}%{_bindir}/ndlrunner
 
 # Date format: date "+%a %b %d %Y"
 %changelog
+* Tue Jun 28 2022 Ali Erdinc Koroglu <ali.erdinc.koroglu@intel.com> - 1.10.7-1
+- Update to 1.10.7
+
 * Fri Jun 24 2022 Artem Bityutskiy <artem.bityutskiy@linux.intel.com> - 1.10.6-1
 - wult: add package C-states to turbostat statistics.
 - wult: add current and voltage to IPMI statistics.
