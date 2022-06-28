@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.10.7] - 2022-06-28
+### Fixed
+ - Fix regression in v1.10.1: generated scatter plots were too large.
+### Changed
+ - Add 'UncMHz' (uncore frequency) turbostat metric support.
+ - Improve Turbostat metrics description by specifying the aggregation method
+   (whether it is max or average of values for all CPUs).
+
 ## [1.10.6] - 2022-06-24
 ### Changed
  - wult: add package C-states to turbostat statistics.
