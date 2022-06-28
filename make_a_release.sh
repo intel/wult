@@ -59,7 +59,7 @@ fi
 
 # Remind the maintainer about various important things.
 ask_question "Did you run tests"
-ask_question "Did you update 'debian/changelog' and 'dist/rpm/wult.spec'"
+ask_question "Did you update 'CHANGELOG.md'"
 ask_question "Did you specify pepc version dependency in 'setup.py'"
 
 # Change the tool version.
