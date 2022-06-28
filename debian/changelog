@@ -1,3 +1,9 @@
+wult (1.10.7) unstable; urgency=low
+
+  * wult: prevent generation of excessively large plots introduced in v1.10.1.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com> 
+
 wult (1.10.6) unstable; urgency=low
 
   * wult: add package C-states to turbostat statistics.
