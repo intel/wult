@@ -1526,7 +1526,7 @@
                     `))}
                 </sl-tab-group>
         `:z`
-            <wult-metric-tab tabname="${t.name}" .smrytblpath="${t.smrytblpath}" .paths="${t.ppaths}" .dir="${t.dir}" ></wult-metric-tab>
+            <wult-metric-tab tabname=${t.name} .smrytblpath=${t.smrytblpath} .paths=${t.ppaths} .dir=${t.dir}></wult-metric-tab>
         `}render(){return this.tabs?z`
             <sl-tab-group>
                 ${this.tabs.map((t=>z`
