@@ -7,6 +7,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 - Your description
 
+## [1.10.8] - 2022-06-29
+### Fixed
+ - Fix regression in v1.10.7: turbostat statistics collector was crashing.
+
 ## [1.10.7] - 2022-06-28
 ### Fixed
  - Fix regression in v1.10.1: generated scatter plots were too large.
