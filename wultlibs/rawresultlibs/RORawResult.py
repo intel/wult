@@ -120,6 +120,28 @@ class RORawResult(_RawResultBase.RawResultBase):
         if regexs:
             self._minclude = self.find_metrics(regexs, must_find_all=True)
 
+    def _calc_smry(self, metric, funcnames):
+        """
+        Helper function for 'calc_smrys()'. Calculate the summary functions in 'funcnames' for
+        'metric'. Returns a dictionary with function name - value pairs.
+        """
+
+        if not self.is_numeric(metric):
+            raise Error(f"unable to compute summaries for non-numeric metric '{metric}'.")
+
+        default_funcs = self.defs.info[metric].get("default_funcs", None)
+        smry_fnames = DFSummary.filter_smry_funcs(funcnames, default_funcs)
+
+        subdict = DFSummary.calc_col_smry(self.df, metric, smry_fnames)
+
+        mdef = self.defs.info[metric]
+        restype = getattr(builtins, mdef["type"])
+
+        for func, datum in subdict.items():
+            subdict[func] = restype(datum)
+
+        return subdict
+
     def calc_smrys(self, regexs=None, funcnames=None):
         """
         Calculate summary functions specified in 'funcnames' for metrics matching 'regexs', and save
@@ -166,17 +188,7 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self.smrys = {}
         for metric in metrics:
-            default_funcs = self.defs.info[metric].get("default_funcs", None)
-            smry_fnames = DFSummary.filter_smry_funcs(funcnames, default_funcs)
-
-            subdict = DFSummary.calc_col_smry(self.df, metric, smry_fnames)
-
-            mdef = self.defs.info[metric]
-            restype = getattr(builtins, mdef["type"])
-            for func, datum in subdict.items():
-                subdict[func] = restype(datum)
-
-            self.smrys[metric] = subdict
+            self.smrys[metric] = self._calc_smry(metric, funcnames)
 
     def _load_csv(self, **kwargs):
         """Read the datapoints CSV file into a 'pandas.DataFrame' and validate it."""
