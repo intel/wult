@@ -60,35 +60,6 @@ def get_smry_func_descr(funcname):
     funcnames = ", ".join([fname for fname, _ in get_smry_funcs()])
     raise Error(f"unknown function name '{funcname}', supported names are:\n{funcnames}")
 
-def filter_smry_funcs(funcs, default_funcs=None):
-    """
-    Filter and validate summary functions 'funcs' to only include functions in 'default_funcs'.  The
-    arguments are as follows:
-     * funcs - a list of the summary functions to be filtered.
-     * default_funcs - a list of the summary functions to filter against, defaults to allow all
-                       functions.
-    """
-
-    if not default_funcs:
-        default_funcs = "all"
-
-    fnames = []
-    for funcname in funcs:
-        # We do not need the description, calling this method just to let it validate the
-        # function name.
-        get_smry_func_descr(funcname)
-
-        if default_funcs != "all":
-            # Skip functions that are not in the "default functions" list for this column.
-            if funcname not in default_funcs:
-                # Take into account that defs may contain 'N%' that matches all percentiles.
-                if not (funcname.endswith("%") and "N%" in default_funcs):
-                    continue
-
-        fnames.append(funcname)
-
-    return fnames
-
 def calc_col_smry(df, colname, funcnames=None):
     """
     Calculate summary function 'funcname' for 'pandas.DataFrame' column 'colname' in
