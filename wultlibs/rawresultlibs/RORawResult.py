@@ -129,10 +129,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         if not self.is_numeric(metric):
             raise Error(f"unable to compute summaries for non-numeric metric '{metric}'.")
 
-        default_funcs = self.defs.info[metric].get("default_funcs", None)
-        smry_fnames = DFSummary.filter_smry_funcs(funcnames, default_funcs)
-
-        subdict = DFSummary.calc_col_smry(self.df, metric, smry_fnames)
+        subdict = DFSummary.calc_col_smry(self.df, metric, funcnames)
 
         mdef = self.defs.info[metric]
         restype = getattr(builtins, mdef["type"])
