@@ -74,12 +74,14 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
             return
 
         _LOG.debug("copy in-band statistics from '%s:%s' to '%s'",
-                   self._pman.hostname, routdir, self._outdir)
+                   self._pman.hostname, self._routdir, self._loutdir)
         _LOG.info("Copying collected statistics from %s", self._pman.hostname)
 
         # We add trailing slash to the remote directory path in order to make rsync copy the
         # contents of the remote directory, but not the directory itself.
-        self._pman.rsync(f"{routdir}/", self._outdir, opts="rltD", remotesrc=True, remotedst=False)
+        self._pman.rsync(f"{routdir}/", self._loutdir, opts="rltD", remotesrc=True, remotedst=False)
+
+        self._pman.rmtree(self._routdir)
 
     def __init__(self, pman, res, local_scpath=None, remote_scpath=None):
         """
@@ -91,17 +93,21 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
           """
 
         self._pman = pman
-        self._outdir = res.dirpath
         self._stcoll = None
+        # Local and remote output directories.
+        self._loutdir = res.dirpath
+        self._routdir = None
 
         # Create the local statistics collector data and log directories.
         try:
-            path = self._outdir
-            path.mkdir(exist_ok=True)
+            self._loutdir.mkdir(exist_ok=True)
         except OSError as err:
-            raise Error(f"failed to create directory '{path}': {err}") from None
+            raise Error(f"failed to create directory '{self._loutdir}': {err}") from None
 
-        self._stcoll = StatsCollect.StatsCollect(pman, local_outdir=self._outdir.resolve(),
+        self._routdir = self._pman.mkdtemp(prefix="wult-stats-collect-")
+
+        self._stcoll = StatsCollect.StatsCollect(pman, local_outdir=self._loutdir.resolve(),
+                                                 remote_outdir=self._routdir,
                                                  local_scpath=local_scpath,
                                                  remote_scpath=remote_scpath)
 
