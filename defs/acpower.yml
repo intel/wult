@@ -10,7 +10,6 @@ P:
         socket level.
     unit: "Watt"
     short_unit: "W"
-    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
 T:
     title: "Time Elapsed"
     descr: "Time elapsed since the start of the measurements."
