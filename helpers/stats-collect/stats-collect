@@ -245,7 +245,6 @@ class _BaseCollector:
         if not self._configured:
             self._error("the colletor was not configured")
 
-        self._pman = LocalProcessManager.LocalProcessManager()
         self._proc = self._pman.run_async(self._command, stderr=self._fobj, stdout=self._fobj,
                                           newgrp=True)
 
@@ -318,13 +317,14 @@ class _BaseCollector:
         # The statistics collection interval.
         self.props["interval"] = UNINITIALIZED["required-str"]
 
+        # The local process manager object.
+        self._pman = LocalProcessManager.LocalProcessManager()
+
         #
         # These attributes are internal to this base class.
         #
 
         self._fobj = None
-        # The local process manager object.
-        self._pman = None
         # The statistics collection process.
         self._proc = None
         self._outpath = None
@@ -451,8 +451,7 @@ class ACPowerCollector(_BaseCollector):
 
         # Note, we assume that the power meter is generally initialized and configured outside of
         # 'stats-collect'. Here we only set the interval.
-        with LocalProcessManager.LocalProcessManager() as pman:
-            pman.run_verify(f"{cmd} set interval {self.props['interval']}")
+        self._pman.run_verify(f"{cmd} set interval {self.props['interval']}")
 
         items = "T,P,I,V,S,Q,Phi,Fv,Vrange,Irange"
         self._command = f"{cmd} read {items}"
