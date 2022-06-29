@@ -61,7 +61,9 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
                                              self._defs.info[self._power_metric], self._basedir)
         scatter_axes = [(self._defs.info[self._time_metric], self._defs.info[self._power_metric])]
         dtab_bldr.add_plots(scatter_axes, [self._defs.info[self._power_metric]])
-        dtab_bldr.add_smrytbl([self._defs.info[self._power_metric]])
+        smry_funcs = {self._power_metric: ["max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg",
+                                           "min", "std"]}
+        dtab_bldr.add_smrytbl(smry_funcs, self._defs)
         tab = dtab_bldr.get_tab()
 
         # By default the tab will be titled 'self._metric'. Change the title to "AC Power".

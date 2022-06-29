@@ -82,7 +82,9 @@ class TabBuilderBase:
                     if metric in plots:
                         tab.add_plots(plots[metric].get("scatter"), plots[metric].get("hist"),
                                       plots[metric].get("chist"))
-                    tab.add_smrytbl([self._defs.info[metric]])
+                    smry_funcs = {metric: ["max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg",
+                                           "min", "std"]}
+                    tab.add_smrytbl(smry_funcs, self._defs)
                     sub_tabs.append(tab.get_tab())
                 except Error as err:
                     _LOG.info("Skipping '%s' tab in '%s' tab: error occured during tab generation.",

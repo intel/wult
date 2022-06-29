@@ -32,19 +32,19 @@ class DTabBuilder:
        * 'get_tab()'
     """
 
-    def add_smrytbl(self, smry_metrics, smry_funcs=None):
+    def add_smrytbl(self, smry_funcs, defs):
         """
-        Construct a 'SummaryTable' to summarise 'smry_funcs' for 'smry_metrics' in the results given
-        to the constructor as 'reports'. Note, 'smry_metrics' should be a list of definitions
-        dictionaries for the metrics which should be included in the summary table.
+        Construct a 'SummaryTable' to summarise the metrics in 'smry_funcs' in the results given
+        to the constructor as 'reports'. Arguments are as follows:
+         * smry_funcs - a dictionary containing 'metric': 'summary_funcs' pairs. Where
+                        'summary_funcs' is a list of summary functions to calculate for 'metric'.
+         * defs - a 'DefsBase' instance containing the defs for the metrics in 'smry_funcs'.
         """
 
         smrytbl = _SummaryTable.SummaryTable()
-        if smry_funcs is None:
-            smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
-                          "std")
 
-        for mdef in smry_metrics:
+        for metric, funcs in smry_funcs.items():
+            mdef = defs.info[metric]
             smrytbl.add_metric(mdef["title"], mdef.get("short_unit"), mdef.get("descr"),
                                fmt="{:.2f}")
 
@@ -52,10 +52,10 @@ class DTabBuilder:
                 # Only use a summary function if it is included in the default funcs for this
                 # metric.
                 default_funcs = set(mdef["default_funcs"])
-                smry_funcs = DFSummary.filter_smry_funcs(smry_funcs, default_funcs)
+                filtered_funcs = DFSummary.filter_smry_funcs(funcs, default_funcs)
 
-                smry_dict = DFSummary.calc_col_smry(df, mdef["name"], smry_funcs)
-                for fname in smry_funcs:
+                smry_dict = DFSummary.calc_col_smry(df, mdef["name"], filtered_funcs)
+                for fname in filtered_funcs:
                     smrytbl.add_smry_func(rep, mdef["title"], fname, smry_dict[fname])
 
         try:
