@@ -31,7 +31,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
        * 'get_tab()'
     """
 
-    def add_smrytbl(self, smry_metrics, smry_funcs=None):
+    def add_smrytbl(self, smry_funcs, defs):
         """
         Overrides 'super().add_smrytbl()', refer to that method for more information. Results have
         summaries pre-calculated therefore we do not have to calculate them in this method as the
@@ -40,21 +40,18 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         # Summaries are calculated only for numeric metrics. Tab metric name is represented by
         # 'smrytblpath.name', this should come first.
-        metrics = [self._tabmdef] if self._refres.is_numeric(self._tabmdef["name"]) else []
-        metrics += [mdef for mdef in smry_metrics if self._refres.is_numeric(mdef["name"])]
+        metrics = [self._tabmdef["name"]] if self._refres.is_numeric(self._tabmdef["name"]) else []
+        metrics += [metric for metric in smry_funcs if self._refres.is_numeric(metric)]
 
         # Dedupe the list so that each metric only appears once.
         deduped_metrics = []
         seen_metrics = set()
-        for mdef in metrics:
-            if mdef["name"] not in seen_metrics:
-                seen_metrics.add(mdef["name"])
-                deduped_metrics.append(mdef)
+        for metric in metrics:
+            if metric not in seen_metrics:
+                seen_metrics.add(metric)
+                deduped_metrics.append(defs.info[metric])
 
         smry_tbl = _SummaryTable.SummaryTable()
-        if smry_funcs is None:
-            smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
-                          "std")
 
         for mdef in deduped_metrics:
             # Create row in the summary table for each metric.
@@ -65,7 +62,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
             # will not be present if the result has only one datapoint. In this case, we need to
             # exclude the 'std' function.
             funcs = []
-            for funcname in smry_funcs:
+            for funcname in smry_funcs[mdef["name"]]:
                 if all(res.smrys[mdef["name"]].get(funcname) for res in self._rsts):
                     funcs.append(funcname)
 

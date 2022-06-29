@@ -28,6 +28,18 @@ from wultlibs.htmlreport.tabs.stats.turbostat import _TurbostatTabBuilder
 
 _LOG = logging.getLogger()
 
+# Defines which summary functions should be calculated and included in the report for each metric.
+# Metrics are represented by their name or a regular expression and paired with a list of summary
+# functions.
+_SMRY_FUNCS = {
+    ".*Latency.*": ["min", "max", "avg", "med", "std", "99.999%", "99.99%", "99.9%", "99%"],
+    "SilentTime": ["min", "max"],
+    "LDist": ["min", "max"],
+    "[P|C]C.*%": ["min", "max", "avg", "med", "std", "99.999%", "99.99%", "99.9%", "99%"],
+    ".*Delay": ["min", "max", "avg", "med", "std", "99.999%", "99.99%", "99.9%", "99%"],
+    "RTD": ["min", "max", "avg", "med", "std", "N%"]
+}
+
 class ReportBase:
     """This is the base class for generating HTML reports for raw test results."""
 
@@ -186,7 +198,9 @@ class ReportBase:
 
         for res in self.rsts:
             _LOG.debug("calculate summary functions for '%s'", res.reportid)
-            res.calc_smrys(regexs=self._smry_metrics, funcnames=self._smry_funcs)
+            smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
+                          "std")
+            res.calc_smrys(regexs=self._smry_metrics, funcnames=smry_funcs)
 
         plot_axes = [(x, y) for x, y in itertools.product(self.xaxes, self.yaxes) if x != y]
 
@@ -222,11 +236,11 @@ class ReportBase:
                     smry_metrics += axes
 
             smry_metrics = Trivial.list_dedup(smry_metrics)
-            smry_defs = [self._refres.defs.info[metric] for metric in smry_metrics]
 
             metric_def = self._refres.defs.info[metric]
             dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, metric_def)
-            dtab_bldr.add_smrytbl(smry_defs, self._smry_funcs)
+            smry_funcs = {metric: self._smry_funcs[metric] for metric in smry_metrics}
+            dtab_bldr.add_smrytbl(smry_funcs, self._refres.defs)
 
             hist_metrics = [metric_def] if metric in self.hist else []
             chist_metrics = [metric_def] if metric in self.chist else []
@@ -548,6 +562,31 @@ class ReportBase:
                 # Don't create report in results directory, use 'html-report' subdirectory instead.
                 self.outdir = self.outdir.joinpath("html-report")
 
+    def _init_smry_funcs(self):
+        """
+        Assign which summary functions to calculate and include for each metric. Stores the result
+        in 'self._smry_funcs'. Derived from '_SMRY_FUNCS'.
+        """
+
+        self._smry_funcs = {}
+        for regex, smry_funcs in _SMRY_FUNCS.items():
+            # Find metrics represented by 'regex'.
+            metrics = self._refres.find_metrics([regex], must_find_any=False)
+
+            # If there are no metrics found, move onto the next set of funcs.
+            if not metrics:
+                continue
+
+            for metric in metrics:
+                if metric not in self._smry_funcs:
+                    self._smry_funcs[metric] = smry_funcs
+                else:
+                    # If 'metric' already has funcs, add new funcs from 'smry_funcs'
+                    # without duplicating. This handles when a metric is in more than one regex.
+                    for func in smry_funcs:
+                        if func not in self._smry_funcs[metric]:
+                            self._smry_funcs[metric].append(func)
+
     def __init__(self, rsts, outdir, title_descr=None, xaxes=None, yaxes=None, hist=None,
                  chist=None, exclude_xaxes=None, exclude_yaxes=None):
         """
@@ -609,9 +648,9 @@ class ReportBase:
         # Names of metrics to provide the summary function values for (e.g., median, 99th
         # percentile). The summaries will show up in the summary tables (one table per metric).
         self._smry_metrics = None
-        # List of functions to provide in the summary tables.
-        self._smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg",
-                            "min", "std")
+        # Dictionary of 'metric':'smry_funcs' pairs where 'smry_funcs' is a list of summary
+        # functions to calculate for 'metric'. Instantiated by 'self._init_smry_funcs()'.
+        self._smry_metrics = None
         # Per-test result list of metrics to include into the hover text of the scatter plot.
         # By default only the x and y axis values are included.
         self._hov_metrics = {}
@@ -634,6 +673,7 @@ class ReportBase:
             else:
                 self._smry_metrics.append(metric)
 
+        self._init_smry_funcs()
         self._init_assets()
 
         if (self.exclude_xaxes and not self.exclude_yaxes) or \
