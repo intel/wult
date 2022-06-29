@@ -49,13 +49,8 @@ class DTabBuilder:
                                fmt="{:.2f}")
 
             for rep, df in self._reports.items():
-                # Only use a summary function if it is included in the default funcs for this
-                # metric.
-                default_funcs = set(mdef["default_funcs"])
-                filtered_funcs = DFSummary.filter_smry_funcs(funcs, default_funcs)
-
-                smry_dict = DFSummary.calc_col_smry(df, mdef["name"], filtered_funcs)
-                for fname in filtered_funcs:
+                smry_dict = DFSummary.calc_col_smry(df, mdef["name"], funcs)
+                for fname in funcs:
                     self._smrytbl.add_smry_func(rep, mdef["title"], fname, smry_dict[fname])
 
         try:
