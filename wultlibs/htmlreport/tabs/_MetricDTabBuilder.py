@@ -13,6 +13,7 @@ This module defines what is expected by the JavaScript side when adding a Metric
 reports.
 """
 
+from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.htmlreport import _SummaryTable
 from wultlibs.htmlreport.tabs import _DTabBuilder
@@ -49,16 +50,11 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         metrics += [metric for metric in smry_funcs if self._refres.is_numeric(metric)]
 
         # Dedupe the list so that each metric only appears once.
-        deduped_metrics = []
-        seen_metrics = set()
-        for metric in metrics:
-            if metric not in seen_metrics:
-                seen_metrics.add(metric)
-                deduped_metrics.append(defs.info[metric])
+        deduped_mdefs = [defs.info[metric] for metric in Trivial.list_dedup(metrics)]
 
         self._smrytbl = _SummaryTable.SummaryTable()
 
-        for mdef in deduped_metrics:
+        for mdef in deduped_mdefs:
             # Create row in the summary table for each metric.
             fmt = "{:.2f}" if mdef["type"] == "float" else None
             self._smrytbl.add_metric(mdef["title"], mdef["short_unit"], mdef["descr"], fmt)
