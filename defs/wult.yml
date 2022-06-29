@@ -17,7 +17,6 @@ WakeLatency:
     type: "float"
     unit: "microsecond"
     short_unit: "us"
-    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
     drop_empty: True
 WakeLatencyRaw:
     title: "Raw (not adjusted) C-state wake latency"
@@ -26,7 +25,6 @@ WakeLatencyRaw:
     type: "float"
     unit: "microsecond"
     short_unit: "us"
-    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
     drop_empty: True
 SilentTime:
     title: "Silent Time"
@@ -36,7 +34,6 @@ SilentTime:
     type: "float"
     unit: "microsecond"
     short_unit: "us"
-    default_funcs: ["min", "max"]
 IntrLatency:
     title: "Interrupt latency"
     descr: >-
@@ -45,7 +42,6 @@ IntrLatency:
     type: "float"
     unit: "microsecond"
     short_unit: "us"
-    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
 IntrLatencyRaw:
     title: "Raw (not adjusted) interrupt latency"
     descr: >-
@@ -53,7 +49,6 @@ IntrLatencyRaw:
     type: "float"
     unit: "microsecond"
     short_unit: "us"
-    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
 IntrOff:
     title: "Interrupts disabled"
     descr: >-
@@ -66,7 +61,6 @@ LDist:
     type: "float"
     unit: "microsecond"
     short_unit: "us"
-    default_funcs: ["min", "max"]
 ReqCState:
     title: "Requested C-State name"
     descr: >-
@@ -81,7 +75,6 @@ CC0%:
     type: "float"
     unit: "%"
     short_unit: "%"
-    default_funcs: "all"
 CC1Derived%:
     title: "Derived CC1%"
     descr: >-
@@ -90,7 +83,6 @@ CC1Derived%:
     type: "float"
     unit: "%"
     short_unit: "%"
-    default_funcs: "all"
     drop_empty: True
 CCx%:
     title: "The CCx core C-state residency"
@@ -100,7 +92,6 @@ CCx%:
     type: "float"
     unit: "%"
     short_unit: "%"
-    default_funcs: "all"
     drop_empty: True
 PCx%:
     title: "The PCx package C-state residency"
@@ -110,7 +101,6 @@ PCx%:
     type: "float"
     unit: "%"
     short_unit: "%"
-    default_funcs: "all"
     drop_empty: True
 SMICnt:
     title: "SMI count while measuring 'WakeLatency' or 'IntrLatency'"
@@ -139,7 +129,6 @@ WarmupDelay:
     type: "float"
     unit: "microsecond"
     short_unit: "us"
-    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
 LatchDelay:
     title: "The I210 NIC time latch delay"
     descr: >-
@@ -153,4 +142,3 @@ LatchDelay:
     type: "float"
     unit: "microsecond"
     short_unit: "us"
-    default_funcs: ["min", "max", "avg", "med", "std", "N%"]
