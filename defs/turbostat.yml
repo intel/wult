@@ -10,7 +10,6 @@ Busy%:
         this is the C0 state residency. Retrieved from the "Busy%" turbostat column.
     unit: "%"
     short_unit: "%"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 Bzy_MHz:
     title: "Busy frequency"
     descr: >-
@@ -19,7 +18,6 @@ Bzy_MHz:
         Retrieved from the "Bzy_MHz" turbostat column.
     unit: "megahertz"
     short_unit: "MHz"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 Avg_MHz:
     title: "Average frequency"
     descr: >-
@@ -27,14 +25,12 @@ Avg_MHz:
         "Avg_MHz" turbostat column.
     unit: "megahertz"
     short_unit: "MHz"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 UncMHz:
     title: "Uncore frequency"
     descr: >-
         Instantaneous samples of the uncore frequency. Retrieved from the "UncMHz" turbostat column.
     unit: "megahertz"
     short_unit: "MHz"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 Pkg%pcx:
     title: "PCx residency"
     descr: >-
@@ -43,7 +39,6 @@ Pkg%pcx:
     type: "float"
     unit: "%"
     short_unit: "%"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
     drop_empty: True
 CPU%cx:
     title: "CCx residency"
@@ -53,7 +48,6 @@ CPU%cx:
     type: "float"
     unit: "%"
     short_unit: "%"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
     drop_empty: True
 Cx%:
     title: "Cx requested percent"
@@ -64,7 +58,6 @@ Cx%:
     type: "float"
     unit: "%"
     short_unit: "%"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
     drop_empty: True
 CorWatt:
     title: "Core power"
@@ -74,7 +67,6 @@ CorWatt:
     type: "float"
     unit: "Watt"
     short_unit: "W"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 PkgWatt:
     title: "Package power"
     descr: >-
@@ -83,7 +75,6 @@ PkgWatt:
     type: "float"
     unit: "Watt"
     short_unit: "W"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 GFXWatt:
     title: "Graphics power"
     descr: >-
@@ -92,7 +83,6 @@ GFXWatt:
     type: "float"
     unit: "Watt"
     short_unit: "W"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 CoreTmp:
     title: "Core temperature"
     descr: >-
@@ -101,7 +91,6 @@ CoreTmp:
     type: "float"
     unit: "degrees C"
     short_unit: "°C"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 PkgTmp:
     title: "Package temperature"
     descr: >-
@@ -110,27 +99,23 @@ PkgTmp:
     type: "float"
     unit: "degrees C"
     short_unit: "°C"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 IRQ:
     title: "Interrupts"
     descr: >-
         The number of interrupts serviced by a CPU. Retrieved from the "IRQ" turbostat column.
     type: "int"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 SMI:
     title: "System management interrupts"
     descr: >-
         The number of system management interrupts serviced by a CPU. Retrieved from the "SMI"
         turbostat column.
     type: "int"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 IPC:
     title: "Instructions per cycle"
     descr: >-
         The number of instructions executed per-cycle by a CPU. Retrieved from the "IPC" turbostat
         column.
     type: "int"
-    default_funcs: ["99.999%", "99.99%", "99.9%", "99%", "max", "min", "med", "avg", "std"]
 Time:
     title: "Time Elapsed"
     descr: >-
