@@ -239,8 +239,15 @@ class ReportBase:
 
             metric_def = self._refres.defs.info[metric]
             dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, metric_def)
-            smry_funcs = {metric: self._smry_funcs[metric] for metric in smry_metrics}
-            dtab_bldr.add_smrytbl(smry_funcs, self._refres.defs)
+
+            tab_smry_funcs = {}
+            for smry_metric in smry_metrics:
+                # Add summary functions from 'self._smry_funcs' for each metric in 'smry_metrics'.
+                if smry_metric in self._smry_funcs:
+                    tab_smry_funcs[smry_metric] = self._smry_funcs[smry_metric]
+            # Only add a summary table if summary metrics were added to 'tab_smry_funcs'.
+            if tab_smry_funcs:
+                dtab_bldr.add_smrytbl(tab_smry_funcs, self._refres.defs)
 
             hist_metrics = [metric_def] if metric in self.hist else []
             chist_metrics = [metric_def] if metric in self.chist else []
