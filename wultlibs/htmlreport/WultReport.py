@@ -44,6 +44,17 @@ DEFAULT_CHIST = SMALL_CHIST
 EXCLUDE_XAXES = "LDist"
 EXCLUDE_YAXES = "SilentTime"
 
+# Defines which summary functions should be calculated and included in the report for each metric.
+# Metrics are represented by their name or a regular expression and paired with a list of summary
+# functions.
+SMRY_FUNCS = {
+    ".*Latency.*": ["max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min", "std"],
+    "SilentTime": ["max", "min"],
+    "LDist": ["max", "min"],
+    "[P|C]C.*%": ["max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min", "std"],
+    ".*Delay": ["max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min", "std"]
+}
+
 class WultReport(_ReportBase.ReportBase):
     """This module provides API for generating HTML reports for wult test results."""
 
@@ -59,4 +70,5 @@ class WultReport(_ReportBase.ReportBase):
 
         super().__init__(rsts, outdir, title_descr=title_descr, xaxes=args["xaxes"],
                          yaxes=args["yaxes"], hist=args["hist"], chist=args["chist"],
-                         exclude_xaxes=EXCLUDE_XAXES, exclude_yaxes=EXCLUDE_YAXES)
+                         exclude_xaxes=EXCLUDE_XAXES, exclude_yaxes=EXCLUDE_YAXES,
+                         smry_funcs=SMRY_FUNCS)
