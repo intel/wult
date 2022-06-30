@@ -590,7 +590,7 @@ class ReportBase:
                             self._smry_funcs[metric].append(func)
 
     def __init__(self, rsts, outdir, title_descr=None, xaxes=None, yaxes=None, hist=None,
-                 chist=None, exclude_xaxes=None, exclude_yaxes=None):
+                 chist=None, exclude_xaxes=None, exclude_yaxes=None, smry_funcs=None):
         """
         The class constructor. The arguments are as follows.
           * rsts - list of 'RORawResult' objects representing the raw test results to generate the
@@ -621,6 +621,9 @@ class ReportBase:
                             'exclude_yaxes' allows for excluding some diagrams from the 'xaxes' and
                             'yaxes' combinations.
           * exclude_yaxes - same as 'exclude_xaxes', but for Y-axes.
+          * smry_funcs - a dictionary of 'regex':'smry_funcs' pairs where 'smry_funcs' is a list of
+                         summary functions to be calculated for metrics represented by the regular
+                         expression 'regex'.
         """
 
         self.rsts = rsts
@@ -675,7 +678,9 @@ class ReportBase:
             else:
                 self._smry_metrics.append(metric)
 
-        self._init_smry_funcs(_SMRY_FUNCS)
+        if smry_funcs is None:
+            smry_funcs = _SMRY_FUNCS
+        self._init_smry_funcs(smry_funcs)
         self._init_assets()
 
         if (self.exclude_xaxes and not self.exclude_yaxes) or \
