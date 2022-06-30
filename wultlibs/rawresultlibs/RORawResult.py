@@ -143,19 +143,10 @@ class RORawResult(_RawResultBase.RawResultBase):
         """
         Calculate summary functions specified in 'funcnames' for metrics matching 'regexs', and save
         the result in 'self.smrys'. By default this method calculates the summaries for all metrics
-        in the currently loaded 'pandas.DataFrame' and uses the default functions functions.
+        in the currently loaded 'pandas.DataFrame'.
 
         The 'regexs' argument should be a list of metrics or regular expressions, which will be
         applied to metrics. The 'funcnames' argument must be a list of function names.
-
-        Each metric has the "default functions" associated with this metric. These are just function
-        names which generally make sense for this metric. By default, this method uses only the
-        default functions. If, for example, 'funcnames' specifies the 'avg' function, and 'avg'
-        function is not in the default functions list for the 'SilentTime' metric, it will not be
-        applied (will be skipped). So the result ('self.smrys') will not include 'avg' for
-        'SilentTime'. However, if 'avg' is in the list of default functions for the 'WakeLatency'
-        column, and it was specified in 'funcnames', it will be applied and will show up in the
-        result.
 
         The result ('self.smrys') is a dictionary of dictionaries. The top level dictionary keys
         are metrics and the sub-dictionary keys are function names.
