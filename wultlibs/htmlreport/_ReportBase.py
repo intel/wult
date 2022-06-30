@@ -562,14 +562,16 @@ class ReportBase:
                 # Don't create report in results directory, use 'html-report' subdirectory instead.
                 self.outdir = self.outdir.joinpath("html-report")
 
-    def _init_smry_funcs(self):
+    def _init_smry_funcs(self, smry_funcs):
         """
         Assign which summary functions to calculate and include for each metric. Stores the result
-        in 'self._smry_funcs'. Derived from '_SMRY_FUNCS'.
+        in 'self._smry_funcs'. 'smry_funcs' should be a dictionary containing 'regex':'smry_funcs'
+        pairs where 'smry_funcs' is a list of summary functions to calculate and include for
+        metrics represented by the regular expression 'regex'.
         """
 
         self._smry_funcs = {}
-        for regex, smry_funcs in _SMRY_FUNCS.items():
+        for regex, funcs in smry_funcs.items():
             # Find metrics represented by 'regex'.
             metrics = self._refres.find_metrics([regex], must_find_any=False)
 
@@ -579,10 +581,10 @@ class ReportBase:
 
             for metric in metrics:
                 if metric not in self._smry_funcs:
-                    self._smry_funcs[metric] = smry_funcs
+                    self._smry_funcs[metric] = funcs
                 else:
-                    # If 'metric' already has funcs, add new funcs from 'smry_funcs'
-                    # without duplicating. This handles when a metric is in more than one regex.
+                    # If 'metric' already has funcs, add new funcs from 'funcs' without duplicating.
+                    # This handles when a metric is in more than one regex.
                     for func in smry_funcs:
                         if func not in self._smry_funcs[metric]:
                             self._smry_funcs[metric].append(func)
@@ -673,7 +675,7 @@ class ReportBase:
             else:
                 self._smry_metrics.append(metric)
 
-        self._init_smry_funcs()
+        self._init_smry_funcs(_SMRY_FUNCS)
         self._init_assets()
 
         if (self.exclude_xaxes and not self.exclude_yaxes) or \
