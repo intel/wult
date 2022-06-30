@@ -1481,7 +1481,7 @@
         }
   `;static properties={paths:{type:Array},smrytblpath:{type:String}};visibleTemplate(){return z`
             <br>
-            <smry-tbl .src="${this.smrytblpath}"></smry-tbl>
+            ${this.smrytblpath?z`<smry-tbl .src="${this.smrytblpath}"></smry-tbl>`:z``}
             <div class="grid">
                 ${this.paths.map((t=>z`
                     <diagram-element path="${t}"></diagram-element>
