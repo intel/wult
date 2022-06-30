@@ -56,12 +56,12 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                 seen_metrics.add(metric)
                 deduped_metrics.append(defs.info[metric])
 
-        smry_tbl = _SummaryTable.SummaryTable()
+        self._smrytbl = _SummaryTable.SummaryTable()
 
         for mdef in deduped_metrics:
             # Create row in the summary table for each metric.
             fmt = "{:.2f}" if mdef["type"] == "float" else None
-            smry_tbl.add_metric(mdef["title"], mdef["short_unit"], mdef["descr"], fmt)
+            self._smrytbl.add_metric(mdef["title"], mdef["short_unit"], mdef["descr"], fmt)
 
             # Select only those functions that are present in all test results. For example, 'std'
             # will not be present if the result has only one datapoint. In this case, we need to
@@ -75,9 +75,9 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
             for res in self._rsts:
                 for funcname in funcs:
                     val = res.smrys[mdef["name"]][funcname]
-                    smry_tbl.add_smry_func(res.reportid, mdef["title"], funcname, val)
+                    self._smrytbl.add_smry_func(res.reportid, mdef["title"], funcname, val)
         try:
-            smry_tbl.generate(self.smry_path)
+            self._smrytbl.generate(self.smry_path)
         except Error as err:
             raise Error("Failed to generate summary table.") from err
 
