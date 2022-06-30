@@ -28,18 +28,6 @@ from wultlibs.htmlreport.tabs.stats.turbostat import _TurbostatTabBuilder
 
 _LOG = logging.getLogger()
 
-# Defines which summary functions should be calculated and included in the report for each metric.
-# Metrics are represented by their name or a regular expression and paired with a list of summary
-# functions.
-_SMRY_FUNCS = {
-    ".*Latency.*": ["min", "max", "avg", "med", "std", "99.999%", "99.99%", "99.9%", "99%"],
-    "SilentTime": ["min", "max"],
-    "LDist": ["min", "max"],
-    "[P|C]C.*%": ["min", "max", "avg", "med", "std", "99.999%", "99.99%", "99.9%", "99%"],
-    ".*Delay": ["min", "max", "avg", "med", "std", "99.999%", "99.99%", "99.9%", "99%"],
-    "RTD": ["min", "max", "avg", "med", "std", "N%"]
-}
-
 class ReportBase:
     """This is the base class for generating HTML reports for raw test results."""
 
@@ -630,7 +618,8 @@ class ReportBase:
           * exclude_yaxes - same as 'exclude_xaxes', but for Y-axes.
           * smry_funcs - a dictionary of 'regex':'smry_funcs' pairs where 'smry_funcs' is a list of
                          summary functions to be calculated for metrics represented by the regular
-                         expression 'regex'.
+                         expression 'regex'. Default value of 'None' will not generate any summary
+                         tables.
         """
 
         self.rsts = rsts
@@ -686,7 +675,7 @@ class ReportBase:
                 self._smry_metrics.append(metric)
 
         if smry_funcs is None:
-            smry_funcs = _SMRY_FUNCS
+            smry_funcs = {}
         self._init_smry_funcs(smry_funcs)
         self._init_assets()
 
