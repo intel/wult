@@ -71,7 +71,11 @@ class DTabBuilder:
         """
 
         ppaths = [p.relative_to(self._basedir) for p in self._ppaths]
-        smry_path = self.smry_path.relative_to(self._basedir)
+
+        if self._smrytbl is not None:
+            smry_path = self.smry_path.relative_to(self._basedir)
+        else:
+            smry_path = ""
 
         return _Tabs.DTabDC(self.title, ppaths, smry_path)
 
