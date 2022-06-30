@@ -41,11 +41,11 @@ class DTabBuilder:
          * defs - a 'DefsBase' instance containing the defs for the metrics in 'smry_funcs'.
         """
 
-        smrytbl = _SummaryTable.SummaryTable()
+        self._smrytbl = _SummaryTable.SummaryTable()
 
         for metric, funcs in smry_funcs.items():
             mdef = defs.info[metric]
-            smrytbl.add_metric(mdef["title"], mdef.get("short_unit"), mdef.get("descr"),
+            self._smrytbl.add_metric(mdef["title"], mdef.get("short_unit"), mdef.get("descr"),
                                fmt="{:.2f}")
 
             for rep, df in self._reports.items():
@@ -56,10 +56,10 @@ class DTabBuilder:
 
                 smry_dict = DFSummary.calc_col_smry(df, mdef["name"], filtered_funcs)
                 for fname in filtered_funcs:
-                    smrytbl.add_smry_func(rep, mdef["title"], fname, smry_dict[fname])
+                    self._smrytbl.add_smry_func(rep, mdef["title"], fname, smry_dict[fname])
 
         try:
-            smrytbl.generate(self.smry_path)
+            self._smrytbl.generate(self.smry_path)
         except Error as err:
             raise Error("Failed to generate summary table.") from err
 
@@ -214,6 +214,7 @@ class DTabBuilder:
         self.title = metric_def["name"]
         self._outdir = outdir / self._fsname
         self.smry_path = self._outdir / "summary-table.txt"
+        self._smrytbl = None
 
         if basedir is None:
             self._basedir = outdir
