@@ -39,8 +39,13 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         """
 
         # Summaries are calculated only for numeric metrics. Tab metric name is represented by
-        # 'smrytblpath.name', this should come first.
-        metrics = [self._tabmdef["name"]] if self._refres.is_numeric(self._tabmdef["name"]) else []
+        # 'smrytblpath.name', this should come first if it is included in 'smry_funcs'.
+        tab_metric = self._tabmdef["name"]
+        if tab_metric in smry_funcs and self._refres.is_numeric(tab_metric):
+            metrics = [tab_metric]
+        else:
+            metrics = []
+
         metrics += [metric for metric in smry_funcs if self._refres.is_numeric(metric)]
 
         # Dedupe the list so that each metric only appears once.
