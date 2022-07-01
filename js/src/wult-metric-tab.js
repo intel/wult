@@ -2,7 +2,7 @@
  * -*- coding: utf-8 -*-
  * vim: ts=4 sw=4 tw=100 et ai si
  *
- * Copyright (C) 2019-2021 Intel, Inc.
+ * Copyright (C) 2019-2022 Intel, Inc.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Author: Adam Hawley <adam.james.hawley@intel.com>
@@ -12,6 +12,7 @@ import { html, css } from 'lit'
 import { WultTab } from './wult-tab.js'
 
 import './diagram-element.js'
+import './file-preview'
 import './smry-tbl'
 
 /**
@@ -31,6 +32,7 @@ class WultMetricTab extends WultTab {
 
     static properties = {
         paths: { type: Array },
+        fpaths: { type: Array },
         smrytblpath: { type: String }
     }
 
@@ -41,6 +43,12 @@ class WultMetricTab extends WultTab {
         return html`
             <br>
             ${this.smrytblpath ? html`<smry-tbl .src="${this.smrytblpath}"></smry-tbl>` : html``}
+            ${this.fpaths
+                ? Object.entries(this.fpaths).map((pair) => html`
+                    <file-preview .name=${pair[0]} .fpaths=${pair[1]}></file-preview>
+                    <br>
+                `)
+                : html``}
             <div class="grid">
                 ${this.paths
                     ? this.paths.map((path) => html`
