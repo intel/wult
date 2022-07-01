@@ -17,7 +17,7 @@ module.exports = {
     rules: {
         // 'ignoredNodes: ['TemplateLiteral > *'] is used to stop ESLint complaining about
         // indentation in lit html templates.
-        indent: ['error', 4, { ignoredNodes: ['TemplateLiteral > *'] }]
+        indent: ['error', 4, { ignoredNodes: ['TemplateLiteral *'] }]
     },
     settings: {
         wc: {
