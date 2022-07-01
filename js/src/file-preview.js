@@ -16,7 +16,7 @@ import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel'
 import '@shoelace-style/shoelace/dist/components/tab/tab'
 
 /**
- * Responsible for creating an 'sl-details' element containing previews of files given to 'fpaths'.
+ * Responsible for creating an 'sl-details' element containing previews of files given to 'paths'.
  * @class FilePreview
  * @extends {LitElement}
  */
@@ -36,8 +36,8 @@ class FilePreview extends LitElement {
     `
 
     static properties = {
-        name: { type: String },
-        fpaths: { type: Object }
+        title: { type: String },
+        paths: { type: Object }
     };
 
     getFileContents (path) {
@@ -58,12 +58,12 @@ class FilePreview extends LitElement {
 
     render () {
         return html`
-            <sl-details summary=${this.name}>
+            <sl-details summary=${this.title}>
                 <sl-tab-group>
-                    ${Object.entries(this.fpaths).map((pair) => {
+                    ${Object.entries(this.paths).map((pair) => {
                         const reportID = pair[0]
                         const path = pair[1]
-                        const panelID = `details-panel-${this.name}-${reportID}`
+                        const panelID = `details-panel-${this.title}-${reportID}`
                         return html`
                             <sl-tab class="tab" slot="nav" panel=${panelID}>${reportID}</sl-tab>
                             <sl-tab-panel class="tab-panel" name=${panelID}>

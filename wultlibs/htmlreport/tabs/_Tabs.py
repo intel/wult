@@ -11,7 +11,7 @@ This module defines what is expected by the JavaScript side when adding a set of
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Union, List
+from typing import Dict, List, Union
 from pathlib import Path
 
 @dataclass
@@ -44,13 +44,8 @@ class DTabDC:
     # Relative path to the summary table dump for the metric.
     smrytblpath: Path = ""
 
-    # Relative paths to files to info files to include in the schema:
-    # {
-    #      "title": {
-    #           "reportid": "path"
-    #       }
-    # }
-    fpaths: Dict[str, Dict[str, Path]] = field(default_factory=dict)
+    # File previews to include in the tab.
+    fpreviews: List[FilePreviewDC] = field(default_factory=list)
 
 @dataclass
 class CTabDC:

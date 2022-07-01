@@ -92,7 +92,7 @@ class TabGroup extends LitElement {
         `
         }
         return html`
-            <wult-metric-tab tabname=${tab.name} .smrytblpath=${tab.smrytblpath} .paths=${tab.ppaths} .fpaths=${tab.fpaths} .dir=${tab.dir}></wult-metric-tab>
+            <wult-metric-tab tabname=${tab.name} .smrytblpath=${tab.smrytblpath} .paths=${tab.ppaths} .fpreviews=${tab.fpreviews} .dir=${tab.dir}></wult-metric-tab>
         `
     }
 

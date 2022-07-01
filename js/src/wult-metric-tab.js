@@ -32,7 +32,7 @@ class WultMetricTab extends WultTab {
 
     static properties = {
         paths: { type: Array },
-        fpaths: { type: Array },
+        fpreviews: { type: Array },
         smrytblpath: { type: String }
     }
 
@@ -43,12 +43,13 @@ class WultMetricTab extends WultTab {
         return html`
             <br>
             ${this.smrytblpath ? html`<smry-tbl .src="${this.smrytblpath}"></smry-tbl>` : html``}
-            ${this.fpaths
-                ? Object.entries(this.fpaths).map((pair) => html`
-                    <file-preview .name=${pair[0]} .fpaths=${pair[1]}></file-preview>
+            ${this.fpreviews
+                ? this.fpreviews.map((fpreview) => html`
+                    <file-preview .title=${fpreview.title} .paths=${fpreview.paths}></file-preview>
                     <br>
                 `)
-                : html``}
+                : html``
+            }
             <div class="grid">
                 ${this.paths
                     ? this.paths.map((path) => html`
