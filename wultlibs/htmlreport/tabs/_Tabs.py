@@ -10,7 +10,7 @@
 This module defines what is expected by the JavaScript side when adding a set of tabs to the report.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Union, List
 from pathlib import Path
 
@@ -26,10 +26,10 @@ class DTabDC:
     name: str
 
     # Relative paths to any 'plotly' plots to include in the tab.
-    ppaths: List[Path]
+    ppaths: List[Path] = field(default_factory=list)
 
     # Relative path to the summary table dump for the metric.
-    smrytblpath: Path
+    smrytblpath: Path = ""
 
 
 @dataclass
