@@ -27,6 +27,12 @@ class FilePreview extends LitElement {
             max-height: 33vw;
         }
 
+        .diff-table {
+            width: 100%;
+            max-height: 50vw;
+            border: none;
+        }
+
         sl-details::part(base) {
             font-family: Arial, sans-serif;
         }
@@ -37,7 +43,8 @@ class FilePreview extends LitElement {
 
     static properties = {
         title: { type: String },
-        paths: { type: Object }
+        paths: { type: Object },
+        diff: { type: String }
     };
 
     getFileContents (path) {
@@ -54,6 +61,23 @@ class FilePreview extends LitElement {
                     resolve(text)
                 })
         })
+    }
+
+    getDiffTemplate () {
+        if (this.diff) {
+            const panelID = `${this.title}-diff`
+            return html`
+                <sl-tab class="tab" slot="nav" panel=${panelID}>Diff</sl-tab>
+                <sl-tab-panel class="tab-panel" name=${panelID}>
+                    <div class="diff-div" id=${panelID}>
+                        <!-- Diffs are created in the form of an HTML table so
+                        viewed using an iframe  -->
+                        <iframe seamless class="diff-table" src="${this.diff}"></iframe>
+                    </div>
+                </sl-tab-panel>
+            `
+        }
+        return html``
     }
 
     render () {
@@ -73,6 +97,7 @@ class FilePreview extends LitElement {
                             </sl-tab-panel>
                         `
                     })}
+                    ${this.getDiffTemplate()}
                 </sl-tab-group>
             </sl-details>
         `
