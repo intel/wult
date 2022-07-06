@@ -28,6 +28,9 @@ class FilePreviewDC:
     # A dictionary in the format '{ReportID: FilePath}'.
     paths: Dict[str, Path]
 
+    # Optional path to a diff file to be included in the file preview.
+    diff: Path = ""
+
 @dataclass
 class DTabDC:
     """

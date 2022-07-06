@@ -13,6 +13,7 @@ This module provides the capability of populating a "SysInfo" data tab.
 """
 
 import logging
+from difflib import HtmlDiff
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import FSHelpers
 from wultlibs.htmlreport.tabs import _Tabs
@@ -26,6 +27,38 @@ class DTabBuilderBase:
     Public method overview:
      * get_tab() - returns a '_Tabs.DTabDC' instance which represents system information.
     """
+
+    def _generate_diff(self, paths, fp):
+        """
+        Helper function for '_add_fpreviews()'. Generates an HTML diff with path 'fp' in a "diffs"
+        sub-directory. Returns the path of the HTML diff relative to 'self.outdir'.
+        """
+
+        # Read the contents of the files into 'lines'.
+        lines = []
+        for diff_src in paths.values():
+            try:
+                fp = self.outdir / diff_src
+                with open(fp, "r") as f:
+                    lines.append(f.readlines())
+            except OSError as err:
+                raise Error(f"cannot open file at '{fp}' to create diff: {err}") from None
+
+        # Store the diff in a separate directory and with the '.html' file ending.
+        diff_path = (self.outdir / "diffs" / fp).with_suffix('.html')
+        try:
+            diff_path.parent.mkdir(parents=True, exist_ok=True)
+        except OSError as err:
+            raise Error(f"cannot create diffs directory '{diff_path.parent}': "
+                        f"{err}") from None
+
+        try:
+            with open(diff_path, "w") as f:
+                f.write(HtmlDiff().make_file(lines[0], lines[1]))
+        except Exception as err:
+            raise Error(f"cannot create diff at path '{diff_path}': {err}") from None
+
+        return diff_path.relative_to(self.outdir)
 
     def _add_fpreviews(self, stats_paths):
         """
@@ -66,8 +99,18 @@ class DTabBuilderBase:
 
                 paths[reportid] = dst_path.relative_to(self.outdir)
 
+            if len(paths) == 2:
+                try:
+                    diff = self._generate_diff(paths, fp)
+                except Error as err:
+                    _LOG.info("Unable to generate diff for file preview '%s'.", name)
+                    _LOG.debug(err)
+                    diff = ""
+            else:
+                diff = ""
+
             if paths:
-                fpreviews.append(_Tabs.FilePreviewDC(name, paths))
+                fpreviews.append(_Tabs.FilePreviewDC(name, paths, diff))
         return fpreviews
 
     def get_tab(self, stats_paths):
