@@ -1,2 +1,8 @@
 *.pyc
 node_modules
+*.o
+*.ko
+*.mod
+*.cmd
+Module.symvers
+modules.order
