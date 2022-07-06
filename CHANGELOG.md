@@ -7,6 +7,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 - Your description
 
+## [1.10.9] - 2022-07-06
+### Changed
+ - Minor improvements required for RPM packaging
+
 ## [1.10.8] - 2022-06-29
 ### Fixed
  - Fix regression in v1.10.7: turbostat statistics collector was crashing.
