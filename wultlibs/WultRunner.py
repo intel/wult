@@ -37,8 +37,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         datapoints = self._prov.get_datapoints()
         rawdp = next(datapoints)
 
-        _LOG.info("Calculating TSC rate for %s", Human.duration(self._dpp.tsc_cal_time))
-
         # We could actually process this datapoint, but we prefer to drop it and start with the
         # second one.
         self._dpp.prepare(rawdp, keep_rawdp)
@@ -50,7 +48,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         start_time = last_rawdp_time = time.time()
         collected_cnt = 0
         max_latency = 0
-        tsc_rate_printed = False
 
         for rawdp in datapoints:
             if time.time() - last_rawdp_time > timeout:
@@ -63,9 +60,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             if not self._dpp.tsc_mhz:
                 # TSC rate has not been calculated yet.
                 continue
-            if not tsc_rate_printed:
-                _LOG.info("TSC rate is %.6f MHz", self._dpp.tsc_mhz)
-                tsc_rate_printed = True
 
             for dp in self._dpp.get_processed_datapoints():
                 if not self._res.csv.hdr:

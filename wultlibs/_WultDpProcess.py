@@ -423,6 +423,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             # We are called for the first time.
             self._tsc1 = rawdp["BICyc"]
             self._ts1 = rawdp["BIMonotonic"]
+            _LOG.info("Calculating TSC rate for %s", Human.duration(self.tsc_cal_time))
             return
 
         tsc2 = rawdp["BICyc"]
@@ -439,6 +440,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             return
 
         self.tsc_mhz = ((tsc2 - self._tsc1) * 1000.0) / (ts2 - self._ts1)
+        _LOG.info("TSC rate is %.6f MHz", self.tsc_mhz)
 
     def add_raw_datapoint(self, rawdp):
         """
