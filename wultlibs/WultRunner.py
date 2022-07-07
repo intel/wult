@@ -57,10 +57,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
 
             self._dpp.add_raw_datapoint(rawdp)
 
-            if not self._dpp.tsc_mhz:
-                # TSC rate has not been calculated yet.
-                continue
-
             for dp in self._dpp.get_processed_datapoints():
                 if not self._res.csv.hdr:
                     # Add the first CSV header.
