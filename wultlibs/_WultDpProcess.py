@@ -553,7 +553,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
           *              measured in this case, only 'IntrLatency').
           * early_intr - enable interrupts before entering the C-state.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
-          * rcsobj - the 'CStates' object initialized for the measured system.
+          * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
         """
 
         self._cpunum = cpunum
