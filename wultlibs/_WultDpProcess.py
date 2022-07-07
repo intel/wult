@@ -7,8 +7,7 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module implements the main wult functionality - runs wake latency measurement experiments and
-saves the results.
+This module provides the 'DatapointProcessor' class which implements raw datapoint processing.
 """
 
 import time
