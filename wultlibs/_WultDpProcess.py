@@ -20,6 +20,73 @@ from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
 
+class _CStates(ClassHelpers.SimpleCloseContext):
+    """
+    This is an internal class used only by the 'DatapointProcessor'. This class encapsulates all the
+    complexity related to C-states.
+    """
+
+    def _init_idx2name(self):
+        """
+        Raw datapoints include C-state indexes, but no C-state names. Build a dictionary mapping
+        indices to names.
+        """
+
+        # Check that there are idle states that we can measure.
+        for info in self._rcsinfo.values():
+            if not info["disable"]:
+                break
+        else:
+            raise Error(f"no idle states are enabled on CPU {self._cpunum}{self._pman.hostmsg}")
+
+        for csname, cstate in self._rcsinfo.items():
+            self.idx2name[cstate["index"]] = csname
+
+        self.idx2name_str = ", ".join(f"{idx} ({name})" for idx, name in self.idx2name.items())
+
+    def __init__(self, cpunum, pman, rcsobj=None):
+        """
+        The class constructor. The arguments are as follows.
+          * cpunum - the measured CPU number.
+          * pman - the process manager object that defines the host to run the measurements on.
+          * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
+        """
+
+        self._cpunum = cpunum
+        self._pman = pman
+        self._rcsobj = rcsobj
+
+        self._close_rcsobj = rcsobj is None
+
+        # C-states information provided by ''Cstates.ReqCStates()'
+        self._rcsinfo = None
+        # C-state index -> C-state name dictionary..
+        self.idx2name = {}
+        # A printable string containing all C-state indices and names (one line).
+        self.idx2name_str = ""
+
+        # Interrupt status of requestable C-states. Dictionary keys are C-state indices, the values
+        # are:
+        #   * 'True' if the C-state is requested with interrupts disabled. In this case when the CPU
+        #     wakes up, it first executes the "after_idle()" kernel function. The kernel runs some
+        #     housekeeping tasks, and re-enables the interrupts. The CPU jumps to the interrupt
+        #     handler of the wult event only then.
+        #   * 'False' if the C-state is requested with interrupts enabled. In this case when the CPU
+        #     wakes up, it first runs the interrupt handler, and only then it runs the
+        #     "after_idle()" kernel function.
+        self.introff = {}
+
+        if not self._rcsobj:
+            self._rcsobj = CStates.ReqCStates(pman=self._pman)
+
+        self._rcsinfo = self._rcsobj.get_cpu_cstates_info(self._cpunum)
+
+        self._init_idx2name()
+
+    def close(self):
+        """Uninitialize and close the object."""
+        ClassHelpers.close(self, close_attrs=("_rcsobj",), unref_attrs=("_pman", "_rcsinfo"))
+
 class DatapointProcessor(ClassHelpers.SimpleCloseContext):
     """
     The datapoint processor class implements raw datapoint processing. Takes raw datapoints on
@@ -62,12 +129,12 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         """Returns requestable C-state name for datapoint 'dp'."""
 
         try:
-            return self._csmap[dp["ReqCState"]]
+            return self._csobj.idx2name[dp["ReqCState"]]
         except KeyError:
             # Supposedly an bad C-state index.
-            indexes_str = ", ".join(f"{idx} ({csname})" for idx, csname in  self._csmap.items())
             raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
-                        f"{Human.dict2str(dp)}\nAllowed indexes are:\n{indexes_str}") from None
+                        f"{Human.dict2str(dp)}\n"
+                        f"Allowed indexes are:\n{self._csobj.idx2name_str}") from None
 
     def _process_cstates(self, dp):
         """
@@ -196,10 +263,10 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         """
 
         cstate = dp["ReqCState"]
-        if cstate not in self._cstate_intrs:
-            self._cstate_intrs[cstate] = dp["IntrOff"]
+        if cstate not in self._csobj.introff:
+            self._csobj.introff[cstate] = dp["IntrOff"]
 
-        if self._cstate_intrs[cstate] != dp["IntrOff"]:
+        if self._csobj.introff[cstate] != dp["IntrOff"]:
             status = "disabled" if dp["IntrOff"] else "enabled"
             raise Error(f"interrupts are {status} for the datapoint, which is different from other "
                         f"observed datapoints with requested C-state '{cstate}'. The datapoint is:"
@@ -515,33 +582,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             for field in raw_fields:
                 self._fields[field] = None
 
-    def _build_csmap(self, rcsobj):
-        """
-        Wult driver supplies the requested C-state index. Build a dictionary mapping the index to
-        C-state name.
-        """
-
-        close = False
-        try:
-            if rcsobj is None:
-                rcsobj = CStates.ReqCStates(pman=self._pman)
-                close = True
-            csinfo = rcsobj.get_cpu_cstates_info(self._cpunum)
-        finally:
-            if close:
-                rcsobj.close()
-
-        # Check that there are idle states that we can measure.
-        for info in csinfo.values():
-            if not info["disable"]:
-                break
-        else:
-            raise Error(f"no idle states are enabled on CPU {self._cpunum}{self._pman.hostmsg}")
-
-        self._csmap = {}
-        for csname, cstate in csinfo.items():
-            self._csmap[cstate["index"]] = csname
-
     def __init__(self, cpunum, pman, drvname, intr_focus=None, early_intr=None, tsc_cal_time=10,
                  rcsobj=None):
         """
@@ -563,12 +603,11 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         self._early_intr = early_intr
         self.tsc_cal_time = tsc_cal_time
 
+        # A '_CStates' class object.
+        self._csobj = None
+
         # Processed datapoint field names.
         self._fields = None
-        # Interrupt status of observed C-states.
-        self._cstate_intrs = {}
-        # C-state index -> name mapping.
-        self._csmap = None
         # TSC rate in MHz (cycles / microsecond).
         self.tsc_mhz = None
 
@@ -587,8 +626,8 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         # Information about printed warnings.
         self._warnings = {}
 
-        self._build_csmap(rcsobj)
+        self._csobj = _CStates(self._cpunum, self._pman, rcsobj=rcsobj)
 
     def close(self):
         """Close the datapoint processor."""
-        ClassHelpers.close(self, unref_attrs=("_pman",))
+        ClassHelpers.close(self, close_attrs=("_csobj",), unref_attrs=("_pman",))
