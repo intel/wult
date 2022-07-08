@@ -155,8 +155,8 @@ class DTabBuilder:
 
             # Check if there is a constant value for all readings.
             if all(sdf[mname].max() == sdf[mname].min() for sdf in self._reports.values()):
-                _LOG.info("Skipping %s: all results contain only datapoints with a single value of "
-                          "'%s'.", plotname, mname)
+                _LOG.info("Skipping %s: every datapoint in all results is the same, '%s' is always "
+                          "'%s'.", plotname, mname, list(self._reports.values())[0][mname].max())
                 return True
 
         return False
