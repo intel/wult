@@ -24,6 +24,7 @@ from wultlibs.helperlibs import FSHelpers
 from wultlibs.htmlreport import _IntroTable
 from wultlibs.htmlreport.tabs import _MetricDTabBuilder, _Tabs
 from wultlibs.htmlreport.tabs.stats import _ACPowerTabBuilder, _IPMITabBuilder
+from wultlibs.htmlreport.tabs.stats.sysinfo import _PepcTabBuilder
 from wultlibs.htmlreport.tabs.stats.turbostat import _TurbostatTabBuilder
 
 _LOG = logging.getLogger()
@@ -289,6 +290,37 @@ class ReportBase:
 
         return tabs
 
+    def _generate_sysinfo_tabs(self, stats_paths):
+        """
+        Generate and return a list of data tabs for the SysInfo container tab. The container tab
+        includes tabs representing various system information about the SUTs.
+
+        The 'stats_paths' argument is a dictionary mapping in the following format:
+           {Report ID: Stats directory path}
+        where "stats directory path" is the directory containing raw statistics files.
+
+        The elements of the returned list are tab dataclass objects, such as '_Tabs.DTabDC'.
+        """
+
+        tab_builders = [_PepcTabBuilder.PepcTabBuilder]
+
+        tabs = []
+
+        for tab_builder in tab_builders:
+            tbldr = tab_builder(self.outdir)
+
+            _LOG.info("Generating '%s' tab.", tbldr.name)
+            try:
+                tabs.append(tbldr.get_tab(stats_paths))
+            except Error as err:
+                _LOG.info("Skipping '%s' SysInfo tab: error occurred during tab generation.",
+                          tbldr.name)
+                _LOG.debug(err)
+                continue
+
+        return tabs
+
+
     def _generate_report(self):
         """Put together the final HTML report."""
 
@@ -319,6 +351,12 @@ class ReportBase:
             _LOG.info("Error occurred during statistics tabs generation: %s", err)
             stats_tabs = []
 
+        try:
+            sysinfo_tabs = self._generate_sysinfo_tabs(stats_paths)
+        except Error as err:
+            _LOG.info("Error occurred during info tab generation: %s", err)
+            sysinfo_tabs = []
+
         tabs = []
         # Convert Dataclasses to dictionaries so that they are JSON serialisable.
         tabs.append(dataclasses.asdict(_Tabs.CTabDC("Results", results_tabs)))
@@ -328,6 +366,12 @@ class ReportBase:
         else:
             _LOG.info("All statistics have been skipped therefore the report will not contain a "
                       "'Stats' tab.")
+
+        if sysinfo_tabs:
+            tabs.append(dataclasses.asdict(_Tabs.CTabDC("SysInfo", tabs=sysinfo_tabs)))
+        else:
+            _LOG.info("All SysInfo tabs have been skipped therefore the report will not contain a "
+                      "'SysInfo' tab.")
 
         tabs_path = self.outdir / "tabs.json"
         self._dump_json(tabs, tabs_path, "tab container")
