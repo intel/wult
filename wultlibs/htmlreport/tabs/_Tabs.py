@@ -15,6 +15,20 @@ from typing import Dict, Union, List
 from pathlib import Path
 
 @dataclass
+class FilePreviewDC:
+    """
+    This dataclass defines what is expected by the JavaScript side when adding a file preview to an
+    HTML report. A "file preview" includes the entire contents of a file in the report in a small
+    preview window.
+    """
+
+    # The title which will be placed at the top of the file preview.
+    title: str
+
+    # A dictionary in the format '{ReportID: FilePath}'.
+    paths: Dict[str, Path]
+
+@dataclass
 class DTabDC:
     """
     This dataclass defines what is expected by the JavaScript side when adding a data tab to HTML
