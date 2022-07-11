@@ -145,6 +145,10 @@ class _TSCRate:
         otherwise.
         """
 
+        if self._drvname != "wult_tdt":
+            # Only the 'wult_tdt' driver requires TSC rate calculations.
+            return rawdp
+
         if self._tsc_mhz:
             # TSC rate is already known, skip the calculations.
             return rawdp
@@ -169,12 +173,14 @@ class _TSCRate:
 
         return int((cyc * 1000) / self._tsc_mhz)
 
-    def __init__(self, tsc_cal_time):
+    def __init__(self, drvname, tsc_cal_time):
         """
         The class constructor. The arguments are as follows.
+          * drvname - name of the driver providing the datapoints.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
         """
 
+        self._drvname = drvname
         self._tsc_cal_time = tsc_cal_time
 
         # TSC rate in MHz (cycles / microsecond).
@@ -620,7 +626,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         The class constructor. The arguments are as follows.
           * cpunum - the measured CPU number.
           * pman - the process manager object that defines the host to run the measurements on.
-          * drvname - name of the driver providing the datapoints
+          * drvname - name of the driver providing the datapoints.
           * intr_focus - enable interrupt latency focused measurements ('WakeLatency' is not
           *              measured in this case, only 'IntrLatency').
           * early_intr - enable interrupts before entering the C-state.
@@ -651,7 +657,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         self._warnings = {}
 
         self._csobj = _CStates(self._cpunum, self._pman, rcsobj=rcsobj)
-        self._tscrate = _TSCRate(tsc_cal_time)
+        self._tscrate = _TSCRate(self._drvname, tsc_cal_time)
 
     def close(self):
         """Close the datapoint processor."""
