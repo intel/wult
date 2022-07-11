@@ -47,14 +47,10 @@ static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj)
 	return ktime_get_raw_ns();
 }
 
-static u64 get_time_after_idle(struct wult_device_info *wdi, u64 ts, u64 *adj)
+static u64 get_time_after_idle(struct wult_device_info *wdi, u64 *adj)
 {
-	u64 time;
-
-	time = ktime_get_raw_ns();
 	*adj = 0;
-
-	return time;
+	return ktime_get_raw_ns();
 }
 
 static int arm_event(struct wult_device_info *wdi, u64 *ldist)

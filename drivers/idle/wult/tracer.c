@@ -100,12 +100,12 @@ static void after_idle(struct wult_info *wi)
 	}
 
 	ti->ai_ts1 = ktime_get_raw_ns();
-	ti->tai = wdi->ops->get_time_after_idle(wdi, ti->ai_ts1, &ti->tai_adj);
+	ti->tai = wdi->ops->get_time_after_idle(wdi, &ti->tai_adj);
 
 	wult_cstates_snap_mperf(&ti->csinfo, 1);
 	wult_cstates_snap_tsc(&ti->csinfo, 1);
 
-	ti->event_happened = wdi->ops->event_has_happened(wi->wdi);
+	ti->event_happened = wdi->ops->event_has_happened(wdi);
 	ti->irqs_disabled = irqs_disabled();
 	ti->ai_ts2 = ktime_get_raw_ns();
 }
@@ -117,8 +117,7 @@ void wult_tracer_interrupt(struct wult_info *wi)
 	struct wult_device_info *wdi = wi->wdi;
 
 	ti->intr_ts1 = ktime_get_raw_ns();
-	ti->tintr = wdi->ops->get_time_after_idle(wdi, ti->intr_ts1,
-						  &ti->tintr_adj);
+	ti->tintr = wdi->ops->get_time_after_idle(wdi, &ti->tintr_adj);
 
 	wult_cstates_snap_mperf(&ti->csinfo, 2);
 	wult_cstates_snap_tsc(&ti->csinfo, 2);

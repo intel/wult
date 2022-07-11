@@ -64,8 +64,7 @@ struct wult_device_ops {
 	 * Read time after idle. The 'cyc' argument is the CPU cycles count
 	 * after the CPU woke up from idle.
 	 */
-	u64 (*get_time_after_idle)(struct wult_device_info *wdi, u64 ts,
-			           u64 *adj);
+	u64 (*get_time_after_idle)(struct wult_device_info *wdi, u64 *adj);
 	/* Arm a delayed event 'ldist' nanoseconds away. */
 	int (*arm)(struct wult_device_info *wdi, u64 *ldist);
 	/* Checks whether the delayed event has happened. */

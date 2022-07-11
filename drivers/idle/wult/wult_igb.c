@@ -119,11 +119,12 @@ static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj)
 	return ns;
 }
 
-static u64 get_time_after_idle(struct wult_device_info *wdi, u64 ts1, u64 *adj)
+static u64 get_time_after_idle(struct wult_device_info *wdi, u64 *adj)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
-	u64 ns, ts2, ts3;
+	u64 ns, ts1, ts2, ts3;
 
+	ts1 = ktime_get_raw_ns();
 	/*
 	 * This read will also flush posted PCI writes, if any, and "warm up"
 	 * the PCI link.

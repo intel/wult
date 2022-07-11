@@ -63,7 +63,7 @@ static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj)
 	return rdtsc_ordered();
 }
 
-static u64 get_time_after_idle(struct wult_device_info *wdi, u64 ts, u64 *adj)
+static u64 get_time_after_idle(struct wult_device_info *wdi, u64 *adj)
 {
 	*adj = 0;
 	return rdtsc_ordered();
