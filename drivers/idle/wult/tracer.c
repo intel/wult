@@ -40,10 +40,10 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "unsigned int", .name = "ReqCState" },
 	{ .type = "u64", .name = "BICyc" },
 	{ .type = "u64", .name = "BIMonotonic" },
-	{ .type = "u64", .name = "AICyc1" },
-	{ .type = "u64", .name = "AICyc2" },
-	{ .type = "u64", .name = "IntrCyc1" },
-	{ .type = "u64", .name = "IntrCyc2" },
+	{ .type = "u64", .name = "AITS1" },
+	{ .type = "u64", .name = "AITS2" },
+	{ .type = "u64", .name = "IntrTS1" },
+	{ .type = "u64", .name = "IntrTS2" },
 	{ .type = "u64", .name = "TotCyc" },
 	{ .type = "u64", .name = "CC0Cyc" },
 	{ .type = "u64", .name = "SMICnt" },
@@ -303,16 +303,16 @@ int wult_tracer_send_data(struct wult_info *wi)
 	err = synth_event_add_next_val(ti->bi_monotonic, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->ai_tsc1, &trace_state);
+	err = synth_event_add_next_val(ti->ai_ts1, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->ai_tsc2, &trace_state);
+	err = synth_event_add_next_val(ti->ai_ts2, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->intr_tsc1, &trace_state);
+	err = synth_event_add_next_val(ti->intr_ts1, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->intr_tsc2, &trace_state);
+	err = synth_event_add_next_val(ti->intr_ts2, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->csinfo.dtsc, &trace_state);

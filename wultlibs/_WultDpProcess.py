@@ -405,7 +405,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             #    handler.
             #    1.1. If 'self._intr_focus == False', 'WakeLatency' is measured in 'after_idle()'.
             #         This introduces additional overhead, and delays the interrupt handler. This
-            #         overhead can be estimated using 'AICyc1' and 'AICyc2' TSC counter snapshots.
+            #         overhead can be estimated using using 'AITS1'/'AITS2' time-stamps.
             #    1.2. If 'self._intr_focus == True', 'WakeLatency' is not measured at all.
             # 2. The interrupt handler is executed shortly after 'after_idle()' finishes and the
             #    "cpuidle" Linux kernel subsystem re-enables CPU interrupts.
@@ -427,8 +427,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             if self._intr_focus:
                 overhead = 0
             else:
-                overhead = dp["AICyc2"] - dp["AICyc1"]
-            overhead = self._cyc_to_ns(overhead)
+                overhead = dp["AITS2"] - dp["AITS1"]
 
             if overhead >= dp["IntrLatency"]:
                 # This sometimes happens, most probably because the overhead is measured by reading
@@ -457,8 +456,8 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             #    'after_idle()'.
             # 2. The interrupt latency is measured in the interrupt handler. This introduces
             #    additional overhead, and delays 'after_idle()'. This overhead can be estimated
-            #    using 'IntrCyc1' and 'IntrCyc2' TSC counter snapshots. But if 'self._intr_focus ==
-            #    True', 'WakeLatency' is not going to be measured anyway.
+            #    using 'IntrTS1' and 'IntrTS2' time-stamps. But if 'self._intr_focus == 'True',
+            #    'WakeLatency' is not going to be measured anyway.
             # 3. 'after_idle()' is executed after the interrupt handler and measures 'WakeLatency',
             #    which is greater than 'IntrLatency' in this case.
             #
@@ -475,8 +474,9 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
                            "The %s C-state has interrupts enabled and therefore, can't be "
                            "collected with the 'wult_tdt' driver. Use another driver for %s.",
                            csname, csname)
-                _LOG.debug("dropping datapoint with interrupts enabled - the 'tdt' driver does not "
-                           "handle them correctly. The datapoint is:\n%s", Human.dict2str(dp))
+                _LOG.debug("dropping datapoint with interrupts enabled - the 'wult_tdt' driver "
+                           "does not handle them correctly. The datapoint is:\n%s",
+                           Human.dict2str(dp))
                 return None
 
             if dp["IntrLatency"] >= dp["WakeLatency"]:
@@ -489,8 +489,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             if self._intr_focus:
                 overhead = 0
             else:
-                overhead = dp["IntrCyc2"] - dp["IntrCyc1"]
-            overhead = self._cyc_to_ns(overhead)
+                overhead = dp["IntrTS2"] - dp["IntrTS1"]
 
             if overhead >= dp["WakeLatency"]:
                 _LOG.debug("overhead is greater than wake latency ('WakeLatency'). The "
