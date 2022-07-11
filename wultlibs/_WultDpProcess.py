@@ -87,6 +87,107 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         """Uninitialize and close the object."""
         ClassHelpers.close(self, close_attrs=("_rcsobj",), unref_attrs=("_pman", "_rcsinfo"))
 
+class _TSCRate:
+    """
+    This is an internal class used only by the 'DatapointProcessor'. This class encapsulates
+    all the complexity related to TSC rate calculation.
+    """
+
+    def _calculate_tsc_rate(self, rawdp):
+        """
+        TSC rate is calculated using 'BICyc' and 'BIMonotonic' raw datapoint fields. These fields
+        are read one after another with interrupts disabled. The former is "TSC cycles Before Idle",
+        the latter stands for "Monotonic time Before Idle". The "Before Idle" part is not relevant
+        here at all, it just tells that these counters were read just before the system enters an
+        idle state.
+
+        We need a couple of datapoints far enough apart in order to calculate TSC rate. This method
+        is called for every datapoint, and once there are a couple of datapoints
+        'self._tsc_cal_time' seconds apart, this function calculates TSC rate and stores it in
+        'self._tsc_mhz'.
+        """
+
+        if rawdp["SMICnt"] != 0 or rawdp["NMICnt"] != 0:
+            # Do not use this datapoint, there was an SMI or NMI, and there is a chance that it
+            # happened between the 'BICyc' and 'BIMonotonic' reads, which may skew our TSC rate
+            # calculations.
+            _LOG.debug("NMI/SMI detected, won't use the datapoint for TSC rate calculations:\n%s",
+                       Human.dict2str(rawdp))
+            return
+
+        if not self._tsc1:
+            # We are called for the first time.
+            self._tsc1 = rawdp["BICyc"]
+            self._ts1 = rawdp["BIMonotonic"]
+            _LOG.info("Calculating TSC rate for %s", Human.duration(self._tsc_cal_time))
+            return
+
+        tsc2 = rawdp["BICyc"]
+        ts2 = rawdp["BIMonotonic"]
+
+        # Bear in mind that 'ts' is in nanoseconds.
+        if ts2 - self._ts1 < self._tsc_cal_time * 1000000000:
+            return
+
+        # Should not really happen, but let's be paranoid.
+        if ts2 == self._ts1:
+            _LOG.debug("TSC did not change, won't use the datapoint for TSC rate calculations:\n%s",
+                       Human.dict2str(rawdp))
+            return
+
+        self._tsc_mhz = ((tsc2 - self._tsc1) * 1000.0) / (ts2 - self._ts1)
+        _LOG.info("TSC rate is %.6f MHz", self._tsc_mhz)
+
+    def add_raw_datapoint(self, rawdp):
+        """
+        Add a raw datapoint 'rawdp' and use it for calculating TSC rate. Returns 'rawdp' if TSC
+        rate has already been calculated and no more raw datapoints are required. Returns 'None'
+        otherwise.
+        """
+
+        if self._tsc_mhz:
+            # TSC rate is already known, skip the calculations.
+            return rawdp
+
+        self._calculate_tsc_rate(rawdp)
+        self._rawdps.append(rawdp)
+        return None
+
+    def get_raw_datapoint(self):
+        """
+        This generator yields the raw datapoints saved by 'add_raw_datapoint()' when TSC
+        rate has been calculated.
+        """
+
+        if self._tsc_mhz:
+            for rawdp in self._rawdps:
+                yield rawdp
+            self._rawdps = []
+
+    def cyc_to_ns(self, cyc):
+        """Convert TSC cycles to nanoseconds."""
+
+        return int((cyc * 1000) / self._tsc_mhz)
+
+    def __init__(self, tsc_cal_time):
+        """
+        The class constructor. The arguments are as follows.
+          * tsc_cal_time - amount of seconds to use for calculating TSC rate.
+        """
+
+        self._tsc_cal_time = tsc_cal_time
+
+        # TSC rate in MHz (cycles / microsecond).
+        self._tsc_mhz = None
+
+        # The driver provides TSC cycles and monotonic time (nanoseconds) which are read one after
+        # the other with interrupts disabled. We use them for calculating the TSC rate. The 'tsc1'
+        # and 'ts1' are the TSC cycles / monotonic time values from the very first datapoint.
+        self._tsc1 = None
+        self._ts1 = None
+
+        self._rawdps = []
+
 class DatapointProcessor(ClassHelpers.SimpleCloseContext):
     """
     The datapoint processor class implements raw datapoint processing. Takes raw datapoints on
@@ -196,15 +297,11 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         else:
             dp["CC1Derived%"] = 0
 
-    def _cyc_to_ns(self, cyc):
-        """Convert TSC cycles to nanoseconds."""
-        return int((cyc * 1000) / self.tsc_mhz)
-
     def _calc_wult_igb_delays(self, dp):
         """Calculate warmup and latch delays in case of 'wult_igb' driver."""
 
-        dp["WarmupDelay"] = self._cyc_to_ns(dp["WarmupDelayCyc"])
-        dp["LatchDelay"] = self._cyc_to_ns(dp["LatchDelayCyc"])
+        dp["WarmupDelay"] = self._tscrate.cyc_to_ns(dp["WarmupDelayCyc"])
+        dp["LatchDelay"] = self._tscrate.cyc_to_ns(dp["LatchDelayCyc"])
 
     def _apply_time_adjustments(self, dp):
         """
@@ -299,7 +396,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         if self._drvname == "wult_tdt":
             # In case of 'wult_tdt' driver the time is in TSC cycles, convert to nanoseconds.
             for key in ("SilentTime", "WakeLatency", "IntrLatency"):
-                dp[key] = self._cyc_to_ns(dp[key])
+                dp[key] = self._tscrate.cyc_to_ns(dp[key])
 
         if not self._apply_time_adjustments(dp):
             return None
@@ -384,7 +481,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
                 csname = self._get_req_cstate_name(dp)
                 self._warn(f"tdt_{csname}_IntrOn",
                            "The %s C-state has interrupts enabled and therefore, can't be "
-                           "collected with the 'tdt' driver. Use another driver for %s.",
+                           "collected with the 'wult_tdt' driver. Use another driver for %s.",
                            csname, csname)
                 _LOG.debug("dropping datapoint with interrupts enabled - the 'tdt' driver does not "
                            "handle them correctly. The datapoint is:\n%s", Human.dict2str(dp))
@@ -459,55 +556,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         return self._finalize_dp(dp)
 
-    def _calculate_tsc_rate(self, rawdp):
-        """
-        TSC rate is calculated using 'BICyc' and 'BIMonotonic' raw datapoint fields. These fields
-        are read one after another with interrupts disabled. The former is "TSC cycles Before Idle",
-        the latter stands for "Monotonic time Before Idle". The "Before Idle" part is not relevant
-        here at all, it just tells that these counters were read just before the system enters an
-        idle state.
-
-        We need a couple of datapoints far enough apart in order to calculate TSC rate. This method
-        is called for every datapoint, and once there are a couple of datapoints
-        'self.tsc_cal_time' seconds apart, this function calculates TSC rate and stores it in
-        'self.tsc_mhz'.
-        """
-
-        if self.tsc_mhz:
-            # TSC rate is already known, skip the calculations.
-            return
-
-        if rawdp["SMICnt"] != 0 or rawdp["NMICnt"] != 0:
-            # Do not use this datapoint, there was an SMI or NMI, and there is a chance that it
-            # happened between the 'BICyc' and 'BIMonotonic' reads, which may skew our TSC rate
-            # calculations.
-            _LOG.debug("NMI/SMI detected, won't use the datapoint for TSC rate calculations:\n%s",
-                       Human.dict2str(rawdp))
-            return
-
-        if not self._tsc1:
-            # We are called for the first time.
-            self._tsc1 = rawdp["BICyc"]
-            self._ts1 = rawdp["BIMonotonic"]
-            _LOG.info("Calculating TSC rate for %s", Human.duration(self.tsc_cal_time))
-            return
-
-        tsc2 = rawdp["BICyc"]
-        ts2 = rawdp["BIMonotonic"]
-
-        # Bear in mind that 'ts' is in nanoseconds.
-        if ts2 - self._ts1 < self.tsc_cal_time * 1000000000:
-            return
-
-        # Should not really happen, but let's be paranoid.
-        if ts2 == self._ts1:
-            _LOG.debug("TSC did not change, won't use the datapoint for TSC rate calculations:\n%s",
-                       Human.dict2str(rawdp))
-            return
-
-        self.tsc_mhz = ((tsc2 - self._tsc1) * 1000.0) / (ts2 - self._ts1)
-        _LOG.info("TSC rate is %.6f MHz", self.tsc_mhz)
-
     def add_raw_datapoint(self, rawdp):
         """
         Process a raw datapoint 'rawdp'. The "raw" part in this context means that 'rawdp' contains
@@ -519,10 +567,8 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         calling this function.
         """
 
-        self._calculate_tsc_rate(rawdp)
-        if not self.tsc_mhz:
-            self._rawdps.append(rawdp)
-        else:
+        rawdp = self._tscrate.add_raw_datapoint(rawdp)
+        if rawdp:
             dp = self._process_datapoint(rawdp)
             if dp:
                 self._dps.append(dp)
@@ -532,15 +578,10 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         This generator yields the processed datapoints.
         """
 
-        if not self.tsc_mhz:
-            return
-
-        for rawdp in self._rawdps:
+        for rawdp in self._tscrate.get_raw_datapoint():
             dp = self._process_datapoint(rawdp)
             if dp:
                 yield dp
-
-        self._rawdps = []
 
         for dp in self._dps:
             yield dp
@@ -601,24 +642,16 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         self._drvname = drvname
         self._intr_focus = intr_focus
         self._early_intr = early_intr
-        self.tsc_cal_time = tsc_cal_time
 
         # A '_CStates' class object.
         self._csobj = None
+        # A '_TSCRate' class object.
+        self._tscrate = None
 
         # Processed datapoint field names.
         self._fields = None
-        # TSC rate in MHz (cycles / microsecond).
-        self.tsc_mhz = None
-
-        # The driver provides TSC cycles and monotonic time (nanoseconds) which are read one after
-        # the other with interrupts disabled. We use them for calculating the TSC rate. The 'tsc1'
-        # and 'ts1' are the TSC cycles / monotonic time values from the very first datapoint.
-        self._tsc1 = None
-        self._ts1 = None
 
         self._dps = []
-        self._rawdps = []
         self._has_cstates = None
         self._cs_fields = None
         self._us_fields_set = None
@@ -627,6 +660,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         self._warnings = {}
 
         self._csobj = _CStates(self._cpunum, self._pman, rcsobj=rcsobj)
+        self._tscrate = _TSCRate(tsc_cal_time)
 
     def close(self):
         """Close the datapoint processor."""
