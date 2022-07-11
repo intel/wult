@@ -43,8 +43,12 @@ struct wult_tracer_info {
 	u32 smi_intr, nmi_intr;
 	/* TSC values at the beginning and at the end of 'after_idle(). */
 	u64 ai_tsc1, ai_tsc2;
+	/* Monotonic time at the beginning and the end of 'after_idle(). */
+	u64 ai_ts1, ai_ts2;
 	/* TSC values at the beginning and at the end of IRQ handler. */
 	u64 intr_tsc1, intr_tsc2;
+	/* Monotonic time at the beginning and at the end of IRQ handler. */
+	u64 intr_ts1, intr_ts2;
 	/* 'true' if an event has been armed, but did not happen yet. */
 	bool armed;
 	/* 'true' if interrupts were disabled in 'after_idle()'. */

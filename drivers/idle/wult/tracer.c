@@ -100,6 +100,7 @@ static void after_idle(struct wult_info *wi)
 	}
 
 	ti->ai_tsc1 = rdtsc_ordered();
+	ti->ai_ts1 = ktime_get_raw_ns();
 	ti->tai = wdi->ops->get_time_after_idle(wdi, ti->ai_tsc1, &ti->tai_adj);
 
 	wult_cstates_snap_mperf(&ti->csinfo, 1);
@@ -107,6 +108,7 @@ static void after_idle(struct wult_info *wi)
 
 	ti->event_happened = wdi->ops->event_has_happened(wi->wdi);
 	ti->irqs_disabled = irqs_disabled();
+	ti->ai_ts2 = ktime_get_raw_ns();
 	ti->ai_tsc2 = rdtsc_ordered();
 }
 
@@ -117,6 +119,7 @@ void wult_tracer_interrupt(struct wult_info *wi)
 	struct wult_device_info *wdi = wi->wdi;
 
 	ti->intr_tsc1 = rdtsc_ordered();
+	ti->intr_ts1 = ktime_get_raw_ns();
 	ti->tintr = wdi->ops->get_time_after_idle(wdi, ti->intr_tsc1,
 						  &ti->tintr_adj);
 
@@ -124,7 +127,7 @@ void wult_tracer_interrupt(struct wult_info *wi)
 	wult_cstates_snap_tsc(&ti->csinfo, 2);
 
 	ti->armed = false;
-	ti->intr_tsc2 = rdtsc_ordered();
+	ti->intr_ts2 = ktime_get_raw_ns();
 
 	/*
 	 * NMI/SMI counters are used for checking if an SMI/NMI happen during
