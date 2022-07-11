@@ -74,7 +74,7 @@ static void before_idle(struct wult_info *wi)
 	wult_cstates_snap_mperf(&ti->csinfo, 0);
 
 	ti->bi_tsc = rdtsc_ordered();
-	ti->bi_monotonic = ktime_to_ns(ktime_get_raw());
+	ti->bi_monotonic = ktime_get_ns();
 
 	ti->tbi = wi->wdi->ops->get_time_before_idle(wi->wdi, &ti->tbi_adj);
 
