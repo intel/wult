@@ -99,7 +99,6 @@ static void after_idle(struct wult_info *wi)
 		return;
 	}
 
-	ti->ai_tsc1 = rdtsc_ordered();
 	ti->ai_ts1 = ktime_get_raw_ns();
 	ti->tai = wdi->ops->get_time_after_idle(wdi, ti->ai_ts1, &ti->tai_adj);
 
@@ -109,7 +108,6 @@ static void after_idle(struct wult_info *wi)
 	ti->event_happened = wdi->ops->event_has_happened(wi->wdi);
 	ti->irqs_disabled = irqs_disabled();
 	ti->ai_ts2 = ktime_get_raw_ns();
-	ti->ai_tsc2 = rdtsc_ordered();
 }
 
 /* Get measurements in the interrupt handler after idle. */
@@ -118,7 +116,6 @@ void wult_tracer_interrupt(struct wult_info *wi)
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_device_info *wdi = wi->wdi;
 
-	ti->intr_tsc1 = rdtsc_ordered();
 	ti->intr_ts1 = ktime_get_raw_ns();
 	ti->tintr = wdi->ops->get_time_after_idle(wdi, ti->intr_ts1,
 						  &ti->tintr_adj);
@@ -207,7 +204,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 		 * "sane" values in order to pass various checks below.
 		 */
 		ti->tai = ti->tintr;
-		ti->ai_tsc1 = ti->ai_tsc2 = ti->csinfo.tsc[1];
+		ti->ai_ts1 = ti->ai_ts2 = ti->csinfo.tsc[1];
 		ti->event_happened = true;
 	}
 
@@ -231,7 +228,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 			 */
 			return 0;
 
-		if (WARN_ON(ti->intr_tsc1 < ti->ai_tsc2))
+		if (WARN_ON(ti->intr_ts1 < ti->ai_ts2))
 			err_after_send = -EINVAL;
 	} else {
 		/*
@@ -239,7 +236,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 		 * enabled. This means that the interrupt handler runs before
 		 * 'after_idle()'.
 		 */
-		if (ti->ai_tsc1 < ti->intr_tsc1)
+		if (ti->ai_ts1 < ti->intr_ts1)
 			/*
 			 * But 'after_idle()' started first, which may happen
 			 * when the measured CPU wakes up for a different
