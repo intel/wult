@@ -19,7 +19,7 @@ from wultlibs.htmlreport.tabs import _Tabs
 
 _LOG = logging.getLogger()
 
-class SysInfoDTabBuilderBase:
+class DTabBuilderBase:
     """
     This class provides the capability of populating a "SysInfo" tab.
 
