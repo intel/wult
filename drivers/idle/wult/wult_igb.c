@@ -21,8 +21,8 @@
 #include "wult_igb.h"
 
 static struct wult_trace_data_info tdata[] = {
-	{ .name = "WarmupDelayCyc" },
-	{ .name = "LatchDelayCyc" },
+	{ .name = "WarmupDelayTS" },
+	{ .name = "LatchDelayTS" },
 	{ NULL },
 };
 
@@ -82,22 +82,22 @@ static bool irq_is_pending(struct network_adapter *nic)
 	return read32(nic, I210_ICS) & I210_Ixx_TIME_SYNC;
 }
 
-static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj_cyc)
+static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
-	u64 ns, cyc1, cyc2, cyc3;
+	u64 ns, ts1, ts2, ts3;
 
 	/* A "warm up" read. */
 	pci_flush_posted(nic);
 
 	/* Latch the time. */
-	cyc1 = rdtsc_ordered();
+	ts1 = ktime_get_raw_ns();
 	read32(nic, I210_SYSTIMR);
-	cyc2 = rdtsc_ordered();
+	ts2 = ktime_get_raw_ns();
 
 	ns = read32(nic, I210_SYSTIML);
 	ns += read32(nic, I210_SYSTIMH) * NSEC_PER_SEC;
-	cyc3 = rdtsc_ordered();
+	ts3 = ktime_get_raw_ns();
 
 	/*
 	 * Ideally, time before idle is the moment this function exits. But we
@@ -110,30 +110,28 @@ static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj_cyc)
 	 * half of the read delay. And then we need to adjust for the time read
 	 * operations.
 	 *
-	 * Note, 'ns' is time in nanoseconds as seen by the NIC. 'adj_cyc' is
-	 * count of cycles, measured by CPU. So not only these are different
-	 * units, but also different observers.
+	 * Note, 'ns' is time in nanoseconds as seen by the NIC. 'adj' the
+	 * monotonic time in nanoseconds. So these are time-stamps from
+	 * different domains / devices.
 	 */
-	*adj_cyc = (cyc2 - cyc1)/2 + (cyc3 - cyc2);
+	*adj = (ts2 - ts1)/2 + (ts3 - ts2);
 
 	return ns;
 }
 
-static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc1,
-		               u64 *adj_cyc)
+static u64 get_time_after_idle(struct wult_device_info *wdi, u64 ts1, u64 *adj)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
-	u64 ns, cyc2, cyc3;
+	u64 ns, ts2, ts3;
 
 	/*
 	 * This read will also flush posted PCI writes, if any, and "warm up"
 	 * the PCI link.
 	 */
 	nic->irq_pending = irq_is_pending(nic);
-
-	cyc2 = rdtsc_ordered();
+	ts2 = ktime_get_raw_ns();
 	read32(nic, I210_SYSTIMR);
-	cyc3 = rdtsc_ordered();
+	ts3 = ktime_get_raw_ns();
 
 	/* Read the latched NIC time. */
 	ns = read32(nic, I210_SYSTIML);
@@ -144,8 +142,8 @@ static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc1,
 		 * Save the warmup and latch delays in order to have them included in
 		 * the trace output.
 		 */
-		tdata[0].val = cyc2 - cyc1;
-		tdata[1].val = cyc3 - cyc2;
+		tdata[0].val = ts2 - ts1;
+		tdata[1].val = ts3 - ts2;
 	}
 
 	/*
@@ -153,7 +151,7 @@ static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc1,
 	 * entered. Therefore, the adjustment is the time spent reading the
 	 * pending IRQs status, plus half of the time latch operation.
 	 */
-	*adj_cyc = (cyc2 - cyc1) + (cyc3 - cyc2)/2;
+	*adj = (ts2 - ts1) + (ts3 - ts2)/2;
 	return ns;
 }
 

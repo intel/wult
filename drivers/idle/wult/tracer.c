@@ -31,11 +31,11 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "LDist" },
 	{ .type = "u64", .name = "LTime" },
 	{ .type = "u64", .name = "TBI" },
-	{ .type = "u64", .name = "TBIAdjCyc" },
+	{ .type = "u64", .name = "TBIAdj" },
 	{ .type = "u64", .name = "TAI" },
-	{ .type = "u64", .name = "TAIAdjCyc" },
+	{ .type = "u64", .name = "TAIAdj" },
 	{ .type = "u64", .name = "TIntr" },
-	{ .type = "u64", .name = "TIntrAdjCyc" },
+	{ .type = "u64", .name = "TIntrAdj" },
 	{ .type = "unsigned int", .name = "IntrOff" },
 	{ .type = "unsigned int", .name = "ReqCState" },
 	{ .type = "u64", .name = "BICyc" },
@@ -101,7 +101,7 @@ static void after_idle(struct wult_info *wi)
 
 	ti->ai_tsc1 = rdtsc_ordered();
 	ti->ai_ts1 = ktime_get_raw_ns();
-	ti->tai = wdi->ops->get_time_after_idle(wdi, ti->ai_tsc1, &ti->tai_adj);
+	ti->tai = wdi->ops->get_time_after_idle(wdi, ti->ai_ts1, &ti->tai_adj);
 
 	wult_cstates_snap_mperf(&ti->csinfo, 1);
 	wult_cstates_snap_tsc(&ti->csinfo, 1);
@@ -120,7 +120,7 @@ void wult_tracer_interrupt(struct wult_info *wi)
 
 	ti->intr_tsc1 = rdtsc_ordered();
 	ti->intr_ts1 = ktime_get_raw_ns();
-	ti->tintr = wdi->ops->get_time_after_idle(wdi, ti->intr_tsc1,
+	ti->tintr = wdi->ops->get_time_after_idle(wdi, ti->intr_ts1,
 						  &ti->tintr_adj);
 
 	wult_cstates_snap_mperf(&ti->csinfo, 2);

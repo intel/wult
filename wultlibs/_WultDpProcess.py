@@ -297,16 +297,11 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         else:
             dp["CC1Derived%"] = 0
 
-    def _calc_wult_igb_delays(self, dp):
-        """Calculate warmup and latch delays in case of 'wult_igb' driver."""
-
-        dp["WarmupDelay"] = self._tscrate.cyc_to_ns(dp["WarmupDelayCyc"])
-        dp["LatchDelay"] = self._tscrate.cyc_to_ns(dp["LatchDelayCyc"])
-
-    def _apply_time_adjustments(self, dp):
+    @staticmethod
+    def _apply_time_adjustments(dp):
         """
         Some drivers provide adjustments for 'TAI', 'TBI', and 'TInr', for example 'wult_igb'. The
-        adjustments are there for improving measurement accuracy, and they are in CPU cycles. This
+        adjustments are there for improving measurement accuracy, and they are in nanosecods. This
         function adjusts 'SilentTime', 'WakeLatency', and 'IntrLatency' accordingly.
 
         This function also validates the adjusted values. Returns the datapoint in case of success
@@ -314,8 +309,8 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         """
 
         # Apply the adjustments if the driver provides them.
-        if "TBIAdjCyc" in dp:
-            tbi_adj = self._cyc_to_ns(dp["TBIAdjCyc"])
+        if "TBIAdj" in dp:
+            tbi_adj = dp["TBIAdj"]
             dp["SilentTimeRaw"] = dp["SilentTime"]
             dp["SilentTime"] -= tbi_adj
 
@@ -326,9 +321,9 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
                            Human.dict2str(dp),  dp["TBI"], tbi_adj, dp["TBI"] + tbi_adj)
                 return None
 
-        if "TAIAdjCyc" in dp:
-            tai_adj = self._cyc_to_ns(dp["TAIAdjCyc"])
-            tintr_adj = self._cyc_to_ns(dp["TIntrAdjCyc"])
+        if "TAIAdj" in dp:
+            tai_adj = dp["TAIAdj"]
+            tintr_adj = dp["TIntrAdj"]
 
             dp["WakeLatencyRaw"] = dp["WakeLatency"]
             dp["IntrLatencyRaw"] = dp["IntrLatency"]
@@ -374,9 +369,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         Calculate, validate, and initialize fields related to time, for example 'WakeLatency' and
         'IntrLatency'.
         """
-
-        if self._drvname == "wult_igb":
-            self._calc_wult_igb_delays(dp)
 
         dp["SilentTime"] = dp["LTime"] - dp["TBI"]
         if self._intr_focus:

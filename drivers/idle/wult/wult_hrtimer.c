@@ -41,19 +41,18 @@ static enum hrtimer_restart timer_interrupt(struct hrtimer *hrtimer)
 	return HRTIMER_NORESTART;
 }
 
-static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj_cyc)
+static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj)
 {
-	*adj_cyc = 0;
+	*adj = 0;
 	return ktime_get_raw_ns();
 }
 
-static u64 get_time_after_idle(struct wult_device_info *wdi, u64 cyc,
-		               u64 *adj_cyc)
+static u64 get_time_after_idle(struct wult_device_info *wdi, u64 ts, u64 *adj)
 {
 	u64 time;
 
 	time = ktime_get_raw_ns();
-	*adj_cyc = 0;
+	*adj = 0;
 
 	return time;
 }
