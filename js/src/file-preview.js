@@ -10,6 +10,7 @@
 
 import { LitElement, html, css } from 'lit'
 import { until } from 'lit/directives/until.js'
+import '@shoelace-style/shoelace/dist/components/button/button'
 import '@shoelace-style/shoelace/dist/components/details/details.js'
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group'
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel'
@@ -70,6 +71,9 @@ class FilePreview extends LitElement {
                 <sl-tab class="tab" slot="nav" panel=${panelID}>Diff</sl-tab>
                 <sl-tab-panel class="tab-panel" name=${panelID}>
                     <div class="diff-div" id=${panelID}>
+                        <sl-button style="padding: var(--sl-spacing-x-small)" variant="primary" href=${this.diff} target="_blank">
+                            Open Diff in New Tab
+                        </sl-button>
                         <!-- Diffs are created in the form of an HTML table so
                         viewed using an iframe  -->
                         <iframe seamless class="diff-table" src="${this.diff}"></iframe>
