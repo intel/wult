@@ -16,7 +16,7 @@ import logging
 import contextlib
 from pathlib import Path
 from pepclibs.helperlibs import LocalProcessManager, Trivial, ClassHelpers
-from pepclibs.helperlibs.Exceptions import Error, ErrorExists
+from pepclibs.helperlibs.Exceptions import Error, ErrorExists, ErrorNotFound
 from wultlibs.helperlibs import KernelVersion, ProcHelpers, RemoteHelpers
 from wultlibs.statscollectlibs import SysInfo
 
@@ -308,7 +308,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         if self._oobcoll:
             return self._oobcoll.stinfo[stname]
 
-        raise Error(f"statistics '{stname}' is not available")
+        raise ErrorNotFound(f"statistics '{stname}' is not available")
 
     def get_toolpath(self, stname):
         """

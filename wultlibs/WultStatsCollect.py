@@ -12,7 +12,7 @@ This module is just a "glue" layer between "WultRunner" and "StatsCollect".
 
 import logging
 from pepclibs.helperlibs import ClassHelpers
-from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs.statscollectlibs import StatsCollect, StatsHelpers
 
 _LOG = logging.getLogger()
@@ -56,7 +56,12 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
                 devnode = self._pman.hostname
             else:
                 devnode = "default"
-            self._stcoll.set_prop("acpower", "devnode", devnode)
+
+            try:
+                self._stcoll.set_prop("acpower", "devnode", devnode)
+            except ErrorNotFound:
+                if not stconf["discover"]:
+                    raise
 
         StatsHelpers.apply_stconf(self._stcoll, stconf)
         _LOG.info("Configuring the following statistics: %s", ", ".join(stconf["include"]))
