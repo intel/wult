@@ -30,8 +30,14 @@ class FilePreview extends LitElement {
 
         .diff-table {
             width: 100%;
-            max-height: 50vw;
+            height: 100%;
             border: none;
+        }
+
+        .diff-div {
+            height: 33vw;
+            display: flex;
+            flex-direction: column;
         }
 
         sl-details::part(base) {
@@ -71,9 +77,11 @@ class FilePreview extends LitElement {
                 <sl-tab class="tab" slot="nav" panel=${panelID}>Diff</sl-tab>
                 <sl-tab-panel class="tab-panel" name=${panelID}>
                     <div class="diff-div" id=${panelID}>
-                        <sl-button style="padding: var(--sl-spacing-x-small)" variant="primary" href=${this.diff} target="_blank">
-                            Open Diff in New Tab
-                        </sl-button>
+                        <div>
+                            <sl-button style="padding: var(--sl-spacing-x-small)" variant="primary" href=${this.diff} target="_blank">
+                                Open Diff in New Tab
+                            </sl-button>
+                        </div>
                         <!-- Diffs are created in the form of an HTML table so
                         viewed using an iframe  -->
                         <iframe seamless class="diff-table" src="${this.diff}"></iframe>
