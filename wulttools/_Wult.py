@@ -26,7 +26,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs import CStates, CPUInfo
 from pepclibs.msr import PowerCtl
 from wultlibs.helperlibs import Human
-from wultlibs.htmlreport import WultReport
+from wultlibs.htmlreport import WultReport, WultReportParams
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs import Deploy, ToolsCommon, Devices, WultRunner, WultStatsCollect
 
@@ -51,7 +51,7 @@ def get_axes(optname, report_size=None):
     if not report_size:
         report_size = "small"
 
-    optnames = getattr(WultReport, f"{report_size.upper()}_{optname.upper()}")
+    optnames = getattr(WultReportParams, f"{report_size.upper()}_{optname.upper()}")
     # The result is used for argparse, which does not accept '%' symbols.
     if optnames:
         return optnames.replace("%", "%%")
