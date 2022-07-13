@@ -36,7 +36,6 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "TAIAdj" },
 	{ .type = "u64", .name = "TIntr" },
 	{ .type = "u64", .name = "TIntrAdj" },
-	{ .type = "unsigned int", .name = "IntrOff" },
 	{ .type = "unsigned int", .name = "ReqCState" },
 	{ .type = "u64", .name = "BICyc" },
 	{ .type = "u64", .name = "BIMonotonic" },
@@ -88,25 +87,25 @@ static void after_idle(struct wult_info *wi)
 	struct wult_tracer_info *ti = &wi->ti;
 	struct wult_device_info *wdi = wi->wdi;
 
-	if (wi->intr_focus) {
+	ti->ai_ts1 = ktime_get_raw_ns();
+
+	if (wi->intr_focus)
 		/*
 		 * Skip taking measurements in order to increase interrupt
 		 * measurements' accuracy.
 		 */
-		ti->irqs_disabled = irqs_disabled();
-		wult_cstates_snap_mperf(&ti->csinfo, 1);
-		wult_cstates_snap_tsc(&ti->csinfo, 1);
 		return;
-	}
 
-	ti->ai_ts1 = ktime_get_raw_ns();
 	ti->tai = wdi->ops->get_time_after_idle(wdi, &ti->tai_adj);
 
-	wult_cstates_snap_mperf(&ti->csinfo, 1);
-	wult_cstates_snap_tsc(&ti->csinfo, 1);
+	if (ti->armed) {
+		/* The interrupt handler did not run yet. */
+		wult_cstates_snap_mperf(&ti->csinfo, 1);
+		wult_cstates_snap_tsc(&ti->csinfo, 1);
+		ti->event_happened = wdi->ops->event_has_happened(wdi);
+		ti->armed = false;
+	}
 
-	ti->event_happened = wdi->ops->event_has_happened(wdi);
-	ti->irqs_disabled = irqs_disabled();
 	ti->ai_ts2 = ktime_get_raw_ns();
 }
 
@@ -119,10 +118,14 @@ void wult_tracer_interrupt(struct wult_info *wi)
 	ti->intr_ts1 = ktime_get_raw_ns();
 	ti->tintr = wdi->ops->get_time_after_idle(wdi, &ti->tintr_adj);
 
-	wult_cstates_snap_mperf(&ti->csinfo, 2);
-	wult_cstates_snap_tsc(&ti->csinfo, 2);
+	if (ti->armed) {
+		/* 'after_idle()' did not run yet. */
+		wult_cstates_snap_mperf(&ti->csinfo, 1);
+		wult_cstates_snap_tsc(&ti->csinfo, 1);
+		ti->event_happened = wdi->ops->event_has_happened(wdi);
+		ti->armed = false;
+	}
 
-	ti->armed = false;
 	ti->intr_ts2 = ktime_get_raw_ns();
 
 	/*
@@ -195,6 +198,13 @@ int wult_tracer_send_data(struct wult_info *wi)
 		 */
 		return -EINVAL;
 
+	if (!ti->event_happened)
+		/*
+		 * The wake up was not because of the event we armed. It was
+		 * probably a different, but close event.
+		 */
+		return 0;
+
 	ltime = wdi->ops->get_launch_time(wdi);
 
 	if (wi->intr_focus) {
@@ -203,8 +213,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 		 * "sane" values in order to pass various checks below.
 		 */
 		ti->tai = ti->tintr;
-		ti->ai_ts1 = ti->ai_ts2 = ti->csinfo.tsc[1];
-		ti->event_happened = true;
+		ti->ai_ts2 = ti->ai_ts1;
 	}
 
 	/* Check if the expected IRQ time is within the sleep time. */
@@ -214,49 +223,11 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (WARN_ON(ltime > ti->tintr) || WARN_ON(ltime > ti->tai))
 		err_after_send = -EINVAL;
 
-	if (ti->irqs_disabled) {
-		/*
-		 * This is an idle state that is entered and exited with
-		 * interrupts disabled. In this case 'after_idle()' always runs
-		 * before the interrupt handler.
-		 */
-		if (!ti->event_happened)
-			/*
-			 * The wake up was not because of the event we armed.
-			 * It was probably a different, but close event.
-			 */
-			return 0;
-
-		if (WARN_ON(ti->intr_ts1 < ti->ai_ts2))
-			err_after_send = -EINVAL;
-	} else {
-		/*
-		 * This is an idle state like 'POLL' which has interrupts
-		 * enabled. This means that the interrupt handler runs before
-		 * 'after_idle()'.
-		 */
-		if (ti->ai_ts1 < ti->intr_ts1)
-			/*
-			 * But 'after_idle()' started first, which may happen
-			 * when the measured CPU wakes up for a different
-			 * reason, but very close to the event that we armed.
-			 * Ignore this datapoint.
-			 */
-			return 0;
-	}
-
-	/*
-	 * Snapshot #1 was taken in 'after_idle()', and we should use it for
-	 * C-states that are requested with interrupts disabled. Othewise, we
-	 * should use snapshot #2, that was takin in the interrupt handler.
-	 */
-	snum = ti->irqs_disabled ? 1 : 2;
-
-	if (WARN_ON(ti->csinfo.tsc[0] > ti->csinfo.tsc[snum]))
+	if (WARN_ON(ti->csinfo.tsc[0] > ti->csinfo.tsc[1]))
 		err_after_send = -EINVAL;
 
-	wult_cstates_snap_cst(&ti->csinfo, snum);
-	wult_cstates_calc(&ti->csinfo, 0, snum);
+	wult_cstates_snap_cst(&ti->csinfo, 1);
+	wult_cstates_calc(&ti->csinfo, 0, 1);
 
 	err = synth_event_trace_start(ti->event_file, &trace_state);
 	if (err)
@@ -285,9 +256,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->tintr_adj, &trace_state);
-	if (err)
-		goto out_end;
-	err = synth_event_add_next_val(ti->irqs_disabled, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->req_cstate, &trace_state);

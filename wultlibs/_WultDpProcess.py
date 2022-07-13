@@ -44,6 +44,117 @@ class _CStates(ClassHelpers.SimpleCloseContext):
 
         self.idx2name_str = ", ".join(f"{idx} ({name})" for idx, name in self.idx2name.items())
 
+    def add_raw_datapoint(self, rawdp):
+        """
+        Add a raw datapoint 'rawdp' and use it for detecting interrupt order. Returns 'rawdp' if
+        interrupt order for the requested C-state in 'rawdp' is already known. Returns 'None'
+        otherwise.
+
+        About requestable C-states interrupt order. Most C-states are requested with local CPU
+        interrupts disabled. This means that when the event armed by 'wult' happens, the CPU exits
+        the C-state, and continues executing instructions after 'mwait'. The CPU will run some
+        housekeeping code in the "cpuidle" Linux subsystem, and then interrupts are re-enabled, and
+        CPU jumps to the interrupt handler. In wult terms, we say that 'after_idle()' happens before
+        the interrupt handler.
+
+        Some C-states, however, are requested with interrupts enabled. For example, 'POLL' and C1 on
+        some platforms. In this case, when CPU exits the C-state, it jumps to the interrupt handler
+        right away, runs it first, and then returns to after 'mwait' to continue executing the
+        'cpuidle' code. In wult terms, we say that interrupt handler runs before 'after_idle()'.
+
+        For every possible requestable C-state, wult must know whether it is requested with
+        interrupts enabled or disabled. This information is crucial for correct latency
+        calculations. However, there is no easy way to figure this out. We just have to analyze
+        datapoints and check what happened first: the interrupt handler or 'after_idle()'.
+
+        The complication here is that when interrupts are enabled, the interrupt handler is not
+        guaranteed to happened earlier than 'after_idle()'. In some cases, when the CPU was woken up
+        by a non-interrupt event (e.g., because the Linux scheduler woke us up by writing to the
+        memory address monitored by the 'mwait' instruction), 'after_idle()' happens first. And if
+        this non-interrupt event happened just before wult interrupt, the interrupt handler may run
+        right after 'after_idle()'. So it may look the CPU woke up because of a wult event, and
+        'after_idle()' ran before the interrupt handler.
+
+        To overcome this complication, we collect many datapoints for requestable C-states, and
+        look at the "interrupt handler vs 'after_idle()" order of the majority of datapoints. The
+        datapoints are held back and stored in this class until we have enough of them. Then they
+        are yielded by 'get_raw_datapoint()'.
+        """
+
+        csname = self.idx2name[rawdp["ReqCState"]]
+
+        if csname == "POLL":
+            # This is an optimization. The 'POLL' state is always requested with interrupts enabled.
+            rawdp["IntrOff"] = False
+            return rawdp
+
+        if csname != "C1":
+            # This is another optimization. As of today, all C-states deeper than C1 are requested
+            # with interrupts disabled. Only C1 is ambiguous.
+            rawdp["IntrOff"] = True
+            return rawdp
+
+        if csname in self._introff:
+            rawdp["IntrOff"] = self._introff[csname]
+            return rawdp
+
+        if csname not in self._intr_order:
+            self._intr_order[csname] = {"intr_on" : [], "intr_off" : [] }
+            _LOG.debug("figuring out interrupt order for the %s requestable C-state", csname)
+
+        _intr_order = self._intr_order[csname]
+
+        if rawdp["TIntr"] < rawdp["TAI"]:
+            _intr_order["intr_on"].append(rawdp)
+        else:
+            _intr_order["intr_off"].append(rawdp)
+
+        # Check if we have enough "statistics" to judge whether interrupts were enabled or disabled.
+        # Find the "interrupts on" vs "interrupts off" ratio (the "+ 1" part is to avoid division by
+        # zero).
+        ratio = float((len(_intr_order["intr_on"]) + 1)) / (len(_intr_order["intr_off"]) + 1)
+
+        # Ratio 100:1 is good enough to make the final conclusion about the order.
+        if ratio > 100:
+            intr_off = False
+        elif 1 / ratio > 100:
+            intr_off = True
+        else:
+            intr_off = None
+
+        if intr_off is not None:
+            self._introff[csname] = intr_off
+            _LOG.debug("figured out interrupt order for %s: requested with interrupts %s",
+                       csname, "disabled" if intr_off else "enabled")
+
+        return None
+
+    def get_raw_datapoint(self):
+        """
+        This generator yields the raw datapoints saved by 'add_raw_datapoint()' when C-states
+        interrupt order is figured out.
+        """
+
+        if not self._intr_order:
+            return
+        if not self._introff:
+            return
+
+        delete_csnames = []
+        for csname, intr_order in self._intr_order.items():
+            if csname in self._introff:
+                if self._introff[csname]:
+                    key = "intr_off"
+                else:
+                    key = "intr_on"
+                for rawdp in intr_order[key]:
+                    rawdp["IntrOff"] = self._introff[csname]
+                    yield rawdp
+                delete_csnames.append(csname)
+
+        for csname in delete_csnames:
+            del self._intr_order[csname]
+
     def __init__(self, cpunum, pman, rcsobj=None):
         """
         The class constructor. The arguments are as follows.
@@ -65,16 +176,14 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         # A printable string containing all C-state indices and names (one line).
         self.idx2name_str = ""
 
-        # Interrupt status of requestable C-states. Dictionary keys are C-state indices, the values
+        # A dictionary indexed by C-state names, used for storing temporary data while figuring out
+        # C-states interrupt order.
+        self._intr_order = {}
+        # Interrupt status of requestable C-states. Dictionary keys are C-state names, the values
         # are:
-        #   * 'True' if the C-state is requested with interrupts disabled. In this case when the CPU
-        #     wakes up, it first executes the "after_idle()" kernel function. The kernel runs some
-        #     housekeeping tasks, and re-enables the interrupts. The CPU jumps to the interrupt
-        #     handler of the wult event only then.
-        #   * 'False' if the C-state is requested with interrupts enabled. In this case when the CPU
-        #     wakes up, it first runs the interrupt handler, and only then it runs the
-        #     "after_idle()" kernel function.
-        self.introff = {}
+        #   * 'True' if the C-state is requested with interrupts disabled.
+        #   * 'False' if the C-state is requested with interrupts enabled.
+        self._introff = {}
 
         if not self._rcsobj:
             self._rcsobj = CStates.ReqCStates(pman=self._pman)
@@ -356,25 +465,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         return dp
 
-    def _check_cstate_intrs(self, dp):
-        """
-        Check that interrupt status, enabled or disabled, remains the same for the each C-state
-        during the measurement. E.g. if the first datapoint has interrupts enabled and the requested
-        C-state is C1, the following datapoints with C1 should have the interrupts enabled too.
-
-        Raises an exception if interrupt status is different than in previous datapoints.
-        """
-
-        cstate = dp["ReqCState"]
-        if cstate not in self._csobj.introff:
-            self._csobj.introff[cstate] = dp["IntrOff"]
-
-        if self._csobj.introff[cstate] != dp["IntrOff"]:
-            status = "disabled" if dp["IntrOff"] else "enabled"
-            raise Error(f"interrupts are {status} for the datapoint, which is different from other "
-                        f"observed datapoints with requested C-state '{cstate}'. The datapoint is:"
-                        f"\n{Human.dict2str(dp)}") from None
-
     def _process_time(self, dp):
         """
         Calculate, validate, and initialize fields related to time, for example 'WakeLatency' and
@@ -403,8 +493,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         if not self._apply_time_adjustments(dp):
             return None
-
-        self._check_cstate_intrs(dp)
 
         # Try to compensate for the overhead introduced by wult drivers.
         #
@@ -571,9 +659,11 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         rawdp = self._tscrate.add_raw_datapoint(rawdp)
         if rawdp:
-            dp = self._process_datapoint(rawdp)
-            if dp:
-                self._dps.append(dp)
+            rawdp = self._csobj.add_raw_datapoint(rawdp)
+            if rawdp:
+                dp = self._process_datapoint(rawdp)
+                if dp:
+                    self._dps.append(dp)
 
     def get_processed_datapoints(self):
         """
@@ -581,6 +671,11 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         """
 
         for rawdp in self._tscrate.get_raw_datapoint():
+            dp = self._process_datapoint(rawdp)
+            if dp:
+                yield dp
+
+        for rawdp in self._csobj.get_raw_datapoint():
             dp = self._process_datapoint(rawdp)
             if dp:
                 yield dp
