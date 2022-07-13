@@ -40,9 +40,18 @@ class _CStates(ClassHelpers.SimpleCloseContext):
             raise Error(f"no idle states are enabled on CPU {self._cpunum}{self._pman.hostmsg}")
 
         for csname, cstate in self._rcsinfo.items():
-            self.idx2name[cstate["index"]] = csname
+            self._idx2name[cstate["index"]] = csname
 
-        self.idx2name_str = ", ".join(f"{idx} ({name})" for idx, name in self.idx2name.items())
+    def _get_req_cstate_name(self, rawdp):
+        """Returns requestable C-state name for raw datapoint 'rawdp'."""
+
+        try:
+            return self._idx2name[rawdp["ReqCState"]]
+        except KeyError:
+            # Supposedly an bad C-state index.
+            idx2name_str = ", ".join(f"{idx} ({name})" for idx, name in self._idx2name.items())
+            raise Error(f"bad C-state index '{rawdp['ReqCState']}' in the following datapoint:\n"
+                        f"{Human.dict2str(rawdp)}\nAllowed indexes are:\n{idx2name_str}") from None
 
     def add_raw_datapoint(self, rawdp):
         """
@@ -81,7 +90,7 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         are yielded by 'get_raw_datapoint()'.
         """
 
-        csname = self.idx2name[rawdp["ReqCState"]]
+        csname = rawdp["ReqCState"] = self._get_req_cstate_name(rawdp)
 
         if csname == "POLL":
             # This is an optimization. The 'POLL' state is always requested with interrupts enabled.
@@ -172,9 +181,7 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         # C-states information provided by ''Cstates.ReqCStates()'
         self._rcsinfo = None
         # C-state index -> C-state name dictionary..
-        self.idx2name = {}
-        # A printable string containing all C-state indices and names (one line).
-        self.idx2name_str = ""
+        self._idx2name = {}
 
         # A dictionary indexed by C-state names, used for storing temporary data while figuring out
         # C-states interrupt order.
@@ -344,26 +351,13 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
     @staticmethod
     def _is_poll_idle(dp):
         """Returns 'True' if the 'dp' datapoint contains the POLL idle state data."""
-        return dp["ReqCState"] == 0
-
-    def _get_req_cstate_name(self, dp):
-        """Returns requestable C-state name for datapoint 'dp'."""
-
-        try:
-            return self._csobj.idx2name[dp["ReqCState"]]
-        except KeyError:
-            # Supposedly an bad C-state index.
-            raise Error(f"bad C-state index '{dp['ReqCState']}' in the following datapoint:\n"
-                        f"{Human.dict2str(dp)}\n"
-                        f"Allowed indexes are:\n{self._csobj.idx2name_str}") from None
+        return dp["ReqCState"] == "POLL"
 
     def _process_cstates(self, dp):
         """
         Validate various datapoint 'dp' fields related to C-states. Populate the processed
         datapoint 'dp' with fields related to C-states.
         """
-
-        dp["ReqCState"] = self._get_req_cstate_name(dp)
 
         if dp["TotCyc"] == 0:
             raise Error(f"Zero total cycles ('TotCyc'), this should never happen, unless there is "
@@ -568,7 +562,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             # the moment it executes wult's interrupt handler.
 
             if self._drvname == "wult_tdt":
-                csname = self._get_req_cstate_name(dp)
+                csname = dp["ReqCState"]
                 self._warn(f"tdt_{csname}_IntrOn",
                            "The %s C-state has interrupts enabled and therefore, can't be "
                            "collected with the 'wult_tdt' driver. Use another driver for %s.",
