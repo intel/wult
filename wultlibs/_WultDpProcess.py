@@ -53,6 +53,26 @@ class _CStates(ClassHelpers.SimpleCloseContext):
             raise Error(f"bad C-state index '{rawdp['ReqCState']}' in the following datapoint:\n"
                         f"{Human.dict2str(rawdp)}\nAllowed indexes are:\n{idx2name_str}") from None
 
+    @staticmethod
+    def _check_rawdp_timing(rawdp):
+        """
+        Checks if raw datapoint timing is consistent with C-state IRQ order. Returns 'rawdp' if the
+        timing is all right, retruns 'None' otherwise.
+        """
+
+        if rawdp["IntrOff"]:
+            if rawdp["AITS2"] > rawdp["IntrTS1"]:
+                _LOG.debug("'AITS2' > 'IntrTS1', even though interrupts were disabled.\n"
+                           "Dropping the following datapoint\n%s", Human.dict2str(rawdp))
+                return None
+        else:
+            if rawdp["IntrTS2"] > rawdp["AITS1"]:
+                _LOG.debug("'IntrTS2' > 'AITS1', even though interrupts were enabled.\n"
+                           "Dropping the following datapoint\n%s", Human.dict2str(rawdp))
+                return None
+
+        return rawdp
+
     def add_raw_datapoint(self, rawdp):
         """
         Add a raw datapoint 'rawdp' and use it for detecting interrupt order. Returns 'rawdp' if
@@ -105,7 +125,7 @@ class _CStates(ClassHelpers.SimpleCloseContext):
 
         if csname in self._introff:
             rawdp["IntrOff"] = self._introff[csname]
-            return rawdp
+            return self._check_rawdp_timing(rawdp)
 
         if csname not in self._intr_order:
             self._intr_order[csname] = {"intr_on" : [], "intr_off" : [] }
@@ -503,13 +523,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             # 2. The interrupt handler is executed shortly after 'after_idle()' finishes and the
             #    "cpuidle" Linux kernel subsystem re-enables CPU interrupts.
 
-            if dp["WakeLatency"] >= dp["IntrLatency"]:
-                self._warn("IntrOff_WakeLatency_GT_IntrLatency",
-                           "'WakeLatency' is greater than 'IntrLatency', even though interrupts "
-                           "were disabled. The datapoint is:\n%s\nDropping this datapoint\n",
-                           Human.dict2str(dp))
-                return None
-
             if self._early_intr:
                 self._warn("IntrOff_early_intr",
                            "hit a datapoint with interrupts disabled even though the early "
@@ -523,10 +536,9 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
                 overhead = dp["AITS2"] - dp["AITS1"]
 
             if overhead >= dp["IntrLatency"]:
-                # This sometimes happens, most probably because the overhead is measured by reading
-                # TSC at the beginning and the end of the 'after_idle()' function, which runs as
-                # soon as the CPU wakes up. The 'IntrLatency' is measured using a delayed event
-                # device (e.g., a NIC). So we are comparing two time intervals from different time
+                # This sometimes happens, most probably because the overhead is measured using
+                # monotonic time, while 'IntrLatency' is measured using the delayed event device
+                # (e.g., a NIC). So we are possibly mixing time intervals from two different time
                 # sources.
                 _LOG.debug("The overhead is greater than interrupt latency ('IntrLatency'). The "
                            "datapoint is:\n%s\nThe overhead is: %f\nDropping this datapoint\n",
@@ -569,13 +581,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
                            csname, csname)
                 _LOG.debug("dropping datapoint with interrupts enabled - the 'wult_tdt' driver "
                            "does not handle them correctly. The datapoint is:\n%s",
-                           Human.dict2str(dp))
-                return None
-
-            if dp["IntrLatency"] >= dp["WakeLatency"]:
-                self._warn("IntrON_IntrLatency_GT_WakeLatency",
-                           "'IntrLatency' is greater than 'WakeLatency', even though interrupts "
-                           "were enabled. The datapoint is:\n%s\nDropping this datapoint\n",
                            Human.dict2str(dp))
                 return None
 
@@ -665,9 +670,11 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         """
 
         for rawdp in self._tscrate.get_raw_datapoint():
-            dp = self._process_datapoint(rawdp)
-            if dp:
-                yield dp
+            rawdp = self._csobj.add_raw_datapoint(rawdp)
+            if rawdp:
+                dp = self._process_datapoint(rawdp)
+                if dp:
+                    yield dp
 
         for rawdp in self._csobj.get_raw_datapoint():
             dp = self._process_datapoint(rawdp)
