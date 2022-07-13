@@ -7,7 +7,7 @@
 # Authors: Adam Hawley <adam.james.hawley@intel.com>
 
 """
-This module provides the capability of populating a "Pepc" info tab to visualise information
+This module provides the capability of populating a "pepc" info tab to visualise information
 collected with the 'pepc' tool.
 """
 
@@ -20,7 +20,7 @@ _FILES = {
 
 class PepcTabBuilder(_DTabBuilderBase.DTabBuilderBase):
     """
-    This class provides the capability of populating a "Pepc" info tab to visualise information
+    This class provides the capability of populating a "pepc" info tab to visualise information
     collected with the 'pepc' tool.
 
     Public method overview:
@@ -31,4 +31,4 @@ class PepcTabBuilder(_DTabBuilderBase.DTabBuilderBase):
     def __init__(self, outdir):
         """Class constructor. Arguments are the same as in 'InfoTabBuilderBase.__init__()'."""
 
-        super().__init__("Pepc", outdir, _FILES)
+        super().__init__("pepc", outdir, _FILES)
