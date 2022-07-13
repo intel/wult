@@ -7,8 +7,8 @@
 # Authors: Adam Hawley <adam.james.hawley@intel.com>
 
 """
-This module provides the capability of populating a "DMI Decode" SysInfo tab to visualise
-information collected with 'dmidecode'.
+This module provides the capability of populating a "dmidecode" SysInfo tab to visualise information
+collected with 'dmidecode'.
 """
 
 from wultlibs.htmlreport.tabs.stats.sysinfo import _DTabBuilderBase
@@ -20,8 +20,8 @@ _FILES = {
 
 class DMIDecodeTabBuilder(_DTabBuilderBase.DTabBuilderBase):
     """
-    This class provides the capability of populating a "DMI Decode" info tab to visualise
-    information collected with 'dmidecode'.
+    This class provides the capability of populating a "dmidecode" info tab to visualise information
+    collected with 'dmidecode'.
 
     Public method overview:
      * get_tab() - returns a '_Tabs.DTabDC' instance which contains information collected using the
@@ -31,4 +31,4 @@ class DMIDecodeTabBuilder(_DTabBuilderBase.DTabBuilderBase):
     def __init__(self, outdir):
         """Class constructor. Arguments are the same as in 'InfoTabBuilderBase.__init__()'."""
 
-        super().__init__("DMI Decode", outdir, _FILES)
+        super().__init__("dmidecode", outdir, _FILES)
