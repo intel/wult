@@ -5,8 +5,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 ### Added
-- Your description
 - wult report: add "SysInfo" tab with various system info about SUTs.
+### Changed
+- Optimization: spend time calculating TSC rate only in case of the TDT method.
+  Skip this step for the HRT/NIC methods.
 
 ## [1.10.9] - 2022-07-06
 ### Changed
