@@ -1441,7 +1441,7 @@
     `}};io.styles=ro,pt([He(".details")],io.prototype,"details",2),pt([He(".details__header")],io.prototype,"header",2),pt([He(".details__body")],io.prototype,"body",2),pt([Pe({type:Boolean,reflect:!0})],io.prototype,"open",2),pt([Pe()],io.prototype,"summary",2),pt([Pe({type:Boolean,reflect:!0})],io.prototype,"disabled",2),pt([Se("open",{waitUntilFirstUpdate:!0})],io.prototype,"handleOpenChange",1),io=pt([Te("sl-details")],io),yt("details.show",{keyframes:[{height:"0",opacity:"0"},{height:"auto",opacity:"1"}],options:{duration:250,easing:"linear"}}),yt("details.hide",{keyframes:[{height:"auto",opacity:"1"},{height:"0",opacity:"0"}],options:{duration:250,easing:"linear"}});class no extends et{static styles=i`
         .text-field-container {
             overflow: auto;
-            max-height: 33vw;
+            max-height: 33vh;
         }
 
         .diff-table {
@@ -1451,7 +1451,7 @@
         }
 
         .diff-div {
-            height: 33vw;
+            height: 33vh;
             display: flex;
             flex-direction: column;
         }

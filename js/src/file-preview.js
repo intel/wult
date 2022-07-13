@@ -25,7 +25,7 @@ class FilePreview extends LitElement {
     static styles = css`
         .text-field-container {
             overflow: auto;
-            max-height: 33vw;
+            max-height: 33vh;
         }
 
         .diff-table {
@@ -35,7 +35,7 @@ class FilePreview extends LitElement {
         }
 
         .diff-div {
-            height: 33vw;
+            height: 33vh;
             display: flex;
             flex-direction: column;
         }
