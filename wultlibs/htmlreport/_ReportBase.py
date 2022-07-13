@@ -369,13 +369,13 @@ class ReportBase:
         if stats_tabs:
             tabs.append(dataclasses.asdict(_Tabs.CTabDC("Stats", tabs=stats_tabs)))
         else:
-            _LOG.info("All statistics have been skipped therefore the report will not contain a "
+            _LOG.info("All statistics have been skipped, therefore the report will not contain a "
                       "'Stats' tab.")
 
         if sysinfo_tabs:
             tabs.append(dataclasses.asdict(_Tabs.CTabDC("SysInfo", tabs=sysinfo_tabs)))
         else:
-            _LOG.info("All SysInfo tabs have been skipped therefore the report will not contain a "
+            _LOG.info("All SysInfo tabs have been skipped, therefore the report will not contain a "
                       "'SysInfo' tab.")
 
         tabs_path = self.outdir / "tabs.json"
