@@ -143,6 +143,11 @@ class _TSCRate:
         Add a raw datapoint 'rawdp' and use it for calculating TSC rate. Returns 'rawdp' if TSC
         rate has already been calculated and no more raw datapoints are required. Returns 'None'
         otherwise.
+
+        The idea here is that we need to collect raw datapoints for 'self._tsc_cal_time' seconds,
+        and hold them on. After 'self._tsc_cal_time' seconds worth of datapoints are available, we
+        can calculate TSC rate. Then the TSC rate can be used for processing the datapoints that we
+        held and for new datapoints. The held datapoints will be yielded by 'get_raw_datapoint()'.
         """
 
         if self._drvname != "wult_tdt":
@@ -307,7 +312,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
     def _apply_time_adjustments(dp):
         """
         Some drivers provide adjustments for 'TAI', 'TBI', and 'TInr', for example 'wult_igb'. The
-        adjustments are there for improving measurement accuracy, and they are in nanosecods. This
+        adjustments are there for improving measurement accuracy, and they are in nanoseconds. This
         function adjusts 'SilentTime', 'WakeLatency', and 'IntrLatency' accordingly.
 
         This function also validates the adjusted values. Returns the datapoint in case of success
