@@ -12,7 +12,6 @@ wult - a tool for measuring C-state latency.
 
 import sys
 import logging
-import contextlib
 from pathlib import Path
 
 try:
@@ -21,41 +20,16 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
 
-from pepclibs.helperlibs import Logging, ArgParse, Trivial
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
-from pepclibs import CStates, CPUInfo
-from pepclibs.msr import PowerCtl
-from wultlibs.helperlibs import Human
-from wultlibs.htmlreport import WultReport, WultReportParams
-from wultlibs.rawresultlibs import WORawResult
-from wultlibs import Deploy, ToolsCommon, Devices, WultRunner, WultStatsCollect
+from pepclibs.helperlibs import Logging, Human, ArgParse
+from pepclibs.helperlibs.Exceptions import Error
+from wultlibs import Deploy, ToolsCommon
+from wulttools import _WultCommon
 
 VERSION = "1.10.11"
 OWN_NAME = "wult"
 
-# Regular expressions for the metrics that should show up in the hover text of the scatter plot. The
-# middle element selects all the core and package C-state residency columns.
-HOVER_METRIC_REGEXS = [".*Latency", "IntrOff", ".*Delay", "LDist", "ReqCState", r"[PC]C.+%",
-                       "SMI.*", "NMI.*"]
-
 LOG = logging.getLogger()
 Logging.setup_logger(prefix=OWN_NAME)
-
-def get_axes(optname, report_size=None):
-    """
-    Returns the CSV column name regex for a given plot option name and report size setting.
-      * optname - plot option name ('xaxes', 'yaxes', 'hist' or 'chist')
-      * report_size - report size setting ('small', 'medium' or 'large'), defaults to 'small'.
-    """
-
-    if not report_size:
-        report_size = "small"
-
-    optnames = getattr(WultReportParams, f"{report_size.upper()}_{optname.upper()}")
-    # The result is used for argparse, which does not accept '%' symbols.
-    if optnames:
-        return optnames.replace("%", "%%")
-    return None
 
 def build_arguments_parser():
     """Build and return the arguments parser object."""
@@ -219,10 +193,12 @@ def build_arguments_parser():
     subpars.add_argument("--include", action=ArgParse.OrderedArg, help=ToolsCommon.INCL_DESCR)
     subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
                          help=ToolsCommon.EVEN_UP_DP_DESCR)
-    subpars.add_argument("-x", "--xaxes", help=ToolsCommon.XAXES_DESCR % get_axes('xaxes'))
-    subpars.add_argument("-y", "--yaxes", help=ToolsCommon.YAXES_DESCR % get_axes('yaxes'))
-    subpars.add_argument("--hist", help=ToolsCommon.HIST_DESCR % get_axes('hist'))
-    subpars.add_argument("--chist", help=ToolsCommon.CHIST_DESCR % get_axes('chist'))
+    subpars.add_argument("-x", "--xaxes",
+                         help=ToolsCommon.XAXES_DESCR % _WultCommon.get_axes('xaxes'))
+    subpars.add_argument("-y", "--yaxes",
+                         help=ToolsCommon.YAXES_DESCR % _WultCommon.get_axes('yaxes'))
+    subpars.add_argument("--hist", help=ToolsCommon.HIST_DESCR % _WultCommon.get_axes('hist'))
+    subpars.add_argument("--chist", help=ToolsCommon.CHIST_DESCR % _WultCommon.get_axes('chist'))
     subpars.add_argument("--reportids", help=ToolsCommon.REPORTIDS_DESCR)
     subpars.add_argument("--title-descr", help=ToolsCommon.TITLE_DESCR)
     subpars.add_argument("--relocatable", action="store_true", help=ToolsCommon.RELOCATABLE_DESCR)
@@ -291,194 +267,30 @@ def parse_arguments():
 
     args = parser.parse_args()
     args.toolname = OWN_NAME
+    args.toolver = VERSION
 
     return args
 
-def check_settings(pman, dev, csinfo, cpunum, devid):
-    """
-    Some settings of the SUT may lead to results that are potentially confusing for the user. This
-    function looks for such settings and if found, prints a notice message.
-      * pman - the process manager object that defines the host to run the measurements on.
-      * dev - the delayed event device object created by 'Devices.GetDevice()'.
-      * devid - the ID of the device used for measuring the latency.
-      * csinfo - cstate info from 'CStates.get_cstates_info()'.
-      * cpunum - the logical CPU number to measure.
-    """
-
-    if dev.info.get("aspm_enabled"):
-        LOG.notice("PCI ASPM is enabled for the delayed event device '%s', and this "
-                    "typically increases the measured latency.", devid)
-
-    enabled_cstates = []
-    for _, info in csinfo.items():
-        if info["disable"] == 0 and info["name"] != "POLL":
-            enabled_cstates.append(info["name"])
-
-    with contextlib.suppress(ErrorNotSupported), PowerCtl.PowerCtl(pman=pman) as powerctl:
-        # Check for the following 3 conditions to be true at the same time.
-        # * C6 is enabled.
-        # * C6 pre-wake is enabled.
-        # * The "tdt" method is used.
-        if devid == "tdt" and "C6" in enabled_cstates and \
-            powerctl.is_cpu_feature_supported("cstate_prewake", cpunum) and \
-            powerctl.is_cpu_feature_enabled("cstate_prewake", cpunum):
-            LOG.notice("C-state prewake is enabled, and this usually hides the real "
-                       "latency when using '%s' as delayed event device.", devid)
-
-        # Check for the following 2 conditions to be true at the same time.
-        # * C1 is enabled.
-        # * C1E auto-promotion is enabled.
-        if enabled_cstates in [["C1"], ["C1_ACPI"]]:
-            if powerctl.is_cpu_feature_enabled("c1e_autopromote", cpunum):
-                LOG.notice("C1E autopromote is enabled, all %s requests are converted to C1E.",
-                            enabled_cstates[0])
-
 def deploy_command(args):
-    """Implements the 'deploy' command."""
+    """Implements the 'wult deploy' command."""
 
-    with ToolsCommon.get_pman(args) as pman, \
-         Deploy.Deploy(OWN_NAME, pman=pman, ksrc=args.ksrc, lbuild=args.lbuild,
-                       debug=args.debug) as depl:
-        depl.deploy()
+    from wulttools import _WultDeploy # pylint: disable=import-outside-toplevel
 
-def list_stats():
-    """Print information about statistics."""
-
-    if not WultStatsCollect.STATS_INFO:
-        raise Error("statistics collection is not supported on your system")
-
-    for stname, stinfo in WultStatsCollect.STATS_INFO.items():
-        LOG.info("* %s", stname)
-        if stinfo.get("interval"):
-            LOG.info("  - Default interval: %.1fs", stinfo["interval"])
-        LOG.info("  - %s", stinfo["description"])
+    _WultDeploy.deploy_command(args)
 
 def start_command(args):
-    """Implements the 'start' command."""
+    """Implements the 'wult start' command."""
 
-    if args.list_stats:
-        list_stats()
-        return
+    from wulttools import _WultStart # pylint: disable=import-outside-toplevel
 
-    stconf = None
-    if args.stats and args.stats != "none":
-        if not WultStatsCollect.STATS_NAMES:
-            raise Error("statistics collection is not supported on your system")
-        stconf = WultStatsCollect.parse_stats(args.stats, args.stats_intervals)
-
-    with contextlib.ExitStack() as stack:
-        pman = ToolsCommon.get_pman(args)
-        stack.enter_context(pman)
-
-        args.reportid = ToolsCommon.start_command_reportid(args, pman)
-
-        if not args.outdir:
-            args.outdir = Path(f"./{args.reportid}")
-        if args.tlimit:
-            args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
-        if args.ldist:
-            args.ldist = ToolsCommon.parse_ldist(args.ldist)
-
-        if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
-            raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
-        args.dpcnt = int(args.dpcnt)
-
-        args.tsc_cal_time = Human.parse_duration(args.tsc_cal_time, default_unit="s",
-                                                name="TSC calculation time")
-
-        cpuinfo = CPUInfo.CPUInfo(pman=pman)
-        stack.enter_context(cpuinfo)
-
-        args.cpunum = cpuinfo.normalize_cpu(args.cpunum)
-
-        res = WORawResult.WultWORawResult(args.reportid, args.outdir, VERSION, args.cpunum)
-        stack.enter_context(res)
-
-        ToolsCommon.setup_stdout_logging(OWN_NAME, res.logs_path)
-        ToolsCommon.set_filters(args, res)
-
-        dev = Devices.GetDevice(OWN_NAME, args.devid, pman, cpunum=args.cpunum, dmesg=True)
-        stack.enter_context(dev)
-
-        with Deploy.Deploy(OWN_NAME, pman=pman, debug=args.debug) as depl:
-            if depl.is_deploy_needed(dev):
-                msg = f"'{OWN_NAME}' drivers are not up-to-date{pman.hostmsg}, " \
-                      f"please run: {OWN_NAME} deploy"
-                if pman.is_remote:
-                    msg += f" -H {pman.hostname}"
-                LOG.warning(msg)
-
-        if getattr(dev, "netif", None):
-            ToolsCommon.start_command_check_network(args, pman, dev.netif)
-
-        rcsobj = CStates.ReqCStates(pman=pman)
-        csinfo = rcsobj.get_cpu_cstates_info(res.cpunum)
-
-        check_settings(pman, dev, csinfo, args.cpunum, args.devid)
-
-        runner = WultRunner.WultRunner(pman, dev, res, ldist=args.ldist, early_intr=args.early_intr,
-                                       tsc_cal_time=args.tsc_cal_time, rcsobj=rcsobj, stconf=stconf)
-        stack.enter_context(runner)
-
-        runner.unload = not args.no_unload
-        runner.prepare()
-        runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit, keep_rawdp=args.keep_rawdp)
-
-    if not args.report:
-        return
-
-    rsts = ToolsCommon.open_raw_results([args.outdir], args.toolname)
-    rep = WultReport.WultReport(rsts, args.outdir, title_descr=args.reportid)
-    rep.relocatable = False
-    rep.set_hover_metrics(HOVER_METRIC_REGEXS)
-    rep.generate()
+    _WultStart.start_command(args)
 
 def report_command(args):
-    """Implements the 'report' command."""
+    """Implements the 'wult report' command."""
 
-    if args.report_size:
-        if any({getattr(args, name) for name in ("xaxes", "yaxes", "hist", "chist")}):
-            raise Error("'--size' and ('--xaxes', '--yaxes', '--hist', '--chist') options are "
-                        "mutually exclusive, use either '--size' or the other options, not both")
-        if args.report_size.lower() not in ("small", "medium", "large"):
-            raise Error(f"bad '--size' value '{args.report_size}', use one of: small, medium, "
-                         "large")
+    from wulttools import _WultReport # pylint: disable=import-outside-toplevel
 
-    # Split the comma-separated lists.
-    for name in ("xaxes", "yaxes", "hist", "chist"):
-        val = getattr(args, name)
-        if val:
-            if val == "none":
-                setattr(args, name, "")
-            else:
-                setattr(args, name, Trivial.split_csv_line(val))
-        elif args.report_size:
-            size_default = get_axes(name, args.report_size)
-            if size_default:
-                setattr(args, name, Trivial.split_csv_line(size_default))
-            else:
-                setattr(args, name, None)
-
-    rsts = ToolsCommon.open_raw_results(args.respaths, args.toolname, reportids=args.reportids)
-
-    if args.list_metrics:
-        ToolsCommon.list_result_metrics(rsts)
-        return
-
-    for res in rsts:
-        ToolsCommon.set_filters(args, res)
-
-    if args.even_dpcnt:
-        ToolsCommon.even_up_dpcnt(rsts)
-
-    args.outdir = ToolsCommon.report_command_outdir(args, rsts)
-
-    rep = WultReport.WultReport(rsts, args.outdir, title_descr=args.title_descr,
-                                        xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
-                                        chist=args.chist)
-    rep.relocatable = args.relocatable
-    rep.set_hover_metrics(HOVER_METRIC_REGEXS)
-    rep.generate()
+    _WultReport.report_command(args)
 
 def main():
     """Script entry point."""
