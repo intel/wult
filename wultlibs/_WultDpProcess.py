@@ -613,6 +613,17 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
                 del dp["WakeLatencyRaw"]
             del dp["WakeLatency"]
 
+        if self._drvname == "wult_tdt":
+            # The 'wult_tdt' driver cannot really be used for measuring Interrupt latency, because
+            # it measures 'WakeLatency' for the next TSC deadline timer, which is not necessarily
+            # the one armed by wult. But 'IntrLatency' will be measured in wult timer handler, which
+            # may be far away from the event 'WakeLatency' was measrued for. Therefore, 'wult_tdt'
+            # produces many datapoints with really large (and incorrect) 'IntrLatency'. Hence, we
+            # remove it from the datapoint.
+            if "IntrLatencyRaw" in dp:
+                del dp["IntrLatencyRaw"]
+            del dp["IntrLatency"]
+
         return dp
 
     def _finalize_dp(self, dp):
