@@ -715,7 +715,7 @@
         padding: 5% 0%;
         font-size: 15vw;
     }
-  `;static properties={path:{type:String}};hideLoading(){this.renderRoot.querySelector("#loading").style.display="none"}render(){return H`
+  `;static properties={path:{type:String},_visible:{type:Boolean,state:!0}};constructor(){super(),this._visible=!1}hideLoading(){this.renderRoot.querySelector("#loading").style.display="none"}render(){return H`
             <div id="loading" class="loading">
                 <sl-spinner></sl-spinner>
             </div>

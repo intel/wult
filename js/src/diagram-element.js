@@ -37,8 +37,14 @@ class DiagramElement extends LitElement {
   `;
 
     static properties = {
-        path: { type: String }
+        path: { type: String },
+        _visible: { type: Boolean, state: true }
     };
+
+    constructor () {
+        super()
+        this._visible = false
+    }
 
     /**
      * Hides the loading indicator once the diagram 'iframe' has finished loading. Intended to be
