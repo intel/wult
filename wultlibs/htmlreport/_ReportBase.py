@@ -24,8 +24,8 @@ from wultlibs.helperlibs import FSHelpers
 from wultlibs.htmlreport import _IntroTable
 from wultlibs.htmlreport.tabs import _MetricDTabBuilder, _Tabs
 from wultlibs.htmlreport.tabs.stats import _ACPowerTabBuilder, _IPMITabBuilder
-from wultlibs.htmlreport.tabs.stats.sysinfo import (_CPUIdleTabBuilder, _DmesgTabBuilder,
-    _DMIDecodeTabBuilder, _LspciTabBuilder, _MiscTabBuilder, _PepcTabBuilder)
+from wultlibs.htmlreport.tabs.stats.sysinfo import (_CPUIdleTabBuilder, _CPUFreqTabBuilder,
+    _DmesgTabBuilder, _DMIDecodeTabBuilder, _LspciTabBuilder, _MiscTabBuilder, _PepcTabBuilder)
 from wultlibs.htmlreport.tabs.stats.turbostat import _TurbostatTabBuilder
 
 _LOG = logging.getLogger()
@@ -314,6 +314,7 @@ class ReportBase:
         tab_builders = [
             _PepcTabBuilder.PepcTabBuilder,
             _DMIDecodeTabBuilder.DMIDecodeTabBuilder,
+            _CPUFreqTabBuilder.CPUFreqTabBuilder,
             _CPUIdleTabBuilder.CPUIdleTabBuilder,
             _DmesgTabBuilder.DmesgTabBuilder,
             _LspciTabBuilder.LspciTabBuilder,
