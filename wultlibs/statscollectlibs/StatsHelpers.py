@@ -103,7 +103,13 @@ def apply_stconf(stcoll, stconf):
             stconf["intervals"] = stcoll.set_intervals(stconf["intervals"])
 
         _LOG.info("Start statistics discovery")
-        stconf["include"] = stcoll.discover()
+        stavailable = stcoll.discover()
+
+        for stname in stconf["include"]:
+            if stname not in stavailable:
+                raise Error(f"statistics '{stname}' is not available")
+
+        stconf["include"] = stavailable
         if stconf["include"]:
             _LOG.info("Discovered statistics: %s", ", ".join(stconf["include"]))
         else:
