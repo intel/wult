@@ -114,6 +114,14 @@ class ReportBase:
 
             mcpu_row.add_cell(res.reportid, cpunum)
 
+        # Add device ID.
+        devid_row = self._intro_tbl.create_row("Device ID")
+        for res in self.rsts:
+            devid_text = res.info.get("devid")
+            if devid_text and "devdescr" in res.info:
+                devid_text += f" ({res.info['devdescr']})"
+            devid_row.add_cell(res.reportid, devid_text)
+
         # Add links to the stats directories.
         self._add_intro_tbl_links("Statistics", stats_paths)
         # Add links to the logs directories.
