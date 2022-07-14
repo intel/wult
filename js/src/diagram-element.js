@@ -41,6 +41,34 @@ class DiagramElement extends LitElement {
         _visible: { type: Boolean, state: true }
     };
 
+    /**
+     * Early DOM lifecycle event. Invoked each time the custom element is appended into a
+     * document-connected element.
+     */
+    connectedCallback () {
+        super.connectedCallback()
+        const callback = (entries, _) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    this._visible = true
+                } else {
+                    this._visible = false
+                }
+            })
+        }
+        this.observer = new IntersectionObserver(callback)
+        this.observer.observe(this.parentElement)
+    }
+
+    /**
+     * Removes the intersection observer in case the tab is destroyed so the window does not attempt
+     * to trigger the handler when it is no longer accessible.
+     */
+    disconnectedCallback () {
+        super.disconnectedCallback()
+        this.observer.disconnect()
+    }
+
     constructor () {
         super()
         this._visible = false
@@ -55,14 +83,17 @@ class DiagramElement extends LitElement {
     }
 
     render () {
-        return html`
-            <div id="loading" class="loading">
-                <sl-spinner></sl-spinner>
-            </div>
-            <div class="plot">
-                <iframe @load=${this.hideLoading} seamless frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
-            </div>
-        `
+        if (this._visible) {
+            return html`
+                <div id="loading" class="loading">
+                    <sl-spinner></sl-spinner>
+                </div>
+                <div class="plot">
+                    <iframe @load=${this.hideLoading} seamless frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
+                </div>
+            `
+        }
+        return html``
     }
 }
 
