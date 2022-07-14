@@ -29,6 +29,6 @@ class PepcTabBuilder(_DTabBuilderBase.DTabBuilderBase):
     """
 
     def __init__(self, outdir):
-        """Class constructor. Arguments are the same as in 'InfoTabBuilderBase.__init__()'."""
+        """Class constructor. Arguments are the same as in 'DTabBuilderBase.__init__()'."""
 
         super().__init__("pepc", outdir, _FILES)

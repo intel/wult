@@ -24,11 +24,11 @@ class DMIDecodeTabBuilder(_DTabBuilderBase.DTabBuilderBase):
     collected with 'dmidecode'.
 
     Public method overview:
-     * get_tab() - returns a '_Tabs.DTabDC' instance which contains information collected using the
+     * get_tab() - returns a '_Tabs.DTabDC' instance which contains information collected using
                    'dmidecode'.
     """
 
     def __init__(self, outdir):
-        """Class constructor. Arguments are the same as in 'InfoTabBuilderBase.__init__()'."""
+        """Class constructor. Arguments are the same as in 'DTabBuilderBase.__init__()'."""
 
         super().__init__("dmidecode", outdir, _FILES)
