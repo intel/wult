@@ -14,7 +14,8 @@ information.
 from wultlibs.htmlreport.tabs.stats.sysinfo import _DTabBuilderBase
 
 _FILES = {
-    "uname -a": "sysinfo/uname-a.raw.txt"
+    "uname -a": "sysinfo/uname-a.raw.txt",
+    "cmdline": "sysinfo/proc_cmdline.raw.txt"
 }
 
 class MiscTabBuilder(_DTabBuilderBase.DTabBuilderBase):
