@@ -4,6 +4,10 @@ Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Fix crashes with kernels version 5.18+ on C-states entered with interrupts
+  enabled.
+- Remove bogus 'IntrLatency' data when using the 'tdt' method.
 ### Added
 - wult report: add "SysInfo" tab with various system info about SUTs.
 ### Changed
