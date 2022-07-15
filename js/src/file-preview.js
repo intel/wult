@@ -26,6 +26,8 @@ class FilePreview extends LitElement {
         .text-field-container {
             overflow: auto;
             max-height: 33vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .diff-table {
@@ -104,6 +106,9 @@ class FilePreview extends LitElement {
             <sl-tab class="tab" slot="nav" panel=${panelID}>${reportID}</sl-tab>
             <sl-tab-panel class="tab-panel" name=${panelID}>
                 <div class="text-field-container">
+                    <div>
+                        ${this.getNewTabBtnTemplate(path)}
+                    </div>
                     <pre><code>${until(this.getFileContents(path), html`Loading...`)}</code></pre>
                 </div>
             </sl-tab-panel>

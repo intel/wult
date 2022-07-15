@@ -1442,6 +1442,8 @@
         .text-field-container {
             overflow: auto;
             max-height: 33vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .diff-table {
@@ -1482,6 +1484,9 @@
             <sl-tab class="tab" slot="nav" panel=${s}>${t}</sl-tab>
             <sl-tab-panel class="tab-panel" name=${s}>
                 <div class="text-field-container">
+                    <div>
+                        ${this.getNewTabBtnTemplate(e)}
+                    </div>
                     <pre><code>${Ts(this.getFileContents(e),H`Loading...`)}</code></pre>
                 </div>
             </sl-tab-panel>
