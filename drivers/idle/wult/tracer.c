@@ -37,8 +37,6 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "TIntr" },
 	{ .type = "u64", .name = "TIntrAdj" },
 	{ .type = "unsigned int", .name = "ReqCState" },
-	{ .type = "u64", .name = "BICyc" },
-	{ .type = "u64", .name = "BIMonotonic" },
 	{ .type = "u64", .name = "AITS1" },
 	{ .type = "u64", .name = "AITS2" },
 	{ .type = "u64", .name = "IntrTS1" },
@@ -71,9 +69,6 @@ static void before_idle(struct wult_info *wi)
 	wult_cstates_snap_cst(&ti->csinfo, 0);
 	wult_cstates_snap_tsc(&ti->csinfo, 0);
 	wult_cstates_snap_mperf(&ti->csinfo, 0);
-
-	ti->bi_tsc = rdtsc_ordered();
-	ti->bi_monotonic = ktime_get_ns();
 
 	ti->tbi = wi->wdi->ops->get_time_before_idle(wi->wdi, &ti->tbi_adj);
 
@@ -189,7 +184,7 @@ int wult_tracer_send_data(struct wult_info *wi)
 	struct synth_event_trace_state trace_state;
 	struct cstate_info *csi;
 	u64 ltime;
-	int err, snum, err_after_send = 0;
+	int err, err_after_send = 0;
 
 	if (WARN_ON(ti->armed))
 		/*
@@ -259,12 +254,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->req_cstate, &trace_state);
-	if (err)
-		goto out_end;
-	err = synth_event_add_next_val(ti->bi_tsc, &trace_state);
-	if (err)
-		goto out_end;
-	err = synth_event_add_next_val(ti->bi_monotonic, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->ai_ts1, &trace_state);

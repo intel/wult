@@ -29,6 +29,11 @@
  */
 #define wdi_to_wt(wdi) container_of(wdi, struct wult_tdt, wdi)
 
+static struct wult_trace_data_info tdata[] = {
+	{ .name = "BICyc" },
+	{ .name = "BIMonotonic" },
+	{ NULL },
+};
 struct wult_tdt {
 	struct hrtimer timer;
 	struct wult_device_info wdi;
@@ -52,6 +57,9 @@ static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj)
 	struct wult_tdt *wt = wdi_to_wt(wdi);
 
 	*adj = 0;
+
+	tdata[0].val = rdtsc_ordered();
+	tdata[1].val = ktime_get_ns();
 
 	/*
 	 * This callback is invoked just before going to idle, and now we can
@@ -117,6 +125,11 @@ static u64 get_launch_time(struct wult_device_info *wdi)
 	return wdi_to_wt(wdi)->deadline_before;
 }
 
+static struct wult_trace_data_info *get_trace_data(struct wult_device_info *wdi)
+{
+	return tdata;
+}
+
 static int init_device(struct wult_device_info *wdi, int cpunum)
 {
 	struct wult_tdt *wt = wdi_to_wt(wdi);
@@ -146,6 +159,7 @@ static struct wult_device_ops wult_tdt_ops = {
 	.arm = arm_event,
 	.event_has_happened = event_has_happened,
 	.get_launch_time = get_launch_time,
+	.get_trace_data = get_trace_data,
 	.init = init_device,
 	.exit = exit_device,
 };
