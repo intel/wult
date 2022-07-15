@@ -70,6 +70,14 @@ class FilePreview extends LitElement {
         })
     }
 
+    getNewTabBtnTemplate (filePath) {
+        return html`
+            <sl-button style="padding: var(--sl-spacing-x-small)" variant="primary" href=${filePath} target="_blank">
+                Open in New Tab
+            </sl-button>
+        `
+    }
+
     getDiffTemplate () {
         if (this.diff) {
             const panelID = `${this.title}-diff`
@@ -78,9 +86,7 @@ class FilePreview extends LitElement {
                 <sl-tab-panel class="tab-panel" name=${panelID}>
                     <div class="diff-div" id=${panelID}>
                         <div>
-                            <sl-button style="padding: var(--sl-spacing-x-small)" variant="primary" href=${this.diff} target="_blank">
-                                Open Diff in New Tab
-                            </sl-button>
+                            ${this.getNewTabBtnTemplate(this.diff)}
                         </div>
                         <!-- Diffs are created in the form of an HTML table so
                         viewed using an iframe  -->
