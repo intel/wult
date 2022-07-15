@@ -112,6 +112,12 @@ class _CStates(ClassHelpers.SimpleCloseContext):
 
         csname = rawdp["ReqCState"] = self._get_req_cstate_name(rawdp)
 
+        if self._early_intr:
+            # When the "early interrupts" feature is used, wult enables interrupts before the
+            # C-state is requrested.
+            rawdp["IntrOff"] = False
+            return rawdp
+
         if csname == "POLL":
             # This is an optimization. The 'POLL' state is always requested with interrupts enabled.
             rawdp["IntrOff"] = False
@@ -184,17 +190,19 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         for csname in delete_csnames:
             del self._intr_order[csname]
 
-    def __init__(self, cpunum, pman, rcsobj=None):
+    def __init__(self, cpunum, pman, rcsobj=None, early_intr=None):
         """
         The class constructor. The arguments are as follows.
           * cpunum - the measured CPU number.
           * pman - the process manager object that defines the host to run the measurements on.
           * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
+          * early_intr - enable interrupts before entering the C-state.
         """
 
         self._cpunum = cpunum
         self._pman = pman
         self._rcsobj = rcsobj
+        self._early_intr = early_intr
 
         self._close_rcsobj = rcsobj is None
 
@@ -768,7 +776,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         # Information about printed warnings.
         self._warnings = {}
 
-        self._csobj = _CStates(self._cpunum, self._pman, rcsobj=rcsobj)
+        self._csobj = _CStates(self._cpunum, self._pman, rcsobj=rcsobj, early_intr=early_intr)
         self._tscrate = _TSCRate(self._drvname, tsc_cal_time)
 
     def close(self):
