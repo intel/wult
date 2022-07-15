@@ -5,20 +5,22 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 ### Fixed
-- Fix the 'wult start --early-intr' option.
+ - Fix the 'wult start --early-intr' option.
 ### Added
-- Add 'dmesg', 'lspci', 'cpuidle' and 'cpufreq' to the SysInfo tabs in HTML reports.
+ - Add 'dmesg', 'lspci', 'cpuidle' and 'cpufreq' to the SysInfo tabs in HTML reports.
+### Removed
+ - Removed 'wult start --intr-focus' option.
 ### Changed
 
 ## [1.10.10] - 2022-07-15
 ### Fixed
-- Fix crashes with kernels version 5.18+ on C-states entered with interrupts
-  enabled.
-- Remove bogus 'IntrLatency' data when using the 'tdt' method.
+ - Fix crashes with kernels version 5.18+ on C-states entered with interrupts
+   enabled.
+ - Remove bogus 'IntrLatency' data when using the 'tdt' method.
 ### Added
-- wult report: add "SysInfo" tab with various system info about SUTs.
+ - wult report: add "SysInfo" tab with various system info about SUTs.
 ### Changed
-- Optimization: spend time calculating TSC rate only in case of the TDT method.
+ - Optimization: spend time calculating TSC rate only in case of the TDT method.
   Skip this step for the HRT/NIC methods.
 
 ## [1.10.9] - 2022-07-06
