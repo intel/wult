@@ -494,12 +494,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         """
 
         dp["SilentTime"] = dp["LTime"] - dp["TBI"]
-        if self._intr_focus:
-            # We do not measure 'WakeLatency' in this case, but it is handy to have it in the
-            # dictionary as '0'. We'll remove it at the end of this function.
-            dp["WakeLatency"] = 0
-        else:
-            dp["WakeLatency"] = dp["TAI"] - dp["LTime"]
+        dp["WakeLatency"] = dp["TAI"] - dp["LTime"]
 
         dp["IntrLatency"] = dp["TIntr"] - dp["LTime"]
 
@@ -523,11 +518,9 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         # True' are the datapoints for C-states entered with interrupts disabled).
         if dp["IntrOff"]:
             # 1. When the CPU exits the C-state, it runs 'after_idle()' before the interrupt
-            #    handler.
-            #    1.1. If 'self._intr_focus == False', 'WakeLatency' is measured in 'after_idle()'.
-            #         This introduces additional overhead, and delays the interrupt handler. This
-            #         overhead can be estimated using using 'AITS1'/'AITS2' time-stamps.
-            #    1.2. If 'self._intr_focus == True', 'WakeLatency' is not measured at all.
+            #    handler. 'WakeLatency' is measured in 'after_idle()'. This introduces additional
+            #    overhead, and delays the interrupt handler. This overhead can be estimated using
+            #    using 'AITS1'/'AITS2' time-stamps.
             # 2. The interrupt handler is executed shortly after 'after_idle()' finishes and the
             #    "cpuidle" Linux kernel subsystem re-enables CPU interrupts.
 
@@ -538,10 +531,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
                            "Dropping this datapoint\n", Human.dict2str(dp))
                 return None
 
-            if self._intr_focus:
-                overhead = 0
-            else:
-                overhead = dp["AITS2"] - dp["AITS1"]
+            overhead = dp["AITS2"] - dp["AITS1"]
 
             if overhead >= dp["IntrLatency"]:
                 # This sometimes happens, most probably because the overhead is measured using
@@ -564,13 +554,12 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
                 dp["IntrLatencyRaw"] = dp["IntrLatency"]
             dp["IntrLatency"] -= overhead
 
-        if not dp["IntrOff"] and not self._intr_focus:
+        if not dp["IntrOff"]:
             # 1. When the CPU exits the C-state, it runs the interrupt handler before
             #    'after_idle()'.
             # 2. The interrupt latency is measured in the interrupt handler. This introduces
             #    additional overhead, and delays 'after_idle()'. This overhead can be estimated
-            #    using 'IntrTS1' and 'IntrTS2' time-stamps. But if 'self._intr_focus == 'True',
-            #    'WakeLatency' is not going to be measured anyway.
+            #    using 'IntrTS1' and 'IntrTS2' time-stamps.
             # 3. 'after_idle()' is executed after the interrupt handler and measures 'WakeLatency',
             #    which is greater than 'IntrLatency' in this case.
             #
@@ -592,10 +581,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
                            Human.dict2str(dp))
                 return None
 
-            if self._intr_focus:
-                overhead = 0
-            else:
-                overhead = dp["IntrTS2"] - dp["IntrTS1"]
+            overhead = dp["IntrTS2"] - dp["IntrTS1"]
 
             if overhead >= dp["WakeLatency"]:
                 _LOG.debug("overhead is greater than wake latency ('WakeLatency'). The "
@@ -612,14 +598,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             if "WakeLatencyRaw" not in dp:
                 dp["WakeLatencyRaw"] = dp["WakeLatency"]
             dp["WakeLatency"] -= overhead
-
-        if self._intr_focus:
-            # In case of interrupt-focused measurements we do not really measure 'WakeLatency', but
-            # we add it to 'dp' in order to have less 'if' statements in the code. But now it is
-            # time to delete it from 'dp'.
-            if "WakeLatencyRaw" in dp:
-                del dp["WakeLatencyRaw"]
-            del dp["WakeLatency"]
 
         if self._drvname == "wult_tdt":
             # The 'wult_tdt' driver cannot really be used for measuring Interrupt latency, because
@@ -740,15 +718,12 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             for field in raw_fields:
                 self._fields[field] = None
 
-    def __init__(self, cpunum, pman, drvname, intr_focus=None, early_intr=None, tsc_cal_time=10,
-                 rcsobj=None):
+    def __init__(self, cpunum, pman, drvname, early_intr=None, tsc_cal_time=10, rcsobj=None):
         """
         The class constructor. The arguments are as follows.
           * cpunum - the measured CPU number.
           * pman - the process manager object that defines the host to run the measurements on.
           * drvname - name of the driver providing the datapoints.
-          * intr_focus - enable interrupt latency focused measurements ('WakeLatency' is not
-          *              measured in this case, only 'IntrLatency').
           * early_intr - enable interrupts before entering the C-state.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
           * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
@@ -757,7 +732,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         self._cpunum = cpunum
         self._pman = pman
         self._drvname = drvname
-        self._intr_focus = intr_focus
         self._early_intr = early_intr
 
         # A '_CStates' class object.

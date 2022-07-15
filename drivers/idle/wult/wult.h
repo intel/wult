@@ -120,8 +120,6 @@ struct wult_info {
 	unsigned int cpunum;
 	/* Whether the measurement is enabled. */
 	bool enabled;
-	/* Whether the interrupt latency focused measurements are enabled. */
-	bool intr_focus;
 	/* Whether the early interrupts feature is enabled. */
 	bool early_intr;
 	/*
@@ -131,8 +129,8 @@ struct wult_info {
 	u64 ldist_from, ldist_to;
 	/*
 	 * Serialises wult measurements enabling and disabling, protects the
-	 * following fields of this structure: 'enabled', 'intr_focus',
-	 * 'early_intr', 'ldist_from', 'ldist_to'.
+	 * following fields of this structure: 'enabled', 'early_intr',
+	 * 'ldist_from', 'ldist_to'.
 	 */
 	struct mutex enable_mutex;
 	/* Wult tracer information. */

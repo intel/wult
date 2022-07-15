@@ -29,9 +29,6 @@
 /* Name of debugfs file for starting and stopping the measurements. */
 #define ENABLED_FNAME "enabled"
 
-/* Name of debugfs file for enabling interrupt latency focused measurements. */
-#define INTR_FOCUS_FNAME "intr_focus"
-
 /* Name of debugfs file for enabling early interrupts. */
 #define EARLY_INTR_FNAME "early_intr"
 
@@ -87,8 +84,6 @@ static ssize_t dfs_write_bool_file(struct file *file,
 
 	if (!strcmp(dent->d_name.name, ENABLED_FNAME))
 		err = set_enabled(val);
-	else if (!strcmp(dent->d_name.name, INTR_FOCUS_FNAME))
-		err = set_bool(wi, &wi->intr_focus, val);
 	else if (!strcmp(dent->d_name.name, EARLY_INTR_FNAME))
 		err = set_bool(wi, &wi->early_intr, val);
 	else
@@ -116,8 +111,6 @@ static ssize_t dfs_read_bool_file(struct file *file, char __user *user_buf,
 
 	if (!strcmp(dent->d_name.name, ENABLED_FNAME)) {
 		val = wi->enabled;
-	} else if (!strcmp(dent->d_name.name, INTR_FOCUS_FNAME)) {
-		val = wi->intr_focus;
 	} else if (!strcmp(dent->d_name.name, EARLY_INTR_FNAME)) {
 		val = wi->early_intr;
 	} else {
@@ -138,7 +131,7 @@ error:
 	return err;
 }
 
-/* Wult debugfs operations for the 'enabled', 'intr_focus' and other files. */
+/* Wult debugfs operations for the 'enabled', and other files. */
 static const struct file_operations dfs_ops_bool = {
 	.read = dfs_read_bool_file,
 	.write = dfs_write_bool_file,
@@ -295,8 +288,6 @@ int wult_uapi_device_register(struct wult_info *wi)
 		return PTR_ERR(wi->dfsroot);
 
 	debugfs_create_file(ENABLED_FNAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_bool);
-	debugfs_create_file(INTR_FOCUS_FNAME, 0644, wi->dfsroot, wi,
 			    &dfs_ops_bool);
 	debugfs_create_file(EARLY_INTR_FNAME, 0644, wi->dfsroot, wi,
 			    &dfs_ops_bool);

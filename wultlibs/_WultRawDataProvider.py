@@ -157,16 +157,11 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         if self._ldist:
             self._set_launch_distance()
 
-        if self._intr_focus:
-            with self._pman.open(self._intr_focus_path, "w") as fobj:
-                fobj.write("1")
-
         if self._early_intr:
             with self._pman.open(self._early_intr_path, "w") as fobj:
                 fobj.write("1")
 
-    def __init__(self, dev, cpunum, pman, timeout=None, ldist=None, intr_focus=None,
-                 early_intr=None):
+    def __init__(self, dev, cpunum, pman, timeout=None, ldist=None, early_intr=None):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
 
         drvinfo = { "wult" : { "params" : f"cpunum={cpunum}" },
@@ -175,7 +170,6 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         self._timeout = timeout
         self._ldist = ldist
-        self._intr_focus = intr_focus
         self._early_intr = early_intr
 
         self._ftrace = None
@@ -193,7 +187,6 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         self._basedir = self.debugfs_mntpoint / "wult"
         self._enabled_path = self._basedir / "enabled"
-        self._intr_focus_path = self._basedir / "intr_focus"
         self._early_intr_path = self._basedir / "early_intr"
 
     def close(self):
@@ -214,8 +207,7 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         super().close()
 
 
-def WultRawDataProvider(dev, cpunum, pman, timeout=None, ldist=None, intr_focus=None,
-                       early_intr=None):
+def WultRawDataProvider(dev, cpunum, pman, timeout=None, ldist=None, early_intr=None):
     """
     Create and return a raw data provider class suitable for a delayed event device 'dev'. The
     arguments are the same as in '_RawDataProviderBase.__init__()'.
@@ -226,13 +218,11 @@ def WultRawDataProvider(dev, cpunum, pman, timeout=None, ldist=None, intr_focus=
                   seconds.
       * ldist - a pair of numbers specifying the launch distance range. The default value is
                 specific to the delayed event device.
-      * intr_focus - enable interrupt latency focused measurements ('WakeLatency' is not
-                     measured in this case, only 'IntrLatency').
       * early_intr - enable interrupts before entering the C-state.
     """
 
     if dev.drvname:
         return _DrvRawDataProvider(dev, cpunum, pman, timeout=timeout, ldist=ldist,
-                                   intr_focus=intr_focus, early_intr=early_intr)
+                                   early_intr=early_intr)
 
     raise Error(f"BUG: unsupported device '{dev.info['devid']}'{pman.hostmsg}")

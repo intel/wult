@@ -157,17 +157,6 @@ def build_arguments_parser():
     text = """The logical CPU number to measure, default is CPU 0."""
     subpars.add_argument("--cpunum", help=text, type=int, default=0)
 
-    text = f"""Enable interrupt latency focused measurements. Most C-states are entered using the
-               'mwait' instruction with interrupts disabled. When there is an interrupt, the CPU
-               wakes up and continues running the instructions after the 'mwait'. The CPU first runs
-               some housekeeping code, and only then the interrupts get enabled and the CPU jumps to
-               the interrupt handler. {OWN_NAME.title()} measures 'WakeLatency' during the
-               "housekeeping" stage, and 'IntrLatency' is measured in the interrupt handler.
-               However, the 'WakeLatency' measurement takes time and affects the measured
-               'IntrLatency'. This option disables 'WakeLatency' measurements, which improves
-               'IntrLatency' measurements' accuracy."""
-    subpars.add_argument("--intr-focus", action="store_true", help=text)
-
     text = f"""{OWN_NAME.title()} receives raw datapoints from the driver, then processes them, and
                then saves the processed datapoint in the 'datapoints.csv' file. The processing
                involves converting TSC cycles to microseconds, so {OWN_NAME} needs SUT's TSC rate.
@@ -205,9 +194,7 @@ def build_arguments_parser():
               hanlder. Therefore, there is a tiny delay the 'cpuidle' subsystem adds on top of the
               hardware C-state latency. For fast C-states like C1, this tiny delay may even be
               measurable on some platforms. This option allows to measure that delay. It makes wult
-              enable interrupts before linux enters the C-state. This option is generally a crude
-              option along with '--intr-focus'. When this option is used, often it makes sense to
-              use '--intr-focus' at the same time."""
+              enable interrupts before linux enters the C-state."""
     subpars.add_argument("--early-intr", action="store_true", help=text)
 
     subpars.add_argument("--report", action="store_true", help=ToolsCommon.START_REPORT_DESCR)
@@ -429,9 +416,8 @@ def start_command(args):
 
         check_settings(pman, dev, csinfo, args.cpunum, args.devid)
 
-        runner = WultRunner.WultRunner(pman, dev, res, ldist=args.ldist, intr_focus=args.intr_focus,
-                                       early_intr=args.early_intr, tsc_cal_time=args.tsc_cal_time,
-                                       rcsobj=rcsobj, stconf=stconf)
+        runner = WultRunner.WultRunner(pman, dev, res, ldist=args.ldist, early_intr=args.early_intr,
+                                       tsc_cal_time=args.tsc_cal_time, rcsobj=rcsobj, stconf=stconf)
         stack.enter_context(runner)
 
         runner.unload = not args.no_unload

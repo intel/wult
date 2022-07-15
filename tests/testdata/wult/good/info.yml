@@ -3,7 +3,6 @@ devdescr: TSC deadline timer
 devid: tdt
 early_intr: false
 format_version: '1.2'
-intr_focus: false
 reportid: testdata
 resolution: 1
 toolname: wult

@@ -41,8 +41,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         # second one.
         self._dpp.prepare(rawdp, keep_rawdp)
 
-        latkey = "IntrLatency" if self._intr_focus else "WakeLatency"
-
         # At least one datapoint should be collected within the 'timeout' seconds interval.
         timeout = self._timeout * 1.5
         start_time = last_rawdp_time = time.time()
@@ -67,7 +65,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                     # The data point has not been added (e.g., because it did not pass row filters).
                     continue
 
-                max_latency = max(dp[latkey], max_latency)
+                max_latency = max(dp["WakeLatency"], max_latency)
                 self._progress.update(collected_cnt, max_latency)
                 last_rawdp_time = time.time()
 
@@ -178,7 +176,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._res.info["devid"] = self._dev.info["devid"]
         self._res.info["devdescr"] = self._dev.info["descr"]
         self._res.info["resolution"] = self._dev.info["resolution"]
-        self._res.info["intr_focus"] = self._intr_focus
         self._res.info["early_intr"] = self._early_intr
 
         # Initialize statistics collection.
@@ -222,8 +219,8 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             raise Error(f"unsupported idle driver '{drvname}'{self._pman.hostmsg},\n"
                         f"only the following drivers are supported: {supported}")
 
-    def __init__(self, pman, dev, res, ldist=None, intr_focus=None, early_intr=None,
-                 tsc_cal_time=10, rcsobj=None, stconf=None):
+    def __init__(self, pman, dev, res, ldist=None, early_intr=None, tsc_cal_time=10, rcsobj=None,
+                 stconf=None):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
@@ -231,8 +228,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
           * res - the 'WultWORawResult' object to store the results at.
           * ldist - a pair of numbers specifying the launch distance range. The default value is
                     specific to the delayed event driver.
-          * intr_focus - enable interrupt latency focused measurements ('WakeLatency' is not
-                         measured in this case, only 'IntrLatency').
           * early_intr - enable interrupts before entering the C-state.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
           * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
@@ -244,7 +239,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._dev = dev
         self._res = res
         self._ldist = ldist
-        self._intr_focus = intr_focus
         self._early_intr = early_intr
         self._stconf = stconf
 
@@ -260,10 +254,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
 
         self._validate_sut()
 
-        if self._dev.drvname == "wult_tdt" and self._intr_focus:
-            raise Error("the 'tdt' driver does not support the interrupt latency focused "
-                        "measurements")
-
         if self._dev.drvname == "wult_tdt" and self._early_intr:
             raise Error("the 'tdt' driver does not support the early interrupt feature")
 
@@ -272,11 +262,9 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._prov = _WultRawDataProvider.WultRawDataProvider(dev, res.cpunum, pman,
                                                               timeout=self._timeout,
                                                               ldist=self._ldist,
-                                                              intr_focus=self._intr_focus,
                                                               early_intr=self._early_intr)
 
         self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, pman, self._dev.drvname,
-                                                      intr_focus=self._intr_focus,
                                                       early_intr=self._early_intr,
                                                       tsc_cal_time=tsc_cal_time, rcsobj=rcsobj)
 

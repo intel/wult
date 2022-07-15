@@ -84,13 +84,6 @@ static void after_idle(struct wult_info *wi)
 
 	ti->ai_ts1 = ktime_get_raw_ns();
 
-	if (wi->intr_focus)
-		/*
-		 * Skip taking measurements in order to increase interrupt
-		 * measurements' accuracy.
-		 */
-		return;
-
 	ti->tai = wdi->ops->get_time_after_idle(wdi, &ti->tai_adj);
 
 	if (ti->armed) {
@@ -201,15 +194,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 		return 0;
 
 	ltime = wdi->ops->get_launch_time(wdi);
-
-	if (wi->intr_focus) {
-		/*
-		 * Set variables that we skipped reading in 'after_idle()' to
-		 * "sane" values in order to pass various checks below.
-		 */
-		ti->tai = ti->tintr;
-		ti->ai_ts2 = ti->ai_ts1;
-	}
 
 	/* Check if the expected IRQ time is within the sleep time. */
 	if (ltime <= ti->tbi || ltime >= ti->tai || ltime >= ti->tintr)
