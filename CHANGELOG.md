@@ -5,6 +5,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 ### Fixed
+- Fix the 'wult start --early-intr' option.
 ### Added
 - Add 'dmesg', 'lspci', 'cpuidle' and 'cpufreq' to the SysInfo tabs in HTML reports.
 ### Changed
