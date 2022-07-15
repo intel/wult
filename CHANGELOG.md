@@ -7,7 +7,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
  - Fix the 'wult start --early-intr' option.
 ### Added
- - Add 'dmesg', 'lspci', 'cpuidle' and 'cpufreq' to the SysInfo tabs in HTML reports.
+ - Add 'dmesg', 'lspci', 'cpuidle' and 'cpufreq' to the "SysInfo" tabs in HTML reports.
+ - Add buttons to the "SysInfo" tab to open raw files in a separate tab.
 ### Removed
  - Removed 'wult start --intr-focus' option.
 ### Changed
