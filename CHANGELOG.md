@@ -5,6 +5,11 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 ### Fixed
+### Added
+### Changed
+
+## [1.10.10] - 2022-07-15
+### Fixed
 - Fix crashes with kernels version 5.18+ on C-states entered with interrupts
   enabled.
 - Remove bogus 'IntrLatency' data when using the 'tdt' method.

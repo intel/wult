@@ -3,7 +3,7 @@
 %bcond_without tests
 
 Name:		wult
-Version:	1.10.9
+Version:	1.10.10
 Release:	1%{?dist}
 Summary:	Tool for measuring Intel CPU C-state wake latency
 
