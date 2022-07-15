@@ -7,8 +7,8 @@
 #ifndef _WULT_CSTATE_H_
 #define _WULT_CSTATE_H_
 
-/* Maximum C-state cycle snapsots count. */
-#define MAX_CSTATE_SNAPSHOTS 3
+/* Maximum C-state cycles snapsots count. */
+#define MAX_CSTATE_SNAPSHOTS 2
 
 /* Iterate over every valid C-state. */
 #define for_each_cstate(csinfo, csi)             \
