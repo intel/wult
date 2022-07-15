@@ -6,6 +6,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [Unreleased]
 ### Fixed
 ### Added
+- Add 'dmesg', 'lspci', 'cpuidle' and 'cpufreq' to the SysInfo tabs in HTML reports.
 ### Changed
 
 ## [1.10.10] - 2022-07-15
