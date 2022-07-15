@@ -65,7 +65,13 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                     # The data point has not been added (e.g., because it did not pass row filters).
                     continue
 
-                max_latency = max(dp["WakeLatency"], max_latency)
+                # Interrupt latency and wake latency are measured one after another, and the order
+                # depends on C-state interrupt order. Whatever is measured first is more accurate,
+                # because of the measurement overhead. Let's use the smaller value for calculating
+                # the max. latency that we print, assuming it was measured first and it is more
+                # accurate and trustworthy.
+                latency = min(dp["WakeLatency"], dp["IntrLatency"])
+                max_latency = max(latency, max_latency)
                 self._progress.update(collected_cnt, max_latency)
                 last_rawdp_time = time.time()
 
