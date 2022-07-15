@@ -1476,17 +1476,17 @@
                         <iframe seamless class="diff-table" src="${this.diff}"></iframe>
                     </div>
                 </sl-tab-panel>
-            `}return H``}render(){return H`
+            `}return H``}getTabTemplate(t,e){const s=`details-panel-${this.title}-${t}`;return H`
+            <sl-tab class="tab" slot="nav" panel=${s}>${t}</sl-tab>
+            <sl-tab-panel class="tab-panel" name=${s}>
+                <div class="text-field-container">
+                    <pre><code>${Ts(this.getFileContents(e),H`Loading...`)}</code></pre>
+                </div>
+            </sl-tab-panel>
+        `}render(){return H`
             <sl-details summary=${this.title}>
                 <sl-tab-group>
-                    ${Object.entries(this.paths).map((t=>{const e=t[0],s=t[1],o=`details-panel-${this.title}-${e}`;return H`
-                            <sl-tab class="tab" slot="nav" panel=${o}>${e}</sl-tab>
-                            <sl-tab-panel class="tab-panel" name=${o}>
-                                <div class="text-field-container">
-                                    <pre><code>${Ts(this.getFileContents(s),H`Loading...`)}</code></pre>
-                                </div>
-                            </sl-tab-panel>
-                        `}))}
+                    ${Object.entries(this.paths).map((t=>this.getTabTemplate(t[0],t[1])))}
                     ${this.getDiffTemplate()}
                 </sl-tab-group>
             </sl-details>

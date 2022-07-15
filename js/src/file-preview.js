@@ -92,22 +92,24 @@ class FilePreview extends LitElement {
         return html``
     }
 
+    getTabTemplate (reportID, path) {
+        const panelID = `details-panel-${this.title}-${reportID}`
+        return html`
+            <sl-tab class="tab" slot="nav" panel=${panelID}>${reportID}</sl-tab>
+            <sl-tab-panel class="tab-panel" name=${panelID}>
+                <div class="text-field-container">
+                    <pre><code>${until(this.getFileContents(path), html`Loading...`)}</code></pre>
+                </div>
+            </sl-tab-panel>
+        `
+    }
+
     render () {
         return html`
             <sl-details summary=${this.title}>
                 <sl-tab-group>
                     ${Object.entries(this.paths).map((pair) => {
-                        const reportID = pair[0]
-                        const path = pair[1]
-                        const panelID = `details-panel-${this.title}-${reportID}`
-                        return html`
-                            <sl-tab class="tab" slot="nav" panel=${panelID}>${reportID}</sl-tab>
-                            <sl-tab-panel class="tab-panel" name=${panelID}>
-                                <div class="text-field-container">
-                                    <pre><code>${until(this.getFileContents(path), html`Loading...`)}</code></pre>
-                                </div>
-                            </sl-tab-panel>
-                        `
+                        return this.getTabTemplate(pair[0], pair[1])
                     })}
                     ${this.getDiffTemplate()}
                 </sl-tab-group>
