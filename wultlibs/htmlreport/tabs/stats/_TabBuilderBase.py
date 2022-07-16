@@ -40,7 +40,7 @@ class TabBuilderBase:
     def _build_ctab(self, name, tab_hierarchy, outdir, plots):
         """
         This is a helper function for 'get_tab()'. Build a container tab according to the
-        'tab_hierarchy' dictionary. If no sub-tabs can be generated then returns 'None'.
+        'tab_hierarchy' dictionary. If no sub-tabs can be generated then raises an 'Error'.
         Arguments are as follows:
          * name - name of the returned container tab.
          * tab_hierarchy - dictionary representation of the desired tab hierarchy. Schema is as
@@ -107,8 +107,7 @@ class TabBuilderBase:
         if sub_tabs:
             return _Tabs.CTabDC(name, sub_tabs)
 
-        # If no sub tabs were generated then return 'None'.
-        return None
+        raise Error(f"unable to generate a container tab for {self.name}.")
 
     def get_tab(self):
         """
