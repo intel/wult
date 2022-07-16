@@ -13,6 +13,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
  - Removed 'wult start --intr-focus' option.
 ### Changed
+ - Changed 'wult report' so that reports will be generated with logs by default.
 
 ## [1.10.10] - 2022-07-15
 ### Fixed
