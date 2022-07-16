@@ -165,21 +165,42 @@ class ReportBase:
 
         for res in self.rsts:
             resdir = res.dirpath
+            dstpath = self.outdir / f"raw-{res.reportid}"
+
+            logs_dir = res.logs_path.name
+            stats_dir  = res.stats_path.name
+
+            # Before either logs or stats have been copied to 'outdir', assume neither will be.
+            logs_dst = resdir / logs_dir
+            stats_dst = resdir / stats_dir
 
             if self.relocatable:
-                dstpath = self.outdir / f"raw-{res.reportid}"
                 self._copy_dir(resdir, dstpath)
 
                 # Use the path of the copied raw results rather than the original.
-                resdir = dstpath
+                logs_dst = dstpath / logs_dir
+                stats_dst = dstpath / stats_dir
+            else:
+                try:
+                    # Copy only the logs across if the report is not 'relocatable'.
+                    dstpath.mkdir(parents=True, exist_ok=True)
+
+                    logs_dst = dstpath / logs_dir
+                    if not logs_dst.exists():
+                        self._copy_dir(resdir / logs_dir, logs_dst)
+
+                except (OSError, Error) as err:
+                    _LOG.warning("unable to copy log files to the generated report: %s", err)
+                    logs_dst = resdir / logs_dir
 
             if res.stats_path.is_dir():
-                stats_paths[res.reportid] = resdir / res.stats_path.name
+                stats_paths[res.reportid] = stats_dst
             else:
                 stats_paths[res.reportid] = None
 
             if res.logs_path.is_dir():
-                logs_paths[res.reportid] = resdir / res.logs_path.name
+                # Stats are always copied to 'dstpath'.
+                logs_paths[res.reportid] = logs_dst
             else:
                 logs_paths[res.reportid] = None
 
