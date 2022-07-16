@@ -132,6 +132,29 @@ class ReportBase:
 
         return intro_tbl_path.relative_to(self.outdir)
 
+    @staticmethod
+    def _copy_dir(srcdir, dstpath):
+        """
+        Helper function for '_copy_raw_data()'. Copy the 'srcdir' to 'dstpath' and set permissions
+        accordingly.
+        """
+
+        try:
+            FSHelpers.copy_dir(srcdir, dstpath, exist_ok=True, ignore=["html-report"])
+            FSHelpers.set_default_perm(dstpath)
+
+            # This block of code helps on SELinux-enabled systems when the output directory
+            # ('self.outdir') is exposed via HTTP. In this case, the output directory should
+            # have the right SELinux attributes (e.g., 'httpd_user_content_t' in Fedora 35).
+            # The raw wult data that we just copied does not have the SELinux attribute, and
+            # won't be accessible via HTTPs. Run 'restorecon' tool to fix up the SELinux
+            # attributes.
+            with LocalProcessManager.LocalProcessManager() as lpman:
+                with contextlib.suppress(ErrorNotFound):
+                    lpman.run_verify(f"restorecon -R {dstpath}")
+        except Error as err:
+            raise Error(f"failed to copy raw data to report directory: {err}") from None
+
     def _copy_raw_data(self):
         """Copy raw test results to the output directory."""
 
@@ -145,21 +168,7 @@ class ReportBase:
 
             if self.relocatable:
                 dstpath = self.outdir / f"raw-{res.reportid}"
-                try:
-                    FSHelpers.copy_dir(resdir, dstpath, exist_ok=True, ignore=["html-report"])
-                    FSHelpers.set_default_perm(dstpath)
-
-                    # This block of code helps on SELinux-enabled systems when the output directory
-                    # ('self.outdir') is exposed via HTTP. In this case, the output directory should
-                    # have the right SELinux attributes (e.g., 'httpd_user_content_t' in Fedora 35).
-                    # The raw wult data that we just copied does not have the SELinux attribute, and
-                    # won't be accessible via HTTPs. Run 'restorecon' tool to fix up the SELinux
-                    # attributes.
-                    with LocalProcessManager.LocalProcessManager() as lpman:
-                        with contextlib.suppress(ErrorNotFound):
-                            lpman.run_verify(f"restorecon -R {dstpath}")
-                except Error as err:
-                    raise Error(f"failed to copy raw data to report directory: {err}") from None
+                self._copy_dir(resdir, dstpath)
 
                 # Use the path of the copied raw results rather than the original.
                 resdir = dstpath
