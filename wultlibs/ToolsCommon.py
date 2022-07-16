@@ -145,7 +145,7 @@ TITLE_DESCR = """The report title description - any text describing this report 
 
 # Description for the '--relocatable' option of the 'report' command.
 RELOCATABLE_DESCR = """Generate a report which contains a copy of the raw test results. With this
-                       option, viewers of the report will be able to browse raw logs and statistics
+                       option, viewers of the report will also be able to browse raw statistics
                        files which are copied across with the raw test results."""
 
 # Description for the '--list-metrics' option of the 'report' and other commands.
