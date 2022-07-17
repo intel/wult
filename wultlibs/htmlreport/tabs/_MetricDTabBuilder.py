@@ -97,18 +97,25 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         return df[base_colname]
 
     @staticmethod
-    def get_base_si_unit(unit):
+    def get_base_si_unit(mdef):
         """
         Plotly will handle SI unit prefixes therefore we should provide only the base unit.
         Several defs list 'us' as the 'short_unit' which includes the prefix so should be
-        reduced to just the base unit 's'.
+        reduced to just the base unit 's'. This method accepts a metric definition dictionary
+        'mdef' and returns a new dictionary with units adjusted accordingly.
         """
+
+        mdef = mdef.copy()
 
         # This is not generic, but today we have to deal only with microseconds, so this is good
         # enough.
-        if unit == "us":
-            return "s"
-        return unit
+        if mdef.get("short_unit") == "us":
+            mdef["short_unit"] = "s"
+
+        if mdef.get("unit") == "microsecond":
+            mdef["unit"] = "second"
+
+        return mdef
 
     def _add_scatter(self, xdef, ydef, hover_defs=None):
         """
@@ -118,11 +125,11 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         """
 
         for mdef in xdef, ydef:
-            # Remove unit prefixes ("u", "m", "k", etc.) so we have the base unit ("s", "m", "Hz").
-            # If no unit is available, set it to 'None'.
-            mdef["short_unit"] = self.get_base_si_unit(mdef.get("short_unit"))
             for sdf in self._reports.values():
                 sdf[mdef["name"]] = self.base_unit(sdf, mdef)
+
+        xdef = self.get_base_si_unit(xdef)
+        ydef = self.get_base_si_unit(ydef)
 
         super()._add_scatter(xdef, ydef, hover_defs)
 
