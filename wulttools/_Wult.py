@@ -177,7 +177,7 @@ def build_arguments_parser():
     text = """The ID of the device to use for measuring the latency. For example, it can be a PCI
               address of the Intel I210 device, or "tdt" for the TSC deadline timer block of the
               CPU. Use the 'scan' command to get supported devices."""
-    subpars.add_argument("devid", help=text)
+    subpars.add_argument("devid", nargs= '?' if '--list-stats' in sys.argv else None, help=text)
 
     #
     # Create parsers for the "report" command.
