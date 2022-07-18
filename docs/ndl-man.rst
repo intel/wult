@@ -402,9 +402,8 @@ value 'none' to disable scatter plots.
 
 **--relocatable**
    Generate a report which contains a copy of the raw test results. With
-   this option, viewers of the report will be able to browse raw logs
-   and statistics files which are copied across with the raw test
-   results.
+   this option, viewers of the report will also be able to browse raw
+   statistics files which are copied across with the raw test results.
 
 **--list-metrics**
    Print the list of the available metrics and exit.

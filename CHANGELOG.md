@@ -3,7 +3,7 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.10.11] - 2022-07-18
 ### Fixed
  - Fix the 'wult start --early-intr' option.
  - Fix 'wult report' generating broken HTML reports for reports with no

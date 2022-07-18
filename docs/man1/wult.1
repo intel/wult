@@ -135,7 +135,7 @@ SSH connect timeout in seconds, default is 8.
 
 .SH COMMAND \fI\,'wult start'\/\fR
 usage: wult start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--exclude EXCLUDE] [--include INCLUDE] [--keep-filtered] [-o OUTDIR] [--reportid REPORTID] [--stats STATS]
-                  [--stats-intervals STATS_INTERVALS] [--list-stats] [-l LDIST] [--cpunum CPUNUM] [--intr-focus] [--tsc-cal-time TSC_CAL_TIME] [--keep-raw-data] [--no-unload] [--early-intr] [--report] [--force]
+                  [--stats-intervals STATS_INTERVALS] [--list-stats] [-l LDIST] [--cpunum CPUNUM] [--tsc-cal-time TSC_CAL_TIME] [--keep-raw-data] [--no-unload] [--early-intr] [--report] [--force]
                   devid
 
 Start measuring and recording C\-state latency.
@@ -290,18 +290,6 @@ distance range is system\-specific.
 The logical CPU number to measure, default is CPU 0.
 
 .TP
-\fB\-\-intr\-focus\fR
-Enable interrupt latency focused measurements. Most C\-states are entered using
-the 'mwait' instruction with interrupts disabled. When there is an interrupt,
-the CPU wakes up and continues running the instructions after the 'mwait'. The
-CPU first runs some housekeeping code, and only then the interrupts get
-enabled and the CPU jumps to the interrupt handler. Wult measures
-'WakeLatency' during the "housekeeping" stage, and 'IntrLatency' is measured
-in the interrupt handler. However, the 'WakeLatency' measurement takes time
-and affects the measured 'IntrLatency'. This option disables 'WakeLatency'
-measurements, which improves 'IntrLatency' measurements' accuracy.
-
-.TP
 \fB\-\-tsc\-cal\-time\fR \fI\,TSC_CAL_TIME\/\fR
 Wult receives raw datapoints from the driver, then processes them, and then
 saves the processed datapoint in the 'datapoints.csv' file. The processing
@@ -345,9 +333,7 @@ the CPU jumps to the interrupt hanlder. Therefore, there is a tiny delay the
 'cpuidle' subsystem adds on top of the hardware C\-state latency. For fast
 C\-states like C1, this tiny delay may even be measurable on some platforms.
 This option allows to measure that delay. It makes wult enable interrupts
-before linux enters the C\-state. This option is generally a crude option along
-with '\-\-intr\-focus'. When this option is used, often it makes sense to use '\-\-
-intr\-focus' at the same time.
+before linux enters the C\-state.
 
 .TP
 \fB\-\-report\fR
@@ -474,8 +460,8 @@ beginning of the resulting HTML report.
 .TP
 \fB\-\-relocatable\fR
 Generate a report which contains a copy of the raw test results. With this
-option, viewers of the report will be able to browse raw logs and statistics
-files which are copied across with the raw test results.
+option, viewers of the report will also be able to browse raw statistics files
+which are copied across with the raw test results.
 
 .TP
 \fB\-\-list\-metrics\fR

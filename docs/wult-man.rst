@@ -168,9 +168,9 @@ usage: wult start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K
 PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--exclude
 EXCLUDE] [--include INCLUDE] [--keep-filtered] [-o OUTDIR] [--reportid
 REPORTID] [--stats STATS] [--stats-intervals STATS_INTERVALS]
-[--list-stats] [-l LDIST] [--cpunum CPUNUM] [--intr-focus]
-[--tsc-cal-time TSC_CAL_TIME] [--keep-raw-data] [--no-unload]
-[--early-intr] [--report] [--force] devid
+[--list-stats] [-l LDIST] [--cpunum CPUNUM] [--tsc-cal-time
+TSC_CAL_TIME] [--keep-raw-data] [--no-unload] [--early-intr] [--report]
+[--force] devid
 
 Start measuring and recording C-state latency.
 
@@ -316,19 +316,6 @@ collected.
 **--cpunum** *CPUNUM*
    The logical CPU number to measure, default is CPU 0.
 
-**--intr-focus**
-   Enable interrupt latency focused measurements. Most C-states are
-   entered using the 'mwait' instruction with interrupts disabled. When
-   there is an interrupt, the CPU wakes up and continues running the
-   instructions after the 'mwait'. The CPU first runs some housekeeping
-   code, and only then the interrupts get enabled and the CPU jumps to
-   the interrupt handler. Wult measures
-
-in the interrupt handler. However, the 'WakeLatency' measurement takes
-time and affects the measured 'IntrLatency'. This option disables
-'WakeLatency' measurements, which improves 'IntrLatency' measurements'
-accuracy.
-
 **--tsc-cal-time** *TSC_CAL_TIME*
    Wult receives raw datapoints from the driver, then processes them,
    and then saves the processed datapoint in the 'datapoints.csv' file.
@@ -373,9 +360,7 @@ accuracy.
 
 C-states like C1, this tiny delay may even be measurable on some
 platforms. This option allows to measure that delay. It makes wult
-enable interrupts before linux enters the C-state. This option is
-generally a crude option along with '--intr-focus'. When this option is
-used, often it makes sense to use '-- intr-focus' at the same time.
+enable interrupts before linux enters the C-state.
 
 **--report**
    Generate an HTML report for collected results (same as calling
@@ -498,9 +483,8 @@ Use value 'none' to disable scatter plots.
 
 **--relocatable**
    Generate a report which contains a copy of the raw test results. With
-   this option, viewers of the report will be able to browse raw logs
-   and statistics files which are copied across with the raw test
-   results.
+   this option, viewers of the report will also be able to browse raw
+   statistics files which are copied across with the raw test results.
 
 **--list-metrics**
    Print the list of the available metrics and exit.
