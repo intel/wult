@@ -194,11 +194,11 @@ def build_arguments_parser():
     subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
                          help=ToolsCommon.EVEN_UP_DP_DESCR)
     subpars.add_argument("-x", "--xaxes",
-                         help=ToolsCommon.XAXES_DESCR % _WultCommon.get_axes('xaxes'))
+                         help=ToolsCommon.XAXES_DESCR % _WultCommon.get_axes("xaxes"))
     subpars.add_argument("-y", "--yaxes",
-                         help=ToolsCommon.YAXES_DESCR % _WultCommon.get_axes('yaxes'))
-    subpars.add_argument("--hist", help=ToolsCommon.HIST_DESCR % _WultCommon.get_axes('hist'))
-    subpars.add_argument("--chist", help=ToolsCommon.CHIST_DESCR % _WultCommon.get_axes('chist'))
+                         help=ToolsCommon.YAXES_DESCR % _WultCommon.get_axes("yaxes"))
+    subpars.add_argument("--hist", help=ToolsCommon.HIST_DESCR % _WultCommon.get_axes("hist"))
+    subpars.add_argument("--chist", help=ToolsCommon.CHIST_DESCR % _WultCommon.get_axes("chist"))
     subpars.add_argument("--reportids", help=ToolsCommon.REPORTIDS_DESCR)
     subpars.add_argument("--title-descr", help=ToolsCommon.TITLE_DESCR)
     subpars.add_argument("--relocatable", action="store_true", help=ToolsCommon.RELOCATABLE_DESCR)
