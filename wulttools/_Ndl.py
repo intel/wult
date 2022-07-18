@@ -24,7 +24,7 @@ from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import Deploy, ToolsCommon, NdlRunner, Devices
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
-from wultlibs.htmlreport import NdlReport
+from wultlibs.htmlreport import NdlReport, NdlReportParams
 
 VERSION = "1.3.14"
 OWN_NAME = "ndl"
@@ -35,7 +35,7 @@ Logging.setup_logger(prefix=OWN_NAME)
 def get_axes_default(name):
     """Returns the default CSV column names for X- or Y-axes, as well as histograms."""
 
-    names = getattr(NdlReport, f"DEFAULT_{name.upper()}")
+    names = getattr(NdlReportParams, f"DEFAULT_{name.upper()}")
     # The result is used for argparse, which does not accept '%' symbols.
     return names.replace("%", "%%")
 
