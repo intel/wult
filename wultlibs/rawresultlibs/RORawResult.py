@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2021 Intel Corporation
+# Copyright (C) 2019-2022 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -333,6 +333,46 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         path = dirpath.joinpath(self.dp_path.name)
         self.df.to_csv(path, index=False, header=True)
+
+    @staticmethod
+    def base_unit(df, mdef):
+        """
+        Convert column represented by metric in 'mdef' with 'microsecond' units to seconds, and
+        return the converted column.
+        """
+
+        colname = mdef["name"]
+
+        # This is not generic, but today we have to deal only with microseconds, so this is good
+        # enough.
+        if mdef.get("unit") != "microsecond":
+            return df[colname]
+
+        base_colname = f"{colname}_base"
+        if base_colname not in df:
+            df.loc[:, base_colname] = df[colname] / 1000000
+        return df[base_colname]
+
+    @staticmethod
+    def get_base_si_unit(mdef):
+        """
+        Plotly will handle SI unit prefixes therefore we should provide only the base unit.
+        Several defs list 'us' as the 'short_unit' which includes the prefix so should be
+        reduced to just the base unit 's'. This method accepts a metric definition dictionary
+        'mdef' and returns a new dictionary with units adjusted accordingly.
+        """
+
+        mdef = mdef.copy()
+
+        # This is not generic, but today we have to deal only with microseconds, so this is good
+        # enough.
+        if mdef.get("short_unit") == "us":
+            mdef["short_unit"] = "s"
+
+        if mdef.get("unit") == "microsecond":
+            mdef["unit"] = "second"
+
+        return mdef
 
     def _get_toolver(self):
         """

@@ -77,46 +77,6 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         except Error as err:
             raise Error("Failed to generate summary table.") from err
 
-    @staticmethod
-    def base_unit(df, mdef):
-        """
-        Convert column represented by metric in 'mdef' with 'microsecond' units to seconds, and
-        return the converted column.
-        """
-
-        colname = mdef["name"]
-
-        # This is not generic, but today we have to deal only with microseconds, so this is good
-        # enough.
-        if mdef.get("unit") != "microsecond":
-            return df[colname]
-
-        base_colname = f"{colname}_base"
-        if base_colname not in df:
-            df.loc[:, base_colname] = df[colname] / 1000000
-        return df[base_colname]
-
-    @staticmethod
-    def get_base_si_unit(mdef):
-        """
-        Plotly will handle SI unit prefixes therefore we should provide only the base unit.
-        Several defs list 'us' as the 'short_unit' which includes the prefix so should be
-        reduced to just the base unit 's'. This method accepts a metric definition dictionary
-        'mdef' and returns a new dictionary with units adjusted accordingly.
-        """
-
-        mdef = mdef.copy()
-
-        # This is not generic, but today we have to deal only with microseconds, so this is good
-        # enough.
-        if mdef.get("short_unit") == "us":
-            mdef["short_unit"] = "s"
-
-        if mdef.get("unit") == "microsecond":
-            mdef["unit"] = "second"
-
-        return mdef
-
     def _add_scatter(self, xdef, ydef, hover_defs=None):
         """
         Create a scatter plot with the metric represented by 'xdef' on the X-axis and the metric
@@ -126,10 +86,10 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         for mdef in xdef, ydef:
             for sdf in self._reports.values():
-                sdf[mdef["name"]] = self.base_unit(sdf, mdef)
+                sdf[mdef["name"]] = self._refres.base_unit(sdf, mdef)
 
-        xdef = self.get_base_si_unit(xdef)
-        ydef = self.get_base_si_unit(ydef)
+        xdef = self._refres.get_base_si_unit(xdef)
+        ydef = self._refres.get_base_si_unit(ydef)
 
         super()._add_scatter(xdef, ydef, hover_defs)
 
@@ -140,7 +100,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         """
 
         for sdf in self._reports.values():
-            sdf[mdef["name"]] = self.base_unit(sdf, mdef)
+            sdf[mdef["name"]] = self._refres.base_unit(sdf, mdef)
 
         if xbins is None:
             # Calculate custom bins.
@@ -150,7 +110,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                 if not res.is_numeric(mdef["name"]):
                     return {"size" : 1}
 
-                xdata = self.base_unit(res.df, mdef)
+                xdata = self._refres.base_unit(res.df, mdef)
                 xmin = min(xmin, xdata.min())
                 xmax = max(xmax, xdata.max())
 
