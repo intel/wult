@@ -224,7 +224,12 @@ class ReportBase:
         objects, such as 'DTabDC'.
         """
 
+        # Scale all results to their base units (i.e. without any SI prefixes) so that 'plotly'
+        # can dynamically scale the units in plots.
+        base_col_suffix = "_base" # Add this suffix to the names of scaled columns.
         for res in self.rsts:
+            res.scale_to_base_units(base_col_suffix)
+
             _LOG.debug("calculate summary functions for '%s'", res.reportid)
             smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
                           "std")
@@ -255,11 +260,14 @@ class ReportBase:
             tab_plots = []
             smry_metrics = []
             for axes in plot_axes:
+                # Only add plots which have the tab metric on one of the axes.
                 if metric in axes:
-                    # Only add plots which have the tab metric on one of the axes.
-                    xdef = self._refres.defs.info[axes[0]]
-                    ydef = self._refres.defs.info[axes[1]]
+                    # Try to add a 'base' metric if there is one, otherwise take the unscaled col.
+                    defs_info = self._refres.defs.info
+                    xdef = defs_info.get(axes[0] + base_col_suffix, defs_info.get(axes[0]))
+                    ydef = defs_info.get(axes[1] + base_col_suffix, defs_info.get(axes[1]))
                     tab_plots.append((xdef, ydef,))
+
                     # Only add metrics shown in the diagrams to the summary table.
                     smry_metrics += axes
 
@@ -277,6 +285,7 @@ class ReportBase:
             if tab_smry_funcs:
                 dtab_bldr.add_smrytbl(tab_smry_funcs, self._refres.defs)
 
+            metric_def = self._refres.defs.info.get(metric + base_col_suffix, metric_def)
             hist_metrics = [metric_def] if metric in self.hist else []
             chist_metrics = [metric_def] if metric in self.chist else []
             dtab_bldr.add_plots(tab_plots, hist_metrics, chist_metrics, hover_defs)

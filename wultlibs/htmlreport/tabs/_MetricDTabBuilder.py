@@ -77,30 +77,8 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         except Error as err:
             raise Error("Failed to generate summary table.") from err
 
-    def _add_scatter(self, xdef, ydef, hover_defs=None):
-        """
-        Create a scatter plot with the metric represented by 'xdef' on the X-axis and the metric
-        represented by 'ydef' on the Y-axis using data from 'rsts' which is provided to the class
-        during initialisation. Arguments are the same as in '_DTabBuilder._add_scatter()'.
-        """
-
-        for mdef in xdef, ydef:
-            for sdf in self._reports.values():
-                sdf[mdef["name"]] = self._refres.base_unit(sdf, mdef)
-
-        xdef = self._refres.get_base_si_unit(xdef)
-        ydef = self._refres.get_base_si_unit(ydef)
-
-        super()._add_scatter(xdef, ydef, hover_defs)
-
     def _add_histogram(self, mdef, cumulative=False, xbins=None):
-        """
-        Extends 'super()._add_histogram()' by addding custom binning and ensuring that the data has
-        been scaled.
-        """
-
-        for sdf in self._reports.values():
-            sdf[mdef["name"]] = self._refres.base_unit(sdf, mdef)
+        """Extends 'super()._add_histogram()' by addding custom binning."""
 
         if xbins is None:
             # Calculate custom bins.
@@ -110,7 +88,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                 if not res.is_numeric(mdef["name"]):
                     return {"size" : 1}
 
-                xdata = self._refres.base_unit(res.df, mdef)
+                xdata = res.df[mdef["name"]]
                 xmin = min(xmin, xdata.min())
                 xmax = max(xmax, xdata.max())
 

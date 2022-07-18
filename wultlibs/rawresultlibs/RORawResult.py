@@ -335,7 +335,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         self.df.to_csv(path, index=False, header=True)
 
     @staticmethod
-    def base_unit(df, mdef):
+    def base_unit(df, mdef, base_col_suffix):
         """
         Convert column represented by metric in 'mdef' with 'microsecond' units to seconds, and
         return the converted column.
@@ -348,13 +348,13 @@ class RORawResult(_RawResultBase.RawResultBase):
         if mdef.get("unit") != "microsecond":
             return df[colname]
 
-        base_colname = f"{colname}_base"
+        base_colname = colname + base_col_suffix
         if base_colname not in df:
             df.loc[:, base_colname] = df[colname] / 1000000
         return df[base_colname]
 
     @staticmethod
-    def get_base_si_unit(mdef):
+    def get_base_si_unit(mdef, base_name_suffix):
         """
         Plotly will handle SI unit prefixes therefore we should provide only the base unit.
         Several defs list 'us' as the 'short_unit' which includes the prefix so should be
@@ -372,7 +372,27 @@ class RORawResult(_RawResultBase.RawResultBase):
         if mdef.get("unit") == "microsecond":
             mdef["unit"] = "second"
 
+        mdef["name"] = mdef["name"] + base_name_suffix
+
         return mdef
+
+    def scale_to_base_units(self, base_col_suffix):
+        """Scale datapoints in 'self.df' so that they no longer have any SI prefix."""
+
+        mdefs_to_add = {}
+        for col in self.defs.info:
+            if col not in self.df:
+                continue
+
+            mdef = self.defs.info[col]
+            base_colname = col + base_col_suffix
+            if base_colname not in self.df:
+                self.base_unit(self.df, mdef, base_col_suffix)
+
+            if base_colname not in self.defs.info:
+                mdefs_to_add[base_colname] = self.get_base_si_unit(mdef, base_col_suffix)
+
+        self.defs.info.update(mdefs_to_add)
 
     def _get_toolver(self):
         """
