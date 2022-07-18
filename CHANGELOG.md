@@ -8,6 +8,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Change 'wult start --list-stats' to not require device id.
 
 ## [1.10.11] - 2022-07-18
 ### Fixed
