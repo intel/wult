@@ -6,12 +6,16 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [Unreleased]
 ### Fixed
  - Fix the 'wult start --early-intr' option.
- - Fixes 'wult report' generating broken HTML reports for reports with no common IPMI metrics.
+ - Fix 'wult report' generating broken HTML reports for reports with no
+   common IPMI metrics.
+ - Fix HTML report screen tearing which appeared after switching tabs many
+   times.
 ### Added
- - Add 'dmesg', 'lspci', 'cpuidle' and 'cpufreq' to the "SysInfo" tabs in HTML reports.
+ - Add 'dmesg', 'lspci', 'cpuidle' and 'cpufreq' to the "SysInfo" tabs in
+   HTML reports.
  - Add buttons to the "SysInfo" tab to open raw files in a separate tab.
 ### Removed
- - Removed 'wult start --intr-focus' option.
+ - Remove the 'wult start --intr-focus' option.
 ### Changed
  - Changed 'wult report' so that reports will be generated with logs by default.
 
