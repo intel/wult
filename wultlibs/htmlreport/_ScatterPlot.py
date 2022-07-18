@@ -117,7 +117,7 @@ class ScatterPlot(_Plot.Plot):
         # Include all the colums in reduced version of the 'pandas.DataFrame'.
         return rawdf.loc[copy_cols]
 
-    def add_df(self, df, name, hover_text=None):
+    def add_df(self, df, name, hover_template=None):
         """
         Overrides the 'add_df' function in the base class 'Plot'. See more details in
         'Plot.add_df()'.
@@ -136,8 +136,9 @@ class ScatterPlot(_Plot.Plot):
 
         marker = {"size" : marker_size, "symbol" : marker_symbol, "opacity" : self.opacity}
         gobj = plotly.graph_objs.Scattergl(x=df[self.xcolname], y=df[self.ycolname],
-                                            text=hover_text, opacity=self.opacity,
-                                            marker=marker, mode="markers", name=name)
+                                           hovertemplate=hover_template, customdata=df,
+                                           opacity=self.opacity, marker=marker, mode="markers",
+                                           name=name)
         self._gobjs.append(gobj)
 
     def __init__(self, xcolname, ycolname, outpath, xaxis_label=None, yaxis_label=None,

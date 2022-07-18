@@ -45,10 +45,10 @@ _LOG = logging.getLogger()
 class Plot:
     """This class provides the common defaults and logic for producing plotly diagrams."""
 
-    def get_hover_text(self, hov_defs, df):
+    def get_hover_template(self, hov_defs, df):
         """
-        Create and return a list containing hover text for every datapoint in the 'pandas.DataFrame'
-        'df'. Arguments are as follows:
+        Create and return a 'plotly'-compatible hover template for the 'pandas.DataFrame' 'df'.
+        Arguments are as follows:
          * hov_defs - a list of definitions dictionaries which represent metrics for which hovertext
                       should be generated.
          * df - the 'pandas.DataFrame' which contains the datapoints to label.
@@ -56,37 +56,39 @@ class Plot:
 
         _LOG.debug("Preparing hover text for '%s vs %s'", self.ycolname, self.xcolname)
 
-        # The loop below creates the following objects.
-        #  o colnames - names of the columns to include to the hover text.
-        #  o fmts - the hover text format.
-        colnames = []
-        fmts = []
-        for mdef in hov_defs:
-            colname = mdef["name"]
-            if colname not in df:
+        hov_defs = {mdef["name"]: mdef for mdef in hov_defs}
+
+        templ = "(%{x}, %{y})<br>"
+        # Units which don't include any SI-prefixes.
+        base_units = {"s"}
+
+        for idx, col in enumerate(df.columns):
+            if col not in hov_defs:
                 continue
-            if colname in (self.xcolname, self.ycolname):
-                # The X and Y datapoint values will be added automatically.
+            if col in (self.xcolname, self.ycolname):
                 continue
 
-            fmt = f"{colname}: {{"
+            # 'customdata' is a way 'plotly' allows other data to be included in each hovertext.
+            # Plot classes will pass 'df' as 'customdata' to 'plotly'.
+            templ += f"{col}: %{{customdata[{idx}]"
+
+            mdef = hov_defs[col]
             if mdef.get("type") == "float":
-                fmt += ":.2f"
-            fmt += "}"
+                # If the data uses a unit with no SI-prefixes, let plotly scale it accordingly.
+                if mdef.get("short_unit") in base_units:
+                    # "s" formatting is decimal notation with an SI prefix, rounded to significant
+                    # digits. This should apply to floats which aren't represented as a percentage.
+                    templ += ":.3s"
+                else:
+                    templ += ":.2f"
+            templ += "}"
+
             unit = mdef.get("short_unit")
-            if unit and unit not in colname:
-                fmt += f"{unit}"
+            if unit and unit != "%":
+                templ += str(unit)
+            templ += "<br>"
 
-            colnames.append(colname)
-            fmts.append(fmt)
-
-        text = []
-        fmt = "<br>".join(fmts)
-
-        for row in df[colnames].itertuples(index=False):
-            text.append(fmt.format(*row))
-
-        return text
+        return templ
 
     @staticmethod
     def _is_numeric_col(df, colname):
@@ -101,16 +103,16 @@ class Plot:
         # boolean, in which case it returns False.
         return is_numeric_dtype(df[colname]) and df[colname].dtype != 'bool'
 
-    def add_df(self, df, name, hover_text=None):
+    def add_df(self, df, name, hover_template=None):
         """
         Add a single 'pandas.DataFrame' of data to the plot.
          * df - 'pandas.DataFrame' containing the data to be plotted for that test run.
          * name - plots with multiple sets of data will include a legend indicating which plot
                   points are from which set of data. This 'name' parameter will be used to label
                   the data given when this function is called.
-         * hover_text - hover text elements associated with each (x,y) pair. If a single string, the
-                        same string appears over all the data points. If an array of string, the
-                        items are mapped in order to the this trace's (x,y) coordinates.
+         * hover_template - a 'plotly'-compatible hover text template for each datapoint. May use
+                            the 'customdata' attribute. This method will provide 'df' to plotly as
+                            'customdata'.
         """
 
         raise NotImplementedError()

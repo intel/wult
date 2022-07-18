@@ -95,7 +95,7 @@ class DTabBuilder:
         for reportid, df in self._reports.items():
             reduced_df = s.reduce_df_density(df, reportid)
             if hover_defs is not None:
-                hovertext = s.get_hover_text(hover_defs[reportid], reduced_df)
+                hovertext = s.get_hover_template(hover_defs[reportid], reduced_df)
             else:
                 hovertext = None
             s.add_df(reduced_df, reportid, hovertext)

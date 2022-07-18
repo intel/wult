@@ -18,7 +18,7 @@ from wultlibs.htmlreport import _Plot
 class Histogram(_Plot.Plot):
     """This class provides the functionality to generate plotly histograms."""
 
-    def add_df(self, df, name, hover_text=None):
+    def add_df(self, df, name, hover_template=None):
         """
         Overrides the 'add_df' function in the base class 'Plot'. See more details in
         'Plot.add_df()'.
@@ -31,7 +31,8 @@ class Histogram(_Plot.Plot):
                                                     histnorm="percent", opacity=self.opacity)
             else:
                 gobj = plotly.graph_objs.Histogram(x=df[self.xcolname], name=name, xbins=self.xbins,
-                                                   opacity=self.opacity, text=hover_text)
+                                                   opacity=self.opacity,
+                                                   hovertemplate=hover_template, customdata=df)
         except Exception as err:
             raise Error(f"failed to create histogram 'count-vs-{self.xcolname}':\n"
                         f"{err}") from err
