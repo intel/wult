@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2021 Intel Corporation
+# Copyright (C) 2019-2022 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -10,7 +10,6 @@
 
 import sys
 import logging
-import contextlib
 from pathlib import Path
 
 try:
@@ -19,12 +18,11 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
 
-from pepclibs.helperlibs import Logging, ArgParse, Trivial
+from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import Deploy, ToolsCommon, NdlRunner, Devices
+from wultlibs import Deploy, ToolsCommon
 from wultlibs.helperlibs import Human
-from wultlibs.rawresultlibs import WORawResult
-from wultlibs.htmlreport import NdlReport, NdlReportParams
+from wultlibs.htmlreport import NdlReportParams
 
 VERSION = "1.3.14"
 OWN_NAME = "ndl"
@@ -201,106 +199,30 @@ def parse_arguments():
 
     args = parser.parse_args()
     args.toolname = OWN_NAME
+    args.toolver = VERSION
 
     return args
 
 def deploy_command(args):
-    """Implements the 'deploy' command."""
+    """Implements the 'ndl deploy' command."""
 
-    with ToolsCommon.get_pman(args) as pman, \
-         Deploy.Deploy(OWN_NAME, pman=pman, ksrc=args.ksrc, lbuild=args.lbuild,
-                       debug=args.debug) as depl:
-        depl.deploy()
+    from wulttools import _NdlDeploy # pylint: disable=import-outside-toplevel
+
+    _NdlDeploy.deploy_command(args)
 
 def start_command(args):
-    """Implements the 'start' command."""
+    """Implements the 'ndl start' command."""
 
-    with contextlib.ExitStack() as stack:
-        pman = ToolsCommon.get_pman(args)
-        stack.enter_context(pman)
+    from wulttools import _NdlStart # pylint: disable=import-outside-toplevel
 
-        args.reportid = ToolsCommon.start_command_reportid(args, pman)
-
-        if not args.outdir:
-            args.outdir = Path(f"./{args.reportid}")
-        if args.tlimit:
-            args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
-
-        args.ldist = ToolsCommon.parse_ldist(args.ldist)
-
-        if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
-            raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
-        args.dpcnt = int(args.dpcnt)
-
-        res = WORawResult.NdlWORawResult(args.reportid, args.outdir, VERSION)
-        stack.enter_context(res)
-
-        ToolsCommon.setup_stdout_logging(OWN_NAME, res.logs_path)
-        ToolsCommon.set_filters(args, res)
-
-        dev = Devices.GetDevice(OWN_NAME, args.devid, pman, dmesg=True)
-        stack.enter_context(dev)
-
-        with Deploy.Deploy(OWN_NAME, pman=pman, debug=args.debug) as depl:
-            if depl.is_deploy_needed(dev):
-                msg = f"'{OWN_NAME}' helpers and/or drivers are not up-to-date{pman.hostmsg}, " \
-                      f"please run: {OWN_NAME} deploy"
-                if pman.is_remote:
-                    msg += f" -H {pman.hostname}"
-                LOG.warning(msg)
-
-        ToolsCommon.start_command_check_network(args, pman, dev.netif)
-
-        info = dev.netif.get_pci_info()
-        if info.get("aspm_enabled"):
-            LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "
-                       "the measured latency.", args.devid)
-
-        runner = NdlRunner.NdlRunner(pman, dev, res, ldist=args.ldist)
-        stack.enter_context(runner)
-
-        runner.prepare()
-        runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit)
-
-    if not args.report:
-        return
-
-    rsts = ToolsCommon.open_raw_results([args.outdir], args.toolname)
-    rep = NdlReport.NdlReport(rsts, args.outdir, title_descr=args.reportid)
-    rep.relocatable = False
-    rep.generate()
+    _NdlStart.start_command(args)
 
 def report_command(args):
-    """Implements the 'report' command."""
+    """Implements the 'ndl report' command."""
 
-    # Split the comma-separated lists.
-    for name in ("xaxes", "yaxes", "hist", "chist"):
-        val = getattr(args, name)
-        if val:
-            if val == "none":
-                setattr(args, name, "")
-            else:
-                setattr(args, name, Trivial.split_csv_line(val))
+    from wulttools import _NdlReport # pylint: disable=import-outside-toplevel
 
-    rsts = ToolsCommon.open_raw_results(args.respaths, args.toolname, reportids=args.reportids)
-
-    if args.list_metrics:
-        ToolsCommon.list_result_metrics(rsts)
-        return
-
-    for res in rsts:
-        ToolsCommon.apply_filters(args, res)
-
-    if args.even_dpcnt:
-        ToolsCommon.even_up_dpcnt(rsts)
-
-    args.outdir = ToolsCommon.report_command_outdir(args, rsts)
-
-    rep = NdlReport.NdlReport(rsts, args.outdir, title_descr=args.title_descr,
-                                      xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
-                                      chist=args.chist)
-    rep.relocatable = args.relocatable
-    rep.generate()
+    _NdlReport.report_command(args)
 
 def main():
     """Script entry point."""
