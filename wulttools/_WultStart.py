@@ -61,7 +61,7 @@ def check_settings(pman, dev, csinfo, cpunum, devid):
         if enabled_cstates in [["C1"], ["C1_ACPI"]]:
             if powerctl.is_cpu_feature_enabled("c1e_autopromote", cpunum):
                 LOG.notice("C1E autopromote is enabled, all %s requests are converted to C1E.",
-                            enabled_cstates[0])
+                           enabled_cstates[0])
 
 def list_stats():
     """Print information about statistics."""
@@ -106,7 +106,7 @@ def start_command(args):
         args.dpcnt = int(args.dpcnt)
 
         args.tsc_cal_time = Human.parse_duration(args.tsc_cal_time, default_unit="s",
-                                                name="TSC calculation time")
+                                                 name="TSC calculation time")
 
         cpuinfo = CPUInfo.CPUInfo(pman=pman)
         stack.enter_context(cpuinfo)

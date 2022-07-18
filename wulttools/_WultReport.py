@@ -25,7 +25,7 @@ def report_command(args):
                         "mutually exclusive, use either '--size' or the other options, not both")
         if args.report_size.lower() not in ("small", "medium", "large"):
             raise Error(f"bad '--size' value '{args.report_size}', use one of: small, medium, "
-                         "large")
+                        "large")
 
     # Split the comma-separated lists.
     for name in ("xaxes", "yaxes", "hist", "chist"):
@@ -57,8 +57,8 @@ def report_command(args):
     args.outdir = ToolsCommon.report_command_outdir(args, rsts)
 
     rep = WultReport.WultReport(rsts, args.outdir, title_descr=args.title_descr,
-                                        xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
-                                        chist=args.chist)
+                                xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
+                                chist=args.chist)
     rep.relocatable = args.relocatable
     rep.set_hover_metrics(_WultCommon.HOVER_METRIC_REGEXS)
     rep.generate()
