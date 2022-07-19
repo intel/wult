@@ -260,7 +260,7 @@ class NetIface(ClassHelpers.SimpleCloseContext):
 
         msg = ""
         if _looks_like_ip(self._ifid):
-            msg = "\nIt looks like you specified an IP address. Please, specify name of network " \
+            msg = "\nIt looks like you specified an IP address. Please, specify a network " \
                    "interface instead."
 
         raise ErrorNotFound(f"network interface '{self._ifid}' was not found{self._pman.hostmsg}."
