@@ -258,18 +258,13 @@ class NetIface(ClassHelpers.SimpleCloseContext):
         'self._ifid' was not found.
         """
 
-        msg1 = msg2 = ""
+        msg = ""
         if _looks_like_ip(self._ifid):
-            msg1 = "\nIt looks like you specified an IP address. Please, specify name of network " \
+            msg = "\nIt looks like you specified an IP address. Please, specify name of network " \
                    "interface instead."
-        try:
-            msg2 = ", ".join(_get_ifnames(self._pman))
-            msg2 = f"\nHere is the list of network iterfaces available{self._pman.hostmsg}: {msg2}."
-        except Error:
-            pass
 
         raise ErrorNotFound(f"network interface '{self._ifid}' was not found{self._pman.hostmsg}."
-                            f"{msg1}{msg2}")
+                            f"{msg}")
 
     def _hw_addr_to_ifname(self):
         """

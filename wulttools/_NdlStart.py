@@ -15,7 +15,7 @@ import contextlib
 from pathlib import Path
 
 from pepclibs.helperlibs import Trivial
-from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Deploy, ToolsCommon, NdlRunner, Devices
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
@@ -48,7 +48,13 @@ def start_command(args):
         ToolsCommon.setup_stdout_logging(args.toolname, res.logs_path)
         ToolsCommon.set_filters(args, res)
 
-        dev = Devices.GetDevice(args.toolname, args.devid, pman, dmesg=True)
+        try:
+            dev = Devices.GetDevice(args.toolname, args.devid, pman, dmesg=True)
+        except ErrorNotFound as err:
+            msg = f"{err}\nTo list all usable network interfaces, please run: ndl scan"
+            if pman.is_remote:
+                msg += f" -H {pman.hostname}"
+            raise ErrorNotFound(msg) from err
         stack.enter_context(dev)
 
         with Deploy.Deploy(args.toolname, pman=pman, debug=args.debug) as depl:
