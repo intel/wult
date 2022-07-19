@@ -19,12 +19,11 @@ import contextlib
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, LocalProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from statscollectlibs.htmlreport.tabs import _ACPowerTabBuilder
+from statscollectlibs.htmlreport.tabs import _ACPowerTabBuilder, _IPMITabBuilder
 from wultlibs import Deploy
 from wultlibs.helperlibs import FSHelpers
 from wultlibs.htmlreport import _IntroTable
 from wultlibs.htmlreport.tabs import _MetricDTabBuilder, _Tabs
-from wultlibs.htmlreport.tabs.stats import _IPMITabBuilder
 from wultlibs.htmlreport.tabs.stats.sysinfo import (_CPUIdleTabBuilder, _CPUFreqTabBuilder,
     _DmesgTabBuilder, _DMIDecodeTabBuilder, _LspciTabBuilder, _MiscTabBuilder, _PepcTabBuilder)
 from wultlibs.htmlreport.tabs.stats.turbostat import _TurbostatTabBuilder
