@@ -15,9 +15,9 @@ import pandas
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs import IPMIDefs
+from statscollectlibs.htmlreport.tabs import _TabBuilderBase
 from wultlibs import _DefsBase
 from wultlibs.parsers import IPMIParser
-from wultlibs.htmlreport.tabs.stats import _TabBuilderBase
 
 class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
     """
