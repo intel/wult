@@ -12,9 +12,9 @@ This module provides the capability of populating the AC Power statistics tab.
 
 import pandas
 from pepclibs.helperlibs.Exceptions import Error
+from statscollectlibs import ACPowerDefs
 from wultlibs.htmlreport.tabs import _DTabBuilder
 from wultlibs.htmlreport.tabs.stats import _TabBuilderBase
-from wultlibs import ACPowerDefs
 
 class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
     """
