@@ -335,10 +335,10 @@ class RORawResult(_RawResultBase.RawResultBase):
         self.df.to_csv(path, index=False, header=True)
 
     @staticmethod
-    def base_unit(df, mdef, base_col_suffix):
+    def _convert_col_to_base_unit(df, mdef, base_col_suffix):
         """
-        Convert column represented by metric in 'mdef' with 'microsecond' units to seconds, and
-        return the converted column.
+        Convert the column of 'df' represented by the metric 'mdef' with "microsecond" units to
+        seconds, and return the converted column.
         """
 
         colname = mdef["name"]
@@ -354,12 +354,12 @@ class RORawResult(_RawResultBase.RawResultBase):
         return df[base_colname]
 
     @staticmethod
-    def get_base_si_unit(mdef, base_name_suffix):
+    def _convert_mdef_to_base_unit(mdef, base_name_suffix):
         """
-        Plotly will handle SI unit prefixes therefore we should provide only the base unit.
-        Several defs list 'us' as the 'short_unit' which includes the prefix so should be
-        reduced to just the base unit 's'. This method accepts a metric definition dictionary
-        'mdef' and returns a new dictionary with units adjusted accordingly.
+        Several defs list "us" as the 'short_unit' which includes the prefix, "u", this method will
+        convert that to the base unit 's'. This method accepts a metric definition dictionary 'mdef'
+        and returns a new dictionary with both the "short_unit" and "unit" fields adjusted
+        accordingly.
         """
 
         mdef = mdef.copy()
@@ -387,10 +387,10 @@ class RORawResult(_RawResultBase.RawResultBase):
             mdef = self.defs.info[col]
             base_colname = col + base_col_suffix
             if base_colname not in self.df:
-                self.base_unit(self.df, mdef, base_col_suffix)
+                self._convert_col_to_base_unit(self.df, mdef, base_col_suffix)
 
             if base_colname not in self.defs.info:
-                mdefs_to_add[base_colname] = self.get_base_si_unit(mdef, base_col_suffix)
+                mdefs_to_add[base_colname] = self._convert_mdef_to_base_unit(mdef, base_col_suffix)
 
         self.defs.info.update(mdefs_to_add)
 
