@@ -190,10 +190,10 @@ class TabBuilderBase:
         self._outdir = outdir / _DefsBase.get_fsname(self.name)
         self._defs = defs
 
+        self._stats_files = stats_files
+        self._read_stats(stats_paths)
+
         try:
             self._outdir.mkdir(parents=True, exist_ok=True)
         except OSError as err:
             raise Error(f"failed to create directory '{self._outdir}': {err}") from None
-
-        self._stats_files = stats_files
-        self._read_stats(stats_paths)
