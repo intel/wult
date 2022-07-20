@@ -45,7 +45,7 @@ _LOG = logging.getLogger()
 class Plot:
     """This class provides the common defaults and logic for producing plotly diagrams."""
 
-    def get_hover_template(self, hov_defs, df):
+    def create_hover_template(self, hov_defs, df):
         """
         Create and return a 'plotly'-compatible hover template for the 'pandas.DataFrame' 'df'.
         Arguments are as follows:
