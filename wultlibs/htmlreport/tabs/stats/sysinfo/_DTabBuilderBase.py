@@ -15,7 +15,7 @@ This module provides the capability of populating a "SysInfo" data tab.
 import logging
 from difflib import HtmlDiff
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.helperlibs import FSHelpers
+from wultlibs.helperlibs import FSHelpers, Human
 from wultlibs.htmlreport.tabs import _Tabs
 
 _LOG = logging.getLogger()
@@ -27,6 +27,29 @@ class DTabBuilderBase:
     Public method overview:
      * get_tab() - returns a '_Tabs.DTabDC' instance which represents system information.
     """
+
+    @staticmethod
+    def _reasonable_file_size(fp, name):
+        """
+        Helper function for '_add_fpreviews()'. Returns 'True' if the file at path 'fp' is 2MiB or
+        smaller, otherwise returns 'False'. Also returns 'False' if the size could not be verified.
+        Arguments are as follows:
+         * fp - path of the file to check the size of.
+         * name - name of the file-preview being generated.
+        """
+
+        try:
+            fsize = fp.stat().st_size
+        except OSError as err:
+            _LOG.warning("skipping file preview '%s': unable to check the size of file '%s' before "
+                         "copying:\n%s", name, fp, err)
+            return False
+
+        if fsize > 2*1024*1024:
+            _LOG.warning("skipping file preview '%s': the file '%s' (%s) is larger than 2MiB.",
+                         name, fp, Human.bytesize(fsize))
+            return False
+        return True
 
     def _generate_diff(self, paths, fp):
         """
@@ -84,6 +107,9 @@ class DTabBuilderBase:
 
                 # If the file is not in 'outdir' it should be copied to 'outdir'.
                 if self.outdir not in src_path.parents:
+                    if not self._reasonable_file_size(src_path, name):
+                        break
+
                     dst_dir = self.outdir / reportid
 
                     try:
