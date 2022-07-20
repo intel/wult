@@ -14,7 +14,7 @@ import pandas
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs import ACPowerDefs
 from statscollectlibs.htmlreport.tabs import _TabBuilderBase
-from wultlibs.htmlreport.tabs import _DTabBuilder
+from statscollectlibs.htmlreport.tabs import _DTabBuilder
 
 class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
     """
