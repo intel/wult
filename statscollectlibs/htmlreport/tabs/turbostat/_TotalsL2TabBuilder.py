@@ -13,7 +13,7 @@ Please, refer to '_TurbostatL2TabBuilderBase' for more information about level 2
 """
 
 import pandas
-from wultlibs.htmlreport.tabs.stats.turbostat import _TurbostatL2TabBuilderBase
+from statscollectlibs.htmlreport.tabs.turbostat import _TurbostatL2TabBuilderBase
 
 class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
     """
