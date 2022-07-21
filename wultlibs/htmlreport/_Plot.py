@@ -65,14 +65,16 @@ class Plot:
         for idx, col in enumerate(df.columns):
             if col not in hov_defs:
                 continue
-            if col in (self.xcolname, self.ycolname):
+
+            mdef = hov_defs[col]
+            # Metrics on the X-axis and Y-axis will be included at the beginning of the hovertext.
+            if (mdef["title"] == self.xaxis_label) or (mdef["title"] == self.yaxis_label):
                 continue
 
             # 'customdata' is a way 'plotly' allows other data to be included in each hovertext.
             # Plot classes will pass 'df' as 'customdata' to 'plotly'.
             templ += f"{col}: %{{customdata[{idx}]"
 
-            mdef = hov_defs[col]
             if mdef.get("type") == "float":
                 # If the data uses a unit with no SI-prefixes, let plotly scale it accordingly.
                 if mdef.get("short_unit") in base_units:
