@@ -147,10 +147,11 @@ class DTabBuilder:
                     _LOG.info("Skipping %s: not all results have data for '%s'.", plotname, mname)
                     return True
 
-            # Check if there is a constant value for all readings.
-            if all(sdf[mname].max() == sdf[mname].min() for sdf in self._reports.values()):
+            # Check if there is a constant value for all datapoints.
+            sample_dp = list(self._reports.values())[0][mname].max()
+            if all((sdf[mname] == sample_dp).all() for sdf in self._reports.values()):
                 _LOG.info("Skipping %s: every datapoint in all results is the same, '%s' is always "
-                          "'%s'.", plotname, mname, list(self._reports.values())[0][mname].max())
+                          "'%s'.", plotname, mname, sample_dp)
                 return True
 
         return False
