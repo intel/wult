@@ -147,12 +147,6 @@ class DTabBuilder:
                     _LOG.info("Skipping %s: not all results have data for '%s'.", plotname, mname)
                     return True
 
-                # Check if all 'pandas.DataFrame's contain non-zero data for 'metric'.
-                if not sdf[mname].any():
-                    _LOG.info("Skipping %s: no non-zero datapoints were found for '%s'.",
-                              plotname, mname)
-                    return True
-
             # Check if there is a constant value for all readings.
             if all(sdf[mname].max() == sdf[mname].min() for sdf in self._reports.values()):
                 _LOG.info("Skipping %s: every datapoint in all results is the same, '%s' is always "
