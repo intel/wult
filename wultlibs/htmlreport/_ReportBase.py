@@ -21,13 +21,13 @@ from pepclibs.helperlibs import Trivial, LocalProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.htmlreport.tabs import _ACPowerTabBuilder, _IPMITabBuilder
 from statscollectlibs.htmlreport.tabs.sysinfo import (_CPUFreqTabBuilder, _CPUIdleTabBuilder,
-    _DMIDecodeTabBuilder, _DmesgTabBuilder, _LspciTabBuilder)
+    _DMIDecodeTabBuilder, _DmesgTabBuilder, _LspciTabBuilder, _MiscTabBuilder)
 from statscollectlibs.htmlreport.tabs.turbostat import _TurbostatTabBuilder
 from wultlibs import Deploy
 from wultlibs.helperlibs import FSHelpers
 from wultlibs.htmlreport import _IntroTable
 from wultlibs.htmlreport.tabs import _MetricDTabBuilder, _Tabs
-from wultlibs.htmlreport.tabs.stats.sysinfo import _MiscTabBuilder, _PepcTabBuilder
+from wultlibs.htmlreport.tabs.stats.sysinfo import _PepcTabBuilder
 
 _LOG = logging.getLogger()
 
