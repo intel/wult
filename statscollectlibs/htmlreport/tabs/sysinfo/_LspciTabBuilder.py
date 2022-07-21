@@ -11,7 +11,7 @@ This module provides the capability of populating a "lspci" SysInfo tab to visua
 collected with 'lspci'.
 """
 
-from wultlibs.htmlreport.tabs.stats.sysinfo import _DTabBuilderBase
+from statscollectlibs.htmlreport.tabs.sysinfo import _DTabBuilderBase
 
 _FILES = {
     "lspci": "sysinfo/lspci.raw.txt",

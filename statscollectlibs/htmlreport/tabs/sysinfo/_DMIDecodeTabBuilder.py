@@ -11,7 +11,7 @@ This module provides the capability of populating a "dmidecode" SysInfo tab to v
 collected with 'dmidecode'.
 """
 
-from wultlibs.htmlreport.tabs.stats.sysinfo import _DTabBuilderBase
+from statscollectlibs.htmlreport.tabs.sysinfo import _DTabBuilderBase
 
 _FILES = {
     "dmidecode": "sysinfo/dmidecode.raw.txt",

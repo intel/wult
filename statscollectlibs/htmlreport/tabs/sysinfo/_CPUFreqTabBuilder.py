@@ -11,7 +11,7 @@ This module provides the capability of populating a "cpufreq" SysInfo tab to vis
 collected from '/sys/devices/system/cpu/cpufreq'.
 """
 
-from wultlibs.htmlreport.tabs.stats.sysinfo import _DTabBuilderBase
+from statscollectlibs.htmlreport.tabs.sysinfo import _DTabBuilderBase
 
 _FILES = {
     "cpufreq": "sysinfo/sys-cpufreq.after.raw.txt"

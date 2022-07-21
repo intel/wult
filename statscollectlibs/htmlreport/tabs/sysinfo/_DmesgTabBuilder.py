@@ -11,7 +11,7 @@ This module provides the capability of populating a "dmesg" SysInfo tab to visua
 collected with 'dmesg'.
 """
 
-from wultlibs.htmlreport.tabs.stats.sysinfo import _DTabBuilderBase
+from statscollectlibs.htmlreport.tabs.sysinfo import _DTabBuilderBase
 
 _FILES = {
     "dmesg": "sysinfo/dmesg.after.raw.txt",
