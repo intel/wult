@@ -134,7 +134,7 @@ class DTabBuilder:
 
         if ydef is not None:
             mdefs = [xdef, ydef]
-            plotname = f"{plotname} '{xdef['name']} vs {ydef['name']}'"
+            plotname = f"{plotname} '{ydef['name']} vs {xdef['name']}'"
         else:
             mdefs = [xdef]
             plotname = f"{plotname} '{xdef['name']}'"
