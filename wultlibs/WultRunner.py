@@ -14,7 +14,7 @@ saves the results.
 import time
 import logging
 import contextlib
-from pathlib import Path
+from pepclibs import CStates
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from pepclibs.helperlibs import ClassHelpers, LocalProcessManager
 from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess, WultStatsCollect, Deploy
@@ -198,13 +198,12 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                                                              remote_scpath=remote_scpath)
             self._stcoll.apply_stconf(self._stconf)
 
-    def _validate_sut(self):
+    def _validate_sut(self, cpunum):
         """Check the SUT to insure we have everything to measure it."""
 
         # Make sure a supported idle driver is in use.
-        path = Path("/sys/devices/system/cpu/cpuidle/current_driver")
-        with self._pman.open(path, "r") as fobj:
-            drvname = fobj.read().strip()
+        with CStates.CStates(pman=self._pman, rcsobj=self._rcsobj) as csobj:
+            drvname = csobj.get_cpu_prop("idle_driver", cpunum)["idle_driver"]["idle_driver"]
 
         if drvname == "none":
             errmsg = f"no idle driver in use{self._pman.hostmsg}"
@@ -247,6 +246,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._ldist = ldist
         self._early_intr = early_intr
         self._stconf = stconf
+        self._rcsobj = rcsobj
 
         self._dpp = None
         self._prov = None
@@ -258,7 +258,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             raise Error(f"unsupported non-wult test result at {res.dirpath}.\nPlease, provide a "
                         f"wult test result.")
 
-        self._validate_sut()
+        self._validate_sut(res.cpunum)
 
         if self._dev.drvname == "wult_tdt" and self._early_intr:
             raise Error("the 'tdt' driver does not support the early interrupt feature")
@@ -278,5 +278,5 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         """Stop the measurements."""
 
         close_attrs = ("_dpp", "_prov", "_stcoll")
-        unref_attrs = ("_res", "_dev", "_pman")
+        unref_attrs = ("_res", "_dev", "_pman", "_rcsobj")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)
