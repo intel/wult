@@ -14,7 +14,7 @@ This module provides the capability of populating a "SysInfo" data tab.
 
 import logging
 from difflib import HtmlDiff
-from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error, ErrorExists
 from wultlibs.helperlibs import FSHelpers, Human
 from wultlibs.htmlreport.tabs import _Tabs
 
@@ -119,7 +119,11 @@ class DTabBuilderBase:
                                     f"{err}") from None
 
                     dst_path = dst_dir / fp
-                    FSHelpers.move_copy_link(src_path, dst_path, "copy")
+                    try:
+                        FSHelpers.move_copy_link(src_path, dst_path, "copy")
+                    except ErrorExists as err:
+                        _LOG.debug("raw 'SysInfo' file '%s' already in output dir: will not "
+                                   "replace.", dst_path)
                 else:
                     dst_path = src_path
 
