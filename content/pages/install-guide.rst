@@ -19,7 +19,7 @@ privileges. Do not use it on a production system, use it only in a lab environme
 *Wult* installation procedure will vary a little bit depending on whether you prefer the local or
 remote usage models (`details here <user-guide.html#usage-models>`_).
 
-1 Standard case (local usage model)
+1 Local usage model (standard case)
 ===================================
 
 In the (`local usage model <user-guide.html#local-usage-model>`_):
@@ -34,8 +34,8 @@ In the (`local usage model <user-guide.html#local-usage-model>`_):
 Before describing the installation steps, here is a how you update an existing wult
 installation. ::
 
- pip3 install --user --upgrade git+https://github.com/intel/pepc.git@release
- pip3 install --user --upgrade git+https://github.com/intel/wult.git@release
+ sudo pip3 install --upgrade git+https://github.com/intel/pepc.git@release
+ sudo pip3 install --upgrade git+https://github.com/intel/wult.git@release
  sudo wult deploy
 
 1.2 SUT root access
@@ -110,23 +110,20 @@ Here are the required OS packages.
 #. The `git` package is required to make it possible installing *wult* python projects directly from
    their git repository (see below). Otherwise it is not necessary.
 
-1.4 Install pepc
-----------------
-
-*Wult* requires another Python3 project to be installed: `pepc <https://github.com/intel/pepc>`.
-The `pepc` installation steps are provided in the next section.
-
-1.5 Install wult
-----------------
+1.4 Install wult and pepc
+-------------------------
 
 `Wult` and `pepc` are python version 3 projects, and we recommend using the `pip` tool for
 installing them. Here is how to install them directly from the `release` branch of their git
 repositories: ::
 
- pip3 install --user --upgrade git+https://github.com/intel/pepc.git@release
- pip3 install --user --upgrade git+https://github.com/intel/wult.git@release
+ sudo pip3 install --upgrade git+https://github.com/intel/pepc.git@release
+ sudo pip3 install --upgrade git+https://github.com/intel/wult.git@release
 
-1.6 Deploy wult drivers
+Note, we do not suggest using the `--user` option, because in local usage model `wult` has to
+be run with superuser (root) permissions, and `--user` will make this problematic.
+
+1.5 Deploy wult drivers
 -----------------------
 
 The final step is to build and deploy wult drivers. Run this command on the SUT as "root". ::
@@ -138,7 +135,7 @@ The final step is to build and deploy wult drivers. Run this command on the SUT 
 The drivers are installed only for the currently running kernel. If you reboot the SUT to a
 different kernel, you have to re-run `wult deploy`.
 
-1.7 Tab completions
+1.6 Tab completions
 -------------------
 
 `Wult` and `pepc` tools have bash tab completions support, but this will only work if you have
@@ -151,14 +148,16 @@ You can put these lines to your `.bashrc` file in order to have `wult` and `pepc
 enabled by default.
 
 
-2 Non-standard case (remote usage model)
-========================================
+2 Remote usage model
+====================
 
 In the (`remote usage model <user-guide.html#remote-usage-model>`_):
 
 * *wult* is installed on the controller
 * drivers are deployed to the SUT
 * *wult* measures the SUT and stores the results on the controller
+
+.. _remoteusage-update:
 
 2.1 Update
 ----------
@@ -168,7 +167,7 @@ installation. Run the following commands on the controller::
 
  pip3 install --user --upgrade git+https://github.com/intel/pepc.git@release
  pip3 install --user --upgrade git+https://github.com/intel/wult.git@release
- sudo wult deploy -H SUTNAME
+ wult deploy -H SUTNAME
 
 .. _passwordless-ssh:
 
@@ -257,18 +256,19 @@ Controller: ::
 
 Same as the `local usage model notes <#kernel-sources>`_.
 
-2.4 Install pepc and wult
+2.4 Install wult and pepc
 -------------------------
 
-Install them on the controller, same way as `in the local usage model case <#install-pepc-wult>`_.
+Install them on the controller - `same way as update <#_remoteusage-update>`_, but without
+the `--upgrade` option.
 
-1.6 Deploy wult drivers
+2.5 Deploy wult drivers
 -----------------------
 
 Make sure that `passwordless <#passwordless-ssh>`_ SUT access works, then run the following command
 on the controller: ::
 
- sudo wult deploy -H SUTNAME
+ wult deploy -H SUTNAME
 
 **Important note**
 
