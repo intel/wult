@@ -553,8 +553,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             if "IntrLatencyRaw" not in dp:
                 dp["IntrLatencyRaw"] = dp["IntrLatency"]
             dp["IntrLatency"] -= overhead
-
-        if not dp["IntrOff"]:
+        else:
             # 1. When the CPU exits the C-state, it runs the interrupt handler before
             #    'after_idle()'.
             # 2. The interrupt latency is measured in the interrupt handler. This introduces
