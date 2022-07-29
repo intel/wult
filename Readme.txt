@@ -4,13 +4,10 @@ Dependencies
 
 pip3 install --upgrade --user .
 
-2. Clone/update pelican-themes:
+2. Clone/update pelican-chameleon:
 
-git clone --recursive https://github.com/getpelican/pelican-themes pelican-themes -j 10
+git clone https://github.com/yuex/pelican-chameleon.git
 
-3. Clone/update pelican-plugins:
-
-git clone --recursive https://github.com/getpelican/pelican-plugins pelican-plugins -j 10
 
 Development
 

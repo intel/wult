@@ -26,25 +26,7 @@ AUTHOR_FEED_RSS = None
 DEFAULT_PAGINATION = False
 #RELATIVE_URLS = True
 
-PLUGIN_PATHS = ['../pelican-plugins']
-PLUGINS = ['i18n_subsites', ]
-JINJA_ENVIRONMENT = {
-    'extensions': ['jinja2.ext.i18n'],
-}
-
-#THEME = "../pelican-fresh"
-#THEME = "../pelican-themes/sneakyidea"
-#THEME = "../pelican-themes/relapse"
-THEME = "../pelican-themes/Peli-Kiera"
-#THEME = "../pelican-themes/pelican-fh5co-marble"
-
-#THEME = "../pelican-themes/pelican-bootstrap3"
-#CC_LICENSE = "CC-BY"
-#BOOTSTRAP_THEME = "flatly"
-#BOOTSTRAP_THEME = "sandstone"
-#BOOTSTRAP_THEME = "cerulean"
-#BOOTSTRAP_THEME = "readable-old"
-#PYGMENTS_STYLE = "vim"
+THEME = "../pelican-chameleon"
 
 STATIC_PATHS = ["results", "images"]
 ARTICLE_EXCLUDES = ["results"]
