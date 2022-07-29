@@ -44,7 +44,7 @@ over the network, exercises the SUT, and stores the results on the controller.
 In the remote usage model a single controller may exercise many SUTs at the same time (multiple
 instances of *wult* running simultaneously). The other advantage of this usage model is that you run
 *wult* as a non-privileged user on the controller. However, you should have root SSH login
-configured on the SUT (`here is how to do this <install-guide.html#passwordless-ssh>`_).
+configured on the SUT (`here is how to do this <install-remote.html#passwordless-ssh>`_).
 
 
 2. Scan for supported devices

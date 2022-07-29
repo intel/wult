@@ -33,7 +33,10 @@ ARTICLE_EXCLUDES = ["results"]
 
 MENUITEMS = (
     ("How it works", "/pages/how-it-works.html"),
-    ("Install", "/pages/install-guide.html"),
+    ("Install", [
+        ("Local usage (standard case)", "/pages/install-local.html"),
+        ("Remote usage", "/pages/install-remote.html"),
+    ]),
     ("Use", "/pages/user-guide.html"),
     ("Howto", "/pages/howto.html"),
     ("Ndl", "/pages/ndl.html"),
