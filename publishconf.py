@@ -10,11 +10,3 @@ sys.path.append(os.curdir)
 from pelicanconf import *
 
 SITEURL = "https://intel.github.io/wult"
-
-MENUITEMS = (
-    ("How it works", "/pages/how-it-works.html"),
-    ("Install", "/pages/install-guide.html"),
-    ("Use", "/pages/user-guide.html"),
-    ("Howto", "/pages/howto.html"),
-    ("Ndl", "/pages/ndl.html"),
-)
