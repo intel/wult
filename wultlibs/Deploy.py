@@ -449,12 +449,15 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             return modpath
         return None
 
+    def _get_stmpdir(self):
+        """Creates a temporary directory on the SUT and returns its path."""
+
+        if not self._stmpdir:
+            self._stmpdir = self._spman.mkdtemp(prefix=f"{self._toolname}-")
+        return self._stmpdir
+
     def _get_ctmpdir(self):
-        """
-        Creates a temporary directory on the controller and returns its path. The reson this method
-        exists in that the temporary directory on the controller may not be needed. The method helps
-        creating it only when it is required.
-        """
+        """Creates a temporary directory on the controller and returns its path."""
 
         if not self._ctmpdir:
             self._ctmpdir = self._cpman.mkdtemp(prefix=f"{self._toolname}-")
@@ -929,7 +932,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         try:
             if self._spman.is_remote:
-                self._stmpdir = self._spman.mkdtemp(prefix=f"{self._toolname}-")
+                self._stmpdir = self._get_stmpdir()
             else:
                 self._stmpdir = self._get_ctmpdir()
 
