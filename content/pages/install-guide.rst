@@ -38,12 +38,7 @@ installation. ::
  sudo pip3 install --upgrade git+https://github.com/intel/wult.git@release
  sudo wult deploy
 
-1.2 SUT root access
----------------------
-
-Make sure you have root or `sudo` permissions on the SUT.
-
-1.3 Install dependencies
+1.2 Install dependencies
 ------------------------
 
 *Wult* has several dependencies. First of all, the sources of the running kernel must be installed
@@ -56,7 +51,7 @@ In addition to this, *wult* requires various python packages.
 
 .. _kernel-sources:
 
-1.3.1 Kernel sources
+1.2.1 Kernel sources
 ++++++++++++++++++++
 
 *Wult* comes with kernel drivers which have to be built for the kernel running on the SUT.
@@ -76,7 +71,7 @@ the `wult man page <https://github.com/intel/wult/blob/master/docs/wult-man.rst>
 
 .. _os-packages:
 
-1.3.2 OS packages
+1.2.2 OS packages
 +++++++++++++++++
 
 Here are the required OS packages.
@@ -110,7 +105,7 @@ Here are the required OS packages.
 #. The `git` package is required to make it possible installing *wult* python projects directly from
    their git repository (see below). Otherwise it is not necessary.
 
-1.4 Install wult and pepc
+1.3 Install wult and pepc
 -------------------------
 
 `Wult` and `pepc` are python version 3 projects, and we recommend using the `pip` tool for
@@ -123,7 +118,7 @@ repositories: ::
 Note, we do not suggest using the `--user` option, because in local usage model `wult` has to
 be run with superuser (root) permissions, and `--user` will make this problematic.
 
-1.5 Deploy wult drivers
+1.4 Deploy wult drivers
 -----------------------
 
 The final step is to build and deploy wult drivers. Run this command on the SUT as "root". ::
@@ -135,7 +130,7 @@ The final step is to build and deploy wult drivers. Run this command on the SUT 
 The drivers are installed only for the currently running kernel. If you reboot the SUT to a
 different kernel, you have to re-run `wult deploy`.
 
-1.6 Tab completions
+1.5 Tab completions
 -------------------
 
 `Wult` and `pepc` tools have bash tab completions support, but this will only work if you have
