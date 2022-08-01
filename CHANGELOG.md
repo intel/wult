@@ -3,8 +3,15 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.12] - ADD DATE HERE
+## [1.10.13] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.10.12] - 2022-08-01
+### Fixed
+ - Fix crash related to 'IntrLatency' (regression in v1.10.11).
 ### Added
 ### Removed
 ### Changed
