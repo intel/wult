@@ -49,7 +49,8 @@ Filter datapoints out of a test result.
 \fBndl\fR \fI\,calc\/\fR
 Calculate summary functions for a ndl test result.
 .SH COMMAND \fI\,'ndl deploy'\/\fR
-usage: ndl deploy [-h] [-q] [-d] [--kernel-src KSRC] [--local-build] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
+usage: ndl deploy [-h] [-q] [-d] [--kernel-src KSRC] [--local-build] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
+                  [-T TIMEOUT]
 
 Compile and deploy ndl helpers and drivers to the SUT (System Under Test), which can be can be either local or a remote host, depending on the '\-H' option. By default, everything is built on the SUT, but the '\-\-local\-build' can be used for building on the local system.The drivers are searched for in the following directories (and in the following order) on the local host: ./drivers/idle, $NDL_DATA_PATH/drivers/idle (if 'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/drivers/idle, /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The ndl tool also depends on the following helpers: ndlrunner. These helpers will be compiled on the SUT and deployed to the SUT. The sources of the helpers are searched for in the following paths (and in the following order) on the local host: ./helpers, $NDL_DATA_PATH/helpers (if 'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/helpers, /usr/local/share/wult/helpers, /usr/share/wult/helpers. By default, helpers are deployed to the path defined by the NDL_HELPERSPATH environment variable. If the variable is not defined, helpers are deployed to '$HOME/.local/bin', where '$HOME' is the home directory of user 'USERNAME' on host 'HOST' (see '\-\-host' and '\-\-username' options).
 
@@ -134,8 +135,9 @@ host. By default the key is automatically found from standard paths like
 SSH connect timeout in seconds, default is 8.
 
 .SH COMMAND \fI\,'ndl start'\/\fR
-usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid REPORTID] [-l LDIST] [--exclude EXCLUDE] [--include INCLUDE] [--keep-filtered] [--report]
-                 [--force]
+usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT]
+                 [-o OUTDIR] [--reportid REPORTID] [-l LDIST] [--exclude EXCLUDE] [--include INCLUDE]
+                 [--keep-filtered] [--report] [--force]
                  ifname
 
 Start measuring and recording the latency data.
@@ -268,8 +270,9 @@ such as "up". Use '\-\-force' to disable this safety mechanism. Use it with
 caution.
 
 .SH COMMAND \fI\,'ndl report'\/\fR
-usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--exclude EXCLUDE] [--include INCLUDE] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR] [--relocatable]
-                  [--list-metrics]
+usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--exclude EXCLUDE] [--include INCLUDE] [--even-up-dp-count] [-x XAXES]
+                  [-y YAXES] [--hist HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR]
+                  [--relocatable] [--list-metrics]
                   respaths [respaths ...]
 
 Create an HTML report for one or multiple test results.
@@ -388,7 +391,9 @@ which are copied across with the raw test results.
 Print the list of the available metrics and exit.
 
 .SH COMMAND \fI\,'ndl filter'\/\fR
-usage: ndl filter [-h] [-q] [-d] [--exclude EXCLUDE] [--include INCLUDE] [--exclude-metrics MEXCLUDE] [--include-metrics MINCLUDE] [--human-readable] [-o OUTDIR] [--list-metrics] [--reportid REPORTID] respath
+usage: ndl filter [-h] [-q] [-d] [--exclude EXCLUDE] [--include INCLUDE] [--exclude-metrics MEXCLUDE]
+                  [--include-metrics MINCLUDE] [--human-readable] [-o OUTDIR] [--list-metrics] [--reportid REPORTID]
+                  respath
 
 Filter datapoints out of a test result by removing CSV rows and metrics according to specified criteria. The criteria is specified using the row and metric filter and selector options ('\-\-include', '\-\-exclude\-metrics', etc). The options may be specified multiple times.
 
@@ -463,7 +468,9 @@ Report ID of the filtered version of the result (can only be used with '\-\-
 outdir').
 
 .SH COMMAND \fI\,'ndl calc'\/\fR
-usage: ndl calc [-h] [-q] [-d] [--exclude EXCLUDE] [--include INCLUDE] [--exclude-metrics MEXCLUDE] [--include-metrics MINCLUDE] [-f FUNCS] [--list-funcs] respath
+usage: ndl calc [-h] [-q] [-d] [--exclude EXCLUDE] [--include INCLUDE] [--exclude-metrics MEXCLUDE]
+                [--include-metrics MINCLUDE] [-f FUNCS] [--list-funcs]
+                respath
 
 Calculates various summary functions for a ndl test result (e.g., the median value for one of the CSV columns).
 
