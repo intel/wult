@@ -1,5 +1,3 @@
-%global debug_package %{nil}
-
 %bcond_without tests
 
 Name:		wult
@@ -25,7 +23,7 @@ BuildRequires:	python3-pytest
 BuildRequires:	python3-numpy
 BuildRequires:	python3-pyyaml
 %endif
-Requires:	pepc >= 1.3.8
+Requires:	pepc >= 1.3.12
 Requires:	pciutils
 Requires:	python3-pandas
 Requires:	python3-plotly
@@ -89,6 +87,7 @@ install -pDm755 helpers/ndlrunner/ndlrunner %{buildroot}%{_bindir}/ndlrunner
 %files -n python3-%{name}
 %{python3_sitelib}/wultlibs
 %{python3_sitelib}/wulttools
+%{python3_sitelib}/statscollectlibs
 %{python3_sitelib}/wult-*.egg-info/
 
 %files -n %{name}-devel
