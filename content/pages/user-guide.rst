@@ -73,7 +73,7 @@ The example output lists 3 devices that can be used as delayed interrupt sources
 * *0000:38:00.0* - this is the PCI address of the I210 NIC. This NIC is also available under the
   `enp1s0` name, which is actually the Linux network interface name.
 
-If using the *nic* method, `this howto section <howto.html#intel-i210>`_ has
+If using the *nic* method, `this howto section <howto-i210.html>`_ has
 some useful information.
 
 
@@ -121,4 +121,4 @@ Note, you can generate a **diff** too. A diff is an HTML report for multiple raw
 it easier to compare test results. Just give `wult report` multiple raw test results to generate a
 diff.
 
-Please, find `more 'wult report' hints here <howto.html#wult-report>`_.
+Please, find `more 'wult report' hints here <howto-create-reports.html>`_.

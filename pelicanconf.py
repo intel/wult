@@ -38,6 +38,10 @@ MENUITEMS = (
         ("Remote usage", "/pages/install-remote.html"),
     ]),
     ("Use", "/pages/user-guide.html"),
-    ("Howto", "/pages/howto.html"),
+    ("Howto", [
+        ("Creating HTML reports", "/pages/howto-create-reports.html"),
+        ("Viewing HTML reports", "/pages/howto-view-local.html"),
+        ("Intel i210 NIC", "/pages/howto-i210.html"),
+    ]),
     ("Ndl", "/pages/ndl.html"),
 )
