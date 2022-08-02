@@ -31,40 +31,6 @@ loading data from local file-systems for security reasons.
 
 Please see the following sections on how to do this.
 
-Chrome extension
-++++++++++++++++++++++++++++++++++
-
-By installing the "Web Server for Chrome" extension, you will be able to serve the reports locally
-without an internet connection in future through a graphical interface. However this extension is
-limited to browsers which are compatible with chrome extensions.
-
-    Disclaimer: we have not performed a security audit of this extension and it should be used at
-    your own risk. The code is open source, under an MIT license and can be browsed `on GitHub
-    <https://github.com/kzahel/web-server-chrome>`_. The privacy policy for this extension is
-    available on `this page <http://graehlarts.com/privacy.html>`_. At the time of writing (11 March
-    2022), this privacy policy states that "The application does not collect any user information".
-    However we actively monitor neither the source code nor the privacy policy. Use at your own
-    risk. See `Securely view wult HTML reports`_ for more privacy information.
-
-Install the chrome extension from the chrome web store here_.
-
-.. _here: https://chrome.google.com/webstore/detail/web-server-for-chrome/ofhbbkphhbklhfoeikjpcbhemlocgigb
-
-Once the application is installed, it can be opened from the chrome web store, chrome app menu
-(`chrome://apps/`) or as a normal program on your computer. For example, on Windows 10, a shortcut
-will be added to the `Chrome Apps` directory in the start menu.
-
-.. image:: ../images/wult-web-server-chrome.jpg
-    :alt: Screenshot of the Web Server for Chrome application as of 10 March 2022.
-    :width: 700 px
-    :height: 692 px
-    :scale: 50 %
-
-1. Use the **CHOOSE FOLDER** button to select the *wult* HTML report directory of the report you
-   want to view.
-2. A link should appear below the **Web Server URL(s)** heading. Click on this link to open and view
-   the report.
-
 servefolder.dev
 +++++++++++++++
 
@@ -107,6 +73,40 @@ but following this, the report can be viewed independently of an internet connec
 
 4. The report should now be viewable by clicking on the link shown. If you want to view a different
    report use the **Browse...**  button.
+
+Chrome extension
+++++++++++++++++++++++++++++++++++
+
+By installing the "Web Server for Chrome" extension, you will be able to serve the reports locally
+without an internet connection in future through a graphical interface. However this extension is
+limited to browsers which are compatible with chrome extensions.
+
+    Disclaimer: we have not performed a security audit of this extension and it should be used at
+    your own risk. The code is open source, under an MIT license and can be browsed `on GitHub
+    <https://github.com/kzahel/web-server-chrome>`_. The privacy policy for this extension is
+    available on `this page <http://graehlarts.com/privacy.html>`_. At the time of writing (11 March
+    2022), this privacy policy states that "The application does not collect any user information".
+    However we actively monitor neither the source code nor the privacy policy. Use at your own
+    risk. See `Securely view wult HTML reports`_ for more privacy information.
+
+Install the chrome extension from the chrome web store here_.
+
+.. _here: https://chrome.google.com/webstore/detail/web-server-for-chrome/ofhbbkphhbklhfoeikjpcbhemlocgigb
+
+Once the application is installed, it can be opened from the chrome web store, chrome app menu
+(`chrome://apps/`) or as a normal program on your computer. For example, on Windows 10, a shortcut
+will be added to the `Chrome Apps` directory in the start menu.
+
+.. image:: ../images/wult-web-server-chrome.jpg
+    :alt: Screenshot of the Web Server for Chrome application as of 10 March 2022.
+    :width: 700 px
+    :height: 692 px
+    :scale: 50 %
+
+1. Use the **CHOOSE FOLDER** button to select the *wult* HTML report directory of the report you
+   want to view.
+2. A link should appear below the **Web Server URL(s)** heading. Click on this link to open and view
+   the report.
 
 Python
 ++++++
