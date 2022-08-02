@@ -72,7 +72,8 @@ but following this, the report can be viewed independently of an internet connec
         :scale: 75 %
 
 4. The report should now be viewable by clicking on the link shown. If you want to view a different
-   report use the **Browse...**  button.
+   report use the **Browse...**  button. See `this tip below <#view-multiple-reports-locally>`_ if
+   you want to view multiple reports.
 
 Chrome extension
 ++++++++++++++++++++++++++++++++++
@@ -108,6 +109,8 @@ will be added to the `Chrome Apps` directory in the start menu.
 2. A link should appear below the **Web Server URL(s)** heading. Click on this link to open and view
    the report.
 
+See `this tip below <#view-multiple-reports-locally>`_ if you want to view multiple reports.
+
 Python
 ++++++
 
@@ -122,6 +125,8 @@ If you have Python installed on your system, you can make use of the `'http.serv
    this address to view the report.
 5. Once you finish viewing the report, close the browser and then use 'Ctrl-C' in the terminal to
    suspend the web-server.
+
+See `this tip below <#view-multiple-reports-locally>`_ if you want to view multiple reports.
 
 npm
 +++
@@ -138,3 +143,11 @@ Equally, if you have the Node package manager (npm) installed, you can install a
    this address to view the report.
 6. Once you finish viewing the report, close the browser and then use 'Ctrl-C' in the terminal to
    suspend the web-server.
+
+View multiple reports locally
+-----------------------------
+
+If you want to view many reports in one session, consider starting the HTTP server in a parent
+directory of the reports. This will allow you to navigate in the browser between different reports.
+
+Do this by using a parent directory instead of the report directory for any of the above methods.
