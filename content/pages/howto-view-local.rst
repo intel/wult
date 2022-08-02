@@ -108,17 +108,33 @@ but following this, the report can be viewed independently of an internet connec
 4. The report should now be viewable by clicking on the link shown. If you want to view a different
    report use the **Browse...**  button.
 
-Command-Line Interface
-++++++++++++++++++++++
+Python
+++++++
 
-This can also be done on the command-line, such as by using `python -m http.server` in the root
-directory of the report if you have Python3 installed.
+If you have Python installed on your system, you can make use of the `'http.server' module
+<https://docs.python.org/3/library/http.server.html>`_ which is part of the standard Python library.
 
-Equally, if you have `npm` installed, you can install and then use the `http-server` package with
-the following commands::
+1. Open a terminal.
+2. Move to the report directory using `cd <report-directory>` where `<report-directory>` is the path
+   to the directory containing the report.
+3. Start the HTTP server with the `python -m http.server` command.
+4. By default, this will host the report at 'http://localhost:8000/'. Open a web-browser and visit
+   this address to view the report.
+5. Once you finish viewing the report, close the browser and then use 'Ctrl-C' in the terminal to
+   suspend the web-server.
 
-    $ cd <report-directory>
-    $ npm install -g http-server
-    $ http-server
+npm
++++
 
-The following methods offer a way to host report files locally through a graphical interface.
+Equally, if you have the Node package manager (npm) installed, you can install and use the
+`'http-server' package <https://www.npmjs.com/package/http-server>`_.
+
+1. Open a terminal.
+2. Install the 'http-server' package with `npm install -g http-server`.
+3. Move to the report directory using `cd <report-directory>` where `<report-directory>` is the path
+   to the directory containing the report.
+4. Start the HTTP server with the `http-server` command.
+5. By default, this will host the report at 'http://localhost:8000/'. Open a web-browser and visit
+   this address to view the report.
+6. Once you finish viewing the report, close the browser and then use 'Ctrl-C' in the terminal to
+   suspend the web-server.
