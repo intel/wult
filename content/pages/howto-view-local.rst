@@ -80,7 +80,8 @@ Chrome extension
 
 By installing the "Web Server for Chrome" extension, you will be able to serve the reports locally
 without an internet connection in future through a graphical interface. However this extension is
-limited to browsers which are compatible with chrome extensions.
+limited to browsers which are compatible with chrome extensions. Furthermore, installing this
+extension from the chrome web store requires that you sign in with a Google account.
 
     Disclaimer: we have not performed a security audit of this extension and it should be used at
     your own risk. The code is open source, under an MIT license and can be browsed `on GitHub
