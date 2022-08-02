@@ -22,6 +22,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.htmlreport.tabs import _ACPowerTabBuilder, _IPMITabBuilder
 from statscollectlibs.htmlreport.tabs.sysinfo import (_CPUFreqTabBuilder, _CPUIdleTabBuilder,
     _DMIDecodeTabBuilder, _DmesgTabBuilder, _LspciTabBuilder, _MiscTabBuilder, _PepcTabBuilder)
+from statscollectlibs.htmlreport.tabs.sysinfo import _TurbostatTabBuilder as _SysInfoTstatTabBuilder
 from statscollectlibs.htmlreport.tabs.turbostat import _TurbostatTabBuilder
 from wultlibs import Deploy
 from wultlibs.helperlibs import FSHelpers
@@ -352,6 +353,7 @@ class ReportBase:
 
         tab_builders = [
             _PepcTabBuilder.PepcTabBuilder,
+            _SysInfoTstatTabBuilder.TurbostatTabBuilder,
             _DMIDecodeTabBuilder.DMIDecodeTabBuilder,
             _CPUFreqTabBuilder.CPUFreqTabBuilder,
             _CPUIdleTabBuilder.CPUIdleTabBuilder,
