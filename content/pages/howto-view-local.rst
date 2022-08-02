@@ -29,17 +29,7 @@ to view this report locally, such as by copying the report onto your machine and
 `index.html`, you will need to host the report files locally. This is because modern browsers forbid
 loading data from local file-systems for security reasons.
 
-This can be done in many ways, such as by using `python -m http.server` in the root directory of the
-report if you have Python3 installed.
-
-Equally, if you have `npm` installed, you can install and then use the `http-server` package with
-the following commands::
-
-    $ cd <report-directory>
-    $ npm install -g http-server
-    $ http-server
-
-The following methods offer a way to host report files locally through a graphical interface.
+Please see the following sections on how to do this.
 
 Chrome extension
 ++++++++++++++++++++++++++++++++++
@@ -117,3 +107,18 @@ but following this, the report can be viewed independently of an internet connec
 
 4. The report should now be viewable by clicking on the link shown. If you want to view a different
    report use the **Browse...**  button.
+
+Command-Line Interface
+++++++++++++++++++++++
+
+This can also be done on the command-line, such as by using `python -m http.server` in the root
+directory of the report if you have Python3 installed.
+
+Equally, if you have `npm` installed, you can install and then use the `http-server` package with
+the following commands::
+
+    $ cd <report-directory>
+    $ npm install -g http-server
+    $ http-server
+
+The following methods offer a way to host report files locally through a graphical interface.
