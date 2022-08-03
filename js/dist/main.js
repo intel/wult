@@ -1597,7 +1597,7 @@
                     <sl-tab-panel class="tab-panel" name="${t.name}">${this.tabTemplate(t)}</sl-tab-panel>
                 `))}
             </sl-tab-group>
-      `:H``}}customElements.define("tab-group",po);class bo extends et{static properties={src:{type:String},reportInfo:{type:Object,attribute:!1},fetchFailed:{type:Boolean,attribute:!1}};static styles=r`
+      `:H``}}customElements.define("sc-tab-group",po);class bo extends et{static properties={src:{type:String},reportInfo:{type:Object,attribute:!1},fetchFailed:{type:Boolean,attribute:!1}};static styles=r`
         .report-head {
             display: flex;
             flex-direction: column;
@@ -1625,5 +1625,5 @@
                 <sc-intro-tbl .src=${this.introtbl}></sc-intro-tbl>
             </div>
             <br>
-            <tab-group .tabFile="${this.tabFile}"></tab-group>
+            <sc-tab-group .tabFile="${this.tabFile}"></sc-tab-group>
         `}}customElements.define("sc-report-page",bo),Ye("shoelace")})();

@@ -21,7 +21,7 @@ import './wult-metric-tab'
  * @class TabGroup
  * @extends {LitElement}
  */
-class TabGroup extends LitElement {
+class ScTabGroup extends LitElement {
     static styles = css`
         /*
          * By default, inactive Shoelace tabs have 'display: none' which breaks Plotly legends.
@@ -113,4 +113,4 @@ class TabGroup extends LitElement {
     }
 }
 
-customElements.define('tab-group', TabGroup)
+customElements.define('sc-tab-group', ScTabGroup)

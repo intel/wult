@@ -92,7 +92,7 @@ export class ScReportPage extends LitElement {
                 <sc-intro-tbl .src=${this.introtbl}></sc-intro-tbl>
             </div>
             <br>
-            <tab-group .tabFile="${this.tabFile}"></tab-group>
+            <sc-tab-group .tabFile="${this.tabFile}"></sc-tab-group>
         `
     }
 }
