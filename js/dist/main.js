@@ -1497,7 +1497,7 @@
                     ${this.getDiffTemplate()}
                 </sl-tab-group>
             </sl-details>
-        `}}customElements.define("file-preview",no);class ao{}const lo=new WeakMap,co=ds(class extends Cs{render(t){return O}update(t,[e]){var s;const o=e!==this.U;return o&&void 0!==this.U&&this.ot(void 0),(o||this.rt!==this.lt)&&(this.U=e,this.ht=null===(s=t.options)||void 0===s?void 0:s.host,this.ot(this.lt=t.element)),O}ot(t){var e;if("function"==typeof this.U){const s=null!==(e=this.ht)&&void 0!==e?e:globalThis;let o=lo.get(s);void 0===o&&(o=new WeakMap,lo.set(s,o)),void 0!==o.get(this.U)&&this.U.call(this.ht,void 0),o.set(this.U,t),void 0!==t&&this.U.call(this.ht,t)}else this.U.value=t}get rt(){var t,e,s;return"function"==typeof this.U?null===(e=lo.get(null!==(t=this.ht)&&void 0!==t?t:globalThis))||void 0===e?void 0:e.get(this.U):null===(s=this.U)||void 0===s?void 0:s.value}disconnected(){this.rt===this.lt&&this.ot(void 0)}reconnected(){this.ot(this.lt)}});class ho extends Ps{static styles=[Ps.styles,r`
+        `}}customElements.define("sc-file-preview",no);class ao{}const lo=new WeakMap,co=ds(class extends Cs{render(t){return O}update(t,[e]){var s;const o=e!==this.U;return o&&void 0!==this.U&&this.ot(void 0),(o||this.rt!==this.lt)&&(this.U=e,this.ht=null===(s=t.options)||void 0===s?void 0:s.host,this.ot(this.lt=t.element)),O}ot(t){var e;if("function"==typeof this.U){const s=null!==(e=this.ht)&&void 0!==e?e:globalThis;let o=lo.get(s);void 0===o&&(o=new WeakMap,lo.set(s,o)),void 0!==o.get(this.U)&&this.U.call(this.ht,void 0),o.set(this.U,t),void 0!==t&&this.U.call(this.ht,t)}else this.U.value=t}get rt(){var t,e,s;return"function"==typeof this.U?null===(e=lo.get(null!==(t=this.ht)&&void 0!==t?t:globalThis))||void 0===e?void 0:e.get(this.U):null===(s=this.U)||void 0===s?void 0:s.value}disconnected(){this.rt===this.lt&&this.ot(void 0)}reconnected(){this.ot(this.lt)}});class ho extends Ps{static styles=[Ps.styles,r`
         sl-details::part(base) {
             max-width: 30vw;
             font-family: Arial, sans-serif;
@@ -1542,7 +1542,7 @@
             <br>
             ${this.smrytblpath?H`<smry-tbl .src="${this.smrytblpath}"></smry-tbl>`:H``}
             ${this.fpreviews?this.fpreviews.map((t=>H`
-                    <file-preview .title=${t.title} .diff=${t.diff} .paths=${t.paths}></file-preview>
+                    <sc-file-preview .title=${t.title} .diff=${t.diff} .paths=${t.paths}></sc-file-preview>
                     <br>
                 `)):H``}
             <div class="grid">

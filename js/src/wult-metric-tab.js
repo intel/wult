@@ -45,7 +45,7 @@ class WultMetricTab extends WultTab {
             ${this.smrytblpath ? html`<smry-tbl .src="${this.smrytblpath}"></smry-tbl>` : html``}
             ${this.fpreviews
                 ? this.fpreviews.map((fpreview) => html`
-                    <file-preview .title=${fpreview.title} .diff=${fpreview.diff} .paths=${fpreview.paths}></file-preview>
+                    <sc-file-preview .title=${fpreview.title} .diff=${fpreview.diff} .paths=${fpreview.paths}></sc-file-preview>
                     <br>
                 `)
                 : html``

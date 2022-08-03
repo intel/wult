@@ -18,10 +18,10 @@ import '@shoelace-style/shoelace/dist/components/tab/tab'
 
 /**
  * Responsible for creating an 'sl-details' element containing previews of files given to 'paths'.
- * @class FilePreview
+ * @class ScFilePreview
  * @extends {LitElement}
  */
-class FilePreview extends LitElement {
+class ScFilePreview extends LitElement {
     static styles = css`
         .text-field-container {
             overflow: auto;
@@ -129,4 +129,4 @@ class FilePreview extends LitElement {
     }
 }
 
-customElements.define('file-preview', FilePreview)
+customElements.define('sc-file-preview', ScFilePreview)
