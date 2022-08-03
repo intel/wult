@@ -1550,7 +1550,7 @@
                     <sc-diagram path="${t}"></sc-diagram>
                     `)):H``}
             </div>
-        `}render(){return super.render()}}customElements.define("wult-metric-tab",uo);class po extends et{static styles=r`
+        `}render(){return super.render()}}customElements.define("sc-data-tab",uo);class po extends et{static styles=r`
         /*
          * By default, inactive Shoelace tabs have 'display: none' which breaks Plotly legends.
          * Therefore we make inactive tabs invisible in our own way using the following two css
@@ -1589,7 +1589,7 @@
                     `))}
                 </sl-tab-group>
         `:H`
-            <wult-metric-tab tabname=${t.name} .smrytblpath=${t.smrytblpath} .paths=${t.ppaths} .fpreviews=${t.fpreviews} .dir=${t.dir}></wult-metric-tab>
+            <sc-data-tab tabname=${t.name} .smrytblpath=${t.smrytblpath} .paths=${t.ppaths} .fpreviews=${t.fpreviews} .dir=${t.dir}></sc-data-tab>
         `}render(){return this.tabs?H`
             <sl-tab-group>
                 ${this.tabs.map((t=>H`

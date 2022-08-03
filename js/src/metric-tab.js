@@ -17,10 +17,10 @@ import './smry-tbl'
 
 /**
  * Responsible for generating all content contained within a metric tab.
- * @class WultMetricTab
+ * @class ScDataTab
  * @extends {LitElement}
  */
-class WultMetricTab extends WultTab {
+class ScDataTab extends WultTab {
     static styles = css`
         .grid {
             display: grid;
@@ -65,4 +65,4 @@ class WultMetricTab extends WultTab {
     }
 }
 
-customElements.define('wult-metric-tab', WultMetricTab)
+customElements.define('sc-data-tab', ScDataTab)

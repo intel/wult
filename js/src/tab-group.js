@@ -14,7 +14,7 @@ import '@shoelace-style/shoelace/dist/components/tab-group/tab-group'
 import '@shoelace-style/shoelace/dist/components/tab/tab'
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel'
 
-import './wult-metric-tab'
+import './metric-tab'
 
 /**
  * Responsible for generating a group of tabs and their contents.
@@ -92,7 +92,7 @@ class ScTabGroup extends LitElement {
         `
         }
         return html`
-            <wult-metric-tab tabname=${tab.name} .smrytblpath=${tab.smrytblpath} .paths=${tab.ppaths} .fpreviews=${tab.fpreviews} .dir=${tab.dir}></wult-metric-tab>
+            <sc-data-tab tabname=${tab.name} .smrytblpath=${tab.smrytblpath} .paths=${tab.ppaths} .fpreviews=${tab.fpreviews} .dir=${tab.dir}></sc-data-tab>
         `
     }
 

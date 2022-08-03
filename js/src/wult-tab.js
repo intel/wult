@@ -14,7 +14,7 @@ import { cache } from 'lit/directives/cache.js'
 /**
  * Generic class which handles visiblity of report tabs. When creating a new tab, it is recommended
  * to use a class which inherits from this class or create a new type. For example, if you want to
- * add a new 'metric' tab, then use the '<wult-metric-tab>' element over this one.
+ * add a new 'data' tab, then use the '<sc-data-tab>' element over this one.
  *
  * @class WultTab
  * @extends {LitElement}
