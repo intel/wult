@@ -16,10 +16,10 @@ import { cache } from 'lit/directives/cache.js'
  * to use a class which inherits from this class or create a new type. For example, if you want to
  * add a new 'data' tab, then use the '<sc-data-tab>' element over this one.
  *
- * @class WultTab
+ * @class ScTab
  * @extends {LitElement}
  */
-export class WultTab extends LitElement {
+export class ScTab extends LitElement {
     static properties = {
         tabname: { type: String },
         info: { type: Object },
@@ -52,7 +52,7 @@ export class WultTab extends LitElement {
         // to see if the tab has been opened. Read relevant docs here:
         // https://lit.dev/docs/components/events/#adding-event-listeners-to-other-elements
 
-        // WultTabs are contained by SlTabPanel components which gain the 'active'
+        // ScTabs are contained by SlTabPanel components which gain the 'active'
         // attribute when the respective tab is active. Therefore we observe
         // changes on that SlTabPanel and when it becomes active, we know that
         // this tab is visible.
@@ -94,4 +94,4 @@ export class WultTab extends LitElement {
     }
 }
 
-customElements.define('wult-tab', WultTab)
+customElements.define('sc-tab', ScTab)

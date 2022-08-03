@@ -634,7 +634,7 @@
         <slot></slot>
       </div>
     `}};Ks.styles=qs,pt([Pe({reflect:!0})],Ks.prototype,"name",2),pt([Pe({type:Boolean,reflect:!0})],Ks.prototype,"active",2),Ks=pt([Te("sl-tab-panel")],Ks);const Gs=ds(class extends hs{constructor(t){super(t),this.tt=new WeakMap}render(t){return[t]}update(t,[e]){if(ps(this.it)&&(!ps(e)||this.it.strings!==e.strings)){const e=ms(t).pop();let s=this.tt.get(this.it.strings);if(void 0===s){const t=document.createDocumentFragment();s=B(O,t),s.setConnected(!1),this.tt.set(this.it.strings,s)}gs(s,[e]),vs(s,void 0,e)}if(ps(e)){if(!ps(this.it)||this.it.strings!==e.strings){const s=this.tt.get(e.strings);if(void 0!==s){const e=ms(s).pop();(t=>{t._$AR()})(t),vs(t,void 0,e),gs(t,[e])}}this.it=e}else this.it=void 0;return this.render(e)}});class Ys extends et{static properties={tabname:{type:String},info:{type:Object},visible:{type:Boolean,attribute:!1}};checkVisible(t,e){for(const e of t)"active"===e.attributeName&&(this.tabname===e.target.id?this.visible=!0:this.visible=!1)}connectedCallback(){super.connectedCallback();const t=this.checkVisible.bind(this);this.observer=new MutationObserver(t),this.observer.observe(this.parentElement,{attributes:!0})}disconnectedCallback(){super.disconnectedCallback(),this.observer.disconnect()}visibleTemplate(){throw new Error("Inherit from this class and implement 'visibleTemplate'.")}render(){return H`
-        ${Gs(this.visible?H`${this.visibleTemplate()}`:H``)}`}}customElements.define("wult-tab",Ys);var Zs=Pt`
+        ${Gs(this.visible?H`${this.visibleTemplate()}`:H``)}`}}customElements.define("sc-tab",Ys);var Zs=Pt`
   ${xe}
 
   :host {

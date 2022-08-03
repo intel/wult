@@ -9,7 +9,7 @@
  */
 
 import { html, css } from 'lit'
-import { WultTab } from './wult-tab.js'
+import { ScTab } from './tab.js'
 
 import './diagram.js'
 import './file-preview'
@@ -20,7 +20,7 @@ import './smry-tbl'
  * @class ScDataTab
  * @extends {LitElement}
  */
-class ScDataTab extends WultTab {
+class ScDataTab extends ScTab {
     static styles = css`
         .grid {
             display: grid;
