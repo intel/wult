@@ -722,7 +722,7 @@
                 <div class="plot">
                     <iframe @load=${this.hideLoading} seamless frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
                 </div>
-            `:H``}}customElements.define("diagram-element",Xs);var Qs=Pt`
+            `:H``}}customElements.define("sc-diagram",Xs);var Qs=Pt`
   ${xe}
 
   :host {
@@ -1547,7 +1547,7 @@
                 `)):H``}
             <div class="grid">
                 ${this.paths?this.paths.map((t=>H`
-                    <diagram-element path="${t}"></diagram-element>
+                    <sc-diagram path="${t}"></sc-diagram>
                     `)):H``}
             </div>
         `}render(){return super.render()}}customElements.define("wult-metric-tab",uo);class po extends et{static styles=r`

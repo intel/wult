@@ -8,15 +8,15 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import { LitElement, html, css } from '../node_modules/lit/index.js'
+import { LitElement, html, css } from 'lit'
 import '@shoelace-style/shoelace/dist/components/spinner/spinner.js'
 
 /**
  * Responsible for creating a 'div' element containing a plot.
- * @class DiagramElement
+ * @class ScDiagram
  * @extends {LitElement}
  */
-class DiagramElement extends LitElement {
+class ScDiagram extends LitElement {
     static styles = css`
     .plot {
         position: relative;
@@ -97,4 +97,4 @@ class DiagramElement extends LitElement {
     }
 }
 
-customElements.define('diagram-element', DiagramElement)
+customElements.define('sc-diagram', ScDiagram)

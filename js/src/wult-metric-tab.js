@@ -11,7 +11,7 @@
 import { html, css } from 'lit'
 import { WultTab } from './wult-tab.js'
 
-import './diagram-element.js'
+import './diagram.js'
 import './file-preview'
 import './smry-tbl'
 
@@ -53,7 +53,7 @@ class WultMetricTab extends WultTab {
             <div class="grid">
                 ${this.paths
                     ? this.paths.map((path) => html`
-                    <diagram-element path="${path}"></diagram-element>
+                    <sc-diagram path="${path}"></sc-diagram>
                     `)
                     : html``}
             </div>
