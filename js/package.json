@@ -21,8 +21,8 @@
     "webpack": "^5.68.0",
     "webpack-cli": "^4.9.2"
   },
-  "name": "wult-components",
-  "description": "web-components for the 'wult' tool's HTML report",
+  "name": "stats-collect-components",
+  "description": "web-components for the 'stats-collect' tool's HTML report",
   "version": "0.0.1",
   "private": true,
   "directories": {
