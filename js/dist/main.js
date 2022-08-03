@@ -1626,4 +1626,4 @@
             </div>
             <br>
             <tab-group .tabFile="${this.tabFile}"></tab-group>
-        `}}customElements.define("report-page",bo),Ye("shoelace")})();
+        `}}customElements.define("sc-report-page",bo),Ye("shoelace")})();

@@ -15,11 +15,11 @@ import './intro-tbl'
 import './tab-group'
 
 /**
- * Contains CSS and helper functions for tables.
- * @class StatsPage
+ * 'LitElement' containing the other components of the HTML report.
+ * @class ScReportPage
  * @extends {LitElement}
  */
-export class ReportPage extends LitElement {
+export class ScReportPage extends LitElement {
     static properties = {
         src: { type: String },
         reportInfo: { type: Object, attribute: false },
@@ -97,4 +97,4 @@ export class ReportPage extends LitElement {
     }
 }
 
-customElements.define('report-page', ReportPage)
+customElements.define('sc-report-page', ScReportPage)
