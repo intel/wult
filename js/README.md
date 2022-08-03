@@ -7,7 +7,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 Author: Adam Hawley <adam.james.hawley@intel.com>
 -->
-# Wult-Components
+# Stats-Collect Components
 
 ## Creating & Using a New Web Component
 1. Create a new JavaScript file in './src' containing your web component. This project currently
