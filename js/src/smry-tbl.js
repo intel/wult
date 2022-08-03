@@ -10,18 +10,18 @@
 
 import { html, css } from 'lit'
 import { createRef, ref } from 'lit/directives/ref.js'
-import { ReportTable } from './report-table.js'
+import { ScReportTable } from './report-table.js'
 import '@shoelace-style/shoelace/dist/components/details/details.js'
 import '@shoelace-style/shoelace/dist/components/button/button.js'
 
 /**
  * Responsible for generating the summary table for a given metric.
  * @class SummaryTable
- * @extends {ReportTable}
+ * @extends {ScReportTable}
  */
-class SummaryTable extends ReportTable {
+class SummaryTable extends ScReportTable {
     static styles = [
-        ReportTable.styles,
+        ScReportTable.styles,
         // Add CSS for 'sl-details' in metric cells which contain metric descriptions.
         css`
         sl-details::part(base) {

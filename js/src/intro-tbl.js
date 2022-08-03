@@ -9,14 +9,14 @@
  */
 
 import { html } from 'lit'
-import { ReportTable, InvalidTableFileException } from './report-table.js'
+import { ScReportTable, InvalidTableFileException } from './report-table.js'
 
 /**
  * Responsible for generating the 'Intro Table' which contains information on the report.
  * @class ScIntroTable
- * @extends {ReportTable}
+ * @extends {ScReportTable}
  */
-class ScIntroTable extends ReportTable {
+class ScIntroTable extends ScReportTable {
     /**
      * Parse a header line from the intro table file into a HTML template.
      * @param {String} line A header line from the intro table text file.

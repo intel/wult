@@ -23,7 +23,7 @@ export class InvalidTableFileException {
  * @class Table
  * @extends {LitElement}
  */
-export class ReportTable extends LitElement {
+export class ScReportTable extends LitElement {
     static properties = {
         src: { type: String },
         template: { attribute: false }
@@ -139,4 +139,4 @@ export class ReportTable extends LitElement {
     }
 }
 
-customElements.define('report-table', ReportTable)
+customElements.define('sc-report-table', ScReportTable)
