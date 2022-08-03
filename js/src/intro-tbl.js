@@ -13,10 +13,10 @@ import { ReportTable, InvalidTableFileException } from './report-table.js'
 
 /**
  * Responsible for generating the 'Intro Table' which contains information on the report.
- * @class IntroTable
+ * @class ScIntroTable
  * @extends {ReportTable}
  */
-class IntroTable extends ReportTable {
+class ScIntroTable extends ReportTable {
     /**
      * Parse a header line from the intro table file into a HTML template.
      * @param {String} line A header line from the intro table text file.
@@ -97,4 +97,4 @@ class IntroTable extends ReportTable {
     }
 }
 
-customElements.define('intro-tbl', IntroTable)
+customElements.define('sc-intro-tbl', ScIntroTable)

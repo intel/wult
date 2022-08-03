@@ -275,7 +275,7 @@
         table .td-funcname {
             text-align: left;
         }
-    `;getWidth(t){return Math.min(100,20*(t-2))}async*makeTextFileLineIterator(t){const e=new TextDecoder("utf-8"),s=(await fetch(t)).body.getReader();let{value:o,done:i}=await s.read();o=o?e.decode(o,{stream:!0}):"";const r=/\r\n|\n|\r/gm;let n=0;for(;;){const t=r.exec(o);if(t)yield o.substring(n,t.index),n=r.lastIndex;else{if(i)break;const t=o.substr(n);({value:o,done:i}=await s.read()),o=t+(o?e.decode(o,{stream:!0}):""),n=r.lastIndex=0}}n<o.length&&(yield o.substr(n))}render(){if(!this.src)return H``;const t=this.parseSrc();return H`${Ts(t,H``)}`}}customElements.define("report-table",Ps),customElements.define("intro-tbl",class extends Ps{parseHeader(t){const e=t.split(";");return H`
+    `;getWidth(t){return Math.min(100,20*(t-2))}async*makeTextFileLineIterator(t){const e=new TextDecoder("utf-8"),s=(await fetch(t)).body.getReader();let{value:o,done:i}=await s.read();o=o?e.decode(o,{stream:!0}):"";const r=/\r\n|\n|\r/gm;let n=0;for(;;){const t=r.exec(o);if(t)yield o.substring(n,t.index),n=r.lastIndex;else{if(i)break;const t=o.substr(n);({value:o,done:i}=await s.read()),o=t+(o?e.decode(o,{stream:!0}):""),n=r.lastIndex=0}}n<o.length&&(yield o.substr(n))}render(){if(!this.src)return H``;const t=this.parseSrc();return H`${Ts(t,H``)}`}}customElements.define("report-table",Ps),customElements.define("sc-intro-tbl",class extends Ps{parseHeader(t){const e=t.split(";");return H`
             <tr>
                 ${e.map((t=>H`<th>${t}</th>`))}
             </tr>
@@ -1622,7 +1622,7 @@
                     <br>
                     `:H``}
 
-                <intro-tbl .src=${this.introtbl}></intro-tbl>
+                <sc-intro-tbl .src=${this.introtbl}></sc-intro-tbl>
             </div>
             <br>
             <tab-group .tabFile="${this.tabFile}"></tab-group>
