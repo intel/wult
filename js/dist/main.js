@@ -1531,7 +1531,7 @@
                 ${e}
                 <sl-button style="margin-left:5px" @click=${this.copyTable}>Copy table</sl-button>
             </div>
-        `}constructor(){super(),this.cols=0}connectedCallback(){super.connectedCallback(),this.parseSrc().then((t=>{this.template=t}))}}customElements.define("smry-tbl",ho);class uo extends Ys{static styles=r`
+        `}constructor(){super(),this.cols=0}connectedCallback(){super.connectedCallback(),this.parseSrc().then((t=>{this.template=t}))}}customElements.define("sc-smry-tbl",ho);class uo extends Ys{static styles=r`
         .grid {
             display: grid;
             width: 100%;
@@ -1540,7 +1540,7 @@
         }
   `;static properties={paths:{type:Array},fpreviews:{type:Array},smrytblpath:{type:String}};visibleTemplate(){return H`
             <br>
-            ${this.smrytblpath?H`<smry-tbl .src="${this.smrytblpath}"></smry-tbl>`:H``}
+            ${this.smrytblpath?H`<sc-smry-tbl .src="${this.smrytblpath}"></sc-smry-tbl>`:H``}
             ${this.fpreviews?this.fpreviews.map((t=>H`
                     <sc-file-preview .title=${t.title} .diff=${t.diff} .paths=${t.paths}></sc-file-preview>
                     <br>

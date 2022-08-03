@@ -42,7 +42,7 @@ class WultMetricTab extends WultTab {
     visibleTemplate () {
         return html`
             <br>
-            ${this.smrytblpath ? html`<smry-tbl .src="${this.smrytblpath}"></smry-tbl>` : html``}
+            ${this.smrytblpath ? html`<sc-smry-tbl .src="${this.smrytblpath}"></sc-smry-tbl>` : html``}
             ${this.fpreviews
                 ? this.fpreviews.map((fpreview) => html`
                     <sc-file-preview .title=${fpreview.title} .diff=${fpreview.diff} .paths=${fpreview.paths}></sc-file-preview>

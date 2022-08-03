@@ -19,7 +19,7 @@ import '@shoelace-style/shoelace/dist/components/button/button.js'
  * @class SummaryTable
  * @extends {ScReportTable}
  */
-class SummaryTable extends ScReportTable {
+class ScSummaryTable extends ScReportTable {
     static styles = [
         ScReportTable.styles,
         // Add CSS for 'sl-details' in metric cells which contain metric descriptions.
@@ -184,4 +184,4 @@ class SummaryTable extends ScReportTable {
     }
 }
 
-customElements.define('smry-tbl', SummaryTable)
+customElements.define('sc-smry-tbl', ScSummaryTable)
