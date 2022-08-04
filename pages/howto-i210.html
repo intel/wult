@@ -6,7 +6,7 @@
     <meta name="description" content="Wult">
     <meta name="author" content="Artem Bityutskiy">
 
-        <title>Wult</title>
+        <title>Intel I210 NIC · Wult</title>
 
 
     <!-- Bootstrap core CSS -->
@@ -100,13 +100,49 @@
 
       <div class="col-md-8">
         <div class="row">
-          
+              <div class="page-header">
+        <h1><a href="https://intel.github.io/wult/pages/intel-i210-nic.html">Intel I210 NIC</a></h1>
+    </div>
+
         </div>
 
         <div class="row">
-    <h1>Authors on Wult</h1>
-    <ul>
-    </ul>
+<div id="page-content">
+  <!-- -*- coding: utf-8 -*- -->
+<!-- vim: ts=4 sw=4 tw=100 et ai si -->
+<div class="contents topic" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#how-to-use-wult-with-intel-i210-nic" id="toc-entry-1">How to use wult with Intel I210 NIC</a></li>
+<li><a class="reference internal" href="#which-intel-i210-nic-to-buy" id="toc-entry-2">Which Intel I210 NIC to buy</a></li>
+</ul>
+</div>
+<div class="section" id="how-to-use-wult-with-intel-i210-nic">
+<h2><a class="toc-backref" href="#toc-entry-1">How to use wult with Intel I210 NIC</a></h2>
+<p>First of all, read <a class="reference external" href="how-it-works.html#i210-warning">a word of warning here</a>.</p>
+<p>We recommend to stick with the <em>hrt</em> method, but if you have a specific reason to use the <em>nic</em>
+method with Intel I210, here are some hints.</p>
+<p>Make sure to install an Intel I210-based NIC to the SUT (System Under Test) by plugging it into an
+appropriate PCIe slot. You do not need to connect the Intel I210 NIC to the network (no cable
+needed).</p>
+<p>The important thing, however, is that you should not use the I210 NIC for anything else, it has to
+be dedicated to <em>wult</em>. It is OK to have multiple I210 adapters on your system, as long as one of
+them is dedicated to <em>wult</em>. Here are two example SUT configurations.</p>
+<img alt="Example wult HW setup for the &quot;nic&quot; measurement method." src="../images/wult-hw-setup.jpg" />
+<p>In the left picture the SUT has only one NIC dedicated to <em>wult</em>. The SUT is not connected to any
+network and the user is logged in via a physically attached keyboard and monitor.</p>
+<p>In the right picture the SUT is connected to a LAN with another NIC, but it has a separate NIC,
+which is dedicated to <em>wult</em>. The user is logged in via SSH.</p>
+</div>
+<div class="section" id="which-intel-i210-nic-to-buy">
+<h2><a class="toc-backref" href="#toc-entry-2">Which Intel I210 NIC to buy</a></h2>
+<p>Intel I210 is a 1GbE network chip, several vendors ship (or shipped) network cards based on the I210
+chip.  For example, we used the HP I210-T1 Network Adapter (E0X95AA).</p>
+<p>There are other adapters out there. If you successfully used some of them with <em>wult</em>, let us know
+and we'll mention them here.</p>
+</div>
+
+</div>
         </div>
 
         <div class="row">

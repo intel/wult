@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <meta name="description" content="Wult">
+    <meta name="author" content="Artem Bityutskiy">
+
+        <title>Local usage install guide · Wult</title>
+
+
+    <!-- Bootstrap core CSS -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+
+
+    <link rel="stylesheet" href="https://intel.github.io/wult/theme/css/main.css">
+
+    <link rel="stylesheet" href="https://intel.github.io/wult/theme/css/solarized-light.css">
+
+
+    <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+
+    <script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+</head>
+
+<body>
+  <div class="container" id="wrap">
+      <nav id="navbar" class="navbar navbar-default" role="navigation">
+    <div class="container">
+
+      <!--navbar-header-->
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="https://intel.github.io/wult">Wult</a>
+      </div> <!--navbar-header-->
+
+      <!-- Search Box -->
+
+      <!--Menuitems, collapable-->
+      <div class="collapse navbar-collapse" id="navbar-collapse">
+        <ul class="nav navbar-nav navbar-right" id="menuitem-list">
+                <li >
+                  <a href="https://intel.github.io/wult/pages/how-it-works.html" >How it works</a>
+                </li>
+
+              <li class="btn-group">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Install<b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu" role="menu">
+                  <li >
+                    <a href="https://intel.github.io/wult/pages/install-local.html" >Local usage (standard case)</a>
+                  </li>
+                  <li >
+                    <a href="https://intel.github.io/wult/pages/install-remote.html" >Remote usage</a>
+                  </li>
+                </ul>
+              </li>
+                <li >
+                  <a href="https://intel.github.io/wult/pages/user-guide.html" >Use</a>
+                </li>
+
+              <li class="btn-group">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Howto<b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu" role="menu">
+                  <li >
+                    <a href="https://intel.github.io/wult/pages/howto-create-reports.html" >Creating HTML reports</a>
+                  </li>
+                  <li >
+                    <a href="https://intel.github.io/wult/pages/howto-view-local.html" >Viewing HTML reports</a>
+                  </li>
+                  <li >
+                    <a href="https://intel.github.io/wult/pages/howto-i210.html" >Intel i210 NIC</a>
+                  </li>
+                </ul>
+              </li>
+                <li >
+                  <a href="https://intel.github.io/wult/pages/ndl.html" >Ndl</a>
+                </li>
+
+        </ul>
+      </div><!-- /.navbar-collapse -->
+
+    </div> <!--container-->
+  </nav>
+
+
+    <div class="container">
+      <div class="col-md-2">
+      </div>
+
+      <div class="col-md-8">
+        <div class="row">
+              <div class="page-header">
+        <h1><a href="https://intel.github.io/wult/pages/local-usage-install-guide.html">Local usage install guide</a></h1>
+    </div>
+
+        </div>
+
+        <div class="row">
+<div id="page-content">
+  <!-- -*- coding: utf-8 -*- -->
+<!-- vim: ts=4 sw=4 tw=100 et ai si -->
+<div class="contents topic" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#update" id="toc-entry-1">1 Update</a></li>
+<li><a class="reference internal" href="#install-dependencies" id="toc-entry-2">2 Install dependencies</a><ul>
+<li><a class="reference internal" href="#kernel-sources-1" id="toc-entry-3">2.1 Kernel sources</a></li>
+<li><a class="reference internal" href="#os-packages-1" id="toc-entry-4">2.2 OS packages</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#install-wult-and-pepc" id="toc-entry-5">3 Install wult and pepc</a></li>
+<li><a class="reference internal" href="#deploy-wult-drivers" id="toc-entry-6">4 Deploy wult drivers</a></li>
+<li><a class="reference internal" href="#tab-completions" id="toc-entry-7">5 Tab completions</a></li>
+</ul>
+</div>
+<p>This page provides wult installation instruction for the
+<a class="reference external" href="user-guide.html#local-usage-model">local usage model</a>.</p>
+<div class="section" id="update">
+<h2><a class="toc-backref" href="#toc-entry-1">1 Update</a></h2>
+<p>Before describing the installation steps, here is a how you update an existing wult
+installation.</p>
+<pre class="literal-block">
+sudo pip3 install --upgrade git+https://github.com/intel/pepc.git&#64;release
+sudo pip3 install --upgrade git+https://github.com/intel/wult.git&#64;release
+sudo wult deploy
+</pre>
+</div>
+<div class="section" id="install-dependencies">
+<h2><a class="toc-backref" href="#toc-entry-2">2 Install dependencies</a></h2>
+<p><em>Wult</em> has several dependencies. First of all, the sources of the running kernel must be installed
+on the SUT. Not just kernel headers for user-space programs, but full kernel source code.</p>
+<p>Wult also requires <a class="reference external" href="https://github.com/intel/pepc">pepc</a> to be installed.
+You'll also need the tools necessary for compiling kernel drivers on the SUT: <cite>gcc</cite>, <cite>make</cite>, etc.</p>
+<p>In addition to this, <em>wult</em> requires various python packages.</p>
+<div class="section" id="kernel-sources-1">
+<span id="kernel-sources"></span><h3><a class="toc-backref" href="#toc-entry-3">2.1 Kernel sources</a></h3>
+<p><em>Wult</em> comes with kernel drivers which have to be built for the kernel running on the SUT.</p>
+<p>On Fedora and Ubuntu, the sources are typically located in <tt class="docutils literal"><span class="pre">/lib/modules/&lt;kernel_version&gt;/build</span></tt>.
+The <cite>&lt;kernel_version&gt;</cite> part must match the kernel running on the SUT. In other words, it has to be
+the same as what the <cite>uname -r</cite> command prints when you run it on the SUT.</p>
+<p>Unless you are an advanced user, you probably run a stock OS kernel. In this case, it is
+enough to just install the kernel sources package provided by the OS, e.g.:</p>
+<ul class="simple">
+<li>Fedora: <cite>kernel-devel</cite> package</li>
+<li>Ubuntu: <cite>linux-source</cite> package</li>
+</ul>
+<p>Advanced users can provide custom kernel sources path via <cite>wult deploy</cite> command line options (see
+the <a class="reference external" href="https://github.com/intel/wult/blob/master/docs/wult-man.rst">wult man page</a>).</p>
+</div>
+<div class="section" id="os-packages-1">
+<span id="os-packages"></span><h3><a class="toc-backref" href="#toc-entry-4">2.2 OS packages</a></h3>
+<p>Here are the required OS packages.</p>
+<p><strong>Fedora</strong></p>
+<pre class="literal-block">
+sudo dnf install -y tar bison flex make gcc elfutils-libelf-devel rsync procps-ng
+sudo dnf install -y libffi-devel redhat-rpm-config openssl-devel
+sudo dnf install -y kernel-devel
+sudo dnf install -y git python3 python3-devel python3-pip python3-numpy
+sudo dnf install -y python3-colorama python3-yaml python3-pandas
+sudo dnf install -y  python3-paramiko python3-argcomplete
+</pre>
+<p><strong>Ubuntu</strong></p>
+<pre class="literal-block">
+sudo apt install -y bison flex libelf-dev libssl-dev rsync procps
+sudo apt-get source linux-source
+sudo apt install -y git python3-pip python3-numpy python3-plotly
+sudo apt install -y python3-colorama python3-yaml python3-pandas
+sudo apt install -y python3-paramiko python3-argcomplete
+</pre>
+<p><strong>Notes</strong></p>
+<ol class="arabic simple">
+<li>If you do not install some of the python projects installing the corresponding <cite>python3-*</cite> OS
+packages, they will be pulled by the <cite>pip</cite> tool later when you install <em>wult</em>. However, we
+recommend installing <cite>numpy</cite> from OS packages, because it is optimized for the OS.</li>
+<li>The <cite>git</cite> package is required to make it possible installing <em>wult</em> python projects directly from
+their git repository (see below). Otherwise it is not necessary.</li>
+</ol>
+</div>
+</div>
+<div class="section" id="install-wult-and-pepc">
+<h2><a class="toc-backref" href="#toc-entry-5">3 Install wult and pepc</a></h2>
+<p><cite>Wult</cite> and <cite>pepc</cite> are python version 3 projects, and we recommend using the <cite>pip</cite> tool for
+installing them. Here is how to install them directly from the <cite>release</cite> branch of their git
+repositories:</p>
+<pre class="literal-block">
+sudo pip3 install --upgrade git+https://github.com/intel/pepc.git&#64;release
+sudo pip3 install --upgrade git+https://github.com/intel/wult.git&#64;release
+</pre>
+<p>Note, we do not suggest using the <cite>--user</cite> option, because in local usage model <cite>wult</cite> has to
+be run with superuser (root) permissions, and <cite>--user</cite> will make this problematic.</p>
+</div>
+<div class="section" id="deploy-wult-drivers">
+<h2><a class="toc-backref" href="#toc-entry-6">4 Deploy wult drivers</a></h2>
+<p>The final step is to build and deploy wult drivers. Run this command on the SUT as &quot;root&quot;.</p>
+<pre class="literal-block">
+sudo wult deploy
+</pre>
+<p><strong>Important note</strong></p>
+<p>The drivers are installed only for the currently running kernel. If you reboot the SUT to a
+different kernel, you have to re-run <cite>wult deploy</cite>.</p>
+</div>
+<div class="section" id="tab-completions">
+<h2><a class="toc-backref" href="#toc-entry-7">5 Tab completions</a></h2>
+<p><cite>Wult</cite> and <cite>pepc</cite> tools have bash tab completions support, but this will only work if you have
+certain environment variables defined. The following commands will do it:</p>
+<pre class="literal-block">
+eval $(register-python-argcomplete wult)
+eval $(register-python-argcomplete pepc)
+</pre>
+<p>You can put these lines to your <cite>.bashrc</cite> file in order to have <cite>wult</cite> and <cite>pepc</cite> tab completions
+enabled by default.</p>
+</div>
+
+</div>
+        </div>
+
+        <div class="row">
+        </div>
+
+      </div>
+
+      <div class="col-md-2">
+      </div>
+    </div>
+
+
+  </div>
+
+    <nav id="footer" class="navbar navbar-default">
+    <div class="container">
+        <p id="footer-text" class="navbar-text text-center">
+          <span id="engine">
+            Compiled using
+            <a href="https://docs.getpelican.com">Pelican</a>
+          </span>
+          <span id="theme">
+            with theme
+            <a href="https://github.com/yuex/pelican-chameleon">Chameleon</a>
+          </span>
+          <span id="bootstrap">
+            on top of
+            <a href="https://getbootstrap.com/">Bootstrap</a>
+          </span>
+        </p>
+      </div>
+    </div>
+  </nav>
+
+
+</body>
+</html>

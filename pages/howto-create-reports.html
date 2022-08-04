@@ -6,7 +6,7 @@
     <meta name="description" content="Wult">
     <meta name="author" content="Artem Bityutskiy">
 
-        <title>Wult</title>
+        <title>Creating wult reports · Wult</title>
 
 
     <!-- Bootstrap core CSS -->
@@ -100,13 +100,60 @@
 
       <div class="col-md-8">
         <div class="row">
-          
+              <div class="page-header">
+        <h1><a href="https://intel.github.io/wult/pages/creating-wult-reports.html">Creating wult reports</a></h1>
+    </div>
+
         </div>
 
         <div class="row">
-    <h1>Authors on Wult</h1>
-    <ul>
-    </ul>
+<div id="page-content">
+  <!-- -*- coding: utf-8 -*- -->
+<!-- vim: ts=4 sw=4 tw=100 et ai si -->
+<div class="contents topic" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#include-only-cc6-datapoints" id="toc-entry-1">Include only CC6 datapoints</a></li>
+<li><a class="reference internal" href="#fewer-datapoints-in-the-html-report" id="toc-entry-2">Fewer datapoints in the HTML report</a></li>
+</ul>
+</div>
+<div class="section" id="include-only-cc6-datapoints">
+<h2><a class="toc-backref" href="#toc-entry-1">Include only CC6 datapoints</a></h2>
+<p>Suppose you have a raw <em>wult</em> result for a Xeon platform, and you want to include only datapoints
+with core C6 (CC6) residency in an HTML report. Supposed you do not want to include datapoints with
+package C2 (PC2) and package C6 (PC6) residency. Here is how to do this:</p>
+<pre class="literal-block">
+wult report --include 'CC6% &gt; 0 &amp; PC6% == 0 &amp; PC2% == 0' &lt;raw_result&gt;
+</pre>
+<p>This command specifies the <cite>--include</cite> option which says that <em>wult</em> should only select datapoints
+with CC6 residency greater than zero and zero PC6/PC2 residency.</p>
+</div>
+<div class="section" id="fewer-datapoints-in-the-html-report">
+<h2><a class="toc-backref" href="#toc-entry-2">Fewer datapoints in the HTML report</a></h2>
+<p>Suppose you have two raw <em>wult</em> results:</p>
+<pre class="literal-block">
+$ ls
+ivt-nic-c6-hfm-noaspm  ivt-tdt-c6-hfm-noaspm
+</pre>
+<p>Suppose the raw results contained 1000000 datapoints and you've generated a diff for them:</p>
+<pre class="literal-block">
+$ wult report -o ivt-c6-hfm-nic-vs-tdt ivt-nic-c6-hfm-noaspm ivt-tdt-c6-hfm-noaspm
+
+$ du -sh ivt-c6-hfm-nic-vs-tdt/
+406M   ivt-c6-hfm-nic-vs-tdt/
+</pre>
+<p>Suppose the diff is too large for your purposes (406M), and you want a diff that takes less storage.</p>
+<p>One option for you is to include fewer datapoints in the report, for example 10000 instead of
+1000000. You can use the <cite>--include</cite> option to select only the first 10000 datapoints.</p>
+<pre class="literal-block">
+$ wult report -o ivt-c6-hfm-nic-vs-tdt --include 'index &lt; 10000' ivt-nic-c6-hfm-noaspm ivt-tdt-c6-hfm-noaspm
+
+$ du -sh ivt-c6-hfm-nic-vs-tdt
+11M    ivt-c6-hfm-nic-vs-tdt
+</pre>
+</div>
+
+</div>
         </div>
 
         <div class="row">
