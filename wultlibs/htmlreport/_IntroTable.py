@@ -12,6 +12,7 @@ This module provides the functionality for generating raw intro table files for 
 
 from dataclasses import dataclass
 from pepclibs.helperlibs import Trivial
+from pepclibs.helperlibs.Exceptions import Error
 
 
 # Text to display if a value is not available for a given set of results.
@@ -100,27 +101,30 @@ class IntroTable:
           F;func_name|func_description;func_val|func_hovertext1;func_val2|func_hovertext2
         """
 
-        with open(path, "w", encoding="utf-8") as fobj:
-            lines = []
-            lines.append(f"H;Title;{';'.join(reportids)}\n")
+        try:
+            with open(path, "w", encoding="utf-8") as fobj:
+                lines = []
+                lines.append(f"H;Title;{';'.join(reportids)}\n")
 
-            for row in self.rows:
-                # Generate title cell for 'row'.
-                title_cell = row.title_cell
-                line = f"R;{title_cell.value}|{title_cell.hovertext}|{title_cell.link}"
+                for row in self.rows:
+                    # Generate title cell for 'row'.
+                    title_cell = row.title_cell
+                    line = f"R;{title_cell.value}|{title_cell.hovertext}|{title_cell.link}"
 
-                for reportid in reportids:
-                    cell = row.res_cells.get(reportid)
+                    for reportid in reportids:
+                        cell = row.res_cells.get(reportid)
 
-                    # If this row has no cell for 'reportid', show an empty cell with '_NA_TEXT'.
-                    if cell is None:
-                        cell = _TableCellDC(_NA_TEXT)
+                        # If this row has no cell for 'reportid', show an cell with '_NA_TEXT'.
+                        if cell is None:
+                            cell = _TableCellDC(_NA_TEXT)
 
-                    line += f";{cell.value}|{cell.hovertext}|{cell.link}"
+                        line += f";{cell.value}|{cell.hovertext}|{cell.link}"
 
-                lines.append(f"{line}\n")
+                    lines.append(f"{line}\n")
 
-            fobj.writelines(lines)
+                fobj.writelines(lines)
+        except OSError as err:
+            raise Error(f"unable to dump intro table to '{path}':\n{err}") from None
 
     def create_row(self, value, hovertext=None, link=None):
         """
