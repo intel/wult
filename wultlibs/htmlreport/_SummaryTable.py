@@ -187,16 +187,19 @@ class SummaryTable:
           F;func_name|func_description;func_val|func_hovertext1;func_val2|func_hovertext2
         """
 
-        with open(path, "w", encoding="utf-8") as fobj:
-            lines = []
-            lines.append(f"H;Metric;Function;{';'.join(list(self.smrytbl['funcs']))}\n")
+        try:
+            with open(path, "w", encoding="utf-8") as fobj:
+                lines = []
+                lines.append(f"H;Metric;Function;{';'.join(list(self.smrytbl['funcs']))}\n")
 
-            for metric, mdict in self.smrytbl["title"].items():
-                funcs = max((len(dct[metric]) for dct in self.smrytbl["funcs"].values()))
-                lines.append(f"M;{mdict['metric']}|{mdict['descr']};{funcs}\n")
-                lines += self._get_func_lines(metric)
+                for metric, mdict in self.smrytbl["title"].items():
+                    funcs = max((len(dct[metric]) for dct in self.smrytbl["funcs"].values()))
+                    lines.append(f"M;{mdict['metric']}|{mdict['descr']};{funcs}\n")
+                    lines += self._get_func_lines(metric)
 
-            fobj.writelines(lines)
+                fobj.writelines(lines)
+        except OSError as err:
+            raise Error(f"unable to dump summary table to '{path}':\n{err}") from None
 
     def generate(self, path):
         """
