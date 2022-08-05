@@ -117,11 +117,16 @@
 <li><a class="reference internal" href="#open-wult-reports-locally" id="toc-entry-2">Open wult reports locally</a><ul>
 <li><a class="reference internal" href="#servefolder-dev" id="toc-entry-3">servefolder.dev</a></li>
 <li><a class="reference internal" href="#chrome-extension" id="toc-entry-4">Chrome extension</a></li>
-<li><a class="reference internal" href="#python" id="toc-entry-5">Python</a></li>
-<li><a class="reference internal" href="#npm" id="toc-entry-6">npm</a></li>
+<li><a class="reference internal" href="#python-scripts" id="toc-entry-5">Python Scripts</a><ul>
+<li><a class="reference internal" href="#servedir-py" id="toc-entry-6">servedir.py</a></li>
+<li><a class="reference internal" href="#servereport-py" id="toc-entry-7">servereport.py</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#view-multiple-reports-locally" id="toc-entry-7">View multiple reports locally</a></li>
+<li><a class="reference internal" href="#python-cli" id="toc-entry-8">Python - CLI</a></li>
+<li><a class="reference internal" href="#npm" id="toc-entry-9">npm</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#view-multiple-reports-locally" id="toc-entry-10">View multiple reports locally</a></li>
 </ul>
 </div>
 <div class="section" id="securely-view-wult-html-reports">
@@ -205,8 +210,48 @@ the report.</li>
 </ol>
 <p>See <a class="reference external" href="#view-multiple-reports-locally">this tip below</a> if you want to view multiple reports.</p>
 </div>
-<div class="section" id="python">
-<h3><a class="toc-backref" href="#toc-entry-5">Python</a></h3>
+<div class="section" id="python-scripts">
+<h3><a class="toc-backref" href="#toc-entry-5">Python Scripts</a></h3>
+<p>To facilitate reading HTML reports locally, we have created a couple of Python scripts. Note that
+both of them require that your system already has Python installed.</p>
+<div class="section" id="servedir-py">
+<h4><a class="toc-backref" href="#toc-entry-6">servedir.py</a></h4>
+<blockquote>
+Find this script <a class="reference external" href="https://github.com/intel/wult/blob/af49e4244bafbe31e7404f45927e0df25ddd6dab/misc/servedir/servedir.py">in our GitHub repo here</a>.</blockquote>
+<p>The first script hosts a given directory on localhost. It's recommended usage is as
+follows:</p>
+<ol class="arabic simple">
+<li>Download the script.</li>
+<li>Run the script (e.g. by double-clicking on it in Windows Explorer).</li>
+<li>Select the report directory or a directory containing multiple reports when prompted to select
+one. Following this, the script opens the default browser at 'localhost:8000'.</li>
+<li>Once you have finished browsing the report or directory, make sure to stop the script you started
+in step 2. If a new terminal window was created when you ran the script in step 2, you can do
+this by closing this window.</li>
+</ol>
+<img alt="Screencast of the recommended usage of 'servedir.py' on Windows 10." src="../images/serve-dir-script.gif" style="width: 570.0px; height: 299.4px;" />
+<p>Usage of 'servedir.py' following the above instructions on Windows 10.</p>
+</div>
+<div class="section" id="servereport-py">
+<h4><a class="toc-backref" href="#toc-entry-7">servereport.py</a></h4>
+<blockquote>
+Download this script <a class="reference external" href="https://github.com/intel/wult/blob/af49e4244bafbe31e7404f45927e0df25ddd6dab/misc/servedir/servereport.py">from our GitHub repo here</a>.</blockquote>
+<p>The second script is intended to be downloaded from the repository and placed in a report directory.
+Running this script will host the directory containing the script on localhost and open a browser to
+browse the report/directory.</p>
+<ol class="arabic simple">
+<li>Download the script.</li>
+<li>Move it into a report directory.</li>
+<li>Run the script (e.g. by double-clicking on it in Windows Explorer). Following this, the script
+opens the default browser at 'localhost:8000'.</li>
+<li>Once you have finished browsing the report, make sure to stop the script you started in step 2.
+If a new terminal window was created when you ran the script in step 2, you can do this by closing
+this window.</li>
+</ol>
+</div>
+</div>
+<div class="section" id="python-cli">
+<h3><a class="toc-backref" href="#toc-entry-8">Python - CLI</a></h3>
 <p>If you have Python installed on your system, you can make use of the <a class="reference external" href="https://docs.python.org/3/library/http.server.html">'http.server' module</a> which is part of the standard Python library.</p>
 <ol class="arabic simple">
 <li>Open a terminal.</li>
@@ -221,7 +266,7 @@ suspend the web-server.</li>
 <p>See <a class="reference external" href="#view-multiple-reports-locally">this tip below</a> if you want to view multiple reports.</p>
 </div>
 <div class="section" id="npm">
-<h3><a class="toc-backref" href="#toc-entry-6">npm</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-9">npm</a></h3>
 <p>Equally, if you have the Node package manager (npm) installed, you can install and use the
 <a class="reference external" href="https://www.npmjs.com/package/http-server">'http-server' package</a>.</p>
 <ol class="arabic simple">
@@ -238,7 +283,7 @@ suspend the web-server.</li>
 </div>
 </div>
 <div class="section" id="view-multiple-reports-locally">
-<h2><a class="toc-backref" href="#toc-entry-7">View multiple reports locally</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-10">View multiple reports locally</a></h2>
 <p>If you want to view many reports in one session, consider starting the HTTP server in a parent
 directory of the reports. This will allow you to navigate in the browser between different reports.</p>
 <p>Do this by using a parent directory instead of the report directory for any of the above methods.</p>
