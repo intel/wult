@@ -3,9 +3,17 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.13] - ADD DATE HERE
+## [1.10.14] - ADD DATE HERE
 ### Fixed
 ### Added
+### Removed
+### Changed
+
+## [1.10.13] - 2022-08-05
+### Fixed
+### Added
+ - Add turbostat data to the "Info" tab.
+ - Add misc. scripts for viewing wult reports locally.
 ### Removed
 ### Changed
 
