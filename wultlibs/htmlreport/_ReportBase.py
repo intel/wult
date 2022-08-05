@@ -27,7 +27,7 @@ from statscollectlibs.htmlreport.tabs.sysinfo import _TurbostatTabBuilder as _Sy
 from statscollectlibs.htmlreport.tabs.turbostat import _TurbostatTabBuilder
 from wultlibs import Deploy
 from wultlibs.helperlibs import FSHelpers
-from wultlibs.htmlreport.tabs import _MetricDTabBuilder
+from wultlibs.htmlreport import _MetricDTabBuilder
 
 _LOG = logging.getLogger()
 
