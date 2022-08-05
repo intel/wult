@@ -13,9 +13,8 @@ This module provides a base class and common logic for populating a group of sta
 from pathlib import Path
 import logging
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from statscollectlibs.htmlreport.tabs import _DTabBuilder
+from statscollectlibs.htmlreport.tabs import _DTabBuilder, _Tabs
 from wultlibs import _DefsBase
-from wultlibs.htmlreport.tabs import _Tabs
 
 _LOG = logging.getLogger()
 

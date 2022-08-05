@@ -10,8 +10,8 @@
 This module provides the capability of populating the turbostat statistics tab.
 """
 
+from statscollectlibs.htmlreport.tabs import _Tabs
 from statscollectlibs.htmlreport.tabs.turbostat import _MCPUL2TabBuilder, _TotalsL2TabBuilder
-from wultlibs.htmlreport.tabs import _Tabs
 
 class TurbostatTabBuilder:
     """
