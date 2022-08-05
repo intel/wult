@@ -1611,7 +1611,7 @@
         <sl-alert variant="danger" open>
           Warning: it looks like you might be trying to view this report
           locally.  See our documentation on how to do that <a
-          href="https://intel.github.io/wult/pages/howto.html#open-wult-reports-locally">
+          href="https://intel.github.io/wult/pages/howto-view-local.html#open-wult-reports-locally">
             here.</a>
           </sl-alert>
       `}render(){return this.fetchFailed?this.corsWarning():H`
