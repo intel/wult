@@ -15,8 +15,8 @@ reports.
 
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
+from statscollectlibs.htmlreport import _SummaryTable
 from statscollectlibs.htmlreport.tabs import _DTabBuilder
-from wultlibs.htmlreport import _SummaryTable
 
 class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
     """
