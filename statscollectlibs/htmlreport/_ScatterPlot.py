@@ -15,7 +15,7 @@ import logging
 import numpy
 import pandas
 import plotly
-from wultlibs.htmlreport import _Plot
+from statscollectlibs.htmlreport import _Plot
 
 # List of diagram markers that we use in scatter plots.
 _SCATTERPLOT_MARKERS = ['circle', 'square', 'diamond', 'cross', 'triangle-up', 'pentagon']

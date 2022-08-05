@@ -12,7 +12,7 @@
 
 import plotly
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.htmlreport import _Plot
+from statscollectlibs.htmlreport import _Plot
 
 
 class Histogram(_Plot.Plot):
