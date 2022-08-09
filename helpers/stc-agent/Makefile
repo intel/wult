@@ -1,6 +1,6 @@
-PREFIX ?= /tmp/stats-collect
+PREFIX ?= /tmp/stc-agent
 BINDIR := $(PREFIX)/bin
-TOOLNAMES = stats-collect ipmi-helper
+TOOLNAMES = stc-agent ipmi-helper
 
 all:
 	
@@ -10,11 +10,11 @@ clean:
 
 install:
 	mkdir -p $(BINDIR)
-	cp stats-collect.standalone $(BINDIR)/stats-collect
+	cp stc-agent.standalone $(BINDIR)/stc-agent
 	cp ipmi-helper.standalone $(BINDIR)/ipmi-helper
 
 uninstall:
-	rm -f $(BINDIR)/stats-collect $(BINDIR)/ipmi-helper
+	rm -f $(BINDIR)/stc-agent $(BINDIR)/ipmi-helper
 	rmdir --ignore-fail-on-non-empty $(BINDIR)
 
 list_deployables:
