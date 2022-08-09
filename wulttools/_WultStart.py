@@ -19,7 +19,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs.msr import PowerCtl
 from pepclibs import CStates, CPUInfo
 from wultlibs.rawresultlibs import WORawResult
-from wultlibs import Deploy, ToolsCommon, Devices, WultRunner, WultStatsCollect
+from wultlibs import Deploy, ToolsCommon, Devices, WultRunner, WultSTCAgent
 from wulttools import _WultCommon
 
 LOG = logging.getLogger()
@@ -66,10 +66,10 @@ def check_settings(pman, dev, csinfo, cpunum, devid):
 def list_stats():
     """Print information about statistics."""
 
-    if not WultStatsCollect.STATS_INFO:
+    if not WultSTCAgent.STATS_INFO:
         raise Error("statistics collection is not supported on your system")
 
-    for stname, stinfo in WultStatsCollect.STATS_INFO.items():
+    for stname, stinfo in WultSTCAgent.STATS_INFO.items():
         LOG.info("* %s", stname)
         if stinfo.get("interval"):
             LOG.info("  - Default interval: %.1fs", stinfo["interval"])
@@ -84,9 +84,9 @@ def start_command(args):
 
     stconf = None
     if args.stats and args.stats != "none":
-        if not WultStatsCollect.STATS_NAMES:
+        if not WultSTCAgent.STATS_NAMES:
             raise Error("statistics collection is not supported on your system")
-        stconf = WultStatsCollect.parse_stats(args.stats, args.stats_intervals)
+        stconf = WultSTCAgent.parse_stats(args.stats, args.stats_intervals)
 
     with contextlib.ExitStack() as stack:
         pman = ToolsCommon.get_pman(args)
