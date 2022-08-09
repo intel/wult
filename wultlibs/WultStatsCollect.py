@@ -93,8 +93,8 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to collect the statistics about.
           * res - the 'WORawResult' object to store the results at.
-          * local_scpath - path to the 'stats-collect' python helper tool on the local system.
-          * remote_scpath - path to the 'stats-collect' python helper tool on the remote system.
+          * local_scpath - path to the 'stc-agent' python helper tool on the local system.
+          * remote_scpath - path to the 'stc-agent' python helper tool on the remote system.
           """
 
         self._pman = pman
@@ -109,7 +109,7 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
         except OSError as err:
             raise Error(f"failed to create directory '{self._loutdir}': {err}") from None
 
-        self._routdir = self._pman.mkdtemp(prefix="wult-stats-collect-")
+        self._routdir = self._pman.mkdtemp(prefix="wult-stats-agent-")
 
         self._stcoll = STCAgent.STCAgent(pman, local_outdir=self._loutdir.resolve(),
                                                  remote_outdir=self._routdir,
