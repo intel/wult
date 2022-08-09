@@ -13,7 +13,7 @@ This module is just a "glue" layer between "WultRunner" and "STCAgent".
 import logging
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from wultlibs.statscollectlibs import STCAgent, StatsHelpers
+from wultlibs.statscollectlibs import STCAgent, STCHelpers
 
 _LOG = logging.getLogger()
 
@@ -23,9 +23,9 @@ STATS_INFO = STCAgent.DEFAULT_STINFO
 def parse_stats(stnames, intervals):
     """Parse user-provided lists of statistics and intervals."""
 
-    stconf = StatsHelpers.parse_stnames(stnames)
+    stconf = STCHelpers.parse_stnames(stnames)
     if intervals:
-        StatsHelpers.parse_intervals(intervals, stconf)
+        STCHelpers.parse_intervals(intervals, stconf)
 
     return stconf
 
@@ -63,7 +63,7 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
                 if not stconf["discover"]:
                     raise
 
-        StatsHelpers.apply_stconf(self._stcoll, stconf)
+        STCHelpers.apply_stconf(self._stcoll, stconf)
         _LOG.info("Configuring the following statistics: %s", ", ".join(stconf["include"]))
         self._stcoll.configure()
 
