@@ -22,7 +22,7 @@ from wultlibs.statscollectlibs import SysInfo
 
 _LOG = logging.getLogger()
 
-# The message delimiter used by the 'stats-collect' tool.
+# The message delimiter used by 'stc-agent'.
 _DELIMITER = "--\n".encode("utf-8")
 
 # The default statistics information. This dictionary is used by the '_Collector' class by default,
@@ -30,8 +30,8 @@ _DELIMITER = "--\n".encode("utf-8")
 #
 # * interval: normally a statistics collector is a program that wakes up periodically and collects
 #             some data. The 'interval' key is the wake up period in seconds.
-# * fallible: some collectors are known to be not so stable, and this flag tells 'stats-collect'
-#             tool to ignore failures of this statistics collector. Default value is 'False'.
+# * fallible: some collectors are known to be not so stable, and this flag tells 'stc-agent' to
+#             ignore failures of this statistics collector. Default value is 'False'.
 # * inband: 'True' the statistics collector is "in band" and 'False' if it is "out-of-band". The
 #           former means that the collector runs on the SUT, and the latter means that it runs on a
 #           separate host and collects statistics via an out-of-band channel, e.g., by talking to
@@ -39,7 +39,7 @@ _DELIMITER = "--\n".encode("utf-8")
 # * enabled: 'True' if the statistics collector is enabled, otherwise 'False'. Default value is
 #            'True'.
 # * toolpath: path to the tool to collect the statistics. By default just the tool name (e.g.,
-#             turbostat), in which case 'stats-collect' tool will assume the tool is in '$PATH'. But
+#             turbostat), in which case 'stc-agent' will assume the tool is in '$PATH'. But
 #             users can modify this field and specify full path to the tool.
 # * description: the statistics collector description.
 # * props: a sub-dictionary containing various collector-specific properties.
@@ -113,7 +113,7 @@ DEFAULT_STINFO = {
 }
 
 class SCReplyError(Error):
-    """This exception is raised when 'stats-collect' replies that a commant has failed."""
+    """This exception is raised when 'stc-agent' replies that a commant has failed."""
 
 def _check_stname(stname):
     """Verify that 'stname' is a known statistic name."""
@@ -180,10 +180,10 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
     This class provides API for collecting SUT statistics, such as 'turbostat' data and AC power.
 
     The usage model of this class is as follows.
-      1. Create an object. This will run the 'stats-collect' tool on the SUT (in-band statistics
-         collection) and the local host (out-of-band collection). 'Statsd' is just an agent that
-         listens for commands on a Unix socket. The commands are like "start collecting", "stop
-         collecting", "set properties", etc. 'Statsd' runs various collectors.
+      1. Create an object. This will run 'stc-agent' on the SUT (in-band statistics collection) and
+         the local host (out-of-band collection). 'stc-agent' is just an agent that listens for
+         commands on a Unix socket. The commands are like "start collecting", "stop collecting",
+         "set properties", etc. 'stc-agent' runs various collectors.
 
          Example of "in-band" collectors: acpower, ipmi. These tools run on the local system, but
          collect information about the remote system.
@@ -313,7 +313,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
     def get_toolpath(self, stname):
         """
         Get currently configured path to the tool collecting the 'stname' statistics. The path is on
-        the same host where 'stats-collect' runs (local host for out-of-band statistics, the SUT for
+        the same host where 'stc-agent' runs (local host for out-of-band statistics, the SUT for
         in-band statistics.
         """
 
@@ -325,8 +325,8 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
     def set_toolpath(self, stname, path):
         """
         Set path to the tool collecting the 'stname' statistics to 'path'. The path is supposed to
-        be on the same host where 'stats-collect' runs (local host for out-of-band statistics, the
-        SUT for in-band statistics.
+        be on the same host where 'stc-agent' runs (local host for out-of-band statistics, the SUT
+        for in-band statistics.
         """
 
         _check_stname(stname)
@@ -406,22 +406,21 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
                    be used in various methods, so it has to be kept connected. The reference will be
                    dropped once the 'close()' method is invoked.
           * local_outdir - output directory path on the local host for storing the local
-                           'stats-collect' tool logs and results (the collected statistics).
-                           The out-of-band statistics are always collected by the local
-                           'stats-collect' instance, so it's logs and results will be stored in
-                           'local_outdir'. However, if the SUT is the local host, the in-band
-                           'stats-collect' logs and results are stored in the 'local_outdir'
-                           directory, and the out-of-band 'stats-collect' is not used at all.
+                           'stc-agent' logs and results (the collected statistics). The out-of-band
+                           statistics are always collected by the local 'stc-agent' instance, so
+                           it's logs and results will be stored in 'local_outdir'. However, if the
+                           SUT is the local host, the in-band 'stc-agent' logs and results are
+                           stored in the 'local_outdir' directory, and the out-of-band 'stc-agent'
+                           is not used at all.
           * remote_outdir - output directory path on the remote host (the SUT) for storing the
-                            remote 'stats-collect' logs and results (the collected statistics). If
-                            the SUT is a remote host, the 'remote_outdir' will be used for
-                            'stats-collect' logs and in-band statistics. Otherwise, this path won't
-                            be used at all.
-          * local_scpath - path to the 'stats-collect' tool on the local host.
-          * remote_scpath - path to the 'stats-collect' tool on the remote host (the SUT).
+                            remote 'stc-agent' logs and results (the collected statistics). If the
+                            SUT is a remote host, the 'remote_outdir' will be used for 'stc-agent'
+                            logs and in-band statistics. Otherwise, this path won't be used at all.
+          * local_scpath - path to 'stc-agent' on the local host.
+          * remote_scpath - path to 'stc-agent' on the remote host (the SUT).
 
         The collected statistics will be stored in the 'stats' sub-directory of the output
-        directory, the 'stats-collects' logs will be stored in the 'logs' sub-directory. Use
+        directory, the 'stc-agent' logs will be stored in the 'logs' sub-directory. Use
         'get_outdirs()' method to get the output directories.
 
         If the an output directory was not provided and instead, was created by 'StatsCollect', the
@@ -473,24 +472,24 @@ class _Collector(ClassHelpers.SimpleCloseContext):
     """
 
     def _connect(self):
-        """Connect to 'stats-collect'."""
+        """Connect to 'stc-agent'."""
 
         try:
             if self._ssht_port:
-                # Connect to 'stats-collect' via the SSH tunnel.
+                # Connect to 'stc-agent' via the SSH tunnel.
                 self._sock = socket.create_connection(("localhost", self._ssht_port))
                 self._sock.settimeout(self._timeout)
             else:
-                # Connect to 'stats-collect' direcly via the Unix socket file.
+                # Connect to 'stc-agent' direcly via the Unix socket file.
                 self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
                 self._sock.connect(self._uspath)
         except socket.error as err:
-            raise Error(f"cannot connect to 'stats-collect' at {self._sc_id}:\n{err}") from err
+            raise Error(f"cannot connect to 'stc-agent' at {self._sc_id}:\n{err}") from err
 
-        _LOG.debug("connected to 'stats-collect' at %s", self._sc_id)
+        _LOG.debug("connected to 'stc-agent' at %s", self._sc_id)
 
     def _disconnect(self):
-        """Disconnect from 'stats-collect'."""
+        """Disconnect from 'stc-agent'."""
 
         assert self._sock
 
@@ -499,12 +498,12 @@ class _Collector(ClassHelpers.SimpleCloseContext):
             self._sock.close()
             self._sock = None
         except socket.error as err:
-            raise Error(f"cannot disconnect from 'stats-collect' at {self._sc_id}: {err}") from err
+            raise Error(f"cannot disconnect from 'stc-agent' at {self._sc_id}: {err}") from err
 
-        _LOG.debug("disconnected from 'stats-collect' at %s", self._sc_id)
+        _LOG.debug("disconnected from 'stc-agent' at %s", self._sc_id)
 
     def _send_msg(self, msg):
-        """Send a message to 'stats-collect'."""
+        """Send a message to 'stc-agent'."""
 
         buf = msg.encode("utf-8") + _DELIMITER
         total = 0
@@ -512,13 +511,13 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         while total < len(buf):
             sent = self._sock.send(buf[total:])
             if sent == 0:
-                raise Error(f"'stats-collect' at {self._sc_id} closed the connection")
+                raise Error(f"'stc-agent' at {self._sc_id} closed the connection")
             total += sent
 
     def _recv_msg(self):
         """
-        Receive a message from 'stats-collect'. Returns 'None' if the remote side closed the
-        connection, returns the received message otherwise.
+        Receive a message from 'stc-agent'. Returns 'None' if the remote side closed the connection,
+        returns the received message otherwise.
         """
 
         msg = bytes()
@@ -527,23 +526,23 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         while time.time() - starttime < self._timeout:
             buf = self._sock.recv(1)
             if not buf:
-                raise Error(f"'stats-collect' at {self._sc_id} closed the connection")
+                raise Error(f"'stc-agent' at {self._sc_id} closed the connection")
 
             # This inefficient, but good enough for our small messages.
             msg += buf
             if msg[-len(_DELIMITER):] == _DELIMITER:
                 return msg[:-len(_DELIMITER)].decode("utf-8")
 
-        raise Error(f"time out waiting for the 'stats-collect' response at {self._sc_id}")
+        raise Error(f"time out waiting for the 'stc-agent' response at {self._sc_id}")
 
     def _send_command(self, cmd, arg=None):
-        """Send a command to 'stats-collect', verify and return the response."""
+        """Send a command to 'stc-agent', verify and return the response."""
 
         if arg:
             cmd += " " + arg
 
-        sc_str = f"'stats-collect' at {self._sc_id}"
-        check_log_msg = f"Check 'stats-collect' log file{self._pman.hostmsg}':\n{self._logpath}"
+        sc_str = f"'stc-agent' at {self._sc_id}"
+        check_log_msg = f"Check 'stc-agent' log file{self._pman.hostmsg}':\n{self._logpath}"
 
         _LOG.debug("sending the following command to %s:\n%s", sc_str, cmd)
 
@@ -660,7 +659,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
     def _get_failed_collectors(self):
         """
-        Requests failed statistics names from 'stats-collect' and returns their names in form of a
+        Requests failed statistics names from 'stc-agent' and returns their names in form of a
         'set()'.
         """
 
@@ -679,14 +678,14 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         paths.
         """
 
-        # Discover path to 'stats-collect'.
+        # Discover path to 'stc-agent'.
         if not self.scpath:
             self.scpath = self._pman.which("stc-agent")
 
         is_root = ProcHelpers.is_root(pman=self._pman)
 
         if not self._unshare_path and is_root:
-            # Unshare is used for running 'stats-collect' in a separate PID namespace. We do this
+            # Unshare is used for running 'stc-agent' in a separate PID namespace. We do this
             # because when the PID 1 process of the namespace is killed, all other processes get
             # automatically killed. This helps to easily and reliably clean up processes upon exit.
             # But creating a PID namespace requires 'root'.
@@ -697,9 +696,9 @@ class _Collector(ClassHelpers.SimpleCloseContext):
                              self._pman.hostmsg)
 
         if not self._nice_path and is_root:
-            # We are trying to run 'stats-collect' with high priority, because we want the
-            # statistics to be collected at steady intervals. The 'nice' tool helps changing the
-            # priority of the process.
+            # We are trying to run 'stc-agent' with high priority, because we want the statistics to
+            # be collected at steady intervals. The 'nice' tool helps changing the priority of the
+            # process.
             self._nice_path = self._pman.which("nice", must_find=False)
             if not self._nice_path:
                 _LOG.warning("the 'nice' tool is missing%s, it is recommended to have it "
@@ -708,12 +707,12 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
     def _fetch_stat_collect_socket_path(self):
         """
-        This is a helper for '_start_stats_collect()'. When 'stats-collect' starts, it prints unix
-        socket path it is listening for connections on. This functions parses 'stats-collect' output
-        and fetches the socket path.
+        This is a helper for '_start_stats_collect()'. When 'stc-agent' starts, it prints unix
+        socket path it is listening for connections on. This functions parses 'stc-agent' output and
+        fetches the socket path.
         """
 
-        # Spend max. 5 secs waiting for 'stats-collect' to startup and print the socket file path.
+        # Spend max. 5 secs waiting for 'stc-agent' to startup and print the socket file path.
         attempts = 0
         while not self._uspath and attempts < 5:
             _, _, exitcode = self._sc.wait(timeout=1, capture_output=False)
@@ -744,10 +743,10 @@ class _Collector(ClassHelpers.SimpleCloseContext):
                     break
 
         if self._uspath:
-            _LOG.debug("stats-collect PID: %d, socket file path: %s", self._sc.pid, self._uspath)
+            _LOG.debug("stc-agent PID: %d, socket file path: %s", self._sc.pid, self._uspath)
 
             self._sc_id = f"{self._pman.hostname}:{self._uspath}"
-            msg = f"stats-collect (PID {self._sc.pid}) that reported it is listening on Unix " \
+            msg = f"stc-agent (PID {self._sc.pid}) that reported it is listening on Unix " \
                   f"socket {self._uspath}{self._pman.hostmsg}"
 
             try:
@@ -764,7 +763,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
                     ProcHelpers.kill_pids([self._sc.pid, ], kill_children=True, must_die=False,
                                           pman=self._pman)
 
-            msg = f"failed to extract socket file path from 'stats-collect' log\n" \
+            msg = f"failed to extract socket file path from 'stc-agent' log\n" \
                   f"The command was: {self._cmd}\n" \
                   f"The log is in '{self._logpath}'{self._pman.hostmsg}"
 
@@ -780,8 +779,8 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         This is a helper function for '_start_stats_collect()' which sets up an SSH forwarding
         between local host and the SUT.
 
-        'Statsd' always listens on a Unix socket, which means that we cannot directly connect to it
-        when 'stats-collect' runs on a remote host. Therefore, we create an SSH tunnel which will
+        'stc-agent' always listens on a Unix socket, which means that we cannot directly connect to
+        it when 'stc-agent' runs on a remote host. Therefore, we create an SSH tunnel which will
         forward TCP stream between a local TCP port the remote Unix socket.
         """
 
@@ -823,8 +822,8 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
     def _get_unshare_version(self):
         """
-        Returns version number of the 'unshare' program installed on the system where
-        'stats-collect' is going to be executed.
+        Returns version number of the 'unshare' program installed on the system where 'stc-agent' is
+        going to be executed.
         """
 
         stdout, _ = self._pman.run_verify(f"{self._unshare_path} --version")
@@ -832,29 +831,29 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         return stdout.split(" ")[-1].strip()
 
     def _start_stats_collect(self):
-        """Helper function for 'configure()' that starts 'stats-collect'."""
+        """Helper function for 'configure()' that starts 'stc-agent'."""
 
         self._init_paths()
 
-        # Kill a possibly running stale 'stats-collect' process.
+        # Kill a possibly running stale 'stc-agent' process.
         msg = f"stale {self.scpath} process{self._pman.hostmsg}"
         ProcHelpers.kill_processes(self._sc_search, kill_children=True, log=True, name=msg,
                                    pman=self._pman)
         if self._pman.is_remote:
             # Kill a possibly running stale SSH tunnel process.
-            msg = f"stale stats-collect SSH tunnel process{self._pman.hostmsg}"
+            msg = f"stale stc-agent SSH tunnel process{self._pman.hostmsg}"
             ProcHelpers.kill_processes(self._ssht_search, kill_children=True, log=True, name=msg,
                                        pman=self._pman)
 
-        # Format the command for executing 'stats-collect'.
+        # Format the command for executing 'stc-agent'.
         self._cmd = f"{self.scpath} --sut-name {self._sutname}"
         if _LOG.getEffectiveLevel() == logging.DEBUG:
             self._cmd = f"{self._cmd} -d"
 
-        self._logpath = self._logsdir / f"stats-collect-{self._pman.hostname}.log.txt"
+        self._logpath = self._logsdir / f"stc-agent-{self._pman.hostname}.log.txt"
         self._cmd = f"{self._cmd} > '{self._logpath}' 2>&1"
 
-        # And format the 'stats-collect' command prefix.
+        # And format the 'stc-agent' command prefix.
         cmd_prefix = ""
         if self._unshare_path:
             # Older version of 'unshare' did not support the '--kill-child' option. Note, unshare
@@ -876,8 +875,8 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         self._fetch_stat_collect_socket_path()
 
         if self._pman.is_remote:
-            # 'stats-collect' runs on the SUT and we cannot connect to the Unix socket file
-            # directly. Setup SSH forwarding.
+            # 'stc-agent' runs on the SUT and we cannot connect to the Unix socket file directly.
+            # Setup SSH forwarding.
             self._setup_stats_collect_ssh_forwarding()
 
     def _init_outdir(self, discovery=False):
@@ -887,7 +886,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         """
 
         if not self.outdir:
-            self.outdir = self._pman.mkdtemp(prefix="stats-collect-")
+            self.outdir = self._pman.mkdtemp(prefix="stc-agent-")
             self._outdir_created = True
             _LOG.debug("created output directory '%s'%s", self.outdir, self._pman.hostmsg)
         else:
@@ -918,7 +917,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
             sysinfo = True
 
         if not stnames:
-            _LOG.debug("skip starting stats-collect%s - no statistics collectors",
+            _LOG.debug("skip starting stc-agent%s - no statistics collectors",
                        self._pman.hostmsg)
             if sysinfo:
                 self._init_outdir(discovery=False)
@@ -972,12 +971,12 @@ class _Collector(ClassHelpers.SimpleCloseContext):
     def __init__(self, pman, sutname, outdir=None, scpath=None):
         """
         Initialize a class instance. The input arguments are as follows.
-          * pman - a process manager associated with the host to run 'stats-collect' on.
+          * pman - a process manager associated with the host to run 'stc-agent' on.
           * outdir - path to the directory to store the logs and the collected statistics. Stored in
                      a temporary directory if not provided.
           * sutname - name of the System Under Test. Will be used for messages and searching for
-                      stale 'stats-collect' process instances for the same SUT.
-          * scpath - path to 'stats-collect' on the host defined by 'pman'. Searched for in '$PATH'
+                      stale 'stc-agent' process instances for the same SUT.
+          * scpath - path to 'stc-agent' on the host defined by 'pman'. Searched for in '$PATH'
                      if not provided.
         """
 
@@ -990,10 +989,10 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         # Whether the 'self._pman' object should be closed.
         self._close_pman = False
-        # The commant to start 'stats-collect'.
+        # The commant to start 'stc-agent'.
         self._cmd = None
 
-        # Paths to the 'unshare' and 'nice' tools on the same host where 'stats-collect' runs.
+        # Paths to the 'unshare' and 'nice' tools on the same host where 'stc-agent' runs.
         self._unshare_path = None
         self._nice_path = None
 
@@ -1002,10 +1001,10 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         self._logsdir = None
         self._logpath = None
 
-        # The 'stats-collect' process search pattern.
+        # The 'stc-agent' process search pattern.
         self._sc_search = f"{self.scpath} --sut-name {self._sutname}"
         # The SSH tunnel process search pattern.
-        self._ssht_search = f"ssh -L .*:.*stats-collect-{self._sutname}-.* -N"
+        self._ssht_search = f"ssh -L .*:.*stc-agent-{self._sutname}-.* -N"
 
         self._sc = None
         self._sc_id = None
@@ -1055,8 +1054,8 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
 class _InBandCollector(_Collector):
     """
-    This class handles the "in-band" statistics collection. In this case, 'stats-collect' runs on
-    the SUT and statistics collectors also run on the SUT.
+    This class handles the "in-band" statistics collection. In this case, 'stc-agent' runs on the
+    SUT and statistics collectors also run on the SUT.
     """
 
     def __init__(self, pman, outdir=None, scpath=None):
@@ -1074,12 +1073,11 @@ class _InBandCollector(_Collector):
 
 class _OutOfBandCollector(_Collector):
     """
-    This class handles the "out-of-band" statistics collection. In this case, 'stats-collect' runs
-    on the local host, but it collects information about the SUT via an "out-of-band" channel.
+    This class handles the "out-of-band" statistics collection. In this case, 'stc-agent' runs on
+    the local host, but it collects information about the SUT via an "out-of-band" channel.
 
     One example of an "out-of-band" collector is "acpower": it reads power meter data on the local
-    host via something like USB or serial. The power meter, however, measures SUT power
-    consumption.
+    host via something like USB or serial. The power meter, however, measures SUT power consumption.
 
     Another example is the "ipmi" collector. It runs the 'ipmitool' on the local host, but the tool
     collects information about the SUT by talking to SUT's BMC module via the network.
@@ -1088,9 +1086,9 @@ class _OutOfBandCollector(_Collector):
     def __init__(self, sutname, outdir=None, scpath=None):
         """
         Initialize a class instance. The 'sutname' argument is name of the SUT to collect the
-        statistics for. This string will be passed over to 'stats-collect' and will affect its
-        messages. It will also be used fo distinguishing between multiple 'stats-collect' processes.
-        This name will not be used for connecting to the SUT.
+        statistics for. This string will be passed over to 'stc-agent' and will affect its messages.
+        It will also be used fo distinguishing between multiple 'stc-agent' processes. This name
+        will not be used for connecting to the SUT.
 
         The other arguments are the same as in 'StatsCollect.__init__()'.
         """
