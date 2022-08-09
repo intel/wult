@@ -15,7 +15,7 @@ This module implements several misc. helpers for tools using 'STCAgent'.
 import logging
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.statscollectlibs import STCAgent
+from wultlibs.stcagentlibs import STCAgent
 
 _LOG = logging.getLogger()
 

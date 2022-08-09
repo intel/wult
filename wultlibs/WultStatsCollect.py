@@ -13,7 +13,7 @@ This module is just a "glue" layer between "WultRunner" and "STCAgent".
 import logging
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from wultlibs.statscollectlibs import STCAgent, STCHelpers
+from wultlibs.stcagentlibs import STCAgent, STCHelpers
 
 _LOG = logging.getLogger()
 
