@@ -771,7 +771,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         raise Error(msg)
 
-    def _setup_stats_collect_ssh_forwarding(self):
+    def _setup_stc_agent_ssh_forwarding(self):
         """
         This is a helper function for '_start_stc_agent()' which sets up an SSH forwarding between
         local host and the SUT.
@@ -874,7 +874,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         if self._pman.is_remote:
             # 'stc-agent' runs on the SUT and we cannot connect to the Unix socket file directly.
             # Setup SSH forwarding.
-            self._setup_stats_collect_ssh_forwarding()
+            self._setup_stc_agent_ssh_forwarding()
 
     def _init_outdir(self, discovery=False):
         """
