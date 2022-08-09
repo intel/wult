@@ -7,18 +7,18 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module is just a "glue" layer between "WultRunner" and "StatsCollect".
+This module is just a "glue" layer between "WultRunner" and "STCAgent".
 """
 
 import logging
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from wultlibs.statscollectlibs import StatsCollect, StatsHelpers
+from wultlibs.statscollectlibs import STCAgent, StatsHelpers
 
 _LOG = logging.getLogger()
 
-STATS_NAMES = list(StatsCollect.DEFAULT_STINFO)
-STATS_INFO = StatsCollect.DEFAULT_STINFO
+STATS_NAMES = list(STCAgent.DEFAULT_STINFO)
+STATS_INFO = STCAgent.DEFAULT_STINFO
 
 def parse_stats(stnames, intervals):
     """Parse user-provided lists of statistics and intervals."""
@@ -31,8 +31,8 @@ def parse_stats(stnames, intervals):
 
 class WultStatsCollect(ClassHelpers.SimpleCloseContext):
     """
-    The statistics collector class. Built on top of 'StatsCollect', but simplifies the API a little
-    bit for wult usage scenario.
+    The statistics collector class. Built on top of 'STCAgent', but simplifies the API a little bit
+    for wult usage scenario.
     """
 
     def start(self):
@@ -111,7 +111,7 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
 
         self._routdir = self._pman.mkdtemp(prefix="wult-stats-collect-")
 
-        self._stcoll = StatsCollect.StatsCollect(pman, local_outdir=self._loutdir.resolve(),
+        self._stcoll = STCAgent.STCAgent(pman, local_outdir=self._loutdir.resolve(),
                                                  remote_outdir=self._routdir,
                                                  local_scpath=local_scpath,
                                                  remote_scpath=remote_scpath)

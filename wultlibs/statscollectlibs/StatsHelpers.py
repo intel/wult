@@ -7,7 +7,7 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module implements several misc. helpers for tools using 'StatsCollect'.
+This module implements several misc. helpers for tools using 'STCAgent'.
 """
 
 # pylint: disable=protected-access
@@ -15,7 +15,7 @@ This module implements several misc. helpers for tools using 'StatsCollect'.
 import logging
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.statscollectlibs import StatsCollect
+from wultlibs.statscollectlibs import STCAgent
 
 _LOG = logging.getLogger()
 
@@ -47,8 +47,8 @@ def parse_stnames(stnames):
         else:
             stconf["include"].add(stname)
 
-    StatsCollect._check_stnames(stconf["include"])
-    StatsCollect._check_stnames(stconf["exclude"])
+    STCAgent._check_stnames(stconf["include"])
+    STCAgent._check_stnames(stconf["exclude"])
     stconf["include"] -= stconf["exclude"]
 
     return stconf
@@ -73,7 +73,7 @@ def parse_intervals(intervals, stconf):
                         f"'stname' is the statistics name and 'interval' is a floating point "
                         f"interval for collecting the 'stname' statistics.")
         stname, interval = split
-        StatsCollect._check_stname(stname)
+        STCAgent._check_stname(stname)
 
         if not Trivial.is_float(interval):
             raise Error(f"bad interval value '{interval}' for the '{stname}' statistics: should "
@@ -84,7 +84,7 @@ def parse_intervals(intervals, stconf):
 def apply_stconf(stcoll, stconf):
     """
     Apply statistics configuration in 'stconf' dictionary that was created by 'parse_stnames()' to
-    the statistics collector 'stcoll' (a 'StatsCollect' instance).
+    the statistics collector 'stcoll' (a 'STCAgent' instance).
 
     In other words, the assumed usage scenario is as follows.
     1. A tool gets list of statistics to collect from the user, feeds the list to 'parse_stname()',
@@ -97,7 +97,7 @@ def apply_stconf(stcoll, stconf):
 
     if stconf["discover"]:
         # Enable all statistics except for those that must be disabled.
-        stcoll.set_enabled_stats(StatsCollect.DEFAULT_STINFO.keys())
+        stcoll.set_enabled_stats(STCAgent.DEFAULT_STINFO.keys())
         stcoll.set_disabled_stats(stconf["exclude"])
         if "intervals" in stconf:
             stconf["intervals"] = stcoll.set_intervals(stconf["intervals"])

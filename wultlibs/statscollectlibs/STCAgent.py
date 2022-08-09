@@ -175,7 +175,7 @@ def _get_max_interval(stinfo):
 
     return 0
 
-class StatsCollect(ClassHelpers.SimpleCloseContext):
+class STCAgent(ClassHelpers.SimpleCloseContext):
     """
     This class provides API for collecting SUT statistics, such as 'turbostat' data and AC power.
 
@@ -423,7 +423,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         directory, the 'stc-agent' logs will be stored in the 'logs' sub-directory. Use
         'get_outdirs()' method to get the output directories.
 
-        If the an output directory was not provided and instead, was created by 'StatsCollect', the
+        If the an output directory was not provided and instead, was created by 'STCAgent', the
         directory gets removed in the 'close()' method.
         """
 
@@ -1056,9 +1056,7 @@ class _InBandCollector(_Collector):
     """
 
     def __init__(self, pman, outdir=None, scpath=None):
-        """
-        Initialize a class instance. The arguments are the same as in 'StatsCollect.__init__()'.
-        """
+        """Initialize a class instance. The arguments are the same as in 'STCAgent.__init__()'."""
 
         # Call the base class constructor.
         super().__init__(pman, pman.hostname, outdir=outdir, scpath=scpath)
@@ -1087,7 +1085,7 @@ class _OutOfBandCollector(_Collector):
         It will also be used fo distinguishing between multiple 'stc-agent' processes. This name
         will not be used for connecting to the SUT.
 
-        The other arguments are the same as in 'StatsCollect.__init__()'.
+        The other arguments are the same as in 'STCAgent.__init__()'.
         """
 
         # Call the base class constructor.
