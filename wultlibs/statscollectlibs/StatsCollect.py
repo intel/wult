@@ -673,10 +673,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         return set(result)
 
     def _init_paths(self):
-        """
-        Helper function for 'start_stats_collect()' that discovers and initializes various
-        paths.
-        """
+        """Helper function for '_start_stc_agent()' that discovers and initializes various paths."""
 
         # Discover path to 'stc-agent'.
         if not self.scpath:
@@ -707,8 +704,8 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
     def _fetch_stat_collect_socket_path(self):
         """
-        This is a helper for '_start_stats_collect()'. When 'stc-agent' starts, it prints unix
-        socket path it is listening for connections on. This functions parses 'stc-agent' output and
+        This is a helper for '_start_stc_agent()'. When 'stc-agent' starts, it prints unix socket
+        path it is listening for connections on. This functions parses 'stc-agent' output and
         fetches the socket path.
         """
 
@@ -776,8 +773,8 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
     def _setup_stats_collect_ssh_forwarding(self):
         """
-        This is a helper function for '_start_stats_collect()' which sets up an SSH forwarding
-        between local host and the SUT.
+        This is a helper function for '_start_stc_agent()' which sets up an SSH forwarding between
+        local host and the SUT.
 
         'stc-agent' always listens on a Unix socket, which means that we cannot directly connect to
         it when 'stc-agent' runs on a remote host. Therefore, we create an SSH tunnel which will
@@ -830,7 +827,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         # The expected output example: unshare from util-linux 2.35.2.
         return stdout.split(" ")[-1].strip()
 
-    def _start_stats_collect(self):
+    def _start_stc_agent(self):
         """Helper function for 'configure()' that starts 'stc-agent'."""
 
         self._init_paths()
@@ -925,7 +922,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         self._init_outdir(discovery=discovery)
         if not self._sc:
-            self._start_stats_collect()
+            self._start_stc_agent()
         if not self._sock:
             self._connect()
 
