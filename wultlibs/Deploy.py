@@ -57,7 +57,7 @@ _TOOLS_INFO = {
                 "category" : "drivers",
                 "minkver"  : "5.6",
             },
-            "stats-collect" : {
+            "stc-agent" : {
                 "category" : "pyhelpers",
             },
         },
@@ -154,13 +154,13 @@ def find_pyhelper_path(pyhelper, deployable=None):
       * deployable - name of the program to find.
 
     Note about 'pyhelper' vs 'deployable'. Python helpers may come with additional "deployables".
-    For example, "stats-collect" comes with the 'ipmi-helper' tool that it uses. Here is a usage
+    For example, "stc-agent" comes with the 'ipmi-helper' tool that it uses. Here is a usage
     example.
-      * To find path to the "stats-collect" python helper program, use:
-        find_pyhelper_path("stats-collect")
-      * To find path to the "ipmi-helper" program which belongs to the "stats-collect" python heper,
+      * To find path to the "stc-agent" python helper program, use:
+        find_pyhelper_path("stc-agent")
+      * To find path to the "ipmi-helper" program which belongs to the "stc-agent" python heper,
         use:
-        find_pyhelper_path("stats-collect", deployable="ipmi-helper")
+        find_pyhelper_path("stc-agent", deployable="ipmi-helper")
     """
 
     if not deployable:

@@ -49,7 +49,7 @@ def get_data_files(installdir, subdir, exclude=None):
     return list(files_dict.items())
 
 # Python helpers get installed as scripts. We exclude these scripts from being installed as data.
-_PYTHON_HELPERS = ["helpers/stats-collect/stats-collect", "helpers/stats-collect/ipmi-helper"]
+_PYTHON_HELPERS = ["helpers/stc-agent/stc-agent", "helpers/stc-agent/ipmi-helper"]
 
 setup(
     name="wult",

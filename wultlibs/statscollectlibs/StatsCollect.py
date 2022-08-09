@@ -681,7 +681,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         # Discover path to 'stats-collect'.
         if not self.scpath:
-            self.scpath = self._pman.which("stats-collect")
+            self.scpath = self._pman.which("stc-agent")
 
         is_root = ProcHelpers.is_root(pman=self._pman)
 
