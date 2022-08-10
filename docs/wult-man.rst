@@ -77,7 +77,7 @@ order) on the local host: ./drivers/idle, $WULT_DATA_PATH/drivers/idle
 (if 'WULT_DATA_PATH' environment variable is defined),
 $HOME/.local/share/wult/drivers/idle,
 /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The
-wult tool also depends on the following helpers: stats-collect. These
+wult tool also depends on the following helpers: stc-agent. These
 helpers will be compiled on the SUT and deployed to the SUT. The sources
 of the helpers are searched for in the following paths (and in the
 following order) on the local host: ./helpers, $WULT_DATA_PATH/helpers

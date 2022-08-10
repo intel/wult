@@ -134,8 +134,8 @@ host. By default the key is automatically found from standard paths like
 SSH connect timeout in seconds, default is 8.
 
 .SH COMMAND \fI\,'ndl start'\/\fR
-usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid REPORTID] [-l LDIST]
-                 [--exclude EXCLUDE] [--include INCLUDE] [--keep-filtered] [--report] [--force]
+usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid REPORTID] [-l LDIST] [--exclude EXCLUDE] [--include INCLUDE] [--keep-filtered] [--report]
+                 [--force]
                  ifname
 
 Start measuring and recording the latency data.
@@ -268,8 +268,8 @@ such as "up". Use '\-\-force' to disable this safety mechanism. Use it with
 caution.
 
 .SH COMMAND \fI\,'ndl report'\/\fR
-usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--exclude EXCLUDE] [--include INCLUDE] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist CHIST]
-                  [--reportids REPORTIDS] [--title-descr TITLE_DESCR] [--relocatable] [--list-metrics]
+usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--exclude EXCLUDE] [--include INCLUDE] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr TITLE_DESCR] [--relocatable]
+                  [--list-metrics]
                   respaths [respaths ...]
 
 Create an HTML report for one or multiple test results.
@@ -388,9 +388,7 @@ which are copied across with the raw test results.
 Print the list of the available metrics and exit.
 
 .SH COMMAND \fI\,'ndl filter'\/\fR
-usage: ndl filter [-h] [-q] [-d] [--exclude EXCLUDE] [--include INCLUDE] [--exclude-metrics MEXCLUDE] [--include-metrics MINCLUDE] [--human-readable] [-o OUTDIR]
-                  [--list-metrics] [--reportid REPORTID]
-                  respath
+usage: ndl filter [-h] [-q] [-d] [--exclude EXCLUDE] [--include INCLUDE] [--exclude-metrics MEXCLUDE] [--include-metrics MINCLUDE] [--human-readable] [-o OUTDIR] [--list-metrics] [--reportid REPORTID] respath
 
 Filter datapoints out of a test result by removing CSV rows and metrics according to specified criteria. The criteria is specified using the row and metric filter and selector options ('\-\-include', '\-\-exclude\-metrics', etc). The options may be specified multiple times.
 
