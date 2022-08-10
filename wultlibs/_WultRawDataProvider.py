@@ -12,7 +12,7 @@ datapoints, as well as initializing wult devices.
 """
 
 import logging
-from pepclibs.helperlibs import Trivial, ClassHelpers, Systemctl
+from pepclibs.helperlibs import Trivial, ClassHelpers, Systemctl, Human
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from wultlibs import _FTrace, _RawDataProvider
 
@@ -121,8 +121,11 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         for ldist, ldist_path in zip(reversed(self._ldist), [to_path, from_path]):
             if ldist < ldist_min or ldist > ldist_max:
+                ldist = Human.duration_ns(ldist)
+                ldist_min = Human.duration_ns(ldist_min)
+                ldist_max = Human.duration_ns(ldist_max)
                 raise Error(f"launch distance '{ldist}' is out of range, it should be in range of "
-                            f"[{ldist_min},{ldist_max}]")
+                            f"[{ldist_min}, {ldist_max}]")
             try:
                 with self._pman.open(ldist_path, "w") as fobj:
                     fobj.write(str(ldist))
