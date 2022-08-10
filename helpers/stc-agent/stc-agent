@@ -9,8 +9,8 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This program implements the statistics collector as a service clients can connect to. Clients can
-send it commands it collect various kinds of statistics, e.g. turbostat and AC power.
+This program implements the statistics collection agent as a service clients can connect to. Clients
+can send it commands it collect various kinds of statistics, e.g. turbostat and AC power.
 
 This program is designed to work in a local network and may require root privileges. Please, do not
 use it in production environment, use it only in isolated debugging/research setups.
@@ -465,9 +465,9 @@ class ACPowerCollector(_BaseCollector):
         self.props["pmtype"] = UNINITIALIZED["str"]
         self._signal = signal.SIGINT
 
-class StatsCollector:
+class STCAgent:
     """
-    This class represents the statistics collector and it implements all the collecting
+    This class represents the statistics collection agent and it implements all the collecting
     functionality of this program. There is only one single instance of this class.
     """
 
@@ -812,7 +812,7 @@ class Server(ClassHelpers.SimpleCloseContext):
             with contextlib.suppress(OSError):
                 os.remove(self._uspath)
 
-def handle_command(cmd, collector):
+def handle_command(cmd, stc_agent):
     """Handle a single command from the client."""
 
     cmd, args = cmd.partition(" ")[::2]
@@ -824,22 +824,22 @@ def handle_command(cmd, collector):
     try:
         if cmd == "set-stats":
             # Create the statistics collectors without initializing them.
-            collector.create([stname.strip() for stname in args.split(",")])
+            stc_agent.create([stname.strip() for stname in args.split(",")])
         elif cmd == "set-collector-property":
             # Set a property of one or multiple collectors.
-            collector.set_collector_property(args)
+            stc_agent.set_collector_property(args)
         elif cmd == "configure":
             # Once all the properties had been set, configure the collectors.
-            collector.configure()
+            stc_agent.configure()
         elif cmd == "start":
             # Start collecting the statistics.
-            collector.start()
+            stc_agent.start()
         elif cmd == "stop":
             # Stop collecting the statistics.
-            collector.stop()
+            stc_agent.stop()
         elif cmd == "get-failed-collectors":
             # Get the list of failed collectors.
-            response += " %s" % ",".join(collector.failed_collectors)
+            response += " %s" % ",".join(stc_agent.failed_collectors)
         elif cmd == "exit":
             pass
         else:
@@ -851,13 +851,13 @@ def handle_command(cmd, collector):
 
     return response
 
-def handle_client(client, collector):
+def handle_client(client, stc_agent):
     """Handle a client connection. Only one client can be handled at a time."""
 
     cmd = None
     while cmd != "exit":
         cmd = client.get_command()
-        response = handle_command(cmd, collector)
+        response = handle_command(cmd, stc_agent)
         client.respond(response)
 
     raise ExitCommand()
@@ -878,7 +878,7 @@ def main():
         print_module_paths()
         return 0
 
-    collector = StatsCollector()
+    stc_agent = STCAgent()
 
     with Server(unix=args.unix, port=args.port, sutname=args.sutname) as server:
         server.start_listening()
@@ -887,7 +887,7 @@ def main():
         while True:
             with server.wait_for_client() as client:
                 try:
-                    handle_client(client, collector)
+                    handle_client(client, stc_agent)
                 except ClientDisconnected as err:
                     LOG.debug(err)
                 except ExitCommand:
