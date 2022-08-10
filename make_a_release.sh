@@ -60,7 +60,7 @@ fi
 # Remind the maintainer about various important things.
 ask_question "Did you run tests"
 ask_question "Did you update 'CHANGELOG.md'"
-ask_question "Did you specify pepc version dependency in 'setup.py'"
+ask_question "Did you specify pepc version dependency in 'setup.py' and 'wult.spec'"
 
 # Change the tool version.
 sed -i -e "s/^VERSION = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"$/VERSION = \"$new_ver\"/" ./wulttools/_Wult.py
