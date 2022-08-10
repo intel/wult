@@ -78,7 +78,7 @@ install -pDm755 helpers/ndlrunner/ndlrunner %{buildroot}%{_bindir}/ndlrunner
 %{_bindir}/ipmi-helper
 %{_bindir}/ndl
 %{_bindir}/ndlrunner
-%{_bindir}/stats-collect
+%{_bindir}/stc-agent
 %{_bindir}/wult
 %{_datadir}/wult/defs
 %{_datadir}/wult/js
