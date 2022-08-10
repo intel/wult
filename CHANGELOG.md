@@ -9,6 +9,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Max. launch distance changed from 10ms to 20ms.
 
 ## [1.10.14] - 2022-08-05
 ### Fixed
