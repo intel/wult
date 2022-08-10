@@ -5,6 +5,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.10.15] - ADD DATE HERE
 ### Fixed
+ - Fix failure when setting large launch distance (>4ms).
 ### Added
 ### Removed
 ### Changed

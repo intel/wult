@@ -119,7 +119,7 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                 # Special case: 0 means "use the minimum possible value".
                 self._ldist[idx] = ldist_min
 
-        for ldist, ldist_path in zip(self._ldist, [from_path, to_path]):
+        for ldist, ldist_path in zip(reversed(self._ldist), [to_path, from_path]):
             if ldist < ldist_min or ldist > ldist_max:
                 raise Error(f"launch distance '{ldist}' is out of range, it should be in range of "
                             f"[{ldist_min},{ldist_max}]")
