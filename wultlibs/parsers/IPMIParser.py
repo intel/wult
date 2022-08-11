@@ -16,7 +16,7 @@ with the "timestamp | XYZ" lines.
 import re
 import datetime
 from pepclibs.helperlibs import Trivial
-from wultlibs.parsers import _ParserBase
+from statscollectlibs.parsers import _ParserBase
 
 class IPMIParser(_ParserBase.ParserBase):
     """This class represents the IPMI parser."""

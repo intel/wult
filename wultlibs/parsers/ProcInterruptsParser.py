@@ -10,7 +10,7 @@
 This module implements parsing for the interrupt information table in '/proc/interrupts'.
 """
 
-from wultlibs.parsers import _ParserBase
+from statscollectlibs.parsers import _ParserBase
 
 class ProcInterruptsParser(_ParserBase.ParserBase):
     """This class represents the parser for the content of '/proc/interrupts' -file."""

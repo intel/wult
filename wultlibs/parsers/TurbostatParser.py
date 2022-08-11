@@ -15,7 +15,7 @@ import re
 from itertools import zip_longest
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.parsers import _ParserBase
+from statscollectlibs.parsers import _ParserBase
 
 # The default regular expression for turbostat columns to parse.
 _COLS_REGEX = r".*\s*Avg_MHz\s+(Busy%|%Busy)\s+Bzy_MHz\s+.*"
