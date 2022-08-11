@@ -13,8 +13,8 @@ This module provides a base class and common logic for populating a group of sta
 from pathlib import Path
 import logging
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
+from statscollectlibs import DefsBase
 from statscollectlibs.htmlreport.tabs import _DTabBuilder, _Tabs
-from statscollectlibs import _DefsBase
 
 _LOG = logging.getLogger()
 
@@ -99,7 +99,7 @@ class TabBuilderBase:
 
             # Tabs not labelled by the "dtabs" key in the tab hierarchy are container tabs. For each
             # sub container tab, recursively call 'self._build_ctab()'.
-            subdir = Path(outdir) / _DefsBase.get_fsname(tab_name)
+            subdir = Path(outdir) / DefsBase.get_fsname(tab_name)
             subtab = self._build_ctab(tab_name, sub_hierarchy, subdir, plots)
             if subtab:
                 sub_tabs.append(subtab)
@@ -187,7 +187,7 @@ class TabBuilderBase:
 
         self._reports = {}
         self._basedir = outdir
-        self._outdir = outdir / _DefsBase.get_fsname(self.name)
+        self._outdir = outdir / DefsBase.get_fsname(self.name)
         self._defs = defs
 
         self._stats_files = stats_files

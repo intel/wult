@@ -14,9 +14,8 @@ import numpy
 import pandas
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs import IPMIDefs
+from statscollectlibs import DefsBase, IPMIDefs
 from statscollectlibs.htmlreport.tabs import _TabBuilderBase
-from statscollectlibs import _DefsBase
 from wultlibs.parsers import IPMIParser
 
 class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
@@ -92,7 +91,7 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
                 col_def = self._defs.info[metric].copy()
                 # Don't overwrite the 'title' attribute so that the metric name is shown in plots
                 # and the summary table.
-                col_def["fsname"] = _DefsBase.get_fsname(colname)
+                col_def["fsname"] = DefsBase.get_fsname(colname)
                 col_def["name"] = colname
                 self._defs.info[colname] = col_def
 

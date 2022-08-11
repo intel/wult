@@ -8,9 +8,9 @@
 
 """This module provides an API to the AC Power definitions (AKA 'defs')."""
 
-from statscollectlibs import _DefsBase
+from statscollectlibs import DefsBase
 
-class ACPowerDefs(_DefsBase.DefsBase):
+class ACPowerDefs(DefsBase.DefsBase):
     """This class provides an API to the AC Power definitions (AKA 'defs')."""
 
     def __init__(self):

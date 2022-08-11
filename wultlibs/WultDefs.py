@@ -11,7 +11,7 @@ This module provides API to wult metrics definitions (AKA 'defs').
 """
 
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs import _DefsBase
+from statscollectlibs import DefsBase
 
 def is_cscyc_metric(metric):
     """Returns 'True' if 'metric' is a C-state cycles count metric."""
@@ -68,7 +68,7 @@ def get_csres_metric(csname):
 
     return f"{csname}%"
 
-class WultDefs(_DefsBase.DefsBase):
+class WultDefs(DefsBase.DefsBase):
     """This class provides API to wult metrics definitions (AKA 'defs')."""
 
     def __init__(self, hdr):
