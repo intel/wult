@@ -467,8 +467,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             tai_adj = dp["TAIAdj"]
             tintr_adj = dp["TIntrAdj"]
 
-            dp["WakeLatencyRaw"] = dp["WakeLatency"]
-            dp["IntrLatencyRaw"] = dp["IntrLatency"]
             dp["WakeLatency"] -= tai_adj
             dp["IntrLatency"] -= tintr_adj
 
@@ -495,8 +493,10 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         dp["SilentTime"] = dp["LTime"] - dp["TBI"]
         dp["WakeLatency"] = dp["TAI"] - dp["LTime"]
-
         dp["IntrLatency"] = dp["TIntr"] - dp["LTime"]
+
+        dp["WakeLatencyRaw"] = dp["WakeLatency"]
+        dp["IntrLatencyRaw"] = dp["IntrLatency"]
 
         for metric in ("LDist", "SilentTime", "IntrLatency", "WakeLatency"):
             if dp.get(metric, 0) < 0:
@@ -550,8 +550,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
                            "Dropping this datapoint\n", Human.dict2str(dp), overhead)
                 return None
 
-            if "IntrLatencyRaw" not in dp:
-                dp["IntrLatencyRaw"] = dp["IntrLatency"]
             dp["IntrLatency"] -= overhead
         else:
             # 1. When the CPU exits the C-state, it runs the interrupt handler before
@@ -594,8 +592,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
                            "Dropping this datapoint\n", Human.dict2str(dp), overhead)
                 return None
 
-            if "WakeLatencyRaw" not in dp:
-                dp["WakeLatencyRaw"] = dp["WakeLatency"]
             dp["WakeLatency"] -= overhead
 
         if self._drvname == "wult_tdt":
