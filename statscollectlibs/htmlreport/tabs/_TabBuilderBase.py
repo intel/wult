@@ -14,7 +14,7 @@ from pathlib import Path
 import logging
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.htmlreport.tabs import _DTabBuilder, _Tabs
-from wultlibs import _DefsBase
+from statscollectlibs import _DefsBase
 
 _LOG = logging.getLogger()
 

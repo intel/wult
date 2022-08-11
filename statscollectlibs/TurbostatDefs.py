@@ -10,7 +10,7 @@
 This module provides API to turbostat metrics definitions (AKA 'defs').
 """
 
-from wultlibs import _DefsBase
+from statscollectlibs import _DefsBase
 from wultlibs.parsers import TurbostatParser
 
 def is_reqcs_metric(metric):

@@ -8,7 +8,7 @@
 
 """This module provides an API to the AC Power definitions (AKA 'defs')."""
 
-from wultlibs import _DefsBase
+from statscollectlibs import _DefsBase
 
 class ACPowerDefs(_DefsBase.DefsBase):
     """This class provides an API to the AC Power definitions (AKA 'defs')."""

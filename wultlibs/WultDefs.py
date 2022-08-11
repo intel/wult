@@ -11,7 +11,7 @@ This module provides API to wult metrics definitions (AKA 'defs').
 """
 
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import _DefsBase
+from statscollectlibs import _DefsBase
 
 def is_cscyc_metric(metric):
     """Returns 'True' if 'metric' is a C-state cycles count metric."""

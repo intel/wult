@@ -17,7 +17,8 @@ from pathlib import Path
 import pandas
 from pepclibs.helperlibs import YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
-from wultlibs import DFSummary, WultDefs, _DefsBase
+from statscollectlibs import _DefsBase
+from wultlibs import DFSummary, WultDefs
 from wultlibs.rawresultlibs import _RawResultBase
 
 _LOG = logging.getLogger()
