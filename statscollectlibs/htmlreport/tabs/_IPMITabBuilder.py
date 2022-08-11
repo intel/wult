@@ -16,7 +16,7 @@ from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs import DefsBase, IPMIDefs
 from statscollectlibs.htmlreport.tabs import _TabBuilderBase
-from wultlibs.parsers import IPMIParser
+from statscollectlibs.parsers import IPMIParser
 
 class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
     """
