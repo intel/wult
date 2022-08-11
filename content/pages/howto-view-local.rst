@@ -123,7 +123,7 @@ servedir.py
 
 .. raw:: html
 
-   <p> Click <a href="/scripts/servedir/servedir.py" download>here</a> to download the script.
+   <p> Click <a href="../scripts/servedir/servedir.py" download>here</a> to download the script.
 
 
 The first script hosts a given directory on localhost. It's recommended usage is as
@@ -150,7 +150,7 @@ servereport.py
 
 .. raw:: html
 
-   <p> Click <a href="/scripts/servedir/servereport.py" download>here</a> to download the script.
+   <p> Click <a href="../scripts/servedir/servereport.py" download>here</a> to download the script.
 
 The second script is intended to be downloaded from the repository and placed in a report directory.
 Running this script will host the directory containing the script on localhost and open a browser to
