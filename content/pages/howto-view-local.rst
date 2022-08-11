@@ -120,7 +120,11 @@ both of them require that your system already has Python installed.
 
 servedir.py
 ~~~~~~~~~~~
-   Find this script `in our GitHub repo here <https://github.com/intel/wult/blob/af49e4244bafbe31e7404f45927e0df25ddd6dab/misc/servedir/servedir.py>`_.
+
+.. raw:: html
+
+   <p> Click <a href="/scripts/servedir/servedir.py" download>here</a> to download the script.
+
 
 The first script hosts a given directory on localhost. It's recommended usage is as
 follows:
@@ -143,7 +147,10 @@ Usage of 'servedir.py' following the above instructions on Windows 10.
 
 servereport.py
 ~~~~~~~~~~~~~~
-   Download this script `from our GitHub repo here <https://github.com/intel/wult/blob/af49e4244bafbe31e7404f45927e0df25ddd6dab/misc/servedir/servereport.py>`_.
+
+.. raw:: html
+
+   <p> Click <a href="/scripts/servedir/servereport.py" download>here</a> to download the script.
 
 The second script is intended to be downloaded from the repository and placed in a report directory.
 Running this script will host the directory containing the script on localhost and open a browser to
