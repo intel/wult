@@ -441,6 +441,9 @@ class ReportBase:
         self._copy_asset("js/index.html", "root HTML page of the report.",
                          self.outdir / "index.html")
 
+        self._copy_asset("misc/servedir/servereport.py", "script to view the report locally.",
+                         self.outdir / "servereport.py")
+
     def _mangle_loaded_res(self, res):
         """
         This method is called for every 'pandas.DataFrame' corresponding to the just loaded CSV
