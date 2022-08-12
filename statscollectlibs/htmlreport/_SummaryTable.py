@@ -13,7 +13,7 @@ This module provides the functionality for generating summary table dictionaries
 """
 
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists, ErrorNotFound
-from wultlibs import DFSummary
+from statscollectlibs import DFSummary
 
 
 class SummaryTable:

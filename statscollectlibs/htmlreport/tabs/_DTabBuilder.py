@@ -12,9 +12,9 @@ This module provides the capability of populating a data tab.
 
 import logging
 from pepclibs.helperlibs.Exceptions import Error
+from statscollectlibs import DFSummary
 from statscollectlibs.htmlreport import _Histogram, _ScatterPlot, _SummaryTable
 from statscollectlibs.htmlreport.tabs import _Tabs
-from wultlibs import DFSummary
 
 _LOG = logging.getLogger()
 

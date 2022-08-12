@@ -19,7 +19,8 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, ProcessManager, Logging, YAML
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import DFSummary, Devices
+from statscollectlibs import DFSummary
+from wultlibs import Devices
 from wultlibs.helperlibs import ReportID, Human
 from wultlibs.rawresultlibs import RORawResult
 
