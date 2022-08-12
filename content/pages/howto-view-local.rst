@@ -9,30 +9,17 @@ Viewing wult reports
 
 .. contents:: Table of Contents
 
-Securely view wult HTML reports
--------------------------------
-
-Please consider disabling all untrusted browser extensions while viewing *wult* HTML reports.
-
-Browser extensions have varying levels of permissions. For example, some extensions require that the
-user allows them to access and distribute the data they are viewing in-browser. This means that it
-is possible for some browser extensions to view and share the contents of *wult* HTML reports.
-
-For Google chrome, you can inspect the permissions of your extensions by visiting
-`chrome://extensions`. In Firefox, the same thing can be done at `about:addons`.
-
-Open wult reports locally
--------------------------
-
 Suppose you have already generated a *wult* HTML report using the `wult report` command. If you wish
 to view this report locally, such as by copying the report onto your machine and opening
 `index.html`, you will need to host the report files locally. This is because modern browsers forbid
-loading data from local file-systems for security reasons.
+loading data from local file-systems for security reasons.  The following sections explain several
+methods to view wult HTML reports locally given this limitation.
 
-Please see the following sections on how to do this.
+In addition, read `this warning <#securely-view-wult-html-reports>`_ for advice on how to securely
+view wult HTML reports.
 
 servefolder.dev
-+++++++++++++++
+---------------
 
 This option should work on any modern browser (tested on 10 March 2022 working on Chrome, Firefox
 and Edge but not Internet Explorer).  An internet connection is required to reach the site initially
@@ -76,7 +63,7 @@ but following this, the report can be viewed independently of an internet connec
    you want to view multiple reports.
 
 Chrome extension
-++++++++++++++++++++++++++++++++++
+----------------
 
 By installing the "Web Server for Chrome" extension, you will be able to serve the reports locally
 without an internet connection in future through a graphical interface. However this extension is
@@ -113,13 +100,13 @@ will be added to the `Chrome Apps` directory in the start menu.
 See `this tip below <#view-multiple-reports-locally>`_ if you want to view multiple reports.
 
 Python Scripts
-++++++++++++++
+--------------
 
 To facilitate reading HTML reports locally, we have created a couple of Python scripts. Note that
 both of them require that your system already has Python installed.
 
 servedir.py
-~~~~~~~~~~~
++++++++++++
 
 .. raw:: html
 
@@ -146,7 +133,7 @@ follows:
 Usage of 'servedir.py' following the above instructions on Windows 10.
 
 servereport.py
-~~~~~~~~~~~~~~
+++++++++++++++
 
 .. raw:: html
 
@@ -165,7 +152,7 @@ browse the report/directory.
    this window.
 
 Python - CLI
-++++++++++++
+------------
 
 If you have Python installed on your system, you can make use of the `'http.server' module
 <https://docs.python.org/3/library/http.server.html>`_ which is part of the standard Python library.
@@ -182,7 +169,7 @@ If you have Python installed on your system, you can make use of the `'http.serv
 See `this tip below <#view-multiple-reports-locally>`_ if you want to view multiple reports.
 
 npm
-+++
+---
 
 Equally, if you have the Node package manager (npm) installed, you can install and use the
 `'http-server' package <https://www.npmjs.com/package/http-server>`_.
@@ -204,3 +191,15 @@ If you want to view many reports in one session, consider starting the HTTP serv
 directory of the reports. This will allow you to navigate in the browser between different reports.
 
 Do this by using a parent directory instead of the report directory for any of the above methods.
+
+Securely view wult HTML reports
+-------------------------------
+
+Please consider disabling all untrusted browser extensions while viewing *wult* HTML reports.
+
+Browser extensions have varying levels of permissions. For example, some extensions require that the
+user allows them to access and distribute the data they are viewing in-browser. This means that it
+is possible for some browser extensions to view and share the contents of *wult* HTML reports.
+
+For Google chrome, you can inspect the permissions of your extensions by visiting
+`chrome://extensions`. In Firefox, the same thing can be done at `about:addons`.
