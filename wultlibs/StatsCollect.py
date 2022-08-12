@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2021 Intel Corporation
+# Copyright (C) 2019-2022 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -29,10 +29,10 @@ def parse_stats(stnames, intervals):
 
     return stconf
 
-class WultSTCAgent(ClassHelpers.SimpleCloseContext):
+class StatsCollect(ClassHelpers.SimpleCloseContext):
     """
-    The wult statistics collector agent class. Built on top of 'STCAgent', but simplifies the API a
-    little bit for wult usage scenario.
+    The statistics collector class. Built on top of 'STCAgent', but simplifies the API a little bit
+    for wult usage scenario.
     """
 
     def start(self):

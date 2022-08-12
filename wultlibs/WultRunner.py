@@ -17,7 +17,7 @@ import contextlib
 from pepclibs import CStates
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from pepclibs.helperlibs import ClassHelpers, LocalProcessManager
-from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess, WultSTCAgent, Deploy
+from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess, StatsCollect, Deploy
 from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
@@ -194,9 +194,9 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             else:
                 remote_scpath = None
 
-            self._stcoll = WultSTCAgent.WultSTCAgent(self._pman, self._res,
-                                                             local_scpath=local_scpath,
-                                                             remote_scpath=remote_scpath)
+            self._stcoll = StatsCollect.StatsCollect(self._pman, self._res,
+                                                     local_scpath=local_scpath,
+                                                     remote_scpath=remote_scpath)
             self._stcoll.apply_stconf(self._stconf)
 
     def _validate_sut(self, cpunum):
