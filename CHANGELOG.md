@@ -5,9 +5,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.10.16] - ADD DATE HERE
 ### Fixed
- - Fix occasional crash: KeyError: 'IntrLatencyRaw'
+ - Fix occasional crash: KeyError: 'IntrLatencyRaw'.
 ### Added
 ### Removed
+ - Remove the "hrtimer" alias for the "hrt" method.
 ### Changed
 
 ## [1.10.15] - 2022-08-10
