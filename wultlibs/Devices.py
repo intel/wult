@@ -372,7 +372,7 @@ class _WultTSCDeadlineTimer(_DeviceBase):
         # TSC resolution is 1 cycle, but we assume it is 1 nanosecond.
         self.info["resolution"] = 1
 
-class _WultHRTimerBase(_DeviceBase):
+class _WultHRTBase(_DeviceBase):
     """
     Base class for Linux High Resolution Timer (hrtimers) devices. Hrtimer is basically a Linux
     kernel API for using hardware timers in a platform-independent manner. On a modern Intel CPUs,
@@ -389,7 +389,7 @@ class _WultHRTimerBase(_DeviceBase):
         errmsg_suffix = f"The resolution was acquired by running the following command" \
                         f"{self._pman.hostmsg}"
 
-        # Get hrtimer resolution in seconds and convert to nanoseconds.
+        # Get resolution in seconds and convert to nanoseconds.
         cmd = "time.clock_getres(time.CLOCK_MONOTONIC) * 1000000000"
         if self._pman.is_remote:
             python_path = self._pman.get_python_path()
@@ -445,7 +445,7 @@ class _WultHRTimerBase(_DeviceBase):
         self.info["descr"] = self.supported_devices["hrt"]
         self.info["resolution"] = self._get_resoluion()
 
-class _WultHRTimer(_WultHRTimerBase):
+class _WultHRT(_WultHRTBase):
     """
     The High Resolution Timers device controlled by the 'wult_hrtimer' driver.
     """
@@ -472,8 +472,8 @@ def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
         if devid in _WultTSCDeadlineTimer.supported_devices or devid == _WultTSCDeadlineTimer.alias:
             return _WultTSCDeadlineTimer(devid, pman, cpunum=cpunum, dmesg=dmesg)
 
-        if devid in _WultHRTimer.supported_devices or devid == _WultHRTimer.alias:
-            return _WultHRTimer(devid, pman, dmesg=dmesg)
+        if devid in _WultHRT.supported_devices or devid == _WultHRT.alias:
+            return _WultHRT(devid, pman, dmesg=dmesg)
 
     if toolname == "wult":
         clsname = "_WultIntelI210"
@@ -508,9 +508,9 @@ def scan_devices(toolname, pman):
                 with _WultTSCDeadlineTimer(devid, pman, dmesg=False) as timerdev:
                     yield timerdev.info
 
-        for devid in _WultHRTimer.supported_devices:
+        for devid in _WultHRT.supported_devices:
             with contextlib.suppress(Error):
-                with _WultHRTimer(devid, pman, dmesg=False) as timerdev:
+                with _WultHRT(devid, pman, dmesg=False) as timerdev:
                     yield timerdev.info
 
     if toolname == "wult":
