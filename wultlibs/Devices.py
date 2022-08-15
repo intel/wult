@@ -24,7 +24,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupport
 from wultlibs import NetIface, LsPCI
 
 # All the possible wult/ndl device driver names in order suitable for unloading.
-ALL_DRVNAMES = ("ndl", "wult_igb", "wult_hrtimer", "wult_tdt")
+ALL_DRVNAMES = ("ndl", "wult_igb", "wult_hrt", "wult_tdt")
 
 # The maximum expected device clock resolution in nanoseconds.
 _MAX_RESOLUTION = 100
@@ -447,7 +447,7 @@ class _WultHRTBase(_DeviceBase):
 
 class _WultHRT(_WultHRTBase):
     """
-    The High Resolution Timers device controlled by the 'wult_hrtimer' driver.
+    The High Resolution Timers device controlled by the 'wult_hrt' driver.
     """
 
     supported_devices = {"hrt" : "Linux High Resolution Timer"}
@@ -455,7 +455,7 @@ class _WultHRT(_WultHRTBase):
     def __init__(self, devid, pman, dmesg=None):
         """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
 
-        super().__init__(devid, pman, drvname="wult_hrtimer", dmesg=dmesg)
+        super().__init__(devid, pman, drvname="wult_hrt", dmesg=dmesg)
 
 def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
     """

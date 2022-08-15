@@ -5,7 +5,7 @@
  *          Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
 
-#define DRIVER_NAME "wult_hrtimer"
+#define DRIVER_NAME "wult_hrt"
 
 #include <linux/cpufeature.h>
 #include <linux/hrtimer.h>
@@ -19,17 +19,17 @@
 #define LDIST_MAX 20000000
 
 /*
- * Get a 'struct wult_hrtimer' pointer by memory address of its 'wdi' field.
+ * Get a 'struct wult_hrt' pointer by memory address of its 'wdi' field.
  */
-#define wdi_to_wt(wdi) container_of(wdi, struct wult_hrtimer, wdi)
+#define wdi_to_wt(wdi) container_of(wdi, struct wult_hrt, wdi)
 
-struct wult_hrtimer {
+struct wult_hrt {
 	struct hrtimer timer;
 	struct wult_device_info wdi;
 	u64 ltime;
 };
 
-static struct wult_hrtimer wult_hrtimer = {
+static struct wult_hrt wult_hrt = {
 	.wdi = { .devname = DRIVER_NAME, },
 };
 
@@ -55,7 +55,7 @@ static u64 get_time_after_idle(struct wult_device_info *wdi, u64 *adj)
 
 static int arm_event(struct wult_device_info *wdi, u64 *ldist)
 {
-	struct wult_hrtimer *wt = wdi_to_wt(wdi);
+	struct wult_hrt *wt = wdi_to_wt(wdi);
 
 	hrtimer_start(&wt->timer, ns_to_ktime(*ldist), HRTIMER_MODE_REL_PINNED_HARD);
 	wt->ltime = ktime_get_raw_ns() + *ldist;
@@ -64,7 +64,7 @@ static int arm_event(struct wult_device_info *wdi, u64 *ldist)
 
 static bool event_has_happened(struct wult_device_info *wdi)
 {
-	struct wult_hrtimer *wt = wdi_to_wt(wdi);
+	struct wult_hrt *wt = wdi_to_wt(wdi);
 
 	return hrtimer_get_remaining(&wt->timer) <= 0;
 }
@@ -76,7 +76,7 @@ static u64 get_launch_time(struct wult_device_info *wdi)
 
 static int init_device(struct wult_device_info *wdi, int cpunum)
 {
-	struct wult_hrtimer *wt = wdi_to_wt(wdi);
+	struct wult_hrt *wt = wdi_to_wt(wdi);
 
 	hrtimer_init(&wt->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL_PINNED_HARD);
 	wt->timer.function = &timer_interrupt;
@@ -85,12 +85,12 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 
 static void exit_device(struct wult_device_info *wdi)
 {
-	struct wult_hrtimer *wt = wdi_to_wt(wdi);
+	struct wult_hrt *wt = wdi_to_wt(wdi);
 
 	hrtimer_cancel(&wt->timer);
 }
 
-static struct wult_device_ops wult_hrtimer_ops = {
+static struct wult_device_ops wult_hrt_ops = {
 	.get_time_before_idle = get_time_before_idle,
 	.get_time_after_idle = get_time_after_idle,
 	.arm = arm_event,
@@ -100,7 +100,7 @@ static struct wult_device_ops wult_hrtimer_ops = {
 	.exit = exit_device,
 };
 
-static int __init wult_hrtimer_init(void)
+static int __init wult_hrt_init(void)
 {
 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL &&
 	    boot_cpu_data.x86 < 6) {
@@ -109,20 +109,20 @@ static int __init wult_hrtimer_init(void)
 		return -EINVAL;
 	}
 
-	wult_hrtimer.wdi.ldist_min = 1;
-	wult_hrtimer.wdi.ldist_max = LDIST_MAX;
-	wult_hrtimer.wdi.ldist_gran = hrtimer_resolution;
-	wult_hrtimer.wdi.ops = &wult_hrtimer_ops;
+	wult_hrt.wdi.ldist_min = 1;
+	wult_hrt.wdi.ldist_max = LDIST_MAX;
+	wult_hrt.wdi.ldist_gran = hrtimer_resolution;
+	wult_hrt.wdi.ops = &wult_hrt_ops;
 
-	return wult_register(&wult_hrtimer.wdi);
+	return wult_register(&wult_hrt.wdi);
 }
-module_init(wult_hrtimer_init);
+module_init(wult_hrt_init);
 
-static void __exit wult_hrtimer_exit(void)
+static void __exit wult_hrt_exit(void)
 {
 	wult_unregister();
 }
-module_exit(wult_hrtimer_exit);
+module_exit(wult_hrt_exit);
 
 MODULE_DESCRIPTION("Wult delayed event driver based Linux high resolution timer");
 MODULE_AUTHOR("Artem Bityutskiy");

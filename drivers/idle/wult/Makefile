@@ -9,7 +9,7 @@ wult-objs := main.o uapi.o tracer.o cstates.o
 obj-m += wult.o
 obj-m += wult_igb.o
 obj-m += wult_tdt.o
-obj-m += wult_hrtimer.o
+obj-m += wult_hrt.o
 else
 # Out of tree build.
 
@@ -38,4 +38,4 @@ help:
 endif
 
 list_deployables:
-	@echo wult wult_igb wult_tdt wult_hrtimer
+	@echo wult wult_igb wult_tdt wult_hrt
