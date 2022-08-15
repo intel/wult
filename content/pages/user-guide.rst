@@ -59,8 +59,7 @@ SUT using the the local usage model: ::
   * Device ID: tdt
     - Alias: tsc-deadline-timer
     - Description: TSC deadline timer
-  * Device ID: hrtimer
-    - Alias: hrt
+  * Device ID: hrt
     - Description: Linux High Resolution Timer
   * Device ID: 0000:38:00.0
     - Alias: enp1s0
@@ -69,7 +68,7 @@ SUT using the the local usage model: ::
 The example output lists 3 devices that can be used as delayed interrupt sources for *wult*:
 
 * *tdt* - the TCS deadline timer.
-* *hrtimer* or *hrt* - the high resolution timer, **this is what we recommend to use** to most users.
+* *hrt* - the high resolution timer, **this is what we recommend to use** to most users.
 * *0000:38:00.0* - this is the PCI address of the I210 NIC. This NIC is also available under the
   `enp1s0` name, which is actually the Linux network interface name.
 
