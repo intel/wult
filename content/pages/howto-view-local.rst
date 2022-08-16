@@ -102,46 +102,34 @@ See `this tip below <#view-multiple-reports-locally>`_ if you want to view multi
 Python Scripts
 --------------
 
-To facilitate reading HTML reports locally, we have created a couple of Python scripts. Note that
-both of them require that your system already has Python installed.
+To facilitate reading HTML reports locally, as of v1.10.16, wult HTML reports include a couple of
+Python scripts. Note that both of them require that your system already has Python installed.
 
 View one report (view_report.py)
 ++++++++++++++++++++++++++++++++
 
-.. raw:: html
+The first script found in the root directory of wult HTML reports is 'view_report.py'. This script
+can be used to quickly view the report contained in the same directory. Intended usage is as
+follows:
 
-   <p> Click <a href="../scripts/servedir/servereport.py" download>here</a> to download the script.
-
-The first script is intended to be downloaded from the repository and placed in a report directory.
-Running this script will host the directory containing the script on localhost and open a browser to
-browse the report/directory.
-
-1. Download the script.
-2. Move it into a report directory.
-3. Run the script (e.g. by double-clicking on it in Windows Explorer). Following this, the script
+1. Run the script (e.g. by double-clicking on it in Windows Explorer). Following this, the script
    opens the default browser at 'localhost:8000'.
-4. Once you have finished browsing the report, make sure to stop the script you started in step 2.
+2. Once you have finished browsing the report, make sure to stop the script you started in step 2.
    If a new terminal window was created when you ran the script in step 2, you can do this by closing
    this window.
 
 View multiple reports (view_multiple_reports.py)
 ++++++++++++++++++++++++++++++++++++++++++++++++
 
-.. raw:: html
+The second script found in the root directory of wult HTML reports can be used to view multiple
+reports at the same time. Intended usage is as follows:
 
-   <p> Click <a href="../scripts/servedir/servedir.py" download>here</a> to download the script.
-
-
-The second script hosts a given directory on localhost. It's recommended usage is as
-follows:
-
-1. Download the script.
-2. Run the script (e.g. by double-clicking on it in Windows Explorer).
-3. Select the report directory or a directory containing multiple reports when prompted to select
-   one. Following this, the script opens the default browser at 'localhost:8000'.
-4. Once you have finished browsing the report or directory, make sure to stop the script you started
-   in step 2. If a new terminal window was created when you ran the script in step 2, you can do
-   this by closing this window.
+1. Run the script (e.g. by double-clicking on it in Windows Explorer).
+2. Select a directory containing multiple reports when prompted to select a directory. Following
+   this, the script opens the default browser at 'localhost:8000'.
+3. Once you have finished browsing the reports, make sure to stop the script you started in step 2.
+   If a new terminal window was created when you ran the script in step 2, you can do this by
+   closing this window.
 
 .. image:: ../images/serve-dir-script.gif
     :alt: Screencast of the recommended usage of 'servedir.py' on Windows 10.
