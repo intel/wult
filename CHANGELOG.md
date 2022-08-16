@@ -3,7 +3,14 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.17] - ADD DATE HERE
+## [1.10.18] - ADD DATE HERE
+### Fixed
+### Added
+ - Add local viewing scripts to each wult HTML report.
+### Removed
+### Changed
+
+## [1.10.17] - 2022-08-16
 ### Fixed
 ### Added
  - Add local viewing scripts to each wult HTML report.
