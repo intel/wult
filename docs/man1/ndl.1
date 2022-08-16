@@ -49,7 +49,7 @@ Filter datapoints out of a test result.
 \fBndl\fR \fI\,calc\/\fR
 Calculate summary functions for a ndl test result.
 .SH COMMAND \fI\,'ndl deploy'\/\fR
-usage: ndl deploy [-h] [-q] [-d] [--kernel-src KSRC] [--local-build] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
+usage: ndl deploy [-h] [-q] [-d] [--kernel-src KSRC] [--local-build] [--tmpdir-path TMPDIR_PATH] [--keep-tmpdir] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
 Compile and deploy ndl helpers and drivers to the SUT (System Under Test), which can be can be either local or a remote host, depending on the '\-H' option. By default, everything is built on the SUT, but the '\-\-local\-build' can be used for building on the local system.The drivers are searched for in the following directories (and in the following order) on the local host: ./drivers/idle, $NDL_DATA_PATH/drivers/idle (if 'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/drivers/idle, /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The ndl tool also depends on the following helpers: ndlrunner. These helpers will be compiled on the SUT and deployed to the SUT. The sources of the helpers are searched for in the following paths (and in the following order) on the local host: ./helpers, $NDL_DATA_PATH/helpers (if 'NDL_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/helpers, /usr/local/share/wult/helpers, /usr/share/wult/helpers. By default, helpers are deployed to the path defined by the NDL_HELPERSPATH environment variable. If the variable is not defined, helpers are deployed to '$HOME/.local/bin', where '$HOME' is the home directory of user 'USERNAME' on host 'HOST' (see '\-\-host' and '\-\-username' options).
 
@@ -76,6 +76,17 @@ the SUT.
 .TP
 \fB\-\-local\-build\fR
 Build helpers and drivers locally, instead of building on HOSTNAME (the SUT).
+
+.TP
+\fB\-\-tmpdir\-path\fR \fI\,TMPDIR_PATH\/\fR
+When 'ndl' is deployed, a random temporary directory is used. Use this option
+provide a custom path instead. It will be used as a temporary directory on
+both local and remote hosts. This option is meant for debugging purposes.
+
+.TP
+\fB\-\-keep\-tmpdir\fR
+Do not remove the temporary directories created while deploying 'ndl'. This
+option is meant for debugging purposes.
 
 .TP
 \fB\-H\fR \fI\,HOSTNAME\/\fR, \fB\-\-host\fR \fI\,HOSTNAME\/\fR

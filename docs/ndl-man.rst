@@ -66,8 +66,9 @@ COMMANDS
 COMMAND *'ndl* deploy'
 ======================
 
-usage: ndl deploy [-h] [-q] [-d] [--kernel-src KSRC] [--local-build] [-H
-HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
+usage: ndl deploy [-h] [-q] [-d] [--kernel-src KSRC] [--local-build]
+[--tmpdir-path TMPDIR_PATH] [--keep-tmpdir] [-H HOSTNAME] [-U USERNAME]
+[-K PRIVKEY] [-T TIMEOUT]
 
 Compile and deploy ndl helpers and drivers to the SUT (System Under
 Test), which can be can be either local or a remote host, depending on
@@ -111,6 +112,16 @@ OPTIONS *'ndl* deploy'
 **--local-build**
    Build helpers and drivers locally, instead of building on HOSTNAME
    (the SUT).
+
+**--tmpdir-path** *TMPDIR_PATH*
+   When 'ndl' is deployed, a random temporary directory is used. Use
+   this option provide a custom path instead. It will be used as a
+   temporary directory on both local and remote hosts. This option is
+   meant for debugging purposes.
+
+**--keep-tmpdir**
+   Do not remove the temporary directories created while deploying
+   'ndl'. This option is meant for debugging purposes.
 
 **-H** *HOSTNAME*, **--host** *HOSTNAME*
    Name of the host to run the command on.
