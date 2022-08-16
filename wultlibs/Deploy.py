@@ -965,7 +965,11 @@ class Deploy(ClassHelpers.SimpleCloseContext):
            python helpers is trickier because all python modules should also be deployed.
         """
 
-        self._init_kernel_info(ksrc_required=True)
+        ksrc_required = False
+        if self._cats["drivers"] or self._cats["bpfhelpers"]:
+            ksrc_required = True
+
+        self._init_kernel_info(ksrc_required=ksrc_required)
         self._adjust_installables()
 
         try:
@@ -1035,7 +1039,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._btmpdir = None # Temporary directory on the build host.
         self._stmpdir_created = None # Temp. directory on the SUT has been created.
         self._ctmpdir_created = None # Temp. directory on the controller has been created.
-        self._kver = None    # Version of the kernel to compile the drivers for.
+        self._kver = None # Version of the kernel to compile the drivers for (version of 'ksrc').
         self._tchk = None
 
         # Installables information.
