@@ -11,6 +11,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    kernel drivers. This method is considered to be experimental for now, and
    eBPF helpers are not deployed by default. Use 'wult deploy --deploy-bpf' to
    deploy them.
+ - Add local viewing scripts to each wult HTML report.
 ### Removed
  - Remove the "hrtimer" alias for the "hrt" method.
  - Remove the "tsc-deadline-timer" alias for the "tdt" method.
