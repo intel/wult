@@ -105,8 +105,8 @@ Python Scripts
 To facilitate reading HTML reports locally, we have created a couple of Python scripts. Note that
 both of them require that your system already has Python installed.
 
-servereport.py
-++++++++++++++
+View one report (view_report.py)
+++++++++++++++++++++++++++++++++
 
 .. raw:: html
 
@@ -124,8 +124,8 @@ browse the report/directory.
    If a new terminal window was created when you ran the script in step 2, you can do this by closing
    this window.
 
-servedir.py
-+++++++++++
+View multiple reports (view_multiple_reports.py)
+++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. raw:: html
 
