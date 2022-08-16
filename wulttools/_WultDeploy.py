@@ -16,8 +16,11 @@ def deploy_command(args):
     """Implements the 'deploy' command."""
 
     with ToolsCommon.get_pman(args) as pman:
-        with Deploy.Deploy(args.toolname, pman=pman, ksrc=args.ksrc, lbuild=args.lbuild,
-                           deploy_bpf=args.deploy_bpf, rebuild_bpf=args.rebuild_bpf,
+        ksrc = getattr(args, "ksrc", None)
+        deploy_bpf = getattr(args, "deploy_bpf", None)
+        rebuild_bpf = getattr(args, "rebuild_bpf", None)
+        with Deploy.Deploy(args.toolname, pman=pman, ksrc=ksrc, lbuild=args.lbuild,
+                           deploy_bpf=deploy_bpf, rebuild_bpf=rebuild_bpf,
                            tmpdir_path=args.tmpdir_path, keep_tmpdir=args.keep_tmpdir,
                            debug=args.debug) as depl:
             depl.deploy()
