@@ -1,5 +1,6 @@
 PELICAN?=pelican
 PELICANOPTS=
+SERVEOPTS=
 
 BASEDIR=$(CURDIR)
 INPUTDIR=$(BASEDIR)/content
@@ -22,6 +23,11 @@ ifeq ($(RELATIVE), 1)
 	PELICANOPTS += --relative-urls
 endif
 
+AUTORELOAD ?= 0
+ifeq ($(AUTORELOAD), 1)
+	SERVEOPTS += --autoreload
+endif
+
 all:
 	"$(PELICAN)" "$(INPUTDIR)" -o "$(OUTPUTDIR)" -s "$(CONFFILE)" $(PELICANOPTS)
 
@@ -39,12 +45,13 @@ help:
 	@echo 'Set the RELATIVE variable to 1 to enable relative urls'
 	@echo 'Set the PORT variable to 1 to specify the port to serve at'
 	@echo 'Set the SERVER variable to 1 to specify the IP/HOSTNAME port to serve at'
+	@echo 'Set the AUTORELOAD variable to 1 to enable autoreloading'
 	@echo ''
 clean:
 	rm -rf "$(OUTPUTDIR)" "__pycache__"
 
 serve: clean all
-	"$(PELICAN)" -l "$(INPUTDIR)" -o "$(OUTPUTDIR)" -s "$(CONFFILE)" -b $(SERVER) -p "$(PORT)" $(PELICANOPTS)
+	"$(PELICAN)" -l "$(INPUTDIR)" -o "$(OUTPUTDIR)" -s "$(CONFFILE)" -b $(SERVER) -p "$(PORT)" $(PELICANOPTS) $(SERVEOPTS)
 
 publishconf:
 	"$(PELICAN)" "$(INPUTDIR)" -o "$(OUTPUTDIR)" -s "$(PUBLISHCONF)" $(PELICANOPTS)
