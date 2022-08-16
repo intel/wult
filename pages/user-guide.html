@@ -158,8 +158,7 @@ Compatible device(s):
  * Device ID: tdt
    - Alias: tsc-deadline-timer
    - Description: TSC deadline timer
- * Device ID: hrtimer
-   - Alias: hrt
+ * Device ID: hrt
    - Description: Linux High Resolution Timer
  * Device ID: 0000:38:00.0
    - Alias: enp1s0
@@ -168,7 +167,7 @@ Compatible device(s):
 <p>The example output lists 3 devices that can be used as delayed interrupt sources for <em>wult</em>:</p>
 <ul class="simple">
 <li><em>tdt</em> - the TCS deadline timer.</li>
-<li><em>hrtimer</em> or <em>hrt</em> - the high resolution timer, <strong>this is what we recommend to use</strong> to most users.</li>
+<li><em>hrt</em> - the high resolution timer, <strong>this is what we recommend to use</strong> to most users.</li>
 <li><em>0000:38:00.0</em> - this is the PCI address of the I210 NIC. This NIC is also available under the
 <cite>enp1s0</cite> name, which is actually the Linux network interface name.</li>
 </ul>
