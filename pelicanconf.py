@@ -28,7 +28,7 @@ DEFAULT_PAGINATION = False
 
 THEME = "../pelican-chameleon"
 
-STATIC_PATHS = ["results", "images", "scripts"]
+STATIC_PATHS = ["results", "images"]
 ARTICLE_EXCLUDES = ["results"]
 
 MENUITEMS = (
