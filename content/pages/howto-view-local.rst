@@ -118,6 +118,14 @@ follows:
    If a new terminal window was created when you ran the script in step 2, you can do this by closing
    this window.
 
+.. image:: ../images/view_report.gif
+    :alt: Screencast of the recommended usage of 'view_report.py' on Windows 10.
+    :width: 1900 px
+    :height: 998 px
+    :scale: 30 %
+
+Usage of 'view_report.py' following the above instructions on Windows 10.
+
 View multiple reports (view_multiple_reports.py)
 ++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -131,13 +139,13 @@ reports at the same time. Intended usage is as follows:
    If a new terminal window was created when you ran the script in step 2, you can do this by
    closing this window.
 
-.. image:: ../images/serve-dir-script.gif
-    :alt: Screencast of the recommended usage of 'servedir.py' on Windows 10.
+.. image:: ../images/view_multiple_reports.gif
+    :alt: Screencast of the recommended usage of 'view_multiple_reports.py' on Windows 10.
     :width: 1900 px
     :height: 998 px
     :scale: 30 %
 
-Usage of 'servedir.py' following the above instructions on Windows 10.
+Usage of 'view_multiple_reports.py' following the above instructions on Windows 10.
 
 Python - CLI
 ------------
