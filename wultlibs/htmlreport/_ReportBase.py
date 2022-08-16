@@ -443,6 +443,8 @@ class ReportBase:
 
         self._copy_asset("misc/servedir/servereport.py", "script to view the report locally.",
                          self.outdir / "servereport.py")
+        self._copy_asset("misc/servedir/servedir.py", "script to view multiple reports locally.",
+                         self.outdir / "servedir.py")
 
     def _mangle_loaded_res(self, res):
         """
