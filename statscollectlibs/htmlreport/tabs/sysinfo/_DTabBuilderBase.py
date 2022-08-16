@@ -15,8 +15,9 @@ This module provides the capability of populating a "SysInfo" data tab.
 import logging
 from difflib import HtmlDiff
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
+from statscollectlibs.helperlibs import FSHelpers
 from statscollectlibs.htmlreport.tabs import _Tabs
-from wultlibs.helperlibs import FSHelpers, Human
+from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
 
