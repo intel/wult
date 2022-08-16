@@ -7,6 +7,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
  - Fix occasional crash: KeyError: 'IntrLatencyRaw'.
 ### Added
+ - Added new 'hrtimer' method, which is based on eBPF and does not require
+   kernel drivers. This method is considered to be experimental for now, and
+   eBPF helpers are not deployed by default. Use 'wult deploy --deploy-bpf' to
+   deploy them.
 ### Removed
  - Remove the "hrtimer" alias for the "hrt" method.
 ### Changed
