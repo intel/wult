@@ -105,6 +105,25 @@ Python Scripts
 To facilitate reading HTML reports locally, we have created a couple of Python scripts. Note that
 both of them require that your system already has Python installed.
 
+servereport.py
+++++++++++++++
+
+.. raw:: html
+
+   <p> Click <a href="../scripts/servedir/servereport.py" download>here</a> to download the script.
+
+The first script is intended to be downloaded from the repository and placed in a report directory.
+Running this script will host the directory containing the script on localhost and open a browser to
+browse the report/directory.
+
+1. Download the script.
+2. Move it into a report directory.
+3. Run the script (e.g. by double-clicking on it in Windows Explorer). Following this, the script
+   opens the default browser at 'localhost:8000'.
+4. Once you have finished browsing the report, make sure to stop the script you started in step 2.
+   If a new terminal window was created when you ran the script in step 2, you can do this by closing
+   this window.
+
 servedir.py
 +++++++++++
 
@@ -113,7 +132,7 @@ servedir.py
    <p> Click <a href="../scripts/servedir/servedir.py" download>here</a> to download the script.
 
 
-The first script hosts a given directory on localhost. It's recommended usage is as
+The second script hosts a given directory on localhost. It's recommended usage is as
 follows:
 
 1. Download the script.
@@ -131,25 +150,6 @@ follows:
     :scale: 30 %
 
 Usage of 'servedir.py' following the above instructions on Windows 10.
-
-servereport.py
-++++++++++++++
-
-.. raw:: html
-
-   <p> Click <a href="../scripts/servedir/servereport.py" download>here</a> to download the script.
-
-The second script is intended to be downloaded from the repository and placed in a report directory.
-Running this script will host the directory containing the script on localhost and open a browser to
-browse the report/directory.
-
-1. Download the script.
-2. Move it into a report directory.
-3. Run the script (e.g. by double-clicking on it in Windows Explorer). Following this, the script
-   opens the default browser at 'localhost:8000'.
-4. Once you have finished browsing the report, make sure to stop the script you started in step 2.
-   If a new terminal window was created when you ran the script in step 2, you can do this by closing
-   this window.
 
 Python - CLI
 ------------
