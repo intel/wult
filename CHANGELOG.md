@@ -13,6 +13,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    deploy them.
 ### Removed
  - Remove the "hrtimer" alias for the "hrt" method.
+ - Remove the "tsc-deadline-timer" alias for the "tdt" method.
 ### Changed
 
 ## [1.10.15] - 2022-08-10
