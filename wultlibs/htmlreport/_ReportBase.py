@@ -443,8 +443,9 @@ class ReportBase:
 
         self._copy_asset("misc/servedir/view_report.py", "script to view the report locally.",
                          self.outdir / "view_report.py")
-        self._copy_asset("misc/servedir/servedir.py", "script to view multiple reports locally.",
-                         self.outdir / "servedir.py")
+        self._copy_asset("misc/servedir/view_multiple_reports.py",
+                         "script to view multiple reports locally.",
+                         self.outdir / "view_multiple_reports.py")
 
     def _mangle_loaded_res(self, res):
         """
