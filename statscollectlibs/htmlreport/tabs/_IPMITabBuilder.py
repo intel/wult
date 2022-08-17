@@ -14,7 +14,8 @@ import numpy
 import pandas
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs import DefsBase, IPMIDefs
+from statscollectlibs import DefsBase
+from statscollectlibs.defs import IPMIDefs
 from statscollectlibs.htmlreport.tabs import _TabBuilderBase
 from statscollectlibs.parsers import IPMIParser
 
