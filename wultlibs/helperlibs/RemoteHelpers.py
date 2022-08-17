@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2020-2021 Intel Corporation
+# Copyright (C) 2020-2022 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -16,7 +16,7 @@ import socket
 
 def time_time(pman=None):
     """
-    Same as standard pytohn 'time.time()' function - returns time since epoch on the host defined by
+    Same as standard python 'time.time()' function - returns time since epoch on the host defined by
     'pman' (local host by default).
     """
 
