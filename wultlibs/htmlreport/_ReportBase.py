@@ -19,13 +19,13 @@ import contextlib
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, LocalProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
+from statscollectlibs.helperlibs import ToolHelpers
 from statscollectlibs.htmlreport import _IntroTable
 from statscollectlibs.htmlreport.tabs import _ACPowerTabBuilder, _IPMITabBuilder, _Tabs
 from statscollectlibs.htmlreport.tabs.sysinfo import (_CPUFreqTabBuilder, _CPUIdleTabBuilder,
     _DMIDecodeTabBuilder, _DmesgTabBuilder, _LspciTabBuilder, _MiscTabBuilder, _PepcTabBuilder)
 from statscollectlibs.htmlreport.tabs.sysinfo import _TurbostatTabBuilder as _SysInfoTstatTabBuilder
 from statscollectlibs.htmlreport.tabs.turbostat import _TurbostatTabBuilder
-from wultlibs import Deploy
 from wultlibs.helperlibs import FSHelpers
 from wultlibs.htmlreport import _MetricDTabBuilder
 
@@ -215,7 +215,7 @@ class ReportBase:
          * dst - where the file should be copied to.
         """
 
-        asset_path = Deploy.find_app_data(self._projname, src, descr=descr)
+        asset_path = ToolHelpers.find_app_data(self._projname, src, descr=descr)
         FSHelpers.move_copy_link(asset_path, dst, "copy", exist_ok=True)
 
     def _generate_results_tabs(self):

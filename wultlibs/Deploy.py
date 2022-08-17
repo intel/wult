@@ -35,6 +35,7 @@ from pathlib import Path
 from pepclibs.helperlibs import ProcessManager, LocalProcessManager, Trivial, Logging
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists
+from statscollectlibs.helperlibs import ToolHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
 
 _HELPERS_LOCAL_DIR = Path(".local")
@@ -87,58 +88,6 @@ _CATEGORIES = { "drivers"    : "kernel driver",
 class _ErrorKVer(Error):
     """An exception class indicating that SUT kernel version is not new enough."""
 
-def find_app_data(prjname, subpath, appname=None, descr=None):
-    """
-    Search for application 'appname' data. The data are searched for in the 'subpath' sub-path of
-    the following directories (and in the following order):
-      * in the directory the of the running process (sys.argv[0]/<subpath>)
-      * in the directory specified by the f'{appname}_DATA_PATH' environment variable
-      * $HOME/.local/share/<prjname>/, if it exists
-      * /usr/local/share/<prjname>/, if it exists
-      * /usr/share/<prjname>/, if it exists
-
-    The 'descr' argument is a human-readable description of 'subpath', which will be used in the
-    error message if error is raised.
-    """
-
-    if not appname:
-        appname = prjname
-
-    searched = []
-    paths = []
-
-    paths.append(Path(sys.argv[0]).parent)
-
-    path = os.environ.get(f"{appname}_DATA_PATH".upper())
-    if path:
-        paths.append(Path(path))
-
-    for path in paths:
-        path /= subpath
-        if path.exists():
-            return path
-        searched.append(path)
-
-    path = Path("~").expanduser() / Path(f".local/share/{prjname}/{subpath}")
-    if path.exists():
-        return path
-
-    searched.append(path)
-
-    for path in (Path(f"/usr/local/share/{prjname}"), Path(f"/usr/share/{prjname}")):
-        path /= subpath
-        if path.exists():
-            return path
-        searched.append(path)
-
-    if not descr:
-        descr = f"'{subpath}'"
-    searched = [str(s) for s in searched]
-    dirs = " * " + "\n * ".join(searched)
-
-    raise ErrorNotFound(f"cannot find {descr}, searched in the following directories on local "
-                        f"host:\n{dirs}")
-
 def get_helpers_deploy_path(toolname, pman):
     """
     Return path to the helpers deployment. The arguments are as follows.
@@ -178,7 +127,7 @@ def find_pyhelper_path(pyhelper, deployable=None):
 
             try:
                 subpath = _HELPERS_SRC_SUBPATH / pyhelper / deployable
-                pyhelper_path = find_app_data("wult", subpath, "wult")
+                pyhelper_path = ToolHelpers.find_app_data("wult", subpath, "wult")
             except ErrorNotFound as err2:
                 errmsg = str(err1).capitalize() + "\n" + str(err2).capitalize()
                 raise Error(f"failed to find '{pyhelper}' on the local system.\n{errmsg}") from err2
@@ -608,8 +557,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                             f"Reason: drivers cannot be installed.\n"
                             f"Please use newer kernel{self._spman.hostmsg}")
 
-            srcpath = find_app_data("wult", _DRV_SRC_SUBPATH / self._toolname,
-                                    appname=self._toolname)
+            srcpath = ToolHelpers.find_app_data("wult", _DRV_SRC_SUBPATH / self._toolname,
+                                                appname=self._toolname)
             dstpaths = []
             for deployable in _get_deployables(srcpath):
                 if deployable != dev.drvname:
@@ -641,8 +590,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 if helper != dev.helpername:
                     continue
 
-                srcpath = find_app_data("wult", _HELPERS_SRC_SUBPATH / helper,
-                                        appname=self._toolname)
+                srcpath = ToolHelpers.find_app_data("wult", _HELPERS_SRC_SUBPATH / helper,
+                                                    appname=self._toolname)
                 dstpaths = []
                 for deployable in _get_deployables(srcpath):
                     dstpaths.append(helpers_deploy_path / deployable)
@@ -652,8 +601,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         # Add python helpers' deploy information.
         if self._cats["pyhelpers"]:
             for pyhelper in self._cats["pyhelpers"]:
-                datapath = find_app_data("wult", _HELPERS_SRC_SUBPATH / pyhelper,
-                                         appname=self._toolname)
+                datapath = ToolHelpers.find_app_data("wult", _HELPERS_SRC_SUBPATH / pyhelper,
+                                                     appname=self._toolname)
                 srcpaths = []
                 dstpaths = []
 
@@ -840,7 +789,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         # We assume all helpers are in the same base directory.
         helper_path = _HELPERS_SRC_SUBPATH/f"{all_helpers[0]}"
-        helpersrc = find_app_data("wult", helper_path, descr=f"{self._toolname} helper sources")
+        helpersrc = ToolHelpers.find_app_data("wult", helper_path,
+                                              descr=f"{self._toolname} helper sources")
         helpersrc = helpersrc.parent
 
         if not helpersrc.is_dir():
@@ -892,8 +842,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         """Deploy drivers to the SUT."""
 
         for drvname in self._cats["drivers"]:
-            drvsrc = find_app_data("wult", _DRV_SRC_SUBPATH / drvname,
-                                   descr=f"{drvname} drivers sources")
+            drvsrc = ToolHelpers.find_app_data("wult", _DRV_SRC_SUBPATH / drvname,
+                                               descr=f"{drvname} drivers sources")
             if not drvsrc.is_dir():
                 raise Error(f"path '{drvsrc}' does not exist or it is not a directory")
 
