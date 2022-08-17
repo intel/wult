@@ -23,4 +23,4 @@ class WultDefsBase(DefsBase.DefsBase):
           * name - name of the tool to load the definitions for (e.g., 'wult').
         """
 
-        super().__init__(name, "defs")
+        super().__init__(name, "defs/wult")
