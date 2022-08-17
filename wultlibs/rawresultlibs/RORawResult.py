@@ -17,8 +17,8 @@ from pathlib import Path
 import pandas
 from pepclibs.helperlibs import YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
-from statscollectlibs import DefsBase, DFSummary
-from wultlibs import WultDefs
+from statscollectlibs import DFSummary
+from wultlibs import WultDefs, _WultDefsBase
 from wultlibs.rawresultlibs import _RawResultBase
 
 _LOG = logging.getLogger()
@@ -453,7 +453,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         if toolname == "wult":
             self.defs = WultDefs.WultDefs(metrics)
         else:
-            self.defs = DefsBase.DefsBase(toolname)
+            self.defs = _WultDefsBase.WultDefsBase(toolname)
 
         # Exclude metrics which are not present in the definitions.
         self.metrics = []
