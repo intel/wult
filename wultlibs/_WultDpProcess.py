@@ -611,7 +611,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         """Remove extra fields from the processed data point."""
 
         for field in list(dp):
-            if not field.endswith("Raw") and field not in self._fields:
+            if field not in self._fields:
                 del dp[field]
 
         return dp
