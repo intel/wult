@@ -16,7 +16,7 @@ base class expects child classes to implement '_turbostat_to_df()'.
 
 import pandas
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs import TurbostatDefs
+from statscollectlibs.defs import TurbostatDefs
 from statscollectlibs.parsers import TurbostatParser
 from statscollectlibs.htmlreport.tabs import _TabBuilderBase
 
