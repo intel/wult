@@ -57,7 +57,7 @@ class _CStates(ClassHelpers.SimpleCloseContext):
     def _check_rawdp_timing(rawdp):
         """
         Checks if raw datapoint timing is consistent with C-state IRQ order. Returns 'rawdp' if the
-        timing is all right, retruns 'None' otherwise.
+        timing is all right, returns 'None' otherwise.
         """
 
         if rawdp["IntrOff"]:
@@ -598,7 +598,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             # The 'wult_tdt' driver cannot really be used for measuring Interrupt latency, because
             # it measures 'WakeLatency' for the next TSC deadline timer, which is not necessarily
             # the one armed by wult. But 'IntrLatency' will be measured in wult timer handler, which
-            # may be far away from the event 'WakeLatency' was measrued for. Therefore, 'wult_tdt'
+            # may be far away from the event 'WakeLatency' was measured for. Therefore, 'wult_tdt'
             # produces many datapoints with really large (and incorrect) 'IntrLatency'. Hence, we
             # remove it from the datapoint.
             if "IntrLatencyRaw" in dp:
@@ -639,13 +639,13 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
     def add_raw_datapoint(self, rawdp):
         """
-        Process a raw datapoint 'rawdp'. The "raw" part in this context means that 'rawdp' contains
-        the datapoint as the kernel driver provided it. This function processes it and returns the
-        processed datapoint.
+        Add and process a raw datapoint. The arguments are as follows.
+          * rawdp - the raw datapoint to add and process.
 
-        Notice: for efficiency purposes this function does not make a copy of 'rawdp' and instead,
-        uses and even modifies 'rawdp'. In other words, the caller should not use 'rawdp' after
-        calling this function.
+        Notice: for efficiency purposes this function does not make a copy of the 'rawdp'
+        dictionary. Instead, it extends and modifies it in-pace, and saves in an internal list. The
+        dictionary will be yielded later by 'get_processed_datapoints()'. Therefore, the caller
+        should not use 'rawdp' after calling this method.
         """
 
         rawdp = self._tscrate.add_raw_datapoint(rawdp)
@@ -680,9 +680,14 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
     def prepare(self, rawdp, keep_rawdp):
         """
-        This helper should be called as soon as the first raw datapoint 'raw' is acquired. It
-        prepared for processing datapoints by building various data structures. For example, we
-        learn about the C-state names from the first datapoint.
+        Prepare for datapoints processing. The arguments are as follows.
+          * rawdp - the first acquired raw datapoint.
+          * keep_rawdp - by default, many raw datapoint fields are dropped and do not make it to the
+                         'datapoints.csv' file. But if 'keep_rawdp' is 'True', all the datapoint raw
+                         fields will also be saved in the CSV file.
+
+        This method should be called as soon as the first raw datapoint is acquired. It build
+        various internal data structures, for example list of available C-states.
         """
 
         raw_fields = list(rawdp.keys())

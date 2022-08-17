@@ -88,8 +88,8 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         Start the measurements. The arguments are as follows.
           * dpcnt - count of datapoints to collect.
           * tlimit - the measurements time limit in seconds.
-          * keep_rawdp - by default, raw datapoint fields are dropped and do not make it to the
-                         'datapoints.csv' file. But if 'keep_rawdp' is 'True', all the raw datapoint
+          * keep_rawdp - by default, many raw datapoint fields are dropped and do not make it to the
+                         'datapoints.csv' file. But if 'keep_rawdp' is 'True', all the datapoint raw
                          fields will also be saved in the CSV file.
         """
 
