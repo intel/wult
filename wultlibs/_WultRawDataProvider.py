@@ -13,8 +13,8 @@ This module provides API for reading raw wult datapoints, as well as initializin
 import logging
 from pepclibs.helperlibs import Trivial, ClassHelpers, Systemctl, Human
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
+from statscollectlibs.helperlibs import ProcHelpers
 from wultlibs import _FTrace, _RawDataProvider
-from wultlibs.helperlibs import ProcHelpers
 
 _LOG = logging.getLogger()
 

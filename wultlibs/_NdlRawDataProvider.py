@@ -15,8 +15,8 @@ import logging
 import contextlib
 from pepclibs.helperlibs import Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
+from statscollectlibs.helperlibs import ProcHelpers
 from wultlibs import _RawDataProvider, _ETFQdisc, _Nmcli
-from wultlibs.helperlibs import ProcHelpers
 
 _LOG = logging.getLogger()
 

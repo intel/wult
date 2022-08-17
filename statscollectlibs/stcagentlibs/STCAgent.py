@@ -18,8 +18,8 @@ from pathlib import Path
 from pepclibs.helperlibs import LocalProcessManager, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists, ErrorNotFound
 from statscollectlibs.stcagentlibs import SysInfo
-from statscollectlibs.helperlibs import KernelVersion
-from wultlibs.helperlibs import ProcHelpers, RemoteHelpers
+from statscollectlibs.helperlibs import KernelVersion, ProcHelpers
+from wultlibs.helperlibs import RemoteHelpers
 
 _LOG = logging.getLogger()
 
