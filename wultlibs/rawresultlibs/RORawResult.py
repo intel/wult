@@ -395,21 +395,6 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self.defs.info.update(mdefs_to_add)
 
-    def _get_toolver(self):
-        """
-        Figure out version of the tool that created this result. Very old results did not contain
-        this information in the info file.
-        """
-
-        toolname = self.info["toolname"]
-        if toolname == "wult":
-            return "1.4"
-        if toolname == "ndl":
-            return "1.1"
-
-        raise Error(f"failed to figure out which '{toolname}' tool version has created test result "
-                    f"at '{self.dp_path}'")
-
     def __init__(self, dirpath, reportid=None):
         """
         The class constructor. The arguments are as follows.
