@@ -116,7 +116,7 @@ def build_arguments_parser():
     text = f"""This tool works by scheduling a delayed event, then sleeping and waiting for it to
                 happen. This step is referred to as a "measurement cycle" and it is usually repeated
                 many times. The launch distance defines how far in the future the delayed event is
-                sceduled. By default this tool randomly selects launch distance within a range. The
+                scheduled. By default this tool randomly selects launch distance within a range. The
                 default range is [0,4ms], but you can override it with this option. Specify a
                 comma-separated range (e.g '--ldist 10,5000'), or a single value if you want launch
                 distance to be precisely that value all the time.  The default unit is microseconds,
@@ -147,25 +147,23 @@ def build_arguments_parser():
 
     text = f"""{OWN_NAME.title()} receives raw datapoints from the driver, then processes them, and
                then saves the processed datapoint in the 'datapoints.csv' file. In order to keep the
-               CSV file smaller, {OWN_NAME} keeps only the esential information, and drops the rest.
+               CSV file smaller, {OWN_NAME} keeps only the essential information, and drops the rest.
                For example, raw timestamps are dropped. With this option, however, {OWN_NAME} saves
                all the raw data to the CSV file, along with the processed data."""
     subpars.add_argument("--keep-raw-data", action="store_true", dest="keep_rawdp", help=text)
 
     text = f"""This option exists for debugging and troubleshooting purposes. Please, do not use
-               for other reasons. While normally {OWN_NAME} kernel modules are unloaded after the
-               measurements are done, with this option the modules will stay loaded into the
-               kernel. Keep in mind that if the the specified 'devid' device was bound to some
-               driver (e.g., a network driver), it will be unbinded and with this option it won't be
-               binded back."""
+               for other reasons. If {OWN_NAME} loads kernel modules, they get unloaded after the
+               measurements are done. But with this option {OWN_NAME} will not unload the
+               modules."""
     subpars.add_argument("--no-unload", action="store_true", help=text)
 
     text = """This option is for research purposes and you most probably do not need it. Linux's
               'cpuidle' subsystem enters most C-states with interrupts disabled. So when the CPU
-              exits the C-state becaouse of an interrupt, it will not jump to the interrupt
+              exits the C-state because of an interrupt, it will not jump to the interrupt
               handler, but instead, continue running some 'cpuidle' housekeeping code. After this,
               the 'cpuidle' subsystem enables interrupts, and the CPU jumps to the interrupt
-              hanlder. Therefore, there is a tiny delay the 'cpuidle' subsystem adds on top of the
+              handler. Therefore, there is a tiny delay the 'cpuidle' subsystem adds on top of the
               hardware C-state latency. For fast C-states like C1, this tiny delay may even be
               measurable on some platforms. This option allows to measure that delay. It makes wult
               enable interrupts before linux enters the C-state."""
