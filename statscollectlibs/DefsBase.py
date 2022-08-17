@@ -149,18 +149,22 @@ class DefsBase:
             val["name"] = key
             val["fsname"] = get_fsname(key)
 
-    def __init__(self, name):
+    def __init__(self, name, defsdir=None):
         """
         The class constructor. The arguments are as follows.
           * name - name of the tool to load the definitions for (e.g., 'wult').
+          * defsdir - path of directory containing definition files, defaults to "defs".
         """
+
+        if defsdir is None:
+            defsdir = "defs"
 
         self.name = name
         self.info = None
 
         self._populate_cstate_keys = ["title", "descr", "name", "fsname"]
 
-        self.path = ToolHelpers.find_app_data("wult", Path(f"defs/{name}.yml"),
+        self.path = ToolHelpers.find_app_data("wult", Path(defsdir) / f"{name}.yml",
                                               descr=f"{name} definitions file")
         self.info = YAML.load(self.path)
         self._mangle_basic()
