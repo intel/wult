@@ -13,7 +13,7 @@ Extends 'statscollectlibs.DefsBase.DefsBase' by specifying the directory for sta
 definition files.
 """
 
-from statscollectlibs.DefsBase import DefsBase
+from statscollectlibs.defs.DefsBase import DefsBase
 
 class STCDefsBase(DefsBase):
     """The base class for metrics definitions (AKA 'defs')."""
