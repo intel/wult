@@ -32,13 +32,13 @@ from pepclibs.helperlibs import Logging, ArgParse, LocalProcessManager, Trivial,
 from pepclibs.helperlibs.Exceptions import Error
 
 try:
-    from wultlibs.helperlibs import ProcHelpers
+    from statscollectlibs.helperlibs import ProcHelpers
 except ImportError:
     # The project was not installed, and the program was executed from the sources. Insert the
     # project root directory path to the modules search list.
     ownpath = Path(sys.argv[0]).parent.resolve()
     sys.path.append(f"{ownpath}/../../")
-    from wultlibs.helperlibs import ProcHelpers
+    from statscollectlibs.helperlibs import ProcHelpers
 
 VERSION = "1.0"
 OWN_NAME = "stc-agent"
