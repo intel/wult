@@ -24,4 +24,4 @@ class STCDefsBase(DefsBase):
           * name - name of the tool to load the definitions for (e.g., 'turbostat').
         """
 
-        super().__init__(name, "defs")
+        super().__init__(name, "defs/statscollect")
