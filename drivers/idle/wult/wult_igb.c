@@ -21,8 +21,8 @@
 #include "wult_igb.h"
 
 static struct wult_trace_data_info tdata[] = {
-	{ .name = "WarmupDelayTS" },
-	{ .name = "LatchDelayTS" },
+	{ .name = "WarmupDelay" },
+	{ .name = "LatchDelay" },
 	{ NULL },
 };
 
