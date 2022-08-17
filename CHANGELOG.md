@@ -3,7 +3,13 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.18] - ADD DATE HERE
+## [1.10.19] - ADD DATE HERE
+### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.10.18] - 2022-08-17
 ### Fixed
  - Fix nic method-only regression introduced in 1.10.0: 'WarmupDelay' and
    'LatchDelay' metrics were not saved in the CSV file.

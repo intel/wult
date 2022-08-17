@@ -300,7 +300,7 @@ Print information about the statistics 'wult' can collect and exit.
 This tool works by scheduling a delayed event, then sleeping and waiting for
 it to happen. This step is referred to as a "measurement cycle" and it is
 usually repeated many times. The launch distance defines how far in the future
-the delayed event is sceduled. By default this tool randomly selects launch
+the delayed event is scheduled. By default this tool randomly selects launch
 distance within a range. The default range is [0,4ms], but you can override it
 with this option. Specify a comma\-separated range (e.g '\-\-ldist 10,5000'), or
 a single value if you want launch distance to be precisely that value all the
@@ -336,27 +336,25 @@ better accuracy.
 \fB\-\-keep\-raw\-data\fR
 Wult receives raw datapoints from the driver, then processes them, and then
 saves the processed datapoint in the 'datapoints.csv' file. In order to keep
-the CSV file smaller, wult keeps only the esential information, and drops the
+the CSV file smaller, wult keeps only the essential information, and drops the
 rest. For example, raw timestamps are dropped. With this option, however, wult
 saves all the raw data to the CSV file, along with the processed data.
 
 .TP
 \fB\-\-no\-unload\fR
 This option exists for debugging and troubleshooting purposes. Please, do not
-use for other reasons. While normally wult kernel modules are unloaded after
-the measurements are done, with this option the modules will stay loaded into
-the kernel. Keep in mind that if the the specified 'devid' device was bound to
-some driver (e.g., a network driver), it will be unbinded and with this option
-it won't be binded back.
+use for other reasons. If wult loads kernel modules, they get unloaded after
+the measurements are done. But with this option wult will not unload the
+modules.
 
 .TP
 \fB\-\-early\-intr\fR
 This option is for research purposes and you most probably do not need it.
 Linux's 'cpuidle' subsystem enters most C\-states with interrupts disabled. So
-when the CPU exits the C\-state becaouse of an interrupt, it will not jump to
+when the CPU exits the C\-state because of an interrupt, it will not jump to
 the interrupt handler, but instead, continue running some 'cpuidle'
 housekeeping code. After this, the 'cpuidle' subsystem enables interrupts, and
-the CPU jumps to the interrupt hanlder. Therefore, there is a tiny delay the
+the CPU jumps to the interrupt handler. Therefore, there is a tiny delay the
 'cpuidle' subsystem adds on top of the hardware C\-state latency. For fast
 C\-states like C1, this tiny delay may even be measurable on some platforms.
 This option allows to measure that delay. It makes wult enable interrupts
