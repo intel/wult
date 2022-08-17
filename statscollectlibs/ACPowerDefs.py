@@ -8,7 +8,7 @@
 
 """This module provides an API to the AC Power definitions (AKA 'defs')."""
 
-from statscollectlibs import _STCDefsBase
+from statscollectlibs.defs import _STCDefsBase
 
 class ACPowerDefs(_STCDefsBase.STCDefsBase):
     """This class provides an API to the AC Power definitions (AKA 'defs')."""

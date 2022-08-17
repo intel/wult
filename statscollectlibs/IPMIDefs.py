@@ -8,7 +8,7 @@
 
 """This module provides an API to the IPMI definitions (AKA 'defs')."""
 
-from statscollectlibs import _STCDefsBase
+from statscollectlibs.defs import _STCDefsBase
 
 class IPMIDefs(_STCDefsBase.STCDefsBase):
     """This class provides an API to the IPMI definitions (AKA 'defs')."""
