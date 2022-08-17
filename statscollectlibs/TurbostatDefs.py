@@ -10,7 +10,7 @@
 This module provides API to turbostat metrics definitions (AKA 'defs').
 """
 
-from statscollectlibs import DefsBase
+from statscollectlibs import _STCDefsBase
 from statscollectlibs.parsers import TurbostatParser
 
 def is_reqcs_metric(metric):
@@ -37,7 +37,7 @@ def is_pkgcs_metric(metric):
 
     return metric.startswith("Pkg%")
 
-class TurbostatDefs(DefsBase.DefsBase):
+class TurbostatDefs(_STCDefsBase.STCDefsBase):
     """This module provides API to turbostat metrics definitions (AKA 'defs')."""
 
     def mangle_descriptions(self):
