@@ -10,7 +10,6 @@
 This module provides the 'DatapointProcessor' class which implements raw datapoint processing.
 """
 
-import time
 import logging
 from pepclibs import CStates
 from pepclibs.helperlibs import ClassHelpers
@@ -350,32 +349,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
     datapoints, calculating C-state residency percentages, and so on.
     """
 
-    def _warn(self, key, msg, *args):
-        """Rate-limited warnings printing."""
-
-        _LOG.debug(msg, *args)
-
-        if key not in self._warnings:
-            self._warnings[key] = {"cnt" : 0, "tprint" : time.time(), "suppressed" : 0}
-            _LOG.warning(msg, *args)
-            return
-
-        winfo = self._warnings[key]
-        winfo["cnt"] += 1
-        ts = time.time()
-        if ts - winfo["tprint"] < 1:
-            winfo["suppressed"] += 1
-            # Do not print the warning more often than every second.
-            return
-
-        _LOG.warning(msg, *args)
-        if winfo["suppressed"]:
-            _LOG.notice("suppressed %d messages like this (total %d)",
-                        winfo["suppressed"], winfo["cnt"])
-
-        winfo["tprint"] = ts
-        winfo["suppressed"] = 0
-
     @staticmethod
     def _is_poll_idle(dp):
         """Returns 'True' if the 'dp' datapoint contains the POLL idle state data."""
@@ -525,10 +498,10 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             #    "cpuidle" Linux kernel subsystem re-enables CPU interrupts.
 
             if self._early_intr:
-                self._warn("IntrOff_early_intr",
-                           "hit a datapoint with interrupts disabled even though the early "
-                           "interrupts feature was enabled. The datapoint is:\n%s\n"
-                           "Dropping this datapoint\n", Human.dict2str(dp))
+                msg = "hit a datapoint with interrupts disabled even though the early interrupts "\
+                      "feature was enabled. The datapoint is:\n%s\nDropping this datapoint\n"
+                _LOG.debug(msg, Human.dict2str(dp))
+                _LOG.warn_once(msg, Human.dict2str(dp))
                 return None
 
             overhead = dp["AITS2"] - dp["AITS1"]
@@ -569,10 +542,10 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
             if self._drvname == "wult_tdt":
                 csname = dp["ReqCState"]
-                self._warn(f"tdt_{csname}_IntrOn",
-                           "The %s C-state has interrupts enabled and therefore, can't be "
-                           "collected with the 'wult_tdt' driver. Use another driver for %s.",
-                           csname, csname)
+                msg = f"The {csname} C-state has interrupts enabled and therefore, can't be "\
+                      "collected with the 'wult_tdt' driver. Use another driver for %s."
+                _LOG.debug(msg, csname)
+                _LOG.warn_once(msg, csname)
                 _LOG.debug("dropping datapoint with interrupts enabled - the 'wult_tdt' driver "
                            "does not handle them correctly. The datapoint is:\n%s",
                            Human.dict2str(dp))
@@ -746,9 +719,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         self._has_cstates = None
         self._cs_fields = None
         self._us_fields_set = None
-
-        # Information about printed warnings.
-        self._warnings = {}
 
         self._csobj = _CStates(self._cpunum, self._pman, rcsobj=rcsobj, early_intr=early_intr)
         self._tscrate = _TSCRate(self._drvname, tsc_cal_time)
