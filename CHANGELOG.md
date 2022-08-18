@@ -8,6 +8,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - wult now restores i210 network interface state after the measurement.
 
 ## [1.10.18] - 2022-08-17
 ### Fixed
