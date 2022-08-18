@@ -17,6 +17,12 @@ Hence, this script was created so that it can be used to view wult HTML reports.
     one. Following this, the script opens the default browser at 'localhost:8000'.
 """
 
+# pylint: disable=wrong-import-position
+import sys
+
+if sys.version_info < (3,5):
+    raise Exception("This script requires Python 3.5 or higher.")
+
 import http.server
 import os
 import webbrowser
