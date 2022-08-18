@@ -240,7 +240,6 @@ def main():
         return -1
     except Error as err:
         LOG.error_out(err)
-        return -1
 
     return 0
 
