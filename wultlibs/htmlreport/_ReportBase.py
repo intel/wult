@@ -446,6 +446,8 @@ class ReportBase:
         self._copy_asset("misc/viewreports/view_multiple_reports.py",
                          "script to view multiple reports locally.",
                          self.outdir / "view_multiple_reports.py")
+        self._copy_asset("misc/viewreports/README.md", "README file for local viewing scripts",
+                         self.outdir / "README.md")
 
     def _mangle_loaded_res(self, res):
         """
