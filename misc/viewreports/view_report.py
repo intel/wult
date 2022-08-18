@@ -39,9 +39,9 @@ def servedir():
 
     server_address = ('', PORT,)
     httpd = http.server.HTTPServer(server_address, Handler)
-    URL = f"http://localhost:{PORT}/"
+    URL = "http://localhost:{port}/".format(port=PORT)
 
-    print(f"Serving directory '{DIRECTORY}' at '{URL}'.")
+    print("Serving directory '{dir}' at '{url}'.".format(dir=DIRECTORY, url=URL))
     print("Opening in browser. Please close this window when you have finished viewing reports.\n")
     print("Web server logs:")
 
