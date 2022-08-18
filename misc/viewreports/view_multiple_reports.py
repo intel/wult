@@ -18,6 +18,7 @@ Hence, this script was created so that it can be used to view wult HTML reports.
 """
 
 import http.server
+import os
 import webbrowser
 from tkinter.filedialog import askdirectory
 
@@ -32,12 +33,17 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=DIRECTORY, **kwargs)
+        super().__init__(*args, **kwargs)
 
 def servedir():
     """Serve 'DIRECTORY' locally on 'PORT'."""
 
     server_address = ('', PORT,)
+
+    # Providing a directory to 'SimpleHTTPRequestHandler' was not supported until Python 3.7.
+    # To make this script compatible with Python 3.5+, use 'os.chdir()' as a workaround.
+    os.chdir(DIRECTORY)
+
     httpd = http.server.HTTPServer(server_address, Handler)
     URL = "http://localhost:{port}/".format(port=PORT)
 
