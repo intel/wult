@@ -25,15 +25,6 @@ PORT = 8000
 # Serve the directory containing the report and this script.
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
-class Handler(http.server.SimpleHTTPRequestHandler):
-    """
-    This class inherits from 'http.server.SimpleHTTPRequestHandler' and defines the directory to
-    serve based on the directory chosen by the user.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
 def servedir():
     """Serve 'DIRECTORY' locally on 'PORT'."""
 
@@ -43,7 +34,7 @@ def servedir():
     # To make this script compatible with Python 3.5+, use 'os.chdir()' as a workaround.
     os.chdir(DIRECTORY)
 
-    httpd = http.server.HTTPServer(server_address, Handler)
+    httpd = http.server.HTTPServer(server_address, http.server.SimpleHTTPRequestHandler)
     URL = "http://localhost:{port}/".format(port=PORT)
 
     print("Serving directory '{dir}' at '{url}'.".format(dir=DIRECTORY, url=URL))
