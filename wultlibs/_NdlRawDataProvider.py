@@ -70,20 +70,19 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     def _get_lines(self):
         """This generator reads the 'ndlrunner' helper output and yields it line by line."""
 
-        timeout = 4.0 + self._ldist[1]/1000000000
-
         while True:
-            stdout, stderr, exitcode = self._ndlrunner.wait(timeout=timeout, lines=[16, None],
+            stdout, stderr, exitcode = self._ndlrunner.wait(timeout=self._timeout, lines=[16, None],
                                                             join=False)
             if exitcode is not None:
-                msg = self._ndlrunner.get_cmd_failure_msg(stdout, stderr, exitcode, timeout=timeout)
+                msg = self._ndlrunner.get_cmd_failure_msg(stdout, stderr, exitcode,
+                                                          timeout=self._timeout)
                 raise Error(f"{self._ndlrunner_error_prefix()} has exited unexpectedly\n{msg}")
             if stderr:
                 raise Error(f"{self._ndlrunner_error_prefix()} printed an error message:\n"
                             f"{''.join(stderr)}")
             if not stdout:
                 raise Error(f"{self._ndlrunner_error_prefix()} did not provide any output for "
-                            f"{timeout} seconds")
+                            f"{self._timeout} seconds")
 
             for line in stdout:
                 yield line

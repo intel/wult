@@ -227,21 +227,19 @@ class _WultBPFRawDataProvider(_RawDataProvider.RawDataProviderBase):
     def _get_lines(self):
         """This generator reads the 'wultrunner' helper output and yields it line by line."""
 
-        timeout = 4.0 + self._ldist[1]/1000000000
-
         while True:
-            stdout, stderr, exitcode = self._wultrunner.wait(timeout=timeout, lines=[16, None],
-                                                             join=False)
+            stdout, stderr, exitcode = self._wultrunner.wait(timeout=self._timeout,
+                                                             lines=[16, None], join=False)
             if exitcode is not None:
                 msg = self._wultrunner.get_cmd_failure_msg(stdout, stderr, exitcode,
-                                                           timeout=timeout)
+                                                           timeout=self._timeout)
                 raise Error(f"{self._wultrunner_error_prefix()} has exited unexpectedly\n{msg}")
             if stderr:
                 raise Error(f"{self._wultrunner_error_prefix()} printed an error message:\n"
                             f"{''.join(stderr)}")
             if not stdout:
                 raise Error(f"{self._wultrunner_error_prefix()} did not provide any output for "
-                            f"{timeout} seconds")
+                            f"{self._timeout} seconds")
 
             for line in stdout:
                 yield line
