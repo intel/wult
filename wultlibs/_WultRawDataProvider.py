@@ -206,7 +206,7 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         super().close()
 
 
-class _WultBPFRawDataProvider(_RawDataProvider.RawDataProviderBase):
+class _WultBPFRawDataProvider(_RawDataProvider.BPFRawDataProviderBase):
     """
     The raw data provider class implementation for devices which are controlled by the 'wultrunner'
     program.
@@ -218,7 +218,7 @@ class _WultBPFRawDataProvider(_RawDataProvider.RawDataProviderBase):
         process failure.
         """
 
-        return f"the 'wultrunner' process{self._pman.hostmsg}"
+        return f"the '{self._helpername}' process{self._pman.hostmsg}"
 
     def _get_lines(self):
         """This generator reads the 'wultrunner' helper output and yields it line by line."""
@@ -261,7 +261,8 @@ class _WultBPFRawDataProvider(_RawDataProvider.RawDataProviderBase):
                     continue
 
                 if len(vals) != len(hdr):
-                    raise Error("unexpected line from 'wultrunner'{self._pman.hostmsg}:\n{line}")
+                    raise Error(f"unexpected line from '{self._helpername}'{self._pman.hostmsg}:\n"
+                                f"{line}")
 
                 if not types:
                     # Figure out the types of various values.
@@ -277,29 +278,29 @@ class _WultBPFRawDataProvider(_RawDataProvider.RawDataProviderBase):
                 yielded_lines += 1
                 yield dp
         except ErrorTimeOut as err:
-            msg = f"{err}\nCount of 'wultrunner' lines read so far: {yielded_lines}"
+            msg = f"{err}\nCount of '{self._helpername}' lines read so far: {yielded_lines}"
             if line:
-                msg = f"{msg}\nLast seen 'wultrunner' line:\n{line}"
+                msg = f"{msg}\nLast seen '{self._helpername}' line:\n{line}"
             raise ErrorTimeOut(msg) from err
 
     def _start_wultrunner(self):
         """Start the 'wultrunner' process on the measured system."""
 
         ldist_str = ",".join([str(val) for val in self._ldist])
-        cmd = f"{self._wultrunner_path} -c {self._cpunum} -l {ldist_str} "
+        cmd = f"{self._helper_path} -c {self._cpunum} -l {ldist_str} "
         self._wultrunner = self._pman.run_async(cmd)
 
     def _stop_wultrunner(self):
         """Make 'wultrunner' process to terminate."""
 
-        _LOG.debug("stopping 'wultrunner'")
+        _LOG.debug("stopping '%s'", self._helpername)
         self._wultrunner.stdin.write("q\n".encode("utf8"))
         self._wultrunner.stdin.flush()
 
         _, _, exitcode = self._wultrunner.wait(timeout=5)
         if exitcode is None:
-            _LOG.warning("the 'wultrunner' program PID %d%s failed to exit, killing it",
-                         self._wultrunner.pid, self._pman.hostmsg)
+            _LOG.warning("the '%s' program PID %d%s failed to exit, killing it",
+                         self._helpername, self._wultrunner.pid, self._pman.hostmsg)
             ProcHelpers.kill_pids(self._wultrunner.pid, kill_children=True, must_die=False,
                                   pman=self._pman)
 
@@ -317,27 +318,20 @@ class _WultBPFRawDataProvider(_RawDataProvider.RawDataProviderBase):
         """Prepare to start the measurements."""
 
         # Kill stale 'wultrunner' process, if any.
-        regex = f"^.*{self._wultrunner_path} .*$"
-        ProcHelpers.kill_processes(regex, log=True, name="stale 'wultrunner' process",
+        regex = f"^.*{self._helper_path} .*$"
+        ProcHelpers.kill_processes(regex, log=True, name=f"stale '{self._helpername}' process",
                                    pman=self._pman)
 
     def __init__(self, dev, cpunum, wultrunner_path, pman, timeout=None, ldist=None):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
 
-        super().__init__(dev, pman, timeout=timeout)
+        super().__init__(dev, wultrunner_path, pman, timeout=timeout)
 
         self._cpunum = cpunum
-        self._wultrunner_path = wultrunner_path
         self._ldist = ldist
 
         self._wultrunner = None
         self._wult_lines = None
-
-        # Validate the 'wultrunner' helper path.
-        if not self._pman.is_exe(self._wultrunner_path):
-            raise Error(f"bad 'wultrunner' helper path '{self._wultrunner_path}' - does not exist"
-                        f"{self._pman.hostmsg} or not an executable file")
-
 
 def WultRawDataProvider(dev, cpunum, pman, wultrunner_path=None, timeout=None, ldist=None,
                         early_intr=None):

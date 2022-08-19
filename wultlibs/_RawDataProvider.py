@@ -134,3 +134,25 @@ class DrvRawDataProviderBase(RawDataProviderBase):
                 self._pman.run("unmount {self.debugfs_mntpoint}")
 
         super().close()
+
+class BPFRawDataProviderBase(RawDataProviderBase):
+    """The base class for raw data providers which are based on an eBPF helper program."""
+
+    def __init__(self, dev, helper_path, pman, timeout=None):
+        """
+        Initialize a class instance. The arguments are as follows.
+          * helper_path - path to the eBPF helper program which provides the datapoinds.
+          * All other arguments are the same as in 'RawDataProviderBase.__init__()'.
+        """
+
+        super().__init__(dev, pman, timeout=timeout)
+
+        self._helper_path = helper_path
+        self._timeout = timeout
+
+        self._helpername = dev.helpername
+
+        # Validate the helper path.
+        if not self._pman.is_exe(self._helper_path):
+            raise Error(f"bad 'self._helpername' helper path '{self._helper_path}' - does not "
+                        f"exist{self._pman.hostmsg} or not an executable file")
