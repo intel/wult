@@ -139,6 +139,33 @@ class DrvRawDataProviderBase(RawDataProviderBase):
 class BPFRawDataProviderBase(RawDataProviderBase):
     """The base class for raw data providers which are based on an eBPF helper program."""
 
+    def _error_pfx(self):
+        """
+        Forms and returns the starting part of an error message related to a general eBPF helper
+        process failure.
+        """
+
+        return f"the '{self._helpername}' process{self._pman.hostmsg}"
+
+    def _get_lines(self):
+        """Reads eBPF helper output and yield it line by line."""
+
+        while True:
+            stdout, stderr, exitcode = self._proc.wait(timeout=self._timeout, lines=[16, None],
+                                                       join=False)
+            if exitcode is not None:
+                msg = self._proc.get_cmd_failure_msg(stdout, stderr, exitcode,
+                                                     timeout=self._timeout)
+                raise Error(f"{self._error_pfx()} has exited unexpectedly\n{msg}")
+            if stderr:
+                raise Error(f"{self._error_pfx()} printed an error message:\n{''.join(stderr)}")
+            if not stdout:
+                raise Error(f"{self._error_pfx()} did not provide any output for {self._timeout} "
+                            f"seconds")
+
+            for line in stdout:
+                yield line
+
     def start(self):
         """Start the measurements."""
 

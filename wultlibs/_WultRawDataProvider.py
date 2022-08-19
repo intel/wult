@@ -211,34 +211,6 @@ class _WultBPFRawDataProvider(_RawDataProvider.BPFRawDataProviderBase):
     program.
     """
 
-    def _wultrunner_error_prefix(self):
-        """
-        Forms and returns the starting part of an error message related to a general 'wultrunner'
-        process failure.
-        """
-
-        return f"the '{self._helpername}' process{self._pman.hostmsg}"
-
-    def _get_lines(self):
-        """This generator reads the 'wultrunner' helper output and yields it line by line."""
-
-        while True:
-            stdout, stderr, exitcode = self._proc.wait(timeout=self._timeout, lines=[16, None],
-                                                       join=False)
-            if exitcode is not None:
-                msg = self._proc.get_cmd_failure_msg(stdout, stderr, exitcode,
-                                                     timeout=self._timeout)
-                raise Error(f"{self._wultrunner_error_prefix()} has exited unexpectedly\n{msg}")
-            if stderr:
-                raise Error(f"{self._wultrunner_error_prefix()} printed an error message:\n"
-                            f"{''.join(stderr)}")
-            if not stdout:
-                raise Error(f"{self._wultrunner_error_prefix()} did not provide any output for "
-                            f"{self._timeout} seconds")
-
-            for line in stdout:
-                yield line
-
     def get_datapoints(self):
         """
         This generator receives data from 'wultrunner' and yields datapoints in form of a
