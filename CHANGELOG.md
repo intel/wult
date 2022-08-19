@@ -5,6 +5,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.10.20] - ADD DATE HERE
 ### Fixed
+ - Fix wult deploy regression where 'stc-agent' failed to deploy.
 ### Added
  - Always deploy eBPF helpers, making the new "hrtimer" method available by
    default.
