@@ -139,6 +139,28 @@ class DrvRawDataProviderBase(RawDataProviderBase):
 class BPFRawDataProviderBase(RawDataProviderBase):
     """The base class for raw data providers which are based on an eBPF helper program."""
 
+    def start(self):
+        """Start the measurements."""
+
+        cmd = f"{self._helper_path} {self._helper_opts}"
+        self._proc = self._pman.run_async(cmd)
+
+    def stop(self):
+        """Stop the measurements."""
+
+        _LOG.debug("stopping '%s'", self._helpername)
+        self._proc.stdin.write("q\n".encode("utf8"))
+        self._proc.stdin.flush()
+
+        _, _, exitcode = self._proc.wait(timeout=5)
+        if exitcode is None:
+            _LOG.warning("the '%s' program PID %d%s failed to exit, killing it",
+                         self._helpername, self._proc.pid, self._pman.hostmsg)
+            ProcHelpers.kill_pids(self._proc.pid, kill_children=True, must_die=False,
+                                  pman=self._pman)
+
+        self._proc = None
+
     def prepare(self):
         """Prepare to start the measurements."""
 
@@ -158,6 +180,9 @@ class BPFRawDataProviderBase(RawDataProviderBase):
 
         self._helper_path = helper_path
         self._timeout = timeout
+
+        self._helper_opts = None # The eBPF helper command line options.
+        self._proc = None        # The eBPF helper process.
 
         self._helpername = dev.helpername
 
