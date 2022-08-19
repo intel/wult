@@ -376,7 +376,7 @@ class _WultTSCDeadlineTimer(_DeviceBase):
         # TSC resolution is 1 cycle, but we assume it is 1 nanosecond.
         self.info["resolution"] = 1
 
-class _WultHRTBase(_DeviceBase):
+class _HRTimerDeviceBase(_DeviceBase):
     """
     Base class for Linux High Resolution Timer (hrtimers) devices. Hrtimer is basically a Linux
     kernel API for using hardware timers in a platform-independent manner. On a modern Intel CPUs,
@@ -446,7 +446,7 @@ class _WultHRTBase(_DeviceBase):
         self.info["devid"] = devid
         self.info["resolution"] = self._get_resoluion()
 
-class _WultHRT(_WultHRTBase):
+class _WultHRT(_HRTimerDeviceBase):
     """The High Resolution Timers device controlled by the 'wult_hrt' driver."""
 
     supported_devices = {"hrt" : "Linux High Resolution Timer (via kernel driver)"}
@@ -458,7 +458,7 @@ class _WultHRT(_WultHRTBase):
 
         self.info["descr"] = self.supported_devices["hrt"]
 
-class _WultHRTimer(_WultHRTBase):
+class _WultHRTimer(_HRTimerDeviceBase):
     """The High Resolution Timers device controlled by an eBPF program (no kernel driver)."""
 
     supported_devices = {"hrtimer" : "Linux High Resolution Timer (via eBPF)"}
