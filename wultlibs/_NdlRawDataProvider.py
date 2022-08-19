@@ -25,7 +25,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     The raw data provider class implementation for the ndl tool.
     """
 
-    def _ndlrunner_error_prefix(self):
+    def _error_pfx(self):
         """
         Forms and returns the starting part of an error message related to a general 'ndlrunner'
         process failure.
@@ -39,8 +39,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         received from the 'ndlrunner' process.
         """
 
-        return f"received the following unexpected line from {self._ndlrunner_error_prefix()}:\n" \
-               f"{line}"
+        return f"received the following unexpected line from {self._error_pfx()}:\n{line}"
 
     def _start_ndlrunner(self):
         """Start the 'ndlrunner' process on the measured system."""
@@ -76,13 +75,12 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
             if exitcode is not None:
                 msg = self._proc.get_cmd_failure_msg(stdout, stderr, exitcode,
                                                      timeout=self._timeout)
-                raise Error(f"{self._ndlrunner_error_prefix()} has exited unexpectedly\n{msg}")
+                raise Error(f"{self._error_pfx()} has exited unexpectedly\n{msg}")
             if stderr:
-                raise Error(f"{self._ndlrunner_error_prefix()} printed an error message:\n"
-                            f"{''.join(stderr)}")
+                raise Error(f"{self._error_pfx()} printed an error message:\n{''.join(stderr)}")
             if not stdout:
-                raise Error(f"{self._ndlrunner_error_prefix()} did not provide any output for "
-                            f"{self._timeout} seconds")
+                raise Error(f"{self._error_pfx()} did not provide any output for {self._timeout} "
+                            f"seconds")
 
             for line in stdout:
                 yield line
