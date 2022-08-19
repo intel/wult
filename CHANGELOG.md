@@ -3,10 +3,16 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.19] - ADD DATE HERE
+## [1.10.20] - ADD DATE HERE
+### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.10.19] - 2022-08-19
 ### Fixed
  - Fix compatibility of wult report viewing scripts for Python 3.5+.
- - Fix wult report failling because it can't find scripts for viewing reports.
+ - Fix wult report failing because it can't find scripts for viewing reports.
 ### Added
 ### Removed
 ### Changed

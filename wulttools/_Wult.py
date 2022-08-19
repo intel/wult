@@ -25,7 +25,7 @@ from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import Deploy, ToolsCommon
 from wulttools import _WultCommon
 
-VERSION = "1.10.18"
+VERSION = "1.10.19"
 OWN_NAME = "wult"
 
 LOG = logging.getLogger()
