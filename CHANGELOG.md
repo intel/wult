@@ -6,6 +6,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [1.10.19] - ADD DATE HERE
 ### Fixed
  - Fix compatibility of wult report viewing scripts for Python 3.5+.
+ - Fix wult report failling because it can't find scripts for viewing reports.
 ### Added
 ### Removed
 ### Changed
@@ -16,7 +17,6 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
  - Fix nic method-only regression introduced in 1.10.0: 'WarmupDelay' and
    'LatchDelay' metrics were not saved in the CSV file.
 ### Added
- - Add local viewing scripts to each wult HTML report.
 ### Removed
 ### Changed
 
