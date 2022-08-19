@@ -14,6 +14,7 @@ import logging
 import contextlib
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import ClassHelpers, KernelModule
+from statscollectlibs.helperlibs import ProcHelpers
 from wultlibs import Devices
 from wultlibs.helperlibs import FSHelpers
 
@@ -137,6 +138,14 @@ class DrvRawDataProviderBase(RawDataProviderBase):
 
 class BPFRawDataProviderBase(RawDataProviderBase):
     """The base class for raw data providers which are based on an eBPF helper program."""
+
+    def prepare(self):
+        """Prepare to start the measurements."""
+
+        # Kill stale eBPF helper process, if any.
+        regex = f"^.*{self._helper_path} .*$"
+        ProcHelpers.kill_processes(regex, log=True, name=f"stale '{self._helpername}' process",
+                                   pman=self._pman)
 
     def __init__(self, dev, helper_path, pman, timeout=None):
         """

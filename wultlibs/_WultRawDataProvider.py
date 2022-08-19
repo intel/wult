@@ -224,11 +224,11 @@ class _WultBPFRawDataProvider(_RawDataProvider.BPFRawDataProviderBase):
         """This generator reads the 'wultrunner' helper output and yields it line by line."""
 
         while True:
-            stdout, stderr, exitcode = self._wultrunner.wait(timeout=self._timeout,
-                                                             lines=[16, None], join=False)
+            stdout, stderr, exitcode = self._proc.wait(timeout=self._timeout, lines=[16, None],
+                                                       join=False)
             if exitcode is not None:
-                msg = self._wultrunner.get_cmd_failure_msg(stdout, stderr, exitcode,
-                                                           timeout=self._timeout)
+                msg = self._proc.get_cmd_failure_msg(stdout, stderr, exitcode,
+                                                     timeout=self._timeout)
                 raise Error(f"{self._wultrunner_error_prefix()} has exited unexpectedly\n{msg}")
             if stderr:
                 raise Error(f"{self._wultrunner_error_prefix()} printed an error message:\n"
@@ -288,23 +288,23 @@ class _WultBPFRawDataProvider(_RawDataProvider.BPFRawDataProviderBase):
 
         ldist_str = ",".join([str(val) for val in self._ldist])
         cmd = f"{self._helper_path} -c {self._cpunum} -l {ldist_str} "
-        self._wultrunner = self._pman.run_async(cmd)
+        self._proc = self._pman.run_async(cmd)
 
     def _stop_wultrunner(self):
         """Make 'wultrunner' process to terminate."""
 
         _LOG.debug("stopping '%s'", self._helpername)
-        self._wultrunner.stdin.write("q\n".encode("utf8"))
-        self._wultrunner.stdin.flush()
+        self._proc.stdin.write("q\n".encode("utf8"))
+        self._proc.stdin.flush()
 
-        _, _, exitcode = self._wultrunner.wait(timeout=5)
+        _, _, exitcode = self._proc.wait(timeout=5)
         if exitcode is None:
             _LOG.warning("the '%s' program PID %d%s failed to exit, killing it",
-                         self._helpername, self._wultrunner.pid, self._pman.hostmsg)
-            ProcHelpers.kill_pids(self._wultrunner.pid, kill_children=True, must_die=False,
+                         self._helpername, self._proc.pid, self._pman.hostmsg)
+            ProcHelpers.kill_pids(self._proc.pid, kill_children=True, must_die=False,
                                   pman=self._pman)
 
-        self._wultrunner = None
+        self._proc = None
 
     def start(self):
         """Start the  measurements."""
@@ -314,14 +314,6 @@ class _WultBPFRawDataProvider(_RawDataProvider.BPFRawDataProviderBase):
         """Stop the  measurements."""
         self._stop_wultrunner()
 
-    def prepare(self):
-        """Prepare to start the measurements."""
-
-        # Kill stale 'wultrunner' process, if any.
-        regex = f"^.*{self._helper_path} .*$"
-        ProcHelpers.kill_processes(regex, log=True, name=f"stale '{self._helpername}' process",
-                                   pman=self._pman)
-
     def __init__(self, dev, cpunum, wultrunner_path, pman, timeout=None, ldist=None):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
 
@@ -330,7 +322,7 @@ class _WultBPFRawDataProvider(_RawDataProvider.BPFRawDataProviderBase):
         self._cpunum = cpunum
         self._ldist = ldist
 
-        self._wultrunner = None
+        self._proc = None
         self._wult_lines = None
 
 def WultRawDataProvider(dev, cpunum, pman, wultrunner_path=None, timeout=None, ldist=None,
