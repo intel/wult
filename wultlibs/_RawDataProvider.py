@@ -24,15 +24,21 @@ class RawDataProviderBase(ClassHelpers.SimpleCloseContext):
     The base class for raw data provider classes.
     """
 
-    def __init__(self, dev, pman):
+    def __init__(self, dev, pman, timeout=None):
         """
         Initialize a class instance for device 'dev'. The arguments are as follows.
           * dev - the device object created with 'Devices.GetDevice()'.
           * pman - the process manager object defining host to operate on.
+          * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
+                      seconds.
         """
 
         self.dev = dev
         self._pman = pman
+        self._timeout = timeout
+
+        if timeout is None:
+            self._timeout = 10
 
         msg = f"Using device '{self.dev.info['devid']}'{pman.hostmsg}:\n" \
               f" * {self.dev.info['descr']}"
@@ -82,11 +88,11 @@ class DrvRawDataProviderBase(RawDataProviderBase):
             for drvobj in reversed(self.drvobjs):
                 drvobj.unload()
 
-    def __init__(self, dev, pman, drvinfo):
+    def __init__(self, dev, pman, drvinfo, timeout=None):
         """
         Initialize a class instance. The arguments are as follows.
           * drvinfo - a dictionary describing the kernel drivers to load/unload.
-          * All other arguments are the same as in '_RawDataProviderBase.__init__()'.
+          * All other arguments are the same as in 'RawDataProviderBase.__init__()'.
 
         The 'drvinfo' dictionary schema is as follows.
           { drvname1: { "params" : <modulue parameters> },
@@ -97,7 +103,7 @@ class DrvRawDataProviderBase(RawDataProviderBase):
           * params - driver module parameters.
         """
 
-        super().__init__(dev, pman)
+        super().__init__(dev, pman, timeout=timeout)
 
         self._drvinfo = drvinfo
         self.drvobjs = []

@@ -169,9 +169,8 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         drvinfo = { "wult" : { "params" : f"cpunum={cpunum}" },
                      dev.drvname : { "params" : None }}
-        super().__init__(dev, pman, drvinfo)
+        super().__init__(dev, pman, drvinfo, timeout=timeout)
 
-        self._timeout = timeout
         self._ldist = ldist
         self._early_intr = early_intr
 
@@ -182,9 +181,6 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         self._basedir = None
         self._enabled_path = None
         self._fields = None
-
-        if not timeout:
-            self._timeout = 10
 
         self._ftrace = _FTrace.FTrace(pman=self._pman, timeout=self._timeout)
 
@@ -328,18 +324,14 @@ class _WultBPFRawDataProvider(_RawDataProvider.RawDataProviderBase):
     def __init__(self, dev, cpunum, wultrunner_path, pman, timeout=None, ldist=None):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
 
-        super().__init__(dev, pman)
+        super().__init__(dev, pman, timeout=timeout)
 
         self._cpunum = cpunum
         self._wultrunner_path = wultrunner_path
-        self._timeout = timeout
         self._ldist = ldist
 
         self._wultrunner = None
         self._wult_lines = None
-
-        if not timeout:
-            self._timeout = 10
 
         # Validate the 'wultrunner' helper path.
         if not self._pman.is_exe(self._wultrunner_path):
@@ -351,7 +343,7 @@ def WultRawDataProvider(dev, cpunum, pman, wultrunner_path=None, timeout=None, l
                         early_intr=None):
     """
     Create and return a raw data provider class suitable for a delayed event device 'dev'. The
-    arguments are the same as in '_RawDataProviderBase.__init__()'.
+    arguments are as follows.
       * dev - the device object created with 'Devices.GetDevice()'.
       * cpunum - the measured CPU number.
       * pman - the process manager object defining host to operate on.

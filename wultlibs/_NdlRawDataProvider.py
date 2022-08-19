@@ -217,10 +217,9 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         """
 
         drvinfo = {dev.drvname : {"params" : f"ifname={dev.netif.ifname}"}}
-        super().__init__(dev, pman, drvinfo)
+        super().__init__(dev, pman, drvinfo, timeout=timeout)
 
         self._ndlrunner_path = ndlrunner_path
-        self._timeout = timeout
         self._ldist = ldist
         self._netif = self.dev.netif
 
@@ -228,9 +227,6 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         self._ndl_lines = None
         self._etfqdisc = None
         self._nmcli = None
-
-        if not timeout:
-            self._timeout = 10
 
         # Validate the 'ndlrunner' helper path.
         if not self._pman.is_exe(self._ndlrunner_path):
