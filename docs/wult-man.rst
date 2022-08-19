@@ -65,9 +65,9 @@ COMMANDS
 COMMAND *'wult* deploy'
 =======================
 
-usage: wult deploy [-h] [-q] [-d] [--kernel-src KSRC] [--deploy-bpf]
-[--rebuild-bpf] [--local-build] [--tmpdir-path TMPDIR_PATH]
-[--keep-tmpdir] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
+usage: wult deploy [-h] [-q] [-d] [--kernel-src KSRC] [--rebuild-bpf]
+[--local-build] [--tmpdir-path TMPDIR_PATH] [--keep-tmpdir] [-H
+HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
 Compile and deploy wult helpers and drivers to the SUT (System Under
 Test), which can be can be either local or a remote host, depending on
@@ -108,12 +108,6 @@ OPTIONS *'wult* deploy'
    If '--local-build' was used, then the path is considered to be on the
    local system, rather than the SUT.
 
-**--deploy-bpf**
-   Deploy the eBPF helpers necessary for the 'hrtimer' method. This is a
-   new experimental method that does not require kernel drivers and
-   instead, uses an eBPF program to schedule delayed events and collect
-   measurement data.
-
 **--rebuild-bpf**
    eBPF helpers sources consist of 2 components: the user-space
    component and the eBPF component. The user-space component is
@@ -121,8 +115,7 @@ OPTIONS *'wult* deploy'
    component is distributed as both source code and in binary (compiled)
    form. By default, the eBPF component is not re-compiled. This option
    is meant to be used by wult developers to re-compile the eBPF
-   component if it was modified. This option can only be used if the
-   '--deploy- bpf' option was specified.
+   component if it was modified.
 
 **--local-build**
    Build helpers and drivers locally, instead of building on HOSTNAME

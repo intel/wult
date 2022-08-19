@@ -49,7 +49,7 @@ Filter datapoints out of a test result.
 \fBwult\fR \fI\,calc\/\fR
 Calculate summary functions for a wult test result.
 .SH COMMAND \fI\,'wult deploy'\/\fR
-usage: wult deploy [-h] [-q] [-d] [--kernel-src KSRC] [--deploy-bpf] [--rebuild-bpf] [--local-build] [--tmpdir-path TMPDIR_PATH] [--keep-tmpdir] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
+usage: wult deploy [-h] [-q] [-d] [--kernel-src KSRC] [--rebuild-bpf] [--local-build] [--tmpdir-path TMPDIR_PATH] [--keep-tmpdir] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
 Compile and deploy wult helpers and drivers to the SUT (System Under Test), which can be can be either local or a remote host, depending on the '\-H' option. By default, everything is built on the SUT, but the '\-\-local\-build' can be used for building on the local system.The drivers are searched for in the following directories (and in the following order) on the local host: ./drivers/idle, $WULT_DATA_PATH/drivers/idle (if 'WULT_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/drivers/idle, /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The wult tool also depends on the following helpers: stc\-agent, wultrunner. These helpers will be compiled on the SUT and deployed to the SUT. The sources of the helpers are searched for in the following paths (and in the following order) on the local host: ./helpers, $WULT_DATA_PATH/helpers (if 'WULT_DATA_PATH' environment variable is defined), $HOME/.local/share/wult/helpers, /usr/local/share/wult/helpers, /usr/share/wult/helpers. By default, helpers are deployed to the path defined by the WULT_HELPERSPATH environment variable. If the variable is not defined, helpers are deployed to '$HOME/.local/bin', where '$HOME' is the home directory of user 'USERNAME' on host 'HOST' (see '\-\-host' and '\-\-username' options).
 
@@ -74,20 +74,13 @@ was used, then the path is considered to be on the local system, rather than
 the SUT.
 
 .TP
-\fB\-\-deploy\-bpf\fR
-Deploy the eBPF helpers necessary for the 'hrtimer' method. This is a new
-experimental method that does not require kernel drivers and instead, uses an
-eBPF program to schedule delayed events and collect measurement data.
-
-.TP
 \fB\-\-rebuild\-bpf\fR
 eBPF helpers sources consist of 2 components: the user\-space component and the
 eBPF component. The user\-space component is distributed as a source code, and
 must be compiled. The eBPF component is distributed as both source code and in
 binary (compiled) form. By default, the eBPF component is not re\-compiled.
 This option is meant to be used by wult developers to re\-compile the eBPF
-component if it was modified. This option can only be used if the '\-\-deploy\-
-bpf' option was specified.
+component if it was modified.
 
 .TP
 \fB\-\-local\-build\fR

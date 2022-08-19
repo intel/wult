@@ -3,7 +3,13 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.20] - ADD DATE HERE
+## [1.10.21] - ADD DATE HERE
+### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.10.20] - 2022-08-19
 ### Fixed
  - Fix wult deploy regression where 'stc-agent' failed to deploy.
 ### Added
