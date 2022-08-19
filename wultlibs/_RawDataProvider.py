@@ -226,3 +226,10 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         if not self._pman.is_exe(self._helper_path):
             raise Error(f"bad 'self._helpername' helper path '{self._helper_path}' - does not "
                         f"exist{self._pman.hostmsg} or not an executable file")
+
+    def close(self):
+        """Stop the measurements."""
+
+        if getattr(self, "_proc", None):
+            with contextlib.suppress(Error):
+                self.stop()
