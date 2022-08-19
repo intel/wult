@@ -5,6 +5,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.10.19] - ADD DATE HERE
 ### Fixed
+ - Fix compatibility of wult report viewing scripts for Python 3.5+.
 ### Added
 ### Removed
 ### Changed
