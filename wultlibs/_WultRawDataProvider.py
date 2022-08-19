@@ -283,13 +283,6 @@ class _WultBPFRawDataProvider(_RawDataProvider.BPFRawDataProviderBase):
                 msg = f"{msg}\nLast seen '{self._helpername}' line:\n{line}"
             raise ErrorTimeOut(msg) from err
 
-    def _start_wultrunner(self):
-        """Start the 'wultrunner' process on the measured system."""
-
-        ldist_str = ",".join([str(val) for val in self._ldist])
-        cmd = f"{self._helper_path} -c {self._cpunum} -l {ldist_str}"
-        self._proc = self._pman.run_async(cmd)
-
     def _stop_wultrunner(self):
         """Make 'wultrunner' process to terminate."""
 
@@ -308,11 +301,21 @@ class _WultBPFRawDataProvider(_RawDataProvider.BPFRawDataProviderBase):
 
     def start(self):
         """Start the measurements."""
-        self._start_wultrunner()
+
+        cmd = f"{self._helper_path} {self._helper_opts}"
+        self._proc = self._pman.run_async(cmd)
 
     def stop(self):
         """Stop the measurements."""
         self._stop_wultrunner()
+
+    def prepare(self):
+        """Prepare to start the measurements."""
+
+        super().prepare()
+
+        ldist_str = ",".join([str(val) for val in self._ldist])
+        self._helper_opts = f"-c {self._cpunum} -l {ldist_str}"
 
     def __init__(self, dev, cpunum, wultrunner_path, pman, timeout=None, ldist=None):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
@@ -322,7 +325,9 @@ class _WultBPFRawDataProvider(_RawDataProvider.BPFRawDataProviderBase):
         self._cpunum = cpunum
         self._ldist = ldist
 
-        self._proc = None
+        self._helper_opts = None # The eBPF helper command line options.
+        self._proc = None        # The eBPF helper process.
+
         self._wult_lines = None
 
 def WultRawDataProvider(dev, cpunum, pman, wultrunner_path=None, timeout=None, ldist=None,
