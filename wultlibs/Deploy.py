@@ -202,18 +202,20 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
     if cats["bpfhelpers"]:
-        text = """Deploy the eBPF helpers necessary for the 'hrtimer' method. This is a new
-                  experimental method that does not require kernel drivers and instead, uses an eBPF
-                  program to schedule delayed events and collect measurement data."""
-        parser.add_argument("--deploy-bpf", action="store_true", help=text)
+        if toolname == "wult":
+            text = """Deploy the eBPF helpers necessary for the 'hrtimer' method. This is a new
+                      experimental method that does not require kernel drivers and instead, uses an
+                      eBPF program to schedule delayed events and collect measurement data."""
+            parser.add_argument("--deploy-bpf", action="store_true", help=text)
 
         text = """eBPF helpers sources consist of 2 components: the user-space component and the
                   eBPF component. The user-space component is distributed as a source code, and must
                   be compiled. The eBPF component is distributed as both source code and in binary
                   (compiled) form. By default, the eBPF component is not re-compiled. This option is
                   meant to be used by wult developers to re-compile the eBPF component if it was
-                  modified. This option can only be used if the '--deploy-bpf' option was
-                  specified."""
+                  modified."""
+        if toolname == "wult":
+            text += " This option can only be used if the '--deploy-bpf' option was specified."
         parser.add_argument("--rebuild-bpf", action="store_true", help=text)
 
     text = f"""Build {what} locally, instead of building on HOSTNAME (the SUT)."""
