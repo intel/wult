@@ -136,19 +136,22 @@ class DrvRawDataProviderBase(RawDataProviderBase):
 
         super().close()
 
-class BPFRawDataProviderBase(RawDataProviderBase):
-    """The base class for raw data providers which are based on an eBPF helper program."""
+class HelperRawDataProviderBase(RawDataProviderBase):
+    """
+    The base class for raw data providers which are based on a helper program printing datapoints
+    data to 'stdout'.
+    """
 
     def _error_pfx(self):
         """
-        Forms and returns the starting part of an error message related to a general eBPF helper
-        process failure.
+        Forms and returns the starting part of an error message related to a general helper process
+        failure.
         """
 
         return f"the '{self._helpername}' process{self._pman.hostmsg}"
 
     def _get_lines(self):
-        """Reads eBPF helper output and yield it line by line."""
+        """Reads helper program 'stdout' output and yield it line by line."""
 
         while True:
             stdout, stderr, exitcode = self._proc.wait(timeout=self._timeout, lines=[16, None],
@@ -191,7 +194,7 @@ class BPFRawDataProviderBase(RawDataProviderBase):
     def prepare(self):
         """Prepare to start the measurements."""
 
-        # Kill stale eBPF helper process, if any.
+        # Kill stale helper process, if any.
         regex = f"^.*{self._helper_path} .*$"
         ProcHelpers.kill_processes(regex, log=True, name=f"stale '{self._helpername}' process",
                                    pman=self._pman)
@@ -199,7 +202,7 @@ class BPFRawDataProviderBase(RawDataProviderBase):
     def __init__(self, dev, helper_path, pman, timeout=None):
         """
         Initialize a class instance. The arguments are as follows.
-          * helper_path - path to the eBPF helper program which provides the datapoinds.
+          * helper_path - path to the helper program which provides the datapoinds.
           * All other arguments are the same as in 'RawDataProviderBase.__init__()'.
         """
 
@@ -208,8 +211,8 @@ class BPFRawDataProviderBase(RawDataProviderBase):
         self._helper_path = helper_path
         self._timeout = timeout
 
-        self._helper_opts = None # The eBPF helper command line options.
-        self._proc = None        # The eBPF helper process.
+        self._helper_opts = None # The helper program command line options.
+        self._proc = None        # The helper process.
 
         self._helpername = dev.helpername
 

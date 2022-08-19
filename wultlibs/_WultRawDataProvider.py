@@ -205,10 +205,10 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         super().close()
 
 
-class _WultBPFRawDataProvider(_RawDataProvider.BPFRawDataProviderBase):
+class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
     """
     The raw data provider class implementation for devices which are controlled by the 'wultrunner'
-    program.
+    eBPF helper program.
     """
 
     def get_datapoints(self):
