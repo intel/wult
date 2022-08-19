@@ -287,7 +287,7 @@ class _WultBPFRawDataProvider(_RawDataProvider.BPFRawDataProviderBase):
         """Start the 'wultrunner' process on the measured system."""
 
         ldist_str = ",".join([str(val) for val in self._ldist])
-        cmd = f"{self._helper_path} -c {self._cpunum} -l {ldist_str} "
+        cmd = f"{self._helper_path} -c {self._cpunum} -l {ldist_str}"
         self._proc = self._pman.run_async(cmd)
 
     def _stop_wultrunner(self):
@@ -307,11 +307,11 @@ class _WultBPFRawDataProvider(_RawDataProvider.BPFRawDataProviderBase):
         self._proc = None
 
     def start(self):
-        """Start the  measurements."""
+        """Start the measurements."""
         self._start_wultrunner()
 
     def stop(self):
-        """Stop the  measurements."""
+        """Stop the measurements."""
         self._stop_wultrunner()
 
     def __init__(self, dev, cpunum, wultrunner_path, pman, timeout=None, ldist=None):
