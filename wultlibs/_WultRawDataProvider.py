@@ -283,8 +283,14 @@ class _WultBPFRawDataProvider(_RawDataProvider.BPFRawDataProviderBase):
                 msg = f"{msg}\nLast seen '{self._helpername}' line:\n{line}"
             raise ErrorTimeOut(msg) from err
 
-    def _stop_wultrunner(self):
-        """Make 'wultrunner' process to terminate."""
+    def start(self):
+        """Start the measurements."""
+
+        cmd = f"{self._helper_path} {self._helper_opts}"
+        self._proc = self._pman.run_async(cmd)
+
+    def stop(self):
+        """Stop the measurements."""
 
         _LOG.debug("stopping '%s'", self._helpername)
         self._proc.stdin.write("q\n".encode("utf8"))
@@ -298,16 +304,6 @@ class _WultBPFRawDataProvider(_RawDataProvider.BPFRawDataProviderBase):
                                   pman=self._pman)
 
         self._proc = None
-
-    def start(self):
-        """Start the measurements."""
-
-        cmd = f"{self._helper_path} {self._helper_opts}"
-        self._proc = self._pman.run_async(cmd)
-
-    def stop(self):
-        """Stop the measurements."""
-        self._stop_wultrunner()
 
     def prepare(self):
         """Prepare to start the measurements."""
