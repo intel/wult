@@ -202,20 +202,12 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
     if cats["bpfhelpers"]:
-        if toolname == "wult":
-            text = """Deploy the eBPF helpers necessary for the 'hrtimer' method. This is a new
-                      experimental method that does not require kernel drivers and instead, uses an
-                      eBPF program to schedule delayed events and collect measurement data."""
-            parser.add_argument("--deploy-bpf", action="store_true", help=text)
-
         text = """eBPF helpers sources consist of 2 components: the user-space component and the
                   eBPF component. The user-space component is distributed as a source code, and must
                   be compiled. The eBPF component is distributed as both source code and in binary
                   (compiled) form. By default, the eBPF component is not re-compiled. This option is
                   meant to be used by wult developers to re-compile the eBPF component if it was
                   modified."""
-        if toolname == "wult":
-            text += " This option can only be used if the '--deploy-bpf' option was specified."
         parser.add_argument("--rebuild-bpf", action="store_true", help=text)
 
     text = f"""Build {what} locally, instead of building on HOSTNAME (the SUT)."""
@@ -949,8 +941,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         finally:
             self._remove_tmpdirs()
 
-    def __init__(self, toolname, pman=None, ksrc=None, lbuild=False, deploy_bpf=False,
-                 rebuild_bpf=False, tmpdir_path=None, keep_tmpdir=False, debug=False):
+    def __init__(self, toolname, pman=None, ksrc=None, lbuild=False, rebuild_bpf=False,
+                 tmpdir_path=None, keep_tmpdir=False, debug=False):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool to create the deployment object for.
@@ -959,7 +951,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
           * ksrc - path to the kernel sources to compile drivers against.
           * lbuild - by default, everything is built on the SUT, but if 'lbuild' is 'True', then
                      everything is built on the local host.
-          * deploy_bpf - if 'True', deploy eBPF helpers as well.
           * rebuild_bpf - if 'toolname' comes with an eBPF helper, re-build the the eBPF component
                            of the helper if this argument is 'True'. Do not re-build otherwise.
           * tmpdir_path - if provided, use this path as a temporary directory (by default, a random
@@ -974,7 +965,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._spman = pman
         self._ksrc = ksrc
         self._lbuild = lbuild
-        self._deploy_bpf = deploy_bpf
         self._rebuild_bpf = rebuild_bpf
         self._tmpdir_path = tmpdir_path
         self._keep_tmpdir = keep_tmpdir
@@ -1002,12 +992,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if self._toolname not in _TOOLS_INFO:
             raise Error(f"BUG: unsupported tool '{toolname}'")
 
-        if self._rebuild_bpf and not self._deploy_bpf:
-            raise Error("'--rebuild-bpf' can only be used with '--deploy-bpf'")
-
         for name, info in _TOOLS_INFO[self._toolname]["installables"].items():
-            if not self._deploy_bpf and info["category"] == "bpfhelpers":
-                continue
             self._insts[name] = info.copy()
             self._cats[info["category"]] = { name : info.copy()}
 
