@@ -89,6 +89,12 @@ class DrvRawDataProviderBase(RawDataProviderBase):
             for drvobj in reversed(self.drvobjs):
                 drvobj.unload()
 
+    def prepare(self):
+        """Prepare to start the measurements."""
+
+        # Unload all the drivers.
+        self._unload(everything=True)
+
     def __init__(self, dev, pman, drvinfo, timeout=None):
         """
         Initialize a class instance. The arguments are as follows.

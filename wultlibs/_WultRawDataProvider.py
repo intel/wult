@@ -135,17 +135,7 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     def prepare(self):
         """Prepare to start the measurements."""
 
-        if self.dev.drvname == "wult_igb":
-            # The 'irqbalance' service usually causes problems by binding the delayed events (NIC
-            # interrupts) to CPUs different form the measured one. Stop the service.
-            self._sysctl = Systemctl.Systemctl(pman=self._pman)
-            if self._sysctl.is_active("irqbalance"):
-                _LOG.info("Stopping the 'irqbalance' service")
-                self._sysctl.stop("irqbalance")
-                self._irqbalance_stopped = True
-
-        # Unload wult drivers if they were loaded.
-        self._unload(everything=True)
+        super().prepare()
 
         # Unbind the wult delayed event device from its current driver, if any.
         self.dev.unbind()
@@ -162,6 +152,15 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         if self._early_intr:
             with self._pman.open(self._early_intr_path, "w") as fobj:
                 fobj.write("1")
+
+        if self.dev.drvname == "wult_igb":
+            # The 'irqbalance' service usually causes problems by binding the delayed events (NIC
+            # interrupts) to CPUs different form the measured one. Stop the service.
+            self._sysctl = Systemctl.Systemctl(pman=self._pman)
+            if self._sysctl.is_active("irqbalance"):
+                _LOG.info("Stopping the 'irqbalance' service")
+                self._sysctl.stop("irqbalance")
+                self._irqbalance_stopped = True
 
     def __init__(self, dev, cpunum, pman, timeout=None, ldist=None, early_intr=None):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""

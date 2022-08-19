@@ -148,8 +148,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     def prepare(self):
         """Prepare to start the measurements."""
 
-        # Unload the ndl driver if it is loaded.
-        self._unload(everything=True)
+        super().prepare()
 
         # Kill stale 'ndlrunner' process, if any.
         regex = f"^.*{self._ndlrunner_path} .*{self._netif.ifname}.*$"
