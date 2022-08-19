@@ -62,6 +62,7 @@ setup(
                get_data_files("share/wult/helpers", "helpers", exclude=_PYTHON_HELPERS) + \
                get_data_files("share/wult/defs", "defs") + \
                get_data_files("share/wult/js/dist", "js/dist") + \
+               get_data_files("share/wult/misc/viewreports", "misc/viewreports") + \
                [("share/wult/js", ["js/index.html"])],
     scripts=_TOOLNAMES + _PYTHON_HELPERS,
     packages=find_packages(),
