@@ -18,7 +18,7 @@ from wultlibs import _FTrace, _RawDataProvider
 
 _LOG = logging.getLogger()
 
-class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
+class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     """
     The raw data provider class implementation for devices which are controlled by a wult kernel
     driver.
@@ -210,7 +210,7 @@ class _DrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         super().close()
 
 
-class _WultrunnerRawDataProvider(_RawDataProvider.RawDataProviderBase):
+class _WultBPFRawDataProvider(_RawDataProvider.RawDataProviderBase):
     """
     The raw data provider class implementation for devices which are controlled by the 'wultrunner'
     program.
@@ -366,10 +366,9 @@ def WultRawDataProvider(dev, cpunum, pman, wultrunner_path=None, timeout=None, l
     """
 
     if dev.drvname:
-        return _DrvRawDataProvider(dev, cpunum, pman, timeout=timeout, ldist=ldist,
-                                   early_intr=early_intr)
+        return _WultDrvRawDataProvider(dev, cpunum, pman, timeout=timeout, ldist=ldist,
+                                       early_intr=early_intr)
     if not wultrunner_path:
         raise Error("BUG: the 'wultrunner' program path was not specified")
 
-    return _WultrunnerRawDataProvider(dev, cpunum, wultrunner_path, pman, timeout=timeout,
-                                      ldist=ldist)
+    return _WultBPFRawDataProvider(dev, cpunum, wultrunner_path, pman, timeout=timeout, ldist=ldist)
