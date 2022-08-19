@@ -95,7 +95,7 @@ class DrvRawDataProviderBase(RawDataProviderBase):
         # Unload all the drivers.
         self._unload(everything=True)
 
-    def __init__(self, dev, pman, drvinfo, timeout=None):
+    def __init__(self, dev, pman, drvinfo=None, timeout=None, **kwargs):
         """
         Initialize a class instance. The arguments are as follows.
           * drvinfo - a dictionary describing the kernel drivers to load/unload.
@@ -108,9 +108,16 @@ class DrvRawDataProviderBase(RawDataProviderBase):
 
           * drvname - driver name.
           * params - driver module parameters.
+
+        Note, the reason for 'kwargs' argument and for 'drvinfo' being a keyword argument (even
+        though it is not optional) is to support multiple inheritance cases: a subclass may inherit
+        this class and another class, which has a different constructor signature. In this case the
+        unknown arguments are simply ignored.
         """
 
-        super().__init__(dev, pman, timeout=timeout)
+        assert drvinfo is not None
+
+        super().__init__(dev, pman, timeout=timeout, **kwargs)
 
         self._drvinfo = drvinfo
         self.drvobjs = []
@@ -205,14 +212,19 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         ProcHelpers.kill_processes(regex, log=True, name=f"stale '{self._helpername}' process",
                                    pman=self._pman)
 
-    def __init__(self, dev, pman, helper_path, timeout=None):
+    def __init__(self, dev, pman, helper_path=None, timeout=None, **kwargs):
         """
         Initialize a class instance. The arguments are as follows.
-          * helper_path - path to the helper program which provides the datapoinds.
+          * helper_path - path to the helper program which provides the datapoints.
           * All other arguments are the same as in 'RawDataProviderBase.__init__()'.
+
+        Note, the reason for 'kwargs' is the same as described in
+        'DrvRawDataProviderBase.__init__()'.
         """
 
-        super().__init__(dev, pman, timeout=timeout)
+        assert helper_path is not None
+
+        super().__init__(dev, pman, timeout=timeout, **kwargs)
 
         self._helper_path = helper_path
         self._timeout = timeout
