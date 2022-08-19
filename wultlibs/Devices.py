@@ -459,7 +459,7 @@ class _WultHRT(_HRTimerDeviceBase):
         self.info["descr"] = self.supported_devices["hrt"]
 
 class _WultHRTimer(_HRTimerDeviceBase):
-    """The High Resolution Timers device controlled by an eBPF program (no kernel driver)."""
+    """The High Resolution Timers device controlled by the 'wultrunner' eBPF program."""
 
     supported_devices = {"hrtimer" : "Linux High Resolution Timer (via eBPF)"}
 
