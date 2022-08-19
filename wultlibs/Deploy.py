@@ -315,16 +315,16 @@ def _create_standalone_pyhelper(pyhelper_path, outdir):
 
         for src in deps:
             # Form the destination path. It is just part of the source path staring from the
-            # 'wultlibs' of 'helperlibs' components.
+            # 'statscollectlibs' of 'helperlibs' components.
             try:
-                idx = src.parts.index("wultlibs")
+                idx = src.parts.index("statscollectlibs")
             except ValueError:
                 try:
                     idx = src.parts.index("helperlibs")
                 except ValueError:
                     raise Error(f"python helper script '{pyhelper}' has bad dependency '{src}' - "
-                                f"the path does not have the 'wultlibs' or 'helperlibs' component "
-                                f"in it.") from None
+                                f"the path does not have the 'statscollectlibs' or 'helperlibs' "
+                                f"component in it.") from None
 
             dst = Path(*src.parts[idx:])
             zipobj.write(src, arcname=dst)
