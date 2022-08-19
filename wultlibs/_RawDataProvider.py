@@ -205,7 +205,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         ProcHelpers.kill_processes(regex, log=True, name=f"stale '{self._helpername}' process",
                                    pman=self._pman)
 
-    def __init__(self, dev, helper_path, pman, timeout=None):
+    def __init__(self, dev, pman, helper_path, timeout=None):
         """
         Initialize a class instance. The arguments are as follows.
           * helper_path - path to the helper program which provides the datapoinds.

@@ -273,7 +273,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         else:
             wultrunner_path = None
 
-        self._prov = _WultRawDataProvider.WultRawDataProvider(dev, res.cpunum, pman,
+        self._prov = _WultRawDataProvider.WultRawDataProvider(dev, pman, res.cpunum,
                                                               wultrunner_path=wultrunner_path,
                                                               timeout=self._timeout,
                                                               ldist=self._ldist,

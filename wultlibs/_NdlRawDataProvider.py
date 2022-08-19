@@ -202,12 +202,12 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         _LOG.info("Starting NIC-to-system clock synchronization process%s", self._pman.hostmsg)
         self._etfqdisc.start_phc2sys(tai_offset=int(tai_offset))
 
-    def __init__(self, dev, ndlrunner_path, pman, timeout=None, ldist=None):
+    def __init__(self, dev, pman, ndlrunner_path, timeout=None, ldist=None):
         """
         Initialize a class instance. The arguments are as follows.
           * dev - the device object created with 'Devices.GetDevice()'.
-          * ndlrunner_path - path to the 'ndlrunner' helper.
           * pman - the process manager object defining host to operate on.
+          * ndlrunner_path - path to the 'ndlrunner' helper.
           * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
                       seconds.
           * ldist - a pair of numbers specifying the launch distance range.

@@ -162,7 +162,7 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                 self._sysctl.stop("irqbalance")
                 self._irqbalance_stopped = True
 
-    def __init__(self, dev, cpunum, pman, timeout=None, ldist=None, early_intr=None):
+    def __init__(self, dev, pman, cpunum, timeout=None, ldist=None, early_intr=None):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
 
         drvinfo = { "wult" : { "params" : f"cpunum={cpunum}" },
@@ -261,24 +261,24 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
         ldist_str = ",".join([str(val) for val in self._ldist])
         self._helper_opts = f"-c {self._cpunum} -l {ldist_str}"
 
-    def __init__(self, dev, cpunum, wultrunner_path, pman, timeout=None, ldist=None):
+    def __init__(self, dev, pman, cpunum, wultrunner_path, timeout=None, ldist=None):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
 
-        super().__init__(dev, wultrunner_path, pman, timeout=timeout)
+        super().__init__(dev, pman, wultrunner_path, timeout=timeout)
 
         self._cpunum = cpunum
         self._ldist = ldist
 
         self._wult_lines = None
 
-def WultRawDataProvider(dev, cpunum, pman, wultrunner_path=None, timeout=None, ldist=None,
+def WultRawDataProvider(dev, pman, cpunum, wultrunner_path=None, timeout=None, ldist=None,
                         early_intr=None):
     """
     Create and return a raw data provider class suitable for a delayed event device 'dev'. The
     arguments are as follows.
       * dev - the device object created with 'Devices.GetDevice()'.
-      * cpunum - the measured CPU number.
       * pman - the process manager object defining host to operate on.
+      * cpunum - the measured CPU number.
       * wultrunner_path - path to the 'wultrunner' program.
       * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
                   seconds.
@@ -288,9 +288,9 @@ def WultRawDataProvider(dev, cpunum, pman, wultrunner_path=None, timeout=None, l
     """
 
     if dev.drvname:
-        return _WultDrvRawDataProvider(dev, cpunum, pman, timeout=timeout, ldist=ldist,
+        return _WultDrvRawDataProvider(dev, pman, cpunum, timeout=timeout, ldist=ldist,
                                        early_intr=early_intr)
     if not wultrunner_path:
         raise Error("BUG: the 'wultrunner' program path was not specified")
 
-    return _WultBPFRawDataProvider(dev, cpunum, wultrunner_path, pman, timeout=timeout, ldist=ldist)
+    return _WultBPFRawDataProvider(dev, pman, cpunum, wultrunner_path, timeout=timeout, ldist=ldist)
