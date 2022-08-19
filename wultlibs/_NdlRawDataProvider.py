@@ -46,36 +46,36 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         """Start the 'ndlrunner' process on the measured system."""
 
         ldist_str = ",".join([str(val) for val in self._ldist])
-        cmd = f"{self._ndlrunner_path} -l {ldist_str} "
+        cmd = f"{self._helper_path} -l {ldist_str} "
         cmd += f"{self._netif.ifname}"
 
-        self._ndlrunner = self._pman.run_async(cmd)
+        self._proc = self._pman.run_async(cmd)
 
     def _stop_ndlrunner(self):
         """Make 'ndlrunner' process to terminate."""
 
         _LOG.debug("stopping 'ndlrunner'")
-        self._ndlrunner.stdin.write("q\n".encode("utf8"))
-        self._ndlrunner.stdin.flush()
+        self._proc.stdin.write("q\n".encode("utf8"))
+        self._proc.stdin.flush()
 
-        _, _, exitcode = self._ndlrunner.wait(timeout=5)
+        _, _, exitcode = self._proc.wait(timeout=5)
         if exitcode is None:
             _LOG.warning("the 'ndlrunner' program PID %d%s failed to exit, killing it",
-                         self._ndlrunner.pid, self._pman.hostmsg)
-            ProcHelpers.kill_pids(self._ndlrunner.pid, kill_children=True, must_die=False,
+                         self._proc.pid, self._pman.hostmsg)
+            ProcHelpers.kill_pids(self._proc.pid, kill_children=True, must_die=False,
                                   pman=self._pman)
 
-        self._ndlrunner = None
+        self._proc = None
 
     def _get_lines(self):
         """This generator reads the 'ndlrunner' helper output and yields it line by line."""
 
         while True:
-            stdout, stderr, exitcode = self._ndlrunner.wait(timeout=self._timeout, lines=[16, None],
-                                                            join=False)
+            stdout, stderr, exitcode = self._proc.wait(timeout=self._timeout, lines=[16, None],
+                                                       join=False)
             if exitcode is not None:
-                msg = self._ndlrunner.get_cmd_failure_msg(stdout, stderr, exitcode,
-                                                          timeout=self._timeout)
+                msg = self._proc.get_cmd_failure_msg(stdout, stderr, exitcode,
+                                                     timeout=self._timeout)
                 raise Error(f"{self._ndlrunner_error_prefix()} has exited unexpectedly\n{msg}")
             if stderr:
                 raise Error(f"{self._ndlrunner_error_prefix()} printed an error message:\n"
@@ -151,7 +151,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         super().prepare()
 
         # Kill stale 'ndlrunner' process, if any.
-        regex = f"^.*{self._ndlrunner_path} .*{self._netif.ifname}.*$"
+        regex = f"^.*{self._helper_path} .*{self._netif.ifname}.*$"
         ProcHelpers.kill_processes(regex, kill_children=True, log=True,
                                    name="stale 'ndlrunner' process", pman=self._pman)
 
@@ -194,7 +194,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         # 'phc2sys' process in background in order to keep the host and NIC clocks in sync.
 
         # Get the TAI offset first.
-        stdout, _ = self._pman.run_verify(f"{self._ndlrunner_path} --tai-offset")
+        stdout, _ = self._pman.run_verify(f"{self._helper_path} --tai-offset")
         tai_offset = self._get_line(prefix="TAI offset", line=stdout)
         if not Trivial.is_int(tai_offset):
             raise Error(f"unexpected 'ndlrunner --tai-offset' output:\n{stdout}")
@@ -218,18 +218,18 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         drvinfo = {dev.drvname : {"params" : f"ifname={dev.netif.ifname}"}}
         super().__init__(dev, pman, drvinfo, timeout=timeout)
 
-        self._ndlrunner_path = ndlrunner_path
+        self._helper_path = ndlrunner_path
         self._ldist = ldist
         self._netif = self.dev.netif
 
-        self._ndlrunner = None
+        self._proc = None
         self._ndl_lines = None
         self._etfqdisc = None
         self._nmcli = None
 
         # Validate the 'ndlrunner' helper path.
-        if not self._pman.is_exe(self._ndlrunner_path):
-            raise Error(f"bad 'ndlrunner' helper path '{self._ndlrunner_path}' - does not exist"
+        if not self._pman.is_exe(self._helper_path):
+            raise Error(f"bad 'ndlrunner' helper path '{self._helper_path}' - does not exist"
                         f"{self._pman.hostmsg} or not an executable file")
 
         self._etfqdisc = _ETFQdisc.ETFQdisc(self._netif, pman=self._pman)
@@ -237,10 +237,10 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     def close(self):
         """Stop the measurements."""
 
-        if getattr(self, "_ndlrunner", None):
+        if getattr(self, "_proc", None):
             with contextlib.suppress(Error):
                 self._stop_ndlrunner()
-            self._ndlrunner = None
+            self._proc = None
 
         if getattr(self, "_netif", None):
             with contextlib.suppress(Error):
