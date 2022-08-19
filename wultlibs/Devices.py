@@ -461,7 +461,7 @@ class _WultHRT(_HRTimerDeviceBase):
 class _WultHRTimer(_HRTimerDeviceBase):
     """The High Resolution Timers device controlled by the 'wultrunner' eBPF program."""
 
-    supported_devices = {"hrtimer" : "Linux High Resolution Timer (via eBPF)"}
+    supported_devices = {"hrtimer" : "Linux High Resolution Timer (via eBPF, experimental)"}
 
     def __init__(self, devid, pman, dmesg=None):
         """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
