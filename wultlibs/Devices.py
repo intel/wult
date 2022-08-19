@@ -349,7 +349,6 @@ class _WultTSCDeadlineTimer(_DeviceBase):
     """
 
     supported_devices = {"tdt" : "TSC deadline timer"}
-    alias = None
 
     def __init__(self, devid, pman, cpunum=0, dmesg=None):
         """
@@ -360,7 +359,7 @@ class _WultTSCDeadlineTimer(_DeviceBase):
         """
 
         errmsg = f"device '{devid}' is not supported for CPU {cpunum}{pman.hostmsg}."
-        if devid not in self.supported_devices and devid != self.alias:
+        if devid not in self.supported_devices:
             raise ErrorNotSupported(f"{errmsg}")
 
         path = Path(f"/sys/devices/system/clockevents/clockevent{cpunum}/current_device")
@@ -373,7 +372,6 @@ class _WultTSCDeadlineTimer(_DeviceBase):
         super().__init__(devid, pman, drvname="wult_tdt", dmesg=dmesg)
 
         self.info["devid"] = devid
-        self.info["alias"] = self.alias
         self.info["descr"] = self.supported_devices["tdt"]
         # TSC resolution is 1 cycle, but we assume it is 1 nanosecond.
         self.info["resolution"] = 1
@@ -386,7 +384,6 @@ class _WultHRTBase(_DeviceBase):
     """
 
     supported_devices = {}
-    alias = None
 
     def _get_resoluion(self):
         """Returns Linux High Resolution Timer resolution in nanoseconds."""
@@ -441,13 +438,12 @@ class _WultHRTBase(_DeviceBase):
     def __init__(self, devid, pman, drvname=None, helpername=None, dmesg=None):
         """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
 
-        if devid not in self.supported_devices and devid != self.alias:
+        if devid not in self.supported_devices:
             raise ErrorNotSupported(f"device '{devid}' is not supported{pman.hostmsg}.")
 
         super().__init__(devid, pman, drvname=drvname, helpername=helpername, dmesg=dmesg)
 
         self.info["devid"] = devid
-        self.info["alias"] = self.alias
         self.info["resolution"] = self._get_resoluion()
 
 class _WultHRT(_WultHRTBase):
@@ -486,13 +482,13 @@ def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
     """
 
     if toolname == "wult":
-        if devid in _WultTSCDeadlineTimer.supported_devices or devid == _WultTSCDeadlineTimer.alias:
+        if devid in _WultTSCDeadlineTimer.supported_devices:
             return _WultTSCDeadlineTimer(devid, pman, cpunum=cpunum, dmesg=dmesg)
 
-        if devid in _WultHRT.supported_devices or devid == _WultHRT.alias:
+        if devid in _WultHRT.supported_devices:
             return _WultHRT(devid, pman, dmesg=dmesg)
 
-        if devid in _WultHRTimer.supported_devices or devid == _WultHRTimer.alias:
+        if devid in _WultHRTimer.supported_devices:
             return _WultHRTimer(devid, pman, dmesg=dmesg)
 
     if toolname == "wult":

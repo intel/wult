@@ -376,7 +376,7 @@ def scan_command(args):
     msg = ""
     for info in Devices.scan_devices(args.toolname, pman):
         msg += f" * Device ID: {info['devid']}\n"
-        if info["alias"]:
+        if info.get("alias"):
             msg += f"   - Alias: {info['alias']}\n"
         msg += f"   - Resolution: {info['resolution']} ns\n"
         msg += f"   - Description: {info['descr']}\n"
