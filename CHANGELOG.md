@@ -6,6 +6,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [1.10.20] - ADD DATE HERE
 ### Fixed
 ### Added
+ - Always deploy eBPF helpers, making the new "hrtimer" method available by
+   default.
 ### Removed
 ### Changed
 
