@@ -3,7 +3,13 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.21] - ADD DATE HERE
+## [1.10.22] - ADD DATE HERE
+### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.10.21] - 2022-08-22
 ### Fixed
  - Fix the problem of progress line for 'tdt': it always printed 0 max. latency.
 ### Added
