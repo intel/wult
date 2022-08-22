@@ -16,29 +16,26 @@ import sys
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import ErrorNotFound
 
-def find_app_data(prjname, subpath, appname=None, descr=None):
+def find_project_data(prjname, subpath, descr=None):
     """
-    Search for application 'appname' data. The data are searched for in the 'subpath' sub-path of
-    the following directories (and in the following order):
-      * in the directory the of the running process (sys.argv[0]/<subpath>)
-      * in the directory specified by the f'{appname}_DATA_PATH' environment variable
-      * $HOME/.local/share/<prjname>/, if it exists
-      * /usr/local/share/<prjname>/, if it exists
-      * /usr/share/<prjname>/, if it exists
+    Search for project 'prgname' data. The data are searched for in the 'subpath' sub-path of
+    the following directories (and in the following order).
+      * in the directory the of the running process (sys.argv[0]/<subpath>).
+      * in the directory specified by the '<prjname>_DATA_PATH' environment variable.
+      * $HOME/.local/share/<prjname>/, if it exists.
+      * /usr/local/share/<prjname>/, if it exists.
+      * /usr/share/<prjname>/, if it exists.
 
     The 'descr' argument is a human-readable description of 'subpath', which will be used in the
     error message if error is raised.
     """
-
-    if not appname:
-        appname = prjname
 
     searched = []
     paths = []
 
     paths.append(Path(sys.argv[0]).parent)
 
-    path = os.environ.get(f"{appname}_DATA_PATH".upper())
+    path = os.environ.get("WULT_DATA_PATH".upper())
     if path:
         paths.append(Path(path))
 

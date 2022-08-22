@@ -88,14 +88,13 @@ _CATEGORIES = { "drivers"    : "kernel driver",
 class _ErrorKVer(Error):
     """An exception class indicating that SUT kernel version is not new enough."""
 
-def get_helpers_deploy_path(toolname, pman):
+def get_helpers_deploy_path(pman):
     """
     Return path to the helpers deployment. The arguments are as follows.
-      * toolname - name of the tool to get the helpers deployment path for.
       * pman - the process manager object defining the host the helpers are deployed to.
     """
 
-    helpers_path = os.environ.get(f"{toolname.upper()}_HELPERSPATH")
+    helpers_path = os.environ.get("WULT_HELPERSPATH")
     if not helpers_path:
         helpers_path = pman.get_homedir() / _HELPERS_LOCAL_DIR / "bin"
     return Path(helpers_path)
@@ -127,7 +126,8 @@ def find_pyhelper_path(pyhelper, deployable=None):
 
             try:
                 subpath = _HELPERS_SRC_SUBPATH / pyhelper / deployable
-                pyhelper_path = ToolHelpers.find_app_data("wult", subpath, "wult")
+                descr=f"the '{deployable}' python helper"
+                pyhelper_path = ToolHelpers.find_project_data("wult", subpath, descr=descr)
             except ErrorNotFound as err2:
                 errmsg = str(err1).capitalize() + "\n" + str(err2).capitalize()
                 raise Error(f"failed to find '{pyhelper}' on the local system.\n{errmsg}") from err2
@@ -163,9 +163,8 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
     else:
         raise Error("BUG: no helpers and no drivers")
 
-    envarname = f"{toolname.upper()}_DATA_PATH"
     searchdirs = [f"{Path(sys.argv[0]).parent}/%s",
-                  f"${envarname}/%s (if '{envarname}' environment variable is defined)",
+                  "$WULT_DATA_PATH/%s (if 'WULT_DATA_PATH' environment variable is defined)",
                   "$HOME/.local/share/wult/%s",
                   "/usr/local/share/wult/%s", "/usr/share/wult/%s"]
 
@@ -186,8 +185,8 @@ def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
                      These helpers will be compiled on the SUT and deployed to the SUT. The sources
                      of the helpers are searched for in the following paths (and in the following
                      order) on the local host: {helpersearch}. By default, helpers are deployed to
-                     the path defined by the {toolname.upper()}_HELPERSPATH environment
-                     variable. If the variable is not defined, helpers are deployed to
+                     the path defined by the 'WULT_HELPERSPATH' environment variable. If the
+                     variable is not defined, helpers are deployed to
                      '$HOME/{_HELPERS_LOCAL_DIR}/bin', where '$HOME' is the home directory of user
                      'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
@@ -551,8 +550,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                             f"Reason: drivers cannot be installed.\n"
                             f"Please use newer kernel{self._spman.hostmsg}")
 
-            srcpath = ToolHelpers.find_app_data("wult", _DRV_SRC_SUBPATH / self._toolname,
-                                                appname=self._toolname)
+            srcpath = ToolHelpers.find_project_data("wult", _DRV_SRC_SUBPATH / self._toolname,
+                                                    descr=f"the '{dev.drvname}' driver")
             dstpaths = []
             for deployable in _get_deployables(srcpath):
                 if deployable != dev.drvname:
@@ -567,7 +566,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
             dinfos["drivers"] = {"src" : [srcpath], "dst" : dstpaths, "optional" : False}
 
-        helpers_deploy_path = get_helpers_deploy_path(self._toolname, self._spman)
+        helpers_deploy_path = get_helpers_deploy_path(self._spman)
 
         # Add non-python helpers information.
         if dev.helpername:
@@ -584,8 +583,9 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 if helper != dev.helpername:
                     continue
 
-                srcpath = ToolHelpers.find_app_data("wult", _HELPERS_SRC_SUBPATH / helper,
-                                                    appname=self._toolname)
+                descr=f"the '{dev.helpername}' helper program"
+                srcpath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / helper,
+                                                        descr=descr)
                 dstpaths = []
                 for deployable in _get_deployables(srcpath):
                     dstpaths.append(helpers_deploy_path / deployable)
@@ -595,8 +595,9 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         # Add python helpers' deploy information.
         if self._cats["pyhelpers"]:
             for pyhelper in self._cats["pyhelpers"]:
-                datapath = ToolHelpers.find_app_data("wult", _HELPERS_SRC_SUBPATH / pyhelper,
-                                                     appname=self._toolname)
+                descr=f"the '{pyhelper}' python helper program"
+                datapath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / pyhelper,
+                                                         pyhelper)
                 srcpaths = []
                 dstpaths = []
 
@@ -783,8 +784,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         # We assume all helpers are in the same base directory.
         helper_path = _HELPERS_SRC_SUBPATH/f"{all_helpers[0]}"
-        helpersrc = ToolHelpers.find_app_data("wult", helper_path,
-                                              descr=f"{self._toolname} helper sources")
+        helpersrc = ToolHelpers.find_project_data("wult", helper_path,
+                                                  descr=f"{self._toolname} helper sources")
         helpersrc = helpersrc.parent
 
         if not helpersrc.is_dir():
@@ -803,7 +804,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if self._cats["bpfhelpers"]:
             self._prepare_bpfhelpers(helpersrc)
 
-        deploy_path = get_helpers_deploy_path(self._toolname, self._spman)
+        deploy_path = get_helpers_deploy_path(self._spman)
 
         # Make sure the the destination deployment directory exists.
         self._spman.mkdir(deploy_path, parents=True, exist_ok=True)
@@ -836,8 +837,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         """Deploy drivers to the SUT."""
 
         for drvname in self._cats["drivers"]:
-            drvsrc = ToolHelpers.find_app_data("wult", _DRV_SRC_SUBPATH / drvname,
-                                               descr=f"{drvname} drivers sources")
+            drvsrc = ToolHelpers.find_project_data("wult", _DRV_SRC_SUBPATH / drvname,
+                                                   descr=f"{drvname} drivers sources")
             if not drvsrc.is_dir():
                 raise Error(f"path '{drvsrc}' does not exist or it is not a directory")
 
