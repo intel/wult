@@ -70,8 +70,10 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                 # because of the measurement overhead. Let's use the smaller value for calculating
                 # the max. latency that we print, assuming it was measured first and it is more
                 # accurate and trustworthy.
-                intr_latency = dp.get("IntrLatency", 0)
-                latency = min(dp["WakeLatency"], intr_latency)
+                if "IntrLatency" in dp:
+                    latency = min(dp["WakeLatency"], dp["IntrLatency"])
+                else:
+                    latency = dp["WakeLatency"]
                 max_latency = max(latency, max_latency)
                 self._progress.update(collected_cnt, max_latency)
                 last_rawdp_time = time.time()
