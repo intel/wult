@@ -5,6 +5,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.10.21] - ADD DATE HERE
 ### Fixed
+ - Fix the problem of progress line for 'tdt': it always printed 0 max. latency.
 ### Added
 ### Removed
 ### Changed
