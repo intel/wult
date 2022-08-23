@@ -16,6 +16,6 @@ def deploy_command(args):
     """Implements the 'deploy' command."""
 
     with ToolsCommon.get_pman(args) as pman, \
-         Deploy.Deploy(args.toolname, pman=pman, ksrc=args.ksrc, lbuild=args.lbuild,
-                       debug=args.debug) as depl:
+         Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, ksrc=args.ksrc,
+                       lbuild=args.lbuild, debug=args.debug) as depl:
         depl.deploy()

@@ -28,6 +28,23 @@ from wulttools import _WultCommon
 _VERSION = "1.10.21"
 _OWN_NAME = "wult"
 
+# The deployment information dictionary. See 'Deploy.__init__()' for details.
+_WULT_DEPLOY_INFO = {
+    "installables" : {
+        "wult" : {
+            "category" : "drivers",
+            "minkver"  : "5.6",
+        },
+        "stc-agent" : {
+            "category" : "pyhelpers",
+        },
+        "wultrunner" : {
+            "category" : "bpfhelpers",
+            "minkver"  : "5.15",
+        },
+    },
+}
+
 _LOG = logging.getLogger()
 Logging.setup_logger(prefix=_OWN_NAME)
 
@@ -45,7 +62,8 @@ def _build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    Deploy.add_deploy_cmdline_args(_OWN_NAME, subparsers, _deploy_command, argcomplete=argcomplete)
+    Deploy.add_deploy_cmdline_args(_OWN_NAME, _WULT_DEPLOY_INFO, subparsers, _deploy_command,
+                                   argcomplete=argcomplete)
 
     #
     # Create parsers for the "scan" command.
@@ -266,6 +284,7 @@ def _parse_arguments():
     args = parser.parse_args()
     args.toolname = _OWN_NAME
     args.toolver = _VERSION
+    args.deploy_info = _WULT_DEPLOY_INFO
 
     return args
 

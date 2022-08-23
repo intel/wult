@@ -67,7 +67,7 @@ def start_command(args):
             raise ErrorNotFound(msg) from err
         stack.enter_context(dev)
 
-        with Deploy.Deploy(args.toolname, pman=pman, debug=args.debug) as depl:
+        with Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, debug=args.debug) as depl:
             if depl.is_deploy_needed(dev):
                 msg = f"'{args.toolname}' helpers and/or drivers are not up-to-date" \
                       f"{pman.hostmsg}, please run: {args.toolname} deploy"

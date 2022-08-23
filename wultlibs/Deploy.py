@@ -7,10 +7,10 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module provides API for deploying the 'wult' and 'ndl' tools.
+This module provides API for deploying the tools coming with the 'wult' project.
 
 Terminology.
-  * category - type of an installables. Currently there are 4 categories: drivers, simple helpers
+  * category - type of an installable. Currently there are 4 categories: drivers, simple helpers
                (shelpers), python helpers (pyhelpers), and eBPF helpers (bpfhelpers).
   * installable - a sub-project to install on the SUT.
   * deployable - each installable provides one or multiple deployables. For example, wult tool has
@@ -24,6 +24,8 @@ Installable vs deployable.
   * An installable corresponds to a directory with source code. The source code may need to be
     compiled. The compilation results in one or several deployables.
   * Deployables are ultimately copied to the SUT and executed on the SUT.
+
+Note, "wult" is both name of the project and name of the tool in the project.
 """
 
 import os
@@ -44,42 +46,7 @@ _HELPERS_SRC_SUBPATH = Path("helpers")
 
 _LOG = logging.getLogger()
 
-# Information about tools dependencies. The dictionary structure is as follows.
-#
-# Tool name.
-#   "installables" - describes all the installables for the tool.
-#     Installable name.
-#       "category" - category name of the installable (driver, simple  helper, etc).
-#       "minkver" - minimum SUT kernel version required for the installable.
-_TOOLS_INFO = {
-    "wult": {
-        "installables" : {
-            "wult" : {
-                "category" : "drivers",
-                "minkver"  : "5.6",
-            },
-            "stc-agent" : {
-                "category" : "pyhelpers",
-            },
-            "wultrunner" : {
-                "category" : "bpfhelpers",
-                "minkver"  : "5.15",
-            },
-        },
-    },
-    "ndl": {
-        "installables" : {
-            "ndl" : {
-                "category" : "drivers",
-                "minkver"  : "5.2",
-            },
-            "ndlrunner" : {
-                "category" : "shelpers",
-            },
-        },
-    },
-}
-
+# The supported installable categories.
 _CATEGORIES = { "drivers"    : "kernel driver",
                 "shelpers"   : "simple helper program",
                 "pyhelpers"  : "python helper program",
@@ -136,20 +103,18 @@ def find_pyhelper_path(pyhelper, deployable=None):
 
     return pyhelper_path
 
-def add_deploy_cmdline_args(toolname, subparsers, func, argcomplete=None):
+def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete=None):
     """
     Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
       * toolname - name of the tool to add the 'deploy' command for.
+      * deploy_info - a dictionary describing the tool to deploy, same as in 'Deploy.__init__()'.
       * subparsers - the 'argparse' subparsers to add the 'deploy' command to.
       * func - the 'deploy' command handling function.
       * argcomplete - optional 'argcomplete' command-line arguments completer object.
     """
 
-    if toolname not in _TOOLS_INFO:
-        raise Error(f"BUG: unsupported tool '{toolname}'")
-
     cats = { cat : [] for cat in _CATEGORIES }
-    for name, info in _TOOLS_INFO[toolname]["installables"].items():
+    for name, info in deploy_info["installables"].items():
         cats[info["category"]].append(name)
 
     what = ""
@@ -470,11 +435,10 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 del self._insts[installable]
                 del self._cats[cat][installable]
 
-        # In case of wult either drivers or eBPF helpers are required.
-        if self._toolname == "wult":
-            if not self._cats["drivers"] and not self._cats["bpfhelpers"]:
-                # We have already printed the details, so we can have a short error message here.
-                raise Error("please, use newer kernel")
+        # Either drivers or eBPF helpers are required.
+        if not self._cats["drivers"] and not self._cats["bpfhelpers"]:
+            # We have already printed the details, so we can have a short error message here.
+            raise Error("please, use newer kernel")
 
     def _check_minkver(self, installable):
         """
@@ -572,7 +536,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if dev.helpername:
             if dev.helpername not in self._insts:
                 # This must be because SUT kernel version is not new enough.
-                cat = _TOOLS_INFO[self._toolname]["installables"][dev.helpername]["category"]
+                cat = self._deploy_info["installables"][dev.helpername]["category"]
                 cat_descr = _CATEGORIES[cat]
                 raise Error(f"the '{dev.info['devid']}' device can't be used{self._spman.hostmsg}\n"
                             f"Reason: the '{dev.helpername}' {cat_descr} cannot be installed.\n"
@@ -603,12 +567,12 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
                 for deployable in _get_deployables(datapath, self._cpman):
                     if datapath.joinpath(deployable).exists():
-                        # This case is relevant for running wult from sources - python helpers are
-                        # in the 'helpers/pyhelper' directory.
+                        # This case is relevant for running the tool from sources - python helpers
+                        # are in the 'helpers/pyhelper' directory.
                         srcpath = datapath
                     else:
-                        # When wult is installed with 'pip', the python helpers go to the "bindir",
-                        # and they are not installed to the data directory.
+                        # When the tool is installed with 'pip', the python helpers go to the
+                        # "bindir", and they are not installed to the data directory.
                         srcpath = self._cpman.which(deployable).parent
 
                     srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
@@ -942,11 +906,12 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         finally:
             self._remove_tmpdirs()
 
-    def __init__(self, toolname, pman=None, ksrc=None, lbuild=False, rebuild_bpf=False,
+    def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False, rebuild_bpf=False,
                  tmpdir_path=None, keep_tmpdir=False, debug=False):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool to create the deployment object for.
+          * deploy_info - a dictionary describing the tool to deploy.
           * pman - the process manager object that defines the SUT to deploy to (local host by
                    default).
           * ksrc - path to the kernel sources to compile drivers against.
@@ -960,9 +925,26 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                           not remove it.
           * debug - if 'True', be more verbose and do not remove the temporary directories in case
                     of a failure.
+
+        The 'deploy_info' dictionary describes the tool to deploy and its dependencies. I should
+        have the following structure.
+
+        {
+            "installables" : {
+                Installable name 1 : {
+                    "category" : category name of the installable ("driver", "shelper", etc).
+                    "minkver"  " minimum SUT kernel version required for the installable.
+                },
+                Installable name 2 : {},
+                ... etc for every installable ...
+            }
+        }
+
+        Please, refer to module doctring for more information.
         """
 
         self._toolname = toolname
+        self._deploy_info = deploy_info
         self._spman = pman
         self._ksrc = ksrc
         self._lbuild = lbuild
@@ -990,10 +972,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         # Lists of installables in every category.
         self._cats = { cat : {} for cat in _CATEGORIES }
 
-        if self._toolname not in _TOOLS_INFO:
-            raise Error(f"BUG: unsupported tool '{toolname}'")
-
-        for name, info in _TOOLS_INFO[self._toolname]["installables"].items():
+        for name, info in self._deploy_info["installables"].items():
             self._insts[name] = info.copy()
             self._cats[info["category"]] = { name : info.copy()}
 
