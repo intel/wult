@@ -22,9 +22,9 @@ from wultlibs.rawresultlibs import WORawResult
 from wultlibs import Deploy, StatsCollect, ToolsCommon, Devices, WultRunner
 from wulttools import _WultCommon
 
-LOG = logging.getLogger()
+_LOG = logging.getLogger()
 
-def check_settings(pman, dev, csinfo, cpunum, devid):
+def _check_settings(pman, dev, csinfo, cpunum, devid):
     """
     Some settings of the SUT may lead to results that are potentially confusing for the user. This
     function looks for such settings and if found, prints a notice message.
@@ -36,7 +36,7 @@ def check_settings(pman, dev, csinfo, cpunum, devid):
     """
 
     if dev.info.get("aspm_enabled"):
-        LOG.notice("PCI ASPM is enabled for the delayed event device '%s', and this "
+        _LOG.notice("PCI ASPM is enabled for the delayed event device '%s', and this "
                     "typically increases the measured latency.", devid)
 
     enabled_cstates = []
@@ -52,34 +52,45 @@ def check_settings(pman, dev, csinfo, cpunum, devid):
         if devid == "tdt" and "C6" in enabled_cstates and \
             powerctl.is_cpu_feature_supported("cstate_prewake", cpunum) and \
             powerctl.is_cpu_feature_enabled("cstate_prewake", cpunum):
-            LOG.notice("C-state prewake is enabled, and this usually hides the real "
-                       "latency when using '%s' as delayed event device.", devid)
+            _LOG.notice("C-state prewake is enabled, and this usually hides the real "
+                        "latency when using '%s' as delayed event device.", devid)
 
         # Check for the following 2 conditions to be true at the same time.
         # * C1 is enabled.
         # * C1E auto-promotion is enabled.
         if enabled_cstates in [["C1"], ["C1_ACPI"]]:
             if powerctl.is_cpu_feature_enabled("c1e_autopromote", cpunum):
-                LOG.notice("C1E autopromote is enabled, all %s requests are converted to C1E.",
-                           enabled_cstates[0])
+                _LOG.notice("C1E autopromote is enabled, all %s requests are converted to C1E.",
+                            enabled_cstates[0])
 
-def list_stats():
+def _list_stats():
     """Print information about statistics."""
 
     if not StatsCollect.STATS_INFO:
         raise Error("statistics collection is not supported on your system")
 
     for stname, stinfo in StatsCollect.STATS_INFO.items():
-        LOG.info("* %s", stname)
+        _LOG.info("* %s", stname)
         if stinfo.get("interval"):
-            LOG.info("  - Default interval: %.1fs", stinfo["interval"])
-        LOG.info("  - %s", stinfo["description"])
+            _LOG.info("  - Default interval: %.1fs", stinfo["interval"])
+        _LOG.info("  - %s", stinfo["description"])
+
+def _generate_report(args):
+    """Implements the 'report' command for start."""
+
+    from wultlibs.htmlreport import WultReport # pylint: disable=import-outside-toplevel
+
+    rsts = ToolsCommon.open_raw_results([args.outdir], args.toolname)
+    rep = WultReport.WultReport(rsts, args.outdir, title_descr=args.reportid)
+    rep.relocatable = False
+    rep.set_hover_metrics(_WultCommon.HOVER_METRIC_REGEXS)
+    rep.generate()
 
 def start_command(args):
     """Implements the 'start' command."""
 
     if args.list_stats:
-        list_stats()
+        _list_stats()
         return
 
     stconf = None
@@ -128,7 +139,7 @@ def start_command(args):
                       f"please run: {args.toolname} deploy"
                 if pman.is_remote:
                     msg += f" -H {pman.hostname}"
-                LOG.warning(msg)
+                _LOG.warning(msg)
 
         if getattr(dev, "netif", None):
             ToolsCommon.start_command_check_network(args, pman, dev.netif)
@@ -136,7 +147,7 @@ def start_command(args):
         rcsobj = CStates.ReqCStates(pman=pman)
         csinfo = rcsobj.get_cpu_cstates_info(res.cpunum)
 
-        check_settings(pman, dev, csinfo, args.cpunum, args.devid)
+        _check_settings(pman, dev, csinfo, args.cpunum, args.devid)
 
         runner = WultRunner.WultRunner(pman, dev, res, ldist=args.ldist, early_intr=args.early_intr,
                                        tsc_cal_time=args.tsc_cal_time, rcsobj=rcsobj, stconf=stconf)
@@ -147,15 +158,4 @@ def start_command(args):
         runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit, keep_rawdp=args.keep_rawdp)
 
     if args.report:
-        start_report(args)
-
-def start_report(args):
-    """Implements the 'report' command for start."""
-
-    from wultlibs.htmlreport import WultReport # pylint: disable=import-outside-toplevel
-
-    rsts = ToolsCommon.open_raw_results([args.outdir], args.toolname)
-    rep = WultReport.WultReport(rsts, args.outdir, title_descr=args.reportid)
-    rep.relocatable = False
-    rep.set_hover_metrics(_WultCommon.HOVER_METRIC_REGEXS)
-    rep.generate()
+        _generate_report(args)

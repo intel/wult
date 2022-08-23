@@ -24,24 +24,24 @@ from wultlibs import Deploy, ToolsCommon
 from wultlibs.helperlibs import Human
 from wultlibs.htmlreport import NdlReportParams
 
-VERSION = "1.3.14"
-OWN_NAME = "ndl"
+_VERSION = "1.3.14"
+_OWN_NAME = "ndl"
 
-LOG = logging.getLogger()
-Logging.setup_logger(prefix=OWN_NAME)
+_LOG = logging.getLogger()
+Logging.setup_logger(prefix=_OWN_NAME)
 
-def get_axes_default(name):
+def _get_axes_default(name):
     """Returns the default CSV column names for X- or Y-axes, as well as histograms."""
 
     names = getattr(NdlReportParams, f"DEFAULT_{name.upper()}")
     # The result is used for argparse, which does not accept '%' symbols.
     return names.replace("%", "%%")
 
-def build_arguments_parser():
+def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
     text = "ndl - a tool for measuring memory access latency observed by a network card."
-    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=OWN_NAME, ver=VERSION)
+    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=_OWN_NAME, ver=_VERSION)
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
@@ -51,7 +51,7 @@ def build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    Deploy.add_deploy_cmdline_args(OWN_NAME, subparsers, deploy_command, argcomplete=argcomplete)
+    Deploy.add_deploy_cmdline_args(_OWN_NAME, subparsers, _deploy_command, argcomplete=argcomplete)
 
     #
     # Create parsers for the "scan" command.
@@ -69,7 +69,7 @@ def build_arguments_parser():
     text = "Start the measurements."
     descr = """Start measuring and recording the latency data."""
     subpars = subparsers.add_parser("start", help=text, description=descr)
-    subpars.set_defaults(func=start_command)
+    subpars.set_defaults(func=_start_command)
 
     ArgParse.add_ssh_options(subpars)
 
@@ -124,24 +124,24 @@ def build_arguments_parser():
     text = "Create an HTML report."
     descr = """Create an HTML report for one or multiple test results."""
     subpars = subparsers.add_parser("report", help=text, description=descr)
-    subpars.set_defaults(func=report_command)
+    subpars.set_defaults(func=_report_command)
 
     subpars.add_argument("-o", "--outdir", type=Path,
-                         help=ToolsCommon.get_report_outdir_descr(OWN_NAME))
+                         help=ToolsCommon.get_report_outdir_descr(_OWN_NAME))
     subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.EXCL_DESCR)
     subpars.add_argument("--include", action=ArgParse.OrderedArg, help=ToolsCommon.INCL_DESCR)
     subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
                          help=ToolsCommon.EVEN_UP_DP_DESCR)
-    subpars.add_argument("-x", "--xaxes", help=ToolsCommon.XAXES_DESCR % get_axes_default("xaxes"))
-    subpars.add_argument("-y", "--yaxes", help=ToolsCommon.YAXES_DESCR % get_axes_default("yaxes"))
-    subpars.add_argument("--hist", help=ToolsCommon.HIST_DESCR % get_axes_default("hist"))
-    subpars.add_argument("--chist", help=ToolsCommon.CHIST_DESCR % get_axes_default("chist"))
+    subpars.add_argument("-x", "--xaxes", help=ToolsCommon.XAXES_DESCR % _get_axes_default("xaxes"))
+    subpars.add_argument("-y", "--yaxes", help=ToolsCommon.YAXES_DESCR % _get_axes_default("yaxes"))
+    subpars.add_argument("--hist", help=ToolsCommon.HIST_DESCR % _get_axes_default("hist"))
+    subpars.add_argument("--chist", help=ToolsCommon.CHIST_DESCR % _get_axes_default("chist"))
     subpars.add_argument("--reportids", help=ToolsCommon.REPORTIDS_DESCR)
     subpars.add_argument("--title-descr", help=ToolsCommon.TITLE_DESCR)
     subpars.add_argument("--relocatable", action="store_true", help=ToolsCommon.RELOCATABLE_DESCR)
     subpars.add_argument("--list-metrics", action="store_true", help=ToolsCommon.LIST_METRICS_DESCR)
 
-    text = f"""One or multiple {OWN_NAME} test result paths."""
+    text = f"""One or multiple {_OWN_NAME} test result paths."""
     subpars.add_argument("respaths", nargs="+", type=Path, help=text)
 
     #
@@ -163,14 +163,14 @@ def build_arguments_parser():
     subpars.add_argument("--list-metrics", action="store_true", help=ToolsCommon.LIST_METRICS_DESCR)
     subpars.add_argument("--reportid", help=ToolsCommon.FILTER_REPORTID_DESCR)
 
-    text = f"The {OWN_NAME} test result path to filter."
+    text = f"The {_OWN_NAME} test result path to filter."
     subpars.add_argument("respath", type=Path, help=text)
 
     #
     # Create parsers for the "calc" command.
     #
-    text = f"Calculate summary functions for a {OWN_NAME} test result."
-    descr = f"""Calculates various summary functions for a {OWN_NAME} test result (e.g., the median
+    text = f"Calculate summary functions for a {_OWN_NAME} test result."
+    descr = f"""Calculates various summary functions for a {_OWN_NAME} test result (e.g., the median
                 value for one of the CSV columns)."""
     subpars = subparsers.add_parser("calc", help=text, description=descr)
     subpars.set_defaults(func=ToolsCommon.calc_command)
@@ -184,7 +184,7 @@ def build_arguments_parser():
     subpars.add_argument("-f", "--funcs", help=ToolsCommon.FUNCS_DESCR)
     subpars.add_argument("--list-funcs", action="store_true", help=ToolsCommon.LIST_FUNCS_DESCR)
 
-    text = f"""The {OWN_NAME} test result path to calculate summary functions for."""
+    text = f"""The {_OWN_NAME} test result path to calculate summary functions for."""
     subpars.add_argument("respath", type=Path, help=text)
 
     if argcomplete:
@@ -192,32 +192,32 @@ def build_arguments_parser():
 
     return parser
 
-def parse_arguments():
+def _parse_arguments():
     """Parse input arguments."""
 
-    parser = build_arguments_parser()
+    parser = _build_arguments_parser()
 
     args = parser.parse_args()
-    args.toolname = OWN_NAME
-    args.toolver = VERSION
+    args.toolname = _OWN_NAME
+    args.toolver = _VERSION
 
     return args
 
-def deploy_command(args):
+def _deploy_command(args):
     """Implements the 'ndl deploy' command."""
 
     from wulttools import _NdlDeploy # pylint: disable=import-outside-toplevel
 
     _NdlDeploy.deploy_command(args)
 
-def start_command(args):
+def _start_command(args):
     """Implements the 'ndl start' command."""
 
     from wulttools import _NdlStart # pylint: disable=import-outside-toplevel
 
     _NdlStart.start_command(args)
 
-def report_command(args):
+def _report_command(args):
     """Implements the 'ndl report' command."""
 
     from wulttools import _NdlReport # pylint: disable=import-outside-toplevel
@@ -228,18 +228,18 @@ def main():
     """Script entry point."""
 
     try:
-        args = parse_arguments()
+        args = _parse_arguments()
 
         if not getattr(args, "func", None):
-            LOG.error("please, run '%s -h' for help.", OWN_NAME)
+            _LOG.error("please, run '%s -h' for help.", _OWN_NAME)
             return -1
 
         args.func(args)
     except KeyboardInterrupt:
-        LOG.info("Interrupted, exiting")
+        _LOG.info("Interrupted, exiting")
         return -1
     except Error as err:
-        LOG.error_out(err)
+        _LOG.error_out(err)
 
     return 0
 

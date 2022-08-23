@@ -20,7 +20,17 @@ from wultlibs import Deploy, ToolsCommon, NdlRunner, Devices
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
 
-LOG = logging.getLogger()
+_LOG = logging.getLogger()
+
+def _generate_report(args):
+    """Implements the 'report' command for start."""
+
+    from wultlibs.htmlreport import NdlReport # pylint: disable=import-outside-toplevel
+
+    rsts = ToolsCommon.open_raw_results([args.outdir], args.toolname)
+    rep = NdlReport.NdlReport(rsts, args.outdir, title_descr=args.reportid)
+    rep.relocatable = False
+    rep.generate()
 
 def start_command(args):
     """Implements the 'start' command."""
@@ -63,14 +73,14 @@ def start_command(args):
                       f"{pman.hostmsg}, please run: {args.toolname} deploy"
                 if pman.is_remote:
                     msg += f" -H {pman.hostname}"
-                LOG.warning(msg)
+                _LOG.warning(msg)
 
         ToolsCommon.start_command_check_network(args, pman, dev.netif)
 
         info = dev.netif.get_pci_info()
         if info.get("aspm_enabled"):
-            LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "
-                       "the measured latency.", args.devid)
+            _LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "
+                        "the measured latency.", args.devid)
 
         runner = NdlRunner.NdlRunner(pman, dev, res, ldist=args.ldist)
         stack.enter_context(runner)
@@ -79,14 +89,4 @@ def start_command(args):
         runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit)
 
     if args.report:
-        start_report(args)
-
-def start_report(args):
-    """Implements the 'report' command for start."""
-
-    from wultlibs.htmlreport import NdlReport # pylint: disable=import-outside-toplevel
-
-    rsts = ToolsCommon.open_raw_results([args.outdir], args.toolname)
-    rep = NdlReport.NdlReport(rsts, args.outdir, title_descr=args.reportid)
-    rep.relocatable = False
-    rep.generate()
+        _generate_report(args)
