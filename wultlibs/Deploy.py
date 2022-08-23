@@ -191,6 +191,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
     ArgParse.add_ssh_options(parser)
 
     parser.set_defaults(func=func)
+    return parser
 
 def _get_deployables(srcpath, pman=None):
     """
