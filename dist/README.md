@@ -8,6 +8,11 @@ SPDX-License-Identifier: BSD-3-Clause
 Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 -->
 
-This directory contains examples of debian/rpm packaging. They are not currently used for any
-distribution, they worked once for some distro, but may or may not work at the moment. They are not
-actively maintain. Feel free to contribute working debian/rpm packaging files for specific distos.
+This directory contains wult packaging data.
+
+1. rpm - wult RPM packaging example. This is not used "as-is" for any specific distribution, this is
+   more of an example. Distributions like Fedora and CentOS have own spec file in the build system.
+   But we try to keep them in sync with Fedora's spec file.
+
+2. Debian - we did not verify it for long time, and it is probably very out of date. Contributions
+   are very welcome.
