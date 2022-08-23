@@ -357,7 +357,7 @@ def _create_standalone_pyhelper(pyhelper_path, outdir):
 
 class Deploy(ClassHelpers.SimpleCloseContext):
     """
-    This module provides API for deploying the 'wult' and 'ndl' tools. Provides the following
+    This module provides API for deploying the tools of this project. Provides the following
     methods.
 
      * 'deploy()' - deploy everything (drivers, helper programs) to the SUT.
