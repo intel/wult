@@ -282,8 +282,8 @@ def WultRawDataProvider(dev, pman, cpunum, wultrunner_path=None, timeout=None, l
       * wultrunner_path - path to the 'wultrunner' program.
       * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
                   seconds.
-      * ldist - a pair of numbers specifying the launch distance range. The default value is
-                specific to the delayed event device.
+      * ldist - a pair of numbers specifying the launch distance range in nanosecods. The default
+                value is specific to the delayed event device.
       * early_intr - enable interrupts before entering the C-state.
     """
 

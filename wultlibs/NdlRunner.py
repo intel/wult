@@ -133,8 +133,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         self._progress = _ProgressLine.ProgressLine(period=1)
 
         ndlrunner_path = Deploy.get_helpers_deploy_path(pman) / dev.helpername
-        self._prov = _NdlRawDataProvider.NdlRawDataProvider(dev, pman, ndlrunner_path,
-                                                            ldist=self._ldist)
+        self._prov = _NdlRawDataProvider.NdlRawDataProvider(dev, pman, self._ldist, ndlrunner_path)
 
         drvname = self._prov.drvobjs[0].name
         self._rtd_path = self._prov.debugfs_mntpoint.joinpath(f"{drvname}/rtd")
