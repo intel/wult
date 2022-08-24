@@ -13,11 +13,11 @@ This module includes the "start" 'wult' command implementation.
 import logging
 import contextlib
 from pathlib import Path
-
-from pepclibs.helperlibs import Human, Trivial
+from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs.msr import PowerCtl
 from pepclibs import CStates, CPUInfo
+from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs import Deploy, StatsCollect, ToolsCommon, Devices, WultRunner
 from wulttools import _WultCommon
