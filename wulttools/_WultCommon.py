@@ -17,11 +17,13 @@ from wultlibs.htmlreport import WultReportParams
 HOVER_METRIC_REGEXS = [".*Latency", "IntrOff", ".*Delay", "LDist", "ReqCState", r"[PC]C.+%",
                        "SMI.*", "NMI.*"]
 
-def get_axes(optname, report_size=None):
+def get_axes(optname, report_size=None, escape_percent=False):
     """
     Returns the CSV column name regex for a given plot option name and report size setting.
       * optname - plot option name ('xaxes', 'yaxes', 'hist' or 'chist')
       * report_size - report size setting ('small', 'medium' or 'large'), defaults to 'small'.
+      * escape_percent - escapes the "%" symbol in the names of returned axes. Used for argparse,
+                         which does not accept "%" symbols.
     """
 
     if not report_size:
@@ -29,7 +31,8 @@ def get_axes(optname, report_size=None):
 
     optnames = getattr(WultReportParams, f"{report_size.upper()}_{optname.upper()}")
 
-    # The result is used for argparse, which does not accept '%' symbols.
     if optnames:
-        return optnames.replace("%", "%%")
+        if escape_percent:
+            return optnames.replace("%", "%%")
+        return optnames
     return None

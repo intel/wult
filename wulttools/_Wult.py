@@ -212,12 +212,17 @@ def _build_arguments_parser():
     subpars.add_argument("--include", action=ArgParse.OrderedArg, help=ToolsCommon.INCL_DESCR)
     subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
                          help=ToolsCommon.EVEN_UP_DP_DESCR)
-    subpars.add_argument("-x", "--xaxes",
-                         help=ToolsCommon.XAXES_DESCR % _WultCommon.get_axes("xaxes"))
-    subpars.add_argument("-y", "--yaxes",
-                         help=ToolsCommon.YAXES_DESCR % _WultCommon.get_axes("yaxes"))
-    subpars.add_argument("--hist", help=ToolsCommon.HIST_DESCR % _WultCommon.get_axes("hist"))
-    subpars.add_argument("--chist", help=ToolsCommon.CHIST_DESCR % _WultCommon.get_axes("chist"))
+
+    # Format axes options' help texts with default axes.
+    xaxes_help = ToolsCommon.XAXES_DESCR % _WultCommon.get_axes("xaxes", escape_percent=True)
+    yaxes_help = ToolsCommon.YAXES_DESCR % _WultCommon.get_axes("yaxes", escape_percent=True)
+    hist_help = ToolsCommon.HIST_DESCR % _WultCommon.get_axes("hist", escape_percent=True)
+    chist_help = ToolsCommon.CHIST_DESCR % _WultCommon.get_axes("chist", escape_percent=True)
+    subpars.add_argument("-x", "--xaxes", help=xaxes_help)
+    subpars.add_argument("-y", "--yaxes", help=yaxes_help)
+    subpars.add_argument("--hist", help=hist_help)
+    subpars.add_argument("--chist", help=chist_help)
+
     subpars.add_argument("--reportids", help=ToolsCommon.REPORTIDS_DESCR)
     subpars.add_argument("--title-descr", help=ToolsCommon.TITLE_DESCR)
     subpars.add_argument("--relocatable", action="store_true", help=ToolsCommon.RELOCATABLE_DESCR)
