@@ -721,10 +721,10 @@ class ReportBase:
                     for. Default is the first metric represented by a column in the datapoints CSV
                     file. An empty string can be used to disable cumulative histograms.
           * exclude_xaxes - by default all diagrams of X- vs Y-axes combinations will be created.
-                            The 'exclude_xaxes' is a list regular expressions matching metrics.
-                            There will be no scatter plot for each combination of 'exclude_xaxes'
-                            and 'exclude_yaxes'. In other words, this argument along with
-                            'exclude_yaxes' allows for excluding some diagrams from the 'xaxes' and
+                            The 'exclude_xaxes' is a list regular expressions matching metrics. A
+                            plot will be excluded if its X-axis is in 'exclude_xaxes' and its Y-axis
+                            is in 'exclude_yaxes'. This means that this argument, along with
+                            'exclude_yaxes', allows for excluding some diagrams from the 'xaxes' and
                             'yaxes' combinations.
           * exclude_yaxes - same as 'exclude_xaxes', but for Y-axes.
           * smry_funcs - a dictionary of 'regex':'smry_funcs' pairs where 'smry_funcs' is a list of
