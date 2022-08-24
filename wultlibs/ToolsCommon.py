@@ -257,9 +257,13 @@ def _validate_range(rng, what, single_ok):
         if vals[idx] < 0:
             raise Error(f"bad {what} value '{split_rng[idx]}', should be greater than zero")
 
-    if len(vals) == 2 and vals[1] - vals[0] < 0:
-        raise Error(f"bad {what} range '{rng}', first number cannot be greater than the second "
-                    f"number")
+    if len(vals) == 2:
+        if vals[1] - vals[0] < 0:
+            raise Error(f"bad {what} range '{rng}', first number cannot be greater than the second "
+                        f"number")
+        if not single_ok and vals[0] == vals[1]:
+            raise Error(f"bad {what} range '{rng}', first number cannot be the same as the second "
+                        f"number")
     if len(vals) == 1:
         vals.append(vals[0])
 
