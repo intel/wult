@@ -135,18 +135,18 @@ def _build_arguments_parser():
     subpars.add_argument("--list-stats", action="store_true", help=text)
 
     text = f"""This tool works by scheduling a delayed event, then sleeping and waiting for it to
-                happen. This step is referred to as a "measurement cycle" and it is usually repeated
-                many times. The launch distance defines how far in the future the delayed event is
-                scheduled. By default this tool randomly selects launch distance within a range. The
-                default range is [0,4ms], but you can override it with this option. Specify a
-                comma-separated range (e.g '--ldist 10,5000'), or a single value if you want launch
-                distance to be precisely that value all the time.  The default unit is microseconds,
-                but you can use the following specifiers as well: {Human.DURATION_NS_SPECS_DESCR}.
-                For example, '--ldist 10us,5ms' would be a [10,5000] microseconds range. Too small
-                values may cause failures or prevent the SUT from reaching deep C-states. If the
-                range starts with 0, the minimum possible launch distance value allowed by the
-                delayed event source will be used. The optimal launch distance range is
-                system-specific."""
+               happen. This step is referred to as a "measurement cycle" and it is usually repeated
+               many times. The launch distance defines how far in the future the delayed event is
+               scheduled. By default this tool randomly selects launch distance within a range. The
+               default range is [0,4ms], but you can override it with this option. Specify a
+               comma-separated range (e.g '--ldist 10,5000'), or a single value if you want launch
+               distance to be precisely that value all the time.  The default unit is microseconds,
+               but you can use the following specifiers as well: {Human.DURATION_NS_SPECS_DESCR}.
+               For example, '--ldist 10us,5ms' would be a [10,5000] microseconds range. Too small
+               values may cause failures or prevent the SUT from reaching deep C-states. If the
+               range starts with 0, the minimum possible launch distance value allowed by the
+               delayed event source will be used. The optimal launch distance range is
+               system-specific."""
     subpars.add_argument("-l", "--ldist", help=text, default="0,4000")
 
     text = """The logical CPU number to measure, default is CPU 0."""
