@@ -11,6 +11,7 @@
 This module provides API for generating HTML reports for wult test results.
 """
 
+from pepclibs.helperlibs import Trivial
 from wultlibs.htmlreport import _ReportBase
 from wultlibs.htmlreport import WultReportParams
 
@@ -32,6 +33,6 @@ class WultReport(_ReportBase.ReportBase):
 
         super().__init__(rsts, outdir, title_descr=title_descr, xaxes=args["xaxes"],
                          yaxes=args["yaxes"], hist=args["hist"], chist=args["chist"],
-                         exclude_xaxes=WultReportParams.EXCLUDE_XAXES,
-                         exclude_yaxes=WultReportParams.EXCLUDE_YAXES,
+                         exclude_xaxes=Trivial.split_csv_line(WultReportParams.EXCLUDE_XAXES),
+                         exclude_yaxes=Trivial.split_csv_line(WultReportParams.EXCLUDE_YAXES),
                          smry_funcs=WultReportParams.SMRY_FUNCS)

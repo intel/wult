@@ -240,8 +240,8 @@ class ReportBase:
         plot_axes = [(x, y) for x, y in itertools.product(self.xaxes, self.yaxes) if x != y]
 
         if self.exclude_xaxes and self.exclude_yaxes:
-            x_axes = self._refres.find_metrics([self.exclude_xaxes])
-            y_axes = self._refres.find_metrics([self.exclude_yaxes])
+            x_axes = self._refres.find_metrics(self.exclude_xaxes)
+            y_axes = self._refres.find_metrics(self.exclude_yaxes)
             exclude_axes = list(itertools.product(x_axes, y_axes))
             plot_axes = [axes for axes in plot_axes if axes not in exclude_axes]
 
