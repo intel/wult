@@ -63,7 +63,7 @@ ask_question "Did you update 'CHANGELOG.md'"
 ask_question "Did you specify pepc version dependency in 'setup.py' and 'wult.spec'"
 
 # Change the tool version.
-sed -i -e "s/^VERSION = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"$/VERSION = \"$new_ver\"/" ./wulttools/_Wult.py
+sed -i -e "s/^_VERSION = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"$/_VERSION = \"$new_ver\"/" ./wulttools/_Wult.py
 # Change RPM package version.
 sed -i -e "s/^Version:\(\s\+\)[0-9]\+\.[0-9]\+\.[0-9]\+$/Version:\1$new_ver/" dist/rpm/wult.spec
 
