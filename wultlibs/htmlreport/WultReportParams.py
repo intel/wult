@@ -8,12 +8,12 @@
 #          Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module provides paramets for generating HTML reports for wult test results.
+This module provides parameters for generating HTML reports for wult test results.
 """
 
-# The constants below define the diagrams and histograms that are included into a report. There are
-# 3 groups of constands - for a small report, a medium report, and large report. The former includes
-# minimum amount of diagrams/histograms, the latter includes all of them.
+# The constants below define which diagrams are included in a report. There are 3 groups of
+# constants: for a small report, a medium report, and a large report. The small report includes the
+# minimum amount of diagrams, the large report includes all diagrams.
 SMALL_XAXES = "SilentTime"
 SMALL_YAXES = r".*Latency"
 SMALL_HIST = f"{SMALL_YAXES}"
@@ -34,11 +34,8 @@ DEFAULT_YAXES = SMALL_YAXES
 DEFAULT_HIST  = SMALL_HIST
 DEFAULT_CHIST = SMALL_CHIST
 
-# All diagrams and histograms with the combinations of EXCLUDE_XAXES and EXCLUDE_YAXES will not be
-# included to the report. By default this will be all "Whatever vs LDist" diagram, except for
-# "SilentTime vs LDist". The reason is that 'SilentTime' and 'LDist' are highly correlated, and it
-# is enough to include "Whatever vs SilentTime", and "Whatever vs LDist" will just cluttering the
-# report. But "SilentTime vs LDist" is almost always useful and it shows how the two are correlated.
+# All diagrams with an X-axis and a Y-axis in 'EXCLUDE_XAXES' and 'EXCLUDE_YAXES' respectively will
+# be excluded from the report. By default, the only excluded diagram is "SilentTime vs. LDist".
 EXCLUDE_XAXES = "LDist"
 EXCLUDE_YAXES = "SilentTime"
 
