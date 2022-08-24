@@ -109,8 +109,8 @@ def start_command(args):
             args.outdir = Path(f"./{args.reportid}")
         if args.tlimit:
             args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
-        if args.ldist:
-            args.ldist = ToolsCommon.parse_ldist(args.ldist)
+
+        args.ldist = ToolsCommon.parse_ldist(args.ldist)
 
         if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
             raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
