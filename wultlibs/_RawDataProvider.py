@@ -11,7 +11,7 @@ This module implements the base class for raw data provider classes.
 """
 
 import logging
-from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from pepclibs.helperlibs import ClassHelpers, KernelModule
 from statscollectlibs.helperlibs import ProcHelpers
 from wultlibs import Devices
@@ -182,8 +182,8 @@ class HelperRawDataProviderBase(RawDataProviderBase):
             if stderr:
                 raise Error(f"{self._error_pfx()} printed an error message:\n{''.join(stderr)}")
             if not stdout:
-                raise Error(f"{self._error_pfx()} did not provide any output for {self._timeout} "
-                            f"seconds")
+                raise ErrorTimeOut(f"{self._error_pfx()} did not provide any output for "
+                                   f"{self._timeout} seconds")
 
             for line in stdout:
                 yield line
