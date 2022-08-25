@@ -7,6 +7,7 @@
 #ifndef WULTRUNNER_H_
 #define WULTRUNNER_H_
 
+typedef uint8_t u8;
 typedef uint64_t u64;
 typedef uint32_t u32;
 
