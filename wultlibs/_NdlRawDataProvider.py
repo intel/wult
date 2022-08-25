@@ -78,10 +78,14 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
         while True:
             yield self._get_latency()
 
+    def start(self):
+        """Start the measurements."""
+        super()._start_helper()
+
     def stop(self):
         """Stop the  measurements."""
 
-        super().stop()
+        super()._exit_helper()
 
         self._etfqdisc.stop_phc2sys()
         self._netif.down()

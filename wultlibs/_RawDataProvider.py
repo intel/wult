@@ -182,14 +182,14 @@ class HelperRawDataProviderBase(RawDataProviderBase):
             for line in stdout:
                 yield line
 
-    def start(self):
-        """Start the measurements."""
+    def _start_helper(self):
+        """Start the helper program."""
 
         cmd = f"{self._helper_path} {self._helper_opts}"
         self._proc = self._pman.run_async(cmd)
 
-    def stop(self):
-        """Stop the measurements."""
+    def _exit_helper(self):
+        """Make the helper program exit."""
 
         _LOG.debug("stopping '%s'", self._helpername)
         self._proc.stdin.write("q\n".encode("utf8"))
@@ -256,4 +256,4 @@ class HelperRawDataProviderBase(RawDataProviderBase):
 
         if getattr(self, "_proc", None):
             with contextlib.suppress(Error):
-                self.stop()
+                self._exit_helper()

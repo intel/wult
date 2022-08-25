@@ -253,6 +253,14 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
                 msg = f"{msg}\nLast seen '{self._helpername}' line:\n{line}"
             raise ErrorTimeOut(msg) from err
 
+    def start(self):
+        """Start the measurements."""
+        super()._start_helper()
+
+    def stop(self):
+        """Stop the measurements."""
+        super()._exit_helper()
+
     def prepare(self):
         """Prepare to start the measurements."""
 
