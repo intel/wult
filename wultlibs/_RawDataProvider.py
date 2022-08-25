@@ -11,7 +11,6 @@ This module implements the base class for raw data provider classes.
 """
 
 import logging
-import contextlib
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import ClassHelpers, KernelModule
 from statscollectlibs.helperlibs import ProcHelpers
@@ -135,17 +134,24 @@ class DrvRawDataProviderBase(RawDataProviderBase):
         """Uninitialize everything."""
 
         if getattr(self, "drvobjs", None):
-            with contextlib.suppress(Error):
+            try:
                 self._unload()
+            except Error as err:
+                _LOG.warning(err)
 
             for drvobj in self.drvobjs:
-                with contextlib.suppress(Error):
+                try:
                     drvobj.close()
+                except Error as err:
+                    _LOG.warning(err)
+
             self.drvobjs = []
 
         if getattr(self, "_unmount_debugfs", None):
-            with contextlib.suppress(Error):
+            try:
                 self._pman.run("unmount {self.debugfs_mntpoint}")
+            except Error as err:
+                _LOG.warning(err)
 
         super().close()
 
@@ -255,5 +261,9 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         """Stop the measurements."""
 
         if getattr(self, "_proc", None):
-            with contextlib.suppress(Error):
+            try:
                 self._exit_helper()
+            except Error as err:
+                _LOG.warning(err)
+            finally:
+                self._proc = None
