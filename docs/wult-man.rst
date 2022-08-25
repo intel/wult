@@ -67,7 +67,7 @@ COMMAND *'wult* deploy'
 
 usage: wult deploy [-h] [-q] [-d] [--kernel-src KSRC] [--rebuild-bpf]
 [--local-build] [--tmpdir-path TMPDIR_PATH] [--keep-tmpdir] [-H
-HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
+HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [--skip-drivers]
 
 Compile and deploy wult helpers and drivers to the SUT (System Under
 Test), which can be can be either local or a remote host, depending on
@@ -85,7 +85,7 @@ the following order) on the local host: ./helpers,
 $WULT_DATA_PATH/helpers (if 'WULT_DATA_PATH' environment variable is
 defined), $HOME/.local/share/wult/helpers,
 /usr/local/share/wult/helpers, /usr/share/wult/helpers. By default,
-helpers are deployed to the path defined by the WULT_HELPERSPATH
+helpers are deployed to the path defined by the 'WULT_HELPERSPATH'
 environment variable. If the variable is not defined, helpers are
 deployed to '$HOME/.local/bin', where '$HOME' is the home directory of
 user 'USERNAME' on host 'HOST' (see '--host' and '--username' options).
@@ -145,6 +145,10 @@ OPTIONS *'wult* deploy'
 
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
+
+**--skip-drivers**
+   Deploy the eBPF helper, but do not deploy the drivers. This is a
+   debug and development option, do not use it for other purposes.
 
 COMMAND *'wult* scan'
 =====================

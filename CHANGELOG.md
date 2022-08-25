@@ -3,7 +3,13 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.22] - ADD DATE HERE
+## [1.10.23] - ADD DATE HERE
+### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.10.22] - 2022-08-28
 ### Fixed
  - Fix C-state tabs being excluded from wult HTML reports generated with
    '--size=large'.
