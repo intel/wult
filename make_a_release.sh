@@ -68,11 +68,11 @@ sed -i -e "s/^_VERSION = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"$/_VERSION = \"$new_ver\"/
 sed -i -e "s/^Version:\(\s\+\)[0-9]\+\.[0-9]\+\.[0-9]\+$/Version:\1$new_ver/" dist/rpm/wult.spec
 
 # Update the man page.
-argparse-manpage --pyfile ./wulttools/_Wult.py --function build_arguments_parser \
+argparse-manpage --pyfile ./wulttools/_Wult.py --function _build_arguments_parser \
                  --project-name 'wult' --author 'Artem Bityutskiy' \
                  --author-email 'dedekind1@gmail.com' --output docs/man1/wult.1 \
                  --url 'https://github.com/intel/wult'
-argparse-manpage --pyfile ./wulttools/_Ndl.py --function build_arguments_parser \
+argparse-manpage --pyfile ./wulttools/_Ndl.py --function _build_arguments_parser \
                  --project-name 'ndl' --author 'Artem Bityutskiy' \
                  --author-email 'dedekind1@gmail.com' --output docs/man1/ndl.1 \
                  --url 'https://github.com/intel/ndl'
