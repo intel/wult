@@ -240,7 +240,6 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         super().__init__(dev, pman, timeout=timeout, **kwargs)
 
         self._helper_path = helper_path
-        self._timeout = timeout
 
         self._helper_opts = None # The helper program command line options.
         self._proc = None        # The helper process.
