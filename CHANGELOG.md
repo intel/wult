@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.10.22] - ADD DATE HERE
 ### Fixed
+ - Fix C-state tabs being excluded from wult HTML reports generated with
+   '--size=large'.
 ### Added
  - Add 'wult deploy --skip-drivers' option, useful for debug and development.
 ### Removed
