@@ -34,13 +34,16 @@ _WULT_DEPLOY_INFO = {
         "wult" : {
             "category" : "drivers",
             "minkver"  : "5.6",
+            "deployables" : ("wult", "wult_igb", "wult_tdt", "wult_hrt", ),
         },
         "stc-agent" : {
             "category" : "pyhelpers",
+            "deployables" : ("stc-agent", "ipmi-helper", ),
         },
         "wultrunner" : {
             "category" : "bpfhelpers",
             "minkver"  : "5.15",
+            "deployables" : ("wultrunner", ),
         },
     },
 }

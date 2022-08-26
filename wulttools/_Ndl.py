@@ -33,9 +33,11 @@ _NDL_DEPLOY_INFO = {
         "ndl" : {
             "category" : "drivers",
             "minkver"  : "5.2",
+            "deployables" : ("ndl", ),
         },
         "ndlrunner" : {
             "category" : "shelpers",
+            "deployables" : ("ndlrunner", ),
         },
     },
 }

@@ -36,6 +36,3 @@ help:
 	@echo "You can also use any standard kernel variable like 'V=1'. Please, run "
 	@echo "'make help' in kernel source tree form more information."
 endif
-
-list_deployables:
-	@echo wult wult_igb wult_tdt wult_hrt

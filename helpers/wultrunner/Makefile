@@ -69,6 +69,3 @@ install:
 uninstall:
 	rm -f $(BINDIR)/$(TOOLNAME)
 	rmdir --ignore-fail-on-non-empty $(BINDIR)
-
-list_deployables:
-	@echo $(TOOLNAME)

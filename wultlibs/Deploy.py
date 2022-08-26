@@ -34,7 +34,7 @@ import time
 import logging
 import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import ProcessManager, LocalProcessManager, Trivial, Logging
+from pepclibs.helperlibs import LocalProcessManager, Logging
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists
 from statscollectlibs.helperlibs import ToolHelpers
@@ -192,20 +192,6 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
 
     parser.set_defaults(func=func)
     return parser
-
-def _get_deployables(srcpath, pman=None):
-    """
-    Returns the list of deployables provided by an installable at the 'srcpath' directory on the
-    host defined by 'pman'.
-    """
-
-    with ProcessManager.pman_or_local(pman) as wpman:
-        cmd = f"make --silent -C '{srcpath}' list_deployables"
-        deployables, _ = wpman.run_verify(cmd)
-        if deployables:
-            deployables = Trivial.split_csv_line(deployables, sep=" ")
-
-    return deployables
 
 def _get_pyhelper_dependencies(script_path):
     """
@@ -489,6 +475,13 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             _LOG.debug("Kernel sources path: not found%s", self._bpman.hostmsg)
         _LOG.debug("Kernel version: %s", self._kver)
 
+    def _get_deployables(self, category):
+        """Yields all deployable names for catergory 'category' (e.g., "drivers")."""
+
+        for inst_info in self._cats[category].values():
+            for deployable in inst_info["deployables"]:
+                yield deployable
+
     def is_deploy_needed(self, dev):
         """
         Wult and other tools require additional helper programs and drivers to be installed on the
@@ -517,8 +510,9 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
             srcpath = ToolHelpers.find_project_data("wult", _DRV_SRC_SUBPATH / self._toolname,
                                                     descr=f"the '{dev.drvname}' driver")
+
             dstpaths = []
-            for deployable in _get_deployables(srcpath):
+            for deployable in self._get_deployables("drivers"):
                 dstpath = self._get_module_path(deployable)
                 if not dstpath:
                     self._deployable_not_found(f"the '{deployable}' kernel module", False)
@@ -526,7 +520,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
             if not dstpaths:
                 raise Error(f"BUG: nothing provides the '{dev.drvname}' driver")
-
             dinfos["drivers"] = {"src" : [srcpath], "dst" : dstpaths, "optional" : False}
 
         helpers_deploy_path = get_helpers_deploy_path(self._spman)
@@ -550,7 +543,9 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 srcpath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / helper,
                                                         descr=descr)
                 dstpaths = []
-                for deployable in _get_deployables(srcpath):
+                for deployable in self._get_deployables("shelpers"):
+                    dstpaths.append(helpers_deploy_path / deployable)
+                for deployable in self._get_deployables("bpfhelpers"):
                     dstpaths.append(helpers_deploy_path / deployable)
 
                 dinfos[helper] = {"src" : [srcpath], "dst" : dstpaths, "optional" : False}
@@ -564,7 +559,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 srcpaths = []
                 dstpaths = []
 
-                for deployable in _get_deployables(datapath, self._cpman):
+                for deployable in self._get_deployables("pyhelpers"):
                     if datapath.joinpath(deployable).exists():
                         # This case is relevant for running the tool from sources - python helpers
                         # are in the 'helpers/pyhelper' directory.
@@ -653,8 +648,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         for pyhelper in self._cats["pyhelpers"]:
             _LOG.info("Building a stand-alone version of '%s'", pyhelper)
             basedir = ctmpdir / pyhelper
-            deployables = _get_deployables(basedir)
-            for deployable in deployables:
+            for deployable in self._get_deployables("pyhelpers"):
                 local_path = find_pyhelper_path(pyhelper, deployable=deployable)
                 _create_standalone_pyhelper(local_path, basedir)
 
@@ -836,9 +830,9 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             dstdir = kmodpath / _DRV_SRC_SUBPATH
             self._spman.mkdir(dstdir, parents=True, exist_ok=True)
 
-            for name in _get_deployables(drvsrc, self._bpman):
-                installed_module = self._get_module_path(name)
-                modname = f"{name}.ko"
+            for deployable in self._get_deployables("drivers"):
+                installed_module = self._get_module_path(deployable)
+                modname = f"{deployable}.ko"
                 srcpath = drvsrc / modname
                 dstpath = dstdir / modname
                 _LOG.info("Deploying kernel module '%s'%s", modname, self._spman.hostmsg)
@@ -932,7 +926,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             "installables" : {
                 Installable name 1 : {
                     "category" : category name of the installable ("driver", "shelper", etc).
-                    "minkver"  " minimum SUT kernel version required for the installable.
+                    "minkver"  : minimum SUT kernel version required for the installable.
+                    "deployables" : list of deployables this installable provides.
                 },
                 Installable name 2 : {},
                 ... etc for every installable ...

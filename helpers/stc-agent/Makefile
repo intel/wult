@@ -16,6 +16,3 @@ install:
 uninstall:
 	rm -f $(BINDIR)/stc-agent $(BINDIR)/ipmi-helper
 	rmdir --ignore-fail-on-non-empty $(BINDIR)
-
-list_deployables:
-	@echo $(TOOLNAMES)
