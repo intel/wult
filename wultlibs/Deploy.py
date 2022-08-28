@@ -482,6 +482,95 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             for deployable in inst_info["deployables"]:
                 yield deployable
 
+    def _add_drivers_dinfo(self, dev, dinfos):
+        """
+        This is a helper method for 'is_deploy_needed()'. It build the deployables information
+        dictionary for drivers and adds it to 'dinfos'.
+        """
+
+        if not self._cats["drivers"]:
+            # This must be because SUT kernel version is not new enough.
+            raise Error(f"the '{dev.info['devid']}' device can't be used{self._spman.hostmsg}\n"
+                        f"Reason: drivers cannot be installed.\n"
+                        f"Please use newer kernel{self._spman.hostmsg}")
+
+        srcpath = ToolHelpers.find_project_data("wult", _DRV_SRC_SUBPATH / self._toolname,
+                                                descr=f"the '{dev.drvname}' driver")
+
+        dstpaths = []
+        for deployable in self._get_deployables("drivers"):
+            dstpath = self._get_module_path(deployable)
+            if not dstpath:
+                self._deployable_not_found(f"the '{deployable}' kernel module", False)
+            dstpaths.append(self._get_module_path(deployable))
+
+        if not dstpaths:
+            raise Error(f"BUG: nothing provides the '{dev.drvname}' driver")
+
+        dinfos["drivers"] = {"src" : [srcpath], "dst" : dstpaths, "optional" : False}
+
+    def _add_helpers_dinfo(self, dev, dinfos):
+        """
+        This is a helper method for 'is_deploy_needed()'. It build the deployables information for
+        simple and eBPF helpers and adds them to 'dinfos'.
+        """
+
+        if dev.helpername not in self._insts:
+            # This must be because SUT kernel version is not new enough.
+            cat = self._deploy_info["installables"][dev.helpername]["category"]
+            cat_descr = _CATEGORIES[cat]
+            raise Error(f"the '{dev.info['devid']}' device can't be used{self._spman.hostmsg}\n"
+                        f"Reason: the '{dev.helpername}' {cat_descr} cannot be installed.\n"
+                        f"Please use newer kernel{self._spman.hostmsg}")
+
+        helpers_deploy_path = get_helpers_deploy_path(self._spman)
+
+        for helper in list(self._cats["shelpers"]) + list(self._cats["bpfhelpers"]):
+            if helper != dev.helpername:
+                continue
+
+            descr=f"the '{dev.helpername}' helper program"
+            srcpath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / helper,
+                                                    descr=descr)
+            dstpaths = []
+            for deployable in self._get_deployables("shelpers"):
+                dstpaths.append(helpers_deploy_path / deployable)
+            for deployable in self._get_deployables("bpfhelpers"):
+                dstpaths.append(helpers_deploy_path / deployable)
+
+            dinfos[helper] = {"src" : [srcpath], "dst" : dstpaths, "optional" : False}
+
+    def _add_pyhelpers_dinfo(self, dinfos):
+        """
+        This is a helper method for 'is_deploy_needed()'. It build the deployables information for
+        python helpers and adds them to 'dinfos'.
+        """
+
+        helpers_deploy_path = get_helpers_deploy_path(self._spman)
+
+        for pyhelper in self._cats["pyhelpers"]:
+            descr=f"the '{pyhelper}' python helper program"
+            datapath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / pyhelper, descr)
+
+            srcpaths = []
+            dstpaths = []
+
+            for deployable in self._get_deployables("pyhelpers"):
+                if datapath.joinpath(deployable).exists():
+                    # This case is relevant for running the tool from sources - python helpers
+                    # are in the 'helpers/pyhelper' directory.
+                    srcpath = datapath
+                else:
+                    # When the tool is installed with 'pip', the python helpers go to the
+                    # "bindir", and they are not installed to the data directory.
+                    srcpath = self._cpman.which(deployable).parent
+
+                srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
+                dstpaths.append(helpers_deploy_path / deployable)
+
+                # Today all python helpers optional.
+                dinfos[pyhelper] = {"src" : srcpaths, "dst" : dstpaths, "optional" : True}
+
     def is_deploy_needed(self, dev):
         """
         Wult and other tools require additional helper programs and drivers to be installed on the
@@ -500,80 +589,14 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         # deployables.
         dinfos = {}
 
-        # Add driver information.
         if dev.drvname:
-            if not self._cats["drivers"]:
-                # This must be because SUT kernel version is not new enough.
-                raise Error(f"the '{dev.info['devid']}' device can't be used{self._spman.hostmsg}\n"
-                            f"Reason: drivers cannot be installed.\n"
-                            f"Please use newer kernel{self._spman.hostmsg}")
+            self._add_drivers_dinfo(dev, dinfos)
 
-            srcpath = ToolHelpers.find_project_data("wult", _DRV_SRC_SUBPATH / self._toolname,
-                                                    descr=f"the '{dev.drvname}' driver")
-
-            dstpaths = []
-            for deployable in self._get_deployables("drivers"):
-                dstpath = self._get_module_path(deployable)
-                if not dstpath:
-                    self._deployable_not_found(f"the '{deployable}' kernel module", False)
-                dstpaths.append(self._get_module_path(deployable))
-
-            if not dstpaths:
-                raise Error(f"BUG: nothing provides the '{dev.drvname}' driver")
-            dinfos["drivers"] = {"src" : [srcpath], "dst" : dstpaths, "optional" : False}
-
-        helpers_deploy_path = get_helpers_deploy_path(self._spman)
-
-        # Add non-python helpers information.
         if dev.helpername:
-            if dev.helpername not in self._insts:
-                # This must be because SUT kernel version is not new enough.
-                cat = self._deploy_info["installables"][dev.helpername]["category"]
-                cat_descr = _CATEGORIES[cat]
-                raise Error(f"the '{dev.info['devid']}' device can't be used{self._spman.hostmsg}\n"
-                            f"Reason: the '{dev.helpername}' {cat_descr} cannot be installed.\n"
-                            f"Please use newer kernel{self._spman.hostmsg}")
+            self._add_helpers_dinfo(dev, dinfos)
 
-            # Add non-python helpers' deploy information.
-            for helper in list(self._cats["shelpers"]) + list(self._cats["bpfhelpers"]):
-                if helper != dev.helpername:
-                    continue
-
-                descr=f"the '{dev.helpername}' helper program"
-                srcpath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / helper,
-                                                        descr=descr)
-                dstpaths = []
-                for deployable in self._get_deployables("shelpers"):
-                    dstpaths.append(helpers_deploy_path / deployable)
-                for deployable in self._get_deployables("bpfhelpers"):
-                    dstpaths.append(helpers_deploy_path / deployable)
-
-                dinfos[helper] = {"src" : [srcpath], "dst" : dstpaths, "optional" : False}
-
-        # Add python helpers' deploy information.
         if self._cats["pyhelpers"]:
-            for pyhelper in self._cats["pyhelpers"]:
-                descr=f"the '{pyhelper}' python helper program"
-                datapath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / pyhelper,
-                                                         pyhelper)
-                srcpaths = []
-                dstpaths = []
-
-                for deployable in self._get_deployables("pyhelpers"):
-                    if datapath.joinpath(deployable).exists():
-                        # This case is relevant for running the tool from sources - python helpers
-                        # are in the 'helpers/pyhelper' directory.
-                        srcpath = datapath
-                    else:
-                        # When the tool is installed with 'pip', the python helpers go to the
-                        # "bindir", and they are not installed to the data directory.
-                        srcpath = self._cpman.which(deployable).parent
-
-                    srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
-                    dstpaths.append(helpers_deploy_path / deployable)
-
-                    # Today all python helpers optional.
-                    dinfos[pyhelper] = {"src" : srcpaths, "dst" : dstpaths, "optional" : True}
+            self._add_pyhelpers_dinfo(dinfos)
 
         # We are about to get timestamps for local and remote files. Take into account the possible
         # time shift between local and remote systems.
