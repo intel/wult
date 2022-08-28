@@ -341,7 +341,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
     def _deployable_not_found(self, what, optional):
         """Raise an exception in case a required driver or helper was not found on the SUT."""
 
-        err = f"{what} was not found{self._spman.hostmsg}. Please, run:\n" \
+        err = f"{what} was not found{self._spman.hostmsg}. Try to run:\n" \
               f"{self._toolname} deploy"
         if self._spman.is_remote:
             err += f" -H {self._spman.hostname}"

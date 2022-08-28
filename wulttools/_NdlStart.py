@@ -70,7 +70,7 @@ def start_command(args):
         with Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, debug=args.debug) as depl:
             if depl.is_deploy_needed(dev):
                 msg = f"'{args.toolname}' helpers and/or drivers are not up-to-date" \
-                      f"{pman.hostmsg}, please run: {args.toolname} deploy"
+                      f"{pman.hostmsg}, try to run: {args.toolname} deploy"
                 if pman.is_remote:
                     msg += f" -H {pman.hostname}"
                 _LOG.warning(msg)
