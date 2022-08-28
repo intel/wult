@@ -269,7 +269,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._progress = _ProgressLine.ProgressLine(period=1)
 
         if dev.helpername:
-            wultrunner_path = Deploy.get_helpers_deploy_path(pman) / dev.helpername
+            wultrunner_path = Deploy.get_installed_helper_path(pman, dev.helpername)
         else:
             wultrunner_path = None
 

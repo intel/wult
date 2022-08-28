@@ -55,16 +55,26 @@ _CATEGORIES = { "drivers"    : "kernel driver",
 class _ErrorKVer(Error):
     """An exception class indicating that SUT kernel version is not new enough."""
 
-def get_helpers_deploy_path(pman):
+def get_installed_helper_path(pman, helper):
     """
-    Return path to the helpers deployment. The arguments are as follows.
-      * pman - the process manager object defining the host the helpers are deployed to.
+    Tries to figure out path to the directory the 'helper' program is installed at. Returns the
+    path in case of success (e.g., '/usr/bin') and raises an exception if the helper was not
+    found.
     """
 
     helpers_path = os.environ.get("WULT_HELPERSPATH")
-    if not helpers_path:
-        helpers_path = pman.get_homedir() / _HELPERS_LOCAL_DIR / "bin"
-    return Path(helpers_path)
+    if helpers_path:
+        helper_path = Path(helpers_path) / helper
+        if pman.is_exe(helper_path):
+            return helper_path
+
+    try:
+        return pman.which(helper, must_find=False)
+    except ErrorNotFound as err:
+        raise ErrorNotFound(f"program '{helper}' was not found{pman.hostmsg}\n"
+                            f"Please, make sure it is in 'PATH' or provide path to the directory "
+                            f"it is installed to via the 'WULT_HELPERSPATH' environment variable") \
+                            from err
 
 def find_pyhelper_path(pyhelper, deployable=None):
     """
@@ -527,8 +537,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                         f"Reason: the '{dev.helpername}' {cat_descr} cannot be installed.\n"
                         f"Please use newer kernel{self._spman.hostmsg}")
 
-        helpers_deploy_path = get_helpers_deploy_path(self._spman)
-
         for helper in list(self._cats["shelpers"]) + list(self._cats["bpfhelpers"]):
             if helper != dev.helpername:
                 continue
@@ -542,10 +550,13 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 srcpaths = []
 
             dstpaths = []
+
             for deployable in self._get_deployables("shelpers"):
-                dstpaths.append(helpers_deploy_path / deployable)
+                deployable_path = get_installed_helper_path(self._spman, deployable)
+                dstpaths.append(deployable_path)
             for deployable in self._get_deployables("bpfhelpers"):
-                dstpaths.append(helpers_deploy_path / deployable)
+                deployable_path = get_installed_helper_path(self._spman, deployable)
+                dstpaths.append(deployable_path)
 
             dinfos[helper] = {"src" : srcpaths, "dst" : dstpaths, "optional" : False}
 
@@ -554,8 +565,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         This is a helper method for 'is_deploy_needed()'. It build the deployables information for
         python helpers and adds them to 'dinfos'.
         """
-
-        helpers_deploy_path = get_helpers_deploy_path(self._spman)
 
         for pyhelper in self._cats["pyhelpers"]:
             try:
@@ -581,7 +590,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
                     srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
 
-                dstpaths.append(helpers_deploy_path / deployable)
+                deployable_path = get_installed_helper_path(self._spman, deployable)
+                dstpaths.append(deployable_path)
 
                 # Today all python helpers are optional.
                 dinfos[pyhelper] = {"src" : srcpaths, "dst" : dstpaths, "optional" : True}
@@ -777,6 +787,14 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             stdout, stderr = self._bpman.run_verify(cmd)
             self._log_cmd_output(stdout, stderr)
 
+    def _get_helpers_deploy_path(self):
+        """Returns path the directory the helpers should be deployed to."""
+
+        helpers_path = os.environ.get("WULT_HELPERSPATH")
+        if not helpers_path:
+            helpers_path = self._spman.get_homedir() / _HELPERS_LOCAL_DIR / "bin"
+        return Path(helpers_path)
+
     def _deploy_helpers(self):
         """Deploy helpers (including python helpers) to the SUT."""
 
@@ -807,7 +825,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if self._cats["bpfhelpers"]:
             self._prepare_bpfhelpers(helpersrc)
 
-        deploy_path = get_helpers_deploy_path(self._spman)
+        deploy_path = self._get_helpers_deploy_path()
 
         # Make sure the the destination deployment directory exists.
         self._spman.mkdir(deploy_path, parents=True, exist_ok=True)
