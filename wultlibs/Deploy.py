@@ -519,8 +519,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                                                     descr=f"the '{dev.drvname}' driver")
             dstpaths = []
             for deployable in _get_deployables(srcpath):
-                if deployable != dev.drvname:
-                    continue
                 dstpath = self._get_module_path(deployable)
                 if not dstpath:
                     self._deployable_not_found(f"the '{deployable}' kernel module", False)
