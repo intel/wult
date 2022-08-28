@@ -494,8 +494,12 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                         f"Reason: drivers cannot be installed.\n"
                         f"Please use newer kernel{self._spman.hostmsg}")
 
-        srcpath = ToolHelpers.find_project_data("wult", _DRV_SRC_SUBPATH / self._toolname,
-                                                descr=f"the '{dev.drvname}' driver")
+        try:
+            srcpath = ToolHelpers.find_project_data("wult", _DRV_SRC_SUBPATH / self._toolname,
+                                                     descr=f"the '{dev.drvname}' driver")
+            srcpaths = [srcpath]
+        except ErrorNotFound:
+            srcpaths = []
 
         dstpaths = []
         for deployable in self._get_deployables("drivers"):
@@ -507,7 +511,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if not dstpaths:
             raise Error(f"BUG: nothing provides the '{dev.drvname}' driver")
 
-        dinfos["drivers"] = {"src" : [srcpath], "dst" : dstpaths, "optional" : False}
+        dinfos["drivers"] = {"src" : srcpaths, "dst" : dstpaths, "optional" : False}
 
     def _add_helpers_dinfo(self, dev, dinfos):
         """
@@ -529,16 +533,21 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             if helper != dev.helpername:
                 continue
 
-            descr=f"the '{dev.helpername}' helper program"
-            srcpath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / helper,
-                                                    descr=descr)
+            try:
+                descr=f"the '{dev.helpername}' helper program"
+                srcpath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / helper,
+                                                        descr=descr)
+                srcpaths = [srcpath]
+            except ErrorNotFound:
+                srcpaths = []
+
             dstpaths = []
             for deployable in self._get_deployables("shelpers"):
                 dstpaths.append(helpers_deploy_path / deployable)
             for deployable in self._get_deployables("bpfhelpers"):
                 dstpaths.append(helpers_deploy_path / deployable)
 
-            dinfos[helper] = {"src" : [srcpath], "dst" : dstpaths, "optional" : False}
+            dinfos[helper] = {"src" : srcpaths, "dst" : dstpaths, "optional" : False}
 
     def _add_pyhelpers_dinfo(self, dinfos):
         """
@@ -549,26 +558,32 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         helpers_deploy_path = get_helpers_deploy_path(self._spman)
 
         for pyhelper in self._cats["pyhelpers"]:
-            descr=f"the '{pyhelper}' python helper program"
-            datapath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / pyhelper, descr)
+            try:
+                descr=f"the '{pyhelper}' python helper program"
+                datapath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / pyhelper,
+                                                         descr)
+            except ErrorNotFound:
+                datapath = None
 
             srcpaths = []
             dstpaths = []
 
             for deployable in self._get_deployables("pyhelpers"):
-                if datapath.joinpath(deployable).exists():
-                    # This case is relevant for running the tool from sources - python helpers
-                    # are in the 'helpers/pyhelper' directory.
-                    srcpath = datapath
-                else:
-                    # When the tool is installed with 'pip', the python helpers go to the
-                    # "bindir", and they are not installed to the data directory.
-                    srcpath = self._cpman.which(deployable).parent
+                if datapath:
+                    if datapath.joinpath(deployable).exists():
+                        # This case is relevant for running the tool from sources - python helpers
+                        # are in the 'helpers/pyhelper' directory.
+                        srcpath = datapath
+                    else:
+                        # When the tool is installed with 'pip', the python helpers go to the
+                        # "bindir", and they are not installed to the data directory.
+                        srcpath = self._cpman.which(deployable).parent
 
-                srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
+                    srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
+
                 dstpaths.append(helpers_deploy_path / deployable)
 
-                # Today all python helpers optional.
+                # Today all python helpers are optional.
                 dinfos[pyhelper] = {"src" : srcpaths, "dst" : dstpaths, "optional" : True}
 
     def is_deploy_needed(self, dev):
@@ -578,7 +593,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         helper programs are installed on the SUT and are up-to-date. The arguments are as follows.
           * dev - the delayed event device object created by 'Devices.GetDevice()'.
 
-        Returns 'True' if re-deployment is needed, and 'False' otherwise. Raises an error if a
+        Returns 'True' if re-deployment is needed, and 'False' otherwise. Raises 'Error' if a
         critical component required for the 'dev' device is not installed on the SUT at all.
         """
 
@@ -598,16 +613,14 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if self._cats["pyhelpers"]:
             self._add_pyhelpers_dinfo(dinfos)
 
-        # We are about to get timestamps for local and remote files. Take into account the possible
-        # time shift between local and remote systems.
-        time_delta = 0
-        if self._spman.is_remote:
-            time_delta = time.time() - RemoteHelpers.time_time(pman=self._spman)
-
-        # Compare source and destination files' timestamps.
+        # Compare source and destination files' timestamps. Note, if the sources path was not found,
+        # the 'dinfo["src"]' is going to be 'None'. In this case we only check if the destination
+        # exists, but do not compare the time-stamps.
+        time_delta = None
         for name, dinfo in dinfos.items():
-            src = dinfo["src"]
-            src_mtime = self._get_newest_mtime(src)
+            if dinfo["src"]:
+                src_mtime = self._get_newest_mtime(dinfo["src"])
+
             for dst in dinfo["dst"]:
                 try:
                     dst_mtime = self._spman.get_mtime(dst)
@@ -615,8 +628,18 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                     self._deployable_not_found(dst, dinfo["optional"])
                     continue
 
+                if not dinfo["src"]:
+                    continue
+
+                if time_delta is None:
+                    time_delta = 0
+                    if self._spman.is_remote:
+                        # Take into account the possible time difference between local and remote
+                        # systems.
+                        time_delta = time.time() - RemoteHelpers.time_time(pman=self._spman)
+
                 if src_mtime > time_delta + dst_mtime:
-                    src_str = ", ".join([str(path) for path in src])
+                    src_str = ", ".join([str(path) for path in dinfo["src"]])
                     _LOG.debug("%s src time %d + %d > dst_mtime %d\nsrc: %s\ndst %s",
                                name, src_mtime, time_delta, dst_mtime, src_str, dst)
                     return True
