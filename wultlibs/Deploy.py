@@ -76,7 +76,7 @@ def get_installed_helper_path(pman, helper):
                             f"it is installed to via the 'WULT_HELPERSPATH' environment variable") \
                             from err
 
-def find_pyhelper_path(pyhelper, deployable=None):
+def _find_pyhelper_path(pyhelper, deployable=None):
     """
     Find and return path to python helper 'pyhelper' on the local system.
       * pyhelper - the python helper name.
@@ -86,10 +86,10 @@ def find_pyhelper_path(pyhelper, deployable=None):
     For example, "stc-agent" comes with the 'ipmi-helper' tool that it uses. Here is a usage
     example.
       * To find path to the "stc-agent" python helper program, use:
-        find_pyhelper_path("stc-agent")
+        _find_pyhelper_path("stc-agent")
       * To find path to the "ipmi-helper" program which belongs to the "stc-agent" python helper,
         use:
-        find_pyhelper_path("stc-agent", deployable="ipmi-helper")
+        _find_pyhelper_path("stc-agent", deployable="ipmi-helper")
     """
 
     if not deployable:
@@ -705,7 +705,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             _LOG.info("Building a stand-alone version of '%s'", pyhelper)
             basedir = ctmpdir / pyhelper
             for deployable in self._get_deployables("pyhelpers"):
-                local_path = find_pyhelper_path(pyhelper, deployable=deployable)
+                local_path = _find_pyhelper_path(pyhelper, deployable=deployable)
                 _create_standalone_pyhelper(local_path, basedir)
 
         # And copy the "standalone-ized" version of python helpers to the SUT.
