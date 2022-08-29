@@ -190,10 +190,10 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         # Initialize statistics collection.
         if self._stconf:
             with LocalProcessManager.LocalProcessManager() as lpman:
-                local_scpath =  Deploy.get_installed_helper_path(lpman, "stc-agent")
+                local_scpath =  Deploy.get_installed_helper_path(lpman, "wult", "stc-agent")
 
             if self._pman.is_remote:
-                remote_scpath = Deploy.get_installed_helper_path(self._pman, "stc-agent")
+                remote_scpath = Deploy.get_installed_helper_path(self._pman, "wult", "stc-agent")
             else:
                 remote_scpath = None
 
@@ -270,7 +270,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._progress = _ProgressLine.ProgressLine(period=1)
 
         if dev.helpername:
-            wultrunner_path = Deploy.get_installed_helper_path(pman, dev.helpername)
+            wultrunner_path = Deploy.get_installed_helper_path(pman, "wult", dev.helpername)
         else:
             wultrunner_path = None
 

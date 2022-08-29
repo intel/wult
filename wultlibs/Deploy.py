@@ -55,11 +55,38 @@ _CATEGORIES = { "drivers"    : "kernel driver",
 class _ErrorKVer(Error):
     """An exception class indicating that SUT kernel version is not new enough."""
 
-def get_installed_helper_path(pman, helper):
+def _deployable_not_found(pman, toolname, what, optional=False, is_helper=True):
+    """Raise an exception in case a required driver or helper was not found."""
+
+    def _get_deploy_cmd(pman, toolname):
+        """Returns the 'deploy' command suggestion string."""
+
+        cmd = f"{toolname} deploy"
+        if pman.is_remote:
+            cmd += f" -H {pman.hostname}"
+        return cmd
+
+    if is_helper:
+        what = f"the '{what}' program"
+
+    err = f"{what} was not found{pman.hostmsg}"
+    if is_helper and not optional:
+        err += f".\nHere are the options to try.\n" \
+               f"* Run '{_get_deploy_cmd(pman, toolname)}'.\n" \
+               f"* Ensure that {what} is in 'PATH'{pman.hostmsg}.\n" \
+               f"* Set the 'WULT_HELPERSPATH' environment variable to the path of " \
+               f"{what}{pman.hostmsg}"
+
+    if optional:
+        _LOG.warning(err)
+    else:
+        raise ErrorNotFound(err)
+
+def get_installed_helper_path(pman, toolname, helper):
     """
     Tries to figure out path to the directory the 'helper' program is installed at. Returns the
-    path in case of success (e.g., '/usr/bin') and raises an exception if the helper was not
-    found.
+    path in case of success (e.g., '/usr/bin') and raises the 'ErrorNotFound' an exception if the
+    helper was not found.
     """
 
     dirpath = os.environ.get("WULT_HELPERSPATH")
@@ -82,9 +109,7 @@ def get_installed_helper_path(pman, helper):
         if pman.is_exe(helper_path):
             return helper_path
 
-    raise ErrorNotFound(f"program '{helper}' was not found{pman.hostmsg}\nPlease, make sure it is "
-                        f"in 'PATH' or provide path to the directory it is installed to via the "
-                        f"'WULT_HELPERSPATH' environment variable")
+    return _deployable_not_found(pman, toolname, helper)
 
 def _find_pyhelper_path(pyhelper, deployable=None):
     """
@@ -358,19 +383,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             raise Error(f"no files found in the following paths:\n{paths_str}")
         return newest
 
-    def _deployable_not_found(self, what, optional):
-        """Raise an exception in case a required driver or helper was not found on the SUT."""
-
-        err = f"{what} was not found{self._spman.hostmsg}. Try to run:\n" \
-              f"{self._toolname} deploy"
-        if self._spman.is_remote:
-            err += f" -H {self._spman.hostname}"
-
-        if optional:
-            _LOG.warning(err)
-        else:
-            raise Error(err)
-
     def _get_module_path(self, name):
         """Return path to installed module 'name'. Returns 'None', if the module was not found."""
 
@@ -502,6 +514,15 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             for deployable in inst_info["deployables"]:
                 yield deployable
 
+    def _get_installed_deployable_path(self, deployable):
+        """Same as 'get_installed_helper_path()'."""
+        return get_installed_helper_path(self._spman, self._toolname, deployable)
+
+    def _deployable_not_found(self, deployable, optional=False, is_helper=True):
+        """Same as module-level '_deployable_not_found()'."""
+        _deployable_not_found(self._spman, self._toolname, deployable, optional=optional,
+                              is_helper=is_helper)
+
     def _add_drivers_dinfo(self, dev, dinfos):
         """
         This is a helper method for 'is_deploy_needed()'. It build the deployables information
@@ -525,7 +546,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         for deployable in self._get_deployables("drivers"):
             dstpath = self._get_module_path(deployable)
             if not dstpath:
-                self._deployable_not_found(f"the '{deployable}' kernel module", False)
+                self._deployable_not_found(f"the '{deployable}' kernel module", is_helper=False)
             dstpaths.append(self._get_module_path(deployable))
 
         if not dstpaths:
@@ -562,10 +583,10 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             dstpaths = []
 
             for deployable in self._get_deployables("shelpers"):
-                deployable_path = get_installed_helper_path(self._spman, deployable)
+                deployable_path = self._get_installed_deployable_path(deployable)
                 dstpaths.append(deployable_path)
             for deployable in self._get_deployables("bpfhelpers"):
-                deployable_path = get_installed_helper_path(self._spman, deployable)
+                deployable_path = self._get_installed_deployable_path(deployable)
                 dstpaths.append(deployable_path)
 
             dinfos[helper] = {"src" : srcpaths, "dst" : dstpaths, "optional" : False}
@@ -601,9 +622,9 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                     srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
 
                 try:
-                    deployable_path = get_installed_helper_path(self._spman, deployable)
+                    deployable_path = self._get_installed_deployable_path(deployable)
                 except ErrorNotFound:
-                    self._deployable_not_found(f"the '{deployable}' helper", True)
+                    self._deployable_not_found(deployable, optional=True)
                     continue
 
                 dstpaths.append(deployable_path)
@@ -638,23 +659,14 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if self._cats["pyhelpers"]:
             self._add_pyhelpers_dinfo(dinfos)
 
-        # Compare source and destination files' timestamps. Note, if the sources path was not found,
-        # the 'dinfo["src"]' is going to be 'None'. In this case we only check if the destination
-        # exists, but do not compare the time-stamps.
         time_delta = None
         for name, dinfo in dinfos.items():
-            if dinfo["src"]:
-                src_mtime = self._get_newest_mtime(dinfo["src"])
+            if not dinfo["src"]:
+                continue
 
             for dst in dinfo["dst"]:
-                try:
-                    dst_mtime = self._spman.get_mtime(dst)
-                except ErrorNotFound:
-                    self._deployable_not_found(dst, dinfo["optional"])
-                    continue
-
-                if not dinfo["src"]:
-                    continue
+                src_mtime = self._get_newest_mtime(dinfo["src"])
+                dst_mtime = self._spman.get_mtime(dst)
 
                 if time_delta is None:
                     time_delta = 0
