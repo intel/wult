@@ -600,7 +600,12 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
                     srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
 
-                deployable_path = get_installed_helper_path(self._spman, deployable)
+                try:
+                    deployable_path = get_installed_helper_path(self._spman, deployable)
+                except ErrorNotFound:
+                    self._deployable_not_found(f"the '{deployable}' helper", True)
+                    continue
+
                 dstpaths.append(deployable_path)
 
                 # Today all python helpers are optional.
