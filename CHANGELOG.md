@@ -8,6 +8,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Change 'wult' to not expect driver/helper sources be available - they are
+   not available when installed from an OS package, such as an RPM package.
+ - Change the way 'wult' tool looks for installed drivers and helpers in order
+   to support RPM packaging.
 
 ## [1.10.22] - 2022-08-28
 ### Fixed
