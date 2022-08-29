@@ -3,8 +3,16 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.24] - ADD DATE HERE
+## [1.10.25] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.10.24] - 2022-08-29
+### Fixed
+ - Fix regression introduced in 1.10.23: we failed to find helpers when they
+   were not in '$PATH'.
 ### Added
 ### Removed
 ### Changed
