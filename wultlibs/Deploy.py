@@ -62,19 +62,29 @@ def get_installed_helper_path(pman, helper):
     found.
     """
 
-    helpers_path = os.environ.get("WULT_HELPERSPATH")
-    if helpers_path:
-        helper_path = Path(helpers_path) / helper
+    dirpath = os.environ.get("WULT_HELPERSPATH")
+    if dirpath:
+        helper_path = Path(dirpath) / helper
         if pman.is_exe(helper_path):
             return helper_path
 
-    try:
-        return pman.which(helper, must_find=False)
-    except ErrorNotFound as err:
-        raise ErrorNotFound(f"program '{helper}' was not found{pman.hostmsg}\n"
-                            f"Please, make sure it is in 'PATH' or provide path to the directory "
-                            f"it is installed to via the 'WULT_HELPERSPATH' environment variable") \
-                            from err
+    helper_path = pman.which(helper, must_find=False)
+    if helper_path:
+        return helper_path
+
+    # Check standard paths.
+    homedir = pman.get_homedir()
+    stardard_paths = (f"{homedir}/.local/bin", "/usr/bin", "/usr/local/bin", "/bin",
+                      f"{homedir}/bin")
+
+    for dirpath in stardard_paths:
+        helper_path = Path(dirpath) / helper
+        if pman.is_exe(helper_path):
+            return helper_path
+
+    raise ErrorNotFound(f"program '{helper}' was not found{pman.hostmsg}\nPlease, make sure it is "
+                        f"in 'PATH' or provide path to the directory it is installed to via the "
+                        f"'WULT_HELPERSPATH' environment variable")
 
 def _find_pyhelper_path(pyhelper, deployable=None):
     """
