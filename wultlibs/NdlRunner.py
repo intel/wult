@@ -97,9 +97,10 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
             raise Error(f"{err}{dmesg}") from err
         else:
             self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
+            duration = Human.duration(self._progress.get_duration())
+            _LOG.info("Finished measuring RTD%s, lasted %s", self._pman.hostmsg, duration)
             self._prov.stop()
 
-        _LOG.info("Finished measuring RTD%s", self._pman.hostmsg)
 
     def prepare(self):
         """Prepare to start measurements."""

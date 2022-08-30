@@ -24,6 +24,10 @@ class ProgressLine:
 
         self._start_ts = self._last_ts = time.time()
 
+    def get_duration(self):
+        """Returns the overall measurements duration in seconds."""
+        return time.time() - self._start_ts
+
     def update(self, dpcnt, maxlat, final=False):
         """
         Update the progress. The arguments are as follows.

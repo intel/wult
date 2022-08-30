@@ -143,9 +143,11 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             raise Error(f"{err}{dmesg}") from err
         else:
             self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
+            duration = Human.duration(self._progress.get_duration())
+            _LOG.info("Finished measuring CPU %d%s, lasted %s",
+                      self._res.cpunum, self._pman.hostmsg, duration)
             self._prov.stop()
 
-        _LOG.info("Finished measuring CPU %d%s", self._res.cpunum, self._pman.hostmsg)
 
         # Check if there were any bug/warning messages in 'dmesg'.
         dmesg = ""
