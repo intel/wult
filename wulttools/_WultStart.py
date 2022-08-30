@@ -133,7 +133,7 @@ def start_command(args):
         dev = Devices.GetDevice(args.toolname, args.devid, pman, cpunum=args.cpunum, dmesg=True)
         stack.enter_context(dev)
 
-        with Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, debug=args.debug) as depl:
+        with Deploy.DeployCheck(args.toolname, args.deploy_info, pman=pman) as depl:
             depl.check_deployment(dev)
 
         if getattr(dev, "netif", None):

@@ -67,7 +67,7 @@ def start_command(args):
             raise ErrorNotFound(msg) from err
         stack.enter_context(dev)
 
-        with Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, debug=args.debug) as depl:
+        with Deploy.DeployCheck(args.toolname, args.deploy_info, pman=pman) as depl:
             depl.check_deployment(dev)
 
         ToolsCommon.start_command_check_network(args, pman, dev.netif)

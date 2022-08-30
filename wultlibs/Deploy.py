@@ -351,14 +351,10 @@ def _create_standalone_pyhelper(pyhelper_path, outdir):
     except OSError as err:
         raise Error(f"cannot change '{standalone_path}' file mode to {oct(mode)}:\n{err}") from err
 
-
-class Deploy(ClassHelpers.SimpleCloseContext):
+class DeployCheck(ClassHelpers.SimpleCloseContext):
     """
-    This module provides API for deploying the tools of this project. Provides the following
-    methods.
-
-     * 'deploy()' - deploy everything (drivers, helper programs) to the SUT.
-     * 'check_deployment()' - check if all the dependencies are deployed and up-to-date.
+    This module provides the 'check_deployment()' method which can be used for verifying whether all
+    the required installables are available on the SUT.
     """
 
     @staticmethod
@@ -394,36 +390,22 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             return modpath
         return None
 
-    def _get_stmpdir(self):
-        """Creates a temporary directory on the SUT and returns its path."""
+    def _check_minkver(self, installable):
+        """
+        Check if the SUT has new enough kernel version for 'installable' to be deployed on it. The
+        argument are as follows.
+          * installable - name of the installable to check the kernel version for.
+        """
 
-        if not self._stmpdir:
-            self._stmpdir_created = True
-            if not self._tmpdir_path:
-                self._stmpdir = self._spman.mkdtemp(prefix=f"{self._toolname}-")
-            else:
-                self._stmpdir = self._tmpdir_path
-                try:
-                    self._spman.mkdir(self._stmpdir, parents=True, exist_ok=False)
-                except ErrorExists:
-                    self._stmpdir_created = False
+        minkver = self._insts[installable].get("minkver", None)
+        if not minkver:
+            return
 
-        return self._stmpdir
-
-    def _get_ctmpdir(self):
-        """Creates a temporary directory on the controller and returns its path."""
-
-        if not self._ctmpdir:
-            self._ctmpdir_created = True
-            if not self._tmpdir_path:
-                self._ctmpdir = self._cpman.mkdtemp(prefix=f"{self._toolname}-")
-            else:
-                self._ctmpdir = self._tmpdir_path
-                try:
-                    self._cpman.mkdir(self._ctmpdir, parents=True, exist_ok=False)
-                except ErrorExists:
-                    self._ctmpdir_created = False
-        return self._ctmpdir
+        if KernelVersion.kver_lt(self._kver, minkver):
+            cat_descr = _CATEGORIES[self._insts[installable]["category"]]
+            raise _ErrorKVer(f"version of Linux kernel{self._bpman.hostmsg} is {self._kver}, and "
+                             f"it is not new enough for the '{installable}' {cat_descr}.\n"
+                             f"Please, use kernel version {minkver} or newer.")
 
     def _adjust_installables(self):
         """
@@ -456,23 +438,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if not self._cats["drivers"] and not self._cats["bpfhelpers"]:
             # We have already printed the details, so we can have a short error message here.
             raise Error("please, use newer kernel")
-
-    def _check_minkver(self, installable):
-        """
-        Check if the SUT has new enough kernel version for 'installable' to be deployed on it. The
-        argument are as follows.
-          * installable - name of the installable to check the kernel version for.
-        """
-
-        minkver = self._insts[installable].get("minkver", None)
-        if not minkver:
-            return
-
-        if KernelVersion.kver_lt(self._kver, minkver):
-            cat_descr = _CATEGORIES[self._insts[installable]["category"]]
-            raise _ErrorKVer(f"version of Linux kernel{self._bpman.hostmsg} is {self._kver}, and "
-                             f"it is not new enough for the '{installable}' {cat_descr}.\n"
-                             f"Please, use kernel version {minkver} or newer.")
 
     def _init_kernel_info(self, ksrc_required=False):
         """
@@ -665,6 +630,238 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         if self._cats["pyhelpers"]:
             self._check_pyhelpers_deployment()
+
+    def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False):
+        """
+        The class constructor. The arguments are as follows.
+          * toolname - name of the tool to create the deployment object for.
+          * deploy_info - a dictionary describing the tool to deploy.
+          * pman - the process manager object that defines the SUT to deploy to (local host by
+                   default).
+          * ksrc - path to the kernel sources to compile drivers against.
+          * lbuild - by default, everything is built on the SUT, but if 'lbuild' is 'True', then
+                     everything is built on the local host.
+
+        The 'deploy_info' dictionary describes the tool to deploy and its dependencies. I should
+        have the following structure.
+
+        {
+            "installables" : {
+                Installable name 1 : {
+                    "category" : category name of the installable ("driver", "shelper", etc).
+                    "minkver"  : minimum SUT kernel version required for the installable.
+                    "deployables" : list of deployables this installable provides.
+                },
+                Installable name 2 : {},
+                ... etc for every installable ...
+            }
+        }
+
+        Please, refer to module doctring for more information.
+        """
+
+        self._toolname = toolname
+        self._deploy_info = deploy_info
+        self._spman = pman
+        self._ksrc = ksrc
+        self._lbuild = lbuild
+
+        self._close_spman = pman is None
+
+        self._cpman = None   # Process manager associated with the controller (local host).
+        self._bpman = None   # Process manager associated with the build host.
+        self._kver = None # Version of the kernel to compile the drivers for (version of 'ksrc').
+
+        self._time_delta = None
+
+        # Installables information.
+        self._insts = {}
+        # Lists of installables in every category.
+        self._cats = { cat : {} for cat in _CATEGORIES }
+
+        for name, info in self._deploy_info["installables"].items():
+            self._insts[name] = info.copy()
+            self._cats[info["category"]] = { name : info.copy()}
+
+        self._cpman = LocalProcessManager.LocalProcessManager()
+        if not self._spman:
+            self._spman = self._cpman
+
+        if self._lbuild:
+            self._bpman = self._cpman
+        else:
+            self._bpman = self._spman
+
+    def close(self):
+        """Uninitialize the object."""
+        ClassHelpers.close(self, close_attrs=("_cpman", "_spman"), unref_attrs=("_bpman",))
+
+
+class Deploy(ClassHelpers.SimpleCloseContext):
+    """
+    This module provides the 'deploy()' method which can be used for deploying the depenencies of
+    the tools of the "wult" project.
+    """
+
+    @staticmethod
+    def _get_newest_mtime(path):
+        """Find and return the most recent modification time of files in paths 'paths'."""
+
+        newest = 0
+        if not path.is_dir():
+            mtime = path.stat().st_mtime
+            if mtime > newest:
+                newest = mtime
+        else:
+            for root, _, files in os.walk(path):
+                for file in files:
+                    mtime = Path(root, file).stat().st_mtime
+                    if mtime > newest:
+                        newest = mtime
+
+        if not newest:
+            raise Error(f"no files found in the '{path}'")
+        return newest
+
+    def _get_module_path(self, name):
+        """Return path to installed module 'name'. Returns 'None', if the module was not found."""
+
+        cmd = f"modinfo -n {name}"
+        stdout, _, exitcode = self._spman.run(cmd)
+        if exitcode != 0:
+            return None
+
+        modpath = Path(stdout.strip())
+        if self._spman.is_file(modpath):
+            return modpath
+        return None
+
+    def _get_stmpdir(self):
+        """Creates a temporary directory on the SUT and returns its path."""
+
+        if not self._stmpdir:
+            self._stmpdir_created = True
+            if not self._tmpdir_path:
+                self._stmpdir = self._spman.mkdtemp(prefix=f"{self._toolname}-")
+            else:
+                self._stmpdir = self._tmpdir_path
+                try:
+                    self._spman.mkdir(self._stmpdir, parents=True, exist_ok=False)
+                except ErrorExists:
+                    self._stmpdir_created = False
+
+        return self._stmpdir
+
+    def _get_ctmpdir(self):
+        """Creates a temporary directory on the controller and returns its path."""
+
+        if not self._ctmpdir:
+            self._ctmpdir_created = True
+            if not self._tmpdir_path:
+                self._ctmpdir = self._cpman.mkdtemp(prefix=f"{self._toolname}-")
+            else:
+                self._ctmpdir = self._tmpdir_path
+                try:
+                    self._cpman.mkdir(self._ctmpdir, parents=True, exist_ok=False)
+                except ErrorExists:
+                    self._ctmpdir_created = False
+        return self._ctmpdir
+
+    def _check_minkver(self, installable):
+        """
+        Check if the SUT has new enough kernel version for 'installable' to be deployed on it. The
+        argument are as follows.
+          * installable - name of the installable to check the kernel version for.
+        """
+
+        minkver = self._insts[installable].get("minkver", None)
+        if not minkver:
+            return
+
+        if KernelVersion.kver_lt(self._kver, minkver):
+            cat_descr = _CATEGORIES[self._insts[installable]["category"]]
+            raise _ErrorKVer(f"version of Linux kernel{self._bpman.hostmsg} is {self._kver}, and "
+                             f"it is not new enough for the '{installable}' {cat_descr}.\n"
+                             f"Please, use kernel version {minkver} or newer.")
+
+    def _adjust_installables(self):
+        """
+        Adjust the list of installables that have to be deployed to the SUT based on various
+        conditions, such as kernel version.
+        """
+
+        # Python helpers need to be deployed only to a remote host. The local host should already
+        # have them:
+        #   * either deployed via 'setup.py'.
+        #   * or if running from source code, present in the source code.
+        if not self._spman.is_remote:
+            for installable in self._cats["pyhelpers"]:
+                del self._insts[installable]
+            self._cats["pyhelpers"] = {}
+
+        # Exclude installables with unsatisfied minimum kernel version requirements.
+        for installable in list(self._insts):
+            try:
+                self._check_minkver(installable)
+            except _ErrorKVer as err:
+                cat = self._insts[installable]["category"]
+                _LOG.notice(str(err))
+                _LOG.warning("the '%s' %s can't be installed", installable, _CATEGORIES[cat])
+
+                del self._insts[installable]
+                del self._cats[cat][installable]
+
+        # Either drivers or eBPF helpers are required.
+        if not self._cats["drivers"] and not self._cats["bpfhelpers"]:
+            # We have already printed the details, so we can have a short error message here.
+            raise Error("please, use newer kernel")
+
+    def _init_kernel_info(self, ksrc_required=False):
+        """
+        Discover kernel version and kernel sources path which will be needed for building the out of
+        tree drivers. The arguments are as follows.
+          * ksrc_required - if 'True', raises an exception if kernel sources were not found on the
+                            build host (the SUT in all cases, except for the 'self._lbuild=True'
+                            case).
+        """
+
+        self._kver = None
+        if not self._ksrc:
+            self._kver = KernelVersion.get_kver(pman=self._bpman)
+            with contextlib.suppress(ErrorNotFound):
+                ksrc_path = Path(f"/lib/modules/{self._kver}/build")
+                self._ksrc = self._bpman.abspath(ksrc_path)
+            if not self._ksrc and ksrc_required:
+                raise Error(f"cannot find kernel sources: '{ksrc_path}' does not "
+                            f"exist{self._bpman.hostmsg}")
+        else:
+            if not self._bpman.is_dir(self._ksrc):
+                raise Error(f"kernel sources directory '{self._ksrc}' does not "
+                            f"exist{self._bpman.hostmsg}")
+            self._ksrc = self._bpman.abspath(self._ksrc)
+            self._kver = KernelVersion.get_kver_ktree(self._ksrc, pman=self._bpman)
+
+        if self._ksrc:
+            _LOG.debug("Kernel sources path: %s", self._ksrc)
+        else:
+            _LOG.debug("Kernel sources path: not found%s", self._bpman.hostmsg)
+        _LOG.debug("Kernel version: %s", self._kver)
+
+    def _get_deployables(self, category):
+        """Yields all deployable names for catergory 'category' (e.g., "drivers")."""
+
+        for inst_info in self._cats[category].values():
+            for deployable in inst_info["deployables"]:
+                yield deployable
+
+    def _get_installed_deployable_path(self, deployable):
+        """Same as 'get_installed_helper_path()'."""
+        return get_installed_helper_path(self._spman, self._toolname, deployable)
+
+    def _deployable_not_found(self, deployable, optional=False, is_helper=True):
+        """Same as module-level '_deployable_not_found()'."""
+        _deployable_not_found(self._spman, self._toolname, deployable, optional=optional,
+                              is_helper=is_helper)
 
     def _log_cmd_output(self, stdout, stderr):
         """Print output of a command in case debugging is enabled."""
@@ -929,7 +1126,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
     def deploy(self):
         """
-        Deploy all the required material to the SUT (drivers, helpers, etc).
+        Deploy all the required installables to the SUT (drivers, helpers, etc).
 
         We distinguish between 3 type of helper programs, or just helpers: simple helpers and python
         helpers.
@@ -1033,8 +1230,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._stmpdir_created = None # Temp. directory on the SUT has been created.
         self._ctmpdir_created = None # Temp. directory on the controller has been created.
         self._kver = None # Version of the kernel to compile the drivers for (version of 'ksrc').
-
-        self._time_delta = None
         self._tchk = None
 
         # Installables information.
