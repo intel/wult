@@ -134,12 +134,7 @@ def start_command(args):
         stack.enter_context(dev)
 
         with Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, debug=args.debug) as depl:
-            if depl.is_deploy_needed(dev):
-                msg = f"'{args.toolname}' drivers are not up-to-date{pman.hostmsg}, " \
-                      f"try to run: {args.toolname} deploy"
-                if pman.is_remote:
-                    msg += f" -H {pman.hostname}"
-                _LOG.warning(msg)
+            depl.check_deployment(dev)
 
         if getattr(dev, "netif", None):
             ToolsCommon.start_command_check_network(args, pman, dev.netif)

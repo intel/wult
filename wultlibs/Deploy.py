@@ -55,16 +55,16 @@ _CATEGORIES = { "drivers"    : "kernel driver",
 class _ErrorKVer(Error):
     """An exception class indicating that SUT kernel version is not new enough."""
 
+def _get_deploy_cmd(pman, toolname):
+    """Returns the 'deploy' command suggestion string."""
+
+    cmd = f"{toolname} deploy"
+    if pman.is_remote:
+        cmd += f" -H {pman.hostname}"
+    return cmd
+
 def _deployable_not_found(pman, toolname, what, optional=False, is_helper=True):
     """Raise an exception in case a required driver or helper was not found."""
-
-    def _get_deploy_cmd(pman, toolname):
-        """Returns the 'deploy' command suggestion string."""
-
-        cmd = f"{toolname} deploy"
-        if pman.is_remote:
-            cmd += f" -H {pman.hostname}"
-        return cmd
 
     if is_helper:
         what = f"the '{what}' program"
@@ -358,7 +358,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
     methods.
 
      * 'deploy()' - deploy everything (drivers, helper programs) to the SUT.
-     * 'is_deploy_needed()' - check if re-deployment is needed.
+     * 'check_deployment()' - check if all the dependencies are deployed and up-to-date.
     """
 
     @staticmethod
@@ -523,9 +523,15 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         _deployable_not_found(self._spman, self._toolname, deployable, optional=optional,
                               is_helper=is_helper)
 
+    def _warn_deployable_out_of_date(self, deployable):
+        """Print a warning about the 'deployable' program not being up-to-date."""
+
+        _LOG.warning("the '%s' program may be out of date%s.\nConsider running '%s'",
+                     deployable, self._spman.hostmsg, _get_deploy_cmd(self._spman, self._toolname))
+
     def _add_drivers_dinfo(self, dev, dinfos):
         """
-        This is a helper method for 'is_deploy_needed()'. It build the deployables information
+        This is a helper method for 'check_deployment()'. It build the deployables information
         dictionary for drivers and adds it to 'dinfos'.
         """
 
@@ -556,7 +562,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
     def _add_helpers_dinfo(self, dev, dinfos):
         """
-        This is a helper method for 'is_deploy_needed()'. It build the deployables information for
+        This is a helper method for 'check_deployment()'. It build the deployables information for
         simple and eBPF helpers and adds them to 'dinfos'.
         """
 
@@ -593,7 +599,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
     def _add_pyhelpers_dinfo(self, dinfos):
         """
-        This is a helper method for 'is_deploy_needed()'. It build the deployables information for
+        This is a helper method for 'check_deployment()'. It build the deployables information for
         python helpers and adds them to 'dinfos'.
         """
 
@@ -632,15 +638,12 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 # Today all python helpers are optional.
                 dinfos[pyhelper] = {"src" : srcpaths, "dst" : dstpaths, "optional" : True}
 
-    def is_deploy_needed(self, dev):
+    def check_deployment(self, dev):
         """
         Wult and other tools require additional helper programs and drivers to be installed on the
-        SUT. This method tries to analyze the SUT and figure out whether the required drivers and
-        helper programs are installed on the SUT and are up-to-date. The arguments are as follows.
+        SUT. This method checks whether the required drivers and helper programs are installed on
+        the SUT and are up-to-date. The arguments are as follows.
           * dev - the delayed event device object created by 'Devices.GetDevice()'.
-
-        Returns 'True' if re-deployment is needed, and 'False' otherwise. Raises 'Error' if a
-        critical component required for the 'dev' device is not installed on the SUT at all.
         """
 
         self._init_kernel_info(ksrc_required=False)
@@ -679,6 +682,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                     src_str = ", ".join([str(path) for path in dinfo["src"]])
                     _LOG.debug("%s src time %d + %d > dst_mtime %d\nsrc: %s\ndst %s",
                                name, src_mtime, time_delta, dst_mtime, src_str, dst)
+                    self._warn_deployable_out_of_date(dst)
                     return True
 
         return False
