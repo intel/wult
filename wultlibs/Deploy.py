@@ -521,13 +521,16 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         _deployable_not_found(self._spman, self._toolname, deployable, optional=optional,
                               is_helper=is_helper)
 
-    def _warn_deployable_out_of_date(self, deployable):
-        """Print a warning about the 'deployable' program not being up-to-date."""
+    def _warn_deployable_out_of_date(self, what, is_helper=True):
+        """Print a warning about the 'what' deployable not being up-to-date."""
 
-        _LOG.warning("the '%s' program may be out of date%s.\nConsider running '%s'",
-                     deployable, self._spman.hostmsg, _get_deploy_cmd(self._spman, self._toolname))
+        if is_helper:
+            what = f"the '{what}' program"
 
-    def _check_deployable_up_to_date(self, srcpath, dstpath):
+        _LOG.warning("%s may be out of date%s, consider running '%s'",
+                     what, self._spman.hostmsg, _get_deploy_cmd(self._spman, self._toolname))
+
+    def _check_deployable_up_to_date(self, what, srcpath, dstpath, is_helper=True):
         """
         Check that a deployable at 'dstpath' on SUT is up-to-date by comparing its 'mtime' to the
         source (code) of the deployable at 'srcpath' on the controller.
@@ -547,7 +550,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if src_mtime > self._time_delta + dst_mtime:
             _LOG.debug("src mtime %d > %d + dst mtime %d\nsrc: %s\ndst %s",
                        src_mtime, self._time_delta, dst_mtime, srcpath, dstpath)
-            self._warn_deployable_out_of_date(dstpath)
+            self._warn_deployable_out_of_date(what, is_helper=is_helper)
 
     def _check_drivers_deployment(self, dev):
         """Check if drivers are deployed and up-to-date."""
@@ -570,7 +573,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 self._deployable_not_found(f"the '{deployable}' kernel module", is_helper=False)
 
             if srcpath:
-                self._check_deployable_up_to_date(srcpath, dstpath)
+                what = f"the '{deployable}' kernel driver"
+                self._check_deployable_up_to_date(what, srcpath, dstpath, is_helper=False)
 
     def _check_helpers_deployment(self, dev):
         """Check if simple and eBPF helpers are deployed and up-to-date."""
@@ -597,12 +601,12 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             for deployable in self._get_deployables("shelpers"):
                 deployable_path = self._get_installed_deployable_path(deployable)
                 if srcpath:
-                    self._check_deployable_up_to_date(srcpath, deployable_path)
+                    self._check_deployable_up_to_date(deployable, srcpath, deployable_path)
 
             for deployable in self._get_deployables("bpfhelpers"):
                 deployable_path = self._get_installed_deployable_path(deployable)
                 if srcpath:
-                    self._check_deployable_up_to_date(srcpath, deployable_path)
+                    self._check_deployable_up_to_date(deployable, srcpath, deployable_path)
 
     def _check_pyhelpers_deployment(self):
         """Check if python helpers are deployed and up-to-date."""
@@ -638,7 +642,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                     except ErrorNotFound:
                         continue
 
-                self._check_deployable_up_to_date(srcpath, deployable_path)
+                self._check_deployable_up_to_date(deployable, srcpath, deployable_path)
 
     def check_deployment(self, dev):
         """
