@@ -362,25 +362,23 @@ class Deploy(ClassHelpers.SimpleCloseContext):
     """
 
     @staticmethod
-    def _get_newest_mtime(paths):
+    def _get_newest_mtime(path):
         """Find and return the most recent modification time of files in paths 'paths'."""
 
         newest = 0
-        for path in paths:
-            if not path.is_dir():
-                mtime = path.stat().st_mtime
-                if mtime > newest:
-                    newest = mtime
-            else:
-                for root, _, files in os.walk(path):
-                    for file in files:
-                        mtime = Path(root, file).stat().st_mtime
-                        if mtime > newest:
-                            newest = mtime
+        if not path.is_dir():
+            mtime = path.stat().st_mtime
+            if mtime > newest:
+                newest = mtime
+        else:
+            for root, _, files in os.walk(path):
+                for file in files:
+                    mtime = Path(root, file).stat().st_mtime
+                    if mtime > newest:
+                        newest = mtime
 
         if not newest:
-            paths_str = "\n* ".join([str(path) for path in paths])
-            raise Error(f"no files found in the following paths:\n{paths_str}")
+            raise Error(f"no files found in the '{path}'")
         return newest
 
     def _get_module_path(self, name):
@@ -529,11 +527,30 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         _LOG.warning("the '%s' program may be out of date%s.\nConsider running '%s'",
                      deployable, self._spman.hostmsg, _get_deploy_cmd(self._spman, self._toolname))
 
-    def _add_drivers_dinfo(self, dev, dinfos):
+    def _check_deployable_up_to_date(self, srcpath, dstpath):
         """
-        This is a helper method for 'check_deployment()'. It build the deployables information
-        dictionary for drivers and adds it to 'dinfos'.
+        Check that a deployable at 'dstpath' on SUT is up-to-date by comparing its 'mtime' to the
+        source (code) of the deployable at 'srcpath' on the controller.
         """
+
+        if self._time_delta is None:
+            if self._spman.is_remote:
+                # Take into account the possible time difference between local and remote
+                # systems.
+                self._time_delta = time.time() - RemoteHelpers.time_time(pman=self._spman)
+            else:
+                self._time_delta = 0
+
+        src_mtime = self._get_newest_mtime(srcpath)
+        dst_mtime = self._spman.get_mtime(dstpath)
+
+        if src_mtime > self._time_delta + dst_mtime:
+            _LOG.debug("src mtime %d > %d + dst mtime %d\nsrc: %s\ndst %s",
+                       src_mtime, self._time_delta, dst_mtime, srcpath, dstpath)
+            self._warn_deployable_out_of_date(dstpath)
+
+    def _check_drivers_deployment(self, dev):
+        """Check if drivers are deployed and up-to-date."""
 
         if not self._cats["drivers"]:
             # This must be because SUT kernel version is not new enough.
@@ -544,27 +561,19 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         try:
             srcpath = ToolHelpers.find_project_data("wult", _DRV_SRC_SUBPATH / self._toolname,
                                                      descr=f"the '{dev.drvname}' driver")
-            srcpaths = [srcpath]
         except ErrorNotFound:
-            srcpaths = []
+            srcpath = None
 
-        dstpaths = []
         for deployable in self._get_deployables("drivers"):
             dstpath = self._get_module_path(deployable)
             if not dstpath:
                 self._deployable_not_found(f"the '{deployable}' kernel module", is_helper=False)
-            dstpaths.append(self._get_module_path(deployable))
 
-        if not dstpaths:
-            raise Error(f"BUG: nothing provides the '{dev.drvname}' driver")
+            if srcpath:
+                self._check_deployable_up_to_date(srcpath, dstpath)
 
-        dinfos["drivers"] = {"src" : srcpaths, "dst" : dstpaths, "optional" : False}
-
-    def _add_helpers_dinfo(self, dev, dinfos):
-        """
-        This is a helper method for 'check_deployment()'. It build the deployables information for
-        simple and eBPF helpers and adds them to 'dinfos'.
-        """
+    def _check_helpers_deployment(self, dev):
+        """Check if simple and eBPF helpers are deployed and up-to-date."""
 
         if dev.helpername not in self._insts:
             # This must be because SUT kernel version is not new enough.
@@ -582,26 +591,21 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 descr=f"the '{dev.helpername}' helper program"
                 srcpath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / helper,
                                                         descr=descr)
-                srcpaths = [srcpath]
             except ErrorNotFound:
-                srcpaths = []
-
-            dstpaths = []
+                srcpath = None
 
             for deployable in self._get_deployables("shelpers"):
                 deployable_path = self._get_installed_deployable_path(deployable)
-                dstpaths.append(deployable_path)
+                if srcpath:
+                    self._check_deployable_up_to_date(srcpath, deployable_path)
+
             for deployable in self._get_deployables("bpfhelpers"):
                 deployable_path = self._get_installed_deployable_path(deployable)
-                dstpaths.append(deployable_path)
+                if srcpath:
+                    self._check_deployable_up_to_date(srcpath, deployable_path)
 
-            dinfos[helper] = {"src" : srcpaths, "dst" : dstpaths, "optional" : False}
-
-    def _add_pyhelpers_dinfo(self, dinfos):
-        """
-        This is a helper method for 'check_deployment()'. It build the deployables information for
-        python helpers and adds them to 'dinfos'.
-        """
+    def _check_pyhelpers_deployment(self):
+        """Check if python helpers are deployed and up-to-date."""
 
         for pyhelper in self._cats["pyhelpers"]:
             try:
@@ -609,34 +613,32 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 datapath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / pyhelper,
                                                          descr)
             except ErrorNotFound:
-                datapath = None
-
-            srcpaths = []
-            dstpaths = []
+                continue
 
             for deployable in self._get_deployables("pyhelpers"):
-                if datapath:
-                    if datapath.joinpath(deployable).exists():
-                        # This case is relevant for running the tool from sources - python helpers
-                        # are in the 'helpers/pyhelper' directory.
-                        srcpath = datapath
-                    else:
-                        # When the tool is installed with 'pip', the python helpers go to the
-                        # "bindir", and they are not installed to the data directory.
-                        srcpath = self._cpman.which(deployable).parent
-
-                    srcpaths += _get_pyhelper_dependencies(srcpath / deployable)
-
                 try:
                     deployable_path = self._get_installed_deployable_path(deployable)
                 except ErrorNotFound:
                     self._deployable_not_found(deployable, optional=True)
                     continue
 
-                dstpaths.append(deployable_path)
+                if not datapath:
+                    continue
 
-                # Today all python helpers are optional.
-                dinfos[pyhelper] = {"src" : srcpaths, "dst" : dstpaths, "optional" : True}
+                if datapath.joinpath(deployable).exists():
+                    # This case is relevant for running the tool from sources - python helpers
+                    # are in the 'helpers/pyhelper' directory.
+                    srcpath = datapath
+                else:
+                    # When the tool is installed with 'pip', python helpers get installed, and their
+                    # sources are not avaliable in the data directory ('datapath').
+                    try:
+                        srcpath = get_installed_helper_path(self._cpman, self._toolname, deployable)
+                        srcpath = srcpath.parent
+                    except ErrorNotFound:
+                        continue
+
+                self._check_deployable_up_to_date(srcpath, deployable_path)
 
     def check_deployment(self, dev):
         """
@@ -649,43 +651,16 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._init_kernel_info(ksrc_required=False)
         self._adjust_installables()
 
-        # Strategy: first build the the deploy information dictionary 'dinfos', then check all the
-        # deployables.
-        dinfos = {}
+        self._time_delta = None
 
         if dev.drvname:
-            self._add_drivers_dinfo(dev, dinfos)
+            self._check_drivers_deployment(dev)
 
         if dev.helpername:
-            self._add_helpers_dinfo(dev, dinfos)
+            self._check_helpers_deployment(dev)
 
         if self._cats["pyhelpers"]:
-            self._add_pyhelpers_dinfo(dinfos)
-
-        time_delta = None
-        for name, dinfo in dinfos.items():
-            if not dinfo["src"]:
-                continue
-
-            for dst in dinfo["dst"]:
-                src_mtime = self._get_newest_mtime(dinfo["src"])
-                dst_mtime = self._spman.get_mtime(dst)
-
-                if time_delta is None:
-                    time_delta = 0
-                    if self._spman.is_remote:
-                        # Take into account the possible time difference between local and remote
-                        # systems.
-                        time_delta = time.time() - RemoteHelpers.time_time(pman=self._spman)
-
-                if src_mtime > time_delta + dst_mtime:
-                    src_str = ", ".join([str(path) for path in dinfo["src"]])
-                    _LOG.debug("%s src time %d + %d > dst_mtime %d\nsrc: %s\ndst %s",
-                               name, src_mtime, time_delta, dst_mtime, src_str, dst)
-                    self._warn_deployable_out_of_date(dst)
-                    return True
-
-        return False
+            self._check_pyhelpers_deployment()
 
     def _log_cmd_output(self, stdout, stderr):
         """Print output of a command in case debugging is enabled."""
@@ -1054,6 +1029,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         self._stmpdir_created = None # Temp. directory on the SUT has been created.
         self._ctmpdir_created = None # Temp. directory on the controller has been created.
         self._kver = None # Version of the kernel to compile the drivers for (version of 'ksrc').
+
+        self._time_delta = None
         self._tchk = None
 
         # Installables information.
