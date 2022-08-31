@@ -498,8 +498,9 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             #    "cpuidle" Linux kernel subsystem re-enables CPU interrupts.
 
             if self._early_intr:
-                msg = "hit a datapoint with interrupts disabled even though the early interrupts "\
-                      "feature was enabled. The datapoint is:\n%s\nDropping this datapoint\n"
+                msg = "hit a datapoint with interrupts disabled even though the early " \
+                      "interrupts feature was enabled. The datapoint is:\n%s\n" \
+                      "Dropping this and all the other datapoints like this."
                 _LOG.debug(msg, Human.dict2str(dp))
                 _LOG.warn_once(msg, Human.dict2str(dp))
                 return None
@@ -542,13 +543,12 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
             if self._drvname == "wult_tdt":
                 csname = dp["ReqCState"]
-                msg = f"The {csname} C-state has interrupts enabled and therefore, can't be "\
-                      "collected with the 'wult_tdt' driver. Use another driver for %s."
-                _LOG.debug(msg, csname)
-                _LOG.warn_once(msg, csname)
                 _LOG.debug("dropping datapoint with interrupts enabled - the 'wult_tdt' driver "
                            "does not handle them correctly. The datapoint is:\n%s",
                            Human.dict2str(dp))
+                _LOG.warn_once("the '%s' C-state has interrupts enabled and therefore, can't be "
+                               "collected with the 'wult_tdt' driver.\nDropping and all the other "
+                               "datapoints with '%s' requested C-state", csname, csname)
                 return None
 
             overhead = dp["IntrTS2"] - dp["IntrTS1"]
