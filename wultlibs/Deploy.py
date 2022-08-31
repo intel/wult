@@ -662,86 +662,6 @@ class Deploy(_DeployBase):
                     self._ctmpdir_created = False
         return self._ctmpdir
 
-    def _check_minkver(self, installable):
-        """
-        Check if the SUT has new enough kernel version for 'installable' to be deployed on it. The
-        argument are as follows.
-          * installable - name of the installable to check the kernel version for.
-        """
-
-        minkver = self._insts[installable].get("minkver", None)
-        if not minkver:
-            return
-
-        if KernelVersion.kver_lt(self._kver, minkver):
-            cat_descr = _CATEGORIES[self._insts[installable]["category"]]
-            raise _ErrorKVer(f"version of Linux kernel{self._bpman.hostmsg} is {self._kver}, and "
-                             f"it is not new enough for the '{installable}' {cat_descr}.\n"
-                             f"Please, use kernel version {minkver} or newer.")
-
-    def _adjust_installables(self):
-        """
-        Adjust the list of installables that have to be deployed to the SUT based on various
-        conditions, such as kernel version.
-        """
-
-        # Python helpers need to be deployed only to a remote host. The local host should already
-        # have them:
-        #   * either deployed via 'setup.py'.
-        #   * or if running from source code, present in the source code.
-        if not self._spman.is_remote:
-            for installable in self._cats["pyhelpers"]:
-                del self._insts[installable]
-            self._cats["pyhelpers"] = {}
-
-        # Exclude installables with unsatisfied minimum kernel version requirements.
-        for installable in list(self._insts):
-            try:
-                self._check_minkver(installable)
-            except _ErrorKVer as err:
-                cat = self._insts[installable]["category"]
-                _LOG.notice(str(err))
-                _LOG.warning("the '%s' %s can't be installed", installable, _CATEGORIES[cat])
-
-                del self._insts[installable]
-                del self._cats[cat][installable]
-
-        # Either drivers or eBPF helpers are required.
-        if not self._cats["drivers"] and not self._cats["bpfhelpers"]:
-            # We have already printed the details, so we can have a short error message here.
-            raise Error("please, use newer kernel")
-
-    def _init_kernel_info(self, ksrc_required=False):
-        """
-        Discover kernel version and kernel sources path which will be needed for building the out of
-        tree drivers. The arguments are as follows.
-          * ksrc_required - if 'True', raises an exception if kernel sources were not found on the
-                            build host (the SUT in all cases, except for the 'self._lbuild=True'
-                            case).
-        """
-
-        self._kver = None
-        if not self._ksrc:
-            self._kver = KernelVersion.get_kver(pman=self._bpman)
-            with contextlib.suppress(ErrorNotFound):
-                ksrc_path = Path(f"/lib/modules/{self._kver}/build")
-                self._ksrc = self._bpman.abspath(ksrc_path)
-            if not self._ksrc and ksrc_required:
-                raise Error(f"cannot find kernel sources: '{ksrc_path}' does not "
-                            f"exist{self._bpman.hostmsg}")
-        else:
-            if not self._bpman.is_dir(self._ksrc):
-                raise Error(f"kernel sources directory '{self._ksrc}' does not "
-                            f"exist{self._bpman.hostmsg}")
-            self._ksrc = self._bpman.abspath(self._ksrc)
-            self._kver = KernelVersion.get_kver_ktree(self._ksrc, pman=self._bpman)
-
-        if self._ksrc:
-            _LOG.debug("Kernel sources path: %s", self._ksrc)
-        else:
-            _LOG.debug("Kernel sources path: not found%s", self._bpman.hostmsg)
-        _LOG.debug("Kernel version: %s", self._kver)
-
     def _get_deployables(self, category):
         """Yields all deployable names for catergory 'category' (e.g., "drivers")."""
 
@@ -1125,6 +1045,86 @@ class Deploy(_DeployBase):
             # to the file-system (e.g., what 'depmod' modified). This may lead to subsequent boot
             # problems. So sync the file-system now.
             self._spman.run_verify("sync")
+
+    def _check_minkver(self, installable):
+        """
+        Check if the SUT has new enough kernel version for 'installable' to be deployed on it. The
+        argument are as follows.
+          * installable - name of the installable to check the kernel version for.
+        """
+
+        minkver = self._insts[installable].get("minkver", None)
+        if not minkver:
+            return
+
+        if KernelVersion.kver_lt(self._kver, minkver):
+            cat_descr = _CATEGORIES[self._insts[installable]["category"]]
+            raise _ErrorKVer(f"version of Linux kernel{self._bpman.hostmsg} is {self._kver}, and "
+                             f"it is not new enough for the '{installable}' {cat_descr}.\n"
+                             f"Please, use kernel version {minkver} or newer.")
+
+    def _adjust_installables(self):
+        """
+        Adjust the list of installables that have to be deployed to the SUT based on various
+        conditions, such as kernel version.
+        """
+
+        # Python helpers need to be deployed only to a remote host. The local host should already
+        # have them:
+        #   * either deployed via 'setup.py'.
+        #   * or if running from source code, present in the source code.
+        if not self._spman.is_remote:
+            for installable in self._cats["pyhelpers"]:
+                del self._insts[installable]
+            self._cats["pyhelpers"] = {}
+
+        # Exclude installables with unsatisfied minimum kernel version requirements.
+        for installable in list(self._insts):
+            try:
+                self._check_minkver(installable)
+            except _ErrorKVer as err:
+                cat = self._insts[installable]["category"]
+                _LOG.notice(str(err))
+                _LOG.warning("the '%s' %s can't be installed", installable, _CATEGORIES[cat])
+
+                del self._insts[installable]
+                del self._cats[cat][installable]
+
+        # Either drivers or eBPF helpers are required.
+        if not self._cats["drivers"] and not self._cats["bpfhelpers"]:
+            # We have already printed the details, so we can have a short error message here.
+            raise Error("please, use newer kernel")
+
+    def _init_kernel_info(self, ksrc_required=False):
+        """
+        Discover kernel version and kernel sources path which will be needed for building the out of
+        tree drivers. The arguments are as follows.
+          * ksrc_required - if 'True', raises an exception if kernel sources were not found on the
+                            build host (the SUT in all cases, except for the 'self._lbuild=True'
+                            case).
+        """
+
+        self._kver = None
+        if not self._ksrc:
+            self._kver = KernelVersion.get_kver(pman=self._bpman)
+            with contextlib.suppress(ErrorNotFound):
+                ksrc_path = Path(f"/lib/modules/{self._kver}/build")
+                self._ksrc = self._bpman.abspath(ksrc_path)
+            if not self._ksrc and ksrc_required:
+                raise Error(f"cannot find kernel sources: '{ksrc_path}' does not "
+                            f"exist{self._bpman.hostmsg}")
+        else:
+            if not self._bpman.is_dir(self._ksrc):
+                raise Error(f"kernel sources directory '{self._ksrc}' does not "
+                            f"exist{self._bpman.hostmsg}")
+            self._ksrc = self._bpman.abspath(self._ksrc)
+            self._kver = KernelVersion.get_kver_ktree(self._ksrc, pman=self._bpman)
+
+        if self._ksrc:
+            _LOG.debug("Kernel sources path: %s", self._ksrc)
+        else:
+            _LOG.debug("Kernel sources path: not found%s", self._bpman.hostmsg)
+        _LOG.debug("Kernel version: %s", self._kver)
 
     def deploy(self):
         """
