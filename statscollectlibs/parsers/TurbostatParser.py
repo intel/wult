@@ -149,6 +149,8 @@ def _construct_the_result(totals, cpus, nontable):
     # Additionally provide the "packages" info sorted in the (Package,Core,CPU) order.
     result["packages"] = packages = {}
     cpu_count = core_count = pkg_count = 0
+    pkgdata = {}
+    coredata = {}
 
     for cpuinfo in cpus.values():
         if "Package" not in cpuinfo:
