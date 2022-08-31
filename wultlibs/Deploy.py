@@ -1095,13 +1095,10 @@ class Deploy(_DeployBase):
             # We have already printed the details, so we can have a short error message here.
             raise Error("please, use newer kernel")
 
-    def _init_kernel_info(self, ksrc_required=False):
+    def _init_kernel_info(self):
         """
         Discover kernel version and kernel sources path which will be needed for building the out of
-        tree drivers. The arguments are as follows.
-          * ksrc_required - if 'True', raises an exception if kernel sources were not found on the
-                            build host (the SUT in all cases, except for the 'self._lbuild=True'
-                            case).
+        tree drivers.
         """
 
         self._kver = None
@@ -1110,7 +1107,7 @@ class Deploy(_DeployBase):
             with contextlib.suppress(ErrorNotFound):
                 ksrc_path = Path(f"/lib/modules/{self._kver}/build")
                 self._ksrc = self._bpman.abspath(ksrc_path)
-            if not self._ksrc and ksrc_required:
+            if not self._ksrc:
                 raise Error(f"cannot find kernel sources: '{ksrc_path}' does not "
                             f"exist{self._bpman.hostmsg}")
         else:
@@ -1140,11 +1137,9 @@ class Deploy(_DeployBase):
            python helpers is trickier because all python modules should also be deployed.
         """
 
-        ksrc_required = False
         if self._cats["drivers"] or self._cats["bpfhelpers"]:
-            ksrc_required = True
+            self._init_kernel_info()
 
-        self._init_kernel_info(ksrc_required=ksrc_required)
         self._adjust_installables()
 
         try:
