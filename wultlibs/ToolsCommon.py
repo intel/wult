@@ -492,6 +492,31 @@ def list_result_metrics(rsts):
             if metric in rst.defs.info:
                 _LOG.info("  * %s: %s", metric, rst.defs.info[metric]["title"])
 
+
+def reduce_installables(deploy_info, dev):
+    """
+    Reduce full deployment information 'deploy_info' so that it includes only the installables
+    required for using device 'dev'. The arguments are as follows.
+      * deploy_info - full deployment information dictionary. Check 'Deploy.Deploy.__init__()'
+                      docstring for the format of the dictionary.
+      * dev - the device object created by 'Devices.GetDevice()'.
+
+    Returns the reduced version of 'deploy_info'.
+    """
+
+    # Copy the original dictionary, 2 levels are enought.
+    result = {}
+    for key, value in deploy_info.items():
+        result[key] = value.copy()
+
+    for installable, info in deploy_info["installables"].items():
+        if info["category"] == "drivers" and not dev.drvname:
+            del result["installables"][installable]
+        elif info["category"] in ("shelpers", "bpfhelpers") and not dev.helpername:
+            del result["installables"][installable]
+
+    return result
+
 def start_command_reportid(args, pman):
     """
     If user provided report ID for the 'start' command, this function validates it and returns.

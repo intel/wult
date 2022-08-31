@@ -67,7 +67,8 @@ def start_command(args):
             raise ErrorNotFound(msg) from err
         stack.enter_context(dev)
 
-        with Deploy.DeployCheck(args.toolname, args.deploy_info, pman=pman) as depl:
+        deploy_info = ToolsCommon.reduce_installables(args.deploy_info, dev)
+        with Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
             depl.check_deployment(dev)
 
         ToolsCommon.start_command_check_network(args, pman, dev.netif)

@@ -333,86 +333,6 @@ class DeployCheck(_DeployBase):
             raise Error(f"no files found in the '{path}'")
         return newest
 
-    def _check_minkver(self, installable):
-        """
-        Check if the SUT has new enough kernel version for 'installable' to be deployed on it. The
-        argument are as follows.
-          * installable - name of the installable to check the kernel version for.
-        """
-
-        minkver = self._insts[installable].get("minkver", None)
-        if not minkver:
-            return
-
-        if KernelVersion.kver_lt(self._kver, minkver):
-            cat_descr = _CATEGORIES[self._insts[installable]["category"]]
-            raise _ErrorKVer(f"version of Linux kernel{self._bpman.hostmsg} is {self._kver}, and "
-                             f"it is not new enough for the '{installable}' {cat_descr}.\n"
-                             f"Please, use kernel version {minkver} or newer.")
-
-    def _adjust_installables(self):
-        """
-        Adjust the list of installables that have to be deployed to the SUT based on various
-        conditions, such as kernel version.
-        """
-
-        # Python helpers need to be deployed only to a remote host. The local host should already
-        # have them:
-        #   * either deployed via 'setup.py'.
-        #   * or if running from source code, present in the source code.
-        if not self._spman.is_remote:
-            for installable in self._cats["pyhelpers"]:
-                del self._insts[installable]
-            self._cats["pyhelpers"] = {}
-
-        # Exclude installables with unsatisfied minimum kernel version requirements.
-        for installable in list(self._insts):
-            try:
-                self._check_minkver(installable)
-            except _ErrorKVer as err:
-                cat = self._insts[installable]["category"]
-                _LOG.notice(str(err))
-                _LOG.warning("the '%s' %s can't be installed", installable, _CATEGORIES[cat])
-
-                del self._insts[installable]
-                del self._cats[cat][installable]
-
-        # Either drivers or eBPF helpers are required.
-        if not self._cats["drivers"] and not self._cats["bpfhelpers"]:
-            # We have already printed the details, so we can have a short error message here.
-            raise Error("please, use newer kernel")
-
-    def _init_kernel_info(self, ksrc_required=False):
-        """
-        Discover kernel version and kernel sources path which will be needed for building the out of
-        tree drivers. The arguments are as follows.
-          * ksrc_required - if 'True', raises an exception if kernel sources were not found on the
-                            build host (the SUT in all cases, except for the 'self._lbuild=True'
-                            case).
-        """
-
-        self._kver = None
-        if not self._ksrc:
-            self._kver = KernelVersion.get_kver(pman=self._bpman)
-            with contextlib.suppress(ErrorNotFound):
-                ksrc_path = Path(f"/lib/modules/{self._kver}/build")
-                self._ksrc = self._bpman.abspath(ksrc_path)
-            if not self._ksrc and ksrc_required:
-                raise Error(f"cannot find kernel sources: '{ksrc_path}' does not "
-                            f"exist{self._bpman.hostmsg}")
-        else:
-            if not self._bpman.is_dir(self._ksrc):
-                raise Error(f"kernel sources directory '{self._ksrc}' does not "
-                            f"exist{self._bpman.hostmsg}")
-            self._ksrc = self._bpman.abspath(self._ksrc)
-            self._kver = KernelVersion.get_kver_ktree(self._ksrc, pman=self._bpman)
-
-        if self._ksrc:
-            _LOG.debug("Kernel sources path: %s", self._ksrc)
-        else:
-            _LOG.debug("Kernel sources path: not found%s", self._bpman.hostmsg)
-        _LOG.debug("Kernel version: %s", self._kver)
-
     def _get_deployables(self, category):
         """Yields all deployable names for catergory 'category' (e.g., "drivers")."""
 
@@ -522,7 +442,7 @@ class DeployCheck(_DeployBase):
         for pyhelper in self._cats["pyhelpers"]:
             try:
                 descr=f"the '{pyhelper}' python helper program"
-                datapath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / pyhelper,
+                srcpath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / pyhelper,
                                                          descr)
             except ErrorNotFound:
                 continue
@@ -534,23 +454,8 @@ class DeployCheck(_DeployBase):
                     self._deployable_not_found(deployable, optional=True)
                     continue
 
-                if not datapath:
-                    continue
-
-                if datapath.joinpath(deployable).exists():
-                    # This case is relevant for running the tool from sources - python helpers
-                    # are in the 'helpers/pyhelper' directory.
-                    srcpath = datapath
-                else:
-                    # When the tool is installed with 'pip', python helpers get installed, and their
-                    # sources are not avaliable in the data directory ('datapath').
-                    try:
-                        srcpath = get_installed_helper_path(self._cpman, self._toolname, deployable)
-                        srcpath = srcpath.parent
-                    except ErrorNotFound:
-                        continue
-
-                self._check_deployable_up_to_date(deployable, srcpath, deployable_path)
+                if srcpath:
+                    self._check_deployable_up_to_date(deployable, srcpath, deployable_path)
 
     def check_deployment(self, dev):
         """
@@ -559,9 +464,6 @@ class DeployCheck(_DeployBase):
         the SUT and are up-to-date. The arguments are as follows.
           * dev - the delayed event device object created by 'Devices.GetDevice()'.
         """
-
-        self._init_kernel_info(ksrc_required=False)
-        self._adjust_installables()
 
         self._time_delta = None
 
@@ -574,16 +476,13 @@ class DeployCheck(_DeployBase):
         if self._cats["pyhelpers"]:
             self._check_pyhelpers_deployment()
 
-    def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False):
+    def __init__(self, toolname, deploy_info, pman=None):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool to create the deployment object for.
           * deploy_info - a dictionary describing the tool to deploy.
           * pman - the process manager object that defines the SUT to deploy to (local host by
                    default).
-          * ksrc - path to the kernel sources to compile drivers against.
-          * lbuild - by default, everything is built on the SUT, but if 'lbuild' is 'True', then
-                     everything is built on the local host.
 
         The 'deploy_info' dictionary describes the tool to deploy and its dependencies. I should
         have the following structure.
@@ -605,24 +504,7 @@ class DeployCheck(_DeployBase):
 
         super().__init__(toolname, deploy_info, pman=pman)
 
-        self._ksrc = ksrc
-        self._lbuild = lbuild
-
-        self._bpman = None   # Process manager associated with the build host.
-        self._kver = None # Version of the kernel to compile the drivers for (version of 'ksrc').
-
         self._time_delta = None
-
-        if self._lbuild:
-            self._bpman = self._cpman
-        else:
-            self._bpman = self._spman
-
-    def close(self):
-        """Uninitialize the object."""
-
-        ClassHelpers.close(self, close_attrs=("_cpman",), unref_attrs=("_bpman",))
-        super().close()
 
 
 class Deploy(_DeployBase):
