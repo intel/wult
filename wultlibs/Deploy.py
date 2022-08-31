@@ -750,7 +750,19 @@ class Deploy(_DeployBase):
         """Build 'libbpf.a' in the kernel sources."""
 
         cmd = f"make -C '{self._ksrc}/tools/lib/bpf'"
-        self._bpman.run_verify(cmd)
+
+        try:
+            self._bpman.run_verify(cmd)
+        except Error as err:
+            if "libelf.h: No such file or directory" in str(err):
+                msg = f"The 'libelf' library is not installed{self._bpman.hostmsg}."
+
+                pkgname = self._tchk.tool_to_pkg("libelf.h")
+                if pkgname:
+                    msg += f"\nTry to install OS package '{pkgname}'."
+
+                raise ErrorNotFound(f"{err}\n\n{msg}") from err
+            raise
 
     def _prepare_bpfhelpers(self, helpersrc):
         """
@@ -768,10 +780,8 @@ class Deploy(_DeployBase):
 
         if self._rebuild_bpf:
             # In order to compile the eBPF components of eBPF helpers, the build host must have
-            # 'bpftool' and 'clang' available.
-
-            # Check for the tools called from 'Makefile' here, in order to generate a user-friendly
-            # message if one of them is not installed.
+            # 'bpftool' and 'clang' available. These tools are used from the 'Makefile'. Let's check
+            # for themin order to generate a user-friendly message if one of them is not installed.
             bpftool_path = self._tchk.check_tool("bpftool")
             clang_path = self._tchk.check_tool("clang")
 
