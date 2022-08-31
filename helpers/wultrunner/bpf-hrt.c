@@ -55,6 +55,8 @@ static struct bpf_event data;
 static u64 ltime;
 static u32 ldist;
 static bool timer_armed;
+static bool capture_timer_id;
+static void *timer_id;
 
 static u64 perf_counters[WULTRUNNER_NUM_PERF_COUNTERS];
 
@@ -115,9 +117,12 @@ static void bpf_hrt_send_event(void)
 	 * may be populated in different order if we are running
 	 * an idle state with interrupts enabled/disabled
 	 */
-	if (!data.tai || !data.tintr || !data.tbi ||
-	    data.tai <= data.ltime || data.tbi >= data.ltime)
+	if (!data.tai || !data.tintr || !data.tbi)
 		return;
+
+	if (data.tbi >= data.ltime || data.tintr <= data.ltime ||
+	    data.tai <= data.ltime)
+		goto cleanup;
 
 	e = bpf_ringbuf_reserve(&events, sizeof(*e), 0);
 	if (!e) {
@@ -141,6 +146,7 @@ static void bpf_hrt_send_event(void)
 
 	bpf_ringbuf_submit(e, 0);
 
+cleanup:
 	data.tbi = 0;
 	data.tai = 0;
 	data.tintr = 0;
@@ -170,9 +176,9 @@ int bpf_hrt_kick_timer(void)
 
 	debug_printk("kick_timer: ldist=%d, cpu=%d", ldist, cpu_id);
 
-	ltime = bpf_ktime_get_boot_ns() + ldist;
-
 	bpf_timer_start(timer, ldist, 0);
+
+	ltime = bpf_ktime_get_boot_ns() + ldist;
 
 	timer_armed = true;
 
@@ -220,9 +226,7 @@ static int bpf_hrt_timer_cb(void *map, int *key, struct bpf_timer *timer)
 	timer_armed = false;
 
 	if (data.tbi) {
-		data.tintr = bpf_ktime_get_boot_ns();
-		data.intrts1 = data.tintr;
-		data.intrts2 = data.tintr;
+		data.intrts2 = bpf_ktime_get_boot_ns();
 		data.ldist = ldist;
 		data.ltime = ltime;
 		/*
@@ -255,11 +259,38 @@ int bpf_hrt_start_timer(struct bpf_args *args)
 	if (!timer)
 		return -2; /* ENOENT */
 
+	capture_timer_id = true;
+
 	bpf_timer_init(timer, &timers, CLOCK_MONOTONIC);
+
+	capture_timer_id = false;
 
 	bpf_timer_set_callback(timer, bpf_hrt_timer_cb);
 
 	bpf_hrt_kick_timer();
+
+	return 0;
+}
+
+SEC("tp_btf/hrtimer_init")
+int BPF_PROG(bpf_hrt_timer_init, void *timer)
+{
+	if (capture_timer_id)
+		timer_id = timer;
+
+	return 0;
+}
+
+SEC("tp_btf/hrtimer_expire_entry")
+int BPF_PROG(bpf_hrt_timer_expire_entry, void *timer, void *now)
+{
+	if (timer == timer_id && data.tbi) {
+		data.intrts1 = bpf_ktime_get_boot_ns();
+		data.tintr = data.intrts1;
+		if (data.tai)
+			bpf_hrt_snapshot_perf_vars(true);
+		data.intrc = bpf_hrt_read_tsc();
+	}
 
 	return 0;
 }
@@ -280,7 +311,8 @@ int BPF_PROG(bpf_hrt_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 			data.tai = t;
 			data.aits1 = data.tai;
 
-			bpf_hrt_snapshot_perf_vars(true);
+			if (data.tintr)
+				bpf_hrt_snapshot_perf_vars(true);
 
 			data.aic = bpf_hrt_read_tsc();
 

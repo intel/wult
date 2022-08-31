@@ -54,6 +54,7 @@ enum {
  * @tintr: time for interrupt execution start
  * @bic: cycles before idle
  * @aic: cycles after idle
+ * @intrc: cycles at interrupt handler
  * @aits1: time after idle #1
  * @aits2: time after idle #2
  * @intrts1: time at hrtimer interrupt #1
@@ -70,6 +71,7 @@ struct bpf_event {
 	u64 tintr;
 	u64 bic;
 	u64 aic;
+	u64 intrc;
 	u64 aits1;
 	u64 aits2;
 	u64 intrts1;

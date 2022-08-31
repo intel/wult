@@ -233,15 +233,22 @@ static int handle_rb_event(void *ctx, void *data, size_t sz)
 {
 	const struct bpf_event *e = data;
 	int i;
+	u64 totcyc;
 
 	/* Ping just wakes us up, do nothing. */
 	if (e->type == HRT_EVENT_PING)
 		return 0;
 
+	/* Calculate total cycles */
+	if (e->aic > e->intrc)
+		totcyc = e->aic - e->bic;
+	else
+		totcyc = e->intrc - e->bic;
+
 	printf("%lu,%d,%d,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,",
-		e->ltime, e->ldist, e->req_cstate, e->tbi, e->tai, e->tintr,
-		e->aits1, e->aits2, e->intrts1, e->intrts2,
-		e->aic - e->bic, e->perf_counters[MSR_SMI],
+		e->ltime, e->ldist, e->req_cstate, e->tbi, e->tai,
+		e->tintr, e->aits1, e->aits2, e->intrts1, e->intrts2,
+		totcyc, e->perf_counters[MSR_SMI],
 		e->perf_counters[MSR_MPERF]);
 
 	/*
@@ -395,6 +402,22 @@ int main(int argc, char **argv)
 		bpf_program__attach(skel->progs.bpf_hrt_cpu_idle);
 	if (!skel->links.bpf_hrt_cpu_idle) {
 		errmsg("BPF program attach failed for cpu_idle");
+		err = 1;
+		goto cleanup;
+	}
+
+	skel->links.bpf_hrt_timer_init =
+		bpf_program__attach(skel->progs.bpf_hrt_timer_init);
+	if (!skel->links.bpf_hrt_timer_init) {
+		errmsg("BPF program attach failed for timer_init");
+		err = 1;
+		goto cleanup;
+	}
+
+	skel->links.bpf_hrt_timer_expire_entry =
+		bpf_program__attach(skel->progs.bpf_hrt_timer_expire_entry);
+	if (!skel->links.bpf_hrt_timer_expire_entry) {
+		errmsg("BPF program attach failed for timer_expire_entry");
 		err = 1;
 		goto cleanup;
 	}
