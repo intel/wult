@@ -788,10 +788,12 @@ class Deploy(_DeployBase):
         try:
             libbpf_path = self._get_libbpf_path()
         except ErrorNotFound as find_err:
+            _LOG.notice("'libbpf.a' was not found, trying to compile it")
             try:
                 self._build_libbpf()
             except Error as build_err:
-                raise Error(f"{build_err}\n{find_err}") from build_err
+                raise Error(f"at first, 'libbpf.a' was not found:\n{find_err}\n\n"
+                            f"Then we tried to build it, but failed:\n{build_err}") from build_err
             libbpf_path = self._get_libbpf_path()
 
         # Build eBPF helpers.
