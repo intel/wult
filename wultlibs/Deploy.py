@@ -152,7 +152,8 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
     """
     Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
       * toolname - name of the tool to add the 'deploy' command for.
-      * deploy_info - a dictionary describing the tool to deploy, same as in 'Deploy.__init__()'.
+      * deploy_info - a dictionary describing the tool to deploy, same as in
+                      '_DeployBase.__init__()'.
       * subparsers - the 'argparse' subparsers to add the 'deploy' command to.
       * func - the 'deploy' command handling function.
       * argcomplete - optional 'argcomplete' command-line arguments completer object.
@@ -238,7 +239,67 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
     parser.set_defaults(func=func)
     return parser
 
-class DeployCheck(ClassHelpers.SimpleCloseContext):
+class _DeployBase(ClassHelpers.SimpleCloseContext):
+    """
+    The base class for 'Deploy' and 'DeployCheck' classes. Contains the common bits and pieces.
+    """
+
+    def _get_module_path(self, name):
+        """Return path to installed module 'name'. Returns 'None', if the module was not found."""
+
+        cmd = f"modinfo -n {name}"
+        stdout, _, exitcode = self._spman.run(cmd)
+        if exitcode != 0:
+            return None
+
+        modpath = Path(stdout.strip())
+        if self._spman.is_file(modpath):
+            return modpath
+        return None
+
+    def __init__(self, toolname, deploy_info, pman=None):
+        """
+        The class constructor. The arguments are as follows.
+          * toolname - name of the tool to create the deployment object for.
+          * deploy_info - a dictionary describing the tool to deploy.
+          * pman - the process manager object that defines the SUT to deploy to (local host by
+                   default).
+
+        The 'deploy_info' dictionary describes the tool to deploy and its dependencies. I should
+        have the following structure.
+
+        {
+            "installables" : {
+                Installable name 1 : {
+                    "category" : category name of the installable ("driver", "shelper", etc).
+                    "minkver"  : minimum SUT kernel version required for the installable.
+                    "deployables" : list of deployables this installable provides.
+                },
+                Installable name 2 : {},
+                ... etc for every installable ...
+            }
+        }
+
+        Please, refer to module doctring for more information.
+        """
+
+        self._toolname = toolname
+        self._deploy_info = deploy_info
+        self._spman = pman
+
+        self._close_spman = pman is None
+
+        self._cpman = None # Process manager associated with the controller (local host).
+
+        self._cpman = LocalProcessManager.LocalProcessManager()
+        if not self._spman:
+            self._spman = self._cpman
+
+    def close(self):
+        """Uninitialize the object."""
+        ClassHelpers.close(self, close_attrs=("_spman"))
+
+class DeployCheck(_DeployBase):
     """
     This module provides the 'check_deployment()' method which can be used for verifying whether all
     the required installables are available on the SUT.
@@ -263,19 +324,6 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         if not newest:
             raise Error(f"no files found in the '{path}'")
         return newest
-
-    def _get_module_path(self, name):
-        """Return path to installed module 'name'. Returns 'None', if the module was not found."""
-
-        cmd = f"modinfo -n {name}"
-        stdout, _, exitcode = self._spman.run(cmd)
-        if exitcode != 0:
-            return None
-
-        modpath = Path(stdout.strip())
-        if self._spman.is_file(modpath):
-            return modpath
-        return None
 
     def _check_minkver(self, installable):
         """
@@ -547,15 +595,11 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         Please, refer to module doctring for more information.
         """
 
-        self._toolname = toolname
-        self._deploy_info = deploy_info
-        self._spman = pman
+        super().__init__(toolname, deploy_info, pman=pman)
+
         self._ksrc = ksrc
         self._lbuild = lbuild
 
-        self._close_spman = pman is None
-
-        self._cpman = None   # Process manager associated with the controller (local host).
         self._bpman = None   # Process manager associated with the build host.
         self._kver = None # Version of the kernel to compile the drivers for (version of 'ksrc').
 
@@ -570,10 +614,6 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
             self._insts[name] = info.copy()
             self._cats[info["category"]] = { name : info.copy()}
 
-        self._cpman = LocalProcessManager.LocalProcessManager()
-        if not self._spman:
-            self._spman = self._cpman
-
         if self._lbuild:
             self._bpman = self._cpman
         else:
@@ -581,27 +621,16 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
 
     def close(self):
         """Uninitialize the object."""
-        ClassHelpers.close(self, close_attrs=("_cpman", "_spman"), unref_attrs=("_bpman",))
+
+        ClassHelpers.close(self, close_attrs=("_cpman",), unref_attrs=("_bpman",))
+        super().close()
 
 
-class Deploy(ClassHelpers.SimpleCloseContext):
+class Deploy(_DeployBase):
     """
     This module provides the 'deploy()' method which can be used for deploying the depenencies of
     the tools of the "wult" project.
     """
-
-    def _get_module_path(self, name):
-        """Return path to installed module 'name'. Returns 'None', if the module was not found."""
-
-        cmd = f"modinfo -n {name}"
-        stdout, _, exitcode = self._spman.run(cmd)
-        if exitcode != 0:
-            return None
-
-        modpath = Path(stdout.strip())
-        if self._spman.is_file(modpath):
-            return modpath
-        return None
 
     def _get_stmpdir(self):
         """Creates a temporary directory on the SUT and returns its path."""
@@ -1149,7 +1178,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool to create the deployment object for.
-          * deploy_info - a dictionary describing the tool to deploy.
+          * deploy_info - a dictionary describing the tool to deploy. Check '_DeployBase.__init__()'
+                          for more information.
           * pman - the process manager object that defines the SUT to deploy to (local host by
                    default).
           * ksrc - path to the kernel sources to compile drivers against.
@@ -1163,28 +1193,10 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                           not remove it.
           * debug - if 'True', be more verbose and do not remove the temporary directories in case
                     of a failure.
-
-        The 'deploy_info' dictionary describes the tool to deploy and its dependencies. I should
-        have the following structure.
-
-        {
-            "installables" : {
-                Installable name 1 : {
-                    "category" : category name of the installable ("driver", "shelper", etc).
-                    "minkver"  : minimum SUT kernel version required for the installable.
-                    "deployables" : list of deployables this installable provides.
-                },
-                Installable name 2 : {},
-                ... etc for every installable ...
-            }
-        }
-
-        Please, refer to module doctring for more information.
         """
 
-        self._toolname = toolname
-        self._deploy_info = deploy_info
-        self._spman = pman
+        super().__init__(toolname, deploy_info, pman=pman)
+
         self._ksrc = ksrc
         self._lbuild = lbuild
         self._rebuild_bpf = rebuild_bpf
@@ -1194,9 +1206,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         if self._tmpdir_path:
             self._tmpdir_path = Path(self._tmpdir_path)
-        self._close_spman = pman is None
 
-        self._cpman = None   # Process manager associated with the controller (local host).
         self._bpman = None   # Process manager associated with the build host.
         self._stmpdir = None # Temporary directory on the SUT.
         self._ctmpdir = None # Temporary directory on the controller (local host).
@@ -1214,10 +1224,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         for name, info in self._deploy_info["installables"].items():
             self._insts[name] = info.copy()
             self._cats[info["category"]] = { name : info.copy()}
-
-        self._cpman = LocalProcessManager.LocalProcessManager()
-        if not self._spman:
-            self._spman = self._cpman
 
         if self._lbuild:
             self._bpman = self._cpman
@@ -1251,4 +1257,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
     def close(self):
         """Uninitialize the object."""
-        ClassHelpers.close(self, close_attrs=("_tchk", "_cpman", "_spman"), unref_attrs=("_bpman",))
+
+        ClassHelpers.close(self, close_attrs=("_tchk", "_cpman"), unref_attrs=("_bpman",))
+        super().close()
