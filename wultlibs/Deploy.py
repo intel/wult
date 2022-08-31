@@ -590,26 +590,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
     the tools of the "wult" project.
     """
 
-    @staticmethod
-    def _get_newest_mtime(path):
-        """Find and return the most recent modification time of files in paths 'paths'."""
-
-        newest = 0
-        if not path.is_dir():
-            mtime = path.stat().st_mtime
-            if mtime > newest:
-                newest = mtime
-        else:
-            for root, _, files in os.walk(path):
-                for file in files:
-                    mtime = Path(root, file).stat().st_mtime
-                    if mtime > newest:
-                        newest = mtime
-
-        if not newest:
-            raise Error(f"no files found in the '{path}'")
-        return newest
-
     def _get_module_path(self, name):
         """Return path to installed module 'name'. Returns 'None', if the module was not found."""
 
@@ -740,15 +720,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         for inst_info in self._cats[category].values():
             for deployable in inst_info["deployables"]:
                 yield deployable
-
-    def _get_installed_deployable_path(self, deployable):
-        """Same as 'get_installed_helper_path()'."""
-        return get_installed_helper_path(self._spman, self._toolname, deployable)
-
-    def _deployable_not_found(self, deployable, optional=False, is_helper=True):
-        """Same as module-level '_deployable_not_found()'."""
-        _deployable_not_found(self._spman, self._toolname, deployable, optional=optional,
-                              is_helper=is_helper)
 
     def _log_cmd_output(self, stdout, stderr):
         """Print output of a command in case debugging is enabled."""
