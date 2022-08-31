@@ -383,16 +383,25 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             dp[field] = dp[cyc_field] / dp["TotCyc"] * 100.0
 
             if dp[field] > 100:
-                loglevel = logging.DEBUG
+                csname = WultDefs.get_csname(field)
+                msg = f"too high '{csname}' C-state residency of {dp[field]:.1f}% for the " \
+                      f"following datapoint:\n{Human.dict2str(dp)}"
+
                 # Sometimes C-state residency counters are not precise, especially during short
                 # sleep times. Warn only about too large percentage.
-                if dp[field] > 300:
-                    loglevel = logging.WARNING
-
-                csname = WultDefs.get_csname(field)
-                _LOG.log(loglevel, "too high %s residency of %.1f%%, using 100%% instead. The "
-                                   "datapoint is:\n%s", csname, dp[field], Human.dict2str(dp))
-                dp[field] = 100.0
+                if dp[field] < 300:
+                    msg = f"{msg}\nAdjusting the residency to 100% for this and all other " \
+                          f"datapoints with {csname} residency greater than 100%, but smaller " \
+                          f"than 300%."
+                    _LOG.debug(msg)
+                    _LOG.warn_once(msg)
+                    dp[field] = 100.0
+                else:
+                    msg = f"{msg}\nDropping this and all other datapoints with {csname} " \
+                          f"residency greater than 300%"
+                    _LOG.debug(msg)
+                    _LOG.warn_once(msg)
+                    return None
 
         if self._has_cstates and not self._is_poll_idle(dp):
             # Populate 'CC1Derived%' - the software-calculated CC1 residency, which is useful to
@@ -411,6 +420,8 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
                 dp["CC1Derived%"] = 0
         else:
             dp["CC1Derived%"] = 0
+
+        return dp
 
     @staticmethod
     def _apply_time_adjustments(dp):
@@ -600,7 +611,9 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             return None
 
         # Add and validated C-state related fields.
-        self._process_cstates(dp)
+        dp = self._process_cstates(dp)
+        if not dp:
+            return None
 
         # Some raw datapoint values are in nanoseconds, but we need them to be in microseconds.
         # Save time in microseconds.
