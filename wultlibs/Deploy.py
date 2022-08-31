@@ -238,119 +238,6 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
     parser.set_defaults(func=func)
     return parser
 
-def _get_pyhelper_dependencies(script_path):
-    """
-    Find and return a python helper script (pyhelper) dependencies. An example of such a dependency
-    would be:
-        /usr/lib/python3.9/site-packages/helperlibs/Trivial.py
-    """
-
-    # All pyhelpers implement the '--print-module-paths' option, which prints the dependencies.
-    cmd = f"{script_path} --print-module-paths"
-    with LocalProcessManager.LocalProcessManager() as lpman:
-        stdout, _ = lpman.run_verify(cmd)
-    return [Path(path) for path in stdout.splitlines()]
-
-def _create_standalone_pyhelper(pyhelper_path, outdir):
-    """
-    Create a standalone version of a python program. The arguments are as follows.
-      * pyhelper_path - path to the python helper program on the local system. This method will
-                        execute it on with the '--print-module-paths' option, which this it is
-                        supposed to support. This option will provide the list of modules the python
-                        helper program depends on.
-      * outdir - path to the output directory. The standalone version of the script will be saved in
-                 this directory under the "'pyhelper'.standalone" name.
-    """
-
-    import zipfile # pylint: disable=import-outside-toplevel
-
-    pyhelper = pyhelper_path.name
-
-    deps = _get_pyhelper_dependencies(pyhelper_path)
-
-    # Create an empty '__init__.py' file. We will be adding it to the sub-directories of the
-    # dependencies. For example, if one of the dependencies is 'helperlibs/Trivial.py', we'll have
-    # to add '__init__.py' to 'wultlibs/' and 'helperlibs'.
-    init_path = outdir / "__init__.py"
-    try:
-        with init_path.open("w+"):
-            pass
-    except OSError as err:
-        raise Error(f"failed to create file '{init_path}:\n{err}'") from None
-
-    try:
-        # pylint: disable=consider-using-with
-        fobj = zipobj = None
-
-        # Start creating the stand-alone version of the python helper script: create an empty
-        # file and write # python shebang there.
-        standalone_path = outdir / f"{pyhelper}.standalone"
-        try:
-            fobj = standalone_path.open("bw+")
-            fobj.write("#!/usr/bin/python3\n".encode("utf8"))
-        except OSError as err:
-            raise Error(f"failed to create and initialize file '{standalone_path}:\n{err}") from err
-
-        # Create a zip archive in the 'standalone_path' file. The idea is that this file will start
-        # with python shebang, and then include compressed version the script and its dependencies.
-        # Python interpreter is smart and can run such zip archives.
-        try:
-            zipobj = zipfile.ZipFile(fobj, "w", compression=zipfile.ZIP_DEFLATED)
-        except Exception as err:
-            raise Error(f"failed to initialize a zip archive from file "
-                        f"'{standalone_path}':\n{err}") from err
-
-        # Make 'zipobj' raises exceptions of type 'Error', so that we do not have to wrap every
-        # 'zipobj' operation into 'try/except'.
-        zipobj = ClassHelpers.WrapExceptions(zipobj)
-
-        # Put the python helper script to the archive under the '__main__.py' name.
-        zipobj.write(pyhelper_path, arcname="./__main__.py")
-
-        pkgdirs = set()
-
-        for src in deps:
-            # Form the destination path. It is just part of the source path staring from the
-            # 'statscollectlibs' of 'helperlibs' components.
-            try:
-                idx = src.parts.index("statscollectlibs")
-            except ValueError:
-                try:
-                    idx = src.parts.index("helperlibs")
-                except ValueError:
-                    raise Error(f"python helper script '{pyhelper}' has bad dependency '{src}' - "
-                                f"the path does not have the 'statscollectlibs' or 'helperlibs' "
-                                f"component in it.") from None
-
-            dst = Path(*src.parts[idx:])
-            zipobj.write(src, arcname=dst)
-
-            # Collect all directory paths present in the dependencies. They are all python
-            # packages and we'll have to ensure we have the '__init__.py' file in each of the
-            # sub-directory.
-            pkgdir = dst.parent
-            for idx, _ in enumerate(pkgdir.parts):
-                pkgdirs.add(Path(*pkgdir.parts[:idx+1]))
-
-        # Ensure the '__init__.py' file is present in all sub-directories.
-        zipped_files = {Path(name) for name in zipobj.namelist()}
-        for pkgdir in pkgdirs:
-            path = pkgdir / "__init__.py"
-            if path not in zipped_files:
-                zipobj.write(init_path, arcname=pkgdir / "__init__.py")
-    finally:
-        if zipobj:
-            zipobj.close()
-        if fobj:
-            fobj.close()
-
-    # Make the standalone file executable.
-    try:
-        mode = standalone_path.stat().st_mode | 0o777
-        standalone_path.chmod(mode)
-    except OSError as err:
-        raise Error(f"cannot change '{standalone_path}' file mode to {oct(mode)}:\n{err}") from err
-
 class DeployCheck(ClassHelpers.SimpleCloseContext):
     """
     This module provides the 'check_deployment()' method which can be used for verifying whether all
@@ -893,6 +780,122 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             stdout, stderr = self._bpman.run_verify(f"make -C '{helperpath}'")
             self._log_cmd_output(stdout, stderr)
 
+    @staticmethod
+    def _get_pyhelper_dependencies(script_path):
+        """
+        Find and return a python helper script (pyhelper) dependencies. An example of such a
+        dependency would be:
+            /usr/lib/python3.9/site-packages/helperlibs/Trivial.py
+        """
+
+        # All pyhelpers implement the '--print-module-paths' option, which prints the dependencies.
+        cmd = f"{script_path} --print-module-paths"
+        with LocalProcessManager.LocalProcessManager() as lpman:
+            stdout, _ = lpman.run_verify(cmd)
+        return [Path(path) for path in stdout.splitlines()]
+
+    def _create_standalone_pyhelper(self, pyhelper_path, outdir):
+        """
+        Create a standalone version of a python program. The arguments are as follows.
+          * pyhelper_path - path to the python helper program on the local system. This method will
+                            execute it on with the '--print-module-paths' option, which this it is
+                            supposed to support. This option will provide the list of modules the
+                            python helper program depends on.
+          * outdir - path to the output directory. The standalone version of the script will be
+                     saved in this directory under the "'pyhelper'.standalone" name.
+        """
+
+        import zipfile # pylint: disable=import-outside-toplevel
+
+        pyhelper = pyhelper_path.name
+
+        deps = self._get_pyhelper_dependencies(pyhelper_path)
+
+        # Create an empty '__init__.py' file. We will be adding it to the sub-directories of the
+        # dependencies. For example, if one of the dependencies is 'helperlibs/Trivial.py', we'll
+        # have to add '__init__.py' to 'wultlibs/' and 'helperlibs'.
+        init_path = outdir / "__init__.py"
+        try:
+            with init_path.open("w+"):
+                pass
+        except OSError as err:
+            raise Error(f"failed to create file '{init_path}:\n{err}'") from None
+
+        try:
+            # pylint: disable=consider-using-with
+            fobj = zipobj = None
+
+            # Start creating the stand-alone version of the python helper script: create an empty
+            # file and write # python shebang there.
+            standalone_path = outdir / f"{pyhelper}.standalone"
+            try:
+                fobj = standalone_path.open("bw+")
+                fobj.write("#!/usr/bin/python3\n".encode("utf8"))
+            except OSError as err:
+                raise Error(f"failed to create and initialize file '{standalone_path}:\n"
+                            f"{err}") from err
+
+            # Create a zip archive in the 'standalone_path' file. The idea is that this file will
+            # start with python shebang, and then include compressed version the script and its
+            # dependencies. Python interpreter is smart and can run such zip archives.
+            try:
+                zipobj = zipfile.ZipFile(fobj, "w", compression=zipfile.ZIP_DEFLATED)
+            except Exception as err:
+                raise Error(f"failed to initialize a zip archive from file "
+                            f"'{standalone_path}':\n{err}") from err
+
+            # Make 'zipobj' raises exceptions of type 'Error', so that we do not have to wrap every
+            # 'zipobj' operation into 'try/except'.
+            zipobj = ClassHelpers.WrapExceptions(zipobj)
+
+            # Put the python helper script to the archive under the '__main__.py' name.
+            zipobj.write(pyhelper_path, arcname="./__main__.py")
+
+            pkgdirs = set()
+
+            for src in deps:
+                # Form the destination path. It is just part of the source path staring from the
+                # 'statscollectlibs' of 'helperlibs' components.
+                try:
+                    idx = src.parts.index("statscollectlibs")
+                except ValueError:
+                    try:
+                        idx = src.parts.index("helperlibs")
+                    except ValueError:
+                        raise Error(f"python helper script '{pyhelper}' has bad dependency '{src}' "
+                                    f"- the path does not have the 'statscollectlibs' or "
+                                    f"'helperlibs' component in it.") from None
+
+                dst = Path(*src.parts[idx:])
+                zipobj.write(src, arcname=dst)
+
+                # Collect all directory paths present in the dependencies. They are all python
+                # packages and we'll have to ensure we have the '__init__.py' file in each of the
+                # sub-directory.
+                pkgdir = dst.parent
+                for idx, _ in enumerate(pkgdir.parts):
+                    pkgdirs.add(Path(*pkgdir.parts[:idx+1]))
+
+            # Ensure the '__init__.py' file is present in all sub-directories.
+            zipped_files = {Path(name) for name in zipobj.namelist()}
+            for pkgdir in pkgdirs:
+                path = pkgdir / "__init__.py"
+                if path not in zipped_files:
+                    zipobj.write(init_path, arcname=pkgdir / "__init__.py")
+        finally:
+            if zipobj:
+                zipobj.close()
+            if fobj:
+                fobj.close()
+
+        # Make the standalone file executable.
+        try:
+            mode = standalone_path.stat().st_mode | 0o777
+            standalone_path.chmod(mode)
+        except OSError as err:
+            raise Error(f"cannot change '{standalone_path}' file mode to {oct(mode)}:\n"
+                        f"{err}") from err
+
     def _prepare_pyhelpers(self, helpersrc):
         """
         Build and prepare python helpers for deployment. The arguments are as follows:
@@ -913,7 +916,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             basedir = ctmpdir / pyhelper
             for deployable in self._get_deployables("pyhelpers"):
                 local_path = _find_pyhelper_path(pyhelper, deployable=deployable)
-                _create_standalone_pyhelper(local_path, basedir)
+                self._create_standalone_pyhelper(local_path, basedir)
 
         # And copy the "standalone-ized" version of python helpers to the SUT.
         if self._spman.is_remote:
