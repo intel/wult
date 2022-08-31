@@ -290,10 +290,18 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
         self._close_spman = pman is None
 
         self._cpman = None # Process manager associated with the controller (local host).
+        self._insts = {}   # Installables information.
+        self._cats = {}    # Lists of installables in every category.
 
         self._cpman = LocalProcessManager.LocalProcessManager()
         if not self._spman:
             self._spman = self._cpman
+
+        # Initialize installables and categories dictionaries.
+        self._cats = { cat : {} for cat in _CATEGORIES }
+        for name, info in self._deploy_info["installables"].items():
+            self._insts[name] = info.copy()
+            self._cats[info["category"]] = { name : info.copy()}
 
     def close(self):
         """Uninitialize the object."""
@@ -604,15 +612,6 @@ class DeployCheck(_DeployBase):
         self._kver = None # Version of the kernel to compile the drivers for (version of 'ksrc').
 
         self._time_delta = None
-
-        # Installables information.
-        self._insts = {}
-        # Lists of installables in every category.
-        self._cats = { cat : {} for cat in _CATEGORIES }
-
-        for name, info in self._deploy_info["installables"].items():
-            self._insts[name] = info.copy()
-            self._cats[info["category"]] = { name : info.copy()}
 
         if self._lbuild:
             self._bpman = self._cpman
@@ -1215,15 +1214,6 @@ class Deploy(_DeployBase):
         self._ctmpdir_created = None # Temp. directory on the controller has been created.
         self._kver = None # Version of the kernel to compile the drivers for (version of 'ksrc').
         self._tchk = None
-
-        # Installables information.
-        self._insts = {}
-        # Lists of installables in every category.
-        self._cats = { cat : {} for cat in _CATEGORIES }
-
-        for name, info in self._deploy_info["installables"].items():
-            self._insts[name] = info.copy()
-            self._cats[info["category"]] = { name : info.copy()}
 
         if self._lbuild:
             self._bpman = self._cpman
