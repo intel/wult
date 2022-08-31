@@ -3,11 +3,18 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.25] - ADD DATE HERE
+## [1.10.26] - ADD DATE HERE
 ### Fixed
 ### Added
 ### Removed
 ### Changed
+
+## [1.10.25] - 2022-08-31
+### Fixed
+### Added
+### Removed
+### Changed
+ - Reworked the deployment code to better support RPM packaging.
 
 ## [1.10.24] - 2022-08-29
 ### Fixed
