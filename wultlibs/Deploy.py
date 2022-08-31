@@ -70,7 +70,10 @@ def _deployable_not_found(pman, toolname, what, optional=False, is_helper=True):
         what = f"the '{what}' program"
 
     err = f"{what} was not found{pman.hostmsg}"
-    if is_helper and not optional:
+    if not is_helper:
+        if not optional:
+            err += f", consider running '{_get_deploy_cmd(pman, toolname)}'"
+    else:
         err += f".\nHere are the options to try.\n" \
                f"* Run '{_get_deploy_cmd(pman, toolname)}'.\n" \
                f"* Ensure that {what} is in 'PATH'{pman.hostmsg}.\n" \
