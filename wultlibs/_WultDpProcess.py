@@ -367,9 +367,17 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         # The driver takes TSC and MPERF counters so that the MPERF interval is inside the
         # TSC interval, so delta TSC (total cycles) is expected to be always greater than
         # delta MPERF (C0 cycles).
+        #
+        # However, we observed that on some platforms we still get smaller total cycles, and we do
+        # not know why. May be this is related to instructions re-ordering. This is why we only
+        # warn, instead of raising an error.
         if dp["TotCyc"] < dp["CC0Cyc"]:
-            raise Error(f"total cycles is smaller than CC0 cycles, the raw datapoint is:\n"
-                        f"{Human.dict2str(dp)}")
+            msg = f"total cycles is smaller than CC0 cycles for the following datapoint:\n" \
+                  f"{Human.dict2str(dp)}\nWe are not sure why this happens, but we observed " \
+                  f"this on non-server platforms.\nThis an all the other datapoints like this " \
+                  f"will be dropped"
+            _LOG.debug(msg)
+            _LOG.warn_once(msg)
 
         # Add the C-state percentages.
         for field in self._cs_fields:
