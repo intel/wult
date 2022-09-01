@@ -21,7 +21,7 @@ CLANG ?= clang
 
 BPF_INC = -I$(KSRC)/include \
 	  -I$(KSRC)/usr/include \
-	  -I$(KSRC)/libbpf/include \
+	  -I$(KSRC)/tools/bpf/resolve_btfids/libbpf/include \
 	  -I$(KSRC)/tools/lib
 
 U_INC = -I$(KSRC)/tools/include \
