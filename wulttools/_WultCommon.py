@@ -21,7 +21,7 @@ def get_axes(optname, report_size=None, escape_percent=False):
     """
     Returns the CSV column name regex for a given plot option name and report size setting.
       * optname - plot option name ('xaxes', 'yaxes', 'hist' or 'chist')
-      * report_size - report size setting ('small', 'medium' or 'large'), defaults to 'small'.
+      * report_size - report size setting ('small' or 'large'), defaults to 'small'.
       * escape_percent - escapes the "%" symbol in the names of returned axes. Used for argparse,
                          which does not accept "%" symbols.
     """

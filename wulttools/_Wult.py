@@ -232,8 +232,8 @@ def _build_arguments_parser():
     subpars.add_argument("--list-metrics", action="store_true", help=ToolsCommon.LIST_METRICS_DESCR)
 
     text = """Generate HTML report with a pre-defined set of diagrams and histograms. Possible
-              values: 'small', 'medium' or 'large'. This option is mutually exclusive with
-              '--xaxes', '--yaxes', '--hist', '--chist'."""
+              values: 'small' or 'large'. This option is mutually exclusive with '--xaxes',
+              '--yaxes', '--hist', '--chist'."""
     subpars.add_argument("--size", dest="report_size", type=str, help=text)
 
     text = f"""One or multiple {_OWN_NAME} test result paths."""

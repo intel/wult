@@ -23,9 +23,8 @@ def report_command(args):
         if any({getattr(args, name) for name in ("xaxes", "yaxes", "hist", "chist")}):
             raise Error("'--size' and ('--xaxes', '--yaxes', '--hist', '--chist') options are "
                         "mutually exclusive, use either '--size' or the other options, not both")
-        if args.report_size.lower() not in ("small", "medium", "large"):
-            raise Error(f"bad '--size' value '{args.report_size}', use one of: small, medium, "
-                        "large")
+        if args.report_size.lower() not in ("small", "large"):
+            raise Error(f"bad '--size' value '{args.report_size}', use one of: small, large")
 
     # Split the comma-separated lists.
     for name in ("xaxes", "yaxes", "hist", "chist"):

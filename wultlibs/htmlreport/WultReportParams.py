@@ -11,18 +11,13 @@
 This module provides parameters for generating HTML reports for wult test results.
 """
 
-# The constants below define which diagrams are included in a report. There are 3 groups of
-# constants: for a small report, a medium report, and a large report. The small report includes the
-# minimum amount of diagrams, the large report includes all diagrams.
+# The constants below define which diagrams are included in a report. There are 2 groups of
+# constants: for a small report, and a large report. The small report includes the minimum amount of
+# diagrams, the large report includes all diagrams.
 SMALL_XAXES = "SilentTime"
 SMALL_YAXES = r".*Latency"
 SMALL_HIST = f"{SMALL_YAXES}"
 SMALL_CHIST = None
-
-MEDIUM_XAXES = "SilentTime"
-MEDIUM_YAXES = r".*Latency,.*Delay"
-MEDIUM_HIST = f"{MEDIUM_YAXES}"
-MEDIUM_CHIST = r".*Latency"
 
 LARGE_XAXES = "SilentTime,LDist"
 LARGE_YAXES = r".*Latency.*,.*Delay,[PC]C.+%,SilentTime,ReqCState"
