@@ -11,6 +11,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    state using the 'hrt' method.
 ### Added
 ### Removed
+ - Remove the '--size=medium' report option.
 ### Changed
 
 ## [1.10.25] - 2022-08-31
