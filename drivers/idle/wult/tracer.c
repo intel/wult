@@ -88,10 +88,12 @@ static void after_idle(struct wult_info *wi)
 
 	if (ti->armed) {
 		/* The interrupt handler did not run yet. */
-		wult_cstates_snap_mperf(&ti->csinfo, 1);
-		wult_cstates_snap_tsc(&ti->csinfo, 1);
 		ti->event_happened = wdi->ops->event_has_happened(wdi);
-		ti->armed = false;
+		if (ti->event_happened) {
+			wult_cstates_snap_mperf(&ti->csinfo, 1);
+			wult_cstates_snap_tsc(&ti->csinfo, 1);
+			ti->armed = false;
+		}
 	}
 
 	ti->ai_ts2 = ktime_get_raw_ns();
