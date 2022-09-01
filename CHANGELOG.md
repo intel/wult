@@ -5,8 +5,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.10.26] - ADD DATE HERE
 ### Fixed
- - Do not error out when CC0 cycles is greated than total cycles. Just warn
+ - Do not error out when CC0 cycles is greater than total cycles. Just warn
    instead. We observe this with 'POLL' C-state on some platforms.
+ - Fix for the problem of extremely slow data rate when measuring the 'POLL'
+   state using the 'hrt' method.
 ### Added
 ### Removed
 ### Changed
