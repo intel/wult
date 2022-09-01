@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.10.26] - ADD DATE HERE
 ### Fixed
+ - Do not error out when CC0 cycles is greated than total cycles. Just warn
+   instead. We observe this with 'POLL' C-state on some platforms.
 ### Added
 ### Removed
 ### Changed
