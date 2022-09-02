@@ -356,7 +356,7 @@ static int wult_synth_event_init(struct wult_info *wi)
 
 	/* Add C-states fields. */
 	for_each_cstate(&ti->csinfo, csi) {
-		name_len = snprintf(name_buf, 64, "%sCyc", csi->name);
+		name_len = snprintf(name_buf, sizeof(name_buf), "%sCyc", csi->name);
 		if (name_len >= sizeof(name_buf)) {
 			err = -EINVAL;
 			goto out_free;
