@@ -32,109 +32,56 @@
 /* Name of debugfs file for enabling early interrupts. */
 #define EARLY_INTR_FNAME "early_intr"
 
-static int set_enabled(bool enabled)
+static ssize_t enabled_write(struct file *file, const char __user *user_buf,
+			     size_t count, loff_t *ppos)
 {
-	int err = 0;
+	bool *enabled = file->private_data;
+	struct wult_info *wi = container_of(enabled, struct wult_info, enabled);
+	ssize_t err;
 
-	if (enabled)
-		err = wult_enable();
-	else
-		wult_disable();
+	err = debugfs_write_file_bool(file, user_buf, count, ppos);
+	if (err < 0)
+		return err;
 
+	if (*enabled)
+		return wult_enable();
+
+	wult_disable();
 	return err;
 }
 
-/*
- * Set a boolean variable pointed to by 'boolptr' to value 'val'.
- */
-static int set_bool(struct wult_info *wi, bool *boolptr, bool val)
+static const struct file_operations enabled_ops = {
+	.read = debugfs_read_file_bool,
+	.write = enabled_write,
+	.open = simple_open,
+	.llseek = default_llseek,
+};
+
+static ssize_t ei_write(struct file *file, const char __user *user_buf,
+			size_t count, loff_t *ppos)
 {
-	int err = 0;
+	bool *ei = file->private_data;
+	struct wult_info *wi = container_of(ei, struct wult_info, ei);
+	ssize_t err;
+
+	err = debugfs_write_file_bool(file, user_buf, count, ppos);
+	if (err < 0)
+		return err;
 
 	mutex_lock(&wi->enable_mutex);
-	if (*boolptr == val || !wi->enabled)
-		*boolptr = val;
-	else
-		/*
-		 * The measurements must be disabled in order to toggle the
-		 * interrupt focus mode.
-		 */
+	if (wi->early_intr != *ei && wi->enabled) {
+		/* Forbid changes if measurements are enabled. */
 		err = -EBUSY;
+	} else
+		wi->early_intr = *ei;
 	mutex_unlock(&wi->enable_mutex);
 
 	return err;
 }
 
-static ssize_t dfs_write_bool_file(struct file *file,
-				   const char __user *user_buf,
-				   size_t count, loff_t *ppos)
-{
-	int err;
-	bool val;
-	struct dentry *dent = file->f_path.dentry;
-	struct wult_info *wi = file->private_data;
-
-	err = kstrtobool_from_user(user_buf, count, &val);
-	if (err)
-		return err;
-
-	err = debugfs_file_get(dent);
-	if (err)
-		return err;
-
-	if (!strcmp(dent->d_name.name, ENABLED_FNAME))
-		err = set_enabled(val);
-	else if (!strcmp(dent->d_name.name, EARLY_INTR_FNAME))
-		err = set_bool(wi, &wi->early_intr, val);
-	else
-		err = -EINVAL;
-
-	debugfs_file_put(dent);
-
-	if (!err)
-		return count;
-	return err;
-}
-
-static ssize_t dfs_read_bool_file(struct file *file, char __user *user_buf,
-				  size_t count, loff_t *ppos)
-{
-	int err;
-	bool val;
-	char buf[2];
-	struct dentry *dent = file->f_path.dentry;
-	struct wult_info *wi = file->private_data;
-
-	err = debugfs_file_get(dent);
-	if (err)
-		return err;
-
-	if (!strcmp(dent->d_name.name, ENABLED_FNAME)) {
-		val = wi->enabled;
-	} else if (!strcmp(dent->d_name.name, EARLY_INTR_FNAME)) {
-		val = wi->early_intr;
-	} else {
-		err = -EINVAL;
-		goto error;
-	}
-
-	if (val)
-		buf[0] = 'Y';
-	else
-		buf[0] = 'N';
-	buf[1] = '\n';
-
-	err = simple_read_from_buffer(user_buf, count, ppos, buf, 2);
-
-error:
-	debugfs_file_put(dent);
-	return err;
-}
-
-/* Wult debugfs operations for the 'enabled', and other files. */
-static const struct file_operations dfs_ops_bool = {
-	.read = dfs_read_bool_file,
-	.write = dfs_write_bool_file,
+static const struct file_operations ei_ops = {
+	.read = debugfs_read_file_bool,
+	.write = ei_write,
 	.open = simple_open,
 	.llseek = default_llseek,
 };
@@ -219,10 +166,8 @@ int wult_uapi_device_register(struct wult_info *wi)
 	if (IS_ERR(wi->dfsroot))
 		return PTR_ERR(wi->dfsroot);
 
-	debugfs_create_file(ENABLED_FNAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_bool);
-	debugfs_create_file(EARLY_INTR_FNAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_bool);
+	debugfs_create_file(ENABLED_FNAME, 0644, wi->dfsroot, &wi->enabled, &enabled_ops);
+	debugfs_create_file(EARLY_INTR_FNAME, 0644, wi->dfsroot, &wi->ei, &ei_ops);
 
 	debugfs_create_u64(LDIST_MIN_FNAME, 0444, wi->dfsroot, &wi->wdi->ldist_min);
 	debugfs_create_u64(LDIST_MAX_FNAME, 0444, wi->dfsroot, &wi->wdi->ldist_max);
