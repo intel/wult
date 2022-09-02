@@ -55,7 +55,7 @@ static struct cstate_info intel_cstates[] = {
 	{.name = "PC8", MSR_PKG_C8_RESIDENCY},
 	{.name = "PC9", MSR_PKG_C9_RESIDENCY},
 	{.name = "PC10", MSR_PKG_C10_RESIDENCY},
-	{NULL}
+	{}
 };
 
 /*
@@ -86,7 +86,7 @@ static int intel_cstate_init(struct wult_cstates_info *csinfo)
 }
 
 static struct cstate_info no_cstates[] = {
-	{NULL}
+	{}
 };
 
 /*

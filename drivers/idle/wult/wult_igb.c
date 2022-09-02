@@ -25,7 +25,7 @@
 static struct wult_trace_data_info tdata[] = {
 	{ .name = "WarmupDelay" },
 	{ .name = "LatchDelay" },
-	{ NULL },
+	{ }
 };
 
 /* Read a 32-bit NIC register. */
