@@ -30,15 +30,9 @@ static char *version = ver_buf;
 
 static bool verbose;
 static int perf_ev_amt;
+static int cpu = -1;
 
-static const struct option long_options[] = {
-	{ "help", no_argument, NULL, 'h' },
-	{ "cpu", required_argument, NULL, 'c' },
-	{ "debug", no_argument, NULL, 'd' },
-	{ "ldist", required_argument, NULL, 'l' },
-	{ "version", no_argument, NULL, 'v' },
-	{ 0 },
-};
+static struct bpf_args args = { .min_t = 1000, .max_t = 4000000 };
 
 static const char *output_vars[] = {
 	"LTime",
@@ -213,19 +207,17 @@ static int parse_perf_events(void)
 	return err;
 }
 
-static void usage(void)
+static void print_help(void)
 {
 	extern const char *__progname;
 
-	printf("Usage: %s [--help] [--cpu <num>] [--timeout <range>]\n",
-	       __progname);
-
+	printf("Usage: wultrunner [options]\n");
 	printf("\nOptions:\n");
-	printf("    --help, -h		this help\n");
-	printf("    --cpu, -c <num>	run on CPU <num>\n");
-	printf("    --debug		enable debug\n");
-	printf("    --ldist, -l <range>	timeout range (e.g. 100,200) in ns.\n");
-	printf("    --version		print version info and exit (both program version\n");
+	printf("    -h, --help		this help\n");
+	printf("    -c, --cpu		run on CPU <num>\n");
+	printf("    -d, --debug		enable debug\n");
+	printf("    -l, --ldist		timeout range (e.g. 100,200) in ns.\n");
+	printf("    -v, --version	print version info and exit (both program version\n");
 	printf("			and linux kernel against which this tool was built)\n");
 }
 
@@ -297,30 +289,19 @@ static int get_command(char *buf, size_t bufsize)
 	return CMD_NONE;
 }
 
-int main(int argc, char **argv)
+static int parse_options(int argc, char **argv)
 {
-	int err = 0;
-	cpu_set_t cpuset;
-	int i;
-	int cpu = -1;
-	int count;
-	u32 value;
-	struct bpf_args args = { .min_t = 1000, .max_t = 4000000 };
-	int opt;
-	int fd;
-	int pmu_fd;
-	int perf_map_fd;
-	FILE *f;
-	struct ring_buffer *event_rb;
-	int type;
-	char buf[BUFSIZ];
-	u32 ver;
-	int cmd;
+	static const struct option long_options[] = {
+		{ "help", no_argument, NULL, 'h' },
+		{ "cpu", required_argument, NULL, 'c' },
+		{ "debug", no_argument, NULL, 'd' },
+		{ "ldist", required_argument, NULL, 'l' },
+		{ "version", no_argument, NULL, 'v' },
+		{ 0 },
+	};
 	struct bpf_hrt *skel;
-	LIBBPF_OPTS(bpf_test_run_opts, topts,
-			.ctx_in = &args,
-			.ctx_size_in = sizeof(args),
-	);
+	int opt;
+	u32 ver;
 
 	while ((opt = getopt_long(argc, argv, "hdc:l:v", long_options,
 				  NULL)) != -1) {
@@ -353,17 +334,45 @@ int main(int argc, char **argv)
 			}
 			ver = skel->rodata->linux_version_code;
 
-			printf("Built against linux kernel %d.%d.%d\n",
+			printf("eBPF built against linux kernel %d.%d.%d\n",
 			       (ver >> 16) & 0xff,
 			       (ver >> 8) & 0xff,
 			       ver & 0xff);
 			exit(0);
 			break;
 		default:
-			usage();
+			print_help();
 			exit(0);
 		}
 	}
+
+	return 0;
+}
+
+int main(int argc, char **argv)
+{
+	int err = 0;
+	cpu_set_t cpuset;
+	int i;
+	int count;
+	u32 value;
+	int fd;
+	int pmu_fd;
+	int perf_map_fd;
+	FILE *f;
+	struct ring_buffer *event_rb;
+	int type;
+	char buf[BUFSIZ];
+	int cmd;
+	struct bpf_hrt *skel;
+	LIBBPF_OPTS(bpf_test_run_opts, topts,
+			.ctx_in = &args,
+			.ctx_size_in = sizeof(args),
+	);
+
+	err = parse_options(argc, argv);
+	if (err)
+		return err;
 
 	if (cpu < 0) {
 		errmsg("No CPU defined.");
