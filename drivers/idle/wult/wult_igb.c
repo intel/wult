@@ -6,6 +6,7 @@
 
 #define DRIVER_NAME "wult_igb"
 
+#include <linux/bits.h>
 #include <linux/cpumask.h>
 #include <linux/delay.h>
 #include <linux/errno.h>
@@ -391,34 +392,30 @@ static const struct wult_device_ops wult_igb_ops = {
 
 static int pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 {
+	struct device *dev = &pdev->dev;
 	struct network_adapter *nic;
 	int err;
 
-	nic = kzalloc(sizeof(struct network_adapter), GFP_KERNEL);
+	nic = devm_kzalloc(dev, sizeof(*nic), GFP_KERNEL);
 	if (!nic)
 		return -ENOMEM;
 
-	err = pci_enable_device_mem(pdev);
+	err = pcim_enable_device(pdev);
 	if (err)
-		goto err_free;
+		return err;
 
 	err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64));
 	if (err)
-		goto err_disable_device;
+		return err;
 
-	err = pci_request_mem_regions(pdev, DRIVER_NAME);
+	err = pcim_iomap_regions(pdev, BIT(0), DRIVER_NAME);
 	if (err)
-		goto err_disable_device;
+		return err;
 
 	pci_set_master(pdev);
-	pci_set_drvdata(pdev, nic);
 
 	nic->pdev = pdev;
-	nic->iomem = pci_iomap(pdev, 0, 0);
-	if (!nic->iomem) {
-		err = -ENODEV;
-		goto err_clear_master;
-	}
+	nic->iomem = pcim_iomap_table(pdev)[0];
 
 	nic->wdi.ldist_min = 1;
 	nic->wdi.ldist_max = I210_MAX_LDIST;
@@ -426,34 +423,12 @@ static int pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	nic->wdi.ops = &wult_igb_ops;
 	nic->wdi.devname = DRIVER_NAME;
 
-	err = wult_register(&nic->wdi);
-	if (err)
-		goto err_iounmap;
-
-	return 0;
-
-err_iounmap:
-	iounmap(pdev);
-err_clear_master:
-	pci_clear_master(pdev);
-	pci_release_mem_regions(pdev);
-err_disable_device:
-	pci_disable_device(pdev);
-err_free:
-	kfree(nic);
-	return err;
+	return wult_register(&nic->wdi);
 }
 
 static void pci_remove(struct pci_dev *pdev)
 {
-	struct network_adapter *nic = pci_get_drvdata(pdev);
-
 	wult_unregister();
-	iounmap(pdev);
-	pci_clear_master(pdev);
-	pci_release_mem_regions(pdev);
-	pci_disable_device(pdev);
-	kfree(nic);
 }
 
 static const struct pci_device_id pci_ids[] = {
