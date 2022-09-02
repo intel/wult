@@ -33,7 +33,7 @@
 static struct wult_trace_data_info tdata[] = {
 	{ .name = "BICyc" },
 	{ .name = "BIMonotonic" },
-	{ NULL },
+	{ }
 };
 struct wult_tdt {
 	struct hrtimer timer;
