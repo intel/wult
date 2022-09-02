@@ -264,10 +264,13 @@ class ReportBase:
             for axes in plot_axes:
                 # Only add plots which have the tab metric on one of the axes.
                 if metric in axes:
-                    # Try to add a 'base' metric if there is one, otherwise take the unscaled col.
-                    defs_info = self._refres.defs.info
-                    xdef = defs_info.get(axes[0] + base_col_suffix, defs_info.get(axes[0]))
-                    ydef = defs_info.get(axes[1] + base_col_suffix, defs_info.get(axes[1]))
+                    # Try to add a 'base' metric if it has been calculated, otherwise take the
+                    # unscaled column.
+                    defs = self._refres.defs.info
+                    base_xaxis = axes[0] + base_col_suffix
+                    base_yaxis = axes[1] + base_col_suffix
+                    xdef = defs[base_xaxis] if base_xaxis in self._refres.df else defs[axes[0]]
+                    ydef = defs[base_yaxis] if base_yaxis in self._refres.df else defs[axes[1]]
                     tab_plots.append((xdef, ydef,))
 
                     # Only add metrics shown in the diagrams to the summary table.
