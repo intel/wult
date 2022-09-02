@@ -18,7 +18,9 @@
 #include <linux/slab.h>
 #include <linux/smp.h>
 #include <linux/vmalloc.h>
+#include <asm/cpu_device_id.h>
 #include <asm/div64.h>
+#include <asm/intel-family.h>
 #include <asm/tsc.h>
 #include "tracer.h"
 #include "uapi.h"
@@ -384,23 +386,25 @@ void wult_unregister(void)
 }
 EXPORT_SYMBOL_GPL(wult_unregister);
 
+static const struct x86_cpu_id intel_cpu_ids[] = {
+	X86_MATCH_VENDOR_FAM_FEATURE(INTEL, 6, X86_FEATURE_CONSTANT_TSC, NULL),
+	{}
+};
+MODULE_DEVICE_TABLE(x86cpu, intel_cpu_ids);
+
 /* Module initialization function. */
 static int __init wult_init(void)
 {
+	const struct x86_cpu_id *id;
+
 	if (cpunum >= NR_CPUS) {
 		wult_err("bad CPU number '%d', max. is %d", cpunum, NR_CPUS - 1);
 		return -EINVAL;
 	}
 
-	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL &&
-	    boot_cpu_data.x86 < 6) {
-		wult_err("unsupported Intel CPU family %d, required family 6 "
-		         "or higher", boot_cpu_data.x86);
-		return -EINVAL;
-	}
-
-	if (!cpu_has(&cpu_data(cpunum), X86_FEATURE_CONSTANT_TSC)) {
-		wult_err("constant TSC is required");
+	id = x86_match_cpu(intel_cpu_ids);
+	if (!id) {
+		wult_err("Intel CPU with constant TSC is required");
 		return -EINVAL;
 	}
 

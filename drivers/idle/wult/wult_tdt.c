@@ -17,6 +17,7 @@
 #include <linux/ktime.h>
 #include <linux/module.h>
 #include <linux/time.h>
+#include <asm/cpu_device_id.h>
 #include <asm/intel-family.h>
 #include <asm/msr.h>
 #include "wult.h"
@@ -134,11 +135,6 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 {
 	struct wult_tdt *wt = wdi_to_wt(wdi);
 
-	if (!cpu_has(&cpu_data(cpunum), X86_FEATURE_TSC_DEADLINE_TIMER)) {
-		wult_err("the CPU does not support TSC deadline timers");
-		return -EINVAL;
-	}
-
 	/* TODO: ensure that hrtimers are backed by the TSC dealine timer. */
 
 	hrtimer_init(&wt->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL_PINNED_HARD);
@@ -164,12 +160,19 @@ static struct wult_device_ops wult_tdt_ops = {
 	.exit = exit_device,
 };
 
+static const struct x86_cpu_id intel_cpu_ids[] = {
+	X86_MATCH_VENDOR_FAM_FEATURE(INTEL, 6, X86_FEATURE_TSC_DEADLINE_TIMER, NULL),
+	{}
+};
+MODULE_DEVICE_TABLE(x86cpu, intel_cpu_ids);
+
 static int __init wult_tdt_init(void)
 {
-	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL &&
-	    boot_cpu_data.x86 < 6) {
-		wult_err("unsupported Intel CPU family %d, required family 6 "
-		         "or higher", boot_cpu_data.x86);
+	const struct x86_cpu_id *id;
+
+	id = x86_match_cpu(intel_cpu_ids);
+	if (!id) {
+		wult_err("the CPU does not support TSC deadline timers");
 		return -EINVAL;
 	}
 
