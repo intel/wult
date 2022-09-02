@@ -291,7 +291,7 @@ init_error:
 /* Initialize wult device information object 'wdi'. */
 static void init_wdi(struct wult_device_info *wdi)
 {
-	memset(wi, 0, sizeof(struct wult_info));
+	memset(wi, 0, sizeof(*wi));
 	wi->wdi = wdi;
 	wdi->priv = wi;
 	wi->cpunum = cpunum;
@@ -413,7 +413,7 @@ static int __init wult_init(void)
 		return -EINVAL;
 	}
 
-	wi = kzalloc(sizeof(struct wult_info), GFP_KERNEL);
+	wi = kzalloc(sizeof(*wi), GFP_KERNEL);
 
 	mutex_init(&wi->dev_mutex);
 	wi->cpunum = cpunum;
