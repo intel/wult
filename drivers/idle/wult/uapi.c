@@ -139,68 +139,21 @@ static const struct file_operations dfs_ops_bool = {
 	.llseek = default_llseek,
 };
 
-static ssize_t dfs_read_rw_u64_file(struct file *file, char __user *user_buf,
-				    size_t count, loff_t *ppos)
+static int ldist_from_get(void *data, u64 *val)
 {
-	struct dentry *dent = file->f_path.dentry;
-	struct wult_info *wi = file->private_data;
-	char buf[32];
-	int err, len;
-	ssize_t res;
-	u64 val;
-
-	err = debugfs_file_get(dent);
-	if (err)
-		return err;
+	struct wult_info *wi = data;
 
 	mutex_lock(&wi->enable_mutex);
-	if (!strcmp(dent->d_name.name, LDIST_FROM_FNAME)) {
-		val = wi->ldist_from;
-	} else if (!strcmp(dent->d_name.name, LDIST_TO_FNAME)) {
-		val = wi->ldist_to;
-	} else {
-		err = -EINVAL;
-	}
+	*val = wi->ldist_from;
 	mutex_unlock(&wi->enable_mutex);
 
-	if (err) {
-		res = -EINVAL;
-		goto out;
-	}
-
-	len = snprintf(buf, ARRAY_SIZE(buf), "%llu\n", val);
-	res = simple_read_from_buffer(user_buf, count, ppos, buf, len);
-out:
-	debugfs_file_put(dent);
-	return res;
+	return 0;
 }
 
-static ssize_t dfs_write_rw_u64_file(struct file *file,
-				     const char __user *user_buf,
-				     size_t count, loff_t *ppos)
+static int ldist_from_set(void *data, u64 val)
 {
-	struct dentry *dent = file->f_path.dentry;
-	struct wult_info *wi = file->private_data;
+	struct wult_info *wi = data;
 	int err;
-	ssize_t len;
-	char buf[32];
-	u64 val;
-
-	err = debugfs_file_get(dent);
-	if (err)
-		return err;
-
-	len = simple_write_to_buffer(buf, ARRAY_SIZE(buf), ppos, user_buf,
-				     count);
-	if (len < 0)
-		goto out;
-
-	buf[len] = '\0';
-	err = kstrtoull(buf, 0, &val);
-	if (err) {
-		len = err;
-		goto out;
-	}
 
 	mutex_lock(&wi->enable_mutex);
 	if (wi->enabled) {
@@ -212,37 +165,53 @@ static ssize_t dfs_write_rw_u64_file(struct file *file,
 	err = -EINVAL;
 	if (val > wi->wdi->ldist_max || val < wi->wdi->ldist_min)
 		goto out_unlock;
-
-	if (!strcmp(dent->d_name.name, LDIST_FROM_FNAME)) {
-		if (val > wi->ldist_to)
-			goto out_unlock;
-		wi->ldist_from = val;
-	} else if (!strcmp(dent->d_name.name, LDIST_TO_FNAME)) {
-		if (val < wi->ldist_from)
-			goto out_unlock;
-		wi->ldist_to = val;
-	} else {
+	if (val > wi->ldist_to)
 		goto out_unlock;
-	}
-	mutex_unlock(&wi->enable_mutex);
 
-out:
-	debugfs_file_put(dent);
-	return len;
-
+	err = 0;
+	wi->ldist_from = val;
 out_unlock:
 	mutex_unlock(&wi->enable_mutex);
-	debugfs_file_put(dent);
 	return err;
 }
 
-/* Wult debugfs operations for R/W files backed by u64 variables. */
-static const struct file_operations dfs_ops_rw_u64 = {
-	.read = dfs_read_rw_u64_file,
-	.write = dfs_write_rw_u64_file,
-	.open = simple_open,
-	.llseek = default_llseek,
-};
+DEFINE_DEBUGFS_ATTRIBUTE(ldist_from_ops, ldist_from_get, ldist_from_set, "%llu\n");
+
+static int ldist_to_get(void *data, u64 *val)
+{
+	struct wult_info *wi = data;
+
+	mutex_lock(&wi->enable_mutex);
+	*val = wi->ldist_tom;
+	mutex_unlock(&wi->enable_mutex);
+	return 0;
+}
+
+static int ldist_to_set(void *data, u64 val)
+{
+	struct wult_info *wi = data;
+	int err;
+
+	mutex_lock(&wi->enable_mutex);
+	if (wi->enabled) {
+		/* Forbid changes if measurements are enabled. */
+		err = -EBUSY;
+		goto out_unlock;
+	}
+
+	err = -EINVAL;
+	if (val > wi->wdi->ldist_max || val < wi->wdi->ldist_min)
+		goto out_unlock;
+	if (val < wi->ldist_from)
+		goto out_unlock;
+
+	err = 0;
+	wi->ldist_from = val;
+out_unlock:
+	mutex_unlock(&wi->enable_mutex);
+	return err;
+}
+DEFINE_DEBUGFS_ATTRIBUTE(ldist_to_ops, ldist_to_get, ldist_to_set, "%llu\n");
 
 int wult_uapi_device_register(struct wult_info *wi)
 {
@@ -258,10 +227,8 @@ int wult_uapi_device_register(struct wult_info *wi)
 	debugfs_create_u64(LDIST_MIN_FNAME, 0444, wi->dfsroot, &wi->wdi->ldist_min);
 	debugfs_create_u64(LDIST_MAX_FNAME, 0444, wi->dfsroot, &wi->wdi->ldist_max);
 
-	debugfs_create_file(LDIST_FROM_FNAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_rw_u64);
-	debugfs_create_file(LDIST_TO_FNAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_rw_u64);
+	debugfs_create_file(LDIST_FROM_FNAME, 0644, wi->dfsroot, wi, &ldist_from_ops);
+	debugfs_create_file(LDIST_TO_FNAME, 0644, wi->dfsroot, wi, &ldist_to_ops);
 
 	return 0;
 }
