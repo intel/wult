@@ -430,8 +430,7 @@ static void __exit wult_exit(void)
 module_exit(wult_exit);
 
 module_param(cpunum, uint, 0444);
-MODULE_PARM_DESC(cpunum, "CPU number to measure wake latency on, default is "
-			 "CPU0.");
+MODULE_PARM_DESC(cpunum, "CPU number to measure wake latency on, default is CPU0.");
 
 MODULE_VERSION(WULT_VERSION);
 MODULE_DESCRIPTION("wake up latency measurement driver.");
