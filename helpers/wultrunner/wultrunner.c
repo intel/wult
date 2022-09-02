@@ -25,6 +25,17 @@
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
+#define bpf_hrt__attach_prog(s,pname) ({ \
+	int __retval = 0; \
+        (s)->links.bpf_hrt_ ## pname = \
+		bpf_program__attach(s->progs.bpf_hrt_ ## pname); \
+	if (!s->links.bpf_hrt_ ## pname) { \
+		errmsg("BPF program attach failed for " #pname); \
+		__retval = 1; \
+	} \
+	__retval; \
+	})
+
 static char ver_buf[256];
 static char *version = ver_buf;
 
@@ -407,29 +418,17 @@ int main(int argc, char **argv)
 		goto cleanup;
 	}
 
-	skel->links.bpf_hrt_cpu_idle =
-		bpf_program__attach(skel->progs.bpf_hrt_cpu_idle);
-	if (!skel->links.bpf_hrt_cpu_idle) {
-		errmsg("BPF program attach failed for cpu_idle");
-		err = 1;
+	err = bpf_hrt__attach_prog(skel,cpu_idle);
+	if (err)
 		goto cleanup;
-	}
 
-	skel->links.bpf_hrt_timer_init =
-		bpf_program__attach(skel->progs.bpf_hrt_timer_init);
-	if (!skel->links.bpf_hrt_timer_init) {
-		errmsg("BPF program attach failed for timer_init");
-		err = 1;
+	err = bpf_hrt__attach_prog(skel,timer_init);
+	if (err)
 		goto cleanup;
-	}
 
-	skel->links.bpf_hrt_timer_expire_entry =
-		bpf_program__attach(skel->progs.bpf_hrt_timer_expire_entry);
-	if (!skel->links.bpf_hrt_timer_expire_entry) {
-		errmsg("BPF program attach failed for timer_expire_entry");
-		err = 1;
+	err = bpf_hrt__attach_prog(skel,timer_expire_entry);
+	if (err)
 		goto cleanup;
-	}
 
 	err = perf_map_fd = bpf_map__fd(skel->maps.perf);
 	if (err < 0) {
