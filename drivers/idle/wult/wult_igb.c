@@ -11,6 +11,7 @@
 #include <linux/delay.h>
 #include <linux/errno.h>
 #include <linux/interrupt.h>
+#include <linux/iopoll.h>
 #include <linux/irqreturn.h>
 #include <linux/ktime.h>
 #include <linux/module.h>
@@ -212,8 +213,8 @@ static struct wult_trace_data_info *get_trace_data(struct wult_device_info *wdi)
 /* Disable NIC bus master activities. */
 static int bus_master_disable(const struct network_adapter *nic)
 {
-	int slept = 0;
 	u32 reg;
+	int err;
 
 	reg = read32(nic, I210_CTRL);
 	write32(nic, reg | I210_CTRL_GIO_MASTER_DISABLE, I210_CTRL);
@@ -222,19 +223,13 @@ static int bus_master_disable(const struct network_adapter *nic)
 	 * Wait for the card to indicate that all pending bus master activities
 	 * have been finished.
 	 */
-	do {
-		if (!(read32(nic, I210_STATUS) & I210_STATUS_GIO_MASTER_ENABLE))
-			break;
-		msleep(10);
-		slept += 10;
-	} while (slept < I210_BUS_MASTER_TIMEOUT);
-
-	if (slept >= I210_BUS_MASTER_TIMEOUT) {
+	err = read_poll_timeout(read32, reg, !(reg & I210_STATUS_GIO_MASTER_ENABLE),
+				10000, I210_BUS_MASTER_TIMEOUT * 1000, false,
+				nic, I210_STATUS);
+	if (err)
 		wult_err("bus master disable failed");
-		return -EINVAL;
-	}
 
-	return 0;
+	return err;
 }
 
 /* Mask all NIC interrupts */
@@ -248,8 +243,8 @@ static void mask_interrupts(const struct network_adapter *nic)
 /* Reset the NIC. */
 static int nic_reset(const struct network_adapter *nic)
 {
-	int err, slept = 0;
 	u32 reg, mask;
+	int err;
 
 	wult_dbg("resetting the device");
 
@@ -268,22 +263,17 @@ static int nic_reset(const struct network_adapter *nic)
 	 * least 3 milliseconds after software reset.
 	 */
 	usleep_range(3000, 5000);
-	slept += 3;
 
 	/* Disable interrupts again as the datasheed suggests. */
 	mask_interrupts(nic);
 
 	/* Wait for the NIC to be done with reading its flash memory. */
-	do {
-		if (read32(nic, I210_EEC) & I210_EEC_AUTO_RD)
-			break;
-		msleep(10);
-		slept += 10;
-	} while (slept < I210_RESET_TIMEOUT);
-
-	if (slept >= I210_RESET_TIMEOUT) {
+	err = read_poll_timeout(read32, reg, reg & I210_EEC_AUTO_RD,
+				10000, I210_RESET_TIMEOUT * 1000, false,
+				nic, I210_EEC);
+	if (err) {
 		wult_err("NIC software reset failed: I210_EEC_AUTO_RD bit");
-		return -EINVAL;
+		return err;
 	}
 
 	/* Check various bits as it is required by the HW specification. */
