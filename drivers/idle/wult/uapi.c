@@ -139,43 +139,6 @@ static const struct file_operations dfs_ops_bool = {
 	.llseek = default_llseek,
 };
 
-static ssize_t dfs_read_ro_u64_file(struct file *file, char __user *user_buf,
-				    size_t count, loff_t *ppos)
-{
-	struct dentry *dent = file->f_path.dentry;
-	struct wult_info *wi = file->private_data;
-	char buf[32];
-	int err, len;
-	ssize_t res;
-	u64 val;
-
-	err = debugfs_file_get(dent);
-	if (err)
-		return err;
-
-	if (!strcmp(dent->d_name.name, LDIST_MIN_FNAME)) {
-		val = wi->wdi->ldist_min;
-	} else if (!strcmp(dent->d_name.name, LDIST_MAX_FNAME)) {
-		val = wi->wdi->ldist_max;
-	} else {
-		res = -EINVAL;
-		goto out;
-	}
-
-	len = snprintf(buf, ARRAY_SIZE(buf), "%llu\n", val);
-	res = simple_read_from_buffer(user_buf, count, ppos, buf, len);
-out:
-	debugfs_file_put(dent);
-	return res;
-}
-
-/* Wult debugfs operations for R/O files backed by u64 variables. */
-static const struct file_operations dfs_ops_ro_u64 = {
-	.read = dfs_read_ro_u64_file,
-	.open = simple_open,
-	.llseek = default_llseek,
-};
-
 static ssize_t dfs_read_rw_u64_file(struct file *file, char __user *user_buf,
 				    size_t count, loff_t *ppos)
 {
@@ -291,10 +254,10 @@ int wult_uapi_device_register(struct wult_info *wi)
 			    &dfs_ops_bool);
 	debugfs_create_file(EARLY_INTR_FNAME, 0644, wi->dfsroot, wi,
 			    &dfs_ops_bool);
-	debugfs_create_file(LDIST_MIN_FNAME, 0444, wi->dfsroot, wi,
-			    &dfs_ops_ro_u64);
-	debugfs_create_file(LDIST_MAX_FNAME, 0444, wi->dfsroot, wi,
-			    &dfs_ops_ro_u64);
+
+	debugfs_create_u64(LDIST_MIN_FNAME, 0444, wi->dfsroot, &wi->wdi->ldist_min);
+	debugfs_create_u64(LDIST_MAX_FNAME, 0444, wi->dfsroot, &wi->wdi->ldist_max);
+
 	debugfs_create_file(LDIST_FROM_FNAME, 0644, wi->dfsroot, wi,
 			    &dfs_ops_rw_u64);
 	debugfs_create_file(LDIST_TO_FNAME, 0644, wi->dfsroot, wi,
