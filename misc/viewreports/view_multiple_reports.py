@@ -23,6 +23,7 @@ import sys
 if sys.version_info < (3,5):
     raise Exception("This script requires Python 3.5 or higher.")
 
+import argparse
 import http.server
 import os
 import webbrowser
@@ -32,26 +33,39 @@ PORT = 8000
 
 DIRECTORY = askdirectory()
 
-def servedir():
-    """Serve 'DIRECTORY' locally on 'PORT'."""
+def parseargs():
+    """Configure an argument parser and parse user arguments."""
 
-    server_address = ('', PORT,)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--host", nargs="?", default="localhost",
+        help="Host to serve the report on. Defaults to 'localhost'.")
+    parser.add_argument("--port", nargs="?", default=8000, type=int,
+        help="Port to serve the report on. Defaults to '8080'.")
+    parser.add_argument("--headless", action="store_true",
+        help="Run the script without trying to open the report in the default web browser.")
+    return parser.parse_args()
+
+def servedir(host="localhost", port=8000, headless=False):
+    """Serve 'DIRECTORY' locally on 'PORT'."""
 
     # Providing a directory to 'SimpleHTTPRequestHandler' was not supported until Python 3.7.
     # To make this script compatible with Python 3.5+, use 'os.chdir()' as a workaround.
     os.chdir(DIRECTORY)
 
+    server_address = (host, port)
     httpd = http.server.HTTPServer(server_address, http.server.SimpleHTTPRequestHandler)
-    URL = "http://localhost:{port}/".format(port=PORT)
+    URL = "http://{host}:{port}/".format(host=host, port=port)
 
     print("Serving directory '{dir}' at '{url}'.".format(dir=DIRECTORY, url=URL))
     print("Opening in browser. Please close this window when you have finished viewing reports.\n")
     print("Web server logs:")
 
-    # Open the user's web browser with the directory open.
-    webbrowser.open(URL)
+    if not headless:
+        # Open the user's web browser with the directory open.
+        webbrowser.open(URL)
     httpd.serve_forever()
 
 
 if __name__ == "__main__":
-    servedir()
+    args = parseargs()
+    servedir(args.host, args.port, args.headless)
