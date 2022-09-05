@@ -113,7 +113,7 @@ class _CStates(ClassHelpers.SimpleCloseContext):
 
         if self._early_intr:
             # When the "early interrupts" feature is used, wult enables interrupts before the
-            # C-state is requrested.
+            # C-state is requested.
             rawdp["IntrOff"] = False
             return rawdp
 

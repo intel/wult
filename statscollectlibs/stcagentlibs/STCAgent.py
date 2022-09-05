@@ -113,7 +113,7 @@ DEFAULT_STINFO = {
 }
 
 class SCReplyError(Error):
-    """This exception is raised when 'stc-agent' replies that a commant has failed."""
+    """This exception is raised when 'stc-agent' replies that a command has failed."""
 
 def _check_stname(stname):
     """Verify that 'stname' is a known statistic name."""
@@ -480,7 +480,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
                 self._sock = socket.create_connection(("localhost", self._ssht_port))
                 self._sock.settimeout(self._timeout)
             else:
-                # Connect to 'stc-agent' direcly via the Unix socket file.
+                # Connect to 'stc-agent' directly via the Unix socket file.
                 self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
                 self._sock.connect(self._uspath)
         except socket.error as err:
@@ -879,7 +879,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
     def _init_outdir(self, discovery=False):
         """
         Helper function for 'configure()' that creates the output directory and various of its
-        sub-direcories.
+        sub-directories.
         """
 
         if not self.outdir:
@@ -986,7 +986,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         # Whether the 'self._pman' object should be closed.
         self._close_pman = False
-        # The commant to start 'stc-agent'.
+        # The command to start 'stc-agent'.
         self._cmd = None
 
         # Paths to the 'unshare' and 'nice' tools on the same host where 'stc-agent' runs.

@@ -69,7 +69,7 @@ def _construct_totals(packages):
         resulting "total" value is usually the average, but some statistics require just the sum,
         for example the IRQ count. This function returns the proper "total" value depending on the
         'key' contents. Arguments are as follows:
-         * vals - an interable containing all of the different values of 'key'.
+         * vals - an iterable containing all of the different values of 'key'.
          * key - the name of the turbostat metric which the values in 'vals' represent.
         """
 
@@ -127,7 +127,7 @@ def _construct_totals(packages):
                         del cpuinfo[metric]
 
     # The the *_MHz totals provided by turbostat are weighted averages of the per-CPU values. The
-    # weights are the amoung of cycles the CPU spent executing instructions instead of being in a
+    # weights are the amount of cycles the CPU spent executing instructions instead of being in a
     # C-state.
     ignore_keys = ("Avg_MHz", "Bzy_MHz")
     for pkginfo in packages.values():
@@ -286,7 +286,7 @@ class TurbostatParser(_ParserBase.ParserBase):
                     else:
                         heading[key] = None
 
-                # The next line is total statistics across all CPUs, exept if there is only one
+                # The next line is total statistics across all CPUs, except if there is only one
                 # single CPU in the system.
 
                 # False pylint warning, see issue: https://github.com/PyCQA/pylint/issues/1830
@@ -312,7 +312,7 @@ class TurbostatParser(_ParserBase.ParserBase):
         * lines: same as in ParserBase.__init__()
         * cols_regex: the regular expression to match against the 'turbostat' heading line (first
                       line printed with 'turbostat -q -S'). Has to be uses in case 'turbostat' was
-                      run with custom colums selection (see 'turbostat --show').
+                      run with custom columns selection (see 'turbostat --show').
         """
 
         super().__init__(path, lines)

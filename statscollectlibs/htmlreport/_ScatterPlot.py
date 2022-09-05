@@ -114,7 +114,7 @@ class ScatterPlot(_Plot.Plot):
             cur_hist.at[xidx, yidx] += 1
             copy_cols.append(idx)
 
-        # Include all the colums in reduced version of the 'pandas.DataFrame'.
+        # Include all the columns in reduced version of the 'pandas.DataFrame'.
         return rawdf.loc[copy_cols]
 
     def add_df(self, df, name, hover_template=None):

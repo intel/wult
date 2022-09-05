@@ -52,9 +52,9 @@ def is_root(pman=None):
 def kill_pids(pids, sig="SIGTERM", kill_children=False, must_die=False, pman=None):
     """
     Send signal 'sig' to processes in 'pids'. The arguments are as follows.
-      * pids - an iterable collection of PIDs to signal. May contain intergers or strings. May also
+      * pids - an iterable collection of PIDs to signal. May contain integers or strings. May also
               a signel PID number.
-      * sig - the signal to send the the processes. The signal can be sepcified either by name or by
+      * sig - the signal to send the the processes. The signal can be specified either by name or by
                number, default is 'SIGTERM' (terminate the process).
       * kill_children - whether this function should also try killing the child processes. Should
                         only be used with 'SIGTERM' and 'SIGKILL'.
@@ -198,7 +198,7 @@ def kill_processes(regex, sig="SIGTERM", kill_children=False, log=False, name=No
     follows.
       * regex - the regular expression which is matched process executable name + command-line
                 arguments.
-      * sig - the signal to send the the processes matching 'regex'. The signal can be sepcified
+      * sig - the signal to send the the processes matching 'regex'. The signal can be specified
               either by name or by number, default is 'SIGTERM' (terminate the process).
       * kill_children - whether this function should also try killing the child processes. Should
                         only be used with 'SIGTERM' and 'SIGKILL'.

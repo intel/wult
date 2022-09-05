@@ -284,7 +284,7 @@ class NetIface(ClassHelpers.SimpleCloseContext):
     def __init__(self, ifid, pman=None):
         """
         Initialize a class instance network interface corresponding to 'ifid' on the host associated
-        with the 'pman' object. The 'ifid' argumen can be either the network interface name or its
+        with the 'pman' object. The 'ifid' argument can be either the network interface name or its
         hardware address (e.g., the PCI address of the network card corresponding to the network
         interface).
         """

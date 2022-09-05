@@ -297,7 +297,7 @@ class _IntelI210Base(_PCIDevice):
         driver the device was unbinded from (or 'None' if it was not).
         """
 
-        # Save the original opeational state in order to restore it in 'bind()'. The reason is that
+        # Save the original operational state in order to restore it in 'bind()'. The reason is that
         # 'bind()' may put it to "up", even if it was "down".
         if not self._orig_drvname:
             # Save it only when unbinding for the first time.
@@ -309,7 +309,7 @@ class _IntelI210Base(_PCIDevice):
         """
         The class constructor. The arguments are as follows.
           * no_netif_ok - if 'True', the network interface does not have to exist for the NIC,
-                          othewise raises an exception if the network interface does not exist.
+                          otherwise raises an exception if the network interface does not exist.
           * other arguments are the same as in '_DeviceBase.__init__()'.
 
         Note, 'devid' can be be the PCI address or the network interface name.

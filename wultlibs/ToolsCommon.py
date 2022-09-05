@@ -208,7 +208,7 @@ MEXCLUDE_DESCR = """The metrics to exclude. Expects a comma-separated list of th
 MINCLUDE_DESCR = """The metrics to include: remove all metrics except for those specified by this
                     option. The syntax is the same as for '--exclude-metrics'."""
 
-# Discription for the '--human-readable' option of the 'filter' command.
+# Description for the '--human-readable' option of the 'filter' command.
 FILTER_HUMAN_DESCR = """By default the result 'filter' command print the result as a CSV file to the
                         standard output. This option can be used to dump the result in a more
                         human-readable form."""
@@ -551,7 +551,7 @@ def reduce_installables(deploy_info, dev):
     Returns the reduced version of 'deploy_info'.
     """
 
-    # Copy the original dictionary, 2 levels are enought.
+    # Copy the original dictionary, 2 levels are enough.
     result = {}
     for key, value in deploy_info.items():
         result[key] = value.copy()

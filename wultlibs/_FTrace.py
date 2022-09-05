@@ -29,9 +29,9 @@ class FTraceLine():
       * flags - trace flags.
       * timestamp - the trace timestamp.
       * func - name of the kernel function where the trace happened.
-      * msg - the trace buffer message (comes after all the standard prefixes inlcuding process
+      * msg - the trace buffer message (comes after all the standard prefixes including process
       *       name, PID, etc)
-      * line - full trace buffer line (includs all the standard prefixes)
+      * line - full trace buffer line (includes all the standard prefixes)
     """
 
     def __init__(self, line):

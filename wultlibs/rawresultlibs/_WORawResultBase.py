@@ -7,7 +7,7 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module base class for wirte-only raw test result classes.
+This module base class for write-only raw test result classes.
 """
 
 import os

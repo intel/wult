@@ -78,7 +78,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
             raise Error("Failed to generate summary table.") from err
 
     def _add_histogram(self, mdef, cumulative=False, xbins=None):
-        """Extends 'super()._add_histogram()' by addding custom binning."""
+        """Extends 'super()._add_histogram()' by adding custom binning."""
 
         if xbins is None:
             # Calculate custom bins.

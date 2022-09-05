@@ -19,7 +19,7 @@ def _run_commands(cmdinfos, pman):
     """Execute the commands specified in the 'cmdinfos' dictionary."""
 
     if pman.is_remote:
-        # In case of a remote host, it is much more effecient to run all commands in one go, because
+        # In case of a remote host, it is much more efficient to run all commands in one go, because
         # in this case only one SSH session needs to be established.
         cmd = ""
         for cmdinfo in cmdinfos.values():

@@ -18,7 +18,7 @@ class LsPCI(ClassHelpers.SimpleCloseContext):
     @staticmethod
     def _parse_dev_info(lines):
         """
-        Parse 'lspci' output lines in 'lines'. The lines sholud belong to a single device and should
+        Parse 'lspci' output lines in 'lines'. The lines should belong to a single device and should
         not be stripped. Returns the resulting dictionary.
         """
 

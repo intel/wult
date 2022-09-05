@@ -48,7 +48,7 @@ class IPMIParser(_ParserBase.ParserBase):
 
     def _next(self):
         """
-        Generator which yields a dictionary corresponging to one snapshot of ipmitool output at a
+        Generator which yields a dictionary corresponding to one snapshot of ipmitool output at a
         time.
         """
 

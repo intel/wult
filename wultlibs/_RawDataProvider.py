@@ -101,8 +101,8 @@ class DrvRawDataProviderBase(RawDataProviderBase):
           * All other arguments are the same as in 'RawDataProviderBase.__init__()'.
 
         The 'drvinfo' dictionary schema is as follows.
-          { drvname1: { "params" : <modulue parameters> },
-            drvname2: { "params" : <modulue parameters> },
+          { drvname1: { "params" : <module parameters> },
+            drvname2: { "params" : <module parameters> },
            ... etc ... }
 
           * drvname - driver name.

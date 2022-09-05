@@ -37,10 +37,10 @@ def get_kver_ktree(ktree, split=False, pman=None, makecmd=None):
     """
     Get version of the kernel in the kernel sources directory 'ktree'. The 'ktree' directory must
     contain an already configured kernel or it should be path to the kernel build directory if the
-    kernel was compliled out of tree (make O=<ktree>).
+    kernel was compiled out of tree (make O=<ktree>).
 
     By default this function runs the 'make -C <ktree> --quiet -- kernelrelease' command to get the
-    kernel version. However, you can use the 'makecmd' argument to verride the 'make -C <ktree>'
+    kernel version. However, you can use the 'makecmd' argument to override the 'make -C <ktree>'
     part of it.
 
     The 'split' and 'pman' arguments are the same as in 'get_kver()'.

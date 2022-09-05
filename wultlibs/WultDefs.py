@@ -54,7 +54,7 @@ def get_csname(metric, must_get=True):
 
 def get_cscyc_metric(csname):
     """
-    Given 'csname' is a C-state name, this method retruns the corresponding C-state cycles count
+    Given 'csname' is a C-state name, this method returns the corresponding C-state cycles count
     metric.
     """
 
@@ -62,7 +62,7 @@ def get_cscyc_metric(csname):
 
 def get_csres_metric(csname):
     """
-    Given 'csname' is a C-state name, this method retruns the corresponding C-state residency
+    Given 'csname' is a C-state name, this method returns the corresponding C-state residency
     metric.
     """
 

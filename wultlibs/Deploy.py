@@ -896,7 +896,7 @@ class Deploy(_DeployBase):
 
         libbpf_path, u_inc = None, None
         if self._lbuild:
-            # We are building on a local system for a remote host. Everythong should come from
+            # We are building on a local system for a remote host. Everything should come from
             # kernel sources in this case: 'libbpf.a' and 'bpf/bpf.h'.
             libbpf_path = self._find_or_build_libbpf_a_from_ksrc()
             incdirs = self._find_ebpf_include_dirs_from_ksrc(("bpf/bpf.h", ))

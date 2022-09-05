@@ -52,7 +52,7 @@ def split_kver(kver, numerical=False):
 
 def kver_lt(kver1, kver2):
     """
-    Retrun 'True' if kernel version string 'kver1' is smaller than kernel version string 'kver2'
+    Return 'True' if kernel version string 'kver1' is smaller than kernel version string 'kver2'
     (kernel version 'kver1' is older than kernel version 'kver2').
     """
 
@@ -78,7 +78,7 @@ def kver_lt(kver1, kver2):
 
 def kver_ge(kver1, kver2):
     """
-    Retrun 'True' if kernel version string 'kver1' is greater or equal to kernel version string
+    Return 'True' if kernel version string 'kver1' is greater or equal to kernel version string
     'kver2' (kernel version 'kver1' is newer or equal to kernel version 'kver2').
     """
 
