@@ -36,7 +36,7 @@ import contextlib
 from pathlib import Path
 from pepclibs.helperlibs import LocalProcessManager, Logging
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists, ErrorNotSupported
 from statscollectlibs.helperlibs import ToolHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
 
@@ -51,9 +51,6 @@ _CATEGORIES = { "drivers"    : "kernel driver",
                 "shelpers"   : "simple helper program",
                 "pyhelpers"  : "python helper program",
                 "bpfhelpers" : "eBPF helper program"}
-
-class _ErrorKVer(Error):
-    """An exception class indicating that SUT kernel version is not new enough."""
 
 def _get_deploy_cmd(pman, toolname):
     """Returns the 'deploy' command suggestion string."""
@@ -247,6 +244,32 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
     The base class for 'Deploy' and 'DeployCheck' classes. Contains the common bits and pieces.
     """
 
+    def _get_kver(self):
+        """Returns version of the kenrel running on the SUT."""
+
+        if not self._kver:
+            self._kver = KernelVersion.get_kver(pman=self._spman)
+
+        return self._kver
+
+    def _check_minkver(self, installable):
+        """
+        Check if the SUT has new enough kernel version for 'installable' to be deployed on it. The
+        argument are as follows.
+          * installable - name of the installable to check the kernel version for.
+        """
+
+        minkver = self._insts[installable].get("minkver", None)
+        if not minkver:
+            return
+
+        kver = self._get_kver()
+        if KernelVersion.kver_lt(kver, minkver):
+            cat_descr = _CATEGORIES[self._insts[installable]["category"]]
+            raise ErrorNotSupported(f"version of Linux kernel{self._spman.hostmsg} is {kver}, and "
+                                    f"it is not new enough for the '{installable}' {cat_descr}.\n"
+                                    f"Please, use kernel version {minkver} or newer.")
+
     def _get_module_path(self, name):
         """Return path to installed module 'name'. Returns 'None', if the module was not found."""
 
@@ -295,6 +318,10 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
         self._cpman = None # Process manager associated with the controller (local host).
         self._insts = {}   # Installables information.
         self._cats = {}    # Lists of installables in every category.
+
+        # Version of the kernel running on the SUT of version of the kernel to compile the drivers
+        # for.
+        self._kver = None
 
         self._cpman = LocalProcessManager.LocalProcessManager()
         if not self._spman:
@@ -387,6 +414,8 @@ class DeployCheck(_DeployBase):
         """Check if drivers are deployed and up-to-date."""
 
         for drvname in self._cats["drivers"]:
+            self._check_minkver(drvname)
+
             try:
                 srcpath = ToolHelpers.find_project_data("wult", _DRV_SRC_SUBPATH / self._toolname,
                                                          descr=f"the '{drvname}' driver")
@@ -406,6 +435,8 @@ class DeployCheck(_DeployBase):
         """Check if simple and eBPF helpers are deployed and up-to-date."""
 
         for helpername in list(self._cats["shelpers"]) + list(self._cats["bpfhelpers"]):
+            self._check_minkver(helpername)
+
             try:
                 descr=f"the '{helpername}' helper program"
                 srcpath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / helpername,
@@ -924,23 +955,6 @@ class Deploy(_DeployBase):
             # problems. So sync the file-system now.
             self._spman.run_verify("sync")
 
-    def _check_minkver(self, installable):
-        """
-        Check if the SUT has new enough kernel version for 'installable' to be deployed on it. The
-        argument are as follows.
-          * installable - name of the installable to check the kernel version for.
-        """
-
-        minkver = self._insts[installable].get("minkver", None)
-        if not minkver:
-            return
-
-        if KernelVersion.kver_lt(self._kver, minkver):
-            cat_descr = _CATEGORIES[self._insts[installable]["category"]]
-            raise _ErrorKVer(f"version of Linux kernel{self._bpman.hostmsg} is {self._kver}, and "
-                             f"it is not new enough for the '{installable}' {cat_descr}.\n"
-                             f"Please, use kernel version {minkver} or newer.")
-
     def _adjust_installables(self):
         """
         Adjust the list of installables that have to be deployed to the SUT based on various
@@ -960,7 +974,7 @@ class Deploy(_DeployBase):
         for installable in list(self._insts):
             try:
                 self._check_minkver(installable)
-            except _ErrorKVer as err:
+            except ErrorNotSupported as err:
                 cat = self._insts[installable]["category"]
                 _LOG.notice(str(err))
                 _LOG.warning("the '%s' %s can't be installed", installable, _CATEGORIES[cat])
@@ -979,9 +993,8 @@ class Deploy(_DeployBase):
         tree drivers.
         """
 
-        self._kver = None
         if not self._ksrc:
-            self._kver = KernelVersion.get_kver(pman=self._bpman)
+            self._kver = KernelVersion.get_kver(pman=self._spman)
             with contextlib.suppress(ErrorNotFound):
                 ksrc_path = Path(f"/lib/modules/{self._kver}/build")
                 self._ksrc = self._bpman.abspath(ksrc_path)
@@ -1085,7 +1098,6 @@ class Deploy(_DeployBase):
         self._btmpdir = None # Temporary directory on the build host.
         self._stmpdir_created = None # Temp. directory on the SUT has been created.
         self._ctmpdir_created = None # Temp. directory on the controller has been created.
-        self._kver = None # Version of the kernel to compile the drivers for (version of 'ksrc').
         self._tchk = None
 
         if self._lbuild:
