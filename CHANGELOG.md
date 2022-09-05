@@ -3,7 +3,13 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.26] - ADD DATE HERE
+## [1.10.27] - ADD DATE HERE
+### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.10.26] - 2022-09-05
 ### Fixed
  - Do not error out when CC0 cycles is greater than total cycles. Just warn
    instead. We observe this with 'POLL' C-state on some platforms.

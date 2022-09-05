@@ -512,9 +512,8 @@ Use value 'none' to disable scatter plots.
 
 **--size** *REPORT_SIZE*
    Generate HTML report with a pre-defined set of diagrams and
-   histograms. Possible values: 'small', 'medium' or 'large'. This
-   option is mutually exclusive with '--xaxes', '--yaxes', '--hist',
-   '--chist'.
+   histograms. Possible values: 'small' or 'large'. This option is
+   mutually exclusive with ' --xaxes', '--yaxes', '--hist', '--chist'.
 
 COMMAND *'wult* filter'
 =======================
