@@ -14,6 +14,7 @@ import logging
 from pepclibs.helperlibs import Trivial, ClassHelpers, Systemctl, Human
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from wultlibs import _FTrace, _RawDataProvider
+from wultlibs.helperlibs import KernelVersion
 
 _LOG = logging.getLogger()
 
@@ -252,6 +253,17 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
             if line:
                 msg = f"{msg}\nLast seen '{self._helpername}' line:\n{line}"
             raise ErrorTimeOut(msg) from err
+        except Error as err:
+            if "Error loading vmlinux BTF" in str(err):
+                kver = KernelVersion.get_kver(pman=self._pman)
+                if KernelVersion.kver_lt(kver, "5.18"):
+                    optname = "CONFIG_DEBUG_INFO"
+                else:
+                    optname = "CONFIG_DEBUG_INFO_BTF"
+
+                raise Error(f"{err}\nPlease, make sure that your kernel has the '{optname}' "
+                            f"configuration option enabled") from err
+            raise
 
     def start(self):
         """Start the measurements."""
