@@ -31,3 +31,7 @@ reports at the same time. Intended usage is as follows:
 3. Once you have finished browsing the reports, make sure to stop the script you started in step 1.
    If a new terminal window was created when you ran the script in step 1, you can do this by
    closing this window.
+
+## CLI-Usage
+Both of the scripts mentioned above can be used on the command-line. Use the '-h' (help) option to
+see a list of other options which can be used with each script.
