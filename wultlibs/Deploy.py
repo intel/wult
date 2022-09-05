@@ -32,7 +32,6 @@ import os
 import sys
 import time
 import logging
-import contextlib
 from pathlib import Path
 from pepclibs.helperlibs import LocalProcessManager, Logging
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
@@ -319,8 +318,8 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
         self._insts = {}   # Installables information.
         self._cats = {}    # Lists of installables in every category.
 
-        # Version of the kernel running on the SUT of version of the kernel to compile the drivers
-        # for.
+        # Version of the kernel running on the SUT of version of the kernel to compile wult
+        # components against.
         self._kver = None
 
         self._cpman = LocalProcessManager.LocalProcessManager()
@@ -575,6 +574,41 @@ class Deploy(_DeployBase):
             if stderr:
                 _LOG.log(Logging.ERRINFO, stderr)
 
+    def _get_kver(self):
+        """
+        Returns version of the kenrel running on the SUT or version of the kernel in path to compile
+        wult components against.
+        """
+
+        if self._kver:
+            return self._kver
+
+        if not self._ksrc:
+            self._kver = KernelVersion.get_kver(pman=self._spman)
+        else:
+            self._kver = KernelVersion.get_kver_ktree(self._ksrc, pman=self._bpman)
+
+        _LOG.debug("Kernel version: %s", self._kver)
+        return self._kver
+
+    def _get_ksrc(self):
+        """Return path to sources of the kernel to build wult components against."""
+
+        if self._ksrc:
+            return self._ksrc
+
+        kver = self._get_kver()
+        ksrc = Path(f"/lib/modules/{kver}/build")
+
+        try:
+            self._ksrc = self._bpman.abspath(ksrc)
+        except ErrorNotFound as err:
+            raise ErrorNotFound(f"cannot find kernel sources: '{ksrc}' does not "
+                                f"exist{self._bpman.hostmsg}") from err
+
+        _LOG.debug("Kernel sources path: %s", self._ksrc)
+        return self._ksrc
+
     def _prepare_shelpers(self, helpersrc):
         """
         Build and prepare simple helpers for deployment. The arguments are as follows:
@@ -745,11 +779,14 @@ class Deploy(_DeployBase):
     def _get_libbpf_path(self):
         """Search for 'libbpf.a' library in the kernel sources and return its path."""
 
+        ksrc = self._get_ksrc()
+
         # The location of 'libbpf.a' may vary, check several known paths.
         path_suffixes = ("tools/lib/bpf", "tools/bpf/resolve_btfids/libbpf", "libbpf")
         tried_paths = []
+
         for path_sfx in path_suffixes:
-            path = self._ksrc / path_sfx / "libbpf.a"
+            path = ksrc / path_sfx / "libbpf.a"
             tried_paths.append(str(path))
             if self._bpman.is_file(path):
                 return path
@@ -761,7 +798,8 @@ class Deploy(_DeployBase):
     def _build_libbpf(self):
         """Build 'libbpf.a' in the kernel sources."""
 
-        cmd = f"make -C '{self._ksrc}/tools/lib/bpf'"
+        ksrc = self._get_ksrc()
+        cmd = f"make -C '{ksrc}/tools/lib/bpf'"
 
         try:
             self._bpman.run_verify(cmd)
@@ -782,6 +820,8 @@ class Deploy(_DeployBase):
           * helpersrc - path to the helpers base directory on the controller.
         """
 
+        ksrc = self._get_ksrc()
+
         # Copy eBPF helpers to the temporary directory on the build host.
         for bpfhelper in self._cats["bpfhelpers"]:
             srcdir = helpersrc/ bpfhelper
@@ -801,7 +841,7 @@ class Deploy(_DeployBase):
             for bpfhelper in self._cats["bpfhelpers"]:
                 _LOG.info("Compiling the eBPF component of '%s'%s",
                           bpfhelper, self._bpman.hostmsg)
-                cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{self._ksrc}' " \
+                cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{ksrc}' " \
                       f"CLANG='{clang_path}' BPFTOOL='{bpftool_path}' bpf"
                 stdout, stderr = self._bpman.run_verify(cmd)
                 self._log_cmd_output(stdout, stderr)
@@ -821,7 +861,7 @@ class Deploy(_DeployBase):
         # Build eBPF helpers.
         for bpfhelper in self._cats["bpfhelpers"]:
             _LOG.info("Compiling eBPF helper '%s'%s", bpfhelper, self._bpman.hostmsg)
-            cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{self._ksrc}' LIBBPF={libbpf_path}"
+            cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{ksrc}' LIBBPF={libbpf_path}"
             stdout, stderr = self._bpman.run_verify(cmd)
             self._log_cmd_output(stdout, stderr)
 
@@ -895,6 +935,9 @@ class Deploy(_DeployBase):
     def _deploy_drivers(self):
         """Deploy drivers to the SUT."""
 
+        kver = self._get_kver()
+        ksrc = self._get_ksrc()
+
         for drvname in self._cats["drivers"]:
             drvsrc = ToolHelpers.find_project_data("wult", _DRV_SRC_SUBPATH / drvname,
                                                    descr=f"{drvname} drivers sources")
@@ -907,14 +950,14 @@ class Deploy(_DeployBase):
                               remotedst=self._bpman.is_remote)
             drvsrc = self._btmpdir / "drivers"
 
-            kmodpath = Path(f"/lib/modules/{self._kver}")
+            kmodpath = Path(f"/lib/modules/{kver}")
             if not self._spman.is_dir(kmodpath):
                 raise Error(f"kernel modules directory '{kmodpath}' does not "
                             f"exist{self._spman.hostmsg}")
 
             # Build the drivers.
-            _LOG.info("Compiling the drivers for kernel '%s'%s", self._kver, self._bpman.hostmsg)
-            cmd = f"make -C '{drvsrc}' KSRC='{self._ksrc}'"
+            _LOG.info("Compiling the drivers for kernel '%s'%s", kver, self._bpman.hostmsg)
+            cmd = f"make -C '{drvsrc}' KSRC='{ksrc}'"
             if self._debug:
                 cmd += " V=1"
 
@@ -947,7 +990,7 @@ class Deploy(_DeployBase):
                     _LOG.debug("removing old module '%s'%s", installed_module, self._spman.hostmsg)
                     self._spman.run_verify(f"rm -f '{installed_module}'")
 
-            stdout, stderr = self._spman.run_verify(f"depmod -a -- '{self._kver}'")
+            stdout, stderr = self._spman.run_verify(f"depmod -a -- '{kver}'")
             self._log_cmd_output(stdout, stderr)
 
             # Potentially the deployed driver may crash the system before it gets to write-back data
@@ -987,33 +1030,6 @@ class Deploy(_DeployBase):
             # We have already printed the details, so we can have a short error message here.
             raise Error("please, use newer kernel")
 
-    def _init_kernel_info(self):
-        """
-        Discover kernel version and kernel sources path which will be needed for building the out of
-        tree drivers.
-        """
-
-        if not self._ksrc:
-            self._kver = KernelVersion.get_kver(pman=self._spman)
-            with contextlib.suppress(ErrorNotFound):
-                ksrc_path = Path(f"/lib/modules/{self._kver}/build")
-                self._ksrc = self._bpman.abspath(ksrc_path)
-            if not self._ksrc:
-                raise Error(f"cannot find kernel sources: '{ksrc_path}' does not "
-                            f"exist{self._bpman.hostmsg}")
-        else:
-            if not self._bpman.is_dir(self._ksrc):
-                raise Error(f"kernel sources directory '{self._ksrc}' does not "
-                            f"exist{self._bpman.hostmsg}")
-            self._ksrc = self._bpman.abspath(self._ksrc)
-            self._kver = KernelVersion.get_kver_ktree(self._ksrc, pman=self._bpman)
-
-        if self._ksrc:
-            _LOG.debug("Kernel sources path: %s", self._ksrc)
-        else:
-            _LOG.debug("Kernel sources path: not found%s", self._bpman.hostmsg)
-        _LOG.debug("Kernel version: %s", self._kver)
-
     def deploy(self):
         """
         Deploy all the required installables to the SUT (drivers, helpers, etc).
@@ -1027,9 +1043,6 @@ class Deploy(_DeployBase):
            they are not totally independent, but they depend on various python modules. Deploying a
            python helpers is trickier because all python modules should also be deployed.
         """
-
-        if self._cats["drivers"] or self._cats["bpfhelpers"]:
-            self._init_kernel_info()
 
         self._adjust_installables()
 
@@ -1104,6 +1117,12 @@ class Deploy(_DeployBase):
             self._bpman = self._cpman
         else:
             self._bpman = self._spman
+
+        if self._ksrc:
+            if not self._bpman.is_dir(self._ksrc):
+                raise Error(f"kernel sources directory '{self._ksrc}' does not "
+                            f"exist{self._bpman.hostmsg}")
+            self._ksrc = self._bpman.abspath(self._ksrc)
 
         self._tchk = ToolChecker.ToolChecker(pman=self._bpman)
 
