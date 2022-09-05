@@ -22,26 +22,32 @@ import sys
 if sys.version_info < (3,5):
     raise Exception("This script requires Python 3.5 or higher.")
 
+import argparse
 import http.server
 import os
 import webbrowser
 
-PORT = 8000
-
 # Serve the directory containing the report and this script.
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
-def servedir():
-    """Serve 'DIRECTORY' locally on 'PORT'."""
+def parseargs():
+    """Configure an argument parser and parse user arguments."""
 
-    server_address = ('', PORT,)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", nargs="?", default=8000, type=int,
+        help="Port to serve the report on. Defaults to '8080'.")
+    return parser.parse_args()
+
+def servedir(port=8000):
+    """Serve 'DIRECTORY' locally on 'PORT'."""
 
     # Providing a directory to 'SimpleHTTPRequestHandler' was not supported until Python 3.7.
     # To make this script compatible with Python 3.5+, use 'os.chdir()' as a workaround.
     os.chdir(DIRECTORY)
 
+    server_address = ('', port)
     httpd = http.server.HTTPServer(server_address, http.server.SimpleHTTPRequestHandler)
-    URL = "http://localhost:{port}/".format(port=PORT)
+    URL = "http://localhost:{port}/".format(port=port)
 
     print("Serving directory '{dir}' at '{url}'.".format(dir=DIRECTORY, url=URL))
     print("Opening in browser. Please close this window when you have finished viewing reports.\n")
@@ -53,4 +59,5 @@ def servedir():
 
 
 if __name__ == "__main__":
-    servedir()
+    args = parseargs()
+    servedir(args.port)
