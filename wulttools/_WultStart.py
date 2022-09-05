@@ -135,7 +135,7 @@ def start_command(args):
 
         deploy_info = ToolsCommon.reduce_installables(args.deploy_info, dev)
         with Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
-            depl.check_deployment(dev)
+            depl.check_deployment()
 
         if getattr(dev, "netif", None):
             ToolsCommon.start_command_check_network(args, pman, dev.netif)

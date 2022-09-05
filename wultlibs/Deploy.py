@@ -383,48 +383,32 @@ class DeployCheck(_DeployBase):
                        src_mtime, self._time_delta, dst_mtime, srcpath, dstpath)
             self._warn_deployable_out_of_date(what, is_helper=is_helper)
 
-    def _check_drivers_deployment(self, dev):
+    def _check_drivers_deployment(self):
         """Check if drivers are deployed and up-to-date."""
 
-        if not self._cats["drivers"]:
-            # This must be because SUT kernel version is not new enough.
-            raise Error(f"the '{dev.info['devid']}' device can't be used{self._spman.hostmsg}\n"
-                        f"Reason: drivers cannot be installed.\n"
-                        f"Please use newer kernel{self._spman.hostmsg}")
+        for drvname in self._cats["drivers"]:
+            try:
+                srcpath = ToolHelpers.find_project_data("wult", _DRV_SRC_SUBPATH / self._toolname,
+                                                         descr=f"the '{drvname}' driver")
+            except ErrorNotFound:
+                srcpath = None
 
-        try:
-            srcpath = ToolHelpers.find_project_data("wult", _DRV_SRC_SUBPATH / self._toolname,
-                                                     descr=f"the '{dev.drvname}' driver")
-        except ErrorNotFound:
-            srcpath = None
+            for deployable in self._get_deployables("drivers"):
+                dstpath = self._get_module_path(deployable)
+                if not dstpath:
+                    self._deployable_not_found(f"the '{deployable}' kernel module", is_helper=False)
 
-        for deployable in self._get_deployables("drivers"):
-            dstpath = self._get_module_path(deployable)
-            if not dstpath:
-                self._deployable_not_found(f"the '{deployable}' kernel module", is_helper=False)
+                if srcpath:
+                    what = f"the '{deployable}' kernel driver"
+                    self._check_deployable_up_to_date(what, srcpath, dstpath, is_helper=False)
 
-            if srcpath:
-                what = f"the '{deployable}' kernel driver"
-                self._check_deployable_up_to_date(what, srcpath, dstpath, is_helper=False)
-
-    def _check_helpers_deployment(self, dev):
+    def _check_helpers_deployment(self):
         """Check if simple and eBPF helpers are deployed and up-to-date."""
 
-        if dev.helpername not in self._insts:
-            # This must be because SUT kernel version is not new enough.
-            cat = self._deploy_info["installables"][dev.helpername]["category"]
-            cat_descr = _CATEGORIES[cat]
-            raise Error(f"the '{dev.info['devid']}' device can't be used{self._spman.hostmsg}\n"
-                        f"Reason: the '{dev.helpername}' {cat_descr} cannot be installed.\n"
-                        f"Please use newer kernel{self._spman.hostmsg}")
-
-        for helper in list(self._cats["shelpers"]) + list(self._cats["bpfhelpers"]):
-            if helper != dev.helpername:
-                continue
-
+        for helpername in list(self._cats["shelpers"]) + list(self._cats["bpfhelpers"]):
             try:
-                descr=f"the '{dev.helpername}' helper program"
-                srcpath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / helper,
+                descr=f"the '{helpername}' helper program"
+                srcpath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / helpername,
                                                         descr=descr)
             except ErrorNotFound:
                 srcpath = None
@@ -460,22 +444,19 @@ class DeployCheck(_DeployBase):
                 if srcpath:
                     self._check_deployable_up_to_date(deployable, srcpath, deployable_path)
 
-    def check_deployment(self, dev):
+    def check_deployment(self):
         """
         Wult and other tools require additional helper programs and drivers to be installed on the
         SUT. This method checks whether the required drivers and helper programs are installed on
-        the SUT and are up-to-date. The arguments are as follows.
-          * dev - the delayed event device object created by 'Devices.GetDevice()'.
+        the SUT and are up-to-date.
         """
 
         self._time_delta = None
 
-        if dev.drvname:
-            self._check_drivers_deployment(dev)
-
-        if dev.helpername:
-            self._check_helpers_deployment(dev)
-
+        if self._cats["drivers"]:
+            self._check_drivers_deployment()
+        if self._cats["shelpers"] or self._cats["bpfhelpers"]:
+            self._check_helpers_deployment()
         if self._cats["pyhelpers"]:
             self._check_pyhelpers_deployment()
 
