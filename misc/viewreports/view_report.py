@@ -34,22 +34,24 @@ def parseargs():
     """Configure an argument parser and parse user arguments."""
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("--host", nargs="?", default="localhost",
+        help="Host to serve the report on. Defaults to 'localhost'.")
     parser.add_argument("--port", nargs="?", default=8000, type=int,
         help="Port to serve the report on. Defaults to '8080'.")
     parser.add_argument("--headless", action="store_true",
         help="Run the script without trying to open the report in the default web browser.")
     return parser.parse_args()
 
-def servedir(port=8000, headless=False):
+def servedir(host="localhost", port=8000, headless=False):
     """Serve 'DIRECTORY' locally on 'PORT'."""
 
     # Providing a directory to 'SimpleHTTPRequestHandler' was not supported until Python 3.7.
     # To make this script compatible with Python 3.5+, use 'os.chdir()' as a workaround.
     os.chdir(DIRECTORY)
 
-    server_address = ('', port)
+    server_address = (host, port)
     httpd = http.server.HTTPServer(server_address, http.server.SimpleHTTPRequestHandler)
-    URL = "http://localhost:{port}/".format(port=port)
+    URL = "http://{host}:{port}/".format(host=host, port=port)
 
     print("Serving directory '{dir}' at '{url}'.".format(dir=DIRECTORY, url=URL))
     print("Opening in browser. Please close this window when you have finished viewing reports.\n")
@@ -63,4 +65,4 @@ def servedir(port=8000, headless=False):
 
 if __name__ == "__main__":
     args = parseargs()
-    servedir(args.port, args.headless)
+    servedir(args.host, args.port, args.headless)
