@@ -10,6 +10,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
  - Fix for the problem of extremely slow data rate when measuring the 'POLL'
    state using the 'hrt' method.
 ### Added
+ - Add '--host', '--port' and '--headless' options to report viewing scripts.
 ### Removed
  - Remove the '--size=medium' report option.
 ### Changed
