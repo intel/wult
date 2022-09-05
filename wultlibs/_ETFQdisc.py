@@ -57,8 +57,7 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
                     errmsg += f"Try to install package '{pkgname}'{self._pman.hostmsg}\n"      \
                               f"Currently running kernel version is '{kver}', make sure the\n" \
                               f"installed '{pkgname}' also has version '{kver}'.\n"
-                errmsg += "If you are running a custom kernel (as opposed to the vanilla OS\n" \
-                          "kernel), ensure your kernel has the following features enabled:\n"    \
+                errmsg += "Try to ensure that the kernel has the following features enabled:\n"  \
                           "* QoS / fair queuing (CONFIG_NET_SCHED)\n"                            \
                           "* Multi-queue priority scheduler (CONFIG_NET_SCH_MQPRIO)\n"           \
                           "* Earliest TxTime First (CONFIG_NET_SCH_ETF)\n"                       \
