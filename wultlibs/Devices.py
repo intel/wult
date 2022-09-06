@@ -76,7 +76,6 @@ class _DeviceBase(ClassHelpers.SimpleCloseContext):
         self.drvname = drvname
         self.helpername = helpername
 
-        self.netif = None
         self.dmesg_obj = None
 
         if dmesg:
