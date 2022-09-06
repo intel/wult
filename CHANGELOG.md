@@ -8,6 +8,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - 'wult deploy --skip-drivers' does not require kernel sources any longer.
 
 ## [1.10.26] - 2022-09-05
 ### Fixed
