@@ -790,7 +790,7 @@ class Deploy(_DeployBase):
         # The location of 'libbpf.a' may vary, check several known paths.
         suffixes = ("libbpf/include", "tools/lib", "include", "usr/include",
                     "tools/bpf/resolve_btfids/libbpf/include")
-        incdirs = set()
+        incdirs = {}
 
         for header in headers:
             tried = []
@@ -799,7 +799,7 @@ class Deploy(_DeployBase):
                 incdir = ksrc / sfx
                 tried.append(incdir)
                 if self._bpman.is_file(incdir / header):
-                    incdirs.add(incdir)
+                    incdirs[incdir] = True
                     break
             else:
                 tried = "\n * ".join([str(path) for path in tried])
@@ -807,7 +807,7 @@ class Deploy(_DeployBase):
                                     f"'{ksrc}'\nTried the following paths{self._bpman.hostmsg}:\n"
                                     f" * {tried}")
 
-        return incdirs
+        return list(incdirs)
 
     def _find_or_build_libbpf_a_from_ksrc(self):
         """
@@ -877,7 +877,12 @@ class Deploy(_DeployBase):
             if not bpftool_path:
                 bpftool_path = self._tchk.check_tool("bpftool")
 
-            headers = ("bpf/bpf_helpers.h", "bpf/bpf_tracing.h", "uapi/linux/bpf.h")
+            # Note, this list is crafted so that the 'include' subdirectory would go before the
+            # 'usr/include' subdirectory. Otherwise the compilation breaks. And this only happens
+            # when user ran 'make headers_install', so that 'usr/include' contains the "processed
+            # UAPI headers".
+            headers = ("bpf/bpf_helpers.h", "bpf/bpf_tracing.h", "uapi/linux/bpf.h",
+                       "linux/version.h")
             incdirs = self._find_ebpf_include_dirs_from_ksrc(headers)
             bpf_inc = "-I " + " -I ".join([str(incdir) for incdir in incdirs])
 
