@@ -8,7 +8,8 @@ TOOLNAME = wultrunner
 
 KSRC := /lib/modules/$(shell uname -r)/source
 BPFTOOL ?= bpftool
-LIBBPF ?= $(KSRC)/tools/bpf/resolve_btfids/libbpf/libbpf.a
+# Path to static 'libbpf.a' library.
+LIBBPF ?=
 
 BPFOBJS = bpf-hrt.o
 UOBJS = wultrunner.o
@@ -16,6 +17,11 @@ UOBJS = wultrunner.o
 CFLAGS = -Wall -O2 -Wmissing-prototypes -Wstrict-prototypes -no-pie
 BPF_CFLAGS ?= -O2 -g -target bpf
 LDFLAGS = -lelf -lz
+
+# If static 'libbpf' library was not provided, use the dynamic one.
+ifeq ($(LIBBPF),)
+LDFLAGS := $(LDFLAGS) -lbpf
+endif
 
 CLANG ?= clang
 

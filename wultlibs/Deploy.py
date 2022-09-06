@@ -858,12 +858,20 @@ class Deploy(_DeployBase):
                 stdout, stderr = self._bpman.run_verify(cmd)
                 self._log_cmd_output(stdout, stderr)
 
-        libbpf_path = self._find_or_build_libbpf_a_from_ksrc()
+        # In case of building on a local system for a remote host, we should use 'libbpf' from the
+        # kernel sources. Otherwise, we'll use the shared libbpf library on the SUT instead.
+        libbpf_path = None
+        if self._lbuild:
+            libbpf_path = self._find_or_build_libbpf_a_from_ksrc()
+        else:
+            self._check_for_shared_labrary("bpf")
 
         # Build eBPF helpers.
         for bpfhelper in self._cats["bpfhelpers"]:
             _LOG.info("Compiling eBPF helper '%s'%s", bpfhelper, self._bpman.hostmsg)
-            cmd = f"make -C '{self._btmpdir}/{bpfhelper}' LIBBPF={libbpf_path}"
+            cmd = f"make -C '{self._btmpdir}/{bpfhelper}'"
+            if libbpf_path:
+                cmd += f" LIBBPF={libbpf_path}"
             stdout, stderr = self._bpman.run_verify(cmd)
             self._log_cmd_output(stdout, stderr)
 
