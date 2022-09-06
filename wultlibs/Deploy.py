@@ -244,7 +244,7 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
     """
 
     def _get_kver(self):
-        """Returns version of the kenrel running on the SUT."""
+        """Returns version of the kernel running on the SUT."""
 
         if not self._kver:
             self._kver = KernelVersion.get_kver(pman=self._spman)
@@ -296,7 +296,7 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
         {
             "installables" : {
                 Installable name 1 : {
-                    "category" : category name of the installable ("driver", "shelper", etc).
+                    "category" : category name of the installable ("drivers", "shelpers", etc).
                     "minkver"  : minimum SUT kernel version required for the installable.
                     "deployables" : list of deployables this installable provides.
                 },
@@ -305,7 +305,7 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
             }
         }
 
-        Please, refer to module doctring for more information.
+        Please, refer to module docstring for more information.
         """
 
         self._toolname = toolname
@@ -363,7 +363,7 @@ class DeployCheck(_DeployBase):
         return newest
 
     def _get_deployables(self, category):
-        """Yields all deployable names for catergory 'category' (e.g., "drivers")."""
+        """Yields all deployable names for category 'category' (e.g., "drivers")."""
 
         for inst_info in self._cats[category].values():
             for deployable in inst_info["deployables"]:
@@ -494,26 +494,12 @@ class DeployCheck(_DeployBase):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool to create the deployment object for.
-          * deploy_info - a dictionary describing the tool to deploy.
+          * deploy_info - a dictionary describing the tool to deploy. Check '_DeployBase.__init__()'
+                          for more information.
           * pman - the process manager object that defines the SUT to deploy to (local host by
                    default).
 
-        The 'deploy_info' dictionary describes the tool to deploy and its dependencies. I should
-        have the following structure.
-
-        {
-            "installables" : {
-                Installable name 1 : {
-                    "category" : category name of the installable ("driver", "shelper", etc).
-                    "minkver"  : minimum SUT kernel version required for the installable.
-                    "deployables" : list of deployables this installable provides.
-                },
-                Installable name 2 : {},
-                ... etc for every installable ...
-            }
-        }
-
-        Please, refer to module doctring for more information.
+        Please, refer to module docstring for more information.
         """
 
         super().__init__(toolname, deploy_info, pman=pman)
@@ -523,7 +509,7 @@ class DeployCheck(_DeployBase):
 
 class Deploy(_DeployBase):
     """
-    This module provides the 'deploy()' method which can be used for deploying the depenencies of
+    This module provides the 'deploy()' method which can be used for deploying the dependencies of
     the tools of the "wult" project.
     """
 
@@ -559,7 +545,7 @@ class Deploy(_DeployBase):
         return self._ctmpdir
 
     def _get_deployables(self, category):
-        """Yields all deployable names for catergory 'category' (e.g., "drivers")."""
+        """Yields all deployable names for category 'category' (e.g., "drivers")."""
 
         for inst_info in self._cats[category].values():
             for deployable in inst_info["deployables"]:
@@ -576,7 +562,7 @@ class Deploy(_DeployBase):
 
     def _get_kver(self):
         """
-        Returns version of the kenrel running on the SUT or version of the kernel in path to compile
+        Returns version of the kernel running on the SUT or version of the kernel in path to compile
         wult components against.
         """
 
@@ -776,7 +762,7 @@ class Deploy(_DeployBase):
                            pyhelper, self._spman.hostname, srcdir, self._stmpdir)
                 self._spman.rsync(srcdir, self._stmpdir, remotesrc=False, remotedst=True)
 
-    def _check_for_shared_labrary(self, soname):
+    def _check_for_shared_library(self, soname):
         """
         Check if a shared library 'soname' is available on the build host. Returns if it is
         available, raises 'ErrorNotFound' otherwise.
@@ -793,10 +779,10 @@ class Deploy(_DeployBase):
 
     def _find_ebpf_include_dirs_from_ksrc(self):
         """
-        The eBPF program includes variouse header files from kernel source, such as
+        The eBPF program includes various header files from kernel source, such as
         'bpf/bpf_helpers.h' and 'uapi/linux/bpf.h'. The location of some of this files in kernel
         sources varies. This methods finds the location and returns the string of
-        whtespace-separated paths which can be passed to the compiler.
+        whitespace-separated paths which can be passed to the compiler.
         """
 
         ksrc = self._get_ksrc()
@@ -827,7 +813,7 @@ class Deploy(_DeployBase):
     def _find_or_build_libbpf_a_from_ksrc(self):
         """
         The searches for 'libbpf.a' (static libbpf library) in the kernel sources and returns its
-        path. If 'libbpf.a' was not found, this method compiles it in the kenrnel sources and
+        path. If 'libbpf.a' was not found, this method compiles it in the kernel sources and
         returns the path to 'libbpf.a'.
         """
 
@@ -848,7 +834,7 @@ class Deploy(_DeployBase):
               f"Trying to compile it."
 
         # Try to compile 'libbpf.a'. It requires 'libelf'.
-        self._check_for_shared_labrary("elf")
+        self._check_for_shared_library("elf")
 
         cmd = f"make -C '{ksrc}/tools/lib/bpf'"
         self._bpman.run_verify(cmd)
@@ -877,7 +863,7 @@ class Deploy(_DeployBase):
         if self._rebuild_bpf:
             # In order to compile the eBPF components of eBPF helpers, the build host must have
             # 'bpftool' and 'clang' available. These tools are used from the 'Makefile'. Let's check
-            # for themin order to generate a user-friendly message if one of them is not installed.
+            # for them in order to generate a user-friendly message if one of them is not installed.
             bpftool_path = self._tchk.check_tool("bpftool")
             clang_path = self._tchk.check_tool("clang")
 
@@ -899,7 +885,7 @@ class Deploy(_DeployBase):
         if self._lbuild:
             libbpf_path = self._find_or_build_libbpf_a_from_ksrc()
         else:
-            self._check_for_shared_labrary("bpf")
+            self._check_for_shared_library("bpf")
 
         # Build eBPF helpers.
         for bpfhelper in self._cats["bpfhelpers"]:
@@ -1136,6 +1122,8 @@ class Deploy(_DeployBase):
                           not remove it.
           * debug - if 'True', be more verbose and do not remove the temporary directories in case
                     of a failure.
+
+        Please, refer to module docstring for more information.
         """
 
         super().__init__(toolname, deploy_info, pman=pman)
