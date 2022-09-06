@@ -233,6 +233,17 @@ class ReportBase:
 
         return smry_funcs
 
+    def _get_axis_def(self, axis, base_col_suffix):
+        """
+        Get the metric definition for 'axis'. First tries to retrieve the "base metric" (using
+        'base_col_suffix') and uses the definition for 'axis' if no "base metric" is found.
+        """
+
+        defs = self._refres.defs.info
+        base_axis = axis + base_col_suffix
+        # Try to add a 'base' metric if it has been calculated, otherwise take the unscaled column.
+        return defs[base_axis] if base_axis in self._refres.df else defs[axis]
+
     def _get_axes_defs(self, axes, base_col_suffix):
         """
         Returns the definition dictionaries for the metrics on the axes in 'axes'. For each axis in
@@ -242,13 +253,8 @@ class ReportBase:
 
         plot_defs = []
         for xy_pair in axes:
-            # Try to add a 'base' metric if it has been calculated, otherwise take the unscaled
-            # column.
-            defs = self._refres.defs.info
-            base_xaxis = xy_pair[0] + base_col_suffix
-            base_yaxis = xy_pair[1] + base_col_suffix
-            xdef = defs[base_xaxis] if base_xaxis in self._refres.df else defs[xy_pair[0]]
-            ydef = defs[base_yaxis] if base_yaxis in self._refres.df else defs[xy_pair[1]]
+            xdef = self._get_axis_def(xy_pair[0], base_col_suffix)
+            ydef = self._get_axis_def(xy_pair[1], base_col_suffix)
             plot_defs.append((xdef, ydef,))
         return plot_defs
 
