@@ -777,20 +777,19 @@ class Deploy(_DeployBase):
                 msg += f"\nTry to install OS package '{pkgname}'."
             raise ErrorNotFound(msg)
 
-    def _find_ebpf_include_dirs_from_ksrc(self):
+    def _find_ebpf_include_dirs_from_ksrc(self, headers):
         """
-        The eBPF program includes various header files from kernel source, such as
-        'bpf/bpf_helpers.h' and 'uapi/linux/bpf.h'. The location of some of this files in kernel
-        sources varies. This methods finds the location and returns the string of
-        whitespace-separated paths which can be passed to the compiler.
+        eBPF helpers depend on various C header files from kernel source. The location of some of
+        these files in kernel sources varies depending on kernel version and/or how the OS package
+        places them. This method finds the locations of header files 'headers' and return the
+        locations list.
         """
 
         ksrc = self._get_ksrc()
 
         # The location of 'libbpf.a' may vary, check several known paths.
-        suffixes = ("libbpf/include", "tools/bpf/resolve_btfids/libbpf/include", "tools/lib",
-                    "include", "usr/include")
-        headers = ("uapi/linux/bpf.h", "bpf/bpf_helpers.h", "bpf/bpf_tracing.h")
+        suffixes = ("libbpf/include", "tools/lib", "include", "usr/include",
+                    "tools/bpf/resolve_btfids/libbpf/include")
         incdirs = set()
 
         for header in headers:
@@ -868,7 +867,8 @@ class Deploy(_DeployBase):
             clang_path = self._tchk.check_tool("clang")
 
             ksrc = self._get_ksrc()
-            incdirs = self._find_ebpf_include_dirs_from_ksrc()
+            headers = ("bpf/bpf_helpers.h", "bpf/bpf_tracing.h", "uapi/linux/bpf.h")
+            incdirs = self._find_ebpf_include_dirs_from_ksrc(headers)
             bpf_inc = "-I " + " -I ".join([str(incdir) for incdir in incdirs])
 
             # Build the eBPF components of eBPF helpers.
@@ -879,12 +879,17 @@ class Deploy(_DeployBase):
                 stdout, stderr = self._bpman.run_verify(cmd)
                 self._log_cmd_output(stdout, stderr)
 
-        # In case of building on a local system for a remote host, we should use 'libbpf' from the
-        # kernel sources. Otherwise, we'll use the shared libbpf library on the SUT instead.
-        libbpf_path = None
+        libbpf_path, u_inc = None, None
         if self._lbuild:
+            # We are building on a local system for a remote host. Everythong should come from
+            # kernel sources in this case: 'libbpf.a' and 'bpf/bpf.h'.
             libbpf_path = self._find_or_build_libbpf_a_from_ksrc()
+            incdirs = self._find_ebpf_include_dirs_from_ksrc(("bpf/bpf.h", ))
+            u_inc = "-I " + " -I ".join([str(incdir) for incdir in incdirs])
         else:
+            # We are building on the SUT for the kernel running on the SUT. In this case we assume
+            # that libbpf is installed on the system via an OS kernel package, and we use the shared
+            # 'libbpf' library.
             self._check_for_shared_library("bpf")
 
         # Build eBPF helpers.
@@ -892,7 +897,7 @@ class Deploy(_DeployBase):
             _LOG.info("Compiling eBPF helper '%s'%s", bpfhelper, self._bpman.hostmsg)
             cmd = f"make -C '{self._btmpdir}/{bpfhelper}'"
             if libbpf_path:
-                cmd += f" LIBBPF={libbpf_path}"
+                cmd += f" LIBBPF='{libbpf_path}' U_INC='{u_inc}'"
             stdout, stderr = self._bpman.run_verify(cmd)
             self._log_cmd_output(stdout, stderr)
 

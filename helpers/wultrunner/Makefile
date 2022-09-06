@@ -15,6 +15,9 @@ BPF_INC := -I$(KSRC)/include \
 	   -I$(KSRC)/usr/include \
 	   -I$(KSRC)/libbpf/include \
 	   -I$(KSRC)/tools/lib
+# Paths to include when compiling the userspace code.
+U_INC := -I$(KSRC)/tools/include \
+	 -I$(KSRC)/tools/lib
 
 BPFOBJS = bpf-hrt.o
 UOBJS = wultrunner.o
@@ -52,7 +55,7 @@ $(BPFOBJS): %.o: %.c
 	$(BPFTOOL) gen skeleton $@ > $(subst .o,.h,$@)
 
 $(UOBJS): %.o: %.c
-	$(CC) -Wno-unused-variable -c -o $@ $< $(CFLAGS)
+	$(CC) -Wno-unused-variable $(U_INC) -c -o $@ $< $(CFLAGS)
 
 $(TOOLNAME): $(UOBJS)
 	$(CC) -o $@ $(UOBJS) $(CFLAGS) $(LIBBPF) $(LDFLAGS)
