@@ -24,9 +24,6 @@ BPF_INC = -I$(KSRC)/include \
 	  -I$(KSRC)/tools/bpf/resolve_btfids/libbpf/include \
 	  -I$(KSRC)/tools/lib
 
-U_INC = -I$(KSRC)/tools/include \
-	-I$(KSRC)/tools/lib
-
 all: $(TOOLNAME)
 
 # Problem: if "bpftool gen skeleton > file.h" fails, then 'file.h' is created,
@@ -49,7 +46,7 @@ $(BPFOBJS): %.o: %.c
 	$(BPFTOOL) gen skeleton $@ > $(subst .o,.h,$@)
 
 $(UOBJS): %.o: %.c
-	$(CC) -Wno-unused-variable $(U_INC) -c -o $@ $< $(CFLAGS)
+	$(CC) -Wno-unused-variable -c -o $@ $< $(CFLAGS)
 
 $(TOOLNAME): $(UOBJS)
 	$(CC) -o $@ $(UOBJS) $(CFLAGS) $(LIBBPF) $(LDFLAGS)

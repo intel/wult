@@ -863,8 +863,7 @@ class Deploy(_DeployBase):
         # Build eBPF helpers.
         for bpfhelper in self._cats["bpfhelpers"]:
             _LOG.info("Compiling eBPF helper '%s'%s", bpfhelper, self._bpman.hostmsg)
-            ksrc = self._get_ksrc()
-            cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{ksrc}' LIBBPF={libbpf_path}"
+            cmd = f"make -C '{self._btmpdir}/{bpfhelper}' LIBBPF={libbpf_path}"
             stdout, stderr = self._bpman.run_verify(cmd)
             self._log_cmd_output(stdout, stderr)
 
