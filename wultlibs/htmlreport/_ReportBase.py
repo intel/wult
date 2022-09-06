@@ -252,6 +252,60 @@ class ReportBase:
             plot_defs.append((xdef, ydef,))
         return plot_defs
 
+    def _gen_stime_ldist_tab(self, tab_metrics, base_col_suffix, hover_defs):
+        """
+        Helper method for '_generate_results_tabs()'. Generate a tab for the 'SilentTime' and/or
+        'LDist' metrics. Returns 'None', if the tab had to be skipped for some reason.
+        """
+
+        defs = self._refres.defs.info
+
+        # Configure what should be included in the 'SilentTime/LDist' tab.
+        tab_config = {
+            "scatter": [("LDist", "SilentTime")],
+            "hist": ["SilentTime", "LDist"],
+            "smry_metrics": ["SilentTime", "LDist"],
+        }
+
+        # Only include plots with metrics in 'tab_metrics'.
+        s_axes = [xypair for xypair in tab_config["scatter"] if set(xypair).issubset(tab_metrics)]
+        tab_config["scatter"] = s_axes
+        tab_config["hist"] = [metric for metric in tab_config["hist"] if metric in tab_metrics]
+
+        if ("SilentTime" in tab_metrics and "LDist" in tab_metrics):
+            tab_mdef = defs.get("SilentTime", defs["LDist"])
+            tab_config["title"] = "SilentTime/LDist"
+        elif "SilentTime" in tab_metrics:
+            tab_mdef = defs["SilentTime"]
+            tab_config["title"] = "SilentTime"
+        elif "LDist" in tab_metrics:
+            tab_mdef = defs["LDist"]
+            tab_config["title"] = "LDist"
+        else:
+            _LOG.debug("skipping 'SilentTime/LDist' tab since neither metric is included as a tab.")
+            return None
+
+        s_defs = self._get_axes_defs(tab_config["scatter"], base_col_suffix)
+        h_defs = []
+        for metric in tab_config["hist"]:
+            base_metric = metric + base_col_suffix
+            if base_metric in self._refres.df:
+                h_defs.append(defs[base_metric])
+            else:
+                h_defs.append(defs[metric])
+
+        dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, tab_mdef)
+        dtab_bldr.title = tab_config["title"]
+        dtab_bldr.add_plots(s_defs, h_defs, hover_defs=hover_defs)
+
+        smry_metrics = [metric for metric in tab_config["smry_metrics"] if metric in tab_metrics]
+        smry_funcs = self._get_smry_funcs(smry_metrics)
+        # Only add a summary table if summary metrics were added to 'tab_smry_funcs'.
+        if smry_funcs:
+            dtab_bldr.add_smrytbl(smry_funcs, self._refres.defs)
+
+        return dtab_bldr.get_tab()
+
     def _generate_results_tabs(self):
         """
         Generate and return a list of sub-tabs for the results tab. The results tab includes the
@@ -290,6 +344,8 @@ class ReportBase:
             hover_defs[reportid] = [reports[reportid].defs.info[m] for m in metrics]
 
         for metric in tab_metrics:
+            if metric in ("SilentTime", "LDist"):
+                continue
             _LOG.info("Generating %s tab.", metric)
             smry_metrics = []
             # Only add plots which have the tab metric on one of the axes.
@@ -313,6 +369,11 @@ class ReportBase:
             dtab_bldr.add_plots(tab_plots, hist_metrics, chist_metrics, hover_defs)
 
             dtabs.append(dtab_bldr.get_tab())
+
+        if "SilentTime" in tab_metrics or "LDist" in tab_metrics:
+            stime_ldist_tab = self._gen_stime_ldist_tab(tab_metrics, base_col_suffix, hover_defs)
+            if stime_ldist_tab is not None:
+                dtabs.append(stime_ldist_tab)
 
         return dtabs
 
