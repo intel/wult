@@ -292,13 +292,7 @@ class ReportBase:
             return None
 
         s_defs = self._get_axes_defs(tab_config["scatter"], base_col_suffix)
-        h_defs = []
-        for metric in tab_config["hist"]:
-            base_metric = metric + base_col_suffix
-            if base_metric in self._refres.df:
-                h_defs.append(defs[base_metric])
-            else:
-                h_defs.append(defs[metric])
+        h_defs = [self._get_axis_def(metric, base_col_suffix) for metric in tab_config["hist"]]
 
         dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, tab_mdef)
         dtab_bldr.title = tab_config["title"]
@@ -370,9 +364,11 @@ class ReportBase:
                 dtab_bldr.add_smrytbl(smry_funcs, self._refres.defs)
 
             metric_def = self._refres.defs.info.get(metric + base_col_suffix, metric_def)
-            hist_metrics = [metric_def] if metric in self.hist else []
-            chist_metrics = [metric_def] if metric in self.chist else []
-            dtab_bldr.add_plots(tab_plots, hist_metrics, chist_metrics, hover_defs)
+            hist_metrics = [metric] if metric in self.hist else []
+            hist_defs = [self._get_axis_def(metric, base_col_suffix) for metric in hist_metrics]
+            chist_metrics = [metric] if metric in self.chist else []
+            chist_defs = [self._get_axis_def(metric, base_col_suffix) for metric in chist_metrics]
+            dtab_bldr.add_plots(tab_plots, hist_defs, chist_defs, hover_defs)
 
             dtabs.append(dtab_bldr.get_tab())
 
