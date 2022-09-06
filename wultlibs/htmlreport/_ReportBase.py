@@ -219,6 +219,25 @@ class ReportBase:
         asset_path = ToolHelpers.find_project_data("wult", src, descr=descr)
         FSHelpers.move_copy_link(asset_path, dst, "copy", exist_ok=True)
 
+    def _get_axes_defs(self, axes, base_col_suffix):
+        """
+        Returns the definition dictionaries for the metrics on the axes in 'axes'. For each axis in
+        'axes', tries to find the "base metric" if one has been calculated. Otherwise, uses the axis
+        metric.
+        """
+
+        plot_defs = []
+        for xy_pair in axes:
+            # Try to add a 'base' metric if it has been calculated, otherwise take the unscaled
+            # column.
+            defs = self._refres.defs.info
+            base_xaxis = xy_pair[0] + base_col_suffix
+            base_yaxis = xy_pair[1] + base_col_suffix
+            xdef = defs[base_xaxis] if base_xaxis in self._refres.df else defs[xy_pair[0]]
+            ydef = defs[base_yaxis] if base_yaxis in self._refres.df else defs[xy_pair[1]]
+            plot_defs.append((xdef, ydef,))
+        return plot_defs
+
     def _generate_results_tabs(self):
         """
         Generate and return a list of sub-tabs for the results tab. The results tab includes the
@@ -258,24 +277,12 @@ class ReportBase:
 
         for metric in tab_metrics:
             _LOG.info("Generating %s tab.", metric)
-
-            tab_plots = []
             smry_metrics = []
-            for axes in plot_axes:
-                # Only add plots which have the tab metric on one of the axes.
-                if metric in axes:
-                    # Try to add a 'base' metric if it has been calculated, otherwise take the
-                    # unscaled column.
-                    defs = self._refres.defs.info
-                    base_xaxis = axes[0] + base_col_suffix
-                    base_yaxis = axes[1] + base_col_suffix
-                    xdef = defs[base_xaxis] if base_xaxis in self._refres.df else defs[axes[0]]
-                    ydef = defs[base_yaxis] if base_yaxis in self._refres.df else defs[axes[1]]
-                    tab_plots.append((xdef, ydef,))
+            # Only add plots which have the tab metric on one of the axes.
+            axes =  [xypair for xypair in plot_axes if metric in xypair]
+            tab_plots = self._get_axes_defs(axes, base_col_suffix)
 
-                    # Only add metrics shown in the diagrams to the summary table.
-                    smry_metrics += axes
-
+            smry_metrics += list(set.union(*[set(xypair) for xypair in axes]))
             smry_metrics = Trivial.list_dedup(smry_metrics)
 
             metric_def = self._refres.defs.info[metric]
