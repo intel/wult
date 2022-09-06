@@ -10,6 +10,11 @@ KSRC := /lib/modules/$(shell uname -r)/source
 BPFTOOL ?= bpftool
 # Path to static 'libbpf.a' library.
 LIBBPF ?=
+# Paths to include when compiling eBPF code.
+BPF_INC := -I$(KSRC)/include \
+	   -I$(KSRC)/usr/include \
+	   -I$(KSRC)/libbpf/include \
+	   -I$(KSRC)/tools/lib
 
 BPFOBJS = bpf-hrt.o
 UOBJS = wultrunner.o
@@ -24,11 +29,6 @@ LDFLAGS := $(LDFLAGS) -lbpf
 endif
 
 CLANG ?= clang
-
-BPF_INC = -I$(KSRC)/include \
-	  -I$(KSRC)/usr/include \
-	  -I$(KSRC)/tools/bpf/resolve_btfids/libbpf/include \
-	  -I$(KSRC)/tools/lib
 
 all: $(TOOLNAME)
 

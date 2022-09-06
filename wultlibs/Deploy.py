@@ -791,6 +791,39 @@ class Deploy(_DeployBase):
                 msg += f"\nTry to install OS package '{pkgname}'."
             raise ErrorNotFound(msg)
 
+    def _find_ebpf_include_dirs_from_ksrc(self):
+        """
+        The eBPF program includes variouse header files from kernel source, such as
+        'bpf/bpf_helpers.h' and 'uapi/linux/bpf.h'. The location of some of this files in kernel
+        sources varies. This methods finds the location and returns the string of
+        whtespace-separated paths which can be passed to the compiler.
+        """
+
+        ksrc = self._get_ksrc()
+
+        # The location of 'libbpf.a' may vary, check several known paths.
+        suffixes = ("libbpf/include", "tools/bpf/resolve_btfids/libbpf/include", "tools/lib",
+                    "include", "usr/include")
+        headers = ("uapi/linux/bpf.h", "bpf/bpf_helpers.h", "bpf/bpf_tracing.h")
+        incdirs = set()
+
+        for header in headers:
+            tried = []
+
+            for sfx in suffixes:
+                incdir = ksrc / sfx
+                tried.append(incdir)
+                if self._bpman.is_file(incdir / header):
+                    incdirs.add(incdir)
+                    break
+            else:
+                tried = "\n * ".join([str(path) for path in tried])
+                raise ErrorNotFound(f"failed to find C header file '{header}' in kernel sources "
+                                    f"'{ksrc}'\nTried the following paths{self._bpman.hostmsg}:\n"
+                                    f" * {tried}")
+
+        return incdirs
+
     def _find_or_build_libbpf_a_from_ksrc(self):
         """
         The searches for 'libbpf.a' (static libbpf library) in the kernel sources and returns its
@@ -801,17 +834,17 @@ class Deploy(_DeployBase):
         ksrc = self._get_ksrc()
 
         # The location of 'libbpf.a' in kernel sources may vary, check several known paths.
-        path_suffixes = ("tools/lib/bpf", "tools/bpf/resolve_btfids/libbpf", "libbpf")
+        suffixes = ("tools/lib/bpf", "tools/bpf/resolve_btfids/libbpf", "libbpf")
         tried_paths = []
 
-        for path_sfx in path_suffixes:
-            path = ksrc / path_sfx / "libbpf.a"
-            tried_paths.append(str(path))
+        for sfx in suffixes:
+            path = ksrc / sfx / "libbpf.a"
+            tried_paths.append(path)
             if self._bpman.is_file(path):
                 return path
 
-        tried = "\n * ".join(tried_paths)
-        msg = f"failed to find 'libbpf.a', tried these paths{self._bpman.hostmsg}:\n* {tried}\n" \
+        tried = "\n * ".join([str(path) for path in tried_paths])
+        msg = f"failed to find 'libbpf.a', tried these paths{self._bpman.hostmsg}:\n * {tried}\n" \
               f"Trying to compile it."
 
         # Try to compile 'libbpf.a'. It requires 'libelf'.
@@ -849,12 +882,14 @@ class Deploy(_DeployBase):
             clang_path = self._tchk.check_tool("clang")
 
             ksrc = self._get_ksrc()
+            incdirs = self._find_ebpf_include_dirs_from_ksrc()
+            bpf_inc = "-I " + " -I ".join([str(incdir) for incdir in incdirs])
 
             # Build the eBPF components of eBPF helpers.
             for bpfhelper in self._cats["bpfhelpers"]:
                 _LOG.info("Compiling the eBPF component of '%s'%s", bpfhelper, self._bpman.hostmsg)
                 cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{ksrc}' CLANG='{clang_path}' " \
-                      f"BPFTOOL='{bpftool_path}' bpf"
+                      f"BPFTOOL='{bpftool_path}' BPF_INC='{bpf_inc}' bpf"
                 stdout, stderr = self._bpman.run_verify(cmd)
                 self._log_cmd_output(stdout, stderr)
 
