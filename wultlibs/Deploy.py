@@ -820,8 +820,6 @@ class Deploy(_DeployBase):
           * helpersrc - path to the helpers base directory on the controller.
         """
 
-        ksrc = self._get_ksrc()
-
         # Copy eBPF helpers to the temporary directory on the build host.
         for bpfhelper in self._cats["bpfhelpers"]:
             srcdir = helpersrc/ bpfhelper
@@ -837,12 +835,13 @@ class Deploy(_DeployBase):
             bpftool_path = self._tchk.check_tool("bpftool")
             clang_path = self._tchk.check_tool("clang")
 
+            ksrc = self._get_ksrc()
+
             # Build the eBPF components of eBPF helpers.
             for bpfhelper in self._cats["bpfhelpers"]:
-                _LOG.info("Compiling the eBPF component of '%s'%s",
-                          bpfhelper, self._bpman.hostmsg)
-                cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{ksrc}' " \
-                      f"CLANG='{clang_path}' BPFTOOL='{bpftool_path}' bpf"
+                _LOG.info("Compiling the eBPF component of '%s'%s", bpfhelper, self._bpman.hostmsg)
+                cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{ksrc}' CLANG='{clang_path}' "
+                      f"BPFTOOL='{bpftool_path}' bpf"
                 stdout, stderr = self._bpman.run_verify(cmd)
                 self._log_cmd_output(stdout, stderr)
 
@@ -861,6 +860,7 @@ class Deploy(_DeployBase):
         # Build eBPF helpers.
         for bpfhelper in self._cats["bpfhelpers"]:
             _LOG.info("Compiling eBPF helper '%s'%s", bpfhelper, self._bpman.hostmsg)
+            ksrc = self._get_ksrc()
             cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{ksrc}' LIBBPF={libbpf_path}"
             stdout, stderr = self._bpman.run_verify(cmd)
             self._log_cmd_output(stdout, stderr)
