@@ -776,12 +776,16 @@ class Deploy(_DeployBase):
                            pyhelper, self._spman.hostname, srcdir, self._stmpdir)
                 self._spman.rsync(srcdir, self._stmpdir, remotesrc=False, remotedst=True)
 
-    def _get_libbpf_path(self):
-        """Search for 'libbpf.a' library in the kernel sources and return its path."""
+    def _find_or_build_libbpf_a_from_ksrc(self):
+        """
+        The searches for 'libbpf.a' (static libbpf library) in the kernel sources and returns its
+        path. If 'libbpf.a' was not found, this method compiles it in the kenrnel sources and
+        returns the path to 'libbpf.a'.
+        """
 
         ksrc = self._get_ksrc()
 
-        # The location of 'libbpf.a' may vary, check several known paths.
+        # The location of 'libbpf.a' in kernel sources may vary, check several known paths.
         path_suffixes = ("tools/lib/bpf", "tools/bpf/resolve_btfids/libbpf", "libbpf")
         tried_paths = []
 
@@ -792,27 +796,32 @@ class Deploy(_DeployBase):
                 return path
 
         tried = "\n * ".join(tried_paths)
-        raise ErrorNotFound(f"failed to find 'libbpf.a', tried the following paths"
-                            f"{self._bpman.hostmsg}:\n * {tried}")
+        msg = f"failed to find 'libbpf.a', tried these paths{self._bpman.hostmsg}:\n* {tried}\n" \
+              f"Trying to compile it."
 
-    def _build_libbpf(self):
-        """Build 'libbpf.a' in the kernel sources."""
-
-        ksrc = self._get_ksrc()
+        # Try to compile 'libbpf.a'.
         cmd = f"make -C '{ksrc}/tools/lib/bpf'"
 
         try:
             self._bpman.run_verify(cmd)
         except Error as err:
+            msg += f"\n{err}"
+
             if "libelf.h: No such file or directory" in str(err):
-                msg = f"The 'libelf' library is not installed{self._bpman.hostmsg}."
+                msg += f"\nThe 'libelf' library is not installed{self._bpman.hostmsg}."
 
                 pkgname = self._tchk.tool_to_pkg("libelf.h")
                 if pkgname:
                     msg += f"\nTry to install OS package '{pkgname}'."
 
-                raise ErrorNotFound(f"{err}\n\n{msg}") from err
-            raise
+            raise ErrorNotFound(f"{msg}") from err
+
+        path = f"{ksrc}/tools/lib/bpf/libbpf.a"
+        if self._bpman.is_file(path):
+            return path
+
+        raise ErrorNotFound(f"{msg}\nCompiled 'libbpf.a', but it was still not found in " \
+                            f"'{path}'{self._bpman.hostmsg}")
 
     def _prepare_bpfhelpers(self, helpersrc):
         """
@@ -840,22 +849,12 @@ class Deploy(_DeployBase):
             # Build the eBPF components of eBPF helpers.
             for bpfhelper in self._cats["bpfhelpers"]:
                 _LOG.info("Compiling the eBPF component of '%s'%s", bpfhelper, self._bpman.hostmsg)
-                cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{ksrc}' CLANG='{clang_path}' "
+                cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{ksrc}' CLANG='{clang_path}' " \
                       f"BPFTOOL='{bpftool_path}' bpf"
                 stdout, stderr = self._bpman.run_verify(cmd)
                 self._log_cmd_output(stdout, stderr)
 
-        # Check for 'libbpf.a', which should come from the kernel source.
-        try:
-            libbpf_path = self._get_libbpf_path()
-        except ErrorNotFound as find_err:
-            _LOG.notice("'libbpf.a' was not found, trying to compile it")
-            try:
-                self._build_libbpf()
-            except Error as build_err:
-                raise Error(f"at first, 'libbpf.a' was not found:\n{find_err}\n\n"
-                            f"Then we tried to build it, but failed:\n{build_err}") from build_err
-            libbpf_path = self._get_libbpf_path()
+        libbpf_path = self._find_or_build_libbpf_a_from_ksrc()
 
         # Build eBPF helpers.
         for bpfhelper in self._cats["bpfhelpers"]:
