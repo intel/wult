@@ -860,13 +860,23 @@ class Deploy(_DeployBase):
                               remotedst=self._bpman.is_remote)
 
         if self._rebuild_bpf:
+            ksrc = self._get_ksrc()
+
             # In order to compile the eBPF components of eBPF helpers, the build host must have
-            # 'bpftool' and 'clang' available. These tools are used from the 'Makefile'. Let's check
+            # 'clang' and 'bpftool' available. These tools are used from the 'Makefile'. Let's check
             # for them in order to generate a user-friendly message if one of them is not installed.
-            bpftool_path = self._tchk.check_tool("bpftool")
+
             clang_path = self._tchk.check_tool("clang")
 
-            ksrc = self._get_ksrc()
+            # Check if kernel sources provide 'bpftool' first. The user could have compiled it in
+            # the kernel tree. Use it, if so.
+            for path in ("bpftool", "tools/bpf/bpftool/bpftool"):
+                if self._bpman.is_file(ksrc / path):
+                    bpftool_path = ksrc / path
+                    break
+            if not bpftool_path:
+                bpftool_path = self._tchk.check_tool("bpftool")
+
             headers = ("bpf/bpf_helpers.h", "bpf/bpf_tracing.h", "uapi/linux/bpf.h")
             incdirs = self._find_ebpf_include_dirs_from_ksrc(headers)
             bpf_inc = "-I " + " -I ".join([str(incdir) for incdir in incdirs])
