@@ -776,6 +776,21 @@ class Deploy(_DeployBase):
                            pyhelper, self._spman.hostname, srcdir, self._stmpdir)
                 self._spman.rsync(srcdir, self._stmpdir, remotesrc=False, remotedst=True)
 
+    def _check_for_shared_labrary(self, soname):
+        """
+        Check if a shared library 'soname' is available on the build host. Returns if it is
+        available, raises 'ErrorNotFound' otherwise.
+        """
+
+        _, stderr, _ = self._bpman.run(f"cc -l{soname}")
+        if f"cannot find -l{soname}" in stderr:
+            msg = f"The 'lib{soname}' library is not installed{self._bpman.hostmsg}"
+
+            pkgname = self._tchk.tool_to_pkg(f"lib{soname}")
+            if pkgname:
+                msg += f"\nTry to install OS package '{pkgname}'."
+            raise ErrorNotFound(msg)
+
     def _find_or_build_libbpf_a_from_ksrc(self):
         """
         The searches for 'libbpf.a' (static libbpf library) in the kernel sources and returns its
@@ -799,22 +814,11 @@ class Deploy(_DeployBase):
         msg = f"failed to find 'libbpf.a', tried these paths{self._bpman.hostmsg}:\n* {tried}\n" \
               f"Trying to compile it."
 
-        # Try to compile 'libbpf.a'.
+        # Try to compile 'libbpf.a'. It requires 'libelf'.
+        self._check_for_shared_labrary("elf")
+
         cmd = f"make -C '{ksrc}/tools/lib/bpf'"
-
-        try:
-            self._bpman.run_verify(cmd)
-        except Error as err:
-            msg += f"\n{err}"
-
-            if "libelf.h: No such file or directory" in str(err):
-                msg += f"\nThe 'libelf' library is not installed{self._bpman.hostmsg}."
-
-                pkgname = self._tchk.tool_to_pkg("libelf.h")
-                if pkgname:
-                    msg += f"\nTry to install OS package '{pkgname}'."
-
-            raise ErrorNotFound(f"{msg}") from err
+        self._bpman.run_verify(cmd)
 
         path = f"{ksrc}/tools/lib/bpf/libbpf.a"
         if self._bpman.is_file(path):
