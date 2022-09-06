@@ -82,13 +82,25 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
         """Start the measurements."""
         super()._start_helper()
 
+    def _restore_netif_state(self):
+        """Restore the original network interface state."""
+
+        if getattr(self, "_orig_netif_state", None):
+            func = getattr(self._netif, self._orig_netif_state, None)
+            if func:
+                func()
+            else:
+                _LOG.warning("failed to restore state '%s' of network interface '%s':\n"
+                             "it is not supported. Please, contact the developers.",
+                             self._orig_netif_state, self._netif.ifname)
+
     def stop(self):
         """Stop the  measurements."""
 
         super()._exit_helper()
 
         self._etfqdisc.stop_phc2sys()
-        self._netif.down()
+        self._restore_netif_state()
         if self._nmcli:
             self._nmcli.restore_managed()
 
@@ -114,6 +126,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
 
         # Ensure the network interface exists and has carrier. It must be brought up before we can
         # check the carrier status.
+        self._orig_netif_state = self._netif.getstate()
         self._netif.up()
         self._netif.wait_for_carrier(10)
 
@@ -166,6 +179,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
         self._ldist = ldist
         self._helper_path = ndlrunner_path
         self._netif = self.dev.netif
+        self._orig_netif_state = None
 
         self._ndl_lines = None
         self._etfqdisc = None
@@ -183,7 +197,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
 
         if getattr(self, "_netif", None):
             with contextlib.suppress(Error):
-                self._netif.down()
+                self._restore_netif_state()
 
         if getattr(self, "_nmcli", None):
             with contextlib.suppress(Error):
