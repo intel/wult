@@ -219,6 +219,20 @@ class ReportBase:
         asset_path = ToolHelpers.find_project_data("wult", src, descr=descr)
         FSHelpers.move_copy_link(asset_path, dst, "copy", exist_ok=True)
 
+    def _get_smry_funcs(self, smry_metrics):
+        """
+        Helper function for '_generate_results_tabs()'. Returns a summary functions dictionary based
+        on the metrics in 'smry_metrics'.
+        """
+
+        smry_funcs = {}
+        for smry_metric in smry_metrics:
+            # Add summary functions from 'self._smry_funcs' for each metric in 'smry_metrics'.
+            if smry_metric in self._smry_funcs:
+                smry_funcs[smry_metric] = self._smry_funcs[smry_metric]
+
+        return smry_funcs
+
     def _get_axes_defs(self, axes, base_col_suffix):
         """
         Returns the definition dictionaries for the metrics on the axes in 'axes'. For each axis in
@@ -288,14 +302,10 @@ class ReportBase:
             metric_def = self._refres.defs.info[metric]
             dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, metric_def)
 
-            tab_smry_funcs = {}
-            for smry_metric in smry_metrics:
-                # Add summary functions from 'self._smry_funcs' for each metric in 'smry_metrics'.
-                if smry_metric in self._smry_funcs:
-                    tab_smry_funcs[smry_metric] = self._smry_funcs[smry_metric]
-            # Only add a summary table if summary metrics were added to 'tab_smry_funcs'.
-            if tab_smry_funcs:
-                dtab_bldr.add_smrytbl(tab_smry_funcs, self._refres.defs)
+            smry_funcs = self._get_smry_funcs(smry_metrics)
+            # Only add a summary table if summary metrics were added to 'smry_funcs'.
+            if smry_funcs:
+                dtab_bldr.add_smrytbl(smry_funcs, self._refres.defs)
 
             metric_def = self._refres.defs.info.get(metric + base_col_suffix, metric_def)
             hist_metrics = [metric_def] if metric in self.hist else []
