@@ -48,7 +48,9 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
         stdout, stderr, exitcode = self._pman.run(cmd)
         if exitcode:
             errmsg = self._pman.get_cmd_failure_msg(cmd, stdout, stderr, exitcode)
-            errors = ("Operation not supported", "Specified qdisc not found")
+            errors = {"Operation not supported",
+                      "Specified qdisc not found",
+                      "Specified qdisc kind is unknown"}
             if any(err in stderr for err in errors):
                 errmsg += "\n\n"
                 pkgname = self._tchk.tool_to_pkg("sch_etf.ko")
