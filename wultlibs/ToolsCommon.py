@@ -591,7 +591,7 @@ def start_command_check_network(args, pman, netif):
 
     # Make sure the device is not used for networking and users do not lose networking by
     # specifying a wrong device by a mistake.
-    if netif.getstate() == "up":
+    if netif.get_operstate() == "up":
         msg = ""
         if args.devid != netif.ifname:
             msg = f" (network interface '{netif.ifname}')"

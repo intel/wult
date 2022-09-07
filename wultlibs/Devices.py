@@ -293,11 +293,11 @@ class _IntelI210Base(_PCIDevice):
                 raise
             _LOG.debug(err)
 
-        self._orig_netif_state = None
+        self._orig_operstate = None
         if netif:
             hwaddr = netif.hwaddr
             alias = netif.ifname
-            self._orig_netif_state = netif.getstate()
+            self._orig_operstate = netif.get_operstate()
         else:
             hwaddr = devid
             alias = None
@@ -314,8 +314,8 @@ class _IntelI210Base(_PCIDevice):
 
         super().close()
 
-        if self._orig_netif_state:
-            getattr(self.netif, self._orig_netif_state)()
+        if self._orig_operstate:
+            getattr(self.netif, self._orig_operstate)()
 
         ClassHelpers.close(self, close_attrs=("netif",))
 

@@ -156,8 +156,8 @@ class NetIface(ClassHelpers.SimpleCloseContext):
 
         self._pman.run_verify(f"ip link set dev {self.ifname} down")
 
-    def getstate(self):
-        """Return the operational state of the itnerface (up, down, etc)."""
+    def get_operstate(self):
+        """Return the operational state of the interface (up, down, etc)."""
 
         path = self._sysfsbase.joinpath("operstate")
         with self._pman.open(path, "r") as fobj:
