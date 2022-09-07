@@ -5,6 +5,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.10.27] - ADD DATE HERE
 ### Fixed
+ - Wult mistakenly required the 'ip' tool to be installed, this is fixed now.
 ### Added
 ### Removed
 ### Changed
