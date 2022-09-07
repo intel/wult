@@ -35,7 +35,7 @@ COMMANDS
 Compile and deploy ndl helpers and drivers.
 .TP
 \fBndl\fR \fI\,scan\/\fR
-Scan for device id.
+Scan for available devices.
 .TP
 \fBndl\fR \fI\,start\/\fR
 Start the measurements.
@@ -108,9 +108,9 @@ host. By default the key is automatically found from standard paths like
 SSH connect timeout in seconds, default is 8.
 
 .SH COMMAND \fI\,'ndl scan'\/\fR
-usage: ndl scan [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
+usage: ndl scan [-h] [-q] [-d] [--all] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
-Scan for compatible devices.
+Scan for available devices.
 
 .SH OPTIONS \fI\,'ndl scan'\/\fR
 .TP
@@ -124,6 +124,12 @@ Be quiet.
 .TP
 \fB\-d\fR
 Print debugging information.
+
+.TP
+\fB\-\-all\fR
+By default this command prints only the compatible devices which are supported
+by current ndl installation. This option makes this command print about all
+the compatible devices.
 
 .TP
 \fB\-H\fR \fI\,HOSTNAME\/\fR, \fB\-\-host\fR \fI\,HOSTNAME\/\fR

@@ -48,7 +48,7 @@ COMMANDS
    Compile and deploy wult helpers and drivers.
 
 **wult** *scan*
-   Scan for device id.
+   Scan for available devices.
 
 **wult** *start*
    Start the measurements.
@@ -153,10 +153,10 @@ OPTIONS *'wult* deploy'
 COMMAND *'wult* scan'
 =====================
 
-usage: wult scan [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
-[-T TIMEOUT]
+usage: wult scan [-h] [-q] [-d] [--all] [-H HOSTNAME] [-U USERNAME] [-K
+PRIVKEY] [-T TIMEOUT]
 
-Scan for compatible devices.
+Scan for available devices.
 
 OPTIONS *'wult* scan'
 =====================
@@ -169,6 +169,11 @@ OPTIONS *'wult* scan'
 
 **-d**
    Print debugging information.
+
+**--all**
+   By default this command prints only the compatible devices which are
+   supported by current wult installation. This option makes this
+   command print about all the compatible devices.
 
 **-H** *HOSTNAME*, **--host** *HOSTNAME*
    Name of the host to run the command on.

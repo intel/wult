@@ -35,7 +35,7 @@ COMMANDS
 Compile and deploy wult helpers and drivers.
 .TP
 \fBwult\fR \fI\,scan\/\fR
-Scan for device id.
+Scan for available devices.
 .TP
 \fBwult\fR \fI\,start\/\fR
 Start the measurements.
@@ -122,9 +122,9 @@ Deploy the eBPF helper, but do not deploy the drivers. This is a debug and
 development option, do not use it for other purposes.
 
 .SH COMMAND \fI\,'wult scan'\/\fR
-usage: wult scan [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
+usage: wult scan [-h] [-q] [-d] [--all] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
-Scan for compatible devices.
+Scan for available devices.
 
 .SH OPTIONS \fI\,'wult scan'\/\fR
 .TP
@@ -138,6 +138,12 @@ Be quiet.
 .TP
 \fB\-d\fR
 Print debugging information.
+
+.TP
+\fB\-\-all\fR
+By default this command prints only the compatible devices which are supported
+by current wult installation. This option makes this command print about all
+the compatible devices.
 
 .TP
 \fB\-H\fR \fI\,HOSTNAME\/\fR, \fB\-\-host\fR \fI\,HOSTNAME\/\fR

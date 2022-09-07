@@ -49,7 +49,7 @@ COMMANDS
    Compile and deploy ndl helpers and drivers.
 
 **ndl** *scan*
-   Scan for device id.
+   Scan for available devices.
 
 **ndl** *start*
    Start the measurements.
@@ -141,10 +141,10 @@ OPTIONS *'ndl* deploy'
 COMMAND *'ndl* scan'
 ====================
 
-usage: ndl scan [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
-[-T TIMEOUT]
+usage: ndl scan [-h] [-q] [-d] [--all] [-H HOSTNAME] [-U USERNAME] [-K
+PRIVKEY] [-T TIMEOUT]
 
-Scan for compatible devices.
+Scan for available devices.
 
 OPTIONS *'ndl* scan'
 ====================
@@ -157,6 +157,11 @@ OPTIONS *'ndl* scan'
 
 **-d**
    Print debugging information.
+
+**--all**
+   By default this command prints only the compatible devices which are
+   supported by current ndl installation. This option makes this command
+   print about all the compatible devices.
 
 **-H** *HOSTNAME*, **--host** *HOSTNAME*
    Name of the host to run the command on.

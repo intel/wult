@@ -3,7 +3,13 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.27] - ADD DATE HERE
+## [1.10.28] - ADD DATE HERE
+### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.10.27] - 2022-09-07
 ### Fixed
  - Wult mistakenly required the 'ip' tool to be installed, this is fixed now.
 ### Added
