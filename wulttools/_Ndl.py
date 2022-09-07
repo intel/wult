@@ -72,8 +72,8 @@ def _build_arguments_parser():
     #
     # Create parsers for the "scan" command.
     #
-    text = "Scan for device id."
-    descr = """Scan for compatible devices."""
+    text = "Scan for available devices."
+    descr = """Scan for available devices."""
     subpars = subparsers.add_parser("scan", help=text, description=descr)
     subpars.set_defaults(func=ToolsCommon.scan_command)
 

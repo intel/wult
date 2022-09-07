@@ -18,9 +18,9 @@ import sys
 import logging
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, ProcessManager, Logging, YAML
-from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs import DFSummary
-from wultlibs import Devices
+from wultlibs import Devices, Deploy
 from wultlibs.helperlibs import ReportID, Human
 from wultlibs.rawresultlibs import RORawResult
 
@@ -377,8 +377,19 @@ def scan_command(args):
 
     pman = get_pman(args)
 
+    found_something = False
     msg = ""
     for dev in Devices.scan_devices(args.toolname, pman):
+        deploy_info = reduce_installables(args.deploy_info, dev)
+        found_something = True
+
+        with Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
+            try:
+                depl.check_deployment()
+            except ErrorNotFound as err:
+                _LOG.debug(err)
+                continue
+
         msg += f" * Device ID: {dev.info['devid']}\n"
         if dev.info.get("alias"):
             msg += f"   - Alias: {dev.info['alias']}\n"
@@ -386,7 +397,12 @@ def scan_command(args):
         msg += f"   - Description: {dev.info['descr']}\n"
 
     if not msg:
-        _LOG.info("No %s compatible devices found", args.toolname)
+        if not found_something:
+            _LOG.info("No %s compatible devices found", args.toolname)
+        else:
+            _LOG.info("There are compatible devices, but they are not supported by current %s "
+                      "installation", args.toolname)
+
         return
 
     _LOG.info("Compatible device(s)%s:\n%s", pman.hostmsg, msg.rstrip())
