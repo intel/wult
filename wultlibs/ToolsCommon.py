@@ -80,6 +80,18 @@ START_FORCE_DESCR = """By default a network card is not accepted as a measuremen
                        such as "up". Use '--force' to disable this safety mechanism. Use it with
                        caution."""
 
+
+# Description of the '--all' option of the 'scan' command.
+def get_scan_all_descr(toolname):
+    """
+    Returns description for the '--all' option of the 'scan' command for the 'toolname' tool.
+    """
+
+    descr = f"""By default this command prints only the compatible devices which are supported by
+                current {toolname} installation. This option makes this command print about all the
+                compatible devices."""
+    return descr
+
 # Description for the '--outdir' option of the 'report' command.
 def get_report_outdir_descr(toolname):
     """
@@ -383,16 +395,21 @@ def scan_command(args):
         deploy_info = reduce_installables(args.deploy_info, dev)
         found_something = True
 
+        err_msg = None
         with Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
             try:
                 depl.check_deployment()
             except ErrorNotFound as err:
-                _LOG.debug(err)
-                continue
+                if not args.all:
+                    _LOG.debug(err)
+                    continue
+                err_msg = str(err)
 
         msg += f" * Device ID: {dev.info['devid']}\n"
         if dev.info.get("alias"):
             msg += f"   - Alias: {dev.info['alias']}\n"
+        if err_msg:
+            msg += f"   - Error: {err_msg}\n"
         msg += f"   - Resolution: {dev.info['resolution']} ns\n"
         msg += f"   - Description: {dev.info['descr']}\n"
 

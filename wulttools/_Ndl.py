@@ -76,6 +76,8 @@ def _build_arguments_parser():
     descr = """Scan for available devices."""
     subpars = subparsers.add_parser("scan", help=text, description=descr)
     subpars.set_defaults(func=ToolsCommon.scan_command)
+    subpars.add_argument("--all", action="store_true",
+                         help=ToolsCommon.get_scan_all_descr(_OWN_NAME))
 
     ArgParse.add_ssh_options(subpars)
 
