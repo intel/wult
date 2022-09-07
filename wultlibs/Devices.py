@@ -275,6 +275,35 @@ class _IntelI210Base(_PCIDevice):
         '157c' : 'Intel I210 (serdes flashless)',
         '1539' : 'Intel I211 (copper)'}
 
+    def bind(self, drvname=None):
+        """Bind the PCI device to driver 'drvname' (wult/ndl driver by default)."""
+
+        super().bind(drvname=drvname)
+
+        if drvname == self._orig_drvname and self._orig_operstate:
+            operstate = "up" if self._orig_operstate == "up" else "down"
+            _LOG.debug("operational state of network interface '%s' was '%s', setting it to '%s'",
+                       self.netif.ifname, self._orig_operstate, operstate)
+
+            try:
+                getattr(self.netif, operstate)()
+            except Error as err:
+                _LOG.warning("cannot restore interface '%s' state:%s", self.netif.ifname, err)
+
+    def unbind(self):
+        """
+        Unbind the PCI device from its driver if it is bound to any driver. Returns name of the
+        driver the was unbinded from (or 'None' if it was not).
+        """
+
+        # Save the original opeational state in order to restore it in 'bind()'. The reason is that
+        # 'bind()' may put it to "up", even if it was "down".
+        if not self._orig_drvname:
+            # Save it only when unbinding for the first time.
+            self._orig_operstate = self.netif.get_operstate()
+
+        super().unbind()
+
     def __init__(self, devid, pman, drvname=None, helpername=None, no_netif_ok=True, dmesg=None):
         """
         The class constructor. The arguments are as follows.
@@ -293,11 +322,9 @@ class _IntelI210Base(_PCIDevice):
                 raise
             _LOG.debug(err)
 
-        self._orig_operstate = None
         if netif:
             hwaddr = netif.hwaddr
             alias = netif.ifname
-            self._orig_operstate = netif.get_operstate()
         else:
             hwaddr = devid
             alias = None
@@ -309,13 +336,12 @@ class _IntelI210Base(_PCIDevice):
         # I210 NIC clock has 1 nanosecond resolution.
         self.info["resolution"] = 1
 
+        self._orig_operstate = None
+
     def close(self):
         """Uninitialize the device."""
 
         super().close()
-
-        if self._orig_operstate:
-            getattr(self.netif, self._orig_operstate)()
 
         ClassHelpers.close(self, close_attrs=("netif",))
 
