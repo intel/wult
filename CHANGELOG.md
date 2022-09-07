@@ -7,10 +7,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
  - Wult mistakenly required the 'ip' tool to be installed, this is fixed now.
 ### Added
+ - New 'wult scan --all' option to print unsupported devices.
 ### Removed
 ### Changed
  - 'wult deploy --skip-drivers' does not require kernel sources any longer.
  - Merge and simplify the 'SilentTime' and 'LDist' tabs in wult reports.
+ - 'wult scan' does not print unsupported devices by default.
 
 ## [1.10.26] - 2022-09-05
 ### Fixed
