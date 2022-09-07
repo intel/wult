@@ -293,9 +293,11 @@ class _IntelI210Base(_PCIDevice):
                 raise
             _LOG.debug(err)
 
+        self._orig_netif_state = None
         if netif:
             hwaddr = netif.hwaddr
             alias = netif.ifname
+            self._orig_netif_state = netif.getstate()
         else:
             hwaddr = devid
             alias = None
@@ -310,8 +312,12 @@ class _IntelI210Base(_PCIDevice):
     def close(self):
         """Uninitialize the device."""
 
-        ClassHelpers.close(self, close_attrs=("netif",))
         super().close()
+
+        if self._orig_netif_state:
+            getattr(self.netif, self._orig_netif_state)()
+
+        ClassHelpers.close(self, close_attrs=("netif",))
 
 class _WultIntelI210(_IntelI210Base):
     """
