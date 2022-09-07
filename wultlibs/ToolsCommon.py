@@ -390,12 +390,13 @@ def scan_command(args):
     pman = get_pman(args)
 
     found_something = False
-    msg = ""
+    supported_msgs = unsupported_msgs = ""
+
     for dev in Devices.scan_devices(args.toolname, pman):
-        deploy_info = reduce_installables(args.deploy_info, dev)
+        err_msg= None
         found_something = True
 
-        err_msg = None
+        deploy_info = reduce_installables(args.deploy_info, dev)
         with Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
             try:
                 depl.check_deployment()
@@ -405,24 +406,37 @@ def scan_command(args):
                     continue
                 err_msg = str(err)
 
-        msg += f" * Device ID: {dev.info['devid']}\n"
+        msg = f"* Device ID: {dev.info['devid']}\n"
         if dev.info.get("alias"):
             msg += f"   - Alias: {dev.info['alias']}\n"
         if err_msg:
+            # The error message may include newlines, align them to match our indentation.
+            err_msg = err_msg.replace("\n", "\n            ")
             msg += f"   - Error: {err_msg}\n"
         msg += f"   - Resolution: {dev.info['resolution']} ns\n"
         msg += f"   - Description: {dev.info['descr']}\n"
 
-    if not msg:
+        if err_msg:
+            unsupported_msgs += msg
+        else:
+            supported_msgs += msg
+
+    if not supported_msgs and not unsupported_msgs:
         if not found_something:
             _LOG.info("No %s compatible devices found", args.toolname)
         else:
             _LOG.info("There are compatible devices, but they are not supported by current %s "
                       "installation", args.toolname)
-
         return
 
-    _LOG.info("Compatible device(s)%s:\n%s", pman.hostmsg, msg.rstrip())
+    if supported_msgs:
+        _LOG.info("Compatible and supported device(s)%s:", pman.hostmsg)
+        _LOG.info("%s", supported_msgs.strip())
+    if unsupported_msgs:
+        if supported_msgs:
+            _LOG.info("")
+        _LOG.info("Compatible, but unsupported device(s)%s:", pman.hostmsg)
+        _LOG.info("%s", unsupported_msgs.strip())
 
 def filter_command(args):
     """Implements the 'filter' command for the 'wult' and 'ndl' tools."""
