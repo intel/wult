@@ -10,6 +10,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 ### Changed
  - 'wult deploy --skip-drivers' does not require kernel sources any longer.
+ - Merge and simplify the 'SilentTime' and 'LDist' tabs in wult reports.
 
 ## [1.10.26] - 2022-09-05
 ### Fixed
