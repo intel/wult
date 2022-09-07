@@ -378,12 +378,12 @@ def scan_command(args):
     pman = get_pman(args)
 
     msg = ""
-    for info in Devices.scan_devices(args.toolname, pman):
-        msg += f" * Device ID: {info['devid']}\n"
-        if info.get("alias"):
-            msg += f"   - Alias: {info['alias']}\n"
-        msg += f"   - Resolution: {info['resolution']} ns\n"
-        msg += f"   - Description: {info['descr']}\n"
+    for dev in Devices.scan_devices(args.toolname, pman):
+        msg += f" * Device ID: {dev.info['devid']}\n"
+        if dev.info.get("alias"):
+            msg += f"   - Alias: {dev.info['alias']}\n"
+        msg += f"   - Resolution: {dev.info['resolution']} ns\n"
+        msg += f"   - Description: {dev.info['descr']}\n"
 
     if not msg:
         _LOG.info("No %s compatible devices found", args.toolname)

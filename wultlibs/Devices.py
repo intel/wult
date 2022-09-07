@@ -503,29 +503,24 @@ def scan_devices(toolname, pman):
       * toolname - name of the tool scan for ("wult" or "ndl").
       * pman - the process manager object defining the host to scan on.
 
-    For every compatible device, yields a dictionary with the following keys.
-     * devid - device ID of the found compatible device
-     * alias - device ID aliases for the device ('None' if there are no aliases). Alias is just
-               another device ID for the same device.
-     * descr - short device description.
-     * resolution - device clock resolution in nanoseconds.
+    Yields the device object for every compatible device.
     """
 
     if toolname == "wult":
         for devid in _WultTSCDeadlineTimer.supported_devices:
             with contextlib.suppress(Error):
                 with _WultTSCDeadlineTimer(devid, pman, dmesg=False) as timerdev:
-                    yield timerdev.info
+                    yield timerdev
 
         for devid in _WultHRT.supported_devices:
             with contextlib.suppress(Error):
                 with _WultHRT(devid, pman, dmesg=False) as timerdev:
-                    yield timerdev.info
+                    yield timerdev
 
         for devid in _WultHRTimer.supported_devices:
             with contextlib.suppress(Error):
                 with _WultHRTimer(devid, pman, dmesg=False) as timerdev:
-                    yield timerdev.info
+                    yield timerdev
 
     if toolname == "wult":
         clsname = "_WultIntelI210"
@@ -541,4 +536,4 @@ def scan_devices(toolname, pman):
                 continue
             with contextlib.suppress(ErrorNotSupported):
                 with cls(pci_info['pciaddr'], pman, dmesg=False) as i210dev:
-                    yield i210dev.info
+                    yield i210dev
