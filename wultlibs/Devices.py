@@ -288,7 +288,8 @@ class _IntelI210Base(_PCIDevice):
             try:
                 getattr(self.netif, operstate)()
             except Error as err:
-                _LOG.warning("cannot restore interface '%s' state:%s", self.netif.ifname, err)
+                _LOG.warning("cannot restore interface '%s' state:%s",
+                             self.netif.ifname, err.indent("  "))
 
     def unbind(self):
         """
