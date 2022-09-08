@@ -26,6 +26,7 @@ if sys.version_info < (3,5):
 import argparse
 import http.server
 import os
+import tkinter
 import webbrowser
 from tkinter.filedialog import askdirectory
 
@@ -84,7 +85,11 @@ def servedir(host="localhost", port=8000, directory=None, headless=False):
     """
 
     if directory is None:
-        directory = askdirectory()
+        try:
+            directory = askdirectory()
+        except tkinter.TclError as err:
+            raise Exception("unable to create GUI for directory selection. You can specify the "
+                            "directory with '--dir' to avoid the graphical interface.") from err
 
     # Providing a directory to 'SimpleHTTPRequestHandler' was not supported until Python 3.7.
     # To make this script compatible with Python 3.5+, use 'os.chdir()' as a workaround.
