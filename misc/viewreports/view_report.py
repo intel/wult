@@ -72,7 +72,10 @@ def _init_server(host, port, portcount=10):
     return httpd, port
 
 def servedir(host="localhost", port=8000, headless=False):
-    """Serve 'DIRECTORY' locally on 'PORT'."""
+    """
+    Serve 'DIRECTORY' on 'host:port'. If not 'headless', opens the default browser to view the
+    report.
+    """
 
     # Providing a directory to 'SimpleHTTPRequestHandler' was not supported until Python 3.7.
     # To make this script compatible with Python 3.5+, use 'os.chdir()' as a workaround.
