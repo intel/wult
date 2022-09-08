@@ -29,8 +29,6 @@ import os
 import webbrowser
 from tkinter.filedialog import askdirectory
 
-DIRECTORY = askdirectory()
-
 def parseargs():
     """Configure an argument parser and parse user arguments."""
 
@@ -42,6 +40,9 @@ def parseargs():
     parser.add_argument("--headless", action="store_true",
                         help="Run the script without trying to open the report in the default web "
                              "browser.")
+    parser.add_argument("--dir", nargs="?", default=None,
+                        help="Specify a directory to host. If one is not specified, the user will "
+                             "be prompted for one using a GUI.")
     return parser.parse_args()
 
 def _init_server(host, port, portcount=10):
@@ -73,20 +74,26 @@ def _init_server(host, port, portcount=10):
 
     return httpd, port
 
-def servedir(host="localhost", port=8000, headless=False):
+def servedir(host="localhost", port=8000, directory=None, headless=False):
     """
-    Serve 'DIRECTORY' on 'host:port'. If not 'headless', opens the default browser to view the
-    report.
+    Serve 'directory' on 'host:port'. If not 'headless', opens the default browser to view the
+    report. Default behaviour is as follows:
+     1. Prompts the user for a directory using a GUI.
+     2. Tries to serve this directory on 'localhost:8000'.
+     3. Opens the default browser to 'localhost:8000'.
     """
+
+    if directory is None:
+        directory = askdirectory()
 
     # Providing a directory to 'SimpleHTTPRequestHandler' was not supported until Python 3.7.
     # To make this script compatible with Python 3.5+, use 'os.chdir()' as a workaround.
-    os.chdir(DIRECTORY)
+    os.chdir(directory)
 
     httpd, port = _init_server(host, port)
     URL = "http://{host}:{port}/".format(host=host, port=port)
 
-    print("Serving directory '{dir}' at '{url}'.".format(dir=DIRECTORY, url=URL))
+    print("Serving directory '{dir}' at '{url}'.".format(dir=directory, url=URL))
     print("Opening in browser. Please close this window when you have finished viewing reports.\n")
     print("Web server logs:")
 
@@ -98,4 +105,4 @@ def servedir(host="localhost", port=8000, headless=False):
 
 if __name__ == "__main__":
     args = parseargs()
-    servedir(args.host, args.port, args.headless)
+    servedir(args.host, args.port, args.dir, args.headless)
