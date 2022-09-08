@@ -43,7 +43,7 @@ class _DeviceBase(ClassHelpers.SimpleCloseContext):
     def unbind(self): # pylint: disable=no-self-use
         """
         Unbind the device from its driver if it is bound to any driver. Returns name of the
-        driver the was unbinded from (or 'None' if it was not).
+        driver the device was unbinded from (or 'None' if it was not).
         """
         return None
 
@@ -178,7 +178,7 @@ class _PCIDevice(_DeviceBase):
     def unbind(self):
         """
         Unbind the PCI device from its driver if it is bound to any driver. Returns name of the
-        driver the was unbinded from (or 'None' if it was not).
+        driver the device was unbinded from (or 'None' if it was not).
         """
 
         drvname, drvpath = self._get_driver()
@@ -294,7 +294,7 @@ class _IntelI210Base(_PCIDevice):
     def unbind(self):
         """
         Unbind the PCI device from its driver if it is bound to any driver. Returns name of the
-        driver the was unbinded from (or 'None' if it was not).
+        driver the device was unbinded from (or 'None' if it was not).
         """
 
         # Save the original opeational state in order to restore it in 'bind()'. The reason is that
