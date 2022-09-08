@@ -42,6 +42,35 @@ def parseargs():
         help="Run the script without trying to open the report in the default web browser.")
     return parser.parse_args()
 
+def _init_server(host, port, portcount=10):
+    """
+    Tries to initialise an 'http.server.HTTPServer' on 'host':'port'. If unsuccessful on 'port',
+    cycles through 'portcount' other ports until it succeeds or raises an error.
+
+    Returns a tuple in the format '(httpd, port)' where 'httpd' is a 'http.server.HTTPServer'
+    instance and 'port' is the integer representation of the successful port.
+    """
+
+    serverinit = False
+    initport = port
+
+    while not serverinit:
+        try:
+            server_address = (host, port)
+            httpd = http.server.HTTPServer(server_address, http.server.SimpleHTTPRequestHandler)
+            serverinit = True
+        except OSError as err:
+            print("Failed to create HTTP server at port '{port}': {err}".format(port=port, err=err))
+            port += 1
+
+            if port - initport >= portcount:
+                raise Exception("unable to create HTTP server, tried ports in range "
+                                "{iport}-{port}.".format(iport=initport, port=port-1)) from None
+
+            print("Trying again with port '{port}'.".format(port=port))
+
+    return httpd, port
+
 def servedir(host="localhost", port=8000, headless=False):
     """Serve 'DIRECTORY' locally on 'PORT'."""
 
@@ -49,8 +78,7 @@ def servedir(host="localhost", port=8000, headless=False):
     # To make this script compatible with Python 3.5+, use 'os.chdir()' as a workaround.
     os.chdir(DIRECTORY)
 
-    server_address = (host, port)
-    httpd = http.server.HTTPServer(server_address, http.server.SimpleHTTPRequestHandler)
+    httpd, port = _init_server(host, port)
     URL = "http://{host}:{port}/".format(host=host, port=port)
 
     print("Serving directory '{dir}' at '{url}'.".format(dir=DIRECTORY, url=URL))
