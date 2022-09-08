@@ -8,9 +8,20 @@ SPDX-License-Identifier: BSD-3-Clause
 Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 -->
 
+# Introduction
+
 Wult stands for "Wake Up Latency Tracer", and this is a project that provides tools for measuring
 C-state latency in Linux.
 
 Please, refer to the [documentation web pages](https://intel.github.io/wult) for more information.
 
 Wult man page is available [here](docs/wult-man.rst).
+
+# Authors and contributors
+
+* Artem Bityutskiy <dedekind1@gmail.com> - original author, project maintainer.
+* Antti Laakso <antti.laakso@linux.intel.com> - contributor, project maintainer.
+* Adam Hawley <adam.james.hawley@intel.com> - contributor, project maintainer.
+* Tero Kristo <tero.kristo@intel.com> - contributor.
+* Ali Erdinç Köroğlu <ali.erdinc.koroglu@intel.com> - contributor.
+* Juha Haapakorpi <juha.haapakorpi@intel.com> - contributor.
