@@ -3,8 +3,16 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.28] - ADD DATE HERE
+## [1.10.29] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.10.28] - 2022-09-08
+### Fixed
+ - Minor fix for the 'i210' method: restore network interface operational state
+   correctly.
 ### Added
 ### Removed
 ### Changed
