@@ -14,8 +14,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
  - Minor fix for the 'i210' method: restore network interface operational state
    correctly.
 ### Added
+ - Add '--dir' option to 'view_multiple_reports.py'.
 ### Removed
 ### Changed
+ - Wult report viewing scripts now tries multiple ports before failing.
 
 ## [1.10.27] - 2022-09-07
 ### Fixed
