@@ -36,11 +36,12 @@ def parseargs():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", nargs="?", default="localhost",
-        help="Host to serve the report on. Defaults to 'localhost'.")
+                        help="Host to serve the report on. Defaults to 'localhost'.")
     parser.add_argument("--port", nargs="?", default=8000, type=int,
-        help="Port to serve the report on. Defaults to '8080'.")
+                        help="Port to serve the report on. Defaults to '8080'.")
     parser.add_argument("--headless", action="store_true",
-        help="Run the script without trying to open the report in the default web browser.")
+                        help="Run the script without trying to open the report in the default web "
+                             "browser.")
     return parser.parse_args()
 
 def _init_server(host, port, portcount=10):
