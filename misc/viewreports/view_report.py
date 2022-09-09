@@ -30,6 +30,10 @@ import webbrowser
 # Serve the directory containing the report and this script.
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
+# This script is intended to work with Python 3.5 and higher. F-strings were introduced in
+# Python 3.6, therefore we do not want to use them to maintain the compatibility.
+# pylint: disable=consider-using-f-string
+
 def parseargs():
     """Configure an argument parser and parse user arguments."""
 
