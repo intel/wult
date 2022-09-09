@@ -26,9 +26,14 @@ if sys.version_info < (3,5):
 import argparse
 import http.server
 import os
-import tkinter
 import webbrowser
-from tkinter.filedialog import askdirectory
+
+failed_tk_import = False
+try:
+    import tkinter
+    from tkinter.filedialog import askdirectory
+except ModuleNotFoundError:
+    failed_tk_import = True
 
 def parseargs():
     """Configure an argument parser and parse user arguments."""
@@ -44,7 +49,13 @@ def parseargs():
     parser.add_argument("--dir", nargs="?", default=None,
                         help="Specify a directory to host. If one is not specified, the user will "
                              "be prompted for one using a GUI.")
-    return parser.parse_args()
+    _args = parser.parse_args()
+
+    if failed_tk_import and _args.dir is None:
+        raise Exception("failed to import tkinter. Use the '--dir' option to specify a directory "
+                        "or install tkinter.")
+
+    return _args
 
 def _init_server(host, port, portcount=10):
     """
