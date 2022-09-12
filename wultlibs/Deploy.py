@@ -425,6 +425,7 @@ class DeployCheck(_DeployBase):
                 dstpath = self._get_module_path(deployable)
                 if not dstpath:
                     self._deployable_not_found(f"the '{deployable}' kernel module", is_helper=False)
+                    break
 
                 if srcpath:
                     what = f"the '{deployable}' kernel driver"
@@ -469,7 +470,7 @@ class DeployCheck(_DeployBase):
                     deployable_path = self._get_installed_deployable_path(deployable)
                 except ErrorNotFound:
                     self._deployable_not_found(deployable, optional=True)
-                    continue
+                    break
 
                 if srcpath:
                     self._check_deployable_up_to_date(deployable, srcpath, deployable_path)
