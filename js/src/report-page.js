@@ -82,12 +82,24 @@ export class ScReportPage extends LitElement {
       `
     }
 
+    findFile (query) {
+        const fileKeys = Object.keys(this.files)
+        for (const key of fileKeys) {
+            if (key.endsWith(query)) {
+                return this.files[key]
+            }
+        }
+        throw Error(`unable to find an uploaded file ending with '${query}'.`)
+    }
+
     async extractTabs (tabs, useFetch) {
         // Convert summary file paths to 'File' objects.
         for (const tab of tabs) {
             if (tab.smrytblpath) {
                 if (useFetch) {
                     tab.smrytblfile = await (await fetch(tab.smrytblpath)).blob()
+                } else {
+                    tab.smrytblfile = this.findFile(tab.smrytblpath)
                 }
             }
             if (tab.tabs) {
@@ -95,6 +107,30 @@ export class ScReportPage extends LitElement {
             }
         }
         return tabs
+    }
+
+    /**
+     * Process user-uploaded report files.
+     */
+    async processUploadedFiles () {
+        const fileInput = this.renderRoot.getElementById('upload-files')
+
+        this.files = {}
+        for (const file of fileInput.files) {
+            this.files[file.webkitRelativePath] = file
+        }
+
+        const content = await this.findFile('report_info.json').arrayBuffer()
+        this.reportInfo = JSON.parse((new TextDecoder()).decode(content))
+        this.introtbl = this.findFile(this.reportInfo.intro_tbl)
+
+        const tabs = await this.findFile(this.reportInfo.tab_file).arrayBuffer().then((content) => {
+            return JSON.parse((new TextDecoder()).decode(content))
+        })
+        this.tabs = await this.extractTabs(tabs, false)
+
+        this.initRepProps()
+        this.fetchFailed = false
     }
 
     constructor () {
@@ -110,7 +146,13 @@ export class ScReportPage extends LitElement {
 
     render () {
         if (this.fetchFailed) {
-            return this.corsWarning()
+            return html`
+                <input @change="${this.processUploadedFiles}" id="upload-files" directory webkitdirectory type="file">
+            `
+        }
+
+        if (!this.reportInfo) {
+            return html``
         }
 
         return html`
