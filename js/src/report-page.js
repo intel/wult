@@ -73,6 +73,17 @@ export class ScReportPage extends LitElement {
       `
     }
 
+    constructor () {
+        super()
+        // The report page will first attempt to use the 'Fetch' API to retreive report resources.
+        // If it fails to use fetch 'fetchFailed' will become 'true'. This then tells the template
+        // to suggest the user uploads their report directory.
+        this.fetchFailed = false
+
+        // 'reportInfo' is an 'Object' representation of the JSON contents of 'report_info.json'.
+        this.reportInfo = {}
+    }
+
     render () {
         if (this.fetchFailed) {
             return this.corsWarning()

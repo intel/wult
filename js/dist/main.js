@@ -1656,7 +1656,7 @@
           href="https://intel.github.io/wult/pages/howto-view-local.html#open-wult-reports-locally">
             here.</a>
           </sl-alert>
-      `}render(){return this.fetchFailed?this.corsWarning():H`
+      `}constructor(){super(),this.fetchFailed=!1,this.reportInfo={}}render(){return this.fetchFailed?this.corsWarning():H`
             <div class="report-head">
                 <h1 class="report-title">${this.toolname} report</h1>
                 ${this.titleDescr?H`
