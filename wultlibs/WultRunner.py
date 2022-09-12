@@ -191,17 +191,17 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
 
         # Initialize statistics collection.
         if self._stconf:
-            with LocalProcessManager.LocalProcessManager() as lpman:
-                local_scpath =  Deploy.get_installed_helper_path(lpman, "wult", "stc-agent")
+            lpath = rpath = None
 
-            if self._pman.is_remote:
-                remote_scpath = Deploy.get_installed_helper_path(self._pman, "wult", "stc-agent")
-            else:
-                remote_scpath = None
+            # The 'stc-agent' is not needed if only the 'sysinfo' statistics will be collected.
+            if list(self._stconf["include"]) != ["sysinfo"]:
+                with LocalProcessManager.LocalProcessManager() as lpman:
+                    lpath = Deploy.get_installed_helper_path(lpman, "wult", "stc-agent")
+                if self._pman.is_remote:
+                    rpath = Deploy.get_installed_helper_path(self._pman, "wult", "stc-agent")
 
             self._stcoll = StatsCollect.StatsCollect(self._pman, self._res,
-                                                     local_scpath=local_scpath,
-                                                     remote_scpath=remote_scpath)
+                                                     local_scpath=lpath, remote_scpath=rpath)
             self._stcoll.apply_stconf(self._stconf)
 
     def _validate_sut(self, cpunum):

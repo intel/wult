@@ -59,27 +59,20 @@ def _get_deploy_cmd(pman, toolname):
         cmd += f" -H {pman.hostname}"
     return cmd
 
-def _deployable_not_found(pman, toolname, what, optional=False, is_helper=True):
+def _deployable_not_found(pman, toolname, what, is_helper=True):
     """Raise an exception in case a required driver or helper was not found."""
 
-    if is_helper:
-        what = f"the '{what}' program"
-
     err = f"{what} was not found{pman.hostmsg}"
-    if not is_helper:
-        if not optional:
-            err += f", consider running '{_get_deploy_cmd(pman, toolname)}'"
-    else:
+    if is_helper:
         err += f". Here are the options to try.\n" \
                f" * Run '{_get_deploy_cmd(pman, toolname)}'.\n" \
                f" * Ensure that {what} is in 'PATH'{pman.hostmsg}.\n" \
                f" * Set the 'WULT_HELPERSPATH' environment variable to the path of " \
                f"{what}{pman.hostmsg}"
-
-    if optional:
-        _LOG.notice(err)
     else:
-        raise ErrorNotFound(err)
+        err += f", consider running '{_get_deploy_cmd(pman, toolname)}'"
+
+    raise ErrorNotFound(err)
 
 def get_installed_helper_path(pman, toolname, helper):
     """
@@ -108,7 +101,8 @@ def get_installed_helper_path(pman, toolname, helper):
         if pman.is_exe(helper_path):
             return helper_path
 
-    return _deployable_not_found(pman, toolname, helper)
+
+    return _deployable_not_found(pman, toolname, f"the '{helper}' program", is_helper=True)
 
 def _find_pyhelper_path(pyhelper, deployable=None):
     """
@@ -373,21 +367,43 @@ class DeployCheck(_DeployBase):
         """Same as 'get_installed_helper_path()'."""
         return get_installed_helper_path(self._spman, self._toolname, deployable)
 
-    def _deployable_not_found(self, deployable, optional=False, is_helper=True):
-        """Same as module-level '_deployable_not_found()'."""
-        _deployable_not_found(self._spman, self._toolname, deployable, optional=optional,
-                              is_helper=is_helper)
+    def _get_installable_by_deployable(self, deployable):
+        """Returns installable name and information dictionary for a deployable."""
 
-    def _warn_deployable_out_of_date(self, what, is_helper=True):
+        for installable, inst_info in self._insts.items():
+            if deployable in inst_info["deployables"]:
+                break
+        else:
+            raise Error(f"bad deployable name '{deployable}'")
+
+        return installable # pylint: disable=undefined-loop-variable
+
+    def _get_deployable_print_name(self, installable, deployable):
+        """Returns a nice, printable human-readable name of a deployable."""
+
+        cat_descr = _CATEGORIES[self._insts[installable]["category"]]
+        return f"the '{deployable}' component of the '{installable}' {cat_descr}"
+
+    def _deployable_not_found(self, deployable):
+        """Same as module-level '_deployable_not_found()'."""
+
+
+        installable = self._get_installable_by_deployable(deployable)
+        what = self._get_deployable_print_name(installable, deployable)
+        is_helper = self._insts[installable]["category"] != "drivers"
+
+        _deployable_not_found(self._spman, self._toolname, what, is_helper=is_helper)
+
+    def _warn_deployable_out_of_date(self, deployable):
         """Print a warning about the 'what' deployable not being up-to-date."""
 
-        if is_helper:
-            what = f"the '{what}' program"
+        installable = self._get_installable_by_deployable(deployable)
+        what = self._get_deployable_print_name(installable, deployable)
 
         _LOG.warning("%s may be out of date%s, consider running '%s'",
                      what, self._spman.hostmsg, _get_deploy_cmd(self._spman, self._toolname))
 
-    def _check_deployable_up_to_date(self, what, srcpath, dstpath, is_helper=True):
+    def _check_deployable_up_to_date(self, deployable, srcpath, dstpath):
         """
         Check that a deployable at 'dstpath' on SUT is up-to-date by comparing its 'mtime' to the
         source (code) of the deployable at 'srcpath' on the controller.
@@ -407,7 +423,7 @@ class DeployCheck(_DeployBase):
         if src_mtime > self._time_delta + dst_mtime:
             _LOG.debug("src mtime %d > %d + dst mtime %d\nsrc: %s\ndst %s",
                        src_mtime, self._time_delta, dst_mtime, srcpath, dstpath)
-            self._warn_deployable_out_of_date(what, is_helper=is_helper)
+            self._warn_deployable_out_of_date(deployable)
 
     def _check_drivers_deployment(self):
         """Check if drivers are deployed and up-to-date."""
@@ -424,12 +440,11 @@ class DeployCheck(_DeployBase):
             for deployable in self._get_deployables("drivers"):
                 dstpath = self._get_module_path(deployable)
                 if not dstpath:
-                    self._deployable_not_found(f"the '{deployable}' kernel module", is_helper=False)
+                    self._deployable_not_found(f"the '{deployable}' kernel module")
                     break
 
                 if srcpath:
-                    what = f"the '{deployable}' kernel driver"
-                    self._check_deployable_up_to_date(what, srcpath, dstpath, is_helper=False)
+                    self._check_deployable_up_to_date(deployable, srcpath, dstpath)
 
     def _check_helpers_deployment(self):
         """Check if simple and eBPF helpers are deployed and up-to-date."""
@@ -469,7 +484,7 @@ class DeployCheck(_DeployBase):
                 try:
                     deployable_path = self._get_installed_deployable_path(deployable)
                 except ErrorNotFound:
-                    self._deployable_not_found(deployable, optional=True)
+                    self._deployable_not_found(deployable)
                     break
 
                 if srcpath:

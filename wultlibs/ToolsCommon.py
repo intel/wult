@@ -539,14 +539,15 @@ def list_result_metrics(rsts):
             if metric in rst.defs.info:
                 _LOG.info("  * %s: %s", metric, rst.defs.info[metric]["title"])
 
-
-def reduce_installables(deploy_info, dev):
+def reduce_installables(deploy_info, dev, stconf=None):
     """
     Reduce full deployment information 'deploy_info' so that it includes only the installables
     required for using device 'dev'. The arguments are as follows.
       * deploy_info - full deployment information dictionary. Check 'Deploy.Deploy.__init__()'
                       docstring for the format of the dictionary.
       * dev - the device object created by 'Devices.GetDevice()'.
+      * stconf - a dictionary describing the statistics that should be collected. By default, the
+                 assumption is that no statistics will be collected..
 
     Returns the reduced version of 'deploy_info'.
     """
@@ -561,6 +562,12 @@ def reduce_installables(deploy_info, dev):
             del result["installables"][installable]
         elif info["category"] in ("shelpers", "bpfhelpers") and not dev.helpername:
             del result["installables"][installable]
+
+    # If no statistics will be collected, or only the "sysinfo" will be collected, the 'stc-agent'
+    # is not needed.
+    if "stc-agent" in result["installables"]:
+        if not stconf or list(stconf["include"]) == ["sysinfo"]:
+            del result["installables"]["stc-agent"]
 
     return result
 
