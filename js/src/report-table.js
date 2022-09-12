@@ -25,7 +25,7 @@ export class InvalidTableFileException {
  */
 export class ScReportTable extends LitElement {
     static properties = {
-        src: { type: String },
+        file: { type: File },
         template: { attribute: false }
     };
 
@@ -89,10 +89,9 @@ export class ScReportTable extends LitElement {
     /**
      * Generator of lines within the file at URL 'fileURL'.
      */
-    async * makeTextFileLineIterator (fileURL) {
+    async * makeTextFileLineIterator (file) {
         const utf8Decoder = new TextDecoder('utf-8')
-        const response = await fetch(fileURL)
-        const reader = response.body.getReader()
+        const reader = file.stream().getReader()
         let { value: chunk, done: readerDone } = await reader.read()
         chunk = chunk ? utf8Decoder.decode(chunk, { stream: true }) : ''
 
@@ -130,7 +129,7 @@ export class ScReportTable extends LitElement {
     }
 
     render () {
-        if (!this.src) {
+        if (!this.file) {
             return html``
         }
 

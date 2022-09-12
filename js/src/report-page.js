@@ -48,10 +48,11 @@ export class ScReportPage extends LitElement {
     }
 
     async connectedCallback () {
-        super.connectedCallback()
         try {
-            const resp = await fetch(this.src)
+            let resp = await fetch(this.src)
             this.reportInfo = await resp.json()
+            resp = await fetch(this.reportInfo.intro_tbl)
+            this.introtbl = await resp.blob()
             this.initRepProps()
         } catch (err) {
         // Catching a CORS error caused by viewing reports locally.
@@ -59,6 +60,7 @@ export class ScReportPage extends LitElement {
                 this.fetchFailed = true
             }
         }
+        super.connectedCallback()
     }
 
     /**
@@ -106,7 +108,7 @@ export class ScReportPage extends LitElement {
                     : html``
                 }
 
-                <sc-intro-tbl .src=${this.introtbl}></sc-intro-tbl>
+                <sc-intro-tbl .file=${this.introtbl}></sc-intro-tbl>
             </div>
             <br>
             <sc-tab-group .tabFile="${this.tabFile}"></sc-tab-group>

@@ -118,13 +118,13 @@ class ScSummaryTable extends ScReportTable {
     }
 
     /**
-     * Parse the summary table from the source file located at 'this.src'.
+     * Parse the summary table from the source file 'this.file'.
      */
     async parseSrc () {
         let template = html``
         let metricCell
 
-        for await (const line of this.makeTextFileLineIterator(this.src)) {
+        for await (const line of this.makeTextFileLineIterator(this.file)) {
             const values = line.split(';')
 
             // Extract the type of row this line represents (always represented by the first value).

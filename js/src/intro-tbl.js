@@ -68,10 +68,10 @@ class ScIntroTable extends ScReportTable {
     }
 
     /**
-     * Parse the intro table from the source file located at 'this.src'.
+     * Parse the intro table from the source file 'this.file'.
      */
     async parseSrc () {
-        const lines = this.makeTextFileLineIterator(this.src)
+        const lines = this.makeTextFileLineIterator(this.file)
         let header = await lines.next()
         header = header.value
 

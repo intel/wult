@@ -33,16 +33,25 @@ class ScDataTab extends ScTab {
     static properties = {
         paths: { type: Array },
         fpreviews: { type: Array },
-        smrytblpath: { type: String }
+        smrytblpath: { type: String },
+        smrytblfile: { type: Blob }
     }
 
     /**
      * Provides the template for when the tab is visible (active).
      */
     visibleTemplate () {
+        if (this.smrytblpath && !this.smrytblfile) {
+            fetch(this.smrytblpath).then((resp) => {
+                return resp.blob()
+            }).then((blob) => {
+                this.smrytblfile = blob
+            })
+        }
+
         return html`
             <br>
-            ${this.smrytblpath ? html`<sc-smry-tbl .src="${this.smrytblpath}"></sc-smry-tbl>` : html``}
+            ${this.smrytblfile ? html`<sc-smry-tbl .file="${this.smrytblfile}"></sc-smry-tbl>` : html``}
             ${this.fpreviews
                 ? this.fpreviews.map((fpreview) => html`
                     <sc-file-preview .title=${fpreview.title} .diff=${fpreview.diff} .paths=${fpreview.paths}></sc-file-preview>
