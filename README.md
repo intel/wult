@@ -25,3 +25,4 @@ Wult man page is available [here](docs/wult-man.rst).
 * Tero Kristo <tero.kristo@intel.com> - contributor.
 * Ali Erdinç Köroğlu <ali.erdinc.koroglu@intel.com> - contributor.
 * Juha Haapakorpi <juha.haapakorpi@intel.com> - contributor.
+* Vladislav Govtva <vlad.govtva@gmail.com> - contributor.
