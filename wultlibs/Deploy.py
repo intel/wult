@@ -70,14 +70,14 @@ def _deployable_not_found(pman, toolname, what, optional=False, is_helper=True):
         if not optional:
             err += f", consider running '{_get_deploy_cmd(pman, toolname)}'"
     else:
-        err += f".\nHere are the options to try.\n" \
-               f"* Run '{_get_deploy_cmd(pman, toolname)}'.\n" \
-               f"* Ensure that {what} is in 'PATH'{pman.hostmsg}.\n" \
-               f"* Set the 'WULT_HELPERSPATH' environment variable to the path of " \
+        err += f". Here are the options to try.\n" \
+               f" * Run '{_get_deploy_cmd(pman, toolname)}'.\n" \
+               f" * Ensure that {what} is in 'PATH'{pman.hostmsg}.\n" \
+               f" * Set the 'WULT_HELPERSPATH' environment variable to the path of " \
                f"{what}{pman.hostmsg}"
 
     if optional:
-        _LOG.warning(err)
+        _LOG.notice(err)
     else:
         raise ErrorNotFound(err)
 
