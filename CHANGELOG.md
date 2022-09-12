@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.10.29] - ADD DATE HERE
 ### Fixed
+ - Do not check for 'stc-agent' and do not complain about its possible absence
+   if not statistics need to be collected.
 ### Added
 ### Removed
 ### Changed
