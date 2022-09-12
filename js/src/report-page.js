@@ -38,15 +38,21 @@ export class ScReportPage extends LitElement {
         }
     `
 
+    /**
+     * Extracts fields in 'this.reportInfo' into various class properties.
+     */
+    initRepProps () {
+        this.toolname = this.reportInfo.toolname
+        this.titleDescr = this.reportInfo.title_descr
+        this.tabFile = this.reportInfo.tab_file
+    }
+
     async connectedCallback () {
         super.connectedCallback()
         try {
             const resp = await fetch(this.src)
             this.reportInfo = await resp.json()
-            this.toolname = this.reportInfo.toolname
-            this.titleDescr = this.reportInfo.title_descr
-            this.tabFile = this.reportInfo.tab_file
-            this.introtbl = this.reportInfo.intro_tbl
+            this.initRepProps()
         } catch (err) {
         // Catching a CORS error caused by viewing reports locally.
             if (err instanceof TypeError) {
