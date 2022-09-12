@@ -44,7 +44,6 @@ export class ScReportPage extends LitElement {
     initRepProps () {
         this.toolname = this.reportInfo.toolname
         this.titleDescr = this.reportInfo.title_descr
-        this.tabFile = this.reportInfo.tab_file
     }
 
     async connectedCallback () {
@@ -53,6 +52,8 @@ export class ScReportPage extends LitElement {
             this.reportInfo = await resp.json()
             resp = await fetch(this.reportInfo.intro_tbl)
             this.introtbl = await resp.blob()
+            const rawTabs = await (await fetch(this.reportInfo.tab_file)).json()
+            this.tabs = await this.extractTabs(rawTabs, true)
             this.initRepProps()
         } catch (err) {
         // Catching a CORS error caused by viewing reports locally.
@@ -79,6 +80,21 @@ export class ScReportPage extends LitElement {
             here.</a>
           </sl-alert>
       `
+    }
+
+    async extractTabs (tabs, useFetch) {
+        // Convert summary file paths to 'File' objects.
+        for (const tab of tabs) {
+            if (tab.smrytblpath) {
+                if (useFetch) {
+                    tab.smrytblfile = await (await fetch(tab.smrytblpath)).blob()
+                }
+            }
+            if (tab.tabs) {
+                tab.tabs = await this.extractTabs(tab.tabs, useFetch)
+            }
+        }
+        return tabs
     }
 
     constructor () {
@@ -111,7 +127,7 @@ export class ScReportPage extends LitElement {
                 <sc-intro-tbl .file=${this.introtbl}></sc-intro-tbl>
             </div>
             <br>
-            <sc-tab-group .tabFile="${this.tabFile}"></sc-tab-group>
+            <sc-tab-group .tabs=${this.tabs}></sc-tab-group>
         `
     }
 }

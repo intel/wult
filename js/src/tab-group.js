@@ -56,24 +56,9 @@ class ScTabGroup extends LitElement {
     `
 
     static properties = {
-        tabFile: { type: String },
         tabs: { type: Object, attribute: false },
         fetchFailed: { type: Boolean, attribute: false }
     };
-
-    /**
-     * Called whenever the component’s update finishes and the element's DOM has been updated and
-     * rendered. Checks for changes in the tab file property which is used to determine the contents
-     * of the report tabs.
-     * @param {Map} changedProperties
-     */
-    updated (changedProperties) {
-        if (changedProperties.has('tabFile')) {
-            fetch(this.tabFile)
-                .then((response) => response.json())
-                .then(data => { this.tabs = data })
-        }
-    }
 
     /**
      * Returns the HTML template for a given Tab object.
@@ -92,7 +77,7 @@ class ScTabGroup extends LitElement {
         `
         }
         return html`
-            <sc-data-tab tabname=${tab.name} .smrytblpath=${tab.smrytblpath} .paths=${tab.ppaths} .fpreviews=${tab.fpreviews} .dir=${tab.dir}></sc-data-tab>
+            <sc-data-tab tabname=${tab.name} .smrytblfile=${tab.smrytblfile} .paths=${tab.ppaths} .fpreviews=${tab.fpreviews} .dir=${tab.dir}></sc-data-tab>
         `
     }
 
