@@ -11,10 +11,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    deploying with the '--skip-drivers' option.
  - Fix missing package C-state tabs in reports
 ### Added
+ - Add the ability to upload a wult report directory if viewing the report
+   locally.
  - Add 'RAMWatt' tab to wult reports in the turbostat totals power/temperature
    tab.
 ### Removed
 ### Changed
+ - Improve the warning about viewing wult reports locally.
 
 ## [1.10.28] - 2022-09-08
 ### Fixed
