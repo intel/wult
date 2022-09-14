@@ -7,6 +7,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
  - Do not check for 'stc-agent' and do not complain about its possible absence
    if not statistics need to be collected.
+ - Do not check for kernel sources and do not complain about them missing when
+   deploying with the '--skip-drivers' option.
 ### Added
 ### Removed
 ### Changed
