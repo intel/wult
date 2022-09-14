@@ -129,7 +129,7 @@ static int ldist_to_get(void *data, u64 *val)
 	struct wult_info *wi = data;
 
 	mutex_lock(&wi->enable_mutex);
-	*val = wi->ldist_tom;
+	*val = wi->ldist_to;
 	mutex_unlock(&wi->enable_mutex);
 	return 0;
 }
