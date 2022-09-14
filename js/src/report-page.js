@@ -9,7 +9,8 @@
  */
 
 import { LitElement, html, css } from 'lit'
-import '@shoelace-style/shoelace/dist/components/alert/alert'
+import '@shoelace-style/shoelace/dist/components/divider/divider'
+import '@shoelace-style/shoelace/dist/components/dialog/dialog'
 
 import './intro-tbl'
 import './tab-group'
@@ -36,7 +37,22 @@ export class ScReportPage extends LitElement {
         .report-title {
             font-family: Arial, sans-serif;
         }
+
+        .cors-warning {
+            display: flex;
+            flex-direction: column;
+            font-family: Arial, sans-serif;
+        }
+
+        // Hide the close button as the dialog is not closable.
+        sl-dialog::part(close-button) {
+            visibility: hidden;
+        }
     `
+
+    get _corsWarning () {
+        return this.renderRoot.querySelector('.cors-warning')
+    }
 
     /**
      * Extracts fields in 'this.reportInfo' into various class properties.
@@ -64,22 +80,39 @@ export class ScReportPage extends LitElement {
         super.connectedCallback()
     }
 
+    updated (changedProperties) {
+        if (changedProperties.has('fetchFailed')) {
+            // Prevent the dialog from closing.
+            this._corsWarning.addEventListener('sl-request-close', event => {
+                event.preventDefault()
+            })
+        }
+    }
+
     /**
-     * Returns the HTML template for an alert to tell the user about a CORS error thrown when the
-     * report is viewed locally.  We use the 'file:/' protocol to read the JSON file which contains
-     * the tab data. This can cause a CORS error when the browser tries to read local files. Because
-     * of this we warn the user about what is happening and inform them how to properly view reports
-     * locally.
+     * Returns the HTML template for an alert to handle the CORS error thrown when the report is
+     * viewed locally. We use first try to use the 'file:/' protocol to read the JSON file which
+     * contains the tab data. This can cause a CORS error when the browser tries to read local
+     * files. Because of this we warn the user about what is happening. Then we suggest that they
+     * upload the report directory so that we can circumvent the security restriction.
      */
     corsWarning () {
         return html`
-        <sl-alert variant="danger" open>
-          Warning: it looks like you might be trying to view this report
-          locally.  See our documentation on how to do that <a
-          href="https://intel.github.io/wult/pages/howto-view-local.html#open-wult-reports-locally">
-            here.</a>
-          </sl-alert>
-      `
+            <sl-dialog class="cors-warning" label="Failed to load report" open>
+                <p>
+                    Due to browser security limitations your report could not be retrieved. Please
+                    upload your report directory using the upload button below:
+                </p>
+                <input @change="${this.processUploadedFiles}" id="upload-files" directory webkitdirectory type="file">
+                <sl-divider></sl-divider>
+                <p>
+                    If you have tried uploading your report directory with the button above and it 
+                    is still not rendering properly, please see our documentation for details on
+                    other methods for viewing wult reports:
+                    <a href="https://intel.github.io/wult/pages/howto-view-local.html#open-wult-reports-locally"> here</a>.
+                </p>
+            </sl-dialog>
+        `
     }
 
     findFile (query) {
@@ -146,9 +179,7 @@ export class ScReportPage extends LitElement {
 
     render () {
         if (this.fetchFailed) {
-            return html`
-                <input @change="${this.processUploadedFiles}" id="upload-files" directory webkitdirectory type="file">
-            `
+            return this.corsWarning()
         }
 
         if (!this.reportInfo) {
