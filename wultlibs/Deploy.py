@@ -1002,6 +1002,9 @@ class Deploy(_DeployBase):
     def _deploy_drivers(self):
         """Deploy drivers to the SUT."""
 
+        if not self._cats["drivers"]:
+            return
+
         kver = self._get_kver()
         ksrc = self._get_ksrc()
 
