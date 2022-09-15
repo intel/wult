@@ -59,7 +59,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         self._cstates["hardware"]["core"].append(hw_cstates)
         self._cstates["hardware"]["package"].append(pkg_cstates)
         self._cstates["requested"].append(req_cstates)
-        return hw_cstates, req_cstates
+        return hw_cstates + pkg_cstates + req_cstates
 
     def _read_stats_file(self, path):
         """
@@ -73,11 +73,11 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             # Use the first turbostat snapshot to see which hardware and requestable C-states the
             # platform under test has.
             tstat = next(tstat_gen)
-            hw_cstates, req_cstates = self._extract_cstates(tstat)
+            cstates = self._extract_cstates(tstat)
 
             # Instantiate 'self._defs' if it has not already been instantiated.
             if not self._defs:
-                self._defs = TurbostatDefs.TurbostatDefs(hw_cstates + req_cstates)
+                self._defs = TurbostatDefs.TurbostatDefs(cstates)
 
             # Initialise the stats 'pandas.DataFrame' ('sdf') with data from the first 'tstat'
             # dictionary.
