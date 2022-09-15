@@ -22,8 +22,12 @@ import './tab-group'
  */
 export class ScReportPage extends LitElement {
     static properties = {
+        introtbl: { type: Object },
         src: { type: String },
-        reportInfo: { type: Object, attribute: false },
+        reportInfo: { type: Object },
+        toolname: { type: String },
+        titleDescr: { type: String },
+        tabs: { type: Object },
         fetchFailed: { type: Boolean, attribute: false }
     }
 
@@ -182,25 +186,20 @@ export class ScReportPage extends LitElement {
             return this.corsWarning()
         }
 
-        if (!this.reportInfo) {
-            return html``
-        }
-
         return html`
             <div class="report-head">
-                <h1 class="report-title">${this.toolname} report</h1>
+                ${this.toolname ? html`<h1 class="report-title">${this.toolname} report</h1>` : html``}
                 ${this.titleDescr
                     ? html`
-                    <p class="title_descr">${this.titleDescr}</p>
-                    <br>
+                        <p class="title_descr">${this.titleDescr}</p>
+                        <br>
                     `
                     : html``
                 }
-
-                <sc-intro-tbl .file=${this.introtbl}></sc-intro-tbl>
+                ${this.introtbl ? html`<sc-intro-tbl .file=${this.introtbl}></sc-intro-tbl>` : html``}
             </div>
             <br>
-            <sc-tab-group .tabs=${this.tabs}></sc-tab-group>
+            ${this.tabs ? html`<sc-tab-group .tabs=${this.tabs}></sc-tab-group>` : html``}
         `
     }
 }
