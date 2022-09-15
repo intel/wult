@@ -56,8 +56,7 @@ class ScTabGroup extends LitElement {
     `
 
     static properties = {
-        tabs: { type: Object, attribute: false },
-        fetchFailed: { type: Boolean, attribute: false }
+        tabs: { type: Object }
     };
 
     /**
@@ -77,7 +76,7 @@ class ScTabGroup extends LitElement {
         `
         }
         return html`
-            <sc-data-tab tabname=${tab.name} .smrytblfile=${tab.smrytblfile} .paths=${tab.ppaths} .fpreviews=${tab.fpreviews} .dir=${tab.dir}></sc-data-tab>
+            <sc-data-tab tabname=${tab.name} .smrytblpath=${tab.smrytblpath} .smrytblfile=${tab.smrytblfile} .paths=${tab.ppaths} .fpreviews=${tab.fpreviews} .dir=${tab.dir}></sc-data-tab>
         `
     }
 
@@ -91,8 +90,7 @@ class ScTabGroup extends LitElement {
                 ${this.tabs.map((tab) => html`
                     <sl-tab class="tab" slot="nav" panel="${tab.name}">${tab.name}</sl-tab>
                     <sl-tab-panel class="tab-panel" name="${tab.name}">${this.tabTemplate(tab)}</sl-tab-panel>
-                `
-    )}
+                `)}
             </sl-tab-group>
       `
     }

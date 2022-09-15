@@ -1792,7 +1792,7 @@
             padding-bottom: var(--sl-spacing-x-small);
             font-family: Arial, sans-serif;
         }
-    `;static properties={tabs:{type:Object,attribute:!1},fetchFailed:{type:Boolean,attribute:!1}};tabTemplate(t){return t.tabs?M`
+    `;static properties={tabs:{type:Object}};tabTemplate(t){return t.tabs?M`
                 <sl-tab-group>
                     ${t.tabs.map((t=>M`
                         <sl-tab class="tab" slot="nav" panel="${t.name}">${t.name}</sl-tab>
@@ -1800,7 +1800,7 @@
                     `))}
                 </sl-tab-group>
         `:M`
-            <sc-data-tab tabname=${t.name} .smrytblfile=${t.smrytblfile} .paths=${t.ppaths} .fpreviews=${t.fpreviews} .dir=${t.dir}></sc-data-tab>
+            <sc-data-tab tabname=${t.name} .smrytblpath=${t.smrytblpath} .smrytblfile=${t.smrytblfile} .paths=${t.ppaths} .fpreviews=${t.fpreviews} .dir=${t.dir}></sc-data-tab>
         `}render(){return this.tabs?M`
             <sl-tab-group>
                 ${this.tabs.map((t=>M`
