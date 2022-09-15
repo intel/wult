@@ -32,7 +32,7 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
         harchy = super()._get_tab_hierarchy(common_metrics)
 
         # Add extra metrics to the metrics in 'harchy' if they are common to all results.
-        extra_dtabs = ["PkgWatt", "GFXWatt", "PkgTmp"]
+        extra_dtabs = ["PkgWatt", "GFXWatt", "RAMWatt", "PkgTmp"]
         harchy["Temperature / Power"]["dtabs"] += [m for m in extra_dtabs if m in common_metrics]
 
         # Add uncore frequency D-tab to the "Frequency" C-tab.
