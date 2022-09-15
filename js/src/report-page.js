@@ -66,21 +66,32 @@ export class ScReportPage extends LitElement {
         this.titleDescr = this.reportInfo.title_descr
     }
 
-    async connectedCallback () {
-        try {
-            let resp = await fetch(this.src)
-            this.reportInfo = await resp.json()
-            resp = await fetch(this.reportInfo.intro_tbl)
-            this.introtbl = await resp.blob()
-            const rawTabs = await (await fetch(this.reportInfo.tab_file)).json()
-            this.tabs = await this.extractTabs(rawTabs, true)
-            this.initRepProps()
-        } catch (err) {
-        // Catching a CORS error caused by viewing reports locally.
-            if (err instanceof TypeError) {
-                this.fetchFailed = true
-            }
-        }
+    parseReportInfo (json) {
+        this.reportInfo = json
+        this.initRepProps()
+
+        // Fetch intro table.
+        fetch(json.intro_tbl)
+            .then(resp => resp.blob())
+            .then(blob => { this.introtbl = blob })
+
+        // Fetch tabs file.
+        fetch(json.tab_file).then(resp => resp.json())
+            .then(async tabjson => { this.tabs = tabjson })
+    }
+
+    connectedCallback () {
+        fetch(this.src)
+            .then(resp => resp.json())
+            .then(json => this.parseReportInfo(json))
+            .catch(err => {
+                // Catching a CORS error caused by viewing reports locally.
+                if (err instanceof TypeError) {
+                    this.fetchFailed = true
+                } else {
+                    throw err
+                }
+            })
         super.connectedCallback()
     }
 
@@ -134,7 +145,7 @@ export class ScReportPage extends LitElement {
         for (const tab of tabs) {
             if (tab.smrytblpath) {
                 if (useFetch) {
-                    tab.smrytblfile = await (await fetch(tab.smrytblpath)).blob()
+                    tab.smrytblfile = await fetch(tab.smrytblpath).then((resp) => resp.blob())
                 } else {
                     tab.smrytblfile = this.findFile(tab.smrytblpath)
                 }
