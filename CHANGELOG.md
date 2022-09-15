@@ -9,6 +9,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    if not statistics need to be collected.
  - Do not check for kernel sources and do not complain about them missing when
    deploying with the '--skip-drivers' option.
+ - Fix missing package C-state tabs in reports
 ### Added
  - Add 'RAMWatt' tab to wult reports in the turbostat totals power/temperature
    tab.
