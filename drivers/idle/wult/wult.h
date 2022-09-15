@@ -122,8 +122,6 @@ struct wult_info {
 	bool enabled;
 	/* Whether the early interrupts feature is enabled. */
 	bool early_intr;
-	/* Internal parser cache for the above */
-	bool ei;
 	/*
 	 * Launch distance range in nanoseconds. We pick a random number from
 	 * this range when selecting time for the delayed event.
