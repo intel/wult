@@ -83,6 +83,14 @@ GFXWatt:
     type: "float"
     unit: "Watt"
     short_unit: "W"
+RAMWatt:
+    title: "RAM power"
+    descr: >-
+        RAM power. Measured using the DRAM RAPL domain. Retrieved from the "RAMWatt" turbostat
+        column.
+    type: "float"
+    unit: "Watt"
+    short_unit: "W"
 CoreTmp:
     title: "Core temperature"
     descr: >-
