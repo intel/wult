@@ -1829,7 +1829,7 @@
         sl-dialog::part(close-button) {
             visibility: hidden;
         }
-    `;get _corsWarning(){return this.renderRoot.querySelector(".cors-warning")}initRepProps(){this.toolname=this.reportInfo.toolname,this.titleDescr=this.reportInfo.title_descr}parseReportInfo(t){this.reportInfo=t,this.initRepProps(),fetch(t.intro_tbl).then((t=>t.blob())).then((t=>{this.introtbl=t})),fetch(t.tab_file).then((t=>t.json())).then((async t=>{this.tabs=t}))}connectedCallback(){fetch(this.src).then((t=>t.json())).then((t=>this.parseReportInfo(t))).catch((t=>{if(!(t instanceof TypeError))throw t;this.fetchFailed=!0})),super.connectedCallback()}updated(t){t.has("fetchFailed")&&this._corsWarning.addEventListener("sl-request-close",(t=>{t.preventDefault()}))}corsWarning(){return O`
+    `;get _corsWarning(){return this.renderRoot.querySelector(".cors-warning")}initRepProps(){this.toolname=this.reportInfo.toolname,this.titleDescr=this.reportInfo.title_descr}parseReportInfo(t){this.reportInfo=t,this.initRepProps(),fetch(t.intro_tbl).then((t=>t.blob())).then((t=>{this.introtbl=t})),fetch(t.tab_file).then((t=>t.json())).then((async t=>{this.tabs=t}))}connectedCallback(){fetch(this.src).then((t=>t.json())).then((t=>this.parseReportInfo(t))).catch((t=>{if(!(t instanceof TypeError))throw t;this.fetchFailed=!0})),super.connectedCallback()}updated(t){t.has("fetchFailed")&&this.fetchFailed&&this._corsWarning.addEventListener("sl-request-close",(t=>{t.preventDefault()}))}corsWarning(){return O`
             <sl-dialog class="cors-warning" label="Failed to load report" open>
                 <p>
                     Due to browser security limitations your report could not be retrieved. Please

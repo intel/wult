@@ -97,10 +97,12 @@ export class ScReportPage extends LitElement {
 
     updated (changedProperties) {
         if (changedProperties.has('fetchFailed')) {
-            // Prevent the dialog from closing.
-            this._corsWarning.addEventListener('sl-request-close', event => {
-                event.preventDefault()
-            })
+            if (this.fetchFailed) {
+                // Prevent the dialog from closing.
+                this._corsWarning.addEventListener('sl-request-close', event => {
+                    event.preventDefault()
+                })
+            }
         }
     }
 
