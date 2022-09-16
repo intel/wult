@@ -469,6 +469,19 @@ class STCAgent:
     """
     This class represents the statistics collection agent and it implements all the collecting
     functionality of this program. There is only one single instance of this class.
+
+    Public methods overview:
+    1. Create the statistics collector objects for the statistics names in the 'stnames' list.
+       * 'create()'
+    2. Set a property of one or multiple statistic collectores. This function handles the
+       'set-collector-property' command.
+       * 'set_collector_property()'
+    3. Configure collectors.
+       * 'configure()'
+    4. Start collecting the statistics.
+       * 'start()'
+    5. Stop collecting the statistics.
+       * 'stop()'
     """
 
     def _execute_collectors_methods(self, methods):
@@ -590,7 +603,7 @@ class STCAgent:
         LOG.debug("set the property: %s", args)
 
     def configure(self):
-        """Start collecting the statistics."""
+        """Configure the statistic collectors."""
 
         if not self._collectors:
             raise Error("no statistics collectors selected")
@@ -636,7 +649,7 @@ class STCAgent:
         self.failed_collectors = set()
 
 class Client(ClassHelpers.SimpleCloseContext):
-    """This class represent a network client."""
+    """This class represents a network client."""
 
     def get_command(self):
         """Receive and return client command."""
