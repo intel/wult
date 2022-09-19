@@ -4,12 +4,13 @@ index.html, you will need to host the report files locally. This is because mode
 loading data from local file-systems for security reasons.
 
 To facilitate this, we created a Python script:
-* `view_multiple_reports.py` - used to view multiple reports at the same time or in quick succesion.
+* `serve_directory.py` - can be used to serve one or more report directories at the same time or in
+                         quick succesion.
 
 > Note that this script requires that Python 3.5 or higher is installed. See below for more
 information on both.
 
-## View multiple reports (`view_multiple_reports.py`)
+## Serve a Directory (`serve_directory.py`)
 This script can be found in the root directory of wult HTML reports and can be used to view multiple
 reports at the same time. Intended usage is as follows:
 

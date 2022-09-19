@@ -525,9 +525,9 @@ class ReportBase:
         self._copy_asset("js/index.html", "root HTML page of the report.",
                          self.outdir / "index.html")
 
-        self._copy_asset("misc/viewreports/view_multiple_reports.py",
-                         "script to view multiple reports locally.",
-                         self.outdir / "view_multiple_reports.py")
+        self._copy_asset("misc/viewreports/serve_directory.py",
+                         "script to serve report directories.",
+                         self.outdir / "serve_directory.py")
         self._copy_asset("misc/viewreports/README.md", "README file for local viewing scripts",
                          self.outdir / "README.md")
 
