@@ -1,26 +1,32 @@
 # Viewing Reports Locally
-If you wish to view this report locally, such as by copying the report onto your machine and opening
-index.html, you will need to host the report files locally. This is because modern browsers forbid
-loading data from local file-systems for security reasons.
-
-To facilitate this, we created a Python script:
-* `serve_directory.py` - can be used to serve one or more report directories at the same time or in
-                         quick succesion.
-
-> Note that this script requires that Python 3.5 or higher is installed. See below for more
-information on both.
+If you wish to view this report locally, this can be done using two methods:
+* `serve_directory.py` - a Python script found in the wult report directory which can be used to
+                         serve one or more report directories (see usage details below).
+* `index.html` - an HTML document found in the wult report directory which attempts to render the
+                 report in a web browser. If it fails due to browser restrictions, you will be
+                 prompted to upload the report directory.
 
 ## Serve a Directory (`serve_directory.py`)
-This script can be found in the root directory of wult HTML reports and can be used to view multiple
-reports at the same time. Intended usage is as follows:
+> Note that this script requires that Python 3.5 or higher is installed.
+
+This script can be found in the root directory of wult HTML reports and can be used to view one or
+more reports at the same time.
+
+### GUI Usage
+Intended GUI usage is as follows:
 
 1. Run the script (e.g. by double-clicking on it in Windows Explorer).
-2. Select a directory containing multiple reports when prompted to select a directory. Following
-   this, the script opens the default browser at 'localhost:8000'.
+2. Select a directory containing one or more reports when prompted to select a directory. Following
+   this, browse to the URL output by the script using a web-browser.
 3. Once you have finished browsing the reports, make sure to stop the script you started in step 1.
    If a new terminal window was created when you ran the script in step 1, you can do this by
    closing this window.
 
-## CLI-Usage
-Note that the script mentioned above can be used on the command-line. Use the '-h' (help) option to
-see a list of other options which can be used with each script.
+### Command-Line (CLI) Usage
+The script can also be used on the command line. Use the '--dir' option to specify the directory
+which should be served.
+
+> If the '--dir' option is not used, the script will attempt to open a graphical file browser so
+that you can choose the directory. Therefore '--dir' is required if a graphical interface is not available.
+
+Use the '-h' (help) option to see a list of other options which can be used.
