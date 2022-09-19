@@ -173,7 +173,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         """Reads helper program 'stdout' output and yield it line by line."""
 
         while True:
-            stdout, stderr, exitcode = self._proc.wait(timeout=self._timeout, lines=[16, None],
+            stdout, stderr, exitcode = self._proc.wait(timeout=self._timeout, lines=[1, None],
                                                        join=False)
             if exitcode is not None:
                 msg = self._proc.get_cmd_failure_msg(stdout, stderr, exitcode,
