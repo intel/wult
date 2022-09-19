@@ -14,7 +14,7 @@ them from reading report files. To solve this issue, the files must be hosted as
 Hence, this script was created so that it can be used to view wult HTML reports. Intended usage:
  1. Run this script.
  2. Select the report directory or a directory containing multiple reports when prompted to select
-    one. Following this, the script opens the default browser at 'localhost:8000'.
+    one.
 """
 
 # pylint: disable=wrong-import-position
@@ -26,7 +26,6 @@ if sys.version_info < (3,5):
 import argparse
 import http.server
 import os
-import webbrowser
 
 failed_tk_import = False
 try:
@@ -47,9 +46,6 @@ def parseargs():
                         help="Host to serve the report on. Defaults to 'localhost'.")
     parser.add_argument("--port", nargs="?", default=8000, type=int,
                         help="Port to serve the report on. Defaults to '8080'.")
-    parser.add_argument("--headless", action="store_true",
-                        help="Run the script without trying to open the report in the default web "
-                             "browser.")
     parser.add_argument("--dir", nargs="?", default=None,
                         help="Specify a directory to host. If one is not specified, the user will "
                              "be prompted for one using a GUI.")
@@ -90,13 +86,11 @@ def _init_server(host, port, portcount=10):
 
     return httpd, port
 
-def servedir(host="localhost", port=8000, directory=None, headless=False):
+def servedir(host="localhost", port=8000, directory=None):
     """
-    Serve 'directory' on 'host:port'. If not 'headless', opens the default browser to view the
-    report. Default behaviour is as follows:
+    Serve 'directory' on 'host:port'. Default behaviour is as follows:
      1. Prompts the user for a directory using a GUI.
      2. Tries to serve this directory on 'localhost:8000'.
-     3. Opens the default browser to 'localhost:8000'.
     """
 
     if directory is None:
@@ -114,15 +108,12 @@ def servedir(host="localhost", port=8000, directory=None, headless=False):
     URL = "http://{host}:{port}/".format(host=host, port=port)
 
     print("Serving directory '{dir}' at '{url}'.".format(dir=directory, url=URL))
-    print("Opening in browser. Please close this window when you have finished viewing reports.\n")
+    print("Please close this window when you have finished viewing reports.\n")
     print("Web server logs:")
 
-    if not headless:
-        # Open the user's web browser with the directory open.
-        webbrowser.open(URL)
     httpd.serve_forever()
 
 
 if __name__ == "__main__":
     args = parseargs()
-    servedir(args.host, args.port, args.dir, args.headless)
+    servedir(args.host, args.port, args.dir)
