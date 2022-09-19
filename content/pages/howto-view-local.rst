@@ -99,53 +99,20 @@ will be added to the `Chrome Apps` directory in the start menu.
 
 See `this tip below <#view-multiple-reports-locally>`_ if you want to view multiple reports.
 
-Python Scripts
---------------
+Python Script (serve_directory.py)
+----------------------------------
 
-To facilitate reading HTML reports locally, as of v1.10.16, wult HTML reports include a couple of
-Python scripts. Note that both of them require that your system already has Python installed.
+To facilitate reading HTML reports locally, as of v1.10.30, wult HTML reports include a Python
+script. Note that the script requires that your system already has Python 3.5 or higher installed.
 
-View one report (view_report.py)
-++++++++++++++++++++++++++++++++
-
-The first script found in the root directory of wult HTML reports is 'view_report.py'. This script
-can be used to quickly view the report contained in the same directory. Intended usage is as
-follows:
-
-1. Run the script (e.g. by double-clicking on it in Windows Explorer). Following this, the script
-   opens the default browser at 'localhost:8000'.
-2. Once you have finished browsing the report, make sure to stop the script you started in step 2.
-   If a new terminal window was created when you ran the script in step 2, you can do this by closing
-   this window.
-
-.. image:: ../images/view_report.gif
-    :alt: Screencast of the recommended usage of 'view_report.py' on Windows 10.
-    :width: 1900 px
-    :height: 998 px
-    :scale: 30 %
-
-Usage of 'view_report.py' following the above instructions on Windows 10.
-
-View multiple reports (view_multiple_reports.py)
-++++++++++++++++++++++++++++++++++++++++++++++++
-
-The second script found in the root directory of wult HTML reports can be used to view multiple
-reports at the same time. Intended usage is as follows:
+The 'serve_directory.py' script found in the root directory of wult HTML reports can be used to view
+one or more reports at the same time. Intended usage is as follows:
 
 1. Run the script (e.g. by double-clicking on it in Windows Explorer).
-2. Select a directory containing multiple reports when prompted to select a directory. Following
-   this, the script opens the default browser at 'localhost:8000'.
+2. Select a directory containing multiple reports when prompted to select a directory.
 3. Once you have finished browsing the reports, make sure to stop the script you started in step 2.
    If a new terminal window was created when you ran the script in step 2, you can do this by
    closing this window.
-
-.. image:: ../images/view_multiple_reports.gif
-    :alt: Screencast of the recommended usage of 'view_multiple_reports.py' on Windows 10.
-    :width: 1900 px
-    :height: 998 px
-    :scale: 30 %
-
-Usage of 'view_multiple_reports.py' following the above instructions on Windows 10.
 
 Python - CLI
 ------------
