@@ -7,14 +7,10 @@
 # Author: Adam Hawley <adam.james.hawley@intel.com>
 
 """
-Serve a local directory on localhost.
+Serve a directory as a web-server.
 
-Wult HTML reports can't be viewed locally due to restrictions imposed by web-browsers which prevent
-them from reading report files. To solve this issue, the files must be hosted as a web-server.
-Hence, this script was created so that it can be used to view wult HTML reports. Intended usage:
- 1. Run this script.
- 2. Select the report directory or a directory containing multiple reports when prompted to select
-    one.
+This script exists so that users can serve report directories as web-servers as to make them easier
+to navigate and browse.
 """
 
 # pylint: disable=wrong-import-position
