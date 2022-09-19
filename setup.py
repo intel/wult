@@ -2,7 +2,7 @@
 #
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2021 Intel Corporation
+# Copyright (C) 2019-2022 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -62,7 +62,7 @@ setup(
                get_data_files("share/wult/helpers", "helpers", exclude=_PYTHON_HELPERS) + \
                get_data_files("share/wult/defs", "defs") + \
                get_data_files("share/wult/js/dist", "js/dist") + \
-               get_data_files("share/wult/misc/viewreports", "misc/viewreports") + \
+               get_data_files("share/wult/misc/servedir", "misc/servedir") + \
                [("share/wult/js", ["js/index.html"])],
     scripts=_TOOLNAMES + _PYTHON_HELPERS,
     packages=find_packages(),
