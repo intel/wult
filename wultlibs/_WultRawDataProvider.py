@@ -224,7 +224,6 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
 
         try:
             for line in self._get_lines():
-                line = line.strip()
                 vals = Trivial.split_csv_line(line)
                 if not hdr:
                     # The very first line is the CSV header.

@@ -186,7 +186,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
                                    f"{self._timeout} seconds")
 
             for line in stdout:
-                yield line
+                yield line.strip()
 
     def _start_helper(self):
         """Start the helper program."""
