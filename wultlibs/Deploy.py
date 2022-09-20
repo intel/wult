@@ -382,11 +382,13 @@ class DeployCheck(_DeployBase):
         """Returns a nice, printable human-readable name of a deployable."""
 
         cat_descr = _CATEGORIES[self._insts[installable]["category"]]
-        return f"the '{deployable}' component of the '{installable}' {cat_descr}"
+        if deployable != installable:
+            return f"the '{deployable}' component of the '{installable}' {cat_descr}"
+        else:
+            return f"the '{deployable}' {cat_descr}"
 
     def _deployable_not_found(self, deployable):
         """Same as module-level '_deployable_not_found()'."""
-
 
         installable = self._get_installable_by_deployable(deployable)
         what = self._get_deployable_print_name(installable, deployable)
@@ -440,7 +442,7 @@ class DeployCheck(_DeployBase):
             for deployable in self._get_deployables("drivers"):
                 dstpath = self._get_module_path(deployable)
                 if not dstpath:
-                    self._deployable_not_found(f"the '{deployable}' kernel module")
+                    self._deployable_not_found(deployable)
                     break
 
                 if srcpath:
