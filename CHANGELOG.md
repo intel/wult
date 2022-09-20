@@ -3,11 +3,18 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.30] - ADD DATE HERE
+## [1.10.31] - ADD DATE HERE
 ### Fixed
 ### Added
 ### Removed
 ### Changed
+
+## [1.10.30] - 2022-09-16
+### Fixed
+### Added
+### Removed
+### Changed
+ - Increase max. launch distance to 50 milliseconds (tdt, hrt, i210).
 
 ## [1.10.29] - 2022-09-16
 ### Fixed
