@@ -100,7 +100,7 @@
 #define I210_FWSM_PHY_SERDES0_CONFIG_ERR_IND BIT(26)
 
 /* Maximum supported launch distance (nanoseconds). */
-#define I210_MAX_LDIST 20000000
+#define I210_MAX_LDIST 50000000
 /* The launch distance resolution (nanoseconds). */
 #define I210_RESOLUTION 1
 

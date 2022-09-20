@@ -18,7 +18,7 @@
 #include "wult.h"
 
 /* Maximum supported launch distance in nanoseconds. */
-#define LDIST_MAX 20000000
+#define LDIST_MAX 50000000
 
 /*
  * Get a 'struct wult_hrt' pointer by memory address of its 'wdi' field.
