@@ -31,7 +31,13 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
         received from the 'ndlrunner' process.
         """
 
-        return f"received the following unexpected line from {self._error_pfx()}:\n{line}"
+        msg = f"received the following unexpected line from {self._error_pfx()}:\n{line}"
+        stderr = self._get_stderr()
+        if stderr:
+            stderr = Error(stderr).indent(4)
+            msg += f"\nStandard error output of 'ndlrunner'{stderr}"
+
+        return msg
 
     def _get_line(self, prefix="", line=None):
         """Read, validate, and return the next 'ndlrunner' line."""
