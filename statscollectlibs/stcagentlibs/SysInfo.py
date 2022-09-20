@@ -85,11 +85,6 @@ def _collect_totals(outdir, when, pman):
     cmdinfo["outfile"] = outfile
     cmdinfo["cmd"] = f"dmesg > '{outfile}' 2>&1"
 
-    cmdinfos["journalctl"] = cmdinfo = {}
-    outfile = outdir / f"journalctl-b.{when}.raw.txt"
-    cmdinfo["outfile"] = outfile
-    cmdinfo["cmd"] = f"journalctl -b > '{outfile}' 2>&1"
-
     cmdinfos["x86_energy_perf_policy"] = cmdinfo = {}
     outfile = outdir / f"x86_energy_perf_policy.{when}.raw.txt"
     cmdinfo["outfile"] = outfile
