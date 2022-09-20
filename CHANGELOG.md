@@ -7,6 +7,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 ### Added
 ### Removed
+ - Do not collect 'journalctl -b' output as part of the 'sysinfo' statistics.
 ### Changed
 
 ## [1.10.30] - 2022-09-20
