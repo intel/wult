@@ -135,7 +135,7 @@ static int _parse_perf_events(int type)
 		break;
 
 	default:
-		errmsg("Bad perf event type: %d", type);
+		errmsg("bad perf event type: %d", type);
 		return -1;
 	}
 
@@ -143,12 +143,13 @@ static int _parse_perf_events(int type)
 		 pattern);
 	file = fopen(fname, "r");
 	if (!file) {
-		errmsg("WARNING: unable to find perf event_source %s. Please use custom events/driver.", pattern);
+		errmsg("WARNING: unable to find perf event_source %s. Please use custom events/driver",
+		       pattern);
 		return 0;
 	}
 
 	if (!fgets(buf, BUFSIZ, file)) {
-		errmsg("Failed to read %s", fname);
+		errmsg("failed to read %s", fname);
 		return 0;
 	}
 
@@ -197,7 +198,7 @@ static int _parse_perf_events(int type)
 		pmu_config++;
 		perf_ev_amt++;
 		if (perf_ev_amt == WULTRUNNER_NUM_PERF_COUNTERS) {
-			errmsg("Out of perf counter storage, increase WULTRUNNER_NUM_PERF_COUNTERS.");
+			errmsg("out of perf counter storage, increase WULTRUNNER_NUM_PERF_COUNTERS");
 			return -1;
 		}
 
@@ -325,7 +326,7 @@ static int parse_options(int argc, char **argv)
 			break;
 		case 'l':
 			if (sscanf(optarg, "%d,%d", &args.min_t, &args.max_t) < 2) {
-				errmsg("Failed to parse ldist range: %s", optarg);
+				errmsg("failed to parse ldist range: %s", optarg);
 				exit(1);
 			}
 			break;
@@ -340,7 +341,7 @@ static int parse_options(int argc, char **argv)
 			printf("Wultrunner v%d.%d\n", VERSION_MAJOR, VERSION_MINOR);
 			skel = bpf_hrt__open();
 			if (!skel) {
-				errmsg("Failed to open BPF skeleton.");
+				errmsg("failed to open eBPF skeleton");
 				exit(1);
 			}
 			ver = skel->rodata->linux_version_code;
@@ -386,7 +387,7 @@ int main(int argc, char **argv)
 		return err;
 
 	if (cpu < 0) {
-		errmsg("No CPU defined.");
+		errmsg("no CPU defined");
 		exit(1);
 	}
 
@@ -394,7 +395,7 @@ int main(int argc, char **argv)
 	CPU_SET(cpu, &cpuset);
 	err = sched_setaffinity(0, sizeof(cpuset), &cpuset);
 	if (err) {
-		errmsg("Failed to set CPU affinity to %d, err=%d", cpu, err);
+		errmsg("failed to set CPU affinity to %d, err=%d", cpu, err);
 		exit(err);
 	}
 
@@ -403,7 +404,7 @@ int main(int argc, char **argv)
 
 	skel = bpf_hrt__open();
 	if (!skel) {
-		errmsg("Failed to open BPF skeleton.");
+		errmsg("failed to open eBPF skeleton");
 		exit(1);
 	}
 
@@ -414,7 +415,7 @@ int main(int argc, char **argv)
 
 	err = bpf_hrt__load(skel);
 	if (err) {
-		errmsg("Failed to load and verify BPF skeleton.");
+		errmsg("failed to load and verify BPF skeleton");
 		goto cleanup;
 	}
 
@@ -432,7 +433,7 @@ int main(int argc, char **argv)
 
 	err = perf_map_fd = bpf_map__fd(skel->maps.perf);
 	if (err < 0) {
-		errmsg("Unable to find 'perf' map.");
+		errmsg("unable to find 'perf' map");
 		goto cleanup;
 	}
 
@@ -441,7 +442,7 @@ int main(int argc, char **argv)
 		pmu_fd = syscall(__NR_perf_event_open, &pmu_configs[i].attr,
 				 -1/*pid*/, cpu, -1/*group_fd*/, 0);
 		if (pmu_fd < 0) {
-			errmsg("Failed to open perf_event %d:%lld",
+			errmsg("failed to open perf_event %d:%lld",
 			       pmu_configs[i].type, pmu_configs[i].attr.config);
 			exit(1);
 		}
@@ -450,7 +451,7 @@ int main(int argc, char **argv)
 
 		err = ioctl(pmu_fd, PERF_EVENT_IOC_ENABLE, 0);
 		if (err) {
-			errmsg("Failed to enable perf event %d:%lld",
+			errmsg("failed to enable perf event %d:%lld",
 			       pmu_configs[i].type, pmu_configs[i].attr.config);
 			exit(1);
 		}
@@ -460,7 +461,7 @@ int main(int argc, char **argv)
 			bpf_program__fd(skel->progs.bpf_hrt_start_timer),
 			&topts);
 	if (err) {
-		errmsg("Failed to execute start_timer: %d", err);
+		errmsg("failed to execute start_timer: %d", err);
 		goto cleanup;
 	}
 
@@ -481,7 +482,7 @@ int main(int argc, char **argv)
 
 	event_rb = ring_buffer__new(fd, handle_rb_event, NULL, NULL);
 	if (!event_rb) {
-		errmsg("Failed to create event ringbuf.");
+		errmsg("failed to create event ringbuf");
 		err = 1;
 		goto cleanup;
 	}
