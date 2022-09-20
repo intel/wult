@@ -143,13 +143,13 @@ static int _parse_perf_events(int type)
 		 pattern);
 	file = fopen(fname, "r");
 	if (!file) {
-		errmsg("WARNING: unable to find perf event_source %s. Please use custom events/driver",
-		       pattern);
+		syswarnmsg("unable to find perf event_source %s. Please use custom events/driver",
+			   pattern);
 		return 0;
 	}
 
 	if (!fgets(buf, BUFSIZ, file)) {
-		errmsg("failed to read %s", fname);
+		syswarnmsg("failed to read %s", fname);
 		return 0;
 	}
 
@@ -172,12 +172,12 @@ static int _parse_perf_events(int type)
 			continue;
 
 		if (!fgets(buf, BUFSIZ, file)) {
-			errmsg("WARN: failed to read %s", fname);
+			syswarnmsg("failed to read %s", fname);
 			continue;
 		}
 
 		if (sscanf(buf, "event=0x%x", &cfg) < 1) {
-			errmsg("WARN: failed to parse event: '%s'", buf);
+			syswarnmsg("failed to parse event: '%s'", buf);
 			continue;
 		}
 

@@ -22,12 +22,18 @@ typedef uint32_t u32;
 #define msg(fmt, ...) do { \
 		printf("wultrunner: " fmt "\n", ##__VA_ARGS__); \
 	} while (0)
+
+#define warnmsg(fmt, ...) do { \
+		fprintf(stderr, "wultrunner warning: " fmt "\n", ##__VA_ARGS__); \
+	} while (0)
+#define syswarnmsg(fmt, ...) do { \
+		fprintf(stderr, "wultrunner warning: " fmt ": %s\n", ##__VA_ARGS__, strerror(errno)); \
+	} while (0)
 #define errmsg(fmt, ...) do { \
 		fprintf(stderr, "wultrunner error: " fmt "\n", ##__VA_ARGS__); \
 	} while (0)
 #define syserrmsg(fmt, ...) do { \
-		fprintf(stderr, "wultrunner error: " fmt ": %s\n", \
-				##__VA_ARGS__, strerror(errno)); \
+		fprintf(stderr, "wultrunner error: " fmt ": %s\n", ##__VA_ARGS__, strerror(errno)); \
 	} while (0)
 
 #define WULTRUNNER_NUM_PERF_COUNTERS 16
