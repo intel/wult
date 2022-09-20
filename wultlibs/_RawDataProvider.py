@@ -191,7 +191,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
     def _get_stderr(self):
         """Read and return standard error output of the helper program, if any."""
 
-        stdout, stderr, exitcode = self._proc.wait(timeout=1, lines=[None, None], join=True)
+        _, stderr, exitcode = self._proc.wait(timeout=1, lines=[None, None], join=True)
         if exitcode is not None:
             return ""
         return stderr.strip()
