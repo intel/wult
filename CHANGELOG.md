@@ -9,7 +9,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 ### Changed
 
-## [1.10.30] - 2022-09-16
+## [1.10.30] - 2022-09-20
 ### Fixed
 ### Added
 ### Removed
