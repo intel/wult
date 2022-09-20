@@ -20,7 +20,7 @@ Depends: python3:any (>= 3.7~),
          ${misc:Depends},
          ${python3:Depends},
          kmod,
-         network-manager, # For 'nmcli'
+         network-manager,
          pciutils
 Description: Tool for measuring C-state latency in Linux.
  The name Wult comes from "Wake Up Latency Tracer". Wult measures C-state
