@@ -14,8 +14,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 ### Added
 ### Removed
+ - Remove '--headless' option from 'view_multiple_reports.py'.
+ - Remove 'view_report.py' from report directories.
 ### Changed
  - Increase max. launch distance to 50 milliseconds (tdt, hrt, i210).
+ - Rename 'view_multiple_reports.py' to 'serve_directory.py'.
+ - Change 'serve_directory.py' so that it does not try to open a web-browser by
+   default.
 
 ## [1.10.29] - 2022-09-16
 ### Fixed
