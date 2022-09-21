@@ -61,17 +61,6 @@ static const char *output_vars[] = {
 	"CC0Cyc",
 };
 
-enum {
-	CMD_NONE,
-	CMD_EXIT
-};
-
-enum {
-	WULTRUNNER_PERF_EVENT_MSR,
-	WULTRUNNER_PERF_EVENT_CORE,
-	WULTRUNNER_PERF_EVENT_PKG,
-};
-
 struct pmu_cfg {
 	struct perf_event_attr attr;
 	int type;
