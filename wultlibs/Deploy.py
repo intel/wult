@@ -807,6 +807,10 @@ class Deploy(_DeployBase):
 
         # The location of 'libbpf.a' may vary, check several known paths.
         suffixes = ("libbpf/include", "tools/lib", "include", "usr/include",
+                    # Fedora-specific UAPI and libbpf include directories (the 'kernel-devel' module
+                    # places them there).
+                    "include/generated/uapi",
+                    "tools/bpf/resolve_btfids/libbpf",
                     "tools/bpf/resolve_btfids/libbpf/include")
         incdirs = {}
 
@@ -900,8 +904,8 @@ class Deploy(_DeployBase):
             # 'usr/include' subdirectory. Otherwise the compilation breaks. And this only happens
             # when user ran 'make headers_install', so that 'usr/include' contains the "processed
             # UAPI headers".
-            headers = ("bpf/bpf_helpers.h", "bpf/bpf_tracing.h", "uapi/linux/bpf.h",
-                       "linux/version.h")
+            headers = ("bpf/bpf_helpers.h", "bpf_helper_defs.h", "bpf/bpf_tracing.h",
+                       "uapi/linux/bpf.h", "linux/version.h")
             incdirs = self._find_ebpf_include_dirs_from_ksrc(headers)
             bpf_inc = "-I " + " -I ".join([str(incdir) for incdir in incdirs])
 
