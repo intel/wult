@@ -36,6 +36,9 @@ typedef uint32_t u32;
 		fprintf(stderr, "wultrunner error: " fmt ": %s\n", ##__VA_ARGS__, strerror(errno)); \
 	} while (0)
 
+/* Maximum supported launch distance in nanoseconds. */
+#define LDIST_MAX 50000000U
+
 #define WULTRUNNER_NUM_PERF_COUNTERS 16
 
 enum {

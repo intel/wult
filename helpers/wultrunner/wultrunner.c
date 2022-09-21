@@ -282,6 +282,8 @@ static void print_help(void)
 	printf("Options:\n");
 	printf("  -c, --cpu     CPU number to measure.\n");
 	printf("  -l, --ldist   launch distance range in nanoseconds (e.g. 100,200).\n");
+	printf("  -P, --print-max-ldist  print the maximum supported launch distance in\n"
+	       "                         nanoseconds and exit.\n");
 	printf("  -V, --version print version info and exit (both tool version and\n");
 	printf("                kernel version against which the tool was built).\n");
 	printf("  -v, --verbose  be verbose.\n");
@@ -294,26 +296,39 @@ static int parse_options(int argc, char **argv)
 	int opt;
 	u32 ver;
 	static const struct option long_options[] = {
-		{ "cpu",     required_argument, NULL, 'c' },
-		{ "ldist",   required_argument, NULL, 'l' },
-		{ "version", no_argument, NULL, 'V' },
-		{ "verbose", no_argument, NULL, 'v' },
-		{ "help",    no_argument, NULL, 'h' },
+		{ "cpu",            required_argument, NULL, 'c' },
+		{ "ldist",          required_argument, NULL, 'l' },
+		{ "print-max-ldist", no_argument, NULL, 'P' },
+		{ "version",        no_argument, NULL, 'V' },
+		{ "verbose",        no_argument, NULL, 'v' },
+		{ "help",           no_argument, NULL, 'h' },
 		{ 0 },
 	};
 
-	while ((opt = getopt_long(argc, argv, "c:l:Vvh", long_options,
+	while ((opt = getopt_long(argc, argv, "c:l:PVvh", long_options,
 				  NULL)) != -1) {
 		switch (opt) {
 		case 'c':
 			cpu = atol(optarg);
 			break;
 		case 'l':
-			if (sscanf(optarg, "%d,%d", &bpf_args.min_t, &bpf_args.max_t) < 2) {
-				errmsg("failed to parse ldist range: %s", optarg);
+			if (sscanf(optarg, "%u,%u", &bpf_args.min_t, &bpf_args.max_t) < 2) {
+				errmsg("failed to parse launch distance range '%s'", optarg);
+				exit(1);
+			}
+			if (bpf_args.min_t >= bpf_args.max_t) {
+				errmsg("bad launch distance range '%s': min. should be smaller than max.", optarg);
+				exit(1);
+			}
+			if (bpf_args.max_t > LDIST_MAX) {
+				errmsg("too large max. launch distance '%u', should be smaller than '%u' ns",
+				       bpf_args.max_t, LDIST_MAX);
 				exit(1);
 			}
 			break;
+		case 'P':
+			msg("max. ldist: %u", LDIST_MAX);
+			exit(0);
 		case 'V':
 			/*
 			 * Print out version info. This will first print
