@@ -353,12 +353,12 @@ static int parse_options(int argc, char * const *argv)
 {
 	int opt, cnt;
 	struct option long_opts[] = {
-		{"ldist",		required_argument, 0, 'l'},
-		{"port",		required_argument, 0, 'p'},
-		{"count",		required_argument, 0, 'c'},
-		{"tai-offset",		no_argument, 0, 'T'},
-		{"verbose",		no_argument, 0, 'v'},
-		{"help",		no_argument, 0, 'h'},
+		{"ldist",      required_argument, 0, 'l'},
+		{"port",       required_argument, 0, 'p'},
+		{"count",      required_argument, 0, 'c'},
+		{"tai-offset", no_argument, 0, 'T'},
+		{"verbose",    no_argument, 0, 'v'},
+		{"help",       no_argument, 0, 'h'},
 		{0, 0, 0, 0 }
 	};
 
