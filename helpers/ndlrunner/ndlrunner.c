@@ -312,6 +312,56 @@ static unsigned long long strtoll_or_die(const char *str, const char *descr)
 	return res;
 }
 
+static int read_rtd(uint64_t *rtd)
+{
+	const char rtdpath[] = "/sys/kernel/debug/ndl/rtd";
+	FILE *f = fopen(rtdpath, "r");
+
+	if (!f) {
+		syserrmsg("failed to open file %s", rtdpath);
+		return -1;
+	}
+	fscanf(f, "%lu", rtd);
+	fclose(f);
+
+	return 0;
+}
+
+/*
+ * Get the next command for the standard input.
+ *
+ * Returns a positive command code in case of success and -1 in case of failure.
+ */
+static int get_command(char *buf, size_t bufsize)
+{
+	int len;
+
+	len = read(STDIN_FILENO, buf, bufsize-1);
+	if (len == -1) {
+		if (errno == EAGAIN) {
+			return CMD_NONE;
+		} else {
+			syserrmsg("failed to read command");
+			return -1;
+		}
+	}
+	if (len == 0) {
+		errmsg("failed to read the command: read 0 bytes");
+		return -1;
+	}
+	if (buf[len - 1] != '\n') {
+		errmsg("no newline at the end of input, read '%s'", buf);
+		return -1;
+	}
+	buf[len - 1] = '\0';
+	len -= 1;
+
+	if (!strcmp(buf, "q"))
+		return CMD_EXIT;
+
+	return CMD_NONE;
+}
+
 /*
  * Print TAI time vs real time offset in seconds. Returns 0 on success and -1 on error.
  */
@@ -410,56 +460,6 @@ static int parse_options(int argc, char * const *argv)
 	ifname = argv[optind];
 
 	return 0;
-}
-
-static int read_rtd(uint64_t *rtd)
-{
-	const char rtdpath[] = "/sys/kernel/debug/ndl/rtd";
-	FILE *f = fopen(rtdpath, "r");
-
-	if (!f) {
-		syserrmsg("failed to open file %s", rtdpath);
-		return -1;
-	}
-	fscanf(f, "%lu", rtd);
-	fclose(f);
-
-	return 0;
-}
-
-/*
- * Get the next command for the standard input.
- *
- * Returns a positive command code in case of success and -1 in case of failure.
- */
-static int get_command(char *buf, size_t bufsize)
-{
-	int len;
-
-	len = read(STDIN_FILENO, buf, bufsize-1);
-	if (len == -1) {
-		if (errno == EAGAIN) {
-			return CMD_NONE;
-		} else {
-			syserrmsg("failed to read command");
-			return -1;
-		}
-	}
-	if (len == 0) {
-		errmsg("failed to read the command: read 0 bytes");
-		return -1;
-	}
-	if (buf[len - 1] != '\n') {
-		errmsg("no newline at the end of input, read '%s'", buf);
-		return -1;
-	}
-	buf[len - 1] = '\0';
-	len -= 1;
-
-	if (!strcmp(buf, "q"))
-		return CMD_EXIT;
-
-	return CMD_NONE;
 }
 
 int main(int argc, char * const *argv)
