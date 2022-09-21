@@ -30,7 +30,7 @@ struct bpf_hrt {
 		struct bpf_link *bpf_hrt_cpu_idle;
 	} links;
 	struct bpf_hrt__bss {
-		struct bpf_event data;
+		struct bpf_hrt_event data;
 		bool timer_armed;
 		u32 ldist;
 		int max_t;

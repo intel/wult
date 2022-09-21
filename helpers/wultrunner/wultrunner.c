@@ -43,7 +43,7 @@ static bool verbose;
 static int perf_ev_amt;
 static int cpu = -1;
 
-static struct bpf_args args = { .min_t = 1000, .max_t = 4000000 };
+static struct bpf_hrt_args args = { .min_t = 1000, .max_t = 4000000 };
 
 static const char *output_vars[] = {
 	"LTime",
@@ -235,7 +235,7 @@ static void print_help(void)
 
 static int handle_rb_event(void *ctx, void *data, size_t sz)
 {
-	const struct bpf_event *e = data;
+	const struct bpf_hrt_event *e = data;
 	int i;
 	u64 totcyc;
 

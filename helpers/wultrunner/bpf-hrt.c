@@ -51,7 +51,7 @@ struct {
 
 static int min_t;
 static int max_t;
-static struct bpf_event data;
+static struct bpf_hrt_event event;
 static u64 ltime;
 static u32 ldist;
 static bool timer_armed;
@@ -94,7 +94,7 @@ static u64 bpf_hrt_read_tsc(void)
 
 static void bpf_hrt_ping_cpu(void)
 {
-	struct bpf_event *e;
+	struct bpf_hrt_event *e;
 
 	e = bpf_ringbuf_reserve(&events, 1, 0);
 	if (!e) {
@@ -109,7 +109,7 @@ static void bpf_hrt_ping_cpu(void)
 
 static void bpf_hrt_send_event(void)
 {
-	struct bpf_event *e;
+	struct bpf_hrt_event *e;
 	int i;
 
 	/*
@@ -247,7 +247,7 @@ static int bpf_hrt_timer_cb(void *map, int *key, struct bpf_timer *timer)
 }
 
 SEC("syscall")
-int bpf_hrt_start_timer(struct bpf_args *args)
+int bpf_hrt_start_timer(struct bpf_hrt_args *args)
 {
 	int key = 0;
 	struct bpf_timer *timer;

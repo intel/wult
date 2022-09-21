@@ -51,7 +51,7 @@ enum {
 };
 
 /**
- * bpf_event - info about bpf events
+ * bpf_hrt_event - info about bpf events
  * @type: type of event
  * @ldist: launch distance (in ns)
  * @ltime: launch time (ktime_ns time)
@@ -68,7 +68,7 @@ enum {
  * @req_cstate: requested cstate
  * @perf_counters: contents of requested perf counters
  */
-struct bpf_event {
+struct bpf_hrt_event {
 	u8 type;
 	u32 ldist;
 	u64 ltime;
@@ -86,7 +86,7 @@ struct bpf_event {
 	u64 perf_counters[WULTRUNNER_NUM_PERF_COUNTERS];
 };
 
-struct bpf_args {
+struct bpf_hrt_args {
 	u32 min_t;
 	u32 max_t;
 };
