@@ -253,8 +253,8 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
                 msg = f"{msg}\nLast seen '{self._helpername}' line:\n{line}"
             stderr = self._get_stderr()
             if stderr:
-                stderr = Error(stderr).indent(4)
-                msg += f"\nStandard error output of 'ndlrunner'{stderr}"
+                stderr = Error(stderr).indent(2)
+                msg += f"\nStandard error output of '{self._helpername}'\n{stderr}"
             raise ErrorTimeOut(msg) from err
         except Error as err:
             if "Error loading vmlinux BTF" in str(err):

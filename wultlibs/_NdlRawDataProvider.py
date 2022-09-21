@@ -34,8 +34,8 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
         msg = f"received the following unexpected line from {self._error_pfx()}:\n{line}"
         stderr = self._get_stderr()
         if stderr:
-            stderr = Error(stderr).indent(4)
-            msg += f"\nStandard error output of 'ndlrunner'{stderr}"
+            stderr = Error(stderr).indent(2)
+            msg += f"\nStandard error output of '{self._helpername}':\n{stderr}"
 
         return msg
 
