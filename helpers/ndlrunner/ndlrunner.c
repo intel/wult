@@ -78,8 +78,8 @@ static const char *ifname;
 static unsigned long long dpcnt = 1;
 static unsigned long long launch_distance;
 static unsigned long long launch_range;
-static int port = 0;
-static int verbose = 0;
+static int port;
+static int verbose;
 static int loop_forever = 1;
 
 /*
