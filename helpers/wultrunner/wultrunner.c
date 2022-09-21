@@ -225,9 +225,9 @@ static void print_help(void)
 	printf("Options:\n");
 	printf("  -c, --cpu     CPU number to measure.\n");
 	printf("  -l, --ldist   launch distance range in nanoseconds (e.g. 100,200).\n");
-	printf("  -d, --debug   enable debug.\n");
-	printf("  -v, --version print version info and exit (both tool version and\n");
+	printf("  -V, --version print version info and exit (both tool version and\n");
 	printf("                kernel version against which the tool was built).\n");
+	printf("  -v, --verbose  be verbose.\n");
 	printf("  -h, --help    show this help message and exit.\n");
 }
 
@@ -302,25 +302,22 @@ static int get_command(char *buf, size_t bufsize)
 static int parse_options(int argc, char **argv)
 {
 	static const struct option long_options[] = {
-		{ "help", no_argument, NULL, 'h' },
 		{ "cpu", required_argument, NULL, 'c' },
-		{ "debug", no_argument, NULL, 'd' },
 		{ "ldist", required_argument, NULL, 'l' },
-		{ "version", no_argument, NULL, 'v' },
+		{ "version", no_argument, NULL, 'V' },
+		{ "verbose", no_argument, NULL, 'v' },
+		{ "help", no_argument, NULL, 'h' },
 		{ 0 },
 	};
 	struct bpf_hrt *skel;
 	int opt;
 	u32 ver;
 
-	while ((opt = getopt_long(argc, argv, "hdc:l:v", long_options,
+	while ((opt = getopt_long(argc, argv, "c:l:vVh", long_options,
 				  NULL)) != -1) {
 		switch (opt) {
 		case 'c':
 			cpu = atol(optarg);
-			break;
-		case 'd':
-			verbose = true;
 			break;
 		case 'l':
 			if (sscanf(optarg, "%d,%d", &bpf_args.min_t, &bpf_args.max_t) < 2) {
@@ -328,7 +325,7 @@ static int parse_options(int argc, char **argv)
 				exit(1);
 			}
 			break;
-		case 'v':
+		case 'V':
 			/*
 			 * Print out version info. This will first print
 			 * out the program version, followed by the kernel
@@ -349,6 +346,9 @@ static int parse_options(int argc, char **argv)
 			       (ver >> 8) & 0xff,
 			       ver & 0xff);
 			exit(0);
+			break;
+		case 'v':
+			verbose = true;
 			break;
 		default:
 			print_help();
