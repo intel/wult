@@ -147,8 +147,7 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         # Bind the delayed event device to its wult driver.
         self.dev.bind()
 
-        if self._ldist:
-            self._set_launch_distance()
+        self._set_launch_distance()
 
         if self._early_intr:
             with self._pman.open(self._early_intr_path, "w") as fobj:
@@ -163,7 +162,7 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                 self._sysctl.stop("irqbalance")
                 self._irqbalance_stopped = True
 
-    def __init__(self, dev, pman, cpunum, timeout=None, ldist=None, early_intr=None):
+    def __init__(self, dev, pman, cpunum, ldist, timeout=None, early_intr=None):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
 
         drvinfo = { "wult" : { "params" : f"cpunum={cpunum}" },
@@ -284,7 +283,7 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
         ldist_str = ",".join([str(val) for val in self._ldist])
         self._helper_opts = f"-c {self._cpunum} -l {ldist_str}"
 
-    def __init__(self, dev, pman, cpunum, wultrunner_path, timeout=None, ldist=None):
+    def __init__(self, dev, pman, cpunum, ldist, wultrunner_path, timeout=None):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
 
         super().__init__(dev, pman, helper_path=wultrunner_path, timeout=timeout)
@@ -294,7 +293,7 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
 
         self._wult_lines = None
 
-def WultRawDataProvider(dev, pman, cpunum, wultrunner_path=None, timeout=None, ldist=None,
+def WultRawDataProvider(dev, pman, cpunum, ldist, wultrunner_path=None, timeout=None,
                         early_intr=None):
     """
     Create and return a raw data provider class suitable for a delayed event device 'dev'. The
@@ -302,18 +301,17 @@ def WultRawDataProvider(dev, pman, cpunum, wultrunner_path=None, timeout=None, l
       * dev - the device object created with 'Devices.GetDevice()'.
       * pman - the process manager object defining host to operate on.
       * cpunum - the measured CPU number.
+      * ldist - a pair of numbers specifying the launch distance range in nanoseconds.
       * wultrunner_path - path to the 'wultrunner' program.
       * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
                   seconds.
-      * ldist - a pair of numbers specifying the launch distance range in nanoseconds. The default
-                value is specific to the delayed event device.
       * early_intr - enable interrupts before entering the C-state.
     """
 
     if dev.drvname:
-        return _WultDrvRawDataProvider(dev, pman, cpunum, timeout=timeout, ldist=ldist,
+        return _WultDrvRawDataProvider(dev, pman, cpunum, ldist, timeout=timeout,
                                        early_intr=early_intr)
     if not wultrunner_path:
         raise Error("BUG: the 'wultrunner' program path was not specified")
 
-    return _WultBPFRawDataProvider(dev, pman, cpunum, wultrunner_path, timeout=timeout, ldist=ldist)
+    return _WultBPFRawDataProvider(dev, pman, cpunum, ldist, wultrunner_path, timeout=timeout)

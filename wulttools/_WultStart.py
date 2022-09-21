@@ -145,7 +145,7 @@ def start_command(args):
 
         _check_settings(pman, dev, csinfo, args.cpunum, args.devid)
 
-        runner = WultRunner.WultRunner(pman, dev, res, ldist=args.ldist, early_intr=args.early_intr,
+        runner = WultRunner.WultRunner(pman, dev, res, args.ldist, early_intr=args.early_intr,
                                        tsc_cal_time=args.tsc_cal_time, rcsobj=rcsobj, stconf=stconf)
         stack.enter_context(runner)
 

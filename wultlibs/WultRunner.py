@@ -230,15 +230,14 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             raise Error(f"unsupported idle driver '{drvname}'{self._pman.hostmsg},\n"
                         f"only the following drivers are supported: {supported}")
 
-    def __init__(self, pman, dev, res, ldist=None, early_intr=None, tsc_cal_time=10, rcsobj=None,
+    def __init__(self, pman, dev, res, ldist, early_intr=None, tsc_cal_time=10, rcsobj=None,
                  stconf=None):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
           * dev - the delayed event device object created by 'Devices.GetDevice()'.
           * res - the 'WultWORawResult' object to store the results at.
-          * ldist - a pair of numbers specifying the launch distance range in nanoseconds. The
-                    default value is specific to the delayed event driver.
+          * ldist - a pair of numbers specifying the launch distance range in nanoseconds.
           * early_intr - enable interrupts before entering the C-state.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
           * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
@@ -276,10 +275,9 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         else:
             wultrunner_path = None
 
-        self._prov = _WultRawDataProvider.WultRawDataProvider(dev, pman, res.cpunum,
+        self._prov = _WultRawDataProvider.WultRawDataProvider(dev, pman, res.cpunum, self._ldist,
                                                               wultrunner_path=wultrunner_path,
                                                               timeout=self._timeout,
-                                                              ldist=self._ldist,
                                                               early_intr=self._early_intr)
 
         self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, pman, self._dev.drvname,
