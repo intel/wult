@@ -78,7 +78,7 @@ def start_command(args):
             _LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "
                         "the measured latency.", args.devid)
 
-        runner = NdlRunner.NdlRunner(pman, dev, res, ldist=args.ldist)
+        runner = NdlRunner.NdlRunner(pman, dev, res, args.ldist)
         stack.enter_context(runner)
 
         runner.prepare()

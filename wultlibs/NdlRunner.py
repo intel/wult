@@ -107,7 +107,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
         self._prov.prepare()
 
-    def __init__(self, pman, dev, res, ldist=None):
+    def __init__(self, pman, dev, res, ldist):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
@@ -115,8 +115,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
                   'Devices.GetDevice()').
           * res - the 'NdlWORawResult' object to store the results at.
           * ldist - a pair of numbers specifying the launch distance range in nanoseconds (how far
-          *         in the future the delayed network packets should be scheduled). Default is
-          *         [5000000, 50000000].
+          *         in the future the delayed network packets should be scheduled).
         """
 
         self._pman = pman
@@ -128,9 +127,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         self._prov = None
         self._rtd_path = None
         self._progress = None
-
-        if not self._ldist:
-            self._ldist = [5000000, 50000000]
 
         self._progress = _ProgressLine.ProgressLine(period=1)
 
