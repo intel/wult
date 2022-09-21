@@ -43,7 +43,7 @@ static bool verbose;
 static int perf_ev_amt;
 static int cpu = -1;
 
-static struct bpf_hrt_args args = { .min_t = 1000, .max_t = 4000000 };
+static struct bpf_hrt_args bpf_args = { .min_t = 1000, .max_t = 4000000 };
 
 static const char *output_vars[] = {
 	"LTime",
@@ -325,7 +325,7 @@ static int parse_options(int argc, char **argv)
 			verbose = true;
 			break;
 		case 'l':
-			if (sscanf(optarg, "%d,%d", &args.min_t, &args.max_t) < 2) {
+			if (sscanf(optarg, "%d,%d", &bpf_args.min_t, &bpf_args.max_t) < 2) {
 				errmsg("failed to parse ldist range: %s", optarg);
 				exit(1);
 			}
@@ -378,8 +378,8 @@ int main(int argc, char **argv)
 	int cmd;
 	struct bpf_hrt *skel;
 	LIBBPF_OPTS(bpf_test_run_opts, topts,
-			.ctx_in = &args,
-			.ctx_size_in = sizeof(args),
+			.ctx_in = &bpf_args,
+			.ctx_size_in = sizeof(bpf_args),
 	);
 
 	err = parse_options(argc, argv);
@@ -410,8 +410,8 @@ int main(int argc, char **argv)
 
 	skel->rodata->cpu_num = cpu;
 
-	verbose("Updated min_t to %d", args.min_t);
-	verbose("Updated max_t to %d", args.max_t);
+	verbose("Updated min_t to %d", bpf_args.min_t);
+	verbose("Updated max_t to %d", bpf_args.max_t);
 
 	err = bpf_hrt__load(skel);
 	if (err) {
