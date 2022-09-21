@@ -888,6 +888,7 @@ class Deploy(_DeployBase):
 
             # Check if kernel sources provide 'bpftool' first. The user could have compiled it in
             # the kernel tree. Use it, if so.
+            bpftool_path = None
             for path in ("bpftool", "tools/bpf/bpftool/bpftool"):
                 if self._bpman.is_file(ksrc / path):
                     bpftool_path = ksrc / path
