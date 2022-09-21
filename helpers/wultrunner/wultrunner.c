@@ -233,9 +233,9 @@ static void print_help(void)
 	printf("			and linux kernel against which this tool was built)\n");
 }
 
-static int handle_rb_event(void *ctx, void *data, size_t sz)
+static int handle_rb_event(void *ctx, void *bpf_event, size_t sz)
 {
-	const struct bpf_hrt_event *e = data;
+	const struct bpf_hrt_event *e = bpf_event;
 	int i;
 	u64 totcyc;
 

@@ -51,7 +51,7 @@ struct {
 
 static int min_t;
 static int max_t;
-static struct bpf_hrt_event event;
+static struct bpf_hrt_event bpf_event;
 static u64 ltime;
 static u32 ldist;
 static bool timer_armed;
@@ -117,11 +117,12 @@ static void bpf_hrt_send_event(void)
 	 * may be populated in different order if we are running
 	 * an idle state with interrupts enabled/disabled
 	 */
-	if (!data.tai || !data.tintr || !data.tbi)
+	if (!bpf_event.tai || !bpf_event.tintr || !bpf_event.tbi)
 		return;
 
-	if (data.tbi >= data.ltime || data.tintr <= data.ltime ||
-	    data.tai <= data.ltime)
+	if (bpf_event.tbi >= bpf_event.ltime ||
+	    bpf_event.tintr <= bpf_event.ltime ||
+	    bpf_event.tai <= bpf_event.ltime)
 		goto cleanup;
 
 	e = bpf_ringbuf_reserve(&events, sizeof(*e), 0);
@@ -136,7 +137,7 @@ static void bpf_hrt_send_event(void)
 		return;
 	}
 
-	__builtin_memcpy(e, &data, sizeof(*e));
+	__builtin_memcpy(e, &bpf_event, sizeof(*e));
 
 	e->type = HRT_EVENT_DATA;
 
@@ -147,9 +148,9 @@ static void bpf_hrt_send_event(void)
 	bpf_ringbuf_submit(e, 0);
 
 cleanup:
-	data.tbi = 0;
-	data.tai = 0;
-	data.tintr = 0;
+	bpf_event.tbi = 0;
+	bpf_event.tai = 0;
+	bpf_event.tintr = 0;
 }
 
 int bpf_hrt_kick_timer(void)
@@ -159,7 +160,7 @@ int bpf_hrt_kick_timer(void)
 	int ret;
 	int cpu_id = bpf_get_smp_processor_id();
 
-	if (data.tbi || timer_armed)
+	if (bpf_event.tbi || timer_armed)
 		return 0;
 
 	timer = bpf_map_lookup_elem(&timers, &key);
@@ -219,16 +220,17 @@ static void bpf_hrt_snapshot_perf_vars(bool exit)
 
 static int bpf_hrt_timer_cb(void *map, int *key, struct bpf_timer *timer)
 {
+	struct bpf_hrt_event *e = &bpf_event;
 	int cpu_id = bpf_get_smp_processor_id();
 
 	debug_printk("timer_cb, cpu=%d", cpu_id);
 
 	timer_armed = false;
 
-	if (data.tbi) {
-		data.intrts2 = bpf_ktime_get_boot_ns();
-		data.ldist = ldist;
-		data.ltime = ltime;
+	if (e->tbi) {
+		e->intrts2 = bpf_ktime_get_boot_ns();
+		e->ldist = ldist;
+		e->ltime = ltime;
 		/*
 		 * TAI stamp missing means we are executing a POLL
 		 * state waiting for a scheduling event to happen.
@@ -236,7 +238,7 @@ static int bpf_hrt_timer_cb(void *map, int *key, struct bpf_timer *timer)
 		 * cpuidle knows to wake-up also, otherwise we only
 		 * end up executing the interrupt handler.
 		 */
-		if (!data.tai)
+		if (!e->tai)
 			bpf_hrt_ping_cpu();
 	}
 
@@ -284,12 +286,14 @@ int BPF_PROG(bpf_hrt_timer_init, void *timer)
 SEC("tp_btf/hrtimer_expire_entry")
 int BPF_PROG(bpf_hrt_timer_expire_entry, void *timer, void *now)
 {
-	if (timer == timer_id && data.tbi) {
-		data.intrts1 = bpf_ktime_get_boot_ns();
-		data.tintr = data.intrts1;
-		if (data.tai)
+	struct bpf_hrt_event *e = &bpf_event;
+
+	if (timer == timer_id && e->tbi) {
+		e->intrts1 = bpf_ktime_get_boot_ns();
+		e->tintr = e->intrts1;
+		if (e->tai)
 			bpf_hrt_snapshot_perf_vars(true);
-		data.intrc = bpf_hrt_read_tsc();
+		e->intrc = bpf_hrt_read_tsc();
 	}
 
 	return 0;
@@ -298,6 +302,7 @@ int BPF_PROG(bpf_hrt_timer_expire_entry, void *timer, void *now)
 SEC("tp_btf/cpu_idle")
 int BPF_PROG(bpf_hrt_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 {
+	struct bpf_hrt_event *e = &bpf_event;
 	int idx = cpu_id;
 	u64 t;
 
@@ -307,40 +312,39 @@ int BPF_PROG(bpf_hrt_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 	if (cstate == PWR_EVENT_EXIT) {
 		t = bpf_ktime_get_boot_ns();
 
-		if (data.tintr || t >= ltime) {
-			data.tai = t;
-			data.aits1 = data.tai;
+		if (e->tintr || t >= ltime) {
+			e->tai = t;
+			e->aits1 = e->tai;
 
-			if (data.tintr)
+			if (e->tintr)
 				bpf_hrt_snapshot_perf_vars(true);
 
-			data.aic = bpf_hrt_read_tsc();
-
-			data.aits2 = bpf_ktime_get_boot_ns();
+			e->aic = bpf_hrt_read_tsc();
+			e->aits2 = bpf_ktime_get_boot_ns();
 		} else {
-			data.tbi = 0;
+			e->tbi = 0;
 		}
 
 		debug_printk("exit cpu_idle, state=%d, idle_time=%lu",
-			     data.req_cstate, data.tai - data.tbi);
+			     e->req_cstate, e->tai - e->tbi);
 
 		bpf_hrt_send_event();
 		bpf_hrt_kick_timer();
 	} else {
 		debug_printk("enter cpu_idle, state=%d", cstate);
-		data.req_cstate = cstate;
+		e->req_cstate = cstate;
 		idx = cstate;
 
 		t = bpf_ktime_get_boot_ns();
 
-		data.bic = bpf_hrt_read_tsc();
+		e->bic = bpf_hrt_read_tsc();
 		bpf_hrt_snapshot_perf_vars(false);
 
-		data.tbi = bpf_ktime_get_boot_ns();
-		if (data.tbi > ltime)
-			data.tbi = 0;
+		e->tbi = bpf_ktime_get_boot_ns();
+		if (e->tbi > ltime)
+			e->tbi = 0;
 
-		data.tai = 0;
+		e->tai = 0;
 	}
 
 	return 0;
