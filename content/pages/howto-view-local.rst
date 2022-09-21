@@ -41,13 +41,9 @@ one or more reports at the same time. Intended usage is as follows:
    If a new terminal window was created when you ran the script in step 2, you can do this by
    closing this window.
 
-View multiple reports locally
------------------------------
-
-If you want to view many reports in one session, consider starting the HTTP server in a parent
-directory of the reports. This will allow you to navigate in the browser between different reports.
-
-Do this by using a parent directory instead of the report directory for any of the above methods.
+If you want to view many reports in one session, consider passing a parent directory of the reports
+to 'serve_directory.py'. This will allow you to navigate in the browser between different reports
+quicker and without restarting the Python script.
 
 Securely view wult HTML reports
 -------------------------------
