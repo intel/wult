@@ -208,79 +208,6 @@ static int parse_perf_events(void)
 	return err;
 }
 
-static void print_help(void)
-{
-	printf("Usage: wultrunner [options]\n");
-	printf("Options:\n");
-	printf("  -c, --cpu     CPU number to measure.\n");
-	printf("  -l, --ldist   launch distance range in nanoseconds (e.g. 100,200).\n");
-	printf("  -V, --version print version info and exit (both tool version and\n");
-	printf("                kernel version against which the tool was built).\n");
-	printf("  -v, --verbose  be verbose.\n");
-	printf("  -h, --help    show this help message and exit.\n");
-}
-
-static int parse_options(int argc, char **argv)
-{
-	struct bpf_hrt *skel;
-	int opt;
-	u32 ver;
-	static const struct option long_options[] = {
-		{ "cpu", required_argument, NULL, 'c' },
-		{ "ldist", required_argument, NULL, 'l' },
-		{ "version", no_argument, NULL, 'V' },
-		{ "verbose", no_argument, NULL, 'v' },
-		{ "help", no_argument, NULL, 'h' },
-		{ 0 },
-	};
-
-	while ((opt = getopt_long(argc, argv, "c:l:vVh", long_options,
-				  NULL)) != -1) {
-		switch (opt) {
-		case 'c':
-			cpu = atol(optarg);
-			break;
-		case 'l':
-			if (sscanf(optarg, "%d,%d", &bpf_args.min_t, &bpf_args.max_t) < 2) {
-				errmsg("failed to parse ldist range: %s", optarg);
-				exit(1);
-			}
-			break;
-		case 'V':
-			/*
-			 * Print out version info. This will first print
-			 * out the program version, followed by the kernel
-			 * that the BPF program was built against.
-			 * Typically the kernel version should not matter
-			 * much but very old kernels may not be compatible.
-			 */
-			printf("Wultrunner v%d.%d\n", VERSION_MAJOR, VERSION_MINOR);
-			skel = bpf_hrt__open();
-			if (!skel) {
-				errmsg("failed to open eBPF skeleton");
-				exit(1);
-			}
-			ver = skel->rodata->linux_version_code;
-
-			printf("eBPF built against linux kernel %d.%d.%d\n",
-			       (ver >> 16) & 0xff,
-			       (ver >> 8) & 0xff,
-			       ver & 0xff);
-			exit(0);
-			break;
-		case 'v':
-			verbose = true;
-			break;
-		default:
-			print_help();
-			exit(0);
-		}
-	}
-
-	return 0;
-}
-
-
 static int handle_rb_event(void *ctx, void *bpf_event, size_t sz)
 {
 	const struct bpf_hrt_event *e = bpf_event;
@@ -348,6 +275,79 @@ static int get_command(char *buf, size_t bufsize)
 
 	return CMD_NONE;
 }
+
+static void print_help(void)
+{
+	printf("Usage: wultrunner [options]\n");
+	printf("Options:\n");
+	printf("  -c, --cpu     CPU number to measure.\n");
+	printf("  -l, --ldist   launch distance range in nanoseconds (e.g. 100,200).\n");
+	printf("  -V, --version print version info and exit (both tool version and\n");
+	printf("                kernel version against which the tool was built).\n");
+	printf("  -v, --verbose  be verbose.\n");
+	printf("  -h, --help    show this help message and exit.\n");
+}
+
+static int parse_options(int argc, char **argv)
+{
+	struct bpf_hrt *skel;
+	int opt;
+	u32 ver;
+	static const struct option long_options[] = {
+		{ "cpu",     required_argument, NULL, 'c' },
+		{ "ldist",   required_argument, NULL, 'l' },
+		{ "version", no_argument, NULL, 'V' },
+		{ "verbose", no_argument, NULL, 'v' },
+		{ "help",    no_argument, NULL, 'h' },
+		{ 0 },
+	};
+
+	while ((opt = getopt_long(argc, argv, "c:l:Vvh", long_options,
+				  NULL)) != -1) {
+		switch (opt) {
+		case 'c':
+			cpu = atol(optarg);
+			break;
+		case 'l':
+			if (sscanf(optarg, "%d,%d", &bpf_args.min_t, &bpf_args.max_t) < 2) {
+				errmsg("failed to parse ldist range: %s", optarg);
+				exit(1);
+			}
+			break;
+		case 'V':
+			/*
+			 * Print out version info. This will first print
+			 * out the program version, followed by the kernel
+			 * that the BPF program was built against.
+			 * Typically the kernel version should not matter
+			 * much but very old kernels may not be compatible.
+			 */
+			printf("Wultrunner v%d.%d\n", VERSION_MAJOR, VERSION_MINOR);
+			skel = bpf_hrt__open();
+			if (!skel) {
+				errmsg("failed to open eBPF skeleton");
+				exit(1);
+			}
+			ver = skel->rodata->linux_version_code;
+
+			printf("eBPF built against linux kernel %d.%d.%d\n",
+			       (ver >> 16) & 0xff,
+			       (ver >> 8) & 0xff,
+			       ver & 0xff);
+			exit(0);
+			break;
+		case 'v':
+			verbose = true;
+			break;
+		default:
+			print_help();
+			exit(0);
+		}
+	}
+
+	return 0;
+}
+
 
 int main(int argc, char **argv)
 {
