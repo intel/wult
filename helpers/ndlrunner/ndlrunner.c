@@ -339,13 +339,13 @@ static void print_help(void)
 	printf("Usage: ndlrunner [options] ifname\n");
 	printf("  ifname - name of the network interface to use.\n");
 	printf("Options:\n");
-	printf("  -l, --ldist - the launch distance in nanoseconds.\n");
-	printf("  -p, --port - UDP port number to use (default is a random port).\n");
-	printf("  -c, --count - number of test iterations. By default runs until stopped by\n");
-	printf("                typing 'q'.\n");
-	printf("  -T, --tai-offset - print TAI time vs. real time offset in seconds and exit.\n");
-	printf("  -v, --verbose - be verbose.\n");
-	printf("  -h, --help - show this help message and exit.\n");
+	printf("  -l, --ldist  the launch distance in nanoseconds.\n");
+	printf("  -p, --port   UDP port number to use (default is a random port).\n");
+	printf("  -c, --count  number of test iterations. By default runs until stopped by\n");
+	printf("               typing 'q'.\n");
+	printf("  -T, --tai-offset  print TAI time vs. real time offset in seconds and exit.\n");
+	printf("  -v, --verbose  be verbose.\n");
+	printf("  -h, --help     show this help message and exit.\n");
 	exit(0);
 }
 
