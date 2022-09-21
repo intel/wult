@@ -221,16 +221,14 @@ static int parse_perf_events(void)
 
 static void print_help(void)
 {
-	extern const char *__progname;
-
 	printf("Usage: wultrunner [options]\n");
-	printf("\nOptions:\n");
-	printf("    -h, --help		this help\n");
-	printf("    -c, --cpu		run on CPU <num>\n");
-	printf("    -d, --debug		enable debug\n");
-	printf("    -l, --ldist		timeout range (e.g. 100,200) in ns.\n");
-	printf("    -v, --version	print version info and exit (both program version\n");
-	printf("			and linux kernel against which this tool was built)\n");
+	printf("Options:\n");
+	printf("  -c, --cpu     CPU number to measure.\n");
+	printf("  -l, --ldist   launch distance range in nanoseconds (e.g. 100,200).\n");
+	printf("  -d, --debug   enable debug.\n");
+	printf("  -v, --version print version info and exit (both tool version and\n");
+	printf("                kernel version against which the tool was built).\n");
+	printf("  -h, --help    show this help message and exit.\n");
 }
 
 static int handle_rb_event(void *ctx, void *bpf_event, size_t sz)
