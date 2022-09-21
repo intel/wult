@@ -74,6 +74,9 @@
 #define CMD_NONE 0
 #define CMD_EXIT 1
 
+/* Maximum supported launch distance in nanoseconds. */
+#define LDIST_MAX 100000000LLU
+
 static const char *ifname;
 static unsigned long long dpcnt = 1;
 static unsigned long long launch_distance;
@@ -394,6 +397,8 @@ static void print_help(void)
 	printf("  -c, --count  number of test iterations. By default runs until stopped by\n");
 	printf("               typing 'q'.\n");
 	printf("  -T, --tai-offset  print TAI time vs. real time offset in seconds and exit.\n");
+	printf("  -P, --print-max-ldist  print the maximum supported launch distance in\n"
+	       "                         nanoseconds and exit.\n");
 	printf("  -v, --verbose  be verbose.\n");
 	printf("  -h, --help     show this help message and exit.\n");
 	exit(0);
@@ -403,47 +408,57 @@ static int parse_options(int argc, char * const *argv)
 {
 	int opt, cnt;
 	struct option long_opts[] = {
-		{"ldist",      required_argument, 0, 'l'},
-		{"port",       required_argument, 0, 'p'},
-		{"count",      required_argument, 0, 'c'},
-		{"tai-offset", no_argument, 0, 'T'},
-		{"verbose",    no_argument, 0, 'v'},
-		{"help",       no_argument, 0, 'h'},
-		{0, 0, 0, 0 }
+		{ "ldist",           required_argument, NULL, 'l'},
+		{ "port",            required_argument, NULL, 'p'},
+		{ "count",           required_argument, NULL, 'c'},
+		{ "tai-offset",      no_argument, NULL, 'T'},
+		{ "print-max-ldist", no_argument, NULL, 'P' },
+		{ "verbose",         no_argument, NULL, 'v'},
+		{ "help",            no_argument, NULL, 'h'},
+		{ 0 }
 	};
 
-	while ((opt = getopt_long(argc, argv, "l:p:c:Tvh", long_opts, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "l:p:c:TPvh", long_opts, NULL)) != -1) {
 		switch (opt) {
-			case 'l':
-				sscanf(optarg, "%lld,%lld", &launch_distance, &launch_range);
-				if (launch_range > launch_distance) {
-					launch_range -= launch_distance;
-					srandom(time(NULL));
-				} else
-					launch_range = 0;
-				break;
-			case 'p':
-				if (!port)
-					port = strtoll_or_die(optarg, "port number");
-				break;
-			case 'c':
-				dpcnt = strtoll_or_die(optarg, "number of datapoints");
-				loop_forever = 0;
-				break;
-			case 'T':
-				print_tai_offset();
+		case 'l':
+			sscanf(optarg, "%llu,%llu", &launch_distance, &launch_range);
+			if (launch_range > launch_distance) {
+				launch_range -= launch_distance;
+				srandom(time(NULL));
+			} else
+				launch_range = 0;
+
+			if (launch_distance + launch_range > LDIST_MAX) {
+				errmsg("too large launch distance '%llu', maximum supported is '%llu' nanoseconds",
+				       launch_distance + launch_range, LDIST_MAX);
 				exit(0);
-				break;
-			case 'v':
-				verbose = 1;
-				break;
-			case 'h':
-				print_help();
-				exit(0);
-				break;
-			default:
-				errmsg("bad option, use -h for help");
-				return -1;
+			}
+			break;
+		case 'p':
+			if (!port)
+				port = strtoll_or_die(optarg, "port number");
+			break;
+		case 'c':
+			dpcnt = strtoll_or_die(optarg, "number of datapoints");
+			loop_forever = 0;
+			break;
+		case 'T':
+			print_tai_offset();
+			exit(0);
+			break;
+		case 'P':
+			msg("max. ldist: %u", LDIST_MAX);
+			exit(0);
+		case 'v':
+			verbose = 1;
+			break;
+		case 'h':
+			print_help();
+			exit(0);
+			break;
+		default:
+			errmsg("bad option, use -h for help");
+			return -1;
 		}
 	}
 
