@@ -112,9 +112,9 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         self._routdir = self._pman.mkdtemp(prefix="wult-stats-agent-")
 
         self._stcoll = STCAgent.STCAgent(pman, local_outdir=self._loutdir.resolve(),
-                                                 remote_outdir=self._routdir,
-                                                 local_scpath=local_scpath,
-                                                 remote_scpath=remote_scpath)
+                                               remote_outdir=self._routdir,
+                                               local_scpath=local_scpath,
+                                               remote_scpath=remote_scpath)
 
     def close(self):
         """Close the statistics collector."""
