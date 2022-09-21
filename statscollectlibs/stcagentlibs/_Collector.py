@@ -398,7 +398,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
             try:
                 with self._pman.open(self._logpath, "r") as fobj:
                     logdata = fobj.read()
-            except Error as logerr:
+            except Error:
                 pass
 
             if exitcode is not None:
