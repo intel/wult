@@ -362,7 +362,7 @@ static int parse_options(int argc, char * const *argv)
 		{0, 0, 0, 0 }
 	};
 
-	while ((opt = getopt_long(argc, argv, "l:p:c:t:f:Tvh", long_opts, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "l:p:c:Tvh", long_opts, NULL)) != -1) {
 		switch (opt) {
 			case 'l':
 				sscanf(optarg, "%lld,%lld", &launch_distance, &launch_range);
