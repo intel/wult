@@ -419,15 +419,15 @@ int main(int argc, char **argv)
 		goto cleanup;
 	}
 
-	err = bpf_hrt__attach_prog(skel,cpu_idle);
+	err = bpf_hrt__attach_prog(skel, cpu_idle);
 	if (err)
 		goto cleanup;
 
-	err = bpf_hrt__attach_prog(skel,timer_init);
+	err = bpf_hrt__attach_prog(skel, timer_init);
 	if (err)
 		goto cleanup;
 
-	err = bpf_hrt__attach_prog(skel,timer_expire_entry);
+	err = bpf_hrt__attach_prog(skel, timer_expire_entry);
 	if (err)
 		goto cleanup;
 
