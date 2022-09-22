@@ -335,7 +335,7 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
         # collectors by definition run on a host different to the SUT.
         if pman.is_remote:
             self._oobcoll = _Collector.OutOfBandCollector(pman.hostname, outdir=oob_outdir,
-                                                           scpath=oob_scpath)
+                                                          scpath=oob_scpath)
 
     def close(self):
         """Close the statistics collector."""
