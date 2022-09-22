@@ -167,9 +167,8 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         drvinfo = { "wult" : { "params" : f"cpunum={cpunum}" },
                      dev.drvname : { "params" : None }}
-        super().__init__(dev, pman, drvinfo=drvinfo, timeout=timeout)
+        super().__init__(dev, pman, ldist, drvinfo=drvinfo, timeout=timeout)
 
-        self._ldist = ldist
         self._early_intr = early_intr
 
         self._ftrace = None
@@ -286,10 +285,9 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
     def __init__(self, dev, pman, cpunum, ldist, wultrunner_path, timeout=None):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
 
-        super().__init__(dev, pman, helper_path=wultrunner_path, timeout=timeout)
+        super().__init__(dev, pman, ldist, helper_path=wultrunner_path, timeout=timeout)
 
         self._cpunum = cpunum
-        self._ldist = ldist
 
         self._wult_lines = None
 

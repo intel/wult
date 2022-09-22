@@ -24,17 +24,19 @@ class RawDataProviderBase(ClassHelpers.SimpleCloseContext):
     The base class for raw data provider classes.
     """
 
-    def __init__(self, dev, pman, timeout=None):
+    def __init__(self, dev, pman, ldist, timeout=None):
         """
         Initialize a class instance for device 'dev'. The arguments are as follows.
           * dev - the device object created with 'Devices.GetDevice()'.
           * pman - the process manager object defining host to operate on.
+          * ldist - a pair of numbers specifying the launch distance range in nanoseconds.
           * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
                       seconds.
         """
 
         self.dev = dev
         self._pman = pman
+        self._ldist = ldist
         self._timeout = timeout
 
         if timeout is None:
@@ -94,7 +96,7 @@ class DrvRawDataProviderBase(RawDataProviderBase):
         # Unload all the drivers.
         self._unload(everything=True)
 
-    def __init__(self, dev, pman, drvinfo=None, timeout=None, **kwargs):
+    def __init__(self, dev, pman, ldist, drvinfo=None, timeout=None, **kwargs):
         """
         Initialize a class instance. The arguments are as follows.
           * drvinfo - a dictionary describing the kernel drivers to load/unload.
@@ -114,9 +116,7 @@ class DrvRawDataProviderBase(RawDataProviderBase):
         unknown arguments are simply ignored.
         """
 
-        assert drvinfo is not None
-
-        super().__init__(dev, pman, timeout=timeout, **kwargs)
+        super().__init__(dev, pman, ldist, timeout=timeout, **kwargs)
 
         self._drvinfo = drvinfo
         self.drvobjs = []
@@ -239,7 +239,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         ProcHelpers.kill_processes(regex, log=True, name=f"stale '{self._helpername}' process",
                                    pman=self._pman)
 
-    def __init__(self, dev, pman, helper_path=None, timeout=None, **kwargs):
+    def __init__(self, dev, pman, ldist, helper_path=None, timeout=None, **kwargs):
         """
         Initialize a class instance. The arguments are as follows.
           * helper_path - path to the helper program which provides the datapoints.
@@ -249,9 +249,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         'DrvRawDataProviderBase.__init__()'.
         """
 
-        assert helper_path is not None
-
-        super().__init__(dev, pman, timeout=timeout, **kwargs)
+        super().__init__(dev, pman, ldist, timeout=timeout, **kwargs)
 
         self._helper_path = helper_path
 

@@ -167,9 +167,9 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
         """
 
         drvinfo = {dev.drvname : {"params" : f"ifname={dev.netif.ifname}"}}
-        super().__init__(dev, pman, drvinfo=drvinfo, helper_path=ndlrunner_path, timeout=timeout)
+        super().__init__(dev, pman, ldist, drvinfo=drvinfo, helper_path=ndlrunner_path,
+                         timeout=timeout)
 
-        self._ldist = ldist
         self._helper_path = ndlrunner_path
         self._netif = self.dev.netif
 
