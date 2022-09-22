@@ -12,10 +12,10 @@ This module implements the base class for raw data provider classes.
 
 import logging
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from pepclibs.helperlibs import ClassHelpers, KernelModule
+from pepclibs.helperlibs import Trivial, ClassHelpers, KernelModule
 from statscollectlibs.helperlibs import ProcHelpers
 from wultlibs import Devices
-from wultlibs.helperlibs import FSHelpers
+from wultlibs.helperlibs import FSHelpers, Human
 
 _LOG = logging.getLogger()
 
@@ -23,6 +23,40 @@ class RawDataProviderBase(ClassHelpers.SimpleCloseContext):
     """
     The base class for raw data provider classes.
     """
+
+    def _adjust_and_validate_ldist(self):
+        """
+        Adjust the values launch distance values (if they are set to 0). Validate that the launch
+        distance range ('self._ldist') is withing the allowed limits ('self._ldist_limits').
+        """
+
+        ldist_min, ldist_max  = self._ldist_limits
+
+        if self._ldist[0] == 0:
+            _LOG.info("Setting min. launch distance to %d ns", ldist_min)
+            self._ldist = (ldist_min, self._ldist[1])
+
+        if self._ldist[1] == 0:
+            _LOG.info("Setting max. launch distance to %d ns", ldist_max)
+            self._ldist = (self._ldist[0], ldist_max)
+
+        try:
+            Trivial.validate_range(self._ldist[0], self._ldist[1], min_limit=ldist_min,
+                                   max_limit=ldist_max, what="launch distance range in nanoseconds")
+        except Error as err:
+            ldist0 = Human.duration_ns(self._ldist[0])
+            ldist1 = Human.duration_ns(self._ldist[1])
+            ldist_min = Human.duration_ns(ldist_min)
+            ldist_max = Human.duration_ns(ldist_max)
+
+            msg = str(err)
+            if self._ldist[0] == self._ldist[1]:
+                msg += "\nProvided launch disatnce: {ldist0}"
+            else:
+                msg += f"\nProvided launch disatnce range: [{ldist0}, {ldist1}]"
+
+            msg += f"\nSupported min. and max. launch distance values: {ldist_min}, {ldist_max}"
+            raise Error(msg) from err
 
     def __init__(self, dev, pman, ldist, timeout=None):
         """
@@ -38,6 +72,9 @@ class RawDataProviderBase(ClassHelpers.SimpleCloseContext):
         self._pman = pman
         self._ldist = ldist
         self._timeout = timeout
+
+        # The allowed 'ldsit' range, should be initialized by a subclass.
+        self._ldist_limits = None
 
         if timeout is None:
             self._timeout = 10
@@ -239,6 +276,29 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         ProcHelpers.kill_processes(regex, log=True, name=f"stale '{self._helpername}' process",
                                    pman=self._pman)
 
+    def _get_ldist_limits(self):
+        """Returns the min. and max. launch distance supported by the driver."""
+
+        cmd = f"{self._helper_path} --print-max-ldist"
+        stdout, _ = self._pman.run_verify(cmd)
+
+        errmsg = f"ran the following command{self._pman.hostmsg}:\n{cmd}"
+
+        lines = len(stdout.splitlines())
+        if lines != 1:
+            raise Error(f"{errmsg}\nbut got {lines} lines of output instead of one:\n{stdout}")
+
+        pfx = f"{self._helpername}: max. ldist: "
+        if not stdout.startswith(pfx):
+            raise Error(f"{errmsg}\nbut got unexpected output:\n{stdout}")
+
+        ldist_max = Trivial.str_to_int(stdout[len(pfx):], what="max. launch distance value")
+        if ldist_max <= 0:
+            raise Error(f"BUG: {errmsg}\ngot non-positive max. launch distance value: {ldist_max}")
+
+        # Min. launch distance is set to 1us.
+        return (1000, ldist_max)
+
     def __init__(self, dev, pman, ldist, helper_path=None, timeout=None, **kwargs):
         """
         Initialize a class instance. The arguments are as follows.
@@ -262,6 +322,9 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         if not self._pman.is_exe(self._helper_path):
             raise Error(f"bad 'self._helpername' helper path '{self._helper_path}' - does not "
                         f"exist{self._pman.hostmsg} or not an executable file")
+
+        self._ldist_limits = self._get_ldist_limits()
+        self._adjust_and_validate_ldist()
 
     def close(self):
         """Stop the measurements."""

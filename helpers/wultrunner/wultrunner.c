@@ -316,8 +316,8 @@ static int parse_options(int argc, char **argv)
 				errmsg("failed to parse launch distance range '%s'", optarg);
 				exit(1);
 			}
-			if (bpf_args.min_t >= bpf_args.max_t) {
-				errmsg("bad launch distance range '%s': min. should be smaller than max.", optarg);
+			if (bpf_args.min_t > bpf_args.max_t) {
+				errmsg("bad launch distance range '%s': min. should not be greater than max.", optarg);
 				exit(1);
 			}
 			if (bpf_args.max_t > LDIST_MAX) {

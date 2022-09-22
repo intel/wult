@@ -97,41 +97,41 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     def _set_launch_distance(self):
         """Set launch distance limits to driver."""
 
-        try:
-            limit_path = self._basedir / "ldist_max_nsec"
-            with self._pman.open(limit_path, "r") as fobj:
-                ldist_max = fobj.read().strip()
-
-            limit_path = self._basedir / "ldist_min_nsec"
-            with self._pman.open(limit_path, "r") as fobj:
-                ldist_min = fobj.read().strip()
-        except Error as err:
-            raise Error(f"failed to read launch distance limit from '{limit_path}'"
-                        f"{self._pman.hostmsg}:\n{err}") from err
-
-        ldist_min = Trivial.str_to_num(ldist_min)
-        ldist_max = Trivial.str_to_num(ldist_max)
         from_path = self._basedir / "ldist_from_nsec"
         to_path = self._basedir / "ldist_to_nsec"
 
-        for idx, ldist in enumerate(self._ldist):
-            if not ldist:
-                # Special case: 0 means "use the minimum possible value".
-                self._ldist[idx] = ldist_min
-
         for ldist, ldist_path in zip(reversed(self._ldist), [to_path, from_path]):
-            if ldist < ldist_min or ldist > ldist_max:
-                ldist = Human.duration_ns(ldist)
-                ldist_min = Human.duration_ns(ldist_min)
-                ldist_max = Human.duration_ns(ldist_max)
-                raise Error(f"launch distance '{ldist}' is out of range, it should be in range of "
-                            f"[{ldist_min}, {ldist_max}]")
             try:
                 with self._pman.open(ldist_path, "w") as fobj:
                     fobj.write(str(ldist))
             except Error as err:
                 raise Error(f"can't to change launch distance range\nfailed to open '{ldist_path}'"
                             f"{self._pman.hostmsg} and write {ldist} to it:\n\t{err}") from err
+
+    def _get_ldist_limits(self):
+        """Returns the min. and max. launch distance supported by the driver."""
+
+        try:
+            limit_path = self._basedir / "ldist_min_nsec"
+            with self._pman.open(limit_path, "r") as fobj:
+                ldist_min = fobj.read().strip()
+
+            limit_path = self._basedir / "ldist_max_nsec"
+            with self._pman.open(limit_path, "r") as fobj:
+                ldist_max = fobj.read().strip()
+        except Error as err:
+            raise Error(f"failed to read launch distance limit from '{limit_path}'"
+                        f"{self._pman.hostmsg}:\n{err}") from err
+
+        ldist_min = Trivial.str_to_int(ldist_min, what="min. launch distance value")
+        if ldist_min < 0:
+            raise Error(f"BUG: negative min. launch distance limit value '{ldist_min}'")
+
+        ldist_max = Trivial.str_to_num(ldist_max, what="max. launch distance value")
+        if ldist_max < ldist_min:
+            raise Error(f"BUG: bad launch distance limit range ['{ldist_min}', '{ldist_max}']")
+
+        return (ldist_min, ldist_max)
 
     def prepare(self):
         """Prepare to start the measurements."""
@@ -147,6 +147,8 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         # Bind the delayed event device to its wult driver.
         self.dev.bind()
 
+        self._ldist_limits = self._get_ldist_limits()
+        self._adjust_and_validate_ldist()
         self._set_launch_distance()
 
         if self._early_intr:
