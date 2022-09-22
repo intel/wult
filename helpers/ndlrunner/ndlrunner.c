@@ -480,7 +480,7 @@ static int parse_options(int argc, char * const *argv)
 int main(int argc, char * const *argv)
 {
 	int zero_rtd_count = 0, arm_fail_count = 0;
-	int send_sock, pipes[2], ret = -1;
+	int send_sock, ret = -1;
 	uint64_t rtd;
 	char *buf;
 
