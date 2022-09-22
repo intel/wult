@@ -3,7 +3,13 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.31] - ADD DATE HERE
+## [1.10.32] - ADD DATE HERE
+### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.10.31] - 2022-09-22
 ### Fixed
 ### Added
 ### Removed
