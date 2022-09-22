@@ -10,15 +10,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
 
 ## [1.10.31] - 2022-09-22
-### Fixed
-### Added
 ### Removed
  - Do not collect 'journalctl -b' output as part of the 'sysinfo' statistics.
-### Changed
 
 ## [1.10.30] - 2022-09-20
-### Fixed
-### Added
 ### Removed
  - Remove '--headless' option from 'view_multiple_reports.py'.
  - Remove 'view_report.py' from report directories.
@@ -40,7 +35,6 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    locally.
  - Add 'RAMWatt' tab to wult reports in the turbostat totals power/temperature
    tab.
-### Removed
 ### Changed
  - Improve the warning about viewing wult reports locally.
 
@@ -50,7 +44,6 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    correctly.
 ### Added
  - Add '--dir' option to 'view_multiple_reports.py'.
-### Removed
 ### Changed
  - Wult report viewing scripts now tries multiple ports before failing.
 
@@ -59,7 +52,6 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
  - Wult mistakenly required the 'ip' tool to be installed, this is fixed now.
 ### Added
  - New 'wult scan --all' option to print unsupported devices.
-### Removed
 ### Changed
  - 'wult deploy --skip-drivers' does not require kernel sources any longer.
  - Merge and simplify the 'SilentTime' and 'LDist' tabs in wult reports.
@@ -75,12 +67,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
  - Add '--host', '--port' and '--headless' options to report viewing scripts.
 ### Removed
  - Remove the '--size=medium' report option.
-### Changed
 
 ## [1.10.25] - 2022-08-31
-### Fixed
-### Added
-### Removed
 ### Changed
  - Reworked the deployment code to better support RPM packaging.
 
@@ -88,14 +76,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
  - Fix regression introduced in 1.10.23: we failed to find helpers when they
    were not in '$PATH'.
-### Added
-### Removed
-### Changed
 
 ## [1.10.23] - 2022-08-29
-### Fixed
-### Added
-### Removed
 ### Changed
  - Change 'wult' to not expect driver/helper sources be available - they are
    not available when installed from an OS package, such as an RPM package.
@@ -108,15 +90,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    '--size=large'.
 ### Added
  - Add 'wult deploy --skip-drivers' option, useful for debug and development.
-### Removed
-### Changed
 
 ## [1.10.21] - 2022-08-22
 ### Fixed
  - Fix the problem of progress line for 'tdt': it always printed 0 max. latency.
-### Added
-### Removed
-### Changed
 
 ## [1.10.20] - 2022-08-19
 ### Fixed
@@ -124,15 +101,11 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
  - Always deploy eBPF helpers, making the new "hrtimer" method available by
    default.
-### Removed
-### Changed
 
 ## [1.10.19] - 2022-08-19
 ### Fixed
  - Fix compatibility of wult report viewing scripts for Python 3.5+.
  - Fix wult report failing because it can't find scripts for viewing reports.
-### Added
-### Removed
 ### Changed
  - wult now restores i210 network interface state after the measurement.
 
@@ -140,16 +113,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
  - Fix nic method-only regression introduced in 1.10.0: 'WarmupDelay' and
    'LatchDelay' metrics were not saved in the CSV file.
-### Added
-### Removed
-### Changed
 
 ## [1.10.17] - 2022-08-16
-### Fixed
 ### Added
  - Add local viewing scripts to each wult HTML report.
-### Removed
-### Changed
 
 ## [1.10.16] - 2022-08-16
 ### Fixed
@@ -167,31 +134,21 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [1.10.15] - 2022-08-10
 ### Fixed
  - Fix failure when setting large launch distance (>4ms).
-### Added
-### Removed
 ### Changed
  - Max. launch distance changed from 10ms to 20ms.
 
 ## [1.10.14] - 2022-08-05
-### Fixed
-### Added
-### Removed
 ### Changed
  - Move scripts for local reports viewing to 'misc/servedir'.
 
 ## [1.10.13] - 2022-08-05
-### Fixed
 ### Added
  - Add turbostat data to the "Info" tab.
  - Add misc. scripts for viewing wult reports locally.
-### Removed
-### Changed
 
 ## [1.10.12] - 2022-08-01
 ### Fixed
  - Fix crash related to 'IntrLatency' (regression in v1.10.11).
-### Added
-### Removed
 ### Changed
  - Change 'wult start --list-stats' to not require device id.
 
