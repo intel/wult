@@ -22,9 +22,9 @@ U_INC := -I$(KSRC)/tools/include \
 BPFOBJS = bpf-hrt.o
 UOBJS = wultrunner.o
 
-CFLAGS = -Wall -O2 -Wmissing-prototypes -Wstrict-prototypes
+CFLAGS ?= -Wall -O2 -Wmissing-prototypes -Wstrict-prototypes
 BPF_CFLAGS ?= -O2 -g -target bpf
-LDFLAGS =
+LDFLAGS ?=
 
 # If static 'libbpf' library was not provided, use the dynamic one.
 ifeq ($(LIBBPF),)
