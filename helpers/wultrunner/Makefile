@@ -24,7 +24,7 @@ UOBJS = wultrunner.o
 
 CFLAGS = -Wall -O2 -Wmissing-prototypes -Wstrict-prototypes
 BPF_CFLAGS ?= -O2 -g -target bpf
-LDFLAGS = -lelf -lz
+LDFLAGS =
 
 # If static 'libbpf' library was not provided, use the dynamic one.
 ifeq ($(LIBBPF),)
