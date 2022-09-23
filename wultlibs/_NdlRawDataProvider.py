@@ -103,7 +103,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
 
         super().prepare()
 
-        ldist_str = ",".join([str(val) for val in self._ldist])
+        ldist_str = ",".join([str(val) for val in self.ldist])
         self._helper_opts = f"-l {ldist_str} {self._netif.ifname}"
 
         try:

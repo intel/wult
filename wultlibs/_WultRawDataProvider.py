@@ -100,7 +100,7 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         from_path = self._basedir / "ldist_from_nsec"
         to_path = self._basedir / "ldist_to_nsec"
 
-        for ldist, ldist_path in zip(reversed(self._ldist), [to_path, from_path]):
+        for ldist, ldist_path in zip(reversed(self.ldist), [to_path, from_path]):
             try:
                 with self._pman.open(ldist_path, "w") as fobj:
                     fobj.write(str(ldist))
@@ -147,7 +147,7 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         # Bind the delayed event device to its wult driver.
         self.dev.bind()
 
-        self._ldist_limits = self._get_ldist_limits()
+        self.ldist_limits = self._get_ldist_limits()
         self._adjust_and_validate_ldist()
         self._set_launch_distance()
 
@@ -281,7 +281,7 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
 
         super().prepare()
 
-        ldist_str = ",".join([str(val) for val in self._ldist])
+        ldist_str = ",".join([str(val) for val in self.ldist])
         self._helper_opts = f"-c {self._cpunum} -l {ldist_str}"
 
     def __init__(self, dev, pman, cpunum, ldist, wultrunner_path, timeout=None):

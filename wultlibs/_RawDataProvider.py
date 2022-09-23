@@ -27,30 +27,30 @@ class RawDataProviderBase(ClassHelpers.SimpleCloseContext):
     def _adjust_and_validate_ldist(self):
         """
         Adjust the values launch distance values (if they are set to 0). Validate that the launch
-        distance range ('self._ldist') is withing the allowed limits ('self._ldist_limits').
+        distance range ('self.ldist') is withing the allowed limits ('self.ldist_limits').
         """
 
-        ldist_min, ldist_max  = self._ldist_limits
+        ldist_min, ldist_max  = self.ldist_limits
 
-        if self._ldist[0] == 0:
+        if self.ldist[0] == 0:
             _LOG.info("Setting min. launch distance to %d ns", ldist_min)
-            self._ldist = (ldist_min, self._ldist[1])
+            self.ldist = (ldist_min, self.ldist[1])
 
-        if self._ldist[1] == 0:
+        if self.ldist[1] == 0:
             _LOG.info("Setting max. launch distance to %d ns", ldist_max)
-            self._ldist = (self._ldist[0], ldist_max)
+            self.ldist = (self.ldist[0], ldist_max)
 
         try:
-            Trivial.validate_range(self._ldist[0], self._ldist[1], min_limit=ldist_min,
+            Trivial.validate_range(self.ldist[0], self.ldist[1], min_limit=ldist_min,
                                    max_limit=ldist_max, what="launch distance range in nanoseconds")
         except Error as err:
-            ldist0 = Human.duration_ns(self._ldist[0])
-            ldist1 = Human.duration_ns(self._ldist[1])
+            ldist0 = Human.duration_ns(self.ldist[0])
+            ldist1 = Human.duration_ns(self.ldist[1])
             ldist_min = Human.duration_ns(ldist_min)
             ldist_max = Human.duration_ns(ldist_max)
 
             msg = str(err)
-            if self._ldist[0] == self._ldist[1]:
+            if self.ldist[0] == self.ldist[1]:
                 msg += "\nProvided launch disatnce: {ldist0}"
             else:
                 msg += f"\nProvided launch disatnce range: [{ldist0}, {ldist1}]"
@@ -70,11 +70,11 @@ class RawDataProviderBase(ClassHelpers.SimpleCloseContext):
 
         self.dev = dev
         self._pman = pman
-        self._ldist = ldist
+        self.ldist = ldist
         self._timeout = timeout
 
         # The allowed 'ldsit' range, should be initialized by a subclass.
-        self._ldist_limits = None
+        self.ldist_limits = None
 
         if timeout is None:
             self._timeout = 10
@@ -323,7 +323,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
             raise Error(f"bad 'self._helpername' helper path '{self._helper_path}' - does not "
                         f"exist{self._pman.hostmsg} or not an executable file")
 
-        self._ldist_limits = self._get_ldist_limits()
+        self.ldist_limits = self._get_ldist_limits()
         self._adjust_and_validate_ldist()
 
     def close(self):
