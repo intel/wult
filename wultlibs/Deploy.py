@@ -806,7 +806,7 @@ class Deploy(_DeployBase):
         ksrc = self._get_ksrc()
 
         # The location of 'libbpf.a' may vary, check several known paths.
-        suffixes = ("libbpf/include", "tools/lib", "include", "usr/include",
+        suffixes = ("libbpf/include", "tools/lib", "include", "usr/include", "libbpf/include/bpf",
                     # Fedora-specific UAPI and libbpf include directories (the 'kernel-devel' module
                     # places them there).
                     "include/generated/uapi",
