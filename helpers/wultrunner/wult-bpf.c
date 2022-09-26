@@ -275,6 +275,30 @@ int wult_bpf_start_timer(struct wult_bpf_args *args)
 	return 0;
 }
 
+SEC("tp_btf/softirq_entry")
+int BPF_PROG(wult_bpf_softirq_entry, int vector)
+{
+	struct wult_bpf_event *e = &bpf_event;
+	int cpu_id = bpf_get_smp_processor_id();
+
+	if (cpu_id == cpu_num)
+		e->swirqc++;
+
+	return 0;
+}
+
+SEC("tp_btf/nmi_handler")
+int BPF_PROG(wult_bpf_nmi_handler, void *handler, s64 t, int vector)
+{
+	struct wult_bpf_event *e = &bpf_event;
+	int cpu_id = bpf_get_smp_processor_id();
+
+	if (cpu_id == cpu_num)
+		e->nmic++;
+
+	return 0;
+}
+
 SEC("tp_btf/hrtimer_init")
 int BPF_PROG(wult_bpf_timer_init, void *timer)
 {
@@ -346,6 +370,9 @@ int BPF_PROG(wult_bpf_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 			e->tbi = 0;
 
 		e->tai = 0;
+		e->nmic = 0;
+		e->hwirqc = 0;
+		e->swirqc = 0;
 	}
 
 	return 0;

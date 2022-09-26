@@ -20,8 +20,8 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
-#include "common.h"
 #include "wultrunner.h"
+#include "common.h"
 #include "wult-bpf.h"
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -58,6 +58,9 @@ static const char *output_vars[] = {
 	"IntrTS1",
 	"IntrTS2",
 	"TotCyc",
+	"NMICnt",
+	"HWIRQCnt",
+	"SWIRQCnt",
 	"SMICnt",
 	"CC0Cyc",
 };
@@ -225,11 +228,11 @@ static int handle_rb_event(void *ctx, void *bpf_event, size_t sz)
 	else
 		totcyc = e->intrc - e->bic;
 
-	printf("%lu,%d,%d,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,",
+	printf("%lu,%d,%d,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%u,%u,%u,%lu,%lu,",
 		e->ltime, e->ldist, e->req_cstate, e->tbi, e->tai,
 		e->tintr, e->aits1, e->aits2, e->intrts1, e->intrts2,
-		totcyc, e->perf_counters[MSR_SMI],
-		e->perf_counters[MSR_MPERF]);
+		totcyc, e->nmic, e->hwirqc, e->swirqc,
+		e->perf_counters[MSR_SMI], e->perf_counters[MSR_MPERF]);
 
 	/*
 	 * Print out perf events, index 0..n are generic MSR events and
@@ -432,6 +435,14 @@ int main(int argc, char **argv)
 		goto cleanup;
 
 	err = wult_bpf__attach_prog(skel, timer_expire_entry);
+	if (err)
+		goto cleanup;
+
+	err = wult_bpf__attach_prog(skel,nmi_handler);
+	if (err)
+		goto cleanup;
+
+	err = wult_bpf__attach_prog(skel,softirq_entry);
 	if (err)
 		goto cleanup;
 
