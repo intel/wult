@@ -935,7 +935,9 @@ class Deploy(_DeployBase):
             _LOG.info("Compiling eBPF helper '%s'%s", bpfhelper, self._bpman.hostmsg)
             cmd = f"make -C '{self._btmpdir}/{bpfhelper}'"
             if libbpf_path:
-                cmd += f" LIBBPF='{libbpf_path}' U_INC='{u_inc}'"
+                # Note, in case of static libbpf library, we have to specify 'libelf' adn 'libz'
+                # linker flags, because 'libbpf.a' requires them.
+                cmd += f" LIBBPF='{libbpf_path}' U_INC='{u_inc}' LDFLAGS='-lz -lelf'"
             stdout, stderr = self._bpman.run_verify(cmd)
             self._log_cmd_output(stdout, stderr)
 
