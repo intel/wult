@@ -6,6 +6,7 @@
 
 #include <uapi/linux/bpf.h>
 #include <uapi/linux/time.h>
+#include <uapi/linux/errno.h>
 #include <linux/version.h>
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
@@ -204,7 +205,7 @@ static void bpf_hrt_snapshot_perf_vars(bool exit)
 		err = (s64)count;
 
 		/* Exit if no entry found */
-		if (err < 0 && err >= -22)
+		if (err < 0 && err >= -EINVAL)
 			break;
 
 		if (exit)
@@ -259,7 +260,7 @@ int bpf_hrt_start_timer(struct bpf_hrt_args *args)
 
 	timer = bpf_map_lookup_elem(&timers, &key);
 	if (!timer)
-		return -2; /* ENOENT */
+		return -ENOENT;
 
 	capture_timer_id = true;
 
