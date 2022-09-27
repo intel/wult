@@ -57,6 +57,7 @@ struct wult_bpf_event {
 };
 
 struct wult_bpf_args {
+	int debug;
 	u32 min_t;
 	u32 max_t;
 };

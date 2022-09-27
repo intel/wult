@@ -360,6 +360,7 @@ static int parse_options(int argc, char **argv)
 			break;
 		case 'v':
 			verbose = true;
+			bpf_args.debug = 1;
 			break;
 		default:
 			print_help();

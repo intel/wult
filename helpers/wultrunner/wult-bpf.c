@@ -13,11 +13,10 @@
 
 #include "common.h"
 
-#ifdef DEBUG
-#define dbgmsg(fmt, ...) bpf_printk("wult_bpf DBG: " fmt, ##__VA_ARGS__)
-#else
-#define dbgmsg(fmt, ...) do { } while (0)
-#endif
+#define dbgmsg(fmt, ...) do { \
+	if (debug) \
+		bpf_printk("wult_bpf DBG: " fmt, ##__VA_ARGS__); \
+} while (0)
 
 #define errmsg(fmt, ...)  bpf_printk("wult_bpf ERR: " fmt, ##__VA_ARGS__)
 
@@ -50,6 +49,7 @@ struct {
 	__type(value, struct timer_elem);
 } timers SEC(".maps");
 
+static int debug;
 static int min_t;
 static int max_t;
 static struct wult_bpf_event bpf_event;
@@ -255,6 +255,7 @@ int wult_bpf_start_timer(struct wult_bpf_args *args)
 	int key = 0;
 	struct bpf_timer *timer;
 
+	debug = args->debug;
 	min_t = args->min_t;
 	max_t = args->max_t;
 
