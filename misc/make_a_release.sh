@@ -9,6 +9,7 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 PROG="make_a_release.sh"
+BASEDIR="$(readlink -ev -- ${0%/*}/..)"
 
 fatal() {
         printf "Error: %s\n" "$1" >&2
@@ -52,7 +53,7 @@ printf "%s" "$new_ver" | egrep -q -x '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' 
         fatal "please, provide new version in X.Y.Z format"
 
 # Make sure that the current branch is 'master' or 'release'.
-current_branch="$(git branch | sed -n -e '/^*/ s/^* //p')"
+current_branch="$(git --git-dir="$BASEDIR/.git" branch | sed -n -e '/^*/ s/^* //p')"
 if [ "$current_branch" != "master" -a "$current_branch" != "release" ]; then
 	fatal "current branch is '$current_branch' but must be 'master' or 'release'"
 fi
@@ -63,24 +64,26 @@ ask_question "Did you update 'CHANGELOG.md'"
 ask_question "Did you specify pepc version dependency in 'setup.py' and 'wult.spec'"
 
 # Change the tool version.
-sed -i -e "s/^_VERSION = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"$/_VERSION = \"$new_ver\"/" ./wulttools/_Wult.py
+sed -i -e "s/^_VERSION = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"$/_VERSION = \"$new_ver\"/" \
+    "$BASEDIR/wulttools/_Wult.py"
 # Change RPM package version.
-sed -i -e "s/^Version:\(\s\+\)[0-9]\+\.[0-9]\+\.[0-9]\+$/Version:\1$new_ver/" dist/rpm/wult.spec
+sed -i -e "s/^Version:\(\s\+\)[0-9]\+\.[0-9]\+\.[0-9]\+$/Version:\1$new_ver/" \
+    "$BASEDIR/rpm/wult.spec"
 
 # Update the man page.
-argparse-manpage --pyfile ./wulttools/_Wult.py --function _build_arguments_parser \
+argparse-manpage --pyfile "$BASEDIR/wulttools/_Wult.py" --function _build_arguments_parser \
                  --project-name 'wult' --author 'Artem Bityutskiy' \
-                 --author-email 'dedekind1@gmail.com' --output docs/man1/wult.1 \
+                 --author-email 'dedekind1@gmail.com' --output "$BASEDIR/docs/man1/wult.1" \
                  --url 'https://github.com/intel/wult'
-argparse-manpage --pyfile ./wulttools/_Ndl.py --function _build_arguments_parser \
+argparse-manpage --pyfile "$BASEDIR/wulttools/_Ndl.py" --function _build_arguments_parser \
                  --project-name 'ndl' --author 'Artem Bityutskiy' \
-                 --author-email 'dedekind1@gmail.com' --output docs/man1/ndl.1 \
+                 --author-email 'dedekind1@gmail.com' --output "$BASEDIR/docs/man1/ndl.1" \
                  --url 'https://github.com/intel/ndl'
-pandoc --toc -t man -s docs/man1/wult.1 -t rst -o docs/wult-man.rst
-pandoc --toc -t man -s docs/man1/ndl.1  -t rst -o docs/ndl-man.rst
+pandoc --toc -t man -s "$BASEDIR/docs/man1/wult.1" -t rst -o "$BASEDIR/docs/wult-man.rst"
+pandoc --toc -t man -s "$BASEDIR/docs/man1/ndl.1"  -t rst -o "$BASEDIR/docs/ndl-man.rst"
 
 # Commit the changes.
-git commit -a -s -m "Release version $new_ver"
+git --git-dir="$BASEDIR/.git" commit -a -s -m "Release version $new_ver"
 
 outdir="."
 tag_name="v$new_ver"
@@ -88,7 +91,7 @@ release_name="Version $new_ver"
 
 # Create new signed tag.
 printf "%s\n" "Signing tag $tag_name"
-git tag -m "$release_name" -s "$tag_name"
+git --git-dir="$BASEDIR/.git" tag -m "$release_name" -s "$tag_name"
 
 if [ "$current_branch" = "master" ]; then
     branchnames="master and release brances"
