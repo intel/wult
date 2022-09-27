@@ -19,7 +19,7 @@
 #define dbgmsg(fmt, ...) do { } while (0)
 #endif
 
-#define warnmsg(fmt, ...) bpf_printk("wult_bpf WRN: " fmt, ##__VA_ARGS__)
+#define errmsg(fmt, ...)  bpf_printk("wult_bpf ERR: " fmt, ##__VA_ARGS__)
 
 /*
  * Below is hardcoded, as including the corresponding linux header would
@@ -86,7 +86,7 @@ static u64 read_tsc(void)
 	 * unless we are executing the read from bad context.
 	 */
 	if (err >= -512 && err < 0) {
-		warnmsg("TSC read error: %d", err);
+		errmsg("TSC read error: %d", err);
 		count = 0;
 	}
 
@@ -99,7 +99,7 @@ static void ping_cpu(void)
 
 	e = bpf_ringbuf_reserve(&events, 1, 0);
 	if (!e) {
-		warnmsg("ringbuf overflow, ping discarded");
+		errmsg("ringbuf overflow, ping discarded");
 		return;
 	}
 
@@ -134,7 +134,7 @@ static void send_event(void)
 		 * has cleared up the buffer. Just in case, send a
 		 * message to userspace about overflow situation.
 		 */
-		warnmsg("ringbuf overflow, event discarded");
+		errmsg("ringbuf overflow, event discarded");
 		return;
 	}
 
