@@ -14,12 +14,12 @@
 #include "common.h"
 
 #ifdef DEBUG
-#define debug_printk(fmt, ...) bpf_printk("wult_bpf DBG: " fmt, ##__VA_ARGS__)
+#define dbgmsg(fmt, ...) bpf_printk("wult_bpf DBG: " fmt, ##__VA_ARGS__)
 #else
-#define debug_printk(fmt, ...) do { } while (0)
+#define dbgmsg(fmt, ...) do { } while (0)
 #endif
 
-#define warn_printk(fmt, ...) bpf_printk("wult_bpf WRN: " fmt, ##__VA_ARGS__)
+#define warnmsg(fmt, ...) bpf_printk("wult_bpf WRN: " fmt, ##__VA_ARGS__)
 
 /*
  * Below is hardcoded, as including the corresponding linux header would
@@ -86,7 +86,7 @@ static u64 read_tsc(void)
 	 * unless we are executing the read from bad context.
 	 */
 	if (err >= -512 && err < 0) {
-		warn_printk("TSC read error: %d", err);
+		warnmsg("TSC read error: %d", err);
 		count = 0;
 	}
 
@@ -99,7 +99,7 @@ static void ping_cpu(void)
 
 	e = bpf_ringbuf_reserve(&events, 1, 0);
 	if (!e) {
-		warn_printk("ringbuf overflow, ping discarded");
+		warnmsg("ringbuf overflow, ping discarded");
 		return;
 	}
 
@@ -134,7 +134,7 @@ static void send_event(void)
 		 * has cleared up the buffer. Just in case, send a
 		 * message to userspace about overflow situation.
 		 */
-		warn_printk("ringbuf overflow, event discarded");
+		warnmsg("ringbuf overflow, event discarded");
 		return;
 	}
 
@@ -176,7 +176,7 @@ static int kick_timer(void)
 	ldist = ldist % (max_t - min_t);
 	ldist = ldist + min_t;
 
-	debug_printk("kick_timer: ldist=%d, cpu=%d", ldist, cpu_id);
+	dbgmsg("kick_timer: ldist=%d, cpu=%d", ldist, cpu_id);
 
 	bpf_timer_start(timer, ldist, 0);
 
@@ -224,7 +224,7 @@ static int timer_callback(void *map, int *key, struct bpf_timer *timer)
 	struct wult_bpf_event *e = &bpf_event;
 	int cpu_id = bpf_get_smp_processor_id();
 
-	debug_printk("timer_cb, cpu=%d", cpu_id);
+	dbgmsg("timer_cb, cpu=%d", cpu_id);
 
 	timer_armed = false;
 
@@ -370,13 +370,13 @@ int BPF_PROG(wult_bpf_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 			e->tbi = 0;
 		}
 
-		debug_printk("exit cpu_idle, state=%d, idle_time=%lu",
-			     e->req_cstate, e->tai - e->tbi);
+		dbgmsg("exit cpu_idle, state=%d, idle_time=%lu",
+		       e->req_cstate, e->tai - e->tbi);
 
 		send_event();
 		kick_timer();
 	} else {
-		debug_printk("enter cpu_idle, state=%d", cstate);
+		dbgmsg("enter cpu_idle, state=%d", cstate);
 		e->req_cstate = cstate;
 		idx = cstate;
 
