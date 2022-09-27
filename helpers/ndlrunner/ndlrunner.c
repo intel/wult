@@ -26,7 +26,7 @@
 
 #define verbose(fmt, ...) do { \
 		if (verbose) { \
-			printf("ndlrunner: " fmt "\n", ##__VA_ARGS__); \
+			printf("ndlrunner: debug: " fmt "\n", ##__VA_ARGS__); \
 		} \
 	} while (0)
 #define msg(fmt, ...) do { \
