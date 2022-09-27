@@ -60,8 +60,8 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
          commands on a Unix socket. The commands are like "start collecting", "stop collecting",
          "set properties", etc. 'stc-agent' runs various collectors.
 
-         Example of "in-band" collectors: acpower, ipmi. These tools run on the local system, but
-         collect information about the remote system.
+         Example of "in-band" collectors: acpower, ipmi-inband. These tools run on the local system,
+         but collect information about the remote system.
       2. Optionally set the list of statistics collectors that are going to be used by running the
          'set_disabled_stats()', 'set_enabled_stats()'.
       3. Optionally set tool path and properties for certain statistics using 'set_prop()' and
@@ -146,10 +146,10 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
             return
 
         if self._inbcoll.stinfo["ipmi-inband"]["enabled"] and \
-           self._oobcoll.stinfo["ipmi"]["enabled"]:
-            # IPMI in-band and out-of-band collect the same information, but 'ipmi' is supposedly
-            # less intrusive.
-            _LOG.info("Disabling 'ipmi-inband' statistics in favor of 'ipmi'")
+           self._oobcoll.stinfo["ipmi-oob"]["enabled"]:
+            # IPMI in-band and out-of-band collect the same information, but 'ipmi-oob' is
+            # supposedly less intrusive.
+            _LOG.info("Disabling 'ipmi-inband' statistics in favor of 'ipmi-oob'")
             self._inbcoll.stinfo["ipmi-inband"]["enabled"] = False
 
     def set_intervals(self, intervals):

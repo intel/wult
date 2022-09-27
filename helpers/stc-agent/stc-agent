@@ -59,7 +59,7 @@ UNINITIALIZED = {
 DELIMITER = "--"
 
 # Names of the supported statistics.
-SUPPORTED_STATS = ("turbostat", "ipmi", "ipmi-inband", "acpower")
+SUPPORTED_STATS = ("turbostat", "ipmi-oob", "ipmi-inband", "acpower")
 
 LOG = logging.getLogger()
 Logging.setup_logger(prefix=OWN_NAME)
@@ -429,7 +429,7 @@ class IPMIOOBCollector(_IPMICollector):
     def __init__(self):
         """Initialize a class instance."""
 
-        super().__init__("ipmi")
+        super().__init__("ipmi-oob")
         self.props["bmchost"] = UNINITIALIZED["required-str"]
         self.props["bmcuser"] = UNINITIALIZED["str"]
         self.props["bmcpwd"] = UNINITIALIZED["str"]
@@ -534,7 +534,7 @@ class STCAgent:
                 LOG.debug("creating the %s collector", name)
                 if name == "turbostat":
                     collector = TurbostatCollector()
-                elif name == "ipmi":
+                elif name == "ipmi-oob":
                     collector = IPMIOOBCollector()
                 elif name == "ipmi-inband":
                     collector = IPMIInBandCollector()

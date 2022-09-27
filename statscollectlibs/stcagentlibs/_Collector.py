@@ -46,7 +46,7 @@ _DELIMITER = "--\n".encode("utf-8")
 #
 # Here are the currently supported properties.
 #
-# ipmi:
+# ipmi-oob:
 #     bmchost: name or address of the BMC host to read IPMI data from.
 #     bmcuser: name of the BMC user to use when talking to the BMC host (same as 'ipmitool -U').
 #     bmcpwd: BMC password to use when talking to the BMC host (same as 'ipmitool -P').
@@ -76,7 +76,7 @@ DEFAULT_STINFO = {
         "description": "Periodically run the 'turbostat' tool and collect C-state residency, "
                        "average CPU frequency, RAPL data, and more.",
     },
-    "ipmi": {
+    "ipmi-oob": {
         "interval": 5,
         "fallible": True,
         "inband": False,
@@ -96,7 +96,7 @@ DEFAULT_STINFO = {
         "interval": 5,
         "fallible": True,
         "toolpath": "ipmi-helper",
-        "description": "Same as the 'ipmi' statistics, but the data are collected by running "
+        "description": "Same as the 'ipmi-oob' statistics, but the data are collected by running "
                        "'ipmitool' on the SUT (in-band).",
     },
     "acpower": {
@@ -291,7 +291,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         # Add some margin of safety.
         max_interval += 1
 
-        if "ipmi" in self.stinfo and self.stinfo["ipmi"]["enabled"]:
+        if "ipmi-oob" in self.stinfo and self.stinfo["ipmi-oob"]["enabled"]:
             # IPMI may be very slow sometimes, so give it at least 10 seconds.
             max_interval = max(10, max_interval)
 
@@ -753,8 +753,8 @@ class OutOfBandCollector(_Collector):
     One example of an "out-of-band" collector is "acpower": it reads power meter data on the local
     host via something like USB or serial. The power meter, however, measures SUT power consumption.
 
-    Another example is the "ipmi" collector. It runs the 'ipmitool' on the local host, but the tool
-    collects information about the SUT by talking to SUT's BMC module via the network.
+    Another example is the "ipmi-oob" collector. It runs the 'ipmitool' on the local host, but the
+    tool collects information about the SUT by talking to SUT's BMC module via the network.
     """
 
     def __init__(self, sutname, outdir=None, scpath=None):

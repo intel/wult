@@ -188,4 +188,4 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
         defs = IPMIDefs.IPMIDefs()
         self._metrics = {metric: [] for metric in defs.info}
 
-        super().__init__(stats_paths, outdir, ["ipmi.raw.txt", "ipmi-inband.raw.txt"], defs)
+        super().__init__(stats_paths, outdir, ["ipmi-oob.raw.txt", "ipmi-inband.raw.txt"], defs)
