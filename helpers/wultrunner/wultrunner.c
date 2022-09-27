@@ -22,15 +22,15 @@
 
 #include "common.h"
 #include "wultrunner.h"
-#include "bpf-hrt.h"
+#include "wult-bpf.h"
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
-#define bpf_hrt__attach_prog(s,pname) ({ \
+#define wult_bpf__attach_prog(s,pname) ({ \
 	int __retval = 0; \
-        (s)->links.bpf_hrt_ ## pname = \
-		bpf_program__attach(s->progs.bpf_hrt_ ## pname); \
-	if (!s->links.bpf_hrt_ ## pname) { \
+        (s)->links.wult_bpf_ ## pname = \
+		bpf_program__attach(s->progs.wult_bpf_ ## pname); \
+	if (!s->links.wult_bpf_ ## pname) { \
 		errmsg("BPF program attach failed for " #pname); \
 		__retval = 1; \
 	} \
@@ -44,7 +44,7 @@ static bool verbose;
 static int perf_ev_amt;
 static int cpu = -1;
 
-static struct bpf_hrt_args bpf_args = { .min_t = 1000, .max_t = 4000000 };
+static struct wult_bpf_args bpf_args = { .min_t = 1000, .max_t = 4000000 };
 
 static const char *output_vars[] = {
 	"LTime",
@@ -211,7 +211,7 @@ static int parse_perf_events(void)
 
 static int handle_rb_event(void *ctx, void *bpf_event, size_t sz)
 {
-	const struct bpf_hrt_event *e = bpf_event;
+	const struct wult_bpf_event *e = bpf_event;
 	int i;
 	u64 totcyc;
 
@@ -293,7 +293,7 @@ static void print_help(void)
 
 static int parse_options(int argc, char **argv)
 {
-	struct bpf_hrt *skel;
+	struct wult_bpf *skel;
 	int opt;
 	u32 ver;
 	static const struct option long_options[] = {
@@ -339,7 +339,7 @@ static int parse_options(int argc, char **argv)
 			 * much but very old kernels may not be compatible.
 			 */
 			printf("Wultrunner v%d.%d\n", VERSION_MAJOR, VERSION_MINOR);
-			skel = bpf_hrt__open();
+			skel = wult_bpf__open();
 			if (!skel) {
 				errmsg("failed to open eBPF skeleton");
 				exit(1);
@@ -380,7 +380,7 @@ int main(int argc, char **argv)
 	int type;
 	char buf[BUFSIZ];
 	int cmd;
-	struct bpf_hrt *skel;
+	struct wult_bpf *skel;
 	LIBBPF_OPTS(bpf_test_run_opts, topts,
 			.ctx_in = &bpf_args,
 			.ctx_size_in = sizeof(bpf_args),
@@ -406,7 +406,7 @@ int main(int argc, char **argv)
 	/* Check available perf counters */
 	parse_perf_events();
 
-	skel = bpf_hrt__open();
+	skel = wult_bpf__open();
 	if (!skel) {
 		errmsg("failed to open eBPF skeleton");
 		exit(1);
@@ -417,21 +417,21 @@ int main(int argc, char **argv)
 	verbose("Updated min_t to %d", bpf_args.min_t);
 	verbose("Updated max_t to %d", bpf_args.max_t);
 
-	err = bpf_hrt__load(skel);
+	err = wult_bpf__load(skel);
 	if (err) {
 		errmsg("failed to load and verify BPF skeleton");
 		goto cleanup;
 	}
 
-	err = bpf_hrt__attach_prog(skel, cpu_idle);
+	err = wult_bpf__attach_prog(skel, cpu_idle);
 	if (err)
 		goto cleanup;
 
-	err = bpf_hrt__attach_prog(skel, timer_init);
+	err = wult_bpf__attach_prog(skel, timer_init);
 	if (err)
 		goto cleanup;
 
-	err = bpf_hrt__attach_prog(skel, timer_expire_entry);
+	err = wult_bpf__attach_prog(skel, timer_expire_entry);
 	if (err)
 		goto cleanup;
 
@@ -462,7 +462,7 @@ int main(int argc, char **argv)
 	}
 
 	err = bpf_prog_test_run_opts(
-			bpf_program__fd(skel->progs.bpf_hrt_start_timer),
+			bpf_program__fd(skel->progs.wult_bpf_start_timer),
 			&topts);
 	if (err) {
 		errmsg("failed to execute start_timer: %d", err);
@@ -541,6 +541,6 @@ int main(int argc, char **argv)
 	}
 
 cleanup:
-	bpf_hrt__destroy(skel);
+	wult_bpf__destroy(skel);
 	return err;
 }
