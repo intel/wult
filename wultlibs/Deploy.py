@@ -1104,11 +1104,6 @@ class Deploy(_DeployBase):
                 del self._insts[installable]
                 del self._cats[cat][installable]
 
-        # Either drivers or eBPF helpers are required.
-        if not self._cats["drivers"] and not self._cats["bpfhelpers"]:
-            # We have already printed the details, so we can have a short error message here.
-            raise Error("please, use newer kernel")
-
     def deploy(self):
         """
         Deploy all the required installables to the SUT (drivers, helpers, etc).
