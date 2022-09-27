@@ -446,6 +446,10 @@ int main(int argc, char **argv)
 	if (err)
 		goto cleanup;
 
+	err = wult_bpf__attach_prog(skel, local_timer_entry);
+	if (err)
+		goto cleanup;
+
 	err = perf_map_fd = bpf_map__fd(skel->maps.perf);
 	if (err < 0) {
 		errmsg("unable to find 'perf' map");

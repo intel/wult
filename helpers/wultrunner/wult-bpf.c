@@ -275,6 +275,26 @@ int wult_bpf_start_timer(struct wult_bpf_args *args)
 	return 0;
 }
 
+SEC("tp_btf/local_timer_entry")
+int BPF_PROG(wult_bpf_local_timer_entry, int vector)
+{
+	struct wult_bpf_event *e = &bpf_event;
+	int cpu_id = bpf_get_smp_processor_id();
+	u64 t;
+
+	if (cpu_id == cpu_num && !e->tintr) {
+		t = bpf_ktime_get_boot_ns();
+		if (t >= ltime ) {
+			e->tintr = t;
+			e->intrts1 = t;
+			if (e->tai)
+				snapshot_perf_vars(true);
+
+			e->intrc = read_tsc();
+		}
+	}
+}
+
 SEC("tp_btf/softirq_entry")
 int BPF_PROG(wult_bpf_softirq_entry, int vector)
 {
@@ -313,7 +333,7 @@ int BPF_PROG(wult_bpf_timer_expire_entry, void *timer, void *now)
 {
 	struct wult_bpf_event *e = &bpf_event;
 
-	if (timer == timer_id && e->tbi) {
+	if (timer == timer_id && e->tbi && !e->tintr) {
 		e->intrts1 = bpf_ktime_get_boot_ns();
 		e->tintr = e->intrts1;
 		if (e->tai)
@@ -373,6 +393,7 @@ int BPF_PROG(wult_bpf_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 		e->nmic = 0;
 		e->hwirqc = 0;
 		e->swirqc = 0;
+		e->tintr = 0;
 	}
 
 	return 0;
