@@ -223,6 +223,10 @@ class HelperRawDataProviderBase(RawDataProviderBase):
                                    f"{self._timeout} seconds")
 
             for line in stdout:
+                # Print helper's debugging messages.
+                if line.startswith(f"{self._helpername}: debug: "):
+                    _LOG.debug(line.rstrip())
+                    continue
                 yield line.strip()
 
     def _get_stderr(self):
@@ -237,6 +241,8 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         """Start the helper program."""
 
         cmd = f"{self._helper_path} {self._helper_opts}"
+        if _LOG.getEffectiveLevel() == logging.DEBUG:
+            cmd += " -v"
         self._proc = self._pman.run_async(cmd)
 
     def _exit_helper(self):
