@@ -72,7 +72,7 @@ const u32 linux_version_code = LINUX_VERSION_CODE;
  */
 const volatile u32 cpu_num;
 
-static u64 bpf_hrt_read_tsc(void)
+static u64 read_tsc(void)
 {
 	u64 count;
 	s64 err;
@@ -93,7 +93,7 @@ static u64 bpf_hrt_read_tsc(void)
 	return count;
 }
 
-static void bpf_hrt_ping_cpu(void)
+static void ping_cpu(void)
 {
 	struct bpf_hrt_event *e;
 
@@ -108,7 +108,7 @@ static void bpf_hrt_ping_cpu(void)
 	bpf_ringbuf_submit(e, 0);
 }
 
-static void bpf_hrt_send_event(void)
+static void send_event(void)
 {
 	struct bpf_hrt_event *e;
 	int i;
@@ -154,7 +154,7 @@ cleanup:
 	bpf_event.tintr = 0;
 }
 
-int bpf_hrt_kick_timer(void)
+static int kick_timer(void)
 {
 	int key = 0;
 	struct bpf_timer *timer;
@@ -187,7 +187,7 @@ int bpf_hrt_kick_timer(void)
 	return ret;
 }
 
-static void bpf_hrt_snapshot_perf_vars(bool exit)
+static void snapshot_perf_vars(bool exit)
 {
 	int i;
 	u64 count, *ptr;
@@ -219,7 +219,7 @@ static void bpf_hrt_snapshot_perf_vars(bool exit)
 			bpf_perf_event_read(&perf, MSR_MPERF);
 }
 
-static int bpf_hrt_timer_cb(void *map, int *key, struct bpf_timer *timer)
+static int timer_callback(void *map, int *key, struct bpf_timer *timer)
 {
 	struct bpf_hrt_event *e = &bpf_event;
 	int cpu_id = bpf_get_smp_processor_id();
@@ -240,11 +240,11 @@ static int bpf_hrt_timer_cb(void *map, int *key, struct bpf_timer *timer)
 		 * end up executing the interrupt handler.
 		 */
 		if (!e->tai)
-			bpf_hrt_ping_cpu();
+			ping_cpu();
 	}
 
-	bpf_hrt_send_event();
-	bpf_hrt_kick_timer();
+	send_event();
+	kick_timer();
 
 	return 0;
 }
@@ -268,9 +268,9 @@ int bpf_hrt_start_timer(struct bpf_hrt_args *args)
 
 	capture_timer_id = false;
 
-	bpf_timer_set_callback(timer, bpf_hrt_timer_cb);
+	bpf_timer_set_callback(timer, timer_callback);
 
-	bpf_hrt_kick_timer();
+	kick_timer();
 
 	return 0;
 }
@@ -293,8 +293,8 @@ int BPF_PROG(bpf_hrt_timer_expire_entry, void *timer, void *now)
 		e->intrts1 = bpf_ktime_get_boot_ns();
 		e->tintr = e->intrts1;
 		if (e->tai)
-			bpf_hrt_snapshot_perf_vars(true);
-		e->intrc = bpf_hrt_read_tsc();
+			snapshot_perf_vars(true);
+		e->intrc = read_tsc();
 	}
 
 	return 0;
@@ -318,9 +318,9 @@ int BPF_PROG(bpf_hrt_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 			e->aits1 = e->tai;
 
 			if (e->tintr)
-				bpf_hrt_snapshot_perf_vars(true);
+				snapshot_perf_vars(true);
 
-			e->aic = bpf_hrt_read_tsc();
+			e->aic = read_tsc();
 			e->aits2 = bpf_ktime_get_boot_ns();
 		} else {
 			e->tbi = 0;
@@ -329,8 +329,8 @@ int BPF_PROG(bpf_hrt_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 		debug_printk("exit cpu_idle, state=%d, idle_time=%lu",
 			     e->req_cstate, e->tai - e->tbi);
 
-		bpf_hrt_send_event();
-		bpf_hrt_kick_timer();
+		send_event();
+		kick_timer();
 	} else {
 		debug_printk("enter cpu_idle, state=%d", cstate);
 		e->req_cstate = cstate;
@@ -338,8 +338,8 @@ int BPF_PROG(bpf_hrt_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 
 		t = bpf_ktime_get_boot_ns();
 
-		e->bic = bpf_hrt_read_tsc();
-		bpf_hrt_snapshot_perf_vars(false);
+		e->bic = read_tsc();
+		snapshot_perf_vars(false);
 
 		e->tbi = bpf_ktime_get_boot_ns();
 		if (e->tbi > ltime)
