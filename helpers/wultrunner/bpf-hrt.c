@@ -11,7 +11,7 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 
-#include "wultrunner.h"
+#include "common.h"
 
 #ifdef DEBUG
 #define debug_printk(fmt, ...) bpf_printk("bpf_hrt DBG: " fmt, ##__VA_ARGS__)

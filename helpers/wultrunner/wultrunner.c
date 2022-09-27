@@ -20,6 +20,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
+#include "common.h"
 #include "wultrunner.h"
 #include "bpf-hrt.h"
 

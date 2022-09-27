@@ -39,8 +39,6 @@ typedef uint32_t u32;
 /* Maximum supported launch distance in nanoseconds. */
 #define LDIST_MAX 50000000U
 
-#define WULTRUNNER_NUM_PERF_COUNTERS 16
-
 enum {
 	CMD_NONE,
 	CMD_EXIT
@@ -50,59 +48,6 @@ enum {
 	WULTRUNNER_PERF_EVENT_MSR,
 	WULTRUNNER_PERF_EVENT_CORE,
 	WULTRUNNER_PERF_EVENT_PKG,
-};
-
-enum {
-	MSR_TSC,
-	MSR_MPERF,
-	MSR_SMI,
-	MSR_EVENT_COUNT
-};
-
-enum {
-	HRT_EVENT_DATA,
-	HRT_EVENT_PING,
-};
-
-/**
- * bpf_hrt_event - info about bpf events
- * @type: type of event
- * @ldist: launch distance (in ns)
- * @ltime: launch time (ktime_ns time)
- * @tbi: time before idle (ns)
- * @tai: time after idle (ns)
- * @tintr: time for interrupt execution start
- * @bic: cycles before idle
- * @aic: cycles after idle
- * @intrc: cycles at interrupt handler
- * @aits1: time after idle #1
- * @aits2: time after idle #2
- * @intrts1: time at hrtimer interrupt #1
- * @intrts2: time at hrtimer interrupt #2
- * @req_cstate: requested cstate
- * @perf_counters: contents of requested perf counters
- */
-struct bpf_hrt_event {
-	u8 type;
-	u32 ldist;
-	u64 ltime;
-	u64 tbi;
-	u64 tai;
-	u64 tintr;
-	u64 bic;
-	u64 aic;
-	u64 intrc;
-	u64 aits1;
-	u64 aits2;
-	u64 intrts1;
-	u64 intrts2;
-	int req_cstate;
-	u64 perf_counters[WULTRUNNER_NUM_PERF_COUNTERS];
-};
-
-struct bpf_hrt_args {
-	u32 min_t;
-	u32 max_t;
 };
 
 /*
