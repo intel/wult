@@ -16,7 +16,7 @@ typedef uint32_t u32;
 
 #define verbose(fmt, ...) do { \
 		if (verbose) { \
-			printf("wultrunner: " fmt "\n", ##__VA_ARGS__); \
+			printf("wultrunner: debug: " fmt "\n", ##__VA_ARGS__); \
 		} \
 	} while (0)
 #define msg(fmt, ...) do { \
