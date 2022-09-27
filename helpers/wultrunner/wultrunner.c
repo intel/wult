@@ -329,6 +329,9 @@ static int parse_options(int argc, char **argv)
 				       bpf_args.max_t, LDIST_MAX);
 				exit(1);
 			}
+			/* Prevent divide by zero error in eBPF program */
+			if (bpf_args.max_t == bpf_args.min_t)
+				bpf_args.max_t = bpf_args.min_t + 1;
 			break;
 		case 'P':
 			msg("max. ldist: %u", LDIST_MAX);
