@@ -4,8 +4,8 @@
  * Author: Tero Kristo <tero.kristo@linux.intel.com>
  */
 
-#ifndef WULTRUNNER_H_
-#define WULTRUNNER_H_
+#ifndef __WULTRUNNER_H__
+#define __WULTRUNNER_H__
 
 typedef uint8_t u8;
 typedef uint64_t u64;
@@ -57,4 +57,4 @@ enum {
 #define LIBBPF_OPTS DECLARE_LIBBPF_OPTS
 #endif
 
-#endif /* WULTRUNNER_H_ */
+#endif /* __WULTRUNNER_H__ */
