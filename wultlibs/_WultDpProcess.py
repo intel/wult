@@ -615,7 +615,8 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         dp = rawdp
 
         # Calculate latency and other metrics providing time intervals.
-        if not self._process_time(dp):
+        dp = self._process_time(dp)
+        if not dp:
             return None
 
         # Add and validated C-state related fields.
@@ -643,12 +644,18 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         """
 
         rawdp = self._tscrate.add_raw_datapoint(rawdp)
-        if rawdp:
-            rawdp = self._csobj.add_raw_datapoint(rawdp)
-            if rawdp:
-                dp = self._process_datapoint(rawdp)
-                if dp:
-                    self._dps.append(dp)
+        if not rawdp:
+            return
+
+        rawdp = self._csobj.add_raw_datapoint(rawdp)
+        if not rawdp:
+            return
+
+        dp = self._process_datapoint(rawdp)
+        if not dp:
+            return
+
+        self._dps.append(dp)
 
     def get_processed_datapoints(self):
         """
