@@ -392,7 +392,6 @@ int BPF_PROG(wult_bpf_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 
 		e->tai = 0;
 		e->nmic = 0;
-		e->hwirqc = 0;
 		/*
 		 * We are trying to count only unrelated SW interrupts. Our
 		 * timer also introduces one SW interrupt, which we do not want

@@ -29,7 +29,6 @@
  * @aits2: time after idle #2
  * @intrts1: time at hrtimer interrupt #1
  * @intrts2: time at hrtimer interrupt #2
- * @hwirqc: hwirq count (placeholder, not supported at the moment)
  * @swirqc: swirq count
  * @nmic: NMI count
  * @req_cstate: requested cstate
@@ -49,7 +48,6 @@ struct wult_bpf_event {
 	u64 aits2;
 	u64 intrts1;
 	u64 intrts2;
-	u32 hwirqc;
 	u32 swirqc;
 	u32 nmic;
 	int req_cstate;
