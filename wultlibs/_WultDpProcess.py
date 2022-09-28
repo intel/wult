@@ -354,6 +354,25 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         """Returns 'True' if the 'dp' datapoint contains the POLL idle state data."""
         return dp["ReqCState"] == "POLL"
 
+    @staticmethod
+    def _filter_out_noise(dp):
+        """
+        The unrelated interrupts before the expected delayed event are considered to be "noise".
+        Filter the datapoint with noise.
+
+        Returns the datapopint if there was no "noise", returns 'None' otherwise.
+
+        The method does not filter out datapoints with SMIs and let's upper layers decide whether to
+        keep them or not.
+        """
+
+        if dp.get("NMIcnt", 0) > 0:
+            return None
+        if dp.get("SWIRQcnt", 0) > 0:
+            return None
+
+        return dp
+
     def _process_cstates(self, dp):
         """
         Validate various datapoint 'dp' fields related to C-states. Populate the processed
@@ -642,6 +661,10 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         dictionary will be yielded later by 'get_processed_datapoints()'. Therefore, the caller
         should not use 'rawdp' after calling this method.
         """
+
+        rawdp = self._filter_out_noise(rawdp)
+        if not rawdp:
+            return
 
         rawdp = self._tscrate.add_raw_datapoint(rawdp)
         if not rawdp:
