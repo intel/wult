@@ -3,13 +3,18 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.32] - ADD DATE HERE
+## [1.10.33] - ADD DATE HERE
 ### Fixed
  - Fix 'hrtimer' method's outliers problem by filtering out datapoints that
    included unrelated SW interrupts and NMIs.
 ### Added
 ### Removed
 ### Changed
+
+## [1.10.32] - 2022-09-30
+### Fixed
+ - Fix 'hrtimer' method's outliers problem by filtering out datapoints that
+   included unrelated SW interrupts and NMIs.
 
 ## [1.10.31] - 2022-09-22
 ### Removed
