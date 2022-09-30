@@ -81,29 +81,29 @@ def parse_intervals(intervals, stconf):
 
         stconf["intervals"][stname] = float(interval)
 
-def apply_stconf(stcoll, stconf):
+def apply_stconf(stcagent, stconf):
     """
     Apply statistics configuration in 'stconf' dictionary that was created by 'parse_stnames()' to
-    the statistics collector 'stcoll' (a 'STCAgent' instance).
+    the 'STCAgent' instance 'stcagent'.
 
     In other words, the assumed usage scenario is as follows.
     1. A tool gets list of statistics to collect from the user, feeds the list to 'parse_stname()',
        which parses the list and returns 'stconf'.
     2. The tool may also get custom intervals from the user, feed them to 'parse_intervals()', which
        will parse them and add to 'stconf'.
-    3. Before the tool calls stcoll.configure()', it runs 'apply_stconf()' to apply the parsed user
-       input information. This will run statistics discovery too, if necessary.
+    3. Before the tool calls stcagent.configure()', it runs 'apply_stconf()' to apply the parsed
+       user input information. This will run statistics discovery too, if necessary.
     """
 
     if stconf["discover"]:
         # Enable all statistics except for those that must be disabled.
-        stcoll.set_enabled_stats(STCAgent.DEFAULT_STINFO.keys())
-        stcoll.set_disabled_stats(stconf["exclude"])
+        stcagent.set_enabled_stats(STCAgent.DEFAULT_STINFO.keys())
+        stcagent.set_disabled_stats(stconf["exclude"])
         if "intervals" in stconf:
-            stconf["intervals"] = stcoll.set_intervals(stconf["intervals"])
+            stconf["intervals"] = stcagent.set_intervals(stconf["intervals"])
 
         _LOG.info("Start statistics discovery")
-        stavailable = stcoll.discover()
+        stavailable = stcagent.discover()
 
         for stname in stconf["include"]:
             if stname not in stavailable:
@@ -115,4 +115,4 @@ def apply_stconf(stcoll, stconf):
         else:
             _LOG.info("no statistics discovered")
 
-    stcoll.set_enabled_stats(stconf["include"])
+    stcagent.set_enabled_stats(stconf["include"])
