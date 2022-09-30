@@ -53,7 +53,7 @@ printf "%s" "$new_ver" | egrep -q -x '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' 
         fatal "please, provide new version in X.Y.Z format"
 
 # Make sure that the current branch is 'master' or 'release'.
-current_branch="$(git --git-dir="$BASEDIR/.git" branch | sed -n -e '/^*/ s/^* //p')"
+current_branch="$(git -C "$BASEDIR" branch | sed -n -e '/^*/ s/^* //p')"
 if [ "$current_branch" != "master" -a "$current_branch" != "release" ]; then
 	fatal "current branch is '$current_branch' but must be 'master' or 'release'"
 fi
@@ -83,7 +83,7 @@ pandoc --toc -t man -s "$BASEDIR/docs/man1/wult.1" -t rst -o "$BASEDIR/docs/wult
 pandoc --toc -t man -s "$BASEDIR/docs/man1/ndl.1"  -t rst -o "$BASEDIR/docs/ndl-man.rst"
 
 # Commit the changes.
-git --git-dir="$BASEDIR/.git" commit -a -s -m "Release version $new_ver"
+git -C "$BASEDIR" commit -a -s -m "Release version $new_ver"
 
 outdir="."
 tag_name="v$new_ver"
@@ -91,7 +91,7 @@ release_name="Version $new_ver"
 
 # Create new signed tag.
 printf "%s\n" "Signing tag $tag_name"
-git --git-dir="$BASEDIR/.git" tag -m "$release_name" -s "$tag_name"
+git -C "$BASEDIR" tag -m "$release_name" -s "$tag_name"
 
 if [ "$current_branch" = "master" ]; then
     branchnames="master and release brances"
