@@ -366,9 +366,9 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         keep them or not.
         """
 
-        if dp.get("NMIcnt", 0) > 0:
+        if dp.get("NMICnt", 0) > 0:
             return None
-        if dp.get("SWIRQcnt", 0) > 0:
+        if dp.get("SWIRQCnt", 0) > 0:
             return None
 
         return dp
