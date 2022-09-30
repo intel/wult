@@ -18,6 +18,13 @@ from statscollectlibs.collector._STCAgent import STATS_INFO
 
 _LOG = logging.getLogger()
 
+# An "aggregate statistic name" is a statistic name which can be used when a system-specific
+# configuration is unknown. For example, the aggregate statistic name "ipmi" will try to resolve to
+# "ipmi-oob" and fall back on "ipmi-inband" if out-of-band IPMI collection is not possible on the
+# SUT.
+# The following constant maps aggregate statistic names to specific statistic names.
+_AGGR_STNAMES = {"ipmi": {"ipmi-inband", "ipmi-oob"}}
+
 def check_stname(stname):
     """Verify that 'stname' is a known statistic name."""
 
@@ -344,6 +351,47 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
         return self._discover(self.get_enabled_stats())
 
+    def _resolve_ipmi(self):
+        """
+        Resolves the "ipmi" aggregate statistic name by checking if in-band and out-of-band 'ipmi'
+        are available. Returns a set containing the specific statistic name which is available for
+        collection.
+        """
+
+        oob_name = "ipmi-oob"
+        inb_name = "ipmi-inband"
+
+        stavailable = self._discover({oob_name, inb_name})
+
+        # First try and use out-of-band 'ipmi'. If out-of-band is not available, fall back to
+        # in-band. Finally, raise an error if neither are available.
+        if oob_name in stavailable:
+            return {oob_name}
+        if inb_name in stavailable:
+            return {inb_name}
+        raise Error("'ipmi' statistics can't be collected as neither out-of-band nor inband "
+                    "'ipmi' is available.")
+
+    def _resolve_aggregate_stnames(self, stnames):
+        """
+        Helper function for 'configure()' which resolves aggregate statistic names in 'stnames' and
+        returns a set of statistic names which does not contain any aggregate statistic names.
+        """
+
+        new_stnames = set()
+        for stname in stnames:
+            if stname not in _AGGR_STNAMES:
+                new_stnames.add(stname)
+                continue
+
+            resolve_method = getattr(self, f"_resolve_{stname}", None)
+            if resolve_method is None:
+                raise Error(f"BUG: unable to find helper function to resolve aggregate statistic "
+                            f"name '{stname}'")
+            new_stnames.update(resolve_method())
+
+        return new_stnames
+
     def _handle_conflicting_stats(self):
         """
         Some statistic collectors are mutually exclusive, for example "ipmi" and "ipmi-inband". This
@@ -379,6 +427,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
         inb_must_have = oob_must_have = None
         if must_have:
+            must_have = self._resolve_aggregate_stnames(must_have)
             inb_must_have, oob_must_have = _separate_inb_vs_oob(must_have)
 
         self.inbagent.configure(discover=discover, must_have=inb_must_have)
