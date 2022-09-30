@@ -120,7 +120,7 @@ SWIRQCnt:
     title: "Count of unrelated software interrupts"
     descr: >-
         How many unrelated software interrupts happened before the scheduled delayed event.
-        Unrelated software interrupts increas the measured 'WakeLatency' and 'IntrLatency'.
+        Unrelated software interrupts increase the measured 'WakeLatency' and 'IntrLatency'.
     type: "int"
     drop_empty: True
 WarmupDelay:
