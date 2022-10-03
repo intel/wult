@@ -561,18 +561,6 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         sub-directories.
         """
 
-        if not self.outdir:
-            self.outdir = self._pman.mkdtemp(prefix="stc-agent-")
-            self._outdir_created = True
-            _LOG.debug("created output directory '%s'%s", self.outdir, self._pman.hostmsg)
-        else:
-            try:
-                self._pman.mkdir(self.outdir, parents=True)
-            except ErrorExists:
-                pass
-            else:
-                self._outdir_created = True
-
         self._logsdir = self.outdir / "logs"
         self._pman.mkdir(self._logsdir, exist_ok=True)
 
@@ -697,6 +685,18 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         # Initialize the statistics dictionary.
         _set_stinfo_defaults(self.stinfo)
+
+        if not self.outdir:
+            self.outdir = self._pman.mkdtemp(prefix="stc-agent-")
+            self._outdir_created = True
+            _LOG.debug("created output directory '%s'%s", self.outdir, self._pman.hostmsg)
+        else:
+            try:
+                self._pman.mkdir(self.outdir, parents=True)
+            except ErrorExists:
+                pass
+            else:
+                self._outdir_created = True
 
     def close(self):
         """Close the statistics collector."""
