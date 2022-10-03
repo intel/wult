@@ -12,7 +12,7 @@ This module is just a "glue" layer between "WultRunner" and "STCAgent".
 
 import logging
 from pepclibs.helperlibs import ClassHelpers
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
+from pepclibs.helperlibs.Exceptions import ErrorNotFound
 from statscollectlibs.stcagentlibs import STCAgent, STCHelpers
 
 _LOG = logging.getLogger()
@@ -73,7 +73,9 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         if not self._pman.is_remote:
             return
 
-        loutdir, routdir = self._stcagent.get_outdirs()
+        loutdir = self._stcagent.local_outdir
+        routdir = self._stcagent.remote_outdir
+
         if not routdir:
             # No in-band statistics were collected, so nothing to copy.
             return

@@ -11,7 +11,6 @@ This module provides API for collecting SUT statistics.
 """
 
 import logging
-from pathlib import Path
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.stcagentlibs import _Collector
@@ -195,18 +194,6 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
         stinfo = self._get_stinfo(stname)
         stinfo["toolpath"] = path
 
-    def get_outdirs(self):
-        """
-        Returns the output directory paths in form of a tuple of 2 elements:
-        ('local_outdir', 'remote_outdir').
-        """
-
-        loutdir = None
-        if self._oobcoll:
-            loutdir = self._oobcoll.outdir
-
-        return (loutdir, self._inbcoll.outdir)
-
     def set_prop(self, stname, name, value):
         """Set 'stname' statistic collector's property 'name' to value 'value'."""
 
@@ -281,32 +268,44 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
                    be used in various methods, so it has to be kept connected. The reference will be
                    dropped once the 'close()' method is invoked.
           * local_outdir - output directory path on the local host for storing the local
-                           'stc-agent' logs and results (the collected statistics). The out-of-band
-                           statistics are always collected by the local 'stc-agent' instance, so
-                           it's logs and results will be stored in 'local_outdir'. However, if the
-                           SUT is the local host, the in-band 'stc-agent' logs and results are
-                           stored in the 'local_outdir' directory, and the out-of-band 'stc-agent'
-                           is not used at all.
+                           'stc-agent' logs and results (the collected statistics). A temporary
+                           directory is creted and used if 'local_outdir' is not provided.
           * remote_outdir - output directory path on the remote host (the SUT) for storing the
-                            remote 'stc-agent' logs and results (the collected statistics). If the
-                            SUT is a remote host, the 'remote_outdir' will be used for 'stc-agent'
-                            logs and in-band statistics. Otherwise, this path won't be used at all.
+                            remote 'stc-agent' logs and results (the collected statistics). A
+                            temporary directory is creted and used if 'remote_outdir' is not
+                            provided.
           * local_scpath - path to 'stc-agent' on the local host.
           * remote_scpath - path to 'stc-agent' on the remote host (the SUT).
 
         The collected statistics will be stored in the 'stats' sub-directory of the output
-        directory, the 'stc-agent' logs will be stored in the 'logs' sub-directory. Use
-        'get_outdirs()' method to get the output directories.
+        directory, the 'stc-agent' logs will be stored in the 'logs' sub-directory.
 
         If the an output directory was not provided and instead, was created by 'STCAgent', the
         directory gets removed in the 'close()' method.
         """
 
         self._pman = pman
+        self.local_outdir = None
+        self.remote_outdir = None
 
         # The in-band and out-of-band statistics collector objects.
         self._inbcoll = None
         self._oobcoll = None
+
+        # Mapping between in-/out-of-band and local/remote.
+        #
+        # -------------------------------------------------
+        # |             |     Local SUT     Remote SUT    |
+        # -------------------------------------------------
+        # | In-band     |     local_outdir  remote_outdir |
+        # -------------------------------------------------
+        # | Out-of-band |     'None'        local_outdir  |
+        # -------------------------------------------------
+        # * The out-of-band statistics are always collected by the local 'stc-agent' instance, so
+        #   its output directory is always 'local_outdir'.
+        # * However, if the SUT is the local host, the in-band 'stc-agent' output directory is in
+        #   'local_outdir', and the out-of-band 'stc-agent' is not used at all, so there is no
+        #   "remoted output directory.
 
         if pman.is_remote:
             inb_outdir = remote_outdir
@@ -320,11 +319,15 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
             oob_scpath = -1
 
         self._inbcoll = _Collector.InBandCollector(pman, outdir=inb_outdir, scpath=inb_scpath)
-        # Do not create the out-of-band collector if 'pman' represents the local host. Out-of-band
-        # collectors by definition run on a host different to the SUT.
         if pman.is_remote:
+            # Do not create the out-of-band collector if 'pman' represents the local host.
+            # Out-of-band collectors by definition run on a host different to the SUT.
             self._oobcoll = _Collector.OutOfBandCollector(pman.hostname, outdir=oob_outdir,
                                                           scpath=oob_scpath)
+            self.local_outdir = self._oobcoll.outdir
+            self.remote_outdir = self._inbcoll.outdir
+        else:
+            self.local_outdir = self._inbcoll.outdir
 
     def close(self):
         """Close the statistics collector."""
