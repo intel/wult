@@ -39,13 +39,13 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         """Start collecting statistics."""
 
         _LOG.info("Starting statistics collectors")
-        self._stcoll.start()
+        self._stcagent.start()
 
     def stop(self, sysinfo=True):
         """Stop collecting statistics."""
 
         _LOG.info("Stopping statistics collectors")
-        self._stcoll.stop(sysinfo=sysinfo)
+        self._stcagent.stop(sysinfo=sysinfo)
 
     def apply_stconf(self, stconf):
         """Configure the statistics according to the 'stconf' dictionary contents."""
@@ -58,14 +58,14 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
                 devnode = "default"
 
             try:
-                self._stcoll.set_prop("acpower", "devnode", devnode)
+                self._stcagent.set_prop("acpower", "devnode", devnode)
             except ErrorNotFound:
                 if not stconf["discover"]:
                     raise
 
-        STCHelpers.apply_stconf(self._stcoll, stconf)
+        STCHelpers.apply_stconf(self._stcagent, stconf)
         _LOG.info("Configuring the following statistics: %s", ", ".join(stconf["include"]))
-        self._stcoll.configure()
+        self._stcagent.configure()
 
     def copy_stats(self):
         """Copy collected statistics and statistics log from remote SUT to the local system."""
@@ -73,7 +73,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         if not self._pman.is_remote:
             return
 
-        loutdir, routdir = self._stcoll.get_outdirs()
+        loutdir, routdir = self._stcagent.get_outdirs()
         if not routdir:
             # No in-band statistics were collected, so nothing to copy.
             return
@@ -98,10 +98,10 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
           """
 
         self._pman = pman
-        self._stcoll = STCAgent.STCAgent(pman, local_outdir=res.dirpath,
-                                               local_scpath=local_scpath,
-                                               remote_scpath=remote_scpath)
+        self._stcagent = STCAgent.STCAgent(pman, local_outdir=res.dirpath,
+                                                 local_scpath=local_scpath,
+                                                 remote_scpath=remote_scpath)
 
     def close(self):
         """Close the statistics collector."""
-        ClassHelpers.close(self, close_attrs=("_stcoll",), unref_attrs=("_pman",))
+        ClassHelpers.close(self, close_attrs=("_stcagent",), unref_attrs=("_pman",))
