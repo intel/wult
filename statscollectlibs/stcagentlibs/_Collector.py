@@ -163,9 +163,9 @@ class _Collector(ClassHelpers.SimpleCloseContext):
                 self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
                 self._sock.connect(self._uspath)
         except socket.error as err:
-            raise Error(f"cannot connect to 'stc-agent' at {self._sc_id}:\n{err}") from err
+            raise Error(f"cannot connect to 'stc-agent' at {self._stca_id}:\n{err}") from err
 
-        _LOG.debug("connected to 'stc-agent' at %s", self._sc_id)
+        _LOG.debug("connected to 'stc-agent' at %s", self._stca_id)
 
     def _disconnect(self):
         """Disconnect from 'stc-agent'."""
@@ -177,9 +177,9 @@ class _Collector(ClassHelpers.SimpleCloseContext):
             self._sock.close()
             self._sock = None
         except socket.error as err:
-            raise Error(f"cannot disconnect from 'stc-agent' at {self._sc_id}: {err}") from err
+            raise Error(f"cannot disconnect from 'stc-agent' at {self._stca_id}: {err}") from err
 
-        _LOG.debug("disconnected from 'stc-agent' at %s", self._sc_id)
+        _LOG.debug("disconnected from 'stc-agent' at %s", self._stca_id)
 
     def _send_msg(self, msg):
         """Send a message to 'stc-agent'."""
@@ -190,7 +190,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         while total < len(buf):
             sent = self._sock.send(buf[total:])
             if sent == 0:
-                raise Error(f"'stc-agent' at {self._sc_id} closed the connection")
+                raise Error(f"'stc-agent' at {self._stca_id} closed the connection")
             total += sent
 
     def _recv_msg(self):
@@ -205,14 +205,14 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         while time.time() - starttime < self._timeout:
             buf = self._sock.recv(1)
             if not buf:
-                raise Error(f"'stc-agent' at {self._sc_id} closed the connection")
+                raise Error(f"'stc-agent' at {self._stca_id} closed the connection")
 
             # This inefficient, but good enough for our small messages.
             msg += buf
             if msg[-len(_DELIMITER):] == _DELIMITER:
                 return msg[:-len(_DELIMITER)].decode("utf-8")
 
-        raise Error(f"time out waiting for the 'stc-agent' response at {self._sc_id}")
+        raise Error(f"time out waiting for the 'stc-agent' response at {self._stca_id}")
 
     def _send_command(self, cmd, arg=None):
         """Send a command to 'stc-agent', verify and return the response."""
@@ -220,21 +220,21 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         if arg:
             cmd += " " + arg
 
-        sc_str = f"'stc-agent' at {self._sc_id}"
+        stca_str = f"'stc-agent' at {self._stca_id}"
         check_log_msg = f"Check 'stc-agent' log file{self._pman.hostmsg}':\n{self._logpath}"
 
-        _LOG.debug("sending the following command to %s:\n%s", sc_str, cmd)
+        _LOG.debug("sending the following command to %s:\n%s", stca_str, cmd)
 
         try:
             self._send_msg(cmd)
         except (Error, socket.error) as err:
             raise Error(f"failed to send the following message to "
-                        f"{sc_str}:\n{cmd}\n{err}\n{check_log_msg}") from err
+                        f"{stca_str}:\n{cmd}\n{err}\n{check_log_msg}") from err
 
         try:
             msg = self._recv_msg()
         except (Error, socket.error) as err:
-            raise Error(f"failed receiving the reply to the following command from {sc_str}: "
+            raise Error(f"failed receiving the reply to the following command from {stca_str}: "
                         f"{cmd}\n{err}\n{check_log_msg}") from err
 
         if msg == "OK":
@@ -243,7 +243,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         if msg.startswith("OK "):
             return msg[3:]
 
-        raise SCReplyError(f"{sc_str} did not respond with 'OK' to the following command:\n{cmd}"
+        raise SCReplyError(f"{stca_str} did not respond with 'OK' to the following command:\n{cmd}"
                            f"\nInstead, the response was the following:\n{msg}\n{check_log_msg}")
 
     def _set_collector_property(self, name, prop, value):
@@ -421,7 +421,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         if self._uspath:
             _LOG.debug("stc-agent PID: %d, socket file path: %s", self._sc.pid, self._uspath)
 
-            self._sc_id = f"{self._pman.hostname}:{self._uspath}"
+            self._stca_id = f"{self._pman.hostname}:{self._uspath}"
             msg = f"stc-agent (PID {self._sc.pid}) that reported it is listening on Unix " \
                   f"socket {self._uspath}{self._pman.hostmsg}"
 
@@ -462,7 +462,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         pman = self._pman
         self._ssht_port = RemoteHelpers.get_free_port()
-        self._sc_id = f"{self._ssht_port}:{pman.hostname}:{self._uspath}"
+        self._stca_id = f"{self._ssht_port}:{pman.hostname}:{self._uspath}"
 
 
         ssh_opts = pman.get_ssh_opts()
@@ -513,7 +513,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         # Kill a possibly running stale 'stc-agent' process.
         msg = f"stale {self.scpath} process{self._pman.hostmsg}"
-        ProcHelpers.kill_processes(self._sc_search, kill_children=True, log=True, name=msg,
+        ProcHelpers.kill_processes(self._stca_search, kill_children=True, log=True, name=msg,
                                    pman=self._pman)
         if self._pman.is_remote:
             # Kill a possibly running stale SSH tunnel process.
@@ -682,12 +682,12 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         self._logpath = None
 
         # The 'stc-agent' process search pattern.
-        self._sc_search = f"{self.scpath} --sut-name {self._sutname}"
+        self._stca_search = f"{self.scpath} --sut-name {self._sutname}"
         # The SSH tunnel process search pattern.
         self._ssht_search = f"ssh -L .*:.*stc-agent-{self._sutname}-.* -N"
 
         self._sc = None
-        self._sc_id = None
+        self._stca_id = None
         self._uspath = None
         self._ssht = None
         self._ssht_port = None
@@ -719,7 +719,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
             if self._sc:
                 with contextlib.suppress(Exception):
-                    ProcHelpers.kill_processes(self._sc_search, pman=self._pman)
+                    ProcHelpers.kill_processes(self._stca_search, pman=self._pman)
                 self._sc = None
 
             # Remove the output directory if we created it.
