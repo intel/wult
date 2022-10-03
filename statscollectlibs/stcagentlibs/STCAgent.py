@@ -308,17 +308,6 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
         self._inbcoll = None
         self._oobcoll = None
 
-        if local_outdir:
-            local_outdir = Path(local_outdir)
-            if not local_outdir.is_absolute():
-                raise Error(f"path '{local_outdir}' is not absolute.\nPlease, provide absolute "
-                            f"path for local output directory")
-        if remote_outdir:
-            remote_outdir = Path(remote_outdir)
-            if not remote_outdir.is_absolute():
-                raise Error(f"path '{remote_outdir}' is not absolute.\nPlease, provide absolute "
-                            f"path for remote output directory")
-
         if pman.is_remote:
             inb_outdir = remote_outdir
             oob_outdir = local_outdir

@@ -691,6 +691,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
             self._outdir_created = True
             _LOG.debug("created output directory '%s'%s", self.outdir, self._pman.hostmsg)
         else:
+            self.outdir = self._pman.abspath(self.outdir)
             try:
                 self._pman.mkdir(self.outdir, parents=True)
             except ErrorExists:
