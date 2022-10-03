@@ -75,20 +75,6 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
          re-configure the collectors between the cycles.
     """
 
-    def start(self):
-        """Start collecting the statistics."""
-
-        self._inbcoll.start()
-        if self._oobcoll:
-            self._oobcoll.start()
-
-    def stop(self, sysinfo=True):
-        """Stop collecting the statistics."""
-
-        self._inbcoll.stop(sysinfo=sysinfo)
-        if self._oobcoll:
-            self._oobcoll.stop(sysinfo=sysinfo)
-
     def get_max_interval(self):
         """
         Returns the longest currently configured interval value. If all statistics are disabled,
@@ -236,6 +222,23 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
 
         stinfo["props"][name] = str(value)
 
+    def discover(self):
+        """
+        Discover and return set of statistics that can be collected for SUT. This method probes all
+        non-disabled statistics collectors. Prior to calling this method, you can (but do not have
+        to) use the following methods.
+         * 'set_disabled_stats()' and 'set_enabled_stats()' prior to to enable /disable certain
+            statistics.
+         * 'set_intervals()' - to configure the statistics collectors' intervals.
+         * 'set_prop()' - to configure statistics collectors' properties.
+         * 'set_toolpath()' - to configure statistics collectors' tools paths.
+        """
+
+        stnames = self._inbcoll.discover()
+        if self._oobcoll:
+            stnames |= self._oobcoll.discover()
+        return stnames
+
     def configure(self):
         """
         Configure the statistics collectors. This method should be called after statistics collector
@@ -255,22 +258,19 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
         if self._oobcoll:
             self._oobcoll.configure()
 
-    def discover(self):
-        """
-        Discover and return set of statistics that can be collected for SUT. This method probes all
-        non-disabled statistics collectors. Prior to calling this method, you can (but do not have
-        to) use the following methods.
-         * 'set_disabled_stats()' and 'set_enabled_stats()' prior to to enable /disable certain
-            statistics.
-         * 'set_intervals()' - to configure the statistics collectors' intervals.
-         * 'set_prop()' - to configure statistics collectors' properties.
-         * 'set_toolpath()' - to configure statistics collectors' tools paths.
-        """
+    def start(self):
+        """Start collecting the statistics."""
 
-        stnames = self._inbcoll.discover()
+        self._inbcoll.start()
         if self._oobcoll:
-            stnames |= self._oobcoll.discover()
-        return stnames
+            self._oobcoll.start()
+
+    def stop(self, sysinfo=True):
+        """Stop collecting the statistics."""
+
+        self._inbcoll.stop(sysinfo=sysinfo)
+        if self._oobcoll:
+            self._oobcoll.stop(sysinfo=sysinfo)
 
     def __init__(self, pman, local_outdir=None, remote_outdir=None, local_scpath=None,
                  remote_scpath=None):
