@@ -612,7 +612,11 @@ class _Collector(ClassHelpers.SimpleCloseContext):
             self._set_collector_property(stname, "logdir", self._logsdir)
             self._set_collector_property(stname, "toolpath", self.stinfo[stname]["toolpath"])
             self._set_collector_property(stname, "interval", self.stinfo[stname]["interval"])
-            self._set_collector_property(stname, "fallible", self.stinfo[stname]["fallible"])
+
+            # During discovery, all collectors should be fallible so that if one fails, it doesn't
+            # block the discovery of other collectors.
+            fallible = True if discovery else self.stinfo[stname]["fallible"]
+            self._set_collector_property(stname, "fallible", fallible)
 
         # Configure all the statistics-specific properties.
         for stname in stnames:
