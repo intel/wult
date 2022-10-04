@@ -569,7 +569,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
             # Setup SSH forwarding.
             self._setup_stc_agent_ssh_forwarding()
 
-    def _init_outdir(self, discovery=False):
+    def _init_outdir(self, for_discovery=False):
         """
         Helper function for 'configure()' that creates the output directory and various of its
         sub-directories.
@@ -578,16 +578,16 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         self._logsdir = self.outdir / "logs"
         self._pman.mkdir(self._logsdir, exist_ok=True)
 
-        if discovery:
+        if for_discovery:
             # The statistics collected during discovery belong to the logs.
             self._statsdir = self._logsdir / "discovery-stats"
         else:
             self._statsdir = self.outdir / "stats"
         self._pman.mkdir(self._statsdir, exist_ok=True)
 
-    def _configure(self, discovery=False):
+    def _configure(self, for_discovery=False):
         """
-        Configure statistic collectors. If 'discovery' is 'True', configure the collectors for
+        Configure statistic collectors. If 'for_discovery' is 'True', configure the collectors for
         running the discovery process. Otherwise configure the collectors for collecting the
         statistics.
         """
@@ -602,10 +602,10 @@ class _Collector(ClassHelpers.SimpleCloseContext):
             _LOG.debug("skip starting stc-agent%s - no statistics collectors",
                        self._pman.hostmsg)
             if sysinfo:
-                self._init_outdir(discovery=False)
+                self._init_outdir(for_discovery=False)
             return
 
-        self._init_outdir(discovery=discovery)
+        self._init_outdir(for_discovery=for_discovery)
         if not self._stca:
             self._start_stc_agent()
         if not self._sock:
@@ -621,7 +621,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
             # During discovery, all collectors should be fallible so that if one fails, it doesn't
             # block the discovery of other collectors.
-            fallible = True if discovery else self.stinfo[stname]["fallible"]
+            fallible = True if for_discovery else self.stinfo[stname]["fallible"]
             self._set_collector_property(stname, "fallible", fallible)
 
         # Configure all the statistics-specific properties.
@@ -635,7 +635,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
     def configure(self):
         """Configure statistic collectors."""
 
-        self._configure(discovery=False)
+        self._configure(for_discovery=False)
 
     def discover(self):
         """Discover and return list of statistics that can be collected."""
@@ -645,7 +645,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         if stnames:
             with contextlib.suppress(SCReplyError):
-                self._configure(discovery=True)
+                self._configure(for_discovery=True)
                 self.start(sysinfo=False)
                 self.stop(sysinfo=False)
 
