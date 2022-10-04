@@ -98,29 +98,33 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
 
         return max(inb_max_interval, oob_max_interval)
 
-    def set_disabled_stats(self, stnames):
-        """Disable statistics in 'stnames'."""
+    def _toggle_enabled(self, stnames, value):
+        """Enabled/disable 'stnames' statistics."""
+
+        if stnames in (None, "all"):
+            stnames = list(DEFAULT_STINFO)
 
         _check_stnames(stnames)
         inb_stnames, oob_stnames = _separate_inb_vs_oob(stnames)
 
         for stname in inb_stnames:
-            self._inbcoll.stinfo[stname]["enabled"] = False
-        if self._oobcoll:
-            for stname in oob_stnames:
-                self._oobcoll.stinfo[stname]["enabled"] = False
+            self._inbcoll.stinfo[stname]["enabled"] = value
+        for stname in oob_stnames:
+            self._oobcoll.stinfo[stname]["enabled"] = value
 
     def set_enabled_stats(self, stnames):
-        """Enable statistics in 'stnames' and disable all other statistics."""
+        """
+        Enable statistics in 'stnames'. If 'stname' is "all" or 'None', enable all statistics.
 
-        _check_stnames(stnames)
-        inb_stnames, oob_stnames = _separate_inb_vs_oob(stnames)
+        Note, all statistics are enabled by default when an instance of this class is created.
+        """
 
-        for stname, stinfo in self._inbcoll.stinfo.items():
-            stinfo["enabled"] = stname in inb_stnames
-        if self._oobcoll:
-            for stname, stinfo in self._oobcoll.stinfo.items():
-                stinfo["enabled"] = stname in oob_stnames
+        self._toggle_enabled(stnames, True)
+
+    def set_disabled_stats(self, stnames):
+        """Same as 'set_enabled_stats()', but for disabling."""
+
+        self._toggle_enabled(stnames, False)
 
     def get_enabled_stats(self):
         """Return the list of enabled statistic names."""

@@ -95,9 +95,11 @@ def apply_stconf(stcagent, stconf):
        user input information. This will run statistics discovery too, if necessary.
     """
 
-    if stconf["discover"]:
+    if not stconf["discover"]:
+        stcagent.set_disabled_stats("all")
+    else:
         # Enable all statistics except for those that must be disabled.
-        stcagent.set_enabled_stats(STCAgent.DEFAULT_STINFO.keys())
+        stcagent.set_enabled_stats("all")
         stcagent.set_disabled_stats(stconf["exclude"])
         if "intervals" in stconf:
             stconf["intervals"] = stcagent.set_intervals(stconf["intervals"])
