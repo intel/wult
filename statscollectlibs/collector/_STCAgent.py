@@ -25,7 +25,7 @@ _LOG = logging.getLogger()
 # The message delimiter used by 'stc-agent'.
 _DELIMITER = "--\n".encode("utf-8")
 
-# The default statistics information. This dictionary is used by the '_Collector' class by default,
+# The default statistics information. This dictionary is used by the '_STCAgent' class by default,
 # but users can provide a custom dictionary of similar structure to override the defaults.
 #
 # * interval: normally a statistics collector is a program that wakes up periodically and collects
@@ -144,7 +144,7 @@ def get_max_interval(stinfo):
 
     return 0
 
-class _Collector(ClassHelpers.SimpleCloseContext):
+class _STCAgent(ClassHelpers.SimpleCloseContext):
     """
     The base statistics collector class, contains the parts shared between the inband and
     out-of-band collectors.
@@ -800,7 +800,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
                 self._pman.close()
             self._pman = None
 
-class InBandCollector(_Collector):
+class InBandCollector(_STCAgent):
     """
     This class handles the "in-band" statistics collection. In this case, 'stc-agent' runs on the
     SUT and statistics collectors also run on the SUT.
@@ -808,7 +808,7 @@ class InBandCollector(_Collector):
 
     def __init__(self, pman, outdir=None, stca_path=None):
         """
-        Initialize a class instance. The arguments are the same as in '_Collector.__init__()'.
+        Initialize a class instance. The arguments are the same as in '_STCAgent.__init__()'.
         """
 
         # Call the base class constructor.
@@ -819,7 +819,7 @@ class InBandCollector(_Collector):
             if not self.stinfo[stname]["inband"]:
                 del self.stinfo[stname]
 
-class OutOfBandCollector(_Collector):
+class OutOfBandCollector(_STCAgent):
     """
     This class handles the "out-of-band" statistics collection. In this case, 'stc-agent' runs on
     the local host, but it collects information about the SUT via an "out-of-band" channel.
@@ -838,7 +838,7 @@ class OutOfBandCollector(_Collector):
         It will also be used for distinguishing between multiple 'stc-agent' processes. This name
         will not be used for connecting to the SUT.
 
-        The other arguments are the same as in '_Collector.__init__()'.
+        The other arguments are the same as in '_STCAgent.__init__()'.
         """
 
         # Call the base class constructor.

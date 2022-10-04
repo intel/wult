@@ -13,8 +13,8 @@ This module provides API for collecting SUT statistics.
 import logging
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from statscollectlibs.collector import _Collector
-from statscollectlibs.collector._Collector import DEFAULT_STINFO
+from statscollectlibs.collector import _STCAgent
+from statscollectlibs.collector._STCAgent import DEFAULT_STINFO
 
 _LOG = logging.getLogger()
 
@@ -90,9 +90,9 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         returns 0.
         """
 
-        inb_max_interval = _Collector.get_max_interval(self._inbcoll.stinfo)
+        inb_max_interval = _STCAgent.get_max_interval(self._inbcoll.stinfo)
         if self._oobcoll:
-            oob_max_interval = _Collector.get_max_interval(self._oobcoll.stinfo)
+            oob_max_interval = _STCAgent.get_max_interval(self._oobcoll.stinfo)
         else:
             oob_max_interval = 0
 
@@ -379,11 +379,11 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
             inb_outdir = local_outdir
             oob_outdir = -1 # Just a bogus value, should not be used.
 
-        self._inbcoll = _Collector.InBandCollector(pman, outdir=inb_outdir)
+        self._inbcoll = _STCAgent.InBandCollector(pman, outdir=inb_outdir)
         if pman.is_remote:
             # Do not create the out-of-band collector if 'pman' represents the local host.
             # Out-of-band collectors by definition run on a host different to the SUT.
-            self._oobcoll = _Collector.OutOfBandCollector(pman.hostname, outdir=oob_outdir)
+            self._oobcoll = _STCAgent.OutOfBandCollector(pman.hostname, outdir=oob_outdir)
             self.local_outdir = self._oobcoll.outdir
             self.remote_outdir = self._inbcoll.outdir
         else:
