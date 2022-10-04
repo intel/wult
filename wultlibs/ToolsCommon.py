@@ -298,7 +298,7 @@ def setup_stdout_logging(toolname, logs_path):
         with logfile.open("w+") as fobj:
             fobj.write(f"Command line: {' '.join(sys.argv)}\n")
     except OSError as err:
-        raise Error("failed to write command line to '{logfile}':\n{err}") from None
+        raise Error(f"failed to write command line to '{logfile}':\n{err}") from None
 
     Logging.setup_logger(toolname, info_logfile=logfile, error_logfile=logfile)
 
