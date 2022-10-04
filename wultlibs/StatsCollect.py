@@ -99,19 +99,15 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
         self._pman.rmtree(routdir)
 
-    def __init__(self, pman, res, local_scpath=None, remote_scpath=None):
+    def __init__(self, pman, res):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to collect the statistics about.
           * res - the 'WORawResult' object to store the results at.
-          * local_scpath - path to the 'stc-agent' python helper tool on the local system.
-          * remote_scpath - path to the 'stc-agent' python helper tool on the remote system.
           """
 
         self._pman = pman
-        self._stcagent = STCAgent.STCAgent(pman, local_outdir=res.dirpath,
-                                                 local_scpath=local_scpath,
-                                                 remote_scpath=remote_scpath)
+        self._stcagent = STCAgent.STCAgent(pman, local_outdir=res.dirpath)
 
     def close(self):
         """Close the statistics collector."""

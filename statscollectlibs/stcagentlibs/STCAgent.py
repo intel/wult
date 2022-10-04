@@ -282,8 +282,7 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
         if self._oobcoll:
             self._oobcoll.stop(sysinfo=sysinfo)
 
-    def __init__(self, pman, local_outdir=None, remote_outdir=None, local_scpath=None,
-                 remote_scpath=None):
+    def __init__(self, pman, local_outdir=None, remote_outdir=None):
         """
         Initialize a class instance. The arguments are as follows.
           * pman - the process manager object associated with the SUT (the host to collect the
@@ -297,8 +296,6 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
                             remote 'stc-agent' logs and results (the collected statistics). A
                             temporary directory is creted and used if 'remote_outdir' is not
                             provided.
-          * local_scpath - path to 'stc-agent' on the local host.
-          * remote_scpath - path to 'stc-agent' on the remote host (the SUT).
 
         The collected statistics will be stored in the 'stats' sub-directory of the output
         directory, the 'stc-agent' logs will be stored in the 'logs' sub-directory.
@@ -333,20 +330,15 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
         if pman.is_remote:
             inb_outdir = remote_outdir
             oob_outdir = local_outdir
-            inb_scpath = remote_scpath
-            oob_scpath = local_scpath
         else:
             inb_outdir = local_outdir
             oob_outdir = -1 # Just a bogus value, should not be used.
-            inb_scpath = local_scpath
-            oob_scpath = -1
 
-        self._inbcoll = _Collector.InBandCollector(pman, outdir=inb_outdir, stca_path=inb_scpath)
+        self._inbcoll = _Collector.InBandCollector(pman, outdir=inb_outdir)
         if pman.is_remote:
             # Do not create the out-of-band collector if 'pman' represents the local host.
             # Out-of-band collectors by definition run on a host different to the SUT.
-            self._oobcoll = _Collector.OutOfBandCollector(pman.hostname, outdir=oob_outdir,
-                                                          stca_path=oob_scpath)
+            self._oobcoll = _Collector.OutOfBandCollector(pman.hostname, outdir=oob_outdir)
             self.local_outdir = self._oobcoll.outdir
             self.remote_outdir = self._inbcoll.outdir
         else:
