@@ -585,8 +585,12 @@ class _Collector(ClassHelpers.SimpleCloseContext):
             self._statsdir = self.outdir / "stats"
         self._pman.mkdir(self._statsdir, exist_ok=True)
 
-    def configure(self, discovery=False):
-        """Configure statistic collectors."""
+    def _configure(self, discovery=False):
+        """
+        Configure statistic collectors. If 'discovery' is 'True', configure the collectors for
+        running the discovery process. Otherwise configure the collectors for collecting the
+        statistics.
+        """
 
         stnames = self.get_enabled_stats()
         sysinfo = False
@@ -628,6 +632,11 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         self._send_command("configure")
 
+    def configure(self):
+        """Configure statistic collectors."""
+
+        self._configure(discovery=False)
+
     def discover(self):
         """Discover and return list of statistics that can be collected."""
 
@@ -636,7 +645,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         if stnames:
             with contextlib.suppress(SCReplyError):
-                self.configure(discovery=True)
+                self._configure(discovery=True)
                 self.start(sysinfo=False)
                 self.stop(sysinfo=False)
 
