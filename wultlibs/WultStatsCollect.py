@@ -12,7 +12,6 @@ This module is just a "glue" layer between "WultRunner" and "StatsCollect".
 
 import logging
 from pepclibs.helperlibs import ClassHelpers
-from pepclibs.helperlibs.Exceptions import ErrorNotFound
 from statscollectlibs.collector import StatsCollect, STCHelpers
 
 _LOG = logging.getLogger()
@@ -49,6 +48,11 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
 
         return self._stcoll.get_enabled_stats()
 
+    def set_prop(self, stname, name, value):
+        """Set 'stname' statistic collector's property 'name' to value 'value'."""
+
+        return self._stcoll.set_prop(stname, name, value)
+
     def start(self):
         """Start collecting statistics."""
 
@@ -63,19 +67,6 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
 
     def apply_stconf(self, stconf):
         """Configure the statistics according to the 'stconf' dictionary contents."""
-
-        if stconf["discover"] or "acpower" in stconf["include"]:
-            # Assume that power meter is configured to match the SUT name.
-            if self._pman.is_remote:
-                devnode = self._pman.hostname
-            else:
-                devnode = "default"
-
-            try:
-                self._stcoll.set_prop("acpower", "devnode", devnode)
-            except ErrorNotFound:
-                if not stconf["discover"]:
-                    raise
 
         STCHelpers.apply_stconf(self._stcoll, stconf)
         _LOG.info("Configuring the following statistics: %s", ", ".join(stconf["include"]))

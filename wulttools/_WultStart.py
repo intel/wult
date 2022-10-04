@@ -113,6 +113,17 @@ def _create_stcoll(args, pman):
         stcoll.set_stcagent_path(local_path=lpath, remote_path=rpath)
 
     stcoll.apply_stconf(stconf)
+
+    if stconf["discover"] or "acpower" in stconf["include"]:
+        # Assume that power meter is configured to match the SUT name.
+        if pman.is_remote:
+            devnode = pman.hostname
+        else:
+            devnode = "default"
+
+        with contextlib.suppress(Error):
+            stcoll.set_prop("acpower", "devnode", devnode)
+
     return stcoll
 
 def start_command(args):
