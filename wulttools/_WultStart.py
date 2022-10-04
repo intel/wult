@@ -13,10 +13,11 @@ This module includes the "start" 'wult' command implementation.
 import logging
 import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import Trivial
+from pepclibs.helperlibs import LocalProcessManager, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs.msr import PowerCtl
 from pepclibs import CStates, CPUInfo
+from statscollectlibs.collector import STCHelpers
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs import Deploy, WultStatsCollect, ToolsCommon, Devices, WultRunner
@@ -86,18 +87,40 @@ def _generate_report(args):
     rep.set_hover_metrics(_WultCommon.HOVER_METRIC_REGEXS)
     rep.generate()
 
+def _create_stcoll(args, pman):
+    """
+    Create, initialize, and return the 'WultStatsCollect' object, which will be used for collecting
+    statistics.
+    """
+
+    if not args.stats or args.stats == "none":
+        return None
+
+    stconf = STCHelpers.parse_stnames(args.stats)
+    if args.stats_intervals:
+        STCHelpers.parse_intervals(args.stats_intervals, stconf)
+
+    stcoll = WultStatsCollect.WultStatsCollect(pman, args.outdir)
+
+    # This is a small optimization: if only 'sysinfo' statistics was requested, the 'stc-agent'
+    # won't be needed, so we can skip 'stc-agent' path discovery.
+    if list(stconf["include"]) != ["sysinfo"]:
+        with LocalProcessManager.LocalProcessManager() as lpman:
+            lpath = Deploy.get_installed_helper_path(lpman, "wult", "stc-agent")
+        if pman.is_remote:
+            rpath = Deploy.get_installed_helper_path(pman, "wult", "stc-agent")
+
+        stcoll.set_stcagent_path(local_path=lpath, remote_path=rpath)
+
+    stcoll.apply_stconf(stconf)
+    return stcoll
+
 def start_command(args):
     """Implements the 'start' command."""
 
     if args.list_stats:
         _list_stats()
         return
-
-    stconf = None
-    if args.stats and args.stats != "none":
-        if not WultStatsCollect.STATS_NAMES:
-            raise Error("statistics collection is not supported on your system")
-        stconf = WultStatsCollect.parse_stats(args.stats, args.stats_intervals)
 
     with contextlib.ExitStack() as stack:
         pman = ToolsCommon.get_pman(args)
@@ -130,10 +153,14 @@ def start_command(args):
         ToolsCommon.setup_stdout_logging(args.toolname, res.logs_path)
         ToolsCommon.set_filters(args, res)
 
+        stcoll = _create_stcoll(args, pman)
+        if stcoll:
+            stack.enter_context(stcoll)
+
         dev = Devices.GetDevice(args.toolname, args.devid, pman, cpunum=args.cpunum, dmesg=True)
         stack.enter_context(dev)
 
-        deploy_info = ToolsCommon.reduce_installables(args.deploy_info, dev, stconf=stconf)
+        deploy_info = ToolsCommon.reduce_installables(args.deploy_info, dev, stcoll=stcoll)
         with Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
             depl.check_deployment()
 
@@ -146,7 +173,7 @@ def start_command(args):
         _check_settings(pman, dev, csinfo, args.cpunum, args.devid)
 
         runner = WultRunner.WultRunner(pman, dev, res, args.ldist, early_intr=args.early_intr,
-                                       tsc_cal_time=args.tsc_cal_time, rcsobj=rcsobj, stconf=stconf)
+                                       tsc_cal_time=args.tsc_cal_time, rcsobj=rcsobj, stcoll=stcoll)
         stack.enter_context(runner)
 
         runner.unload = not args.no_unload

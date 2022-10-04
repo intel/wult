@@ -31,8 +31,8 @@ def parse_stats(stnames, intervals):
 
 class WultStatsCollect(ClassHelpers.SimpleCloseContext):
     """
-    The statistics collector class. Built on top of 'StatsCollect', but simplifies the API a little bit
-    for wult usage scenario.
+    The statistics collector class. Built on top of 'StatsCollect', but simplifies the API a little
+    bit for wult usage scenario.
     """
 
     def set_stcagent_path(self, local_path=None, remote_path=None):
@@ -43,6 +43,11 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
         """
 
         self._stcoll.set_stcagent_path(local_path=local_path, remote_path=remote_path)
+
+    def get_enabled_stats(self):
+        """Return the list of enabled statistic names."""
+
+        return self._stcoll.get_enabled_stats()
 
     def start(self):
         """Start collecting statistics."""
@@ -82,15 +87,15 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
         _LOG.info("Copying collected statistics from %s", self._pman.hostname)
         self._stcoll.copy_remote_data()
 
-    def __init__(self, pman, res):
+    def __init__(self, pman, outdir):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to collect the statistics about.
-          * res - the 'WORawResult' object to store the results at.
+          * outdir - path to the output directory.
           """
 
         self._pman = pman
-        self._stcoll = StatsCollect.StatsCollect(pman, local_outdir=res.dirpath)
+        self._stcoll = StatsCollect.StatsCollect(pman, local_outdir=outdir)
 
     def close(self):
         """Close the statistics collector."""

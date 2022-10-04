@@ -16,8 +16,8 @@ import logging
 import contextlib
 from pepclibs import CStates
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from pepclibs.helperlibs import ClassHelpers, LocalProcessManager
-from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess, WultStatsCollect, Deploy
+from pepclibs.helperlibs import ClassHelpers
+from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess, Deploy
 from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
@@ -189,20 +189,8 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._res.info["resolution"] = self._dev.info["resolution"]
         self._res.info["early_intr"] = self._early_intr
 
-        # Initialize statistics collection.
-        if self._stconf:
-            lpath = rpath = None
-
-            # The 'stc-agent' is not needed if only the 'sysinfo' statistics will be collected.
-            if list(self._stconf["include"]) != ["sysinfo"]:
-                with LocalProcessManager.LocalProcessManager() as lpman:
-                    lpath = Deploy.get_installed_helper_path(lpman, "wult", "stc-agent")
-                if self._pman.is_remote:
-                    rpath = Deploy.get_installed_helper_path(self._pman, "wult", "stc-agent")
-
-            self._stcoll = WultStatsCollect.WultStatsCollect(self._pman, self._res)
-            self._stcoll.set_stcagent_path(local_path=lpath, remote_path=rpath)
-            self._stcoll.apply_stconf(self._stconf)
+        if self._stcoll:
+            self._stcoll.configure()
 
     def _validate_sut(self, cpunum):
         """Check the SUT to insure we have everything to measure it."""
@@ -231,7 +219,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                         f"only the following drivers are supported: {supported}")
 
     def __init__(self, pman, dev, res, ldist, early_intr=None, tsc_cal_time=10, rcsobj=None,
-                 stconf=None):
+                 stcoll=None):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
@@ -241,8 +229,8 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
           * early_intr - enable interrupts before entering the C-state.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
           * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
-          * stconf - the statistics configuration, a dictionary describing the statistics that
-                     should be collected. By default no statistics will be collected.
+          * stcoll - the 'WultStatsCollect' object to use for collecting statistics. No statistics
+                     are collected by default.
         """
 
         self._pman = pman
@@ -250,7 +238,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._res = res
         self._ldist = ldist
         self._early_intr = early_intr
-        self._stconf = stconf
+        self._stcoll = stcoll
         self._rcsobj = rcsobj
 
         self._dpp = None
