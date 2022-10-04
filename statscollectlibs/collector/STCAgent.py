@@ -13,8 +13,8 @@ This module provides API for collecting SUT statistics.
 import logging
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from statscollectlibs.stcagentlibs import _Collector
-from statscollectlibs.stcagentlibs._Collector import DEFAULT_STINFO
+from statscollectlibs.collector import _Collector
+from statscollectlibs.collector._Collector import DEFAULT_STINFO
 
 _LOG = logging.getLogger()
 
