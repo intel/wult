@@ -269,12 +269,15 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
             stnames |= self._oobcoll.discover()
         return stnames
 
-    def configure(self, discover=False):
+    def configure(self, discover=False, must_have=None):
         """
         Configure the statistics collectors. The arguments are as follows.
           * discover - if 'True', run the discovery process for all the enabled statistics, and
                        disable those that can't be collected. Otherwise, do not run discovery and
                        just configure all the enabled statistics.
+          * must_have - list of statistics names that must be configured. If at the end of the
+                        'configure()' method any of the 'must_have' statistics is disable, this
+                        method raises and exception. By default, the 'must_have' list is empty.
 
         Note, if 'discover' is 'False', then this method will fail if any of the enabled statistics
         cannot be configured.
@@ -285,9 +288,13 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
 
         self._handle_conflicting_stats()
 
-        self._inbcoll.configure(discover=discover)
+        inb_must_have = oob_must_have = None
+        if must_have:
+            inb_must_have, oob_must_have = _separate_inb_vs_oob(must_have)
+
+        self._inbcoll.configure(discover=discover, must_have=inb_must_have)
         if self._oobcoll:
-            self._oobcoll.configure(discover=discover)
+            self._oobcoll.configure(discover=discover, must_have=oob_must_have)
 
     def start(self):
         """Start collecting the statistics."""
