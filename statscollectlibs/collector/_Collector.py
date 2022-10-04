@@ -807,7 +807,9 @@ class InBandCollector(_Collector):
     """
 
     def __init__(self, pman, outdir=None, stca_path=None):
-        """Initialize a class instance. The arguments are the same as in 'STCAgent.__init__()'."""
+        """
+        Initialize a class instance. The arguments are the same as in '_Collector.__init__()'.
+        """
 
         # Call the base class constructor.
         super().__init__(pman, pman.hostname, outdir=outdir, stca_path=stca_path)
@@ -836,7 +838,7 @@ class OutOfBandCollector(_Collector):
         It will also be used for distinguishing between multiple 'stc-agent' processes. This name
         will not be used for connecting to the SUT.
 
-        The other arguments are the same as in 'STCAgent.__init__()'.
+        The other arguments are the same as in '_Collector.__init__()'.
         """
 
         # Call the base class constructor.

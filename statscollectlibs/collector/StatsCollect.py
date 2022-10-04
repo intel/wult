@@ -49,7 +49,7 @@ def _separate_inb_vs_oob(stnames):
 
     return (inb_stnames, oob_stnames)
 
-class STCAgent(ClassHelpers.SimpleCloseContext):
+class StatsCollect(ClassHelpers.SimpleCloseContext):
     """
     This class provides API for collecting SUT statistics, such as 'turbostat' data and AC power.
 
@@ -345,7 +345,7 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
         The collected statistics will be stored in the 'stats' sub-directory of the output
         directory, the 'stc-agent' logs will be stored in the 'logs' sub-directory.
 
-        If the an output directory was not provided and instead, was created by 'STCAgent', the
+        If the an output directory was not provided and instead, was created by 'StatsCollect', the
         directory gets removed in the 'close()' method.
         """
 

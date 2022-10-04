@@ -7,18 +7,18 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module is just a "glue" layer between "WultRunner" and "STCAgent".
+This module is just a "glue" layer between "WultRunner" and "StatsCollect".
 """
 
 import logging
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import ErrorNotFound
-from statscollectlibs.collector import STCAgent, STCHelpers
+from statscollectlibs.collector import StatsCollect, STCHelpers
 
 _LOG = logging.getLogger()
 
-STATS_NAMES = list(STCAgent.DEFAULT_STINFO)
-STATS_INFO = STCAgent.DEFAULT_STINFO
+STATS_NAMES = list(StatsCollect.DEFAULT_STINFO)
+STATS_INFO = StatsCollect.DEFAULT_STINFO
 
 def parse_stats(stnames, intervals):
     """Parse user-provided lists of statistics and intervals."""
@@ -31,7 +31,7 @@ def parse_stats(stnames, intervals):
 
 class WultStatsCollect(ClassHelpers.SimpleCloseContext):
     """
-    The statistics collector class. Built on top of 'STCAgent', but simplifies the API a little bit
+    The statistics collector class. Built on top of 'StatsCollect', but simplifies the API a little bit
     for wult usage scenario.
     """
 
@@ -90,7 +90,7 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
           """
 
         self._pman = pman
-        self._stcagent = STCAgent.STCAgent(pman, local_outdir=res.dirpath)
+        self._stcagent = StatsCollect.StatsCollect(pman, local_outdir=res.dirpath)
 
     def close(self):
         """Close the statistics collector."""

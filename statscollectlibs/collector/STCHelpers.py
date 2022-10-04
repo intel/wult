@@ -7,7 +7,7 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module implements several misc. helpers for tools using 'STCAgent'.
+This module implements several misc. helpers for tools using 'StatsCollect'.
 """
 
 # pylint: disable=protected-access
@@ -15,7 +15,7 @@ This module implements several misc. helpers for tools using 'STCAgent'.
 import logging
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs.collector import STCAgent
+from statscollectlibs.collector import StatsCollect
 
 _LOG = logging.getLogger()
 
@@ -48,8 +48,8 @@ def parse_stnames(stnames):
         else:
             stconf["include"].add(stname)
 
-    STCAgent._check_stnames(stconf["include"])
-    STCAgent._check_stnames(stconf["exclude"])
+    StatsCollect._check_stnames(stconf["include"])
+    StatsCollect._check_stnames(stconf["exclude"])
     stconf["include"] -= stconf["exclude"]
 
     return stconf
@@ -73,7 +73,7 @@ def parse_intervals(intervals, stconf):
                         f"'stname' is the statistics name and 'interval' is a floating point "
                         f"interval for collecting the 'stname' statistics.")
         stname, interval = split
-        STCAgent._check_stname(stname)
+        StatsCollect._check_stname(stname)
 
         if not Trivial.is_float(interval):
             raise Error(f"bad interval value '{interval}' for the '{stname}' statistics: should "
@@ -84,7 +84,7 @@ def parse_intervals(intervals, stconf):
 def apply_stconf(stcagent, stconf):
     """
     Apply statistics configuration in 'stconf' dictionary that was created by 'parse_stnames()' to
-    the 'STCAgent' instance 'stcagent'.
+    the 'StatsCollect' instance 'stcagent'.
 
     In other words, the assumed usage scenario is as follows.
     1. A tool gets list of statistics to collect from the user, feeds the list to 'parse_stname()',
