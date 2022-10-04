@@ -45,3 +45,15 @@ One option for you is to include fewer datapoints in the report, for example 100
 
  $ du -sh ivt-c6-hfm-nic-vs-tdt
  11M	ivt-c6-hfm-nic-vs-tdt
+
+Change Report IDs
+-----------------
+
+Use the `--reportids` option to change report IDs when generating a report. The new IDs should be a
+comma-separated list of names. Wult will change the results in the order that they are provided.
+
+Suppose you have collected two sets of results with the same report ID. You may want to generate a
+report with different IDs to clarify the difference between the two results (e.g. a difference in
+enabled C-states). This can be done with the following command: ::
+
+    wult report --reportids C1,C6 path/to/C1/result path/to/C6/result
