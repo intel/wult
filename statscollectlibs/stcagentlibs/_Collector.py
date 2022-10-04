@@ -275,6 +275,18 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         return actual
 
+    def set_stcagent_path(self, path):
+        """
+        Confugure the 'stc-agent' program path. The arguments are as follows.
+          * path - path to the 'stc-agent' program. If 'None', the program will be searched for in
+                   the paths defined by the 'PATH' environment variable.
+        """
+
+        if self._stca:
+            raise Error(f"cannot set 'stc-agent' path to '{path}'{self._pman.hostmsg}: the program "
+                        f"has already been started")
+        self._stca_path = path
+
     def _ensure_min_collect_time(self):
         """
         This method makes sure all statistics collector made progress and collected at least one
@@ -513,11 +525,13 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         # Kill a possibly running stale 'stc-agent' process.
         msg = f"stale {self._stca_path} process{self._pman.hostmsg}"
+        self._stca_search = f"{self._stca_path} --sut-name {self._sutname}"
         ProcHelpers.kill_processes(self._stca_search, kill_children=True, log=True, name=msg,
                                    pman=self._pman)
         if self._pman.is_remote:
             # Kill a possibly running stale SSH tunnel process.
             msg = f"stale stc-agent SSH tunnel process{self._pman.hostmsg}"
+            self._ssht_search = f"ssh -L .*:.*stc-agent-{self._sutname}-.* -N"
             ProcHelpers.kill_processes(self._ssht_search, kill_children=True, log=True, name=msg,
                                        pman=self._pman)
 
@@ -670,9 +684,9 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         self._logpath = None
 
         # The 'stc-agent' process search pattern.
-        self._stca_search = f"{self._stca_path} --sut-name {self._sutname}"
+        self._stca_search = None
         # The SSH tunnel process search pattern.
-        self._ssht_search = f"ssh -L .*:.*stc-agent-{self._sutname}-.* -N"
+        self._ssht_search = None
 
         self._stca = None
         self._stca_id = None

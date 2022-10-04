@@ -65,12 +65,14 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
          'set_disabled_stats()', 'set_enabled_stats()'.
       3. Optionally set tool path and properties for certain statistics using 'set_prop()' and
          'set_toolpath()'.
-      4. Optionally discover the available statistics by running the 'discover()' method. Once the
+      4. Optionally set the 'stc-agent' paths on the local and remote systems. By default the
+         'stc-agent' program is looked for in the paths from the 'PATH' environment variable.
+      5. Optionally discover the available statistics by running the 'discover()' method. Once the
          discovery is finished, re-run 'set_enabled_stats()' to enable the discovered statistics.
-      5. Run the 'configure()' method to configure the statistics collectors.
-      6. Run 'start()' to start collecting the statistics. Supposedly after the 'start()' method is
+      6. Run the 'configure()' method to configure the statistics collectors.
+      7. Run 'start()' to start collecting the statistics. Supposedly after the 'start()' method is
          finished, you run a workload on the SUT.
-      7. Run 'stop()' to stop collecting the statistics. You can repeat the start/stop cycles and
+      8. Run 'stop()' to stop collecting the statistics. You can repeat the start/stop cycles and
          re-configure the collectors between the cycles.
     """
 
@@ -208,6 +210,27 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
             raise Error(msg)
 
         stinfo["props"][name] = str(value)
+
+    def set_stcagent_path(self, local_path=None, remote_path=None):
+        """
+        Confugure the 'stc-agent' program path. The arguments are as follows.
+          * local_path - path to the 'stc-agent' program on the local system.
+          * remote_path - path to the 'stc-agent' program on the remote system.
+        """
+
+        # Please, rever to the commentaries in '__init__()' for the mapping between in-/out-of-band
+        # and local/remote.
+        if self._pman.is_remote:
+            local_coll = self._oobcoll
+            remote_coll = self._inbcoll
+        else:
+            local_coll = self._inbcoll
+            remote_coll = None
+
+        if local_path:
+            local_coll.set_stcagent_path(local_path)
+        if remote_path and remote_coll:
+            remote_coll.set_stcagent_path(remote_path)
 
     def discover(self):
         """

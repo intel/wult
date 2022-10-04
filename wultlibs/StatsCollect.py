@@ -35,6 +35,15 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
     for wult usage scenario.
     """
 
+    def set_stcagent_path(self, local_path=None, remote_path=None):
+        """
+        Confugure the 'stc-agent' program path. The arguments are as follows.
+          * local_path - path to the 'stc-agent' program on the local system.
+          * remote_path - path to the 'stc-agent' program on the remote system.
+        """
+
+        self._stcagent.set_stcagent_path(local_path=local_path, remote_path=remote_path)
+
     def start(self):
         """Start collecting statistics."""
 
