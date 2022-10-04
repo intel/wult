@@ -17,7 +17,7 @@ import contextlib
 from pepclibs import CStates
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from pepclibs.helperlibs import ClassHelpers, LocalProcessManager
-from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess, StatsCollect, Deploy
+from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess, WultStatsCollect, Deploy
 from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
@@ -200,7 +200,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                 if self._pman.is_remote:
                     rpath = Deploy.get_installed_helper_path(self._pman, "wult", "stc-agent")
 
-            self._stcoll = StatsCollect.StatsCollect(self._pman, self._res)
+            self._stcoll = WultStatsCollect.WultStatsCollect(self._pman, self._res)
             self._stcoll.set_stcagent_path(local_path=lpath, remote_path=rpath)
             self._stcoll.apply_stconf(self._stconf)
 

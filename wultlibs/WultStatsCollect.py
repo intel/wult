@@ -29,7 +29,7 @@ def parse_stats(stnames, intervals):
 
     return stconf
 
-class StatsCollect(ClassHelpers.SimpleCloseContext):
+class WultStatsCollect(ClassHelpers.SimpleCloseContext):
     """
     The statistics collector class. Built on top of 'STCAgent', but simplifies the API a little bit
     for wult usage scenario.
