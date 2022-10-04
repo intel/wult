@@ -79,25 +79,8 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
     def copy_stats(self):
         """Copy collected statistics and statistics log from remote SUT to the local system."""
 
-        if not self._pman.is_remote:
-            return
-
-        loutdir = self._stcagent.local_outdir
-        routdir = self._stcagent.remote_outdir
-
-        if not routdir:
-            # No in-band statistics were collected, so nothing to copy.
-            return
-
-        _LOG.debug("copy in-band statistics from '%s:%s' to '%s'",
-                   self._pman.hostname, routdir, loutdir)
         _LOG.info("Copying collected statistics from %s", self._pman.hostname)
-
-        # We add trailing slash to the remote directory path in order to make rsync copy the
-        # contents of the remote directory, but not the directory itself.
-        self._pman.rsync(f"{routdir}/", loutdir, opts="rltD", remotesrc=True, remotedst=False)
-
-        self._pman.rmtree(routdir)
+        self._stcagent.copy_remote_data()
 
     def __init__(self, pman, res):
         """

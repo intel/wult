@@ -74,6 +74,8 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
          finished, you run a workload on the SUT.
       8. Run 'stop()' to stop collecting the statistics. You can repeat the start/stop cycles and
          re-configure the collectors between the cycles.
+      9. Copy statistics and logs from the remote host to the local output directory using
+         'copy_remote_data()'.
     """
 
     def get_max_interval(self):
@@ -281,6 +283,23 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
         self._inbcoll.stop(sysinfo=sysinfo)
         if self._oobcoll:
             self._oobcoll.stop(sysinfo=sysinfo)
+
+    def copy_remote_data(self):
+        """
+        If there are statistics collected on the remote host in 'self.remote_outdir', copy them over
+        to 'self.local_outdir'. This will also include 'stc-agent' logs.
+        """
+
+        if not self.remote_outdir:
+            return
+
+        _LOG.debug("copy statistics from '%s:%s' to '%s'",
+                   self._pman.hostname, self.remote_outdir, self.local_outdir)
+
+        # We add trailing slash to the remote directory path in order to make rsync copy the
+        # contents of the remote directory, but not the directory itself.
+        self._pman.rsync(f"{self.remote_outdir}/", self.local_outdir, opts="rltD",
+                         remotesrc=True, remotedst=False)
 
     def __init__(self, pman, local_outdir=None, remote_outdir=None):
         """
