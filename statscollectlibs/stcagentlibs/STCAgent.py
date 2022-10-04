@@ -318,12 +318,12 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
             inb_scpath = local_scpath
             oob_scpath = -1
 
-        self._inbcoll = _Collector.InBandCollector(pman, outdir=inb_outdir, scpath=inb_scpath)
+        self._inbcoll = _Collector.InBandCollector(pman, outdir=inb_outdir, stca_path=inb_scpath)
         if pman.is_remote:
             # Do not create the out-of-band collector if 'pman' represents the local host.
             # Out-of-band collectors by definition run on a host different to the SUT.
             self._oobcoll = _Collector.OutOfBandCollector(pman.hostname, outdir=oob_outdir,
-                                                          scpath=oob_scpath)
+                                                          stca_path=oob_scpath)
             self.local_outdir = self._oobcoll.outdir
             self.remote_outdir = self._inbcoll.outdir
         else:

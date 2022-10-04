@@ -355,8 +355,8 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         """Helper function for '_start_stc_agent()' that discovers and initializes various paths."""
 
         # Discover path to 'stc-agent'.
-        if not self.scpath:
-            self.scpath = self._pman.which("stc-agent")
+        if not self._stca_path:
+            self._stca_path = self._pman.which("stc-agent")
 
         is_root = ProcHelpers.is_root(pman=self._pman)
 
@@ -512,7 +512,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         self._init_paths()
 
         # Kill a possibly running stale 'stc-agent' process.
-        msg = f"stale {self.scpath} process{self._pman.hostmsg}"
+        msg = f"stale {self._stca_path} process{self._pman.hostmsg}"
         ProcHelpers.kill_processes(self._stca_search, kill_children=True, log=True, name=msg,
                                    pman=self._pman)
         if self._pman.is_remote:
@@ -522,7 +522,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
                                        pman=self._pman)
 
         # Format the command for executing 'stc-agent'.
-        self._cmd = f"{self.scpath} --sut-name {self._sutname}"
+        self._cmd = f"{self._stca_path} --sut-name {self._sutname}"
         if _LOG.getEffectiveLevel() == logging.DEBUG:
             self._cmd = f"{self._cmd} -d"
 
@@ -636,7 +636,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         return {stname for stname, stinfo in self.stinfo.items() if stinfo["enabled"]}
 
-    def __init__(self, pman, sutname, outdir=None, scpath=None):
+    def __init__(self, pman, sutname, outdir=None, stca_path=None):
         """
         Initialize a class instance. The input arguments are as follows.
           * pman - a process manager associated with the host to run 'stc-agent' on.
@@ -644,14 +644,14 @@ class _Collector(ClassHelpers.SimpleCloseContext):
                      a temporary directory if not provided.
           * sutname - name of the System Under Test. Will be used for messages and searching for
                       stale 'stc-agent' process instances for the same SUT.
-          * scpath - path to 'stc-agent' on the host defined by 'pman'. Searched for in '$PATH'
-                     if not provided.
+          * stca_path - path to 'stc-agent' program on the host defined by 'pman'. Searched for in
+                      '$PATH' if not provided.
         """
 
         self._pman = pman
         self._sutname = sutname
         self.outdir = outdir
-        self.scpath = scpath
+        self._stca_path = stca_path
 
         self.stinfo = DEFAULT_STINFO.copy()
 
@@ -670,7 +670,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         self._logpath = None
 
         # The 'stc-agent' process search pattern.
-        self._stca_search = f"{self.scpath} --sut-name {self._sutname}"
+        self._stca_search = f"{self._stca_path} --sut-name {self._sutname}"
         # The SSH tunnel process search pattern.
         self._ssht_search = f"ssh -L .*:.*stc-agent-{self._sutname}-.* -N"
 
@@ -739,11 +739,11 @@ class InBandCollector(_Collector):
     SUT and statistics collectors also run on the SUT.
     """
 
-    def __init__(self, pman, outdir=None, scpath=None):
+    def __init__(self, pman, outdir=None, stca_path=None):
         """Initialize a class instance. The arguments are the same as in 'STCAgent.__init__()'."""
 
         # Call the base class constructor.
-        super().__init__(pman, pman.hostname, outdir=outdir, scpath=scpath)
+        super().__init__(pman, pman.hostname, outdir=outdir, stca_path=stca_path)
 
         # Cleanup 'self.stinfo' by removing out-of-band statistics.
         for stname in list(self.stinfo):
@@ -762,7 +762,7 @@ class OutOfBandCollector(_Collector):
     tool collects information about the SUT by talking to SUT's BMC module via the network.
     """
 
-    def __init__(self, sutname, outdir=None, scpath=None):
+    def __init__(self, sutname, outdir=None, stca_path=None):
         """
         Initialize a class instance. The 'sutname' argument is name of the SUT to collect the
         statistics for. This string will be passed over to 'stc-agent' and will affect its messages.
@@ -774,7 +774,7 @@ class OutOfBandCollector(_Collector):
 
         # Call the base class constructor.
         pman = LocalProcessManager.LocalProcessManager()
-        super().__init__(pman, sutname, outdir=outdir, scpath=scpath)
+        super().__init__(pman, sutname, outdir=outdir, stca_path=stca_path)
 
         # Make sure we close the process manager.
         self._close_pman = True
