@@ -37,6 +37,7 @@ def parse_stnames(stnames):
     stconf["include"] = set()
     stconf["exclude"] = set()
     stconf["discover"] = False
+    stconf["intervals"] = {}
 
     for stname in Trivial.split_csv_line(stnames):
         if stname == "all":
@@ -65,7 +66,6 @@ def parse_intervals(intervals, stconf):
     being an "stname -> interval" dictionary. Intervals are floating point numbers.
     """
 
-    stconf["intervals"] = {}
     for entry in Trivial.split_csv_line(intervals):
         split = Trivial.split_csv_line(entry, sep=":")
         if len(split) != 2:
@@ -95,26 +95,7 @@ def apply_stconf(stcagent, stconf):
        user input information. This will run statistics discovery too, if necessary.
     """
 
-    if not stconf["discover"]:
-        stcagent.set_disabled_stats("all")
-    else:
-        # Enable all statistics except for those that must be disabled.
-        stcagent.set_enabled_stats("all")
-        stcagent.set_disabled_stats(stconf["exclude"])
-        if "intervals" in stconf:
-            stconf["intervals"] = stcagent.set_intervals(stconf["intervals"])
+    stcagent.set_disabled_stats(stconf["exclude"])
+    stcagent.set_intervals(stconf["intervals"])
 
-        _LOG.info("Start statistics discovery")
-        stavailable = stcagent.discover()
-
-        for stname in stconf["include"]:
-            if stname not in stavailable:
-                raise Error(f"statistics '{stname}' is not available")
-
-        stconf["include"] = stavailable
-        if stconf["include"]:
-            _LOG.info("Discovered statistics: %s", ", ".join(stconf["include"]))
-        else:
-            _LOG.info("no statistics discovered")
-
-    stcagent.set_enabled_stats(stconf["include"])
+    stcagent.configure(discover=stconf["discover"], must_have=stconf["include"])
