@@ -391,7 +391,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         # Spend max. 5 secs waiting for 'stc-agent' to startup and print the socket file path.
         attempts = 0
         while not self._uspath and attempts < 5:
-            _, _, exitcode = self._sc.wait(timeout=1, capture_output=False)
+            _, _, exitcode = self._stca.wait(timeout=1, capture_output=False)
             attempts += 1
 
             logdata = logerr = None
@@ -419,10 +419,10 @@ class _Collector(ClassHelpers.SimpleCloseContext):
                     break
 
         if self._uspath:
-            _LOG.debug("stc-agent PID: %d, socket file path: %s", self._sc.pid, self._uspath)
+            _LOG.debug("stc-agent PID: %d, socket file path: %s", self._stca.pid, self._uspath)
 
             self._stca_id = f"{self._pman.hostname}:{self._uspath}"
-            msg = f"stc-agent (PID {self._sc.pid}) that reported it is listening on Unix " \
+            msg = f"stc-agent (PID {self._stca.pid}) that reported it is listening on Unix " \
                   f"socket {self._uspath}{self._pman.hostmsg}"
 
             try:
@@ -436,7 +436,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
             # Failed to extract socket file path.
             if exitcode is None:
                 with contextlib.suppress(Error):
-                    ProcHelpers.kill_pids([self._sc.pid, ], kill_children=True, must_die=False,
+                    ProcHelpers.kill_pids([self._stca.pid, ], kill_children=True, must_die=False,
                                           pman=self._pman)
 
             msg = f"failed to extract socket file path from 'stc-agent' log\n" \
@@ -547,7 +547,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         if cmd_prefix:
             self._cmd = f"{cmd_prefix} {self._cmd}"
 
-        self._sc = self._pman.run_async(self._cmd, shell=True)
+        self._stca = self._pman.run_async(self._cmd, shell=True)
         self._fetch_stat_collect_socket_path()
 
         if self._pman.is_remote:
@@ -588,7 +588,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
             return
 
         self._init_outdir(discovery=discovery)
-        if not self._sc:
+        if not self._stca:
             self._start_stc_agent()
         if not self._sock:
             self._connect()
@@ -674,7 +674,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
         # The SSH tunnel process search pattern.
         self._ssht_search = f"ssh -L .*:.*stc-agent-{self._sutname}-.* -N"
 
-        self._sc = None
+        self._stca = None
         self._stca_id = None
         self._uspath = None
         self._ssht = None
@@ -718,10 +718,10 @@ class _Collector(ClassHelpers.SimpleCloseContext):
                     ProcHelpers.kill_processes(self._ssht_search, pman=self._pman)
                 self._ssht = None
 
-            if self._sc:
+            if self._stca:
                 with contextlib.suppress(Exception):
                     ProcHelpers.kill_processes(self._stca_search, pman=self._pman)
-                self._sc = None
+                self._stca = None
 
             # Remove the output directory if we created it.
             if getattr(self, "_outdir_created", None):
