@@ -62,7 +62,7 @@ DEFAULT_STINFO = {
     "sysinfo" : {
         "interval": None,
         "toolpath": None,
-        "description" : "Not really a statiscics collector, but just a script that saves all sorts "
+        "description" : "Not really a statistics collector, but just a script that saves all sorts "
                         "of information about the SUT (e.g., 'dmesg', 'lspci -vvv' and 'dmidecode' "
                         "output, and more). One snapshot of the SUT information is taken before "
                         "the workload, and the other snapshot is taken after the workload. The "
@@ -277,7 +277,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
     def set_stcagent_path(self, path):
         """
-        Confugure the 'stc-agent' program path. The arguments are as follows.
+        Configure the 'stc-agent' program path. The arguments are as follows.
           * path - path to the 'stc-agent' program. If 'None', the program will be searched for in
                    the paths defined by the 'PATH' environment variable.
         """
@@ -632,8 +632,24 @@ class _Collector(ClassHelpers.SimpleCloseContext):
 
         self._send_command("configure")
 
-    def configure(self):
-        """Configure statistic collectors."""
+    def configure(self, discover=False):
+        """
+        Configure statistic collectors. The arguments are as follows.
+          * discover - if 'True', run the discovery process for all the enabled statistics, and
+                       disable those that can't be collected. Otherwise, do not run discovery and
+                       just configure all the enabled statistics.
+
+        Note, if 'discover' is 'False', then this method will fail if any of the enabled statistics
+        cannot be configured.
+        """
+
+        if discover:
+            discovered_stnames = self.discover()
+
+            for stname in self.get_enabled_stats():
+                if stname not in discovered_stnames:
+                    self.stinfo[stname]["enabled"] = False
+                    _LOG.debug("disabled the '{stname}' statistics")
 
         self._configure(for_discovery=False)
 
@@ -789,7 +805,7 @@ class OutOfBandCollector(_Collector):
         """
         Initialize a class instance. The 'sutname' argument is name of the SUT to collect the
         statistics for. This string will be passed over to 'stc-agent' and will affect its messages.
-        It will also be used fo distinguishing between multiple 'stc-agent' processes. This name
+        It will also be used for distinguishing between multiple 'stc-agent' processes. This name
         will not be used for connecting to the SUT.
 
         The other arguments are the same as in 'STCAgent.__init__()'.

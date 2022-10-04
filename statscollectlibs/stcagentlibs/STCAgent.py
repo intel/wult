@@ -67,6 +67,12 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
          'set_toolpath()'.
       4. Optionally set the 'stc-agent' paths on the local and remote systems. By default the
          'stc-agent' program is looked for in the paths from the 'PATH' environment variable.
+
+         Note: up to this point, the 'stc-agent' processes have not been started. The configuration
+         passed via the 'set_*()' methods was not yet communicated to 'stc-agent'. But it will be
+         sent to 'stc-agent' as soon as it starts. And it starts when 'discover()' or 'configure()'
+         methods are called.
+
       5. Optionally discover the available statistics by running the 'discover()' method. Once the
          discovery is finished, re-run 'set_enabled_stats()' to enable the discovered statistics.
       6. Run the 'configure()' method to configure the statistics collectors.
@@ -215,12 +221,12 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
 
     def set_stcagent_path(self, local_path=None, remote_path=None):
         """
-        Confugure the 'stc-agent' program path. The arguments are as follows.
+        Configure the 'stc-agent' program path. The arguments are as follows.
           * local_path - path to the 'stc-agent' program on the local system.
           * remote_path - path to the 'stc-agent' program on the remote system.
         """
 
-        # Please, rever to the commentaries in '__init__()' for the mapping between in-/out-of-band
+        # Please, refer to the commentaries in '__init__()' for the mapping between in-/out-of-band
         # and local/remote.
         if self._pman.is_remote:
             local_coll = self._oobcoll
@@ -237,13 +243,21 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
     def discover(self):
         """
         Discover and return set of statistics that can be collected for SUT. This method probes all
-        non-disabled statistics collectors. Prior to calling this method, you can (but do not have
-        to) use the following methods.
-         * 'set_disabled_stats()' and 'set_enabled_stats()' prior to to enable /disable certain
+        non-disabled statistics collectors.
+
+        Notes.
+
+        Prior to calling this method, you can (but do not have to) use the following methods.
+         * 'set_disabled_stats()' and 'set_enabled_stats()' prior to to enable/disable certain
             statistics.
          * 'set_intervals()' - to configure the statistics collectors' intervals.
          * 'set_prop()' - to configure statistics collectors' properties.
          * 'set_toolpath()' - to configure statistics collectors' tools paths.
+
+        These methods will not communicate to the 'stc-agent' process(es), which may not even have
+        been started yet. They just save the configuration in an internal dictionary. The
+        'discover()' method will start the 'stc-agent' process(es) and pass all the saved
+        configuration to them.
         """
 
         stnames = self._inbcoll.discover()
@@ -251,24 +265,25 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
             stnames |= self._oobcoll.discover()
         return stnames
 
-    def configure(self):
+    def configure(self, discover=False):
         """
-        Configure the statistics collectors. This method should be called after statistics collector
-        configuration changes. Prior to calling this method, you can (but do not have to) use the
-        following methods.
-         * 'discover()' - to discover the list of statistics that can be collected.
-         * 'set_disabled_stats()' and 'set_enabled_stats()' prior to to enable /disable certain
-            statistics.
-         * 'set_intervals()' - to configure the statistics collectors' intervals.
-         * 'set_prop()' - to configure statistics collectors' properties.
-         * 'set_toolpath()' - to configure statistics collectors' tools paths.
+        Configure the statistics collectors. The arguments are as follows.
+          * discover - if 'True', run the discovery process for all the enabled statistics, and
+                       disable those that can't be collected. Otherwise, do not run discovery and
+                       just configure all the enabled statistics.
+
+        Note, if 'discover' is 'False', then this method will fail if any of the enabled statistics
+        cannot be configured.
+
+        Please, also refer to the 'Notes' in the 'discover()' method - they are relevant to
+        'configure()' as well.
         """
 
         self._handle_conflicting_stats()
 
-        self._inbcoll.configure()
+        self._inbcoll.configure(discover=discover)
         if self._oobcoll:
-            self._oobcoll.configure()
+            self._oobcoll.configure(discover=discover)
 
     def start(self):
         """Start collecting the statistics."""
@@ -310,10 +325,10 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
                    dropped once the 'close()' method is invoked.
           * local_outdir - output directory path on the local host for storing the local
                            'stc-agent' logs and results (the collected statistics). A temporary
-                           directory is creted and used if 'local_outdir' is not provided.
+                           directory is created and used if 'local_outdir' is not provided.
           * remote_outdir - output directory path on the remote host (the SUT) for storing the
                             remote 'stc-agent' logs and results (the collected statistics). A
-                            temporary directory is creted and used if 'remote_outdir' is not
+                            temporary directory is created and used if 'remote_outdir' is not
                             provided.
 
         The collected statistics will be stored in the 'stats' sub-directory of the output
@@ -344,7 +359,7 @@ class STCAgent(ClassHelpers.SimpleCloseContext):
         #   its output directory is always 'local_outdir'.
         # * However, if the SUT is the local host, the in-band 'stc-agent' output directory is in
         #   'local_outdir', and the out-of-band 'stc-agent' is not used at all, so there is no
-        #   "remoted output directory.
+        #   "remote output directory.
 
         if pman.is_remote:
             inb_outdir = remote_outdir
