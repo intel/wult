@@ -42,19 +42,19 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
           * remote_path - path to the 'stc-agent' program on the remote system.
         """
 
-        self._stcagent.set_stcagent_path(local_path=local_path, remote_path=remote_path)
+        self._stcoll.set_stcagent_path(local_path=local_path, remote_path=remote_path)
 
     def start(self):
         """Start collecting statistics."""
 
         _LOG.info("Starting statistics collectors")
-        self._stcagent.start()
+        self._stcoll.start()
 
     def stop(self, sysinfo=True):
         """Stop collecting statistics."""
 
         _LOG.info("Stopping statistics collectors")
-        self._stcagent.stop(sysinfo=sysinfo)
+        self._stcoll.stop(sysinfo=sysinfo)
 
     def apply_stconf(self, stconf):
         """Configure the statistics according to the 'stconf' dictionary contents."""
@@ -67,20 +67,20 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
                 devnode = "default"
 
             try:
-                self._stcagent.set_prop("acpower", "devnode", devnode)
+                self._stcoll.set_prop("acpower", "devnode", devnode)
             except ErrorNotFound:
                 if not stconf["discover"]:
                     raise
 
-        STCHelpers.apply_stconf(self._stcagent, stconf)
+        STCHelpers.apply_stconf(self._stcoll, stconf)
         _LOG.info("Configuring the following statistics: %s", ", ".join(stconf["include"]))
-        self._stcagent.configure()
+        self._stcoll.configure()
 
     def copy_stats(self):
         """Copy collected statistics and statistics log from remote SUT to the local system."""
 
         _LOG.info("Copying collected statistics from %s", self._pman.hostname)
-        self._stcagent.copy_remote_data()
+        self._stcoll.copy_remote_data()
 
     def __init__(self, pman, res):
         """
@@ -90,8 +90,8 @@ class WultStatsCollect(ClassHelpers.SimpleCloseContext):
           """
 
         self._pman = pman
-        self._stcagent = StatsCollect.StatsCollect(pman, local_outdir=res.dirpath)
+        self._stcoll = StatsCollect.StatsCollect(pman, local_outdir=res.dirpath)
 
     def close(self):
         """Close the statistics collector."""
-        ClassHelpers.close(self, close_attrs=("_stcagent",), unref_attrs=("_pman",))
+        ClassHelpers.close(self, close_attrs=("_stcoll",), unref_attrs=("_pman",))

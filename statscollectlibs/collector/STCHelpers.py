@@ -81,23 +81,23 @@ def parse_intervals(intervals, stconf):
 
         stconf["intervals"][stname] = float(interval)
 
-def apply_stconf(stcagent, stconf):
+def apply_stconf(stcoll, stconf):
     """
     Apply statistics configuration in 'stconf' dictionary that was created by 'parse_stnames()' to
-    the 'StatsCollect' instance 'stcagent'.
+    the 'StatsCollect' instance 'stcoll'.
 
     In other words, the assumed usage scenario is as follows.
     1. A tool gets list of statistics to collect from the user, feeds the list to 'parse_stname()',
        which parses the list and returns 'stconf'.
     2. The tool may also get custom intervals from the user, feed them to 'parse_intervals()', which
        will parse them and add to 'stconf'.
-    3. Before the tool calls stcagent.configure()', it runs 'apply_stconf()' to apply the parsed
+    3. Before the tool calls stcoll.configure()', it runs 'apply_stconf()' to apply the parsed
        user input information. This will run statistics discovery too, if necessary.
     """
 
-    stcagent.set_disabled_stats(stconf["exclude"])
-    stcagent.set_intervals(stconf["intervals"])
+    stcoll.set_disabled_stats(stconf["exclude"])
+    stcoll.set_intervals(stconf["intervals"])
 
-    stcagent.configure(discover=stconf["discover"], must_have=stconf["include"])
+    stcoll.configure(discover=stconf["discover"], must_have=stconf["include"])
 
-    stconf["include"] = stcagent.get_enabled_stats()
+    stconf["include"] = stcoll.get_enabled_stats()
