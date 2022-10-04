@@ -396,7 +396,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
                              "installed. This tool is part of the 'coreutils' project",
                              self._pman.hostmsg)
 
-    def _fetch_stat_collect_socket_path(self):
+    def _fetch_stcagent_socket_path(self):
         """
         This is a helper for '_start_stc_agent()'. When 'stc-agent' starts, it prints unix socket
         path it is listening for connections on. This functions parses 'stc-agent' output and
@@ -565,7 +565,7 @@ class _Collector(ClassHelpers.SimpleCloseContext):
             self._cmd = f"{cmd_prefix} {self._cmd}"
 
         self._stca = self._pman.run_async(self._cmd, shell=True)
-        self._fetch_stat_collect_socket_path()
+        self._fetch_stcagent_socket_path()
 
         if self._pman.is_remote:
             # 'stc-agent' runs on the SUT and we cannot connect to the Unix socket file directly.

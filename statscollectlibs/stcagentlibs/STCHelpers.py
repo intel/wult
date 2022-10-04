@@ -99,3 +99,5 @@ def apply_stconf(stcagent, stconf):
     stcagent.set_intervals(stconf["intervals"])
 
     stcagent.configure(discover=stconf["discover"], must_have=stconf["include"])
+
+    stconf["include"] = stcagent.get_enabled_stats()
