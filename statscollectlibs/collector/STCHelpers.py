@@ -104,16 +104,12 @@ def parse_intervals(intervals, stconf=None):
 
 def apply_stconf(stcoll, stconf):
     """
-    Apply statistics configuration in 'stconf' dictionary that was created by 'parse_stnames()' to
-    the 'StatsCollect' instance 'stcoll'.
+    Configure statistics collector by applying the statistics configuration from 'stconf'. The
+    arguments are as follows.
+      * stcoll - the 'StatsCollect' object to configure.
+      * stconf - the statistics configuration dictionary to apply to 'stcoll'.
 
-    In other words, the assumed usage scenario is as follows.
-    1. A tool gets list of statistics to collect from the user, feeds the list to 'parse_stname()',
-       which parses the list and returns 'stconf'.
-    2. The tool may also get custom intervals from the user, feed them to 'parse_intervals()', which
-       will parse them and add to 'stconf'.
-    3. Before the tool calls stcoll.configure()', it runs 'apply_stconf()' to apply the parsed
-       user input information. This will run statistics discovery too, if necessary.
+    This helper function applies 'stconf' to 'stcoll' and runs 'stcoll.configure()'.
     """
 
     stcoll.set_disabled_stats(stconf["exclude"])
