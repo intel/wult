@@ -17,10 +17,10 @@ from pepclibs.helperlibs import LocalProcessManager, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs.msr import PowerCtl
 from pepclibs import CStates, CPUInfo
-from statscollectlibs.collector import STCHelpers
+from statscollectlibs.collector import StatsCollect, STCHelpers
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
-from wultlibs import Deploy, WultStatsCollect, ToolsCommon, Devices, WultRunner
+from wultlibs import Deploy, ToolsCommon, Devices, WultRunner
 from wulttools import _WultCommon
 
 _LOG = logging.getLogger()
@@ -67,10 +67,10 @@ def _check_settings(pman, dev, csinfo, cpunum, devid):
 def _list_stats():
     """Print information about statistics."""
 
-    if not WultStatsCollect.STATS_INFO:
+    if not StatsCollect.STATS_INFO:
         raise Error("statistics collection is not supported on your system")
 
-    for stname, stinfo in WultStatsCollect.STATS_INFO.items():
+    for stname, stinfo in StatsCollect.STATS_INFO.items():
         _LOG.info("* %s", stname)
         if stinfo.get("interval"):
             _LOG.info("  - Default interval: %.1fs", stinfo["interval"])
@@ -89,7 +89,7 @@ def _generate_report(args):
 
 def _create_stcoll(args, pman):
     """
-    Create, initialize, and return the 'WultStatsCollect' object, which will be used for collecting
+    Create, initialize, and return the 'StatsCollect' object, which will be used for collecting
     statistics.
     """
 
@@ -100,7 +100,7 @@ def _create_stcoll(args, pman):
     if args.stats_intervals:
         STCHelpers.parse_intervals(args.stats_intervals, stconf)
 
-    stcoll = WultStatsCollect.WultStatsCollect(pman, args.outdir)
+    stcoll = StatsCollect.StatsCollect(pman, args.outdir)
 
     # This is a small optimization: if only 'sysinfo' statistics was requested, the 'stc-agent'
     # won't be needed, so we can skip 'stc-agent' path discovery.
@@ -112,7 +112,7 @@ def _create_stcoll(args, pman):
 
         stcoll.set_stcagent_path(local_path=lpath, remote_path=rpath)
 
-    stcoll.apply_stconf(stconf)
+    STCHelpers.apply_stconf(stcoll, stconf)
 
     if stconf["discover"] or "acpower" in stconf["include"]:
         # Assume that power meter is configured to match the SUT name.
@@ -123,6 +123,10 @@ def _create_stcoll(args, pman):
 
         with contextlib.suppress(Error):
             stcoll.set_prop("acpower", "devnode", devnode)
+
+
+    _LOG.info("Configuring the following statistics: %s", ", ".join(stcoll.get_enabled_stats()))
+    stcoll.configure()
 
     return stcoll
 

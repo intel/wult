@@ -229,7 +229,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
           * early_intr - enable interrupts before entering the C-state.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
           * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
-          * stcoll - the 'WultStatsCollect' object to use for collecting statistics. No statistics
+          * stcoll - the 'StatsCollect' object to use for collecting statistics. No statistics
                      are collected by default.
         """
 

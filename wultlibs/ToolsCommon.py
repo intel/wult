@@ -546,7 +546,7 @@ def reduce_installables(deploy_info, dev, stcoll=None):
       * deploy_info - full deployment information dictionary. Check 'Deploy.Deploy.__init__()'
                       docstring for the format of the dictionary.
       * dev - the device object created by 'Devices.GetDevice()'.
-      * stcoll - an intiialized and configured 'WultStatsCollect' object or 'None' if not statistics
+      * stcoll - an intiialized and configured 'StatsCollect' object or 'None' if not statistics
                  will be collected.
 
     Returns the reduced version of 'deploy_info'.
