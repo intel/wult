@@ -171,22 +171,6 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
         return stnames
 
-    def _handle_conflicting_stats(self):
-        """
-        Some statistic collectors are mutually exclusive, for example "ipmi" and "ipmi-inband". This
-        function handles situations when both collectors are requested.
-        """
-
-        if not self._oobcoll:
-            return
-
-        if self._inbcoll.stinfo["ipmi-inband"]["enabled"] and \
-           self._oobcoll.stinfo["ipmi-oob"]["enabled"]:
-            # IPMI in-band and out-of-band collect the same information, but 'ipmi-oob' is
-            # supposedly less intrusive.
-            _LOG.log(self._infolvl, "Disabling 'ipmi-inband' statistics in favor of 'ipmi-oob'")
-            self._inbcoll.stinfo["ipmi-inband"]["enabled"] = False
-
     def set_intervals(self, intervals):
         """
         Set intervals for statistics collectors. The 'intervals' argument should be a dictionary
@@ -335,6 +319,22 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
         return stnames
 
+    def _handle_conflicting_stats(self):
+        """
+        Some statistic collectors are mutually exclusive, for example "ipmi" and "ipmi-inband". This
+        function handles situations when both collectors are requested.
+        """
+
+        if not self._oobcoll:
+            return
+
+        if self._inbcoll.stinfo["ipmi-inband"]["enabled"] and \
+           self._oobcoll.stinfo["ipmi-oob"]["enabled"]:
+            # IPMI in-band and out-of-band collect the same information, but 'ipmi-oob' is
+            # supposedly less intrusive.
+            _LOG.log(self._infolvl, "Disabling 'ipmi-inband' statistics in favor of 'ipmi-oob'")
+            self._inbcoll.stinfo["ipmi-inband"]["enabled"] = False
+
     def configure(self, discover=False, must_have=None):
         """
         Configure the statistics collectors. The arguments are as follows.
@@ -352,8 +352,6 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         'configure()' as well.
         """
 
-        self._handle_conflicting_stats()
-
         inb_must_have = oob_must_have = None
         if must_have:
             inb_must_have, oob_must_have = _separate_inb_vs_oob(must_have)
@@ -361,6 +359,8 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         self._inbcoll.configure(discover=discover, must_have=inb_must_have)
         if self._oobcoll:
             self._oobcoll.configure(discover=discover, must_have=oob_must_have)
+
+        self._handle_conflicting_stats()
 
         if discover:
             start = "Discovered and configured"
