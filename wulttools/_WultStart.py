@@ -124,9 +124,14 @@ def _create_stcoll(args, pman):
         with contextlib.suppress(Error):
             stcoll.set_prop("acpower", "devnode", devnode)
 
-
-    _LOG.info("Configuring the following statistics: %s", ", ".join(stcoll.get_enabled_stats()))
-    stcoll.configure()
+    enabled_stnames = stcoll.get_enabled_stats()
+    if enabled_stnames:
+        _LOG.info("Configuring the following statistics: %s", ", ".join(enabled_stnames))
+        stcoll.configure()
+    else:
+        _LOG.info("No statistics will be collected")
+        stcoll.close()
+        stcoll = None
 
     return stcoll
 
