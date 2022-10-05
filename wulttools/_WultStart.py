@@ -101,6 +101,7 @@ def _create_stcoll(args, pman):
         STCHelpers.parse_intervals(args.stats_intervals, stconf)
 
     stcoll = StatsCollect.StatsCollect(pman, args.outdir)
+    stcoll.set_info_logging(True)
 
     if stconf["discover"] or "acpower" in stconf["include"]:
         # Assume that power meter is configured to match the SUT name.
@@ -130,7 +131,9 @@ def _create_stcoll(args, pman):
     stcoll.set_stcagent_path(local_path=local_path, remote_path=remote_path)
 
     STCHelpers.apply_stconf(stcoll, stconf)
-    _LOG.info("Configured the following statistics: %s", ", ".join(stcoll.get_enabled_stats()))
+
+    # Enable info messages.
+    stcoll.log_info = True
 
     return stcoll
 

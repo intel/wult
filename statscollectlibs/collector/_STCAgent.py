@@ -321,7 +321,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         if "sysinfo" in stnames:
             stnames.remove("sysinfo")
             if sysinfo:
-                _LOG.info("Collecting %s system information", self._sutname)
+                _LOG.log(self.infolvl, "Collecting %s system information", self._sutname)
                 SysInfo.collect_before(self._statsdir / "sysinfo", self._pman)
 
         if not stnames:
@@ -338,7 +338,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         if "sysinfo" in stnames:
             stnames.remove("sysinfo")
             if sysinfo:
-                _LOG.info("Collecting more %s system information", self._sutname)
+                _LOG.log(self.infolvl, "Collecting more %s system information", self._sutname)
                 SysInfo.collect_after(self._statsdir / "sysinfo", self._pman)
 
         if not stnames:
@@ -680,17 +680,22 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         """Discover and return list of statistics that can be collected."""
 
         stnames = self.get_enabled_stats()
-        _LOG.debug("discovery: trying the following statistics: %s", ", ".join(stnames))
+        if not stnames:
+            _LOG.debug("no enabled statistics, skip discovery on host '%s'", self._pman.hostname)
+            return stnames
 
-        if stnames:
-            with contextlib.suppress(SCReplyError):
-                self._configure(for_discovery=True)
-                self.start(sysinfo=False)
-                self.stop(sysinfo=False)
+        _LOG.debug("discovery: trying the following statistics%s: %s",
+                   self._pman.hostmsg, ", ".join(stnames))
 
-            stnames -= self._get_failed_collectors()
+        with contextlib.suppress(SCReplyError):
+            self._configure(for_discovery=True)
+            self.start(sysinfo=False)
+            self.stop(sysinfo=False)
 
-        _LOG.debug("discovered the following statistics: %s", ", ".join(stnames))
+        stnames -= self._get_failed_collectors()
+        _LOG.debug("discovered the following statistics%s: %s",
+                   self._pman.hostmsg, ", ".join(stnames))
+
         return stnames
 
     def get_enabled_stats(self):
@@ -721,6 +726,9 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         self._stca_path = stca_path
 
         self.stinfo = STATS_INFO.copy()
+
+        # Log level for some of the high-level messages.
+        self.infolvl = logging.DEBUG
 
         # Whether the 'self._pman' object should be closed.
         self._close_pman = False

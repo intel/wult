@@ -61,11 +61,14 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
          Example of "in-band" collectors: acpower, ipmi-inband. These tools run on the local system,
          but collect information about the remote system.
-      2. Optionally set the list of statistics collectors that are going to be used by running the
+
+      2. Call 'set_info_logging()' to enable high-level log messages about big steps, such as
+          discovery results.
+      3. Optionally set the list of statistics collectors that are going to be used by running the
          'set_disabled_stats()', 'set_enabled_stats()'.
-      3. Optionally set tool path and properties for certain statistics using 'set_prop()' and
+      4. Optionally set tool path and properties for certain statistics using 'set_prop()' and
          'set_toolpath()'.
-      4. Optionally set the 'stc-agent' paths on the local and remote systems. By default the
+      5. Optionally set the 'stc-agent' paths on the local and remote systems. By default the
          'stc-agent' program is looked for in the paths from the 'PATH' environment variable.
 
          Note: up to this point, the 'stc-agent' processes have not been started. The configuration
@@ -73,15 +76,15 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
          sent to 'stc-agent' as soon as it starts. And it starts when 'discover()' or 'configure()'
          methods are called.
 
-      5. Optionally discover the available statistics by running the 'discover()' method. Once the
+      6. Optionally discover the available statistics by running the 'discover()' method. Once the
          discovery is finished, re-run 'set_enabled_stats()' to enable the discovered statistics.
-      6. Run the 'configure()' method to configure the statistics collectors.
-      7. Run 'start()' to start collecting the statistics. Supposedly after the 'start()' method is
+      7. Run the 'configure()' method to configure the statistics collectors.
+      8. Run 'start()' to start collecting the statistics. Supposedly after the 'start()' method is
          finished, you run a workload on the SUT.
-      8. Run 'stop()' to stop collecting the statistics. You can repeat the start/stop cycles and
+      9. Run 'stop()' to stop collecting the statistics. You can repeat the start/stop cycles and
          re-configure the collectors between the cycles.
-      9. Copy statistics and logs from the remote host to the local output directory using
-         'copy_remote_data()'.
+      10. Copy statistics and logs from the remote host to the local output directory using
+          'copy_remote_data()'.
     """
 
     def _separate_local_vs_remote(self, stnames):
@@ -133,6 +136,18 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         for stname in oob_stnames:
             self._oobcoll.stinfo[stname]["enabled"] = value
 
+    def set_info_logging(self, enable):
+        """Enable or disable infomrational logging messages printed with the "INFO" log level."""
+
+        if enable:
+            self._infolvl = logging.INFO
+        else:
+            self._infolvl = logging.DEBUG
+
+        self._inbcoll.infolvl = self._infolvl
+        if self._oobcoll:
+            self._oobcoll.infolvl = self._infolvl
+
     def set_enabled_stats(self, stnames):
         """
         Enable statistics in 'stnames'. If 'stname' is "all" or 'None', enable all statistics.
@@ -169,7 +184,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
            self._oobcoll.stinfo["ipmi-oob"]["enabled"]:
             # IPMI in-band and out-of-band collect the same information, but 'ipmi-oob' is
             # supposedly less intrusive.
-            _LOG.info("Disabling 'ipmi-inband' statistics in favor of 'ipmi-oob'")
+            _LOG.log(self._infolvl, "Disabling 'ipmi-inband' statistics in favor of 'ipmi-oob'")
             self._inbcoll.stinfo["ipmi-inband"]["enabled"] = False
 
     def set_intervals(self, intervals):
@@ -312,6 +327,12 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         stnames = self._inbcoll.discover()
         if self._oobcoll:
             stnames |= self._oobcoll.discover()
+
+        if stnames:
+            _LOG.log(self._infolvl, "Discovered the following statistics: %s", ", ".join(stnames))
+        else:
+            _LOG.log(self._infolvl, "Discovered no statistics%s", self._pman.hostmsg)
+
         return stnames
 
     def configure(self, discover=False, must_have=None):
@@ -341,9 +362,17 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         if self._oobcoll:
             self._oobcoll.configure(discover=discover, must_have=oob_must_have)
 
+        if discover:
+            start = "Discovered and configured"
+        else:
+            start = "Configured"
+        _LOG.log(self._infolvl, "%s the following statistics: %s",
+                 start, ", ".join(self.get_enabled_stats()))
+
     def start(self):
         """Start collecting the statistics."""
 
+        _LOG.log(self._infolvl, "Starting statistics collectors")
         self._inbcoll.start()
         if self._oobcoll:
             self._oobcoll.start()
@@ -351,6 +380,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
     def stop(self, sysinfo=True):
         """Stop collecting the statistics."""
 
+        _LOG.log(self._infolvl, "Stopping statistics collectors")
         self._inbcoll.stop(sysinfo=sysinfo)
         if self._oobcoll:
             self._oobcoll.stop(sysinfo=sysinfo)
@@ -359,13 +389,15 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         """
         If there are statistics collected on the remote host in 'self.remote_outdir', copy them over
         to 'self.local_outdir'. This will also include 'stc-agent' logs.
+
+        The 'log' argument can be use to enable the inof logging messages to be printed.
         """
 
         if not self.remote_outdir:
             return
 
-        _LOG.debug("copy statistics from '%s:%s' to '%s'",
-                   self._pman.hostname, self.remote_outdir, self.local_outdir)
+        _LOG.log(self._infolvl, "Copy statistics from '%s' to '%s'",
+                 self._pman.hostname, self.local_outdir)
 
         # We add trailing slash to the remote directory path in order to make rsync copy the
         # contents of the remote directory, but not the directory itself.
@@ -401,6 +433,9 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         # The in-band and out-of-band statistics collector objects.
         self._inbcoll = None
         self._oobcoll = None
+
+        # Log level for some of the high-level messages.
+        self._infolvl = logging.DEBUG
 
         # Mapping between in-/out-of-band and local/remote.
         #
