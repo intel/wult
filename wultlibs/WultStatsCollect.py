@@ -16,8 +16,8 @@ from statscollectlibs.collector import StatsCollect, STCHelpers
 
 _LOG = logging.getLogger()
 
-STATS_NAMES = list(StatsCollect.DEFAULT_STINFO)
-STATS_INFO = StatsCollect.DEFAULT_STINFO
+STATS_NAMES = list(StatsCollect.STATS_INFO)
+STATS_INFO = StatsCollect.STATS_INFO
 
 def parse_stats(stnames, intervals):
     """Parse user-provided lists of statistics and intervals."""

@@ -58,7 +58,7 @@ _DELIMITER = "--\n".encode("utf-8")
 # before and after the workload. Sysinfo includes stuff like the '/proc/cpuinfo' contents, the
 # 'lspci' output, and more.
 #
-DEFAULT_STINFO = {
+STATS_INFO = {
     "sysinfo" : {
         "interval": None,
         "toolpath": None,
@@ -257,7 +257,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         Set intervals for statistics collectors. The 'intervals' argument should be a dictionary
         with statistics collector names as keys and the collection interval as the value. This
         method should be called prior to the 'configure()' method. By default the statistics
-        collectors use intervals from the 'DEFAULT_STINFO' statistics description dictionary.
+        collectors use intervals from the 'STATS_INFO' statistics description dictionary.
         Returns a dictionary of the same structure as 'interval', but with interval values that will
         actually be used for all the statistics collectors.
         """
@@ -720,7 +720,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         self.outdir = outdir
         self._stca_path = stca_path
 
-        self.stinfo = DEFAULT_STINFO.copy()
+        self.stinfo = STATS_INFO.copy()
 
         # Whether the 'self._pman' object should be closed.
         self._close_pman = False
