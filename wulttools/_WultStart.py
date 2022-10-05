@@ -98,7 +98,7 @@ def _create_stcoll(args, pman):
 
     stconf = STCHelpers.parse_stnames(args.stats)
     if args.stats_intervals:
-        STCHelpers.parse_intervals(args.stats_intervals, stconf)
+        STCHelpers.parse_intervals(args.stats_intervals, stconf=stconf)
 
     stcoll = StatsCollect.StatsCollect(pman, args.outdir)
     stcoll.set_info_logging(True)

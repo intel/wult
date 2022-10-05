@@ -19,52 +19,73 @@ from statscollectlibs.collector import StatsCollect
 
 _LOG = logging.getLogger()
 
-def parse_stnames(stnames):
-    """
-    This is a helper function for tools using this module and receiving the list of statistics in
-    form of a string with statistics names separated by a comma. The "!" symbol at the beginning of
-    the statistics name means that this statistics should not be collected. The "all" name means
-    that all the discovered statistics should be included.
+_DEFAULT_STCONF = {
+        "discover"  : False,
+        "include"   : set(),
+        "exclude"   : set(),
+        "intervals" : {},
+}
 
-    This function returns a dictionary with the following keys.
-      * include: statistics names that should be collected (a 'set()').
-      * exclude: statistics names that should not be collected (a 'set()').
+def parse_stnames(stnames, stconf=None):
+    """
+    Parse the statistics names string and return the result in form of a dictionary. The arguments
+    are as follows:
+      * stnames - a string containing a comma-separated list of statistic names. The "!" symbol at
+                  the beginning of a statistics name means that this statistics should not be
+                  collected. The spacial "all" name means that all the discovered statistics should
+                  be included.
+      * stconf - an optional statistics configuration dictionary to fill with the results of
+                 parsing 'stnames'.
+
+    This function adds statistics names to the following keys to the resulting statistics
+    configuration dictionary ('stconf').
+      * include: statistics names that should be collected.
+      * exclude: statistics names that should not be collected.
       * discover: if 'True', then include all the discovered statistics except for those in
                   'exclude'.
+
+    Returns the resulting statistics configuration dictionary.
     """
 
-    stconf = {}
-    stconf["include"] = set()
-    stconf["exclude"] = set()
-    stconf["discover"] = False
-    stconf["intervals"] = {}
+    if not stconf:
+        stconf = _DEFAULT_STCONF
 
     for stname in Trivial.split_csv_line(stnames):
         if stname == "all":
             stconf["discover"] = True
         elif stname.startswith("!"):
             # The "!" prefix indicates that the statistics must not be collected.
-            stconf["exclude"].add(stname[1:])
+            stname = stname[1:]
+            stconf["exclude"].add(stname)
+            if stname in stconf["include"]:
+                stconf["include"].remove(stname)
         else:
             stconf["include"].add(stname)
+            if stname in stconf["exclude"]:
+                stconf["exclude"].remove(stname)
 
     StatsCollect._check_stnames(stconf["include"])
     StatsCollect._check_stnames(stconf["exclude"])
-    stconf["include"] -= stconf["exclude"]
 
     return stconf
 
-def parse_intervals(intervals, stconf):
+def parse_intervals(intervals, stconf=None):
     """
-    This is another helper function for tools using this module, complementary to the
-    'parse_stnames()' helper. The 'intervals' argument is a comma-separated list of
-    "stname:interval" entries, where 'stname' is the statistics name, and 'interval' is the
-    collection interval for this statistics.
+    Parse a string containing statistics collector's intervals and return the result in form of a
+    dictionary. The arguments are as follows:
+      * intervals - a comma-separated list of "stname:interval" entries, where 'stname' is the
+                    statistics name, and 'interval' is the desired collection interval in seconds.
+      * stconf - an optional statistics configuration dictionary to fill with the results of
+                 parsing 'intervals'.
 
-    This function requires the 'stconf' dictionary produced by the 'parse_stnames()' helper, and it
-    adds intervals information to this dictionary. Namely, it adds the "intervals" key with value
-    being an "stname -> interval" dictionary. Intervals are floating point numbers.
+    This function adds statistics collection intervals to the "intervals" keys to the resulting
+    statistics configuration dictionary ('stconf'). The interval values are floating point numbers.
+
+    Returns the resulting statistics configuration dictionary.
     """
+
+    if not stconf:
+        stconf = _DEFAULT_STCONF
 
     for entry in Trivial.split_csv_line(intervals):
         split = Trivial.split_csv_line(entry, sep=":")
@@ -80,6 +101,8 @@ def parse_intervals(intervals, stconf):
                         f"be a positive floating point or integer number")
 
         stconf["intervals"][stname] = float(interval)
+
+    return stconf
 
 def apply_stconf(stcoll, stconf):
     """
