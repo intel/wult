@@ -672,7 +672,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
             for stname in self.get_enabled_stats():
                 if stname not in discovered_stnames:
                     self.stinfo[stname]["enabled"] = False
-                    _LOG.debug("disabled the '{stname}' statistics")
+                    _LOG.debug("disabled the '%s' statistics", stname)
 
         self._configure(for_discovery=False)
 
