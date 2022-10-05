@@ -115,6 +115,7 @@
 <ul class="simple">
 <li><a class="reference internal" href="#include-only-cc6-datapoints" id="toc-entry-1">Include only CC6 datapoints</a></li>
 <li><a class="reference internal" href="#fewer-datapoints-in-the-html-report" id="toc-entry-2">Fewer datapoints in the HTML report</a></li>
+<li><a class="reference internal" href="#change-report-ids" id="toc-entry-3">Change Report IDs</a></li>
 </ul>
 </div>
 <div class="section" id="include-only-cc6-datapoints">
@@ -150,6 +151,17 @@ $ wult report -o ivt-c6-hfm-nic-vs-tdt --include 'index &lt; 10000' ivt-nic-c6-h
 
 $ du -sh ivt-c6-hfm-nic-vs-tdt
 11M    ivt-c6-hfm-nic-vs-tdt
+</pre>
+</div>
+<div class="section" id="change-report-ids">
+<h2><a class="toc-backref" href="#toc-entry-3">Change Report IDs</a></h2>
+<p>Use the <cite>--reportids</cite> option to change report IDs when generating a report. The new IDs should be a
+comma-separated list of names. Wult will change the results in the order that they are provided.</p>
+<p>Suppose you have collected two sets of results with the same report ID. You may want to generate a
+report with different IDs to clarify the difference between the two results (e.g. a difference in
+enabled C-states). This can be done with the following command:</p>
+<pre class="literal-block">
+wult report --reportids C1,C6 path/to/C1/result path/to/C6/result
 </pre>
 </div>
 
