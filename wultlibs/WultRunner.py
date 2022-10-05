@@ -85,6 +85,17 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             if tlimit and time.time() - start_time > tlimit or collected_cnt >= dpcnt:
                 break
 
+    def _stop_run(self):
+        """
+        This is a helper for 'run()' which takes care of the post-run phase of some data providers.
+        """
+
+        self._prov.stop()
+
+        if self._stcoll:
+            self._stcoll.stop(sysinfo=True)
+            self._stcoll.copy_remote_data()
+
     def run(self, dpcnt=1000000, tlimit=None, keep_rawdp=False):
         """
         Start the measurements. The arguments are as follows.
@@ -122,19 +133,8 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                 # not look messy.
                 print("\r", end="")
                 _LOG.notice("interrupted, stopping the measurements")
-
-            with contextlib.suppress(Error):
-                self._prov.stop()
-
-            if self._stcoll:
                 with contextlib.suppress(Error):
-                    # We do not consider Ctrl-c as an error, so collect the system information in
-                    # that case.
-                    self._stcoll.stop(sysinfo=is_ctrl_c)
-                with contextlib.suppress(Error):
-                    self._stcoll.copy_stats()
-
-            if is_ctrl_c:
+                    self._stop_run()
                 raise
 
             dmesg = ""
@@ -146,8 +146,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             duration = Human.duration(self._progress.get_duration())
             _LOG.info("Finished measuring CPU %d%s, lasted %s",
                       self._res.cpunum, self._pman.hostmsg, duration)
-            self._prov.stop()
-
+            self._stop_run()
 
         # Check if there were any bug/warning messages in 'dmesg'.
         dmesg = ""
@@ -163,10 +162,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                                      variant, dmesg)
                         _LOG.warning("consider reporting this to wult developers")
                         break
-
-        if self._stcoll:
-            self._stcoll.stop()
-            self._stcoll.copy_stats()
 
     def _get_cmdline(self):
         """Get kernel boot parameters."""
@@ -188,9 +183,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._res.info["devdescr"] = self._dev.info["descr"]
         self._res.info["resolution"] = self._dev.info["resolution"]
         self._res.info["early_intr"] = self._early_intr
-
-        if self._stcoll:
-            self._stcoll.configure()
 
     def _validate_sut(self, cpunum):
         """Check the SUT to insure we have everything to measure it."""
@@ -245,7 +237,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._prov = None
         self._timeout = 10
         self._progress = None
-        self._stcoll = None
 
         if res.info["toolname"] != "wult":
             raise Error(f"unsupported non-wult test result at {res.dirpath}.\nPlease, provide a "
