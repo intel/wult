@@ -102,18 +102,6 @@ def _create_stcoll(args, pman):
 
     stcoll = StatsCollect.StatsCollect(pman, args.outdir)
 
-    # This is a small optimization: if only 'sysinfo' statistics was requested, the 'stc-agent'
-    # won't be needed, so we can skip 'stc-agent' path discovery.
-    if list(stconf["include"]) != ["sysinfo"]:
-        with LocalProcessManager.LocalProcessManager() as lpman:
-            lpath = Deploy.get_installed_helper_path(lpman, "wult", "stc-agent")
-        if pman.is_remote:
-            rpath = Deploy.get_installed_helper_path(pman, "wult", "stc-agent")
-
-        stcoll.set_stcagent_path(local_path=lpath, remote_path=rpath)
-
-    STCHelpers.apply_stconf(stcoll, stconf)
-
     if stconf["discover"] or "acpower" in stconf["include"]:
         # Assume that power meter is configured to match the SUT name.
         if pman.is_remote:
@@ -124,14 +112,25 @@ def _create_stcoll(args, pman):
         with contextlib.suppress(Error):
             stcoll.set_prop("acpower", "devnode", devnode)
 
-    enabled_stnames = stcoll.get_enabled_stats()
-    if enabled_stnames:
-        _LOG.info("Configuring the following statistics: %s", ", ".join(enabled_stnames))
-        stcoll.configure()
-    else:
+    if not stcoll.get_enabled_stats():
         _LOG.info("No statistics will be collected")
         stcoll.close()
-        stcoll = None
+        return None
+
+    # Configure the 'stc-agent' program path.
+    local_needed, remote_needed = stcoll.is_stcagent_needed()
+    local_path, remote_path = (None, None)
+
+    if local_needed:
+        with LocalProcessManager.LocalProcessManager() as lpman:
+            local_path = Deploy.get_installed_helper_path(lpman, "wult", "stc-agent")
+    if remote_needed:
+        remote_path = Deploy.get_installed_helper_path(pman, "wult", "stc-agent")
+
+    stcoll.set_stcagent_path(local_path=local_path, remote_path=remote_path)
+
+    STCHelpers.apply_stconf(stcoll, stconf)
+    _LOG.info("Configured the following statistics: %s", ", ".join(stcoll.get_enabled_stats()))
 
     return stcoll
 

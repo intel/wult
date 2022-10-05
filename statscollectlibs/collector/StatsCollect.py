@@ -84,6 +84,27 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
          'copy_remote_data()'.
     """
 
+    def _separate_local_vs_remote(self, stnames):
+        """
+        Splits the list of statistics names 'stnames' on two sets - the statistics collected by a
+        local 'stc-agent' instance, and the statistics collected by the remote 'stc-agent' instance.
+        Returns a tuple of those two sets.
+        """
+
+        inb_stnames, oob_stnames = _separate_inb_vs_oob(stnames)
+
+        # Please, refer to the commentaries in '__init__()' for the mapping between in-/out-of-band
+        # and local/remote.
+
+        if self._pman.is_remote:
+            local_stnames = oob_stnames
+            remote_stnames = inb_stnames
+        else:
+            local_stnames = inb_stnames
+            remote_stnames = ()
+
+        return local_stnames, remote_stnames
+
     def get_max_interval(self):
         """
         Returns the longest currently configured interval value. If all statistics are disabled,
@@ -243,6 +264,30 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
             local_coll.set_stcagent_path(local_path)
         if remote_path and remote_coll:
             remote_coll.set_stcagent_path(remote_path)
+
+    def is_stcagent_needed(self):
+        """
+        Check if the local and remote 'stc-agent' programs are needed to collect the currently
+        enabled statistics. Returns a '(local_needed, remote_needed) tuple, where 'local_needed' is
+        a boolean indicating if a local 'stc-agent' program is needed, and 'remote_needed' is a
+        boolean indicating if a remote 'stc-agent' program is needed.
+        """
+
+        # Please, refer to the commentaries in '_init_()' for the mapping between in-/out-of-band
+        # and local/remote.
+
+        stnames = self.get_enabled_stats()
+        local_stnames, remote_stnames = self._separate_local_vs_remote(stnames)
+
+        local_needed, remote_needed = (False, False)
+
+        # Note, the 'sysinfo' collector does not require the 'stc-agent' program.
+        if local_stnames and list(local_stnames) != ["sysinfo"]:
+            local_needed = True
+        if remote_stnames:
+            remote_needed = True
+
+        return local_needed, remote_needed
 
     def discover(self):
         """

@@ -565,8 +565,9 @@ def reduce_installables(deploy_info, dev, stcoll=None):
 
     # If no statistics will be collected, or only the "sysinfo" will be collected, the 'stc-agent'
     # is not needed.
-    if "stc-agent" in result["installables"]:
-        if not stcoll or list(stcoll.get_enabled_stats()) == ["sysinfo"]:
+    if stcoll and "stc-agent" in result["installables"]:
+        local_needed, remote_needed = stcoll.is_stcagent_needed()
+        if not local_needed and not remote_needed:
             del result["installables"]["stc-agent"]
 
     return result
