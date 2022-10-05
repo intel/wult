@@ -676,9 +676,9 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         else:
             for stname, info in self.stinfo.items():
                 info["enabled"] = stname in must_have
-                if stname in must_have:
-                    info["fallible"] = False
 
+        for stname, info in self.stinfo.items():
+            info["fallible"] = stname not in must_have
 
         self._configure(for_discovery=False)
 
