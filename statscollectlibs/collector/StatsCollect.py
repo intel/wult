@@ -18,18 +18,18 @@ from statscollectlibs.collector._STCAgent import STATS_INFO
 
 _LOG = logging.getLogger()
 
-def _check_stname(stname):
+def check_stname(stname):
     """Verify that 'stname' is a known statistic name."""
 
     if stname not in STATS_INFO:
         avail_stnames = ", ".join(STATS_INFO)
         raise Error(f"unknown statistic name '{stname}', the known names are: {avail_stnames}")
 
-def _check_stnames(stnames):
+def check_stnames(stnames):
     """Verify that statistics in the 'stnames' list are legit."""
 
     for stname in stnames:
-        _check_stname(stname)
+        check_stname(stname)
 
 def _separate_inb_vs_oob(stnames):
     """
@@ -40,7 +40,7 @@ def _separate_inb_vs_oob(stnames):
     inb_stnames = set()
     oob_stnames = set()
     for stname in stnames:
-        _check_stname(stname)
+        check_stname(stname)
 
         if STATS_INFO[stname]["inband"]:
             inb_stnames.add(stname)
@@ -128,7 +128,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         if stnames in (None, "all"):
             stnames = list(STATS_INFO)
 
-        _check_stnames(stnames)
+        check_stnames(stnames)
         inb_stnames, oob_stnames = _separate_inb_vs_oob(stnames)
 
         for stname in inb_stnames:
@@ -182,7 +182,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         possibly rounded interval values as 'float' type.
         """
 
-        _check_stnames(intervals.keys())
+        check_stnames(intervals.keys())
         inb_stnames, oob_stnames = _separate_inb_vs_oob(intervals.keys())
 
         inb_intervals = {stname: intervals[stname] for stname in inb_stnames}
@@ -211,7 +211,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         in-band statistics.
         """
 
-        _check_stname(stname)
+        check_stname(stname)
 
         stinfo = self._get_stinfo(stname)
         return stinfo["toolpath"]
@@ -223,7 +223,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         for in-band statistics.
         """
 
-        _check_stname(stname)
+        check_stname(stname)
 
         stinfo = self._get_stinfo(stname)
         stinfo["toolpath"] = path
@@ -231,7 +231,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
     def set_prop(self, stname, name, value):
         """Set 'stname' statistic collector's property 'name' to value 'value'."""
 
-        _check_stname(stname)
+        check_stname(stname)
 
         stinfo = self._get_stinfo(stname)
 

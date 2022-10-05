@@ -10,8 +10,6 @@
 This module implements several misc. helpers for tools using 'StatsCollect'.
 """
 
-# pylint: disable=protected-access
-
 import logging
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
@@ -64,8 +62,8 @@ def parse_stnames(stnames, stconf=None):
             if stname in stconf["exclude"]:
                 stconf["exclude"].remove(stname)
 
-    StatsCollect._check_stnames(stconf["include"])
-    StatsCollect._check_stnames(stconf["exclude"])
+    StatsCollect.check_stnames(stconf["include"])
+    StatsCollect.check_stnames(stconf["exclude"])
 
     return stconf
 
@@ -94,7 +92,7 @@ def parse_intervals(intervals, stconf=None):
                         f"'stname' is the statistics name and 'interval' is a floating point "
                         f"interval for collecting the 'stname' statistics.")
         stname, interval = split
-        StatsCollect._check_stname(stname)
+        StatsCollect.check_stname(stname)
 
         if not Trivial.is_float(interval):
             raise Error(f"bad interval value '{interval}' for the '{stname}' statistics: should "
