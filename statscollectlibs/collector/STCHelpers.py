@@ -99,5 +99,3 @@ def apply_stconf(stcoll, stconf):
     stcoll.set_intervals(stconf["intervals"])
 
     stcoll.configure(discover=stconf["discover"], must_have=stconf["include"])
-
-    stconf["include"] = stcoll.get_enabled_stats()
