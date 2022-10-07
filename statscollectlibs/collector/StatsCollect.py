@@ -25,10 +25,20 @@ _LOG = logging.getLogger()
 # The following constant maps aggregate statistic names to specific statistic names.
 _AGGR_STNAMES = {"ipmi": {"ipmi-inband", "ipmi-oob"}}
 
-def check_stname(stname):
-    """Verify that 'stname' is a known statistic name."""
+def check_stname(stname, allow_aggregate=True):
+    """
+    Verify that 'stname' is a known statistic name. The arguments are as follows:
+     * stname - the statistic name to verify.
+     * allow_aggregate - if 'False', errors if 'stname' is an aggregate statistic name or an invalid
+                         statistic name. Otherwise, only errors if 'stname' if not a valid statistic
+                         name.
+    """
 
-    if stname not in STATS_INFO:
+    if stname in _AGGR_STNAMES and not allow_aggregate:
+        raise Error(f"'{stname}' is an aggregate statistic name, please specify a specific "
+                    f"statistic name")
+
+    if stname not in STATS_INFO and stname not in _AGGR_STNAMES:
         avail_stnames = ", ".join(STATS_INFO)
         raise Error(f"unknown statistic name '{stname}', the known names are: {avail_stnames}")
 
@@ -47,7 +57,7 @@ def _separate_inb_vs_oob(stnames):
     inb_stnames = set()
     oob_stnames = set()
     for stname in stnames:
-        check_stname(stname)
+        check_stname(stname, allow_aggregate=False)
 
         if STATS_INFO[stname]["inband"]:
             inb_stnames.add(stname)
@@ -227,7 +237,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         in-band statistics.
         """
 
-        check_stname(stname)
+        check_stname(stname, allow_aggregate=False)
 
         stinfo = self._get_stinfo(stname)
         return stinfo["toolpath"]
@@ -239,7 +249,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         for in-band statistics.
         """
 
-        check_stname(stname)
+        check_stname(stname, allow_aggregate=False)
 
         stinfo = self._get_stinfo(stname)
         stinfo["toolpath"] = path
@@ -247,7 +257,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
     def set_prop(self, stname, name, value):
         """Set 'stname' statistic collector's property 'name' to value 'value'."""
 
-        check_stname(stname)
+        check_stname(stname, allow_aggregate=False)
 
         stinfo = self._get_stinfo(stname)
 
