@@ -171,6 +171,15 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
         return stnames
 
+    def get_disabled_stats(self):
+        """Return the list of disabled statistic names."""
+
+        stnames = self.inbagent.get_disabled_stats()
+        if self._oobagent:
+            stnames |= self._oobagent.get_disabled_stats()
+
+        return stnames
+
     def set_intervals(self, intervals):
         """
         Set intervals for statistics collectors. The 'intervals' argument should be a dictionary
