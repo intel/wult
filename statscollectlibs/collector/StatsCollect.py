@@ -122,6 +122,18 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
         return max(inb_max_interval, oob_max_interval)
 
+    def set_info_logging(self, enable):
+        """Enable or disable infomrational logging messages printed with the "INFO" log level."""
+
+        if enable:
+            self._infolvl = logging.INFO
+        else:
+            self._infolvl = logging.DEBUG
+
+        self.inbagent.infolvl = self._infolvl
+        if self._oobagent:
+            self._oobagent.infolvl = self._infolvl
+
     def _toggle_enabled(self, stnames, value):
         """Enabled/disable 'stnames' statistics."""
 
@@ -135,18 +147,6 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
             self.inbagent.stinfo[stname]["enabled"] = value
         for stname in oob_stnames:
             self._oobagent.stinfo[stname]["enabled"] = value
-
-    def set_info_logging(self, enable):
-        """Enable or disable infomrational logging messages printed with the "INFO" log level."""
-
-        if enable:
-            self._infolvl = logging.INFO
-        else:
-            self._infolvl = logging.DEBUG
-
-        self.inbagent.infolvl = self._infolvl
-        if self._oobagent:
-            self._oobagent.infolvl = self._infolvl
 
     def set_enabled_stats(self, stnames):
         """
