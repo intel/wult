@@ -682,10 +682,16 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         stnames = self.get_enabled_stats()
         self._configure(stnames, for_discovery=False)
 
-    def discover(self):
-        """Discover and return list of statistics that can be collected."""
+    def discover(self, stnames=None):
+        """
+        Discover and return list of statistics that can be collected. Optionally, use the 'stnames'
+        parameter to specify a set containing the names of statistics to be checked. If 'stnames' is
+        not provided, checks all enabled statistics.
+        """
 
-        stnames = self.get_enabled_stats()
+        if stnames is None:
+            stnames = self.get_enabled_stats()
+
         if not stnames:
             _LOG.debug("no enabled statistics, skip discovery on host '%s'", self._pman.hostname)
             return stnames
