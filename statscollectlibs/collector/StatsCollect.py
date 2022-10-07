@@ -297,6 +297,31 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
         return local_needed, remote_needed
 
+    def _discover(self, stnames):
+        """
+        Helper function for 'discover()'. Provide 'stnames' to discover a specific set of
+        statistics.
+        """
+
+        # Check that only enabled statistics are trying to be discovered.
+        if stnames is not None:
+            disabled_stnames = stnames.difference(self.get_enabled_stats())
+            if disabled_stnames:
+                raise Error(f"cannot discover disabled statistics {disabled_stnames}")
+
+        inband_stnames, oob_stnames = _separate_inb_vs_oob(stnames)
+        available = set()
+        available |= self.inbagent.discover(inband_stnames)
+        if self._oobagent:
+            available |= self._oobagent.discover(oob_stnames)
+
+        if stnames:
+            _LOG.log(self._infolvl, "Discovered the following statistics: %s", ", ".join(available))
+        else:
+            _LOG.log(self._infolvl, "Discovered no statistics%s", self._pman.hostmsg)
+
+        return available
+
     def discover(self):
         """
         Discover and return set of statistics that can be collected for SUT. This method probes all
@@ -317,16 +342,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         configuration to them.
         """
 
-        stnames = self.inbagent.discover()
-        if self._oobagent:
-            stnames |= self._oobagent.discover()
-
-        if stnames:
-            _LOG.log(self._infolvl, "Discovered the following statistics: %s", ", ".join(stnames))
-        else:
-            _LOG.log(self._infolvl, "Discovered no statistics%s", self._pman.hostmsg)
-
-        return stnames
+        return self._discover(self.get_enabled_stats())
 
     def _handle_conflicting_stats(self):
         """
