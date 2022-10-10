@@ -588,14 +588,13 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
             self._statsdir = self.outdir / "stats"
         self._pman.mkdir(self._statsdir, exist_ok=True)
 
-    def _configure(self, for_discovery=False):
+    def _configure(self, stnames, for_discovery=False):
         """
         Configure statistic collectors. If 'for_discovery' is 'True', configure the collectors for
         running the discovery process. Otherwise configure the collectors for collecting the
         statistics.
         """
 
-        stnames = self.get_enabled_stats()
         sysinfo = False
         if "sysinfo" in stnames:
             stnames.remove("sysinfo")
@@ -680,7 +679,8 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         for stname, info in self.stinfo.items():
             info["fallible"] = stname not in must_have
 
-        self._configure(for_discovery=False)
+        stnames = self.get_enabled_stats()
+        self._configure(stnames, for_discovery=False)
 
     def discover(self):
         """Discover and return list of statistics that can be collected."""
@@ -694,7 +694,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
                    self._pman.hostmsg, ", ".join(stnames))
 
         with contextlib.suppress(SCReplyError):
-            self._configure(for_discovery=True)
+            self._configure(stnames, for_discovery=True)
             self.start(sysinfo=False)
             self.stop(sysinfo=False)
 
