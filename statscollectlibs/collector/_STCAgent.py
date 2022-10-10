@@ -303,7 +303,8 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         # Add some margin of safety.
         max_interval += 1
 
-        if "ipmi-oob" in self.stinfo and self.stinfo["ipmi-oob"]["enabled"]:
+        stname_enabled = lambda stname: stname in self.stinfo and self.stinfo[stname]["enabled"]
+        if stname_enabled("ipmi-inband") or stname_enabled("ipmi-oob"):
             # IPMI may be very slow sometimes, so give it at least 10 seconds.
             max_interval = max(10, max_interval)
 
