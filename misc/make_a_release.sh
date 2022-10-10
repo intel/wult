@@ -82,6 +82,11 @@ argparse-manpage --pyfile "$BASEDIR/wulttools/_Ndl.py" --function _build_argumen
 pandoc --toc -t man -s "$BASEDIR/docs/man1/wult.1" -t rst -o "$BASEDIR/docs/wult-man.rst"
 pandoc --toc -t man -s "$BASEDIR/docs/man1/ndl.1"  -t rst -o "$BASEDIR/docs/ndl-man.rst"
 
+# Update debian changelog.
+"$BASEDIR"/../pepc/misc/convert_changelog -o "$BASEDIR/debian/changelog" -p "wult" \
+                                          -n "Artem Bityutskiy" -e "artem.bityutskiy@intel.com" \
+                                          "$BASEDIR/CHANGELOG.md"
+
 # Commit the changes.
 git -C "$BASEDIR" commit -a -s -m "Release version $new_ver"
 
