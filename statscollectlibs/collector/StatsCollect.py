@@ -48,6 +48,21 @@ def check_stnames(stnames):
     for stname in stnames:
         check_stname(stname)
 
+def _expand_aggr_stnames(stnames):
+    """
+    Expand aggregate statistic names in 'stnames'. Return a new set of statistic names which does
+    not contain any aggregate statistic names.
+    """
+
+    new_stnames = set()
+    for stname in stnames:
+        if stname in _AGGR_STNAMES:
+            new_stnames.update(_AGGR_STNAMES[stname])
+        else:
+            new_stnames.add(stname)
+
+    return new_stnames
+
 def _separate_inb_vs_oob(stnames):
     """
     Splits the list of statistics names 'stnames' on two sets - the in-band and the out-of-band
@@ -172,11 +187,17 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         Note, all statistics are enabled by default when an instance of this class is created.
         """
 
+        # If an aggregate statistic name is in 'stnames', enable all possible specific statistic
+        # names for that aggregate statistic name.
+        stnames = _expand_aggr_stnames(stnames)
         self._toggle_enabled(stnames, True)
 
     def set_disabled_stats(self, stnames):
         """Same as 'set_enabled_stats()', but for disabling."""
 
+        # If an aggregate statistic name is in 'stnames', disable all possible specific statistics
+        # names for that aggregate statistic name.
+        stnames = _expand_aggr_stnames(stnames)
         self._toggle_enabled(stnames, False)
 
     def get_enabled_stats(self):
