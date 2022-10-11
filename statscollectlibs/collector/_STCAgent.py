@@ -287,6 +287,16 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
                         f"has already been started")
         self._stca_path = path
 
+    def _stname_enabled(self, stname):
+        """
+        Helper function for '_ensure_min_collect_time()'. Returns 'True' if the statistic 'stname'
+        is in 'stinfo' and enabled. Otherwise, returns 'False'.
+        """
+
+        if stname not in self.stinfo:
+            return False
+        return self.stinfo[stname]["enabled"]
+
     def _ensure_min_collect_time(self):
         """
         This method makes sure all statistics collector made progress and collected at least one
@@ -303,8 +313,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         # Add some margin of safety.
         max_interval += 1
 
-        stname_enabled = lambda stname: stname in self.stinfo and self.stinfo[stname]["enabled"]
-        if stname_enabled("ipmi-inband") or stname_enabled("ipmi-oob"):
+        if self._stname_enabled("ipmi-inband") or self._stname_enabled("ipmi-oob"):
             # IPMI may be very slow sometimes, so give it at least 10 seconds.
             max_interval = max(10, max_interval)
 
