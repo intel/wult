@@ -16,10 +16,12 @@ this module require the  'args' object which represents the command-line argumen
 
 import sys
 import logging
+import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import Trivial, ProcessManager, Logging, YAML
+from pepclibs.helperlibs import Trivial, LocalProcessManager, ProcessManager, Logging, YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs import DFSummary
+from statscollectlibs.collector import StatsCollect, STCHelpers
 from wultlibs import Devices, Deploy
 from wultlibs.helperlibs import ReportID, Human
 from wultlibs.rawresultlibs import RORawResult
@@ -607,6 +609,72 @@ def start_command_check_network(args, pman, netif):
         raise Error(f"refusing to use device '{args.devid}'{msg}{pman.hostmsg}: it is up and "
                     f"might be used for networking. Please, bring it down if you want to use "
                     "it for measurements.")
+
+def start_command_list_stats():
+    """
+    This helper handles the '--list-stats' command line option and print information about
+    statistics.
+    """
+
+    if not StatsCollect.STATS_INFO:
+        raise Error("statistics collection is not supported on your system")
+
+    for stname, stinfo in StatsCollect.STATS_INFO.items():
+        _LOG.info("* %s", stname)
+        if stinfo.get("interval"):
+            _LOG.info("  - Default interval: %.1fs", stinfo["interval"])
+        _LOG.info("  - %s", stinfo["description"])
+
+def start_command_create_stcoll(args, pman):
+    """
+    This helper handles the '--stats' and other statistics collection command line options. Based on
+    th eoptions, it creates, configures, and return the 'StatsCollect' object, which will be used
+    for collecting the statistics requested by the user.
+    """
+
+    if not args.stats or args.stats == "none":
+        return None
+
+    stconf = STCHelpers.parse_stnames(args.stats)
+    if args.stats_intervals:
+        STCHelpers.parse_intervals(args.stats_intervals, stconf=stconf)
+
+    stcoll = StatsCollect.StatsCollect(pman, args.outdir)
+    stcoll.set_info_logging(True)
+
+    if stconf["discover"] or "acpower" in stconf["include"]:
+        # Assume that power meter is configured to match the SUT name.
+        if pman.is_remote:
+            devnode = pman.hostname
+        else:
+            devnode = "default"
+
+        with contextlib.suppress(Error):
+            stcoll.set_prop("acpower", "devnode", devnode)
+
+    if not stcoll.get_enabled_stats():
+        _LOG.info("No statistics will be collected")
+        stcoll.close()
+        return None
+
+    # Configure the 'stc-agent' program path.
+    local_needed, remote_needed = stcoll.is_stcagent_needed()
+    local_path, remote_path = (None, None)
+
+    if local_needed:
+        with LocalProcessManager.LocalProcessManager() as lpman:
+            local_path = Deploy.get_installed_helper_path(lpman, "wult", "stc-agent")
+    if remote_needed:
+        remote_path = Deploy.get_installed_helper_path(pman, "wult", "stc-agent")
+
+    stcoll.set_stcagent_path(local_path=local_path, remote_path=remote_path)
+
+    STCHelpers.apply_stconf(stcoll, stconf)
+
+    # Enable info messages.
+    stcoll.log_info = True
+
+    return stcoll
 
 
 def report_command_outdir(args, rsts):

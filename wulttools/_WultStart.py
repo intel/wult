@@ -13,11 +13,10 @@ This module includes the "start" 'wult' command implementation.
 import logging
 import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import LocalProcessManager, Trivial
+from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs.msr import PowerCtl
 from pepclibs import CStates, CPUInfo
-from statscollectlibs.collector import StatsCollect, STCHelpers
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs import Deploy, ToolsCommon, Devices, WultRunner
@@ -64,18 +63,6 @@ def _check_settings(pman, dev, csinfo, cpunum, devid):
                 _LOG.notice("C1E autopromote is enabled, all %s requests are converted to C1E.",
                             enabled_cstates[0])
 
-def _list_stats():
-    """Print information about statistics."""
-
-    if not StatsCollect.STATS_INFO:
-        raise Error("statistics collection is not supported on your system")
-
-    for stname, stinfo in StatsCollect.STATS_INFO.items():
-        _LOG.info("* %s", stname)
-        if stinfo.get("interval"):
-            _LOG.info("  - Default interval: %.1fs", stinfo["interval"])
-        _LOG.info("  - %s", stinfo["description"])
-
 def _generate_report(args):
     """Implements the 'report' command for start."""
 
@@ -87,61 +74,11 @@ def _generate_report(args):
     rep.set_hover_metrics(_WultCommon.HOVER_METRIC_REGEXS)
     rep.generate()
 
-def _create_stcoll(args, pman):
-    """
-    Create, initialize, and return the 'StatsCollect' object, which will be used for collecting
-    statistics.
-    """
-
-    if not args.stats or args.stats == "none":
-        return None
-
-    stconf = STCHelpers.parse_stnames(args.stats)
-    if args.stats_intervals:
-        STCHelpers.parse_intervals(args.stats_intervals, stconf=stconf)
-
-    stcoll = StatsCollect.StatsCollect(pman, args.outdir)
-    stcoll.set_info_logging(True)
-
-    if stconf["discover"] or "acpower" in stconf["include"]:
-        # Assume that power meter is configured to match the SUT name.
-        if pman.is_remote:
-            devnode = pman.hostname
-        else:
-            devnode = "default"
-
-        with contextlib.suppress(Error):
-            stcoll.set_prop("acpower", "devnode", devnode)
-
-    if not stcoll.get_enabled_stats():
-        _LOG.info("No statistics will be collected")
-        stcoll.close()
-        return None
-
-    # Configure the 'stc-agent' program path.
-    local_needed, remote_needed = stcoll.is_stcagent_needed()
-    local_path, remote_path = (None, None)
-
-    if local_needed:
-        with LocalProcessManager.LocalProcessManager() as lpman:
-            local_path = Deploy.get_installed_helper_path(lpman, "wult", "stc-agent")
-    if remote_needed:
-        remote_path = Deploy.get_installed_helper_path(pman, "wult", "stc-agent")
-
-    stcoll.set_stcagent_path(local_path=local_path, remote_path=remote_path)
-
-    STCHelpers.apply_stconf(stcoll, stconf)
-
-    # Enable info messages.
-    stcoll.log_info = True
-
-    return stcoll
-
 def start_command(args):
     """Implements the 'start' command."""
 
     if args.list_stats:
-        _list_stats()
+        ToolsCommon.start_command_list_stats()
         return
 
     with contextlib.ExitStack() as stack:
@@ -175,7 +112,7 @@ def start_command(args):
         ToolsCommon.setup_stdout_logging(args.toolname, res.logs_path)
         ToolsCommon.set_filters(args, res)
 
-        stcoll = _create_stcoll(args, pman)
+        stcoll = ToolsCommon.start_command_create_stcoll(args, pman)
         if stcoll:
             stack.enter_context(stcoll)
 
