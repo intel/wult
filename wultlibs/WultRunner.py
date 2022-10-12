@@ -127,8 +127,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         except (KeyboardInterrupt, Error) as err:
             self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
 
-            is_ctrl_c = isinstance(err, KeyboardInterrupt)
-            if is_ctrl_c:
+            if isinstance(err, KeyboardInterrupt):
                 # In Linux Ctrl-c prints '^C' on the terminal. Make sure the next output line does
                 # not look messy.
                 print("\r", end="")
