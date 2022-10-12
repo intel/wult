@@ -20,8 +20,6 @@ import contextlib
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, LocalProcessManager, ProcessManager, Logging, YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from statscollectlibs import DFSummary
-from statscollectlibs.collector import StatsCollect, STCHelpers
 from wultlibs import Devices, Deploy
 from wultlibs.helperlibs import ReportID, Human
 from wultlibs.rawresultlibs import RORawResult
@@ -474,6 +472,8 @@ def calc_command(args):
     """Implements the 'calc' command  for the 'wult' and 'ndl' tools."""
 
     if args.list_funcs:
+        from statscollectlibs import DFSummary # pylint: disable=import-outside-toplevel
+
         for name, descr in DFSummary.get_smry_funcs():
             _LOG.info("%s: %s", name, descr)
         return
@@ -616,6 +616,8 @@ def start_command_list_stats():
     statistics.
     """
 
+    from statscollectlibs.collector import StatsCollect # pylint: disable=import-outside-toplevel
+
     if not StatsCollect.STATS_INFO:
         raise Error("statistics collection is not supported on your system")
 
@@ -634,6 +636,9 @@ def start_command_create_stcoll(args, pman):
 
     if not args.stats or args.stats == "none":
         return None
+
+    # pylint: disable=import-outside-toplevel
+    from statscollectlibs.collector import StatsCollect, STCHelpers
 
     stconf = STCHelpers.parse_stnames(args.stats)
     if args.stats_intervals:
