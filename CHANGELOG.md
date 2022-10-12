@@ -3,11 +3,15 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.34] - ADD DATE HERE
+## [1.10.35] - ADD DATE HERE
 ### Fixed
 ### Added
 ### Removed
 ### Changed
+
+## [1.10.34] - 2022-10-12
+### Fixed
+ - Fix the 'ipmi' statistics collection.
 
 ## [1.10.33] - 2022-09-05
 ### Fixed

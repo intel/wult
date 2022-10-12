@@ -1,8 +1,234 @@
+wult (1.10.34) unstable; urgency=low
+
+  * Fix the 'ipmi' statistics collection.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 12 Oct 2022 00:00:00 +0200
+
+wult (1.10.33) unstable; urgency=low
+
+  * Fix 'hrtimer' method's pre-compiled eBPF program.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 05 Sep 2022 00:00:00 +0200
+
+wult (1.10.32) unstable; urgency=low
+
+  * Fix 'hrtimer' method's outliers problem by filtering out datapoints that
+    included unrelated SW interrupts and NMIs.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 30 Sep 2022 00:00:00 +0200
+
+wult (1.10.31) unstable; urgency=low
+
+  * Do not collect 'journalctl -b' output as part of the 'sysinfo' statistics.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 22 Sep 2022 00:00:00 +0200
+
+wult (1.10.30) unstable; urgency=low
+
+  * Remove '--headless' option from 'view_multiple_reports.py'.
+  * Remove 'view_report.py' from report directories.
+  * Increase max. launch distance to 50 milliseconds (tdt, hrt, i210).
+  * Rename 'view_multiple_reports.py' to 'serve_directory.py'.
+  * Change 'serve_directory.py' so that it does not try to open a web-browser by
+    default.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 20 Sep 2022 00:00:00 +0200
+
+wult (1.10.29) unstable; urgency=low
+
+  * Do not check for 'stc-agent' and do not complain about its possible absence
+    if statistics do not need to be collected.
+  * Do not check for kernel sources and do not complain about them missing when
+    deploying with the '--skip-drivers' option.
+  * Fix missing package C-state tabs in reports
+  * Add the ability to upload a wult report directory if viewing the report
+    locally.
+  * Add 'RAMWatt' tab to wult reports in the turbostat totals power/temperature
+    tab.
+  * Improve the warning about viewing wult reports locally.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 16 Sep 2022 00:00:00 +0200
+
+wult (1.10.28) unstable; urgency=low
+
+  * Minor fix for the 'i210' method: restore network interface operational state
+    correctly.
+  * Add '--dir' option to 'view_multiple_reports.py'.
+  * Wult report viewing scripts now tries multiple ports before failing.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 08 Sep 2022 00:00:00 +0200
+
+wult (1.10.27) unstable; urgency=low
+
+  * Wult mistakenly required the 'ip' tool to be installed, this is fixed now.
+  * New 'wult scan --all' option to print unsupported devices.
+  * 'wult deploy --skip-drivers' does not require kernel sources any longer.
+  * Merge and simplify the 'SilentTime' and 'LDist' tabs in wult reports.
+  * 'wult scan' does not print unsupported devices by default.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 07 Sep 2022 00:00:00 +0200
+
+wult (1.10.26) unstable; urgency=low
+
+  * Do not error out when CC0 cycles is greater than total cycles. Just warn
+    instead. We observe this with 'POLL' C-state on some platforms.
+  * Fix for the problem of extremely slow data rate when measuring the 'POLL'
+    state using the 'hrt' method.
+  * Add '--host', '--port' and '--headless' options to report viewing scripts.
+  * Remove the '--size=medium' report option.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 05 Sep 2022 00:00:00 +0200
+
+wult (1.10.25) unstable; urgency=low
+
+  * Reworked the deployment code to better support RPM packaging.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 31 Aug 2022 00:00:00 +0200
+
+wult (1.10.24) unstable; urgency=low
+
+  * Fix regression introduced in 1.10.23: we failed to find helpers when they
+    were not in '$PATH'.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 29 Aug 2022 00:00:00 +0200
+
+wult (1.10.23) unstable; urgency=low
+
+  * Change 'wult' to not expect driver/helper sources be available  * they are
+    not available when installed from an OS package, such as an RPM package.
+  * Change the way 'wult' tool looks for installed drivers and helpers in order
+    to support RPM packaging.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 29 Aug 2022 00:00:00 +0200
+
+wult (1.10.22) unstable; urgency=low
+
+  * Fix C-state tabs being excluded from wult HTML reports generated with
+    '--size=large'.
+  * Add 'wult deploy --skip-drivers' option, useful for debug and development.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Sun, 28 Aug 2022 00:00:00 +0200
+
+wult (1.10.21) unstable; urgency=low
+
+  * Fix the problem of progress line for 'tdt': it always printed 0 max. latency.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 22 Aug 2022 00:00:00 +0200
+
+wult (1.10.20) unstable; urgency=low
+
+  * Fix wult deploy regression where 'stc-agent' failed to deploy.
+  * Always deploy eBPF helpers, making the new "hrtimer" method available by
+    default.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 19 Aug 2022 00:00:00 +0200
+
+wult (1.10.19) unstable; urgency=low
+
+  * Fix compatibility of wult report viewing scripts for Python 3.5+.
+  * Fix wult report failing because it can't find scripts for viewing reports.
+  * wult now restores i210 network interface state after the measurement.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 19 Aug 2022 00:00:00 +0200
+
+wult (1.10.18) unstable; urgency=low
+
+  * Fix nic method-only regression introduced in 1.10.0: 'WarmupDelay' and
+    'LatchDelay' metrics were not saved in the CSV file.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 17 Aug 2022 00:00:00 +0200
+
+wult (1.10.17) unstable; urgency=low
+
+  * Add local viewing scripts to each wult HTML report.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 16 Aug 2022 00:00:00 +0200
+
+wult (1.10.16) unstable; urgency=low
+
+  * Fix occasional crash: KeyError: 'IntrLatencyRaw'.
+  * Added new 'hrtimer' method, which is based on eBPF and does not require
+    kernel drivers. This method is considered to be experimental for now, and
+    eBPF helpers are not deployed by default. Use 'wult deploy --deploy-bpf' to
+    deploy them.
+  * Remove the "hrtimer" alias for the "hrt" method.
+  * Remove the "tsc-deadline-timer" alias for the "tdt" method.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 16 Aug 2022 00:00:00 +0200
+
+wult (1.10.15) unstable; urgency=low
+
+  * Fix failure when setting large launch distance (>4ms).
+  * Max. launch distance changed from 10ms to 20ms.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 10 Aug 2022 00:00:00 +0200
+
+wult (1.10.14) unstable; urgency=low
+
+  * Move scripts for local reports viewing to 'misc/servedir'.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 05 Aug 2022 00:00:00 +0200
+
+wult (1.10.13) unstable; urgency=low
+
+  * Add turbostat data to the "Info" tab.
+  * Add misc. scripts for viewing wult reports locally.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 05 Aug 2022 00:00:00 +0200
+
+wult (1.10.12) unstable; urgency=low
+
+  * Fix crash related to 'IntrLatency' (regression in v1.10.11).
+  * Change 'wult start --list-stats' to not require device id.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 01 Aug 2022 00:00:00 +0200
+
+wult (1.10.11) unstable; urgency=low
+
+  * Fix the 'wult start --early-intr' option.
+  * Fix 'wult report' generating broken HTML reports for reports with no
+    common IPMI metrics.
+  * Fix HTML report screen tearing which appeared after switching tabs many
+    times.
+  * Add 'dmesg', 'lspci', 'cpuidle' and 'cpufreq' to the "SysInfo" tabs in
+    HTML reports.
+  * Add buttons to the "SysInfo" tab to open raw files in a separate tab.
+  * Remove the 'wult start --intr-focus' option.
+  * Changed 'wult report' so that reports will be generated with logs by default.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 18 Jul 2022 00:00:00 +0200
+
+wult (1.10.10) unstable; urgency=low
+
+  * Fix crashes with kernels version 5.18+ on C-states entered with interrupts
+    enabled.
+  * Remove bogus 'IntrLatency' data when using the 'tdt' method.
+  * wult report: add "SysInfo" tab with various system info about SUTs.
+  * Optimization: spend time calculating TSC rate only in case of the TDT method.
+  Skip this step for the HRT/NIC methods.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 15 Jul 2022 00:00:00 +0200
+
+wult (1.10.9) unstable; urgency=low
+
+  * Minor improvements required for RPM packaging
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 06 Jul 2022 00:00:00 +0200
+
+wult (1.10.8) unstable; urgency=low
+
+  * Fix regression in v1.10.7: turbostat statistics collector was crashing.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 29 Jun 2022 00:00:00 +0200
+
 wult (1.10.7) unstable; urgency=low
 
-  * wult: prevent generation of excessively large plots introduced in v1.10.1.
+  * Fix regression in v1.10.1: generated scatter plots were too large.
+  * Add 'UncMHz' (uncore frequency) turbostat metric support.
+  * Improve Turbostat metrics description by specifying the aggregation method
+    (whether it is max or average of values for all CPUs).
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com> 
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 28 Jun 2022 00:00:00 +0200
 
 wult (1.10.6) unstable; urgency=low
 
@@ -10,19 +236,19 @@ wult (1.10.6) unstable; urgency=low
   * wult: add current and voltage to IPMI statistics.
   * Add RPM packaging support.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com> Fri, 24 Jun 2022 14:30:44 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 24 Jun 2022 00:00:00 +0200
 
 wult (1.10.5) unstable; urgency=low
 
   * wult: fix crashes on systems that do not have 'python' in PATH.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com> 09 Jun 2022 16:01:06 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 09 Jun 2022 00:00:00 +0200
 
 wult (1.10.4) unstable; urgency=low
 
   * wult: fix crash with when unknown method is given (regression in 1.10.0).
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com> Mon, 06 Jun 2022 16:55:36 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 06 Jun 2022 00:00:00 +0200
 
 wult (1.10.3) unstable; urgency=low
 
@@ -34,14 +260,14 @@ wult (1.10.3) unstable; urgency=low
   * wult: do not check for 'bpftool' and 'clang' dependency unnecessarily.
   * ndl: fail gracefully on 'ndl start tdt'.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com> Fri, 03 Jun 2022 15:19:05 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 03 Jun 2022 00:00:00 +0200
 
 wult (1.10.2) unstable; urgency=low
 
   * wult: fix missing C-states residencies (regression in 1.10.0).
   * wult report: fix '--size large'.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com> Tue, 31 May 2022 19:16:37 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 31 May 2022 00:00:00 +0200
 
 wult (1.10.1) unstable; urgency=low
 
@@ -49,7 +275,7 @@ wult (1.10.1) unstable; urgency=low
   * wult start --stats: fix statistics collection when run from sources.
   * wult stats: fix standalone stats-collect dependencies.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com> Mon, 30 May 2022 15:19:16 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 30 May 2022 00:00:00 +0200
 
 wult (1.10.0) unstable; urgency=low
 
@@ -61,81 +287,81 @@ wult (1.10.0) unstable; urgency=low
   * wult/ndl deploy: fix '--kernel-src' option which did not work.
   * wult/ndl deploy: add '--local-build' option.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com> Wed, 25 May 2022 16:43:11 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 25 May 2022 00:00:00 +0200
 
 wult (1.9.20) unstable; urgency=low
 
   * Fix crash when using 'wult calc --rsel'.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 06 Apr 2022 15:07:33 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 06 Apr 2022 00:00:00 +0200
 
 wult (1.9.19) unstable; urgency=low
 
   * wult report: fix crash introduced in version 1.9.18.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 22 Mar 2022 14:05:57 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 22 Mar 2022 00:00:00 +0200
 
 wult (1.9.18) unstable; urgency=low
 
   * wult report: added AC power and IPMI statistics visualization.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 18 Mar 2022 11:28:24 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 18 Mar 2022 00:00:00 +0200
 
 wult (1.9.17) unstable; urgency=low
 
   * wult: bugfix release: suggest users how to view local HTML reports.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 11 Mar 2022 18:38:29 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 11 Mar 2022 00:00:00 +0200
 
 wult (1.9.16) unstable; urgency=low
 
   * wult: bugfix release: improve TDT driver skipping datapoints error diagnostic.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 15 Feb 2022 09:14:10 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 15 Feb 2022 00:00:00 +0200
 
 wult (1.9.15) unstable; urgency=low
 
   * wult: bugfix release: fix HTML report summary table hover text.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 11 Feb 2022 18:00:33 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 11 Feb 2022 00:00:00 +0200
 
 wult (1.9.14) unstable; urgency=low
 
   * wult: removed 'start --offline' option.
   * wult: browsers now load wult HTML reports faster.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 11 Feb 2022 13:09:07 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 11 Feb 2022 00:00:00 +0200
 
 wult (1.9.13) unstable; urgency=low
 
   * wult: bugfix release: fix raw filters on system with older pandas/numexpr.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 01 Feb 2022 10:58:46 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 01 Feb 2022 00:00:00 +0200
 
 wult (1.9.12) unstable; urgency=low
 
   * wult: bugfix release: fix crash when running 'wult report --list-columns'.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Sun, 30 Jan 2022 16:20:35 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Sun, 30 Jan 2022 00:00:00 +0200
 
 wult (1.9.11) unstable; urgency=low
 
   * wult: bugfix release: fix 'ndl start' not finding the driver.
   * wult: bugfix release: fix 'wult scan' not resolving network name.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 28 Jan 2022 13:52:14 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 28 Feb 2022 00:00:00 +0200
 
 wult (1.9.10) unstable; urgency=low
 
   * wult: bugfix release: fix occasional missing 'WakeLatencyRaw' crash.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 14 Dec 2021 10:50:40 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 14 Dec 2021 00:00:00 +0200
 
 wult (1.9.9) unstable; urgency=low
 
   * wult: bugfix release: fixed data rate, requires pepc 1.1.2.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 12 Nov 2021 16:12:43 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 12 Nov 2021 00:00:00 +0200
 
 wult (1.9.8) unstable; urgency=low
 
@@ -144,14 +370,14 @@ wult (1.9.8) unstable; urgency=low
   * wult: calculate TSC rate and improve measurements accuracy.
   * wult: this version requres pepc v1.1.1.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 08 Oct 2021 10:53:30 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 08 Oct 2021 00:00:00 +0200
 
 wult (1.9.7) unstable; urgency=low
 
   * wult: add 'start --early-intr' option/capability.
   * wult/ndl: add 'report --relocatable=noraw' support.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 09 Sep 2021 11:43:25 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 09 Sep 2021 00:00:00 +0200
 
 wult (1.9.6) unstable; urgency=low
 
@@ -163,19 +389,19 @@ wult (1.9.6) unstable; urgency=low
   * wult: add 'filter --human-readable' option.
   * wult/ndl: removed '--post-trigger' option/capability.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 09 Sep 2021 11:43:25 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 09 Sep 2021 00:00:00 +0200
 
 wult (1.9.5) unstable; urgency=low
 
   * wult: many fixes for small, but annoying problems
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 30 Jul 2021 12:49:44 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 30 Jul 2021 00:00:00 +0200
 
 wult (1.9.4) unstable; urgency=low
 
   * wult/ndl: speed up measuring remote SUTs.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 19 Jul 2021 12:19:14 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 19 Jul 2021 00:00:00 +0200
 
 wult (1.9.3) unstable; urgency=low
 
@@ -185,7 +411,7 @@ wult (1.9.3) unstable; urgency=low
   * wult/ndl: remove broken "advanced" options.
   * wult: fix 'stats-collect' deployment.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 29 Jun 2021 18:51:57 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 29 Jun 2021 00:00:00 +0200
 
 wult (1.9.2) unstable; urgency=low
 
@@ -195,7 +421,7 @@ wult (1.9.2) unstable; urgency=low
   * wult: fix false warning about C-state prewake setting.
   * wult: add row filter and selector options '--rfilt' and '--rsel'.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 28 May 2021 17:48:43 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 28 May 2021 00:00:00 +0200
 
 wult (1.9.1) unstable; urgency=low
 
@@ -205,7 +431,7 @@ wult (1.9.1) unstable; urgency=low
   * wult: fix a failure acception an i210 NIC by its PCI ID.
   * wult: fix interrupt latency figures.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 09 Apr 2021 09:41:08 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 09 Apr 2021 00:00:00 +0200
 
 wult (1.9.0) unstable; urgency=low
 
@@ -219,7 +445,7 @@ wult (1.9.0) unstable; urgency=low
   * wult: add the 'IntrDelay' metric (interrupt delay).
   * wult: fix starting by NIC PCI ID
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 25 Mar 2021 11:47:48 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 25 Mar 2021 00:00:00 +0200
 
 wult (1.8.14) unstable; urgency=low
 
@@ -232,13 +458,13 @@ wult (1.8.14) unstable; urgency=low
   * wult/ndl: improve error message when opening wult result with ndl.
   * wult/ndl: check if we already have enough datapoints earlier.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 09 Mar 2021 09:52:04 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 09 Mar 2021 00:00:00 +0200
 
 wult (1.8.13) unstable; urgency=low
 
   * Same as 1.8.12, we messed up verion numbers a bit.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 09 Mar 2021 09:52:04 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 09 Mar 2021 00:00:00 +0200
 
 wult (1.8.12) unstable; urgency=low
 
@@ -247,7 +473,7 @@ wult (1.8.12) unstable; urgency=low
   * ndl: add 'ndl scan' command.
   * wult: fix bug in diff report with old results.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 11 Feb 2021 10:54:33 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 11 Feb 2021 00:00:00 +0200
 
 wult (1.8.11) unstable; urgency=low
 
@@ -262,19 +488,19 @@ wult (1.8.11) unstable; urgency=low
   * wult: do not fail when events are lost.
   * ndl: replace '--post-trigger-threshold' with '--post-trigger-range'.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 13 Jan 2021 15:06:05 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 13 Jan 2021 00:00:00 +0200
 
 wult (1.8.10) unstable; urgency=low
 
   * wult/ndl: distinguish between CC1% (HW) and DerivedCC1% (SW).
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 30 Nov 2020 16:27:56 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 30 Nov 2020 00:00:00 +0200
 
 wult (1.8.9) unstable; urgency=low
 
   * wult/ndl: add '--reportids' command-line option.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 30 Nov 2020 16:27:56 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 30 Nov 2020 00:00:00 +0200
 
 wult (1.8.8) unstable; urgency=low
 
@@ -282,10 +508,10 @@ wult (1.8.8) unstable; urgency=low
   * wult: improve 'wult scan' to print aliases.
   * wult: renamed 'tsc-deadline-timer' method to shorted 'tdt'.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 30 Oct 2020 20:37:07 +0200
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 30 Oct 2020 00:00:00 +0200
 
 wult (1.8.7) unstable; urgency=low
 
   * wult: first release.
 
- -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 21 Oct 2020 20:25:03 +0300
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 21 Oct 2020 00:00:00 +0200
