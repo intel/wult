@@ -230,8 +230,8 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._res = res
         self._ldist = ldist
         self._early_intr = early_intr
-        self._stcoll = stcoll
         self._rcsobj = rcsobj
+        self._stcoll = stcoll
 
         self._dpp = None
         self._prov = None
