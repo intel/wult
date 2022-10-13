@@ -246,7 +246,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         if self._dev.drvname == "wult_tdt" and self._early_intr:
             raise Error("the 'tdt' driver does not support the early interrupt feature")
 
-        self._progress = _ProgressLine.ProgressLine(period=1)
+        self._progress = _ProgressLine.WultProgressLine(period=1)
 
         if dev.helpername:
             wultrunner_path = Deploy.get_installed_helper_path(pman, "wult", dev.helpername)

@@ -16,8 +16,8 @@ import logging
 
 _LOG = logging.getLogger()
 
-class ProgressLine:
-    """This class implements the measurement progress line."""
+class _ProgressLineBase:
+    """This the base class for tool-specific progress line classes."""
 
     def start(self):
         """Start tracking the progress."""
@@ -51,6 +51,34 @@ class ProgressLine:
 
         return True
 
+    def __init__(self, period=1):
+        """
+        The class constructor. The arguments are as follows.
+          * period - how often the progress should be updated, seconds.
+        """
+
+        self.period = period
+        self.enabled = None
+
+        # Time when progress was last updated.
+        self._last_ts = None
+        # Time when the measurements have started.
+        self._start_ts = None
+        # Whether progress information was printed at least once.
+        self._printed = False
+        # The ending of the progress line (empty line or '\n' for the final print).
+        self._end = ""
+
+        if _LOG.getEffectiveLevel() > logging.INFO or not sys.stdout.isatty():
+            self.enabled = False
+        else:
+            self.enabled = True
+
+class WultProgressLine(_ProgressLineBase):
+    """
+    Wult tool progress line.
+    """
+
     def update(self, dpcnt, maxlat, final=False):
         """
         Update the progress. The arguments are as follows.
@@ -74,27 +102,17 @@ class ProgressLine:
 
     def __init__(self, period=1):
         """
-        The class constructor. The arguments are as follows.
-          * period - how often the progress should be updated, seconds.
+        The class constructor. The arguments are the same as in '_ProgressLineBase().__init__()'.
         """
 
-        self.period = period
-        self.enabled = None
+        super().__init__(period=period)
 
-        # Time when progress was last updated.
-        self._last_ts = None
-        # Time when the measurements have started.
-        self._start_ts = None
-        # Whether progress information was printed at least once.
-        self._printed = False
-        # The ending of the progress line (empty line or '\n' for the final print).
-        self._end = ""
         # Last printed datapoints count.
         self.dpcnt = 0
         # Last printed latency.
         self.maxlat = 0
 
-        if _LOG.getEffectiveLevel() > logging.INFO or not sys.stdout.isatty():
-            self.enabled = False
-        else:
-            self.enabled = True
+class NdlProgressLine(WultProgressLine):
+    """
+    Ndl tool progress line (same as 'wult' tool progress line).
+    """
