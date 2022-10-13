@@ -28,6 +28,29 @@ class ProgressLine:
         """Returns the overall measurements duration in seconds."""
         return time.time() - self._start_ts
 
+    def _update(self, final, time_now=None):
+        """
+        The common part of the 'update()' method. Returns 'True' if the progress line update is
+        needed, returns 'fals otherwise.
+        """
+
+        if not self.enabled:
+            return False
+
+        if final:
+            if not self._printed:
+                return False
+            self._end = "\n"
+            self._printed = False
+        else:
+            if time_now is None:
+                time_now = time.time()
+            if time_now - self._last_ts < self.period:
+                return False
+            self._end = ""
+
+        return True
+
     def update(self, dpcnt, maxlat, final=False):
         """
         Update the progress. The arguments are as follows.
@@ -36,23 +59,14 @@ class ProgressLine:
           * final - if 'True', all datapoints were collected and this is the last progress update.
         """
 
-        if not self.enabled:
+        time_now = time.time()
+        if not self._update(final, time_now):
             return
 
-        if final:
-            if not self._printed:
-                return
-            end = "\n"
-            self._printed = False
-        else:
-            if time.time() - self._last_ts < self.period:
-                return
-            end = ""
-
-        self._last_ts = time.time()
-        rate = dpcnt / (time.time() - self._start_ts)
+        self._last_ts = time_now
+        rate = dpcnt / (self._last_ts - self._start_ts)
         print(f"\rDatapoints: {dpcnt}, max. latency: {maxlat:.2f} us, "
-              f"rate: {rate:.2f} datapoints/sec", end=end, flush=True)
+              f"rate: {rate:.2f} datapoints/sec", end=self._end, flush=True)
 
         self._printed = True
         self.dpcnt = dpcnt
@@ -73,6 +87,8 @@ class ProgressLine:
         self._start_ts = None
         # Whether progress information was printed at least once.
         self._printed = False
+        # The ending of the progress line (empty line or '\n' for the final print).
+        self._end = ""
         # Last printed datapoints count.
         self.dpcnt = 0
         # Last printed latency.
