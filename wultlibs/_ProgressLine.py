@@ -52,7 +52,7 @@ class ProgressLine:
         self._last_ts = time.time()
         rate = dpcnt / (time.time() - self._start_ts)
         print(f"\rDatapoints: {dpcnt}, max. latency: {maxlat:.2f} us, "
-              f"rate: {rate:.2f} datapoints/sec\r", end=end, flush=True)
+              f"rate: {rate:.2f} datapoints/sec", end=end, flush=True)
 
         self._printed = True
         self.dpcnt = dpcnt
