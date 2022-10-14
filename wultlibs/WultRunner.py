@@ -265,6 +265,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
     def close(self):
         """Stop the measurements."""
 
-        close_attrs = ("_dpp", "_prov", "_stcoll")
-        unref_attrs = ("_res", "_dev", "_pman", "_rcsobj")
+        close_attrs = ("_dpp", "_prov")
+        unref_attrs = ("_res", "_dev", "_pman", "_rcsobj", "_stcoll")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)
