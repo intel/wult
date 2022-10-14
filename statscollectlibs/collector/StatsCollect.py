@@ -22,8 +22,18 @@ _LOG = logging.getLogger()
 # configuration is unknown. For example, the aggregate statistic name "ipmi" will try to resolve to
 # "ipmi-oob" and fall back on "ipmi-inband" if out-of-band IPMI collection is not possible on the
 # SUT.
-# The following constant maps aggregate statistic names to specific statistic names.
-_AGGR_STNAMES = {"ipmi": {"ipmi-inband", "ipmi-oob"}}
+#
+# The following constant maps aggregate statistic names to specific statistic names. It partially
+# mimics the 'STATS_INFO' dictionary structure.
+_AGGR_STINFO = {
+    "ipmi": {
+        "stnames": {"ipmi-inband", "ipmi-oob"},
+        "interval": None,
+        "toolpath": None,
+        "description": "an \"aggregate statistics name\" that will be resolved to \"ipmi-inband\" "
+                       "or \"ipmi-oob\".",
+   },
+}
 
 def check_stname(stname, allow_aggregate=True):
     """
@@ -34,11 +44,11 @@ def check_stname(stname, allow_aggregate=True):
                          name.
     """
 
-    if stname in _AGGR_STNAMES and not allow_aggregate:
+    if stname in _AGGR_STINFO and not allow_aggregate:
         raise Error(f"'{stname}' is an aggregate statistic name, please specify a specific "
                     f"statistic name")
 
-    if stname not in STATS_INFO and stname not in _AGGR_STNAMES:
+    if stname not in STATS_INFO and stname not in _AGGR_STINFO:
         avail_stnames = ", ".join(STATS_INFO)
         raise Error(f"unknown statistic name '{stname}', the known names are: {avail_stnames}")
 
@@ -56,8 +66,8 @@ def _expand_aggr_stnames(stnames):
 
     new_stnames = set()
     for stname in stnames:
-        if stname in _AGGR_STNAMES:
-            new_stnames.update(_AGGR_STNAMES[stname])
+        if stname in _AGGR_STINFO:
+            new_stnames.update(_AGGR_STINFO[stname])
         else:
             new_stnames.add(stname)
 
@@ -415,7 +425,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
         new_stnames = set()
         for stname in stnames:
-            if stname not in _AGGR_STNAMES:
+            if stname not in _AGGR_STINFO:
                 new_stnames.add(stname)
                 continue
 
