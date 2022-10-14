@@ -79,9 +79,7 @@ class RawDataProviderBase(ClassHelpers.SimpleCloseContext):
         if timeout is None:
             self._timeout = 10
 
-        msg = f"Using device '{self.dev.info['devid']}'{pman.hostmsg}:\n" \
-              f" * {self.dev.info['descr']}"
-        _LOG.info(msg)
+        _LOG.info("Using '%s' (%s)%s", dev.info['devid'], dev.info['descr'], pman.hostmsg)
 
     def close(self):
         """Uninitialize everything."""

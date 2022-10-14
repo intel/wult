@@ -475,7 +475,7 @@ class _HRTimerDeviceBase(_DeviceBase):
 class _WultHRT(_HRTimerDeviceBase):
     """The High Resolution Timers device controlled by the 'wult_hrt' driver."""
 
-    supported_devices = {"hrt" : "Linux High Resolution Timer (via kernel driver)"}
+    supported_devices = {"hrt" : "Linux High Resolution Timer via kernel driver"}
 
     def __init__(self, devid, pman, dmesg=None):
         """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
@@ -487,7 +487,7 @@ class _WultHRT(_HRTimerDeviceBase):
 class _WultHRTimer(_HRTimerDeviceBase):
     """The High Resolution Timers device controlled by the 'wultrunner' eBPF program."""
 
-    supported_devices = {"hrtimer" : "Linux High Resolution Timer (via eBPF, experimental)"}
+    supported_devices = {"hrtimer" : "Linux High Resolution Timer via eBPF program"}
 
     def __init__(self, devid, pman, dmesg=None):
         """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
