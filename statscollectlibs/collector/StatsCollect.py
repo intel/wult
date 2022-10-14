@@ -187,6 +187,8 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         Note, all statistics are enabled by default when an instance of this class is created.
         """
 
+        _LOG.debug("enabling the following statistics: %s", ", ".join(stnames))
+
         # If an aggregate statistic name is in 'stnames', enable all possible specific statistic
         # names for that aggregate statistic name.
         stnames = _expand_aggr_stnames(stnames)
@@ -194,6 +196,8 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
     def set_disabled_stats(self, stnames):
         """Same as 'set_enabled_stats()', but for disabling."""
+
+        _LOG.debug("disabling the following statistics: %s", ", ".join(stnames))
 
         # If an aggregate statistic name is in 'stnames', disable all possible specific statistics
         # names for that aggregate statistic name.
