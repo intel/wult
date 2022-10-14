@@ -205,7 +205,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         self._toggle_enabled(stnames, False)
 
     def get_enabled_stats(self):
-        """Return the list of enabled statistic names."""
+        """Return a set containing all the the enabled statistic names."""
 
         stnames = self.inbagent.get_enabled_stats()
         if self._oobagent:
@@ -214,7 +214,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         return stnames
 
     def get_disabled_stats(self):
-        """Return the list of disabled statistic names."""
+        """Return a set containing all the the disabled statistic names."""
 
         stnames = self.inbagent.get_disabled_stats()
         if self._oobagent:
