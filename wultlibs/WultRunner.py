@@ -232,8 +232,8 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._rcsobj = rcsobj
         self._stcoll = stcoll
 
-        self._dpp = None
         self._prov = None
+        self._dpp = None
         self._timeout = 10
         self._progress = None
 
