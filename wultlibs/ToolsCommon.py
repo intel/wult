@@ -668,9 +668,9 @@ def start_command_create_stcoll(args, pman):
 
     if local_needed:
         with LocalProcessManager.LocalProcessManager() as lpman:
-            local_path = Deploy.get_installed_helper_path(lpman, "wult", "stc-agent")
+            local_path = Deploy.get_installed_helper_path(lpman, args.toolname, "stc-agent")
     if remote_needed:
-        remote_path = Deploy.get_installed_helper_path(pman, "wult", "stc-agent")
+        remote_path = Deploy.get_installed_helper_path(pman, args.toolname, "stc-agent")
 
     stcoll.set_stcagent_path(local_path=local_path, remote_path=remote_path)
 
