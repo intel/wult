@@ -12,7 +12,7 @@ This module provides API for collecting SUT statistics.
 
 import logging
 from pepclibs.helperlibs import ClassHelpers
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
+from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.collector import _STCAgent
 
 _LOG = logging.getLogger()
@@ -101,24 +101,6 @@ def _expand_aggr_stnames(stnames):
 
     return new_stnames
 
-def _separate_inb_vs_oob(stnames):
-    """
-    Splits the list of statistics names 'stnames' on two sets - the in-band and the out-of-band
-    statistics. Returns a tuple of those two sets.
-    """
-
-    inb_stnames = set()
-    oob_stnames = set()
-    for stname in stnames:
-        check_stname(stname, allow_aggregate=False)
-
-        if _STCAgent.STATS_INFO[stname]["inband"]:
-            inb_stnames.add(stname)
-        else:
-            oob_stnames.add(stname)
-
-    return (inb_stnames, oob_stnames)
-
 class StatsCollect(ClassHelpers.SimpleCloseContext):
     """
     This class provides API for collecting SUT statistics, such as 'turbostat' data and AC power.
@@ -157,14 +139,33 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
           'copy_remote_data()'.
     """
 
-    def _separate_local_vs_remote(self, stnames):
+    def _separate_inb_vs_oob(self, stnames):
         """
-        Splits the list of statistics names 'stnames' on two sets - the statistics collected by a
-        local 'stc-agent' instance, and the statistics collected by the remote 'stc-agent' instance.
-        Returns a tuple of those two sets.
+        Split statistic names 'stnames' on two sets - the in-band and the out-of-band statistics.
+        Return a tuple of those two sets.
         """
 
-        inb_stnames, oob_stnames = _separate_inb_vs_oob(stnames)
+        inb_stnames = stnames & set(self._inbagent.stinfo)
+        oob_stnames = stnames & set(self._oobagent.stinfo)
+
+        unknown_stnames = stnames - inb_stnames - oob_stnames
+        if unknown_stnames:
+            unknown_stname = unknown_stnames.pop()
+            known_stnames = list(self._inbagent.stinfo) + list(self._oobagent.stinfo)
+            known_stnames = ", ".join(known_stnames)
+            raise Error(f"unknown statistic name '{unknown_stname}', the known names are:\n"
+                        f"  {known_stnames}")
+
+        return inb_stnames, oob_stnames
+
+    def _separate_local_vs_remote(self, stnames):
+        """
+        Split statistic names 'stnames' on two sets - the statistics collected by a local
+        'stc-agent' instance, and the statistics collected by the remote 'stc-agent' instance.
+        Return a tuple of those two sets.
+        """
+
+        inb_stnames, oob_stnames = self._separate_inb_vs_oob(stnames)
 
         # Please, refer to the commentaries in '__init__()' for the mapping between in-/out-of-band
         # and local/remote.
@@ -210,8 +211,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         if stnames in (None, "all"):
             stnames = list(_STCAgent.STATS_INFO)
 
-        check_stnames(stnames)
-        inb_stnames, oob_stnames = _separate_inb_vs_oob(stnames)
+        inb_stnames, oob_stnames = self._separate_inb_vs_oob(stnames)
 
         for stname in inb_stnames:
             self._inbagent.stinfo[stname]["enabled"] = value
@@ -271,8 +271,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         possibly rounded interval values as 'float' type.
         """
 
-        check_stnames(intervals.keys())
-        inb_stnames, oob_stnames = _separate_inb_vs_oob(intervals.keys())
+        inb_stnames, oob_stnames = self._separate_inb_vs_oob(set(intervals.keys()))
 
         inb_intervals = {stname: intervals[stname] for stname in inb_stnames}
         oob_intervals = {stname: intervals[stname] for stname in oob_stnames}
@@ -292,7 +291,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
             return self._oobagent.stinfo[stname]
 
         stnames = ", ".join(get_stnames(include_aggregate=False))
-        raise ErrorNotFound(f"unknown statistic name '{stname}', the known names are: {stnames}")
+        raise Error(f"unknown statistic name '{stname}', the known names are: {stnames}")
 
     def get_toolpath(self, stname):
         """
@@ -384,7 +383,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
             if disabled_stnames:
                 raise Error(f"cannot discover disabled statistics {disabled_stnames}")
 
-        inband_stnames, oob_stnames = _separate_inb_vs_oob(stnames)
+        inband_stnames, oob_stnames = self._separate_inb_vs_oob(stnames)
         available = set()
         available |= self._inbagent.discover(inband_stnames)
         if self._oobagent:
@@ -495,7 +494,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         inb_must_have = oob_must_have = None
         if must_have:
             must_have = self._resolve_aggregate_stnames(must_have)
-            inb_must_have, oob_must_have = _separate_inb_vs_oob(must_have)
+            inb_must_have, oob_must_have = self._separate_inb_vs_oob(must_have)
 
         self._inbagent.configure(discover=discover, must_have=inb_must_have)
         if self._oobagent:
