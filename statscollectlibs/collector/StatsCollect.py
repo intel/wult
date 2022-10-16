@@ -221,7 +221,6 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
     def set_enabled_stats(self, stnames):
         """
         Enable statistics in 'stnames'. If 'stname' is "all" or 'None', enable all statistics.
-
         Note, all statistics are enabled by default when an instance of this class is created.
         """
 
@@ -242,8 +241,8 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         stnames = _expand_aggr_stnames(stnames)
         self._toggle_enabled(stnames, False)
 
-    def get_enabled_stats(self):
-        """Return a set containing all the the enabled statistic names."""
+    def _get_enabled_stats(self):
+        """Implements '_get_enabled_stats()'."""
 
         stnames = self._inbagent.get_enabled_stats()
         if self._oobagent:
@@ -251,14 +250,22 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
         return stnames
 
-    def get_disabled_stats(self):
-        """Return a set containing all the the disabled statistic names."""
+    def get_enabled_stats(self):
+        """Return a set containing all the the enabled statistic names."""
+        return self._get_enabled_stats()
+
+    def _get_disabled_stats(self):
+        """Implements '_get_disabled_stats()'."""
 
         stnames = self._inbagent.get_disabled_stats()
         if self._oobagent:
             stnames |= self._oobagent.get_disabled_stats()
 
         return stnames
+
+    def get_disabled_stats(self):
+        """Return a set containing all the the disabled statistic names."""
+        return self._get_disabled_stats()
 
     def set_intervals(self, intervals):
         """
@@ -358,7 +365,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         # Please, refer to the commentaries in '_init_()' for the mapping between in-/out-of-band
         # and local/remote.
 
-        stnames = self.get_enabled_stats()
+        stnames = self._get_enabled_stats()
         local_stnames, remote_stnames = self._separate_local_vs_remote(stnames)
 
         local_needed, remote_needed = (False, False)
@@ -379,7 +386,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
         # Check that only enabled statistics are trying to be discovered.
         if stnames is not None:
-            disabled_stnames = stnames.difference(self.get_enabled_stats())
+            disabled_stnames = stnames.difference(self._get_enabled_stats())
             if disabled_stnames:
                 raise Error(f"cannot discover disabled statistics {disabled_stnames}")
 
@@ -416,7 +423,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         configuration to them.
         """
 
-        return self._discover(self.get_enabled_stats())
+        return self._discover(self._get_enabled_stats())
 
     def _resolve_ipmi(self):
         """
@@ -507,7 +514,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         else:
             start = "Configured"
         _LOG.log(self._infolvl, "%s the following statistics: %s",
-                 start, ", ".join(self.get_enabled_stats()))
+                 start, ", ".join(self._get_enabled_stats()))
 
     def start(self):
         """Start collecting the statistics."""
