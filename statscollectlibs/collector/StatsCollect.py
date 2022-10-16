@@ -437,8 +437,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
             return {oob_stname}
         if inb_stname in stavailable:
             return {inb_stname}
-        raise Error("'ipmi' statistics can't be collected as neither out-of-band nor inband "
-                    "'ipmi' is available.")
+        raise Error("'ipmi' statistics can't be collected as neither out-of-band nor in-band")
 
     def _resolve_aggregate_stnames(self, stnames):
         """
