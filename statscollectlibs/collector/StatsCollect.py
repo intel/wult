@@ -35,6 +35,32 @@ _AGGR_STINFO = {
    },
 }
 
+def get_stinfo(stname, allow_aggregate=True):
+    """
+    Return information about statistic 'stname'. The arguments are as follows:
+     * stname - name of the statistic to return the information about.
+     * allow_aggregate - if 'False', errors if 'stname' is an aggregate statistic name or an invalid
+                         statistic name. Otherwise, only errors if 'stname' if not a valid statistic
+                         name.
+    """
+
+    if stname in _AGGR_STINFO:
+        if not allow_aggregate:
+            stnames = ", ".join(STATS_INFO)
+            raise Error(f"'{stname}' is an aggregate statistic name, please specify one of the "
+                        f"following specific statistic names:\n  {stnames}")
+        return _AGGR_STINFO[stname]
+
+    if stname in STATS_INFO:
+        return STATS_INFO[stname]
+
+    stnames = list(STATS_INFO)
+    if allow_aggregate:
+        stnames += list(_AGGR_STINFO)
+    stnames = ", ".join(stnames)
+
+    raise Error(f"unknown statistic name '{stname}', the known names are:\n  {stnames}")
+
 def check_stname(stname, allow_aggregate=True):
     """
     Verify that 'stname' is a known statistic name. The arguments are as follows:
@@ -44,19 +70,13 @@ def check_stname(stname, allow_aggregate=True):
                          name.
     """
 
-    if stname in _AGGR_STINFO and not allow_aggregate:
-        raise Error(f"'{stname}' is an aggregate statistic name, please specify a specific "
-                    f"statistic name")
-
-    if stname not in STATS_INFO and stname not in _AGGR_STINFO:
-        avail_stnames = ", ".join(STATS_INFO)
-        raise Error(f"unknown statistic name '{stname}', the known names are: {avail_stnames}")
+    get_stinfo(stname, allow_aggregate=allow_aggregate)
 
 def check_stnames(stnames):
     """Verify that statistics in the 'stnames' list are legit."""
 
     for stname in stnames:
-        check_stname(stname)
+        get_stinfo(stname)
 
 def _expand_aggr_stnames(stnames):
     """
