@@ -10,6 +10,7 @@
 This module provides two statistic collector classes: 'InBandCollector' and 'OutOfBandCollector'.
 """
 
+import copy
 import time
 import socket
 import logging
@@ -61,6 +62,7 @@ _DELIMITER = "--\n".encode("utf-8")
 STATS_INFO = {
     "sysinfo" : {
         "interval" : None,
+        "inband" : True,
         "toolpath" : None,
         "description" : "Not really a statistics collector, but just a script that saves all sorts "
                         "of information about the SUT (e.g., 'dmesg', 'lspci -vvv' and 'dmidecode' "
@@ -72,14 +74,15 @@ STATS_INFO = {
     },
     "turbostat" : {
         "interval" : 5,
+        "inband" : True,
         "toolpath" : "turbostat",
         "description" : "Periodically run the 'turbostat' tool and collect C-state residency, "
                         "average CPU frequency, RAPL data, and more.",
     },
     "ipmi-oob" : {
         "interval" : 5,
-        "fallible" : True,
         "inband" : False,
+        "fallible" : True,
         "toolpath" : "ipmi-helper",
         "description" : "Periodically run 'ipmitool' to collect platform IPMI data, such as fans "
                         "speed, CPU temperature, etc. The data are collected by running 'ipmitool' "
@@ -94,6 +97,7 @@ STATS_INFO = {
     },
     "ipmi-inband" : {
         "interval" : 5,
+        "inband" : True,
         "fallible" : True,
         "toolpath" : "ipmi-helper",
         "description" : "Same as the 'ipmi-oob' statistics, but the data are collected by running "
@@ -121,8 +125,6 @@ def _set_stinfo_defaults(stinfo):
     for info in stinfo.values():
         if "enabled" not in info:
             info["enabled"] = True
-        if "inband" not in info:
-            info["inband"] = True
         if "fallible" not in info:
             info["fallible"] = False
         if "props" not in info:
@@ -747,7 +749,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         self.outdir = outdir
         self._stca_path = stca_path
 
-        self.stinfo = STATS_INFO.copy()
+        self.stinfo = copy.deepcopy(STATS_INFO)
 
         # Log level for some of the high-level messages.
         self.infolvl = logging.DEBUG
