@@ -184,7 +184,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         returns 0.
         """
 
-        inb_max_interval = _STCAgent.get_max_interval(self.inbagent.stinfo)
+        inb_max_interval = _STCAgent.get_max_interval(self._inbagent.stinfo)
         if self._oobagent:
             oob_max_interval = _STCAgent.get_max_interval(self._oobagent.stinfo)
         else:
@@ -200,7 +200,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         else:
             self._infolvl = logging.DEBUG
 
-        self.inbagent.infolvl = self._infolvl
+        self._inbagent.infolvl = self._infolvl
         if self._oobagent:
             self._oobagent.infolvl = self._infolvl
 
@@ -214,7 +214,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         inb_stnames, oob_stnames = _separate_inb_vs_oob(stnames)
 
         for stname in inb_stnames:
-            self.inbagent.stinfo[stname]["enabled"] = value
+            self._inbagent.stinfo[stname]["enabled"] = value
         for stname in oob_stnames:
             self._oobagent.stinfo[stname]["enabled"] = value
 
@@ -245,7 +245,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
     def get_enabled_stats(self):
         """Return a set containing all the the enabled statistic names."""
 
-        stnames = self.inbagent.get_enabled_stats()
+        stnames = self._inbagent.get_enabled_stats()
         if self._oobagent:
             stnames |= self._oobagent.get_enabled_stats()
 
@@ -254,7 +254,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
     def get_disabled_stats(self):
         """Return a set containing all the the disabled statistic names."""
 
-        stnames = self.inbagent.get_disabled_stats()
+        stnames = self._inbagent.get_disabled_stats()
         if self._oobagent:
             stnames |= self._oobagent.get_disabled_stats()
 
@@ -277,7 +277,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         inb_intervals = {stname: intervals[stname] for stname in inb_stnames}
         oob_intervals = {stname: intervals[stname] for stname in oob_stnames}
 
-        intervals = self.inbagent.set_intervals(inb_intervals)
+        intervals = self._inbagent.set_intervals(inb_intervals)
         if self._oobagent:
             intervals.update(self._oobagent.set_intervals(oob_intervals))
         return intervals
@@ -285,8 +285,8 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
     def _get_stinfo(self, stname):
         """Get statistics description dictionary for the 'stname' statistics."""
 
-        if stname in self.inbagent.stinfo:
-            return self.inbagent.stinfo[stname]
+        if stname in self._inbagent.stinfo:
+            return self._inbagent.stinfo[stname]
 
         if self._oobagent:
             return self._oobagent.stinfo[stname]
@@ -338,9 +338,9 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         # and local/remote.
         if self._pman.is_remote:
             local_coll = self._oobagent
-            remote_coll = self.inbagent
+            remote_coll = self._inbagent
         else:
-            local_coll = self.inbagent
+            local_coll = self._inbagent
             remote_coll = None
 
         if local_path:
@@ -386,7 +386,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
         inband_stnames, oob_stnames = _separate_inb_vs_oob(stnames)
         available = set()
-        available |= self.inbagent.discover(inband_stnames)
+        available |= self._inbagent.discover(inband_stnames)
         if self._oobagent:
             available |= self._oobagent.discover(oob_stnames)
 
@@ -469,12 +469,12 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         if not self._oobagent:
             return
 
-        if self.inbagent.stinfo["ipmi-inband"]["enabled"] and \
+        if self._inbagent.stinfo["ipmi-inband"]["enabled"] and \
            self._oobagent.stinfo["ipmi-oob"]["enabled"]:
             # IPMI in-band and out-of-band collect the same information, but 'ipmi-oob' is
             # supposedly less intrusive.
             _LOG.log(self._infolvl, "Disabling 'ipmi-inband' statistics in favor of 'ipmi-oob'")
-            self.inbagent.stinfo["ipmi-inband"]["enabled"] = False
+            self._inbagent.stinfo["ipmi-inband"]["enabled"] = False
 
     def configure(self, discover=False, must_have=None):
         """
@@ -498,7 +498,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
             must_have = self._resolve_aggregate_stnames(must_have)
             inb_must_have, oob_must_have = _separate_inb_vs_oob(must_have)
 
-        self.inbagent.configure(discover=discover, must_have=inb_must_have)
+        self._inbagent.configure(discover=discover, must_have=inb_must_have)
         if self._oobagent:
             self._oobagent.configure(discover=discover, must_have=oob_must_have)
 
@@ -515,7 +515,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         """Start collecting the statistics."""
 
         _LOG.log(self._infolvl, "Starting statistics collectors")
-        self.inbagent.start()
+        self._inbagent.start()
         if self._oobagent:
             self._oobagent.start()
 
@@ -523,7 +523,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         """Stop collecting the statistics."""
 
         _LOG.log(self._infolvl, "Stopping statistics collectors")
-        self.inbagent.stop(sysinfo=sysinfo)
+        self._inbagent.stop(sysinfo=sysinfo)
         if self._oobagent:
             self._oobagent.stop(sysinfo=sysinfo)
 
@@ -573,7 +573,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         self.remote_outdir = None
 
         # The in-band and out-of-band statistics collector objects.
-        self.inbagent = None
+        self._inbagent = None
         self._oobagent = None
 
         # Log level for some of the high-level messages.
@@ -601,16 +601,16 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
             inb_outdir = local_outdir
             oob_outdir = -1 # Just a bogus value, should not be used.
 
-        self.inbagent = _STCAgent.InBandCollector(pman, outdir=inb_outdir)
+        self._inbagent = _STCAgent.InBandCollector(pman, outdir=inb_outdir)
         if pman.is_remote:
             # Do not create the out-of-band collector if 'pman' represents the local host.
             # Out-of-band collectors by definition run on a host different to the SUT.
             self._oobagent = _STCAgent.OutOfBandCollector(pman.hostname, outdir=oob_outdir)
             self.local_outdir = self._oobagent.outdir
-            self.remote_outdir = self.inbagent.outdir
+            self.remote_outdir = self._inbagent.outdir
         else:
-            self.local_outdir = self.inbagent.outdir
+            self.local_outdir = self._inbagent.outdir
 
     def close(self):
         """Close the statistics collector."""
-        ClassHelpers.close(self, close_attrs=("_oobagent", "inbagent"), unref_attrs=("_pman",))
+        ClassHelpers.close(self, close_attrs=("_oobagent", "_inbagent"), unref_attrs=("_pman",))
