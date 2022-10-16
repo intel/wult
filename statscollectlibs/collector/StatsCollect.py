@@ -10,6 +10,7 @@
 This module provides API for collecting SUT statistics.
 """
 
+import copy
 import logging
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
@@ -86,57 +87,11 @@ def check_stnames(stnames):
     for stname in stnames:
         get_stinfo(stname)
 
-def _expand_aggr_stnames(stnames):
-    """
-    Expand aggregate statistic names in 'stnames'. Return a new set of statistic names which does
-    not contain any aggregate statistic names.
-    """
-
-    new_stnames = set()
-    for stname in stnames:
-        if stname in _AGGR_STINFO:
-            new_stnames.update(_AGGR_STINFO[stname])
-        else:
-            new_stnames.add(stname)
-
-    return new_stnames
-
-class StatsCollect(ClassHelpers.SimpleCloseContext):
+class _StatsCollectNoAggr(ClassHelpers.SimpleCloseContext):
     """
     This class provides API for collecting SUT statistics, such as 'turbostat' data and AC power.
-
-    The usage model of this class is as follows.
-      1. Create an object. This will run 'stc-agent' on the SUT (in-band statistics collection) and
-         the local host (out-of-band collection). 'stc-agent' is just an agent that listens for
-         commands on a Unix socket. The commands are like "start collecting", "stop collecting",
-         "set properties", etc. 'stc-agent' runs various collectors.
-
-         Example of "in-band" collectors: acpower, ipmi-inband. These tools run on the local system,
-         but collect information about the remote system.
-
-      2. Call 'set_info_logging()' to enable high-level log messages about big steps, such as
-          discovery results.
-      3. Optionally set the list of statistics collectors that are going to be used by running the
-         'set_disabled_stats()', 'set_enabled_stats()'.
-      4. Optionally set tool path and properties for certain statistics using 'set_prop()' and
-         'set_toolpath()'.
-      5. Optionally set the 'stc-agent' paths on the local and remote systems. By default the
-         'stc-agent' program is looked for in the paths from the 'PATH' environment variable.
-
-         Note: up to this point, the 'stc-agent' processes have not been started. The configuration
-         passed via the 'set_*()' methods was not yet communicated to 'stc-agent'. But it will be
-         sent to 'stc-agent' as soon as it starts. And it starts when 'discover()' or 'configure()'
-         methods are called.
-
-      6. Optionally discover the available statistics by running the 'discover()' method. Once the
-         discovery is finished, re-run 'set_enabled_stats()' to enable the discovered statistics.
-      7. Run the 'configure()' method to configure the statistics collectors.
-      8. Run 'start()' to start collecting the statistics. Supposedly after the 'start()' method is
-         finished, you run a workload on the SUT.
-      9. Run 'stop()' to stop collecting the statistics. You can repeat the start/stop cycles and
-         re-configure the collectors between the cycles.
-      10. Copy statistics and logs from the remote host to the local output directory using
-          'copy_remote_data()'.
+    This class supports specific statistics (such as 'turbostat', 'ipmi-oob', 'ipmi-in'), but it
+    does not support aggregate statistics (such as 'ipmi').
     """
 
     def _separate_inb_vs_oob(self, stnames):
@@ -225,24 +180,16 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         """
 
         _LOG.debug("enabling the following statistics: %s", ", ".join(stnames))
-
-        # If an aggregate statistic name is in 'stnames', enable all possible specific statistic
-        # names for that aggregate statistic name.
-        stnames = _expand_aggr_stnames(stnames)
         self._toggle_enabled(stnames, True)
 
     def set_disabled_stats(self, stnames):
         """Same as 'set_enabled_stats()', but for disabling."""
 
         _LOG.debug("disabling the following statistics: %s", ", ".join(stnames))
-
-        # If an aggregate statistic name is in 'stnames', disable all possible specific statistics
-        # names for that aggregate statistic name.
-        stnames = _expand_aggr_stnames(stnames)
         self._toggle_enabled(stnames, False)
 
-    def _get_enabled_stats(self):
-        """Implements '_get_enabled_stats()'."""
+    def _get_enabled_stats_noaggr(self):
+        """Implements 'get_enabled_stats()'."""
 
         stnames = self._inbagent.get_enabled_stats()
         if self._oobagent:
@@ -252,10 +199,10 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
     def get_enabled_stats(self):
         """Return a set containing all the the enabled statistic names."""
-        return self._get_enabled_stats()
+        return self._get_enabled_stats_noaggr()
 
-    def _get_disabled_stats(self):
-        """Implements '_get_disabled_stats()'."""
+    def _get_disabled_stats_noaggr(self):
+        """Implements 'get_disabled_stats()'."""
 
         stnames = self._inbagent.get_disabled_stats()
         if self._oobagent:
@@ -265,7 +212,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
     def get_disabled_stats(self):
         """Return a set containing all the the disabled statistic names."""
-        return self._get_disabled_stats()
+        return self._get_disabled_stats_noaggr()
 
     def set_intervals(self, intervals):
         """
@@ -354,21 +301,14 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         if remote_path and remote_coll:
             remote_coll.set_stcagent_path(remote_path)
 
-    def is_stcagent_needed(self):
-        """
-        Check if the local and remote 'stc-agent' programs are needed to collect the currently
-        enabled statistics. Returns a '(local_needed, remote_needed) tuple, where 'local_needed' is
-        a boolean indicating if a local 'stc-agent' program is needed, and 'remote_needed' is a
-        boolean indicating if a remote 'stc-agent' program is needed.
-        """
+    def _is_stcagent_needed(self, stnames):
+        """Implements 'is_stcagent_needed()'."""
 
         # Please, refer to the commentaries in '_init_()' for the mapping between in-/out-of-band
         # and local/remote.
 
-        stnames = self._get_enabled_stats()
-        local_stnames, remote_stnames = self._separate_local_vs_remote(stnames)
-
         local_needed, remote_needed = (False, False)
+        local_stnames, remote_stnames = self._separate_local_vs_remote(stnames)
 
         # Note, the 'sysinfo' collector does not require the 'stc-agent' program.
         if local_stnames and list(local_stnames) != ["sysinfo"]:
@@ -378,6 +318,17 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
         return local_needed, remote_needed
 
+    def is_stcagent_needed(self):
+        """
+        Check if the local and remote 'stc-agent' programs are needed to collect the currently
+        enabled statistics. Returns a '(local_needed, remote_needed) tuple, where 'local_needed' is
+        a boolean indicating if a local 'stc-agent' program is needed, and 'remote_needed' is a
+        boolean indicating if a remote 'stc-agent' program is needed.
+        """
+
+        stnames = self._get_enabled_stats_noaggr()
+        return self._is_stcagent_needed(stnames)
+
     def _discover(self, stnames):
         """
         Helper function for 'discover()'. Provide 'stnames' to discover a specific set of
@@ -386,7 +337,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
 
         # Check that only enabled statistics are trying to be discovered.
         if stnames is not None:
-            disabled_stnames = stnames.difference(self._get_enabled_stats())
+            disabled_stnames = stnames.difference(self._get_enabled_stats_noaggr())
             if disabled_stnames:
                 raise Error(f"cannot discover disabled statistics {disabled_stnames}")
 
@@ -401,68 +352,6 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
             _LOG.log(self._infolvl, "Discovered no statistics%s", self._pman.hostmsg)
 
         return available
-
-    def discover(self):
-        """
-        Discover and return set of statistics that can be collected for SUT. This method probes all
-        non-disabled statistics collectors.
-
-        Notes.
-
-        Prior to calling this method, you can (but do not have to) use the following methods.
-         * 'set_disabled_stats()' and 'set_enabled_stats()' prior to to enable/disable certain
-            statistics.
-         * 'set_intervals()' - to configure the statistics collectors' intervals.
-         * 'set_prop()' - to configure statistics collectors' properties.
-         * 'set_toolpath()' - to configure statistics collectors' tools paths.
-
-        These methods will not communicate to the 'stc-agent' process(es), which may not even have
-        been started yet. They just save the configuration in an internal dictionary. The
-        'discover()' method will start the 'stc-agent' process(es) and pass all the saved
-        configuration to them.
-        """
-
-        return self._discover(self._get_enabled_stats())
-
-    def _resolve_ipmi(self):
-        """
-        Resolves the "ipmi" aggregate statistic name by checking if in-band and out-of-band 'ipmi'
-        are available. Returns a set containing the specific statistic name which is available for
-        collection.
-        """
-
-        oob_stname = "ipmi-oob"
-        inb_stname = "ipmi-inband"
-
-        stavailable = self._discover({oob_stname, inb_stname})
-
-        # First try and use out-of-band 'ipmi'. If out-of-band is not available, fall back to
-        # in-band. Finally, raise an error if neither are available.
-        if oob_stname in stavailable:
-            return {oob_stname}
-        if inb_stname in stavailable:
-            return {inb_stname}
-        raise Error("'ipmi' statistics can't be collected as neither out-of-band nor in-band")
-
-    def _resolve_aggregate_stnames(self, stnames):
-        """
-        Helper function for 'configure()' which resolves aggregate statistic names in 'stnames' and
-        returns a set of statistic names which does not contain any aggregate statistic names.
-        """
-
-        new_stnames = set()
-        for stname in stnames:
-            if stname not in _AGGR_STINFO:
-                new_stnames.add(stname)
-                continue
-
-            resolve_method = getattr(self, f"_resolve_{stname}", None)
-            if resolve_method is None:
-                raise Error(f"BUG: unable to find helper function to resolve aggregate statistic "
-                            f"name '{stname}'")
-            new_stnames.update(resolve_method())
-
-        return new_stnames
 
     def _handle_conflicting_stats(self):
         """
@@ -480,31 +369,20 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
             _LOG.log(self._infolvl, "Disabling 'ipmi-inband' statistics in favor of 'ipmi-oob'")
             self._inbagent.stinfo["ipmi-inband"]["enabled"] = False
 
-    def configure(self, discover=False, must_have=None):
+    def configure(self, discover=False):
         """
         Configure the statistics collectors. The arguments are as follows.
           * discover - if 'True', run the discovery process for all the enabled statistics, and
                        disable those that can't be collected. Otherwise, do not run discovery and
                        just configure all the enabled statistics.
-          * must_have - list of statistics names that must be configured. If at the end of the
-                        'configure()' method any of the 'must_have' statistics is disable, this
-                        method raises and exception. By default, the 'must_have' list is empty.
-
-        Note, if 'discover' is 'False', then this method will fail if any of the enabled statistics
-        cannot be configured.
 
         Please, also refer to the 'Notes' in the 'discover()' method - they are relevant to
         'configure()' as well.
         """
 
-        inb_must_have = oob_must_have = None
-        if must_have:
-            must_have = self._resolve_aggregate_stnames(must_have)
-            inb_must_have, oob_must_have = self._separate_inb_vs_oob(must_have)
-
-        self._inbagent.configure(discover=discover, must_have=inb_must_have)
+        self._inbagent.configure(discover=discover)
         if self._oobagent:
-            self._oobagent.configure(discover=discover, must_have=oob_must_have)
+            self._oobagent.configure(discover=discover)
 
         self._handle_conflicting_stats()
 
@@ -513,7 +391,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         else:
             start = "Configured"
         _LOG.log(self._infolvl, "%s the following statistics: %s",
-                 start, ", ".join(self._get_enabled_stats()))
+                 start, ", ".join(self._get_enabled_stats_noaggr()))
 
     def start(self):
         """Start collecting the statistics."""
@@ -618,3 +496,227 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
     def close(self):
         """Close the statistics collector."""
         ClassHelpers.close(self, close_attrs=("_oobagent", "_inbagent"), unref_attrs=("_pman",))
+
+class StatsCollect(_StatsCollectNoAggr):
+    """
+    This class provides API for collecting SUT statistics, such as 'turbostat' data and AC power.
+    This class supports both specific and aggregate statistics.
+
+    The usage model of this class is as follows.
+      1. Create an object. This will run 'stc-agent' on the SUT (in-band statistics collection) and
+         the local host (out-of-band collection). 'stc-agent' is just an agent that listens for
+         commands on a Unix socket. The commands are like "start collecting", "stop collecting",
+         "set properties", etc. 'stc-agent' runs various collectors.
+
+         Example of "in-band" collectors: acpower, ipmi-inband. These tools run on the local system,
+         but collect information about the remote system.
+
+      2. Call 'set_info_logging()' to enable high-level log messages about big steps, such as
+          discovery results.
+      3. Optionally set the list of statistics collectors that are going to be used by running the
+         'set_disabled_stats()', 'set_enabled_stats()'.
+      4. Optionally set tool path and properties for certain statistics using 'set_prop()' and
+         'set_toolpath()'.
+      5. Optionally set the 'stc-agent' paths on the local and remote systems. By default the
+         'stc-agent' program is looked for in the paths from the 'PATH' environment variable.
+
+         Note: up to this point, the 'stc-agent' processes have not been started. The configuration
+         passed via the 'set_*()' methods was not yet communicated to 'stc-agent'. But it will be
+         sent to 'stc-agent' as soon as it starts. And it starts when 'discover()' or 'configure()'
+         methods are called.
+
+      6. Optionally discover the available statistics by running the 'discover()' method. Once the
+         discovery is finished, re-run 'set_enabled_stats()' to enable the discovered statistics.
+      7. Run the 'configure()' method to configure the statistics collectors.
+      8. Run 'start()' to start collecting the statistics. Supposedly after the 'start()' method is
+         finished, you run a workload on the SUT.
+      9. Run 'stop()' to stop collecting the statistics. You can repeat the start/stop cycles and
+         re-configure the collectors between the cycles.
+      10. Copy statistics and logs from the remote host to the local output directory using
+          'copy_remote_data()'.
+    """
+
+    def _separate_aggr_vs_specific(self, stnames):
+        """
+        Splits statistics names in 'stnames' on two sets - the aggregate statistics names and the
+        specific statistics names. Returns those two sets.
+        """
+
+        aggr_stnames = stnames & set(self._aggr_stinfo)
+        spec_stnames = stnames & (set(self._inbagent.stinfo) | set(self._oobagent.stinfo))
+
+        unknown_stnames = stnames - aggr_stnames - spec_stnames
+        if unknown_stnames:
+            unknown_stname = unknown_stnames.pop()
+            known_stnames = list(self._aggr_stinfo) + list(self._inbagent.stinfo) + \
+                            list(self._oobagent.stinfo)
+            known_stnames = ", ".join(known_stnames)
+            raise Error(f"unknown statistic name '{unknown_stname}', the known names are:\n"
+                        f"  {known_stnames}")
+
+        return aggr_stnames, spec_stnames
+
+    def set_enabled_stats(self, stnames):
+        """Same as '_StatsCollectNoAggr.set_enabled_stats()'."""
+
+        if stnames in (None, "all"):
+            stnames = set(_STCAgent.STATS_INFO) | set(_AGGR_STINFO)
+
+        aggr_stnames, spec_stnames = self._separate_aggr_vs_specific(stnames)
+
+        super().set_enabled_stats(spec_stnames)
+
+        _LOG.debug("enabling the following aggregate statistics: %s", ", ".join(aggr_stnames))
+        for stname in aggr_stnames:
+            self._aggr_stinfo[stname]["enabled"] = True
+
+    def set_disabled_stats(self, stnames):
+        """Same as '_StatsCollectNoAggr.set_disabled_stats()'."""
+
+        if stnames in (None, "all"):
+            stnames = set(_STCAgent.STATS_INFO) | set(_AGGR_STINFO)
+
+        aggr_stnames, spec_stnames = self._separate_aggr_vs_specific(stnames)
+
+        super().set_disabled_stats(spec_stnames)
+
+        _LOG.debug("disabling the following aggregate statistics: %s", ", ".join(aggr_stnames))
+        for stname in aggr_stnames:
+            self._aggr_stinfo[stname]["enabled"] = False
+
+    def get_enabled_stats(self):
+        """Same as '_StatsCollectNoAggr.get_enabled_stats()'."""
+
+        stnames = super().get_enabled_stats()
+        for stname, stinfo in self._aggr_stinfo.items():
+            if stinfo["enabled"]:
+                stnames.add(stname)
+        return stnames
+
+    def get_disabled_stats(self):
+        """Same as '_StatsCollectNoAggr.get_disabled_stats()'."""
+
+        stnames = super().get_enabled_stats()
+        for stname, stinfo in self._aggr_stinfo.items():
+            if not stinfo["enabled"]:
+                stnames.add(stname)
+        return stnames
+
+    def _reject_aggr_stnames(self, stnames, operation):
+        """If 'stnames' includes an aggregate statistics, raise an error."""
+
+        aggr_stnames, _ = self._separate_aggr_vs_specific(stnames)
+        if aggr_stnames:
+            aggr_stname = aggr_stnames.pop()
+            spec_stnames = ", ".join(self._aggr_stinfo[aggr_stname]["stnames"])
+            raise Error(f"cannot {operation} for an aggregate statistic '{aggr_stname}'. Please, "
+                        f"use one of the following specific statistics instead:\n  {spec_stnames}")
+
+    def _reject_aggr_stname(self, stname, operation):
+        """Raise an error if 'stname' is an aggregate statistic."""
+        self._reject_aggr_stnames(set([stname]), operation)
+
+    def set_intervals(self, intervals):
+        """Same as '_StatsCollectNoAggr.set_intervals()'."""
+
+        self._reject_aggr_stnames(set(intervals), "set interval")
+        super().set_intervals(intervals)
+
+    def get_toolpath(self, stname):
+        """Same as '_StatsCollectNoAggr.get_toolpath()'."""
+
+        self._reject_aggr_stname(stname, "get tool path")
+        return super().get_toolpath(stname)
+
+    def set_toolpath(self, stname, path):
+        """Same as '_StatsCollectNoAggr.set_toolpath()'."""
+
+        self._reject_aggr_stname(stname, "set tool path")
+        super().set_toolpath(stname, path)
+
+    def set_prop(self, stname, name, value):
+        """Same as '_StatsCollectNoAggr.set_prop()'."""
+
+        self._reject_aggr_stname(stname, f"set property '{name}'")
+        super().set_prop(stname, name, value)
+
+    def _expand_aggr_stnames(self, stnames):
+        """
+        Expand aggregate statistic names in 'stnames'. Return a new set of statistic names which
+        does not contain any aggregate statistic names.
+        """
+
+        exp_stnames = set()
+        for stname in stnames:
+            if stname in self._aggr_stinfo:
+                exp_stnames.update(self._aggr_stinfo[stname]["stnames"])
+            elif stname in self._inbagent.stinfo or stname in self._oobagent.stinfo:
+                exp_stnames.add(stname)
+            else:
+                stnames = ", ".join(get_stnames(include_aggregate=True))
+                raise Error(f"unknown statistic name '{stname}', the known names are:\n  {stnames}")
+
+        return exp_stnames
+
+    def is_stcagent_needed(self):
+        """Same as '_StatsCollectNoAggr.is_stcagent_needed()'."""
+
+        stnames = self._expand_aggr_stnames(self.get_enabled_stats())
+        return super()._is_stcagent_needed(stnames)
+
+    def discover(self):
+        """
+        Discover and return set of statistics that can be collected for SUT. This method probes all
+        non-disabled statistics collectors.
+
+        Notes.
+
+        Prior to calling this method, you can (but do not have to) use the following methods.
+         * 'set_disabled_stats()' and 'set_enabled_stats()' prior to to enable/disable certain
+            statistics.
+         * 'set_intervals()' - to configure the statistics collectors' intervals.
+         * 'set_prop()' - to configure statistics collectors' properties.
+         * 'set_toolpath()' - to configure statistics collectors' tools paths.
+
+        These methods will not communicate to the 'stc-agent' process(es), which may not even have
+        been started yet. They just save the configuration in an internal dictionary. The
+        'discover()' method will start the 'stc-agent' process(es) and pass all the saved
+        configuration to them.
+        """
+
+        stnames = self._expand_aggr_stnames(self.get_enabled_stats())
+        return self._discover(stnames)
+
+    def configure(self, discover=True):
+        """Same as '_StatsCollectNoAggr.configure()'."""
+
+        aggr_stnames, _ = self._separate_aggr_vs_specific(self.get_enabled_stats())
+
+        for aggr_stname in aggr_stnames:
+            _LOG.debug("resolving aggregate statistic '%s'", aggr_stname)
+
+            stnames = self._discover(self._aggr_stinfo[aggr_stname]["stnames"])
+            if stnames:
+                super().set_enabled_stats(stnames)
+            elif not discover:
+                stnames = ", ".join(self._aggr_stinfo[aggr_stname]["stnames"])
+                raise Error(f"cannot configure aggregate statistic '{aggr_stname}' - none of the "
+                            f"following specific statistics are supported:\n  {stnames}")
+
+        super().configure(discover=discover)
+
+    def _set_aggr_stinfo_defaults(self):
+        """Add default keys to the aggregate statistics description dictionary."""
+
+        for info in self._aggr_stinfo.values():
+            if "enabled" not in info:
+                info["enabled"] = False
+
+    def __init__(self, pman, local_outdir=None, remote_outdir=None):
+        """Same as '_StatsCollectNoAggr.__init__()'."""
+
+        super().__init__(pman, local_outdir=local_outdir, remote_outdir=remote_outdir)
+
+        # Initialize the aggregate statistics dictionary.
+        self._aggr_stinfo = copy.deepcopy(_AGGR_STINFO)
+        self._set_aggr_stinfo_defaults()
