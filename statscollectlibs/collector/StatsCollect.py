@@ -426,17 +426,17 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         collection.
         """
 
-        oob_name = "ipmi-oob"
-        inb_name = "ipmi-inband"
+        oob_stname = "ipmi-oob"
+        inb_stname = "ipmi-inband"
 
-        stavailable = self._discover({oob_name, inb_name})
+        stavailable = self._discover({oob_stname, inb_stname})
 
         # First try and use out-of-band 'ipmi'. If out-of-band is not available, fall back to
         # in-band. Finally, raise an error if neither are available.
-        if oob_name in stavailable:
-            return {oob_name}
-        if inb_name in stavailable:
-            return {inb_name}
+        if oob_stname in stavailable:
+            return {oob_stname}
+        if inb_stname in stavailable:
+            return {inb_stname}
         raise Error("'ipmi' statistics can't be collected as neither out-of-band nor inband "
                     "'ipmi' is available.")
 
