@@ -291,7 +291,8 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         if self._oobagent:
             return self._oobagent.stinfo[stname]
 
-        raise ErrorNotFound(f"statistics '{stname}' is not available")
+        stnames = ", ".join(get_stnames(include_aggregate=False))
+        raise ErrorNotFound(f"unknown statistic name '{stname}', the known names are: {stnames}")
 
     def get_toolpath(self, stname):
         """
@@ -299,8 +300,6 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         the same host where 'stc-agent' runs (local host for out-of-band statistics, the SUT for
         in-band statistics.
         """
-
-        check_stname(stname, allow_aggregate=False)
 
         stinfo = self._get_stinfo(stname)
         return stinfo["toolpath"]
@@ -312,15 +311,11 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         for in-band statistics.
         """
 
-        check_stname(stname, allow_aggregate=False)
-
         stinfo = self._get_stinfo(stname)
         stinfo["toolpath"] = path
 
     def set_prop(self, stname, name, value):
         """Set 'stname' statistic collector's property 'name' to value 'value'."""
-
-        check_stname(stname, allow_aggregate=False)
 
         stinfo = self._get_stinfo(stname)
 
