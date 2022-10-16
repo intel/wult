@@ -184,9 +184,9 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         returns 0.
         """
 
-        inb_max_interval = _STCAgent.get_max_interval(self._inbagent.stinfo)
+        inb_max_interval = self._inbagent.get_max_interval()
         if self._oobagent:
-            oob_max_interval = _STCAgent.get_max_interval(self._oobagent.stinfo)
+            oob_max_interval = self._oobagent.get_max_interval()
         else:
             oob_max_interval = 0
 

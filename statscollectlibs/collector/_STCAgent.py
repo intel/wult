@@ -119,33 +119,6 @@ STATS_INFO = {
 class SCReplyError(Error):
     """This exception is raised when 'stc-agent' replies that a command has failed."""
 
-def _set_stinfo_defaults(stinfo):
-    """Add default keys to the statistics description dictionary."""
-
-    for info in stinfo.values():
-        if "enabled" not in info:
-            info["enabled"] = True
-        if "fallible" not in info:
-            info["fallible"] = False
-        if "props" not in info:
-            info["props"] = {}
-
-def get_max_interval(stinfo):
-    """
-    Returns the maximum statistics collection interval value for all enabled statistics in
-    'stinfo'.
-    """
-
-    intervals = []
-    for info in stinfo.values():
-        if info["enabled"] and info["interval"] is not None:
-            intervals.append(info["interval"])
-
-    if intervals:
-        return max(intervals)
-
-    return 0
-
 class _STCAgent(ClassHelpers.SimpleCloseContext):
     """
     The base statistics collector class, contains the parts shared between the inband and
@@ -299,6 +272,22 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
             return False
         return self.stinfo[stname]["enabled"]
 
+    def get_max_interval(self):
+        """
+        Returns the maximum statistics collection interval value for all enabled statistics in
+        'stinfo'.
+        """
+
+        intervals = []
+        for info in self.stinfo.values():
+            if info["enabled"] and info["interval"] is not None:
+                intervals.append(info["interval"])
+
+        if intervals:
+            return max(intervals)
+
+        return 0
+
     def _ensure_min_collect_time(self):
         """
         This method makes sure all statistics collector made progress and collected at least one
@@ -308,7 +297,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         if not self._start_time:
             raise Error("statistics collection did not start yet")
 
-        max_interval = get_max_interval(self.stinfo)
+        max_interval = self.get_max_interval()
         if max_interval == 0:
             return
 
@@ -732,6 +721,17 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
 
         return {stname for stname, stinfo in self.stinfo.items() if not stinfo["enabled"]}
 
+    def _set_stinfo_defaults(self):
+        """Add default keys to the statistics description dictionary."""
+
+        for info in self.stinfo.values():
+            if "enabled" not in info:
+                info["enabled"] = True
+            if "fallible" not in info:
+                info["fallible"] = False
+            if "props" not in info:
+                info["props"] = {}
+
     def __init__(self, pman, sutname, outdir=None, stca_path=None):
         """
         Initialize a class instance. The input arguments are as follows.
@@ -749,7 +749,8 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         self.outdir = outdir
         self._stca_path = stca_path
 
-        self.stinfo = copy.deepcopy(STATS_INFO)
+        # The statistics information dictionary.
+        self.stinfo = None
 
         # Log level for some of the high-level messages.
         self.infolvl = logging.DEBUG
@@ -783,7 +784,8 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         self._start_time = None
 
         # Initialize the statistics dictionary.
-        _set_stinfo_defaults(self.stinfo)
+        self.stinfo = copy.deepcopy(STATS_INFO)
+        self._set_stinfo_defaults()
 
         if not self.outdir:
             self.outdir = self._pman.mkdtemp(prefix="stc-agent-")
