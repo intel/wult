@@ -681,7 +681,6 @@ def start_command_create_stcoll(args, pman):
 
     return stcoll
 
-
 def report_command_outdir(args, rsts):
     """Return the default or user-provided output directory path for the 'report' command."""
 
