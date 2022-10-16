@@ -60,8 +60,8 @@ _DELIMITER = "--\n".encode("utf-8")
 #
 STATS_INFO = {
     "sysinfo" : {
-        "interval": None,
-        "toolpath": None,
+        "interval" : None,
+        "toolpath" : None,
         "description" : "Not really a statistics collector, but just a script that saves all sorts "
                         "of information about the SUT (e.g., 'dmesg', 'lspci -vvv' and 'dmidecode' "
                         "output, and more). One snapshot of the SUT information is taken before "
@@ -71,39 +71,39 @@ STATS_INFO = {
                         "include new messages).",
     },
     "turbostat" : {
-        "interval": 5,
-        "toolpath": "turbostat",
-        "description": "Periodically run the 'turbostat' tool and collect C-state residency, "
-                       "average CPU frequency, RAPL data, and more.",
+        "interval" : 5,
+        "toolpath" : "turbostat",
+        "description" : "Periodically run the 'turbostat' tool and collect C-state residency, "
+                        "average CPU frequency, RAPL data, and more.",
     },
-    "ipmi-oob": {
-        "interval": 5,
-        "fallible": True,
-        "inband": False,
-        "toolpath": "ipmi-helper",
-        "description": "Periodically run 'ipmitool' to collect platform IPMI data, such as fans "
-                       "speed, CPU temperature, etc. The data are collected by running 'ipmitool' "
-                       "outside of the SUT (out of band), so that 'ipmitool' talks to SUT's BMC "
-                       "module via the network. This is supposedly better than running 'ipmitool' "
-                       "on the SUT (in-band), because it does not add to CPU load.",
+    "ipmi-oob" : {
+        "interval" : 5,
+        "fallible" : True,
+        "inband" : False,
+        "toolpath" : "ipmi-helper",
+        "description" : "Periodically run 'ipmitool' to collect platform IPMI data, such as fans "
+                        "speed, CPU temperature, etc. The data are collected by running 'ipmitool' "
+                        "outside of the SUT (out of band), so that 'ipmitool' talks to SUT's BMC "
+                        "module via the network. This is supposedly better than running 'ipmitool' "
+                        "on the SUT (in-band), because it does not add to CPU load.",
         "props" : {
             "bmchost" : None,
             "bmcuser" : None,
             "bmcpwd" : None,
         }
     },
-    "ipmi-inband": {
-        "interval": 5,
-        "fallible": True,
-        "toolpath": "ipmi-helper",
-        "description": "Same as the 'ipmi-oob' statistics, but the data are collected by running "
-                       "'ipmitool' on the SUT (in-band).",
+    "ipmi-inband" : {
+        "interval" : 5,
+        "fallible" : True,
+        "toolpath" : "ipmi-helper",
+        "description" : "Same as the 'ipmi-oob' statistics, but the data are collected by running "
+                        "'ipmitool' on the SUT (in-band).",
     },
-    "acpower": {
-        "interval": 1,
-        "inband": False,
-        "toolpath": "yokotool",
-        "description": "Collect SUT wall socket power consumption from an external Yokogawa power "
+    "acpower" : {
+        "interval" : 1,
+        "inband" : False,
+        "toolpath" : "yokotool",
+        "description" : "Collect SUT wall socket power consumption from an external Yokogawa power "
                        "meter using 'yokotool'.",
         "props" : {
             "devnode" : None,
