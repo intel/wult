@@ -278,7 +278,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         possibly rounded interval values as 'float' type.
         """
 
-        inb_stnames, oob_stnames = self._separate_inb_vs_oob(set(intervals.keys()))
+        inb_stnames, oob_stnames = self._separate_inb_vs_oob(set(intervals))
 
         inb_intervals = {stname: intervals[stname] for stname in inb_stnames}
         oob_intervals = {stname: intervals[stname] for stname in oob_stnames}
@@ -391,8 +391,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
                 raise Error(f"cannot discover disabled statistics {disabled_stnames}")
 
         inband_stnames, oob_stnames = self._separate_inb_vs_oob(stnames)
-        available = set()
-        available |= self._inbagent.discover(inband_stnames)
+        available = self._inbagent.discover(inband_stnames)
         if self._oobagent:
             available |= self._oobagent.discover(oob_stnames)
 
