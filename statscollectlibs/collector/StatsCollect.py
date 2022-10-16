@@ -35,6 +35,19 @@ _AGGR_STINFO = {
    },
 }
 
+def get_stnames(include_aggregate=True):
+    """
+    Returns all statistic names. The arguments are as follows:
+     * include_aggregate - if 'True', include the aggregate statistic names, otherwise include only
+                           specific statistic names.
+    """
+
+    stnames = list(STATS_INFO)
+    if include_aggregate:
+        stnames += list(_AGGR_STINFO)
+
+    return stnames
+
 def get_stinfo(stname, allow_aggregate=True):
     """
     Return information about statistic 'stname'. The arguments are as follows:
@@ -46,7 +59,7 @@ def get_stinfo(stname, allow_aggregate=True):
 
     if stname in _AGGR_STINFO:
         if not allow_aggregate:
-            stnames = ", ".join(STATS_INFO)
+            stnames = ", ".join(get_stnames(include_aggregate=allow_aggregate))
             raise Error(f"'{stname}' is an aggregate statistic name, please specify one of the "
                         f"following specific statistic names:\n  {stnames}")
         return _AGGR_STINFO[stname]
@@ -54,11 +67,7 @@ def get_stinfo(stname, allow_aggregate=True):
     if stname in STATS_INFO:
         return STATS_INFO[stname]
 
-    stnames = list(STATS_INFO)
-    if allow_aggregate:
-        stnames += list(_AGGR_STINFO)
-    stnames = ", ".join(stnames)
-
+    stnames = ", ".join(get_stnames(include_aggregate=allow_aggregate))
     raise Error(f"unknown statistic name '{stname}', the known names are:\n  {stnames}")
 
 def check_stname(stname, allow_aggregate=True):
