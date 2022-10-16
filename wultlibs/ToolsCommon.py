@@ -618,10 +618,9 @@ def start_command_list_stats():
 
     from statscollectlibs.collector import StatsCollect # pylint: disable=import-outside-toplevel
 
-    if not StatsCollect.STATS_INFO:
-        raise Error("statistics collection is not supported on your system")
+    for stname in StatsCollect.get_stnames():
+        stinfo = StatsCollect.get_stinfo(stname)
 
-    for stname, stinfo in StatsCollect.STATS_INFO.items():
         _LOG.info("* %s", stname)
         if stinfo.get("interval"):
             _LOG.info("  - Default interval: %.1fs", stinfo["interval"])

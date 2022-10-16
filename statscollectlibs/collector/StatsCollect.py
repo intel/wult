@@ -14,7 +14,6 @@ import logging
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.collector import _STCAgent
-from statscollectlibs.collector._STCAgent import STATS_INFO
 
 _LOG = logging.getLogger()
 
@@ -24,7 +23,7 @@ _LOG = logging.getLogger()
 # SUT.
 #
 # The following constant maps aggregate statistic names to specific statistic names. It partially
-# mimics the 'STATS_INFO' dictionary structure.
+# mimics the '_STCAgent.STATS_INFO' dictionary structure.
 _AGGR_STINFO = {
     "ipmi": {
         "stnames": {"ipmi-inband", "ipmi-oob"},
@@ -42,7 +41,7 @@ def get_stnames(include_aggregate=True):
                            specific statistic names.
     """
 
-    stnames = list(STATS_INFO)
+    stnames = list(_STCAgent.STATS_INFO)
     if include_aggregate:
         stnames += list(_AGGR_STINFO)
 
@@ -64,8 +63,8 @@ def get_stinfo(stname, allow_aggregate=True):
                         f"following specific statistic names:\n  {stnames}")
         return _AGGR_STINFO[stname]
 
-    if stname in STATS_INFO:
-        return STATS_INFO[stname]
+    if stname in _STCAgent.STATS_INFO:
+        return _STCAgent.STATS_INFO[stname]
 
     stnames = ", ".join(get_stnames(include_aggregate=allow_aggregate))
     raise Error(f"unknown statistic name '{stname}', the known names are:\n  {stnames}")
@@ -113,7 +112,7 @@ def _separate_inb_vs_oob(stnames):
     for stname in stnames:
         check_stname(stname, allow_aggregate=False)
 
-        if STATS_INFO[stname]["inband"]:
+        if _STCAgent.STATS_INFO[stname]["inband"]:
             inb_stnames.add(stname)
         else:
             oob_stnames.add(stname)
@@ -209,7 +208,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         """Enabled/disable 'stnames' statistics."""
 
         if stnames in (None, "all"):
-            stnames = list(STATS_INFO)
+            stnames = list(_STCAgent.STATS_INFO)
 
         check_stnames(stnames)
         inb_stnames, oob_stnames = _separate_inb_vs_oob(stnames)
@@ -266,7 +265,7 @@ class StatsCollect(ClassHelpers.SimpleCloseContext):
         Set intervals for statistics collectors. The 'intervals' argument should be a dictionary
         with statistics collector names as keys and the collection interval as the value. This
         method should be called prior to the 'configure()' method. By default the statistics
-        collectors use intervals from the 'STATS_INFO' statistics description dictionary.
+        collectors use intervals from the '_STCAgent.STATS_INFO' statistics description dictionary.
 
         Returns a dictionary similar to 'intervals', but only including enabled statistics and
         possibly rounded interval values as 'float' type.
