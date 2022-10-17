@@ -635,52 +635,16 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
 
         self._send_command("configure")
 
-    def configure(self, discover=False, must_have=None):
-        """
-        Configure statistic collectors. The arguments are as follows.
-          * discover - if 'True', run the discovery process for all the enabled statistics, and
-                       disable those that can't be collected. Otherwise, do not run discovery and
-                       just configure all the enabled statistics.
-          * must_have - list of statistics names that must be configured. If at the end of the
-                        'configure()' method any of the 'must_have' statistics is disable, this
-                        method raises and exception. By default, the 'must_have' list is empty.
+    def configure(self, stnames=None):
+        """Configure statistic collectors."""
 
-        Note, if 'discover' is 'False', then this method will fail if any of the enabled statistics
-        cannot be configured.
-        """
+        if not stnames:
+            stnames = self.get_enabled_stats()
 
-        if not must_have:
-            must_have = set()
-        else:
-            must_have = set(must_have)
+        if not stnames:
+            _LOG.debug("no enabled statistics, skip configuring statistics%s", self._pman.hostmsg)
+            return
 
-        disabled = must_have & self.get_disabled_stats()
-        if disabled:
-            disabled = ", ".join(disabled)
-            raise Error(f"the following statistics are required, but they were disabled: "
-                        f"{disabled}")
-
-        if discover:
-            discovered_stnames = self.discover()
-
-            not_found = must_have - discovered_stnames
-            if not_found:
-                not_found = ", ".join(not_found)
-                raise Error(f"the following statistics are required, but they are not available: "
-                            f"{not_found}")
-
-            for stname in self.get_enabled_stats():
-                if stname not in discovered_stnames:
-                    self.stinfo[stname]["enabled"] = False
-                    _LOG.debug("disabled the '%s' statistics", stname)
-        else:
-            for stname, info in self.stinfo.items():
-                info["enabled"] = stname in must_have
-
-        for stname, info in self.stinfo.items():
-            info["fallible"] = stname not in must_have
-
-        stnames = self.get_enabled_stats()
         self._configure(stnames, for_discovery=False)
 
     def discover(self, stnames=None):
@@ -690,11 +654,11 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         not provided, checks all enabled statistics.
         """
 
-        if stnames is None:
+        if not stnames:
             stnames = self.get_enabled_stats()
 
         if not stnames:
-            _LOG.debug("no enabled statistics, skip discovery on host '%s'", self._pman.hostname)
+            _LOG.debug("no enabled statistics, skip discovery%s", self._pman.hostmsg)
             return stnames
 
         _LOG.debug("discovery: trying the following statistics%s: %s",

@@ -646,20 +646,22 @@ def start_command_create_stcoll(args, pman):
     stcoll = StatsCollect.StatsCollect(pman, args.outdir)
     stcoll.set_info_logging(True)
 
-    if stconf["discover"] or "acpower" in stconf["include"]:
-        # Assume that power meter is configured to match the SUT name.
-        if pman.is_remote:
-            devnode = pman.hostname
-        else:
-            devnode = "default"
+    if stconf["discover"]:
+        stcoll.set_enabled_stats("all")
+        stcoll.set_disabled_stats(stconf["exclude"])
 
-        with contextlib.suppress(Error):
-            stcoll.set_prop("acpower", "devnode", devnode)
+        if "acpower" in stconf["include"]:
+            # Assume that power meter is configured to match the SUT name.
+            if pman.is_remote:
+                devnode = pman.hostname
+            else:
+                devnode = "default"
 
-    if not stcoll.get_enabled_stats():
-        _LOG.info("No statistics will be collected")
-        stcoll.close()
-        return None
+            with contextlib.suppress(Error):
+                stcoll.set_prop("acpower", "devnode", devnode)
+    else:
+        stcoll.set_disabled_stats("all")
+        stcoll.set_enabled_stats(stconf["include"])
 
     # Configure the 'stc-agent' program path.
     local_needed, remote_needed = stcoll.is_stcagent_needed()
@@ -675,8 +677,10 @@ def start_command_create_stcoll(args, pman):
 
     STCHelpers.apply_stconf(stcoll, stconf)
 
-    # Enable info messages.
-    stcoll.log_info = True
+    if not stcoll.get_enabled_stats():
+        _LOG.info("No statistics will be collected")
+        stcoll.close()
+        return None
 
     return stcoll
 

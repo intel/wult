@@ -55,12 +55,13 @@ def parse_stnames(stnames, stconf=None):
             # The "!" prefix indicates that the statistics must not be collected.
             stname = stname[1:]
             stconf["exclude"].add(stname)
-            if stname in stconf["include"]:
-                stconf["include"].remove(stname)
         else:
             stconf["include"].add(stname)
-            if stname in stconf["exclude"]:
-                stconf["exclude"].remove(stname)
+
+    bogus = stconf["include"] & stconf["exclude"]
+    if bogus:
+        bogus = ", ".join(bogus)
+        raise Error(f"cannot simultaneously include and exclude the following statistics: {bogus}")
 
     StatsCollect.check_stnames(stconf["include"])
     StatsCollect.check_stnames(stconf["exclude"])
@@ -112,7 +113,24 @@ def apply_stconf(stcoll, stconf):
     This helper function applies 'stconf' to 'stcoll' and runs 'stcoll.configure()'.
     """
 
-    stcoll.set_disabled_stats(stconf["exclude"])
     stcoll.set_intervals(stconf["intervals"])
 
-    stcoll.configure(discover=stconf["discover"], must_have=stconf["include"])
+    if stconf["discover"]:
+        stcoll.set_enabled_stats("all")
+        stcoll.set_disabled_stats(stconf["exclude"])
+
+        discovered = stcoll.discover()
+
+        # Make sure that all the required statistics are actually available.
+        not_found = stconf["include"] - (discovered & stconf["include"])
+        if not_found:
+            not_found = ", ".join(not_found)
+            raise Error(f"the following statistics cannot be collected: {not_found}")
+
+        stcoll.set_disabled_stats("all")
+        stcoll.set_enabled_stats(discovered)
+    else:
+        stcoll.set_disabled_stats("all")
+        stcoll.set_enabled_stats(stconf["include"])
+
+    stcoll.configure()

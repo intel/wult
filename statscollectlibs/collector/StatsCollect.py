@@ -335,21 +335,10 @@ class _StatsCollectNoAggr(ClassHelpers.SimpleCloseContext):
         statistics.
         """
 
-        # Check that only enabled statistics are trying to be discovered.
-        if stnames is not None:
-            disabled_stnames = stnames.difference(self._get_enabled_stats_noaggr())
-            if disabled_stnames:
-                raise Error(f"cannot discover disabled statistics {disabled_stnames}")
-
         inband_stnames, oob_stnames = self._separate_inb_vs_oob(stnames)
         available = self._inbagent.discover(inband_stnames)
         if self._oobagent:
             available |= self._oobagent.discover(oob_stnames)
-
-        if stnames:
-            _LOG.log(self._infolvl, "Discovered the following statistics: %s", ", ".join(available))
-        else:
-            _LOG.log(self._infolvl, "Discovered no statistics%s", self._pman.hostmsg)
 
         return available
 
@@ -369,29 +358,19 @@ class _StatsCollectNoAggr(ClassHelpers.SimpleCloseContext):
             _LOG.log(self._infolvl, "Disabling 'ipmi-inband' statistics in favor of 'ipmi-oob'")
             self._inbagent.stinfo["ipmi-inband"]["enabled"] = False
 
-    def configure(self, discover=False):
+    def configure(self):
         """
-        Configure the statistics collectors. The arguments are as follows.
-          * discover - if 'True', run the discovery process for all the enabled statistics, and
-                       disable those that can't be collected. Otherwise, do not run discovery and
-                       just configure all the enabled statistics.
+        Configure the enabled statistics collectors.
 
         Please, also refer to the 'Notes' in the 'discover()' method - they are relevant to
         'configure()' as well.
         """
 
-        self._inbagent.configure(discover=discover)
+        self._inbagent.configure()
         if self._oobagent:
-            self._oobagent.configure(discover=discover)
+            self._oobagent.configure()
 
         self._handle_conflicting_stats()
-
-        if discover:
-            start = "Discovered and configured"
-        else:
-            start = "Configured"
-        _LOG.log(self._infolvl, "%s the following statistics: %s",
-                 start, ", ".join(self._get_enabled_stats_noaggr()))
 
     def start(self):
         """Start collecting the statistics."""
@@ -564,11 +543,13 @@ class StatsCollect(_StatsCollectNoAggr):
 
         aggr_stnames, spec_stnames = self._separate_aggr_vs_specific(stnames)
 
+        for astname in aggr_stnames:
+            self._aggr_stinfo[astname]["enabled"] = True
+            super().set_enabled_stats(self._aggr_stinfo[astname]["stnames"])
+
         super().set_enabled_stats(spec_stnames)
 
         _LOG.debug("enabling the following aggregate statistics: %s", ", ".join(aggr_stnames))
-        for stname in aggr_stnames:
-            self._aggr_stinfo[stname]["enabled"] = True
 
     def set_disabled_stats(self, stnames):
         """Same as '_StatsCollectNoAggr.set_disabled_stats()'."""
@@ -578,28 +559,30 @@ class StatsCollect(_StatsCollectNoAggr):
 
         aggr_stnames, spec_stnames = self._separate_aggr_vs_specific(stnames)
 
+        for astname in aggr_stnames:
+            self._aggr_stinfo[astname]["enabled"] = False
+            super().set_disabled_stats(self._aggr_stinfo[astname]["stnames"])
+
         super().set_disabled_stats(spec_stnames)
 
         _LOG.debug("disabling the following aggregate statistics: %s", ", ".join(aggr_stnames))
-        for stname in aggr_stnames:
-            self._aggr_stinfo[stname]["enabled"] = False
 
     def get_enabled_stats(self):
         """Same as '_StatsCollectNoAggr.get_enabled_stats()'."""
 
         stnames = super().get_enabled_stats()
-        for stname, stinfo in self._aggr_stinfo.items():
-            if stinfo["enabled"]:
-                stnames.add(stname)
+        for astname, astinfo in self._aggr_stinfo.items():
+            if astinfo["enabled"]:
+                stnames.add(astname)
         return stnames
 
     def get_disabled_stats(self):
         """Same as '_StatsCollectNoAggr.get_disabled_stats()'."""
 
         stnames = super().get_enabled_stats()
-        for stname, stinfo in self._aggr_stinfo.items():
-            if not stinfo["enabled"]:
-                stnames.add(stname)
+        for astname, astinfo in self._aggr_stinfo.items():
+            if not astinfo["enabled"]:
+                stnames.add(astname)
         return stnames
 
     def _reject_aggr_stnames(self, stnames, operation):
@@ -607,10 +590,10 @@ class StatsCollect(_StatsCollectNoAggr):
 
         aggr_stnames, _ = self._separate_aggr_vs_specific(stnames)
         if aggr_stnames:
-            aggr_stname = aggr_stnames.pop()
-            spec_stnames = ", ".join(self._aggr_stinfo[aggr_stname]["stnames"])
-            raise Error(f"cannot {operation} for an aggregate statistic '{aggr_stname}'. Please, "
-                        f"use one of the following specific statistics instead:\n  {spec_stnames}")
+            astname = aggr_stnames.pop()
+            spec_stnames = ", ".join(self._aggr_stinfo[astname]["stnames"])
+            raise Error(f"cannot {operation} for an aggregate statistic '{astname}'. Please, use "
+                        f"one of the following specific statistics instead:\n  {spec_stnames}")
 
     def _reject_aggr_stname(self, stname, operation):
         """Raise an error if 'stname' is an aggregate statistic."""
@@ -667,43 +650,76 @@ class StatsCollect(_StatsCollectNoAggr):
     def discover(self):
         """
         Discover and return set of statistics that can be collected for SUT. This method probes all
-        non-disabled statistics collectors.
+        non-disabled statistics collectors and returns the names of the successfully probed ones (in
+        form of a 'set()').
 
-        Notes.
-
-        Prior to calling this method, you can (but do not have to) use the following methods.
+        Note, prior to calling this method, you can (but do not have to) use the following methods.
          * 'set_disabled_stats()' and 'set_enabled_stats()' prior to to enable/disable certain
             statistics.
          * 'set_intervals()' - to configure the statistics collectors' intervals.
          * 'set_prop()' - to configure statistics collectors' properties.
          * 'set_toolpath()' - to configure statistics collectors' tools paths.
 
-        These methods will not communicate to the 'stc-agent' process(es), which may not even have
-        been started yet. They just save the configuration in an internal dictionary. The
+        The above methods will not communicate to the 'stc-agent' process(es), which may not even
+        have been started yet. They just save the configuration in an internal dictionary. The
         'discover()' method will start the 'stc-agent' process(es) and pass all the saved
         configuration to them.
         """
 
-        stnames = self._expand_aggr_stnames(self.get_enabled_stats())
-        return self._discover(stnames)
+        enabled_stnames = self.get_enabled_stats()
+        aggr_stnames, _ = self._separate_aggr_vs_specific(enabled_stnames)
 
-    def configure(self, discover=True):
+        discover_stnames = self._expand_aggr_stnames(self.get_enabled_stats())
+        if discover_stnames:
+            _LOG.log(self._infolvl, "Discovering the following statistics: %s",
+                     ", ".join(discover_stnames))
+        else:
+            return set()
+
+        discovered_stnames = self._discover(discover_stnames)
+
+        for astname in aggr_stnames:
+            astinfo = self._aggr_stinfo[astname]
+            # Cache the specific statistics available for the aggregate statistics.
+            astinfo["resolved"] = astinfo["stnames"] & discovered_stnames
+            # Also include the aggregate statistic name to the returned set of discovered
+            # statistics.
+            discovered_stnames.add(astname)
+
+        if discovered_stnames:
+            _LOG.log(self._infolvl, "Discovered the following statistics: %s",
+                     ", ".join(discovered_stnames))
+        else:
+            _LOG.log(self._infolvl, "Discovered no statistics%s", self._pman.hostmsg)
+
+        return discovered_stnames
+
+    def configure(self):
         """Same as '_StatsCollectNoAggr.configure()'."""
 
         aggr_stnames, _ = self._separate_aggr_vs_specific(self.get_enabled_stats())
 
-        for aggr_stname in aggr_stnames:
-            _LOG.debug("resolving aggregate statistic '%s'", aggr_stname)
+        for astname in aggr_stnames:
+            astinfo = self._aggr_stinfo[astname]
+            if astinfo["resolved"]:
+                super().set_enabled_stats(astinfo["resolved"])
+                continue
 
-            stnames = self._discover(self._aggr_stinfo[aggr_stname]["stnames"])
-            if stnames:
-                super().set_enabled_stats(stnames)
-            elif not discover:
-                stnames = ", ".join(self._aggr_stinfo[aggr_stname]["stnames"])
-                raise Error(f"cannot configure aggregate statistic '{aggr_stname}' - none of the "
+            _LOG.log(self._infolvl, "Resolving the '%s' statistic", astname)
+            discovered_stnames = self._discover(astinfo["stnames"])
+            if discovered_stnames:
+                _LOG.log(self._infolvl, "Resolved the '%s' statistic to '%s'",
+                         astname, ", ".join(discovered_stnames))
+                super().set_enabled_stats(discovered_stnames)
+            else:
+                stnames = ", ".join(astinfo["stnames"])
+                raise Error(f"cannot configure aggregate statistic '{astname}' - none of the "
                             f"following specific statistics are supported:\n  {stnames}")
 
-        super().configure(discover=discover)
+        _LOG.log(self._infolvl, "Configuring the following statistics: %s",
+                 ", ".join(self._get_enabled_stats_noaggr()))
+
+        super().configure()
 
     def _set_aggr_stinfo_defaults(self):
         """Add default keys to the aggregate statistics description dictionary."""
@@ -711,6 +727,8 @@ class StatsCollect(_StatsCollectNoAggr):
         for info in self._aggr_stinfo.values():
             if "enabled" not in info:
                 info["enabled"] = False
+            if "resolved" not in info:
+                info["resolved"] = set()
 
     def __init__(self, pman, local_outdir=None, remote_outdir=None):
         """Same as '_StatsCollectNoAggr.__init__()'."""
