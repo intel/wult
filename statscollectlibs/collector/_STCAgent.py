@@ -726,7 +726,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
 
         for info in self.stinfo.values():
             if "enabled" not in info:
-                info["enabled"] = True
+                info["enabled"] = False
             if "fallible" not in info:
                 info["fallible"] = False
             if "props" not in info:
