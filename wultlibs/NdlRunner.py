@@ -70,7 +70,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         _LOG.info(msg)
 
         self._prov.start()
-        self._res.write_info()
 
         self._progress.start()
         try:
@@ -88,6 +87,9 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
             with contextlib.suppress(Error):
                 self._prov.stop()
 
+            self._res.info["duration"] = Human.duration(self._progress.get_duration())
+            self._res.write_info()
+
             if is_ctrl_c:
                 raise
 
@@ -99,6 +101,8 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
             self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
             duration = Human.duration(self._progress.get_duration())
             _LOG.info("Finished measuring RTD%s, lasted %s", self._pman.hostmsg, duration)
+            self._res.info["duration"] = duration
+            self._res.write_info()
             self._prov.stop()
 
 
