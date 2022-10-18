@@ -101,6 +101,11 @@ class ReportBase:
         for res in self.rsts:
             dcount_row.add_cell(res.reportid, len(res.df.index))
 
+        # Add run duration.
+        duration_row = self._intro_tbl.create_row("Duration")
+        for res in self.rsts:
+            duration_row.add_cell(res.reportid, res.info.get("duration"))
+
         # Add measurement resolution.
         if all("resolution" in res.info for res in self.rsts):
             dres_row = self._intro_tbl.create_row("Device Resolution")
