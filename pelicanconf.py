@@ -3,7 +3,9 @@
 
 AUTHOR = "Artem Bityutskiy"
 SITENAME = "Wult"
-SITEURL = "http://localhost:8000"
+
+# 'SITEURL' defaults to 'localhost:{PORT}'
+SITEURL = ""
 
 PATH = "content"
 TIMEZONE = "UTC"
