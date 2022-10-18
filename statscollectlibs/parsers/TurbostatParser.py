@@ -201,6 +201,13 @@ def _add_nontable_data(nontable, line):
     """
 
     # Example:
+    # turbostat version 2022.07.28 - Len Brown <lenb@kernel.org>
+    match = re.match(r'turbostat version ([^\s]+) .*', line)
+    if match:
+        nontable["TurbostatVersion"] = match.group(0)
+        return
+
+    # Example:
     # 10 * 100 = 1000 MHz max efficiency frequency
     match = re.match(r'\d+ \* [.\d]+ = ([.\d]+) MHz max efficiency frequency', line)
     if match:
