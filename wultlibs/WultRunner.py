@@ -90,6 +90,9 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         This is a helper for 'run()' which takes care of the post-run phase of some data providers.
         """
 
+        self._res.info["duration"] = Human.duration(self._progress.get_duration())
+        self._res.write_info()
+
         self._prov.stop()
 
         if self._stcoll:
@@ -105,8 +108,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                          'datapoints.csv' file. But if 'keep_rawdp' is 'True', all the datapoint raw
                          fields will also be saved in the CSV file.
         """
-
-        self._res.write_info()
 
         if self._stcoll:
             # Start collecting statistics.
