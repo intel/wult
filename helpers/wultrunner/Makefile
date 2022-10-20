@@ -13,7 +13,7 @@ LIBBPF ?=
 # Paths to include when compiling eBPF code.
 BPF_INC := -I$(KSRC)/include \
 	   -I$(KSRC)/usr/include \
-	   -I$(KSRC)/libbpf/include \
+	   -I$(KSRC)/tools/bpf/resolve_btfids/libbpf \
 	   -I$(KSRC)/tools/lib
 # Paths to include when compiling the userspace code.
 U_INC := -I$(KSRC)/tools/include \
