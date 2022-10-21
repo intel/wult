@@ -8,8 +8,7 @@
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
-import { html, css } from 'lit'
-import { ScTab } from './tab.js'
+import { LitElement, html, css } from 'lit'
 
 import './diagram.js'
 import './file-preview'
@@ -20,7 +19,7 @@ import './smry-tbl'
  * @class ScDataTab
  * @extends {LitElement}
  */
-class ScDataTab extends ScTab {
+class ScDataTab extends LitElement {
     static styles = css`
         .grid {
             display: grid;
@@ -37,10 +36,7 @@ class ScDataTab extends ScTab {
         smrytblfile: { type: Blob }
     }
 
-    /**
-     * Provides the template for when the tab is visible (active).
-     */
-    visibleTemplate () {
+    render () {
         if (this.smrytblpath && !this.smrytblfile) {
             fetch(this.smrytblpath).then((resp) => {
                 return resp.blob()
@@ -67,10 +63,6 @@ class ScDataTab extends ScTab {
                     : html``}
             </div>
         `
-    }
-
-    render () {
-        return super.render()
     }
 }
 

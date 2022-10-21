@@ -838,7 +838,7 @@
       >
         <slot></slot>
       </div>
-    `}};Xo.styles=Yo,be([me({reflect:!0})],Xo.prototype,"name",2),be([me({type:Boolean,reflect:!0})],Xo.prototype,"active",2),be([ve("active")],Xo.prototype,"handleActiveChange",1),Xo=be([fe("sl-tab-panel")],Xo);class Zo extends ot{visibleTemplate(){throw new Error("Inherit from this class and implement 'visibleTemplate'.")}render(){return this.visibleTemplate()}}customElements.define("sc-tab",Zo);var Jo=ct`
+    `}};Xo.styles=Yo,be([me({reflect:!0})],Xo.prototype,"name",2),be([me({type:Boolean,reflect:!0})],Xo.prototype,"active",2),be([ve("active")],Xo.prototype,"handleActiveChange",1),Xo=be([fe("sl-tab-panel")],Xo);var Zo=ct`
   ${oe}
 
   :host {
@@ -897,12 +897,12 @@
       stroke-dasharray: 0.01em, 2.75em;
     }
   }
-`,Go=class extends te{constructor(){super(...arguments),this.localize=new We(this)}render(){return Ot`
+`,Jo=class extends te{constructor(){super(...arguments),this.localize=new We(this)}render(){return Ot`
       <svg part="base" class="spinner" role="progressbar" aria-valuetext=${this.localize.term("loading")}>
         <circle class="spinner__track"></circle>
         <circle class="spinner__indicator"></circle>
       </svg>
-    `}};Go.styles=Jo,Go=be([fe("sl-spinner")],Go);class Qo extends ot{static styles=r`
+    `}};Jo.styles=Zo,Jo=be([fe("sl-spinner")],Jo);class Go extends ot{static styles=r`
     .plot {
         position: relative;
         height: 100%;
@@ -926,7 +926,7 @@
                 <div class="plot">
                     <iframe @load=${this.hideLoading} seamless frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
                 </div>
-            `:O``}}customElements.define("sc-diagram",Qo);var ts=class extends Event{constructor(t){super("formdata"),this.formData=t}},es=class extends FormData{constructor(t){var e=(...t)=>{super(...t)};t?(e(t),this.form=t,t.dispatchEvent(new ts(this))):e()}append(t,e){if(!this.form)return super.append(t,e);let o=this.form.elements[t];if(o||(o=document.createElement("input"),o.type="hidden",o.name=t,this.form.appendChild(o)),this.has(t)){const s=this.getAll(t),i=s.indexOf(o.value);-1!==i&&s.splice(i,1),s.push(e),this.set(t,s)}else super.append(t,e);o.value=e}};function os(){window.FormData&&!function(){const t=document.createElement("form");let e=!1;return document.body.append(t),t.addEventListener("submit",(t=>{new FormData(t.target),t.preventDefault()})),t.addEventListener("formdata",(()=>e=!0)),t.dispatchEvent(new Event("submit",{cancelable:!0})),t.remove(),e}()&&(window.FormData=es,window.addEventListener("submit",(t=>{t.defaultPrevented||new FormData(t.target)})))}"complete"===document.readyState?os():window.addEventListener("DOMContentLoaded",(()=>os()));var ss=new WeakMap,is=ct`
+            `:O``}}customElements.define("sc-diagram",Go);var Qo=class extends Event{constructor(t){super("formdata"),this.formData=t}},ts=class extends FormData{constructor(t){var e=(...t)=>{super(...t)};t?(e(t),this.form=t,t.dispatchEvent(new Qo(this))):e()}append(t,e){if(!this.form)return super.append(t,e);let o=this.form.elements[t];if(o||(o=document.createElement("input"),o.type="hidden",o.name=t,this.form.appendChild(o)),this.has(t)){const s=this.getAll(t),i=s.indexOf(o.value);-1!==i&&s.splice(i,1),s.push(e),this.set(t,s)}else super.append(t,e);o.value=e}};function es(){window.FormData&&!function(){const t=document.createElement("form");let e=!1;return document.body.append(t),t.addEventListener("submit",(t=>{new FormData(t.target),t.preventDefault()})),t.addEventListener("formdata",(()=>e=!0)),t.dispatchEvent(new Event("submit",{cancelable:!0})),t.remove(),e}()&&(window.FormData=ts,window.addEventListener("submit",(t=>{t.defaultPrevented||new FormData(t.target)})))}"complete"===document.readyState?es():window.addEventListener("DOMContentLoaded",(()=>es()));var os=new WeakMap,ss=ct`
   ${oe}
 
   :host {
@@ -1503,7 +1503,7 @@
   :host(.sl-button-group__button[checked]) {
     z-index: 2;
   }
-`,rs=class extends te{constructor(){super(...arguments),this.formSubmitController=new class{constructor(t,e){(this.host=t).addController(this),this.options=ue({form:t=>t.closest("form"),name:t=>t.name,value:t=>t.value,defaultValue:t=>t.defaultValue,disabled:t=>t.disabled,reportValidity:t=>"function"!=typeof t.reportValidity||t.reportValidity(),setValue:(t,e)=>{t.value=e}},e),this.handleFormData=this.handleFormData.bind(this),this.handleFormSubmit=this.handleFormSubmit.bind(this),this.handleFormReset=this.handleFormReset.bind(this),this.reportFormValidity=this.reportFormValidity.bind(this)}hostConnected(){this.form=this.options.form(this.host),this.form&&(this.form.addEventListener("formdata",this.handleFormData),this.form.addEventListener("submit",this.handleFormSubmit),this.form.addEventListener("reset",this.handleFormReset),ss.has(this.form)||(ss.set(this.form,this.form.reportValidity),this.form.reportValidity=()=>this.reportFormValidity()))}hostDisconnected(){this.form&&(this.form.removeEventListener("formdata",this.handleFormData),this.form.removeEventListener("submit",this.handleFormSubmit),this.form.removeEventListener("reset",this.handleFormReset),ss.has(this.form)&&(this.form.reportValidity=ss.get(this.form),ss.delete(this.form)),this.form=void 0)}handleFormData(t){const e=this.options.disabled(this.host),o=this.options.name(this.host),s=this.options.value(this.host);e||"string"!=typeof o||void 0===s||(Array.isArray(s)?s.forEach((e=>{t.formData.append(o,e.toString())})):t.formData.append(o,s.toString()))}handleFormSubmit(t){const e=this.options.disabled(this.host),o=this.options.reportValidity;!this.form||this.form.noValidate||e||o(this.host)||(t.preventDefault(),t.stopImmediatePropagation())}handleFormReset(){this.options.setValue(this.host,this.options.defaultValue(this.host))}reportFormValidity(){if(this.form&&!this.form.noValidate){const t=this.form.querySelectorAll("*");for(const e of t)if("function"==typeof e.reportValidity&&!e.reportValidity())return!1}return!0}doAction(t,e){if(this.form){const o=document.createElement("button");o.type=t,o.style.position="absolute",o.style.width="0",o.style.height="0",o.style.clipPath="inset(50%)",o.style.overflow="hidden",o.style.whiteSpace="nowrap",e&&["formaction","formmethod","formnovalidate","formtarget"].forEach((t=>{e.hasAttribute(t)&&o.setAttribute(t,e.getAttribute(t))})),this.form.append(o),o.click(),o.remove()}}reset(t){this.doAction("reset",t)}submit(t){this.doAction("submit",t)}}(this,{form:t=>{if(t.hasAttribute("form")){const e=t.getRootNode(),o=t.getAttribute("form");return e.getElementById(o)}return t.closest("form")}}),this.hasSlotController=new qe(this,"[default]","prefix","suffix"),this.localize=new We(this),this.hasFocus=!1,this.variant="default",this.size="medium",this.caret=!1,this.disabled=!1,this.loading=!1,this.outline=!1,this.pill=!1,this.circle=!1,this.type="button"}click(){this.button.click()}focus(t){this.button.focus(t)}blur(){this.button.blur()}handleBlur(){this.hasFocus=!1,Je(this,"sl-blur")}handleFocus(){this.hasFocus=!0,Je(this,"sl-focus")}handleClick(t){if(this.disabled||this.loading)return t.preventDefault(),void t.stopPropagation();"submit"===this.type&&this.formSubmitController.submit(this),"reset"===this.type&&this.formSubmitController.reset(this)}render(){const t=!!this.href,e=t?so`a`:so`button`;return no`
+`,is=class extends te{constructor(){super(...arguments),this.formSubmitController=new class{constructor(t,e){(this.host=t).addController(this),this.options=ue({form:t=>t.closest("form"),name:t=>t.name,value:t=>t.value,defaultValue:t=>t.defaultValue,disabled:t=>t.disabled,reportValidity:t=>"function"!=typeof t.reportValidity||t.reportValidity(),setValue:(t,e)=>{t.value=e}},e),this.handleFormData=this.handleFormData.bind(this),this.handleFormSubmit=this.handleFormSubmit.bind(this),this.handleFormReset=this.handleFormReset.bind(this),this.reportFormValidity=this.reportFormValidity.bind(this)}hostConnected(){this.form=this.options.form(this.host),this.form&&(this.form.addEventListener("formdata",this.handleFormData),this.form.addEventListener("submit",this.handleFormSubmit),this.form.addEventListener("reset",this.handleFormReset),os.has(this.form)||(os.set(this.form,this.form.reportValidity),this.form.reportValidity=()=>this.reportFormValidity()))}hostDisconnected(){this.form&&(this.form.removeEventListener("formdata",this.handleFormData),this.form.removeEventListener("submit",this.handleFormSubmit),this.form.removeEventListener("reset",this.handleFormReset),os.has(this.form)&&(this.form.reportValidity=os.get(this.form),os.delete(this.form)),this.form=void 0)}handleFormData(t){const e=this.options.disabled(this.host),o=this.options.name(this.host),s=this.options.value(this.host);e||"string"!=typeof o||void 0===s||(Array.isArray(s)?s.forEach((e=>{t.formData.append(o,e.toString())})):t.formData.append(o,s.toString()))}handleFormSubmit(t){const e=this.options.disabled(this.host),o=this.options.reportValidity;!this.form||this.form.noValidate||e||o(this.host)||(t.preventDefault(),t.stopImmediatePropagation())}handleFormReset(){this.options.setValue(this.host,this.options.defaultValue(this.host))}reportFormValidity(){if(this.form&&!this.form.noValidate){const t=this.form.querySelectorAll("*");for(const e of t)if("function"==typeof e.reportValidity&&!e.reportValidity())return!1}return!0}doAction(t,e){if(this.form){const o=document.createElement("button");o.type=t,o.style.position="absolute",o.style.width="0",o.style.height="0",o.style.clipPath="inset(50%)",o.style.overflow="hidden",o.style.whiteSpace="nowrap",e&&["formaction","formmethod","formnovalidate","formtarget"].forEach((t=>{e.hasAttribute(t)&&o.setAttribute(t,e.getAttribute(t))})),this.form.append(o),o.click(),o.remove()}}reset(t){this.doAction("reset",t)}submit(t){this.doAction("submit",t)}}(this,{form:t=>{if(t.hasAttribute("form")){const e=t.getRootNode(),o=t.getAttribute("form");return e.getElementById(o)}return t.closest("form")}}),this.hasSlotController=new qe(this,"[default]","prefix","suffix"),this.localize=new We(this),this.hasFocus=!1,this.variant="default",this.size="medium",this.caret=!1,this.disabled=!1,this.loading=!1,this.outline=!1,this.pill=!1,this.circle=!1,this.type="button"}click(){this.button.click()}focus(t){this.button.focus(t)}blur(){this.button.blur()}handleBlur(){this.hasFocus=!1,Je(this,"sl-blur")}handleFocus(){this.hasFocus=!0,Je(this,"sl-focus")}handleClick(t){if(this.disabled||this.loading)return t.preventDefault(),void t.stopPropagation();"submit"===this.type&&this.formSubmitController.submit(this),"reset"===this.type&&this.formSubmitController.reset(this)}render(){const t=!!this.href,e=t?so`a`:so`button`;return no`
       <${e}
         part="base"
         class=${Xe({button:!0,"button--default":"default"===this.variant,"button--primary":"primary"===this.variant,"button--success":"success"===this.variant,"button--neutral":"neutral"===this.variant,"button--warning":"warning"===this.variant,"button--danger":"danger"===this.variant,"button--text":"text"===this.variant,"button--small":"small"===this.size,"button--medium":"medium"===this.size,"button--large":"large"===this.size,"button--caret":this.caret,"button--circle":this.circle,"button--disabled":this.disabled,"button--focused":this.hasFocus,"button--loading":this.loading,"button--standard":!this.outline,"button--outline":this.outline,"button--pill":this.pill,"button--rtl":"rtl"===this.localize.dir(),"button--has-label":this.hasSlotController.test("[default]"),"button--has-prefix":this.hasSlotController.test("prefix"),"button--has-suffix":this.hasSlotController.test("suffix")})}
@@ -1547,7 +1547,7 @@
               `:""}
         ${this.loading?no`<sl-spinner></sl-spinner>`:""}
       </${e}>
-    `}};rs.styles=is,be([$e(".button")],rs.prototype,"button",2),be([ye()],rs.prototype,"hasFocus",2),be([me({reflect:!0})],rs.prototype,"variant",2),be([me({reflect:!0})],rs.prototype,"size",2),be([me({type:Boolean,reflect:!0})],rs.prototype,"caret",2),be([me({type:Boolean,reflect:!0})],rs.prototype,"disabled",2),be([me({type:Boolean,reflect:!0})],rs.prototype,"loading",2),be([me({type:Boolean,reflect:!0})],rs.prototype,"outline",2),be([me({type:Boolean,reflect:!0})],rs.prototype,"pill",2),be([me({type:Boolean,reflect:!0})],rs.prototype,"circle",2),be([me()],rs.prototype,"type",2),be([me()],rs.prototype,"name",2),be([me()],rs.prototype,"value",2),be([me()],rs.prototype,"href",2),be([me()],rs.prototype,"target",2),be([me()],rs.prototype,"download",2),be([me()],rs.prototype,"form",2),be([me({attribute:"formaction"})],rs.prototype,"formAction",2),be([me({attribute:"formmethod"})],rs.prototype,"formMethod",2),be([me({attribute:"formnovalidate",type:Boolean})],rs.prototype,"formNoValidate",2),be([me({attribute:"formtarget"})],rs.prototype,"formTarget",2),rs=be([fe("sl-button")],rs);var ns=ct`
+    `}};is.styles=ss,be([$e(".button")],is.prototype,"button",2),be([ye()],is.prototype,"hasFocus",2),be([me({reflect:!0})],is.prototype,"variant",2),be([me({reflect:!0})],is.prototype,"size",2),be([me({type:Boolean,reflect:!0})],is.prototype,"caret",2),be([me({type:Boolean,reflect:!0})],is.prototype,"disabled",2),be([me({type:Boolean,reflect:!0})],is.prototype,"loading",2),be([me({type:Boolean,reflect:!0})],is.prototype,"outline",2),be([me({type:Boolean,reflect:!0})],is.prototype,"pill",2),be([me({type:Boolean,reflect:!0})],is.prototype,"circle",2),be([me()],is.prototype,"type",2),be([me()],is.prototype,"name",2),be([me()],is.prototype,"value",2),be([me()],is.prototype,"href",2),be([me()],is.prototype,"target",2),be([me()],is.prototype,"download",2),be([me()],is.prototype,"form",2),be([me({attribute:"formaction"})],is.prototype,"formAction",2),be([me({attribute:"formmethod"})],is.prototype,"formMethod",2),be([me({attribute:"formnovalidate",type:Boolean})],is.prototype,"formNoValidate",2),be([me({attribute:"formtarget"})],is.prototype,"formTarget",2),is=be([fe("sl-button")],is);var rs=ct`
   ${oe}
 
   :host {
@@ -1616,7 +1616,7 @@
   .details__content {
     padding: var(--sl-spacing-medium);
   }
-`,as=class extends te{constructor(){super(...arguments),this.localize=new We(this),this.open=!1,this.disabled=!1}firstUpdated(){this.body.hidden=!this.open,this.body.style.height=this.open?"auto":"0"}async show(){if(!this.open&&!this.disabled)return this.open=!0,Ge(this,"sl-after-show")}async hide(){if(this.open&&!this.disabled)return this.open=!1,Ge(this,"sl-after-hide")}handleSummaryClick(){this.disabled||(this.open?this.hide():this.show(),this.header.focus())}handleSummaryKeyDown(t){"Enter"!==t.key&&" "!==t.key||(t.preventDefault(),this.open?this.hide():this.show()),"ArrowUp"!==t.key&&"ArrowLeft"!==t.key||(t.preventDefault(),this.hide()),"ArrowDown"!==t.key&&"ArrowRight"!==t.key||(t.preventDefault(),this.show())}async handleOpenChange(){if(this.open){Je(this,"sl-show"),await ze(this.body),this.body.hidden=!1;const{keyframes:t,options:e}=Me(this,"details.show",{dir:this.localize.dir()});await Pe(this.body,Ue(t,this.body.scrollHeight),e),this.body.style.height="auto",Je(this,"sl-after-show")}else{Je(this,"sl-hide"),await ze(this.body);const{keyframes:t,options:e}=Me(this,"details.hide",{dir:this.localize.dir()});await Pe(this.body,Ue(t,this.body.scrollHeight),e),this.body.hidden=!0,this.body.style.height="auto",Je(this,"sl-after-hide")}}render(){return Ot`
+`,ns=class extends te{constructor(){super(...arguments),this.localize=new We(this),this.open=!1,this.disabled=!1}firstUpdated(){this.body.hidden=!this.open,this.body.style.height=this.open?"auto":"0"}async show(){if(!this.open&&!this.disabled)return this.open=!0,Ge(this,"sl-after-show")}async hide(){if(this.open&&!this.disabled)return this.open=!1,Ge(this,"sl-after-hide")}handleSummaryClick(){this.disabled||(this.open?this.hide():this.show(),this.header.focus())}handleSummaryKeyDown(t){"Enter"!==t.key&&" "!==t.key||(t.preventDefault(),this.open?this.hide():this.show()),"ArrowUp"!==t.key&&"ArrowLeft"!==t.key||(t.preventDefault(),this.hide()),"ArrowDown"!==t.key&&"ArrowRight"!==t.key||(t.preventDefault(),this.show())}async handleOpenChange(){if(this.open){Je(this,"sl-show"),await ze(this.body),this.body.hidden=!1;const{keyframes:t,options:e}=Me(this,"details.show",{dir:this.localize.dir()});await Pe(this.body,Ue(t,this.body.scrollHeight),e),this.body.style.height="auto",Je(this,"sl-after-show")}else{Je(this,"sl-hide"),await ze(this.body);const{keyframes:t,options:e}=Me(this,"details.hide",{dir:this.localize.dir()});await Pe(this.body,Ue(t,this.body.scrollHeight),e),this.body.hidden=!0,this.body.style.height="auto",Je(this,"sl-after-hide")}}render(){return Ot`
       <div
         part="base"
         class=${Xe({details:!0,"details--open":this.open,"details--disabled":this.disabled})}
@@ -1648,7 +1648,7 @@
           </div>
         </div>
       </div>
-    `}};as.styles=ns,be([$e(".details")],as.prototype,"details",2),be([$e(".details__header")],as.prototype,"header",2),be([$e(".details__body")],as.prototype,"body",2),be([me({type:Boolean,reflect:!0})],as.prototype,"open",2),be([me()],as.prototype,"summary",2),be([me({type:Boolean,reflect:!0})],as.prototype,"disabled",2),be([ve("open",{waitUntilFirstUpdate:!0})],as.prototype,"handleOpenChange",1),as=be([fe("sl-details")],as),Oe("details.show",{keyframes:[{height:"0",opacity:"0"},{height:"auto",opacity:"1"}],options:{duration:250,easing:"linear"}}),Oe("details.hide",{keyframes:[{height:"auto",opacity:"1"},{height:"0",opacity:"0"}],options:{duration:250,easing:"linear"}});class ls extends ot{static styles=r`
+    `}};ns.styles=rs,be([$e(".details")],ns.prototype,"details",2),be([$e(".details__header")],ns.prototype,"header",2),be([$e(".details__body")],ns.prototype,"body",2),be([me({type:Boolean,reflect:!0})],ns.prototype,"open",2),be([me()],ns.prototype,"summary",2),be([me({type:Boolean,reflect:!0})],ns.prototype,"disabled",2),be([ve("open",{waitUntilFirstUpdate:!0})],ns.prototype,"handleOpenChange",1),ns=be([fe("sl-details")],ns),Oe("details.show",{keyframes:[{height:"0",opacity:"0"},{height:"auto",opacity:"1"}],options:{duration:250,easing:"linear"}}),Oe("details.hide",{keyframes:[{height:"auto",opacity:"1"},{height:"0",opacity:"0"}],options:{duration:250,easing:"linear"}});class as extends ot{static styles=r`
         .text-field-container {
             overflow: auto;
             max-height: 33vh;
@@ -1707,7 +1707,7 @@
                     ${this.getDiffTemplate()}
                 </sl-tab-group>
             </sl-details>
-        `}}customElements.define("sc-file-preview",ls);class ds{}const cs=new WeakMap,hs=Co(class extends Uo{render(t){return D}update(t,[e]){var o;const s=e!==this.Y;return s&&void 0!==this.Y&&this.rt(void 0),(s||this.lt!==this.dt)&&(this.Y=e,this.ct=null===(o=t.options)||void 0===o?void 0:o.host,this.rt(this.dt=t.element)),D}rt(t){var e;if("function"==typeof this.Y){const o=null!==(e=this.ct)&&void 0!==e?e:globalThis;let s=cs.get(o);void 0===s&&(s=new WeakMap,cs.set(o,s)),void 0!==s.get(this.Y)&&this.Y.call(this.ct,void 0),s.set(this.Y,t),void 0!==t&&this.Y.call(this.ct,t)}else this.Y.value=t}get lt(){var t,e,o;return"function"==typeof this.Y?null===(e=cs.get(null!==(t=this.ct)&&void 0!==t?t:globalThis))||void 0===e?void 0:e.get(this.Y):null===(o=this.Y)||void 0===o?void 0:o.value}disconnected(){this.lt===this.dt&&this.rt(void 0)}reconnected(){this.rt(this.dt)}});class us extends Do{static styles=[Do.styles,r`
+        `}}customElements.define("sc-file-preview",as);class ls{}const ds=new WeakMap,cs=Co(class extends Uo{render(t){return D}update(t,[e]){var o;const s=e!==this.Y;return s&&void 0!==this.Y&&this.rt(void 0),(s||this.lt!==this.dt)&&(this.Y=e,this.ct=null===(o=t.options)||void 0===o?void 0:o.host,this.rt(this.dt=t.element)),D}rt(t){var e;if("function"==typeof this.Y){const o=null!==(e=this.ct)&&void 0!==e?e:globalThis;let s=ds.get(o);void 0===s&&(s=new WeakMap,ds.set(o,s)),void 0!==s.get(this.Y)&&this.Y.call(this.ct,void 0),s.set(this.Y,t),void 0!==t&&this.Y.call(this.ct,t)}else this.Y.value=t}get lt(){var t,e,o;return"function"==typeof this.Y?null===(e=ds.get(null!==(t=this.ct)&&void 0!==t?t:globalThis))||void 0===e?void 0:e.get(this.Y):null===(o=this.Y)||void 0===o?void 0:o.value}disconnected(){this.lt===this.dt&&this.rt(void 0)}reconnected(){this.rt(this.dt)}});class hs extends Do{static styles=[Do.styles,r`
         sl-details::part(base) {
             max-width: 30vw;
             font-family: Arial, sans-serif;
@@ -1719,7 +1719,7 @@
             padding: var(--sl-spacing-x-small) var(--sl-spacing-4x-large) var(--sl-spacing-x-small) var(--sl-spacing-x-small);
             font-size: 12px;
         }
-        `];tableRef=(()=>new ds)();removeDetailsEl(t){for(const e of t.childNodes)if("TR"===e.tagName)for(const t of e.childNodes)for(const e of t.childNodes)"SL-DETAILS"===e.tagName&&t.removeChild(e);return t}copyTable(){const t=window.getSelection();t.removeAllRanges();const e=document.createRange();e.selectNodeContents(this.tableRef.value),t.addRange(e),this.removeDetailsEl(t.anchorNode),document.execCommand("copy"),t.removeAllRanges(),this.requestUpdate()}parseMetric(t){const e=t[0].split("|");return O`
+        `];tableRef=(()=>new ls)();removeDetailsEl(t){for(const e of t.childNodes)if("TR"===e.tagName)for(const t of e.childNodes)for(const e of t.childNodes)"SL-DETAILS"===e.tagName&&t.removeChild(e);return t}copyTable(){const t=window.getSelection();t.removeAllRanges();const e=document.createRange();e.selectNodeContents(this.tableRef.value),t.addRange(e),this.removeDetailsEl(t.anchorNode),document.execCommand("copy"),t.removeAllRanges(),this.requestUpdate()}parseMetric(t){const e=t[0].split("|");return O`
             <td rowspan=${t[1]}>
                 <strong>${e[0]}</strong>
                 <sl-details summary="Description">
@@ -1736,19 +1736,19 @@
                       ${t}
                       ${o}
                     </tr>
-                `,t&&(t=void 0)}}return e=O`<table ${hs(this.tableRef)} width=${this.getWidth(this.cols)}>${e}</table>`,O`
+                `,t&&(t=void 0)}}return e=O`<table ${cs(this.tableRef)} width=${this.getWidth(this.cols)}>${e}</table>`,O`
             <div style="display:flex;">
                 ${e}
                 <sl-button style="margin-left:5px" @click=${this.copyTable}>Copy table</sl-button>
             </div>
-        `}constructor(){super(),this.cols=0}connectedCallback(){super.connectedCallback(),this.parseSrc().then((t=>{this.template=t}))}}customElements.define("sc-smry-tbl",us);class ps extends Zo{static styles=r`
+        `}constructor(){super(),this.cols=0}connectedCallback(){super.connectedCallback(),this.parseSrc().then((t=>{this.template=t}))}}customElements.define("sc-smry-tbl",hs);class us extends ot{static styles=r`
         .grid {
             display: grid;
             width: 100%;
             grid-auto-rows: 800px;
             grid-auto-flow: dense;
         }
-  `;static properties={paths:{type:Array},fpreviews:{type:Array},smrytblpath:{type:String},smrytblfile:{type:Blob}};visibleTemplate(){return this.smrytblpath&&!this.smrytblfile&&fetch(this.smrytblpath).then((t=>t.blob())).then((t=>{this.smrytblfile=t})),O`
+  `;static properties={paths:{type:Array},fpreviews:{type:Array},smrytblpath:{type:String},smrytblfile:{type:Blob}};render(){return this.smrytblpath&&!this.smrytblfile&&fetch(this.smrytblpath).then((t=>t.blob())).then((t=>{this.smrytblfile=t})),O`
             <br>
             ${this.smrytblfile?O`<sc-smry-tbl .file="${this.smrytblfile}"></sc-smry-tbl>`:O``}
             ${this.fpreviews?this.fpreviews.map((t=>O`
@@ -1760,7 +1760,7 @@
                     <sc-diagram path="${t}"></sc-diagram>
                     `)):O``}
             </div>
-        `}render(){return super.render()}}customElements.define("sc-data-tab",ps);class bs extends ot{static styles=r`
+        `}}customElements.define("sc-data-tab",us);class ps extends ot{static styles=r`
         /*
          * By default, inactive Shoelace tabs have 'display: none' which breaks Plotly legends.
          * Therefore we make inactive tabs invisible in our own way using the following two css
@@ -1807,7 +1807,7 @@
                     <sl-tab-panel class="tab-panel" name="${t.name}">${this.tabTemplate(t)}</sl-tab-panel>
                 `))}
             </sl-tab-group>
-      `:O``}}customElements.define("sc-tab-group",bs);class vs extends ot{static properties={introtbl:{type:Object},src:{type:String},reportInfo:{type:Object},toolname:{type:String},titleDescr:{type:String},tabs:{type:Object},fetchFailed:{type:Boolean,attribute:!1}};static styles=r`
+      `:O``}}customElements.define("sc-tab-group",ps);class bs extends ot{static properties={introtbl:{type:Object},src:{type:String},reportInfo:{type:Object},toolname:{type:String},titleDescr:{type:String},tabs:{type:Object},fetchFailed:{type:Boolean,attribute:!1}};static styles=r`
         .report-head {
             display: flex;
             flex-direction: column;
@@ -1854,4 +1854,4 @@
             </div>
             <br>
             ${this.tabs?O`<sc-tab-group .tabs=${this.tabs}></sc-tab-group>`:O``}
-        `}}customElements.define("sc-report-page",vs),co("shoelace")})();
+        `}}customElements.define("sc-report-page",bs),co("shoelace")})();
