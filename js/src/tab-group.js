@@ -14,7 +14,7 @@ import '@shoelace-style/shoelace/dist/components/tab-group/tab-group'
 import '@shoelace-style/shoelace/dist/components/tab/tab'
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel'
 
-import './metric-tab'
+import './data-tab'
 
 /**
  * Responsible for generating a group of tabs and their contents.
