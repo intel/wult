@@ -70,6 +70,24 @@ class ScTabGroup extends LitElement {
     }
 
     /**
+     * Checks if there is a hash in the URL when the page is first loaded and opens the appropriate
+     * tab if necessary.
+     */
+    firstUpdated () {
+        const hash = location.hash
+        if (hash) {
+            const tabGroup = this.renderRoot.querySelector('sl-tab-group')
+            tabGroup.updateComplete.then(() => {
+                tabGroup.show(this.subtabs[hash.substring(1)])
+            })
+            this.firstTab = this.subtabs[hash.substring(1)]
+            const targetElement = this.renderRoot.querySelector(hash)
+            this.currentEl = targetElement
+            targetElement.hidden = false
+        }
+    }
+
+    /**
      * Checks if the current URL includes a hash e.g. "report/#WakeLatency" and updates the visible
      * tab accordingly.
      */
@@ -117,6 +135,7 @@ class ScTabGroup extends LitElement {
     treeItemTemplate (tab, parentTabName) {
         // Recursive base case: the contents of a tree item is just the name.
         if (!tab.tabs) {
+            this.subtabs[this.convertToSelector(tab.name)] = parentTabName
             return tab.name
         }
         /* If this tree item contains children then create tree items for each one.
@@ -157,6 +176,13 @@ class ScTabGroup extends LitElement {
                 `)}
             </sl-tab-group>
       `
+    }
+
+    constructor () {
+        super()
+        // This dictionary tracks which sub-tab belongs to which tab. This is so the right tab can
+        // be opened to show the sub-tab.
+        this.subtabs = {}
     }
 }
 
