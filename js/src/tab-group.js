@@ -13,6 +13,9 @@ import '@shoelace-style/shoelace/dist/components/alert/alert'
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group'
 import '@shoelace-style/shoelace/dist/components/tab/tab'
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel'
+import '@shoelace-style/shoelace/dist/components/tree/tree'
+import '@shoelace-style/shoelace/dist/components/tree-item/tree-item'
+import '@shoelace-style/shoelace/dist/components/split-panel/split-panel'
 
 import './data-tab'
 
@@ -60,23 +63,75 @@ class ScTabGroup extends LitElement {
     };
 
     /**
-     * Returns the HTML template for a given Tab object.
-     * @param {Object} tab: Tab object from the Python side.
+     * Convert a 'tabName' to a valid CSS selector name.
      */
-    tabTemplate (tab) {
-        // If this tab contains children tabs then create a child tab group and insert the child tabs.
-        if (tab.tabs) {
-            return html`
-                <sl-tab-group>
-                    ${tab.tabs.map((innerTab) => html`
-                        <sl-tab class="tab" slot="nav" panel="${innerTab.name}">${innerTab.name}</sl-tab>
-                        <sl-tab-panel class="tab-panel" id="${innerTab.name}" name="${innerTab.name}">${this.tabTemplate(innerTab)}</sl-tab-panel>
-                    `)}
-                </sl-tab-group>
-        `
+    convertToSelector (tabName) {
+        return tabName.replace(/\s/g, '-').replace(/[^a-zA-Z0-9-]+/g, '')
+    }
+
+    /**
+     * Checks if the current URL includes a hash e.g. "report/#WakeLatency" and updates the visible
+     * tab accordingly.
+     */
+    updateVisibleTab () {
+        if (this.currentEl) {
+            this.currentEl.hidden = true
         }
+        const targetElement = this.renderRoot.querySelector(location.hash)
+        this.currentEl = targetElement
+        if (targetElement) {
+            targetElement.hidden = false
+        }
+    }
+
+    connectedCallback () {
+        super.connectedCallback()
+        this.hashHandler = this.updateVisibleTab.bind(this)
+        window.addEventListener('hashchange', this.hashHandler, false)
+    }
+
+    disconnectedCallback () {
+        window.removeEventListener('hashchange', this.hashHandler)
+    }
+
+    /**
+     * Returns the HTML template for tab panes which consist of the contents of tabs in 'tab'.
+     * */
+    tabPanesTemplate (tab) {
+        let dataTabs = html``
+        for (const innerTab of tab.tabs) {
+            if (innerTab.tabs) {
+                dataTabs = html`${dataTabs}${this.tabPanesTemplate(innerTab)}`
+            } else {
+                dataTabs = html`${dataTabs}<sc-data-tab hidden id="${this.convertToSelector(innerTab.name)}" tabname=${innerTab.name} .smrytblpath=${innerTab.smrytblpath} .smrytblfile=${innerTab.smrytblfile} .paths=${innerTab.ppaths} .fpreviews=${innerTab.fpreviews} .dir=${innerTab.dir}></sc-data-tab>`
+            }
+        }
+        return dataTabs
+    }
+
+    /**
+     * Returns the HTML template for a tree-item in the tab navigation tree.
+     * @param {Object} tab: Tab object from the Python side.
+     * @param {string} parentTabName: the tab to associate the child tree items with.
+     */
+    treeItemTemplate (tab, parentTabName) {
+        // Recursive base case: the contents of a tree item is just the name.
+        if (!tab.tabs) {
+            return tab.name
+        }
+        /* If this tree item contains children then create tree items for each one.
+         * The ternary operator in this template states that if 'innerTab' is a leaf node in the
+         * tree, assign a listner for 'click' events which redirects to the relevant tab.
+         */
         return html`
-            <sc-data-tab tabname=${tab.name} .smrytblpath=${tab.smrytblpath} .smrytblfile=${tab.smrytblfile} .paths=${tab.ppaths} .fpreviews=${tab.fpreviews} .dir=${tab.dir}></sc-data-tab>
+                ${tab.name}
+                ${tab.tabs.map((innerTab) => html`
+                    <sl-tree-item @click=${innerTab.tabs
+                        ? () => {}
+                        : () => { location.hash = this.convertToSelector(innerTab.name) }}>
+                        ${this.treeItemTemplate(innerTab, parentTabName)}
+                    </sl-tree-item>
+            `)}
         `
     }
 
@@ -89,7 +144,16 @@ class ScTabGroup extends LitElement {
             <sl-tab-group>
                 ${this.tabs.map((tab) => html`
                     <sl-tab class="tab" slot="nav" panel="${tab.name}">${tab.name}</sl-tab>
-                    <sl-tab-panel class="tab-panel" name="${tab.name}">${this.tabTemplate(tab)}</sl-tab-panel>
+                    <sl-tab-panel class="tab-panel" name="${tab.name}">
+                        <sl-split-panel position=20 style="--divider-width: 20px;">
+                            <sl-tree slot="start">
+                                ${this.treeItemTemplate(tab, tab.name)}
+                            </sl-tree>
+                            <div style="height: 95vh; overflow:scroll;" slot="end">
+                                ${this.tabPanesTemplate(tab)}
+                            </div>
+                        </sl-split-panel>
+                    </sl-tab-panel>
                 `)}
             </sl-tab-group>
       `

@@ -48,6 +48,12 @@ export class ScReportPage extends LitElement {
             font-family: Arial, sans-serif;
         }
 
+        .sticky {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
         // Hide the close button as the dialog is not closable.
         sl-dialog::part(close-button) {
             visibility: hidden;
@@ -212,7 +218,9 @@ export class ScReportPage extends LitElement {
                 ${this.introtbl ? html`<sc-intro-tbl .file=${this.introtbl}></sc-intro-tbl>` : html``}
             </div>
             <br>
-            ${this.tabs ? html`<sc-tab-group .tabs=${this.tabs}></sc-tab-group>` : html``}
+            <div class="sticky">
+                ${this.tabs ? html`<sc-tab-group .tabs=${this.tabs}></sc-tab-group>` : html``}
+            </div>
         `
     }
 }
