@@ -38,7 +38,12 @@ _AXIS = {"hoverformat" : ".4s",
 _LEGEND = {"font"    : {"size" : 14},
            "bgcolor" : "#E2E2E2",
            "borderwidth" : 2,
-           "bordercolor" : "#FFFFFF"}
+           "bordercolor" : "#FFFFFF",
+           "orientation": "h",
+           "xanchor": "right",
+           "yanchor": "bottom",
+           "x": 1,
+           "y": 1}
 
 _LOG = logging.getLogger()
 
