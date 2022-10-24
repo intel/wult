@@ -165,7 +165,7 @@ class ScTabGroup extends LitElement {
                     <sl-tab class="tab" slot="nav" panel="${tab.name}">${tab.name}</sl-tab>
                     <sl-tab-panel class="tab-panel" name="${tab.name}">
                         <sl-split-panel position=20 style="--divider-width: 20px;">
-                            <sl-tree slot="start">
+                            <sl-tree selection="leaf" slot="start">
                                 ${this.treeItemTemplate(tab, tab.name)}
                             </sl-tree>
                             <div style="height: 95vh; overflow:scroll;" slot="end">

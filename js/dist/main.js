@@ -2259,7 +2259,7 @@
                     <sl-tab class="tab" slot="nav" panel="${t.name}">${t.name}</sl-tab>
                     <sl-tab-panel class="tab-panel" name="${t.name}">
                         <sl-split-panel position=20 style="--divider-width: 20px;">
-                            <sl-tree slot="start">
+                            <sl-tree selection="leaf" slot="start">
                                 ${this.treeItemTemplate(t,t.name)}
                             </sl-tree>
                             <div style="height: 95vh; overflow:scroll;" slot="end">
