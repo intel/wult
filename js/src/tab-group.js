@@ -70,6 +70,22 @@ class ScTabGroup extends LitElement {
     }
 
     /**
+     * Update the visible tab to be the tab with selector 'tabSelector'. If 'tabSelector' is not
+     * provided, checks if the current URL includes a hash e.g. "report/#WakeLatency" and updates
+     * the visible tab accordingly.
+     */
+    updateVisibleTab (tabSelector = location.hash) {
+        if (this.currentEl) {
+            this.currentEl.hidden = true
+        }
+        const targetElement = this.renderRoot.querySelector(tabSelector)
+        this.currentEl = targetElement
+        if (targetElement) {
+            targetElement.hidden = false
+        }
+    }
+
+    /**
      * Checks if there is a hash in the URL when the page is first loaded and opens the appropriate
      * tab if necessary.
      */
@@ -85,25 +101,7 @@ class ScTabGroup extends LitElement {
         tabGroup.updateComplete.then(() => {
             tabGroup.show(this.subtabs[hash.substring(1)])
         })
-        const targetElement = this.renderRoot.querySelector(hash)
-        this.currentEl = targetElement
-        targetElement.hidden = false
-    }
-
-    /**
-     * Update the visible tab to be the tab with selector 'tabSelector'. If 'tabSelector' is not
-     * provided, checks if the current URL includes a hash e.g. "report/#WakeLatency" and updates
-     * the visible tab accordingly.
-     */
-    updateVisibleTab (tabSelector = location.hash) {
-        if (this.currentEl) {
-            this.currentEl.hidden = true
-        }
-        const targetElement = this.renderRoot.querySelector(tabSelector)
-        this.currentEl = targetElement
-        if (targetElement) {
-            targetElement.hidden = false
-        }
+        this.updateVisibleTab()
     }
 
     connectedCallback () {
