@@ -91,14 +91,15 @@ class ScTabGroup extends LitElement {
     }
 
     /**
-     * Checks if the current URL includes a hash e.g. "report/#WakeLatency" and updates the visible
-     * tab accordingly.
+     * Update the visible tab to be the tab with selector 'tabSelector'. If 'tabSelector' is not
+     * provided, checks if the current URL includes a hash e.g. "report/#WakeLatency" and updates
+     * the visible tab accordingly.
      */
-    updateVisibleTab () {
+    updateVisibleTab (tabSelector = location.hash) {
         if (this.currentEl) {
             this.currentEl.hidden = true
         }
-        const targetElement = this.renderRoot.querySelector(location.hash)
+        const targetElement = this.renderRoot.querySelector(tabSelector)
         this.currentEl = targetElement
         if (targetElement) {
             targetElement.hidden = false
@@ -107,7 +108,7 @@ class ScTabGroup extends LitElement {
 
     connectedCallback () {
         super.connectedCallback()
-        this.hashHandler = this.updateVisibleTab.bind(this)
+        this.hashHandler = () => { this.updateVisibleTab() }
         window.addEventListener('hashchange', this.hashHandler, false)
     }
 
