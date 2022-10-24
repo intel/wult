@@ -74,17 +74,20 @@ class ScTabGroup extends LitElement {
      * tab if necessary.
      */
     firstUpdated () {
-        const hash = location.hash
-        if (hash) {
-            const tabGroup = this.renderRoot.querySelector('sl-tab-group')
-            tabGroup.updateComplete.then(() => {
-                tabGroup.show(this.subtabs[hash.substring(1)])
-            })
-            this.firstTab = this.subtabs[hash.substring(1)]
-            const targetElement = this.renderRoot.querySelector(hash)
-            this.currentEl = targetElement
-            targetElement.hidden = false
+        let hash = location.hash
+        // If no tab was specified in the URL, open the first tab.
+        if (!hash) {
+            hash = `#${this.firstTab}`
+            location.hash = hash
+            return
         }
+        const tabGroup = this.renderRoot.querySelector('sl-tab-group')
+        tabGroup.updateComplete.then(() => {
+            tabGroup.show(this.subtabs[hash.substring(1)])
+        })
+        const targetElement = this.renderRoot.querySelector(hash)
+        this.currentEl = targetElement
+        targetElement.hidden = false
     }
 
     /**
@@ -135,7 +138,11 @@ class ScTabGroup extends LitElement {
     treeItemTemplate (tab, parentTabName) {
         // Recursive base case: the contents of a tree item is just the name.
         if (!tab.tabs) {
-            this.subtabs[this.convertToSelector(tab.name)] = parentTabName
+            const tabSelector = this.convertToSelector(tab.name)
+            this.subtabs[tabSelector] = parentTabName
+            if (!this.firstTab) {
+                this.firstTab = tabSelector
+            }
             return tab.name
         }
         /* If this tree item contains children then create tree items for each one.
@@ -183,6 +190,9 @@ class ScTabGroup extends LitElement {
         // This dictionary tracks which sub-tab belongs to which tab. This is so the right tab can
         // be opened to show the sub-tab.
         this.subtabs = {}
+
+        // Store the name of the first data-tab in the tab-tree.
+        this.firstTab = ''
     }
 }
 
