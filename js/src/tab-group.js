@@ -70,6 +70,20 @@ class ScTabGroup extends LitElement {
     }
 
     /**
+     * Select a tab represented by 'tabSelector' in the tab-tree and expand the tree if necessary to
+     * reveal the tab leaf-node.
+     * @param {string} tabSelector - a valid CSS selector name for the tab to select.
+     */
+    selectTabInTabTree (tabSelector) {
+        let treeEl = this.renderRoot.querySelector(`${tabSelector}-tree`)
+        treeEl.selected = true
+        while (treeEl.tagName === 'SL-TREE-ITEM') {
+            treeEl.expanded = true
+            treeEl = treeEl.parentElement
+        }
+    }
+
+    /**
      * Update the visible tab to be the tab with selector 'tabSelector'. If 'tabSelector' is not
      * provided, checks if the current URL includes a hash e.g. "report/#WakeLatency" and updates
      * the visible tab accordingly.
@@ -83,6 +97,7 @@ class ScTabGroup extends LitElement {
         if (targetElement) {
             targetElement.hidden = false
         }
+        this.selectTabInTabTree(tabSelector)
     }
 
     /**
