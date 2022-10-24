@@ -150,13 +150,16 @@ class ScTabGroup extends LitElement {
          */
         return html`
                 ${tab.name}
-                ${tab.tabs.map((innerTab) => html`
-                    <sl-tree-item @click=${innerTab.tabs
-                        ? () => {}
-                        : () => { location.hash = this.convertToSelector(innerTab.name) }}>
-                        ${this.treeItemTemplate(innerTab, parentTabName)}
-                    </sl-tree-item>
-            `)}
+                ${tab.tabs.map((innerTab) => {
+                    const innerTabSelector = this.convertToSelector(innerTab.name)
+                    return html`
+                        <sl-tree-item id=${`${innerTabSelector}-tree`} @click=${innerTab.tabs
+                            ? () => {}
+                            : () => { location.hash = innerTabSelector }}>
+                            ${this.treeItemTemplate(innerTab, parentTabName)}
+                        </sl-tree-item>
+                    `
+                })}
         `
     }
 

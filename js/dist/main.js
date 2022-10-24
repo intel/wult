@@ -2248,11 +2248,11 @@
         }
     `;static properties={tabs:{type:Object}};convertToSelector(t){return t.replace(/\s/g,"-").replace(/[^a-zA-Z0-9-]+/g,"")}updateVisibleTab(t=location.hash){this.currentEl&&(this.currentEl.hidden=!0);const e=this.renderRoot.querySelector(t);this.currentEl=e,e&&(e.hidden=!1)}firstUpdated(){let t=location.hash;if(!t)return t=`#${this.firstTab}`,void(location.hash=t);const e=this.renderRoot.querySelector("sl-tab-group");e.updateComplete.then((()=>{e.show(this.subtabs[t.substring(1)])})),this.updateVisibleTab()}connectedCallback(){super.connectedCallback(),this.hashHandler=()=>{this.updateVisibleTab()},window.addEventListener("hashchange",this.hashHandler,!1)}disconnectedCallback(){window.removeEventListener("hashchange",this.hashHandler)}tabPanesTemplate(t){let e=D``;for(const i of t.tabs)e=i.tabs?D`${e}${this.tabPanesTemplate(i)}`:D`${e}<sc-data-tab hidden id="${this.convertToSelector(i.name)}" tabname=${i.name} .smrytblpath=${i.smrytblpath} .smrytblfile=${i.smrytblfile} .paths=${i.ppaths} .fpreviews=${i.fpreviews} .dir=${i.dir}></sc-data-tab>`;return e}treeItemTemplate(t,e){if(!t.tabs){const i=this.convertToSelector(t.name);return this.subtabs[i]=e,this.firstTab||(this.firstTab=i),t.name}return D`
                 ${t.name}
-                ${t.tabs.map((t=>D`
-                    <sl-tree-item @click=${t.tabs?()=>{}:()=>{location.hash=this.convertToSelector(t.name)}}>
-                        ${this.treeItemTemplate(t,e)}
-                    </sl-tree-item>
-            `))}
+                ${t.tabs.map((t=>{const i=this.convertToSelector(t.name);return D`
+                        <sl-tree-item id=${`${i}-tree`} @click=${t.tabs?()=>{}:()=>{location.hash=i}}>
+                            ${this.treeItemTemplate(t,e)}
+                        </sl-tree-item>
+                    `}))}
         `}render(){return this.tabs?D`
             <sl-tab-group>
                 ${this.tabs.map((t=>D`
