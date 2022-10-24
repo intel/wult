@@ -6,8 +6,11 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [1.10.35] - ADD DATE HERE
 ### Fixed
 ### Added
+ - Add support for sharing URLs to specific tabs in wult reports.
 ### Removed
 ### Changed
+ - Change the wult report layout from nested tabs to use tabs and a tree for
+   navigating sub-tabs.
 
 ## [1.10.34] - 2022-10-12
 ### Fixed
