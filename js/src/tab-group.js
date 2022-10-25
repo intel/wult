@@ -13,11 +13,8 @@ import '@shoelace-style/shoelace/dist/components/alert/alert'
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group'
 import '@shoelace-style/shoelace/dist/components/tab/tab'
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel'
-import '@shoelace-style/shoelace/dist/components/tree/tree'
-import '@shoelace-style/shoelace/dist/components/tree-item/tree-item'
-import '@shoelace-style/shoelace/dist/components/split-panel/split-panel'
 
-import './data-tab'
+import './tab-panel'
 
 /**
  * Responsible for generating a group of tabs and their contents.
@@ -62,120 +59,98 @@ class ScTabGroup extends LitElement {
         tabs: { type: Object }
     };
 
-    /**
-     * Convert a 'tabName' to a valid CSS selector name.
-     */
-    convertToSelector (tabName) {
-        return tabName.replace(/\s/g, '-').replace(/[^a-zA-Z0-9-]+/g, '')
+    get _tabPanels () {
+        return this.renderRoot.querySelectorAll('sc-tab-panel')
+    }
+
+    get _tabGroup () {
+        return this.renderRoot.querySelector('sl-tab-group')
     }
 
     /**
-     * Select a tab represented by 'tabSelector' in the tab-tree and expand the tree if necessary to
-     * reveal the tab leaf-node.
-     * @param {string} tabSelector - a valid CSS selector name for the tab to select.
+     * Returns the tab-panel element containing the data-tab represented by 'dataTabID'.
+     * @param {string} dataTabID - the ID of the requested data-tab.
      */
-    selectTabInTabTree (tabSelector) {
-        let treeEl = this.renderRoot.querySelector(`${tabSelector}-tree`)
-        treeEl.selected = true
-        while (treeEl.tagName === 'SL-TREE-ITEM') {
-            treeEl.expanded = true
-            treeEl = treeEl.parentElement
+    getTabPanel (dataTabID) {
+        for (const tabPanel of this._tabPanels) {
+            if (tabPanel.hasDataTab(dataTabID)) {
+                return tabPanel
+            }
         }
     }
 
     /**
-     * Update the visible tab to be the tab with selector 'tabSelector'. If 'tabSelector' is not
-     * provided, checks if the current URL includes a hash e.g. "report/#WakeLatency" and updates
-     * the visible tab accordingly.
+     * Returns the currently active container tab element.
      */
-    updateVisibleTab (tabSelector = location.hash) {
-        if (this.currentEl) {
-            this.currentEl.hidden = true
+    getActiveTab () {
+        const tabs = this._tabGroup.querySelectorAll('sl-tab')
+        for (const tab of tabs) {
+            if (tab.active) {
+                return tab
+            }
         }
-        const targetElement = this.renderRoot.querySelector(tabSelector)
-        this.currentEl = targetElement
-        if (targetElement) {
-            targetElement.hidden = false
-        }
-        this.selectTabInTabTree(tabSelector)
+        throw Error('BUG: unable to find active tab')
     }
 
     /**
-     * Checks if there is a hash in the URL when the page is first loaded and opens the appropriate
-     * tab if necessary.
+     * Returns the currently active data-tab element.
+     */
+    getActiveDataTab () {
+        const activeTab = this.getActiveTab()
+        for (const tabPanel of this._tabPanels) {
+            if (tabPanel.tab.name === activeTab.panel) {
+                return tabPanel.activeDataTab
+            }
+        }
+        throw Error('BUG: unable to find active data tab')
+    }
+
+    /**
+     * Open the container tab containing the data-tab represented by 'dataTabID'.
+     * @param {dataTabID} dataTabID - the ID of the data tab to show.
+     */
+    show (dataTabID = location.hash.substring(1)) {
+        for (const tabPanel of this._tabPanels) {
+            tabPanel.show(dataTabID)
+        }
+    }
+
+    /**
+     * Handles any data-tab specified in the URL and adds an event handler which updates the URL
+     * when a user opens a new tab.
      */
     firstUpdated () {
-        let hash = location.hash
-        // If no tab was specified in the URL, open the first tab.
-        if (!hash) {
-            hash = `#${this.firstTab}`
-            location.hash = hash
-            return
-        }
-        const tabGroup = this.renderRoot.querySelector('sl-tab-group')
-        tabGroup.updateComplete.then(() => {
-            tabGroup.show(this.subtabs[hash.substring(1)])
+        // Listen for events which signal the user opened a new tab, update 'location.href' to
+        // reflect the tab that was openeed.
+        this.tabChangeHandler = () => { location.href = `#${this.getActiveDataTab().id}` }
+        this._tabGroup.addEventListener('sl-tab-show', this.tabChangeHandler)
+
+        this._tabGroup.updateComplete.then(() => {
+            // Remove the '#' from 'location.hash' to get the 'dataTabID'.
+            const dataTabID = location.hash.substring(1)
+
+            // If no tab was specified in the URL, open the first data-tab in the first tab.
+            if (!dataTabID) {
+                location.hash = `${this._tabPanels[0].firstTab}`
+                return
+            }
+            const tabPanel = this.getTabPanel(dataTabID)
+            tabPanel.updateComplete.then(() => {
+                tabPanel.show(dataTabID)
+                this._tabGroup.show(tabPanel.parentElement.name)
+            })
         })
-        this.updateVisibleTab()
     }
 
     connectedCallback () {
         super.connectedCallback()
-        this.hashHandler = () => { this.updateVisibleTab() }
+        this.hashHandler = () => { this.show() }
         window.addEventListener('hashchange', this.hashHandler, false)
     }
 
     disconnectedCallback () {
         window.removeEventListener('hashchange', this.hashHandler)
-    }
-
-    /**
-     * Returns the HTML template for tab panes which consist of the contents of tabs in 'tab'.
-     * */
-    tabPanesTemplate (tab) {
-        let dataTabs = html``
-        for (const innerTab of tab.tabs) {
-            if (innerTab.tabs) {
-                dataTabs = html`${dataTabs}${this.tabPanesTemplate(innerTab)}`
-            } else {
-                dataTabs = html`${dataTabs}<sc-data-tab hidden id="${this.convertToSelector(innerTab.name)}" tabname=${innerTab.name} .smrytblpath=${innerTab.smrytblpath} .smrytblfile=${innerTab.smrytblfile} .paths=${innerTab.ppaths} .fpreviews=${innerTab.fpreviews} .dir=${innerTab.dir}></sc-data-tab>`
-            }
-        }
-        return dataTabs
-    }
-
-    /**
-     * Returns the HTML template for a tree-item in the tab navigation tree.
-     * @param {Object} tab: Tab object from the Python side.
-     * @param {string} parentTabName: the tab to associate the child tree items with.
-     */
-    treeItemTemplate (tab, parentTabName) {
-        // Recursive base case: the contents of a tree item is just the name.
-        if (!tab.tabs) {
-            const tabSelector = this.convertToSelector(tab.name)
-            this.subtabs[tabSelector] = parentTabName
-            if (!this.firstTab) {
-                this.firstTab = tabSelector
-            }
-            return tab.name
-        }
-        /* If this tree item contains children then create tree items for each one.
-         * The ternary operator in this template states that if 'innerTab' is a leaf node in the
-         * tree, assign a listner for 'click' events which redirects to the relevant tab.
-         */
-        return html`
-                ${tab.name}
-                ${tab.tabs.map((innerTab) => {
-                    const innerTabSelector = this.convertToSelector(innerTab.name)
-                    return html`
-                        <sl-tree-item id=${`${innerTabSelector}-tree`} @click=${innerTab.tabs
-                            ? () => {}
-                            : () => { location.hash = innerTabSelector }}>
-                            ${this.treeItemTemplate(innerTab, parentTabName)}
-                        </sl-tree-item>
-                    `
-                })}
-        `
+        this._tabGroup.removeEventListener('sl-tab-show', this.tabChangeHandler)
     }
 
     render () {
@@ -188,28 +163,11 @@ class ScTabGroup extends LitElement {
                 ${this.tabs.map((tab) => html`
                     <sl-tab class="tab" slot="nav" panel="${tab.name}">${tab.name}</sl-tab>
                     <sl-tab-panel class="tab-panel" name="${tab.name}">
-                        <sl-split-panel position=20 style="--divider-width: 20px;">
-                            <sl-tree selection="leaf" slot="start">
-                                ${this.treeItemTemplate(tab, tab.name)}
-                            </sl-tree>
-                            <div style="height: 95vh; overflow:scroll;" slot="end">
-                                ${this.tabPanesTemplate(tab)}
-                            </div>
-                        </sl-split-panel>
+                        <sc-tab-panel .tab=${tab}></sc-tab-panel>
                     </sl-tab-panel>
                 `)}
             </sl-tab-group>
       `
-    }
-
-    constructor () {
-        super()
-        // This dictionary tracks which sub-tab belongs to which tab. This is so the right tab can
-        // be opened to show the sub-tab.
-        this.subtabs = {}
-
-        // Store the name of the first data-tab in the tab-tree.
-        this.firstTab = ''
     }
 }
 
