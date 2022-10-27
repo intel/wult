@@ -1,0 +1,5 @@
+usr/bin
+README.md /usr/share/doc/wult
+usr/share/wult
+helpers/ndlrunner/ndlrunner usr/bin
+helpers/wultrunner/wultrunner usr/bin
