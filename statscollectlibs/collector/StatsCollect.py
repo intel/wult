@@ -12,7 +12,7 @@ This module provides API for collecting SUT statistics.
 
 import copy
 import logging
-from pepclibs.helperlibs import ClassHelpers
+from pepclibs.helperlibs import ClassHelpers, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.collector import _STCAgent
 
@@ -160,12 +160,26 @@ class _StatsCollectNoAggr(ClassHelpers.SimpleCloseContext):
         if self._oobagent:
             self._oobagent.infolvl = self._infolvl
 
+    @staticmethod
+    def _normalize_stnames(stnames):
+        """
+        Turn statistics names list in 'stnames' into python 'set', andle the special cases of
+        'None' and "all", which means "all statistics".
+        """
+
+        if stnames in (None, "all"):
+            stnames = set(_STCAgent.STATS_INFO) | set(_AGGR_STINFO)
+        elif Trivial.is_iterable(stnames):
+            stnames = set(stnames)
+        else:
+            raise Error(f"BUG: bad statistic names '{stnames}': provide an iterable collection")
+
+        return stnames
+
     def _toggle_enabled(self, stnames, value):
         """Enabled/disable 'stnames' statistics."""
 
-        if stnames in (None, "all"):
-            stnames = list(_STCAgent.STATS_INFO)
-
+        stnames = self._normalize_stnames(stnames)
         inb_stnames, oob_stnames = self._separate_inb_vs_oob(stnames)
 
         for stname in inb_stnames:
@@ -538,9 +552,7 @@ class StatsCollect(_StatsCollectNoAggr):
     def set_enabled_stats(self, stnames):
         """Same as '_StatsCollectNoAggr.set_enabled_stats()'."""
 
-        if stnames in (None, "all"):
-            stnames = set(_STCAgent.STATS_INFO) | set(_AGGR_STINFO)
-
+        stnames = self._normalize_stnames(stnames)
         aggr_stnames, spec_stnames = self._separate_aggr_vs_specific(stnames)
 
         for astname in aggr_stnames:
@@ -554,9 +566,7 @@ class StatsCollect(_StatsCollectNoAggr):
     def set_disabled_stats(self, stnames):
         """Same as '_StatsCollectNoAggr.set_disabled_stats()'."""
 
-        if stnames in (None, "all"):
-            stnames = set(_STCAgent.STATS_INFO) | set(_AGGR_STINFO)
-
+        stnames = self._normalize_stnames(stnames)
         aggr_stnames, spec_stnames = self._separate_aggr_vs_specific(stnames)
 
         for astname in aggr_stnames:
