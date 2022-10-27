@@ -401,7 +401,7 @@ def scan_command(args):
             try:
                 depl.check_deployment()
             except ErrorNotFound as err:
-                if not args.all:
+                if not getattr(args, "all", False):
                     _LOG.debug(err)
                     continue
                 err_msg = str(err)
