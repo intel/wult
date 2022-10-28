@@ -3,11 +3,15 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.35] - ADD DATE HERE
+## [1.10.36] - ADD DATE HERE
 ### Fixed
 ### Added
- - Add support for sharing URLs to specific tabs in wult reports.
 ### Removed
+### Changed
+
+## [1.10.35] - 2022-10-28
+### Added
+ - Add support for sharing URLs to specific tabs in wult reports.
 ### Changed
  - Change the wult report layout from nested tabs to use tabs and a tree for
    navigating sub-tabs.
