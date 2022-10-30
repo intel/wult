@@ -70,7 +70,7 @@ def _deployable_not_found(pman, toolname, what, is_helper=True):
                f" * Set the 'WULT_HELPERSPATH' environment variable to the path of " \
                f"{what}{pman.hostmsg}"
     else:
-        err += f", consider running '{_get_deploy_cmd(pman, toolname)}'"
+        err += f"\nConsider running '{_get_deploy_cmd(pman, toolname)}'"
 
     raise ErrorNotFound(err)
 
@@ -402,7 +402,7 @@ class DeployCheck(_DeployBase):
         installable = self._get_installable_by_deployable(deployable)
         what = self._get_deployable_print_name(installable, deployable)
 
-        _LOG.warning("%s may be out of date%s, consider running '%s'",
+        _LOG.warning("%s may be out of date%s\nConsider running '%s'",
                      what, self._spman.hostmsg, _get_deploy_cmd(self._spman, self._toolname))
 
     def _check_deployable_up_to_date(self, deployable, srcpath, dstpath):
