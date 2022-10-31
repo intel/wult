@@ -19,7 +19,3 @@ override_dh_auto_test:
 #	python_path = $(shell realpath --relative-to=. .pybuild/*python*/build)
 #	cp -r wult ndl defs js misc $(python_path);
 #	dh_auto_test
-
-override_dh_install:
-	dh_install
-	cd debian/wult/usr/share/wult; rm -r drivers helpers;
