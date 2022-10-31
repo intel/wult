@@ -1,3 +1,9 @@
+wult (1.10.36) unstable; urgency=low
+
+  * Debianization: include drivers' sources into the package.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 31 Oct 2022 00:00:00 +0200
+
 wult (1.10.35) unstable; urgency=low
 
   * Add support for sharing URLs to specific tabs in wult reports.
