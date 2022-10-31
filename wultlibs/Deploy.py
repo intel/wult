@@ -180,7 +180,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
 
     if cats["drivers"]:
         drvsearch = ", ".join([name % str(_DRV_SRC_SUBPATH) for name in searchdirs])
-        descr += f"""The drivers are searched for in the following directories (and in the
+        descr += f""" The drivers are searched for in the following directories (and in the
                      following order) on the local host: {drvsearch}."""
     if cats["shelpers"] or cats["pyhelpers"]:
         helpersearch = ", ".join([name % str(_HELPERS_SRC_SUBPATH) for name in searchdirs])
