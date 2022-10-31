@@ -1,17 +1,11 @@
 #!/usr/bin/make -f
 
-headers_path = $(shell readlink -f /usr/src/linux-headers-*-common | tail -n1)
-
-inc_args = \
-	-I$(headers_path)/tools/include \
-	-I$(headers_path)/tools/lib
-
 %:
 	dh $@ --with python3 --buildsystem=pybuild
 
 override_dh_auto_build-arch:
 	$(MAKE) CFLAGS="$(CFLAGS) -fpic -pie -g" -C helpers/ndlrunner
-	$(MAKE) U_INC="$(inc_args)" -C helpers/wultrunner
+	$(MAKE) U_INC= -C helpers/wultrunner
 
 override_dh_auto_test:
 	: # do nothing
