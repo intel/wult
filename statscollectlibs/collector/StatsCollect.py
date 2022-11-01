@@ -418,8 +418,8 @@ class _StatsCollectNoAggr(ClassHelpers.SimpleCloseContext):
 
         # We add trailing slash to the remote directory path in order to make rsync copy the
         # contents of the remote directory, but not the directory itself.
-        self._pman.rsync(f"{self.remote_outdir}/", self.local_outdir, opts="rltD",
-                         remotesrc=True, remotedst=False)
+        self._pman.rsync(f"{self.remote_outdir}/", self.local_outdir, remotesrc=True,
+                         remotedst=False)
 
     def __init__(self, pman, local_outdir=None, remote_outdir=None):
         """
