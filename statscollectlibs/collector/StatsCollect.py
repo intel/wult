@@ -402,23 +402,40 @@ class _StatsCollectNoAggr(ClassHelpers.SimpleCloseContext):
         if self._oobagent:
             self._oobagent.stop(sysinfo=sysinfo)
 
-    def copy_remote_data(self):
+    def copy_remote_data(self, include_logs=True, include_data=True):
         """
-        If there are statistics collected on the remote host in 'self.remote_outdir', copy them over
-        to 'self.local_outdir'. This will also include 'stc-agent' logs.
-
-        The 'log' argument can be use to enable the inof logging messages to be printed.
+        Copy all statistics data from the 'self.remote_outdir' directory on the remote host to the
+        'self.local_outdir' directory on the local host. The arguments are as follows.
+          * include_logs - if 'True', include the remote 'stc-agent' logs as well.
+          * include_data - if 'True', include the statistics data files as well.
         """
 
         if not self.remote_outdir:
             return
 
-        _LOG.log(self._infolvl, "Copy statistics from '%s' to '%s'",
-                 self._pman.hostname, self.local_outdir)
-
+        exclude = None
         # We add trailing slash to the remote directory path in order to make rsync copy the
         # contents of the remote directory, but not the directory itself.
-        self._pman.rsync(f"{self.remote_outdir}/", self.local_outdir, remotesrc=True,
+        srcpath = f"{self.remote_outdir}/"
+        what = "statistics data files and logs"
+
+        if include_logs and not include_data:
+            exclude = "stats"
+            what = "statistics logs"
+        elif not include_logs and include_data:
+            srcpath = f"{self.remote_outdir}/stats"
+            what = "statistics data files"
+        elif not include_logs and not include_data:
+            raise Error("either statistics logs or data have to be included")
+
+        _LOG.log(self._infolvl, "Copy %s from '%s' to '%s'",
+                 what, self._pman.hostname, self.local_outdir)
+
+        rsync_opts = "-rltD"
+        if exclude:
+            rsync_opts = f"{rsync_opts} --exclude '{exclude}'"
+
+        self._pman.rsync(f"{srcpath}/", self.local_outdir, opts=rsync_opts, remotesrc=True,
                          remotedst=False)
 
     def __init__(self, pman, local_outdir=None, remote_outdir=None):
