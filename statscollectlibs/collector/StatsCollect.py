@@ -18,13 +18,15 @@ from statscollectlibs.collector import _STCAgent
 
 _LOG = logging.getLogger()
 
-# An "aggregate statistic name" is a statistic name which can be used when a system-specific
-# configuration is unknown. For example, the aggregate statistic name "ipmi" will try to resolve to
-# "ipmi-oob" and fall back on "ipmi-inband" if out-of-band IPMI collection is not possible on the
-# SUT.
+# The statistics description dictionary. Includes all statistics except for aggregate statistics.
+_STINFO = _STCAgent.STINFO
+
+# An "aggregate statistic" is a statistic which can be used when a system-specific configuration is
+# unknown. For example, the aggregate statistic name "ipmi" will try to resolve to "ipmi-oob" and
+# fall back on "ipmi-inband" if out-of-band IPMI collection is not possible on the SUT.
 #
 # The following constant maps aggregate statistic names to specific statistic names. It partially
-# mimics the '_STCAgent.STATS_INFO' dictionary structure.
+# mimics the '_STINFO' dictionary structure.
 _AGGR_STINFO = {
     "ipmi": {
         "stnames": {"ipmi-inband", "ipmi-oob"},
@@ -42,7 +44,7 @@ def get_stnames(include_aggregate=True):
                            specific statistic names.
     """
 
-    stnames = list(_STCAgent.STATS_INFO)
+    stnames = list(_STINFO)
     if include_aggregate:
         stnames += list(_AGGR_STINFO)
 
@@ -64,8 +66,8 @@ def get_stinfo(stname, allow_aggregate=True):
                         f"following specific statistic names:\n  {stnames}")
         return _AGGR_STINFO[stname]
 
-    if stname in _STCAgent.STATS_INFO:
-        return _STCAgent.STATS_INFO[stname]
+    if stname in _STINFO:
+        return _STINFO[stname]
 
     stnames = ", ".join(get_stnames(include_aggregate=allow_aggregate))
     raise Error(f"unknown statistic name '{stname}', the known names are:\n  {stnames}")
@@ -168,7 +170,7 @@ class _StatsCollectNoAggr(ClassHelpers.SimpleCloseContext):
         """
 
         if stnames in (None, "all"):
-            stnames = set(_STCAgent.STATS_INFO) | set(_AGGR_STINFO)
+            stnames = set(_STINFO) | set(_AGGR_STINFO)
         elif Trivial.is_iterable(stnames):
             stnames = set(stnames)
         else:
@@ -233,7 +235,7 @@ class _StatsCollectNoAggr(ClassHelpers.SimpleCloseContext):
         Set intervals for statistics collectors. The 'intervals' argument should be a dictionary
         with statistics collector names as keys and the collection interval as the value. This
         method should be called prior to the 'configure()' method. By default the statistics
-        collectors use intervals from the '_STCAgent.STATS_INFO' statistics description dictionary.
+        collectors use intervals from the '_STINFO' statistics description dictionary.
 
         Returns a dictionary similar to 'intervals', but only including enabled statistics and
         possibly rounded interval values as 'float' type.
