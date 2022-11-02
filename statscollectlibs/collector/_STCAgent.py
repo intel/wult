@@ -322,7 +322,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         if "sysinfo" in stnames:
             stnames.remove("sysinfo")
             if sysinfo:
-                _LOG.log(self.infolvl, "Collecting %s system information", self._sutname)
+                _LOG.log(self.infolvl, "Collecting %s system information", self.sutname)
                 SysInfo.collect_before(self._statsdir / "sysinfo", self._pman)
 
         if not stnames:
@@ -339,7 +339,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         if "sysinfo" in stnames:
             stnames.remove("sysinfo")
             if sysinfo:
-                _LOG.log(self.infolvl, "Collecting more %s system information", self._sutname)
+                _LOG.log(self.infolvl, "Collecting more %s system information", self.sutname)
                 SysInfo.collect_after(self._statsdir / "sysinfo", self._pman)
 
         if not stnames:
@@ -529,18 +529,18 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
 
         # Kill a possibly running stale 'stc-agent' process.
         msg = f"stale {self._stca_path} process"
-        self._stca_search = f"{self._stca_path} --sut-name {self._sutname}"
+        self._stca_search = f"{self._stca_path} --sut-name {self.sutname}"
         ProcHelpers.kill_processes(self._stca_search, kill_children=True, log=True, name=msg,
                                    pman=self._pman)
         if self._pman.is_remote:
             # Kill a possibly running stale SSH tunnel process.
             msg = "stale stc-agent SSH tunnel process"
-            self._ssht_search = f"ssh -L .*:.*stc-agent-{self._sutname}-.* -N"
+            self._ssht_search = f"ssh -L .*:.*stc-agent-{self.sutname}-.* -N"
             ProcHelpers.kill_processes(self._ssht_search, kill_children=True, log=True, name=msg,
                                        pman=self._pman)
 
         # Format the command for executing 'stc-agent'.
-        self._cmd = f"{self._stca_path} --sut-name {self._sutname}"
+        self._cmd = f"{self._stca_path} --sut-name {self.sutname}"
         if _LOG.getEffectiveLevel() == logging.DEBUG:
             self._cmd = f"{self._cmd} -d"
 
@@ -710,7 +710,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         """
 
         self._pman = pman
-        self._sutname = sutname
+        self.sutname = sutname
         self.outdir = outdir
         self._stca_path = stca_path
 
