@@ -73,11 +73,11 @@ usage: ndl deploy [-h] [-q] [-d] [--kernel-src KSRC] [--local-build]
 Compile and deploy ndl helpers and drivers to the SUT (System Under
 Test), which can be can be either local or a remote host, depending on
 the '-H' option. By default, everything is built on the SUT, but the
-'--local-build' can be used for building on the local system.The drivers
-are searched for in the following directories (and in the following
-order) on the local host: ./drivers/idle, $WULT_DATA_PATH/drivers/idle
-(if 'WULT_DATA_PATH' environment variable is defined),
-$HOME/.local/share/wult/drivers/idle,
+'--local-build' can be used for building on the local system. The
+drivers are searched for in the following directories (and in the
+following order) on the local host: ./drivers/idle,
+$WULT_DATA_PATH/drivers/idle (if 'WULT_DATA_PATH' environment variable
+is defined), $HOME/.local/share/wult/drivers/idle,
 /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The ndl
 tool also depends on the following helpers: ndlrunner. These helpers
 will be compiled on the SUT and deployed to the SUT. The sources of the

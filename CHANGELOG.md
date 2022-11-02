@@ -3,7 +3,13 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.37] - ADD DATE HERE
+## [1.10.38] - ADD DATE HERE
+### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.10.37] - 2022-11-02
 ### Fixed
  - Fix '--stats all' so that it also collects the "sysinfo" data. This is a regression introduced
    in version 1.10.34.

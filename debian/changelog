@@ -1,3 +1,11 @@
+wult (1.10.37) unstable; urgency=low
+
+  * Fix '--stats all' so that it also collects the "sysinfo" data. This is a regression introduced
+    in version 1.10.34.
+  * Fix '--stats acpower'  * it failed, due to a regression in version 1.10.34.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 02 Nov 2022 00:00:00 +0200
+
 wult (1.10.36) unstable; urgency=low
 
   * Debianization: include drivers' sources into the package.
