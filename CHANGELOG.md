@@ -5,6 +5,9 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.10.37] - ADD DATE HERE
 ### Fixed
+ - Fix '--stats all' so that it also collects the "sysinfo" data. This is a regression introduced
+   in version 1.10.34.
+ - Fix '--stats acpower' - it failed, due to a regression in version 1.10.34.
 ### Added
 ### Removed
 ### Changed
