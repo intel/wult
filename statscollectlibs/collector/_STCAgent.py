@@ -598,6 +598,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
 
         sysinfo = False
         if "sysinfo" in stnames:
+            stnames = stnames.copy()
             stnames.remove("sysinfo")
             sysinfo = True
 
