@@ -89,7 +89,7 @@ def check_stnames(stnames):
     for stname in stnames:
         get_stinfo(stname)
 
-class _StatsCollectNoAggr(ClassHelpers.SimpleCloseContext):
+class _SpecStatsCollect(ClassHelpers.SimpleCloseContext):
     """
     This class provides API for collecting SUT statistics, such as 'turbostat' data and AC power.
     This class supports specific statistics (such as 'turbostat', 'ipmi-oob', 'ipmi-in'), but it
@@ -509,7 +509,7 @@ class _StatsCollectNoAggr(ClassHelpers.SimpleCloseContext):
         """Close the statistics collector."""
         ClassHelpers.close(self, close_attrs=("_oobagent", "_inbagent"), unref_attrs=("_pman",))
 
-class StatsCollect(_StatsCollectNoAggr):
+class StatsCollect(_SpecStatsCollect):
     """
     This class provides API for collecting SUT statistics, such as 'turbostat' data and AC power.
     This class supports both specific and aggregate statistics.
