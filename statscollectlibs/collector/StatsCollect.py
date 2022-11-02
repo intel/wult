@@ -37,9 +37,16 @@ _AGGR_STINFO = {
 # The statistics description dictionary.
 _STINFO = { **_AGGR_STINFO, **_STCAgent.STINFO}
 
-def get_stnames():
-    """Return all specific statistic names."""
-    return list(_STINFO)
+def get_stnames(include_aggregate=True):
+    """
+    Returns all statistic names. The arguments are as follows:
+     * include_aggregate - if 'True', include the aggregate statistic names, otherwise include only
+                           specific statistic names.
+    """
+
+    if include_aggregate:
+        return list(_STINFO)
+    return list(_STCAgent.STINFO)
 
 def get_stinfo(stname):
     """Return information about statistic 'stname'."""
