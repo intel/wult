@@ -649,19 +649,19 @@ def start_command_create_stcoll(args, pman):
     if stconf["discover"]:
         stcoll.set_enabled_stats("all")
         stcoll.set_disabled_stats(stconf["exclude"])
-
-        if "acpower" in stconf["include"]:
-            # Assume that power meter is configured to match the SUT name.
-            if pman.is_remote:
-                devnode = pman.hostname
-            else:
-                devnode = "default"
-
-            with contextlib.suppress(Error):
-                stcoll.set_prop("acpower", "devnode", devnode)
     else:
         stcoll.set_disabled_stats("all")
         stcoll.set_enabled_stats(stconf["include"])
+
+    if "acpower" in stcoll.get_enabled_stats():
+        # Assume that power meter is configured to match the SUT name.
+        if pman.is_remote:
+            devnode = pman.hostname
+        else:
+            devnode = "default"
+
+        with contextlib.suppress(Error):
+            stcoll.set_prop("acpower", "devnode", devnode)
 
     # Configure the 'stc-agent' program path.
     local_needed, remote_needed = stcoll.is_stcagent_needed()
