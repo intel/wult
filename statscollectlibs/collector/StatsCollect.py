@@ -348,7 +348,7 @@ class StatsCollect(_SpecStatsCollect.SpecStatsCollect):
                 continue
 
             _LOG.log(self._infolvl, "Resolving the '%s' statistic", astname)
-            discovered_stnames = self._discover(astinfo["stnames"])
+            discovered_stnames = self._discover(self.get_enabled_stats() & astinfo["stnames"])
             if discovered_stnames:
                 _LOG.log(self._infolvl, "Resolved the '%s' statistic to '%s'",
                          astname, ", ".join(discovered_stnames))
