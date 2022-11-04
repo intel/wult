@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.10.38] - ADD DATE HERE
 ### Fixed
+ - Fix 'wult start' failing without specifying '--stats none'. This is a regression
+   introduced in 1.10.35.
 ### Added
 ### Removed
 ### Changed
