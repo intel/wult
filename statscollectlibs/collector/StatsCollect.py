@@ -304,7 +304,7 @@ class StatsCollect(_SpecStatsCollect.SpecStatsCollect):
         enabled_stnames = self.get_enabled_stats()
         aggr_stnames, _ = self._separate_aggr_vs_specific(enabled_stnames)
 
-        discover_stnames = self._expand_aggr_stnames(self.get_enabled_stats())
+        discover_stnames = super().get_enabled_stats()
         if discover_stnames:
             _LOG.log(self._infolvl, "Discovering the following statistics: %s",
                      ", ".join(discover_stnames))
