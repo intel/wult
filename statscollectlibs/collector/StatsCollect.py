@@ -133,7 +133,9 @@ class StatsCollect(_SpecStatsCollect.SpecStatsCollect):
         """
 
         if stnames in (None, "all"):
-            stnames = set(self._aggr_stinfo) | set(self._spec_stinfo)
+            stnames = set(self._inbagent.stinfo)
+            if self._oobagent is not None:
+                stnames.update(set(self._oobagent.stinfo))
         elif Trivial.is_iterable(stnames):
             stnames = set(stnames)
         else:
