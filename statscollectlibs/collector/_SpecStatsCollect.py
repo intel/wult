@@ -56,16 +56,24 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
         Return a tuple of those two sets.
         """
 
-        inb_stnames = stnames & set(self._inbagent.stinfo)
-        oob_stnames = stnames & set(self._oobagent.stinfo)
+        avail_inb_stnames = list(self._inbagent.stinfo)
+        inb_stnames = stnames & set(avail_inb_stnames)
 
-        unknown_stnames = stnames - inb_stnames - oob_stnames
-        if unknown_stnames:
-            unknown_stname = unknown_stnames.pop()
-            known_stnames = list(self._inbagent.stinfo) + list(self._oobagent.stinfo)
-            known_stnames = ", ".join(known_stnames)
-            raise Error(f"unknown statistic name '{unknown_stname}', the known names are:\n"
-                        f"  {known_stnames}")
+        # The out-of-band agent is not always initialised as it is not always needed.
+        if self._oobagent is not None:
+            avail_oob_stnames = list(self._oobagent.stinfo)
+            oob_stnames = stnames & set(avail_oob_stnames)
+        else:
+            avail_oob_stnames = []
+            oob_stnames = set()
+
+        unavail_stnames = stnames - inb_stnames - oob_stnames
+        if unavail_stnames:
+            unavail_stname = unavail_stnames.pop()
+            avail_stnames = avail_inb_stnames + avail_oob_stnames
+            avail_stnames = ", ".join(avail_stnames)
+            raise Error(f"unavailable statistic name '{unavail_stname}', the available names are:\n"
+                        f"  {avail_stnames}")
 
         return inb_stnames, oob_stnames
 
