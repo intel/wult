@@ -159,16 +159,17 @@ class StatsCollect(_SpecStatsCollect.SpecStatsCollect):
             _LOG.debug("enabling the following specific statistics: %s", ", ".join(spec_stnames))
 
         for astname in aggr_stnames:
+            enabled = False
             for stname in self._aggr_stinfo[astname]["stnames"]:
                 try:
                     super().set_enabled_stats(set([stname]))
-                    self._aggr_stinfo[astname]["enabled"] = True
+                    enabled = True
                 except Error as err:
                     _LOG.debug("failed to enable specific statistic '%s' as part of aggregate "
                                "statistic '%s':\n%s", stname, astname, err.indent(2))
                 spec_stnames.discard(stname)
 
-            if not self._aggr_stinfo[astname]["enabled"]:
+            if not enabled:
                 raise Error(f"could not enable any of the specific statistics for aggregate "
                             f"statistic '{astname}'")
 
@@ -186,7 +187,6 @@ class StatsCollect(_SpecStatsCollect.SpecStatsCollect):
             _LOG.debug("disabling the following specific statistics: %s", ", ".join(spec_stnames))
 
         for astname in aggr_stnames:
-            self._aggr_stinfo[astname]["enabled"] = False
             super().set_disabled_stats(self._aggr_stinfo[astname]["stnames"])
             spec_stnames -= self._aggr_stinfo[astname]["stnames"]
 
@@ -195,20 +195,20 @@ class StatsCollect(_SpecStatsCollect.SpecStatsCollect):
     def get_enabled_stats(self):
         """Return a set containing all the the enabled statistic names."""
 
-        stnames = super().get_enabled_stats()
+        enabled_stnames = super().get_enabled_stats()
         for astname, astinfo in self._aggr_stinfo.items():
-            if astinfo["enabled"]:
-                stnames.add(astname)
-        return stnames
+            if enabled_stnames & astinfo["stnames"]:
+                enabled_stnames.add(astname)
+        return enabled_stnames
 
     def get_disabled_stats(self):
         """Return a set containing all the the disabled statistic names."""
 
-        stnames = super().get_enabled_stats()
+        disabled_stnames = super().get_disabled_stats()
         for astname, astinfo in self._aggr_stinfo.items():
-            if not astinfo["enabled"]:
-                stnames.add(astname)
-        return stnames
+            if all(stname in disabled_stnames for stname in astinfo["stnames"]):
+                disabled_stnames.add(astname)
+        return disabled_stnames
 
     def _reject_aggr_stnames(self, stnames, operation):
         """If 'stnames' includes an aggregate statistics, raise an error."""
@@ -378,8 +378,6 @@ class StatsCollect(_SpecStatsCollect.SpecStatsCollect):
         """Add default keys to the aggregate statistics description dictionary."""
 
         for info in self._aggr_stinfo.values():
-            if "enabled" not in info:
-                info["enabled"] = False
             if "resolved" not in info:
                 info["resolved"] = set()
 
