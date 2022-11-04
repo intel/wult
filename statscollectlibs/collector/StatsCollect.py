@@ -159,9 +159,18 @@ class StatsCollect(_SpecStatsCollect.SpecStatsCollect):
             _LOG.debug("enabling the following specific statistics: %s", ", ".join(spec_stnames))
 
         for astname in aggr_stnames:
-            self._aggr_stinfo[astname]["enabled"] = True
-            super().set_enabled_stats(self._aggr_stinfo[astname]["stnames"])
-            spec_stnames -= self._aggr_stinfo[astname]["stnames"]
+            for stname in self._aggr_stinfo[astname]["stnames"]:
+                try:
+                    super().set_enabled_stats(set([stname]))
+                    self._aggr_stinfo[astname]["enabled"] = True
+                except Error as err:
+                    _LOG.debug("failed to enable specific statistic '%s' as part of aggregate "
+                               "statistic '%s':\n%s", stname, astname, err.indent(2))
+                spec_stnames.discard(stname)
+
+            if not self._aggr_stinfo[astname]["enabled"]:
+                raise Error(f"could not enable any of the specific statistics for aggregate "
+                            f"statistic '{astname}'")
 
         super().set_enabled_stats(spec_stnames)
 
