@@ -26,17 +26,17 @@
 
 #define verbose(fmt, ...) do { \
 		if (verbose) { \
-			printf("ndlrunner: debug: " fmt "\n", ##__VA_ARGS__); \
+			printf("ndl-helper: debug: " fmt "\n", ##__VA_ARGS__); \
 		} \
 	} while (0)
 #define msg(fmt, ...) do { \
-		printf("ndlrunner: " fmt "\n", ##__VA_ARGS__); \
+		printf("ndl-helper: " fmt "\n", ##__VA_ARGS__); \
 	} while (0)
 #define errmsg(fmt, ...) do { \
-		fprintf(stderr, "ndlrunner error: " fmt "\n", ##__VA_ARGS__); \
+		fprintf(stderr, "ndl-helper error: " fmt "\n", ##__VA_ARGS__); \
 	} while (0)
 #define syserrmsg(fmt, ...) do { \
-		fprintf(stderr, "ndlrunner error: " fmt ": %s\n", \
+		fprintf(stderr, "ndl-helper error: " fmt ": %s\n", \
 				##__VA_ARGS__, strerror(errno)); \
 	} while (0)
 
@@ -389,7 +389,7 @@ static int print_tai_offset(void)
 
 static void print_help(void)
 {
-	printf("Usage: ndlrunner [options] ifname\n");
+	printf("Usage: ndl-helper [options] ifname\n");
 	printf("  ifname - name of the network interface to use.\n");
 	printf("Options:\n");
 	printf("  -l, --ldist  the launch distance in nanoseconds.\n");

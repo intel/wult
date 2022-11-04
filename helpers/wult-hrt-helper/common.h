@@ -6,7 +6,7 @@
 
 /*
  * This file includes the bits shared between userspace and eBPF parts of
- * 'wultrunner'.
+ * 'wult-hrt-helper'.
  */
 
 #ifndef __WULTRUNNER_COMMON_H__
@@ -15,7 +15,7 @@
 #define WULTRUNNER_NUM_PERF_COUNTERS 16
 
 /**
- * wult_bpf_event - info about bpf events
+ * hrt_bpf_event - info about bpf events
  * @type: type of event
  * @ldist: launch distance (in ns)
  * @ltime: launch time (ktime_ns time)
@@ -34,7 +34,7 @@
  * @req_cstate: requested cstate
  * @perf_counters: contents of requested perf counters
  */
-struct wult_bpf_event {
+struct hrt_bpf_event {
 	u8 type;
 	u32 ldist;
 	u64 ltime;
@@ -54,7 +54,7 @@ struct wult_bpf_event {
 	u64 perf_counters[WULTRUNNER_NUM_PERF_COUNTERS];
 };
 
-struct wult_bpf_args {
+struct hrt_bpf_args {
 	int debug;
 	u32 min_t;
 	u32 max_t;

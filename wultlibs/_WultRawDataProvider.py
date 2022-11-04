@@ -207,13 +207,13 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
 class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
     """
-    The raw data provider class implementation for devices which are controlled by the 'wultrunner'
-    eBPF helper program.
+    The raw data provider class implementation for devices which are controlled by the
+    'wult-hrt-helper' program, which includes eBPF code.
     """
 
     def get_datapoints(self):
         """
-        This generator receives data from 'wultrunner' and yields datapoints in form of a
+        This generator receives data from 'wult-hrt-helper' and yields datapoints in form of a
         dictionary. The keys are metric names and values are metric values.
         """
 
@@ -284,16 +284,16 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
         ldist_str = ",".join([str(val) for val in self.ldist])
         self._helper_opts = f"-c {self._cpunum} -l {ldist_str}"
 
-    def __init__(self, dev, pman, cpunum, ldist, wultrunner_path, timeout=None):
+    def __init__(self, dev, pman, cpunum, ldist, helper_path, timeout=None):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
 
-        super().__init__(dev, pman, ldist, helper_path=wultrunner_path, timeout=timeout)
+        super().__init__(dev, pman, ldist, helper_path=helper_path, timeout=timeout)
 
         self._cpunum = cpunum
 
         self._wult_lines = None
 
-def WultRawDataProvider(dev, pman, cpunum, ldist, wultrunner_path=None, timeout=None,
+def WultRawDataProvider(dev, pman, cpunum, ldist, helper_path=None, timeout=None,
                         early_intr=None):
     """
     Create and return a raw data provider class suitable for a delayed event device 'dev'. The
@@ -302,7 +302,7 @@ def WultRawDataProvider(dev, pman, cpunum, ldist, wultrunner_path=None, timeout=
       * pman - the process manager object defining host to operate on.
       * cpunum - the measured CPU number.
       * ldist - a pair of numbers specifying the launch distance range in nanoseconds.
-      * wultrunner_path - path to the 'wultrunner' program.
+      * helper_path - path to the 'wult-hrt-helper' program.
       * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
                   seconds.
       * early_intr - enable interrupts before entering the C-state.
@@ -311,7 +311,7 @@ def WultRawDataProvider(dev, pman, cpunum, ldist, wultrunner_path=None, timeout=
     if dev.drvname:
         return _WultDrvRawDataProvider(dev, pman, cpunum, ldist, timeout=timeout,
                                        early_intr=early_intr)
-    if not wultrunner_path:
-        raise Error("BUG: the 'wultrunner' program path was not specified")
+    if not helper_path:
+        raise Error("BUG: the 'wult-hrt-helper' program path was not specified")
 
-    return _WultBPFRawDataProvider(dev, pman, cpunum, ldist, wultrunner_path, timeout=timeout)
+    return _WultBPFRawDataProvider(dev, pman, cpunum, ldist, helper_path, timeout=timeout)

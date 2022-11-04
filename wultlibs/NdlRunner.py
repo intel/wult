@@ -134,8 +134,8 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
         self._progress = _ProgressLine.NdlProgressLine(period=1)
 
-        ndlrunner_path = Deploy.get_installed_helper_path(pman, "ndl", dev.helpername)
-        self._prov = _NdlRawDataProvider.NdlRawDataProvider(dev, pman, self._ldist, ndlrunner_path,
+        ndlhelper_path = Deploy.get_installed_helper_path(pman, "ndl", dev.helpername)
+        self._prov = _NdlRawDataProvider.NdlRawDataProvider(dev, pman, self._ldist, ndlhelper_path,
                                                             timeout=self._timeout)
 
         drvname = self._prov.drvobjs[0].name

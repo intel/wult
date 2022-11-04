@@ -28,7 +28,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
     def _unexpected_line_error_prefix(self, line):
         """
         Forms and returns the starting part of an error message related to an unexpected line
-        received from the 'ndlrunner' process.
+        received from the 'ndl-helper' process.
         """
 
         msg = f"received the following unexpected line from {self._error_pfx()}:\n{line}"
@@ -40,11 +40,11 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
         return msg
 
     def _get_line(self, prefix="", line=None):
-        """Read, validate, and return the next 'ndlrunner' line."""
+        """Read, validate, and return the next 'ndl-helper' line."""
 
         if not line:
             line = next(self._ndl_lines)
-        prefix = f"ndlrunner: {prefix}: "
+        prefix = f"ndl-helper: {prefix}: "
         if not line.startswith(prefix):
             msg = self._unexpected_line_error_prefix(line)
             raise Error(f"{msg}\nExpected a line with the following prefix instead:\n{prefix}")
@@ -52,7 +52,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
 
     def _get_latency(self):
         """
-        Read the next latency data line from the 'ndlrunner' helper, parse it, and return the
+        Read the next latency data line from the 'ndl-helper' helper, parse it, and return the
         resulting dictionary.
         """
 
@@ -75,8 +75,8 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
 
     def get_datapoints(self):
         """
-        This generator receives data from 'ndlrunner' and yields datapoints in form of a dictionary.
-        The keys are metric names and values are metric values.
+        This generator receives data from 'ndl-helper' and yields datapoints in form of a
+        dictionary. The keys are metric names and values are metric values.
         """
 
         self._ndl_lines = self._get_lines()
@@ -148,38 +148,38 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
         stdout, _ = self._pman.run_verify(f"{self._helper_path} --tai-offset")
         tai_offset = self._get_line(prefix="TAI offset", line=stdout)
         if not Trivial.is_int(tai_offset):
-            raise Error(f"unexpected 'ndlrunner --tai-offset' output:\n{stdout}")
+            raise Error(f"unexpected 'ndl-helper --tai-offset' output:\n{stdout}")
 
         _LOG.info("Configuring the ETF qdisc%s", self._pman.hostmsg)
         self._etfqdisc.configure()
         _LOG.info("Starting NIC-to-system clock synchronization process%s", self._pman.hostmsg)
         self._etfqdisc.start_phc2sys(tai_offset=int(tai_offset))
 
-    def __init__(self, dev, pman, ldist, ndlrunner_path, timeout=None):
+    def __init__(self, dev, pman, ldist, ndlhelper_path, timeout=None):
         """
         Initialize a class instance. The arguments are as follows.
           * dev - the device object created with 'Devices.GetDevice()'.
           * pman - the process manager object defining host to operate on.
           * ldist - a pair of numbers specifying the launch distance range in nanoseconds.
-          * ndlrunner_path - path to the 'ndlrunner' helper.
+          * ndlhelper_path - path to the 'ndl-helper' helper.
           * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
                       seconds.
         """
 
         drvinfo = {dev.drvname : {"params" : f"ifname={dev.netif.ifname}"}}
-        super().__init__(dev, pman, ldist, drvinfo=drvinfo, helper_path=ndlrunner_path,
+        super().__init__(dev, pman, ldist, drvinfo=drvinfo, helper_path=ndlhelper_path,
                          timeout=timeout)
 
-        self._helper_path = ndlrunner_path
+        self._helper_path = ndlhelper_path
         self._netif = self.dev.netif
 
         self._ndl_lines = None
         self._etfqdisc = None
         self._nmcli = None
 
-        # Validate the 'ndlrunner' helper path.
+        # Validate the 'ndl-helper' helper path.
         if not self._pman.is_exe(self._helper_path):
-            raise Error(f"bad 'ndlrunner' helper path '{self._helper_path}' - does not exist"
+            raise Error(f"bad 'ndl-helper' helper path '{self._helper_path}' - does not exist"
                         f"{self._pman.hostmsg} or not an executable file")
 
         self._etfqdisc = _ETFQdisc.ETFQdisc(self._netif, pman=self._pman)

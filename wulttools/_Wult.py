@@ -40,10 +40,10 @@ _WULT_DEPLOY_INFO = {
             "category" : "pyhelpers",
             "deployables" : ("stc-agent", "ipmi-helper", ),
         },
-        "wultrunner" : {
+        "wult-hrt-helper" : {
             "category" : "bpfhelpers",
             "minkver"  : "5.15",
-            "deployables" : ("wultrunner", ),
+            "deployables" : ("wult-hrt-helper", ),
         },
     },
 }

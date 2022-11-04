@@ -2,9 +2,9 @@
 #
 # Copyright (C) 2022 Intel Corporation
 
-PREFIX ?= /tmp/wultrunner
+PREFIX ?= /tmp/wult-hrt-helper
 BINDIR := $(PREFIX)/bin
-TOOLNAME = wultrunner
+TOOLNAME = wult-hrt-helper
 
 KSRC := /lib/modules/$(shell uname -r)/source
 BPFTOOL ?= bpftool
@@ -19,8 +19,8 @@ BPF_INC := -I$(KSRC)/include \
 U_INC := -I$(KSRC)/tools/include \
 	 -I$(KSRC)/tools/lib
 
-BPFOBJS = wult-bpf.o
-UOBJS = wultrunner.o
+BPFOBJS = hrt-bpf.o
+UOBJS = wult-hrt-helper.o
 
 CFLAGS ?= -Wall -O2 -Wmissing-prototypes -Wstrict-prototypes
 BPF_CFLAGS ?= -O2 -g -target bpf

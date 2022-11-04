@@ -16,24 +16,24 @@ typedef uint32_t u32;
 
 #define verbose(fmt, ...) do { \
 		if (verbose) { \
-			printf("wultrunner: debug: " fmt "\n", ##__VA_ARGS__); \
+			printf("wult-hrt-helper: debug: " fmt "\n", ##__VA_ARGS__); \
 		} \
 	} while (0)
 #define msg(fmt, ...) do { \
-		printf("wultrunner: " fmt "\n", ##__VA_ARGS__); \
+		printf("wult-hrt-helper: " fmt "\n", ##__VA_ARGS__); \
 	} while (0)
 
 #define warnmsg(fmt, ...) do { \
-		fprintf(stderr, "wultrunner warning: " fmt "\n", ##__VA_ARGS__); \
+		fprintf(stderr, "wult-hrt-helper warning: " fmt "\n", ##__VA_ARGS__); \
 	} while (0)
 #define syswarnmsg(fmt, ...) do { \
-		fprintf(stderr, "wultrunner warning: " fmt ": %s\n", ##__VA_ARGS__, strerror(errno)); \
+		fprintf(stderr, "wult-hrt-helper warning: " fmt ": %s\n", ##__VA_ARGS__, strerror(errno)); \
 	} while (0)
 #define errmsg(fmt, ...) do { \
-		fprintf(stderr, "wultrunner error: " fmt "\n", ##__VA_ARGS__); \
+		fprintf(stderr, "wult-hrt-helper error: " fmt "\n", ##__VA_ARGS__); \
 	} while (0)
 #define syserrmsg(fmt, ...) do { \
-		fprintf(stderr, "wultrunner error: " fmt ": %s\n", ##__VA_ARGS__, strerror(errno)); \
+		fprintf(stderr, "wult-hrt-helper error: " fmt ": %s\n", ##__VA_ARGS__, strerror(errno)); \
 	} while (0)
 
 /* Maximum supported launch distance in nanoseconds. */

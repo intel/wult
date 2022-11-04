@@ -61,11 +61,11 @@ Wult Kernel drivers
 
 %build
 %py3_build
-make -C helpers/ndlrunner
+make -C helpers/ndl-helper
 
 %install
 %py3_install
-install -pDm755 helpers/ndlrunner/ndlrunner %{buildroot}%{_bindir}/ndlrunner
+install -pDm755 helpers/ndl-helper/ndl-helper %{buildroot}%{_bindir}/ndl-helper
 
 %check
 %if %{with tests}
@@ -77,7 +77,7 @@ install -pDm755 helpers/ndlrunner/ndlrunner %{buildroot}%{_bindir}/ndlrunner
 %license LICENSE.md js/dist/main.js.LICENSE.txt
 %{_bindir}/ipmi-helper
 %{_bindir}/ndl
-%{_bindir}/ndlrunner
+%{_bindir}/ndl-helper
 %{_bindir}/stc-agent
 %{_bindir}/wult
 %{_datadir}/wult/defs

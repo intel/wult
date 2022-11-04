@@ -15,10 +15,10 @@
 
 #define dbgmsg(fmt, ...) do { \
 	if (debug) \
-		bpf_printk("wult_bpf DBG: " fmt, ##__VA_ARGS__); \
+		bpf_printk("hrt_bpf DBG: " fmt, ##__VA_ARGS__); \
 } while (0)
 
-#define errmsg(fmt, ...)  bpf_printk("wult_bpf ERR: " fmt, ##__VA_ARGS__)
+#define errmsg(fmt, ...)  bpf_printk("hrt_bpf ERR: " fmt, ##__VA_ARGS__)
 
 /*
  * Below is hardcoded, as including the corresponding linux header would
@@ -52,7 +52,7 @@ struct {
 static int debug;
 static int min_t;
 static int max_t;
-static struct wult_bpf_event bpf_event;
+static struct hrt_bpf_event bpf_event;
 static u64 ltime;
 static u32 ldist;
 static bool timer_armed;
@@ -95,7 +95,7 @@ static u64 read_tsc(void)
 
 static void ping_cpu(void)
 {
-	struct wult_bpf_event *e;
+	struct hrt_bpf_event *e;
 
 	e = bpf_ringbuf_reserve(&events, 1, 0);
 	if (!e) {
@@ -110,7 +110,7 @@ static void ping_cpu(void)
 
 static void send_event(void)
 {
-	struct wult_bpf_event *e;
+	struct hrt_bpf_event *e;
 	int i;
 
 	/*
@@ -221,7 +221,7 @@ static void snapshot_perf_vars(bool exit)
 
 static int timer_callback(void *map, int *key, struct bpf_timer *timer)
 {
-	struct wult_bpf_event *e = &bpf_event;
+	struct hrt_bpf_event *e = &bpf_event;
 	int cpu_id = bpf_get_smp_processor_id();
 
 	dbgmsg("timer_cb, cpu=%d", cpu_id);
@@ -250,7 +250,7 @@ static int timer_callback(void *map, int *key, struct bpf_timer *timer)
 }
 
 SEC("syscall")
-int wult_bpf_start_timer(struct wult_bpf_args *args)
+int hrt_bpf_start_timer(struct hrt_bpf_args *args)
 {
 	int key = 0;
 	struct bpf_timer *timer;
@@ -277,9 +277,9 @@ int wult_bpf_start_timer(struct wult_bpf_args *args)
 }
 
 SEC("tp_btf/local_timer_entry")
-int BPF_PROG(wult_bpf_local_timer_entry, int vector)
+int BPF_PROG(hrt_bpf_local_timer_entry, int vector)
 {
-	struct wult_bpf_event *e = &bpf_event;
+	struct hrt_bpf_event *e = &bpf_event;
 	int cpu_id = bpf_get_smp_processor_id();
 	u64 t;
 
@@ -297,9 +297,9 @@ int BPF_PROG(wult_bpf_local_timer_entry, int vector)
 }
 
 SEC("tp_btf/softirq_entry")
-int BPF_PROG(wult_bpf_softirq_entry, int vector)
+int BPF_PROG(hrt_bpf_softirq_entry, int vector)
 {
-	struct wult_bpf_event *e = &bpf_event;
+	struct hrt_bpf_event *e = &bpf_event;
 	int cpu_id = bpf_get_smp_processor_id();
 
 	if (cpu_id == cpu_num)
@@ -309,9 +309,9 @@ int BPF_PROG(wult_bpf_softirq_entry, int vector)
 }
 
 SEC("tp_btf/nmi_handler")
-int BPF_PROG(wult_bpf_nmi_handler, void *handler, s64 t, int vector)
+int BPF_PROG(hrt_bpf_nmi_handler, void *handler, s64 t, int vector)
 {
-	struct wult_bpf_event *e = &bpf_event;
+	struct hrt_bpf_event *e = &bpf_event;
 	int cpu_id = bpf_get_smp_processor_id();
 
 	if (cpu_id == cpu_num)
@@ -321,7 +321,7 @@ int BPF_PROG(wult_bpf_nmi_handler, void *handler, s64 t, int vector)
 }
 
 SEC("tp_btf/hrtimer_init")
-int BPF_PROG(wult_bpf_timer_init, void *timer)
+int BPF_PROG(hrt_bpf_timer_init, void *timer)
 {
 	if (capture_timer_id)
 		timer_id = timer;
@@ -330,9 +330,9 @@ int BPF_PROG(wult_bpf_timer_init, void *timer)
 }
 
 SEC("tp_btf/hrtimer_expire_entry")
-int BPF_PROG(wult_bpf_timer_expire_entry, void *timer, void *now)
+int BPF_PROG(hrt_bpf_timer_expire_entry, void *timer, void *now)
 {
-	struct wult_bpf_event *e = &bpf_event;
+	struct hrt_bpf_event *e = &bpf_event;
 
 	if (timer == timer_id && e->tbi && !e->tintr) {
 		e->intrts1 = bpf_ktime_get_boot_ns();
@@ -346,9 +346,9 @@ int BPF_PROG(wult_bpf_timer_expire_entry, void *timer, void *now)
 }
 
 SEC("tp_btf/cpu_idle")
-int BPF_PROG(wult_bpf_cpu_idle, unsigned int cstate, unsigned int cpu_id)
+int BPF_PROG(hrt_bpf_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 {
-	struct wult_bpf_event *e = &bpf_event;
+	struct hrt_bpf_event *e = &bpf_event;
 	int idx = cpu_id;
 	u64 t;
 

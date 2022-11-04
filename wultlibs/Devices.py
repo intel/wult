@@ -225,8 +225,8 @@ class _PCIDevice(_DeviceBase):
 
         path = Path(f"/sys/bus/pci/devices/{self._devid}")
         if not pman.exists(path):
-            raise ErrorNotFound(f"cannot find device '{self._devid}'{self._pman.hostmsg}:\n"
-                                f"path {path} does not exist")
+            raise ErrorNotSupported(f"cannot find device '{self._devid}'{self._pman.hostmsg}:\n"
+                                    f"path {path} does not exist")
 
         self._devpath = self._pman.abspath(path)
         with LsPCI.LsPCI(pman) as lspci:
@@ -364,7 +364,7 @@ class _NdlIntelI210(_IntelI210Base):
     def __init__(self, devid, pman, dmesg=None):
         """The arguments are the same as in '_WultIntelI210.__init__()'."""
 
-        super().__init__(devid, pman, drvname="ndl", helpername="ndlrunner", no_netif_ok=False,
+        super().__init__(devid, pman, drvname="ndl", helpername="ndl-helper", no_netif_ok=False,
                          dmesg=dmesg)
 
 class _WultTSCDeadlineTimer(_DeviceBase):
@@ -484,17 +484,17 @@ class _WultHRT(_HRTimerDeviceBase):
 
         self.info["descr"] = self.supported_devices["hrt"]
 
-class _WultHRTimer(_HRTimerDeviceBase):
-    """The High Resolution Timers device controlled by the 'wultrunner' eBPF program."""
+class _WultHRTBPF(_HRTimerDeviceBase):
+    """The High Resolution Timers device controlled by the 'wult-hrt-helper' program."""
 
-    supported_devices = {"hrtimer" : "Linux High Resolution Timer via eBPF program"}
+    supported_devices = {"hrt-bpf" : "Linux High Resolution Timer via eBPF"}
 
     def __init__(self, devid, pman, dmesg=None):
         """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
 
-        super().__init__(devid, pman, helpername="wultrunner", dmesg=dmesg)
+        super().__init__(devid, pman, helpername="wult-hrt-helper", dmesg=dmesg)
 
-        self.info["descr"] = self.supported_devices["hrtimer"]
+        self.info["descr"] = self.supported_devices["hrt-bpf"]
 
 def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
     """
@@ -514,8 +514,8 @@ def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
         if devid in _WultHRT.supported_devices:
             return _WultHRT(devid, pman, dmesg=dmesg)
 
-        if devid in _WultHRTimer.supported_devices:
-            return _WultHRTimer(devid, pman, dmesg=dmesg)
+        if devid in _WultHRTBPF.supported_devices:
+            return _WultHRTBPF(devid, pman, dmesg=dmesg)
 
     if toolname == "wult":
         clsname = "_WultIntelI210"
@@ -550,9 +550,9 @@ def scan_devices(toolname, pman):
                 with _WultHRT(devid, pman, dmesg=False) as timerdev:
                     yield timerdev
 
-        for devid in _WultHRTimer.supported_devices:
+        for devid in _WultHRTBPF.supported_devices:
             with contextlib.suppress(Error):
-                with _WultHRTimer(devid, pman, dmesg=False) as timerdev:
+                with _WultHRTBPF(devid, pman, dmesg=False) as timerdev:
                     yield timerdev
 
     if toolname == "wult":

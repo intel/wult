@@ -1,6 +1,6 @@
-PREFIX ?= /tmp/ndlrunner
+PREFIX ?= /tmp/ndl-helper
 BINDIR := $(PREFIX)/bin
-TOOLNAME = ndlrunner
+TOOLNAME = ndl-helper
 
 all: $(TOOLNAME)
 

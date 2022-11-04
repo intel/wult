@@ -35,9 +35,9 @@ _NDL_DEPLOY_INFO = {
             "minkver"  : "5.2",
             "deployables" : ("ndl", ),
         },
-        "ndlrunner" : {
+        "ndl-helper" : {
             "category" : "shelpers",
-            "deployables" : ("ndlrunner", ),
+            "deployables" : ("ndl-helper", ),
         },
     },
 }

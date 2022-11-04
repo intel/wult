@@ -4,8 +4,8 @@
 	dh $@ --with python3 --buildsystem=pybuild
 
 override_dh_auto_build-arch:
-	$(MAKE) CFLAGS="$(CFLAGS) -fpic -pie -g" -C helpers/ndlrunner
-	$(MAKE) U_INC= -C helpers/wultrunner
+	$(MAKE) CFLAGS="$(CFLAGS) -fpic -pie -g" -C helpers/ndl-helper
+	$(MAKE) -C helpers/wult-hrt-helper
 
 override_dh_auto_test:
 	: # do nothing
