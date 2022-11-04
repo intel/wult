@@ -267,7 +267,12 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
         return local_needed, remote_needed
 
     def is_stcagent_needed(self):
-        """Same as 'StatsCollect.is_stcagent_needed()'."""
+        """
+        Check if the local and remote 'stc-agent' programs are needed to collect the currently
+        enabled statistics. Returns a '(local_needed, remote_needed) tuple, where 'local_needed' is
+        a boolean indicating if a local 'stc-agent' program is needed, and 'remote_needed' is a
+        boolean indicating if a remote 'stc-agent' program is needed.
+        """
 
         stnames = self._get_enabled_stats()
         return self._is_stcagent_needed(stnames)

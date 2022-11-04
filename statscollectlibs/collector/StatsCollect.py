@@ -282,17 +282,6 @@ class StatsCollect(_SpecStatsCollect.SpecStatsCollect):
 
         return exp_stnames
 
-    def is_stcagent_needed(self):
-        """
-        Check if the local and remote 'stc-agent' programs are needed to collect the currently
-        enabled statistics. Returns a '(local_needed, remote_needed) tuple, where 'local_needed' is
-        a boolean indicating if a local 'stc-agent' program is needed, and 'remote_needed' is a
-        boolean indicating if a remote 'stc-agent' program is needed.
-        """
-
-        stnames = self._expand_aggr_stnames(self.get_enabled_stats())
-        return super()._is_stcagent_needed(stnames)
-
     def discover(self):
         """
         Discover and return set of statistics that can be collected for SUT. This method probes all
