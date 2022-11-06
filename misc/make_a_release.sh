@@ -26,10 +26,12 @@ CHANGELOG_FILE="$BASEDIR/CHANGELOG.md"
 WULT_MAN_FILE="$BASEDIR/docs/man1/wult.1"
 WULT_RST_FILE="$BASEDIR/docs/wult-man.rst"
 NDL_MAN_FILE="$BASEDIR/docs/man1/ndl.1"
-NDL_RST_FILE="$NDL_RST_FILE"
+NDL_RST_FILE="$BASEDIR/docs/ndl-man.rst"
 
 # Path to the script converting CHANGELOG.md into debian changelog.
 CHANGELOG_MD_TO_DEBIAN="$BASEDIR/../pepc/misc/changelog_md_to_debian"
+# Path to the script that prepares CHANGELOG.md for the release.
+PREPARE_CHENGELOG_MD="$BASEDIR/../pepc/misc/prepare_changelog_md"
 
 fatal() {
         printf "Error: %s\n" "$1" >&2
@@ -40,7 +42,8 @@ usage() {
         cat <<EOF
 Usage: ${0##*/} <new_ver>
 
-<new_ver> - new tool version to make in X.Y.Z format
+<new_ver> - new tool version to make in X.Y.Z format. The X.Y.(Z+1) version
+            will be used by default.
 EOF
         exit 0
 }
@@ -63,10 +66,21 @@ ask_question() {
 	done
 }
 
-[ $# -eq 0 ] && usage
-[ $# -eq 1 ] || fatal "insufficient or too many argumetns"
+if [ $# -eq 1 ]; then
+    new_ver="$1"; shift
+    # Validate the new version.
+    printf "%s" "$new_ver" | grep -q -x "$VERSION_REGEX" ||
+            fatal "please, provide new version in X.Y.Z format"
+else
+    # The new version was not provided, increment the current version umber.
+    sed_regex="^_VERSION = \"$VERSION_REGEX\"$"
+    ver_start="$(sed -n -e "s/$sed_regex/\1.\2./p" "$WULT_FILE")"
+    ver_end="$(sed -n -e "s/$sed_regex/\3/p" "$WULT_FILE")"
+    ver_end="$(($ver_end+1))"
+    new_ver="$ver_start$ver_end"
+fi
 
-new_ver="$1"; shift
+echo "New version: $new_ver"
 
 # Validate the new version.
 printf "%s" "$new_ver" | grep -q -x "$VERSION_REGEX" ||
@@ -82,6 +96,12 @@ fi
 ask_question "Did you run tests"
 ask_question "Did you update 'CHANGELOG.md'"
 ask_question "Did you specify pepc version dependency in 'setup.py' and 'wult.spec'"
+
+# Update CHANGELOG.md.
+"$PREPARE_CHENGELOG_MD" "$new_ver" "$CHANGELOG_FILE"
+# Update debian changelog.
+"$CHANGELOG_MD_TO_DEBIAN" -o "$BASEDIR/debian/changelog" -p "wult" -n "Artem Bityutskiy" \
+                          -e "artem.bityutskiy@intel.com" "$CHANGELOG_FILE"
 
 # Change the tool version.
 sed -i -e "s/^_VERSION = \"$VERSION_REGEX\"$/_VERSION = \"$new_ver\"/" "$WULT_FILE"
@@ -99,10 +119,6 @@ argparse-manpage --pyfile "$NDL_FILE" --function _build_arguments_parser \
                  --url 'https://github.com/intel/wult'
 pandoc --toc -t man -s "$WULT_MAN_FILE" -t rst -o "$WULT_RST_FILE"
 pandoc --toc -t man -s "$NDL_MAN_FILE"  -t rst -o "$NDL_RST_FILE"
-
-# Update debian changelog.
-"$CHANGELOG_MD_TO_DEBIAN" -o "$BASEDIR/debian/changelog" -p "wult" -n "Artem Bityutskiy" \
-                          -e "artem.bityutskiy@intel.com" "$CHANGELOG_FILE"
 
 # Commit the changes.
 git -C "$BASEDIR" commit -a -s -m "Release version $new_ver"
