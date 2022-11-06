@@ -11,6 +11,10 @@
 PROG="make_a_release.sh"
 BASEDIR="$(readlink -ev -- ${0%/*}/..)"
 
+# File paths containing the version number that we'll have to adjust.
+WULT_FILE="$BASEDIR/wulttools/_Wult.py"
+SPEC_FILE="$BASEDIR/rpm/wult.spec"
+
 fatal() {
         printf "Error: %s\n" "$1" >&2
         exit 1
@@ -65,13 +69,13 @@ ask_question "Did you specify pepc version dependency in 'setup.py' and 'wult.sp
 
 # Change the tool version.
 sed -i -e "s/^_VERSION = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"$/_VERSION = \"$new_ver\"/" \
-    "$BASEDIR/wulttools/_Wult.py"
+    "$WULT_FILE"
 # Change RPM package version.
 sed -i -e "s/^Version:\(\s\+\)[0-9]\+\.[0-9]\+\.[0-9]\+$/Version:\1$new_ver/" \
-    "$BASEDIR/rpm/wult.spec"
+    "$SPEC_FILE"
 
 # Update the man page.
-argparse-manpage --pyfile "$BASEDIR/wulttools/_Wult.py" --function _build_arguments_parser \
+argparse-manpage --pyfile "$WULT_FILE" --function _build_arguments_parser \
                  --project-name 'wult' --author 'Artem Bityutskiy' \
                  --author-email 'dedekind1@gmail.com' --output "$BASEDIR/docs/man1/wult.1" \
                  --url 'https://github.com/intel/wult'
