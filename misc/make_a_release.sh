@@ -11,6 +11,8 @@
 PROG="make_a_release.sh"
 BASEDIR="$(readlink -ev -- ${0%/*}/..)"
 
+# Regular expression matching wult and ndl versions.
+VERSION_REGEX='\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)'
 # File paths containing the version number that we'll have to adjust.
 WULT_FILE="$BASEDIR/wulttools/_Wult.py"
 SPEC_FILE="$BASEDIR/rpm/wult.spec"
@@ -53,8 +55,8 @@ ask_question() {
 new_ver="$1"; shift
 
 # Validate the new version.
-printf "%s" "$new_ver" | egrep -q -x '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' ||
-        fatal "please, provide new version in X.Y.Z format"
+printf "%s" "$new_ver" | grep -q -x "$VERSION_REGEX" ||
+         fatal "please, provide new version in X.Y.Z format"
 
 # Make sure that the current branch is 'master' or 'release'.
 current_branch="$(git -C "$BASEDIR" branch | sed -n -e '/^*/ s/^* //p')"
@@ -68,11 +70,9 @@ ask_question "Did you update 'CHANGELOG.md'"
 ask_question "Did you specify pepc version dependency in 'setup.py' and 'wult.spec'"
 
 # Change the tool version.
-sed -i -e "s/^_VERSION = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"$/_VERSION = \"$new_ver\"/" \
-    "$WULT_FILE"
+sed -i -e "s/^_VERSION = \"$VERSION_REGEX\"$/_VERSION = \"$new_ver\"/" "$WULT_FILE"
 # Change RPM package version.
-sed -i -e "s/^Version:\(\s\+\)[0-9]\+\.[0-9]\+\.[0-9]\+$/Version:\1$new_ver/" \
-    "$SPEC_FILE"
+sed -i -e "s/^Version:\(\s\+\)$VERSION_REGEX$/Version:\1$new_ver/" "$SPEC_FILE"
 
 # Update the man page.
 argparse-manpage --pyfile "$WULT_FILE" --function _build_arguments_parser \
