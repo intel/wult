@@ -3,7 +3,7 @@
 Changelog practices: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.38] - ADD DATE HERE
+## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
  - Fix 'wult start' failing without specifying '--stats none'. This is a regression
    introduced in 1.10.35.
