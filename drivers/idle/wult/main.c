@@ -316,10 +316,12 @@ int wult_register(struct wult_device_info *wdi)
 	if (wi->wdi) {
 		wult_err("already have device '%s' registered", wi->wdi->devname);
 		err = -EBUSY;
+		mutex_unlock(&wi->dev_mutex);
 		goto err_put;
 	}
 
 	init_wdi(wdi);
+	mutex_unlock(&wi->dev_mutex);
 
 	err = wult_tracer_init(wi);
 	if (err) {
@@ -350,7 +352,6 @@ int wult_register(struct wult_device_info *wdi)
 		wult_err("failed to create debugfs files, error %d", err);
 		goto err_kthread;
 	}
-	mutex_unlock(&wi->dev_mutex);
 
 	wult_msg("registered device '%s', resolution: %u ns",
 		 wdi->devname, wdi->ldist_gran);
@@ -361,7 +362,6 @@ err_kthread:
 err_tracer:
 	wult_tracer_exit(wi);
 err_put:
-	mutex_unlock(&wi->dev_mutex);
 	module_put(THIS_MODULE);
 	return err;
 }
