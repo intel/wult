@@ -28,6 +28,9 @@ WULT_RST_FILE="$BASEDIR/docs/wult-man.rst"
 NDL_MAN_FILE="$BASEDIR/docs/man1/ndl.1"
 NDL_RST_FILE="$NDL_RST_FILE"
 
+# Path to the script converting CHANGELOG.md into debian changelog.
+CHANGELOG_MD_TO_DEBIAN="$BASEDIR/../pepc/misc/changelog_md_to_debian"
+
 fatal() {
         printf "Error: %s\n" "$1" >&2
         exit 1
@@ -98,10 +101,8 @@ pandoc --toc -t man -s "$WULT_MAN_FILE" -t rst -o "$WULT_RST_FILE"
 pandoc --toc -t man -s "$NDL_MAN_FILE"  -t rst -o "$NDL_RST_FILE"
 
 # Update debian changelog.
-"$BASEDIR"/../pepc/misc/changelog_md_to_debian -o "$BASEDIR/debian/changelog" -p "wult" \
-                                               -n "Artem Bityutskiy" \
-                                               -e "artem.bityutskiy@intel.com" \
-                                               "$CHANGELOG_FILE"
+"$CHANGELOG_MD_TO_DEBIAN" -o "$BASEDIR/debian/changelog" -p "wult" -n "Artem Bityutskiy" \
+                          -e "artem.bityutskiy@intel.com" "$CHANGELOG_FILE"
 
 # Commit the changes.
 git -C "$BASEDIR" commit -a -s -m "Release version $new_ver"
