@@ -91,9 +91,9 @@ argparse-manpage --pyfile "$WULT_FILE" --function _build_arguments_parser \
                  --author-email 'dedekind1@gmail.com' --output "$WULT_MAN_FILE" \
                  --url 'https://github.com/intel/wult'
 argparse-manpage --pyfile "$NDL_FILE" --function _build_arguments_parser \
-                 --project-name 'ndl' --author 'Artem Bityutskiy' \
+                 --project-name 'wult' --author 'Artem Bityutskiy' \
                  --author-email 'dedekind1@gmail.com' --output "$NDL_MAN_FILE" \
-                 --url 'https://github.com/intel/ndl'
+                 --url 'https://github.com/intel/wult'
 pandoc --toc -t man -s "$WULT_MAN_FILE" -t rst -o "$WULT_RST_FILE"
 pandoc --toc -t man -s "$NDL_MAN_FILE"  -t rst -o "$NDL_RST_FILE"
 
