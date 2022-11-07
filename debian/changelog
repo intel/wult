@@ -1,3 +1,10 @@
+wult (1.10.38) unstable; urgency=low
+
+  * Fix 'wult start' failing without specifying '--stats none'. This is a regression
+    introduced in 1.10.35.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 07 Nov 2022 00:00:00 +0200
+
 wult (1.10.37) unstable; urgency=low
 
   * Fix '--stats all' so that it also collects the "sysinfo" data. This is a regression introduced
