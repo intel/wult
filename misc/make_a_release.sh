@@ -13,9 +13,20 @@ BASEDIR="$(readlink -ev -- ${0%/*}/..)"
 
 # Regular expression matching wult and ndl versions.
 VERSION_REGEX='\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)'
+
 # File paths containing the version number that we'll have to adjust.
 WULT_FILE="$BASEDIR/wulttools/_Wult.py"
+NDL_FILE="$BASEDIR/wulttools/_Wult.py"
 SPEC_FILE="$BASEDIR/rpm/wult.spec"
+
+# The CHANGELOG.md file path.
+CHANGELOG_FILE="$BASEDIR/CHANGELOG.md"
+
+# Documentation file paths.
+WULT_MAN_FILE="$BASEDIR/docs/man1/wult.1"
+WULT_RST_FILE="$BASEDIR/docs/wult-man.rst"
+NDL_MAN_FILE="$BASEDIR/docs/man1/ndl.1"
+NDL_RST_FILE="$NDL_RST_FILE"
 
 fatal() {
         printf "Error: %s\n" "$1" >&2
@@ -77,20 +88,20 @@ sed -i -e "s/^Version:\(\s\+\)$VERSION_REGEX$/Version:\1$new_ver/" "$SPEC_FILE"
 # Update the man page.
 argparse-manpage --pyfile "$WULT_FILE" --function _build_arguments_parser \
                  --project-name 'wult' --author 'Artem Bityutskiy' \
-                 --author-email 'dedekind1@gmail.com' --output "$BASEDIR/docs/man1/wult.1" \
+                 --author-email 'dedekind1@gmail.com' --output "$WULT_MAN_FILE" \
                  --url 'https://github.com/intel/wult'
-argparse-manpage --pyfile "$BASEDIR/wulttools/_Ndl.py" --function _build_arguments_parser \
+argparse-manpage --pyfile "$NDL_FILE" --function _build_arguments_parser \
                  --project-name 'ndl' --author 'Artem Bityutskiy' \
-                 --author-email 'dedekind1@gmail.com' --output "$BASEDIR/docs/man1/ndl.1" \
+                 --author-email 'dedekind1@gmail.com' --output "$NDL_MAN_FILE" \
                  --url 'https://github.com/intel/ndl'
-pandoc --toc -t man -s "$BASEDIR/docs/man1/wult.1" -t rst -o "$BASEDIR/docs/wult-man.rst"
-pandoc --toc -t man -s "$BASEDIR/docs/man1/ndl.1"  -t rst -o "$BASEDIR/docs/ndl-man.rst"
+pandoc --toc -t man -s "$WULT_MAN_FILE" -t rst -o "$WULT_RST_FILE"
+pandoc --toc -t man -s "$NDL_MAN_FILE"  -t rst -o "$NDL_RST_FILE"
 
 # Update debian changelog.
 "$BASEDIR"/../pepc/misc/changelog_md_to_debian -o "$BASEDIR/debian/changelog" -p "wult" \
                                                -n "Artem Bityutskiy" \
                                                -e "artem.bityutskiy@intel.com" \
-                                               "$BASEDIR/CHANGELOG.md"
+                                               "$CHANGELOG_FILE"
 
 # Commit the changes.
 git -C "$BASEDIR" commit -a -s -m "Release version $new_ver"
