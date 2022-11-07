@@ -13,6 +13,8 @@ This module provides the API for parsing and reading statistics collection confi
 import logging
 from pathlib import Path
 from pepclibs.helperlibs import YAML
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
+from statscollectlibs.collector import _STCAgent
 
 _SYSTEM_CFG_FILE = "/etc/statscollect.conf"
 _USER_CFG_FILE_NAME = ".statscollect.conf"
@@ -41,7 +43,91 @@ class StatsConfig:
         return self._cfg["suts"][sutname].get("collectors", {})
 
     @staticmethod
-    def _iterate_configs():
+    def _validate_collectors(subcfg):
+        """
+        Helper function for '_validate_suts()'. Validates the contents of a "collectors" section in
+        the configuration file. The section of the configuration file is provided in dictionary form
+        as 'subcfg'.
+        """
+
+        configurable_attrs = {
+            "interval": int,
+            "enabled": bool,
+            "toolpath": str,
+            "props": dict
+        }
+
+        if subcfg is None:
+            raise Error(f"\"collectors\" section specified without configuring any collectors. "
+                        f"Configurable collector names are:\n  '{', '.join(_STCAgent.STINFO)}'")
+
+        for stname, stinfo in subcfg.items():
+            if stname not in _STCAgent.STINFO:
+                raise ErrorNotSupported(f"config file specified unsupported statistics collector "
+                                        f"'{stname}'. Configurable collector names are:\n  "
+                                        f"'{', '.join(_STCAgent.STINFO)}'")
+
+            if stinfo is None:
+                raise Error(f"statistics collector '{stname}' specified without specifying any "
+                            f"collector attributes. Configurable attributes are:\n  "
+                            f"'{', '.join(configurable_attrs)}'")
+
+            for attr, val in stinfo.items():
+                if attr not in configurable_attrs:
+                    raise Error(f"unconfigurable attribute '{attr}' specified for '{stname}' "
+                                f"collector. Configurable attributes are:\n  "
+                                f"'{', '.join(configurable_attrs)}'")
+
+                if not isinstance(val, configurable_attrs[attr]):
+                    raise Error(f"invalid value '{val}' for '{attr}'. Value should be of type "
+                                f"'{configurable_attrs[attr].__name__}'.")
+
+    def _validate_suts(self, subcfg):
+        """
+        Helper function for '_validate_loaded_cfg()'. Validates the contents of the "suts" section
+        of the configuration file. The section of the configuration file is provided in dictionary
+        form as 'subcfg'.
+        """
+
+        if subcfg is None:
+            raise Error("\"suts\" section specified without specifying any SUTs.")
+
+        valid_keys = ("collectors",)
+        for sutname, sutinfo in subcfg.items():
+            if sutinfo is None:
+                raise Error(f"SUT '{sutname}' specified without specifying any keys. Valid keys "
+                            f"are:\n  '{', '.join(valid_keys)}'")
+
+            for key in sutinfo:
+                if key in valid_keys:
+                    try:
+                        self._validate_collectors(sutinfo["collectors"])
+                    except Error as err:
+                        raise Error(f"invalid configuration for SUT '{sutname}':\n"
+                                    f"{err.indent(2)}") from None
+                else:
+                    raise Error(f"invalid key '{key}' for SUT '{sutname}', valid keys are:\n"
+                                f"  '{', '.join(valid_keys)}'")
+
+    def _validate_loaded_cfg(self, cfg, path):
+        """
+        Helper function for '_iterate_configs()'. Validates the contents of loaded configuration
+        files. If the contents are deemed invalid, an appropriate error will be raised. Arguments
+        are as follows:
+         * cfg - dictionary representation of the loaded configuration file.
+         * path - path of the loaded configuration file.
+        """
+
+        if "suts" not in cfg:
+            _LOG.warning("\"suts\" section was not found in configuration file '%s'", path)
+            return
+
+        try:
+            self._validate_suts(cfg["suts"])
+        except Error as err:
+            raise Error(f"invalid configuration file at '{path}':\n{err.indent(2)}") from None
+
+    def _iterate_configs(self):
         """
         Helper function for '_parse_config_files()'. For every existing statistics configuration
         file, parse and yield the contents as a dictionary.
@@ -56,7 +142,9 @@ class StatsConfig:
 
         for path in paths:
             if path.is_file():
-                yield YAML.load(path)
+                cfg = YAML.load(path)
+                self._validate_loaded_cfg(cfg, path)
+                yield cfg
 
     def _parse_config_files(self):
         """
