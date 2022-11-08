@@ -8,6 +8,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - The eBPF-based 'hrtimer' method was renamed to 'hrt-bpf'.
 
 ## [1.10.38] - 2022-11-07
 ### Fixed
