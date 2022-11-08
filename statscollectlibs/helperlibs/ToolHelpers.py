@@ -45,7 +45,7 @@ def find_project_data(prjname, subpath, descr=None):
             return path
         searched.append(path)
 
-    path = Path("~").expanduser() / Path(f".local/share/{prjname}/{subpath}")
+    path = Path.home() / Path(f".local/share/{prjname}/{subpath}")
     if path.exists():
         return path
 
