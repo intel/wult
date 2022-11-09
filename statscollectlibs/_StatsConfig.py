@@ -16,8 +16,8 @@ from pepclibs.helperlibs import YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from statscollectlibs.collector import _STCAgent
 
-_SYSTEM_CFG_FILE = "/etc/statscollect.conf"
-_USER_CFG_FILE_NAME = ".statscollect.conf"
+_SYSTEM_CFG_FILE = "/etc/stats-collect.conf"
+_USER_CFG_FILE_NAME = ".stats-collect.conf"
 
 _LOG = logging.getLogger()
 
