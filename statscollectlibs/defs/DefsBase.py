@@ -160,7 +160,6 @@ class DefsBase:
             defsdir = "defs"
 
         self.name = name
-        self.info = None
 
         self._populate_cstate_keys = ["title", "descr", "name", "fsname"]
 
