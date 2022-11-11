@@ -1,0 +1,151 @@
+.TH EXERCISE\-SUT "1" "2022\-11\-25" "wult" "Generated Python Manual"
+.SH NAME
+exercise\-sut
+.SH SYNOPSIS
+.B exercise\-sut
+[-h] [-q] [-d] [--version] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [--force-color] [--datapoints DATAPOINTS] [--reportid-prefix REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpunum CPUNUM] [--cstates CSTATES] [--pcstates PCSTATES] [--only-one-cstate] [--freqs FREQS] [--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR] [--aspm ASPM] [--c1-demotion C1_DEMOTION] [--c1e-autopromote C1E_AUTOPROMOTE] [--cstate-prewake CSTATE_PREWAKE] [--state-reset] [--deploy] [--devids DEVIDS] [--toolpath TOOLPATH] [--toolopts TOOLOPTS] [--outdir OUTDIR] [--stop-on-failure] [--dry-run] [--only-measured-cpu]
+.SH DESCRIPTION
+exercise\-sut \- Run a test tool or benchmark to collect testdata.
+
+.SH OPTIONS
+.TP
+\fB\-h\fR
+Show this help message and exit.
+
+.TP
+\fB\-q\fR
+Be quiet.
+
+.TP
+\fB\-d\fR
+Print debugging information.
+
+.TP
+\fB\-\-version\fR
+Print version and exit.
+
+.TP
+\fB\-H\fR \fI\,HOSTNAME\/\fR, \fB\-\-host\fR \fI\,HOSTNAME\/\fR
+Name of the host to run the command on.
+
+.TP
+\fB\-U\fR \fI\,USERNAME\/\fR, \fB\-\-username\fR \fI\,USERNAME\/\fR
+Name of the user to use for logging into the remote host over SSH. The default user name is 'root'.
+
+.TP
+\fB\-K\fR \fI\,PRIVKEY\/\fR, \fB\-\-priv\-key\fR \fI\,PRIVKEY\/\fR
+Path to the private SSH key that should be used for logging into the remote host. By default the key is automatically found from standard paths like
+'~/.ssh'.
+
+.TP
+\fB\-T\fR \fI\,TIMEOUT\/\fR, \fB\-\-timeout\fR \fI\,TIMEOUT\/\fR
+SSH connect timeout in seconds, default is 8.
+
+.TP
+\fB\-\-force\-color\fR
+Force coloring of the text output.
+
+.TP
+\fB\-\-datapoints\fR \fI\,DATAPOINTS\/\fR, \fB\-c\fR \fI\,DATAPOINTS\/\fR
+Applicable only for 'wult' and 'ndl' tools. Number of datapoints to collect per measurement. Default is 100000.
+
+.TP
+\fB\-\-reportid\-prefix\fR \fI\,REPORTID_PREFIX\/\fR
+Custom report ID prefix string, default is the name of the SUT.
+
+.TP
+\fB\-\-reportid\-suffix\fR \fI\,REPORTID_SUFFIX\/\fR
+String to append to the report ID (nothing, by default).
+
+.TP
+\fB\-\-cpunum\fR \fI\,CPUNUM\/\fR
+Applicable only for the 'wult' tool. The CPU number to measure with. Default is CPU0.
+
+.TP
+\fB\-\-cstates\fR \fI\,CSTATES\/\fR
+Comma\-separated list of requestable C\-states to measure with. Default is all C\-states.
+
+.TP
+\fB\-\-pcstates\fR \fI\,PCSTATES\/\fR
+Comma\-separated list of package C\-states to measure with.
+
+.TP
+\fB\-\-only\-one\-cstate\fR
+By default C\-states deeper than measured C\-state are disabled and other C\-states are enabled. This option will disable all C\-states, excluding the
+measured C\-state.
+
+.TP
+\fB\-\-freqs\fR \fI\,FREQS\/\fR
+Comma\-separated list of frequencies to be measured with. For more information, see '\-\-min\-freq' and '\-\-max\-freq' options of the 'pepc pstates config'
+command.
+
+.TP
+\fB\-\-uncore\-freqs\fR \fI\,UNCORE_FREQS\/\fR
+Comma\-separated list of package uncore frequencies to measure with. For more information, see '\-\-min\-uncore\-freq' and '\-\-max\-uncore\-freq' options of
+the 'pepc pstates config' command.
+
+.TP
+\fB\-\-governor\fR \fI\,GOVERNOR\/\fR
+Name of the CPU frequency governor to measure with, default is "powersave".
+
+.TP
+\fB\-\-aspm\fR \fI\,ASPM\/\fR
+Comma\-separated list of PCIe ASPM configurations to measure with. The default is "don't care". Supported values are "on" and "off".
+
+.TP
+\fB\-\-c1\-demotion\fR \fI\,C1_DEMOTION\/\fR
+Comma\-separated list of C1 demotion configurations to measure with. Default is "off". Supported values are "on" and "off".
+
+.TP
+\fB\-\-c1e\-autopromote\fR \fI\,C1E_AUTOPROMOTE\/\fR
+Comma\-separated list of C1E autopromote configurations to measure with. Default is "off". Supported values are "on" and "off".
+
+.TP
+\fB\-\-cstate\-prewake\fR \fI\,CSTATE_PREWAKE\/\fR
+Comma\-separated list of C\-state prewake configurations to measure with. Default is "off". Supported values are "on" and "off".
+
+.TP
+\fB\-\-state\-reset\fR
+Set SUT settings to default values before starting measurements. The default values are: online all CPUs, enable all C\-states, disable C1 demotion,
+disable C1 undemotion, disable C1E autopromotion, disable C\-state prewake, set CPU frequency governor to 'powersave', unlock CPU frequency, unlock
+uncore frequency, set EPP policy to 'balance_performance', set EPB policy to 'balance_performance'.
+
+.TP
+\fB\-\-deploy\fR
+Applicable only for 'wult' and 'ndl' tools. Run the 'deploy' command before starting the measurements.
+
+.TP
+\fB\-\-devids\fR \fI\,DEVIDS\/\fR
+Applicable only for 'wult' and 'ndl' tools. Comma\-separated list of device IDs to run the tools with.
+
+.TP
+\fB\-\-toolpath\fR \fI\,TOOLPATH\/\fR
+Path to the tool to run. Default is "wult".
+
+.TP
+\fB\-\-toolopts\fR \fI\,TOOLOPTS\/\fR
+Additional options to use for running the tool.
+
+.TP
+\fB\-\-outdir\fR \fI\,OUTDIR\/\fR, \fB\-o\fR \fI\,OUTDIR\/\fR
+Path to directory to store the results at.
+
+.TP
+\fB\-\-stop\-on\-failure\fR
+Stop if any of the steps fail, instead of continuing (default).
+
+.TP
+\fB\-\-dry\-run\fR
+Do not run any commands, only print them.
+
+.TP
+\fB\-\-only\-measured\-cpu\fR
+Change settings, for example CPU frequency and C\-state limits, only for the measured CPU. By default settings are applied to all CPUs.
+
+.SH AUTHORS
+.nf
+Artem Bityutskiy
+.fi
+.nf
+dedekind1@gmail.com
+.fi

@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 from setuptools import setup, find_packages
 
-_TOOLNAMES = ["wult", "ndl"]
+_TOOLNAMES = ["wult", "ndl", "exercise-sut"]
 
 def get_version(filename):
     """Fetch the project version number."""
