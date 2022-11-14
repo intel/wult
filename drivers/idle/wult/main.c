@@ -293,7 +293,6 @@ static void init_wdi(struct wult_device_info *wdi)
 {
 	wi->wdi = wdi;
 	wdi->priv = wi;
-	wi->cpunum = cpunum;
 	wi->ldist_from = max(wdi->ldist_min, DEFAULT_LDIST_FROM);
 	wi->ldist_to = min(wdi->ldist_max, DEFAULT_LDIST_TO);
 	mutex_init(&wi->enable_mutex);
