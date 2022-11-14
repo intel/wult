@@ -46,6 +46,11 @@ _WULT_DEPLOY_INFO = {
             "minkver"  : "5.15",
             "deployables" : ("wult-hrt-helper", ),
         },
+        "wult-tdt-helper" : {
+            "category" : "bpfhelpers",
+            "minkver"  : "5.15",
+            "deployables" : ("wult-tdt-helper", ),
+        },
     },
 }
 
