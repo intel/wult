@@ -414,6 +414,8 @@ static int __init wult_init(void)
 	}
 
 	wi = kzalloc(sizeof(*wi), GFP_KERNEL);
+	if (!wi)
+		return -ENOMEM;
 
 	mutex_init(&wi->dev_mutex);
 	wi->cpunum = cpunum;
