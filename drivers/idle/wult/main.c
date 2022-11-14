@@ -291,7 +291,6 @@ init_error:
 /* Initialize wult device information object 'wdi'. */
 static void init_wdi(struct wult_device_info *wdi)
 {
-	memset(wi, 0, sizeof(*wi));
 	wi->wdi = wdi;
 	wdi->priv = wi;
 	wi->cpunum = cpunum;
