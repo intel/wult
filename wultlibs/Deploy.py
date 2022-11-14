@@ -324,7 +324,7 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
         self._cats = { cat : {} for cat in _CATEGORIES }
         for name, info in self._deploy_info["installables"].items():
             self._insts[name] = info.copy()
-            self._cats[info["category"]] = { name : info.copy()}
+            self._cats[info["category"]][name] = info.copy()
 
     def close(self):
         """Uninitialize the object."""
