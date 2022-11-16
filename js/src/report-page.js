@@ -68,7 +68,7 @@ export class ScReportPage extends LitElement {
      * Extracts fields in 'this.reportInfo' into various class properties.
      */
     initRepProps () {
-        this.toolname = this.reportInfo.toolname
+        this.reportTitle = this.reportInfo.title
         this.titleDescr = this.reportInfo.title_descr
     }
 
@@ -207,7 +207,7 @@ export class ScReportPage extends LitElement {
 
         return html`
             <div class="report-head">
-                ${this.toolname ? html`<h1 class="report-title">${this.toolname} report</h1>` : html``}
+                ${this.reportTitle ? html`<h1 class="report-title">${this.reportTitle}</h1>` : html``}
                 ${this.titleDescr
                     ? html`
                         <p class="title_descr">${this.titleDescr}</p>

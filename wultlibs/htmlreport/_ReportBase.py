@@ -490,7 +490,7 @@ class ReportBase:
         # including the intro table, the file path of the tabs JSON dump and the toolname.
         report_info = {}
         report_info["intro_tbl"] = self._prepare_intro_table(stats_paths, logs_paths)
-        report_info["toolname"] = self._refinfo["toolname"].title()
+        report_info["title"] = f"{self._refinfo['toolname'].title()} Report"
 
         results_tabs = self._generate_results_tabs()
 
