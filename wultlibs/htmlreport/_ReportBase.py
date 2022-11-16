@@ -507,7 +507,7 @@ class ReportBase:
                       "'SysInfo' tab.")
 
         toolname = self._refinfo["toolname"].title()
-        HTMLReport.generate_report(self.outdir, tabs, self._intro_tbl, toolname)
+        HTMLReport.generate_report(self.outdir, tabs, self._intro_tbl, toolname, self.title_descr)
 
     def _mangle_loaded_res(self, res):
         """
