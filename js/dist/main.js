@@ -2298,7 +2298,7 @@
         sl-dialog::part(close-button) {
             visibility: hidden;
         }
-    `;get _corsWarning(){return this.renderRoot.querySelector(".cors-warning")}initRepProps(){this.reportTitle=this.reportInfo.title,this.titleDescr=this.reportInfo.title_descr}parseReportInfo(t){this.reportInfo=t,this.initRepProps(),fetch(t.intro_tbl).then((t=>t.blob())).then((t=>{this.introtbl=t})),fetch(t.tab_file).then((t=>t.json())).then((async t=>{this.tabs=t}))}connectedCallback(){fetch(this.src).then((t=>t.json())).then((t=>this.parseReportInfo(t))).catch((t=>{if(!(t instanceof TypeError))throw t;this.fetchFailed=!0})),super.connectedCallback()}updated(t){t.has("fetchFailed")&&this.fetchFailed&&this._corsWarning.addEventListener("sl-request-close",(t=>{t.preventDefault()}))}corsWarning(){return H`
+    `;get _corsWarning(){return this.renderRoot.querySelector(".cors-warning")}initRepProps(){this.reportTitle=this.reportInfo.title,this.reportDescr=this.reportInfo.descr}parseReportInfo(t){this.reportInfo=t,this.initRepProps(),fetch(t.intro_tbl).then((t=>t.blob())).then((t=>{this.introtbl=t})),fetch(t.tab_file).then((t=>t.json())).then((async t=>{this.tabs=t}))}connectedCallback(){fetch(this.src).then((t=>t.json())).then((t=>this.parseReportInfo(t))).catch((t=>{if(!(t instanceof TypeError))throw t;this.fetchFailed=!0})),super.connectedCallback()}updated(t){t.has("fetchFailed")&&this.fetchFailed&&this._corsWarning.addEventListener("sl-request-close",(t=>{t.preventDefault()}))}corsWarning(){return H`
             <sl-dialog class="cors-warning" label="Failed to load report" open>
                 <p>
                     Due to browser security limitations your report could not be retrieved. Please
@@ -2316,8 +2316,8 @@
         `}findFile(t){const e=Object.keys(this.files);for(const i of e)if(i.endsWith(t))return this.files[i];throw Error(`unable to find an uploaded file ending with '${t}'.`)}async extractTabs(t,e){for(const i of t)i.smrytblpath&&(i.smrytblfile=e?await fetch(i.smrytblpath).then((t=>t.blob())):this.findFile(i.smrytblpath)),i.tabs&&(i.tabs=await this.extractTabs(i.tabs,e));return t}async processUploadedFiles(){const t=this.renderRoot.getElementById("upload-files");this.files={};for(const e of t.files)this.files[e.webkitRelativePath]=e;const e=await this.findFile("report_info.json").arrayBuffer();this.reportInfo=JSON.parse((new TextDecoder).decode(e)),this.introtbl=this.findFile(this.reportInfo.intro_tbl);const i=await this.findFile(this.reportInfo.tab_file).arrayBuffer().then((t=>JSON.parse((new TextDecoder).decode(t))));this.tabs=await this.extractTabs(i,!1),this.initRepProps(),this.fetchFailed=!1}constructor(){super(),this.fetchFailed=!1,this.reportInfo={}}render(){return this.fetchFailed?this.corsWarning():H`
             <div class="report-head">
                 ${this.reportTitle?H`<h1 class="report-title">${this.reportTitle}</h1>`:H``}
-                ${this.titleDescr?H`
-                        <p class="title_descr">${this.titleDescr}</p>
+                ${this.reportDescr?H`
+                        <p class="title_descr">${this.reportDescr}</p>
                         <br>
                     `:H``}
                 ${this.introtbl?H`<sc-intro-tbl .file=${this.introtbl}></sc-intro-tbl>`:H``}

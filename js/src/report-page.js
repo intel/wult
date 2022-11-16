@@ -69,7 +69,7 @@ export class ScReportPage extends LitElement {
      */
     initRepProps () {
         this.reportTitle = this.reportInfo.title
-        this.titleDescr = this.reportInfo.title_descr
+        this.reportDescr = this.reportInfo.descr
     }
 
     parseReportInfo (json) {
@@ -208,9 +208,9 @@ export class ScReportPage extends LitElement {
         return html`
             <div class="report-head">
                 ${this.reportTitle ? html`<h1 class="report-title">${this.reportTitle}</h1>` : html``}
-                ${this.titleDescr
+                ${this.reportDescr
                     ? html`
-                        <p class="title_descr">${this.titleDescr}</p>
+                        <p class="title_descr">${this.reportDescr}</p>
                         <br>
                     `
                     : html``
