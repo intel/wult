@@ -11,7 +11,6 @@
 This module provides the base class for generating HTML reports for raw test results.
 """
 
-import dataclasses
 import itertools
 import json
 import logging
@@ -20,7 +19,7 @@ from pathlib import Path
 from pepclibs.helperlibs import Trivial, LocalProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.helperlibs import ToolHelpers
-from statscollectlibs.htmlreport import _IntroTable
+from statscollectlibs.htmlreport import _IntroTable, HTMLReport
 from statscollectlibs.htmlreport.tabs import _ACPowerTabBuilder, _IPMITabBuilder, _Tabs
 from statscollectlibs.htmlreport.tabs.sysinfo import (_CPUFreqTabBuilder, _CPUIdleTabBuilder,
     _DMIDecodeTabBuilder, _DmesgTabBuilder, _EPPTabBuilder, _LspciTabBuilder, _MiscTabBuilder,
@@ -133,11 +132,6 @@ class ReportBase:
         self._add_intro_tbl_links("Statistics", stats_paths)
         # Add links to the logs directories.
         self._add_intro_tbl_links("Logs", logs_paths)
-
-        intro_tbl_path = self.outdir / "intro_table.txt"
-        self._intro_tbl.generate(intro_tbl_path)
-
-        return intro_tbl_path.relative_to(self.outdir)
 
     @staticmethod
     def _copy_dir(srcdir, dstpath):
@@ -481,16 +475,8 @@ class ReportBase:
         except OSError as err:
             raise Error(f"failed to create directory '{self.outdir}': {err}") from None
 
-        # Copy raw data and assets.
         stats_paths, logs_paths = self._copy_raw_data()
-        for src, descr in self._assets:
-            self._copy_asset(Path(src), descr, self.outdir / src)
-
-        # 'report_info' stores data used by the Javascript to generate the main report page
-        # including the intro table, the file path of the tabs JSON dump and the toolname.
-        report_info = {}
-        report_info["intro_tbl"] = self._prepare_intro_table(stats_paths, logs_paths)
-        report_info["title"] = f"{self._refinfo['toolname'].title()} Report"
+        self._prepare_intro_table(stats_paths, logs_paths)
 
         results_tabs = self._generate_results_tabs()
 
@@ -506,37 +492,22 @@ class ReportBase:
             _LOG.info("Error occurred during info tab generation: %s", err)
             sysinfo_tabs = []
 
-        tabs = []
-        # Convert Dataclasses to dictionaries so that they are JSON serialisable.
-        tabs.append(dataclasses.asdict(_Tabs.CTabDC("Results", results_tabs)))
+        tabs = [_Tabs.CTabDC("Results", results_tabs)]
 
         if stats_tabs:
-            tabs.append(dataclasses.asdict(_Tabs.CTabDC("Stats", tabs=stats_tabs)))
+            tabs.append(_Tabs.CTabDC("Stats", tabs=stats_tabs))
         else:
             _LOG.info("All statistics have been skipped, therefore the report will not contain a "
                       "'Stats' tab.")
 
         if sysinfo_tabs:
-            tabs.append(dataclasses.asdict(_Tabs.CTabDC("SysInfo", tabs=sysinfo_tabs)))
+            tabs.append(_Tabs.CTabDC("SysInfo", tabs=sysinfo_tabs))
         else:
             _LOG.info("All SysInfo tabs have been skipped, therefore the report will not contain a "
                       "'SysInfo' tab.")
 
-        tabs_path = self.outdir / "tabs.json"
-        self._dump_json(tabs, tabs_path, "tab container")
-
-        report_info["tab_file"] = str(tabs_path.relative_to(self.outdir))
-        rinfo_path = self.outdir / "report_info.json"
-        self._dump_json(report_info, rinfo_path, "report information dictionary")
-
-        self._copy_asset("js/index.html", "root HTML page of the report.",
-                         self.outdir / "index.html")
-
-        self._copy_asset("misc/servedir/serve_directory.py",
-                         "script to serve report directories.",
-                         self.outdir / "serve_directory.py")
-        self._copy_asset("misc/servedir/README.md", "README file for local viewing scripts",
-                         self.outdir / "README.md")
+        toolname = self._refinfo["toolname"].title()
+        HTMLReport.generate_report(self.outdir, tabs, self._intro_tbl, toolname)
 
     def _mangle_loaded_res(self, res):
         """
@@ -690,19 +661,6 @@ class ReportBase:
         # Both X- and Y-axes are required for scatter plots.
         if not self.xaxes or not self.yaxes:
             self.xaxes = self.yaxes = []
-
-    def _init_assets(self):
-        """
-        'Assets' are the CSS and JS files which supplement the HTML which makes up the report.
-        'self._assets' defines the assets which should be copied into the output directory. The list
-        is in the format: (path_to_asset, asset_description).
-        """
-
-        self._assets = [
-            ("js/dist/main.js", "bundled JavaScript"),
-            ("js/dist/main.css", "bundled CSS"),
-            ("js/dist/main.js.LICENSE.txt", "bundled dependency licenses"),
-        ]
 
     def _validate_init_args(self):
         """Validate the class constructor input arguments."""
@@ -874,7 +832,6 @@ class ReportBase:
         if smry_funcs is None:
             smry_funcs = {}
         self._init_smry_funcs(smry_funcs)
-        self._init_assets()
 
         if (self.exclude_xaxes and not self.exclude_yaxes) or \
            (self.exclude_yaxes and not self.exclude_xaxes):
