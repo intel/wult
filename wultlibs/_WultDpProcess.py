@@ -505,7 +505,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         for metric in ("LDist", "SilentTime", "IntrLatency", "WakeLatency"):
             if dp.get(metric, 0) < 0:
-                raise Error(f"negative '{metric}' value. The datapoint is:\n"
+                raise Error(f"negative or missing '{metric}' value. The datapoint is:\n"
                             f"{Human.dict2str(dp)}") from None
 
         if self._drvname == "wult_tdt":
