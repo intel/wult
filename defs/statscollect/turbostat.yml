@@ -49,6 +49,16 @@ Pkg%pcx:
     unit: "%"
     short_unit: "%"
     drop_empty: True
+POLL%:
+    title: "POLL requested percent"
+    descr: >-
+        The percentage of time spent in the POLL state. Note, this number does not come from the
+        hardware, it is calculated by the operating system. Retrieved from the "POLL%" turbostat
+        column.
+    type: "float"
+    unit: "%"
+    short_unit: "%"
+    drop_empty: True
 Cx%:
     title: "Cx requested percent"
     descr: >-
