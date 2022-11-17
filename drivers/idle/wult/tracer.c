@@ -45,6 +45,10 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "CC0Cyc" },
 	{ .type = "u64", .name = "SMICnt" },
 	{ .type = "u64", .name = "NMICnt" },
+	{ .type = "u64", .name = "AIAperf" },
+	{ .type = "u64", .name = "IntrAperf" },
+	{ .type = "u64", .name = "AIMperf" },
+	{ .type = "u64", .name = "IntrMperf" },
 	{ .type = "u64", .name = "BICyc" },
 	{ .type = "u64", .name = "BIMonotonic" },
 };
@@ -91,6 +95,13 @@ static void after_idle(struct wult_info *wi)
 
 	ti->tai = wdi->ops->get_time_after_idle(wdi, &ti->tai_adj);
 
+	/*
+	 * Record APERF amd MPERF value at after-idle point to
+	 * calculate the CPU frequency.
+	 */
+	ti->ai_aperf = __rdmsr(MSR_IA32_APERF);
+	ti->ai_mperf = __rdmsr(MSR_IA32_MPERF);
+
 	if (ti->armed) {
 		/* The interrupt handler did not run yet. */
 		ti->event_happened = wdi->ops->event_has_happened(wdi);
@@ -112,6 +123,13 @@ void wult_tracer_interrupt(struct wult_info *wi)
 
 	ti->intr_ts1 = ktime_get_raw_ns();
 	ti->tintr = wdi->ops->get_time_after_idle(wdi, &ti->tintr_adj);
+
+	/*
+	 * Record APERF amd MPERF value at in-interrupt point to
+	 * calculate the CPU frequency.
+	 */
+	ti->intr_aperf = __rdmsr(MSR_IA32_APERF);
+	ti->intr_mperf = __rdmsr(MSR_IA32_MPERF);
 
 	if (ti->armed) {
 		/* 'after_idle()' did not run yet. */
@@ -269,6 +287,18 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->nmi_intr - ti->nmi_bi, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->ai_aperf, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->intr_aperf, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->ai_mperf, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->intr_mperf, &trace_state);
 	if (err)
 		goto out_end;
         err = synth_event_add_next_val(ti->bi_cyc, &trace_state);
