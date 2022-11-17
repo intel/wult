@@ -10,6 +10,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 ### Changed
  - The eBPF-based 'hrtimer' method was renamed to 'hrt-bpf'.
+ - Fixed and renamed '--title-descr' option to '--report-descr'.
 
 ## [1.10.38] - 2022-11-07
 ### Fixed
