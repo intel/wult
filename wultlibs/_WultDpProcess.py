@@ -317,14 +317,12 @@ class _TSCRate:
 
         return int((cyc * 1000) / self._tsc_mhz)
 
-    def __init__(self, drvname, tsc_cal_time):
+    def __init__(self, tsc_cal_time):
         """
         The class constructor. The arguments are as follows.
-          * drvname - name of the driver providing the datapoints.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
         """
 
-        self._drvname = drvname
         self._tsc_cal_time = tsc_cal_time
 
         # TSC rate in MHz (cycles / microsecond).
@@ -662,9 +660,10 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         if not rawdp:
             return
 
-        rawdp = self._tscrate.add_raw_datapoint(rawdp)
-        if not rawdp:
-            return
+        if self._tscrate:
+            rawdp = self._tscrate.add_raw_datapoint(rawdp)
+            if not rawdp:
+                return
 
         rawdp = self._csobj.add_raw_datapoint(rawdp)
         if not rawdp:
@@ -681,12 +680,13 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         This generator yields the processed datapoints.
         """
 
-        for rawdp in self._tscrate.get_raw_datapoint():
-            rawdp = self._csobj.add_raw_datapoint(rawdp)
-            if rawdp:
-                dp = self._process_datapoint(rawdp)
-                if dp:
-                    yield dp
+        if self._tscrate:
+            for rawdp in self._tscrate.get_raw_datapoint():
+                rawdp = self._csobj.add_raw_datapoint(rawdp)
+                if rawdp:
+                    dp = self._process_datapoint(rawdp)
+                    if dp:
+                        yield dp
 
         for rawdp in self._csobj.get_raw_datapoint():
             dp = self._process_datapoint(rawdp)
@@ -768,7 +768,10 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         self._us_fields_set = None
 
         self._csobj = _CStates(self._cpunum, self._pman, rcsobj=rcsobj, early_intr=early_intr)
-        self._tscrate = _TSCRate(self._drvname, tsc_cal_time)
+
+        if self._drvname == "wult_tdt":
+            # The TSC rate calculations are only needed for the 'wult_tdt' driver.
+            self._tscrate = _TSCRate(tsc_cal_time)
 
     def close(self):
         """Close the datapoint processor."""
