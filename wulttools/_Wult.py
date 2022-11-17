@@ -229,7 +229,7 @@ def _build_arguments_parser():
     subpars.add_argument("--chist", help=chist_help)
 
     subpars.add_argument("--reportids", help=ToolsCommon.REPORTIDS_DESCR)
-    subpars.add_argument("--title-descr", help=ToolsCommon.TITLE_DESCR)
+    subpars.add_argument("--report-descr", help=ToolsCommon.REPORT_DESCR)
     subpars.add_argument("--relocatable", action="store_true", help=ToolsCommon.RELOCATABLE_DESCR)
     subpars.add_argument("--list-metrics", action="store_true", help=ToolsCommon.LIST_METRICS_DESCR)
 

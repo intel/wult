@@ -149,12 +149,12 @@ REPORTIDS_DESCR = """Every input raw result comes with a report ID. This report 
                      Please, refer to the '--reportid' option description in the 'start' command for
                      more information about the report ID."""
 
-# Description for the '--title-descr' option of the 'report' command.
-TITLE_DESCR = """The report title description - any text describing this report as whole, or path to
-                 a file containing the overall report description. For example, if the report
-                 compares platform A and platform B, the description could be something like
-                 'platform A vs B comparison'. This text will be included into the very beginning of
-                 the resulting HTML report."""
+# Description for the '--report-descr' option of the 'report' command.
+REPORT_DESCR = """The report description - any text describing this report as whole, or path to a
+                  file containing the overall report description. For example, if the report
+                  compares platform A and platform B, the description could be something like
+                  'platform A vs B comparison'. This text will be included into the very beginning
+                  of the resulting HTML report."""
 
 # Description for the '--relocatable' option of the 'report' command.
 RELOCATABLE_DESCR = """Generate a report which contains a copy of the raw test results. With this
