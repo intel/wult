@@ -293,10 +293,6 @@ class _TSCRate:
         held and for new datapoints. The held datapoints will be yielded by 'get_raw_datapoint()'.
         """
 
-        if self._drvname != "wult_tdt":
-            # Only the 'wult_tdt' driver requires TSC rate calculations.
-            return rawdp
-
         if self._tsc_mhz:
             # TSC rate is already known, skip the calculations.
             return rawdp
