@@ -19,7 +19,7 @@ import './data-tab'
  * Convert a 'tabName' to a valid HTML element ID.
  */
 function convertToValidID (tabName) {
-    return tabName.replace(/\s/g, '-').replace(/[^a-zA-Z0-9-]+/g, '')
+    return tabName.replace(/\s/g, '-').replace('%', 'Percent').replace(/[^a-zA-Z0-9-]+/g, '')
 }
 
 /**
