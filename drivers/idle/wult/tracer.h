@@ -24,7 +24,7 @@ struct wult_tracer_info {
 	 * The TSC counter and monotonic time taken close to each other in
 	 * 'before_idle()' with interrupts disabled.
 	 */
-	u64 bi_tsc, bi_monotonic;
+	u64 bi_cyc, bi_monotonic;
 	/* Time before idle and after idle in TSC cycles or nanoseconds. */
 	u64 tbi, tai;
 	/* Adjustments for time before idle and after idle in nanoseconds. */

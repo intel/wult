@@ -45,6 +45,8 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "CC0Cyc" },
 	{ .type = "u64", .name = "SMICnt" },
 	{ .type = "u64", .name = "NMICnt" },
+	{ .type = "u64", .name = "BICyc" },
+	{ .type = "u64", .name = "BIMonotonic" },
 };
 
 static inline unsigned int get_smi_count(void)
@@ -64,6 +66,9 @@ static void before_idle(struct wult_info *wi)
 	WARN_ON(!irqs_disabled());
 	ti->smi_bi = get_smi_count();
 	ti->nmi_bi = per_cpu(irq_stat, wi->cpunum).__nmi_count;
+
+	ti->bi_cyc = rdtsc_ordered();
+	ti->bi_monotonic = ktime_get_ns();
 
 	/* Make a snapshot of C-state counters. */
 	wult_cstates_snap_cst(&ti->csinfo, 0);
@@ -266,6 +271,12 @@ int wult_tracer_send_data(struct wult_info *wi)
 	err = synth_event_add_next_val(ti->nmi_intr - ti->nmi_bi, &trace_state);
 	if (err)
 		goto out_end;
+        err = synth_event_add_next_val(ti->bi_cyc, &trace_state);
+        if (err)
+                goto out_end;
+        err = synth_event_add_next_val(ti->bi_monotonic, &trace_state);
+        if (err)
+                goto out_end;
 
 	/* Add C-state cycle counter values. */
 	for_each_cstate(&ti->csinfo, csi) {
