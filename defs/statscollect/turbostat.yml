@@ -31,19 +31,19 @@ UncMHz:
         Instantaneous samples of the uncore frequency. Retrieved from the "UncMHz" turbostat column.
     unit: "megahertz"
     short_unit: "MHz"
-Pkg%pcx:
-    title: "PCx residency"
+CPU%cx:
+    title: "CCx residency"
     descr: >-
-        The percentage of time spent in package PCx hardware C-state. Retrieved from the "Pkg%pcx"
+        The percentage of time spent in core Cx hardware C-state. Retrieved from the "CPU%cx"
         turbostat column.
     type: "float"
     unit: "%"
     short_unit: "%"
     drop_empty: True
-CPU%cx:
-    title: "CCx residency"
+Pkg%pcx:
+    title: "PCx residency"
     descr: >-
-        The percentage of time spent in core Cx hardware C-state. Retrieved from the "CPU%cx"
+        The percentage of time spent in package PCx hardware C-state. Retrieved from the "Pkg%pcx"
         turbostat column.
     type: "float"
     unit: "%"
