@@ -17,7 +17,7 @@ from wultlibs.htmlreport import NdlReportParams
 class NdlReport(_ReportBase.ReportBase):
     """This module provides API for generating HTML reports for ndl test results."""
 
-    def __init__(self, rsts, outdir, title_descr=None, xaxes=None, yaxes=None, hist=None,
+    def __init__(self, rsts, outdir, report_descr=None, xaxes=None, yaxes=None, hist=None,
                  chist=None):
         """The class constructor. The arguments are the same as in 'HTMLReportBase()'."""
 
@@ -30,6 +30,6 @@ class NdlReport(_ReportBase.ReportBase):
             if not args[name]:
                 args[name] = default.split(",")
 
-        super().__init__(rsts, outdir, title_descr=title_descr, xaxes=args["xaxes"],
+        super().__init__(rsts, outdir, report_descr=report_descr, xaxes=args["xaxes"],
                          yaxes=args["yaxes"], hist=args["hist"], chist=args["chist"],
                          smry_funcs=NdlReportParams.SMRY_FUNCS)

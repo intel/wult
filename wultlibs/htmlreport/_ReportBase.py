@@ -507,7 +507,7 @@ class ReportBase:
                       "'SysInfo' tab.")
 
         toolname = self._refinfo["toolname"].title()
-        HTMLReport.generate_report(self.outdir, tabs, self._intro_tbl, toolname, self.title_descr)
+        HTMLReport.generate_report(self.outdir, tabs, self._intro_tbl, toolname, self.report_descr)
 
     def _mangle_loaded_res(self, res):
         """
@@ -701,12 +701,12 @@ class ReportBase:
 
             reportids.add(res.reportid)
 
-        if self.title_descr and Path(self.title_descr).is_file():
+        if self.report_descr and Path(self.report_descr).is_file():
             try:
-                with open(self.title_descr, "r", encoding="UTF-8") as fobj:
-                    self.title_descr = fobj.read()
+                with open(self.report_descr, "r", encoding="UTF-8") as fobj:
+                    self.report_descr = fobj.read()
             except OSError as err:
-                raise Error(f"failed to read the report description file {self.title_descr}:\n"
+                raise Error(f"failed to read the report description file {self.report_descr}:\n"
                             f"{err}") from err
 
         for res in self.rsts:
@@ -741,17 +741,18 @@ class ReportBase:
                         if func not in self._smry_funcs[metric]:
                             self._smry_funcs[metric].append(func)
 
-    def __init__(self, rsts, outdir, title_descr=None, xaxes=None, yaxes=None, hist=None,
+    def __init__(self, rsts, outdir, report_descr=None, xaxes=None, yaxes=None, hist=None,
                  chist=None, exclude_xaxes=None, exclude_yaxes=None, smry_funcs=None):
         """
         The class constructor. The arguments are as follows.
           * rsts - list of 'RORawResult' objects representing the raw test results to generate the
                    HTML report for.
           * outdir - the path at which to store the output directory of the HTML report.
-          * title_descr - a string describing this report or a file path containing the description.
-                          The description will be put at the top part of the HTML report. It should
-                          describe the report in general (e.g. it compares platform A to platform
-                          B). By default no title description is added to the HTML report.
+          * report_descr - a string describing this report or a file path containing the
+                           description. The description will be put at the top part of the HTML
+                           report. It should describe the report in general (e.g. it compares
+                           platform A to platform B). By default no title description is added to
+                           the HTML report.
           * xaxes - list of regular expressions matching metrics to use for the X-axis of scatter
                     plot diagrams. A scatter plot will be generated for each combination of 'xaxes'
                     and 'yaxes' metric pair (except for pairs from 'exclude_xaxes' and
@@ -781,7 +782,7 @@ class ReportBase:
 
         self.rsts = rsts
         self.outdir = Path(outdir)
-        self.title_descr = title_descr
+        self.report_descr = report_descr
         self.xaxes = xaxes
         self.yaxes = yaxes
         self.exclude_xaxes = exclude_xaxes

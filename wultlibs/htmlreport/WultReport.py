@@ -18,7 +18,7 @@ from wultlibs.htmlreport import WultReportParams
 class WultReport(_ReportBase.ReportBase):
     """This module provides API for generating HTML reports for wult test results."""
 
-    def __init__(self, rsts, outdir, title_descr=None, xaxes=None, yaxes=None, hist=None,
+    def __init__(self, rsts, outdir, report_descr=None, xaxes=None, yaxes=None, hist=None,
                  chist=None):
         """The class constructor. The arguments are the same as in 'HTMLReportBase()'."""
 
@@ -31,7 +31,7 @@ class WultReport(_ReportBase.ReportBase):
             if args[name] is None and default:
                 args[name] = default.split(",")
 
-        super().__init__(rsts, outdir, title_descr=title_descr, xaxes=args["xaxes"],
+        super().__init__(rsts, outdir, report_descr=report_descr, xaxes=args["xaxes"],
                          yaxes=args["yaxes"], hist=args["hist"], chist=args["chist"],
                          exclude_xaxes=Trivial.split_csv_line(WultReportParams.EXCLUDE_XAXES),
                          exclude_yaxes=Trivial.split_csv_line(WultReportParams.EXCLUDE_YAXES),

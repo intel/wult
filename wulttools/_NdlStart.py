@@ -28,7 +28,7 @@ def _generate_report(args):
     from wultlibs.htmlreport import NdlReport # pylint: disable=import-outside-toplevel
 
     rsts = ToolsCommon.open_raw_results([args.outdir], args.toolname)
-    rep = NdlReport.NdlReport(rsts, args.outdir, title_descr=args.reportid)
+    rep = NdlReport.NdlReport(rsts, args.outdir, report_descr=args.reportid)
     rep.relocatable = False
     rep.generate()
 

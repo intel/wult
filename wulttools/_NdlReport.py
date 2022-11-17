@@ -40,7 +40,7 @@ def report_command(args):
 
     args.outdir = ToolsCommon.report_command_outdir(args, rsts)
 
-    rep = NdlReport.NdlReport(rsts, args.outdir, title_descr=args.title_descr,
+    rep = NdlReport.NdlReport(rsts, args.outdir, report_descr=args.title_descr,
                               xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
                               chist=args.chist)
     rep.relocatable = args.relocatable
