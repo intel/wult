@@ -19,7 +19,18 @@ def is_reqcs_metric(metric):
     C-state.
     """
 
-    return metric.startswith("C") and metric[1].isdigit() and metric.endswith("%")
+    return metric == "POLL%" or (metric.startswith("C") and metric[1].isdigit() and
+                                 metric.endswith("%"))
+
+def get_reqcs_from_metric(metric):
+    """Returns the name of the requested C-state represented by 'metric'."""
+
+    return metric[:-1]
+
+def get_metric_from_reqcs(reqcs):
+    """Returns the metric which represents the requestable state 'reqcs'."""
+
+    return f"{reqcs}%"
 
 def is_hwcs_metric(metric):
     """
@@ -27,7 +38,17 @@ def is_hwcs_metric(metric):
     C-state.
     """
 
-    return metric.startswith("CPU%")
+    return metric.startswith("CPU%") or metric == "POLL"
+
+def get_hwcs_from_metric(metric):
+    """Returns the name of the hardware C-state represented by 'metric'."""
+
+    return metric[4:]
+
+def get_metric_from_hwcs(hwcs):
+    """Returns the metric which represents the hardware state 'hwcs'."""
+
+    return f"CPU%{hwcs.lower()}"
 
 def is_pkgcs_metric(metric):
     """
@@ -36,6 +57,16 @@ def is_pkgcs_metric(metric):
     """
 
     return metric.startswith("Pkg%")
+
+def get_pkgcs_from_metric(metric):
+    """Returns the name of the package C-state represented by 'metric'."""
+
+    return metric[5:]
+
+def get_metric_from_pkgcs(pkgcs):
+    """Returns the metric which represents the package state 'pkgcs'."""
+
+    return f"Pkg%{pkgcs.lower()}"
 
 class TurbostatDefs(_STCDefsBase.STCDefsBase):
     """This module provides API to turbostat metrics definitions (AKA 'defs')."""

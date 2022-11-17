@@ -14,6 +14,7 @@ Please, refer to '_TurbostatL2TabBuilderBase' for more information about level 2
 
 import pandas
 from statscollectlibs.htmlreport.tabs.turbostat import _TurbostatL2TabBuilderBase
+from statscollectlibs.defs import TurbostatDefs
 
 class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
     """
@@ -43,7 +44,7 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
         # Add package C-states.
         hw_pkg_cs = self._get_common_elements(self._cstates["hardware"]["package"])
         for cs in hw_pkg_cs:
-            harchy["C-states"]["Hardware"]["dtabs"].append(f"Pkg%p{cs.lower()}")
+            harchy["C-states"]["Hardware"]["dtabs"].append(TurbostatDefs.get_metric_from_pkgcs(cs))
 
         return harchy
 

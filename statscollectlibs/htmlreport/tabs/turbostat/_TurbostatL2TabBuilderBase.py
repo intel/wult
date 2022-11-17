@@ -50,11 +50,11 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
 
         for metric in tstat["totals"]:
             if TurbostatDefs.is_reqcs_metric(metric):
-                req_cstates.append(metric[:-1])
+                req_cstates.append(TurbostatDefs.get_reqcs_from_metric(metric))
             elif TurbostatDefs.is_hwcs_metric(metric):
-                hw_cstates.append(metric[4:].upper())
+                hw_cstates.append(TurbostatDefs.get_hwcs_from_metric(metric))
             elif TurbostatDefs.is_pkgcs_metric(metric):
-                pkg_cstates.append(metric[5:].upper())
+                pkg_cstates.append(TurbostatDefs.get_pkgcs_from_metric(metric))
 
         self._cstates["hardware"]["core"].append(hw_cstates)
         self._cstates["hardware"]["package"].append(pkg_cstates)
@@ -145,10 +145,12 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         req_cs = self._get_common_elements(self._cstates["requested"])
 
         for cs in req_cs:
-            tab_hierarchy["C-states"]["Requested"]["dtabs"].append(f"{cs}%")
+            metric = TurbostatDefs.get_metric_from_reqcs(cs)
+            tab_hierarchy["C-states"]["Requested"]["dtabs"].append(metric)
 
         for cs in hw_core_cs:
-            tab_hierarchy["C-states"]["Hardware"]["dtabs"].append(f"CPU%{cs.lower()}")
+            metric = TurbostatDefs.get_metric_from_hwcs(cs)
+            tab_hierarchy["C-states"]["Hardware"]["dtabs"].append(metric)
 
         return tab_hierarchy
 
