@@ -151,6 +151,37 @@ class HTMLReport:
 
         return tabs
 
+    def _generate_tabs(self, stats_paths, measured_cpus=None):
+        """Helper function for 'generate_report()'. Generates statistics and sysinfo tabs."""
+
+        tabs = []
+
+        try:
+            stats_tabs = self._generate_stats_tabs(stats_paths, measured_cpus)
+        except Error as err:
+            _LOG.info("Error occurred during statistics tabs generation: %s", err)
+            stats_tabs = []
+
+        if stats_tabs:
+            tabs.append(_Tabs.CTabDC("Stats", tabs=stats_tabs))
+        else:
+            _LOG.info("All statistics have been skipped, therefore the report will not contain "
+                      "a 'Stats' tab.")
+
+        try:
+            sysinfo_tabs = self._generate_sysinfo_tabs(stats_paths)
+        except Error as err:
+            _LOG.info("Error occurred during info tab generation: %s", err)
+            sysinfo_tabs = []
+
+        if sysinfo_tabs:
+            tabs.append(_Tabs.CTabDC("SysInfo", tabs=sysinfo_tabs))
+        else:
+            _LOG.info("All SysInfo tabs have been skipped, therefore the report will not "
+                      "contain a 'SysInfo' tab.")
+
+        return tabs
+
     def generate_report(self, tabs, stats_paths=None, intro_tbl=None, title=None, descr=None,
                         measured_cpus=None):
         """
@@ -186,29 +217,7 @@ class HTMLReport:
             report_info["intro_tbl"] = intro_tbl_path.relative_to(self.outdir)
 
         if stats_paths is not None:
-            try:
-                stats_tabs = self._generate_stats_tabs(stats_paths, measured_cpus)
-            except Error as err:
-                _LOG.info("Error occurred during statistics tabs generation: %s", err)
-                stats_tabs = []
-
-            if stats_tabs:
-                tabs.append(_Tabs.CTabDC("Stats", tabs=stats_tabs))
-            else:
-                _LOG.info("All statistics have been skipped, therefore the report will not contain "
-                          "a 'Stats' tab.")
-
-            try:
-                sysinfo_tabs = self._generate_sysinfo_tabs(stats_paths)
-            except Error as err:
-                _LOG.info("Error occurred during info tab generation: %s", err)
-                sysinfo_tabs = []
-
-            if sysinfo_tabs:
-                tabs.append(_Tabs.CTabDC("SysInfo", tabs=sysinfo_tabs))
-            else:
-                _LOG.info("All SysInfo tabs have been skipped, therefore the report will not "
-                          "contain a 'SysInfo' tab.")
+            tabs += self._generate_tabs(stats_paths, measured_cpus)
 
         # Convert Dataclasses to dictionaries so that they are JSON serialisable.
         json_tabs = [dataclasses.asdict(tab) for tab in tabs]
