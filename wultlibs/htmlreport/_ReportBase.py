@@ -20,8 +20,7 @@ from pepclibs.helperlibs import Trivial, LocalProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.helperlibs import ToolHelpers
 from statscollectlibs.htmlreport import _IntroTable, HTMLReport
-from statscollectlibs.htmlreport.tabs import _ACPowerTabBuilder, _IPMITabBuilder, _Tabs
-from statscollectlibs.htmlreport.tabs.turbostat import _TurbostatTabBuilder
+from statscollectlibs.htmlreport.tabs import _Tabs
 from wultlibs.helperlibs import FSHelpers
 from wultlibs.htmlreport import _MetricDTabBuilder
 
@@ -375,50 +374,6 @@ class ReportBase:
 
         return dtabs
 
-    def _generate_stats_tabs(self, stats_paths):
-        """
-        Generate and return a list sub-tabs for the statistics tab. The statistics tab includes
-        metrics from the statistics collectors, such as 'turbostat'.
-
-        The 'stats_paths' argument is a dictionary mapping in the following format:
-           {Report ID: Stats directory path}
-        where "stats directory path" is the directory containing raw statistics files.
-
-        The elements of the returned list are tab dataclass objects, such as 'CTabDC'.
-        """
-
-        _LOG.info("Generating statistics tabs.")
-
-        mcpus = {res.reportid: str(res.info["cpunum"]) for res in self.rsts if "cpunum" in res.info}
-
-        tab_builders = {
-            _ACPowerTabBuilder.ACPowerTabBuilder: {},
-            _TurbostatTabBuilder.TurbostatTabBuilder: {"measured_cpus": mcpus},
-            _IPMITabBuilder.IPMITabBuilder: {}
-        }
-
-        tabs = []
-
-        for tab_builder, args in tab_builders.items():
-            try:
-                tbldr = tab_builder(stats_paths, self.outdir, **args)
-            except ErrorNotFound as err:
-                _LOG.info("Skipping '%s' tab as '%s' statistics not found for all reports.",
-                          tab_builder.name, tab_builder.name)
-                _LOG.debug(err)
-                continue
-
-            _LOG.info("Generating '%s' tab.", tbldr.name)
-            try:
-                tabs.append(tbldr.get_tab())
-            except Error as err:
-                _LOG.info("Skipping '%s' statistics: error occurred during tab generation.",
-                          tab_builder.name)
-                _LOG.debug(err)
-                continue
-
-        return tabs
-
     def _generate_report(self):
         """Put together the final HTML report."""
 
@@ -435,24 +390,14 @@ class ReportBase:
 
         results_tabs = self._generate_results_tabs()
 
-        try:
-            stats_tabs = self._generate_stats_tabs(stats_paths)
-        except Error as err:
-            _LOG.info("Error occurred during statistics tabs generation: %s", err)
-            stats_tabs = []
-
         tabs = [_Tabs.CTabDC("Results", results_tabs)]
-
-        if stats_tabs:
-            tabs.append(_Tabs.CTabDC("Stats", tabs=stats_tabs))
-        else:
-            _LOG.info("All statistics have been skipped, therefore the report will not contain a "
-                      "'Stats' tab.")
 
         toolname = self._refinfo["toolname"].title()
 
+        mcpus = {res.reportid: str(res.info["cpunum"]) for res in self.rsts if "cpunum" in res.info}
+
         rep = HTMLReport.HTMLReport(self.outdir)
-        rep.generate_report(tabs, stats_paths, self._intro_tbl, toolname, self.report_descr)
+        rep.generate_report(tabs, stats_paths, self._intro_tbl, toolname, self.report_descr, mcpus)
 
     def _mangle_loaded_res(self, res):
         """

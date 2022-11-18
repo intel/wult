@@ -12,9 +12,10 @@ import dataclasses
 import logging
 import json
 from pathlib import Path
-from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.helperlibs import ToolHelpers, FSHelpers
-from statscollectlibs.htmlreport.tabs import _Tabs
+from statscollectlibs.htmlreport.tabs import _ACPowerTabBuilder, _IPMITabBuilder, _Tabs
+from statscollectlibs.htmlreport.tabs.turbostat import _TurbostatTabBuilder
 from statscollectlibs.htmlreport.tabs.sysinfo import (_CPUFreqTabBuilder, _CPUIdleTabBuilder,
     _DMIDecodeTabBuilder, _DmesgTabBuilder, _EPPTabBuilder, _LspciTabBuilder, _MiscTabBuilder,
     _PepcTabBuilder)
@@ -66,6 +67,50 @@ def _dump_json(obj, path, descr):
 class HTMLReport:
     """This class provides the API for generating HTML reports."""
 
+    def _generate_stats_tabs(self, stats_paths, measured_cpus=None):
+        """
+        Generate and return a list sub-tabs for the statistics tab. The statistics tab includes
+        metrics from the statistics collectors, such as 'turbostat'.
+
+        The 'stats_paths' argument is a dictionary mapping in the following format:
+           {Report ID: Stats directory path}
+        where "stats directory path" is the directory containing raw statistics files.
+
+        The elements of the returned list are tab dataclass objects, such as 'CTabDC'.
+        """
+
+        _LOG.info("Generating statistics tabs.")
+
+        if measured_cpus is None:
+            measured_cpus = {}
+        tab_builders = {
+            _ACPowerTabBuilder.ACPowerTabBuilder: {},
+            _TurbostatTabBuilder.TurbostatTabBuilder: {"measured_cpus": measured_cpus},
+            _IPMITabBuilder.IPMITabBuilder: {}
+        }
+
+        tabs = []
+
+        for tab_builder, args in tab_builders.items():
+            try:
+                tbldr = tab_builder(stats_paths, self.outdir, **args)
+            except ErrorNotFound as err:
+                _LOG.info("Skipping '%s' tab as '%s' statistics not found for all reports.",
+                          tab_builder.name, tab_builder.name)
+                _LOG.debug(err)
+                continue
+
+            _LOG.info("Generating '%s' tab.", tbldr.name)
+            try:
+                tabs.append(tbldr.get_tab())
+            except Error as err:
+                _LOG.info("Skipping '%s' statistics: error occurred during tab generation.",
+                          tab_builder.name)
+                _LOG.debug(err)
+                continue
+
+        return tabs
+
     def _generate_sysinfo_tabs(self, stats_paths):
         """
         Generate and return a list of data tabs for the SysInfo container tab. The container tab
@@ -106,7 +151,8 @@ class HTMLReport:
 
         return tabs
 
-    def generate_report(self, tabs, stats_paths=None, intro_tbl=None, title=None, descr=None):
+    def generate_report(self, tabs, stats_paths=None, intro_tbl=None, title=None, descr=None,
+                        measured_cpus=None):
         """
         Generate a report in 'outdir' with 'tabs'. Arguments are as follows:
          * tabs - a list of container tabs which should be included in the report.
@@ -118,6 +164,9 @@ class HTMLReport:
                        report.
          * title - the title of the report. If one is not provided, omits the title.
          * descr - a description of the report. If one is not provided, omits the description.
+         * measured_cpus - dictionary in the format {'reportid': 'measured_cpu'} where
+                           'measured_cpu' is the CPU that was being tested during the workload. If
+                           not provided, the turbostat "Measured CPU" tab will not be generated.
         """
 
         # Make sure the output directory exists.
@@ -137,6 +186,18 @@ class HTMLReport:
             report_info["intro_tbl"] = intro_tbl_path.relative_to(self.outdir)
 
         if stats_paths is not None:
+            try:
+                stats_tabs = self._generate_stats_tabs(stats_paths, measured_cpus)
+            except Error as err:
+                _LOG.info("Error occurred during statistics tabs generation: %s", err)
+                stats_tabs = []
+
+            if stats_tabs:
+                tabs.append(_Tabs.CTabDC("Stats", tabs=stats_tabs))
+            else:
+                _LOG.info("All statistics have been skipped, therefore the report will not contain "
+                          "a 'Stats' tab.")
+
             try:
                 sysinfo_tabs = self._generate_sysinfo_tabs(stats_paths)
             except Error as err:
