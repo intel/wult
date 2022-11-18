@@ -508,8 +508,8 @@ class ReportBase:
 
         toolname = self._refinfo["toolname"].title()
 
-        rep = HTMLReport.HTMLReport()
-        rep.generate_report(self.outdir, tabs, self._intro_tbl, toolname, self.report_descr)
+        rep = HTMLReport.HTMLReport(self.outdir)
+        rep.generate_report(tabs, self._intro_tbl, toolname, self.report_descr)
 
     def _mangle_loaded_res(self, res):
         """

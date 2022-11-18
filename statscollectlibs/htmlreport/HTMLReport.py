@@ -58,11 +58,9 @@ def _dump_json(obj, path, descr):
 class HTMLReport:
     """This class provides the API for generating HTML reports."""
 
-    @staticmethod
-    def generate_report(outdir, tabs, intro_tbl=None, title=None, descr=None):
+    def generate_report(self, tabs, intro_tbl=None, title=None, descr=None):
         """
         Generate a report in 'outdir' with 'tabs'. Arguments are as follows:
-         * outdir - the directory which will contain the report.
          * tabs - a list of container tabs which should be included in the report.
          * intro_tbl - an '_IntroTable.IntroTable' instance which represents the table which will be
                        included in the report. If one is not provided, it will be omitted from the
@@ -71,13 +69,11 @@ class HTMLReport:
          * descr - a description of the report. If one is not provided, omits the description.
         """
 
-        outdir = Path(outdir)
-
         # Make sure the output directory exists.
         try:
-            outdir.mkdir(parents=True, exist_ok=True)
+            self.outdir.mkdir(parents=True, exist_ok=True)
         except OSError as err:
-            raise Error(f"failed to create directory '{outdir}': {err}") from None
+            raise Error(f"failed to create directory '{self.outdir}': {err}") from None
 
         # 'report_info' stores data used by the Javascript to generate the main report page
         # including the intro table, the file path of the tabs JSON dump plus the report title and
@@ -85,22 +81,25 @@ class HTMLReport:
         report_info = {"title": title, "descr": descr}
 
         if intro_tbl is not None:
-            intro_tbl_path = outdir / "intro_tbl.json"
+            intro_tbl_path = self.outdir / "intro_tbl.json"
             intro_tbl.generate(intro_tbl_path)
-            report_info["intro_tbl"] = intro_tbl_path.relative_to(outdir)
+            report_info["intro_tbl"] = intro_tbl_path.relative_to(self.outdir)
 
         # Convert Dataclasses to dictionaries so that they are JSON serialisable.
         json_tabs = [dataclasses.asdict(tab) for tab in tabs]
-        tabs_path = outdir / "tabs.json"
+        tabs_path = self.outdir / "tabs.json"
         _dump_json(json_tabs, tabs_path, "tab container")
-        report_info["tab_file"] = tabs_path.relative_to(outdir)
+        report_info["tab_file"] = tabs_path.relative_to(self.outdir)
 
-        rinfo_path = outdir / "report_info.json"
+        rinfo_path = self.outdir / "report_info.json"
         _dump_json(report_info, rinfo_path, "report information dictionary")
 
-        _copy_assets(outdir)
+        _copy_assets(self.outdir)
 
-    def __init__(self):
-        """The class constructor."""
+    def __init__(self, outdir):
+        """
+        The class constructor. The arguments are as follows:
+         * outdir - the directory which will contain the report.
+        """
 
-        return
+        self.outdir = Path(outdir)
