@@ -88,5 +88,10 @@ class TurbostatDefs(_STCDefsBase.STCDefsBase):
 
         super().__init__("turbostat")
 
+        # The "POLL" state has its own definition so does not need to be mangled into the template
+        # C-state definitions.
+        if "POLL" in cstates:
+            cstates.remove("POLL")
+
         placeholders_info = [{"placeholder": "Cx", "values": cstates, "casesensitive" : False}]
         self._mangle_placeholders(placeholders_info)
