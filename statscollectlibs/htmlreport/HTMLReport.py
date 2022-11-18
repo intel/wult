@@ -9,10 +9,18 @@
 """This module provides the API for generating HTML reports."""
 
 import dataclasses
+import logging
 import json
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.helperlibs import ToolHelpers, FSHelpers
+from statscollectlibs.htmlreport.tabs import _Tabs
+from statscollectlibs.htmlreport.tabs.sysinfo import (_CPUFreqTabBuilder, _CPUIdleTabBuilder,
+    _DMIDecodeTabBuilder, _DmesgTabBuilder, _EPPTabBuilder, _LspciTabBuilder, _MiscTabBuilder,
+    _PepcTabBuilder)
+from statscollectlibs.htmlreport.tabs.sysinfo import _TurbostatTabBuilder as _SysInfoTstatTabBuilder
+
+_LOG = logging.getLogger()
 
 def _copy_assets(outdir):
     """
@@ -58,10 +66,53 @@ def _dump_json(obj, path, descr):
 class HTMLReport:
     """This class provides the API for generating HTML reports."""
 
-    def generate_report(self, tabs, intro_tbl=None, title=None, descr=None):
+    def _generate_sysinfo_tabs(self, stats_paths):
+        """
+        Generate and return a list of data tabs for the SysInfo container tab. The container tab
+        includes tabs representing various system information about the SUTs.
+
+        The 'stats_paths' argument is a dictionary mapping in the following format:
+           {'report_id': 'stats_directory_path'}
+        where 'stats_directory_path' is the directory containing raw statistics files.
+
+        The elements of the returned list are tab dataclass objects, such as '_Tabs.DTabDC'.
+        """
+
+        tab_builders = [
+            _PepcTabBuilder.PepcTabBuilder,
+            _SysInfoTstatTabBuilder.TurbostatTabBuilder,
+            _DMIDecodeTabBuilder.DMIDecodeTabBuilder,
+            _EPPTabBuilder.EPPTabBuilder,
+            _CPUFreqTabBuilder.CPUFreqTabBuilder,
+            _CPUIdleTabBuilder.CPUIdleTabBuilder,
+            _DmesgTabBuilder.DmesgTabBuilder,
+            _LspciTabBuilder.LspciTabBuilder,
+            _MiscTabBuilder.MiscTabBuilder
+        ]
+
+        tabs = []
+
+        for tab_builder in tab_builders:
+            tbldr = tab_builder(self.outdir)
+
+            _LOG.info("Generating '%s' tab.", tbldr.name)
+            try:
+                tabs.append(tbldr.get_tab(stats_paths))
+            except Error as err:
+                _LOG.info("Skipping '%s' SysInfo tab: error occurred during tab generation.",
+                          tbldr.name)
+                _LOG.debug(err)
+                continue
+
+        return tabs
+
+    def generate_report(self, tabs, stats_paths=None, intro_tbl=None, title=None, descr=None):
         """
         Generate a report in 'outdir' with 'tabs'. Arguments are as follows:
          * tabs - a list of container tabs which should be included in the report.
+         * stats_paths - a dictionary in the following format: {'report_id': 'stats_dir_path'}
+                         where 'stats_dir_path' is the directory containing raw statistics files. If
+                         not provided, no statistics tabs will be generated.
          * intro_tbl - an '_IntroTable.IntroTable' instance which represents the table which will be
                        included in the report. If one is not provided, it will be omitted from the
                        report.
@@ -84,6 +135,19 @@ class HTMLReport:
             intro_tbl_path = self.outdir / "intro_tbl.json"
             intro_tbl.generate(intro_tbl_path)
             report_info["intro_tbl"] = intro_tbl_path.relative_to(self.outdir)
+
+        if stats_paths is not None:
+            try:
+                sysinfo_tabs = self._generate_sysinfo_tabs(stats_paths)
+            except Error as err:
+                _LOG.info("Error occurred during info tab generation: %s", err)
+                sysinfo_tabs = []
+
+            if sysinfo_tabs:
+                tabs.append(_Tabs.CTabDC("SysInfo", tabs=sysinfo_tabs))
+            else:
+                _LOG.info("All SysInfo tabs have been skipped, therefore the report will not "
+                          "contain a 'SysInfo' tab.")
 
         # Convert Dataclasses to dictionaries so that they are JSON serialisable.
         json_tabs = [dataclasses.asdict(tab) for tab in tabs]
