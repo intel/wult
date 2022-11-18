@@ -6,7 +6,7 @@
 #
 # Authors: Adam Hawley <adam.james.hawley@intel.com>
 
-"""This module provides the API for generating reports."""
+"""This module provides the API for generating HTML reports."""
 
 import dataclasses
 import json
@@ -55,43 +55,52 @@ def _dump_json(obj, path, descr):
         raise Error(f"could not generate report: failed to JSON dump '{descr}' to '{path}':"
                     f"{err}") from None
 
-def generate_report(outdir, tabs, intro_tbl=None, title=None, descr=None):
-    """
-    Generate a report in 'outdir' with 'tabs'. Arguments are as follows:
-     * outdir - the directory which will contain the report.
-     * tabs - a list of container tabs which should be included in the report.
-     * intro_tbl - an '_IntroTable.IntroTable' instance which represents the table which will be
-                   included in the report. If one is not provided, it will be omitted from the
-                   report.
-     * title - the title of the report. If one is not provided, omits the title.
-     * descr - a description of the report. If one is not provided, omits the description.
-    """
+class HTMLReport:
+    """This class provides the API for generating HTML reports."""
 
-    outdir = Path(outdir)
+    @staticmethod
+    def generate_report(outdir, tabs, intro_tbl=None, title=None, descr=None):
+        """
+        Generate a report in 'outdir' with 'tabs'. Arguments are as follows:
+         * outdir - the directory which will contain the report.
+         * tabs - a list of container tabs which should be included in the report.
+         * intro_tbl - an '_IntroTable.IntroTable' instance which represents the table which will be
+                       included in the report. If one is not provided, it will be omitted from the
+                       report.
+         * title - the title of the report. If one is not provided, omits the title.
+         * descr - a description of the report. If one is not provided, omits the description.
+        """
 
-    # Make sure the output directory exists.
-    try:
-        outdir.mkdir(parents=True, exist_ok=True)
-    except OSError as err:
-        raise Error(f"failed to create directory '{outdir}': {err}") from None
+        outdir = Path(outdir)
 
-    # 'report_info' stores data used by the Javascript to generate the main report page
-    # including the intro table, the file path of the tabs JSON dump plus the report title and
-    # description.
-    report_info = {"title": title, "descr": descr}
+        # Make sure the output directory exists.
+        try:
+            outdir.mkdir(parents=True, exist_ok=True)
+        except OSError as err:
+            raise Error(f"failed to create directory '{outdir}': {err}") from None
 
-    if intro_tbl is not None:
-        intro_tbl_path = outdir / "intro_tbl.json"
-        intro_tbl.generate(intro_tbl_path)
-        report_info["intro_tbl"] = intro_tbl_path.relative_to(outdir)
+        # 'report_info' stores data used by the Javascript to generate the main report page
+        # including the intro table, the file path of the tabs JSON dump plus the report title and
+        # description.
+        report_info = {"title": title, "descr": descr}
 
-    # Convert Dataclasses to dictionaries so that they are JSON serialisable.
-    json_tabs = [dataclasses.asdict(tab) for tab in tabs]
-    tabs_path = outdir / "tabs.json"
-    _dump_json(json_tabs, tabs_path, "tab container")
-    report_info["tab_file"] = tabs_path.relative_to(outdir)
+        if intro_tbl is not None:
+            intro_tbl_path = outdir / "intro_tbl.json"
+            intro_tbl.generate(intro_tbl_path)
+            report_info["intro_tbl"] = intro_tbl_path.relative_to(outdir)
 
-    rinfo_path = outdir / "report_info.json"
-    _dump_json(report_info, rinfo_path, "report information dictionary")
+        # Convert Dataclasses to dictionaries so that they are JSON serialisable.
+        json_tabs = [dataclasses.asdict(tab) for tab in tabs]
+        tabs_path = outdir / "tabs.json"
+        _dump_json(json_tabs, tabs_path, "tab container")
+        report_info["tab_file"] = tabs_path.relative_to(outdir)
 
-    _copy_assets(outdir)
+        rinfo_path = outdir / "report_info.json"
+        _dump_json(report_info, rinfo_path, "report information dictionary")
+
+        _copy_assets(outdir)
+
+    def __init__(self):
+        """The class constructor."""
+
+        return
