@@ -247,7 +247,7 @@ class _TSCRate:
         We need a couple of datapoints far enough apart in order to calculate TSC rate. This method
         is called for every datapoint, and once there are a couple of datapoints
         'self._tsc_cal_time' seconds apart, this function calculates TSC rate and stores it in
-        'self._tsc_mhz'.
+        'self.tsc_mhz'.
         """
 
         if rawdp["SMICnt"] != 0 or rawdp["NMICnt"] != 0:
@@ -278,8 +278,8 @@ class _TSCRate:
                        Human.dict2str(rawdp))
             return
 
-        self._tsc_mhz = ((tsc2 - self._tsc1) * 1000.0) / (ts2 - self._ts1)
-        _LOG.info("TSC rate is %.6f MHz", self._tsc_mhz)
+        self.tsc_mhz = ((tsc2 - self._tsc1) * 1000.0) / (ts2 - self._ts1)
+        _LOG.info("TSC rate is %.6f MHz", self.tsc_mhz)
 
     def add_raw_datapoint(self, rawdp):
         """
@@ -293,7 +293,7 @@ class _TSCRate:
         held and for new datapoints. The held datapoints will be yielded by 'get_raw_datapoint()'.
         """
 
-        if self._tsc_mhz:
+        if self.tsc_mhz:
             # TSC rate is already known, skip the calculations.
             return rawdp
 
@@ -307,7 +307,7 @@ class _TSCRate:
         rate has been calculated.
         """
 
-        if self._tsc_mhz:
+        if self.tsc_mhz:
             for rawdp in self._rawdps:
                 yield rawdp
             self._rawdps = []
@@ -315,7 +315,7 @@ class _TSCRate:
     def cyc_to_ns(self, cyc):
         """Convert TSC cycles to nanoseconds."""
 
-        return int((cyc * 1000) / self._tsc_mhz)
+        return int((cyc * 1000) / self.tsc_mhz)
 
     def __init__(self, tsc_cal_time):
         """
@@ -326,7 +326,7 @@ class _TSCRate:
         self._tsc_cal_time = tsc_cal_time
 
         # TSC rate in MHz (cycles / microsecond).
-        self._tsc_mhz = None
+        self.tsc_mhz = None
 
         # The driver provides TSC cycles and monotonic time (nanoseconds) which are read one after
         # the other with interrupts disabled. We use them for calculating the TSC rate. The 'tsc1'
