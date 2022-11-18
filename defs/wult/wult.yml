@@ -61,6 +61,15 @@ LDist:
     type: "float"
     unit: "microsecond"
     short_unit: "us"
+CPUFreq:
+    title: "CPU frequency after wake up"
+    descr: >-
+        CPU frequency after wake up from the C-state is measured by taking APERF and MPERF counters
+        in "after idle" and the interrupt handler. Therefore, this is an average CPU frequency for
+        the period of time between TAI and TIntr.
+    type: "float"
+    unit: "MegaHertz"
+    short_unit: "MHz"
 ReqCState:
     title: "Requested C-State name"
     descr: >-

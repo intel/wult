@@ -612,6 +612,60 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         return dp
 
+    def _process_aperf_mperf(self, dp):
+        """Calculate CPU frequency based on APERF and MPERF data."""
+
+        for metric in ("AIAperf", "IntrAperf", "AIMperf", "IntrMperf"):
+            if dp.get(metric, 0) == 0:
+                msg = f"negative or missing '{metric}' value. The datapoint is:\n%s\n" \
+                      "Dropping this and all the other datapoints like this."
+                _LOG.debug(msg, Human.dict2str(dp))
+                _LOG.warn_once(msg, Human.dict2str(dp))
+                return None
+
+        err_fmt = "hit a datapoint with '%s' >= '%s', even though interrupts were %s. " \
+                  "The datapoint is :\n%s\nDropping this and all the other datapoints like this."
+        if dp["IntrOff"]:
+            # 'IntrOff == True' indicates that 'after_idle' happened prior to the interrupt, so
+            # "IntrAperf" must be greater than "AIAperf" and "IntrMperf" must be greater than
+            # "AIMperf".
+            if dp["AIAperf"] >= dp["IntrAperf"]:
+                msg = err_fmt % ("AIAperf", "IntrAperf", "disabled", Human.dict2str(dp))
+                _LOG.debug(msg)
+                _LOG.warn_once(msg)
+                return None
+
+            if dp["AIMperf"] >= dp["IntrMperf"]:
+                msg = err_fmt %("AIMperf", "IntrMperf", "disabled", Human.dict2str(dp))
+                _LOG.debug(msg)
+                _LOG.warn_once(msg)
+                return None
+
+            delta_aperf = dp["IntrAperf"] - dp["AIAperf"]
+            delta_mperf = dp["IntrMperf"] - dp["AIMperf"]
+        else:
+            # 'IntrOff == False' indicates that the interrupt happened prior to 'after_idle', so
+            # "AIAperf" must be greater than "IntrAperf" and "AIMperf" greater be larger than
+            # "IntrMperf".
+            if dp["IntrAperf"] >= dp["AIAperf"]:
+                msg = err_fmt % ("IntrAperf", "AIAperf", "enabled", Human.dict2str(dp))
+                _LOG.debug(msg)
+                _LOG.warn_once(msg)
+                return None
+
+            if dp["IntrMperf"] >= dp["AIMperf"]:
+                msg = err_fmt %("IntrMperf", "AIMperf", "enabled", Human.dict2str(dp))
+                _LOG.debug(msg, Human.dict2str(dp))
+                _LOG.warn_once(msg, Human.dict2str(dp))
+                return None
+
+            delta_aperf = dp["AIAperf"] - dp["IntrAperf"]
+            delta_mperf = dp["AIMperf"] - dp["IntrMperf"]
+
+        dp["CPUFreq"] = self._tscrate.tsc_mhz * delta_aperf / delta_mperf
+
+        return dp
+
     def _finalize_dp(self, dp):
         """Remove extra fields from the processed data point."""
 
@@ -631,6 +685,12 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         dp = self._process_time(dp)
         if not dp:
             return None
+
+        if self._drvname:
+            # Calculate CPU frequency only for none-ebpf driver.
+            dp = self._process_aperf_mperf(dp)
+            if not dp:
+                return None
 
         # Add and validated C-state related fields.
         dp = self._process_cstates(dp)
@@ -769,8 +829,8 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         self._csobj = _CStates(self._cpunum, self._pman, rcsobj=rcsobj, early_intr=early_intr)
 
-        if self._drvname == "wult_tdt":
-            # The TSC rate calculations are only needed for the 'wult_tdt' driver.
+        if self._drvname:
+            # The TSC rate calculations are only available for non-ebpf driver.
             self._tscrate = _TSCRate(tsc_cal_time)
 
     def close(self):
