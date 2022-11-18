@@ -677,6 +677,12 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
     def _process_datapoint(self, rawdp):
         """Process a raw datapoint 'rawdp'. Returns the processed datapoint."""
+        if rawdp["SMICnt"] != 0:
+            _LOG.debug("SMI detected, the datapoint is\n%s",Human.dict2str(rawdp))
+            _LOG.warn_once("SMI detected")
+        if rawdp["NMICnt"] !=0:
+            _LOG.debug("NMI detected, the datapoint is\n%s",Human.dict2str(rawdp))
+            _LOG.warn_once("NMI detected")
 
         # Avoid extra copying for efficiency.
         dp = rawdp
