@@ -36,9 +36,6 @@ export class ScReportPage extends LitElement {
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-
-        .report-title {
             font-family: Arial, sans-serif;
         }
 
@@ -207,11 +204,10 @@ export class ScReportPage extends LitElement {
 
         return html`
             <div class="report-head">
-                ${this.reportTitle ? html`<h1 class="report-title">${this.reportTitle}</h1>` : html``}
+                ${this.reportTitle ? html`<h1>${this.reportTitle}</h1>` : html``}
                 ${this.reportDescr
                     ? html`
-                        <p class="title_descr">${this.reportDescr}</p>
-                        <br>
+                        <p>${this.reportDescr}</p>
                     `
                     : html``
                 }

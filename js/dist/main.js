@@ -2276,9 +2276,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-
-        .report-title {
             font-family: Arial, sans-serif;
         }
 
@@ -2315,10 +2312,9 @@
             </sl-dialog>
         `}findFile(t){const e=Object.keys(this.files);for(const i of e)if(i.endsWith(t))return this.files[i];throw Error(`unable to find an uploaded file ending with '${t}'.`)}async extractTabs(t,e){for(const i of t)i.smrytblpath&&(i.smrytblfile=e?await fetch(i.smrytblpath).then((t=>t.blob())):this.findFile(i.smrytblpath)),i.tabs&&(i.tabs=await this.extractTabs(i.tabs,e));return t}async processUploadedFiles(){const t=this.renderRoot.getElementById("upload-files");this.files={};for(const e of t.files)this.files[e.webkitRelativePath]=e;const e=await this.findFile("report_info.json").arrayBuffer();this.reportInfo=JSON.parse((new TextDecoder).decode(e)),this.introtbl=this.findFile(this.reportInfo.intro_tbl);const i=await this.findFile(this.reportInfo.tab_file).arrayBuffer().then((t=>JSON.parse((new TextDecoder).decode(t))));this.tabs=await this.extractTabs(i,!1),this.initRepProps(),this.fetchFailed=!1}constructor(){super(),this.fetchFailed=!1,this.reportInfo={}}render(){return this.fetchFailed?this.corsWarning():H`
             <div class="report-head">
-                ${this.reportTitle?H`<h1 class="report-title">${this.reportTitle}</h1>`:H``}
+                ${this.reportTitle?H`<h1>${this.reportTitle}</h1>`:H``}
                 ${this.reportDescr?H`
-                        <p class="title_descr">${this.reportDescr}</p>
-                        <br>
+                        <p>${this.reportDescr}</p>
                     `:H``}
                 ${this.introtbl?H`<sc-intro-tbl .file=${this.introtbl}></sc-intro-tbl>`:H``}
             </div>
