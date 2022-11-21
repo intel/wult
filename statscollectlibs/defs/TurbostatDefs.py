@@ -38,7 +38,7 @@ def is_hwcs_metric(metric):
     C-state.
     """
 
-    return metric.startswith("CPU%") or metric == "POLL"
+    return metric.startswith("CPU%")
 
 def get_hwcs_from_metric(metric):
     """Returns the name of the hardware C-state represented by 'metric'."""
