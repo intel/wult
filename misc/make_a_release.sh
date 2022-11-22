@@ -17,6 +17,7 @@ VERSION_REGEX='\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)'
 # File paths containing the version number that we'll have to adjust.
 WULT_FILE="$BASEDIR/wulttools/_Wult.py"
 NDL_FILE="$BASEDIR/wulttools/_Wult.py"
+EXERCISESUT_FILE="$BASEDIR/wulttools/_ExerciseSut.py"
 SPEC_FILE="$BASEDIR/rpm/wult.spec"
 
 # The CHANGELOG.md file path.
@@ -27,6 +28,8 @@ WULT_MAN_FILE="$BASEDIR/docs/man1/wult.1"
 WULT_RST_FILE="$BASEDIR/docs/wult-man.rst"
 NDL_MAN_FILE="$BASEDIR/docs/man1/ndl.1"
 NDL_RST_FILE="$BASEDIR/docs/ndl-man.rst"
+EXERCISESUT_MAN_FILE="$BASEDIR/docs/man1/exercise-sut.1"
+EXERCISESUT_RST_FILE="$BASEDIR/docs/exercise-sut-man.rst"
 
 # Path to the script converting CHANGELOG.md into debian changelog.
 CHANGELOG_MD_TO_DEBIAN="$BASEDIR/../pepc/misc/changelog_md_to_debian"
@@ -117,8 +120,13 @@ argparse-manpage --pyfile "$NDL_FILE" --function _build_arguments_parser \
                  --project-name 'wult' --author 'Artem Bityutskiy' \
                  --author-email 'dedekind1@gmail.com' --output "$NDL_MAN_FILE" \
                  --url 'https://github.com/intel/wult'
+argparse-manpage --pyfile "$EXERCISESUT_FILE" --function _build_arguments_parser \
+                 --project-name 'wult' --author 'Artem Bityutskiy' \
+                 --author-email 'dedekind1@gmail.com' --output "$EXERCISESUT_MAN_FILE" \
+                 --url 'https://github.com/intel/wult'
 pandoc --toc -t man -s "$WULT_MAN_FILE" -t rst -o "$WULT_RST_FILE"
 pandoc --toc -t man -s "$NDL_MAN_FILE"  -t rst -o "$NDL_RST_FILE"
+pandoc --toc -t man -s "$EXERCISESUT_MAN_FILE"  -t rst -o "$EXERCISESUT_RST_FILE"
 
 # Commit the changes.
 git -C "$BASEDIR" commit -a -s -m "Release version $new_ver"
