@@ -37,7 +37,12 @@ class _ProgressLineBase:
         if not self.enabled:
             return False
 
+        # Make sure logging message are prefixed with a newline. E.g., if there is a warning, it
+        # starts with a new line.
+        _LOG.force_tty_newline_prefix = True
+
         if final:
+            _LOG.force_tty_newline_prefix = False
             if not self._printed:
                 return False
             self._end = "\n"
