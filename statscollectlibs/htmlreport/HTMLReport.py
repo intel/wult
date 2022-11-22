@@ -206,6 +206,9 @@ class HTMLReport:
             raise Error("both 'tabs' and 'stats_paths' can't be 'None'. One of the two parameters "
                         "should be provided.")
 
+        if not tabs:
+            tabs = []
+
         # Make sure the output directory exists.
         try:
             self.outdir.mkdir(parents=True, exist_ok=True)
