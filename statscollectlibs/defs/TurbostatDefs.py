@@ -66,7 +66,7 @@ def get_pkgcs_from_metric(metric):
 def get_metric_from_pkgcs(pkgcs):
     """Returns the metric which represents the package state 'pkgcs'."""
 
-    return f"Pkg%{pkgcs.lower()}"
+    return f"Pkg%p{pkgcs.lower()}"
 
 class TurbostatDefs(_STCDefsBase.STCDefsBase):
     """This module provides API to turbostat metrics definitions (AKA 'defs')."""
