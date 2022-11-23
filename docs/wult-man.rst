@@ -78,10 +78,10 @@ following order) on the local host: ./drivers/idle,
 $WULT_DATA_PATH/drivers/idle (if 'WULT_DATA_PATH' environment variable
 is defined), $HOME/.local/share/wult/drivers/idle,
 /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The
-wult tool also depends on the following helpers: stc-agent, wultrunner.
-These helpers will be compiled on the SUT and deployed to the SUT. The
-sources of the helpers are searched for in the following paths (and in
-the following order) on the local host: ./helpers,
+wult tool also depends on the following helpers: stc-agent,
+wult-hrt-helper. These helpers will be compiled on the SUT and deployed
+to the SUT. The sources of the helpers are searched for in the following
+paths (and in the following order) on the local host: ./helpers,
 $WULT_DATA_PATH/helpers (if 'WULT_DATA_PATH' environment variable is
 defined), $HOME/.local/share/wult/helpers,
 /usr/local/share/wult/helpers, /usr/share/wult/helpers. By default,
@@ -403,8 +403,8 @@ COMMAND *'wult* report'
 
 usage: wult report [-h] [-q] [-d] [-o OUTDIR] [--exclude EXCLUDE]
 [--include INCLUDE] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist
-HIST] [--chist CHIST] [--reportids REPORTIDS] [--title-descr
-TITLE_DESCR] [--relocatable] [--list-metrics] [--size REPORT_SIZE]
+HIST] [--chist CHIST] [--reportids REPORTIDS] [--report-descr
+REPORT_DESCR] [--relocatable] [--list-metrics] [--size REPORT_SIZE]
 respaths [respaths ...]
 
 Create an HTML report for one or multiple test results.
@@ -499,13 +499,13 @@ Use value 'none' to disable scatter plots.
    on. Please, refer to the '--reportid' option description in the
    'start' command for more information about the report ID.
 
-**--title-descr** *TITLE_DESCR*
-   The report title description - any text describing this report as
-   whole, or path to a file containing the overall report description.
-   For example, if the report compares platform A and platform B, the
-   description could be something like 'platform A vs B comparison'.
-   This text will be included into the very beginning of the resulting
-   HTML report.
+**--report-descr** *REPORT_DESCR*
+   The report description - any text describing this report as whole, or
+   path to a file containing the overall report description. For
+   example, if the report compares platform A and platform B, the
+   description could be something like
+
+beginning of the resulting HTML report.
 
 **--relocatable**
    Generate a report which contains a copy of the raw test results. With

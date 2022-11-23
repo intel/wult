@@ -6,8 +6,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
- - Add "POLL requested %" turbostat tabs to reports.
 ### Removed
+### Changed
+
+## [1.10.39] - 2022-11-23
+### Added
+ - Add "POLL requested %" turbostat tabs to reports.
 ### Changed
  - The eBPF-based 'hrtimer' method was renamed to 'hrt-bpf'.
  - Fixed and renamed '--title-descr' option to '--report-descr'.

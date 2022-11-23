@@ -1,3 +1,11 @@
+wult (1.10.39) unstable; urgency=low
+
+  * Add "POLL requested %" turbostat tabs to reports.
+  * The eBPF-based 'hrtimer' method was renamed to 'hrt-bpf'.
+  * Fixed and renamed '--title-descr' option to '--report-descr'.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 23 Nov 2022 00:00:00 +0200
+
 wult (1.10.38) unstable; urgency=low
 
   * Fix 'wult start' failing without specifying '--stats none'. This is a regression
