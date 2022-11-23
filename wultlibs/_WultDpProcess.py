@@ -834,10 +834,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         self._us_fields_set = None
 
         self._csobj = _CStates(self._cpunum, self._pman, rcsobj=rcsobj, early_intr=early_intr)
-
-        if self._drvname:
-            # The TSC rate calculations are only available for non-ebpf driver.
-            self._tscrate = _TSCRate(tsc_cal_time)
+        self._tscrate = _TSCRate(tsc_cal_time)
 
     def close(self):
         """Close the datapoint processor."""
