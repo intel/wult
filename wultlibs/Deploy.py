@@ -795,41 +795,62 @@ class Deploy(_DeployBase):
                 msg += f"\nTry to install OS package '{pkgname}'."
             raise ErrorNotFound(msg)
 
-    def _find_ebpf_include_dirs_from_ksrc(self, headers):
+    def _find_ebpf_include_dirs(self, headers):
         """
         eBPF helpers depend on various C header files from kernel source. The location of some of
-        these files in kernel sources varies depending on kernel version and/or how the OS package
-        places them. This method finds the locations of header files 'headers' and return the
-        locations list.
+        these files varies depending on kernel version and/or how the OS package places them. This
+        method finds the locations of header files 'headers' and return the locations list.
+
+        For example, Ubuntu 22.04 puts the 'bpf/bpf_helpers.h' file to '/usr/include', and it comes
+        from the 'libbpf-dev' package, not from the kernel sources package. Fedora 36 delivers this
+        vile via the kernel sources package.
         """
 
-        ksrc = self._get_ksrc()
+        search_info = {}
 
-        # The location of 'libbpf.a' may vary, check several known paths.
-        suffixes = ("libbpf/include", "tools/lib", "include", "usr/include", "libbpf/include/bpf",
-                    # Fedora-specific UAPI and libbpf include directories (the 'kernel-devel' module
-                    # places them there).
-                    "include/generated/uapi",
-                    "tools/bpf/resolve_btfids/libbpf",
-                    "tools/bpf/resolve_btfids/libbpf/include")
-        incdirs = {}
+        # The search_info to use when searching in the kernel directory.
+        #
+        # Note, this list is crafted so that the 'include' subdirectory would go before the
+        # 'usr/include' subdirectory. Otherwise the compilation breaks. And this only happens when
+        # user ran 'make headers_install', so that 'usr/include' contains the "processed UAPI
+        # headers".
+        basedir = self._get_ksrc()
+        search_info[basedir] = ("libbpf/include", "tools/lib", "include", "usr/include",
+                                "libbpf/include/bpf",
+                                # Fedora-specific UAPI and libbpf include directories (the
+                                # 'kernel-devel' module places them there).
+                                "include/generated/uapi",
+                                "tools/bpf/resolve_btfids/libbpf",
+                                "tools/bpf/resolve_btfids/libbpf/include")
+
+        # In case of Ubuntu some bpf headers are in '/usr/include', and they are delivered via the
+        # 'libbpf-dev' package.
+        basedir = Path("/usr/include")
+        if self._bpman.is_dir(basedir):
+            search_info[basedir] = ("", )
+
+        incdirs = set()
 
         for header in headers:
             tried = []
 
-            for sfx in suffixes:
-                incdir = ksrc / sfx
-                tried.append(incdir)
-                if self._bpman.is_file(incdir / header):
-                    incdirs[incdir] = True
+            for basedir, suffixes in search_info.items():
+                found = False
+                for sfx in suffixes:
+                    incdir = basedir / sfx
+                    tried.append(incdir)
+                    if self._bpman.is_file(incdir / header):
+                        incdirs.add(incdir)
+                        found = True
+                        break
+                if found:
                     break
             else:
                 tried = "\n * ".join([str(path) for path in tried])
-                raise ErrorNotFound(f"failed to find C header file '{header}' in kernel sources "
-                                    f"'{ksrc}'\nTried the following paths{self._bpman.hostmsg}:\n"
-                                    f" * {tried}")
+                raise ErrorNotFound(f"failed to find C header file '{header}' in '{basedir}'\n"
+                                    f"Tried the following paths{self._bpman.hostmsg}:\n* {tried}")
 
-        return list(incdirs)
+        return incdirs
 
     def _find_or_build_libbpf_a_from_ksrc(self):
         """
@@ -900,13 +921,9 @@ class Deploy(_DeployBase):
             if not bpftool_path:
                 bpftool_path = self._tchk.check_tool("bpftool")
 
-            # Note, this list is crafted so that the 'include' subdirectory would go before the
-            # 'usr/include' subdirectory. Otherwise the compilation breaks. And this only happens
-            # when user ran 'make headers_install', so that 'usr/include' contains the "processed
-            # UAPI headers".
             headers = ("bpf/bpf_helpers.h", "bpf_helper_defs.h", "bpf/bpf_tracing.h",
                        "uapi/linux/bpf.h", "linux/version.h")
-            incdirs = self._find_ebpf_include_dirs_from_ksrc(headers)
+            incdirs = self._find_ebpf_include_dirs(headers)
             bpf_inc = "-I " + " -I ".join([str(incdir) for incdir in incdirs])
 
             # Build the eBPF components of eBPF helpers.
@@ -922,7 +939,7 @@ class Deploy(_DeployBase):
             # We are building on a local system for a remote host. Everything should come from
             # kernel sources in this case: 'libbpf.a' and 'bpf/bpf.h'.
             libbpf_path = self._find_or_build_libbpf_a_from_ksrc()
-            incdirs = self._find_ebpf_include_dirs_from_ksrc(("bpf/bpf.h", ))
+            incdirs = self._find_ebpf_include_dirs(("bpf/bpf.h", ))
             u_inc = "-I " + " -I ".join([str(incdir) for incdir in incdirs])
         else:
             # We are building on the SUT for the kernel running on the SUT. In this case we assume
