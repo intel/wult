@@ -294,6 +294,8 @@ int BPF_PROG(hrt_bpf_local_timer_entry, int vector)
 			e->intrc = read_tsc();
 		}
 	}
+
+	return 0;
 }
 
 SEC("tp_btf/softirq_entry")
