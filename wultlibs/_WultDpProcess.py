@@ -692,11 +692,10 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         if not dp:
             return None
 
-        if self._drvname:
-            # Calculate CPU frequency only for none-ebpf driver.
-            dp = self._process_aperf_mperf(dp)
-            if not dp:
-                return None
+        # Calculate CPU frequency.
+        dp = self._process_aperf_mperf(dp)
+        if not dp:
+            return None
 
         # Add and validated C-state related fields.
         dp = self._process_cstates(dp)
