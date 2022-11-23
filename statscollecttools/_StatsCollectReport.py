@@ -41,4 +41,4 @@ def report_command(args):
         args.outdir = args.respaths[0] / "html-report"
 
     rep = HTMLReport.HTMLReport(args.outdir)
-    rep.generate_report(stats_paths=stats_paths)
+    rep.generate_report(stats_paths=stats_paths, title="stats-collect report")
