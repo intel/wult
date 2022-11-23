@@ -46,7 +46,7 @@ class DTabBuilder:
         for metric, funcs in smry_funcs.items():
             mdef = defs.info[metric]
             self._smrytbl.add_metric(mdef["title"], mdef.get("short_unit"), mdef.get("descr"),
-                               fmt="{:.2f}")
+                                     fmt="{:.2f}")
 
             for rep, df in self._reports.items():
                 smry_dict = DFSummary.calc_col_smry(df, mdef["name"], funcs)
