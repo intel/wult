@@ -24,6 +24,9 @@ from wultlibs import Devices, Deploy
 from wultlibs.helperlibs import ReportID, Human
 from wultlibs.rawresultlibs import RORawResult
 
+# pylint: disable=wildcard-import,unused-wildcard-import
+from statscollectlibs.ToolsCommon import *
+
 HELPERS_LOCAL_DIR = Path(".local")
 _DRV_SRC_SUBPATH = Path("drivers/idle")
 _HELPERS_SRC_SUBPATH = Path("helpers")
@@ -90,18 +93,6 @@ def get_scan_all_descr(toolname):
     descr = f"""By default this command prints only the compatible devices which are supported by
                 current {toolname} installation. This option makes this command print about all the
                 compatible devices."""
-    return descr
-
-# Description for the '--outdir' option of the 'report' command.
-def get_report_outdir_descr(toolname):
-    """
-    Returns description for the '--outdir' option of the 'report' command for the 'toolname' tool.
-    """
-
-    descr = f"""Path to the directory to store the report at. By default the report is stored in the
-                '{toolname}-report-<reportid>' sub-directory of the test result directory. If there
-                are multiple test results, the report is stored in the current directory. The
-                '<reportid>' is report ID of {toolname} test result."""
     return descr
 
 # Description for the '--even-up-dp-count' option of the 'report' command.
