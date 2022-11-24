@@ -64,7 +64,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
             # exclude the 'std' function.
             funcs = []
             for funcname in smry_funcs[mdef["name"]]:
-                if all(res.smrys[mdef["name"]].get(funcname) for res in self._rsts):
+                if all(res.smrys[mdef["name"]].get(funcname) is not None for res in self._rsts):
                     funcs.append(funcname)
 
             # Populate each row with summary functions for each result.
