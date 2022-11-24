@@ -5,11 +5,14 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix 'ndl deploy' command failure.
- - Fix 'wult report' failing if a metric in a summary table contains all zeros.
 ### Added
 ### Removed
 ### Changed
+
+## [1.10.40] - 2022-11-24
+### Fixed
+ - Fix 'ndl deploy' command failure.
+ - Fix 'wult report' failing if a metric in a summary table contains all zeros.
 
 ## [1.10.39] - 2022-11-23
 ### Added

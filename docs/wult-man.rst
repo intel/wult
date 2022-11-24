@@ -2,7 +2,7 @@
 WULT
 ====
 
-:Date:   Manual
+:Date:   2022-11-24
 
 .. contents::
    :depth: 3
@@ -141,7 +141,7 @@ OPTIONS *'wult* deploy'
 **-K** *PRIVKEY*, **--priv-key** *PRIVKEY*
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
-   paths like
+   paths like '~/.ssh'.
 
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
@@ -185,7 +185,7 @@ OPTIONS *'wult* scan'
 **-K** *PRIVKEY*, **--priv-key** *PRIVKEY*
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
-   paths like
+   paths like '~/.ssh'.
 
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
@@ -231,7 +231,7 @@ OPTIONS *'wult* start'
 **-K** *PRIVKEY*, **--priv-key** *PRIVKEY*
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
-   paths like
+   paths like '~/.ssh'.
 
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
@@ -251,24 +251,24 @@ OPTIONS *'wult* start'
    measured. The default unit is minute, but you can use the following
    handy specifiers as well: d - days, h - hours, m - minutes, s -
    seconds. For example '1h25m' would be 1 hour and 25 minutes, or 10m5s
-   would be 10 minutes and 5 seconds. Value
-
-along with the '--datapoints' option, then measurements will stop as
-when either the time limit is reached, or the required amount of
-datapoints is collected.
+   would be 10 minutes and 5 seconds. Value '0' means "no time limit",
+   and this is the default. If this option is used along with the
+   '--datapoints' option, then measurements will stop as when either the
+   time limit is reached, or the required amount of datapoints is
+   collected.
 
 **--exclude** *EXCLUDE*
    Datapoints to exclude: remove all the datapoints satisfying the
-   expression
-
-< 1)'. This filter expression will remove all datapoints with
-'WakeLatency' smaller than 10000 nanoseconds or package C6 residency
-smaller than 1%. You can use any metrics in the expression.
+   expression 'EXCLUDE'. Here is an example of an expression:
+   '(WakeLatency < 10000) \| (PC6% < 1)'. This filter expression will
+   remove all datapoints with 'WakeLatency' smaller than 10000
+   nanoseconds or package C6 residency smaller than 1%. You can use any
+   metrics in the expression.
 
 **--include** *INCLUDE*
    Datapoints to include: remove all datapoints except for those
    satisfying the expression 'INCLUDE'. In other words, this option is
-   the inverse of '-- exclude'. This means, '--include expr' is the same
+   the inverse of '--exclude'. This means, '--include expr' is the same
    as '--exclude "not (expr)"'.
 
 **--keep-filtered**
@@ -282,7 +282,8 @@ smaller than 1%. You can use any metrics in the expression.
    0". The result will contain 100000 datapoints, all of them will have
    non-zero PC6 residency. But what if you do not want to simply discard
    the other datapoints, because they are also interesting? Well, add
-   the 100000 of which will have non-zero PC6 residency.
+   the '--keep-filtered' option. The result will contain, say, 150000
+   datapoints, 100000 of which will have non-zero PC6 residency.
 
 **-o** *OUTDIR*, **--outdir** *OUTDIR*
    Path to the directory to store the results at.
@@ -307,19 +308,18 @@ smaller than 1%. You can use any metrics in the expression.
    power meter statistics. You can also specify the statistics you do
    not want to be collected by pre-pending the '!' symbol. For example,
    'all,!turbostat' would mean: collect all the statistics supported by
-   the SUT, except for
-
-available statistics. By default, only 'sysinfo' statistics are
-collected.
+   the SUT, except for 'turbostat'. Use the '--list-stats' option to get
+   more information about available statistics. By default, only
+   'sysinfo' statistics are collected.
 
 **--stats-intervals** *STATS_INTERVALS*
    The intervals for statistics. Statistics collection is based on doing
    periodic snapshots of data. For example, by default the 'acpower'
    statistics collector reads SUT power consumption for the last second
-   every second, and 'turbostat' default interval is 5 seconds. Use
-   'acpower:5,turbostat:10' to increase the intervals to 5 and 10
-   seconds correspondingly. Use the '--list-stats' to get the default
-   interval values.
+   every second, and
+
+correspondingly. Use the '--list-stats' to get the default interval
+values.
 
 **--list-stats**
    Print information about the statistics 'wult' can collect and exit.
@@ -335,39 +335,37 @@ collected.
    single value if you want launch distance to be precisely that value
    all the time. The default unit is microseconds, but you can use the
    following specifiers as well: ms - milliseconds, us - microseconds,
-   ns - nanoseconds. For example, '--ldist 10us,5ms' would be a
-   [10,5000] microseconds range. Too small values may cause failures or
-   prevent the SUT from reaching deep C-states. If the range starts with
-   0, the minimum possible launch distance value allowed by the delayed
-   event source will be used. The optimal launch distance range is
-   system-specific.
+   ns - nanoseconds. For example, from reaching deep C-states. If the
+   range starts with 0, the minimum possible launch distance value
+   allowed by the delayed event source will be used. The optimal launch
+   distance range is system-specific.
 
 **--cpunum** *CPUNUM*
    The logical CPU number to measure, default is CPU 0.
 
 **--tsc-cal-time** *TSC_CAL_TIME*
    Wult receives raw datapoints from the driver, then processes them,
-   and then saves the processed datapoint in the 'datapoints.csv' file.
-   The processing involves converting TSC cycles to microseconds, so
-   wult needs SUT's TSC rate. TSC rate is calculated from the
-   datapoints, which come with TSC counters and timestamps, so TSC rate
-   can be calculated as "delta TSC / delta timestamp". In other words,
-   wult needs two datapoints to calculate TSC rate. However, the
-   datapoints have to be far enough apart, and this option defines the
-   distance between the datapoints (in seconds). The default distance is
-   10 seconds, which means that wult will keep collecting and buffering
-   datapoints for 10s without processing them (because processing
-   requires TSC rate to be known). After 10s, wult will start processing
-   all the buffered datapoints, and then the newly collected datapoints.
-   Generally, longer TSC calculation time translates to better accuracy.
+   and then saves the processed datapoint in the
+
+TSC rate is calculated from the datapoints, which come with TSC counters
+and timestamps, so TSC rate can be calculated as "delta TSC / delta
+timestamp". In other words, wult needs two datapoints to calculate TSC
+rate. However, the datapoints have to be far enough apart, and this
+option defines the distance between the datapoints (in seconds). The
+default distance is 10 seconds, which means that wult will keep
+collecting and buffering datapoints for 10s without processing them
+(because processing requires TSC rate to be known). After 10s, wult will
+start processing all the buffered datapoints, and then the newly
+collected datapoints. Generally, longer TSC calculation time translates
+to better accuracy.
 
 **--keep-raw-data**
    Wult receives raw datapoints from the driver, then processes them,
-   and then saves the processed datapoint in the 'datapoints.csv' file.
-   In order to keep the CSV file smaller, wult keeps only the essential
-   information, and drops the rest. For example, raw timestamps are
-   dropped. With this option, however, wult saves all the raw data to
-   the CSV file, along with the processed data.
+   and then saves the processed datapoint in the
+
+rest. For example, raw timestamps are dropped. With this option,
+however, wult saves all the raw data to the CSV file, along with the
+processed data.
 
 **--no-unload**
    This option exists for debugging and troubleshooting purposes.
@@ -382,11 +380,11 @@ collected.
    interrupt, it will not jump to the interrupt handler, but instead,
    continue running some 'cpuidle' housekeeping code. After this, the
    'cpuidle' subsystem enables interrupts, and the CPU jumps to the
-   interrupt handler. Therefore, there is a tiny delay the
-
-C-states like C1, this tiny delay may even be measurable on some
-platforms. This option allows to measure that delay. It makes wult
-enable interrupts before linux enters the C-state.
+   interrupt handler. Therefore, there is a tiny delay the 'cpuidle'
+   subsystem adds on top of the hardware C-state latency. For fast
+   C-states like C1, this tiny delay may even be measurable on some
+   platforms. This option allows to measure that delay. It makes wult
+   enable interrupts before linux enters the C-state.
 
 **--report**
    Generate an HTML report for collected results (same as calling
@@ -426,28 +424,27 @@ OPTIONS *'wult* report'
 
 **-o** *OUTDIR*, **--outdir** *OUTDIR*
    Path to the directory to store the report at. By default the report
-   is stored in the 'wult-report-<reportid>' sub-directory of the test
+   is stored in the 'wult-report-<reportid>' sub- directory of the test
    result directory. If there are multiple test results, the report is
    stored in the current directory. The '<reportid>' is report ID of
    wult test result.
 
 **--exclude** *EXCLUDE*
    Datapoints to exclude: remove all the datapoints satisfying the
-   expression
-
-< 1)'. This filter expression will remove all datapoints with
-'WakeLatency' smaller than 10000 nanoseconds or package C6 residency
-smaller than 1%. The detailed expression syntax can be found in the
-documentation for the 'eval()' function of Python 'pandas' module. You
-can use metrics in the expression, or the special word 'index' for the
-row number (0-based index) of a datapoint in the results. For example,
-expression 'index >= 10' will get rid of all datapoints except for the
-first 10 ones.
+   expression 'EXCLUDE'. Here is an example of an expression:
+   '(WakeLatency < 10000) \| (PC6% < 1)'. This filter expression will
+   remove all datapoints with 'WakeLatency' smaller than 10000
+   nanoseconds or package C6 residency smaller than 1%. The detailed
+   expression syntax can be found in the documentation for the 'eval()'
+   function of Python 'pandas' module. You can use metrics in the
+   expression, or the special word 'index' for the row number (0-based
+   index) of a datapoint in the results. For example, expression 'index
+   >= 10' will get rid of all datapoints except for the first 10 ones.
 
 **--include** *INCLUDE*
    Datapoints to include: remove all datapoints except for those
    satisfying the expression 'INCLUDE'. In other words, this option is
-   the inverse of '-- exclude'. This means, '--include expr' is the same
+   the inverse of '--exclude'. This means, '--include expr' is the same
    as '--exclude "not (expr)"'.
 
 **--even-up-dp-count**
@@ -463,29 +460,29 @@ first 10 ones.
 **-x** *XAXES*, **--xaxes** *XAXES*
    A comma-separated list of metrics (or python style regular
    expressions matching the names) to use on X-axes of the scatter
-   plot(s), default is
-
-Use value 'none' to disable scatter plots.
+   plot(s), default is 'SilentTime'. Use '--list-metrics' to get the
+   list of the available metrics. Use value
 
 **-y** *YAXES*, **--yaxes** *YAXES*
    A comma-separated list of metrics (or python style regular
    expressions matching the names) to use on the Y-axes for the scatter
    plot(s). If multiple metrics are specified for the X- or Y-axes, then
    the report will include multiple scatter plots for all the X- and
-   Y-axes combinations. The default is Use value 'none' to disable
+   Y-axes combinations. The default is '.*Latency'. Use '--list-metrics'
+   to get the list of the available metrics. Use value 'none' to disable
    scatter plots.
 
 **--hist** *HIST*
    A comma-separated list of metrics (or python style regular
    expressions matching the names) to add a histogram for, default is
-   '.*Latency'. Use '-- list-metrics' to get the list of the available
+   '.*Latency'. Use '--list-metrics' to get the list of the available
    metrics. Use value 'none' to disable histograms.
 
 **--chist** *CHIST*
    A comma-separated list of metrics (or python style regular
    expressions matching the names) to add a cumulative distribution for,
    default is 'None'. Use '--list-metrics' to get the list of the
-   available metrics. Use value
+   available metrics. Use value 'none' to disable cumulative histograms.
 
 **--reportids** *REPORTIDS*
    Every input raw result comes with a report ID. This report ID is
@@ -505,8 +502,6 @@ Use value 'none' to disable scatter plots.
    example, if the report compares platform A and platform B, the
    description could be something like
 
-beginning of the resulting HTML report.
-
 **--relocatable**
    Generate a report which contains a copy of the raw test results. With
    this option, viewers of the report will also be able to browse raw
@@ -518,7 +513,7 @@ beginning of the resulting HTML report.
 **--size** *REPORT_SIZE*
    Generate HTML report with a pre-defined set of diagrams and
    histograms. Possible values: 'small' or 'large'. This option is
-   mutually exclusive with ' --xaxes', '--yaxes', '--hist', '--chist'.
+   mutually exclusive with '--xaxes', '--yaxes', '--hist', '--chist'.
 
 COMMAND *'wult* filter'
 =======================
@@ -550,39 +545,37 @@ OPTIONS *'wult* filter'
 
 **--exclude** *EXCLUDE*
    Datapoints to exclude: remove all the datapoints satisfying the
-   expression
-
-< 1)'. This filter expression will remove all datapoints with
-'WakeLatency' smaller than 10000 nanoseconds or package C6 residency
-smaller than 1%. The detailed expression syntax can be found in the
-documentation for the 'eval()' function of Python 'pandas' module. You
-can use metrics in the expression, or the special word 'index' for the
-row number (0-based index) of a datapoint in the results. For example,
-expression 'index >= 10' will get rid of all datapoints except for the
-first 10 ones.
+   expression 'EXCLUDE'. Here is an example of an expression:
+   '(WakeLatency < 10000) \| (PC6% < 1)'. This filter expression will
+   remove all datapoints with 'WakeLatency' smaller than 10000
+   nanoseconds or package C6 residency smaller than 1%. The detailed
+   expression syntax can be found in the documentation for the 'eval()'
+   function of Python 'pandas' module. You can use metrics in the
+   expression, or the special word 'index' for the row number (0-based
+   index) of a datapoint in the results. For example, expression 'index
+   >= 10' will get rid of all datapoints except for the first 10 ones.
 
 **--include** *INCLUDE*
    Datapoints to include: remove all datapoints except for those
    satisfying the expression 'INCLUDE'. In other words, this option is
-   the inverse of '-- exclude'. This means, '--include expr' is the same
+   the inverse of '--exclude'. This means, '--include expr' is the same
    as '--exclude "not (expr)"'.
 
 **--exclude-metrics** *MEXCLUDE*
    The metrics to exclude. Expects a comma-separated list of the metrics
    or python style regular expressions matching the names. For example,
    the expression 'SilentTime,WarmupDelay,.*Cyc', would remove metrics
-   'SilentTime',
-
-to get the list of the available metrics.
+   'SilentTime', 'WarmupDelay' and all metrics with 'Cyc' in their name.
+   Use '--list-metrics' to get the list of the available metrics.
 
 **--include-metrics** *MINCLUDE*
    The metrics to include: remove all metrics except for those specified
-   by this option. The syntax is the same as for '--exclude-metrics'.
+   by this option. The syntax is the same as for ' --exclude-metrics'.
 
 **--human-readable**
    By default the result 'filter' command print the result as a CSV file
    to the standard output. This option can be used to dump the result in
-   a more human- readable form.
+   a more human-readable form.
 
 **-o** *OUTDIR*, **--outdir** *OUTDIR*
    By default the resulting CSV lines are printed to the standard
@@ -595,7 +588,7 @@ to get the list of the available metrics.
 
 **--reportid** *REPORTID*
    Report ID of the filtered version of the result (can only be used
-   with '-- outdir').
+   with '--outdir').
 
 COMMAND *'wult* calc'
 =====================
@@ -624,34 +617,32 @@ OPTIONS *'wult* calc'
 
 **--exclude** *EXCLUDE*
    Datapoints to exclude: remove all the datapoints satisfying the
-   expression
-
-< 1)'. This filter expression will remove all datapoints with
-'WakeLatency' smaller than 10000 nanoseconds or package C6 residency
-smaller than 1%. The detailed expression syntax can be found in the
-documentation for the 'eval()' function of Python 'pandas' module. You
-can use metrics in the expression, or the special word 'index' for the
-row number (0-based index) of a datapoint in the results. For example,
-expression 'index >= 10' will get rid of all datapoints except for the
-first 10 ones.
+   expression 'EXCLUDE'. Here is an example of an expression:
+   '(WakeLatency < 10000) \| (PC6% < 1)'. This filter expression will
+   remove all datapoints with 'WakeLatency' smaller than 10000
+   nanoseconds or package C6 residency smaller than 1%. The detailed
+   expression syntax can be found in the documentation for the 'eval()'
+   function of Python 'pandas' module. You can use metrics in the
+   expression, or the special word 'index' for the row number (0-based
+   index) of a datapoint in the results. For example, expression 'index
+   >= 10' will get rid of all datapoints except for the first 10 ones.
 
 **--include** *INCLUDE*
    Datapoints to include: remove all datapoints except for those
    satisfying the expression 'INCLUDE'. In other words, this option is
-   the inverse of '-- exclude'. This means, '--include expr' is the same
+   the inverse of '--exclude'. This means, '--include expr' is the same
    as '--exclude "not (expr)"'.
 
 **--exclude-metrics** *MEXCLUDE*
    The metrics to exclude. Expects a comma-separated list of the metrics
    or python style regular expressions matching the names. For example,
    the expression 'SilentTime,WarmupDelay,.*Cyc', would remove metrics
-   'SilentTime',
-
-to get the list of the available metrics.
+   'SilentTime', 'WarmupDelay' and all metrics with 'Cyc' in their name.
+   Use '--list-metrics' to get the list of the available metrics.
 
 **--include-metrics** *MINCLUDE*
    The metrics to include: remove all metrics except for those specified
-   by this option. The syntax is the same as for '--exclude-metrics'.
+   by this option. The syntax is the same as for ' --exclude-metrics'.
 
 **-f** *FUNCS*, **--funcs** *FUNCS*
    Comma-separated list of summary functions to calculate. By default
@@ -669,7 +660,9 @@ AUTHORS
 
    Artem Bityutskiy
 
-dedekind1@gmail.com
+::
+
+   dedekind1@gmail.com
 
 DISTRIBUTION
 ============

@@ -1,3 +1,10 @@
+wult (1.10.40) unstable; urgency=low
+
+  * Fix 'ndl deploy' command failure.
+  * Fix 'wult report' failing if a metric in a summary table contains all zeros.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 24 Nov 2022 00:00:00 +0200
+
 wult (1.10.39) unstable; urgency=low
 
   * Add "POLL requested %" turbostat tabs to reports.
