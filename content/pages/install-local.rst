@@ -48,7 +48,7 @@ Unless you are an advanced user, you probably run a stock OS kernel. In this cas
 enough to just install the kernel sources package provided by the OS, e.g.:
 
 * Fedora: `kernel-devel` package
-* Ubuntu: `linux-source` package
+* Ubuntu: `linux-headers` package
 
 Advanced users can provide custom kernel sources path via `wult deploy` command line options (see
 the `wult man page <https://github.com/intel/wult/blob/master/docs/wult-man.rst>`_).
@@ -64,7 +64,7 @@ Here are the required OS packages.
 
 ::
 
- sudo dnf install -y tar bison flex make gcc elfutils-libelf-devel rsync procps-ng
+ sudo dnf install -y make gcc elfutils-libelf-devel rsync procps-ng libbpf-devel
  sudo dnf install -y libffi-devel redhat-rpm-config openssl-devel
  sudo dnf install -y kernel-devel
  sudo dnf install -y git python3 python3-devel python3-pip python3-numpy
@@ -75,9 +75,9 @@ Here are the required OS packages.
 
 ::
 
- sudo apt install -y bison flex libelf-dev libssl-dev rsync procps
- sudo apt-get source linux-source
- sudo apt install -y git python3-pip python3-numpy python3-plotly
+ sudo apt install -y make gcc libelf-dev libssl-dev libbpf-dev rsync
+ sudo apt install -y linux-headers-$(uname -r)
+ sudo apt install -y procps git python3-pip python3-numpy python3-plotly
  sudo apt install -y python3-colorama python3-yaml python3-pandas
  sudo apt install -y python3-paramiko python3-argcomplete
 

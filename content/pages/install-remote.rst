@@ -40,7 +40,7 @@ on the SUT instead of the controller.
 
 SUT: ::
 
- sudo dnf install -y tar bison flex make gcc elfutils-libelf-devel rsync
+ sudo dnf install -y make gcc elfutils-libelf-devel rsync libbpf-devel
  sudo dnf install -y libffi-devel redhat-rpm-config openssl-devel
  sudo dnf install -y kernel-devel
 
@@ -54,8 +54,8 @@ Controller: ::
 
 SUT: ::
 
- sudo apt install -y bison flex libelf-dev libssl-dev
- sudo apt-get source linux-source
+ sudo apt install -y make gcc libelf-dev libssl-dev libbpf-dev
+ sudo apt install -y linux-headers-$(uname -r)
 
 Controller: ::
 
