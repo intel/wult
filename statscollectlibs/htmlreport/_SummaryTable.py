@@ -187,6 +187,12 @@ class SummaryTable:
           F;func_name|func_description;func_val|func_hovertext1;func_val2|func_hovertext2
         """
 
+        for metric in self.smrytbl["title"]:
+            for fdict in self.smrytbl["funcs"].values():
+                if metric not in fdict:
+                    raise Error(f"metric '{metric}' was added without any summary functions. Use "
+                                f"'add_smry_func()' to add summary functions for this metric.")
+
         try:
             with open(path, "w", encoding="utf-8") as fobj:
                 lines = []
