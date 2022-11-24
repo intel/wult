@@ -15,7 +15,6 @@ from statscollectlibs.htmlreport.tabs.sysinfo import _DTabBuilderBase
 
 _FILES = {
     "dmidecode": "sysinfo/dmidecode.raw.txt",
-    "dmidecode -u": "sysinfo/dmidecode-u.raw.txt"
 }
 
 class DMIDecodeTabBuilder(_DTabBuilderBase.DTabBuilderBase):

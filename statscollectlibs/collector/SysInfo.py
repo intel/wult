@@ -125,11 +125,6 @@ def collect_before(outdir, pman):
     cmdinfo["outfile"] = outfile
     cmdinfo["cmd"] = f"dmidecode > '{outfile}' 2>&1"
 
-    cmdinfos["dmidecode_u"] = cmdinfo = {}
-    outfile = outdir / "dmidecode-u.raw.txt"
-    cmdinfo["outfile"] = outfile
-    cmdinfo["cmd"] = f"dmidecode -u > '{outfile}' 2>&1"
-
     cmdinfos["lspci"] = cmdinfo = {}
     outfile = outdir / "lspci.raw.txt"
     cmdinfo["outfile"] = outfile
