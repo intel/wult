@@ -15,7 +15,7 @@ BuildRequires:	gcc
 BuildRequires:	make
 BuildRequires:	python3-devel
 BuildRequires:	python3-plotly
-BuildRequires:	pepc >= 1.3.29
+BuildRequires:	pepc >= 1.3.20
 %if %{with tests}
 BuildRequires:	python3-pandas
 BuildRequires:	python3-pluggy
@@ -23,7 +23,7 @@ BuildRequires:	python3-pytest
 BuildRequires:	python3-numpy
 BuildRequires:	python3-pyyaml
 %endif
-Requires:	pepc >= 1.3.29
+Requires:	pepc >= 1.3.20
 Requires:	pciutils
 Requires:	python3-pandas
 Requires:	python3-plotly
