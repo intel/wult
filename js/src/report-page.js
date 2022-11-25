@@ -74,9 +74,11 @@ export class ScReportPage extends LitElement {
         this.initRepProps()
 
         // Fetch intro table.
-        fetch(json.intro_tbl)
-            .then(resp => resp.blob())
-            .then(blob => { this.introtbl = blob })
+        if (json.intro_tbl) {
+            fetch(json.intro_tbl)
+                .then(resp => resp.blob())
+                .then(blob => { this.introtbl = blob })
+        }
 
         // Fetch tabs file.
         fetch(json.tab_file).then(resp => resp.json())
