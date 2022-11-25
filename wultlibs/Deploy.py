@@ -847,8 +847,16 @@ class Deploy(_DeployBase):
                     break
             else:
                 tried = "\n * ".join([str(path) for path in tried])
-                raise ErrorNotFound(f"failed to find C header file '{header}' in '{basedir}'\n"
-                                    f"Tried the following paths{self._bpman.hostmsg}:\n* {tried}")
+                err = f"failed to find C header file '{header}'.\nTried the following paths" \
+                      f"{self._bpman.hostmsg}:\n* {tried}"
+
+                # In Ubuntu, the '/usr/include/asm/types.h' file does not exist unless the
+                # 'gcc-multilib' package is installed. Include this information to the error
+                # message.
+                if header == "asm/types.h" and self._tchk.get_osname() == "Ubuntu":
+                    err += "\nTry to install the 'gcc-multilib' Ubuntu package"
+
+                raise ErrorNotFound(err)
 
         return incdirs
 
@@ -922,7 +930,7 @@ class Deploy(_DeployBase):
                 bpftool_path = self._tchk.check_tool("bpftool")
 
             headers = ("bpf/bpf_helpers.h", "bpf_helper_defs.h", "bpf/bpf_tracing.h",
-                       "uapi/linux/bpf.h", "linux/version.h")
+                       "uapi/linux/bpf.h", "linux/version.h", "asm/types.h")
             incdirs = self._find_ebpf_include_dirs(headers)
             bpf_inc = "-I " + " -I ".join([str(incdir) for incdir in incdirs])
 
