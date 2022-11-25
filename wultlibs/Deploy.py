@@ -815,8 +815,8 @@ class Deploy(_DeployBase):
         # user ran 'make headers_install', so that 'usr/include' contains the "processed UAPI
         # headers".
         basedir = self._get_ksrc()
-        search_info[basedir] = ("libbpf/include", "tools/lib", "include", "usr/include",
-                                "libbpf/include/bpf",
+        search_info[basedir] = ("libbpf/include", "tools/lib", "tools/lib/bpf", "include",
+                                "usr/include", "libbpf/include/bpf",
                                 # Fedora-specific UAPI and libbpf include directories (the
                                 # 'kernel-devel' module places them there).
                                 "include/generated/uapi",
