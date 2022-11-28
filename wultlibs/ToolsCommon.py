@@ -22,9 +22,10 @@ from pepclibs.helperlibs import Trivial, LocalProcessManager, Logging, YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Devices
 from wultlibs.deploylibs import Deploy
-from wultlibs.helperlibs import Human, ReportID
+from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import RORawResult
 
+from statscollectlibs.helperlibs import ReportID
 # pylint: disable=wildcard-import,unused-wildcard-import
 from statscollectlibs.ToolsCommon import *
 

@@ -23,7 +23,7 @@ from pepclibs import CStates, PStates, CPUInfo
 from pepclibs.helperlibs import ClassHelpers, Human, LocalProcessManager, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import ToolsCommon
-from wultlibs.helperlibs import ReportID
+from statscollectlibs.helperlibs import ReportID
 
 _LOG = logging.getLogger()
 
