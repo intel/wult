@@ -31,10 +31,14 @@ NDL_RST_FILE="$BASEDIR/docs/ndl-man.rst"
 EXERCISESUT_MAN_FILE="$BASEDIR/docs/man1/exercise-sut.1"
 EXERCISESUT_RST_FILE="$BASEDIR/docs/exercise-sut-man.rst"
 
+# Path to 'pepc' project sources.
+PEPC_SRC_PATH="$BASEDIR/../pepc"
+# Path to the CHANGELOG.md file of the 'pepc' project.
+PEPC_CHANGELOG_MD="$PEPC_SRC_PATH/CHANGELOG.md"
 # Path to the script converting CHANGELOG.md into debian changelog.
-CHANGELOG_MD_TO_DEBIAN="$BASEDIR/../pepc/misc/changelog_md_to_debian"
+CHANGELOG_MD_TO_DEBIAN="$PEPC_SRC_PATH/misc/changelog_md_to_debian"
 # Path to the script that prepares CHANGELOG.md for the release.
-PREPARE_CHENGELOG_MD="$BASEDIR/../pepc/misc/prepare_changelog_md"
+PREPARE_CHENGELOG_MD="$PEPC_SRC_PATH/misc/prepare_changelog_md"
 
 fatal() {
         printf "Error: %s\n" "$1" >&2
@@ -43,10 +47,14 @@ fatal() {
 
 usage() {
         cat <<EOF
-Usage: ${0##*/} <new_ver>
+Usage: ${0##*/} [optins] <new_ver>
 
 <new_ver> - new tool version to make in X.Y.Z format. The X.Y.(Z+1) version
             will be used by default.
+
+Options:
+  -P, --pepc-version - version of the 'pepc' project this 'wult' version
+                       requires.
 EOF
         exit 0
 }
@@ -68,6 +76,27 @@ ask_question() {
 		fi
 	done
 }
+
+TEMP=$(getopt -n $PROG -o P: --long pepc-version: -- "$@") || exit 1
+eval set -- "$TEMP"
+
+pepcver=
+
+if [ $# -gt 0 ]; then
+    while true; do
+        case "$1" in
+        -P|--pepc-version)
+            pepcver="$2"
+            shift
+            ;;
+        --) shift; break
+            ;;
+        *) fail_usage "Unrecognized option: $1"
+            ;;
+        esac
+        shift
+    done
+fi
 
 if [ $# -eq 1 ]; then
     new_ver="$1"; shift
@@ -91,6 +120,18 @@ echo "New version: $new_ver"
 printf "%s" "$new_ver" | grep -q -x "$VERSION_REGEX" ||
          fatal "please, provide new version in X.Y.Z format"
 
+if [ -n "$pepcver" ]; then
+    echo "Required pepc version: $pepcver"
+
+    # Validate the pepc dependency version.
+    grep -q -x "^## \[$pepcver\] - .*" $PEPC_CHANGELOG_MD && exit_status=0 || exit_status="$?"
+    if [ "$exit_status" == "1" ]; then
+        fatal "bad pepc version \"$pepcver\": not found in \"$PEPC_CHANGELOG_MD\""
+    elif [ "$exit_status" != "0" ]; then
+        exit 1
+    fi
+fi
+
 # Make sure that the current branch is 'master' or 'release'.
 current_branch="$(git -C "$BASEDIR" branch | sed -n -e '/^*/ s/^* //p')"
 if [ "$current_branch" != "master" -a "$current_branch" != "release" ]; then
@@ -100,7 +141,14 @@ fi
 # Remind the maintainer about various important things.
 ask_question "Did you run tests"
 ask_question "Did you update 'CHANGELOG.md'"
-ask_question "Did you specify pepc version dependency in 'setup.py' and 'wult.spec'"
+ask_question "Did you pepc version dependency"
+
+if [ -n "$pepcver" ]; then
+    # Update 'pepc' version dependency.
+    sed -i -e "s/\(pepc\s*>=\s*\)$VERSION_REGEX/\1$pepcver/g" "$BASEDIR/setup.py"
+    sed -i -e "s/\(pepc\s*>=\s*\)$VERSION_REGEX/\1$pepcver/g" "$BASEDIR/rpm/wult.spec"
+    sed -i -e "s/^\(\s\+pepc\s*(>=\s*\)$VERSION_REGEX)/\1$pepcver)/g" "$BASEDIR/debian/control"
+fi
 
 # Update CHANGELOG.md.
 "$PREPARE_CHENGELOG_MD" "$new_ver" "$CHANGELOG_FILE"
