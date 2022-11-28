@@ -233,7 +233,7 @@ class _PCIDevice(_DeviceBase):
             self._pci_info = lspci.get_info(Path(self._devpath).name)
 
         if self.supported_devices and self._pci_info["devid"] not in self.supported_devices:
-            supported = ["%s - %s" % (key, val) for key, val in self.supported_devices.items()]
+            supported = [f"{key} - {val}" for key, val in self.supported_devices.items()]
             supported = "\n * ".join(supported)
             if drvname:
                 drvtext = f" by driver {self.drvname}"
