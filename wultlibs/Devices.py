@@ -154,7 +154,7 @@ class _PCIDevice(_DeviceBase):
             with self._pman.open(path, "wt") as fobj:
                 _LOG.debug("writing '%s' to file '%s'", val, path)
                 fobj.write(val)
-        except Error as err:
+        except Error:
             bound = False
 
         if not bound:
