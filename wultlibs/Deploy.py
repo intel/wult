@@ -38,10 +38,9 @@ from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists, ErrorNotSupported
 from statscollectlibs.helperlibs import ToolHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
+from wultlibs import _DeployPyHelpers
 
-_HELPERS_LOCAL_DIR = Path(".local")
 _DRV_SRC_SUBPATH = Path("drivers/idle")
-_HELPERS_SRC_SUBPATH = Path("helpers")
 
 _LOG = logging.getLogger()
 
@@ -104,43 +103,6 @@ def get_installed_helper_path(pman, toolname, helper):
 
     return _deployable_not_found(pman, toolname, f"the '{helper}' program", is_helper=True)
 
-def _find_pyhelper_path(pyhelper, deployable=None):
-    """
-    Find and return path to python helper 'pyhelper' on the local system.
-      * pyhelper - the python helper name.
-      * deployable - name of the program to find.
-
-    Note about 'pyhelper' vs 'deployable'. Python helpers may come with additional "deployables".
-    For example, "stc-agent" comes with the 'ipmi-helper' tool that it uses. Here is a usage
-    example.
-      * To find path to the "stc-agent" python helper program, use:
-        _find_pyhelper_path("stc-agent")
-      * To find path to the "ipmi-helper" program which belongs to the "stc-agent" python helper,
-        use:
-        _find_pyhelper_path("stc-agent", deployable="ipmi-helper")
-    """
-
-    if not deployable:
-        deployable = pyhelper
-
-    with LocalProcessManager.LocalProcessManager() as lpman:
-        try:
-            pyhelper_path = lpman.which(deployable)
-        except ErrorNotFound as err1:
-            _LOG.debug(err1)
-
-            try:
-                subpath = _HELPERS_SRC_SUBPATH / pyhelper / deployable
-                descr=f"the '{deployable}' python helper"
-                pyhelper_path = ToolHelpers.find_project_data("wult", subpath, descr=descr)
-            except ErrorNotFound as err2:
-                errmsg = str(err1).capitalize() + "\n" + str(err2).capitalize()
-                raise Error(f"failed to find '{pyhelper}' on the local system.\n{errmsg}") from err2
-
-        pyhelper_path = lpman.abspath(pyhelper_path)
-
-    return pyhelper_path
-
 def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete=None):
     """
     Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
@@ -183,7 +145,8 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
         descr += f""" The drivers are searched for in the following directories (and in the
                      following order) on the local host: {drvsearch}."""
     if cats["shelpers"] or cats["pyhelpers"]:
-        helpersearch = ", ".join([name % str(_HELPERS_SRC_SUBPATH) for name in searchdirs])
+        dirs = [name % str(_DeployPyHelpers.HELPERS_SRC_SUBPATH) for name in searchdirs]
+        helpersearch = ", ".join(dirs)
         helpernames = ", ".join(cats["shelpers"] + cats["pyhelpers"] + cats["bpfhelpers"])
         descr += f"""The {toolname} tool also depends on the following helpers: {helpernames}.
                      These helpers will be compiled on the SUT and deployed to the SUT. The sources
@@ -191,8 +154,9 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
                      order) on the local host: {helpersearch}. By default, helpers are deployed to
                      the path defined by the 'WULT_HELPERSPATH' environment variable. If the
                      variable is not defined, helpers are deployed to
-                     '$HOME/{_HELPERS_LOCAL_DIR}/bin', where '$HOME' is the home directory of user
-                     'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
+                     '$HOME/{_DeployPyHelpers.HELPERS_LOCAL_DIR}/bin', where '$HOME' is the home
+                     directory of user 'USERNAME' on host 'HOST' (see '--host' and '--username'
+                     options)."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
 
     if cats["drivers"] or cats["bpfhelpers"]:
@@ -455,8 +419,8 @@ class DeployCheck(_DeployBase):
 
             try:
                 descr=f"the '{helpername}' helper program"
-                srcpath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / helpername,
-                                                        descr=descr)
+                subpath = _DeployPyHelpers.HELPERS_SRC_SUBPATH / helpername
+                srcpath = ToolHelpers.find_project_data("wult", subpath, descr)
             except ErrorNotFound:
                 srcpath = None
 
@@ -476,8 +440,8 @@ class DeployCheck(_DeployBase):
         for pyhelper in self._cats["pyhelpers"]:
             try:
                 descr=f"the '{pyhelper}' python helper program"
-                srcpath = ToolHelpers.find_project_data("wult", _HELPERS_SRC_SUBPATH / pyhelper,
-                                                         descr)
+                subpath = _DeployPyHelpers.HELPERS_SRC_SUBPATH / pyhelper
+                srcpath = ToolHelpers.find_project_data("wult", subpath, descr)
             except ErrorNotFound:
                 continue
 
@@ -772,7 +736,7 @@ class Deploy(_DeployBase):
             _LOG.info("Building a stand-alone version of '%s'", pyhelper)
             basedir = ctmpdir / pyhelper
             for deployable in self._get_deployables("pyhelpers"):
-                local_path = _find_pyhelper_path(pyhelper, deployable=deployable)
+                local_path = _DeployPyHelpers.find_pyhelper_path(pyhelper, deployable)
                 self._create_standalone_pyhelper(local_path, basedir)
 
         # And copy the "standalone-ized" version of python helpers to the SUT.
@@ -974,7 +938,7 @@ class Deploy(_DeployBase):
 
         helpers_path = os.environ.get("WULT_HELPERSPATH")
         if not helpers_path:
-            helpers_path = self._spman.get_homedir() / _HELPERS_LOCAL_DIR / "bin"
+            helpers_path = self._spman.get_homedir() / _DeployPyHelpers.HELPERS_LOCAL_DIR / "bin"
         return Path(helpers_path)
 
     def _deploy_helpers(self):
@@ -986,7 +950,7 @@ class Deploy(_DeployBase):
             return
 
         # We assume all helpers are in the same base directory.
-        helper_path = _HELPERS_SRC_SUBPATH/f"{all_helpers[0]}"
+        helper_path = _DeployPyHelpers.HELPERS_SRC_SUBPATH/f"{all_helpers[0]}"
         helpersrc = ToolHelpers.find_project_data("wult", helper_path,
                                                   descr=f"{self._toolname} helper sources")
         helpersrc = helpersrc.parent
