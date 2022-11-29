@@ -74,7 +74,7 @@ class DeployPyHelpers:
             stdout, _ = lpman.run_verify(cmd)
         return [Path(path) for path in stdout.splitlines()]
 
-    def create_standalone_pyhelper(self, pyhelper_path, outdir):
+    def _create_standalone_pyhelper(self, pyhelper_path, outdir):
         """
         Create a standalone version of a python program. The arguments are as follows.
           * pyhelper_path - path to the python helper program on the local system. This method will
@@ -180,6 +180,45 @@ class DeployPyHelpers:
             raise Error(f"cannot change '{standalone_path}' file mode to {oct(mode)}:\n"
                         f"{msg}") from err
 
-    def __init__(self):
-        """Class constructor."""
-        return
+    def prepare_pyhelpers(self, helpersrc, pyhelpers, deployables, ctmpdir):
+        """
+        Build and prepare python helpers for deployment. The arguments are as follows:
+          * helpersrc - path to the helpers base directory on the controller.
+          * pyhelpers - the names of Python helpers to deploy.
+          * deployables - the names of deployables to deploy.
+          * ctmpdir - the path of a temporary directory on the controller.
+        """
+
+        # Copy python helpers to the temporary directory on the controller.
+        for pyhelper in pyhelpers:
+            srcdir = helpersrc / pyhelper
+            _LOG.debug("copying python helper %s:\n  '%s' -> '%s'", pyhelper, srcdir, ctmpdir)
+            self._cpman.rsync(srcdir, ctmpdir, remotesrc=False, remotedst=False)
+
+        # Build stand-alone version of every python helper.
+        for pyhelper in pyhelpers:
+            _LOG.info("Building a stand-alone version of '%s'", pyhelper)
+            basedir = ctmpdir / pyhelper
+            for deployable in deployables:
+                local_path = find_pyhelper_path(pyhelper, deployable)
+                self._create_standalone_pyhelper(local_path, basedir)
+
+        # And copy the "standalone-ized" version of python helpers to the SUT.
+        if self._spman.is_remote:
+            for pyhelper in pyhelpers:
+                srcdir = ctmpdir / pyhelper
+                _LOG.debug("copying python helper '%s' to %s:\n  '%s' -> '%s'",
+                           pyhelper, self._spman.hostname, srcdir, self._stmpdir)
+                self._spman.rsync(srcdir, self._stmpdir, remotesrc=False, remotedst=True)
+
+    def __init__(self, cpman, spman, stmpdir):
+        """
+        Class constructor. Arguments are as follows:
+         * cpman - process manager associated with the controller (local host).
+         * spman - process manager associated with the SUT.
+         * stmpdir - a path to a temporary directory on the SUT.
+        """
+
+        self._cpman = cpman
+        self._spman = spman
+        self._stmpdir = stmpdir

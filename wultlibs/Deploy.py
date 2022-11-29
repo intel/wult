@@ -597,38 +597,6 @@ class Deploy(_DeployBase):
             stdout, stderr = self._bpman.run_verify(f"make -C '{helperpath}'")
             self._log_cmd_output(stdout, stderr)
 
-    def _prepare_pyhelpers(self, helpersrc, pyhelpers, deployables, ctmpdir):
-        """
-        Build and prepare python helpers for deployment. The arguments are as follows:
-          * helpersrc - path to the helpers base directory on the controller.
-          * pyhelpers - the names of Python helpers to deploy.
-          * deployables - the names of deployables to deploy.
-          * ctmpdir - the path of a temporary directory on the controller.
-        """
-
-        # Copy python helpers to the temporary directory on the controller.
-        for pyhelper in pyhelpers:
-            srcdir = helpersrc / pyhelper
-            _LOG.debug("copying python helper %s:\n  '%s' -> '%s'", pyhelper, srcdir, ctmpdir)
-            self._cpman.rsync(srcdir, ctmpdir, remotesrc=False, remotedst=False)
-
-        # Build stand-alone version of every python helper.
-        for pyhelper in pyhelpers:
-            _LOG.info("Building a stand-alone version of '%s'", pyhelper)
-            basedir = ctmpdir / pyhelper
-            for deployable in deployables:
-                local_path = _DeployPyHelpers.find_pyhelper_path(pyhelper, deployable)
-                deploy_pyhelpers = _DeployPyHelpers.DeployPyHelpers()
-                deploy_pyhelpers.create_standalone_pyhelper(local_path, basedir)
-
-        # And copy the "standalone-ized" version of python helpers to the SUT.
-        if self._spman.is_remote:
-            for pyhelper in pyhelpers:
-                srcdir = ctmpdir / pyhelper
-                _LOG.debug("copying python helper '%s' to %s:\n  '%s' -> '%s'",
-                           pyhelper, self._spman.hostname, srcdir, self._stmpdir)
-                self._spman.rsync(srcdir, self._stmpdir, remotesrc=False, remotedst=True)
-
     def _check_for_shared_library(self, soname):
         """
         Check if a shared library 'soname' is available on the build host. Returns if it is
@@ -849,8 +817,9 @@ class Deploy(_DeployBase):
         if self._cats["shelpers"]:
             self._prepare_shelpers(helpersrc)
         if self._cats["pyhelpers"]:
-            self._prepare_pyhelpers(helpersrc, self._cats["pyhelpers"],
-                                    self._get_deployables("pyhelpers"), self._get_ctmpdir())
+            dep_pyhelper = _DeployPyHelpers.DeployPyHelpers(self._cpman, self._spman, self._stmpdir)
+            dep_pyhelper.prepare_pyhelpers(helpersrc, self._cats["pyhelpers"],
+                                           self._get_deployables("pyhelpers"), self._get_ctmpdir())
         if self._cats["bpfhelpers"]:
             self._prepare_bpfhelpers(helpersrc)
 
