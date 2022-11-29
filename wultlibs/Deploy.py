@@ -332,7 +332,7 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
 
 class DeployCheck(_DeployBase):
     """
-    This module provides the 'check_deployment()' method which can be used for verifying whether all
+    This class provides the 'check_deployment()' method which can be used for verifying whether all
     the required installables are available on the SUT.
     """
 
