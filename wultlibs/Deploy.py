@@ -610,7 +610,7 @@ class Deploy(_DeployBase):
         if self._cats["shelpers"]:
             dep_shelper = _DeploySHelpers.DeploySHelpers(self._bpman, self._btmpdir,
                                                          self._log_cmd_output)
-            dep_shelper.prepare_shelpers(helpersrc, self._cats["shelpers"])
+            dep_shelper.prepare(helpersrc, self._cats["shelpers"])
         if self._cats["pyhelpers"]:
             dep_pyhelper = _DeployPyHelpers.DeployPyHelpers(self._cpman, self._spman,
                                                             self._get_ctmpdir(),
