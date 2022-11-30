@@ -565,4 +565,6 @@ class BatchConfig(ClassHelpers.SimpleCloseContext):
 
     def close(self):
         """Uninitialize the class objetc."""
-        ClassHelpers.close(self, close_attrs=("_tool", "_configurator", "_lpman"))
+
+        close_attrs = ("_pepc_formatter", "_wl_formatter", "_pman", "_lpman")
+        ClassHelpers.close(self, close_attrs=close_attrs)
