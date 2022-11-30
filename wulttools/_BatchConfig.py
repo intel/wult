@@ -14,6 +14,7 @@ A helper module for the 'exercise-sut' tool to configure target system with vari
 permutations.
 """
 
+import os
 import sys
 import logging
 import itertools
@@ -579,3 +580,117 @@ class BatchConfig(_CmdlineRunner):
     def close(self):
         """Uninitialize the class objetc."""
         ClassHelpers.close(self, close_attrs=("_pepc_formatter", "_pman"))
+
+class BatchReport(_CmdlineRunner):
+    """Helper class for 'exercise-sut' tool to create reports for series of results."""
+
+    def _get_result_paths(self, searchpaths): # pylint: disable=no-self-use
+        """Find all result paths in list of paths 'searchpaths'. Returns single list of paths."""
+
+        for searchpath in searchpaths:
+            for respath in os.scandir(searchpath):
+                if respath.is_dir():
+                    yield Path(respath.path)
+
+    def _get_grouped_paths(self, searchpaths, diff_monikers, include_monikers, exclude_monikers):
+        """
+        Find results from paths 'searchpaths'. Group results according to arguments:
+          * diff_monikers - List of monikers to group results with.
+          * include - List of monikers that must be found from the result path name.
+          * exclude - List of monikers that must not be found from the result path name.
+
+        Returns dictionary with common directory name as key and list matching paths as values.
+        """
+
+        groups = {}
+        for respath in self._get_result_paths(searchpaths):
+            path_monikers = respath.name.split("-")
+
+            if include_monikers and not include_monikers.issubset(set(path_monikers)):
+                continue
+
+            if exclude_monikers and exclude_monikers.intersection(set(path_monikers)):
+                continue
+
+            for moniker in path_monikers:
+                if moniker in diff_monikers:
+                    path_monikers.remove(moniker)
+
+            outpath = Path("-vs-".join(diff_monikers))
+
+            outpath = outpath / "-".join(path_monikers)
+            if outpath not in groups:
+                groups[outpath] = []
+
+            groups[outpath].append(respath)
+
+        return groups
+
+    def group_results(self, searchpaths, diff=None, include=None, exclude=None):
+        """
+        Find results from paths 'searchpaths'. Group results according to arguments:
+          * diff - Comma-separated list of monikers to group results with.
+          * include - Comma-separated list of monikers that must be found from the result path name.
+          * exclude - Comma-separated list of monikers that must not be found from the result path
+                      name.
+
+        Yields tuple with common directory name as key and list of paths matching to the rules as
+        value.
+        """
+
+        diff_monikers = []
+        include_monikers = None
+        exclude_monikers = None
+
+        if diff:
+            diff_monikers = Trivial.split_csv_line(diff)
+
+        if include:
+            include_monikers = set(Trivial.split_csv_line(include))
+
+        if exclude:
+            exclude_monikers = set(Trivial.split_csv_line(exclude))
+
+        grouped_paths = self._get_grouped_paths(searchpaths, diff_monikers, include_monikers,
+                                                exclude_monikers)
+
+        def _get_path_sortkey(path):
+            """Method for sorting paths according to diff monikers."""
+
+            path_monikers = path.name.split("-")
+            for moniker in diff_monikers:
+                if moniker in path_monikers:
+                    return diff_monikers.index(moniker)
+
+            return len(diff_monikers)
+
+        for outpath, paths in grouped_paths.items():
+            paths.sort(key=_get_path_sortkey)
+
+            yield outpath, paths
+
+    def generate_report(self, respaths, outpath):
+        """Generate the report for list of results in 'respaths', store the report to 'outpath'."""
+
+        if outpath.exists():
+            _LOG.warning("path '%s' exists, skip generating report", outpath)
+            return
+
+        cmd = f"nice -n19 ionice -c3 {self._toolpath} report "
+
+        if self._toolopts:
+            cmd += f"{self._toolopts} "
+
+        res_str = " ".join([str(path) for path in respaths])
+        cmd += f"{res_str} -o {outpath}"
+
+        self._run_command(cmd)
+
+    def __init__(self, toolpath, outpath, toolopts=None, dry_run=False, stop_on_failure=False):
+        """The class constructor."""
+
+        self._toolpath = toolpath
+        self._outpath = outpath
+        self._toolopts = toolopts
+
+        super().__init__(dry_run=dry_run, stop_on_failure=stop_on_failure)
