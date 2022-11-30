@@ -132,7 +132,7 @@ class DeployBPFHelpers:
         raise ErrorNotFound(f"{msg}\nCompiled 'libbpf.a', but it was still not found in " \
                             f"'{path}'{self._bpman.hostmsg}")
 
-    def prepare_bpfhelpers(self, helpersrc, bpfhelpers):
+    def prepare(self, helpersrc, bpfhelpers):
         """
         Build and prepare eBPF helpers for deployment. The arguments are as follows:
           * helpersrc - path to the helpers base directory on the controller.

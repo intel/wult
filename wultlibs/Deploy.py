@@ -621,7 +621,7 @@ class Deploy(_DeployBase):
                                                                self._tchk, self._get_ksrc(),
                                                                self._log_cmd_output, self._lbuild,
                                                                self._rebuild_bpf)
-            dep_bpfhelper.prepare_bpfhelpers(helpersrc, self._cats["bpfhelpers"])
+            dep_bpfhelper.prepare(helpersrc, self._cats["bpfhelpers"])
 
         deploy_path = self._get_helpers_deploy_path()
 
