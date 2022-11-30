@@ -611,9 +611,11 @@ class Deploy(_DeployBase):
             dep_shelper = _DeploySHelpers.DeploySHelpers(self._bpman, self._btmpdir)
             dep_shelper.prepare_shelpers(helpersrc, self._cats["shelpers"], self._log_cmd_output)
         if self._cats["pyhelpers"]:
-            dep_pyhelper = _DeployPyHelpers.DeployPyHelpers(self._cpman, self._spman, self._stmpdir)
-            dep_pyhelper.prepare_pyhelpers(helpersrc, self._cats["pyhelpers"],
-                                           self._get_deployables("pyhelpers"), self._get_ctmpdir())
+            dep_pyhelper = _DeployPyHelpers.DeployPyHelpers(self._cpman, self._spman,
+                                                            self._get_ctmpdir(),
+                                                            self._get_stmpdir(),
+                                                            self._get_deployables("pyhelpers"))
+            dep_pyhelper.prepare_pyhelpers(helpersrc, self._cats["pyhelpers"])
         if self._cats["bpfhelpers"]:
             dep_bpfhelper = _DeployBPFHelpers.DeployBPFHelpers(self._bpman, self._btmpdir,
                                                                self._tchk, self._get_ksrc())

@@ -180,45 +180,47 @@ class DeployPyHelpers:
             raise Error(f"cannot change '{standalone_path}' file mode to {oct(mode)}:\n"
                         f"{msg}") from err
 
-    def prepare_pyhelpers(self, helpersrc, pyhelpers, deployables, ctmpdir):
+    def prepare_pyhelpers(self, helpersrc, pyhelpers):
         """
         Build and prepare python helpers for deployment. The arguments are as follows:
           * helpersrc - path to the helpers base directory on the controller.
           * pyhelpers - the names of Python helpers to deploy.
-          * deployables - the names of deployables to deploy.
-          * ctmpdir - the path of a temporary directory on the controller.
         """
 
         # Copy python helpers to the temporary directory on the controller.
         for pyhelper in pyhelpers:
             srcdir = helpersrc / pyhelper
-            _LOG.debug("copying python helper %s:\n  '%s' -> '%s'", pyhelper, srcdir, ctmpdir)
-            self._cpman.rsync(srcdir, ctmpdir, remotesrc=False, remotedst=False)
+            _LOG.debug("copying python helper %s:\n  '%s' -> '%s'", pyhelper, srcdir, self._ctmpdir)
+            self._cpman.rsync(srcdir, self._ctmpdir, remotesrc=False, remotedst=False)
 
         # Build stand-alone version of every python helper.
         for pyhelper in pyhelpers:
             _LOG.info("Building a stand-alone version of '%s'", pyhelper)
-            basedir = ctmpdir / pyhelper
-            for deployable in deployables:
+            basedir = self._ctmpdir / pyhelper
+            for deployable in self._deployables:
                 local_path = find_pyhelper_path(pyhelper, deployable)
                 self._create_standalone_pyhelper(local_path, basedir)
 
         # And copy the "standalone-ized" version of python helpers to the SUT.
         if self._spman.is_remote:
             for pyhelper in pyhelpers:
-                srcdir = ctmpdir / pyhelper
+                srcdir = self._ctmpdir / pyhelper
                 _LOG.debug("copying python helper '%s' to %s:\n  '%s' -> '%s'",
                            pyhelper, self._spman.hostname, srcdir, self._stmpdir)
                 self._spman.rsync(srcdir, self._stmpdir, remotesrc=False, remotedst=True)
 
-    def __init__(self, cpman, spman, stmpdir):
+    def __init__(self, cpman, spman, ctmpdir, stmpdir, deployables):
         """
         Class constructor. Arguments are as follows:
          * cpman - process manager associated with the controller (local host).
          * spman - process manager associated with the SUT.
+         * ctmpdir - a path to a temporary directory on the controller.
          * stmpdir - a path to a temporary directory on the SUT.
+         * deployables - the names of deployables to deploy.
         """
 
         self._cpman = cpman
         self._spman = spman
+        self._ctmpdir = ctmpdir
         self._stmpdir = stmpdir
+        self._deployables = deployables
