@@ -25,13 +25,13 @@ from pepclibs.helperlibs import ArgParse, Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wulttools import _BatchConfig
 
-OWN_NAME = "exercise-sut"
-VERSION = "1.0.0"
+_OWN_NAME = "exercise-sut"
+_VERSION = "1.0.0"
 
-Logging.setup_logger(prefix=OWN_NAME)
-LOG = logging.getLogger()
+Logging.setup_logger(prefix=_OWN_NAME)
+_LOG = logging.getLogger()
 
-RESET_PROPS = {
+_RESET_PROPS = {
     "online" : {
         "value" : "all",
         "text" : "online all CPUs"},
@@ -67,17 +67,17 @@ RESET_PROPS = {
         "text" : "set EPB policy to 'balance_performance'"},
 }
 
-reset_actions_text = ", ".join([pinfo["text"] for pinfo in RESET_PROPS.values()])
+reset_actions_text = ", ".join([pinfo["text"] for pinfo in _RESET_PROPS.values()])
 
 def _get_reset_val(pname):
     """Return reset value for property 'pname'. If it doesn't exist, return strint 'don't care'."""
 
-    if pname in RESET_PROPS:
-        return RESET_PROPS[pname]["value"]
+    if pname in _RESET_PROPS:
+        return _RESET_PROPS[pname]["value"]
 
     return "don't care"
 
-CMDLINE_OPTIONS = {
+_CMDLINE_OPTIONS = {
     "datapoints" : {
         "short" : "-c",
         "default" : 100000,
@@ -190,14 +190,14 @@ CMDLINE_OPTIONS = {
 def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
-    text = f"{OWN_NAME} - Run a test tool or benchmark to collect testdata."
-    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=OWN_NAME, ver=VERSION)
+    text = f"{_OWN_NAME} - Run a test tool or benchmark to collect testdata."
+    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=_OWN_NAME, ver=_VERSION)
     ArgParse.add_ssh_options(parser)
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
 
-    for name, kwargs in CMDLINE_OPTIONS.items():
+    for name, kwargs in _CMDLINE_OPTIONS.items():
         opt_names = [f"--{name.replace('_', '-')}"]
         if "short" in kwargs:
             opt_names += [kwargs.pop("short")]
@@ -214,7 +214,7 @@ def parse_arguments():
     parser = _build_arguments_parser()
     return parser.parse_args()
 
-def exercise_sut(args):
+def _exercise_sut(args):
     """Exercise SUT and run workload for each requested system configuration."""
 
     inprops = {}
@@ -227,30 +227,30 @@ def exercise_sut(args):
     with _BatchConfig.BatchConfig(args) as batchconfig:
         if args.deploy:
             batchconfig.deploy()
-            LOG.info("")
+            _LOG.info("")
 
         if args.state_reset:
-            reset_props = {pname : pinfo["value"] for pname, pinfo in RESET_PROPS.items()}
+            reset_props = {pname : pinfo["value"] for pname, pinfo in _RESET_PROPS.items()}
             batchconfig.configure(reset_props)
 
         for props in batchconfig.get_props_batch(inprops):
-            LOG.notice(f"Measuring with properties: {batchconfig.props_to_str(props)}")
+            _LOG.notice(f"Measuring with properties: {batchconfig.props_to_str(props)}")
 
             batchconfig.configure(props)
             batchconfig.run(props)
-            LOG.info("")
+            _LOG.info("")
 
 def main():
     """Script entry point."""
 
     try:
         args = parse_arguments()
-        exercise_sut(args)
+        _exercise_sut(args)
     except KeyboardInterrupt:
-        LOG.info("\nInterrupted, exiting")
+        _LOG.info("\nInterrupted, exiting")
         return -1
     except Error as err:
-        LOG.error(err)
+        _LOG.error(err)
         return -1
 
     return 0
