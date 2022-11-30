@@ -692,21 +692,26 @@ class Deploy(_DeployBase):
         raise ErrorNotFound(f"{msg}\nCompiled 'libbpf.a', but it was still not found in " \
                             f"'{path}'{self._bpman.hostmsg}")
 
-    def _prepare_bpfhelpers(self, helpersrc):
+    def _prepare_bpfhelpers(self, helpersrc, bpfhelpers, log_cmd_func, lbuild, rebuild_bpf):
         """
         Build and prepare eBPF helpers for deployment. The arguments are as follows:
           * helpersrc - path to the helpers base directory on the controller.
+          * bpfhelpers - bpf helpers to deploy.
+          * log_cmd_func - a function with signature 'log_cmd_func(stdout, stderr)' which will log
+                           stdout and stderr accordingly.
+          * lbuild - boolean value representing whether this method should build locally.
+          * rebuild_src - boolean value representing whether this method should rebuild bpf helpers.
         """
 
         # Copy eBPF helpers to the temporary directory on the build host.
-        for bpfhelper in self._cats["bpfhelpers"]:
-            srcdir = helpersrc/ bpfhelper
+        for bpfhelper in bpfhelpers:
+            srcdir = helpersrc / bpfhelper
             _LOG.debug("copying eBPF helper '%s' to %s:\n  '%s' -> '%s'",
                        bpfhelper, self._bpman.hostname, srcdir, self._btmpdir)
             self._bpman.rsync(srcdir, self._btmpdir, remotesrc=False,
                               remotedst=self._bpman.is_remote)
 
-        if self._rebuild_bpf:
+        if rebuild_bpf:
             ksrc = self._get_ksrc()
 
             # In order to compile the eBPF components of eBPF helpers, the build host must have
@@ -731,15 +736,15 @@ class Deploy(_DeployBase):
             bpf_inc = "-I " + " -I ".join([str(incdir) for incdir in incdirs])
 
             # Build the eBPF components of eBPF helpers.
-            for bpfhelper in self._cats["bpfhelpers"]:
+            for bpfhelper in bpfhelpers:
                 _LOG.info("Compiling the eBPF component of '%s'%s", bpfhelper, self._bpman.hostmsg)
                 cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{ksrc}' CLANG='{clang_path}' " \
                       f"BPFTOOL='{bpftool_path}' BPF_INC='{bpf_inc}' bpf"
                 stdout, stderr = self._bpman.run_verify(cmd)
-                self._log_cmd_output(stdout, stderr)
+                log_cmd_func(stdout, stderr)
 
         libbpf_path, u_inc = None, None
-        if self._lbuild:
+        if lbuild:
             # We are building on a local system for a remote host. Everything should come from
             # kernel sources in this case: 'libbpf.a' and 'bpf/bpf.h'.
             libbpf_path = self._find_or_build_libbpf_a_from_ksrc()
@@ -752,7 +757,7 @@ class Deploy(_DeployBase):
             self._check_for_shared_library("bpf")
 
         # Build eBPF helpers.
-        for bpfhelper in self._cats["bpfhelpers"]:
+        for bpfhelper in bpfhelpers:
             _LOG.info("Compiling eBPF helper '%s'%s", bpfhelper, self._bpman.hostmsg)
             cmd = f"make -C '{self._btmpdir}/{bpfhelper}'"
             if libbpf_path:
@@ -760,7 +765,7 @@ class Deploy(_DeployBase):
                 # linker flags, because 'libbpf.a' requires them.
                 cmd += f" LIBBPF='{libbpf_path}' U_INC='{u_inc}' LDFLAGS='-lz -lelf'"
             stdout, stderr = self._bpman.run_verify(cmd)
-            self._log_cmd_output(stdout, stderr)
+            log_cmd_func(stdout, stderr)
 
     def _get_helpers_deploy_path(self):
         """Returns path the directory the helpers should be deployed to."""
@@ -801,7 +806,8 @@ class Deploy(_DeployBase):
             dep_pyhelper.prepare_pyhelpers(helpersrc, self._cats["pyhelpers"],
                                            self._get_deployables("pyhelpers"), self._get_ctmpdir())
         if self._cats["bpfhelpers"]:
-            self._prepare_bpfhelpers(helpersrc)
+            self._prepare_bpfhelpers(helpersrc, self._cats["bpfhelpers"], self._log_cmd_output,
+                                     self._tchk, self._get_ksrc())
 
         deploy_path = self._get_helpers_deploy_path()
 
