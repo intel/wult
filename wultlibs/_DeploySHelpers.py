@@ -16,13 +16,11 @@ _LOG = logging.getLogger()
 class DeploySHelpers:
     """This class provides the API for deploying simple helpers."""
 
-    def prepare_shelpers(self, helpersrc, shelpers, log_cmd_func):
+    def prepare_shelpers(self, helpersrc, shelpers):
         """
         Build and prepare simple helpers for deployment. The arguments are as follows:
           * helpersrc - path to the helpers base directory on the controller.
           * shelpers - simple helpers to build and prepare for deployment.
-          * log_cmd_func - a function with signature 'log_cmd_func(stdout, stderr)' which will log
-                           stdout and stderr accordingly.
         """
 
         # Copy simple helpers to the temporary directory on the build host.
@@ -38,14 +36,17 @@ class DeploySHelpers:
             _LOG.info("Compiling simple helper '%s'%s", shelper, self._bpman.hostmsg)
             helperpath = f"{self._btmpdir}/{shelper}"
             stdout, stderr = self._bpman.run_verify(f"make -C '{helperpath}'")
-            log_cmd_func(stdout, stderr)
+            self._log_cmd_outdir(stdout, stderr)
 
-    def __init__(self, bpman, btmpdir):
+    def __init__(self, bpman, btmpdir, log_cmd_func):
         """
         Class constructor. Arguments are as follows:
          * cpman - process manager associated with the controller (local host).
          * stmpdir - a path to a temporary directory on the SUT.
+         * log_cmd_func - a function with signature 'log_cmd_func(stdout, stderr)' which will log
+                          stdout and stderr accordingly.
         """
 
         self._bpman = bpman
         self._btmpdir = btmpdir
+        self._log_cmd_outdir = log_cmd_func
