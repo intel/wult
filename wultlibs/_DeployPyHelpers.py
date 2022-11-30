@@ -180,7 +180,7 @@ class DeployPyHelpers:
             raise Error(f"cannot change '{standalone_path}' file mode to {oct(mode)}:\n"
                         f"{msg}") from err
 
-    def prepare_pyhelpers(self, helpersrc, pyhelpers):
+    def prepare(self, helpersrc, pyhelpers):
         """
         Build and prepare python helpers for deployment. The arguments are as follows:
           * helpersrc - path to the helpers base directory on the controller.
