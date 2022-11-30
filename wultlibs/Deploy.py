@@ -38,7 +38,7 @@ from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists, ErrorNotSupported
 from statscollectlibs.helperlibs import ToolHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
-from wultlibs import _DeployPyHelpers
+from wultlibs import _DeployPyHelpers, _DeploySHelpers
 
 _DRV_SRC_SUBPATH = Path("drivers/idle")
 
@@ -576,30 +576,6 @@ class Deploy(_DeployBase):
         _LOG.debug("Kernel sources path: %s", self._ksrc)
         return self._ksrc
 
-    def _prepare_shelpers(self, helpersrc, shelpers, log_cmd_func):
-        """
-        Build and prepare simple helpers for deployment. The arguments are as follows:
-          * helpersrc - path to the helpers base directory on the controller.
-          * shelpers - simple helpers to build and prepare for deployment.
-          * log_cmd_func - a function with signature 'log_cmd_func(stdout, stderr)' which will log
-                           stdout and stderr accordingly.
-        """
-
-        # Copy simple helpers to the temporary directory on the build host.
-        for shelper in shelpers:
-            srcdir = helpersrc/ shelper
-            _LOG.debug("copying simple helper '%s' to %s:\n  '%s' -> '%s'",
-                       shelper, self._bpman.hostname, srcdir, self._btmpdir)
-            self._bpman.rsync(srcdir, self._btmpdir, remotesrc=False,
-                              remotedst=self._bpman.is_remote)
-
-        # Build simple helpers.
-        for shelper in shelpers:
-            _LOG.info("Compiling simple helper '%s'%s", shelper, self._bpman.hostmsg)
-            helperpath = f"{self._btmpdir}/{shelper}"
-            stdout, stderr = self._bpman.run_verify(f"make -C '{helperpath}'")
-            log_cmd_func(stdout, stderr)
-
     def _check_for_shared_library(self, soname):
         """
         Check if a shared library 'soname' is available on the build host. Returns if it is
@@ -818,7 +794,8 @@ class Deploy(_DeployBase):
                 raise Error(f"path '{helperdir}' does not exist or it is not a directory")
 
         if self._cats["shelpers"]:
-            self._prepare_shelpers(helpersrc, self._cats["shelpers"], self._log_cmd_output)
+            dep_shelper = _DeploySHelpers.DeploySHelpers(self._bpman, self._btmpdir)
+            dep_shelper.prepare_shelpers(helpersrc, self._cats["shelpers"], self._log_cmd_output)
         if self._cats["pyhelpers"]:
             dep_pyhelper = _DeployPyHelpers.DeployPyHelpers(self._cpman, self._spman, self._stmpdir)
             dep_pyhelper.prepare_pyhelpers(helpersrc, self._cats["pyhelpers"],
