@@ -471,11 +471,8 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         self._datapoints = args.datapoints
         self._hostname = args.hostname
 
-class BatchConfig(ClassHelpers.SimpleCloseContext):
-    """
-    Helper class for 'exercise-sut' tool to configure and exercise SUT with different system
-    configuration permutations.
-    """
+class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
+    """Helper class for running commandline commands."""
 
     def _get_lpman(self):
         """Return 'LocalProcessManager' object."""
@@ -505,6 +502,23 @@ class BatchConfig(ClassHelpers.SimpleCloseContext):
                 _LOG.error_out(msg)
 
             _LOG.error(msg)
+
+    def __init__(self, dry_run=False, stop_on_failure=False):
+        """The class constructor."""
+
+        self._dry_run = dry_run
+        self._stop_on_failure = stop_on_failure
+        self._lpman = None
+
+    def close(self):
+        """Uninitialize the class objetc."""
+        ClassHelpers.close(self, close_attrs=("_lpman"))
+
+class BatchConfig(_CmdlineRunner):
+    """
+    Helper class for 'exercise-sut' tool to configure and exercise SUT with different system
+    configuration permutations.
+    """
 
     def deploy(self):
         """Deploy 'wult' to the SUT."""
@@ -551,24 +565,17 @@ class BatchConfig(ClassHelpers.SimpleCloseContext):
     def __init__(self, args):
         """The class constructor."""
 
+        super().__init__(dry_run=args.dry_run, stop_on_failure=args.stop_on_failure)
+
         self._pman = None
-        self._dry_run = False
-        self._stop_on_failure = False
         self._wl_formatter = None
         self._pepc_formatter = None
-        self._lpman = None
 
         self._pman = ToolsCommon.get_pman(args)
-
-        self._dry_run = args.dry_run
-        self._stop_on_failure = args.stop_on_failure
-
         self._pepc_formatter = _PepcCmdFormatter(self._pman, args.only_measured_cpu,
                                                  args.only_one_cstate, args.cpunum)
         self._wl_formatter = _get_workload_cmd_formatter(args)
 
     def close(self):
         """Uninitialize the class objetc."""
-
-        close_attrs = ("_pepc_formatter", "_pman", "_lpman")
-        ClassHelpers.close(self, close_attrs=close_attrs)
+        ClassHelpers.close(self, close_attrs=("_pepc_formatter", "_pman"))
