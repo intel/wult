@@ -132,15 +132,11 @@ class DeployBPFHelpers:
         raise ErrorNotFound(f"{msg}\nCompiled 'libbpf.a', but it was still not found in " \
                             f"'{path}'{self._bpman.hostmsg}")
 
-    def prepare_bpfhelpers(self, helpersrc, bpfhelpers, log_cmd_func, lbuild, rebuild_src):
+    def prepare_bpfhelpers(self, helpersrc, bpfhelpers):
         """
         Build and prepare eBPF helpers for deployment. The arguments are as follows:
           * helpersrc - path to the helpers base directory on the controller.
           * bpfhelpers - bpf helpers to deploy.
-          * log_cmd_func - a function with signature 'log_cmd_func(stdout, stderr)' which will log
-                           stdout and stderr accordingly.
-          * lbuild - boolean value representing whether this method should build locally.
-          * rebuild_src - boolean value representing whether this method should rebuild bpf helpers.
         """
 
         # Copy eBPF helpers to the temporary directory on the build host.
@@ -151,7 +147,7 @@ class DeployBPFHelpers:
             self._bpman.rsync(srcdir, self._btmpdir, remotesrc=False,
                               remotedst=self._bpman.is_remote)
 
-        if rebuild_src:
+        if self._rebuild_src:
             # In order to compile the eBPF components of eBPF helpers, the build host must have
             # 'clang' and 'bpftool' available. These tools are used from the 'Makefile'. Let's check
             # for them in order to generate a user-friendly message if one of them is not installed.
@@ -179,10 +175,10 @@ class DeployBPFHelpers:
                 cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{self._ksrc}' " \
                       f"CLANG='{clang_path}' BPFTOOL='{bpftool_path}' BPF_INC='{bpf_inc}' bpf"
                 stdout, stderr = self._bpman.run_verify(cmd)
-                log_cmd_func(stdout, stderr)
+                self._log_cmd_output(stdout, stderr)
 
         libbpf_path, u_inc = None, None
-        if lbuild:
+        if self._lbuild:
             # We are building on a local system for a remote host. Everything should come from
             # kernel sources in this case: 'libbpf.a' and 'bpf/bpf.h'.
             libbpf_path = self._find_or_build_libbpf_a_from_ksrc()
@@ -203,17 +199,24 @@ class DeployBPFHelpers:
                 # linker flags, because 'libbpf.a' requires them.
                 cmd += f" LIBBPF='{libbpf_path}' U_INC='{u_inc}' LDFLAGS='-lz -lelf'"
             stdout, stderr = self._bpman.run_verify(cmd)
-            log_cmd_func(stdout, stderr)
+            self._log_cmd_output(stdout, stderr)
 
-    def __init__(self, bpman, btmpdir, tchk, ksrc):
+    def __init__(self, bpman, btmpdir, tchk, ksrc, log_cmd_func, lbuild, rebuild_src):
         """
         Class constructor. Arguments are as follows:
          * cpman - process manager associated with the controller (local host).
          * stmpdir - a path to a temporary directory on the SUT.
          * tchk - an instance of 'ToolChecker'.
+         * log_cmd_func - a function with signature 'log_cmd_func(stdout, stderr)' which will log
+                          stdout and stderr accordingly.
+         * lbuild - boolean value representing whether this method should build locally.
+         * rebuild_src - boolean value representing whether this method should rebuild bpf helpers.
         """
 
         self._bpman = bpman
         self._btmpdir = btmpdir
         self._tchk = tchk
         self._ksrc = ksrc
+        self._log_cmd_output = log_cmd_func
+        self._lbuild = lbuild
+        self._rebuild_src = rebuild_src

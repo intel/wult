@@ -618,9 +618,10 @@ class Deploy(_DeployBase):
             dep_pyhelper.prepare(helpersrc, self._cats["pyhelpers"])
         if self._cats["bpfhelpers"]:
             dep_bpfhelper = _DeployBPFHelpers.DeployBPFHelpers(self._bpman, self._btmpdir,
-                                                               self._tchk, self._get_ksrc())
-            dep_bpfhelper.prepare_bpfhelpers(helpersrc, self._cats["bpfhelpers"],
-                                             self._log_cmd_output, self._tchk, self._get_ksrc())
+                                                               self._tchk, self._get_ksrc(),
+                                                               self._log_cmd_output, self._lbuild,
+                                                               self._rebuild_bpf)
+            dep_bpfhelper.prepare_bpfhelpers(helpersrc, self._cats["bpfhelpers"])
 
         deploy_path = self._get_helpers_deploy_path()
 
