@@ -10,21 +10,22 @@
 """This module provides the API for deploying simple helpers."""
 
 import logging
+from wultlibs import _DeployHelpersBase
 
 _LOG = logging.getLogger()
 
-class DeploySHelpers:
+class DeploySHelpers(_DeployHelpersBase.DeployHelpersBase):
     """This class provides the API for deploying simple helpers."""
 
-    def prepare(self, helpersrc, shelpers):
+    def prepare(self, helpersrc, helpers):
         """
         Build and prepare simple helpers for deployment. The arguments are as follows:
           * helpersrc - path to the helpers base directory on the controller.
-          * shelpers - simple helpers to build and prepare for deployment.
+          * helpers - simple helpers to build and prepare for deployment.
         """
 
         # Copy simple helpers to the temporary directory on the build host.
-        for shelper in shelpers:
+        for shelper in helpers:
             srcdir = helpersrc/ shelper
             _LOG.debug("copying simple helper '%s' to %s:\n  '%s' -> '%s'",
                        shelper, self._bpman.hostname, srcdir, self._btmpdir)
@@ -32,7 +33,7 @@ class DeploySHelpers:
                               remotedst=self._bpman.is_remote)
 
         # Build simple helpers.
-        for shelper in shelpers:
+        for shelper in helpers:
             _LOG.info("Compiling simple helper '%s'%s", shelper, self._bpman.hostmsg)
             helperpath = f"{self._btmpdir}/{shelper}"
             stdout, stderr = self._bpman.run_verify(f"make -C '{helperpath}'")
@@ -47,6 +48,7 @@ class DeploySHelpers:
                           stdout and stderr accordingly.
         """
 
+        super().__init__()
         self._bpman = bpman
         self._btmpdir = btmpdir
         self._log_cmd_outdir = log_cmd_func

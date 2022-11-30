@@ -14,6 +14,7 @@ from pathlib import Path
 from pepclibs.helperlibs import ClassHelpers, LocalProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.helperlibs import ToolHelpers
+from wultlibs import _DeployHelpersBase
 
 _LOG = logging.getLogger()
 
@@ -57,7 +58,7 @@ def find_pyhelper_path(pyhelper, deployable=None):
 
     return pyhelper_path
 
-class DeployPyHelpers:
+class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
     """This class provides the API for deploying Python helpers."""
 
     @staticmethod
@@ -180,21 +181,21 @@ class DeployPyHelpers:
             raise Error(f"cannot change '{standalone_path}' file mode to {oct(mode)}:\n"
                         f"{msg}") from err
 
-    def prepare(self, helpersrc, pyhelpers):
+    def prepare(self, helpersrc, helpers):
         """
         Build and prepare python helpers for deployment. The arguments are as follows:
           * helpersrc - path to the helpers base directory on the controller.
-          * pyhelpers - the names of Python helpers to deploy.
+          * helpers - the names of Python helpers to deploy.
         """
 
         # Copy python helpers to the temporary directory on the controller.
-        for pyhelper in pyhelpers:
+        for pyhelper in helpers:
             srcdir = helpersrc / pyhelper
             _LOG.debug("copying python helper %s:\n  '%s' -> '%s'", pyhelper, srcdir, self._ctmpdir)
             self._cpman.rsync(srcdir, self._ctmpdir, remotesrc=False, remotedst=False)
 
         # Build stand-alone version of every python helper.
-        for pyhelper in pyhelpers:
+        for pyhelper in helpers:
             _LOG.info("Building a stand-alone version of '%s'", pyhelper)
             basedir = self._ctmpdir / pyhelper
             for deployable in self._deployables:
@@ -203,7 +204,7 @@ class DeployPyHelpers:
 
         # And copy the "standalone-ized" version of python helpers to the SUT.
         if self._spman.is_remote:
-            for pyhelper in pyhelpers:
+            for pyhelper in helpers:
                 srcdir = self._ctmpdir / pyhelper
                 _LOG.debug("copying python helper '%s' to %s:\n  '%s' -> '%s'",
                            pyhelper, self._spman.hostname, srcdir, self._stmpdir)
@@ -219,6 +220,7 @@ class DeployPyHelpers:
          * deployables - the names of deployables to deploy.
         """
 
+        super().__init__()
         self._cpman = cpman
         self._spman = spman
         self._ctmpdir = ctmpdir

@@ -12,10 +12,11 @@
 from pathlib import Path
 import logging
 from pepclibs.helperlibs.Exceptions import ErrorNotFound
+from wultlibs import _DeployHelpersBase
 
 _LOG = logging.getLogger()
 
-class DeployBPFHelpers:
+class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
     """This class provides the API for deploying bpf helpers."""
 
     def _check_for_shared_library(self, soname):
@@ -132,15 +133,15 @@ class DeployBPFHelpers:
         raise ErrorNotFound(f"{msg}\nCompiled 'libbpf.a', but it was still not found in " \
                             f"'{path}'{self._bpman.hostmsg}")
 
-    def prepare(self, helpersrc, bpfhelpers):
+    def prepare(self, helpersrc, helpers):
         """
         Build and prepare eBPF helpers for deployment. The arguments are as follows:
           * helpersrc - path to the helpers base directory on the controller.
-          * bpfhelpers - bpf helpers to deploy.
+          * helpers - bpf helpers to deploy.
         """
 
         # Copy eBPF helpers to the temporary directory on the build host.
-        for bpfhelper in bpfhelpers:
+        for bpfhelper in helpers:
             srcdir = helpersrc / bpfhelper
             _LOG.debug("copying eBPF helper '%s' to %s:\n  '%s' -> '%s'",
                        bpfhelper, self._bpman.hostname, srcdir, self._btmpdir)
@@ -170,7 +171,7 @@ class DeployBPFHelpers:
             bpf_inc = "-I " + " -I ".join([str(incdir) for incdir in incdirs])
 
             # Build the eBPF components of eBPF helpers.
-            for bpfhelper in bpfhelpers:
+            for bpfhelper in helpers:
                 _LOG.info("Compiling the eBPF component of '%s'%s", bpfhelper, self._bpman.hostmsg)
                 cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{self._ksrc}' " \
                       f"CLANG='{clang_path}' BPFTOOL='{bpftool_path}' BPF_INC='{bpf_inc}' bpf"
@@ -191,7 +192,7 @@ class DeployBPFHelpers:
             self._check_for_shared_library("bpf")
 
         # Build eBPF helpers.
-        for bpfhelper in bpfhelpers:
+        for bpfhelper in helpers:
             _LOG.info("Compiling eBPF helper '%s'%s", bpfhelper, self._bpman.hostmsg)
             cmd = f"make -C '{self._btmpdir}/{bpfhelper}'"
             if libbpf_path:
@@ -213,6 +214,7 @@ class DeployBPFHelpers:
          * rebuild_src - boolean value representing whether this method should rebuild bpf helpers.
         """
 
+        super().__init__()
         self._bpman = bpman
         self._btmpdir = btmpdir
         self._tchk = tchk
