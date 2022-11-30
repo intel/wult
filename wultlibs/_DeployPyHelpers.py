@@ -18,9 +18,6 @@ from wultlibs import _DeployHelpersBase
 
 _LOG = logging.getLogger()
 
-HELPERS_LOCAL_DIR = Path(".local")
-HELPERS_SRC_SUBPATH = Path("helpers")
-
 def find_pyhelper_path(pyhelper, deployable=None):
     """
     Find and return path to python helper 'pyhelper' on the local system.
@@ -47,7 +44,7 @@ def find_pyhelper_path(pyhelper, deployable=None):
             _LOG.debug(err1)
 
             try:
-                subpath = HELPERS_SRC_SUBPATH / pyhelper / deployable
+                subpath = _DeployHelpersBase.HELPERS_SRC_SUBPATH / pyhelper / deployable
                 descr=f"the '{deployable}' python helper"
                 pyhelper_path = ToolHelpers.find_project_data("wult", subpath, descr=descr)
             except ErrorNotFound as err2:

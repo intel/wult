@@ -38,7 +38,7 @@ from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists, ErrorNotSupported
 from statscollectlibs.helperlibs import ToolHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
-from wultlibs import _DeployBPFHelpers, _DeployPyHelpers, _DeploySHelpers
+from wultlibs import _DeployBPFHelpers, _DeployHelpersBase, _DeployPyHelpers, _DeploySHelpers
 
 _DRV_SRC_SUBPATH = Path("drivers/idle")
 
@@ -145,7 +145,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
         descr += f""" The drivers are searched for in the following directories (and in the
                      following order) on the local host: {drvsearch}."""
     if cats["shelpers"] or cats["pyhelpers"]:
-        dirs = [name % str(_DeployPyHelpers.HELPERS_SRC_SUBPATH) for name in searchdirs]
+        dirs = [name % str(_DeployHelpersBase.HELPERS_SRC_SUBPATH) for name in searchdirs]
         helpersearch = ", ".join(dirs)
         helpernames = ", ".join(cats["shelpers"] + cats["pyhelpers"] + cats["bpfhelpers"])
         descr += f"""The {toolname} tool also depends on the following helpers: {helpernames}.
@@ -154,7 +154,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
                      order) on the local host: {helpersearch}. By default, helpers are deployed to
                      the path defined by the 'WULT_HELPERSPATH' environment variable. If the
                      variable is not defined, helpers are deployed to
-                     '$HOME/{_DeployPyHelpers.HELPERS_LOCAL_DIR}/bin', where '$HOME' is the home
+                     '$HOME/{_DeployHelpersBase.HELPERS_LOCAL_DIR}/bin', where '$HOME' is the home
                      directory of user 'USERNAME' on host 'HOST' (see '--host' and '--username'
                      options)."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
@@ -419,7 +419,7 @@ class DeployCheck(_DeployBase):
 
             try:
                 descr=f"the '{helpername}' helper program"
-                subpath = _DeployPyHelpers.HELPERS_SRC_SUBPATH / helpername
+                subpath = _DeployHelpersBase.HELPERS_SRC_SUBPATH / helpername
                 srcpath = ToolHelpers.find_project_data("wult", subpath, descr)
             except ErrorNotFound:
                 srcpath = None
@@ -440,7 +440,7 @@ class DeployCheck(_DeployBase):
         for pyhelper in self._cats["pyhelpers"]:
             try:
                 descr=f"the '{pyhelper}' python helper program"
-                subpath = _DeployPyHelpers.HELPERS_SRC_SUBPATH / pyhelper
+                subpath = _DeployHelpersBase.HELPERS_SRC_SUBPATH / pyhelper
                 srcpath = ToolHelpers.find_project_data("wult", subpath, descr)
             except ErrorNotFound:
                 continue
@@ -581,7 +581,7 @@ class Deploy(_DeployBase):
 
         helpers_path = os.environ.get("WULT_HELPERSPATH")
         if not helpers_path:
-            helpers_path = self._spman.get_homedir() / _DeployPyHelpers.HELPERS_LOCAL_DIR / "bin"
+            helpers_path = self._spman.get_homedir() / _DeployHelpersBase.HELPERS_LOCAL_DIR / "bin"
         return Path(helpers_path)
 
     def _deploy_helpers(self):
@@ -593,7 +593,7 @@ class Deploy(_DeployBase):
             return
 
         # We assume all helpers are in the same base directory.
-        helper_path = _DeployPyHelpers.HELPERS_SRC_SUBPATH/f"{all_helpers[0]}"
+        helper_path = _DeployHelpersBase.HELPERS_SRC_SUBPATH/f"{all_helpers[0]}"
         helpersrc = ToolHelpers.find_project_data("wult", helper_path,
                                                   descr=f"{self._toolname} helper sources")
         helpersrc = helpersrc.parent

@@ -8,6 +8,11 @@
 
 """This module provides a base class for deploying helpers."""
 
+from pathlib import Path
+
+HELPERS_LOCAL_DIR = Path(".local")
+HELPERS_SRC_SUBPATH = Path("helpers")
+
 class DeployHelpersBase:
     """This base class can be inherited from to provide the API for deploying helpers."""
 
