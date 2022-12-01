@@ -71,8 +71,8 @@ static void before_idle(struct wult_info *wi)
 	ti->smi_bi = get_smi_count();
 	ti->nmi_bi = per_cpu(irq_stat, wi->cpunum).__nmi_count;
 
-	ti->bi_cyc = rdtsc_ordered();
 	ti->bi_monotonic = ktime_get_ns();
+	ti->bi_cyc = rdtsc_ordered();
 
 	/* Make a snapshot of C-state counters. */
 	wult_cstates_snap_cst(&ti->csinfo, 0);
