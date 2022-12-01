@@ -31,3 +31,17 @@ class DeployHelpersBase:
         """Class constructor."""
 
         return
+
+    def __init__(self, bpman, spman, btmpdir, stmpdir):
+        """
+        Class constructor. Arguments are as follows:
+         * bpman - process manager associated with the build host.
+         * spman - process manager associated with the SUT.
+         * btmpdir - a path to a temporary directory on the build host.
+         * stmpdir - a path to a temporary directory on the SUT.
+        """
+
+        self._bpman = bpman
+        self._spman = spman
+        self._btmpdir = btmpdir
+        self._stmpdir = stmpdir

@@ -39,16 +39,13 @@ class DeploySHelpers(_DeployHelpersBase.DeployHelpersBase):
             stdout, stderr = self._bpman.run_verify(f"make -C '{helperpath}'")
             self._log_cmd_outdir(stdout, stderr)
 
-    def __init__(self, bpman, btmpdir, log_cmd_func):
+    def __init__(self, bpman, spman, btmpdir, stmpdir, log_cmd_func):
         """
-        Class constructor. Arguments are as follows:
-         * cpman - process manager associated with the controller (local host).
-         * stmpdir - a path to a temporary directory on the SUT.
+        Class constructor. Arguments are the same as in '_DeployHelpersBase.DeployHelpersBase()'
+        except for:
          * log_cmd_func - a function with signature 'log_cmd_func(stdout, stderr)' which will log
                           stdout and stderr accordingly.
         """
 
-        super().__init__()
-        self._bpman = bpman
-        self._btmpdir = btmpdir
         self._log_cmd_outdir = log_cmd_func
+        super().__init__(bpman, spman, btmpdir, stmpdir)
