@@ -576,86 +576,37 @@ class Deploy(_DeployBase):
         _LOG.debug("Kernel sources path: %s", self._ksrc)
         return self._ksrc
 
-    def _get_helpers_deploy_path(self):
-        """Returns path the directory the helpers should be deployed to."""
-
-        helpers_path = os.environ.get("WULT_HELPERSPATH")
-        if not helpers_path:
-            helpers_path = self._spman.get_homedir() / _DeployHelpersBase.HELPERS_LOCAL_DIR / "bin"
-        return Path(helpers_path)
-
-    def _deploy_helpers(self, all_helpers, toolname, lbuild, log_cmd_func):
+    def _deploy_helpers(self, toolname, lbuild, log_cmd_func):
         """
         Deploy helpers (including python helpers) to the SUT. Arguments are as follows:
-         * all_helpers - the names of helpers to deploy.
          * toolname - name of the tool which the helpers are supporting.
          * lbuild - boolean value which represents whether to build locally or not.
          * log_cmd_func - a function with signature 'log_cmd_func(stdout, stderr)' which will log
                           stdout and stderr accordingly.
         """
 
-        if not all_helpers:
-            return
+        pyhelpers = self._cats.get("pyhelpers")
+        if pyhelpers:
+            dep_pyhelpers = _DeployPyHelpers.DeployPyHelpers(self._bpman, self._spman, self._cpman,
+                                                             self._btmpdir, self._get_ctmpdir(),
+                                                             self._get_stmpdir(),
+                                                             self._get_deployables("pyhelpers"))
+            dep_pyhelpers.deploy_helpers(list(pyhelpers), toolname, lbuild, log_cmd_func)
 
-        # We assume all helpers are in the same base directory.
-        helper_path = _DeployHelpersBase.HELPERS_SRC_SUBPATH/f"{all_helpers[0]}"
-        helpersrc = ToolHelpers.find_project_data("wult", helper_path,
-                                                  descr=f"{toolname} helper sources")
-        helpersrc = helpersrc.parent
+        shelpers = self._cats.get("shelpers")
+        if shelpers:
+            dep_shelpers = _DeploySHelpers.DeploySHelpers(self._bpman, self._spman, self._btmpdir,
+                                                        self._get_stmpdir(), log_cmd_func)
+            dep_shelpers.deploy_helpers(list(shelpers), toolname, lbuild, log_cmd_func)
 
-        if not helpersrc.is_dir():
-            raise Error(f"path '{helpersrc}' does not exist or it is not a directory")
-
-        # Make sure all helpers are available.
-        for helper in all_helpers:
-            helperdir = helpersrc / helper
-            if not helperdir.is_dir():
-                raise Error(f"path '{helperdir}' does not exist or it is not a directory")
-
-        if self._cats["shelpers"]:
-            dep_shelper = _DeploySHelpers.DeploySHelpers(self._bpman, self._btmpdir, log_cmd_func)
-            dep_shelper.prepare(helpersrc, self._cats["shelpers"])
-        if self._cats["pyhelpers"]:
-            dep_pyhelper = _DeployPyHelpers.DeployPyHelpers(self._cpman, self._spman,
-                                                            self._get_ctmpdir(),
-                                                            self._get_stmpdir(),
-                                                            self._get_deployables("pyhelpers"))
-            dep_pyhelper.prepare(helpersrc, self._cats["pyhelpers"])
-        if self._cats["bpfhelpers"]:
-            dep_bpfhelper = _DeployBPFHelpers.DeployBPFHelpers(self._bpman, self._btmpdir,
-                                                               self._tchk, self._get_ksrc(),
-                                                               log_cmd_func, self._lbuild,
-                                                               self._rebuild_bpf)
-            dep_bpfhelper.prepare(helpersrc, self._cats["bpfhelpers"])
-
-        deploy_path = self._get_helpers_deploy_path()
-
-        # Make sure the the destination deployment directory exists.
-        self._spman.mkdir(deploy_path, parents=True, exist_ok=True)
-
-        # Deploy all helpers.
-        _LOG.info("Deploying helpers to '%s'%s", deploy_path, self._spman.hostmsg)
-
-        helpersdst = self._stmpdir / "helpers_deployed"
-        _LOG.debug("deploying helpers to '%s'%s", helpersdst, self._spman.hostmsg)
-
-        for helper in all_helpers:
-            bhelperpath = f"{self._btmpdir}/{helper}"
-            shelperpath = f"{self._stmpdir}/{helper}"
-
-            if lbuild and self._spman.is_remote:
-                # We built the helpers locally, but have to install them on a remote SUT. Copy them
-                # to the SUT first.
-                self._spman.rsync(str(bhelperpath) + "/", shelperpath,
-                                  remotesrc=self._bpman.is_remote, remotedst=self._spman.is_remote)
-
-            cmd = f"make -C '{shelperpath}' install PREFIX='{helpersdst}'"
-            stdout, stderr = self._spman.run_verify(cmd)
-            log_cmd_func(stdout, stderr)
-
-            self._spman.rsync(str(helpersdst) + "/bin/", deploy_path,
-                              remotesrc=self._spman.is_remote,
-                              remotedst=self._spman.is_remote)
+        bpfhelpers = self._cats.get("bpfhelpers")
+        if bpfhelpers:
+            dep_bpfhelpers = _DeployBPFHelpers.DeployBPFHelpers(self._bpman, self._spman,
+                                                                self._btmpdir, self._get_stmpdir(),
+                                                                self._tchk, self._get_ksrc(),
+                                                                log_cmd_func, lbuild,
+                                                                self._rebuild_bpf)
+            dep_bpfhelpers.deploy_helpers(list(bpfhelpers), toolname, lbuild, log_cmd_func)
 
     def _deploy_drivers(self):
         """Deploy drivers to the SUT."""
@@ -791,9 +742,7 @@ class Deploy(_DeployBase):
 
         try:
             self._deploy_drivers()
-            all_helpers = list(self._cats["shelpers"]) + list(self._cats["pyhelpers"]) + \
-                          list(self._cats["bpfhelpers"])
-            self._deploy_helpers(all_helpers, self._toolname, self._lbuild, self._log_cmd_output)
+            self._deploy_helpers(self._toolname, self._lbuild, self._log_cmd_output)
         finally:
             self._remove_tmpdirs()
 
