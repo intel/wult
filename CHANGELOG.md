@@ -6,6 +6,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
+ - Add CPU frequency metric, which now appears as "CPUFreq" in hover text of
+   scatter plots.
 ### Removed
 ### Changed
 
