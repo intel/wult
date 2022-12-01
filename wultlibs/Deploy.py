@@ -37,8 +37,9 @@ from pepclibs.helperlibs import LocalProcessManager, Logging
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists, ErrorNotSupported
 from statscollectlibs.helperlibs import ToolHelpers
+from wultlibs.deploylibs import _DeployBPFHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
-from wultlibs import _DeployBPFHelpers, _DeployHelpersBase, _DeployPyHelpers, _DeploySHelpers
+from wultlibs import _DeployHelpersBase, _DeployPyHelpers, _DeploySHelpers
 
 _DRV_SRC_SUBPATH = Path("drivers/idle")
 
