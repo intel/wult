@@ -234,6 +234,7 @@ def _exercise_sut(args):
         if args.state_reset:
             reset_props = {pname : pinfo["value"] for pname, pinfo in _RESET_PROPS.items()}
             batchconfig.configure(reset_props)
+            _LOG.info("")
 
         for props in batchconfig.get_props_batch(inprops):
             _LOG.notice(f"Measuring with properties: {batchconfig.props_to_str(props)}")
