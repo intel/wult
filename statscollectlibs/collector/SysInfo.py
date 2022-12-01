@@ -180,6 +180,11 @@ def collect_before(outdir, pman):
     cmdinfo["outfile"] = outfile
     cmdinfo["cmd"] = f"pepc pstates info > '{outfile}' 2>&1"
 
+    cmdinfos["pepc_aspm"] = cmdinfo = {}
+    outfile = outdir / "pepc_aspm.raw.txt"
+    cmdinfo["outfile"] = outfile
+    cmdinfo["cmd"] = f"pepc aspm info > '{outfile}' 2>&1"
+
     _run_commands(cmdinfos, pman)
     _collect_totals(outdir, "before", pman)
 
