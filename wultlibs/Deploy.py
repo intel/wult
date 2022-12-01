@@ -584,18 +584,23 @@ class Deploy(_DeployBase):
             helpers_path = self._spman.get_homedir() / _DeployHelpersBase.HELPERS_LOCAL_DIR / "bin"
         return Path(helpers_path)
 
-    def _deploy_helpers(self):
-        """Deploy helpers (including python helpers) to the SUT."""
+    def _deploy_helpers(self, all_helpers, toolname, lbuild, log_cmd_func):
+        """
+        Deploy helpers (including python helpers) to the SUT. Arguments are as follows:
+         * all_helpers - the names of helpers to deploy.
+         * toolname - name of the tool which the helpers are supporting.
+         * lbuild - boolean value which represents whether to build locally or not.
+         * log_cmd_func - a function with signature 'log_cmd_func(stdout, stderr)' which will log
+                          stdout and stderr accordingly.
+        """
 
-        all_helpers = list(self._cats["shelpers"]) + list(self._cats["pyhelpers"]) + \
-                      list(self._cats["bpfhelpers"])
         if not all_helpers:
             return
 
         # We assume all helpers are in the same base directory.
         helper_path = _DeployHelpersBase.HELPERS_SRC_SUBPATH/f"{all_helpers[0]}"
         helpersrc = ToolHelpers.find_project_data("wult", helper_path,
-                                                  descr=f"{self._toolname} helper sources")
+                                                  descr=f"{toolname} helper sources")
         helpersrc = helpersrc.parent
 
         if not helpersrc.is_dir():
@@ -608,8 +613,7 @@ class Deploy(_DeployBase):
                 raise Error(f"path '{helperdir}' does not exist or it is not a directory")
 
         if self._cats["shelpers"]:
-            dep_shelper = _DeploySHelpers.DeploySHelpers(self._bpman, self._btmpdir,
-                                                         self._log_cmd_output)
+            dep_shelper = _DeploySHelpers.DeploySHelpers(self._bpman, self._btmpdir, log_cmd_func)
             dep_shelper.prepare(helpersrc, self._cats["shelpers"])
         if self._cats["pyhelpers"]:
             dep_pyhelper = _DeployPyHelpers.DeployPyHelpers(self._cpman, self._spman,
@@ -620,7 +624,7 @@ class Deploy(_DeployBase):
         if self._cats["bpfhelpers"]:
             dep_bpfhelper = _DeployBPFHelpers.DeployBPFHelpers(self._bpman, self._btmpdir,
                                                                self._tchk, self._get_ksrc(),
-                                                               self._log_cmd_output, self._lbuild,
+                                                               log_cmd_func, self._lbuild,
                                                                self._rebuild_bpf)
             dep_bpfhelper.prepare(helpersrc, self._cats["bpfhelpers"])
 
@@ -639,7 +643,7 @@ class Deploy(_DeployBase):
             bhelperpath = f"{self._btmpdir}/{helper}"
             shelperpath = f"{self._stmpdir}/{helper}"
 
-            if self._lbuild and self._spman.is_remote:
+            if lbuild and self._spman.is_remote:
                 # We built the helpers locally, but have to install them on a remote SUT. Copy them
                 # to the SUT first.
                 self._spman.rsync(str(bhelperpath) + "/", shelperpath,
@@ -647,7 +651,7 @@ class Deploy(_DeployBase):
 
             cmd = f"make -C '{shelperpath}' install PREFIX='{helpersdst}'"
             stdout, stderr = self._spman.run_verify(cmd)
-            self._log_cmd_output(stdout, stderr)
+            log_cmd_func(stdout, stderr)
 
             self._spman.rsync(str(helpersdst) + "/bin/", deploy_path,
                               remotesrc=self._spman.is_remote,
@@ -787,7 +791,9 @@ class Deploy(_DeployBase):
 
         try:
             self._deploy_drivers()
-            self._deploy_helpers()
+            all_helpers = list(self._cats["shelpers"]) + list(self._cats["pyhelpers"]) + \
+                          list(self._cats["bpfhelpers"])
+            self._deploy_helpers(all_helpers, self._toolname, self._lbuild, self._log_cmd_output)
         finally:
             self._remove_tmpdirs()
 
