@@ -356,6 +356,12 @@ class _PepcCmdFormatter(_PropIteratorBase):
             if pname == "cstates":
                 value = self._csnames_to_enable(value)
 
+            if pname == "aspm":
+                if value == "on":
+                    value = "powersave"
+                elif value == "off":
+                    value = "performance"
+
             scope = self._get_prop_scope(pname)
 
             # We use 'unl' keyword to express unlocked frequency value, and the frequency options
