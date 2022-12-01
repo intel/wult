@@ -29,6 +29,10 @@
  * @aits2: time after idle #2
  * @intrts1: time at hrtimer interrupt #1
  * @intrts2: time at hrtimer interrupt #2
+ * @aiaperf: APERF count after idle
+ * @intraperf: APERF count at interrupt handler
+ * @aimperf: MPERF count after idle
+ * @intrmperf: MPERF count at interrupt handler
  * @swirqc: swirq count
  * @nmic: NMI count
  * @req_cstate: requested cstate
@@ -48,6 +52,10 @@ struct hrt_bpf_event {
 	u64 aits2;
 	u64 intrts1;
 	u64 intrts2;
+	u64 aiaperf;
+	u64 intraperf;
+	u64 aimperf;
+	u64 intrmperf;
 	u64 bimonotonic;
 	u32 swirqc;
 	u32 nmic;
@@ -68,6 +76,7 @@ enum {
 
 enum {
 	MSR_TSC,
+	MSR_APERF,
 	MSR_MPERF,
 	MSR_SMI,
 	MSR_EVENT_COUNT

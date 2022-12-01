@@ -199,8 +199,8 @@ static void snapshot_perf_vars(bool exit)
 			bpf_perf_event_read(&perf, MSR_MPERF) -
 			perf_counters[MSR_MPERF];
 
-	/* Skip TSC events 0..1 (TSC/MPERF) */
-	for (i = 2; i < WULTRUNNER_NUM_PERF_COUNTERS; i++) {
+	/* Skip MSR events 0..2 (TSC/APERF/MPERF) */
+	for (i = 3; i < WULTRUNNER_NUM_PERF_COUNTERS; i++) {
 		count = bpf_perf_event_read(&perf, i);
 		err = (s64)count;
 
@@ -292,6 +292,8 @@ int BPF_PROG(hrt_bpf_local_timer_entry, int vector)
 				snapshot_perf_vars(true);
 
 			e->intrc = read_tsc();
+			e->intrmperf = bpf_perf_event_read(&perf, MSR_MPERF);
+			e->intraperf = bpf_perf_event_read(&perf, MSR_APERF);
 		}
 	}
 
@@ -342,6 +344,8 @@ int BPF_PROG(hrt_bpf_timer_expire_entry, void *timer, void *now)
 		if (e->tai)
 			snapshot_perf_vars(true);
 		e->intrc = read_tsc();
+		e->intrmperf = bpf_perf_event_read(&perf, MSR_MPERF);
+		e->intraperf = bpf_perf_event_read(&perf, MSR_APERF);
 	}
 
 	return 0;
@@ -369,6 +373,8 @@ int BPF_PROG(hrt_bpf_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 
 			e->aic = read_tsc();
 			e->aits2 = bpf_ktime_get_boot_ns();
+			e->aimperf = bpf_perf_event_read(&perf, MSR_MPERF);
+			e->aiaperf = bpf_perf_event_read(&perf, MSR_APERF);
 		} else {
 			e->tbi = 0;
 		}
