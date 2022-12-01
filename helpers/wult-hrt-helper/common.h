@@ -48,6 +48,7 @@ struct hrt_bpf_event {
 	u64 aits2;
 	u64 intrts1;
 	u64 intrts2;
+	u64 bimonotonic;
 	u32 swirqc;
 	u32 nmic;
 	int req_cstate;
