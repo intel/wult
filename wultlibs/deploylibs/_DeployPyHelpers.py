@@ -14,7 +14,7 @@ from pathlib import Path
 from pepclibs.helperlibs import ClassHelpers, LocalProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.helperlibs import ToolHelpers
-from wultlibs import _DeployHelpersBase
+from wultlibs.deploylibs import _DeployHelpersBase
 
 _LOG = logging.getLogger()
 
