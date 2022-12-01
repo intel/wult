@@ -20,8 +20,9 @@ import contextlib
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, LocalProcessManager, ProcessManager, Logging, YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from wultlibs import Devices, Deploy
-from wultlibs.helperlibs import ReportID, Human
+from wultlibs import Devices
+from wultlibs.deploylibs import Deploy
+from wultlibs.helperlibs import Human, ReportID
 from wultlibs.rawresultlibs import RORawResult
 
 # pylint: disable=wildcard-import,unused-wildcard-import

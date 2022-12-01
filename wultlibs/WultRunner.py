@@ -18,7 +18,8 @@ import contextlib
 from pepclibs import CStates
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from pepclibs.helperlibs import ClassHelpers
-from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess, Deploy
+from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess
+from wultlibs.deploylibs import Deploy
 from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()

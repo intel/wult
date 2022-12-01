@@ -16,7 +16,8 @@ from pathlib import Path
 
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from wultlibs import Deploy, ToolsCommon, NdlRunner, Devices
+from wultlibs import ToolsCommon, NdlRunner, Devices
+from wultlibs.deploylibs import Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
 

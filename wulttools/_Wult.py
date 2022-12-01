@@ -22,7 +22,8 @@ except ImportError:
 
 from pepclibs.helperlibs import Logging, Human, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import Deploy, ToolsCommon
+from wultlibs import ToolsCommon
+from wultlibs.deploylibs import Deploy
 from wulttools import _WultCommon
 
 _VERSION = "1.10.41"

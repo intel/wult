@@ -20,7 +20,8 @@ except ImportError:
 
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import Deploy, ToolsCommon
+from wultlibs import ToolsCommon
+from wultlibs.deploylibs import Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.htmlreport import NdlReportParams
 

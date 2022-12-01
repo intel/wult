@@ -16,7 +16,8 @@ import logging
 import contextlib
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import Deploy, _ProgressLine, _NdlRawDataProvider
+from wultlibs import _ProgressLine, _NdlRawDataProvider
+from wultlibs.deploylibs import Deploy
 from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
