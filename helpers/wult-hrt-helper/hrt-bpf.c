@@ -383,8 +383,6 @@ int BPF_PROG(hrt_bpf_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 		e->req_cstate = cstate;
 		idx = cstate;
 
-		t = bpf_ktime_get_boot_ns();
-
 		e->bic = read_tsc();
 		snapshot_perf_vars(false);
 
