@@ -63,7 +63,7 @@ class DTabBuilderBase:
         for diff_src in paths.values():
             try:
                 fp = self.outdir / diff_src
-                with open(fp, "r", encoding="utf8") as f:
+                with open(fp, "r", encoding="utf-8") as f:
                     lines.append(f.readlines())
             except OSError as err:
                 msg = Error(err).indent(2)
@@ -79,7 +79,7 @@ class DTabBuilderBase:
                         f"{msg}") from None
 
         try:
-            with open(diff_path, "w", encoding="utf8") as f:
+            with open(diff_path, "w", encoding="utf-8") as f:
                 f.write(HtmlDiff().make_file(lines[0], lines[1]))
         except Exception as err:
             msg = Error(err).indent(2)

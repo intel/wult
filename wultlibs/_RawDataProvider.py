@@ -247,7 +247,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         """Make the helper program exit."""
 
         _LOG.debug("stopping '%s'", self._helpername)
-        self._proc.stdin.write("q\n".encode("utf8"))
+        self._proc.stdin.write("q\n".encode("utf-8"))
         # self._proc.stdin.flush()
         # Note: the above line causes a stacktrace if 'self._proc' is an 'SSHProcessManager'. I
         # think it is a paramiko bug. As a work around, we do not flush and rely that

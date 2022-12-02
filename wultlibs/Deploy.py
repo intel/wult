@@ -684,7 +684,7 @@ class Deploy(_DeployBase):
             standalone_path = outdir / f"{pyhelper}.standalone"
             try:
                 fobj = standalone_path.open("bw+")
-                fobj.write("#!/usr/bin/python3\n".encode("utf8"))
+                fobj.write("#!/usr/bin/python3\n".encode("utf-8"))
             except OSError as err:
                 msg = Error(err).indent(2)
                 raise Error(f"failed to create and initialize file '{standalone_path}:\n"
