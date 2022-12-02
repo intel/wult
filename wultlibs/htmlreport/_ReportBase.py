@@ -42,8 +42,9 @@ class ReportBase:
             with open(path, "w", encoding="utf-8") as fobj:
                 json.dump(obj, fobj, default=str)
         except Exception as err:
-            raise Error(f"could not generate report: failed to JSON dump '{descr}' to '{path}':"
-                        f"{err}") from None
+            msg = Error(err).indent(2)
+            raise Error(f"could not generate report: failed to JSON dump '{descr}' to '{path}':\n"
+                        f"{msg}") from None
 
     def _add_intro_tbl_links(self, label, paths):
         """
@@ -149,7 +150,8 @@ class ReportBase:
                 with contextlib.suppress(ErrorNotFound):
                     lpman.run_verify(f"restorecon -R {dstpath}")
         except Error as err:
-            raise Error(f"failed to copy raw data to report directory: {err}") from None
+            msg = Error(err).indent(2)
+            raise Error(f"failed to copy raw data to report directory:\n{msg}") from None
 
     def _copy_raw_data(self):
         """Copy raw test results to the output directory."""
@@ -383,7 +385,8 @@ class ReportBase:
         try:
             self.outdir.mkdir(parents=True, exist_ok=True)
         except OSError as err:
-            raise Error(f"failed to create directory '{self.outdir}': {err}") from None
+            msg = Error(err).indent(2)
+            raise Error(f"failed to create directory '{self.outdir}':\n{msg}") from None
 
         stats_paths, logs_paths = self._copy_raw_data()
         self._prepare_intro_table(stats_paths, logs_paths)
@@ -596,8 +599,9 @@ class ReportBase:
                 with open(self.report_descr, "r", encoding="UTF-8") as fobj:
                     self.report_descr = fobj.read()
             except OSError as err:
+                msg = Error(err).indent(2)
                 raise Error(f"failed to read the report description file {self.report_descr}:\n"
-                            f"{err}") from err
+                            f"{msg}") from err
 
         for res in self.rsts:
             if res.dirpath.resolve() == self.outdir.resolve():
