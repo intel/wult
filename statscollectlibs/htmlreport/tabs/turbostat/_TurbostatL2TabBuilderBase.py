@@ -88,7 +88,8 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
                 df = self._turbostat_to_df(tstat, path)
                 sdf = pandas.concat([sdf, df], ignore_index=True)
         except Exception as err:
-            raise Error(f"error reading raw statistics file '{path}': {err}.") from None
+            msg = Error(err).indent(2)
+            raise Error(f"error reading raw statistics file '{path}':\n{msg}.") from None
 
         # Confirm that the time column is in the 'pandas.DataFrame'.
         if self._time_metric not in sdf:
