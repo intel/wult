@@ -61,8 +61,9 @@ def _dump_json(obj, path, descr):
         with open(path, "w", encoding="utf-8") as fobj:
             json.dump(obj, fobj, default=str)
     except Exception as err:
-        raise Error(f"could not generate report: failed to JSON dump '{descr}' to '{path}':"
-                    f"{err}") from None
+        msg = Error(err).indent(2)
+        raise Error(f"could not generate report: failed to JSON dump '{descr}' to '{path}':\n"
+                    f"{msg}") from None
 
 class HTMLReport:
     """This class provides the API for generating HTML reports."""
@@ -213,7 +214,8 @@ class HTMLReport:
         try:
             self.outdir.mkdir(parents=True, exist_ok=True)
         except OSError as err:
-            raise Error(f"failed to create directory '{self.outdir}': {err}") from None
+            msg = Error(err).indent(2)
+            raise Error(f"failed to create directory '{self.outdir}':\n{msg}") from None
 
         # 'report_info' stores data used by the Javascript to generate the main report page
         # including the intro table, the file path of the tabs JSON dump plus the report title and
