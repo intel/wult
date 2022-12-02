@@ -11,7 +11,7 @@ This module provides API for reading raw wult datapoints, as well as initializin
 """
 
 import logging
-from pepclibs.helperlibs import Trivial, ClassHelpers, Systemctl, Human
+from pepclibs.helperlibs import Trivial, ClassHelpers, Systemctl
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from wultlibs import _FTrace, _RawDataProvider
 from wultlibs.helperlibs import KernelVersion
@@ -106,7 +106,8 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                     fobj.write(str(ldist))
             except Error as err:
                 raise Error(f"can't to change launch distance range\nfailed to open '{ldist_path}'"
-                            f"{self._pman.hostmsg} and write {ldist} to it:\n\t{err}") from err
+                            f"{self._pman.hostmsg} and write {ldist} to it:\n"
+                            f"{err.indent(2)}") from err
 
     def _get_ldist_limits(self):
         """Returns the min. and max. launch distance supported by the driver."""
@@ -121,7 +122,7 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                 ldist_max = fobj.read().strip()
         except Error as err:
             raise Error(f"failed to read launch distance limit from '{limit_path}'"
-                        f"{self._pman.hostmsg}:\n{err}") from err
+                        f"{self._pman.hostmsg}:\n{err.indent(2)}") from err
 
         ldist_min = Trivial.str_to_int(ldist_min, what="min. launch distance value")
         if ldist_min < 0:
