@@ -205,7 +205,8 @@ class SummaryTable:
 
                 fobj.writelines(lines)
         except OSError as err:
-            raise Error(f"unable to dump summary table to '{path}':\n{err}") from None
+            msg = Error(err).indent(2)
+            raise Error(f"unable to dump summary table to '{path}':\n{msg}") from None
 
     def generate(self, path):
         """
