@@ -40,7 +40,8 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
             # 'skipfooter' parameter only available with Python pandas engine.
             sdf = pandas.read_csv(path, skipfooter=1, engine="python")
         except pandas.errors.ParserError as err:
-            raise Error(f"unable to parse CSV '{path}': {err}.") from None
+            msg = Error(err).indent(2)
+            raise Error(f"unable to parse CSV '{path}':\n{msg}.") from None
 
         # Confirm that the time metric is in the CSV headers.
         if self._time_metric not in sdf:
