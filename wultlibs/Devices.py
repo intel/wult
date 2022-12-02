@@ -166,7 +166,7 @@ class _PCIDevice(_DeviceBase):
                 try:
                     fobj.write(val)
                 except Error as err:
-                    raise Error(f"{failmsg}:\n{err}\n{self.get_new_dmesg()}") from err
+                    raise Error(f"{failmsg}:\n{err.indent(2)}\n{self.get_new_dmesg()}") from err
 
         # Verify that the device is bound to the driver.
         if not self._get_driver()[1]:
@@ -199,7 +199,7 @@ class _PCIDevice(_DeviceBase):
             try:
                 fobj.write(self._pci_info["pciaddr"])
             except Error as err:
-                raise Error(f"{failmsg}:\n{err}\n{self.get_new_dmesg()}") from err
+                raise Error(f"{failmsg}:\n{err.indent(2)}\n{self.get_new_dmesg()}") from err
 
         if self._get_driver()[1]:
             raise Error(f"{failmsg}:\npath '{drvpath}' still exists\n{self.get_new_dmesg()}")
