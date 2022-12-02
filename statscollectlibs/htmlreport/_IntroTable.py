@@ -124,7 +124,8 @@ class IntroTable:
 
                 fobj.writelines(lines)
         except OSError as err:
-            raise Error(f"unable to dump intro table to '{path}':\n{err}") from None
+            msg = Error(err).indent(2)
+            raise Error(f"unable to dump intro table to '{path}':\n{msg}") from None
 
     def create_row(self, value, hovertext=None, link=None):
         """
