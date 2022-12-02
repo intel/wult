@@ -500,7 +500,8 @@ class STCAgent:
                     getattr(collector, method)()
                 except Error as err:
                     self.failed_collectors.add(collector.name)
-                    msg = f"the '{method}' method of the {collector.name} collector failed:\n{err}"
+                    msg = f"the '{method}' method of the {collector.name} collector failed:\n" \
+                          f"{err.indent(2)}"
                     if collector.props["fallible"]:
                         LOG.debug(msg)
                     else:
@@ -545,7 +546,7 @@ class STCAgent:
 
                 self._collectors[name] = collector
             except Error as err:
-                raise Error(f"failed to create the {name} collector:\n{err}") from err
+                raise Error(f"failed to create the {name} collector:\n{err.indent(2)}") from err
 
         LOG.debug("created the collectors")
 
@@ -681,8 +682,9 @@ class Client(ClassHelpers.SimpleCloseContext):
             cmd = cmd.decode("utf-8").strip()
         except UnicodeError as err:
             self.respond("failed to decode the command from UTF-8")
+            msg = Error(err).indent(2)
             raise ClientDisconnected(f"failed to decode the command from UTF-8 from client "
-                                     f"'{self.clientid}: {err}") from err
+                                     f"'{self.clientid}:\n{msg}") from err
 
         LOG.debug("received command from client '%s':\n%s", self.clientid, cmd)
         return cmd
@@ -728,7 +730,8 @@ class Server(ClassHelpers.SimpleCloseContext):
         try:
             client_sock, _ = self._sock.accept()
         except (OSError, socket.error) as err:
-            raise Error(f"error while accepting a client connection: {err}") from err
+            msg = Error(err).indent(2)
+            raise Error(f"error while accepting a client connection:\n{msg}") from err
 
         if self._is_unix:
             clientid = "local_client"
@@ -760,7 +763,8 @@ class Server(ClassHelpers.SimpleCloseContext):
                 _, self._port = self._sock.getsockname()
                 self._sock.listen(1)
             except socket.error as err:
-                raise Error(f"failed to start listening on TCP port {self._port}: {err}") from err
+                msg = Error(err).indent(2)
+                raise Error(f"failed to start listening on TCP port {self._port}:\n{msg}") from err
 
             msg = f"Listening on TCP port {self._port}"
 
@@ -781,13 +785,15 @@ class Server(ClassHelpers.SimpleCloseContext):
                 with tempfile.NamedTemporaryFile("wb+", prefix=pfx, delete=True) as fobj:
                     self._uspath = fobj.name
             except OSError as err:
-                raise Error(f"failed to create a temporary file: {err}") from err
+                msg = Error(err).indent(2)
+                raise Error(f"failed to create a temporary file:\n{msg}") from err
         elif os.path.exists(self._uspath):
             try:
                 with contextlib.suppress(FileNotFoundError):
                     os.remove(self._uspath)
             except OSError as err:
-                raise Error(f"failed to remove '{self._uspath}': {err}") from err
+                msg = Error(err).indent(2)
+                raise Error(f"failed to remove '{self._uspath}':\n{msg}") from err
 
     def __init__(self, unix=None, port=None, sutname=None):
         """
@@ -852,15 +858,15 @@ def handle_command(cmd, stc_agent):
             stc_agent.stop()
         elif cmd == "get-failed-collectors":
             # Get the list of failed collectors.
-            response += " %s" % ",".join(stc_agent.failed_collectors)
+            response += f" {','.join(stc_agent.failed_collectors)}"
         elif cmd == "exit":
             pass
         else:
-            response = "bad command: %s" % cmd
+            response = f"bad command: {cmd}"
     except Error as err:
-        response = "error: %s" % err
+        response = f"error: {err}"
     except Exception as err: # pylint: disable=broad-except
-        response = "Unknown exception of type '%s':\n%s" % (type(Exception), err)
+        response = f"Unknown exception of type '{type(Exception)}':\n{err}"
 
     return response
 
