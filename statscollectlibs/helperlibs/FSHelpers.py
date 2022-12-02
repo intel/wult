@@ -34,7 +34,8 @@ def _copy_dir(src: Path, dst: Path, ignore=None):
 
         shutil.copytree(src, dst, ignore=ignore_names)
     except (OSError, shutil.Error) as err:
-        raise Error(f"cannot copy '{src}' to '{dst}':\n{err}") from err
+        msg = Error(err).indent(2)
+        raise Error(f"cannot copy '{src}' to '{dst}':\n{msg}") from err
 
 def copy_dir(src: Path, dst: Path, exist_ok: bool = False, ignore=None):
     """
@@ -72,7 +73,7 @@ def move_copy_link(src, dst, action="symlink", exist_ok=False):
             if src.is_dir():
                 try:
                     dst.mkdir(parents=True, exist_ok=True)
-                except FileExistsError as err:
+                except FileExistsError:
                     if not exist_ok:
                         raise ErrorExists(exists_err) from None
                 for item in src.iterdir():
