@@ -63,24 +63,27 @@ class DTabBuilderBase:
         for diff_src in paths.values():
             try:
                 fp = self.outdir / diff_src
-                with open(fp, "r") as f:
+                with open(fp, "r", encoding="utf8") as f:
                     lines.append(f.readlines())
             except OSError as err:
-                raise Error(f"cannot open file at '{fp}' to create diff: {err}") from None
+                msg = Error(err).indent(2)
+                raise Error(f"cannot open file at '{fp}' to create diff:\n{msg}") from None
 
         # Store the diff in a separate directory and with the '.html' file ending.
         diff_path = (self.outdir / "diffs" / fp).with_suffix('.html')
         try:
             diff_path.parent.mkdir(parents=True, exist_ok=True)
         except OSError as err:
-            raise Error(f"cannot create diffs directory '{diff_path.parent}': "
-                        f"{err}") from None
+            msg = Error(err).indent(2)
+            raise Error(f"cannot create diffs directory '{diff_path.parent}':\n"
+                        f"{msg}") from None
 
         try:
-            with open(diff_path, "w") as f:
+            with open(diff_path, "w", encoding="utf8") as f:
                 f.write(HtmlDiff().make_file(lines[0], lines[1]))
         except Exception as err:
-            raise Error(f"cannot create diff at path '{diff_path}': {err}") from None
+            msg = Error(err).indent(2)
+            raise Error(f"cannot create diff at path '{diff_path}':\n{msg}") from None
 
         return diff_path.relative_to(self.outdir)
 
@@ -116,13 +119,14 @@ class DTabBuilderBase:
                     try:
                         dst_dir.mkdir(parents=True, exist_ok=True)
                     except OSError as err:
-                        raise Error(f"can't create SysInfo output directory '{dst_dir}': "
-                                    f"{err}") from None
+                        msg = Error(err).indent(2)
+                        raise Error(f"can't create SysInfo output directory '{dst_dir}':\n"
+                                    f"{msg}") from None
 
                     dst_path = dst_dir / fp
                     try:
                         FSHelpers.move_copy_link(src_path, dst_path, "copy")
-                    except ErrorExists as err:
+                    except ErrorExists:
                         _LOG.debug("raw 'SysInfo' file '%s' already in output dir: will not "
                                    "replace.", dst_path)
                 else:
