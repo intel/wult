@@ -141,7 +141,8 @@ class Plot:
             plotly.offline.plot(fig, filename=str(self.outpath), auto_open=False,
                                 config={"showLink" : False})
         except Exception as err:
-            raise Error(f"failed to create the '{self.outpath}' diagram:\n{err}") from err
+            msg = Error(err).indent(2)
+            raise Error(f"failed to create the '{self.outpath}' diagram:\n{msg}") from err
 
     def _configure_layout(self):
         """
