@@ -108,7 +108,7 @@ def kill_pids(pids, sig="SIGTERM", kill_children=False, must_die=False, pman=Non
         except Error as err:
             if not killing:
                 raise Error(f"failed to send signal '{sig}' to PIDs "
-                            f"'{pids_comma}'{wpman.hostmsg}:\n{err}") from err
+                            f"'{pids_comma}'{wpman.hostmsg}:\n{err.indent(2)}") from err
             # Some error happened on the first attempt. We've seen a couple of situations when this
             # happens.
             # 1. Most often, a PID does not exist anymore, the process exited already (race
