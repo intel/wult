@@ -384,8 +384,7 @@ class DeployCheck(_DeployBase):
         cat_descr = _CATEGORIES[self._insts[installable]["category"]]
         if deployable != installable:
             return f"the '{deployable}' component of the '{installable}' {cat_descr}"
-        else:
-            return f"the '{deployable}' {cat_descr}"
+        return f"the '{deployable}' {cat_descr}"
 
     def _deployable_not_found(self, deployable):
         """Same as module-level '_deployable_not_found()'."""
@@ -673,7 +672,8 @@ class Deploy(_DeployBase):
             with init_path.open("w+"):
                 pass
         except OSError as err:
-            raise Error(f"failed to create file '{init_path}:\n{err}'") from None
+            msg = Error(err).indent(2)
+            raise Error(f"failed to create file '{init_path}:\n{msg}'") from None
 
         try:
             # pylint: disable=consider-using-with
@@ -686,8 +686,9 @@ class Deploy(_DeployBase):
                 fobj = standalone_path.open("bw+")
                 fobj.write("#!/usr/bin/python3\n".encode("utf8"))
             except OSError as err:
+                msg = Error(err).indent(2)
                 raise Error(f"failed to create and initialize file '{standalone_path}:\n"
-                            f"{err}") from err
+                            f"{msg}") from err
 
             # Create a zip archive in the 'standalone_path' file. The idea is that this file will
             # start with python shebang, and then include compressed version the script and its
@@ -695,8 +696,9 @@ class Deploy(_DeployBase):
             try:
                 zipobj = zipfile.ZipFile(fobj, "w", compression=zipfile.ZIP_DEFLATED)
             except Exception as err:
+                msg = Error(err).indent(2)
                 raise Error(f"failed to initialize a zip archive from file "
-                            f"'{standalone_path}':\n{err}") from err
+                            f"'{standalone_path}':\n{msg}") from err
 
             # Make 'zipobj' raises exceptions of type 'Error', so that we do not have to wrap every
             # 'zipobj' operation into 'try/except'.
@@ -747,8 +749,9 @@ class Deploy(_DeployBase):
             mode = standalone_path.stat().st_mode | 0o777
             standalone_path.chmod(mode)
         except OSError as err:
+            msg = Error(err).indent(2)
             raise Error(f"cannot change '{standalone_path}' file mode to {oct(mode)}:\n"
-                        f"{err}") from err
+                        f"{msg}") from err
 
     def _prepare_pyhelpers(self, helpersrc):
         """
@@ -1157,7 +1160,8 @@ class Deploy(_DeployBase):
                 self._btmpdir = self._stmpdir
         except Exception as err:
             self._remove_tmpdirs()
-            raise Error(f"failed to deploy the '{self._toolname}' tool: {err}") from err
+            msg = Error(err).indent(2)
+            raise Error(f"failed to deploy the '{self._toolname}' tool:\n{msg}") from err
 
         if self._cats["drivers"] or self._cats["shelpers"] or self._cats["bpfhelpers"]:
             # Make sure 'cc' is available on the build host - it'll be executed by 'Makefile', so an
