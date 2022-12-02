@@ -70,7 +70,8 @@ class DeployHelpersBase:
         self._spman.mkdir(deploy_path, parents=True, exist_ok=True)
 
         # Deploy all helpers.
-        _LOG.info("Deploying helpers to '%s'%s", deploy_path, self._spman.hostmsg)
+        _LOG.info("Deploying %s helpers to '%s'%s", self._helpername, deploy_path,
+                  self._spman.hostmsg)
 
         helpersdst = self._stmpdir / "helpers_deployed"
         _LOG.debug("deploying helpers to '%s'%s", helpersdst, self._spman.hostmsg)
@@ -93,16 +94,18 @@ class DeployHelpersBase:
                               remotesrc=self._spman.is_remote,
                               remotedst=self._spman.is_remote)
 
-    def __init__(self, bpman, spman, btmpdir, stmpdir):
+    def __init__(self, bpman, spman, btmpdir, stmpdir, helpername):
         """
         Class constructor. Arguments are as follows:
          * bpman - process manager associated with the build host.
          * spman - process manager associated with the SUT.
          * btmpdir - a path to a temporary directory on the build host.
          * stmpdir - a path to a temporary directory on the SUT.
+         * helpername - the name of the helpers which are being deployed (e.g. 'python').
         """
 
         self._bpman = bpman
         self._spman = spman
         self._btmpdir = btmpdir
         self._stmpdir = stmpdir
+        self._helpername = helpername

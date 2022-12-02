@@ -220,4 +220,4 @@ class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
         self._log_cmd_output = log_cmd_func
         self._lbuild = lbuild
         self._rebuild_src = rebuild_src
-        super().__init__(bpman, spman, btmpdir, stmpdir)
+        super().__init__(bpman, spman, btmpdir, stmpdir, "bpf")

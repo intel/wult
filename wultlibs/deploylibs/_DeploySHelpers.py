@@ -48,4 +48,4 @@ class DeploySHelpers(_DeployHelpersBase.DeployHelpersBase):
         """
 
         self._log_cmd_outdir = log_cmd_func
-        super().__init__(bpman, spman, btmpdir, stmpdir)
+        super().__init__(bpman, spman, btmpdir, stmpdir, "simple")
