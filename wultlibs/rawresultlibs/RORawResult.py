@@ -190,7 +190,8 @@ class RORawResult(_RawResultBase.RawResultBase):
         try:
             self.df = pandas.read_csv(self.dp_path, dtype=dtype, **kwargs)
         except Exception as err:
-            raise Error(f"failed to load CSV file {self.dp_path}:\n{err}") from None
+            msg = Error(err).indent(2)
+            raise Error(f"failed to load CSV file {self.dp_path}:\n{msg}") from None
 
         # Check datapoints for too few values.
         if self.df.isnull().values.any():
@@ -238,7 +239,8 @@ class RORawResult(_RawResultBase.RawResultBase):
                                "pandas.eval(engine='python')", str(err))
                     expr = pandas.eval(dpfilter, engine="python")
             except Exception as err:
-                raise Error(f"failed to evaluate expression '{dpfilter}': {err}\nMake sure you use "
+                msg = Error(err).indent(2)
+                raise Error(f"failed to evaluate expression '{dpfilter}': {msg}\nMake sure you use "
                             f"correct metric names, which are also case-sensitive.") from err
 
             self.df = self.df[expr].reset_index(drop=True)
@@ -290,7 +292,8 @@ class RORawResult(_RawResultBase.RawResultBase):
                         found[metric] = regex
                         matched = True
                 except re.error as err:
-                    raise Error(f"bad regular expression '{regex}': {err}") from err
+                    msg = Error(err).indent(2)
+                    raise Error(f"bad regular expression '{regex}':\n{msg}") from err
 
             if not matched:
                 metrics_str = ", ".join(self.metrics)
@@ -319,7 +322,8 @@ class RORawResult(_RawResultBase.RawResultBase):
             try:
                 dirpath.mkdir(parents=True, exist_ok=False)
             except OSError as err:
-                raise Error(f"failed to create directory '{dirpath}':\n{err}") from None
+                msg = Error(err).indent(2)
+                raise Error(f"failed to create directory '{dirpath}':\n{msg}") from None
         elif not dirpath.is_dir():
             raise Error(f"path '{dirpath}' exists and it is not a directory")
 
@@ -381,11 +385,10 @@ class RORawResult(_RawResultBase.RawResultBase):
         """Scale datapoints in 'self.df' so that they no longer have any SI prefix."""
 
         mdefs_to_add = {}
-        for col in self.defs.info:
+        for col, mdef in self.defs.info.items():
             if col not in self.df:
                 continue
 
-            mdef = self.defs.info[col]
             base_colname = col + base_col_suffix
             if base_colname not in self.df:
                 self._convert_col_to_base_unit(self.df, mdef, base_col_suffix)
@@ -421,7 +424,8 @@ class RORawResult(_RawResultBase.RawResultBase):
                 if not attr.stat().st_size:
                     raise Error(f"file '{attr}' is empty")
             except OSError as err:
-                raise Error(f"failed to access '{attr}': {err}") from err
+                msg = Error(err).indent(2)
+                raise Error(f"failed to access '{attr}':\n{msg}") from err
 
         self.df = None
         self.smrys = None
@@ -448,7 +452,8 @@ class RORawResult(_RawResultBase.RawResultBase):
         try:
             metrics = list(pandas.read_csv(self.dp_path, nrows=0))
         except Exception as err:
-            raise Error(f"failed to load CSV file {self.dp_path}:\n{err}") from None
+            msg = Error(err).indent(2)
+            raise Error(f"failed to load CSV file {self.dp_path}:\n{msg}") from None
 
         if toolname == "wult":
             self.defs = WultDefs.WultDefs(metrics)
