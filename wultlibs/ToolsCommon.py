@@ -282,14 +282,16 @@ def setup_stdout_logging(toolname, logs_path):
     try:
         logs_path.mkdir(exist_ok=True)
     except OSError as err:
-        raise Error(f"cannot create log directory '{logs_path}': {err}") from None
+        msg = Error(err).indent(2)
+        raise Error(f"cannot create log directory '{logs_path}':\n{msg}") from None
     logfile = logs_path / f"{toolname}.log.txt"
 
     try:
         with logfile.open("w+") as fobj:
             fobj.write(f"Command line: {' '.join(sys.argv)}\n")
     except OSError as err:
-        raise Error(f"failed to write command line to '{logfile}':\n{err}") from None
+        msg = Error(err).indent(2)
+        raise Error(f"failed to write command line to '{logfile}':\n{msg}") from None
 
     Logging.setup_logger(toolname, info_logfile=logfile, error_logfile=logfile)
 
@@ -320,7 +322,8 @@ def even_up_dpcnt(rsts):
         try:
             size = res.dp_path.stat().st_size
         except OSError as err:
-            raise Error(f"'stat()' failed for '{res.dp_path}': {err}") from None
+            msg = Error(err).indent(2)
+            raise Error(f"'stat()' failed for '{res.dp_path}':\n{msg}") from None
         if min_size is None or size < min_size:
             min_size = size
             min_res = res
