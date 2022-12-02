@@ -1,3 +1,10 @@
+wult (1.10.41) unstable; urgency=low
+
+  * Add CPU frequency metric, which now appears as "CPUFreq" in hover text of
+    scatter plots.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 02 Dec 2022 00:00:00 +0200
+
 wult (1.10.40) unstable; urgency=low
 
   * Fix 'ndl deploy' command failure.

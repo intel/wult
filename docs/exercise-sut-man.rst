@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date:   2022-11-25
+:Date:   2022-12-02
 
 .. contents::
    :depth: 3
@@ -57,7 +57,7 @@ OPTIONS
 **-K** *PRIVKEY*, **--priv-key** *PRIVKEY*
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
-   paths like
+   paths like '~/.ssh'.
 
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
@@ -166,3 +166,9 @@ AUTHORS
 ::
 
    dedekind1@gmail.com
+
+DISTRIBUTION
+============
+
+The latest version of wult may be downloaded from
+` <https://github.com/intel/wult>`__
