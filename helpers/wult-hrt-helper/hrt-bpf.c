@@ -187,17 +187,22 @@ static int kick_timer(void)
 	return ret;
 }
 
+static void snapshot_mperf_var(bool exit)
+{
+	u64 mperf_cnt = bpf_perf_event_read(&perf, MSR_MPERF);
+
+	if (exit)
+		perf_counters[MSR_MPERF] = mperf_cnt - perf_counters[MSR_MPERF];
+	else
+		perf_counters[MSR_MPERF] = mperf_cnt;
+}
+
 static void snapshot_perf_vars(bool exit)
 {
 	int i;
 	u64 count, *ptr;
 	int key;
 	s64 err;
-
-	if (exit)
-		perf_counters[MSR_MPERF] =
-			bpf_perf_event_read(&perf, MSR_MPERF) -
-			perf_counters[MSR_MPERF];
 
 	/* Skip MSR events 0..2 (TSC/APERF/MPERF) */
 	for (i = 3; i < WULTRUNNER_NUM_PERF_COUNTERS; i++) {
@@ -213,10 +218,6 @@ static void snapshot_perf_vars(bool exit)
 		else
 			perf_counters[i] = count;
 	}
-
-	if (!exit)
-		perf_counters[MSR_MPERF] =
-			bpf_perf_event_read(&perf, MSR_MPERF);
 }
 
 static int timer_callback(void *map, int *key, struct bpf_timer *timer)
@@ -288,9 +289,10 @@ int BPF_PROG(hrt_bpf_local_timer_entry, int vector)
 		if (t >= ltime ) {
 			e->tintr = t;
 			e->intrts1 = t;
-			if (e->tai)
+			if (e->tai) {
 				snapshot_perf_vars(true);
-
+				snapshot_mperf_var(true);
+			}
 			e->intrc = read_tsc();
 			e->intrmperf = bpf_perf_event_read(&perf, MSR_MPERF);
 			e->intraperf = bpf_perf_event_read(&perf, MSR_APERF);
@@ -341,8 +343,10 @@ int BPF_PROG(hrt_bpf_timer_expire_entry, void *timer, void *now)
 	if (timer == timer_id && e->tbi && !e->tintr) {
 		e->intrts1 = bpf_ktime_get_boot_ns();
 		e->tintr = e->intrts1;
-		if (e->tai)
+		if (e->tai) {
 			snapshot_perf_vars(true);
+			snapshot_mperf_var(true);
+		}
 		e->intrc = read_tsc();
 		e->intrmperf = bpf_perf_event_read(&perf, MSR_MPERF);
 		e->intraperf = bpf_perf_event_read(&perf, MSR_APERF);
@@ -368,9 +372,10 @@ int BPF_PROG(hrt_bpf_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 			e->tai = t;
 			e->aits1 = e->tai;
 
-			if (e->tintr)
+			if (e->tintr) {
 				snapshot_perf_vars(true);
-
+				snapshot_mperf_var(true);
+			}
 			e->aic = read_tsc();
 			e->aits2 = bpf_ktime_get_boot_ns();
 			e->aimperf = bpf_perf_event_read(&perf, MSR_MPERF);
@@ -391,6 +396,7 @@ int BPF_PROG(hrt_bpf_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 
 		e->bimonotonic = bpf_ktime_get_boot_ns();
 		e->bic = read_tsc();
+		snapshot_mperf_var(false);
 		snapshot_perf_vars(false);
 
 		e->tbi = bpf_ktime_get_boot_ns();
