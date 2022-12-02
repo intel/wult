@@ -34,8 +34,8 @@ class Histogram(_Plot.Plot):
                                                    opacity=self.opacity,
                                                    hovertemplate=hover_template, customdata=df)
         except Exception as err:
-            raise Error(f"failed to create histogram 'count-vs-{self.xcolname}':\n"
-                        f"{err}") from err
+            msg = Error(err).indent(2)
+            raise Error(f"failed to create histogram 'count-vs-{self.xcolname}':\n{msg}") from err
 
         self._gobjs.append(gobj)
 
