@@ -44,7 +44,8 @@ def set_default_perm(path):
         if stat.S_IMODE(curmode) != mode:
             os.chmod(path, mode)
     except OSError as err:
-        raise Error(f"cannot change '{path}' permissions to {oct(mode)}:\n{err}") from None
+        msg = Error(err).indent(2)
+        raise Error(f"cannot change '{path}' permissions to {oct(mode)}:\n{msg}") from None
 
 def get_mount_points(pman=None):
     """
@@ -66,7 +67,8 @@ def get_mount_points(pman=None):
             try:
                 contents = fobj.read()
             except OSError as err:
-                raise Error(f"cannot read '{mounts_file}': {err}") from err
+                msg = Error(err).indent(2)
+                raise Error(f"cannot read '{mounts_file}':\n{msg}") from err
 
     for line in contents.splitlines():
         if not line:
@@ -92,7 +94,8 @@ def mount_debugfs(mnt=None, pman=None):
         try:
             mnt = Path(os.path.realpath(mnt)).resolve()
         except OSError as err:
-            raise Error(f"cannot resolve path '{mnt}': {err}") from None
+            msg = Error(err).indent(2)
+            raise Error(f"cannot resolve path '{mnt}':\n{msg}") from None
 
     for mntinfo in get_mount_points(pman=pman):
         if mntinfo.fstype == "debugfs" and Path(mntinfo.mntpoint) == mnt:
