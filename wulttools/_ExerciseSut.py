@@ -160,7 +160,7 @@ _CMDLINE_OPTIONS = {
     "toolpath" : {
         "type" : Path,
         "default" : "wult",
-        "help" : """Path to the tool to run. Default is "wult"."""
+        "help" : """Path to the tool to run. Default is 'wult'."""
     },
     "toolopts" : {
         "default" : "",
@@ -169,7 +169,7 @@ _CMDLINE_OPTIONS = {
     "outdir" : {
         "short" : "-o",
         "type" : Path,
-        "help" : """Path to directory to store the results at."""
+        "help" : """Path to directory to store the results at. Default is <toolname-date-time>."""
     },
     "stop_on_failure" : {
         "action" : "store_true",
