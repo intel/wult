@@ -138,7 +138,8 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
                 self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
                 self._sock.connect(self._uspath)
         except socket.error as err:
-            raise Error(f"cannot connect to 'stc-agent' at {self._stca_id}:\n{err}") from err
+            msg = Error(err).indent(2)
+            raise Error(f"cannot connect to 'stc-agent' at {self._stca_id}:\n{msg}") from err
 
         _LOG.debug("connected to 'stc-agent' at %s", self._stca_id)
 
@@ -152,7 +153,8 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
             self._sock.close()
             self._sock = None
         except socket.error as err:
-            raise Error(f"cannot disconnect from 'stc-agent' at {self._stca_id}: {err}") from err
+            msg = Error(err).indent(2)
+            raise Error(f"cannot disconnect from 'stc-agent' at {self._stca_id}:\n{msg}") from err
 
         _LOG.debug("disconnected from 'stc-agent' at %s", self._stca_id)
 
@@ -203,14 +205,16 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         try:
             self._send_msg(cmd)
         except (Error, socket.error) as err:
-            raise Error(f"failed to send the following message to "
-                        f"{stca_str}:\n{cmd}\n{err}\n{check_log_msg}") from err
+            msg = Error(f"{err}\n{check_log_msg}").indent(2)
+            raise Error(f"failed to send the following message to {stca_str}: {cmd}\n"
+                        f"{msg}") from err
 
         try:
             msg = self._recv_msg()
         except (Error, socket.error) as err:
+            msg = Error(f"{err}\n{check_log_msg}").indent(2)
             raise Error(f"failed receiving the reply to the following command from {stca_str}: "
-                        f"{cmd}\n{err}\n{check_log_msg}") from err
+                        f"{cmd}\n{msg}") from err
 
         if msg == "OK":
             return None
@@ -445,7 +449,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
                 if self._pman.is_socket(Path(self._uspath)):
                     return
             except Error as err:
-                msg = f"{msg}\nBut checking the file path failed: {err}"
+                msg = f"{msg}\nBut checking the file path failed:\n{err.indent(2)}"
             else:
                 msg = f"{msg}\nBut this is not a Unix socket file"
         else:
