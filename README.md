@@ -24,5 +24,6 @@ Wult man page is available [here](docs/wult-man.rst).
 * Adam Hawley <adam.james.hawley@intel.com> - contributor, project maintainer.
 * Tero Kristo <tero.kristo@intel.com> - contributor.
 * Ali Erdinç Köroğlu <ali.erdinc.koroglu@intel.com> - contributor.
+* Dapeng Mi <dapeng1.mi@intel.com> - contributor.
 * Juha Haapakorpi <juha.haapakorpi@intel.com> - contributor.
 * Vladislav Govtva <vlad.govtva@gmail.com> - contributor.
