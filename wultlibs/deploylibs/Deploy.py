@@ -607,16 +607,19 @@ class Deploy(_DeployBase):
                                                                 self._rebuild_bpf)
             dep_bpfhelpers.deploy_helpers(list(bpfhelpers), toolname, lbuild, log_cmd_func)
 
-    def _deploy_drivers(self):
-        """Deploy drivers to the SUT."""
+    def _deploy_drivers(self, log_cmd_func, drivers, kver, ksrc, debug, deployables):
+        """
+        Deploy drivers to the SUT. Arguments are as follows:
+         * log_cmd_func - a function with signature 'log_cmd_func(stdout, stderr)' which will log
+                          stdout and stderr accordingly.
+         * drivers - names of the drivers to deploy to the SUT.
+         * kver - kernel version running on the SUT.
+         * ksrc - path to the kernel sources to compile drivers against.
+         * debug - a boolean variable used to enable extra verbose building of the drivers.
+         * deployables - a dictionary in the format '{deployable:installed_module}'.
+        """
 
-        if not self._cats["drivers"]:
-            return
-
-        kver = self._get_kver()
-        ksrc = self._get_ksrc()
-
-        for drvname in self._cats["drivers"]:
+        for drvname in drivers:
             subpath = _DeployDrivers.DRV_SRC_SUBPATH / drvname
             drvsrc = ToolHelpers.find_project_data("wult", subpath, f"{drvname} drivers sources")
             if not drvsrc.is_dir():
@@ -641,7 +644,7 @@ class Deploy(_DeployBase):
             # Build the drivers.
             _LOG.info("Compiling the drivers for kernel '%s'%s", kver, self._bpman.hostmsg)
             cmd = f"make -C '{drvsrc}' KSRC='{ksrc}'"
-            if self._debug:
+            if debug:
                 cmd += " V=1"
 
             stdout, stderr, exitcode = self._bpman.run(cmd)
@@ -652,14 +655,13 @@ class Deploy(_DeployBase):
                            "enable the 'CONFIG_SYNTH_EVENTS' kernel configuration option."
                 raise Error(msg)
 
-            self._log_cmd_output(stdout, stderr)
+            log_cmd_func(stdout, stderr)
 
             # Deploy the drivers.
             dstdir = kmodpath / _DeployDrivers.DRV_SRC_SUBPATH
             self._spman.mkdir(dstdir, parents=True, exist_ok=True)
 
-            for deployable in self._get_deployables("drivers"):
-                installed_module = self._get_module_path(deployable)
+            for deployable, installed_module in deployables.items():
                 modname = f"{deployable}.ko"
                 srcpath = drvsrc / modname
                 dstpath = dstdir / modname
@@ -674,7 +676,7 @@ class Deploy(_DeployBase):
                     self._spman.run_verify(f"rm -f '{installed_module}'")
 
             stdout, stderr = self._spman.run_verify(f"depmod -a -- '{kver}'")
-            self._log_cmd_output(stdout, stderr)
+            log_cmd_func(stdout, stderr)
 
             # Potentially the deployed driver may crash the system before it gets to write-back data
             # to the file-system (e.g., what 'depmod' modified). This may lead to subsequent boot
@@ -745,7 +747,10 @@ class Deploy(_DeployBase):
             self._tchk.check_tool("cc")
 
         try:
-            self._deploy_drivers()
+            if self._cats["drivers"]:
+                deps = {dep: self._get_module_path(dep) for dep in self._get_deployables("drivers")}
+                self._deploy_drivers(self._log_cmd_output, self._cats["drivers"], self._get_kver(),
+                                     self._get_ksrc(), self._debug, deps)
             self._deploy_helpers(self._toolname, self._lbuild, self._log_cmd_output)
         finally:
             self._remove_tmpdirs()
