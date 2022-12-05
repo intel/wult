@@ -14,6 +14,7 @@ A helper tool for exercising SUT, running workloads with various system setting 
 """
 
 import sys
+import copy
 import logging
 from pathlib import Path
 try:
@@ -153,6 +154,44 @@ _COLLECT_OPTIONS = {
         "help" : """Applicable only for 'wult' and 'ndl' tools. Comma-separated list of device IDs
                     to run the tools with."""
     },
+    "stop_on_failure" : {
+        "action" : "store_true",
+        "help" : """Stop if any of the steps fail, instead of continuing (default)."""
+    },
+    "only_measured_cpu" : {
+        "action" : "store_true",
+        "help" : """Change settings, for example CPU frequency and C-state limits, only for the
+                    measured CPU. By default settings are applied to all CPUs."""
+    },
+    "outdir" : {
+        "short" : "-o",
+        "type" : Path,
+        "help" : """Path to directory to store the results at. Default is <toolname-date-time>."""
+    },
+}
+
+_GENERATE_OPTIONS = {
+    "diff" : {
+        "help" : """Collected data is stored in directories, and each directory consists mulptiple
+                    monikers split by dash. Comma-separated list of monikers to create diff report
+                    with."""
+    },
+    "include" : {
+        "help" : """Comma-separated list of monikers that must be found from the result path name.
+                    """
+    },
+    "exclude" : {
+        "help" : """Comma-separated list of monikers that must not be found from the result path
+                    name."""
+    },
+    "outdir" : {
+        "short" : "-o",
+        "type" : Path,
+        "help" : """Path to directory to store the results at. Default is <toolname>-results."""
+    },
+}
+
+_COMMON_OPTIONS = {
     "toolpath" : {
         "type" : Path,
         "default" : "wult",
@@ -175,11 +214,6 @@ _COLLECT_OPTIONS = {
         "action" : "store_true",
         "help" : """Do not run any commands, only print them."""
     },
-    "only_measured_cpu" : {
-        "action" : "store_true",
-        "help" : """Change settings, for example CPU frequency and C-state limits, only for the
-                    measured CPU. By default settings are applied to all CPUs."""
-    },
 }
 
 def _build_arguments_parser():
@@ -199,11 +233,29 @@ def _build_arguments_parser():
     subpars.set_defaults(func=_collect_command)
     ArgParse.add_ssh_options(subpars)
 
-    for name, kwargs in _COLLECT_OPTIONS.items():
+    options = _COLLECT_OPTIONS
+    options.update(copy.deepcopy(_COMMON_OPTIONS))
+    for name, kwargs in options.items():
         opt_names = [f"--{name.replace('_', '-')}"]
         if "short" in kwargs:
             opt_names += [kwargs.pop("short")]
         subpars.add_argument(*opt_names, **kwargs)
+
+    text = "Generate reports."
+    descr = "Generate reports from collected data."
+    subpars = subparsers.add_parser("report", help=text, description=descr)
+    subpars.set_defaults(func=_report_command)
+
+    options = _GENERATE_OPTIONS
+    options.update(copy.deepcopy(_COMMON_OPTIONS))
+    for name, kwargs in options.items():
+        opt_names = [f"--{name.replace('_', '-')}"]
+        if "short" in kwargs:
+            opt_names += [kwargs.pop("short")]
+        subpars.add_argument(*opt_names, **kwargs)
+
+    text = """One or multiple paths to be searched for test results."""
+    subpars.add_argument("respaths", nargs="+", type=Path, help=text)
 
     if argcomplete:
         argcomplete.autocomplete(parser)
@@ -245,6 +297,24 @@ def _collect_command(args):
             batchconfig.configure(props)
             batchconfig.run(props)
             _LOG.info("")
+
+def _report_command(args):
+    """Implements the 'report' command."""
+
+    outdir = args.outdir
+    if not outdir:
+        outdir = Path(f"{args.toolpath.name}-results")
+
+    with _BatchConfig.BatchReport(args.toolpath, outdir, args.toolopts, dry_run=args.dry_run,
+                                  stop_on_failure=args.stop_on_failure) as batchreport:
+        for outpath, respaths in batchreport.group_results(args.respaths, diff=args.diff,
+                                                           include=args.include,
+                                                           exclude=args.exclude):
+            # Do not generate report if diff report is requested, but we have only one result.
+            if args.diff and len(respaths) < 2:
+                continue
+
+            batchreport.generate_report(respaths, outdir / outpath)
 
 def main():
     """Script entry point."""
