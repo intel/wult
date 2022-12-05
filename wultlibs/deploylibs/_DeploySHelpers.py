@@ -37,15 +37,11 @@ class DeploySHelpers(_DeployHelpersBase.DeployHelpersBase):
             _LOG.info("Compiling simple helper '%s'%s", shelper, self._bpman.hostmsg)
             helperpath = f"{self._btmpdir}/{shelper}"
             stdout, stderr = self._bpman.run_verify(f"make -C '{helperpath}'")
-            self._log_cmd_outdir(stdout, stderr)
+            self._log_cmd_output(stdout, stderr)
 
-    def __init__(self, bpman, spman, btmpdir, stmpdir, log_cmd_func):
+    def __init__(self, bpman, spman, btmpdir, stmpdir, debug):
         """
-        Class constructor. Arguments are the same as in '_DeployHelpersBase.DeployHelpersBase()'
-        except for:
-         * log_cmd_func - a function with signature 'log_cmd_func(stdout, stderr)' which will log
-                          stdout and stderr accordingly.
+        Class constructor. Arguments are the same as in '_DeployHelpersBase.DeployHelpersBase'.
         """
 
-        self._log_cmd_outdir = log_cmd_func
-        super().__init__(bpman, spman, btmpdir, stmpdir, "simple")
+        super().__init__(bpman, spman, btmpdir, stmpdir, "simple", debug)

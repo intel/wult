@@ -42,7 +42,7 @@ class DeployHelpersBase(_DeployInstallableBase.DeployInstallableBase):
             helpers_path = self._spman.get_homedir() / HELPERS_LOCAL_DIR / "bin"
         return Path(helpers_path)
 
-    def deploy_helpers(self, all_helpers, toolname, lbuild, log_cmd_func):
+    def deploy_helpers(self, all_helpers, toolname, lbuild):
         """Deploy helpers (including python helpers) to the SUT."""
 
         if not all_helpers:
@@ -89,13 +89,13 @@ class DeployHelpersBase(_DeployInstallableBase.DeployInstallableBase):
 
             cmd = f"make -C '{shelperpath}' install PREFIX='{helpersdst}'"
             stdout, stderr = self._spman.run_verify(cmd)
-            log_cmd_func(stdout, stderr)
+            self._log_cmd_output(stdout, stderr)
 
             self._spman.rsync(str(helpersdst) + "/bin/", deploy_path,
                               remotesrc=self._spman.is_remote,
                               remotedst=self._spman.is_remote)
 
-    def __init__(self, bpman, spman, btmpdir, stmpdir, helpername):
+    def __init__(self, bpman, spman, btmpdir, stmpdir, helpername, debug):
         """
         Class constructor. Arguments are the same as in
         '_DeployInstallableBase.DeployInstallableBase' except for the following:
@@ -103,6 +103,6 @@ class DeployHelpersBase(_DeployInstallableBase.DeployInstallableBase):
          * helpername - the name of the helpers which are being deployed (e.g. 'python').
         """
 
-        super().__init__(bpman, spman, btmpdir)
+        super().__init__(bpman, spman, btmpdir, debug)
         self._stmpdir = stmpdir
         self._helpername = helpername

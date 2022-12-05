@@ -33,7 +33,7 @@ import sys
 import time
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import LocalProcessManager, Logging
+from pepclibs.helperlibs import LocalProcessManager
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists, ErrorNotSupported
 from statscollectlibs.helperlibs import ToolHelpers
@@ -531,15 +531,6 @@ class Deploy(_DeployBase):
             for deployable in inst_info["deployables"]:
                 yield deployable
 
-    def _log_cmd_output(self, stdout, stderr):
-        """Print output of a command in case debugging is enabled."""
-
-        if self._debug:
-            if stdout:
-                _LOG.log(Logging.ERRINFO, stdout)
-            if stderr:
-                _LOG.log(Logging.ERRINFO, stderr)
-
     def _get_kver(self):
         """
         Returns version of the kernel running on the SUT or version of the kernel in path to compile
@@ -575,13 +566,11 @@ class Deploy(_DeployBase):
         _LOG.debug("Kernel sources path: %s", self._ksrc)
         return self._ksrc
 
-    def _deploy_helpers(self, toolname, lbuild, log_cmd_func):
+    def _deploy_helpers(self, toolname, lbuild):
         """
         Deploy helpers (including python helpers) to the SUT. Arguments are as follows:
          * toolname - name of the tool which the helpers are supporting.
          * lbuild - boolean value which represents whether to build locally or not.
-         * log_cmd_func - a function with signature 'log_cmd_func(stdout, stderr)' which will log
-                          stdout and stderr accordingly.
         """
 
         pyhelpers = self._cats.get("pyhelpers")
@@ -589,23 +578,24 @@ class Deploy(_DeployBase):
             dep_pyhelpers = _DeployPyHelpers.DeployPyHelpers(self._bpman, self._spman, self._cpman,
                                                              self._btmpdir, self._get_ctmpdir(),
                                                              self._get_stmpdir(),
-                                                             self._get_deployables("pyhelpers"))
-            dep_pyhelpers.deploy_helpers(list(pyhelpers), toolname, lbuild, log_cmd_func)
+                                                             self._get_deployables("pyhelpers"),
+                                                             self._debug)
+            dep_pyhelpers.deploy_helpers(list(pyhelpers), toolname, lbuild)
 
         shelpers = self._cats.get("shelpers")
         if shelpers:
             dep_shelpers = _DeploySHelpers.DeploySHelpers(self._bpman, self._spman, self._btmpdir,
-                                                        self._get_stmpdir(), log_cmd_func)
-            dep_shelpers.deploy_helpers(list(shelpers), toolname, lbuild, log_cmd_func)
+                                                          self._get_stmpdir(), self._debug)
+            dep_shelpers.deploy_helpers(list(shelpers), toolname, lbuild)
 
         bpfhelpers = self._cats.get("bpfhelpers")
         if bpfhelpers:
             dep_bpfhelpers = _DeployBPFHelpers.DeployBPFHelpers(self._bpman, self._spman,
                                                                 self._btmpdir, self._get_stmpdir(),
                                                                 self._tchk, self._get_ksrc(),
-                                                                log_cmd_func, lbuild,
-                                                                self._rebuild_bpf)
-            dep_bpfhelpers.deploy_helpers(list(bpfhelpers), toolname, lbuild, log_cmd_func)
+                                                                lbuild, self._rebuild_bpf,
+                                                                self._debug)
+            dep_bpfhelpers.deploy_helpers(list(bpfhelpers), toolname, lbuild)
 
     def _deploy_drivers(self):
         """Deploy drivers to the SUT."""
@@ -614,9 +604,9 @@ class Deploy(_DeployBase):
             return
 
         deps = {dep: self._get_module_path(dep) for dep in self._get_deployables("drivers")}
-        dep_drvr = _DeployDrivers.DeployDrivers(self._bpman, self._spman, self._btmpdir)
-        dep_drvr.deploy_drivers(self._log_cmd_output, self._cats["drivers"], self._get_kver(),
-                                self._get_ksrc(), self._debug, deps)
+        dep_drvr = _DeployDrivers.DeployDrivers(self._bpman, self._spman, self._btmpdir,
+                                                self._debug)
+        dep_drvr.deploy_drivers(self._cats["drivers"], self._get_kver(), self._get_ksrc(), deps)
 
     def _adjust_installables(self):
         """
@@ -683,7 +673,7 @@ class Deploy(_DeployBase):
 
         try:
             self._deploy_drivers()
-            self._deploy_helpers(self._toolname, self._lbuild, self._log_cmd_output)
+            self._deploy_helpers(self._toolname, self._lbuild)
         finally:
             self._remove_tmpdirs()
 

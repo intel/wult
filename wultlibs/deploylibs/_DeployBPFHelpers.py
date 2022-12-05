@@ -202,22 +202,18 @@ class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
             stdout, stderr = self._bpman.run_verify(cmd)
             self._log_cmd_output(stdout, stderr)
 
-    def __init__(self, bpman, spman, btmpdir, stmpdir, tchk, ksrc, log_cmd_func, lbuild,
-                 rebuild_src):
+    def __init__(self, bpman, spman, btmpdir, stmpdir, tchk, ksrc, lbuild, rebuild_src, debug):
         """
         Class constructor. Arguments are the same as in '_DeployHelpersBase.DeployHelpersBase()'
         except for:
          * tchk - an instance of 'ToolChecker'.
          * ksrc - path to the kernel sources to compile drivers against.
-         * log_cmd_func - a function with signature 'log_cmd_func(stdout, stderr)' which will log
-                          stdout and stderr accordingly.
          * lbuild - boolean value representing whether this method should build locally.
          * rebuild_src - boolean value representing whether this method should rebuild bpf helpers.
         """
 
         self._tchk = tchk
         self._ksrc = ksrc
-        self._log_cmd_output = log_cmd_func
         self._lbuild = lbuild
         self._rebuild_src = rebuild_src
-        super().__init__(bpman, spman, btmpdir, stmpdir, "bpf")
+        super().__init__(bpman, spman, btmpdir, stmpdir, "bpf", debug)

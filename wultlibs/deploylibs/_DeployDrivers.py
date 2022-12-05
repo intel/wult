@@ -21,15 +21,12 @@ _LOG = logging.getLogger()
 class DeployDrivers(_DeployInstallableBase.DeployInstallableBase):
     """This base class can be inherited from to provide the API for deploying drivers."""
 
-    def deploy_drivers(self, log_cmd_func, drivers, kver, ksrc, debug, deployables):
+    def deploy_drivers(self, drivers, kver, ksrc, deployables):
         """
         Deploy drivers to the SUT. Arguments are as follows:
-         * log_cmd_func - a function with signature 'log_cmd_func(stdout, stderr)' which will log
-                          stdout and stderr accordingly.
          * drivers - names of the drivers to deploy to the SUT.
          * kver - kernel version running on the SUT.
          * ksrc - path to the kernel sources to compile drivers against.
-         * debug - a boolean variable used to enable extra verbose building of the drivers.
          * deployables - a dictionary in the format '{deployable:installed_module}'.
         """
 
@@ -58,7 +55,7 @@ class DeployDrivers(_DeployInstallableBase.DeployInstallableBase):
             # Build the drivers.
             _LOG.info("Compiling the drivers for kernel '%s'%s", kver, self._bpman.hostmsg)
             cmd = f"make -C '{drvsrc}' KSRC='{ksrc}'"
-            if debug:
+            if self._debug:
                 cmd += " V=1"
 
             stdout, stderr, exitcode = self._bpman.run(cmd)
@@ -69,7 +66,7 @@ class DeployDrivers(_DeployInstallableBase.DeployInstallableBase):
                            "enable the 'CONFIG_SYNTH_EVENTS' kernel configuration option."
                 raise Error(msg)
 
-            log_cmd_func(stdout, stderr)
+            self._log_cmd_output(stdout, stderr)
 
             # Deploy the drivers.
             dstdir = kmodpath / DRV_SRC_SUBPATH
@@ -90,7 +87,7 @@ class DeployDrivers(_DeployInstallableBase.DeployInstallableBase):
                     self._spman.run_verify(f"rm -f '{installed_module}'")
 
             stdout, stderr = self._spman.run_verify(f"depmod -a -- '{kver}'")
-            log_cmd_func(stdout, stderr)
+            self._log_cmd_output(stdout, stderr)
 
             # Potentially the deployed driver may crash the system before it gets to write-back data
             # to the file-system (e.g., what 'depmod' modified). This may lead to subsequent boot
