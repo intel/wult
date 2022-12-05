@@ -42,7 +42,7 @@ class DeployHelpersBase(_DeployInstallableBase.DeployInstallableBase):
             helpers_path = self._spman.get_homedir() / HELPERS_LOCAL_DIR / "bin"
         return Path(helpers_path)
 
-    def deploy_helpers(self, all_helpers, toolname, lbuild):
+    def deploy(self, all_helpers, toolname, lbuild):
         """Deploy helpers (including python helpers) to the SUT."""
 
         if not all_helpers:
