@@ -607,81 +607,16 @@ class Deploy(_DeployBase):
                                                                 self._rebuild_bpf)
             dep_bpfhelpers.deploy_helpers(list(bpfhelpers), toolname, lbuild, log_cmd_func)
 
-    def _deploy_drivers(self, log_cmd_func, drivers, kver, ksrc, debug, deployables):
-        """
-        Deploy drivers to the SUT. Arguments are as follows:
-         * log_cmd_func - a function with signature 'log_cmd_func(stdout, stderr)' which will log
-                          stdout and stderr accordingly.
-         * drivers - names of the drivers to deploy to the SUT.
-         * kver - kernel version running on the SUT.
-         * ksrc - path to the kernel sources to compile drivers against.
-         * debug - a boolean variable used to enable extra verbose building of the drivers.
-         * deployables - a dictionary in the format '{deployable:installed_module}'.
-        """
+    def _deploy_drivers(self):
+        """Deploy drivers to the SUT."""
 
-        for drvname in drivers:
-            subpath = _DeployDrivers.DRV_SRC_SUBPATH / drvname
-            drvsrc = ToolHelpers.find_project_data("wult", subpath, f"{drvname} drivers sources")
-            if not drvsrc.is_dir():
-                raise Error(f"path '{drvsrc}' does not exist or it is not a directory")
+        if not self._cats["drivers"]:
+            return
 
-            _LOG.debug("copying driver sources to %s:\n   '%s' -> '%s'",
-                       self._bpman.hostname, drvsrc, self._btmpdir)
-            self._bpman.rsync(f"{drvsrc}/", self._btmpdir / "drivers", remotesrc=False,
-                              remotedst=self._bpman.is_remote)
-            drvsrc = self._btmpdir / "drivers"
-
-            kmodpath = Path(f"/lib/modules/{kver}")
-            if not self._spman.is_dir(kmodpath):
-                msg = f"kernel modules directory '{kmodpath}' does not exist{self._spman.hostmsg}"
-                if not self._bpman.is_remote and self._spman.is_remote:
-                    msg += f"\nEven though you are building on local host, the result will have " \
-                           f"to be installed to '{self._spman.hostname}'.\nFor this reason " \
-                           f"you should have same kernel version ({kver}) installed on " \
-                           f"'{self._spman.hostname}'."
-                raise Error(msg)
-
-            # Build the drivers.
-            _LOG.info("Compiling the drivers for kernel '%s'%s", kver, self._bpman.hostmsg)
-            cmd = f"make -C '{drvsrc}' KSRC='{ksrc}'"
-            if debug:
-                cmd += " V=1"
-
-            stdout, stderr, exitcode = self._bpman.run(cmd)
-            if exitcode != 0:
-                msg = self._bpman.get_cmd_failure_msg(cmd, stdout, stderr, exitcode)
-                if "synth_event_" in stderr:
-                    msg += "\n\nLooks like synthetic events support is disabled in your kernel, " \
-                           "enable the 'CONFIG_SYNTH_EVENTS' kernel configuration option."
-                raise Error(msg)
-
-            log_cmd_func(stdout, stderr)
-
-            # Deploy the drivers.
-            dstdir = kmodpath / _DeployDrivers.DRV_SRC_SUBPATH
-            self._spman.mkdir(dstdir, parents=True, exist_ok=True)
-
-            for deployable, installed_module in deployables.items():
-                modname = f"{deployable}.ko"
-                srcpath = drvsrc / modname
-                dstpath = dstdir / modname
-                _LOG.info("Deploying kernel module '%s'%s", modname, self._spman.hostmsg)
-                _LOG.debug("Deploying kernel module '%s' to '%s'%s",
-                           modname, dstpath, self._spman.hostmsg)
-                self._spman.rsync(srcpath, dstpath, remotesrc=self._bpman.is_remote,
-                                  remotedst=self._spman.is_remote)
-
-                if installed_module and installed_module.resolve() != dstpath.resolve():
-                    _LOG.debug("removing old module '%s'%s", installed_module, self._spman.hostmsg)
-                    self._spman.run_verify(f"rm -f '{installed_module}'")
-
-            stdout, stderr = self._spman.run_verify(f"depmod -a -- '{kver}'")
-            log_cmd_func(stdout, stderr)
-
-            # Potentially the deployed driver may crash the system before it gets to write-back data
-            # to the file-system (e.g., what 'depmod' modified). This may lead to subsequent boot
-            # problems. So sync the file-system now.
-            self._spman.run_verify("sync")
+        deps = {dep: self._get_module_path(dep) for dep in self._get_deployables("drivers")}
+        dep_drvr = _DeployDrivers.DeployDrivers(self._bpman, self._spman, self._btmpdir)
+        dep_drvr.deploy_drivers(self._log_cmd_output, self._cats["drivers"], self._get_kver(),
+                                self._get_ksrc(), self._debug, deps)
 
     def _adjust_installables(self):
         """
@@ -747,10 +682,7 @@ class Deploy(_DeployBase):
             self._tchk.check_tool("cc")
 
         try:
-            if self._cats["drivers"]:
-                deps = {dep: self._get_module_path(dep) for dep in self._get_deployables("drivers")}
-                self._deploy_drivers(self._log_cmd_output, self._cats["drivers"], self._get_kver(),
-                                     self._get_ksrc(), self._debug, deps)
+            self._deploy_drivers()
             self._deploy_helpers(self._toolname, self._lbuild, self._log_cmd_output)
         finally:
             self._remove_tmpdirs()
