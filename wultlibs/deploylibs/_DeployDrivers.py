@@ -12,12 +12,13 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.helperlibs import ToolHelpers
+from wultlibs.deploylibs import _DeployInstallableBase
 
 DRV_SRC_SUBPATH = Path("drivers/idle")
 
 _LOG = logging.getLogger()
 
-class DeployDrivers:
+class DeployDrivers(_DeployInstallableBase.DeployInstallableBase):
     """This base class can be inherited from to provide the API for deploying drivers."""
 
     def deploy_drivers(self, log_cmd_func, drivers, kver, ksrc, debug, deployables):
@@ -95,15 +96,3 @@ class DeployDrivers:
             # to the file-system (e.g., what 'depmod' modified). This may lead to subsequent boot
             # problems. So sync the file-system now.
             self._spman.run_verify("sync")
-
-    def __init__(self, bpman, spman, btmpdir):
-        """
-        Class constructor. Arguments are as follows:
-         * bpman - process manager associated with the build host.
-         * spman - process manager associated with the SUT.
-         * btmpdir - a path to a temporary directory on the build host.
-        """
-
-        self._bpman = bpman
-        self._spman = spman
-        self._btmpdir = btmpdir

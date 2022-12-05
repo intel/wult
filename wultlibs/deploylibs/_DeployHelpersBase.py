@@ -13,13 +13,14 @@ import os
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.helperlibs import ToolHelpers
+from wultlibs.deploylibs import _DeployInstallableBase
 
 HELPERS_LOCAL_DIR = Path(".local")
 HELPERS_SRC_SUBPATH = Path("helpers")
 
 _LOG = logging.getLogger()
 
-class DeployHelpersBase:
+class DeployHelpersBase(_DeployInstallableBase.DeployInstallableBase):
     """This base class can be inherited from to provide the API for deploying helpers."""
 
     def prepare(self, helpersrc, helpers):
@@ -96,16 +97,12 @@ class DeployHelpersBase:
 
     def __init__(self, bpman, spman, btmpdir, stmpdir, helpername):
         """
-        Class constructor. Arguments are as follows:
-         * bpman - process manager associated with the build host.
-         * spman - process manager associated with the SUT.
-         * btmpdir - a path to a temporary directory on the build host.
+        Class constructor. Arguments are the same as in
+        '_DeployInstallableBase.DeployInstallableBase' except for the following:
          * stmpdir - a path to a temporary directory on the SUT.
          * helpername - the name of the helpers which are being deployed (e.g. 'python').
         """
 
-        self._bpman = bpman
-        self._spman = spman
-        self._btmpdir = btmpdir
+        super().__init__(bpman, spman, btmpdir)
         self._stmpdir = stmpdir
         self._helpername = helpername
