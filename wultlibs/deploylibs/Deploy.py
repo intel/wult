@@ -632,8 +632,13 @@ class Deploy(_DeployBase):
 
             kmodpath = Path(f"/lib/modules/{kver}")
             if not self._spman.is_dir(kmodpath):
-                raise Error(f"kernel modules directory '{kmodpath}' does not "
-                            f"exist{self._spman.hostmsg}")
+                msg = f"kernel modules directory '{kmodpath}' does not exist{self._spman.hostmsg}"
+                if not self._bpman.is_remote and self._spman.is_remote:
+                    msg += f"\nEven though you are building on local host, the result will have " \
+                           f"to be installed to '{self._spman.hostname}'.\nFor this reason " \
+                           f"you should have same kernel version ({kver}) installed on " \
+                           f"'{self._spman.hostname}'."
+                raise Error(msg)
 
             # Build the drivers.
             _LOG.info("Compiling the drivers for kernel '%s'%s", kver, self._bpman.hostmsg)
