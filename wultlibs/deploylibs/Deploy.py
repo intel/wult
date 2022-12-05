@@ -37,11 +37,9 @@ from pepclibs.helperlibs import LocalProcessManager, Logging
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists, ErrorNotSupported
 from statscollectlibs.helperlibs import ToolHelpers
-from wultlibs.deploylibs import _DeployBPFHelpers, _DeployPyHelpers, _DeploySHelpers
+from wultlibs.deploylibs import (_DeployBPFHelpers, _DeployDrivers, _DeployHelpersBase,
+    _DeployPyHelpers, _DeploySHelpers)
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
-from wultlibs.deploylibs import _DeployHelpersBase
-
-_DRV_SRC_SUBPATH = Path("drivers/idle")
 
 _LOG = logging.getLogger()
 
@@ -142,7 +140,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
                 on the local system."""
 
     if cats["drivers"]:
-        drvsearch = ", ".join([name % str(_DRV_SRC_SUBPATH) for name in searchdirs])
+        drvsearch = ", ".join([name % str(_DeployDrivers.DRV_SRC_SUBPATH) for name in searchdirs])
         descr += f""" The drivers are searched for in the following directories (and in the
                      following order) on the local host: {drvsearch}."""
     if cats["shelpers"] or cats["pyhelpers"]:
@@ -398,8 +396,8 @@ class DeployCheck(_DeployBase):
             self._check_minkver(drvname)
 
             try:
-                srcpath = ToolHelpers.find_project_data("wult", _DRV_SRC_SUBPATH / self._toolname,
-                                                         descr=f"the '{drvname}' driver")
+                subpath = _DeployDrivers.DRV_SRC_SUBPATH / self._toolname
+                srcpath = ToolHelpers.find_project_data("wult", subpath, f"the '{drvname}' driver")
             except ErrorNotFound:
                 srcpath = None
 
@@ -619,8 +617,8 @@ class Deploy(_DeployBase):
         ksrc = self._get_ksrc()
 
         for drvname in self._cats["drivers"]:
-            drvsrc = ToolHelpers.find_project_data("wult", _DRV_SRC_SUBPATH / drvname,
-                                                   descr=f"{drvname} drivers sources")
+            subpath = _DeployDrivers.DRV_SRC_SUBPATH / drvname
+            drvsrc = ToolHelpers.find_project_data("wult", subpath, f"{drvname} drivers sources")
             if not drvsrc.is_dir():
                 raise Error(f"path '{drvsrc}' does not exist or it is not a directory")
 
@@ -657,7 +655,7 @@ class Deploy(_DeployBase):
             self._log_cmd_output(stdout, stderr)
 
             # Deploy the drivers.
-            dstdir = kmodpath / _DRV_SRC_SUBPATH
+            dstdir = kmodpath / _DeployDrivers.DRV_SRC_SUBPATH
             self._spman.mkdir(dstdir, parents=True, exist_ok=True)
 
             for deployable in self._get_deployables("drivers"):
