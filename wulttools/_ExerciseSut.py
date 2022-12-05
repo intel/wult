@@ -74,7 +74,7 @@ def _get_reset_val(pname):
 
     return "don't care"
 
-_CMDLINE_OPTIONS = {
+_COLLECT_OPTIONS = {
     "datapoints" : {
         "short" : "-c",
         "default" : 100000,
@@ -191,12 +191,19 @@ def _build_arguments_parser():
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
+    subparsers = parser.add_subparsers(title="commands", metavar="")
 
-    for name, kwargs in _CMDLINE_OPTIONS.items():
+    text = "Collect testdata."
+    descr = "Run a test tool or benchmark to collect testdata."
+    subpars = subparsers.add_parser("collect", help=text, description=descr)
+    subpars.set_defaults(func=_collect_command)
+    ArgParse.add_ssh_options(subpars)
+
+    for name, kwargs in _COLLECT_OPTIONS.items():
         opt_names = [f"--{name.replace('_', '-')}"]
         if "short" in kwargs:
             opt_names += [kwargs.pop("short")]
-        parser.add_argument(*opt_names, **kwargs)
+        subpars.add_argument(*opt_names, **kwargs)
 
     if argcomplete:
         argcomplete.autocomplete(parser)
@@ -209,7 +216,7 @@ def parse_arguments():
     parser = _build_arguments_parser()
     return parser.parse_args()
 
-def _exercise_sut(args):
+def _collect_command(args):
     """Exercise SUT and run workload for each requested system configuration."""
 
     if args.toolpath.name in ("wult", "ndl") and not args.devids:
@@ -244,7 +251,12 @@ def main():
 
     try:
         args = parse_arguments()
-        _exercise_sut(args)
+
+        if not getattr(args, "func", None):
+            _LOG.error("please, run '%s -h' for help.", _OWN_NAME)
+            return -1
+
+        args.func(args)
     except KeyboardInterrupt:
         _LOG.info("\nInterrupted, exiting")
         return -1
