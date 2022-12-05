@@ -17,7 +17,7 @@ _LOG = logging.getLogger()
 class DeploySHelpers(_DeployHelpersBase.DeployHelpersBase):
     """This class provides the API for deploying simple helpers."""
 
-    def prepare(self, helpersrc, helpers):
+    def _prepare(self, helpersrc, helpers):
         """
         Build and prepare simple helpers for deployment. The arguments are as follows:
           * helpersrc - path to the helpers base directory on the controller.

@@ -23,7 +23,7 @@ _LOG = logging.getLogger()
 class DeployHelpersBase(_DeployInstallableBase.DeployInstallableBase):
     """This base class can be inherited from to provide the API for deploying helpers."""
 
-    def prepare(self, helpersrc, helpers):
+    def _prepare(self, helpersrc, helpers):
         """
         Build and prepare helpers for deployment. The arguments are as follows:
           * helpersrc - path to the helpers base directory on the controller.
@@ -63,7 +63,7 @@ class DeployHelpersBase(_DeployInstallableBase.DeployInstallableBase):
             if not helperdir.is_dir():
                 raise Error(f"path '{helperdir}' does not exist or it is not a directory")
 
-        self.prepare(helpersrc, all_helpers)
+        self._prepare(helpersrc, all_helpers)
 
         deploy_path = self._get_helpers_deploy_path()
 
