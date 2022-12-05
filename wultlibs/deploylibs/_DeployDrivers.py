@@ -21,7 +21,7 @@ _LOG = logging.getLogger()
 class DeployDrivers(_DeployInstallableBase.DeployInstallableBase):
     """This base class can be inherited from to provide the API for deploying drivers."""
 
-    def deploy_drivers(self, drivers, kver, ksrc, deployables):
+    def deploy(self, drivers, kver, ksrc, deployables):
         """
         Deploy drivers to the SUT. Arguments are as follows:
          * drivers - names of the drivers to deploy to the SUT.

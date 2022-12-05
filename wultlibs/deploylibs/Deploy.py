@@ -606,7 +606,7 @@ class Deploy(_DeployBase):
         deps = {dep: self._get_module_path(dep) for dep in self._get_deployables("drivers")}
         dep_drvr = _DeployDrivers.DeployDrivers(self._bpman, self._spman, self._btmpdir,
                                                 self._debug)
-        dep_drvr.deploy_drivers(self._cats["drivers"], self._get_kver(), self._get_ksrc(), deps)
+        dep_drvr.deploy(self._cats["drivers"], self._get_kver(), self._get_ksrc(), deps)
 
     def _adjust_installables(self):
         """
