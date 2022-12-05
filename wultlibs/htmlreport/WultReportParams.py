@@ -20,7 +20,7 @@ SMALL_HIST = f"{SMALL_YAXES}"
 SMALL_CHIST = None
 
 LARGE_XAXES = "SilentTime,LDist"
-LARGE_YAXES = r".*Latency.*,.*Delay,[PC]C.+%,SilentTime,ReqCState"
+LARGE_YAXES = r".*Latency.*,.*Delay,[PC]C.+%,SilentTime,ReqCState,CPUFreq"
 LARGE_HIST = f"{LARGE_YAXES},LDist"
 LARGE_CHIST = r".*Latency"
 
