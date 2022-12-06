@@ -42,7 +42,7 @@ class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
 
         For example, Ubuntu 22.04 puts the 'bpf/bpf_helpers.h' file to '/usr/include', and it comes
         from the 'libbpf-dev' package, not from the kernel sources package. Fedora 36 delivers this
-        vile via the kernel sources package.
+        file via the kernel sources package.
         """
 
         search_info = {}
@@ -62,11 +62,10 @@ class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
                                 "tools/bpf/resolve_btfids/libbpf",
                                 "tools/bpf/resolve_btfids/libbpf/include")
 
-        # In case of Ubuntu some bpf headers are in '/usr/include', and they are delivered via the
-        # 'libbpf-dev' package.
+        # Some bpf headers may be found in '/usr/include'. Examples.
         basedir = Path("/usr/include")
         if self._bpman.is_dir(basedir):
-            search_info[basedir] = ("", )
+            search_info[basedir] = ("", "bpf")
 
         incdirs = set()
 
