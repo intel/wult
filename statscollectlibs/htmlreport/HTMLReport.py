@@ -18,7 +18,7 @@ from statscollectlibs.htmlreport.tabs import _ACPowerTabBuilder, _IPMITabBuilder
 from statscollectlibs.htmlreport.tabs.turbostat import _TurbostatTabBuilder
 from statscollectlibs.htmlreport.tabs.sysinfo import (_CPUFreqTabBuilder, _CPUIdleTabBuilder,
     _DMIDecodeTabBuilder, _DmesgTabBuilder, _EPPTabBuilder, _LspciTabBuilder, _MiscTabBuilder,
-    _PepcTabBuilder)
+    _PepcTabBuilder, _ThermalThrottleTabBuilder)
 from statscollectlibs.htmlreport.tabs.sysinfo import _TurbostatTabBuilder as _SysInfoTstatTabBuilder
 
 _LOG = logging.getLogger()
@@ -127,6 +127,7 @@ class HTMLReport:
         tab_builders = [
             _PepcTabBuilder.PepcTabBuilder,
             _SysInfoTstatTabBuilder.TurbostatTabBuilder,
+            _ThermalThrottleTabBuilder.ThermalThrottleTabBuilder,
             _DMIDecodeTabBuilder.DMIDecodeTabBuilder,
             _EPPTabBuilder.EPPTabBuilder,
             _CPUFreqTabBuilder.CPUFreqTabBuilder,
