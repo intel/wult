@@ -75,6 +75,11 @@ def _collect_totals(outdir, when, pman):
     cmdinfo["outfile"] = outfile
     cmdinfo["cmd"] = pattern % ("cpufreq", outfile)
 
+    cmdinfos["thermal_throttle"] = cmdinfo = {}
+    outfile = outdir / f"sys-thermal_throttle.{when}.raw.txt"
+    cmdinfo["outfile"] = outfile
+    cmdinfo["cmd"] = pattern % ("thermal_throttle", outfile)
+
     cmdinfos["turbostat"] = cmdinfo = {}
     outfile = outdir / f"turbostat-d.{when}.raw.txt"
     cmdinfo["outfile"] = outfile
