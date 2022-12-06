@@ -164,6 +164,11 @@ class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
             if not bpftool_path:
                 bpftool_path = self._tchk.check_tool("bpftool")
 
+            # Check for 'libbpf' library. We do this because the OS package that brings 'libbpf.so'
+            # ('libbpf-devel' in Fedora) also brings headers like 'bpf/bpf_helper_defs.h', which are
+            # required.
+            self._check_for_shared_library("bpf")
+
             headers = ("bpf/bpf_helpers.h", "bpf_helper_defs.h", "bpf/bpf_tracing.h",
                        "uapi/linux/bpf.h", "linux/version.h", "asm/types.h")
             incdirs = self._find_ebpf_include_dirs(headers)
