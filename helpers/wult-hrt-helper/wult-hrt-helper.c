@@ -22,7 +22,7 @@
 
 #include "wult-hrt-helper.h"
 #include "common.h"
-#include "hrt-bpf.h"
+#include "hrt_bpf.h"
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 

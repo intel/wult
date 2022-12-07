@@ -487,14 +487,14 @@ class _WultHRT(_HRTimerDeviceBase):
 class _WultHRTBPF(_HRTimerDeviceBase):
     """The High Resolution Timers device controlled by the 'wult-hrt-helper' program."""
 
-    supported_devices = {"hrt-bpf" : "Linux High Resolution Timer via eBPF"}
+    supported_devices = {"hrt_bpf" : "Linux High Resolution Timer via eBPF"}
 
     def __init__(self, devid, pman, dmesg=None):
         """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
 
         super().__init__(devid, pman, helpername="wult-hrt-helper", dmesg=dmesg)
 
-        self.info["descr"] = self.supported_devices["hrt-bpf"]
+        self.info["descr"] = self.supported_devices["hrt_bpf"]
 
 def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
     """
