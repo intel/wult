@@ -154,7 +154,6 @@ _CMDLINE_OPTIONS = {
                     starting the measurements."""
     },
     "devids" : {
-        "default" : "hrt",
         "help" : """Applicable only for 'wult' and 'ndl' tools. Comma-separated list of device IDs
                     to run the tools with."""
     },
@@ -216,6 +215,9 @@ def parse_arguments():
 
 def _exercise_sut(args):
     """Exercise SUT and run workload for each requested system configuration."""
+
+    if args.toolpath.name in ("wult", "ndl") and not args.devids:
+        _LOG.error_out("please, provide device ID to measure with, see '%s -h' for help", _OWN_NAME)
 
     inprops = {}
     for pname in _BatchConfig.PROP_INFOS:

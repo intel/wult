@@ -434,8 +434,6 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         if self.toolpath.name == "wult":
             cmd += f" --cpunum {self._cpunum}"
-        else:
-            devid = "i210"
 
         cmd += f" {devid}"
 
