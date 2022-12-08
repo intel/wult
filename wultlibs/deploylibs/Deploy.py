@@ -213,14 +213,6 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
     The base class for 'Deploy' and 'DeployCheck' classes. Contains the common bits and pieces.
     """
 
-    def _get_kver(self):
-        """Returns version of the kernel running on the SUT."""
-
-        if not self._kver:
-            self._kver = KernelVersion.get_kver(pman=self._spman)
-
-        return self._kver
-
     def _check_minkver(self, installable, kver):
         """
         Check if the SUT has new enough kernel version for 'installable' to be deployed on it. The
@@ -283,6 +275,14 @@ class DeployCheck(_DeployBase):
     This class provides the 'check_deployment()' method which can be used for verifying whether all
     the required installables are available on the SUT.
     """
+
+    def _get_kver(self):
+        """Returns version of the kernel running on the SUT."""
+
+        if not self._kver:
+            self._kver = KernelVersion.get_kver(pman=self._spman)
+
+        return self._kver
 
     @staticmethod
     def _get_newest_mtime(path):
