@@ -64,9 +64,9 @@ PROP_INFOS = {
     "cstate_prewake" : {
         "moniker" : "cpw",
         "cmd" : "pepc cstates config --cstate-prewake {} --cpus {scope}"},
-    "epp_policy" : {
+    "epp" : {
         "moniker" : "epp",
-        "cmd" : "pepc pstates config --epp-policy {} --cpus {scope}"},
+        "cmd" : "pepc pstates config --epp {} --cpus {scope}"},
     "epb" : {
         "moniker" : "epb",
         "cmd" : "pepc pstates config --epb {} --cpus {scope}"},

@@ -57,7 +57,7 @@ _RESET_PROPS = {
     "uncore_freqs" : {
         "value" : "unl",
         "text" : "unlock uncore frequency"},
-    "epp_policy" : {
+    "epp" : {
         "value" : "balance_performance",
         "text" : "set EPP policy to 'balance_performance'"},
     "epb" : {
