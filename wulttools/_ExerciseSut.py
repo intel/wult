@@ -50,9 +50,6 @@ _RESET_PROPS = {
     "cstate_prewake" : {
         "value" : "off",
         "text" : "disable C-state prewake"},
-    "governor" : {
-        "value" : "powersave",
-        "text" : "set CPU frequency governor to 'powersave'"},
     "freqs" : {
         "value" : "unl",
         "text" : "unlock CPU frequency"},
@@ -122,8 +119,7 @@ _CMDLINE_OPTIONS = {
                     'pepc pstates config' command."""
     },
     "governor" : {
-        "help" : f"""Name of the CPU frequency governor to measure with, default is
-                     "{_get_reset_val('governor')}"."""
+        "help" : """Name of the CPU frequency governor to measure with."""
     },
     "aspm" : {
         "help" : f"""Comma-separated list of PCIe ASPM configurations to measure with. The default
