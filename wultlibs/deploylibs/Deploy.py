@@ -258,11 +258,6 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
         self._insts = insts
 
         self._close_spman = pman is None
-
-        # Version of the kernel running on the SUT of version of the kernel to compile wult
-        # components against.
-        self._kver = None
-
         if not self._spman:
             self._spman = LocalProcessManager.LocalProcessManager()
 
@@ -468,6 +463,11 @@ class DeployCheck(_DeployBase):
         """
 
         self._insts, self._cats = _get_insts_cats(deploy_info)
+
+        # Version of the kernel running on the SUT of version of the kernel to compile wult
+        # components against.
+        self._kver = None
+
         super().__init__(toolname, self._insts, pman=pman)
 
         self._time_delta = None
@@ -722,6 +722,10 @@ class Deploy(_DeployBase):
         self._stmpdir_created = None # Temp. directory on the SUT has been created.
         self._ctmpdir_created = None # Temp. directory on the controller has been created.
         self._tchk = None
+
+        # Version of the kernel running on the SUT of version of the kernel to compile wult
+        # components against.
+        self._kver = None
 
         self._cpman = LocalProcessManager.LocalProcessManager()
 
