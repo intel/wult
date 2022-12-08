@@ -244,16 +244,14 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
             return modpath
         return None
 
-    def __init__(self, toolname, insts, pman=None):
+    def __init__(self, insts, pman=None):
         """
         The class constructor. The arguments are as follows.
-          * toolname - name of the tool to create the deployment object for.
           * insts - a dictionary describing installables information.
           * pman - the process manager object that defines the SUT to deploy to (local host by
                    default).
         """
 
-        self._toolname = toolname
         self._spman = pman
         self._insts = insts
 
@@ -463,12 +461,13 @@ class DeployCheck(_DeployBase):
         """
 
         self._insts, self._cats = _get_insts_cats(deploy_info)
+        self._toolname = toolname
 
         # Version of the kernel running on the SUT of version of the kernel to compile wult
         # components against.
         self._kver = None
 
-        super().__init__(toolname, self._insts, pman=pman)
+        super().__init__(self._insts, pman)
 
         self._time_delta = None
 
@@ -702,8 +701,9 @@ class Deploy(_DeployBase):
         """
 
         self._insts, self._cats = _get_insts_cats(deploy_info)
-        super().__init__(toolname, self._insts, pman=pman)
+        super().__init__(self._insts, pman=pman)
 
+        self._toolname = toolname
         self._ksrc = ksrc
         self._lbuild = lbuild
         self._rebuild_bpf = rebuild_bpf
