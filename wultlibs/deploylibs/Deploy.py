@@ -231,7 +231,7 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
                                     f"it is not new enough for the '{installable}' {cat_descr}.\n"
                                     f"Please, use kernel version {minkver} or newer.")
 
-    def _get_module_path(self, name):
+    def get_module_path(self, name):
         """Return path to installed module 'name'. Returns 'None', if the module was not found."""
 
         cmd = f"modinfo -n {name}"
@@ -380,7 +380,7 @@ class DeployCheck(_DeployBase):
                 srcpath = None
 
             for deployable in self._get_deployables("drivers"):
-                dstpath = self._get_module_path(deployable)
+                dstpath = self.get_module_path(deployable)
                 if not dstpath:
                     self._deployable_not_found(deployable)
                     break
@@ -588,7 +588,7 @@ class Deploy(_DeployBase):
         if not self._cats["drivers"]:
             return
 
-        deps = {dep: self._get_module_path(dep) for dep in self._get_deployables("drivers")}
+        deps = {dep: self.get_module_path(dep) for dep in self._get_deployables("drivers")}
         dep_drvr = _DeployDrivers.DeployDrivers(self._bpman, self._spman, self._btmpdir,
                                                 self._debug)
         dep_drvr.deploy(self._cats["drivers"], self._get_kver(), self._get_ksrc(), deps)
