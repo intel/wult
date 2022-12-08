@@ -259,7 +259,7 @@ class _KernelHelper(ClassHelpers.SimpleCloseContext):
         """Uninitialize the object."""
         ClassHelpers.close(self, unref_attrs=("_spman"))
 
-class DeployCheck(_KernelHelper):
+class DeployCheck(ClassHelpers.SimpleCloseContext):
     """
     This class provides the 'check_deployment()' method which can be used for verifying whether all
     the required installables are available on the SUT.
@@ -367,7 +367,7 @@ class DeployCheck(_KernelHelper):
         """Check if drivers are deployed and up-to-date."""
 
         for drvname in self._cats["drivers"]:
-            self.check_minkver(drvname, self._get_kver())
+            self._khelper.check_minkver(drvname, self._get_kver())
 
             try:
                 subpath = _DeployDrivers.DRV_SRC_SUBPATH / self._toolname
@@ -376,7 +376,7 @@ class DeployCheck(_KernelHelper):
                 srcpath = None
 
             for deployable in self._get_deployables("drivers"):
-                dstpath = self.get_module_path(deployable)
+                dstpath = self._khelper.get_module_path(deployable)
                 if not dstpath:
                     self._deployable_not_found(deployable)
                     break
@@ -388,7 +388,7 @@ class DeployCheck(_KernelHelper):
         """Check if simple and eBPF helpers are deployed and up-to-date."""
 
         for helpername in list(self._cats["shelpers"]) + list(self._cats["bpfhelpers"]):
-            self.check_minkver(helpername, self._get_kver())
+            self._khelper.check_minkver(helpername, self._get_kver())
 
             try:
                 descr=f"the '{helpername}' helper program"
@@ -459,27 +459,26 @@ class DeployCheck(_KernelHelper):
         self._insts, self._cats = _get_insts_cats(deploy_info)
         self._toolname = toolname
 
+        if pman:
+            self._spman = pman
+            self._close_spman = False
+        else:
+            self._spman = LocalProcessManager.LocalProcessManager()
+            self._close_spman = True
+
         # Version of the kernel running on the SUT of version of the kernel to compile wult
         # components against.
         self._kver = None
-
-        if pman:
-            self._close_spman = False
-        else:
-            pman = LocalProcessManager.LocalProcessManager()
-            self._close_spman = True
-
-        super().__init__(self._insts, pman)
+        self._khelper = _KernelHelper(self._insts, self._spman)
 
         self._time_delta = None
 
     def close(self):
         """Uninitialize the object."""
+        ClassHelpers.close(self, close_attrs=("_spman", "_khelper"))
 
-        ClassHelpers.close(self, close_attrs=("_spman"))
-        super().close()
 
-class Deploy(_KernelHelper):
+class Deploy(ClassHelpers.SimpleCloseContext):
     """
     This class provides the 'deploy()' method which can be used for deploying the dependencies of
     the tools of the "wult" project.
@@ -595,7 +594,10 @@ class Deploy(_KernelHelper):
         if not self._cats["drivers"]:
             return
 
-        deps = {dep: self.get_module_path(dep) for dep in self._get_deployables("drivers")}
+        deps = {}
+        for dep in self._get_deployables("drivers"):
+            deps[dep] = self._khelper.get_module_path(dep)
+
         dep_drvr = _DeployDrivers.DeployDrivers(self._bpman, self._spman, self._btmpdir,
                                                 self._debug)
         dep_drvr.deploy(self._cats["drivers"], self._get_kver(), self._get_ksrc(), deps)
@@ -618,7 +620,7 @@ class Deploy(_KernelHelper):
         # Exclude installables with unsatisfied minimum kernel version requirements.
         for installable in list(self._insts):
             try:
-                self.check_minkver(installable, self._get_kver())
+                self._khelper.check_minkver(installable, self._get_kver())
             except ErrorNotSupported as err:
                 cat = self._insts[installable]["category"]
                 _LOG.notice(str(err))
@@ -709,14 +711,6 @@ class Deploy(_KernelHelper):
 
         self._insts, self._cats = _get_insts_cats(deploy_info)
 
-        if pman:
-            self._close_spman = False
-        else:
-            pman = LocalProcessManager.LocalProcessManager()
-            self._close_spman = True
-
-        super().__init__(self._insts, pman)
-
         self._toolname = toolname
         self._ksrc = ksrc
         self._lbuild = lbuild
@@ -728,6 +722,7 @@ class Deploy(_KernelHelper):
         if self._tmpdir_path:
             self._tmpdir_path = Path(self._tmpdir_path)
 
+        self._spman = None   # Process manager associated with the SUT.
         self._bpman = None   # Process manager associated with the build host.
         self._cpman = None   # Process manager associated with the controller (local host).
         self._stmpdir = None # Temporary directory on the SUT.
@@ -737,9 +732,17 @@ class Deploy(_KernelHelper):
         self._ctmpdir_created = None # Temp. directory on the controller has been created.
         self._tchk = None
 
+        if pman:
+            self._spman = pman
+            self._close_spman = False
+        else:
+            self._spman = LocalProcessManager.LocalProcessManager()
+            self._close_spman = True
+
         # Version of the kernel running on the SUT of version of the kernel to compile wult
         # components against.
         self._kver = None
+        self._khelper = _KernelHelper(self._insts, self._spman)
 
         self._cpman = LocalProcessManager.LocalProcessManager()
 
@@ -782,5 +785,5 @@ class Deploy(_KernelHelper):
     def close(self):
         """Uninitialize the object."""
 
-        ClassHelpers.close(self, close_attrs=("_tchk", "_cpman", "_spman"), unref_attrs=("_bpman",))
-        super().close()
+        ClassHelpers.close(self, close_attrs=("_tchk", "_cpman", "_spman", "_khelper"),
+                           unref_attrs=("_bpman",))
