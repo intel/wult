@@ -208,9 +208,10 @@ def _get_insts_cats(deploy_info):
 
     return insts, cats
 
-class _DeployBase(ClassHelpers.SimpleCloseContext):
+class _KernelHelper(ClassHelpers.SimpleCloseContext):
     """
-    The base class for 'Deploy' and 'DeployCheck' classes. Contains the common bits and pieces.
+    This class provides helper methods related to kernel versions and kernel module paths for
+    'Deploy' and 'DeployCheck'.
     """
 
     def check_minkver(self, installable, kver):
@@ -262,7 +263,7 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
         """Uninitialize the object."""
         ClassHelpers.close(self, close_attrs=("_spman"))
 
-class DeployCheck(_DeployBase):
+class DeployCheck(_KernelHelper):
     """
     This class provides the 'check_deployment()' method which can be used for verifying whether all
     the required installables are available on the SUT.
@@ -471,7 +472,7 @@ class DeployCheck(_DeployBase):
         self._time_delta = None
 
 
-class Deploy(_DeployBase):
+class Deploy(_KernelHelper):
     """
     This class provides the 'deploy()' method which can be used for deploying the dependencies of
     the tools of the "wult" project.
