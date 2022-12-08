@@ -59,8 +59,8 @@ static int arm_event(struct wult_device_info *wdi, u64 *ldist)
 {
 	struct wult_hrt *wt = wdi_to_wt(wdi);
 
-	hrtimer_start(&wt->timer, ns_to_ktime(*ldist), HRTIMER_MODE_REL_PINNED_HARD);
 	wt->ltime = ktime_get_ns() + *ldist;
+	hrtimer_start(&wt->timer, ns_to_ktime(wt->ltime), HRTIMER_MODE_ABS_PINNED_HARD);
 	return 0;
 }
 
@@ -80,7 +80,7 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 {
 	struct wult_hrt *wt = wdi_to_wt(wdi);
 
-	hrtimer_init(&wt->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL_PINNED_HARD);
+	hrtimer_init(&wt->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS_PINNED_HARD);
 	wt->timer.function = &timer_interrupt;
 	return 0;
 }
