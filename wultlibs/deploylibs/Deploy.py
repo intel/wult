@@ -221,18 +221,18 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
 
         return self._kver
 
-    def _check_minkver(self, installable):
+    def _check_minkver(self, installable, kver):
         """
         Check if the SUT has new enough kernel version for 'installable' to be deployed on it. The
-        argument are as follows.
+        argument are as follows:
           * installable - name of the installable to check the kernel version for.
+          * kver - version of the kernel running on the SUT.
         """
 
         minkver = self._insts[installable].get("minkver", None)
         if not minkver:
             return
 
-        kver = self._get_kver()
         if KernelVersion.kver_lt(kver, minkver):
             cat_descr = _CATEGORIES[self._insts[installable]["category"]]
             raise ErrorNotSupported(f"version of Linux kernel{self._spman.hostmsg} is {kver}, and "
@@ -378,7 +378,7 @@ class DeployCheck(_DeployBase):
         """Check if drivers are deployed and up-to-date."""
 
         for drvname in self._cats["drivers"]:
-            self._check_minkver(drvname)
+            self._check_minkver(drvname, self._get_kver())
 
             try:
                 subpath = _DeployDrivers.DRV_SRC_SUBPATH / self._toolname
@@ -399,7 +399,7 @@ class DeployCheck(_DeployBase):
         """Check if simple and eBPF helpers are deployed and up-to-date."""
 
         for helpername in list(self._cats["shelpers"]) + list(self._cats["bpfhelpers"]):
-            self._check_minkver(helpername)
+            self._check_minkver(helpername, self._get_kver())
 
             try:
                 descr=f"the '{helpername}' helper program"
@@ -612,7 +612,7 @@ class Deploy(_DeployBase):
         # Exclude installables with unsatisfied minimum kernel version requirements.
         for installable in list(self._insts):
             try:
-                self._check_minkver(installable)
+                self._check_minkver(installable, self._get_kver())
             except ErrorNotSupported as err:
                 cat = self._insts[installable]["category"]
                 _LOG.notice(str(err))
