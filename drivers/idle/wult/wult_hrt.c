@@ -46,13 +46,13 @@ static enum hrtimer_restart timer_interrupt(struct hrtimer *hrtimer)
 static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj)
 {
 	*adj = 0;
-	return ktime_get_raw_ns();
+	return ktime_get_ns();
 }
 
 static u64 get_time_after_idle(struct wult_device_info *wdi, u64 *adj)
 {
 	*adj = 0;
-	return ktime_get_raw_ns();
+	return ktime_get_ns();
 }
 
 static int arm_event(struct wult_device_info *wdi, u64 *ldist)
@@ -60,7 +60,7 @@ static int arm_event(struct wult_device_info *wdi, u64 *ldist)
 	struct wult_hrt *wt = wdi_to_wt(wdi);
 
 	hrtimer_start(&wt->timer, ns_to_ktime(*ldist), HRTIMER_MODE_REL_PINNED_HARD);
-	wt->ltime = ktime_get_raw_ns() + *ldist;
+	wt->ltime = ktime_get_ns() + *ldist;
 	return 0;
 }
 

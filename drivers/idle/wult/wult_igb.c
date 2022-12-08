@@ -93,13 +93,13 @@ static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj)
 	pci_flush_posted(nic);
 
 	/* Latch the time. */
-	ts1 = ktime_get_raw_ns();
+	ts1 = ktime_get_ns();
 	read32(nic, I210_SYSTIMR);
-	ts2 = ktime_get_raw_ns();
+	ts2 = ktime_get_ns();
 
 	ns = read32(nic, I210_SYSTIML);
 	ns += read32(nic, I210_SYSTIMH) * NSEC_PER_SEC;
-	ts3 = ktime_get_raw_ns();
+	ts3 = ktime_get_ns();
 
 	/*
 	 * Ideally, time before idle is the moment this function exits. But we
@@ -126,15 +126,15 @@ static u64 get_time_after_idle(struct wult_device_info *wdi, u64 *adj)
 	struct network_adapter *nic = wdi_to_nic(wdi);
 	u64 ns, ts1, ts2, ts3;
 
-	ts1 = ktime_get_raw_ns();
+	ts1 = ktime_get_ns();
 	/*
 	 * This read will also flush posted PCI writes, if any, and "warm up"
 	 * the PCI link.
 	 */
 	nic->irq_pending = irq_is_pending(nic);
-	ts2 = ktime_get_raw_ns();
+	ts2 = ktime_get_ns();
 	read32(nic, I210_SYSTIMR);
-	ts3 = ktime_get_raw_ns();
+	ts3 = ktime_get_ns();
 
 	/* Read the latched NIC time. */
 	ns = read32(nic, I210_SYSTIML);
