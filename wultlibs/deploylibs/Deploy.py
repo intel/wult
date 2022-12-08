@@ -195,6 +195,20 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
     parser.set_defaults(func=func)
     return parser
 
+def _get_insts_cats(deploy_info):
+    """Build and return dictionaries for categories and installables based on 'deploy_info'."""
+
+    cats = {}
+    insts = {}
+
+    # Initialize installables and categories dictionaries.
+    cats = { cat : {} for cat in _CATEGORIES }
+    for name, info in deploy_info["installables"].items():
+        insts[name] = info.copy()
+        cats[info["category"]][name] = info.copy()
+
+    return insts, cats
+
 class _DeployBase(ClassHelpers.SimpleCloseContext):
     """
     The base class for 'Deploy' and 'DeployCheck' classes. Contains the common bits and pieces.
@@ -281,11 +295,7 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
         if not self._spman:
             self._spman = LocalProcessManager.LocalProcessManager()
 
-        # Initialize installables and categories dictionaries.
-        self._cats = { cat : {} for cat in _CATEGORIES }
-        for name, info in self._deploy_info["installables"].items():
-            self._insts[name] = info.copy()
-            self._cats[info["category"]][name] = info.copy()
+        self._insts, self._cats = _get_insts_cats(self._deploy_info)
 
     def close(self):
         """Uninitialize the object."""
