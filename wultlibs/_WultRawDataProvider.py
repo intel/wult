@@ -156,14 +156,21 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
             with self._pman.open(self._early_intr_path, "w") as fobj:
                 fobj.write("1")
 
+        self._sysctl = Systemctl.Systemctl(pman=self._pman)
+
         if self.dev.drvname == "wult_igb":
             # The 'irqbalance' service usually causes problems by binding the delayed events (NIC
             # interrupts) to CPUs other than the measured one. Stop the service.
-            self._sysctl = Systemctl.Systemctl(pman=self._pman)
             if self._sysctl.is_active("irqbalance"):
-                _LOG.info("Stopping the 'irqbalance' service")
                 self._sysctl.stop("irqbalance")
+                _LOG.info("Stopped the 'irqbalance' service")
                 self._stopped_services.append("irqbalance")
+
+        ntp_services = self._sysctl.stop_ntp()
+        if ntp_services:
+            self._stopped_services += ntp_services
+            for service in ntp_services:
+                _LOG.info("Stopped the '%s' NTP service", service)
 
     def __init__(self, dev, pman, cpunum, ldist, timeout=None, early_intr=None):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
