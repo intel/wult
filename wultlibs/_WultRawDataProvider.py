@@ -158,12 +158,12 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         if self.dev.drvname == "wult_igb":
             # The 'irqbalance' service usually causes problems by binding the delayed events (NIC
-            # interrupts) to CPUs different form the measured one. Stop the service.
+            # interrupts) to CPUs other than the measured one. Stop the service.
             self._sysctl = Systemctl.Systemctl(pman=self._pman)
             if self._sysctl.is_active("irqbalance"):
                 _LOG.info("Stopping the 'irqbalance' service")
                 self._sysctl.stop("irqbalance")
-                self._irqbalance_stopped = True
+                self._stopped_services.append("irqbalance")
 
     def __init__(self, dev, pman, cpunum, ldist, timeout=None, early_intr=None):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
@@ -176,7 +176,7 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         self._ftrace = None
         self._sysctl = None
-        self._irqbalance_stopped = False
+        self._stopped_services = []
 
         self._basedir = None
         self._enabled_path = None
@@ -191,16 +191,19 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     def close(self):
         """Uninitialize everything."""
 
-        if getattr(self, "_irqbalance_stopped"):
-            _LOG.info("Starting the previously stopped 'irqbalance' service")
+        services = getattr(self, "_stopped_services", [])
+        for service in services:
+            _LOG.info("Starting previously stopped '%s' service", service)
             try:
-                self._sysctl.start("irqbalance")
+                self._sysctl.start(service)
             except Error as err:
+                if service != "irqbalance":
+                    raise
                 # We saw failures here on a system that was running irqbalance, but the user
                 # offlined all the CPUs except for CPU0. We were able to stop the service, but could
                 # not start it again, probably because there is only one CPU.
-                _LOG.warning("failed to start the previously stopped 'irqbalance' service:\n%s",
-                             err)
+                _LOG.warning("failed to start the previously stopped '%s' service:\n%s",
+                             service, err.indent(2))
 
         ClassHelpers.close(self, close_attrs=("_sysctl", "_ftrace"))
         super().close()
