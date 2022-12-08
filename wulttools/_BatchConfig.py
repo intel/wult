@@ -67,9 +67,9 @@ PROP_INFOS = {
     "epp_policy" : {
         "moniker" : "epp",
         "cmd" : "pepc pstates config --epp-policy {} --cpus {scope}"},
-    "epb_policy" : {
+    "epb" : {
         "moniker" : "epb",
-        "cmd" : "pepc pstates config --epb-policy {} --cpus {scope}"},
+        "cmd" : "pepc pstates config --epb {} --cpus {scope}"},
     "turbo" : {
         "moniker" : "turbo",
         "cmd" : "pepc pstates config --turbo {}"},

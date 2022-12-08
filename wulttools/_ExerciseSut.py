@@ -60,7 +60,7 @@ _RESET_PROPS = {
     "epp_policy" : {
         "value" : "balance_performance",
         "text" : "set EPP policy to 'balance_performance'"},
-    "epb_policy" : {
+    "epb" : {
         "value" : "balance_performance",
         "text" : "set EPB policy to 'balance_performance'"},
 }
