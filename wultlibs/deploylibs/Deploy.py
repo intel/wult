@@ -255,7 +255,6 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
         self._spman = pman
         self._insts = insts
 
-        self._close_spman = pman is None
         if not self._spman:
             self._spman = LocalProcessManager.LocalProcessManager()
 
