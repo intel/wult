@@ -271,7 +271,6 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
 
         self._close_spman = pman is None
 
-        self._cpman = None # Process manager associated with the controller (local host).
         self._insts = {}   # Installables information.
         self._cats = {}    # Lists of installables in every category.
 
@@ -279,9 +278,8 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
         # components against.
         self._kver = None
 
-        self._cpman = LocalProcessManager.LocalProcessManager()
         if not self._spman:
-            self._spman = self._cpman
+            self._spman = LocalProcessManager.LocalProcessManager()
 
         # Initialize installables and categories dictionaries.
         self._cats = { cat : {} for cat in _CATEGORIES }
@@ -714,12 +712,15 @@ class Deploy(_DeployBase):
             self._tmpdir_path = Path(self._tmpdir_path)
 
         self._bpman = None   # Process manager associated with the build host.
+        self._cpman = None   # Process manager associated with the controller (local host).
         self._stmpdir = None # Temporary directory on the SUT.
         self._ctmpdir = None # Temporary directory on the controller (local host).
         self._btmpdir = None # Temporary directory on the build host.
         self._stmpdir_created = None # Temp. directory on the SUT has been created.
         self._ctmpdir_created = None # Temp. directory on the controller has been created.
         self._tchk = None
+
+        self._cpman = LocalProcessManager.LocalProcessManager()
 
         if self._lbuild:
             self._bpman = self._cpman
