@@ -106,8 +106,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
     """
     Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
       * toolname - name of the tool to add the 'deploy' command for.
-      * deploy_info - a dictionary describing the tool to deploy, same as in
-                      '_DeployBase.__init__()'.
+      * deploy_info - a dictionary describing the tool to deploy, same as in 'Deploy.__init__()'.
       * subparsers - the 'argparse' subparsers to add the 'deploy' command to.
       * func - the 'deploy' command handling function.
       * argcomplete - optional 'argcomplete' command-line arguments completer object.
@@ -253,40 +252,20 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
             return modpath
         return None
 
-    def __init__(self, toolname, deploy_info, pman=None):
+    def __init__(self, toolname, insts, pman=None):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool to create the deployment object for.
-          * deploy_info - a dictionary describing the tool to deploy.
+          * insts - a dictionary describing installables information.
           * pman - the process manager object that defines the SUT to deploy to (local host by
                    default).
-
-        The 'deploy_info' dictionary describes the tool to deploy and its dependencies. I should
-        have the following structure.
-
-        {
-            "installables" : {
-                Installable name 1 : {
-                    "category" : category name of the installable ("drivers", "shelpers", etc).
-                    "minkver"  : minimum SUT kernel version required for the installable.
-                    "deployables" : list of deployables this installable provides.
-                },
-                Installable name 2 : {},
-                ... etc for every installable ...
-            }
-        }
-
-        Please, refer to module docstring for more information.
         """
 
         self._toolname = toolname
-        self._deploy_info = deploy_info
         self._spman = pman
+        self._insts = insts
 
         self._close_spman = pman is None
-
-        self._insts = {}   # Installables information.
-        self._cats = {}    # Lists of installables in every category.
 
         # Version of the kernel running on the SUT of version of the kernel to compile wult
         # components against.
@@ -294,8 +273,6 @@ class _DeployBase(ClassHelpers.SimpleCloseContext):
 
         if not self._spman:
             self._spman = LocalProcessManager.LocalProcessManager()
-
-        self._insts, self._cats = _get_insts_cats(self._deploy_info)
 
     def close(self):
         """Uninitialize the object."""
@@ -482,15 +459,16 @@ class DeployCheck(_DeployBase):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool to create the deployment object for.
-          * deploy_info - a dictionary describing the tool to deploy. Check '_DeployBase.__init__()'
-                          for more information.
+          * deploy_info - a dictionary describing the tool to deploy. Check 'Deploy.__init__()' for
+                          more information.
           * pman - the process manager object that defines the SUT to deploy to (local host by
                    default).
 
         Please, refer to module docstring for more information.
         """
 
-        super().__init__(toolname, deploy_info, pman=pman)
+        self._insts, self._cats = _get_insts_cats(deploy_info)
+        super().__init__(toolname, self._insts, pman=pman)
 
         self._time_delta = None
 
@@ -690,8 +668,7 @@ class Deploy(_DeployBase):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool to create the deployment object for.
-          * deploy_info - a dictionary describing the tool to deploy. Check '_DeployBase.__init__()'
-                          for more information.
+          * deploy_info - a dictionary describing the tool to deploy.
           * pman - the process manager object that defines the SUT to deploy to (local host by
                    default).
           * ksrc - path to the kernel sources to compile drivers against.
@@ -706,10 +683,26 @@ class Deploy(_DeployBase):
           * debug - if 'True', be more verbose and do not remove the temporary directories in case
                     of a failure.
 
+        The 'deploy_info' dictionary describes the tool to deploy and its dependencies. It should
+        have the following structure.
+
+        {
+            "installables" : {
+                Installable name 1 : {
+                    "category" : category name of the installable ("drivers", "shelpers", etc).
+                    "minkver"  : minimum SUT kernel version required for the installable.
+                    "deployables" : list of deployables this installable provides.
+                },
+                Installable name 2 : {},
+                ... etc for every installable ...
+            }
+        }
+
         Please, refer to module docstring for more information.
         """
 
-        super().__init__(toolname, deploy_info, pman=pman)
+        self._insts, self._cats = _get_insts_cats(deploy_info)
+        super().__init__(toolname, self._insts, pman=pman)
 
         self._ksrc = ksrc
         self._lbuild = lbuild
