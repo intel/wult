@@ -12,7 +12,7 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.helperlibs import ToolHelpers
-from wultlibs.deploylibs import _DeployInstallableBase
+from statscollectlibs import _DeployInstallableBase
 
 DRV_SRC_SUBPATH = Path("drivers/idle")
 
