@@ -14,11 +14,33 @@ from pepclibs.helperlibs import ClassHelpers, LocalProcessManager
 
 _LOG = logging.getLogger()
 
+# The supported installable categories.
+_CATEGORIES = {"pyhelpers"  : "python helper program"}
+
+def get_insts_cats(deploy_info, categories):
+    """Build and return dictionaries for categories and installables based on 'deploy_info'."""
+
+    cats = {}
+    insts = {}
+
+    # Initialize installables and categories dictionaries.
+    cats = { cat : {} for cat in categories }
+    for name, info in deploy_info["installables"].items():
+        insts[name] = info.copy()
+        cats[info["category"]][name] = info.copy()
+
+    return insts, cats
+
 class Deploy(ClassHelpers.SimpleCloseContext):
     """
     This class provides the 'deploy()' method which can be used for deploying the dependencies of
     the "stats-collect" tool.
     """
+
+    def _init_insts_cats(self):
+        """Helper function for the constructor. Initialises '_ints' and '_cats'."""
+
+        self._ints, self._cats = get_insts_cats(self._deploy_info, _CATEGORIES)
 
     def __init__(self, toolname, deploy_info, pman=None, lbuild=False, tmpdir_path=None,
                  keep_tmpdir=False, debug=False):
@@ -51,6 +73,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         self._insts = {}   # Installables information.
         self._cats = {}    # Lists of installables in every category.
+        self._init_insts_cats()
 
         self._spman = None   # Process manager associated with the SUT.
         self._bpman = None   # Process manager associated with the build host.

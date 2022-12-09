@@ -195,20 +195,6 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
     parser.set_defaults(func=func)
     return parser
 
-def _get_insts_cats(deploy_info, categories):
-    """Build and return dictionaries for categories and installables based on 'deploy_info'."""
-
-    cats = {}
-    insts = {}
-
-    # Initialize installables and categories dictionaries.
-    cats = { cat : {} for cat in categories }
-    for name, info in deploy_info["installables"].items():
-        insts[name] = info.copy()
-        cats[info["category"]][name] = info.copy()
-
-    return insts, cats
-
 class _KernelHelper(ClassHelpers.SimpleCloseContext):
     """
     This class provides helper methods related to kernel versions and kernel module paths for
@@ -457,7 +443,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         Please, refer to module docstring for more information.
         """
 
-        self._insts, self._cats = _get_insts_cats(deploy_info, _CATEGORIES)
+        self._insts, self._cats = StatsCollectDeploy.get_insts_cats(deploy_info, _CATEGORIES)
         self._toolname = toolname
 
         if pman:
@@ -672,6 +658,11 @@ class Deploy(StatsCollectDeploy.Deploy):
         finally:
             self._remove_tmpdirs()
 
+    def _init_insts_cats(self):
+        """Helper function for the constructor. Initialises '_ints' and '_cats'."""
+
+        self._ints, self._cats = StatsCollectDeploy.get_insts_cats(self._deploy_info, _CATEGORIES)
+
     def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False, rebuild_bpf=False,
                  tmpdir_path=None, keep_tmpdir=False, debug=False):
         """
@@ -700,8 +691,6 @@ class Deploy(StatsCollectDeploy.Deploy):
         """
 
         super().__init__(toolname, deploy_info, pman, lbuild, tmpdir_path, keep_tmpdir, debug)
-
-        self._insts, self._cats = _get_insts_cats(deploy_info, _CATEGORIES)
 
         self._ksrc = ksrc
         self._rebuild_bpf = rebuild_bpf
