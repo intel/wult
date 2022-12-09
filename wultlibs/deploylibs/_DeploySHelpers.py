@@ -10,7 +10,7 @@
 """This module provides the API for deploying simple helpers."""
 
 import logging
-from wultlibs.deploylibs import _DeployHelpersBase
+from statscollectlibs import _DeployHelpersBase
 
 _LOG = logging.getLogger()
 

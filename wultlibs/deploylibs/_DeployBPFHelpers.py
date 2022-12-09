@@ -12,7 +12,7 @@
 from pathlib import Path
 import logging
 from pepclibs.helperlibs.Exceptions import ErrorNotFound
-from wultlibs.deploylibs import _DeployHelpersBase
+from statscollectlibs import _DeployHelpersBase
 
 _LOG = logging.getLogger()
 
