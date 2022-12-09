@@ -12,7 +12,7 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import ArgParse, ClassHelpers, LocalProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
-from statscollectlibs import _DeployPyHelpers
+from statscollectlibs.deploylibs import _DeployPyHelpers
 
 _LOG = logging.getLogger()
 
