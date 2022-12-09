@@ -181,10 +181,45 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         return [csname.upper() for csname in csnames]
 
+    def _is_prop_supported(self, pname):
+        """Return 'True' if property 'pname' is supported, returns 'False' otherwise."""
+
+        if pname in ("cstates", "freqs", "online", "aspm"):
+            return True
+
+        if pname == "uncore_freqs":
+            sysfs_uncore_path =Path("/sys/devices/system/cpu/intel_uncore_frequency")
+            return self._pman.exists(sysfs_uncore_path)
+
+        if pname == "pcstates":
+            for _, pinfo in self._get_cstates().get_props(("pkg_cstate_limit",), "all"):
+                if pinfo["pkg_cstate_limit"].get("pkg_cstate_limit_locked", None) != "off":
+                    return False
+            return True
+
+        pcsobj = None
+        if pname in self._get_pstates().props:
+            pcsobj = self._get_pstates()
+        elif pname in self._get_cstates().props:
+            pcsobj = self._get_cstates()
+
+        if pcsobj is None:
+            return False
+
+        for _, pinfo in pcsobj.get_props((pname,), cpus="all"):
+            if not pinfo[pname].get(pname, None):
+                return False
+
+        return True
+
     def _init_props_dict(self):
         """Initialize 'props' dictionary."""
 
         for pname, pinfo in PROP_INFOS.items():
+            if not self._is_prop_supported(pname):
+                _LOG.warning("property '%s' is not supported, skip configuring it", pname)
+                continue
+
             self.props[pname] = {}
             self.props[pname]["moniker"] = pinfo.get("moniker")
             self.props[pname]["cmd"] = pinfo.get("cmd")
@@ -206,11 +241,20 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
     def _strip_props(self, props):
         """
-        The properties 'props' might include properties which are not needed for the configuration.
-        E.g. configuring package C-state to 'PC0' is not needed when we are testing 'C1'. Return
-        property dictionary with needed properties. If the configuration doesn't make sense at all,
-        returns 'None'.
+        The properties 'props' might include properties which are not supported or needed for the
+        configuration. E.g. configuring package C-state to 'PC0' is not needed when we are testing
+        'C1'. Return property dictionary with supported and needed properties. If the configuration
+        doesn't make sense at all, returns 'None'.
         """
+
+        unsupported_props = []
+        for pname in props:
+            if not self._is_prop_supported(pname):
+                _LOG.debug("property '%s' is not supported, do not try to configure it", pname)
+                unsupported_props.append(pname)
+
+        for pname in unsupported_props:
+            del props[pname]
 
         if props.get("cstates") in PC0_ONLY_STATES:
             if "pcstates" in props:
@@ -352,8 +396,8 @@ class _PepcCmdFormatter(_PropIteratorBase):
         """Yield list of 'pepc' commands to configure system according to properties 'props'."""
 
         for pname, value in props.items():
-            if pname not in PROP_INFOS:
-                raise Error(f"unkown property '{pname}'")
+            if pname not in self.props:
+                continue
 
             if pname == "cstates":
                 value = self._csnames_to_enable(value)
