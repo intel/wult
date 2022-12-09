@@ -19,7 +19,7 @@ BPF_INC := -I$(KSRC)/include \
 U_INC := -I$(KSRC)/tools/include \
 	 -I$(KSRC)/tools/lib
 
-BPFOBJS = hrt_bpf.o
+BPFOBJS = hrt-bpf.o
 UOBJS = wult-hrt-helper.o
 
 CFLAGS ?= -Wall -O2 -Wmissing-prototypes -Wstrict-prototypes
