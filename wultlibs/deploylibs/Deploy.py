@@ -37,6 +37,7 @@ from pepclibs.helperlibs import LocalProcessManager
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists, ErrorNotSupported
 from statscollectlibs.helperlibs import ToolHelpers
+from statscollectlibs import Deploy as StatsCollectDeploy
 from wultlibs.deploylibs import (_DeployBPFHelpers, _DeployDrivers, _DeployHelpersBase,
     _DeployPyHelpers, _DeploySHelpers)
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
@@ -478,7 +479,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         ClassHelpers.close(self, close_attrs=("_spman", "_khelper"))
 
 
-class Deploy(ClassHelpers.SimpleCloseContext):
+class Deploy(StatsCollectDeploy.Deploy):
     """
     This class provides the 'deploy()' method which can be used for deploying the dependencies of
     the tools of the "wult" project.
@@ -674,22 +675,11 @@ class Deploy(ClassHelpers.SimpleCloseContext):
     def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False, rebuild_bpf=False,
                  tmpdir_path=None, keep_tmpdir=False, debug=False):
         """
-        The class constructor. The arguments are as follows.
-          * toolname - name of the tool to create the deployment object for.
-          * deploy_info - a dictionary describing the tool to deploy.
-          * pman - the process manager object that defines the SUT to deploy to (local host by
-                   default).
+        The class constructor. The arguments are the same as in
+        'statscollectlibs.Deploy.Deploy.__init__()' except for:
           * ksrc - path to the kernel sources to compile drivers against.
-          * lbuild - by default, everything is built on the SUT, but if 'lbuild' is 'True', then
-                     everything is built on the local host.
           * rebuild_bpf - if 'toolname' comes with an eBPF helper, re-build the the eBPF component
                            of the helper if this argument is 'True'. Do not re-build otherwise.
-          * tmpdir_path - if provided, use this path as a temporary directory (by default, a random
-                           temporary directory is created).
-          * keep_tmpdir - if 'False', remove the temporary directory when finished. If 'True', do
-                          not remove it.
-          * debug - if 'True', be more verbose and do not remove the temporary directories in case
-                    of a failure.
 
         The 'deploy_info' dictionary describes the tool to deploy and its dependencies. It should
         have the following structure.
@@ -709,42 +699,18 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         Please, refer to module docstring for more information.
         """
 
+        super().__init__(toolname, deploy_info, pman, lbuild, tmpdir_path, keep_tmpdir, debug)
+
         self._insts, self._cats = _get_insts_cats(deploy_info)
 
-        self._toolname = toolname
         self._ksrc = ksrc
-        self._lbuild = lbuild
         self._rebuild_bpf = rebuild_bpf
-        self._tmpdir_path = tmpdir_path
-        self._keep_tmpdir = keep_tmpdir
-        self._debug = debug
-
-        if self._tmpdir_path:
-            self._tmpdir_path = Path(self._tmpdir_path)
-
-        self._spman = None   # Process manager associated with the SUT.
-        self._bpman = None   # Process manager associated with the build host.
-        self._cpman = None   # Process manager associated with the controller (local host).
-        self._stmpdir = None # Temporary directory on the SUT.
-        self._ctmpdir = None # Temporary directory on the controller (local host).
-        self._btmpdir = None # Temporary directory on the build host.
-        self._stmpdir_created = None # Temp. directory on the SUT has been created.
-        self._ctmpdir_created = None # Temp. directory on the controller has been created.
         self._tchk = None
-
-        if pman:
-            self._spman = pman
-            self._close_spman = False
-        else:
-            self._spman = LocalProcessManager.LocalProcessManager()
-            self._close_spman = True
 
         # Version of the kernel running on the SUT of version of the kernel to compile wult
         # components against.
         self._kver = None
         self._khelper = _KernelHelper(self._insts, self._spman)
-
-        self._cpman = LocalProcessManager.LocalProcessManager()
 
         if self._lbuild:
             self._bpman = self._cpman
@@ -759,31 +725,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
 
         self._tchk = ToolChecker.ToolChecker(pman=self._bpman)
 
-    def _remove_tmpdirs(self):
-        """Remove temporary directories."""
-
-        spman = getattr(self, "_spman", None)
-        cpman = getattr(self, "_cpman", None)
-        if not cpman or not spman:
-            return
-
-        ctmpdir = getattr(self, "_ctmpdir", None)
-        stmpdir = getattr(self, "_stmpdir", None)
-
-        if self._keep_tmpdir:
-            _LOG.info("Preserved the following temporary directories:")
-            if stmpdir:
-                _LOG.info(" * On the SUT (%s): %s", spman.hostname, stmpdir)
-            if ctmpdir and ctmpdir is not stmpdir:
-                _LOG.info(" * On the controller (%s): %s", cpman.hostname, ctmpdir)
-        else:
-            if stmpdir and self._stmpdir_created:
-                spman.rmtree(self._stmpdir)
-            if ctmpdir and cpman is not spman and self._ctmpdir_created:
-                cpman.rmtree(self._ctmpdir)
-
     def close(self):
         """Uninitialize the object."""
 
-        ClassHelpers.close(self, close_attrs=("_tchk", "_cpman", "_spman", "_khelper"),
-                           unref_attrs=("_bpman",))
+        ClassHelpers.close(self, close_attrs=("_tchk", "_khelper"))
+        super().close()
