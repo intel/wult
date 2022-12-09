@@ -20,10 +20,18 @@ except ImportError:
 
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs import ToolsCommon
+from statscollectlibs import ToolsCommon, Deploy
 
 _VERSION = "0.0.0"
 _OWN_NAME = "stats-collect"
+_STC_DEPLOY_INFO = {
+    "installables" : {
+        "stc-agent" : {
+            "category" : "pyhelpers",
+            "deployables" : ("stc-agent", "ipmi-helper", ),
+        },
+    },
+}
 
 _LOG = logging.getLogger()
 Logging.setup_logger(prefix=_OWN_NAME)
@@ -38,6 +46,12 @@ def _build_arguments_parser():
     parser.add_argument("--force-color", action="store_true", help=text)
     subparsers = parser.add_subparsers(title="commands", metavar="")
     subparsers.required = True
+
+    #
+    # Create parsers for the "deploy" command.
+    #
+    subpars = Deploy.add_deploy_cmdline_args(_OWN_NAME, _STC_DEPLOY_INFO, subparsers,
+                                            _deploy_command, argcomplete=argcomplete)
 
     #
     # Create parsers for the "report" command.
@@ -66,8 +80,16 @@ def _parse_arguments():
     args = parser.parse_args()
     args.toolname = _OWN_NAME
     args.toolver = _VERSION
+    args.deploy_info = _STC_DEPLOY_INFO
 
     return args
+
+def _deploy_command(args):
+    """Implements the 'stats-collect deploy' command."""
+
+    from statscollecttools import _StatsCollectDeploy # pylint: disable=import-outside-toplevel
+
+    _StatsCollectDeploy.deploy_command(args)
 
 def _report_command(args):
     """Implements the 'stats-collect report' command."""

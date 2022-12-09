@@ -10,7 +10,7 @@
 
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import ClassHelpers, LocalProcessManager
+from pepclibs.helperlibs import ArgParse, ClassHelpers, LocalProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
 from statscollectlibs import _DeployPyHelpers
 
@@ -18,6 +18,51 @@ _LOG = logging.getLogger()
 
 # The supported installable categories.
 _CATEGORIES = {"pyhelpers"  : "python helper program"}
+
+def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete=None):
+    """
+    Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
+      * toolname - name of the tool to add the 'deploy' command for.
+      * deploy_info - a dictionary describing the tool to deploy, same as in
+                      '_DeployBase.__init__()'.
+      * subparsers - the 'argparse' subparsers to add the 'deploy' command to.
+      * func - the 'deploy' command handling function.
+      * argcomplete - optional 'argcomplete' command-line arguments completer object.
+    """
+
+    cats = { cat : [] for cat in _CATEGORIES }
+    for name, info in deploy_info["installables"].items():
+        cats[info["category"]].append(name)
+
+    what = "helpers"
+
+    text = f"Compile and deploy {toolname} {what}."
+    descr = f"""Compile and deploy {toolname} {what} to the SUT (System Under Test), which can be
+                can be either local or a remote host, depending on the '-H' option. By default,
+                everything is built on the SUT, but the '--local-build' can be used for building
+                on the local system."""
+
+    parser = subparsers.add_parser("deploy", help=text, description=descr)
+
+
+    text = f"""Build {what} locally, instead of building on HOSTNAME (the SUT)."""
+    parser.add_argument("--local-build", dest="lbuild", action="store_true", help=text)
+
+    text = f"""When '{toolname}' is deployed, a random temporary directory is used. Use this option
+               provide a custom path instead. It will be used as a temporary directory on both
+               local and remote hosts. This option is meant for debugging purposes."""
+    arg = parser.add_argument("--tmpdir-path", help=text)
+    if argcomplete:
+        arg.completer = argcomplete.completers.DirectoriesCompleter()
+
+    text = f"""Do not remove the temporary directories created while deploying '{toolname}'. This
+               option is meant for debugging purposes."""
+    parser.add_argument("--keep-tmpdir", action="store_true", help=text)
+
+    ArgParse.add_ssh_options(parser)
+
+    parser.set_defaults(func=func)
+    return parser
 
 def get_insts_cats(deploy_info, categories):
     """Build and return dictionaries for categories and installables based on 'deploy_info'."""
