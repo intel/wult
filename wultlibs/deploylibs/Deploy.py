@@ -37,8 +37,8 @@ from pepclibs.helperlibs import LocalProcessManager
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.helperlibs import ToolHelpers
-from statscollectlibs import _DeployHelpersBase, Deploy as StatsCollectDeploy
-from wultlibs.deploylibs import (_DeployBPFHelpers, _DeployDrivers, _DeployPyHelpers, _DeploySHelpers)
+from statscollectlibs import _DeployHelpersBase, _DeployPyHelpers, Deploy as StatsCollectDeploy
+from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
 
 _LOG = logging.getLogger()
