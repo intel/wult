@@ -69,6 +69,13 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                     self._ctmpdir_created = False
         return self._ctmpdir
 
+    def _get_deployables(self, category):
+        """Yields all deployable names for category 'category' (e.g., "drivers")."""
+
+        for inst_info in self._cats[category].values():
+            for deployable in inst_info["deployables"]:
+                yield deployable
+
     def _init_insts_cats(self):
         """Helper function for the constructor. Initialises '_ints' and '_cats'."""
 

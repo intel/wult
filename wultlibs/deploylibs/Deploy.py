@@ -471,13 +471,6 @@ class Deploy(StatsCollectDeploy.Deploy):
     the tools of the "wult" project.
     """
 
-    def _get_deployables(self, category):
-        """Yields all deployable names for category 'category' (e.g., "drivers")."""
-
-        for inst_info in self._cats[category].values():
-            for deployable in inst_info["deployables"]:
-                yield deployable
-
     def _get_kver(self):
         """
         Returns version of the kernel running on the SUT or version of the kernel in path to compile
