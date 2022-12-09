@@ -570,6 +570,17 @@ class Deploy(StatsCollectDeploy.Deploy):
                 del self._insts[installable]
                 del self._cats[cat][installable]
 
+    def _deploy(self):
+        """Deploy required installables to the SUT."""
+
+        if self._cats["drivers"] or self._cats["shelpers"] or self._cats["bpfhelpers"]:
+            # Make sure 'cc' is available on the build host - it'll be executed by 'Makefile', so an
+            # explicit check here will generate an nice error message in case 'cc' is not available.
+            self._tchk.check_tool("cc")
+
+        self._deploy_drivers()
+        self._deploy_helpers(self._toolname, self._lbuild)
+
     def deploy(self):
         """
         Deploy all the required installables to the SUT (drivers, helpers, etc).
@@ -601,14 +612,8 @@ class Deploy(StatsCollectDeploy.Deploy):
             msg = Error(err).indent(2)
             raise Error(f"failed to deploy the '{self._toolname}' tool:\n{msg}") from err
 
-        if self._cats["drivers"] or self._cats["shelpers"] or self._cats["bpfhelpers"]:
-            # Make sure 'cc' is available on the build host - it'll be executed by 'Makefile', so an
-            # explicit check here will generate an nice error message in case 'cc' is not available.
-            self._tchk.check_tool("cc")
-
         try:
-            self._deploy_drivers()
-            self._deploy_helpers(self._toolname, self._lbuild)
+            self._deploy()
         finally:
             self._remove_tmpdirs()
 
