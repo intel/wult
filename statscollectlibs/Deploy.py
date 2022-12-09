@@ -11,7 +11,7 @@
 import logging
 from pathlib import Path
 from pepclibs.helperlibs import ClassHelpers, LocalProcessManager
-from pepclibs.helperlibs.Exceptions import ErrorExists
+from pepclibs.helperlibs.Exceptions import Error, ErrorExists
 from statscollectlibs import _DeployPyHelpers
 
 _LOG = logging.getLogger()
@@ -105,6 +105,42 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             for installable in self._cats["pyhelpers"]:
                 del self._insts[installable]
             self._cats["pyhelpers"] = {}
+
+    def deploy(self):
+        """
+        Deploy all the required installables to the SUT (drivers, helpers, etc).
+
+        We distinguish between 3 type of helper programs, or just helpers: simple helpers and python
+        helpers.
+
+        1. Simple helpers (shelpers) are stand-alone independent programs, which come in form of a
+           single executable file.
+        2. Python helpers (pyhelpers) are helper programs written in python. Unlike simple helpers,
+           they are not totally independent, but they depend on various python modules. Deploying a
+           python helpers is trickier because all python modules should also be deployed.
+        """
+
+        self._adjust_installables()
+
+        try:
+            if self._spman.is_remote:
+                self._stmpdir = self._get_stmpdir()
+            else:
+                self._stmpdir = self._get_ctmpdir()
+
+            if self._lbuild:
+                self._btmpdir = self._get_ctmpdir()
+            else:
+                self._btmpdir = self._stmpdir
+        except Exception as err:
+            self._remove_tmpdirs()
+            msg = Error(err).indent(2)
+            raise Error(f"failed to deploy the '{self._toolname}' tool:\n{msg}") from err
+
+        try:
+            self._deploy()
+        finally:
+            self._remove_tmpdirs()
 
     def _init_insts_cats(self):
         """Helper function for the constructor. Initialises '_ints' and '_cats'."""
