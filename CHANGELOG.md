@@ -8,7 +8,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+
+## [1.10.42] - 2022-12-09
+### Changed
  - Rename the 'hrt-bpf' method to 'hrt_bpf'.
+ - Improve precision of the 'hrt' method.
+ - Stop NTP service when measuring.
 
 ## [1.10.41] - 2022-12-02
 ### Added

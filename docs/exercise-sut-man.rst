@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date:   2022-12-02
+:Date:   2022-12-09
 
 .. contents::
    :depth: 3
@@ -138,13 +138,14 @@ OPTIONS
    device IDs to run the tools with.
 
 **--toolpath** *TOOLPATH*
-   Path to the tool to run. Default is "wult".
+   Path to the tool to run. Default is 'wult'.
 
 **--toolopts** *TOOLOPTS*
    Additional options to use for running the tool.
 
 **--outdir** *OUTDIR*, **-o** *OUTDIR*
-   Path to directory to store the results at.
+   Path to directory to store the results at. Default is
+   <toolname-date-time>.
 
 **--stop-on-failure**
    Stop if any of the steps fail, instead of continuing (default).
