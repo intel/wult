@@ -76,6 +76,21 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             for deployable in inst_info["deployables"]:
                 yield deployable
 
+    def _adjust_installables(self):
+        """
+        Adjust the list of installables that have to be deployed to the SUT based on various
+        conditions, such as kernel version.
+        """
+
+        # Python helpers need to be deployed only to a remote host. The local host should already
+        # have them:
+        #   * either deployed via 'setup.py'.
+        #   * or if running from source code, present in the source code.
+        if not self._spman.is_remote:
+            for installable in self._cats["pyhelpers"]:
+                del self._insts[installable]
+            self._cats["pyhelpers"] = {}
+
     def _init_insts_cats(self):
         """Helper function for the constructor. Initialises '_ints' and '_cats'."""
 

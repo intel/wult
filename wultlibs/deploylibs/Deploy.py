@@ -557,14 +557,7 @@ class Deploy(StatsCollectDeploy.Deploy):
         conditions, such as kernel version.
         """
 
-        # Python helpers need to be deployed only to a remote host. The local host should already
-        # have them:
-        #   * either deployed via 'setup.py'.
-        #   * or if running from source code, present in the source code.
-        if not self._spman.is_remote:
-            for installable in self._cats["pyhelpers"]:
-                del self._insts[installable]
-            self._cats["pyhelpers"] = {}
+        super()._adjust_installables()
 
         # Exclude installables with unsatisfied minimum kernel version requirements.
         for installable in list(self._insts):
