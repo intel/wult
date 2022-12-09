@@ -12,6 +12,7 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import ClassHelpers, LocalProcessManager
 from pepclibs.helperlibs.Exceptions import ErrorExists
+from statscollectlibs import _DeployPyHelpers
 
 _LOG = logging.getLogger()
 
@@ -75,6 +76,20 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         for inst_info in self._cats[category].values():
             for deployable in inst_info["deployables"]:
                 yield deployable
+
+    def _deploy(self):
+        """Deploy helpers (including python helpers) to the SUT."""
+
+        pyhelpers = self._cats.get("pyhelpers")
+        if not pyhelpers:
+            return
+
+        dep_pyhelpers = _DeployPyHelpers.DeployPyHelpers(self._bpman, self._spman, self._cpman,
+                                                         self._btmpdir, self._get_ctmpdir(),
+                                                         self._get_stmpdir(),
+                                                         self._get_deployables("pyhelpers"),
+                                                         self._debug)
+        dep_pyhelpers.deploy(list(pyhelpers), self._toolname, self._lbuild)
 
     def _adjust_installables(self):
         """
