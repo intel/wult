@@ -26,7 +26,7 @@ from wultlibs import ToolsCommon
 from wultlibs.deploylibs import Deploy
 from wulttools import _WultCommon
 
-_VERSION = "1.10.42"
+_VERSION = "1.10.43"
 _OWN_NAME = "wult"
 
 # The deployment information dictionary. See 'Deploy._DeployBase.__init__()' for details.

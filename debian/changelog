@@ -1,8 +1,13 @@
+wult (1.10.43) unstable; urgency=low
+
+  * Stop NTP service when measuring.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 09 Dec 2022 00:00:00 +0200
+
 wult (1.10.42) unstable; urgency=low
 
   * Rename the 'hrt-bpf' method to 'hrt_bpf'.
   * Improve precision of the 'hrt' method.
-  * Stop NTP service when measuring.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 09 Dec 2022 00:00:00 +0200
 
