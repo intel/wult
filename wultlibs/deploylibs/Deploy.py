@@ -471,22 +471,6 @@ class Deploy(StatsCollectDeploy.Deploy):
     the tools of the "wult" project.
     """
 
-    def _get_stmpdir(self):
-        """Creates a temporary directory on the SUT and returns its path."""
-
-        if not self._stmpdir:
-            self._stmpdir_created = True
-            if not self._tmpdir_path:
-                self._stmpdir = self._spman.mkdtemp(prefix=f"{self._toolname}-")
-            else:
-                self._stmpdir = self._tmpdir_path
-                try:
-                    self._spman.mkdir(self._stmpdir, parents=True, exist_ok=False)
-                except ErrorExists:
-                    self._stmpdir_created = False
-
-        return self._stmpdir
-
     def _get_ctmpdir(self):
         """Creates a temporary directory on the controller and returns its path."""
 
