@@ -489,7 +489,7 @@ class DeployCheck(_DeployBase):
 
 class Deploy(_DeployBase):
     """
-    This module provides the 'deploy()' method which can be used for deploying the dependencies of
+    This class provides the 'deploy()' method which can be used for deploying the dependencies of
     the tools of the "wult" project.
     """
 
