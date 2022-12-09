@@ -38,7 +38,7 @@ from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.deploylibs import _DeployHelpersBase, _DeployPyHelpers
 from statscollectlibs.helperlibs import ToolHelpers
-from statscollectlibs import Deploy as StatsCollectDeploy
+from statscollectlibs.deploylibs import Deploy as StatsCollectDeploy
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
 

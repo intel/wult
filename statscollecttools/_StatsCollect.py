@@ -20,7 +20,8 @@ except ImportError:
 
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs import ToolsCommon, Deploy
+from statscollectlibs import ToolsCommon
+from statscollectlibs.deploylibs import Deploy
 
 _VERSION = "0.0.0"
 _OWN_NAME = "stats-collect"
