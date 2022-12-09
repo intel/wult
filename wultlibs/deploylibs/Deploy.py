@@ -195,14 +195,14 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
     parser.set_defaults(func=func)
     return parser
 
-def _get_insts_cats(deploy_info):
+def _get_insts_cats(deploy_info, categories):
     """Build and return dictionaries for categories and installables based on 'deploy_info'."""
 
     cats = {}
     insts = {}
 
     # Initialize installables and categories dictionaries.
-    cats = { cat : {} for cat in _CATEGORIES }
+    cats = { cat : {} for cat in categories }
     for name, info in deploy_info["installables"].items():
         insts[name] = info.copy()
         cats[info["category"]][name] = info.copy()
@@ -457,7 +457,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         Please, refer to module docstring for more information.
         """
 
-        self._insts, self._cats = _get_insts_cats(deploy_info)
+        self._insts, self._cats = _get_insts_cats(deploy_info, _CATEGORIES)
         self._toolname = toolname
 
         if pman:
@@ -701,7 +701,7 @@ class Deploy(StatsCollectDeploy.Deploy):
 
         super().__init__(toolname, deploy_info, pman, lbuild, tmpdir_path, keep_tmpdir, debug)
 
-        self._insts, self._cats = _get_insts_cats(deploy_info)
+        self._insts, self._cats = _get_insts_cats(deploy_info, _CATEGORIES)
 
         self._ksrc = ksrc
         self._rebuild_bpf = rebuild_bpf
