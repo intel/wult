@@ -36,8 +36,9 @@ from pathlib import Path
 from pepclibs.helperlibs import LocalProcessManager
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
+from statscollectlibs.deploylibs import _DeployHelpersBase
 from statscollectlibs.helperlibs import ToolHelpers
-from statscollectlibs import _DeployHelpersBase, _DeployPyHelpers, Deploy as StatsCollectDeploy
+from statscollectlibs import _DeployPyHelpers, Deploy as StatsCollectDeploy
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
 
