@@ -31,7 +31,7 @@ Logging.setup_logger(prefix=_OWN_NAME)
 def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
-    text = "ndl - a tool for measuring memory access latency observed by a network card."
+    text = "stats-collect - a tool for collecting and visualising system statistics and telemetry."
     parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=_OWN_NAME, ver=_VERSION)
 
     text = "Force coloring of the text output."
@@ -70,7 +70,7 @@ def _parse_arguments():
     return args
 
 def _report_command(args):
-    """Implements the 'ndl report' command."""
+    """Implements the 'stats-collect report' command."""
 
     from statscollecttools import _StatsCollectReport # pylint: disable=import-outside-toplevel
 
