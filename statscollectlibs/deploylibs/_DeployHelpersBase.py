@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.helperlibs import ToolHelpers
-from statscollectlibs import _DeployInstallableBase
+from statscollectlibs.deploylibs import _DeployInstallableBase
 
 HELPERS_LOCAL_DIR = Path(".local")
 HELPERS_SRC_SUBPATH = Path("helpers")
