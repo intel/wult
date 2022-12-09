@@ -35,7 +35,7 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import LocalProcessManager
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists, ErrorNotSupported
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.helperlibs import ToolHelpers
 from statscollectlibs import Deploy as StatsCollectDeploy
 from wultlibs.deploylibs import (_DeployBPFHelpers, _DeployDrivers, _DeployHelpersBase,
@@ -470,21 +470,6 @@ class Deploy(StatsCollectDeploy.Deploy):
     This class provides the 'deploy()' method which can be used for deploying the dependencies of
     the tools of the "wult" project.
     """
-
-    def _get_ctmpdir(self):
-        """Creates a temporary directory on the controller and returns its path."""
-
-        if not self._ctmpdir:
-            self._ctmpdir_created = True
-            if not self._tmpdir_path:
-                self._ctmpdir = self._cpman.mkdtemp(prefix=f"{self._toolname}-")
-            else:
-                self._ctmpdir = self._tmpdir_path
-                try:
-                    self._cpman.mkdir(self._ctmpdir, parents=True, exist_ok=False)
-                except ErrorExists:
-                    self._ctmpdir_created = False
-        return self._ctmpdir
 
     def _get_deployables(self, category):
         """Yields all deployable names for category 'category' (e.g., "drivers")."""
