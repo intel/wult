@@ -22,7 +22,8 @@ Architecture: any
 Multi-Arch: foreign
 Depends: python3:any (>= 3.7~),
          pepc (>= 1.3.34),
-         python3-pepc (>= 1.3.20),
+         python3-wult,
+         python3-pepc (>= 1.3.34),
          ${misc:Depends},
          ${python3:Depends},
          kmod,
