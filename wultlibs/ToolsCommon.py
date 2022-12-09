@@ -18,7 +18,7 @@ import sys
 import logging
 import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import Trivial, LocalProcessManager, ProcessManager, Logging, YAML
+from pepclibs.helperlibs import Trivial, LocalProcessManager, Logging, YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Devices
 from wultlibs.deploylibs import Deploy
@@ -222,22 +222,6 @@ FUNCS_DESCR = """Comma-separated list of summary functions to calculate. By defa
 
 # Description for the '--list-funcs' option of the 'calc' command.
 LIST_FUNCS_DESCR = "Print the list of the available summary functions."
-
-def get_pman(args):
-    """
-    Returns the process manager object for host 'hostname'. The returned object should either be
-    used with a 'with' statement, or closed with the 'close()' method.
-    """
-
-    if args.hostname == "localhost":
-        username = privkeypath = timeout = None
-    else:
-        username = args.username
-        privkeypath = args.privkey
-        timeout = args.timeout
-
-    return ProcessManager.get_pman(args.hostname, username=username, privkeypath=privkeypath,
-                                   timeout=timeout)
 
 def _validate_range(rng, what, single_ok):
     """Implements 'parse_ldist()'."""

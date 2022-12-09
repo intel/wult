@@ -13,6 +13,8 @@ There is really no single clear purpose this module serves, it is just a collect
 Many functions in this module require the 'args' object which represents the command-line arguments.
 """
 
+from pepclibs.helperlibs import ProcessManager
+
 # Description for the '--outdir' option of the 'report' command.
 def get_report_outdir_descr(toolname):
     """
@@ -24,3 +26,19 @@ def get_report_outdir_descr(toolname):
                 are multiple test results, the report is stored in the current directory. The
                 '<reportid>' is report ID of {toolname} test result."""
     return descr
+
+def get_pman(args):
+    """
+    Returns the process manager object for host 'hostname'. The returned object should either be
+    used with a 'with' statement, or closed with the 'close()' method.
+    """
+
+    if args.hostname == "localhost":
+        username = privkeypath = timeout = None
+    else:
+        username = args.username
+        privkeypath = args.privkey
+        timeout = args.timeout
+
+    return ProcessManager.get_pman(args.hostname, username=username, privkeypath=privkeypath,
+                                   timeout=timeout)
