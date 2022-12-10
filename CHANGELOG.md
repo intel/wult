@@ -6,9 +6,14 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
- - Add new 'tdt_bpf' method.
 ### Removed
 ### Changed
+
+## [1.10.44] - 2022-12-10
+### Added
+ - Add new 'tdt_bpf' method.
+### Changed
+ - Fix SVOS debianization (missed dependency added).
 
 ## [1.10.43] - 2022-12-09
 ### Changed

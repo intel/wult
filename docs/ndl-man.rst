@@ -2,7 +2,7 @@
 WULT
 ====
 
-:Date:   2022-12-09
+:Date:   2022-12-10
 
 .. contents::
    :depth: 3
@@ -79,11 +79,11 @@ $WULT_DATA_PATH/drivers/idle (if 'WULT_DATA_PATH' environment variable
 is defined), $HOME/.local/share/wult/drivers/idle,
 /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The
 wult tool also depends on the following helpers: stc-agent,
-wult-hrt-helper. These helpers will be compiled on the SUT and deployed
-to the SUT. The sources of the helpers are searched for in the following
-paths (and in the following order) on the local host: ./helpers,
-$WULT_DATA_PATH/helpers (if 'WULT_DATA_PATH' environment variable is
-defined), $HOME/.local/share/wult/helpers,
+wult-hrt-helper, wult-tdt-helper. These helpers will be compiled on the
+SUT and deployed to the SUT. The sources of the helpers are searched for
+in the following paths (and in the following order) on the local host:
+./helpers, $WULT_DATA_PATH/helpers (if 'WULT_DATA_PATH' environment
+variable is defined), $HOME/.local/share/wult/helpers,
 /usr/local/share/wult/helpers, /usr/share/wult/helpers. By default,
 helpers are deployed to the path defined by the 'WULT_HELPERSPATH'
 environment variable. If the variable is not defined, helpers are
@@ -240,7 +240,11 @@ OPTIONS *'wult* start'
    How many datapoints should the test result include, default is
    1000000. Note, unless the '--start-over' option is used, the
    pre-existing datapoints are taken into account. For example, if the
-   test result already has 6000 datapoints and memory.
+   test result already has 6000 datapoints and '-c 10000' is used, the
+   tool will collect 4000 datapoints and exit. Warning: collecting too
+   many datapoints may result in a very large test result file, which
+   will be difficult to process later, because that would require a lot
+   of memory.
 
 **--time-limit** *LIMIT*
    The measurement time limit, i.e., for how long the SUT should be
@@ -312,10 +316,10 @@ OPTIONS *'wult* start'
    The intervals for statistics. Statistics collection is based on doing
    periodic snapshots of data. For example, by default the 'acpower'
    statistics collector reads SUT power consumption for the last second
-   every second, and 'turbostat' default interval is 5 seconds. Use
-   'acpower:5,turbostat:10' to increase the intervals to 5 and 10
-   seconds correspondingly. Use the '--list-stats' to get the default
-   interval values.
+   every second, and
+
+correspondingly. Use the '--list-stats' to get the default interval
+values.
 
 **--list-stats**
    Print information about the statistics 'wult' can collect and exit.
@@ -331,39 +335,37 @@ OPTIONS *'wult* start'
    single value if you want launch distance to be precisely that value
    all the time. The default unit is microseconds, but you can use the
    following specifiers as well: ms - milliseconds, us - microseconds,
-   ns - nanoseconds. For example, ' --ldist 10us,5ms' would be a
-   [10,5000] microseconds range. Too small values may cause failures or
-   prevent the SUT from reaching deep C-states. If the range starts with
-   0, the minimum possible launch distance value allowed by the delayed
-   event source will be used. The optimal launch distance range is
-   system-specific.
+   ns - nanoseconds. For example, from reaching deep C-states. If the
+   range starts with 0, the minimum possible launch distance value
+   allowed by the delayed event source will be used. The optimal launch
+   distance range is system-specific.
 
 **--cpunum** *CPUNUM*
    The logical CPU number to measure, default is CPU 0.
 
 **--tsc-cal-time** *TSC_CAL_TIME*
    Wult receives raw datapoints from the driver, then processes them,
-   and then saves the processed datapoint in the 'datapoints.csv' file.
-   The processing involves converting TSC cycles to microseconds, so
-   wult needs SUT's TSC rate. TSC rate is calculated from the
-   datapoints, which come with TSC counters and timestamps, so TSC rate
-   can be calculated as "delta TSC / delta timestamp". In other words,
-   wult needs two datapoints to calculate TSC rate. However, the
-   datapoints have to be far enough apart, and this option defines the
-   distance between the datapoints (in seconds). The default distance is
-   10 seconds, which means that wult will keep collecting and buffering
-   datapoints for 10s without processing them (because processing
-   requires TSC rate to be known). After 10s, wult will start processing
-   all the buffered datapoints, and then the newly collected datapoints.
-   Generally, longer TSC calculation time translates to better accuracy.
+   and then saves the processed datapoint in the
+
+TSC rate is calculated from the datapoints, which come with TSC counters
+and timestamps, so TSC rate can be calculated as "delta TSC / delta
+timestamp". In other words, wult needs two datapoints to calculate TSC
+rate. However, the datapoints have to be far enough apart, and this
+option defines the distance between the datapoints (in seconds). The
+default distance is 10 seconds, which means that wult will keep
+collecting and buffering datapoints for 10s without processing them
+(because processing requires TSC rate to be known). After 10s, wult will
+start processing all the buffered datapoints, and then the newly
+collected datapoints. Generally, longer TSC calculation time translates
+to better accuracy.
 
 **--keep-raw-data**
    Wult receives raw datapoints from the driver, then processes them,
-   and then saves the processed datapoint in the 'datapoints.csv' file.
-   In order to keep the CSV file smaller, wult keeps only the essential
-   information, and drops the rest. For example, raw timestamps are
-   dropped. With this option, however, wult saves all the raw data to
-   the CSV file, along with the processed data.
+   and then saves the processed datapoint in the
+
+rest. For example, raw timestamps are dropped. With this option,
+however, wult saves all the raw data to the CSV file, along with the
+processed data.
 
 **--no-unload**
    This option exists for debugging and troubleshooting purposes.
@@ -422,7 +424,7 @@ OPTIONS *'wult* report'
 
 **-o** *OUTDIR*, **--outdir** *OUTDIR*
    Path to the directory to store the report at. By default the report
-   is stored in the 'wult-report-<reportid>' sub-directory of the test
+   is stored in the 'wult-report-<reportid>' sub- directory of the test
    result directory. If there are multiple test results, the report is
    stored in the current directory. The '<reportid>' is report ID of
    wult test result.
@@ -459,8 +461,7 @@ OPTIONS *'wult* report'
    A comma-separated list of metrics (or python style regular
    expressions matching the names) to use on X-axes of the scatter
    plot(s), default is 'SilentTime'. Use '--list-metrics' to get the
-   list of the available metrics. Use value 'none' to disable scatter
-   plots.
+   list of the available metrics. Use value
 
 **-y** *YAXES*, **--yaxes** *YAXES*
    A comma-separated list of metrics (or python style regular
@@ -569,7 +570,7 @@ OPTIONS *'wult* filter'
 
 **--include-metrics** *MINCLUDE*
    The metrics to include: remove all metrics except for those specified
-   by this option. The syntax is the same as for '--exclude-metrics'.
+   by this option. The syntax is the same as for ' --exclude-metrics'.
 
 **--human-readable**
    By default the result 'filter' command print the result as a CSV file
@@ -641,7 +642,7 @@ OPTIONS *'wult* calc'
 
 **--include-metrics** *MINCLUDE*
    The metrics to include: remove all metrics except for those specified
-   by this option. The syntax is the same as for '--exclude-metrics'.
+   by this option. The syntax is the same as for ' --exclude-metrics'.
 
 **-f** *FUNCS*, **--funcs** *FUNCS*
    Comma-separated list of summary functions to calculate. By default

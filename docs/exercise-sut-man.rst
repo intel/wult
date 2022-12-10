@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date:   2022-12-09
+:Date:   2022-12-10
 
 .. contents::
    :depth: 3
@@ -98,8 +98,7 @@ OPTIONS
 
 **--uncore-freqs** *UNCORE_FREQS*
    Comma-separated list of package uncore frequencies to measure with.
-   For more information, see '--min-uncore-freq' and '--max-uncore-freq'
-   options of the 'pepc pstates config' command.
+   For more information, see '--min-uncore-freq' and
 
 **--governor** *GOVERNOR*
    Name of the CPU frequency governor to measure with, default is
@@ -127,7 +126,6 @@ OPTIONS
    demotion, disable C1 undemotion, disable C1E autopromotion, disable
    C-state prewake, set CPU frequency governor to 'powersave', unlock
    CPU frequency, unlock uncore frequency, set EPP policy to
-   'balance_performance', set EPB policy to 'balance_performance'.
 
 **--deploy**
    Applicable only for 'wult' and 'ndl' tools. Run the 'deploy' command

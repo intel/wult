@@ -1,4 +1,4 @@
-.TH EXERCISE\-SUT "1" "2022\-12\-09" "wult" "Generated Python Manual"
+.TH EXERCISE\-SUT "1" "2022\-12\-10" "wult" "Generated Python Manual"
 .SH NAME
 exercise\-sut
 .SH SYNOPSIS
@@ -34,7 +34,8 @@ Name of the user to use for logging into the remote host over SSH. The default u
 
 .TP
 \fB\-K\fR \fI\,PRIVKEY\/\fR, \fB\-\-priv\-key\fR \fI\,PRIVKEY\/\fR
-Path to the private SSH key that should be used for logging into the remote host. By default the key is automatically found from standard paths like '~/.ssh'.
+Path to the private SSH key that should be used for logging into the remote host. By default the key is automatically
+found from standard paths like '~/.ssh'.
 
 .TP
 \fB\-T\fR \fI\,TIMEOUT\/\fR, \fB\-\-timeout\fR \fI\,TIMEOUT\/\fR
@@ -70,15 +71,18 @@ Comma\-separated list of package C\-states to measure with.
 
 .TP
 \fB\-\-only\-one\-cstate\fR
-By default C\-states deeper than measured C\-state are disabled and other C\-states are enabled. This option will disable all C\-states, excluding the measured C\-state.
+By default C\-states deeper than measured C\-state are disabled and other C\-states are enabled. This option will disable
+all C\-states, excluding the measured C\-state.
 
 .TP
 \fB\-\-freqs\fR \fI\,FREQS\/\fR
-Comma\-separated list of frequencies to be measured with. For more information, see '\-\-min\-freq' and '\-\-max\-freq' options of the 'pepc pstates config' command.
+Comma\-separated list of frequencies to be measured with. For more information, see '\-\-min\-freq' and '\-\-max\-freq'
+options of the 'pepc pstates config' command.
 
 .TP
 \fB\-\-uncore\-freqs\fR \fI\,UNCORE_FREQS\/\fR
-Comma\-separated list of package uncore frequencies to measure with. For more information, see '\-\-min\-uncore\-freq' and '\-\-max\-uncore\-freq' options of the 'pepc pstates config' command.
+Comma\-separated list of package uncore frequencies to measure with. For more information, see '\-\-min\-uncore\-freq' and
+'\-\-max\-uncore\-freq' options of the 'pepc pstates config' command.
 
 .TP
 \fB\-\-governor\fR \fI\,GOVERNOR\/\fR
@@ -86,24 +90,30 @@ Name of the CPU frequency governor to measure with, default is "powersave".
 
 .TP
 \fB\-\-aspm\fR \fI\,ASPM\/\fR
-Comma\-separated list of PCIe ASPM configurations to measure with. The default is "don't care". Supported values are "on" and "off".
+Comma\-separated list of PCIe ASPM configurations to measure with. The default is "don't care". Supported values are
+"on" and "off".
 
 .TP
 \fB\-\-c1\-demotion\fR \fI\,C1_DEMOTION\/\fR
-Comma\-separated list of C1 demotion configurations to measure with. Default is "off". Supported values are "on" and "off".
+Comma\-separated list of C1 demotion configurations to measure with. Default is "off". Supported values are "on" and
+"off".
 
 .TP
 \fB\-\-c1e\-autopromote\fR \fI\,C1E_AUTOPROMOTE\/\fR
-Comma\-separated list of C1E autopromote configurations to measure with. Default is "off". Supported values are "on" and "off".
+Comma\-separated list of C1E autopromote configurations to measure with. Default is "off". Supported values are "on"
+and "off".
 
 .TP
 \fB\-\-cstate\-prewake\fR \fI\,CSTATE_PREWAKE\/\fR
-Comma\-separated list of C\-state prewake configurations to measure with. Default is "off". Supported values are "on" and "off".
+Comma\-separated list of C\-state prewake configurations to measure with. Default is "off". Supported values are "on"
+and "off".
 
 .TP
 \fB\-\-state\-reset\fR
-Set SUT settings to default values before starting measurements. The default values are: online all CPUs, enable all C\-states, disable C1 demotion, disable C1 undemotion, disable C1E autopromotion, disable C\-state prewake, set CPU
-frequency governor to 'powersave', unlock CPU frequency, unlock uncore frequency, set EPP policy to 'balance_performance', set EPB policy to 'balance_performance'.
+Set SUT settings to default values before starting measurements. The default values are: online all CPUs, enable all
+C\-states, disable C1 demotion, disable C1 undemotion, disable C1E autopromotion, disable C\-state prewake, set CPU
+frequency governor to 'powersave', unlock CPU frequency, unlock uncore frequency, set EPP policy to
+'balance_performance', set EPB policy to 'balance_performance'.
 
 .TP
 \fB\-\-deploy\fR
@@ -135,7 +145,8 @@ Do not run any commands, only print them.
 
 .TP
 \fB\-\-only\-measured\-cpu\fR
-Change settings, for example CPU frequency and C\-state limits, only for the measured CPU. By default settings are applied to all CPUs.
+Change settings, for example CPU frequency and C\-state limits, only for the measured CPU. By default settings are
+applied to all CPUs.
 
 .SH AUTHORS
 .nf
