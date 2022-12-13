@@ -245,23 +245,19 @@ class _KernelHelper(ClassHelpers.SimpleCloseContext):
             return modpath
         return None
 
-    def __init__(self, insts, pman=None):
+    def __init__(self, insts, pman):
         """
         The class constructor. The arguments are as follows.
           * insts - a dictionary describing installables information.
-          * pman - the process manager object that defines the SUT to deploy to (local host by
-                   default).
+          * pman - the process manager object that defines the SUT to deploy to.
         """
 
         self._spman = pman
         self._insts = insts
 
-        if not self._spman:
-            self._spman = LocalProcessManager.LocalProcessManager()
-
     def close(self):
         """Uninitialize the object."""
-        ClassHelpers.close(self, close_attrs=("_spman"))
+        ClassHelpers.close(self, unref_attrs=("_spman"))
 
 class DeployCheck(_KernelHelper):
     """
@@ -467,10 +463,21 @@ class DeployCheck(_KernelHelper):
         # components against.
         self._kver = None
 
+        if pman:
+            self._close_spman = False
+        else:
+            pman = LocalProcessManager.LocalProcessManager()
+            self._close_spman = True
+
         super().__init__(self._insts, pman)
 
         self._time_delta = None
 
+    def close(self):
+        """Uninitialize the object."""
+
+        ClassHelpers.close(self, close_attrs=("_spman"))
+        super().close()
 
 class Deploy(_KernelHelper):
     """
@@ -701,7 +708,14 @@ class Deploy(_KernelHelper):
         """
 
         self._insts, self._cats = _get_insts_cats(deploy_info)
-        super().__init__(self._insts, pman=pman)
+
+        if pman:
+            self._close_spman = False
+        else:
+            pman = LocalProcessManager.LocalProcessManager()
+            self._close_spman = True
+
+        super().__init__(self._insts, pman)
 
         self._toolname = toolname
         self._ksrc = ksrc
@@ -768,5 +782,5 @@ class Deploy(_KernelHelper):
     def close(self):
         """Uninitialize the object."""
 
-        ClassHelpers.close(self, close_attrs=("_tchk", "_cpman"), unref_attrs=("_bpman",))
+        ClassHelpers.close(self, close_attrs=("_tchk", "_cpman", "_spman"), unref_attrs=("_bpman",))
         super().close()
