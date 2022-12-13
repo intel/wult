@@ -61,8 +61,8 @@ _RESET_PROPS = {
         "value" : "balance_performance",
         "text" : "set EPP policy to 'balance_performance'"},
     "epb" : {
-        "value" : "balance_performance",
-        "text" : "set EPB policy to 'balance_performance'"},
+        "value" : "balance-performance",
+        "text" : "set EPB policy to 'balance-performance'"},
 }
 
 reset_actions_text = ", ".join([pinfo["text"] for pinfo in _RESET_PROPS.values()])
