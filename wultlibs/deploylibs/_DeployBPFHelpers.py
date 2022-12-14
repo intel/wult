@@ -67,7 +67,7 @@ class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
         if self._bpman.is_dir(basedir):
             search_info[basedir] = ("", "bpf")
 
-        incdirs = set()
+        incdirs = list()
 
         for header in headers:
             tried = []
@@ -78,7 +78,7 @@ class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
                     incdir = basedir / sfx
                     tried.append(incdir)
                     if self._bpman.is_file(incdir / header):
-                        incdirs.add(incdir)
+                        incdirs.append(incdir)
                         found = True
                         break
                 if found:
