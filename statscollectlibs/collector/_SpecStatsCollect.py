@@ -327,9 +327,9 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
         """Stop collecting the statistics."""
 
         _LOG.log(self._infolvl, "Stopping statistics collectors")
-        self._inbagent.stop(sysinfo=False)
+        self._inbagent.stop()
         if self._oobagent:
-            self._oobagent.stop(sysinfo=False)
+            self._oobagent.stop()
 
         if not sysinfo:
             return

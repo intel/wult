@@ -335,16 +335,13 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         self._send_command("start")
         self._start_time = time.time()
 
-    def stop(self, sysinfo=True):
+    def stop(self):
         """Stop collecting the statistics."""
 
         stnames = self.get_enabled_stats()
 
         if "sysinfo" in stnames:
             stnames.remove("sysinfo")
-            if sysinfo:
-                _LOG.log(self.infolvl, "Collecting more %s system information", self.sutname)
-                SysInfo.collect_after(self._statsdir / "sysinfo", self._pman)
 
         if not stnames:
             return
@@ -683,7 +680,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         with contextlib.suppress(SCReplyError):
             self._configure(stnames, for_discovery=True)
             self.start(sysinfo=False)
-            self.stop(sysinfo=False)
+            self.stop()
 
         stnames -= self._get_failed_collectors()
         _LOG.debug("discovered the following statistics%s: %s",
