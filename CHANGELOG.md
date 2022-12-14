@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix some statistics being collected for longer than others when 'SysInfo'
+   statistics are also collected.
 ### Added
 ### Removed
 ### Changed
