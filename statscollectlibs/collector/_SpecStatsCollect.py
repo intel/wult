@@ -327,9 +327,16 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
         """Stop collecting the statistics."""
 
         _LOG.log(self._infolvl, "Stopping statistics collectors")
-        self._inbagent.stop(sysinfo=sysinfo)
+        self._inbagent.stop(sysinfo=False)
         if self._oobagent:
-            self._oobagent.stop(sysinfo=sysinfo)
+            self._oobagent.stop(sysinfo=False)
+
+        if not sysinfo:
+            return
+
+        self._inbagent.collect_sysinfo_after()
+        if self._oobagent:
+            self._oobagent.collect_sysinfo_after()
 
     def copy_remote_data(self, include_logs=True, include_data=True):
         """

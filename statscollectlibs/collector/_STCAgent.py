@@ -353,6 +353,17 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         self._send_command("stop")
         self._start_time = None
 
+    def collect_sysinfo_after(self):
+        """Collect information about the SUT after collecting statistics."""
+
+        stnames = self.get_enabled_stats()
+
+        if "sysinfo" not in stnames:
+            return
+
+        _LOG.log(self.infolvl, "Collecting more %s system information", self.sutname)
+        SysInfo.collect_after(self._statsdir / "sysinfo", self._pman)
+
     def _get_failed_collectors(self):
         """
         Requests failed statistics names from 'stc-agent' and returns their names in form of a
