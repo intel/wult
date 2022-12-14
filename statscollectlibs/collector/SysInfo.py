@@ -104,7 +104,7 @@ def _collect_totals(outdir, when, pman):
 
 def collect_before(outdir, pman):
     """
-    Collect information about a host defined by th 'pman' process manager object.
+    Collect information about a host defined by the 'pman' process manager object.
 
     This function is supposed to be called before running a workload on the SUT. It will collect
     various global data like the contents of the '/proc/cmdline' file, the 'lspci' output, and store
@@ -190,7 +190,7 @@ def collect_before(outdir, pman):
 
 def collect_after(outdir, pman):
     """
-    Collect information about a host defined by th 'pman' process manager object.
+    Collect information about a host defined by the 'pman' process manager object.
 
     This function is supposed to be called after running a workload on the SUT. It will collect the
     information that may change after the workload. For example, the 'dmesg' output may contain new
