@@ -5,10 +5,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix 'CC0%' calculations in the 'tdt_bpf' method.
 ### Added
 ### Removed
 ### Changed
+
+## [1.10.45] - 2022-12-14
+### Fixed
+ - Fix 'CC0%' calculations in the 'tdt_bpf' method.
 
 ## [1.10.44] - 2022-12-10
 ### Added
