@@ -207,6 +207,8 @@ static int _parse_perf_events(int type)
 		fclose(file);
 	}
 
+	bpf_args.perf_ev_amt = perf_ev_amt;
+
 	return 0;
 }
 
@@ -225,7 +227,6 @@ static int handle_rb_event(void *ctx, void *bpf_event, size_t sz)
 {
 	const struct tdt_bpf_event *e = bpf_event;
 	int i;
-	u64 totcyc;
 	u64 tai;
 	u64 tintr;
 	u64 ltime;
@@ -234,12 +235,6 @@ static int handle_rb_event(void *ctx, void *bpf_event, size_t sz)
 	/* Ping just wakes us up, ignore it otherwise */
 	if (e->type == TDT_EVENT_PING)
 		return 0;
-
-	/* Calculate total cycles */
-	if (e->aic2 > e->intrc2)
-		totcyc = e->aic2 - e->bic;
-	else
-		totcyc = e->intrc2 - e->bic;
 
 	/* Convert TSC counters to time stamp values */
 	tai = e->tbi + (e->aic - e->bic2) / tsc_to_nsec;
@@ -258,7 +253,7 @@ static int handle_rb_event(void *ctx, void *bpf_event, size_t sz)
 	printf("%lu,%d,%d,%lu,%lu,%lu,0,0,0,0,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%u,%u,%lu,%lu,",
 		ltime, e->ldist, e->req_cstate, e->tbi, tai, tintr,
 		e->aiaperf, e->intraperf, e->aimperf, e->intrmperf,
-		e->bic, e->tbi2, totcyc, e->nmic, e->swirqc,
+		e->bic, e->tbi2, e->perf_counters[MSR_TSC], e->nmic, e->swirqc,
 		e->perf_counters[MSR_SMI], e->perf_counters[MSR_MPERF]);
 
 	/*

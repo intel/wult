@@ -64,6 +64,7 @@ struct tdt_bpf_args {
 	u32 max_ldist;
 	u32 tsc_khz;
 	u64 timer_calib;
+	int perf_ev_amt;
 };
 
 enum {
@@ -71,10 +72,15 @@ enum {
 	TDT_EVENT_PING,
 };
 
+/*
+ * With the event definitions, TSC must be first, MPERF 2nd, others don't
+ * matter. This is so that the total cycles and cc0 residency calculation
+ * logic works ok, and does not have excessive gaps.
+ */
 enum {
 	MSR_TSC,
-	MSR_APERF,
 	MSR_MPERF,
+	MSR_APERF,
 	MSR_SMI,
 	MSR_EVENT_COUNT
 };

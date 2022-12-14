@@ -63,8 +63,7 @@ static u32 ldist;
 static u64 calibrate_timer_delta;
 static bool timer_armed;
 static bool restart_timer;
-
-static u64 perf_counters[WULT_TDT_HELPER_NUM_PERF_COUNTERS];
+static int perf_ev_amt;
 
 const u32 linux_version_code = LINUX_VERSION_CODE;
 
@@ -144,7 +143,6 @@ static void send_event(void)
 {
 	struct tdt_bpf_event *e;
 	int i;
-	u64 totcyc;
 
 	if (timer_armed)
 		return;
@@ -157,15 +155,9 @@ static void send_event(void)
 	if (!bpf_event.aic2 || !bpf_event.intrc2 || !bpf_event.bic)
 		return;
 
-	if (bpf_event.aic2 > bpf_event.intrc2)
-		totcyc = bpf_event.aic2 - bpf_event.bic;
-	else
-		totcyc = bpf_event.intrc2 - bpf_event.bic;
-
 	if (bpf_event.bic >= bpf_event.ltimec ||
 	    bpf_event.intrc <= bpf_event.ltimec ||
-	    bpf_event.aic <= bpf_event.ltimec ||
-	    totcyc < perf_counters[MSR_MPERF])
+	    bpf_event.aic <= bpf_event.ltimec)
 		goto cleanup;
 
 	e = bpf_ringbuf_reserve(&events, sizeof(*e), 0);
@@ -183,10 +175,6 @@ static void send_event(void)
 	__builtin_memcpy(e, &bpf_event, sizeof(*e));
 
 	e->type = TDT_EVENT_DATA;
-
-	/* Index 0 is TSC, skip it here */
-	for (i = 1; i < WULT_TDT_HELPER_NUM_PERF_COUNTERS; i++)
-		e->perf_counters[i] = perf_counters[i];
 
 	bpf_ringbuf_submit(e, 0);
 
@@ -242,30 +230,42 @@ static void snapshot_perf_vars(bool exit)
 	u64 count, *ptr;
 	int key;
 	s64 err;
+	struct tdt_bpf_event *e = &bpf_event;
 
-	if (exit)
-		perf_counters[MSR_MPERF] =
-			bpf_perf_event_read(&perf, MSR_MPERF) -
-			perf_counters[MSR_MPERF];
+	/* Check if perf_ev_amt has been setup */
+	if (!perf_ev_amt || perf_ev_amt > WULT_TDT_HELPER_NUM_PERF_COUNTERS)
+		return;
 
-	/* Skip MSR events 0..2 (TSC/APERF/MPERF) */
-	for (i = 3; i < WULT_TDT_HELPER_NUM_PERF_COUNTERS; i++) {
-		count = bpf_perf_event_read(&perf, i);
-		err = (s64)count;
-
-		/* Exit if no entry found */
-		if (err < 0 && err >= -EINVAL)
-			break;
-
-		if (exit)
-			perf_counters[i] = count - perf_counters[i];
-		else
-			perf_counters[i] = count;
-	}
-
+	/*
+	 * Setup the direction of the loop. When exiting idle, the TSC
+	 * counter must be the last one read (index 0), but when entering
+	 * idle, it must be the first one.
+	 */
 	if (!exit)
-		perf_counters[MSR_MPERF] =
-			bpf_perf_event_read(&perf, MSR_MPERF);
+		for (i = 0; i < perf_ev_amt && i < WULT_TDT_HELPER_NUM_PERF_COUNTERS; i++) {
+			count = bpf_perf_event_read(&perf, i);
+			err = (s64)count;
+
+			/* Exit if no entry found */
+			if (err < 0 && err >= -EINVAL)
+				break;
+
+			e->perf_counters[i] = count;
+		}
+	else
+		for (i = perf_ev_amt - 1; i >= 0; i--) {
+			if (i > WULT_TDT_HELPER_NUM_PERF_COUNTERS)
+				break;
+
+			count = bpf_perf_event_read(&perf, i);
+			err = (s64)count;
+
+			/* Exit if no entry found */
+			if (err <  0 && err >= -EINVAL)
+				break;
+
+			e->perf_counters[i] = count - e->perf_counters[i];
+		}
 }
 
 /*
@@ -310,6 +310,10 @@ int tdt_bpf_setup(struct tdt_bpf_args *args)
 	u32 freq;
 
 	calibrate_timer_delta = args->timer_calib;
+	if (args->perf_ev_amt > WULT_TDT_HELPER_NUM_PERF_COUNTERS)
+		return -EINVAL;
+
+	perf_ev_amt = args->perf_ev_amt;
 
 	bpf_core_read(&freq, sizeof(freq), &tsc_khz);
 
