@@ -99,6 +99,7 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
 
         # Configure which axes plots will display in the data tabs.
         plots = {}
+        smry_funcs = {}
         for metric, colnames in self._metrics.items():
             for col in colnames:
                 if col not in common_cols:
@@ -110,7 +111,13 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
                     "hist": [defs_info[col]]
                 }
 
-        return self._build_ctab(self.name, tab_hierarchy, self._outdir, plots)
+        # Define which summary functions should be included in the generated summary table
+        # for a given metric.
+        for metric in common_cols:
+            smry_funcs[metric] = ["max", "99.999%", "99.99%", "99.9%", "99%",
+                                  "med", "avg", "min", "std"]
+
+        return self._build_ctab(self.name, tab_hierarchy, self._outdir, plots, smry_funcs)
 
     def _categorise_cols(self, ipmi):
         """

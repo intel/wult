@@ -181,17 +181,24 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         # tabs which are common to all sets of results.
         tab_hierarchy = self._get_tab_hierarchy(common_metrics)
 
-        # Define which plots should be generated in the data tab for a given metric.
+        # Define which plots should be generated in the data tab and which summary functions
+        # should be included in the generated summary table for a given metric.
         plots = {}
+        smry_funcs = {}
         for metric in common_metrics:
             defs_info = self._defs.info
             plots[metric] = {
                 "scatter": [(defs_info[self._time_metric], defs_info[metric])],
                 "hist": [defs_info[metric]]
             }
+            if metric in ('IRQ', 'SMI'):
+                smry_funcs[metric] = ["max", "avg", "min", "std"]
+            else:
+                smry_funcs[metric] = ["max", "99.999%", "99.99%", "99.9%", "99%",
+                                      "med", "avg", "min", "std"]
 
         # Build L2 CTab with hierarchy represented in 'self._tab_hierarchy'.
-        return self._build_ctab(self.name, tab_hierarchy, self.outdir, plots)
+        return self._build_ctab(self.name, tab_hierarchy, self.outdir, plots, smry_funcs)
 
     def __init__(self, stats_paths, outdir, basedir):
         """

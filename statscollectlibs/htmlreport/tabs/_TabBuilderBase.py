@@ -37,7 +37,7 @@ class TabBuilderBase:
     # The name of the statistics represented in the produced tab.
     name = None
 
-    def _build_ctab(self, name, tab_hierarchy, outdir, plots):
+    def _build_ctab(self, name, tab_hierarchy, outdir, plots, smry_funcs):
         """
         This is a helper function for 'get_tab()'. Build a container tab according to the
         'tab_hierarchy' dictionary. If no sub-tabs can be generated then raises an 'Error'.
@@ -63,6 +63,12 @@ class TabBuilderBase:
                                 "chist": [mdef1]
                             }
                    }
+         * smry_funcs - dictionary representation of the summary functions to include in the summary
+                    table for each metric. Schema is as follows:
+                    {
+                        Metric1: ["99.999%", "99.99%",...],
+                        Metric2: ["max", "min",...]
+                    }
         """
 
         # Sub-tabs which will be contained by the returned container tab.
@@ -82,9 +88,7 @@ class TabBuilderBase:
                     if metric in plots:
                         tab.add_plots(plots[metric].get("scatter"), plots[metric].get("hist"),
                                       plots[metric].get("chist"))
-                    smry_funcs = {metric: ["max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg",
-                                           "min", "std"]}
-                    tab.add_smrytbl(smry_funcs, self._defs)
+                    tab.add_smrytbl({metric: smry_funcs[metric]}, self._defs)
                     sub_tabs.append(tab.get_tab())
                 except Error as err:
                     _LOG.info("Skipping '%s' tab in '%s' tab: error occured during tab generation.",
@@ -100,7 +104,7 @@ class TabBuilderBase:
             # Tabs not labelled by the "dtabs" key in the tab hierarchy are container tabs. For each
             # sub container tab, recursively call 'self._build_ctab()'.
             subdir = Path(outdir) / DefsBase.get_fsname(tab_name)
-            subtab = self._build_ctab(tab_name, sub_hierarchy, subdir, plots)
+            subtab = self._build_ctab(tab_name, sub_hierarchy, subdir, plots, smry_funcs)
             if subtab:
                 sub_tabs.append(subtab)
 
