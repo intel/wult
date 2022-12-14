@@ -318,16 +318,24 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
                        max_interval, max_interval - delta)
             time.sleep(max_interval - delta)
 
-    def start(self, sysinfo=True):
+    def collect_sysinfo_before(self):
+        """Collect information about the SUT before collecting statistics."""
+
+        stnames = self.get_enabled_stats()
+
+        if "sysinfo" not in stnames:
+            return
+
+        _LOG.log(self.infolvl, "Collecting %s system information", self.sutname)
+        SysInfo.collect_before(self._statsdir / "sysinfo", self._pman)
+
+    def start(self):
         """Start collecting the statistics."""
 
         stnames = self.get_enabled_stats()
 
         if "sysinfo" in stnames:
             stnames.remove("sysinfo")
-            if sysinfo:
-                _LOG.log(self.infolvl, "Collecting %s system information", self.sutname)
-                SysInfo.collect_before(self._statsdir / "sysinfo", self._pman)
 
         if not stnames:
             return
@@ -679,7 +687,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
 
         with contextlib.suppress(SCReplyError):
             self._configure(stnames, for_discovery=True)
-            self.start(sysinfo=False)
+            self.start()
             self.stop()
 
         stnames -= self._get_failed_collectors()

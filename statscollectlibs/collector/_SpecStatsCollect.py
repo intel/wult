@@ -318,6 +318,10 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
     def start(self):
         """Start collecting the statistics."""
 
+        self._inbagent.collect_sysinfo_before()
+        if self._oobagent:
+            self._oobagent.collect_sysinfo_before()
+
         _LOG.log(self._infolvl, "Starting statistics collectors")
         self._inbagent.start()
         if self._oobagent:
