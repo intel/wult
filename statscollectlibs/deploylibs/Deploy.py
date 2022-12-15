@@ -9,9 +9,10 @@
 """This module provides the API for deploying the 'stats-collect' tool."""
 
 import logging
+import os
 from pathlib import Path
 from pepclibs.helperlibs import ArgParse, ClassHelpers, LocalProcessManager
-from pepclibs.helperlibs.Exceptions import Error, ErrorExists
+from pepclibs.helperlibs.Exceptions import Error, ErrorExists, ErrorNotFound
 from statscollectlibs.deploylibs import _DeployPyHelpers
 
 _LOG = logging.getLogger()
@@ -63,6 +64,58 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
 
     parser.set_defaults(func=func)
     return parser
+
+def get_deploy_cmd(pman, toolname):
+    """Returns the 'deploy' command suggestion string."""
+
+    cmd = f"{toolname} deploy"
+    if pman.is_remote:
+        cmd += f" -H {pman.hostname}"
+    return cmd
+
+def deployable_not_found(pman, toolname, what, is_helper=True):
+    """Raise an exception in case a required driver or helper was not found."""
+
+    err = f"{what} was not found{pman.hostmsg}"
+    if is_helper:
+        err += f". Here are the options to try.\n" \
+               f" * Run '{get_deploy_cmd(pman, toolname)}'.\n" \
+               f" * Ensure that {what} is in 'PATH'{pman.hostmsg}.\n" \
+               f" * Set the 'WULT_HELPERSPATH' environment variable to the path of " \
+               f"{what}{pman.hostmsg}"
+    else:
+        err += f"\nConsider running '{get_deploy_cmd(pman, toolname)}'"
+
+    raise ErrorNotFound(err)
+
+def get_installed_helper_path(pman, toolname, helper):
+    """
+    Tries to figure out path to the directory the 'helper' program is installed at. Returns the
+    path in case of success (e.g., '/usr/bin') and raises the 'ErrorNotFound' an exception if the
+    helper was not found.
+    """
+
+    dirpath = os.environ.get("WULT_HELPERSPATH")
+    if dirpath:
+        helper_path = Path(dirpath) / helper
+        if pman.is_exe(helper_path):
+            return helper_path
+
+    helper_path = pman.which(helper, must_find=False)
+    if helper_path:
+        return helper_path
+
+    # Check standard paths.
+    homedir = pman.get_homedir()
+    stardard_paths = (f"{homedir}/.local/bin", "/usr/bin", "/usr/local/bin", "/bin",
+                      f"{homedir}/bin")
+
+    for dirpath in stardard_paths:
+        helper_path = Path(dirpath) / helper
+        if pman.is_exe(helper_path):
+            return helper_path
+
+    return deployable_not_found(pman, toolname, f"the '{helper}' program", is_helper=True)
 
 def get_insts_cats(deploy_info, categories):
     """Build and return dictionaries for categories and installables based on 'deploy_info'."""

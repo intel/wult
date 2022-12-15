@@ -50,59 +50,6 @@ _CATEGORIES = { "drivers"    : "kernel driver",
                 "pyhelpers"  : "python helper program",
                 "bpfhelpers" : "eBPF helper program"}
 
-def _get_deploy_cmd(pman, toolname):
-    """Returns the 'deploy' command suggestion string."""
-
-    cmd = f"{toolname} deploy"
-    if pman.is_remote:
-        cmd += f" -H {pman.hostname}"
-    return cmd
-
-def _deployable_not_found(pman, toolname, what, is_helper=True):
-    """Raise an exception in case a required driver or helper was not found."""
-
-    err = f"{what} was not found{pman.hostmsg}"
-    if is_helper:
-        err += f". Here are the options to try.\n" \
-               f" * Run '{_get_deploy_cmd(pman, toolname)}'.\n" \
-               f" * Ensure that {what} is in 'PATH'{pman.hostmsg}.\n" \
-               f" * Set the 'WULT_HELPERSPATH' environment variable to the path of " \
-               f"{what}{pman.hostmsg}"
-    else:
-        err += f"\nConsider running '{_get_deploy_cmd(pman, toolname)}'"
-
-    raise ErrorNotFound(err)
-
-def get_installed_helper_path(pman, toolname, helper):
-    """
-    Tries to figure out path to the directory the 'helper' program is installed at. Returns the
-    path in case of success (e.g., '/usr/bin') and raises the 'ErrorNotFound' an exception if the
-    helper was not found.
-    """
-
-    dirpath = os.environ.get("WULT_HELPERSPATH")
-    if dirpath:
-        helper_path = Path(dirpath) / helper
-        if pman.is_exe(helper_path):
-            return helper_path
-
-    helper_path = pman.which(helper, must_find=False)
-    if helper_path:
-        return helper_path
-
-    # Check standard paths.
-    homedir = pman.get_homedir()
-    stardard_paths = (f"{homedir}/.local/bin", "/usr/bin", "/usr/local/bin", "/bin",
-                      f"{homedir}/bin")
-
-    for dirpath in stardard_paths:
-        helper_path = Path(dirpath) / helper
-        if pman.is_exe(helper_path):
-            return helper_path
-
-
-    return _deployable_not_found(pman, toolname, f"the '{helper}' program", is_helper=True)
-
 def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete=None):
     """
     Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
@@ -288,8 +235,8 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
                 yield deployable
 
     def _get_installed_deployable_path(self, deployable):
-        """Same as 'get_installed_helper_path()'."""
-        return get_installed_helper_path(self._spman, self._toolname, deployable)
+        """Same as 'StatsCollectDeploy.get_installed_helper_path()'."""
+        return StatsCollectDeploy.get_installed_helper_path(self._spman, self._toolname, deployable)
 
     def _get_installable_by_deployable(self, deployable):
         """Returns installable name and information dictionary for a deployable."""
@@ -311,13 +258,13 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         return f"the '{deployable}' {cat_descr}"
 
     def _deployable_not_found(self, deployable):
-        """Same as module-level '_deployable_not_found()'."""
+        """Same as 'StatsCollectDeploy._deployable_not_found()'."""
 
         installable = self._get_installable_by_deployable(deployable)
         what = self._get_deployable_print_name(installable, deployable)
         is_helper = self._insts[installable]["category"] != "drivers"
 
-        _deployable_not_found(self._spman, self._toolname, what, is_helper=is_helper)
+        StatsCollectDeploy.deployable_not_found(self._spman, self._toolname, what, is_helper)
 
     def _warn_deployable_out_of_date(self, deployable):
         """Print a warning about the 'what' deployable not being up-to-date."""
@@ -326,7 +273,8 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         what = self._get_deployable_print_name(installable, deployable)
 
         _LOG.warning("%s may be out of date%s\nConsider running '%s'",
-                     what, self._spman.hostmsg, _get_deploy_cmd(self._spman, self._toolname))
+                     what, self._spman.hostmsg,
+                     StatsCollectDeploy.get_deploy_cmd(self._spman, self._toolname))
 
     def _check_deployable_up_to_date(self, deployable, srcpath, dstpath):
         """
