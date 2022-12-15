@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2021 Intel Corporation
+# Copyright (C) 2019-2022 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -17,13 +17,13 @@ A raw test result is a directory containing the following files.
  * stats - optional directory containing various statistics, such as 'lscpu'.
 """
 
-from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error
+from statscollectlibs.rawresultlibs import _RawResultBase
 
 # The latest supported raw results format version.
 FORMAT_VERSION = "1.2"
 
-class RawResultBase:
+class RawResultBase(_RawResultBase.RawResultBase):
     """
     Base class for read-only and write-only test result classes, contains the common bits.
     """
@@ -85,9 +85,7 @@ class RawResultBase:
     def __init__(self, dirpath):
         """The class constructor. The 'dirpath' argument is path raw test result directory."""
 
-        self.reportid = None
-        # This dictionary represents the info file.
-        self.info = {}
+        super().__init__(dirpath)
 
         # The datapoint and metric filters.
         self._exclude = None
@@ -95,25 +93,7 @@ class RawResultBase:
         self._include = None
         self._minclude = None
 
-        if not dirpath:
-            raise Error("raw test results directory path was not specified")
-
-        self.dirpath = Path(dirpath)
-
-        if self.dirpath.exists() and not self.dirpath.is_dir():
-            raise Error(f"path '{self.dirpath}' is not a directory")
-
         self.dp_path = self.dirpath.joinpath("datapoints.csv")
-        self.info_path = self.dirpath.joinpath("info.yml")
-        self.logs_path = self.dirpath.joinpath("logs")
-        self.stats_path = self.dirpath.joinpath("stats")
 
-        for name in ("dp_path", "info_path"):
-            path = getattr(self, name)
-            if path.exists() and not path.is_file():
-                raise Error(f"path '{path}' exists, but it is not a regular file")
-
-        for name in ("logs_path", "stats_path"):
-            path = getattr(self, name)
-            if path.exists() and not path.is_dir():
-                raise Error(f"path '{path}' exists, but it is not a directory")
+        if self.dp_path.exists() and not self.dp_path.is_file():
+            raise Error(f"path '{self.dp_path}' exists, but it is not a regular file")
