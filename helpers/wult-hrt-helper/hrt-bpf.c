@@ -72,6 +72,9 @@ const u32 linux_version_code = LINUX_VERSION_CODE;
  */
 const volatile u32 cpu_num;
 
+/*
+ * Read TSC counter value via the perf subsystem.
+ */
 static u64 read_tsc(void)
 {
 	u64 count;
@@ -93,6 +96,9 @@ static u64 read_tsc(void)
 	return count;
 }
 
+/*
+ * Send a dummy ping message to userspace process to wake it up.
+ */
 static void ping_cpu(void)
 {
 	struct hrt_bpf_event *e;
@@ -108,6 +114,10 @@ static void ping_cpu(void)
 	bpf_ringbuf_submit(e, 0);
 }
 
+/*
+ * Send wakeup event data to userspace. Verifies that the event is
+ * not bogus and passes it up.
+ */
 static void send_event(void)
 {
 	struct hrt_bpf_event *e;
@@ -154,6 +164,9 @@ cleanup:
 	bpf_event.tintr = 0;
 }
 
+/*
+ * Re-arm the timer with new launch distance value.
+ */
 static int kick_timer(void)
 {
 	int key = 0;
@@ -187,39 +200,50 @@ static int kick_timer(void)
 	return ret;
 }
 
-static void snapshot_mperf_var(bool exit)
+/*
+ * Captures the value of a single perf variable.
+ */
+static int snapshot_perf_var(int idx, bool exit)
 {
-	u64 mperf_cnt = bpf_perf_event_read(&perf, MSR_MPERF);
+	u64 count = bpf_perf_event_read(&perf, idx);
+	s64 err;
+
+	err = (s64)count;
+	if (err < 0 && err >= -EINVAL)
+		return (int)err;
 
 	if (exit)
-		perf_counters[MSR_MPERF] = mperf_cnt - perf_counters[MSR_MPERF];
+		perf_counters[idx] = count - perf_counters[idx];
 	else
-		perf_counters[MSR_MPERF] = mperf_cnt;
+		perf_counters[idx] = count;
+
+	return 0;
 }
 
+/*
+ * Snapshot performance register values. The links to the specific
+ * registers are provided by userspace, and they contain the residency
+ * times within specific HW sleep states among other things.
+ */
 static void snapshot_perf_vars(bool exit)
 {
 	int i;
-	u64 count, *ptr;
-	int key;
 	s64 err;
 
 	/* Skip MSR events 0..2 (TSC/APERF/MPERF) */
 	for (i = 3; i < WULTRUNNER_NUM_PERF_COUNTERS; i++) {
-		count = bpf_perf_event_read(&perf, i);
-		err = (s64)count;
-
-		/* Exit if no entry found */
-		if (err < 0 && err >= -EINVAL)
+		err = snapshot_perf_var(i, exit);
+		if (err)
 			break;
-
-		if (exit)
-			perf_counters[i] = count - perf_counters[i];
-		else
-			perf_counters[i] = count;
 	}
 }
 
+/*
+ * Timer callback for out own timer. We use this to finalize our
+ * captured wakeup event, and to re-arm the timer.
+ * Timer callbacks are executed in slightly different BPF context
+ * and for example perf_events are not accessible here.
+ */
 static int timer_callback(void *map, int *key, struct bpf_timer *timer)
 {
 	struct hrt_bpf_event *e = &bpf_event;
@@ -250,6 +274,9 @@ static int timer_callback(void *map, int *key, struct bpf_timer *timer)
 	return 0;
 }
 
+/*
+ * Start the hrtimer, called from userspace.
+ */
 SEC("syscall")
 int hrt_bpf_start_timer(struct hrt_bpf_args *args)
 {
@@ -277,6 +304,11 @@ int hrt_bpf_start_timer(struct hrt_bpf_args *args)
 	return 0;
 }
 
+/*
+ * Local timer entry tracepoint. This is the earliest tracepoint we
+ * can tap into in the timer subsystem for an expiring timer. Use
+ * this to capture the timer interrupt timestamps.
+ */
 SEC("tp_btf/local_timer_entry")
 int BPF_PROG(hrt_bpf_local_timer_entry, int vector)
 {
@@ -291,7 +323,7 @@ int BPF_PROG(hrt_bpf_local_timer_entry, int vector)
 			e->intrts1 = t;
 			if (e->tai) {
 				snapshot_perf_vars(true);
-				snapshot_mperf_var(true);
+				snapshot_perf_var(MSR_MPERF, true);
 			}
 			e->intrc = read_tsc();
 			e->intrmperf = bpf_perf_event_read(&perf, MSR_MPERF);
@@ -302,6 +334,12 @@ int BPF_PROG(hrt_bpf_local_timer_entry, int vector)
 	return 0;
 }
 
+/*
+ * Softirq tracepoint. This is used to capture the number of softirqs
+ * executed. If any unexpected softirqs happen during the wakeup event
+ * processing, the event is discarded by the userspace to avoid any
+ * extra latencies induced by the extra interrupt processing.
+ */
 SEC("tp_btf/softirq_entry")
 int BPF_PROG(hrt_bpf_softirq_entry, int vector)
 {
@@ -314,6 +352,12 @@ int BPF_PROG(hrt_bpf_softirq_entry, int vector)
 	return 0;
 }
 
+/*
+ * NMI tracepoint. This is used similarly to the softirq tracepoint
+ * to capture the amount of NMIs that have happened during out
+ * wakeup event handling, and to filter out any events that are messed
+ * up by NMI processing.
+ */
 SEC("tp_btf/nmi_handler")
 int BPF_PROG(hrt_bpf_nmi_handler, void *handler, s64 t, int vector)
 {
@@ -326,6 +370,10 @@ int BPF_PROG(hrt_bpf_nmi_handler, void *handler, s64 t, int vector)
 	return 0;
 }
 
+/*
+ * hrtimer initialization tracepoint. This is used to get the unique
+ * ID to our own timer so that we can match it later on.
+ */
 SEC("tp_btf/hrtimer_init")
 int BPF_PROG(hrt_bpf_timer_init, void *timer)
 {
@@ -335,6 +383,11 @@ int BPF_PROG(hrt_bpf_timer_init, void *timer)
 	return 0;
 }
 
+/*
+ * hrtimer expire tracepoint is used to capture the timer timestamps
+ * in case these were missed by the earlier tracepoint (timer queue
+ * execution for example.)
+ */
 SEC("tp_btf/hrtimer_expire_entry")
 int BPF_PROG(hrt_bpf_timer_expire_entry, void *timer, void *now)
 {
@@ -345,7 +398,7 @@ int BPF_PROG(hrt_bpf_timer_expire_entry, void *timer, void *now)
 		e->tintr = e->intrts1;
 		if (e->tai) {
 			snapshot_perf_vars(true);
-			snapshot_mperf_var(true);
+			snapshot_perf_var(MSR_MPERF, true);
 		}
 		e->intrc = read_tsc();
 		e->intrmperf = bpf_perf_event_read(&perf, MSR_MPERF);
@@ -355,6 +408,10 @@ int BPF_PROG(hrt_bpf_timer_expire_entry, void *timer, void *now)
 	return 0;
 }
 
+/*
+ * Cpuidle tracepoint. Captures sleep entry/exit timestamps when
+ * entering/exiting idle.
+ */
 SEC("tp_btf/cpu_idle")
 int BPF_PROG(hrt_bpf_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 {
@@ -374,7 +431,7 @@ int BPF_PROG(hrt_bpf_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 
 			if (e->tintr) {
 				snapshot_perf_vars(true);
-				snapshot_mperf_var(true);
+				snapshot_perf_var(MSR_MPERF, true);
 			}
 			e->aic = read_tsc();
 			e->aits2 = bpf_ktime_get_boot_ns();
@@ -396,7 +453,7 @@ int BPF_PROG(hrt_bpf_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 
 		e->bimonotonic = bpf_ktime_get_boot_ns();
 		e->bic = read_tsc();
-		snapshot_mperf_var(false);
+		snapshot_perf_var(MSR_MPERF, false);
 		snapshot_perf_vars(false);
 
 		e->tbi = bpf_ktime_get_boot_ns();

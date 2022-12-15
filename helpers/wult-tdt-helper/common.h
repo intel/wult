@@ -72,11 +72,6 @@ enum {
 	TDT_EVENT_PING,
 };
 
-/*
- * With the event definitions, TSC must be first, MPERF 2nd, others don't
- * matter. This is so that the total cycles and cc0 residency calculation
- * logic works ok, and does not have excessive gaps.
- */
 enum {
 	MSR_TSC,
 	MSR_MPERF,

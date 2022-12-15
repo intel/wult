@@ -220,6 +220,27 @@ static int kick_timer(void)
 }
 
 /*
+ * Captures the value of a single perf variable.
+ */
+static int snapshot_perf_var(int idx, bool exit)
+{
+	u64 count = bpf_perf_event_read(&perf, idx);
+	s64 err;
+	struct tdt_bpf_event *e = &bpf_event;
+
+	err = (s64)count;
+	if (err < 0 && err >= -EINVAL)
+		return (int)err;
+
+	if (exit)
+		e->perf_counters[idx] = count - e->perf_counters[idx];
+	else
+		e->perf_counters[idx] = count;
+
+	return 0;
+}
+
+/*
  * Snapshot performance register values. The links to the specific
  * registers are provided by userspace, and they contain the residency
  * times within specific HW sleep states among other things.
@@ -227,50 +248,22 @@ static int kick_timer(void)
 static void snapshot_perf_vars(bool exit)
 {
 	int i;
-	u64 count, *ptr;
-	int key;
 	s64 err;
-	struct tdt_bpf_event *e = &bpf_event;
 
-	/* Check if perf_ev_amt has been setup */
-	if (!perf_ev_amt || perf_ev_amt > WULT_TDT_HELPER_NUM_PERF_COUNTERS)
-		return;
+	/* Skip MSR events 0..2 (TSC/MPERF/APERF) */
+	for (i = MSR_APERF + 1; i < perf_ev_amt && i < WULT_TDT_HELPER_NUM_PERF_COUNTERS; i++) {
+		err = snapshot_perf_var(i, exit);
 
-	/*
-	 * Setup the direction of the loop. When exiting idle, the TSC
-	 * counter must be the last one read (index 0), but when entering
-	 * idle, it must be the first one.
-	 */
-	if (!exit)
-		for (i = 0; i < perf_ev_amt && i < WULT_TDT_HELPER_NUM_PERF_COUNTERS; i++) {
-			count = bpf_perf_event_read(&perf, i);
-			err = (s64)count;
-
-			/* Exit if no entry found */
-			if (err < 0 && err >= -EINVAL)
-				break;
-
-			e->perf_counters[i] = count;
-		}
-	else
-		for (i = perf_ev_amt - 1; i >= 0; i--) {
-			if (i > WULT_TDT_HELPER_NUM_PERF_COUNTERS)
-				break;
-
-			count = bpf_perf_event_read(&perf, i);
-			err = (s64)count;
-
-			/* Exit if no entry found */
-			if (err <  0 && err >= -EINVAL)
-				break;
-
-			e->perf_counters[i] = count - e->perf_counters[i];
-		}
+		if (err)
+			break;
+	}
 }
 
 /*
  * Timer callback for our own timer. We use this to finalize our
  * captured wakeup event, and to re-arm the timer.
+ * Timer callbacks are executed in slightly different BPF context
+ * and for example perf_events are not accessible here.
  */
 static int timer_callback(void *map, int *key, struct bpf_timer *timer)
 {
@@ -358,8 +351,11 @@ int BPF_PROG(tdt_bpf_local_timer_entry, int vector)
 		e->ldist = ldist;
 		e->ltimec = ltimec;
 
-		if (e->aic)
+		if (e->aic) {
 			snapshot_perf_vars(true);
+			snapshot_perf_var(MSR_MPERF, true);
+			snapshot_perf_var(MSR_TSC, true);
+		}
 
 		e->intrc2 = read_tsc();
 		e->intrmperf = bpf_perf_event_read(&perf, MSR_MPERF);
@@ -461,8 +457,11 @@ int BPF_PROG(tdt_bpf_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 
 		e->aic = c;
 
-		if (e->intrc)
+		if (e->intrc) {
 			snapshot_perf_vars(true);
+			snapshot_perf_var(MSR_MPERF, true);
+			snapshot_perf_var(MSR_TSC, true);
+		}
 
 		e->aic2 = read_tsc();
 		e->aimperf = bpf_perf_event_read(&perf, MSR_MPERF);
@@ -486,6 +485,9 @@ int BPF_PROG(tdt_bpf_cpu_idle, unsigned int cstate, unsigned int cpu_id)
 
 		e->bic = c;
 		e->tbi2 = bpf_ktime_get_boot_ns();
+
+		snapshot_perf_var(MSR_TSC, false);
+		snapshot_perf_var(MSR_MPERF, false);
 		snapshot_perf_vars(false);
 
 		e->tbi = bpf_ktime_get_boot_ns();
