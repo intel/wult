@@ -1,6 +1,12 @@
+wult (1.10.48) unstable; urgency=low
+
+  * Adjusted to 'pepc' project changes again (no functional changes).
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 16 Dec 2022 00:00:00 +0200
+
 wult (1.10.47) unstable; urgency=low
 
-
+  * Adjusted to 'pepc' project changes (no functional changes).
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 16 Dec 2022 00:00:00 +0200
 
