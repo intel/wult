@@ -26,6 +26,9 @@
  */
 #define PWR_EVENT_EXIT -1
 
+/* Hardcoded BPF_F_TIMER_ABS as we might not have it in the kernel */
+#define ABS_TIMER_FLAGS		1
+
 struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
 	__uint(max_entries, 4096);
@@ -58,6 +61,7 @@ static u32 ldist;
 static bool timer_armed;
 static bool capture_timer_id;
 static void *timer_id;
+static bool has_abs_timer;
 
 static u64 perf_counters[WULTRUNNER_NUM_PERF_COUNTERS];
 
@@ -189,11 +193,16 @@ static int kick_timer(void)
 	ldist = ldist % (max_t - min_t);
 	ldist = ldist + min_t;
 
-	dbgmsg("kick_timer: ldist=%d, cpu=%d", ldist, cpu_id);
+	dbgmsg("kick_timer: ldist=%d, cpu=%d, has-abs=%d", ldist, cpu_id,
+	       has_abs_timer);
 
-	bpf_timer_start(timer, ldist, 0);
-
-	ltime = bpf_ktime_get_boot_ns() + ldist;
+	if (has_abs_timer) {
+		ltime = bpf_ktime_get_boot_ns() + ldist;
+		bpf_timer_start(timer, ltime, ABS_TIMER_FLAGS);
+	} else {
+		bpf_timer_start(timer, ldist, 0);
+		ltime = bpf_ktime_get_boot_ns() + ldist;
+	}
 
 	timer_armed = true;
 
@@ -282,6 +291,7 @@ int hrt_bpf_start_timer(struct hrt_bpf_args *args)
 {
 	int key = 0;
 	struct bpf_timer *timer;
+	int ret;
 
 	debug = args->debug;
 	min_t = args->min_t;
@@ -298,6 +308,18 @@ int hrt_bpf_start_timer(struct hrt_bpf_args *args)
 	capture_timer_id = false;
 
 	bpf_timer_set_callback(timer, timer_callback);
+
+	/*
+	 * Attempt to start timer with the BPF_F_TIMER_ABS flag set, if it fails,
+	 * we don't have support for the absolute timer in the kernel, and must
+	 * fallback to relative one.
+	 */
+	ret = bpf_timer_start(timer, bpf_ktime_get_boot_ns() + 1000000,
+			      ABS_TIMER_FLAGS);
+	if (ret)
+		has_abs_timer = false;
+	else
+		has_abs_timer = true;
 
 	kick_timer();
 
