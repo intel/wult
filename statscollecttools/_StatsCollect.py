@@ -79,9 +79,10 @@ def _parse_arguments():
     parser = _build_arguments_parser()
 
     args = parser.parse_args()
-    args.toolname = _OWN_NAME
-    args.toolver = _VERSION
-    args.deploy_info = _STC_DEPLOY_INFO
+    if args:
+        args.toolname = _OWN_NAME
+        args.toolver = _VERSION
+        args.deploy_info = _STC_DEPLOY_INFO
 
     return args
 
@@ -106,7 +107,7 @@ def main():
         args = _parse_arguments()
 
         if not getattr(args, "func", None):
-            _LOG.error("please, run '%s -h' for help.", _OWN_NAME)
+            _LOG.error("please, provide arguments, run '%s -h' for help.", _OWN_NAME)
             return -1
 
         args.func(args)
