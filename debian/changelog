@@ -1,3 +1,10 @@
+wult (1.10.46) unstable; urgency=low
+
+  * Fix some statistics being collected for longer than others when 'SysInfo'
+    statistics are also collected.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 16 Dec 2022 00:00:00 +0200
+
 wult (1.10.45) unstable; urgency=low
 
   * Fix 'CC0%' calculations in the 'tdt_bpf' method.
