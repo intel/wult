@@ -9,6 +9,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 ### Changed
 
+## [1.10.47] - 2022-12-16
+
 ## [1.10.46] - 2022-12-16
 ### Fixed
  - Fix some statistics being collected for longer than others when 'SysInfo'

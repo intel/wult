@@ -1,3 +1,9 @@
+wult (1.10.47) unstable; urgency=low
+
+
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 16 Dec 2022 00:00:00 +0200
+
 wult (1.10.46) unstable; urgency=low
 
   * Fix some statistics being collected for longer than others when 'SysInfo'
