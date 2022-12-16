@@ -11,11 +11,11 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.10.48] - 2022-12-16
 ### Changed
-  - Adjusted to 'pepc' project changes again (no functional changes).
+  - Adjust to 'pepc' project changes again (no functional changes).
 
 ## [1.10.47] - 2022-12-16
 ### Changed
-  - Adjusted to 'pepc' project changes (no functional changes).
+  - Adjust to 'pepc' project changes (no functional changes).
 
 ## [1.10.46] - 2022-12-16
 ### Fixed
