@@ -301,17 +301,16 @@ def _parse_arguments():
     parser = _build_arguments_parser()
 
     args = parser.parse_args()
-    if args:
-        args.toolname = _OWN_NAME
-        args.toolver = _VERSION
-        args.deploy_info = _WULT_DEPLOY_INFO
+    args.toolname = _OWN_NAME
+    args.toolver = _VERSION
+    args.deploy_info = _WULT_DEPLOY_INFO
 
     return args
 
 def _deploy_command(args):
     """Implements the 'wult deploy' command."""
 
-    from wulttools import _wultdeploy # pylint: disable=import-outside-toplevel
+    from wulttools import _WultDeploy # pylint: disable=import-outside-toplevel
 
     if args.skip_drivers:
         del args.deploy_info["installables"]["wult"]
@@ -339,7 +338,7 @@ def main():
         args = _parse_arguments()
 
         if not getattr(args, "func", None):
-            _LOG.error("please, provide arguments, run '%s -h' for help.", _OWN_NAME)
+            _LOG.error("please, run '%s -h' for help.", _OWN_NAME)
             return -1
 
         args.func(args)
