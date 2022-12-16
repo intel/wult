@@ -225,7 +225,8 @@ def _build_arguments_parser():
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
-    subparsers = parser.add_subparsers(title="commands", metavar="")
+    subparsers = parser.add_subparsers(title="commands", dest="a sub-command")
+    subparsers.required = True
 
     text = "Collect testdata."
     descr = "Run a test tool or benchmark to collect testdata."

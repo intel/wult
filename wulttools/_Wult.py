@@ -26,7 +26,7 @@ from wultlibs import ToolsCommon
 from wultlibs.deploylibs import Deploy
 from wulttools import _WultCommon
 
-_VERSION = "1.10.48"
+_VERSION = "1.10.47"
 _OWN_NAME = "wult"
 
 # The deployment information dictionary. See 'Deploy.Deploy.__init__()' for details.
@@ -65,7 +65,7 @@ def _build_arguments_parser():
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
-    subparsers = parser.add_subparsers(title="commands", metavar="")
+    subparsers = parser.add_subparsers(title="commands", dest="a sub-command")
     subparsers.required = True
 
     #
