@@ -68,7 +68,7 @@ CPUFreq:
         in "after idle" and the interrupt handler. Therefore, this is an average CPU frequency for
         the period of time between TAI and TIntr.
     type: "float"
-    unit: "MegaHertz"
+    unit: "megahertz"
     short_unit: "MHz"
 ReqCState:
     title: "Requested C-State name"
