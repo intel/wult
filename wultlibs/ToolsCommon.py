@@ -609,7 +609,7 @@ def start_command_list_stats():
 def start_command_create_stcoll(args, pman):
     """
     This helper handles the '--stats' and other statistics collection command line options. Based on
-    th eoptions, it creates, configures, and return the 'StatsCollect' object, which will be used
+    the options, it creates, configures, and return the 'StatsCollect' object, which will be used
     for collecting the statistics requested by the user.
     """
 
