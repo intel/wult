@@ -11,12 +11,38 @@ This module contains misc. helper functions related to file-system operations.
 """
 
 import os
+import stat
 import shutil
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import ErrorExists
 
 # pylint: disable=wildcard-import,unused-wildcard-import
 from pepclibs.helperlibs.FSHelpers import *
+
+def set_default_perm(path):
+    """
+    Set access mode for a 'path'. Mode is 666 for file and 777 for directory, and current umask
+    value is first masked out.
+    """
+
+    try:
+        curmode = os.stat(path).st_mode
+        # umask() returns existing umask, but requires new mask as an argument. Restore original
+        # mask immediately.
+        curumask = os.umask(0o022)
+        os.umask(curumask)
+
+        if stat.S_ISDIR(curmode):
+            mode = 0o0777
+        else:
+            mode = 0o0666
+
+        mode = ~curumask & mode
+        if stat.S_IMODE(curmode) != mode:
+            os.chmod(path, mode)
+    except OSError as err:
+        msg = Error(err).indent(2)
+        raise Error(f"cannot change '{path}' permissions to {oct(mode)}:\n{msg}") from None
 
 def _copy_dir(src: Path, dst: Path, ignore=None):
     """Implements the 'copy_dir()' function."""

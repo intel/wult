@@ -11,7 +11,6 @@ This module contains misc. helper functions related to file-system operations.
 """
 
 import os
-import stat
 from pathlib import Path
 from collections import namedtuple
 from pepclibs.helperlibs import ProcessManager
@@ -21,31 +20,6 @@ from statscollectlibs.helperlibs.FSHelpers import *
 
 # Default debugfs mount point.
 DEBUGFS_MOUNT_POINT = Path("/sys/kernel/debug")
-
-def set_default_perm(path):
-    """
-    Set access mode for a 'path'. Mode is 666 for file and 777 for directory, and current umask
-    value is first masked out.
-    """
-
-    try:
-        curmode = os.stat(path).st_mode
-        # umask() returns existing umask, but requires new mask as an argument. Restore original
-        # mask immediately.
-        curumask = os.umask(0o022)
-        os.umask(curumask)
-
-        if stat.S_ISDIR(curmode):
-            mode = 0o0777
-        else:
-            mode = 0o0666
-
-        mode = ~curumask & mode
-        if stat.S_IMODE(curmode) != mode:
-            os.chmod(path, mode)
-    except OSError as err:
-        msg = Error(err).indent(2)
-        raise Error(f"cannot change '{path}' permissions to {oct(mode)}:\n{msg}") from None
 
 def get_mount_points(pman=None):
     """
