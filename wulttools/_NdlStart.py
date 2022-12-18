@@ -14,7 +14,7 @@ import logging
 import contextlib
 from pathlib import Path
 
-from pepclibs.helperlibs import Trivial
+from pepclibs.helperlibs import Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import ToolsCommon, NdlRunner, Devices
 from wultlibs.deploylibs import Deploy
@@ -56,7 +56,7 @@ def start_command(args):
         res = WORawResult.NdlWORawResult(args.reportid, args.outdir, args.toolver)
         stack.enter_context(res)
 
-        ToolsCommon.setup_stdout_logging(args.toolname, res.logs_path)
+        Logging.setup_stdout_logging(args.toolname, res.logs_path)
         ToolsCommon.set_filters(args, res)
 
         try:

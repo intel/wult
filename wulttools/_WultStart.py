@@ -13,7 +13,7 @@ This module includes the "start" 'wult' command implementation.
 import logging
 import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import Trivial
+from pepclibs.helperlibs import Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs.msr import PowerCtl
 from pepclibs import CStates, CPUInfo
@@ -110,7 +110,7 @@ def start_command(args):
         res = WORawResult.WultWORawResult(args.reportid, args.outdir, args.toolver, args.cpunum)
         stack.enter_context(res)
 
-        ToolsCommon.setup_stdout_logging(args.toolname, res.logs_path)
+        Logging.setup_stdout_logging(args.toolname, res.logs_path)
         ToolsCommon.set_filters(args, res)
 
         stcoll = ToolsCommon.start_command_create_stcoll(args, pman)
