@@ -25,7 +25,7 @@ from wultlibs.deploylibs import Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.htmlreport import NdlReportParams
 
-_VERSION = "1.3.14"
+_VERSION = "1.3.15"
 _OWN_NAME = "ndl"
 
 # The deployment information dictionary. See 'Deploy.Deploy.__init__()' for details.
