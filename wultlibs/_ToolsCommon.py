@@ -16,16 +16,14 @@ this module require the  'args' object which represents the command-line argumen
 
 import sys
 import logging
-import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import Trivial, LocalProcessManager, YAML
+from pepclibs.helperlibs import Trivial, YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Devices
 from wultlibs.deploylibs import Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import RORawResult
 
-from statscollectlibs.deploylibs import Deploy as StatsCollectDeploy
 from statscollectlibs.helperlibs import ReportID
 # pylint: disable=wildcard-import,unused-wildcard-import
 from statscollectlibs.ToolsCommon import *
@@ -583,66 +581,6 @@ def start_command_list_stats():
         if stinfo.get("interval"):
             _LOG.info("  - Default interval: %.1fs", stinfo["interval"])
         _LOG.info("  - %s", stinfo["description"])
-
-def start_command_create_stcoll(args, pman):
-    """
-    This helper handles the '--stats' and other statistics collection command line options. Based on
-    the options, it creates, configures, and return the 'StatsCollect' object, which will be used
-    for collecting the statistics requested by the user.
-    """
-
-    if not args.stats or args.stats == "none":
-        return None
-
-    # pylint: disable=import-outside-toplevel
-    from statscollectlibs.collector import StatsCollect, STCHelpers
-
-    stconf = STCHelpers.parse_stnames(args.stats)
-    if args.stats_intervals:
-        STCHelpers.parse_intervals(args.stats_intervals, stconf=stconf)
-
-    stcoll = StatsCollect.StatsCollect(pman, local_outdir=args.outdir)
-    stcoll.set_info_logging(True)
-
-    if stconf["discover"]:
-        stcoll.set_enabled_stats("all")
-        stcoll.set_disabled_stats(stconf["exclude"])
-    else:
-        stcoll.set_disabled_stats("all")
-        stcoll.set_enabled_stats(stconf["include"])
-
-    if "acpower" in stcoll.get_enabled_stats():
-        # Assume that power meter is configured to match the SUT name.
-        if pman.is_remote:
-            devnode = pman.hostname
-        else:
-            devnode = "default"
-
-        with contextlib.suppress(Error):
-            stcoll.set_prop("acpower", "devnode", devnode)
-
-    # Configure the 'stc-agent' program path.
-    local_needed, remote_needed = stcoll.is_stcagent_needed()
-    local_path, remote_path = (None, None)
-
-    if local_needed:
-        with LocalProcessManager.LocalProcessManager() as lpman:
-            local_path = StatsCollectDeploy.get_installed_helper_path(lpman, args.toolname,
-                                                                      "stc-agent")
-    if remote_needed:
-        remote_path = StatsCollectDeploy.get_installed_helper_path(pman, args.toolname,
-                                                                   "stc-agent")
-
-    stcoll.set_stcagent_path(local_path=local_path, remote_path=remote_path)
-
-    STCHelpers.apply_stconf(stcoll, stconf)
-
-    if not stcoll.get_enabled_stats():
-        _LOG.info("No statistics will be collected")
-        stcoll.close()
-        return None
-
-    return stcoll
 
 def report_command_outdir(args, rsts):
     """Return the default or user-provided output directory path for the 'report' command."""

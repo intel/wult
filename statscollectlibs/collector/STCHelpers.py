@@ -10,10 +10,12 @@
 This module implements several misc. helpers for tools using 'StatsCollect'.
 """
 
+import contextlib
 import logging
-from pepclibs.helperlibs import Trivial
+from pepclibs.helperlibs import LocalProcessManager, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.collector import StatsCollect
+from statscollectlibs.deploylibs import Deploy
 
 _LOG = logging.getLogger()
 
@@ -134,3 +136,58 @@ def apply_stconf(stcoll, stconf):
         stcoll.set_enabled_stats(stconf["include"])
 
     stcoll.configure()
+
+def start_command_create_stcoll(args, pman):
+    """
+    This helper handles the '--stats' and other statistics collection command line options. Based on
+    the options, it creates, configures, and return the 'StatsCollect' object, which will be used
+    for collecting the statistics requested by the user.
+    """
+
+    if not args.stats or args.stats == "none":
+        return None
+
+    stconf = parse_stnames(args.stats)
+    if args.stats_intervals:
+        parse_intervals(args.stats_intervals, stconf=stconf)
+
+    stcoll = StatsCollect.StatsCollect(pman, local_outdir=args.outdir)
+    stcoll.set_info_logging(True)
+
+    if stconf["discover"]:
+        stcoll.set_enabled_stats("all")
+        stcoll.set_disabled_stats(stconf["exclude"])
+    else:
+        stcoll.set_disabled_stats("all")
+        stcoll.set_enabled_stats(stconf["include"])
+
+    if "acpower" in stcoll.get_enabled_stats():
+        # Assume that power meter is configured to match the SUT name.
+        if pman.is_remote:
+            devnode = pman.hostname
+        else:
+            devnode = "default"
+
+        with contextlib.suppress(Error):
+            stcoll.set_prop("acpower", "devnode", devnode)
+
+    # Configure the 'stc-agent' program path.
+    local_needed, remote_needed = stcoll.is_stcagent_needed()
+    local_path, remote_path = (None, None)
+
+    if local_needed:
+        with LocalProcessManager.LocalProcessManager() as lpman:
+            local_path = Deploy.get_installed_helper_path(lpman, args.toolname, "stc-agent")
+    if remote_needed:
+        remote_path = Deploy.get_installed_helper_path(pman, args.toolname, "stc-agent")
+
+    stcoll.set_stcagent_path(local_path=local_path, remote_path=remote_path)
+
+    apply_stconf(stcoll, stconf)
+
+    if not stcoll.get_enabled_stats():
+        _LOG.info("No statistics will be collected")
+        stcoll.close()
+        return None
+
+    return stcoll

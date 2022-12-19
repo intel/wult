@@ -17,6 +17,7 @@ from pepclibs.helperlibs import Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs.msr import PowerCtl
 from pepclibs import CStates, CPUInfo
+from statscollectlibs.collector import STCHelpers
 from wultlibs.deploylibs import Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
@@ -113,7 +114,7 @@ def start_command(args):
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
         _ToolsCommon.set_filters(args, res)
 
-        stcoll = _ToolsCommon.start_command_create_stcoll(args, pman)
+        stcoll = STCHelpers.start_command_create_stcoll(args, pman)
         if stcoll:
             stack.enter_context(stcoll)
 
