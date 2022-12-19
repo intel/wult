@@ -7,6 +7,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
   - Fix strange units on the axis of diagrams with 'CPUFreq' data in wult
     reports.
+  - Fix regression which caused 'wult deploy' to error when '-H' option was not
+    used.
 ### Added
 ### Removed
 ### Changed
