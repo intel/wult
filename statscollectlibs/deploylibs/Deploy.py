@@ -243,7 +243,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
     def _init_insts_cats(self):
         """Helper function for the constructor. Initialises '_ints' and '_cats'."""
 
-        self._ints, self._cats = get_insts_cats(self._deploy_info, _CATEGORIES)
+        self._insts, self._cats = get_insts_cats(self._deploy_info, _CATEGORIES)
 
     def __init__(self, toolname, deploy_info, pman=None, lbuild=False, tmpdir_path=None,
                  keep_tmpdir=False, debug=False):

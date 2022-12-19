@@ -533,7 +533,7 @@ class Deploy(StatsCollectDeploy.Deploy):
     def _init_insts_cats(self):
         """Helper function for the constructor. Initialises '_ints' and '_cats'."""
 
-        self._ints, self._cats = StatsCollectDeploy.get_insts_cats(self._deploy_info, _CATEGORIES)
+        self._insts, self._cats = StatsCollectDeploy.get_insts_cats(self._deploy_info, _CATEGORIES)
 
     def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False, rebuild_bpf=False,
                  tmpdir_path=None, keep_tmpdir=False, debug=False):
