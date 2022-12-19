@@ -20,6 +20,7 @@ import contextlib
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, LocalProcessManager, Logging, YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
+from statscollectlibs.deploylibs import Deploy as StatsCollectDeploy
 from wultlibs import Devices
 from wultlibs.deploylibs import Deploy
 from wultlibs.helperlibs import Human
@@ -649,9 +650,11 @@ def start_command_create_stcoll(args, pman):
 
     if local_needed:
         with LocalProcessManager.LocalProcessManager() as lpman:
-            local_path = Deploy.get_installed_helper_path(lpman, args.toolname, "stc-agent")
+            local_path = StatsCollectDeploy.get_installed_helper_path(lpman, args.toolname,
+                                                                      "stc-agent")
     if remote_needed:
-        remote_path = Deploy.get_installed_helper_path(pman, args.toolname, "stc-agent")
+        remote_path = StatsCollectDeploy.get_installed_helper_path(pman, args.toolname,
+                                                                   "stc-agent")
 
     stcoll.set_stcagent_path(local_path=local_path, remote_path=remote_path)
 
