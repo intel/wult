@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date:   2022-12-16
+:Date:   2022-12-19
 
 .. contents::
    :depth: 3
@@ -17,7 +17,7 @@ SYNOPSIS
 ========
 
 **exercise-sut** [-h] [-q] [-d] [--version] [-H HOSTNAME] [-U USERNAME]
-[-K PRIVKEY] [-T TIMEOUT] [--force-color] ...
+[-K PRIVKEY] [-T TIMEOUT] [--force-color] {collect,report} ...
 
 DESCRIPTION
 ===========

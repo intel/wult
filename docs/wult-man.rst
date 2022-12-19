@@ -2,7 +2,7 @@
 WULT
 ====
 
-:Date:   2022-12-16
+:Date:   2022-12-19
 
 .. contents::
    :depth: 3
@@ -16,7 +16,8 @@ wult
 SYNOPSIS
 ========
 
-**wult** [-h] [-q] [-d] [--version] [--force-color] ...
+**wult** [-h] [-q] [-d] [--version] [--force-color]
+{deploy,scan,start,report,filter,calc} ...
 
 DESCRIPTION
 ===========

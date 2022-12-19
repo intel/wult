@@ -1,12 +1,21 @@
+wult (1.10.49) unstable; urgency=low
+
+  * Fix strange units on the axis of diagrams with 'CPUFreq' data in wult
+    reports.
+  * Fix regression which caused 'wult deploy' to error when '-H' option was not
+    used.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 19 Dec 2022 00:00:00 +0200
+
 wult (1.10.48) unstable; urgency=low
 
-  * Adjusted to 'pepc' project changes again (no functional changes).
+  * Adjust to 'pepc' project changes again (no functional changes).
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 16 Dec 2022 00:00:00 +0200
 
 wult (1.10.47) unstable; urgency=low
 
-  * Adjusted to 'pepc' project changes (no functional changes).
+  * Adjust to 'pepc' project changes (no functional changes).
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 16 Dec 2022 00:00:00 +0200
 
