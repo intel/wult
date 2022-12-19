@@ -20,7 +20,7 @@ except ImportError:
 
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import ToolsCommon
+from wultlibs import _ToolsCommon
 from wultlibs.deploylibs import Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.htmlreport import NdlReportParams
@@ -76,9 +76,9 @@ def _build_arguments_parser():
     text = "Scan for available devices."
     descr = """Scan for available devices."""
     subpars = subparsers.add_parser("scan", help=text, description=descr)
-    subpars.set_defaults(func=ToolsCommon.scan_command)
+    subpars.set_defaults(func=_ToolsCommon.scan_command)
     subpars.add_argument("--all", action="store_true",
-                         help=ToolsCommon.get_scan_all_descr(_OWN_NAME))
+                         help=_ToolsCommon.get_scan_all_descr(_OWN_NAME))
 
     ArgParse.add_ssh_options(subpars)
 
@@ -93,15 +93,15 @@ def _build_arguments_parser():
     ArgParse.add_ssh_options(subpars)
 
     subpars.add_argument("-c", "--datapoints", default=1000000, metavar="COUNT", dest="dpcnt",
-                         help=ToolsCommon.DATAPOINTS_DESCR)
+                         help=_ToolsCommon.DATAPOINTS_DESCR)
     subpars.add_argument("--time-limit", dest="tlimit", metavar="LIMIT",
-                         help=ToolsCommon.TIME_LIMIT_DESCR)
+                         help=_ToolsCommon.TIME_LIMIT_DESCR)
 
-    arg = subpars.add_argument("-o", "--outdir", type=Path, help=ToolsCommon.START_OUTDIR_DESCR)
+    arg = subpars.add_argument("-o", "--outdir", type=Path, help=_ToolsCommon.START_OUTDIR_DESCR)
     if argcomplete:
         arg.completer = argcomplete.completers.DirectoriesCompleter()
 
-    subpars.add_argument("--reportid", help=ToolsCommon.START_REPORTID_DESCR)
+    subpars.add_argument("--reportid", help=_ToolsCommon.START_REPORTID_DESCR)
 
     text = f"""The launch distance in microseconds. This tool works by scheduling a delayed network
                packet, then sleeping and waiting for the packet to be sent. This step is referred to
@@ -116,9 +116,10 @@ def _build_arguments_parser():
                the SUT from reaching deep C-states. The optimal value is system-specific."""
     subpars.add_argument("-l", "--ldist", default="5000,50000", help=text)
 
-    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.EXCL_START_DESCR)
-    subpars.add_argument("--include", action=ArgParse.OrderedArg, help=ToolsCommon.INCL_DESCR)
-    text = f"""{ToolsCommon.KEEP_FILTERED_DESCR} Here is an example. Suppose you want to collect
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg,
+                         help=_ToolsCommon.EXCL_START_DESCR)
+    subpars.add_argument("--include", action=ArgParse.OrderedArg, help=_ToolsCommon.INCL_DESCR)
+    text = f"""{_ToolsCommon.KEEP_FILTERED_DESCR} Here is an example. Suppose you want to collect
                100000 datapoints where RTD is greater than 50 microseconds. In this case, you can
                use these options: -c 100000 --exclude="RTD > 50". The result will contain 100000
                datapoints, all of them will have RTD bigger than 50 microseconds. But what if you do
@@ -130,7 +131,7 @@ def _build_arguments_parser():
     text = """Generate an HTML report for collected results (same as calling 'report' command with
               default arguments)."""
     subpars.add_argument("--report", action="store_true", help=text)
-    subpars.add_argument("--force", action="store_true", help=ToolsCommon.START_FORCE_DESCR)
+    subpars.add_argument("--force", action="store_true", help=_ToolsCommon.START_FORCE_DESCR)
 
     text = """The network interface backed by the NIC to use for latency measurements. Today only
               Intel I210 and I211 NICs are supported. Please, specify NIC's network interface name
@@ -146,19 +147,22 @@ def _build_arguments_parser():
     subpars.set_defaults(func=_report_command)
 
     subpars.add_argument("-o", "--outdir", type=Path,
-                         help=ToolsCommon.get_report_outdir_descr(_OWN_NAME))
-    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.EXCL_DESCR)
-    subpars.add_argument("--include", action=ArgParse.OrderedArg, help=ToolsCommon.INCL_DESCR)
+                         help=_ToolsCommon.get_report_outdir_descr(_OWN_NAME))
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=_ToolsCommon.EXCL_DESCR)
+    subpars.add_argument("--include", action=ArgParse.OrderedArg, help=_ToolsCommon.INCL_DESCR)
     subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
-                         help=ToolsCommon.EVEN_UP_DP_DESCR)
-    subpars.add_argument("-x", "--xaxes", help=ToolsCommon.XAXES_DESCR % _get_axes_default("xaxes"))
-    subpars.add_argument("-y", "--yaxes", help=ToolsCommon.YAXES_DESCR % _get_axes_default("yaxes"))
-    subpars.add_argument("--hist", help=ToolsCommon.HIST_DESCR % _get_axes_default("hist"))
-    subpars.add_argument("--chist", help=ToolsCommon.CHIST_DESCR % _get_axes_default("chist"))
-    subpars.add_argument("--reportids", help=ToolsCommon.REPORTIDS_DESCR)
-    subpars.add_argument("--report-descr", help=ToolsCommon.REPORT_DESCR)
-    subpars.add_argument("--relocatable", action="store_true", help=ToolsCommon.RELOCATABLE_DESCR)
-    subpars.add_argument("--list-metrics", action="store_true", help=ToolsCommon.LIST_METRICS_DESCR)
+                         help=_ToolsCommon.EVEN_UP_DP_DESCR)
+    subpars.add_argument("-x", "--xaxes",
+                         help=_ToolsCommon.XAXES_DESCR % _get_axes_default("xaxes"))
+    subpars.add_argument("-y", "--yaxes",
+                         help=_ToolsCommon.YAXES_DESCR % _get_axes_default("yaxes"))
+    subpars.add_argument("--hist", help=_ToolsCommon.HIST_DESCR % _get_axes_default("hist"))
+    subpars.add_argument("--chist", help=_ToolsCommon.CHIST_DESCR % _get_axes_default("chist"))
+    subpars.add_argument("--reportids", help=_ToolsCommon.REPORTIDS_DESCR)
+    subpars.add_argument("--report-descr", help=_ToolsCommon.REPORT_DESCR)
+    subpars.add_argument("--relocatable", action="store_true", help=_ToolsCommon.RELOCATABLE_DESCR)
+    subpars.add_argument("--list-metrics", action="store_true",
+                         help=_ToolsCommon.LIST_METRICS_DESCR)
 
     text = f"""One or multiple {_OWN_NAME} test result paths."""
     subpars.add_argument("respaths", nargs="+", type=Path, help=text)
@@ -167,20 +171,21 @@ def _build_arguments_parser():
     # Create parsers for the "filter" command.
     #
     text = "Filter datapoints out of a test result."
-    subpars = subparsers.add_parser("filter", help=text, description=ToolsCommon.FILT_DESCR)
-    subpars.set_defaults(func=ToolsCommon.filter_command)
+    subpars = subparsers.add_parser("filter", help=text, description=_ToolsCommon.FILT_DESCR)
+    subpars.set_defaults(func=_ToolsCommon.filter_command)
 
-    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.EXCL_DESCR)
-    subpars.add_argument("--include", action=ArgParse.OrderedArg, help=ToolsCommon.INCL_DESCR)
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=_ToolsCommon.EXCL_DESCR)
+    subpars.add_argument("--include", action=ArgParse.OrderedArg, help=_ToolsCommon.INCL_DESCR)
     subpars.add_argument("--exclude-metrics", action=ArgParse.OrderedArg, dest="mexclude",
-                         help=ToolsCommon.MEXCLUDE_DESCR)
+                         help=_ToolsCommon.MEXCLUDE_DESCR)
     subpars.add_argument("--include-metrics", action=ArgParse.OrderedArg, dest="minclude",
-                         help=ToolsCommon.MINCLUDE_DESCR)
+                         help=_ToolsCommon.MINCLUDE_DESCR)
     subpars.add_argument("--human-readable", action="store_true",
-                         help=ToolsCommon.FILTER_HUMAN_DESCR)
-    subpars.add_argument("-o", "--outdir", type=Path, help=ToolsCommon.FILTER_OUTDIR_DESCR)
-    subpars.add_argument("--list-metrics", action="store_true", help=ToolsCommon.LIST_METRICS_DESCR)
-    subpars.add_argument("--reportid", help=ToolsCommon.FILTER_REPORTID_DESCR)
+                         help=_ToolsCommon.FILTER_HUMAN_DESCR)
+    subpars.add_argument("-o", "--outdir", type=Path, help=_ToolsCommon.FILTER_OUTDIR_DESCR)
+    subpars.add_argument("--list-metrics", action="store_true",
+                         help=_ToolsCommon.LIST_METRICS_DESCR)
+    subpars.add_argument("--reportid", help=_ToolsCommon.FILTER_REPORTID_DESCR)
 
     text = f"The {_OWN_NAME} test result path to filter."
     subpars.add_argument("respath", type=Path, help=text)
@@ -192,16 +197,16 @@ def _build_arguments_parser():
     descr = f"""Calculates various summary functions for a {_OWN_NAME} test result (e.g., the median
                 value for one of the CSV columns)."""
     subpars = subparsers.add_parser("calc", help=text, description=descr)
-    subpars.set_defaults(func=ToolsCommon.calc_command)
+    subpars.set_defaults(func=_ToolsCommon.calc_command)
 
-    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=ToolsCommon.EXCL_DESCR)
-    subpars.add_argument("--include", action=ArgParse.OrderedArg, help=ToolsCommon.INCL_DESCR)
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=_ToolsCommon.EXCL_DESCR)
+    subpars.add_argument("--include", action=ArgParse.OrderedArg, help=_ToolsCommon.INCL_DESCR)
     subpars.add_argument("--exclude-metrics", action=ArgParse.OrderedArg, dest="mexclude",
-                         help=ToolsCommon.MEXCLUDE_DESCR)
+                         help=_ToolsCommon.MEXCLUDE_DESCR)
     subpars.add_argument("--include-metrics", action=ArgParse.OrderedArg, dest="minclude",
-                         help=ToolsCommon.MINCLUDE_DESCR)
-    subpars.add_argument("-f", "--funcs", help=ToolsCommon.FUNCS_DESCR)
-    subpars.add_argument("--list-funcs", action="store_true", help=ToolsCommon.LIST_FUNCS_DESCR)
+                         help=_ToolsCommon.MINCLUDE_DESCR)
+    subpars.add_argument("-f", "--funcs", help=_ToolsCommon.FUNCS_DESCR)
+    subpars.add_argument("--list-funcs", action="store_true", help=_ToolsCommon.LIST_FUNCS_DESCR)
 
     text = f"""The {_OWN_NAME} test result path to calculate summary functions for."""
     subpars.add_argument("respath", type=Path, help=text)

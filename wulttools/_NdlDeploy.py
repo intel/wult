@@ -10,13 +10,13 @@
 This module includes the "deploy" 'ndl' command implementation.
 """
 
-from wultlibs import ToolsCommon
+from wultlibs import _ToolsCommon
 from wultlibs.deploylibs import Deploy
 
 def deploy_command(args):
     """Implements the 'deploy' command."""
 
-    with ToolsCommon.get_pman(args) as pman, \
+    with _ToolsCommon.get_pman(args) as pman, \
          Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, ksrc=args.ksrc,
                        lbuild=args.lbuild, debug=args.debug) as depl:
         depl.deploy()

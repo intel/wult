@@ -20,7 +20,7 @@ from pepclibs import CStates, CPUInfo
 from wultlibs.deploylibs import Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
-from wultlibs import ToolsCommon, Devices, WultRunner
+from wultlibs import _ToolsCommon, Devices, WultRunner
 from wulttools import _WultCommon
 
 _LOG = logging.getLogger()
@@ -69,7 +69,7 @@ def _generate_report(args):
 
     from wultlibs.htmlreport import WultReport # pylint: disable=import-outside-toplevel
 
-    rsts = ToolsCommon.open_raw_results([args.outdir], args.toolname)
+    rsts = _ToolsCommon.open_raw_results([args.outdir], args.toolname)
     rep = WultReport.WultReport(rsts, args.outdir, report_descr=args.reportid)
     rep.relocatable = False
     rep.set_hover_metrics(_WultCommon.HOVER_METRIC_REGEXS)
@@ -79,21 +79,21 @@ def start_command(args):
     """Implements the 'start' command."""
 
     if args.list_stats:
-        ToolsCommon.start_command_list_stats()
+        _ToolsCommon.start_command_list_stats()
         return
 
     with contextlib.ExitStack() as stack:
-        pman = ToolsCommon.get_pman(args)
+        pman = _ToolsCommon.get_pman(args)
         stack.enter_context(pman)
 
-        args.reportid = ToolsCommon.start_command_reportid(args, pman)
+        args.reportid = _ToolsCommon.start_command_reportid(args, pman)
 
         if not args.outdir:
             args.outdir = Path(f"./{args.reportid}")
         if args.tlimit:
             args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
 
-        args.ldist = ToolsCommon.parse_ldist(args.ldist)
+        args.ldist = _ToolsCommon.parse_ldist(args.ldist)
 
         if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
             raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
@@ -111,21 +111,21 @@ def start_command(args):
         stack.enter_context(res)
 
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
-        ToolsCommon.set_filters(args, res)
+        _ToolsCommon.set_filters(args, res)
 
-        stcoll = ToolsCommon.start_command_create_stcoll(args, pman)
+        stcoll = _ToolsCommon.start_command_create_stcoll(args, pman)
         if stcoll:
             stack.enter_context(stcoll)
 
         dev = Devices.GetDevice(args.toolname, args.devid, pman, cpunum=args.cpunum, dmesg=True)
         stack.enter_context(dev)
 
-        deploy_info = ToolsCommon.reduce_installables(args.deploy_info, dev, stcoll=stcoll)
+        deploy_info = _ToolsCommon.reduce_installables(args.deploy_info, dev, stcoll=stcoll)
         with Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
             depl.check_deployment()
 
         if getattr(dev, "netif", None):
-            ToolsCommon.start_command_check_network(args, pman, dev.netif)
+            _ToolsCommon.start_command_check_network(args, pman, dev.netif)
 
         rcsobj = CStates.ReqCStates(pman=pman)
         csinfo = rcsobj.get_cpu_cstates_info(res.cpunum)

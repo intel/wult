@@ -20,12 +20,12 @@ import contextlib
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, LocalProcessManager, YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from statscollectlibs.deploylibs import Deploy as StatsCollectDeploy
 from wultlibs import Devices
 from wultlibs.deploylibs import Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import RORawResult
 
+from statscollectlibs.deploylibs import Deploy as StatsCollectDeploy
 from statscollectlibs.helperlibs import ReportID
 # pylint: disable=wildcard-import,unused-wildcard-import
 from statscollectlibs.ToolsCommon import *
