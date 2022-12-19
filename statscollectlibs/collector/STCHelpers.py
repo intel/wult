@@ -137,21 +137,29 @@ def apply_stconf(stcoll, stconf):
 
     stcoll.configure()
 
-def start_command_create_stcoll(args, pman):
+def create_and_configure_stcoll(stnames, intervals, outdir, pman, toolname):
     """
-    This helper handles the '--stats' and other statistics collection command line options. Based on
-    the options, it creates, configures, and return the 'StatsCollect' object, which will be used
-    for collecting the statistics requested by the user.
+    This helper creates an instance of 'StatsCollect' and configures it based on a required list of
+    statistics and related options. The arguments are as follows:
+     * stnames - a string which will be passed to 'parse_stnames()' see that function's docstring
+                 for more info.
+     * intervals - a string which will be passed to 'parse_intervals()' see that function's
+                   docstring for more info.
+     * outdir - an output directory path on the for storing the 'stc-agent' logs and results (the
+                collected statistics).
+     * pman - the process manager object associated with the SUT (the host to collect the
+              statistics for).
+     * toolname - name of the tool which can be used to deploy 'stc-agent'.
     """
 
-    if not args.stats or args.stats == "none":
+    if not stnames or stnames == "none":
         return None
 
-    stconf = parse_stnames(args.stats)
-    if args.stats_intervals:
-        parse_intervals(args.stats_intervals, stconf=stconf)
+    stconf = parse_stnames(stnames)
+    if intervals:
+        parse_intervals(intervals, stconf=stconf)
 
-    stcoll = StatsCollect.StatsCollect(pman, local_outdir=args.outdir)
+    stcoll = StatsCollect.StatsCollect(pman, local_outdir=outdir)
     stcoll.set_info_logging(True)
 
     if stconf["discover"]:
@@ -177,9 +185,9 @@ def start_command_create_stcoll(args, pman):
 
     if local_needed:
         with LocalProcessManager.LocalProcessManager() as lpman:
-            local_path = Deploy.get_installed_helper_path(lpman, args.toolname, "stc-agent")
+            local_path = Deploy.get_installed_helper_path(lpman, toolname, "stc-agent")
     if remote_needed:
-        remote_path = Deploy.get_installed_helper_path(pman, args.toolname, "stc-agent")
+        remote_path = Deploy.get_installed_helper_path(pman, toolname, "stc-agent")
 
     stcoll.set_stcagent_path(local_path=local_path, remote_path=remote_path)
 
