@@ -12,7 +12,7 @@ import logging
 import os
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs.helperlibs import ToolHelpers
+from pepclibs.helperlibs import ProjectFiles
 from statscollectlibs.deploylibs import _DeployInstallableBase
 
 HELPERS_LOCAL_DIR = Path(".local")
@@ -50,8 +50,8 @@ class DeployHelpersBase(_DeployInstallableBase.DeployInstallableBase):
 
         # We assume all helpers are in the same base directory.
         helper_path = HELPERS_SRC_SUBPATH/f"{all_helpers[0]}"
-        helpersrc = ToolHelpers.find_project_data("wult", helper_path,
-                                                  descr=f"{toolname} helper sources")
+        helpersrc = ProjectFiles.find_project_data("wult", helper_path,
+                                                   descr=f"{toolname} helper sources")
         helpersrc = helpersrc.parent
 
         if not helpersrc.is_dir():

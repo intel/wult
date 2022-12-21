@@ -11,9 +11,8 @@
 
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import ClassHelpers, LocalProcessManager
+from pepclibs.helperlibs import ClassHelpers, LocalProcessManager, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from statscollectlibs.helperlibs import ToolHelpers
 from statscollectlibs.deploylibs import _DeployHelpersBase
 
 _LOG = logging.getLogger()
@@ -46,7 +45,7 @@ def find_pyhelper_path(pyhelper, deployable=None):
             try:
                 subpath = _DeployHelpersBase.HELPERS_SRC_SUBPATH / pyhelper / deployable
                 descr=f"the '{deployable}' python helper"
-                pyhelper_path = ToolHelpers.find_project_data("wult", subpath, descr=descr)
+                pyhelper_path = ProjectFiles.find_project_data("wult", subpath, descr=descr)
             except ErrorNotFound as err2:
                 errmsg = str(err1).capitalize() + "\n" + str(err2).capitalize()
                 raise Error(f"failed to find '{pyhelper}' on the local system.\n{errmsg}") from err2

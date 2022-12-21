@@ -34,10 +34,9 @@ import time
 import logging
 from pathlib import Path
 from pepclibs.helperlibs import LocalProcessManager
-from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker
+from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.deploylibs import _DeployHelpersBase, _DeployPyHelpers
-from statscollectlibs.helperlibs import ToolHelpers
 from statscollectlibs.deploylibs import Deploy as StatsCollectDeploy
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
@@ -306,7 +305,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
 
             try:
                 subpath = _DeployDrivers.DRV_SRC_SUBPATH / self._toolname
-                srcpath = ToolHelpers.find_project_data("wult", subpath, f"the '{drvname}' driver")
+                srcpath = ProjectFiles.find_project_data("wult", subpath, f"the '{drvname}' driver")
             except ErrorNotFound:
                 srcpath = None
 
@@ -328,7 +327,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
             try:
                 descr=f"the '{helpername}' helper program"
                 subpath = _DeployHelpersBase.HELPERS_SRC_SUBPATH / helpername
-                srcpath = ToolHelpers.find_project_data("wult", subpath, descr)
+                srcpath = ProjectFiles.find_project_data("wult", subpath, descr)
             except ErrorNotFound:
                 srcpath = None
 
@@ -349,7 +348,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
             try:
                 descr=f"the '{pyhelper}' python helper program"
                 subpath = _DeployHelpersBase.HELPERS_SRC_SUBPATH / pyhelper
-                srcpath = ToolHelpers.find_project_data("wult", subpath, descr)
+                srcpath = ProjectFiles.find_project_data("wult", subpath, descr)
             except ErrorNotFound:
                 continue
 

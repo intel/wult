@@ -16,9 +16,8 @@ import json
 import logging
 import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import Trivial, LocalProcessManager
+from pepclibs.helperlibs import Trivial, LocalProcessManager, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from statscollectlibs.helperlibs import ToolHelpers
 from statscollectlibs.htmlreport import _IntroTable, HTMLReport
 from statscollectlibs.htmlreport.tabs import _Tabs
 from wultlibs.helperlibs import FSHelpers
@@ -213,7 +212,7 @@ class ReportBase:
          * dst - where the file should be copied to.
         """
 
-        asset_path = ToolHelpers.find_project_data("wult", src, descr=descr)
+        asset_path = ProjectFiles.find_project_data("wult", src, descr=descr)
         FSHelpers.move_copy_link(asset_path, dst, "copy", exist_ok=True)
 
     def _get_smry_funcs(self, smry_metrics):

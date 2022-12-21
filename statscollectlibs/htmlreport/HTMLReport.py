@@ -13,7 +13,8 @@ import logging
 import json
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from statscollectlibs.helperlibs import ToolHelpers, FSHelpers
+from pepclibs.helperlibs import ProjectFiles
+from statscollectlibs.helperlibs import FSHelpers
 from statscollectlibs.htmlreport.tabs import _ACPowerTabBuilder, _IPMITabBuilder, _Tabs
 from statscollectlibs.htmlreport.tabs.turbostat import _TurbostatTabBuilder
 from statscollectlibs.htmlreport.tabs.sysinfo import (_CPUFreqTabBuilder, _CPUIdleTabBuilder,
@@ -45,7 +46,7 @@ def _copy_assets(outdir):
     ]
 
     for asset in assets:
-        asset_path = ToolHelpers.find_project_data("wult", asset[1], descr=asset[0])
+        asset_path = ProjectFiles.find_project_data("wult", asset[1], descr=asset[0])
         FSHelpers.move_copy_link(asset_path, asset[2], "copy", exist_ok=True)
 
 def _dump_json(obj, path, descr):

@@ -11,7 +11,7 @@
 import logging
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs.helperlibs import ToolHelpers
+from pepclibs.helperlibs import ProjectFiles
 from statscollectlibs.deploylibs import _DeployInstallableBase
 
 DRV_SRC_SUBPATH = Path("drivers/idle")
@@ -32,7 +32,7 @@ class DeployDrivers(_DeployInstallableBase.DeployInstallableBase):
 
         for drvname in drivers:
             subpath = DRV_SRC_SUBPATH / drvname
-            drvsrc = ToolHelpers.find_project_data("wult", subpath, f"{drvname} drivers sources")
+            drvsrc = ProjectFiles.find_project_data("wult", subpath, f"{drvname} drivers sources")
             if not drvsrc.is_dir():
                 raise Error(f"path '{drvsrc}' does not exist or it is not a directory")
 

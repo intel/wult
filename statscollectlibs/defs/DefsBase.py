@@ -12,8 +12,7 @@ This module provides the base class for metrics definitions (AKA 'defs').
 
 import re
 from pathlib import Path
-from pepclibs.helperlibs import YAML
-from statscollectlibs.helperlibs import ToolHelpers
+from pepclibs.helperlibs import YAML, ProjectFiles
 
 def get_fsname(metric):
     """Given a metric, returns a file-system and URL safe name."""
@@ -163,7 +162,7 @@ class DefsBase:
 
         self._populate_cstate_keys = ["title", "descr", "name", "fsname"]
 
-        self.path = ToolHelpers.find_project_data("wult", Path(defsdir) / f"{name}.yml",
-                                                  descr=f"{name} definitions file")
+        self.path = ProjectFiles.find_project_data("wult", Path(defsdir) / f"{name}.yml",
+                                                   descr=f"{name} definitions file")
         self.info = YAML.load(self.path)
         self._mangle_basic()
