@@ -156,11 +156,13 @@ def create_and_configure_stcoll(stnames, intervals, outdir, pman, toolname):
         return None
 
     stconf = parse_stnames(stnames)
-    if intervals:
-        parse_intervals(intervals, stconf=stconf)
 
     stcoll = StatsCollect.StatsCollect(pman, local_outdir=outdir)
     stcoll.set_info_logging(True)
+
+    if intervals:
+        stconf = parse_intervals(intervals, stconf=stconf)
+        stcoll.set_intervals(stconf["intervals"])
 
     if stconf["discover"]:
         stcoll.set_enabled_stats("all")
@@ -191,7 +193,21 @@ def create_and_configure_stcoll(stnames, intervals, outdir, pman, toolname):
 
     stcoll.set_stcagent_path(local_path=local_path, remote_path=remote_path)
 
-    apply_stconf(stcoll, stconf)
+    if stconf["discover"]:
+        discovered = stcoll.discover()
+
+        # Make sure that all the required statistics are actually available.
+        not_found = stconf["include"] - (discovered & stconf["include"])
+        if not_found:
+            not_found = ", ".join(not_found)
+            raise Error(f"the following statistics cannot be collected: {not_found}")
+
+        stcoll.set_disabled_stats("all")
+        stcoll.set_enabled_stats(discovered)
+        stcoll.set_enabled_stats("all")
+        stcoll.set_disabled_stats(stconf["exclude"])
+
+    stcoll.configure()
 
     if not stcoll.get_enabled_stats():
         _LOG.info("No statistics will be collected")
