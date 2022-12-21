@@ -92,7 +92,8 @@ class SummaryTable:
          * reportid - the reportid of the results which this summary function summarises.
          * metric - name of the metric which this function summarises.
          * funcname - what kind of summary has been calculated. E.g. 'max', 'min' etc.
-         * val - raw value of the summary function calculation.
+         * val - raw value of the summary function calculation. 'None' can be provided if a value is
+                 not available. In this case the formatted value will be "N/A".
         """
 
         if metric not in self.smrytbl["title"]:
@@ -106,7 +107,10 @@ class SummaryTable:
         if metric not in self.smrytbl["funcs"][reportid]:
             self.smrytbl["funcs"][reportid][metric] = {}
 
-        formatted_val = self._formats[metric].format(val)
+        if val is None:
+            formatted_val = "N/A"
+        else:
+            formatted_val = self._formats[metric].format(val)
 
         self.smrytbl["funcs"][reportid][metric][funcname] = {
             "raw_val": val,
