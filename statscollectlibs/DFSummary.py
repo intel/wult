@@ -63,7 +63,8 @@ def get_smry_func_descr(funcname):
 def calc_col_smry(df, colname, funcnames=None):
     """
     Calculate summary function 'funcname' for 'pandas.DataFrame' column 'colname' in
-    'pandas.DataFrame' 'df' and return the resulting dictionary. Note, 'smry' comes from "summary".
+    'pandas.DataFrame' 'df' and return the resulting dictionary. If a function can't be calculated
+    for 'colname', it will be given a 'None' value. Note, 'smry' comes from "summary".
     """
 
     fmap = {"min" : "idxmin", "min_index" : "idxmin", "max" : "idxmax", "max_index" : "idxmax",
@@ -97,7 +98,7 @@ def calc_col_smry(df, colname, funcnames=None):
             datum = df[colname].quantile(percent / 100)
 
         if numpy.isnan(datum):
-            return {}, None
+            datum = None
 
         # Min/max are a bit special.
         if fmap.get(funcname, "").startswith("idx"):
