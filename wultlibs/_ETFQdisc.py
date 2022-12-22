@@ -178,7 +178,7 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
 
         self._handover_delta = int(handover_delta * 1000)
 
-        self._tchk = ToolChecker.ToolChecker(pman=self._pman)
+        self._tchk = ToolChecker.ToolChecker(self._pman)
 
         self._tc_path = self._tchk.check_tool(tc_path)
         self._phc2sys_path = self._tchk.check_tool(phc2sys_path)

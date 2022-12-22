@@ -584,7 +584,7 @@ class Deploy(StatsCollectDeploy.Deploy):
                             f"exist{self._bpman.hostmsg}")
             self._ksrc = self._bpman.abspath(self._ksrc)
 
-        self._tchk = ToolChecker.ToolChecker(pman=self._bpman)
+        self._tchk = ToolChecker.ToolChecker(self._bpman)
 
     def close(self):
         """Uninitialize the object."""
