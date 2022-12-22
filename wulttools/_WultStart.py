@@ -133,10 +133,10 @@ def start_command(args):
         _check_settings(pman, dev, csinfo, args.cpunum, args.devid)
 
         runner = WultRunner.WultRunner(pman, dev, res, args.ldist, early_intr=args.early_intr,
-                                       tsc_cal_time=args.tsc_cal_time, rcsobj=rcsobj, stcoll=stcoll)
+                                       tsc_cal_time=args.tsc_cal_time, rcsobj=rcsobj, stcoll=stcoll,
+                                       unload=not args.no_unload)
         stack.enter_context(runner)
 
-        runner.unload = not args.no_unload
         runner.prepare()
         runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit, keep_rawdp=args.keep_rawdp)
 

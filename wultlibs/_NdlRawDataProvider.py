@@ -139,7 +139,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
 
 
         # Load the ndl driver.
-        self._load()
+        self._load_driver()
 
         # We use the ETF qdisc for scheduling delayed network packets. Configure it and start the
         # 'phc2sys' process in background in order to keep the host and NIC clocks in sync.

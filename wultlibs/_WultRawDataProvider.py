@@ -143,7 +143,7 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         self.dev.unbind()
 
         # Load wult drivers.
-        self._load()
+        self._load_driver()
 
         # Bind the delayed event device to its wult driver.
         self.dev.bind()
@@ -172,12 +172,12 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
             for service in ntp_services:
                 _LOG.info("Stopped the '%s' NTP service", service)
 
-    def __init__(self, dev, pman, cpunum, ldist, timeout=None, early_intr=None):
+    def __init__(self, dev, pman, cpunum, ldist, timeout=None, early_intr=None, unload=True):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
 
         drvinfo = { "wult" : { "params" : f"cpunum={cpunum}" },
                      dev.drvname : { "params" : None }}
-        super().__init__(dev, pman, ldist, drvinfo=drvinfo, timeout=timeout)
+        super().__init__(dev, pman, ldist, drvinfo=drvinfo, timeout=timeout, unload=unload)
 
         self._early_intr = early_intr
 
@@ -305,7 +305,7 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
         self._wult_lines = None
 
 def WultRawDataProvider(dev, pman, cpunum, ldist, helper_path=None, timeout=None,
-                        early_intr=None):
+                        early_intr=None, unload=True):
     """
     Create and return a raw data provider class suitable for a delayed event device 'dev'. The
     arguments are as follows.
@@ -317,11 +317,12 @@ def WultRawDataProvider(dev, pman, cpunum, ldist, helper_path=None, timeout=None
       * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
                   seconds.
       * early_intr - enable interrupts before entering the C-state.
+      * unload - whether or not to unload the kernel driver after finishing measurement.
     """
 
     if dev.drvname:
         return _WultDrvRawDataProvider(dev, pman, cpunum, ldist, timeout=timeout,
-                                       early_intr=early_intr)
+                                       early_intr=early_intr, unload=unload)
     if not helper_path:
         raise Error("BUG: the 'wult-hrt-helper' program path was not specified")
 

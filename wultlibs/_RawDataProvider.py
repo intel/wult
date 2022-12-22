@@ -91,7 +91,7 @@ class DrvRawDataProviderBase(RawDataProviderBase):
     this class is 'RawDataProviderBase' + drivers loading/unloading support.
     """
 
-    def _load(self):
+    def _load_driver(self):
         """Load all the necessary kernel drivers."""
 
         loaded = []
@@ -109,7 +109,7 @@ class DrvRawDataProviderBase(RawDataProviderBase):
                                      self._pman.hostmsg, err)
                 raise
 
-    def _unload(self, everything=False):
+    def _unload_driver(self, everything=False):
         """
         Unload kernel drivers. The arguments are as follows.
           * everything - if 'False', unload only the previously loaded drivers, otherwise unload all
@@ -129,9 +129,9 @@ class DrvRawDataProviderBase(RawDataProviderBase):
         """Prepare to start the measurements."""
 
         # Unload all the drivers.
-        self._unload(everything=True)
+        self._unload_driver(everything=True)
 
-    def __init__(self, dev, pman, ldist, drvinfo=None, timeout=None, **kwargs):
+    def __init__(self, dev, pman, ldist, drvinfo=None, timeout=None, unload=True, **kwargs):
         """
         Initialize a class instance. The arguments are as follows.
           * drvinfo - a dictionary describing the kernel drivers to load/unload.
@@ -154,6 +154,7 @@ class DrvRawDataProviderBase(RawDataProviderBase):
         super().__init__(dev, pman, ldist, timeout=timeout, **kwargs)
 
         self._drvinfo = drvinfo
+        self._unload = unload
         self.drvobjs = []
 
         self.debugfs_mntpoint = None
@@ -169,10 +170,11 @@ class DrvRawDataProviderBase(RawDataProviderBase):
         """Uninitialize everything."""
 
         if getattr(self, "drvobjs", None):
-            try:
-                self._unload()
-            except Error as err:
-                _LOG.warning(err)
+            if self._unload:
+                try:
+                    self._unload_driver()
+                except Error as err:
+                    _LOG.warning(err)
 
             for drvobj in self.drvobjs:
                 try:

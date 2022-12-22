@@ -214,7 +214,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                         f"only the following drivers are supported: {supported}")
 
     def __init__(self, pman, dev, res, ldist, early_intr=None, tsc_cal_time=10, rcsobj=None,
-                 stcoll=None):
+                 stcoll=None, unload=True):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
@@ -226,6 +226,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
           * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
           * stcoll - the 'StatsCollect' object to use for collecting statistics. No statistics
                      are collected by default.
+          * unload - whether or not to unload the kernel driver after finishing measurement.
         """
 
         self._pman = pman
@@ -260,7 +261,8 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._prov = _WultRawDataProvider.WultRawDataProvider(dev, pman, res.cpunum, self._ldist,
                                                               helper_path=helper_path,
                                                               timeout=self._timeout,
-                                                              early_intr=self._early_intr)
+                                                              early_intr=self._early_intr,
+                                                              unload=unload)
 
         self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, pman, self._dev.drvname,
                                                       early_intr=self._early_intr,
