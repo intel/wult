@@ -6,6 +6,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
   - Fix 'wult report' crashing when used on a dataset with very few datapoints.
+  - Fix the 'wult start --no-unload' debugging option.
 ### Added
 ### Removed
 ### Changed
