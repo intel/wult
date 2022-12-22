@@ -26,49 +26,51 @@ _DEFAULT_STCONF = {
         "intervals" : {},
 }
 
-def parse_stnames(stnames, stconf=None):
-    """
-    Parse the statistics names string and return the result in form of a dictionary. The arguments
-    are as follows:
-      * stnames - a string containing a comma-separated list of statistic names. The "!" symbol at
-                  the beginning of a statistics name means that this statistics should not be
-                  collected. The spacial "all" name means that all the discovered statistics should
-                  be included.
-      * stconf - an optional statistics configuration dictionary to fill with the results of
-                 parsing 'stnames'.
+class StatsCollectBuilder:
+    """This class provides the API for building an instance of 'StatsCollect'."""
 
-    This function adds statistics names to the following keys to the resulting statistics
-    configuration dictionary ('stconf').
-      * include: statistics names that should be collected.
-      * exclude: statistics names that should not be collected.
-      * discover: if 'True', then include all the discovered statistics except for those in
-                  'exclude'.
+    def parse_stnames(self, stnames):
+        """
+        Parse the statistics names string 'stnames'. Arguments are as follows:
+         * stnames - a string containing a comma-separated list of statistic names. The "!" symbol
+                     at the beginning of a statistics name means that this statistics should not be
+                     collected. The spacial "all" name means that all the discovered statistics
+                     should be included.
 
-    Returns the resulting statistics configuration dictionary.
-    """
+        This method parses statistics names into the following class properties: 'include',
+        'exclude', 'discover'.
+        """
 
-    if not stconf:
-        stconf = _DEFAULT_STCONF
+        for stname in Trivial.split_csv_line(stnames):
+            if stname == "all":
+                self.discover = True
+            elif stname.startswith("!"):
+                # The "!" prefix indicates that the statistics must not be collected.
+                stname = stname[1:]
+                self.exclude.add(stname)
+            else:
+                self.include.add(stname)
 
-    for stname in Trivial.split_csv_line(stnames):
-        if stname == "all":
-            stconf["discover"] = True
-        elif stname.startswith("!"):
-            # The "!" prefix indicates that the statistics must not be collected.
-            stname = stname[1:]
-            stconf["exclude"].add(stname)
-        else:
-            stconf["include"].add(stname)
+        bogus = self.include & self.exclude
+        if bogus:
+            bogus = ", ".join(bogus)
+            raise Error(f"cannot simultaneously include and exclude the following statistics: "
+                        f"{bogus}")
 
-    bogus = stconf["include"] & stconf["exclude"]
-    if bogus:
-        bogus = ", ".join(bogus)
-        raise Error(f"cannot simultaneously include and exclude the following statistics: {bogus}")
+        StatsCollect.check_stnames(self.include)
+        StatsCollect.check_stnames(self.exclude)
 
-    StatsCollect.check_stnames(stconf["include"])
-    StatsCollect.check_stnames(stconf["exclude"])
+    def __init__(self):
+        """Class constructor."""
 
-    return stconf
+        # If 'True', then include all the discovered statistics except for those in
+        # 'exclude'.
+        self.discover = False
+        # Statistics names that should be collected.
+        self.include = set()
+        # Statistics names that should not be collected.
+        self.exclude = set()
+        self.intervals = {}
 
 def parse_intervals(intervals, stconf=None):
     """
@@ -154,7 +156,16 @@ def create_and_configure_stcoll(stnames, intervals, outdir, pman):
     if not stnames or stnames == "none":
         return None
 
-    stconf = parse_stnames(stnames)
+    stc_builder = StatsCollectBuilder()
+    stc_builder.parse_stnames(stnames)
+    stconf = {
+        "include": stc_builder.include,
+        "exclude": stc_builder.exclude,
+        "discover": stc_builder.discover,
+        "intervals": stc_builder.intervals
+    }
+    if intervals:
+        parse_intervals(intervals, stconf=stconf)
 
     stcoll = StatsCollect.StatsCollect(pman, local_outdir=outdir)
     stcoll.set_info_logging(True)
