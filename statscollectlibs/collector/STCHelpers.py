@@ -19,13 +19,6 @@ from statscollectlibs.deploylibs import Deploy
 
 _LOG = logging.getLogger()
 
-_DEFAULT_STCONF = {
-        "discover"  : False,
-        "include"   : set(),
-        "exclude"   : set(),
-        "intervals" : {},
-}
-
 class StatsCollectBuilder:
     """This class provides the API for building an instance of 'StatsCollect'."""
 
@@ -60,6 +53,30 @@ class StatsCollectBuilder:
         StatsCollect.check_stnames(self.include)
         StatsCollect.check_stnames(self.exclude)
 
+    def parse_intervals(self, intervals):
+        """
+        Parse a string containing statistics collectors' intervals. The arguments are as follows:
+        * intervals - a comma-separated list of "stname:interval" entries, where 'stname' is the
+                      statistics name, and 'interval' is the desired collection interval in seconds.
+
+        This method parses statistics collectors' intervals into the 'intervals' class property.
+        """
+
+        for entry in Trivial.split_csv_line(intervals):
+            split = Trivial.split_csv_line(entry, sep=":")
+            if len(split) != 2:
+                raise Error(f"bad intervals entry '{entry}', should be 'stname:interval', where "
+                            f"'stname' is the statistics name and 'interval' is a floating point "
+                            f"interval for collecting the 'stname' statistics.")
+            stname, interval = split
+            StatsCollect.check_stname(stname)
+
+            if not Trivial.is_float(interval):
+                raise Error(f"bad interval value '{interval}' for the '{stname}' statistics: "
+                            f"should be a positive floating point or integer number")
+
+            self.intervals[stname] = float(interval)
+
     def __init__(self):
         """Class constructor."""
 
@@ -70,42 +87,9 @@ class StatsCollectBuilder:
         self.include = set()
         # Statistics names that should not be collected.
         self.exclude = set()
+        # Statistics collection intervals. Maps statistic names to collection intervals which are in
+        # seconds.
         self.intervals = {}
-
-def parse_intervals(intervals, stconf=None):
-    """
-    Parse a string containing statistics collector's intervals and return the result in form of a
-    dictionary. The arguments are as follows:
-      * intervals - a comma-separated list of "stname:interval" entries, where 'stname' is the
-                    statistics name, and 'interval' is the desired collection interval in seconds.
-      * stconf - an optional statistics configuration dictionary to fill with the results of
-                 parsing 'intervals'.
-
-    This function adds statistics collection intervals to the "intervals" keys to the resulting
-    statistics configuration dictionary ('stconf'). The interval values are floating point numbers.
-
-    Returns the resulting statistics configuration dictionary.
-    """
-
-    if not stconf:
-        stconf = _DEFAULT_STCONF
-
-    for entry in Trivial.split_csv_line(intervals):
-        split = Trivial.split_csv_line(entry, sep=":")
-        if len(split) != 2:
-            raise Error(f"bad intervals entry '{entry}', should be 'stname:interval', where "
-                        f"'stname' is the statistics name and 'interval' is a floating point "
-                        f"interval for collecting the 'stname' statistics.")
-        stname, interval = split
-        StatsCollect.check_stname(stname)
-
-        if not Trivial.is_float(interval):
-            raise Error(f"bad interval value '{interval}' for the '{stname}' statistics: should "
-                        f"be a positive floating point or integer number")
-
-        stconf["intervals"][stname] = float(interval)
-
-    return stconf
 
 def apply_stconf(stcoll, stconf):
     """
@@ -158,21 +142,18 @@ def create_and_configure_stcoll(stnames, intervals, outdir, pman):
 
     stc_builder = StatsCollectBuilder()
     stc_builder.parse_stnames(stnames)
+    if intervals:
+        stc_builder.parse_intervals(intervals)
+
     stconf = {
         "include": stc_builder.include,
         "exclude": stc_builder.exclude,
         "discover": stc_builder.discover,
         "intervals": stc_builder.intervals
     }
-    if intervals:
-        parse_intervals(intervals, stconf=stconf)
 
     stcoll = StatsCollect.StatsCollect(pman, local_outdir=outdir)
     stcoll.set_info_logging(True)
-
-    if intervals:
-        stconf = parse_intervals(intervals, stconf=stconf)
-        stcoll.set_intervals(stconf["intervals"])
 
     if stconf["discover"]:
         stcoll.set_enabled_stats("all")
