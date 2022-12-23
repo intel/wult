@@ -243,23 +243,23 @@ static int armer_kthread(void *data)
 		err = wait_event_timeout(wi->armer_wq,
 			 atomic_read(&wi->events_happened) != events_happened,
 			 msecs_to_jiffies(timeout));
-		if (err == 0 && wi->enabled) {
-			wult_err("delayed event timed out, waited %ums", timeout);
-			goto error;
-		}
 
-		err = check_event();
-		if (err)
-			goto error;
-
-		/* Send the last measurement data to user-space. */
 		mutex_lock(&wi->enable_mutex);
 		if (wi->enabled) {
+			if (err == 0) {
+				wult_err("delayed event timed out, waited %ums", timeout);
+				goto out_unlock;
+			}
+
+			err = check_event();
+			if (err)
+				goto out_unlock;
+
+			/* Send the last measurement data to user-space. */
 			err = wult_tracer_send_data(wi);
 			if (err) {
-				mutex_unlock(&wi->enable_mutex);
 				wult_err("failed to send data out, error %d", err);
-				goto error;
+				goto out_unlock;
 			}
 		}
 		mutex_unlock(&wi->enable_mutex);
@@ -269,6 +269,8 @@ static int armer_kthread(void *data)
 	wi->wdi->ops->exit(wi->wdi);
 	return 0;
 
+out_unlock:
+	mutex_unlock(&wi->enable_mutex);
 error:
 	wult_disable();
 
