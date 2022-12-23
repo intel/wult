@@ -22,6 +22,8 @@
 #include <asm/msr.h>
 #include "wult.h"
 
+#define TRACEPOINT_NAME "hrtimer_expire_entry"
+
 /* Maximum supported launch distance in nanoseconds. */
 #define LDIST_MAX 50000000
 
@@ -34,6 +36,8 @@ struct wult_tdt {
 	struct hrtimer timer;
 	struct wult_device_info wdi;
 	u64 deadline_before;
+	struct tracepoint *tp;
+	int cpunum;
 };
 
 static struct wult_tdt wult_tdt = {
@@ -42,9 +46,6 @@ static struct wult_tdt wult_tdt = {
 
 static enum hrtimer_restart timer_interrupt(struct hrtimer *hrtimer)
 {
-	wult_interrupt_start();
-	wult_interrupt_finish(0);
-
 	return HRTIMER_NORESTART;
 }
 
@@ -79,7 +80,7 @@ static int arm_event(struct wult_device_info *wdi, u64 *ldist)
 	 * not have direct access to them from here. So we use hrtimes to arm
 	 * events. However, whenever we arm an hrtimer, there is no guarantee
 	 * our timer makes it to the HW, because there may be an earlier
-	 * timer. But we arm our time anyway to make sure there is at least
+	 * timer. But we arm our timer anyway to make sure there is at least
 	 * some timer there and we won't sleep forever.
 	 */
 	hrtimer_start(&wt->timer, ns_to_ktime(*ldist), HRTIMER_MODE_REL_PINNED_HARD);
@@ -118,12 +119,67 @@ static u64 get_launch_time(struct wult_device_info *wdi)
 	return wdi_to_wt(wdi)->deadline_before;
 }
 
+static void match_tracepoint(struct tracepoint *tp, void *priv)
+{
+	if (!strcmp(tp->name, TRACEPOINT_NAME))
+		*((struct tracepoint **)priv) = tp;
+}
+
+static void hrtimer_expire_entry_hook(void *data, struct hrtimer *hrtimer, ktime_t *now)
+{
+	struct wult_tdt *wt = data;
+
+	if (smp_processor_id() != wt->cpunum)
+		/* Not the CPU we are measuring. */
+		return;
+
+	if (hrtimer != &wt->timer)
+		/* Not the timer we armed. */
+		return;
+
+	wult_interrupt_start();
+	wult_interrupt_finish(0);
+}
+
+static int enable(struct wult_device_info *wdi, bool enable)
+{
+	struct wult_tdt *wt = wdi_to_wt(wdi);
+	int err;
+
+	if (!wt->tp) {
+		wult_err("failed to initialize the '%s' tracepoint", TRACEPOINT_NAME);
+		return -EINVAL;
+	}
+
+	if (enable) {
+		err = tracepoint_probe_register(wt->tp,
+				(void *)hrtimer_expire_entry_hook, wt);
+		if (err) {
+			wult_err("failed to register the '%s' tracepoint probe,"
+				" error %d", TRACEPOINT_NAME, err);
+			return err;
+		}
+	} else {
+		tracepoint_probe_unregister(wt->tp,
+				(void *)hrtimer_expire_entry_hook, wt);
+	}
+
+	return 0;
+}
+
 static int init_device(struct wult_device_info *wdi, int cpunum)
 {
 	struct wult_tdt *wt = wdi_to_wt(wdi);
 
 	/* TODO: ensure that hrtimers are backed by the TSC dealine timer. */
 
+	for_each_kernel_tracepoint(&match_tracepoint, &wt->tp);
+	if (!wt->tp) {
+		wult_err("failed to find the '%s' tracepoint", TRACEPOINT_NAME);
+		return -EINVAL;
+	}
+
+	wt->cpunum = cpunum;
 	hrtimer_init(&wt->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL_PINNED_HARD);
 	wt->timer.function = &timer_interrupt;
 	return 0;
@@ -134,6 +190,7 @@ static void exit_device(struct wult_device_info *wdi)
 	struct wult_tdt *wt = wdi_to_wt(wdi);
 
 	hrtimer_cancel(&wt->timer);
+	wt->tp = NULL;
 }
 
 static struct wult_device_ops wult_tdt_ops = {
@@ -142,6 +199,7 @@ static struct wult_device_ops wult_tdt_ops = {
 	.arm = arm_event,
 	.event_has_happened = event_has_happened,
 	.get_launch_time = get_launch_time,
+	.enable = enable,
 	.init = init_device,
 	.exit = exit_device,
 };
