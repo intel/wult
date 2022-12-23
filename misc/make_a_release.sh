@@ -141,7 +141,7 @@ fi
 # Remind the maintainer about various important things.
 ask_question "Did you run tests"
 ask_question "Did you update 'CHANGELOG.md'"
-ask_question "Did you pepc version dependency"
+ask_question "Did you specify the min. required pepc version"
 
 if [ -n "$pepcver" ]; then
     # Update 'pepc' version dependency.
