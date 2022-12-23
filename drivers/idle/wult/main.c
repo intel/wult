@@ -40,6 +40,19 @@ static unsigned int cpunum;
 /* The wult driver information object. */
 static struct wult_info *wi;
 
+static int device_enable(struct wult_device_info* wdi)
+{
+	if (wdi->ops->enable)
+		return wdi->ops->enable(wdi, true);
+	return 0;
+}
+
+static void device_disable(struct wult_device_info* wdi)
+{
+	if (wdi->ops->enable)
+		wdi->ops->enable(wdi, false);
+}
+
 /* Enable the measurements. */
 int wult_enable(void)
 {
@@ -48,6 +61,13 @@ int wult_enable(void)
 	mutex_lock(&wi->enable_mutex);
 	if (wi->enabled)
 		goto out_unlock;
+
+	err = device_enable(wi->wdi);
+	if (err) {
+		wult_err("failed to enable the device '%s', error %d",
+			 wi->wdi->devname, err);
+		goto out_unlock;
+	}
 
 	err = wult_tracer_enable(wi);
 	if (err) {
@@ -72,6 +92,7 @@ void wult_disable(void)
 	if (wi->enabled) {
 		wi->enabled = false;
 		wult_tracer_disable(wi);
+		device_disable(wi->wdi);
 	}
 	mutex_unlock(&wi->enable_mutex);
 }

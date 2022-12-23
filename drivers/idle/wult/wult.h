@@ -74,6 +74,8 @@ struct wult_device_ops {
 	/* Return trace data for the last measurement. */
 	struct wult_trace_data_info *
 			(*get_trace_data)(struct wult_device_info *wdi);
+	/* Enable/disable the delayed event device. */
+	int (*enable)(struct wult_device_info *wdi, bool enable);
 	/* Initialize the delayed event device. */
 	int (*init)(struct wult_device_info *wdi, int cpunum);
 	/* Deinitialize the delayed event device. */
