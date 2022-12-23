@@ -77,12 +77,6 @@ static u64 get_launch_time(struct wult_device_info *wdi)
 	return wdi_to_wt(wdi)->ltime;
 }
 
-static void match_tracepoint(struct tracepoint *tp, void *priv)
-{
-	if (!strcmp(tp->name, TRACEPOINT_NAME))
-		*((struct tracepoint **)priv) = tp;
-}
-
 static void hrtimer_expire_entry_hook(void *data, struct hrtimer *hrtimer, ktime_t *now)
 {
 	struct wult_hrt *wt = data;
@@ -129,11 +123,9 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 {
 	struct wult_hrt *wt = wdi_to_wt(wdi);
 
-	for_each_kernel_tracepoint(&match_tracepoint, &wt->tp);
-	if (!wt->tp) {
-		wult_err("failed to find the '%s' tracepoint", TRACEPOINT_NAME);
+	wt->tp = wult_tracer_find_tracepoint(TRACEPOINT_NAME);
+	if (!wt->tp)
 		return -EINVAL;
-	}
 
 	wt->cpunum = cpunum;
 	hrtimer_init(&wt->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS_PINNED_HARD);

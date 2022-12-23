@@ -67,6 +67,7 @@ void wult_tracer_exit(struct wult_info *wi);
 int wult_tracer_enable(struct wult_info *wi);
 void wult_tracer_disable(struct wult_info *wi);
 
+struct tracepoint* wult_tracer_find_tracepoint(const char *tp_name);
 int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist);
 int wult_tracer_send_data(struct wult_info *wi);
 

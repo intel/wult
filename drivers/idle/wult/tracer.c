@@ -25,6 +25,10 @@
  */
 #define TRACE_EVENT_NAME "wult_cpu_idle"
 
+struct tracepoint_info {
+	const char *name;
+	struct tracepoint *tp;
+};
 
 /* The common, platform-independent wult event fields. */
 static struct synth_field_desc common_fields[] = {
@@ -369,9 +373,26 @@ void wult_tracer_disable(struct wult_info *wi)
 
 static void match_tracepoint(struct tracepoint *tp, void *priv)
 {
-	if (!strcmp(tp->name, TRACEPOINT_NAME))
-		*((struct tracepoint **)priv) = tp;
+	struct tracepoint_info *tp_info = priv;
+
+	if (!strcmp(tp->name, tp_info->name))
+		tp_info->tp = tp;
 }
+
+struct tracepoint* wult_tracer_find_tracepoint(const char *tp_name)
+{
+	struct tracepoint_info tp_info = {
+		 .name = tp_name,
+		 .tp = NULL,
+	};
+
+	for_each_kernel_tracepoint(&match_tracepoint, &tp_info);
+	if (!tp_info.tp)
+		wult_err("failed to find the '%s' tracepoint", tp_info.name);
+
+	return tp_info.tp;
+}
+EXPORT_SYMBOL_GPL(wult_tracer_find_tracepoint);
 
 static int wult_synth_event_init(struct wult_info *wi)
 {
@@ -457,12 +478,9 @@ int wult_tracer_init(struct wult_info *wi)
 		return err;
 
 	/* Find the tracepoint to hook to. */
-	for_each_kernel_tracepoint(&match_tracepoint, &ti->tp);
-	if (!ti->tp) {
-		wult_err("failed to find the '%s' tracepoint", TRACEPOINT_NAME);
-		err = -EINVAL;
-		return err;
-	}
+	ti->tp = wult_tracer_find_tracepoint(TRACEPOINT_NAME);
+	if (!ti->tp)
+		return -EINVAL;
 
 	err = wult_synth_event_init(wi);
 	if (err)
