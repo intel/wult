@@ -5,10 +5,14 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
-  - Fix 'wult report' crashing when used on a dataset with very few datapoints.
-  - Fix the 'wult start --no-unload' debugging option.
 ### Added
 ### Removed
+### Changed
+
+## [1.10.50] - 2022-12-23
+### Fixed
+  - Fix 'wult report' crashing when used on a dataset with very few datapoints.
+  - Fix the 'wult start --no-unload' debugging option.
 ### Changed
   - Improve 'IntrLatency' accuracy for 'hrt' and 'tdt' methods'.
 

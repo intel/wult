@@ -1,7 +1,7 @@
 %bcond_without tests
 
 Name:		wult
-Version:	1.10.49
+Version:	1.10.50
 Release:	1%{?dist}
 Summary:	Tool for measuring Intel CPU C-state wake latency
 
@@ -15,7 +15,7 @@ BuildRequires:	gcc
 BuildRequires:	make
 BuildRequires:	python3-devel
 BuildRequires:	python3-plotly
-BuildRequires:	pepc >= 1.3.39
+BuildRequires:	pepc >= 1.3.40
 %if %{with tests}
 BuildRequires:	python3-pandas
 BuildRequires:	python3-pluggy
@@ -23,7 +23,7 @@ BuildRequires:	python3-pytest
 BuildRequires:	python3-numpy
 BuildRequires:	python3-pyyaml
 %endif
-Requires:	pepc >= 1.3.39
+Requires:	pepc >= 1.3.40
 Requires:	pciutils
 Requires:	python3-pandas
 Requires:	python3-plotly

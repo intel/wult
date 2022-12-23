@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date:   2022-12-19
+:Date:   2022-12-23
 
 .. contents::
    :depth: 3
