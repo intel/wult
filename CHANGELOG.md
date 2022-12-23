@@ -10,6 +10,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+  - Improve 'IntrLatency' accuracy for 'hrt' and 'tdt' methods'.
 
 ## [1.10.49] - 2022-12-19
 ### Fixed
