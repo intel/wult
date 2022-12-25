@@ -601,7 +601,7 @@ def start_command_create_stcoll(args, pman):
     if args.stats_intervals:
         STCHelpers.parse_intervals(args.stats_intervals, stconf=stconf)
 
-    stcoll = StatsCollect.StatsCollect(pman, args.outdir)
+    stcoll = StatsCollect.StatsCollect(pman, local_outdir=args.outdir)
     stcoll.set_info_logging(True)
 
     if stconf["discover"]:
