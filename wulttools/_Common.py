@@ -17,16 +17,13 @@ module require the 'args' object which represents the command-line arguments.
 import sys
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import Trivial, YAML
+from pepclibs.helperlibs import Trivial, YAML, ProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Devices
 from wultlibs.deploylibs import Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import RORawResult
-
 from statscollectlibs.helperlibs import ReportID
-# pylint: disable=wildcard-import,unused-wildcard-import
-from statscollectlibs._Common import *
 
 HELPERS_LOCAL_DIR = Path(".local")
 _DRV_SRC_SUBPATH = Path("drivers/idle")
@@ -77,6 +74,18 @@ START_REPORTID_DESCR = f"""Any string which may serve as an identifier of this r
 # Description for the '--report' option of the 'start' command.
 START_REPORT_DESCR = """Generate an HTML report for collected results (same as calling 'report'
                         command with default arguments)."""
+
+# Description for the '--outdir' option of the 'report' command.
+def get_report_outdir_descr(toolname):
+    """
+    Returns description for the '--outdir' option of the 'report' command for the 'toolname' tool.
+    """
+
+    descr = f"""Path to the directory to store the report at. By default the report is stored in the
+                '{toolname}-report-<reportid>' sub-directory of the test result directory. If there
+                are multiple test results, the report is stored in the current directory. The
+                '<reportid>' is report ID of {toolname} test result."""
+    return descr
 
 # Description for the '--force' option of the 'start' command.
 START_FORCE_DESCR = """By default a network card is not accepted as a measurement device if it is
@@ -222,6 +231,22 @@ FUNCS_DESCR = """Comma-separated list of summary functions to calculate. By defa
 
 # Description for the '--list-funcs' option of the 'calc' command.
 LIST_FUNCS_DESCR = "Print the list of the available summary functions."
+
+def get_pman(args):
+    """
+    Returns the process manager object for host 'hostname'. The returned object should either be
+    used with a 'with' statement, or closed with the 'close()' method.
+    """
+
+    if args.hostname == "localhost":
+        username = privkeypath = timeout = None
+    else:
+        username = args.username
+        privkeypath = args.privkey
+        timeout = args.timeout
+
+    return ProcessManager.get_pman(args.hostname, username=username, privkeypath=privkeypath,
+                                   timeout=timeout)
 
 def _validate_range(rng, what, single_ok):
     """Implements 'parse_ldist()'."""
