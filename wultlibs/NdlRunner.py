@@ -65,6 +65,10 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
           * tlimit - the measurements time limit in seconds.
         """
 
+        if self._stcoll:
+            # Start collecting statistics.
+            self._stcoll.start()
+
         msg = f"Start measuring RTD{self._pman.hostmsg}, collecting {dpcnt} datapoints"
         if tlimit:
             msg += f", time limit is {Human.duration(tlimit)}"
@@ -88,6 +92,10 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
             with contextlib.suppress(Error):
                 self._prov.stop()
 
+                if self._stcoll:
+                    self._stcoll.stop(sysinfo=True)
+                    self._stcoll.copy_remote_data()
+
             self._res.info["duration"] = Human.duration(self._progress.get_duration())
             self._res.write_info()
 
@@ -106,13 +114,16 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
             self._res.write_info()
             self._prov.stop()
 
+            if self._stcoll:
+                self._stcoll.stop(sysinfo=True)
+                self._stcoll.copy_remote_data()
 
     def prepare(self):
         """Prepare to start measurements."""
 
         self._prov.prepare()
 
-    def __init__(self, pman, dev, res, ldist):
+    def __init__(self, pman, dev, res, ldist, stcoll=None):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
@@ -121,12 +132,15 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
           * res - the 'NdlWORawResult' object to store the results at.
           * ldist - a pair of numbers specifying the launch distance range in nanoseconds (how far
           *         in the future the delayed network packets should be scheduled).
+          * stcoll - the 'StatsCollect' object to use for collecting statistics. No statistics
+                     are collected by default.
         """
 
         self._pman = pman
         self._dev = dev
         self._res = res
         self._ldist = ldist
+        self._stcoll = stcoll
 
         self._timeout = 10
         self._prov = None
@@ -146,5 +160,5 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         """Stop the measurements."""
 
         close_attrs = ("_prov",)
-        unref_attrs = ("_res", "_dev", "_pman")
+        unref_attrs = ("_res", "_dev", "_pman", "_stcoll")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)
