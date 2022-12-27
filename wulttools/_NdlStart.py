@@ -37,6 +37,10 @@ def _generate_report(args):
 def start_command(args):
     """Implements the 'start' command."""
 
+    if args.list_stats:
+        _ToolsCommon.start_command_list_stats()
+        return
+
     with contextlib.ExitStack() as stack:
         pman = _Common.get_pman(args)
         stack.enter_context(pman)
@@ -60,6 +64,10 @@ def start_command(args):
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
         _Common.set_filters(args, res)
 
+        stcoll = _ToolsCommon.start_command_create_stcoll(args, pman)
+        if stcoll:
+            stack.enter_context(stcoll)
+
         try:
             dev = Devices.GetDevice(args.toolname, args.devid, pman, dmesg=True)
         except ErrorNotFound as err:
@@ -69,7 +77,7 @@ def start_command(args):
             raise ErrorNotFound(msg) from err
         stack.enter_context(dev)
 
-        deploy_info = _Common.reduce_installables(args.deploy_info, dev)
+        deploy_info = _Common.reduce_installables(args.deploy_info, dev, stcoll=stcoll)
         with Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
             depl.check_deployment()
 
@@ -80,7 +88,7 @@ def start_command(args):
             _LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "
                         "the measured latency.", args.devid)
 
-        runner = NdlRunner.NdlRunner(pman, dev, res, args.ldist)
+        runner = NdlRunner.NdlRunner(pman, dev, res, args.ldist, stcoll=stcoll)
         stack.enter_context(runner)
 
         runner.prepare()
