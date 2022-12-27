@@ -13,8 +13,7 @@ This module includes the "report" 'wult' command implementation.
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.htmlreport import WultReport
-from wultlibs import _ToolsCommon
-from wulttools import _WultCommon
+from wulttools import _Common, _WultCommon
 
 def report_command(args):
     """Implements the 'report' command."""
@@ -41,19 +40,19 @@ def report_command(args):
             else:
                 setattr(args, name, None)
 
-    rsts = _ToolsCommon.open_raw_results(args.respaths, args.toolname, reportids=args.reportids)
+    rsts = _Common.open_raw_results(args.respaths, args.toolname, reportids=args.reportids)
 
     if args.list_metrics:
-        _ToolsCommon.list_result_metrics(rsts)
+        _Common.list_result_metrics(rsts)
         return
 
     for res in rsts:
-        _ToolsCommon.set_filters(args, res)
+        _Common.set_filters(args, res)
 
     if args.even_dpcnt:
-        _ToolsCommon.even_up_dpcnt(rsts)
+        _Common.even_up_dpcnt(rsts)
 
-    args.outdir = _ToolsCommon.report_command_outdir(args, rsts)
+    args.outdir = _Common.report_command_outdir(args, rsts)
 
     rep = WultReport.WultReport(rsts, args.outdir, report_descr=args.report_descr,
                                 xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,

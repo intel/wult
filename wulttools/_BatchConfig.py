@@ -22,7 +22,7 @@ from pathlib import Path
 from pepclibs import CStates, PStates, CPUInfo
 from pepclibs.helperlibs import ClassHelpers, Human, LocalProcessManager, Trivial
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import _ToolsCommon
+from wulttools import _Common
 from statscollectlibs.helperlibs import ReportID
 
 _LOG = logging.getLogger()
@@ -572,7 +572,7 @@ class BatchConfig(_CmdlineRunner):
         self._wl_formatter = None
         self._pepc_formatter = None
 
-        self._pman = _ToolsCommon.get_pman(args)
+        self._pman = _Common.get_pman(args)
         self._pepc_formatter = _PepcCmdFormatter(self._pman, args.only_measured_cpu,
                                                  args.only_one_cstate, args.cpunum)
         self._wl_formatter = _get_workload_cmd_formatter(args)

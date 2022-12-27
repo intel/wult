@@ -26,7 +26,7 @@ from wultlibs.rawresultlibs import RORawResult
 
 from statscollectlibs.helperlibs import ReportID
 # pylint: disable=wildcard-import,unused-wildcard-import
-from statscollectlibs.ToolsCommon import *
+from statscollectlibs._Common import *
 
 HELPERS_LOCAL_DIR = Path(".local")
 _DRV_SRC_SUBPATH = Path("drivers/idle")

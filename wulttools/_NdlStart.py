@@ -16,7 +16,8 @@ from pathlib import Path
 
 from pepclibs.helperlibs import Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from wultlibs import _ToolsCommon, NdlRunner, Devices
+from wulttools import _Common
+from wultlibs import NdlRunner, Devices
 from wultlibs.deploylibs import Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
@@ -28,7 +29,7 @@ def _generate_report(args):
 
     from wultlibs.htmlreport import NdlReport # pylint: disable=import-outside-toplevel
 
-    rsts = _ToolsCommon.open_raw_results([args.outdir], args.toolname)
+    rsts = _Common.open_raw_results([args.outdir], args.toolname)
     rep = NdlReport.NdlReport(rsts, args.outdir, report_descr=args.reportid)
     rep.relocatable = False
     rep.generate()
@@ -37,17 +38,17 @@ def start_command(args):
     """Implements the 'start' command."""
 
     with contextlib.ExitStack() as stack:
-        pman = _ToolsCommon.get_pman(args)
+        pman = _Common.get_pman(args)
         stack.enter_context(pman)
 
-        args.reportid = _ToolsCommon.start_command_reportid(args, pman)
+        args.reportid = _Common.start_command_reportid(args, pman)
 
         if not args.outdir:
             args.outdir = Path(f"./{args.reportid}")
         if args.tlimit:
             args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
 
-        args.ldist = _ToolsCommon.parse_ldist(args.ldist)
+        args.ldist = _Common.parse_ldist(args.ldist)
 
         if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
             raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
@@ -57,7 +58,7 @@ def start_command(args):
         stack.enter_context(res)
 
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
-        _ToolsCommon.set_filters(args, res)
+        _Common.set_filters(args, res)
 
         try:
             dev = Devices.GetDevice(args.toolname, args.devid, pman, dmesg=True)
@@ -68,11 +69,11 @@ def start_command(args):
             raise ErrorNotFound(msg) from err
         stack.enter_context(dev)
 
-        deploy_info = _ToolsCommon.reduce_installables(args.deploy_info, dev)
+        deploy_info = _Common.reduce_installables(args.deploy_info, dev)
         with Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
             depl.check_deployment()
 
-        _ToolsCommon.start_command_check_network(args, pman, dev.netif)
+        _Common.start_command_check_network(args, pman, dev.netif)
 
         info = dev.netif.get_pci_info()
         if info.get("aspm_enabled"):

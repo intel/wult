@@ -10,13 +10,13 @@
 This module includes the "deploy" 'wult' command implementation.
 """
 
-from wultlibs import _ToolsCommon
+from wulttools import _Common
 from wultlibs.deploylibs import Deploy
 
 def deploy_command(args):
     """Implements the 'deploy' command."""
 
-    with _ToolsCommon.get_pman(args) as pman:
+    with _Common.get_pman(args) as pman:
         ksrc = getattr(args, "ksrc", None)
         rebuild_bpf = getattr(args, "rebuild_bpf", None)
         with Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, ksrc=ksrc,

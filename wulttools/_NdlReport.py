@@ -11,7 +11,7 @@ This module includes the "report" 'ndl' command implementation.
 """
 
 from pepclibs.helperlibs import Trivial
-from wultlibs import _ToolsCommon
+from wulttools import _Common
 from wultlibs.htmlreport import NdlReport
 
 def report_command(args):
@@ -26,19 +26,19 @@ def report_command(args):
             else:
                 setattr(args, name, Trivial.split_csv_line(val))
 
-    rsts = _ToolsCommon.open_raw_results(args.respaths, args.toolname, reportids=args.reportids)
+    rsts = _Common.open_raw_results(args.respaths, args.toolname, reportids=args.reportids)
 
     if args.list_metrics:
-        _ToolsCommon.list_result_metrics(rsts)
+        _Common.list_result_metrics(rsts)
         return
 
     for res in rsts:
-        _ToolsCommon.apply_filters(args, res)
+        _Common.apply_filters(args, res)
 
     if args.even_dpcnt:
-        _ToolsCommon.even_up_dpcnt(rsts)
+        _Common.even_up_dpcnt(rsts)
 
-    args.outdir = _ToolsCommon.report_command_outdir(args, rsts)
+    args.outdir = _Common.report_command_outdir(args, rsts)
 
     rep = NdlReport.NdlReport(rsts, args.outdir, report_descr=args.report_descr,
                               xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
