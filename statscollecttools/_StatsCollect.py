@@ -21,7 +21,7 @@ except ImportError:
 
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs import ToolsCommon
+from statscollecttools import _Common
 from statscollectlibs.deploylibs import Deploy
 from statscollectlibs.helperlibs import ReportID
 
@@ -110,7 +110,7 @@ def _build_arguments_parser():
     subpars.set_defaults(func=_report_command)
 
     subpars.add_argument("-o", "--outdir", type=Path,
-                         help=ToolsCommon.get_report_outdir_descr(_OWN_NAME))
+                         help=_Common.get_report_outdir_descr(_OWN_NAME))
 
     text = f"""One or multiple {_OWN_NAME} test result paths."""
     subpars.add_argument("respaths", nargs="+", type=Path, help=text)

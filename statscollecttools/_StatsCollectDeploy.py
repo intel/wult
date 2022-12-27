@@ -10,13 +10,13 @@
 This module includes the "deploy" 'stats-collect' command implementation.
 """
 
-from statscollectlibs import ToolsCommon
+from statscollecttools import _Common
 from statscollectlibs.deploylibs import Deploy
 
 def deploy_command(args):
     """Implements the 'deploy' command."""
 
-    with ToolsCommon.get_pman(args) as pman:
+    with _Common.get_pman(args) as pman:
         with Deploy.Deploy(args.toolname, args.deploy_info, pman, args.lbuild, args.tmpdir_path,
                            args.keep_tmpdir, args.debug) as depl:
             depl.deploy()

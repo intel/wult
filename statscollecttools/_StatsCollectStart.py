@@ -15,7 +15,7 @@ from pathlib import Path
 from pepclibs import CPUInfo
 from pepclibs.helperlibs import Human, Logging
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs import ToolsCommon
+from statscollecttools import _Common
 from statscollectlibs.collector import STCHelpers
 from statscollectlibs.helperlibs import ReportID
 from statscollectlibs.rawresultlibs import RawResult
@@ -47,7 +47,7 @@ def start_command(args):
     """Implements the 'start' command."""
 
     with contextlib.ExitStack() as stack:
-        pman = ToolsCommon.get_pman(args)
+        pman = _Common.get_pman(args)
         stack.enter_context(pman)
 
         args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
