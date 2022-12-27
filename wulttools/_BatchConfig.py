@@ -555,6 +555,16 @@ class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
 
         return self._lpman
 
+    def _handle_error(self, cmd):
+        """Handle error for running command 'cmd'."""
+
+        msg = f"failed to run command:\n'{cmd}'"
+        if self._stop_on_failure:
+            msg += "\nstop processing more commands and exit"
+            _LOG.error_out(msg)
+
+        _LOG.error(msg)
+
     def _run_command(self, cmd):
         """
         Run command 'cmd' with process manager object 'pman'. If 'dry_run' is 'True', print the
@@ -569,12 +579,7 @@ class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
         _LOG.debug("running command: '%s'", cmd)
         res = self._get_lpman().run(cmd, output_fobjs=(sys.stdout, sys.stderr))
         if res.exitcode != 0:
-            msg = f"failed to run command:\n'{cmd}'"
-            if self._stop_on_failure:
-                msg += "\nstop processing more commands and exit"
-                _LOG.error_out(msg)
-
-            _LOG.error(msg)
+            self._handle_error(cmd)
 
     def __init__(self, dry_run=False, stop_on_failure=False):
         """The class constructor."""
