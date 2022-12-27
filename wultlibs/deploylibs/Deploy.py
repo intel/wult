@@ -94,7 +94,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
         dirs = [name % str(_DeployHelpersBase.HELPERS_SRC_SUBPATH) for name in searchdirs]
         helpersearch = ", ".join(dirs)
         helpernames = ", ".join(cats["shelpers"] + cats["pyhelpers"] + cats["bpfhelpers"])
-        descr += f"""The {toolname} tool also depends on the following helpers: {helpernames}.
+        descr += f""" The {toolname} tool also depends on the following helpers: {helpernames}.
                      These helpers will be compiled on the SUT and deployed to the SUT. The sources
                      of the helpers are searched for in the following paths (and in the following
                      order) on the local host: {helpersearch}. By default, helpers are deployed to
