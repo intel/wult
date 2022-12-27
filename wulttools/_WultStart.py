@@ -122,7 +122,7 @@ def start_command(args):
         dev = Devices.GetDevice(args.toolname, args.devid, pman, cpunum=args.cpunum, dmesg=True)
         stack.enter_context(dev)
 
-        deploy_info = _Common.reduce_installables(args.deploy_info, dev, stcoll=stcoll)
+        deploy_info = _Common.reduce_installables(args.deploy_info, dev)
         with Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
             depl.check_deployment()
 

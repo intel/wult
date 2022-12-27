@@ -79,7 +79,7 @@ def start_command(args):
             raise ErrorNotFound(msg) from err
         stack.enter_context(dev)
 
-        deploy_info = _Common.reduce_installables(args.deploy_info, dev, stcoll=stcoll)
+        deploy_info = _Common.reduce_installables(args.deploy_info, dev)
         with Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
             depl.check_deployment()
 
