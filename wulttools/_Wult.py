@@ -36,10 +36,6 @@ _WULT_DEPLOY_INFO = {
             "minkver"  : "5.6",
             "deployables" : ("wult", "wult_igb", "wult_tdt", "wult_hrt", ),
         },
-        "stc-agent" : {
-            "category" : "pyhelpers",
-            "deployables" : ("stc-agent", "ipmi-helper", ),
-        },
         "wult-hrt-helper" : {
             "category" : "bpfhelpers",
             "minkver"  : "5.15",

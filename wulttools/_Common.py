@@ -622,3 +622,35 @@ def report_command_outdir(args, rsts):
 
     _LOG.info("Report output directory: %s", outdir)
     return Path(outdir)
+
+def run_stats_collect_deploy(args):
+    """Run the 'stats-collect deploy' command."""
+
+    # pylint: disable=import-outside-toplevel
+    from pepclibs.helperlibs import ProjectFiles, LocalProcessManager
+
+    exe_path = ProjectFiles.find_project_helper("stat-collect", "stats-collect")
+
+    cmd = str(exe_path)
+
+    if args.force_color or (sys.stdout.isatty() and sys.stderr.isatty()):
+        cmd += " --force-color deploy"
+    else:
+        cmd += " deploy"
+
+    if args.debug:
+        cmd += " -d"
+    if args.quiet:
+        cmd += " -q"
+
+    if args.hostname != "localhost":
+        cmd += f" -H {args.hostname}"
+        if args.username:
+            cmd += f" -U {args.username}"
+        if args.privkey:
+            cmd += f" -K {args.privkey}"
+        if args.timeout:
+            cmd += f" -T {args.timeout}"
+
+    with LocalProcessManager.LocalProcessManager() as lpman:
+        lpman.run_verify(cmd, capture_output=False, output_fobjs=(sys.stdout, sys.stderr))
