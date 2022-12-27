@@ -21,7 +21,6 @@ except ImportError:
 
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
-from statscollecttools import _Common
 from statscollectlibs.deploylibs import Deploy
 from statscollectlibs.helperlibs import ReportID
 
@@ -109,8 +108,11 @@ def _build_arguments_parser():
     subpars = subparsers.add_parser("report", help=text, description=descr)
     subpars.set_defaults(func=_report_command)
 
-    subpars.add_argument("-o", "--outdir", type=Path,
-                         help=_Common.get_report_outdir_descr(_OWN_NAME))
+    text = f"""Path to the directory to store the report at. By default the report is stored in the
+               '{_OWN_NAME}-report-<reportid>' sub-directory of the test result directory. If there
+               are multiple test results, the report is stored in the current directory. The
+               '<reportid>' is report ID of {_OWN_NAME} test result."""
+    subpars.add_argument("-o", "--outdir", type=Path, help=text)
 
     text = f"""One or multiple {_OWN_NAME} test result paths."""
     subpars.add_argument("respaths", nargs="+", type=Path, help=text)

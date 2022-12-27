@@ -12,18 +12,6 @@ This module contains miscellaneous functions used by various 'statscollecttools'
 
 from pepclibs.helperlibs import ProcessManager
 
-# Description for the '--outdir' option of the 'report' command.
-def get_report_outdir_descr(toolname):
-    """
-    Returns description for the '--outdir' option of the 'report' command for the 'toolname' tool.
-    """
-
-    descr = f"""Path to the directory to store the report at. By default the report is stored in the
-                '{toolname}-report-<reportid>' sub-directory of the test result directory. If there
-                are multiple test results, the report is stored in the current directory. The
-                '<reportid>' is report ID of {toolname} test result."""
-    return descr
-
 def get_pman(args):
     """
     Returns the process manager object for host 'hostname'. The returned object should either be
