@@ -7,9 +7,7 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module contains miscellaneous functions used by the 'stats-collect', 'wult' and 'ndl' tools.
-There is really no single clear purpose this module serves, it is just a collection of shared code.
-Many functions in this module require the 'args' object which represents the command-line arguments.
+This module contains miscellaneous functions used by various 'statscollecttools' modules.
 """
 
 from pepclibs.helperlibs import ProcessManager
