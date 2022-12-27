@@ -22,7 +22,6 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Devices
 from wultlibs.deploylibs import Deploy
 from wultlibs.helperlibs import Human
-from wultlibs.rawresultlibs import RORawResult
 from statscollectlibs.helperlibs import ReportID
 
 HELPERS_LOCAL_DIR = Path(".local")
@@ -422,6 +421,8 @@ def scan_command(args):
 def filter_command(args):
     """Implements the 'filter' command for the 'wult' and 'ndl' tools."""
 
+    from wultlibs.rawresultlibs import RORawResult # pylint: disable=import-outside-toplevel
+
     res = RORawResult.RORawResult(args.respath)
 
     if args.list_metrics:
@@ -459,6 +460,8 @@ def calc_command(args):
             _LOG.info("%s: %s", name, descr)
         return
 
+    from wultlibs.rawresultlibs import RORawResult # pylint: disable=import-outside-toplevel
+
     if args.funcs:
         funcnames = Trivial.split_csv_line(args.funcs)
     else:
@@ -484,6 +487,8 @@ def open_raw_results(respaths, toolname, reportids=None):
       * toolname - name of the tool opening raw results.
       * reportids - list of reportids to override report IDs in raw results.
     """
+
+    from wultlibs.rawresultlibs import RORawResult # pylint: disable=import-outside-toplevel
 
     if reportids:
         reportids = Trivial.split_csv_line(reportids)
