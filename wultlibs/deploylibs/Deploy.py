@@ -74,11 +74,6 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
     else:
         raise Error("BUG: no helpers and no drivers")
 
-    searchdirs = [f"{Path(sys.argv[0]).parent}/%s",
-                  "$WULT_DATA_PATH/%s (if 'WULT_DATA_PATH' environment variable is defined)",
-                  "$HOME/.local/share/wult/%s",
-                  "/usr/local/share/wult/%s", "/usr/share/wult/%s"]
-
     text = f"Compile and deploy {toolname} {what}."
     descr = f"""Compile and deploy {toolname} {what} to the SUT (System Under Test), which can be
                 can be either local or a remote host, depending on the '-H' option. By default,
@@ -86,17 +81,18 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
                 on the local system."""
 
     if cats["drivers"]:
-        drvsearch = ", ".join([name % str(_DeployDrivers.DRV_SRC_SUBPATH) for name in searchdirs])
+        searchdirs = ProjectFiles.get_project_data_search_descr("wult",
+                                                                _DeployDrivers.DRV_SRC_SUBPATH)
         descr += f""" The drivers are searched for in the following directories (and in the
-                     following order) on the local host: {drvsearch}."""
+                     following order) on the local host: {searchdirs}."""
     if cats["shelpers"] or cats["pyhelpers"]:
-        dirs = [name % str(_DeployHelpersBase.HELPERS_SRC_SUBPATH) for name in searchdirs]
-        helpersearch = ", ".join(dirs)
+        searchdirs = ProjectFiles.get_project_data_search_descr("wult",
+                                                            _DeployHelpersBase.HELPERS_SRC_SUBPATH)
         helpernames = ", ".join(cats["shelpers"] + cats["pyhelpers"] + cats["bpfhelpers"])
         descr += f""" The {toolname} tool also depends on the following helpers: {helpernames}.
                      These helpers will be compiled on the SUT and deployed to the SUT. The sources
                      of the helpers are searched for in the following paths (and in the following
-                     order) on the local host: {helpersearch}. By default, helpers are deployed to
+                     order) on the local host: {searchdirs}. By default, helpers are deployed to
                      the path defined by the 'WULT_HELPERSPATH' environment variable. If the
                      variable is not defined, helpers are deployed to
                      '$HOME/{_DeployHelpersBase.HELPERS_LOCAL_DIR}/bin', where '$HOME' is the home
