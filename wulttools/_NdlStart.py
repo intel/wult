@@ -38,7 +38,7 @@ def start_command(args):
     """Implements the 'start' command."""
 
     if args.list_stats:
-        _ToolsCommon.start_command_list_stats()
+        _Common.start_command_list_stats()
         return
 
     with contextlib.ExitStack() as stack:
@@ -64,7 +64,7 @@ def start_command(args):
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
         _Common.set_filters(args, res)
 
-        stcoll = _ToolsCommon.start_command_create_stcoll(args, pman)
+        stcoll = _Common.start_command_create_stcoll(args, pman)
         if stcoll:
             stack.enter_context(stcoll)
 
