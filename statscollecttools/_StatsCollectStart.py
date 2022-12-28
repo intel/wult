@@ -68,7 +68,7 @@ def start_command(args):
             raise Error("No statistics specified. Use '--stats' to specify which statistics "
                         "should be collected.")
         stcoll = STCHelpers.create_and_configure_stcoll(args.stats, args.stats_intervals,
-                                                        args.outdir, pman, args.toolname)
+                                                        args.outdir, pman)
         if not stcoll:
             return
 

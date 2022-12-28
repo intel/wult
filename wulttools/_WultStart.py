@@ -115,7 +115,7 @@ def start_command(args):
         _Common.set_filters(args, res)
 
         stcoll = STCHelpers.create_and_configure_stcoll(args.stats, args.stats_intervals,
-                                                        args.outdir, pman, args.toolname)
+                                                        args.outdir, pman)
         if stcoll:
             stack.enter_context(stcoll)
 

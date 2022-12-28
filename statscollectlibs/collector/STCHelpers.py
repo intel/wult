@@ -137,7 +137,7 @@ def apply_stconf(stcoll, stconf):
 
     stcoll.configure()
 
-def create_and_configure_stcoll(stnames, intervals, outdir, pman, toolname):
+def create_and_configure_stcoll(stnames, intervals, outdir, pman):
     """
     This helper creates an instance of 'StatsCollect' and configures it based on a required list of
     statistics and related options. The arguments are as follows:
@@ -149,7 +149,6 @@ def create_and_configure_stcoll(stnames, intervals, outdir, pman, toolname):
                 collected statistics).
      * pman - the process manager object associated with the SUT (the host to collect the
               statistics for).
-     * toolname - name of the tool which can be used to deploy 'stc-agent'.
     """
 
     if not stnames or stnames == "none":
@@ -187,9 +186,9 @@ def create_and_configure_stcoll(stnames, intervals, outdir, pman, toolname):
 
     if local_needed:
         with LocalProcessManager.LocalProcessManager() as lpman:
-            local_path = Deploy.get_installed_helper_path(lpman, toolname, "stc-agent")
+            local_path = Deploy.get_installed_helper_path(lpman, "stats-collect", "stc-agent")
     if remote_needed:
-        remote_path = Deploy.get_installed_helper_path(pman, toolname, "stc-agent")
+        remote_path = Deploy.get_installed_helper_path(pman, "stats-collect", "stc-agent")
 
     stcoll.set_stcagent_path(local_path=local_path, remote_path=remote_path)
 
