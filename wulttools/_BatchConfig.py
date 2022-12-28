@@ -29,11 +29,11 @@ _LOG = logging.getLogger()
 
 PROP_INFOS = {
     "cstates" : {
-        "name" : "requestable C-state",
+        "name" : "Requestable C-state",
         "sname" : "CPU",
         "cmd" : "pepc cstates config --disable all --enable {} --cpus {scope}"},
     "pcstates" : {
-        "name" : "package C-state",
+        "name" : "Package C-state",
         "sname" : "package",
         "cmd" : "pepc cstates config --pkg-cstate-limit {} --cpus {scope}"},
     "freqs" : {
@@ -41,7 +41,7 @@ PROP_INFOS = {
         "sname" : "CPU",
         "cmd" : "pepc pstates config --min-freq {} --max-freq {} --cpus {scope}"},
     "uncore_freqs" : {
-        "name" : "uncore frequency",
+        "name" : "Uncore frequency",
         "moniker" : "uf",
         "sname" : "die",
         "cmd" : "pepc pstates config --min-uncore-freq {} --max-uncore-freq {} --cpus " \
@@ -50,6 +50,7 @@ PROP_INFOS = {
         "moniker" : "gov",
         "cmd" : "pepc pstates config --governor {} --cpus {scope}"},
     "aspm" : {
+        "name" : "ASPM",
         "moniker" : "aspm",
         "cmd" : "pepc aspm config --policy {}"},
     "c1_demotion" : {
