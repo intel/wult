@@ -74,6 +74,32 @@ START_REPORTID_DESCR = f"""Any string which may serve as an identifier of this r
 START_REPORT_DESCR = """Generate an HTML report for collected results (same as calling 'report'
                         command with default arguments)."""
 
+# Description for the '--stats' option of the 'start' command.
+STATS_DESCR = """Comma-separated list of statistics to collect. The statistics are collected in
+                 parallel with measuring C-state latency. They are stored in the the "stats"
+                 sub-directory of the output directory. By default, only 'sysinfo' statistics are
+                 collected. Use 'all' to collect all possible statistics. Use '--stats=""' or
+                 --stats='none' to disable statistics collection. If you know exactly what
+                 statistics you need, specify the comma-separated list of statistics to collect. For
+                 example, use 'turbostat,acpower' if you need only turbostat and AC power meter
+                 statistics. You can also specify the statistics you do not want to be collected by
+                 pre-pending the '!' symbol. For example, 'all,!turbostat' would mean: collect all
+                 the statistics supported by the SUT, except for 'turbostat'.  Use the
+                 '--list-stats' option to get more information about available statistics. By
+                 default, only 'sysinfo' statistics are collected."""
+
+# Description for the '--stat-intervals' option of the 'start' command.
+STAT_INTERVALS_DESCR =  """The intervals for statistics. Statistics collection is based on doing
+                           periodic snapshots of data. For example, by default the 'acpower'
+                           statistics collector reads SUT power consumption for the last second
+                           every second, and 'turbostat' default interval is 5 seconds. Use
+                           'acpower:5,turbostat:10' to increase the intervals to 5 and 10 seconds
+                           correspondingly.  Use the '--list-stats' to get the default interval
+                           values."""
+
+# Description for the '--list-stats' option of the 'start' command.
+LIST_STATS_DESCR = """Print information about the statistics '%s' can collect and exit."""
+
 # Description for the '--outdir' option of the 'report' command.
 def get_report_outdir_descr(toolname):
     """
