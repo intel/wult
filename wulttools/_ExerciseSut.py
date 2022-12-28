@@ -204,6 +204,12 @@ _COMMON_OPTIONS = {
         "action" : "store_true",
         "help" : """Do not run any commands, only print them."""
     },
+    "list_monikers" : {
+        "action" : "store_true",
+        "help" : f"""A moniker is an abbreviation for a setting. The '{_OWN_NAME}' uses monikers to
+                     create directory names and report IDs for collected results. Use this option to
+                     list monikers assosiated with each settings, if any, and exit."""
+    },
 }
 
 def _build_arguments_parser():
@@ -261,6 +267,10 @@ def parse_arguments():
 def _collect_command(args):
     """Exercise SUT and run workload for each requested system configuration."""
 
+    if args.list_monikers:
+        _BatchConfig.list_monikers()
+        return
+
     if args.toolpath.name in ("wult", "ndl") and not args.devids:
         _LOG.error_out("please, provide device ID to measure with, see '%s -h' for help", _OWN_NAME)
 
@@ -290,6 +300,10 @@ def _collect_command(args):
 
 def _report_command(args):
     """Implements the 'report' command."""
+
+    if args.list_monikers:
+        _BatchConfig.list_monikers()
+        return
 
     outdir = args.outdir
     if not outdir:

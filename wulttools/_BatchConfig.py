@@ -80,6 +80,33 @@ PROP_INFOS = {
 
 PC0_ONLY_STATES = ("POLL", "C1", "C1E")
 
+def list_monikers():
+    """Helper to print moniker for each property, if any."""
+
+    min_len = 0
+    monikers = {}
+
+    for pname, pinfo in PROP_INFOS.items():
+        if "moniker" not in pinfo:
+            continue
+
+        name = None
+        if pname in PStates.PROPS:
+            name = PStates.PROPS[pname].get("name")
+        elif pname in CStates.PROPS:
+            name = CStates.PROPS[pname].get("name")
+        else:
+            name = pinfo.get("name")
+
+        if len(name) > min_len:
+            min_len = len(name)
+
+        monikers[pinfo["moniker"]] = name
+
+    for moniker, name in monikers.items():
+        msg = f"{name:<{min_len}}: {moniker}"
+        _LOG.info(msg)
+
 def _create_reportid(props, prefix=None, suffix=None):
     """Create report id from used properties 'props'."""
 
