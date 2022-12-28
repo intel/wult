@@ -8,6 +8,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
  - Add statistics collection support to the 'ndl' tool ('--stats' and
    '--stats-intervals' options).
+ - Add 'stats-collect' tool. It is not very useful yet, but it will get more
+   functionality later.
 ### Removed
 ### Changed
 
