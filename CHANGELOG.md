@@ -6,30 +6,32 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
+ - Add statistics collection support to the 'ndl' tool ('--stats' and
+   '--stats-intervals' options).
 ### Removed
 ### Changed
 
 ## [1.10.50] - 2022-12-23
 ### Fixed
-  - Fix 'wult report' crashing when used on a dataset with very few datapoints.
-  - Fix the 'wult start --no-unload' debugging option.
+ - Fix 'wult report' crashing when used on a dataset with very few datapoints.
+ - Fix the 'wult start --no-unload' debugging option.
 ### Changed
-  - Improve 'IntrLatency' accuracy for 'hrt' and 'tdt' methods'.
+ - Improve 'IntrLatency' accuracy for 'hrt' and 'tdt' methods'.
 
 ## [1.10.49] - 2022-12-19
 ### Fixed
-  - Fix strange units on the axis of diagrams with 'CPUFreq' data in wult
-    reports.
-  - Fix regression which caused 'wult deploy' to error when '-H' option was not
-    used.
+ - Fix strange units on the axis of diagrams with 'CPUFreq' data in wult
+   reports.
+ - Fix regression which caused 'wult deploy' to error when '-H' option was not
+   used.
 
 ## [1.10.48] - 2022-12-16
 ### Changed
-  - Adjust to 'pepc' project changes again (no functional changes).
+ - Adjust to 'pepc' project changes again (no functional changes).
 
 ## [1.10.47] - 2022-12-16
 ### Changed
-  - Adjust to 'pepc' project changes (no functional changes).
+ - Adjust to 'pepc' project changes (no functional changes).
 
 ## [1.10.46] - 2022-12-16
 ### Fixed
