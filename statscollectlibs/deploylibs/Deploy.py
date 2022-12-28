@@ -11,7 +11,7 @@
 import logging
 import os
 from pathlib import Path
-from pepclibs.helperlibs import ArgParse, ClassHelpers, LocalProcessManager
+from pepclibs.helperlibs import ArgParse, ClassHelpers, LocalProcessManager, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists, ErrorNotFound
 from statscollectlibs.deploylibs import _DeployPyHelpers
 
@@ -78,11 +78,11 @@ def deployable_not_found(pman, toolname, what, is_helper=True):
 
     err = f"{what} was not found{pman.hostmsg}"
     if is_helper:
+        envvar = ProjectFiles.get_project_helpers_envvar(toolname)
         err += f". Here are the options to try.\n" \
                f" * Run '{get_deploy_cmd(pman, toolname)}'.\n" \
                f" * Ensure that {what} is in 'PATH'{pman.hostmsg}.\n" \
-               f" * Set the 'WULT_HELPERSPATH' environment variable to the path of " \
-               f"{what}{pman.hostmsg}"
+               f" * Set the '{envvar}' environment variable to the path of {what}{pman.hostmsg}."
     else:
         err += f"\nConsider running '{get_deploy_cmd(pman, toolname)}'"
 
@@ -95,7 +95,8 @@ def get_installed_helper_path(pman, toolname, helper):
     helper was not found.
     """
 
-    dirpath = os.environ.get("WULT_HELPERSPATH")
+    envvar = ProjectFiles.get_project_helpers_envvar(toolname)
+    dirpath = os.environ.get(envvar)
     if dirpath:
         helper_path = Path(dirpath) / helper
         if pman.is_exe(helper_path):
