@@ -211,7 +211,6 @@ def _build_arguments_parser():
 
     text = f"{_OWN_NAME} - Run a test tool or benchmark to collect testdata."
     parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=_OWN_NAME, ver=_VERSION)
-    ArgParse.add_ssh_options(parser)
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
