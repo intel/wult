@@ -163,11 +163,6 @@ _COLLECT_OPTIONS = {
         "help" : """Change settings, for example CPU frequency and C-state limits, only for the
                     measured CPU. By default settings are applied to all CPUs."""
     },
-    "outdir" : {
-        "short" : "-o",
-        "type" : Path,
-        "help" : """Path to directory to store the results at. Default is <toolname-date-time>."""
-    },
 }
 
 _GENERATE_OPTIONS = {
@@ -183,11 +178,6 @@ _GENERATE_OPTIONS = {
     "exclude" : {
         "help" : """Comma-separated list of monikers that must not be found from the result path
                     name."""
-    },
-    "outdir" : {
-        "short" : "-o",
-        "type" : Path,
-        "help" : """Path to directory to store the results at. Default is <toolname>-results."""
     },
 }
 
