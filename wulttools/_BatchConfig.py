@@ -295,8 +295,8 @@ class _PepcCmdFormatter(_PropIteratorBase):
             if pname in obj.props:
                 sname = obj.props[pname].get("sname")
 
-        if sname is None and pname in PROP_INFOS:
-            sname = PROP_INFOS[pname].get("sname")
+        if sname is None and pname in self.props:
+            sname = self.props[pname].get("sname")
 
         return sname
 
@@ -370,9 +370,9 @@ class _PepcCmdFormatter(_PropIteratorBase):
             if value == "unl":
                 values = ["min", "max"]
             else:
-                values = [value] * PROP_INFOS[pname]["cmd"].count("{}")
+                values = [value] * self.props[pname]["cmd"].count("{}")
 
-            cmd = PROP_INFOS[pname]["cmd"].format(*values, scope=scope)
+            cmd = self.props[pname]["cmd"].format(*values, scope=scope)
 
             if self._pman.hostname != "localhost":
                 cmd += f" -H {self._pman.hostname}"
