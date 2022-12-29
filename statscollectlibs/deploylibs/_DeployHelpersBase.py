@@ -50,8 +50,8 @@ class DeployHelpersBase(_DeployInstallableBase.DeployInstallableBase):
 
         # We assume all helpers are in the same base directory.
         helper_path = HELPERS_SRC_SUBPATH/f"{all_helpers[0]}"
-        helpersrc = ProjectFiles.find_project_data("wult", helper_path,
-                                                   descr=f"{toolname} helper sources")
+        what=f"{toolname} helper sources"
+        helpersrc = ProjectFiles.find_project_data("wult", helper_path, what=what)
         helpersrc = helpersrc.parent
 
         if not helpersrc.is_dir():

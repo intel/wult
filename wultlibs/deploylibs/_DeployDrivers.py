@@ -32,7 +32,8 @@ class DeployDrivers(_DeployInstallableBase.DeployInstallableBase):
 
         for drvname in drivers:
             subpath = DRV_SRC_SUBPATH / drvname
-            drvsrc = ProjectFiles.find_project_data("wult", subpath, f"{drvname} drivers sources")
+            what = f"{drvname} drivers sources"
+            drvsrc = ProjectFiles.find_project_data("wult", subpath, what=what)
             if not drvsrc.is_dir():
                 raise Error(f"path '{drvsrc}' does not exist or it is not a directory")
 

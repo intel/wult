@@ -345,7 +345,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
             try:
                 subpath = _DeployHelpersBase.HELPERS_SRC_SUBPATH / pyhelper
                 what = f"the '{pyhelper}' python helper program"
-                srcpath = ProjectFiles.find_project_data("wult", subpath, what)
+                srcpath = ProjectFiles.find_project_data("wult", subpath, what=what)
             except ErrorNotFound:
                 continue
 
