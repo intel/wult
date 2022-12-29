@@ -206,7 +206,8 @@ class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
             stdout, stderr = self._bpman.run_verify(cmd)
             self._log_cmd_output(stdout, stderr)
 
-    def __init__(self, bpman, spman, btmpdir, stmpdir, tchk, ksrc, lbuild, rebuild_src, debug):
+    def __init__(self, prjname, toolname, bpman, spman, btmpdir, stmpdir, tchk, ksrc, lbuild,
+                 rebuild_src, debug):
         """
         Class constructor. Arguments are the same as in '_DeployHelpersBase.DeployHelpersBase()'
         except for:
@@ -220,4 +221,4 @@ class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
         self._ksrc = ksrc
         self._lbuild = lbuild
         self._rebuild_src = rebuild_src
-        super().__init__(bpman, spman, btmpdir, stmpdir, "bpf", debug)
+        super().__init__(prjname, toolname, bpman, spman, btmpdir, stmpdir, "bpf", debug)

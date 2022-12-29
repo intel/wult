@@ -25,15 +25,19 @@ class DeployBase:
             if stderr:
                 _LOG.log(Logging.ERRINFO, stderr)
 
-    def __init__(self, bpman, spman, btmpdir, debug):
+    def __init__(self, prjname, toolname, bpman, spman, btmpdir, debug):
         """
         Class constructor. Arguments are as follows:
+         * prjname - name of the project the installables and 'toolname' belong to.
+         * toolname - name of the tool the installables belong to.
          * bpman - process manager associated with the build host.
          * spman - process manager associated with the SUT.
          * btmpdir - a path to a temporary directory on the build host.
          * debug - a boolean variable used to enable additional debugging messages.
         """
 
+        self._prjname = prjname
+        self._toolname = toolname
         self._bpman = bpman
         self._spman = spman
         self._btmpdir = btmpdir

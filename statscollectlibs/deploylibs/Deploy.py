@@ -183,7 +183,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if not pyhelpers:
             return
 
-        dep_pyhelpers = _DeployPyHelpers.DeployPyHelpers(self._bpman, self._spman, self._cpman,
+        dep_pyhelpers = _DeployPyHelpers.DeployPyHelpers("wult", self._toolname, self._bpman,
+                                                         self._spman, self._cpman,
                                                          self._btmpdir, self._get_ctmpdir(),
                                                          self._get_stmpdir(),
                                                          self._get_deployables("pyhelpers"),

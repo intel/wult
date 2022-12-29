@@ -39,9 +39,9 @@ class DeploySHelpers(_DeployHelpersBase.DeployHelpersBase):
             stdout, stderr = self._bpman.run_verify(f"make -C '{helperpath}'")
             self._log_cmd_output(stdout, stderr)
 
-    def __init__(self, bpman, spman, btmpdir, stmpdir, debug):
+    def __init__(self, prjname, toolname, bpman, spman, btmpdir, stmpdir, debug):
         """
         Class constructor. Arguments are the same as in '_DeployHelpersBase.DeployHelpersBase'.
         """
 
-        super().__init__(bpman, spman, btmpdir, stmpdir, "simple", debug)
+        super().__init__(prjname, toolname, bpman, spman, btmpdir, stmpdir, "simple", debug)
