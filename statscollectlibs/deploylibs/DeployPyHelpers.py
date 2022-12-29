@@ -207,7 +207,7 @@ class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
                 self._spman.rsync(srcdir, self._stmpdir, remotesrc=False, remotedst=True)
 
     def __init__(self, prjname, toolname, bpman, spman, cpman, btmpdir, ctmpdir, stmpdir,
-                 deployables, debug):
+                 deployables, debug=False):
         """
         Class constructor. Arguments are the same as in '_DeployHelpersBase.DeployHelpersBase()'
         except for:
@@ -221,5 +221,4 @@ class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
         self._deployables = deployables
 
         what = f"{toolname} python helpers"
-        super().__init__(prjname, toolname, bpman, spman, btmpdir, stmpdir, what, debug)
-
+        super().__init__(prjname, toolname, bpman, spman, btmpdir, stmpdir, what, debug=debug)

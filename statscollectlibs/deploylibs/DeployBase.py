@@ -25,7 +25,7 @@ class DeployBase:
             if stderr:
                 _LOG.log(Logging.ERRINFO, stderr)
 
-    def __init__(self, prjname, toolname, bpman, spman, btmpdir, debug):
+    def __init__(self, prjname, toolname, bpman, spman, btmpdir, debug=False):
         """
         Class constructor. Arguments are as follows:
          * prjname - name of the project the installables and 'toolname' belong to.

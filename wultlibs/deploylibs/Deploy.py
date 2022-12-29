@@ -463,14 +463,14 @@ class Deploy(StatsCollectDeploy.Deploy):
                                                             self._btmpdir, self._get_ctmpdir(),
                                                             self._get_stmpdir(),
                                                             self._get_deployables("pyhelpers"),
-                                                            self._debug)
+                                                            debug=self._debug)
             dep_pyhelpers.deploy(toolname, list(pyhelpers), lbuild)
 
         shelpers = self._cats.get("shelpers")
         if shelpers:
             dep_shelpers = _DeploySHelpers.DeploySHelpers("wult", self._toolname, self._bpman,
                                                           self._spman, self._btmpdir,
-                                                          self._get_stmpdir(), self._debug)
+                                                          self._get_stmpdir(), debug=self._debug)
             dep_shelpers.deploy(toolname, list(shelpers), lbuild)
 
         bpfhelpers = self._cats.get("bpfhelpers")
@@ -479,7 +479,8 @@ class Deploy(StatsCollectDeploy.Deploy):
                                                                 self._spman, self._btmpdir,
                                                                 self._get_stmpdir(), self._tchk,
                                                                 self._get_ksrc(), lbuild,
-                                                                self._rebuild_bpf, self._debug)
+                                                                self._rebuild_bpf,
+                                                                debug=self._debug)
             dep_bpfhelpers.deploy(toolname, list(bpfhelpers), lbuild)
 
     def _deploy_drivers(self):
@@ -493,7 +494,7 @@ class Deploy(StatsCollectDeploy.Deploy):
             deps[dep] = self._khelper.get_module_path(dep)
 
         dep_drvr = _DeployDrivers.DeployDrivers("wult", self._toolname, self._bpman, self._spman,
-                                                self._btmpdir, self._debug)
+                                                self._btmpdir, debug=self._debug)
         dep_drvr.deploy(self._cats["drivers"], self._get_kver(), self._get_ksrc(), deps)
 
     def _adjust_installables(self):
@@ -559,7 +560,7 @@ class Deploy(StatsCollectDeploy.Deploy):
         Please, refer to module docstring for more information.
         """
 
-        super().__init__(toolname, deploy_info, pman, lbuild, tmpdir_path, keep_tmpdir, debug)
+        super().__init__(toolname, deploy_info, pman, lbuild, tmpdir_path, keep_tmpdir, debug=debug)
 
         self._ksrc = ksrc
         self._rebuild_bpf = rebuild_bpf
