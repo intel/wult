@@ -18,7 +18,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs.msr import PowerCtl
 from pepclibs import CStates, CPUInfo
 from statscollectlibs.collector import StatsCollectBuilder
-from wultlibs.deploylibs import Deploy
+from wultlibs.deploylibs import _Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs import Devices, WultRunner
@@ -128,7 +128,7 @@ def start_command(args):
         stack.enter_context(dev)
 
         deploy_info = _Common.reduce_installables(args.deploy_info, dev)
-        with Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
+        with _Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
             depl.check_deployment()
 
         if getattr(dev, "netif", None):

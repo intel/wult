@@ -21,7 +21,7 @@ except ImportError:
 
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs.deploylibs import Deploy
+from statscollectlibs.deploylibs import _Deploy
 from statscollectlibs.helperlibs import ReportID
 
 _VERSION = "0.0.0"
@@ -52,8 +52,8 @@ def _build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    subpars = Deploy.add_deploy_cmdline_args(_OWN_NAME, _STC_DEPLOY_INFO, subparsers,
-                                            _deploy_command, argcomplete=argcomplete)
+    subpars = _Deploy.add_deploy_cmdline_args(_OWN_NAME, _STC_DEPLOY_INFO, subparsers,
+                                             _deploy_command, argcomplete=argcomplete)
 
     #
     # Create parsers for the "start" command.

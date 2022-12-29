@@ -22,13 +22,13 @@ except ImportError:
 
 from pepclibs.helperlibs import Logging, Human, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.deploylibs import Deploy
+from wultlibs.deploylibs import _Deploy
 from wulttools import _Common, _WultCommon
 
 _VERSION = "1.10.50"
 _OWN_NAME = "wult"
 
-# The deployment information dictionary. See 'Deploy.Deploy.__init__()' for details.
+# The deployment information dictionary. See '_Deploy.Deploy.__init__()' for details.
 _WULT_DEPLOY_INFO = {
     "installables" : {
         "wult" : {
@@ -66,8 +66,8 @@ def _build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    subpars = Deploy.add_deploy_cmdline_args(_OWN_NAME, _WULT_DEPLOY_INFO, subparsers,
-                                            _deploy_command, argcomplete=argcomplete)
+    subpars = _Deploy.add_deploy_cmdline_args(_OWN_NAME, _WULT_DEPLOY_INFO, subparsers,
+                                              _deploy_command, argcomplete=argcomplete)
     text = """Deploy the eBPF helper, but do not deploy the drivers. This is a debug and development
               option, do not use it for other purposes."""
     subpars.add_argument("--skip-drivers", action="store_true", help=text)

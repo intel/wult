@@ -13,7 +13,7 @@ This module includes the "deploy" 'wult' command implementation.
 import logging
 from pepclibs.helperlibs.Exceptions import Error
 from wulttools import _Common
-from wultlibs.deploylibs import Deploy
+from wultlibs.deploylibs import _Deploy
 
 _LOG = logging.getLogger()
 
@@ -30,8 +30,8 @@ def deploy_command(args):
     with _Common.get_pman(args) as pman:
         ksrc = getattr(args, "ksrc", None)
         rebuild_bpf = getattr(args, "rebuild_bpf", None)
-        with Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, ksrc=ksrc,
-                           lbuild=args.lbuild, rebuild_bpf=rebuild_bpf,
-                           tmpdir_path=args.tmpdir_path, keep_tmpdir=args.keep_tmpdir,
-                           debug=args.debug) as depl:
+        with _Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, ksrc=ksrc,
+                            lbuild=args.lbuild, rebuild_bpf=rebuild_bpf,
+                            tmpdir_path=args.tmpdir_path, keep_tmpdir=args.keep_tmpdir,
+                            debug=args.debug) as depl:
             depl.deploy()

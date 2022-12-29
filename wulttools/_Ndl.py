@@ -21,14 +21,14 @@ except ImportError:
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
 from wulttools import _Common
-from wultlibs.deploylibs import Deploy
+from wultlibs.deploylibs import _Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.htmlreport import NdlReportParams
 
 _VERSION = "1.3.15"
 _OWN_NAME = "ndl"
 
-# The deployment information dictionary. See 'Deploy.Deploy.__init__()' for details.
+# The deployment information dictionary. See '_Deploy.Deploy.__init__()' for details.
 _NDL_DEPLOY_INFO = {
     "installables" : {
         "ndl" : {
@@ -67,8 +67,8 @@ def _build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    Deploy.add_deploy_cmdline_args(_OWN_NAME, _NDL_DEPLOY_INFO, subparsers, _deploy_command,
-                                   argcomplete=argcomplete)
+    _Deploy.add_deploy_cmdline_args(_OWN_NAME, _NDL_DEPLOY_INFO, subparsers, _deploy_command,
+                                    argcomplete=argcomplete)
 
     #
     # Create parsers for the "scan" command.

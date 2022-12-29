@@ -13,7 +13,7 @@ This module includes the "deploy" 'ndl' command implementation.
 import logging
 from pepclibs.helperlibs.Exceptions import Error
 from wulttools import _Common
-from wultlibs.deploylibs import Deploy
+from wultlibs.deploylibs import _Deploy
 
 _LOG = logging.getLogger()
 
@@ -28,6 +28,6 @@ def deploy_command(args):
                     f"'{args.toolname}'")
 
     with _Common.get_pman(args) as pman, \
-         Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, ksrc=args.ksrc,
+         _Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, ksrc=args.ksrc,
                        lbuild=args.lbuild, debug=args.debug) as depl:
         depl.deploy()

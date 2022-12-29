@@ -20,7 +20,7 @@ from pathlib import Path
 from pepclibs.helperlibs import Trivial, YAML, ProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wultlibs import Devices
-from wultlibs.deploylibs import Deploy
+from wultlibs.deploylibs import _Deploy
 from wultlibs.helperlibs import Human
 from statscollectlibs.helperlibs import ReportID
 
@@ -403,7 +403,7 @@ def scan_command(args):
         found_something = True
 
         deploy_info = reduce_installables(args.deploy_info, dev)
-        with Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
+        with _Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
             try:
                 depl.check_deployment()
             except ErrorNotFound as err:
@@ -557,7 +557,7 @@ def reduce_installables(deploy_info, dev):
     """
     Reduce full deployment information 'deploy_info' so that it includes only the installables
     required for using device 'dev'. The arguments are as follows.
-      * deploy_info - full deployment information dictionary. Check 'Deploy.Deploy.__init__()'
+      * deploy_info - full deployment information dictionary. Check '_Deploy.Deploy.__init__()'
                       docstring for the format of the dictionary.
       * dev - the device object created by 'Devices.GetDevice()'.
 
