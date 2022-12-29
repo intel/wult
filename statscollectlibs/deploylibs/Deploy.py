@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 from pepclibs.helperlibs import ArgParse, ClassHelpers, LocalProcessManager, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists, ErrorNotFound
-from statscollectlibs.deploylibs import DeployPyHelpers
+from statscollectlibs.deploylibs import DeployBase, DeployPyHelpers
 
 _LOG = logging.getLogger()
 
@@ -117,21 +117,7 @@ def get_installed_helper_path(pman, toolname, helper):
 
     return deployable_not_found(pman, toolname, f"the '{helper}' program", is_helper=True)
 
-def get_insts_cats(deploy_info, categories):
-    """Build and return dictionaries for categories and installables based on 'deploy_info'."""
-
-    cats = {}
-    insts = {}
-
-    # Initialize installables and categories dictionaries.
-    cats = { cat : {} for cat in categories }
-    for name, info in deploy_info["installables"].items():
-        insts[name] = info.copy()
-        cats[info["category"]][name] = info.copy()
-
-    return insts, cats
-
-class Deploy(ClassHelpers.SimpleCloseContext):
+class Deploy(DeployBase.DeployBase):
     """
     This class provides the 'deploy()' method which can be used for deploying the dependencies of
     the "stats-collect" tool.
@@ -203,6 +189,29 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                 del self._insts[installable]
             self._cats["pyhelpers"] = {}
 
+    def _remove_tmpdirs(self):
+        """Remove temporary directories."""
+
+        spman = getattr(self, "_spman", None)
+        cpman = getattr(self, "_cpman", None)
+        if not cpman or not spman:
+            return
+
+        ctmpdir = getattr(self, "_ctmpdir", None)
+        stmpdir = getattr(self, "_stmpdir", None)
+
+        if self._keep_tmpdir:
+            _LOG.info("Preserved the following temporary directories:")
+            if stmpdir:
+                _LOG.info(" * On the SUT (%s): %s", spman.hostname, stmpdir)
+            if ctmpdir and ctmpdir is not stmpdir:
+                _LOG.info(" * On the controller (%s): %s", cpman.hostname, ctmpdir)
+        else:
+            if stmpdir and self._stmpdir_created:
+                spman.rmtree(self._stmpdir)
+            if ctmpdir and cpman is not spman and self._ctmpdir_created:
+                cpman.rmtree(self._ctmpdir)
+
     def deploy(self):
         """
         Deploy all the required installables to the SUT (drivers, helpers, etc).
@@ -239,11 +248,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         finally:
             self._remove_tmpdirs()
 
-    def _init_insts_cats(self):
-        """Helper function for the constructor. Initialises '_ints' and '_cats'."""
-
-        self._insts, self._cats = get_insts_cats(self._deploy_info, _CATEGORIES)
-
     def __init__(self, toolname, deploy_info, pman=None, lbuild=False, tmpdir_path=None,
                  keep_tmpdir=False, debug=False):
         """
@@ -263,67 +267,18 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                     of a failure.
         """
 
-        self._toolname = toolname
-        self._deploy_info = deploy_info
-        self._lbuild = lbuild
         self._tmpdir_path = tmpdir_path
         self._keep_tmpdir = keep_tmpdir
-        self._debug = debug
 
         if self._tmpdir_path:
             self._tmpdir_path = Path(self._tmpdir_path)
 
-        self._insts = {}   # Installables information.
-        self._cats = {}    # Lists of installables in every category.
-        self._init_insts_cats()
-
-        self._spman = None   # Process manager associated with the SUT.
-        self._bpman = None   # Process manager associated with the build host.
-        self._cpman = None   # Process manager associated with the controller (local host).
         self._stmpdir = None # Temporary directory on the SUT.
         self._ctmpdir = None # Temporary directory on the controller (local host).
         self._btmpdir = None # Temporary directory on the build host.
         self._stmpdir_created = None # Temp. directory on the SUT has been created.
         self._ctmpdir_created = None # Temp. directory on the controller has been created.
 
-        self._cpman = LocalProcessManager.LocalProcessManager()
+        super().__init__("wult", toolname, deploy_info, pman=pman, lbuild=lbuild, debug=debug)
 
-        if pman:
-            self._spman = pman
-            self._close_spman = False
-        else:
-            self._spman = LocalProcessManager.LocalProcessManager()
-            self._close_spman = True
-
-        if self._lbuild:
-            self._bpman = self._cpman
-        else:
-            self._bpman = self._spman
-
-    def _remove_tmpdirs(self):
-        """Remove temporary directories."""
-
-        spman = getattr(self, "_spman", None)
-        cpman = getattr(self, "_cpman", None)
-        if not cpman or not spman:
-            return
-
-        ctmpdir = getattr(self, "_ctmpdir", None)
-        stmpdir = getattr(self, "_stmpdir", None)
-
-        if self._keep_tmpdir:
-            _LOG.info("Preserved the following temporary directories:")
-            if stmpdir:
-                _LOG.info(" * On the SUT (%s): %s", spman.hostname, stmpdir)
-            if ctmpdir and ctmpdir is not stmpdir:
-                _LOG.info(" * On the controller (%s): %s", cpman.hostname, ctmpdir)
-        else:
-            if stmpdir and self._stmpdir_created:
-                spman.rmtree(self._stmpdir)
-            if ctmpdir and cpman is not spman and self._ctmpdir_created:
-                cpman.rmtree(self._ctmpdir)
-
-    def close(self):
-        """Uninitialize the object."""
-
-        ClassHelpers.close(self, close_attrs=("_cpman", "_spman"), unref_attrs=("_bpman",))
+        self._init_insts_cats(_CATEGORIES)
