@@ -163,6 +163,6 @@ class DefsBase:
         self._populate_cstate_keys = ["title", "descr", "name", "fsname"]
 
         self.path = ProjectFiles.find_project_data("wult", Path(defsdir) / f"{name}.yml",
-                                                   descr=f"{name} definitions file")
+                                                   what=f"{name} definitions file")
         self.info = YAML.load(self.path)
         self._mangle_basic()

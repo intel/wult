@@ -204,15 +204,15 @@ class ReportBase:
         return stats_paths, logs_paths
 
     @staticmethod
-    def _copy_asset(src, descr, dst):
+    def _copy_asset(src, what, dst):
         """
         Copy asset file to the output directory. Arguments are as follows:
          * src - source path of the file to copy.
-         * descr - description of the file which is being copied.
+         * what - a human-readable name for what is being copied.
          * dst - where the file should be copied to.
         """
 
-        asset_path = ProjectFiles.find_project_data("wult", src, descr=descr)
+        asset_path = ProjectFiles.find_project_data("wult", src, what=what)
         FSHelpers.move_copy_link(asset_path, dst, "copy", exist_ok=True)
 
     def _get_smry_funcs(self, smry_metrics):

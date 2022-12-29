@@ -44,8 +44,8 @@ def find_pyhelper_path(pyhelper, deployable=None):
 
             try:
                 subpath = _DeployHelpersBase.HELPERS_SRC_SUBPATH / pyhelper / deployable
-                descr=f"the '{deployable}' python helper"
-                pyhelper_path = ProjectFiles.find_project_data("wult", subpath, descr=descr)
+                what = f"the '{deployable}' python helper"
+                pyhelper_path = ProjectFiles.find_project_data("wult", subpath, what=what)
             except ErrorNotFound as err2:
                 errmsg = str(err1).capitalize() + "\n" + str(err2).capitalize()
                 raise Error(f"failed to find '{pyhelper}' on the local system.\n{errmsg}") from err2

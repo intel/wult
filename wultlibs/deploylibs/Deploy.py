@@ -301,7 +301,8 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
 
             try:
                 subpath = _DeployDrivers.DRV_SRC_SUBPATH / self._toolname
-                srcpath = ProjectFiles.find_project_data("wult", subpath, f"the '{drvname}' driver")
+                what = f"the '{drvname}' driver"
+                srcpath = ProjectFiles.find_project_data("wult", subpath, what=what)
             except ErrorNotFound:
                 srcpath = None
 
@@ -321,9 +322,9 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
             self._khelper.check_minkver(helpername, self._get_kver())
 
             try:
-                descr=f"the '{helpername}' helper program"
                 subpath = _DeployHelpersBase.HELPERS_SRC_SUBPATH / helpername
-                srcpath = ProjectFiles.find_project_data("wult", subpath, descr)
+                what = f"the '{helpername}' helper program"
+                srcpath = ProjectFiles.find_project_data("wult", subpath, what=what)
             except ErrorNotFound:
                 srcpath = None
 
@@ -342,9 +343,9 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
 
         for pyhelper in self._cats["pyhelpers"]:
             try:
-                descr=f"the '{pyhelper}' python helper program"
                 subpath = _DeployHelpersBase.HELPERS_SRC_SUBPATH / pyhelper
-                srcpath = ProjectFiles.find_project_data("wult", subpath, descr)
+                what = f"the '{pyhelper}' python helper program"
+                srcpath = ProjectFiles.find_project_data("wult", subpath, what)
             except ErrorNotFound:
                 continue
 
