@@ -18,10 +18,10 @@ from statscollectlibs.defs.DefsBase import DefsBase
 class STCDefsBase(DefsBase):
     """The base class for metrics definitions (AKA 'defs')."""
 
-    def __init__(self, name):
+    def __init__(self, toolname):
         """
         The class constructor. The arguments are as follows.
-          * name - name of the tool to load the definitions for (e.g., 'turbostat').
+          * toolname - name of the tool to load the definitions for.
         """
 
-        super().__init__(name, "defs/statscollect")
+        super().__init__(toolname, defsdir="defs/statscollect")

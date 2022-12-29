@@ -17,10 +17,10 @@ from statscollectlibs.defs import DefsBase
 class WultDefsBase(DefsBase.DefsBase):
     """The base class for metrics definitions (AKA 'defs')."""
 
-    def __init__(self, name):
+    def __init__(self, toolname):
         """
         The class constructor. The arguments are as follows.
-          * name - name of the tool to load the definitions for (e.g., 'wult').
+          * toolname - name of the tool to load the definitions for.
         """
 
-        super().__init__(name, "defs/wult")
+        super().__init__(toolname, defsdir="defs/wult")
