@@ -12,13 +12,13 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import ProjectFiles
-from statscollectlibs.deploylibs import _DeployInstallableBase
+from statscollectlibs.deploylibs import DeployBase
 
 DRV_SRC_SUBPATH = Path("drivers/idle")
 
 _LOG = logging.getLogger()
 
-class DeployDrivers(_DeployInstallableBase.DeployInstallableBase):
+class DeployDrivers(DeployBase.DeployBase):
     """This class provides the API for deploying drivers."""
 
     def deploy(self, drivers, kver, ksrc, deployables):
