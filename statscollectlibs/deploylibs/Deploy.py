@@ -188,7 +188,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                                                          self._get_stmpdir(),
                                                          self._get_deployables("pyhelpers"),
                                                          self._debug)
-        dep_pyhelpers.deploy(list(pyhelpers), self._toolname, self._lbuild)
+        dep_pyhelpers.deploy(self._toolname, list(pyhelpers), self._lbuild)
 
     def _adjust_installables(self):
         """

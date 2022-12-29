@@ -463,13 +463,13 @@ class Deploy(StatsCollectDeploy.Deploy):
                                                              self._get_stmpdir(),
                                                              self._get_deployables("pyhelpers"),
                                                              self._debug)
-            dep_pyhelpers.deploy(list(pyhelpers), toolname, lbuild)
+            dep_pyhelpers.deploy(toolname, list(pyhelpers), lbuild)
 
         shelpers = self._cats.get("shelpers")
         if shelpers:
             dep_shelpers = _DeploySHelpers.DeploySHelpers(self._bpman, self._spman, self._btmpdir,
                                                           self._get_stmpdir(), self._debug)
-            dep_shelpers.deploy(list(shelpers), toolname, lbuild)
+            dep_shelpers.deploy(toolname, list(shelpers), lbuild)
 
         bpfhelpers = self._cats.get("bpfhelpers")
         if bpfhelpers:
@@ -478,7 +478,7 @@ class Deploy(StatsCollectDeploy.Deploy):
                                                                 self._tchk, self._get_ksrc(),
                                                                 lbuild, self._rebuild_bpf,
                                                                 self._debug)
-            dep_bpfhelpers.deploy(list(bpfhelpers), toolname, lbuild)
+            dep_bpfhelpers.deploy(toolname, list(bpfhelpers), lbuild)
 
     def _deploy_drivers(self):
         """Deploy drivers to the SUT."""
