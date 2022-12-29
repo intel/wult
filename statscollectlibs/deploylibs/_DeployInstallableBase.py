@@ -14,7 +14,7 @@ from pepclibs.helperlibs import Logging
 _LOG = logging.getLogger()
 
 class DeployInstallableBase:
-    """This base class can be inherited from to provide the API for deploying helpers."""
+    """This base class can be inherited from to provide the API for deploying installables."""
 
     def _log_cmd_output(self, stdout, stderr):
         """Print output of a command in case debugging is enabled."""
@@ -31,7 +31,7 @@ class DeployInstallableBase:
          * bpman - process manager associated with the build host.
          * spman - process manager associated with the SUT.
          * btmpdir - a path to a temporary directory on the build host.
-         * debug - a boolean variable used to enable extra verbose building of the drivers.
+         * debug - a boolean variable used to enable additional debugging messages.
         """
 
         self._bpman = bpman
