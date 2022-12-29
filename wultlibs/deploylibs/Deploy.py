@@ -449,11 +449,10 @@ class Deploy(StatsCollectDeploy.Deploy):
         _LOG.debug("Kernel sources path: %s", self._ksrc)
         return self._ksrc
 
-    def _deploy_helpers(self, toolname, lbuild):
+    def _deploy_helpers(self, toolname):
         """
         Deploy helpers (including python helpers) to the SUT. Arguments are as follows:
          * toolname - name of the tool which the helpers are supporting.
-         * lbuild - boolean value which represents whether to build locally or not.
         """
 
         pyhelpers = self._cats.get("pyhelpers")
@@ -463,7 +462,7 @@ class Deploy(StatsCollectDeploy.Deploy):
                                 self._get_stmpdir(), cpman=self._cpman, bpman=self._bpman,
                                 ctmpdir=self._get_ctmpdir(), btmpdir=self._btmpdir,
                                 debug=self._debug)
-            dep_pyhelpers.deploy(toolname, list(pyhelpers), lbuild)
+            dep_pyhelpers.deploy(toolname, list(pyhelpers))
 
         shelpers = self._cats.get("shelpers")
         if shelpers:
@@ -471,16 +470,16 @@ class Deploy(StatsCollectDeploy.Deploy):
                                 self._get_stmpdir(), cpman=self._cpman, bpman=self._bpman,
                                 ctmpdir=self._get_ctmpdir(), btmpdir=self._btmpdir,
                                 debug=self._debug)
-            dep_shelpers.deploy(toolname, list(shelpers), lbuild)
+            dep_shelpers.deploy(toolname, list(shelpers))
 
         bpfhelpers = self._cats.get("bpfhelpers")
         if bpfhelpers:
             dep_bpfhelpers = _DeployBPFHelpers.DeployBPFHelpers("wult", self._toolname, self._tchk,
-                                self._get_ksrc(), lbuild, self._rebuild_bpf, self._spman,
+                                self._get_ksrc(), self._rebuild_bpf, self._spman,
                                 self._get_stmpdir(), cpman=self._cpman, bpman=self._bpman,
                                 ctmpdir=self._get_ctmpdir(), btmpdir=self._btmpdir,
                                 debug=self._debug)
-            dep_bpfhelpers.deploy(toolname, list(bpfhelpers), lbuild)
+            dep_bpfhelpers.deploy(toolname, list(bpfhelpers))
 
     def _deploy_drivers(self):
         """Deploy drivers to the SUT."""
@@ -527,7 +526,7 @@ class Deploy(StatsCollectDeploy.Deploy):
             self._tchk.check_tool("cc")
 
         self._deploy_drivers()
-        self._deploy_helpers(self._toolname, self._lbuild)
+        self._deploy_helpers(self._toolname)
 
     def _init_insts_cats(self):
         """Helper function for the constructor. Initialises '_ints' and '_cats'."""

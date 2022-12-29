@@ -42,7 +42,7 @@ class DeployHelpersBase(DeployBase.DeployBase):
             helpers_path = self._spman.get_homedir() / HELPERS_LOCAL_DIR / "bin"
         return Path(helpers_path)
 
-    def deploy(self, toolname, helpers, lbuild):
+    def deploy(self, toolname, helpers):
         """Deploy helpers (including python helpers) to the SUT."""
 
         if not helpers:
@@ -80,7 +80,7 @@ class DeployHelpersBase(DeployBase.DeployBase):
             bhelperpath = f"{self._btmpdir}/{helper}"
             shelperpath = f"{self._stmpdir}/{helper}"
 
-            if lbuild and self._spman.is_remote:
+            if not self._bpman.is_remote and self._spman.is_remote:
                 # We built the helpers locally, but have to install them on a remote SUT. Copy them
                 # to the SUT first.
                 self._spman.rsync(str(bhelperpath) + "/", shelperpath,

@@ -183,7 +183,7 @@ class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
                 self._log_cmd_output(stdout, stderr)
 
         libbpf_path, u_inc = None, None
-        if self._lbuild:
+        if not self._bpman.is_remote and self._spman.is_remote:
             # We are building on a local system for a remote host. Everything should come from
             # kernel sources in this case: 'libbpf.a' and 'bpf/bpf.h'.
             libbpf_path = self._find_or_build_libbpf_a_from_ksrc()
@@ -206,20 +206,18 @@ class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
             stdout, stderr = self._bpman.run_verify(cmd)
             self._log_cmd_output(stdout, stderr)
 
-    def __init__(self, prjname, toolname, tchk, ksrc, lbuild, rebuild_src, spman, stmpdir,
+    def __init__(self, prjname, toolname, tchk, ksrc,  rebuild_src, spman, stmpdir,
                  cpman=None, bpman=None, ctmpdir=None, btmpdir=None, debug=False):
         """
         Class constructor. Arguments are the same as in '_DeployHelpersBase.DeployHelpersBase()'
         except for:
          * tchk - an instance of 'ToolChecker'.
          * ksrc - path to the kernel sources to compile drivers against.
-         * lbuild - boolean value representing whether this method should build locally.
          * rebuild_src - boolean value representing whether this method should rebuild bpf helpers.
         """
 
         self._tchk = tchk
         self._ksrc = ksrc
-        self._lbuild = lbuild
         self._rebuild_src = rebuild_src
 
         what = f"{toolname} eBPF helpers"

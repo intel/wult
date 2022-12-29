@@ -45,7 +45,6 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
 
     parser = subparsers.add_parser("deploy", help=text, description=descr)
 
-
     text = f"""Build {what} locally, instead of building on HOSTNAME (the SUT)."""
     parser.add_argument("--local-build", dest="lbuild", action="store_true", help=text)
 
@@ -187,7 +186,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
                             self._get_deployables("pyhelpers"), self._spman, self._get_stmpdir(),
                             cpman=self._cpman, bpman=self._bpman, ctmpdir=self._get_ctmpdir(),
                             btmpdir=self._btmpdir, debug=self._debug)
-        dep_pyhelpers.deploy(self._toolname, list(pyhelpers), self._lbuild)
+        dep_pyhelpers.deploy(self._toolname, list(pyhelpers))
 
     def _adjust_installables(self):
         """
@@ -296,12 +295,10 @@ class Deploy(ClassHelpers.SimpleCloseContext):
             self._spman = LocalProcessManager.LocalProcessManager()
             self._close_spman = True
 
-
         if self._lbuild:
             self._bpman = self._cpman
         else:
             self._bpman = self._spman
-
 
     def _remove_tmpdirs(self):
         """Remove temporary directories."""
