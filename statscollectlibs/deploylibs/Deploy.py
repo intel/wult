@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 from pepclibs.helperlibs import ArgParse, ClassHelpers, LocalProcessManager, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists, ErrorNotFound
-from statscollectlibs.deploylibs import _DeployPyHelpers
+from statscollectlibs.deploylibs import DeployPyHelpers
 
 _LOG = logging.getLogger()
 
@@ -183,12 +183,12 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if not pyhelpers:
             return
 
-        dep_pyhelpers = _DeployPyHelpers.DeployPyHelpers("wult", self._toolname, self._bpman,
-                                                         self._spman, self._cpman,
-                                                         self._btmpdir, self._get_ctmpdir(),
-                                                         self._get_stmpdir(),
-                                                         self._get_deployables("pyhelpers"),
-                                                         self._debug)
+        dep_pyhelpers = DeployPyHelpers.DeployPyHelpers("wult", self._toolname, self._bpman,
+                                                        self._spman, self._cpman,
+                                                        self._btmpdir, self._get_ctmpdir(),
+                                                        self._get_stmpdir(),
+                                                        self._get_deployables("pyhelpers"),
+                                                        self._debug)
         dep_pyhelpers.deploy(self._toolname, list(pyhelpers), self._lbuild)
 
     def _adjust_installables(self):

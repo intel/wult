@@ -35,7 +35,7 @@ from pathlib import Path
 from pepclibs.helperlibs import LocalProcessManager
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
-from statscollectlibs.deploylibs import _DeployHelpersBase, _DeployPyHelpers
+from statscollectlibs.deploylibs import _DeployHelpersBase, DeployPyHelpers
 from statscollectlibs.deploylibs import Deploy as StatsCollectDeploy
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
@@ -458,12 +458,12 @@ class Deploy(StatsCollectDeploy.Deploy):
 
         pyhelpers = self._cats.get("pyhelpers")
         if pyhelpers:
-            dep_pyhelpers = _DeployPyHelpers.DeployPyHelpers("wult", self._toolname, self._bpman,
-                                                             self._spman, self._cpman,
-                                                             self._btmpdir, self._get_ctmpdir(),
-                                                             self._get_stmpdir(),
-                                                             self._get_deployables("pyhelpers"),
-                                                             self._debug)
+            dep_pyhelpers = DeployPyHelpers.DeployPyHelpers("wult", self._toolname, self._bpman,
+                                                            self._spman, self._cpman,
+                                                            self._btmpdir, self._get_ctmpdir(),
+                                                            self._get_stmpdir(),
+                                                            self._get_deployables("pyhelpers"),
+                                                            self._debug)
             dep_pyhelpers.deploy(toolname, list(pyhelpers), lbuild)
 
         shelpers = self._cats.get("shelpers")
