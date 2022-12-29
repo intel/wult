@@ -29,7 +29,6 @@ Note, "wult" is both name of the project and name of the tool in the project.
 """
 
 import os
-import sys
 import time
 import logging
 from pathlib import Path
