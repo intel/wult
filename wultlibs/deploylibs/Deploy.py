@@ -36,7 +36,7 @@ from pepclibs.helperlibs import LocalProcessManager
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.deploylibs import _DeployHelpersBase, DeployPyHelpers
-from statscollectlibs.deploylibs import Deploy as StatsCollectDeploy
+from wultlibs.deploylibs import _DeployTemporary
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
 
@@ -229,8 +229,8 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
                 yield deployable
 
     def _get_installed_deployable_path(self, deployable):
-        """Same as 'StatsCollectDeploy.get_installed_helper_path()'."""
-        return StatsCollectDeploy.get_installed_helper_path(self._spman, self._toolname, deployable)
+        """Same as '_DeployTemporary.get_installed_helper_path()'."""
+        return _DeployTemporary.get_installed_helper_path(self._spman, self._toolname, deployable)
 
     def _get_installable_by_deployable(self, deployable):
         """Returns installable name and information dictionary for a deployable."""
@@ -252,13 +252,13 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         return f"the '{deployable}' {cat_descr}"
 
     def _deployable_not_found(self, deployable):
-        """Same as 'StatsCollectDeploy._deployable_not_found()'."""
+        """Same as '_DeployTemporary._deployable_not_found()'."""
 
         installable = self._get_installable_by_deployable(deployable)
         what = self._get_deployable_print_name(installable, deployable)
         is_helper = self._insts[installable]["category"] != "drivers"
 
-        StatsCollectDeploy.deployable_not_found(self._spman, self._toolname, what, is_helper)
+        _DeployTemporary.deployable_not_found(self._spman, self._toolname, what, is_helper)
 
     def _warn_deployable_out_of_date(self, deployable):
         """Print a warning about the 'what' deployable not being up-to-date."""
@@ -268,7 +268,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
 
         _LOG.warning("%s may be out of date%s\nConsider running '%s'",
                      what, self._spman.hostmsg,
-                     StatsCollectDeploy.get_deploy_cmd(self._spman, self._toolname))
+                     _DeployTemporary.get_deploy_cmd(self._spman, self._toolname))
 
     def _check_deployable_up_to_date(self, deployable, srcpath, dstpath):
         """
@@ -386,7 +386,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         Please, refer to module docstring for more information.
         """
 
-        self._insts, self._cats = StatsCollectDeploy.get_insts_cats(deploy_info, _CATEGORIES)
+        self._insts, self._cats = _DeployTemporary.get_insts_cats(deploy_info, _CATEGORIES)
         self._toolname = toolname
 
         if pman:
@@ -408,7 +408,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         ClassHelpers.close(self, close_attrs=("_spman", "_khelper"))
 
 
-class Deploy(StatsCollectDeploy.Deploy):
+class Deploy(_DeployTemporary.Deploy):
     """
     This class provides the 'deploy()' method which can be used for deploying the dependencies of
     the tools of the "wult" project.
@@ -525,7 +525,7 @@ class Deploy(StatsCollectDeploy.Deploy):
     def _init_insts_cats(self):
         """Helper function for the constructor. Initialises '_ints' and '_cats'."""
 
-        self._insts, self._cats = StatsCollectDeploy.get_insts_cats(self._deploy_info, _CATEGORIES)
+        self._insts, self._cats = _DeployTemporary.get_insts_cats(self._deploy_info, _CATEGORIES)
 
     def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False, rebuild_bpf=False,
                  tmpdir_path=None, keep_tmpdir=False, debug=False):
