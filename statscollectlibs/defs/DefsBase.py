@@ -148,9 +148,10 @@ class DefsBase:
             val["name"] = key
             val["fsname"] = get_fsname(key)
 
-    def __init__(self, toolname, defsdir=None):
+    def __init__(self, prjname, toolname, defsdir=None):
         """
         The class constructor. The arguments are as follows.
+          * prjname - name of the project the definitions and 'toolname' belong to.
           * toolname - name of the tool to load the definitions for.
           * defsdir - path of directory containing definition files, defaults to "defs".
         """
@@ -162,7 +163,7 @@ class DefsBase:
 
         self._populate_cstate_keys = ["title", "descr", "name", "fsname"]
 
-        self.path = ProjectFiles.find_project_data("wult", Path(defsdir) / f"{toolname}.yml",
+        self.path = ProjectFiles.find_project_data(prjname, Path(defsdir) / f"{toolname}.yml",
                                                    what=f"{toolname} definitions file")
         self.info = YAML.load(self.path)
         self._mangle_basic()
