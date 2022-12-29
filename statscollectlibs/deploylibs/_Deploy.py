@@ -8,11 +8,11 @@
 
 """This module provides the API for deploying the 'stats-collect' tool."""
 
-import logging
 import os
+import logging
 from pathlib import Path
-from pepclibs.helperlibs import ArgParse, ClassHelpers, LocalProcessManager, ProjectFiles
-from pepclibs.helperlibs.Exceptions import Error, ErrorExists, ErrorNotFound
+from pepclibs.helperlibs import ArgParse, ProjectFiles
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.deploylibs import DeployBase, DeployPyHelpers
 
 _LOG = logging.getLogger()
@@ -123,37 +123,6 @@ class Deploy(DeployBase.DeployBase):
     the "stats-collect" tool.
     """
 
-    def _get_stmpdir(self):
-        """Creates a temporary directory on the SUT and returns its path."""
-
-        if not self._stmpdir:
-            self._stmpdir_created = True
-            if not self._tmpdir_path:
-                self._stmpdir = self._spman.mkdtemp(prefix=f"{self._toolname}-")
-            else:
-                self._stmpdir = self._tmpdir_path
-                try:
-                    self._spman.mkdir(self._stmpdir, parents=True, exist_ok=False)
-                except ErrorExists:
-                    self._stmpdir_created = False
-
-        return self._stmpdir
-
-    def _get_ctmpdir(self):
-        """Creates a temporary directory on the controller and returns its path."""
-
-        if not self._ctmpdir:
-            self._ctmpdir_created = True
-            if not self._tmpdir_path:
-                self._ctmpdir = self._cpman.mkdtemp(prefix=f"{self._toolname}-")
-            else:
-                self._ctmpdir = self._tmpdir_path
-                try:
-                    self._cpman.mkdir(self._ctmpdir, parents=True, exist_ok=False)
-                except ErrorExists:
-                    self._ctmpdir_created = False
-        return self._ctmpdir
-
     def _get_deployables(self, category):
         """Yields all deployable names for category 'category' (e.g., "drivers")."""
 
@@ -188,29 +157,6 @@ class Deploy(DeployBase.DeployBase):
             for installable in self._cats["pyhelpers"]:
                 del self._insts[installable]
             self._cats["pyhelpers"] = {}
-
-    def _remove_tmpdirs(self):
-        """Remove temporary directories."""
-
-        spman = getattr(self, "_spman", None)
-        cpman = getattr(self, "_cpman", None)
-        if not cpman or not spman:
-            return
-
-        ctmpdir = getattr(self, "_ctmpdir", None)
-        stmpdir = getattr(self, "_stmpdir", None)
-
-        if self._keep_tmpdir:
-            _LOG.info("Preserved the following temporary directories:")
-            if stmpdir:
-                _LOG.info(" * On the SUT (%s): %s", spman.hostname, stmpdir)
-            if ctmpdir and ctmpdir is not stmpdir:
-                _LOG.info(" * On the controller (%s): %s", cpman.hostname, ctmpdir)
-        else:
-            if stmpdir and self._stmpdir_created:
-                spman.rmtree(self._stmpdir)
-            if ctmpdir and cpman is not spman and self._ctmpdir_created:
-                cpman.rmtree(self._ctmpdir)
 
     def deploy(self):
         """
@@ -251,34 +197,10 @@ class Deploy(DeployBase.DeployBase):
     def __init__(self, toolname, deploy_info, pman=None, lbuild=False, tmpdir_path=None,
                  keep_tmpdir=False, debug=False):
         """
-        The class constructor. The arguments are as follows.
-          * toolname - name of the tool to create the deployment object for.
-          * deploy_info - a dictionary describing the tool to deploy. Check
-                          'DeployInstallableBase.__init__()' for more information.
-          * pman - the process manager object that defines the SUT to deploy to (local host by
-                   default).
-          * lbuild - by default, everything is built on the SUT, but if 'lbuild' is 'True', then
-                     everything is built on the local host.
-          * tmpdir_path - if provided, use this path as a temporary directory (by default, a random
-                           temporary directory is created).
-          * keep_tmpdir - if 'False', remove the temporary directory when finished. If 'True', do
-                          not remove it.
-          * debug - if 'True', be more verbose and do not remove the temporary directories in case
-                    of a failure.
+        The class constructor. The arguments are the same as in 'DeployBase.__init()'.
         """
 
-        self._tmpdir_path = tmpdir_path
-        self._keep_tmpdir = keep_tmpdir
-
-        if self._tmpdir_path:
-            self._tmpdir_path = Path(self._tmpdir_path)
-
-        self._stmpdir = None # Temporary directory on the SUT.
-        self._ctmpdir = None # Temporary directory on the controller (local host).
-        self._btmpdir = None # Temporary directory on the build host.
-        self._stmpdir_created = None # Temp. directory on the SUT has been created.
-        self._ctmpdir_created = None # Temp. directory on the controller has been created.
-
-        super().__init__("wult", toolname, deploy_info, pman=pman, lbuild=lbuild, debug=debug)
+        super().__init__("wult", toolname, deploy_info, pman=pman, lbuild=lbuild, tmpdir_path=tmpdir_path,
+                         keep_tmpdir=keep_tmpdir, debug=debug)
 
         self._init_insts_cats(_CATEGORIES)
