@@ -114,8 +114,13 @@ def start_command(args):
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
         _Common.set_filters(args, res)
 
-        stcoll = STCHelpers.create_and_configure_stcoll(args.stats, args.stats_intervals,
-                                                        args.outdir, pman)
+        stcoll_builder = STCHelpers.StatsCollectBuilder()
+        if args.stats and args.stats != "none":
+            stcoll_builder.parse_stnames(args.stats)
+        if args.stats_intervals:
+            stcoll_builder.parse_intervals(args.stats_intervals)
+
+        stcoll = stcoll_builder.build_stcoll(pman, args.outdir)
         if stcoll:
             stack.enter_context(stcoll)
 

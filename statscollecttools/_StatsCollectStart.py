@@ -64,11 +64,16 @@ def start_command(args):
 
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
 
-        if not args.stats:
+        if not args.stats or args.stats == "none":
             raise Error("No statistics specified. Use '--stats' to specify which statistics "
                         "should be collected.")
-        stcoll = STCHelpers.create_and_configure_stcoll(args.stats, args.stats_intervals,
-                                                        args.outdir, pman)
+
+        stcoll_builder = STCHelpers.StatsCollectBuilder()
+        stcoll_builder.parse_stnames(args.stats)
+        if args.stats_intervals:
+            stcoll_builder.parse_intervals(args.stats_intervals)
+
+        stcoll = stcoll_builder.build_stcoll(pman, args.outdir)
         if not stcoll:
             return
 
