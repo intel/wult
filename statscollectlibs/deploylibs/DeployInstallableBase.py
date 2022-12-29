@@ -13,7 +13,7 @@ from pepclibs.helperlibs import Logging
 
 _LOG = logging.getLogger()
 
-class DeployBase:
+class DeployInstallableBase:
     """This base class can be inherited from to provide the API for deploying installables."""
 
     def _log_cmd_output(self, stdout, stderr):
