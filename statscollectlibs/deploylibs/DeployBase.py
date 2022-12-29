@@ -25,32 +25,28 @@ class DeployBase:
             if stderr:
                 _LOG.log(Logging.ERRINFO, stderr)
 
-    def __init__(self, prjname, toolname, spman, stmpdir, cpman=None, bpman=None, ctmpdir=None,
-                 btmpdir=None, debug=False):
+    def __init__(self, prjname, toolname, spman, bpman, stmpdir, btmpdir, cpman=None, ctmpdir=None,
+                 debug=False):
         """
         Class constructor. Arguments are as follows:
          * prjname - name of the project the installables and 'toolname' belong to.
          * toolname - name of the tool the installables belong to.
          * spman - a process manager object associated with the SUT (System Under Test, the system
                    where the installables will be deployed).
-         * stmpdir - a temporary directory on the SUT.
-         * cpman - a process manager object associated with the controller (local host). Same as
-                  'spman' by default.
          * bpman - a process manager object associated with the build host (the host where the
                    installable should be built). Same as 'spman' by default.
-         * ctmpdir - path to temporary directory on the controller (same as 'stmpdir' by default).
+         * stmpdir - a temporary directory on the SUT.
          * btmpdir - path to temporary directory on the build host (same as 'stmpdir' by default).
+         * cpman - a process manager object associated with the controller (local host). Same as
+                  'spman' by default.
+         * ctmpdir - path to temporary directory on the controller (same as 'stmpdir' by default).
          * debug - a boolean variable for enabling additional debugging messages.
         """
 
         if not cpman:
             cpman = spman
-        if not bpman:
-            bpman = spman
         if not ctmpdir:
             ctmpdir = stmpdir
-        if not btmpdir:
-            btmpdir = stmpdir
 
         self._prjname = prjname
         self._toolname = toolname

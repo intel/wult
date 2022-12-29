@@ -94,8 +94,8 @@ class DeployHelpersBase(DeployBase.DeployBase):
                               remotesrc=self._spman.is_remote,
                               remotedst=self._spman.is_remote)
 
-    def __init__(self, prjname, toolname, what, spman, stmpdir, cpman=None, bpman=None,
-                 ctmpdir=None, btmpdir=None, debug=False):
+    def __init__(self, prjname, toolname, what, spman, bpman, stmpdir, btmpdir, cpman=None,
+                 ctmpdir=None, debug=False):
         """
         Class constructor. Arguments are the same as in 'DeployBase.DeployBase()' except for the
         following:
@@ -105,5 +105,5 @@ class DeployHelpersBase(DeployBase.DeployBase):
         self._stmpdir = stmpdir
         self._what = what
 
-        super().__init__(prjname, toolname, spman, stmpdir, cpman=cpman, bpman=bpman,
-                         ctmpdir=ctmpdir, btmpdir=btmpdir, debug=False)
+        super().__init__(prjname, toolname, spman, bpman, stmpdir, btmpdir, cpman=cpman,
+                         ctmpdir=ctmpdir, debug=False)

@@ -206,8 +206,8 @@ class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
             stdout, stderr = self._bpman.run_verify(cmd)
             self._log_cmd_output(stdout, stderr)
 
-    def __init__(self, prjname, toolname, tchk, ksrc,  rebuild_src, spman, stmpdir,
-                 cpman=None, bpman=None, ctmpdir=None, btmpdir=None, debug=False):
+    def __init__(self, prjname, toolname, tchk, ksrc,  rebuild_src, spman, bpman, stmpdir, btmpdir,
+                 debug=False):
         """
         Class constructor. Arguments are the same as in '_DeployHelpersBase.DeployHelpersBase()'
         except for:
@@ -221,5 +221,4 @@ class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
         self._rebuild_src = rebuild_src
 
         what = f"{toolname} eBPF helpers"
-        super().__init__(prjname, toolname, what, spman, stmpdir, cpman=cpman, bpman=bpman,
-                         ctmpdir=ctmpdir, btmpdir=btmpdir, debug=debug)
+        super().__init__(prjname, toolname, what, spman, bpman, stmpdir, btmpdir, debug=debug)

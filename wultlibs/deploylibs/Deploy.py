@@ -458,27 +458,22 @@ class Deploy(StatsCollectDeploy.Deploy):
         pyhelpers = self._cats.get("pyhelpers")
         if pyhelpers:
             dep_pyhelpers = DeployPyHelpers.DeployPyHelpers("wult", self._toolname,
-                                self._get_deployables("pyhelpers"), self._spman,
-                                self._get_stmpdir(), cpman=self._cpman, bpman=self._bpman,
-                                ctmpdir=self._get_ctmpdir(), btmpdir=self._btmpdir,
-                                debug=self._debug)
+                                self._get_deployables("pyhelpers"), self._spman, self._bpman,
+                                self._cpman, self._get_stmpdir(), self._btmpdir,
+                                self._get_ctmpdir(), debug=self._debug)
             dep_pyhelpers.deploy(toolname, list(pyhelpers))
 
         shelpers = self._cats.get("shelpers")
         if shelpers:
             dep_shelpers = _DeploySHelpers.DeploySHelpers("wult", self._toolname, self._spman,
-                                self._get_stmpdir(), cpman=self._cpman, bpman=self._bpman,
-                                ctmpdir=self._get_ctmpdir(), btmpdir=self._btmpdir,
-                                debug=self._debug)
+                                self._bpman, self._get_stmpdir(), self._btmpdir, debug=self._debug)
             dep_shelpers.deploy(toolname, list(shelpers))
 
         bpfhelpers = self._cats.get("bpfhelpers")
         if bpfhelpers:
             dep_bpfhelpers = _DeployBPFHelpers.DeployBPFHelpers("wult", self._toolname, self._tchk,
-                                self._get_ksrc(), self._rebuild_bpf, self._spman,
-                                self._get_stmpdir(), cpman=self._cpman, bpman=self._bpman,
-                                ctmpdir=self._get_ctmpdir(), btmpdir=self._btmpdir,
-                                debug=self._debug)
+                                self._get_ksrc(), self._rebuild_bpf, self._spman, self._bpman,
+                                self._get_stmpdir(), self._btmpdir, debug=self._debug)
             dep_bpfhelpers.deploy(toolname, list(bpfhelpers))
 
     def _deploy_drivers(self):
@@ -491,10 +486,9 @@ class Deploy(StatsCollectDeploy.Deploy):
         for dep in self._get_deployables("drivers"):
             deps[dep] = self._khelper.get_module_path(dep)
 
-        dep_drvr = _DeployDrivers.DeployDrivers("wult", self._toolname, self._spman,
-                            self._get_stmpdir(), cpman=self._cpman, bpman=self._bpman,
-                            ctmpdir=self._get_ctmpdir(), btmpdir=self._btmpdir,
-                            debug=self._debug)
+        dep_drvr = _DeployDrivers.DeployDrivers("wult", self._toolname, self._spman, self._bpman,
+                                                self._get_stmpdir(), self._btmpdir,
+                                                debug=self._debug)
         dep_drvr.deploy(self._cats["drivers"], self._get_kver(), self._get_ksrc(), deps)
 
     def _adjust_installables(self):
