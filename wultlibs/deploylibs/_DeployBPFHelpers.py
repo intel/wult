@@ -221,4 +221,6 @@ class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
         self._ksrc = ksrc
         self._lbuild = lbuild
         self._rebuild_src = rebuild_src
-        super().__init__(prjname, toolname, bpman, spman, btmpdir, stmpdir, "bpf", debug)
+
+        what = f"{toolname} eBPF helpers"
+        super().__init__(prjname, toolname, bpman, spman, btmpdir, stmpdir, what, debug)

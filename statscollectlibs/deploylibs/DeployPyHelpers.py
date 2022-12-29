@@ -219,4 +219,7 @@ class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
         self._cpman = cpman
         self._ctmpdir = ctmpdir
         self._deployables = deployables
-        super().__init__(prjname, toolname, bpman, spman, btmpdir, stmpdir, "python", debug)
+
+        what = f"{toolname} python helpers"
+        super().__init__(prjname, toolname, bpman, spman, btmpdir, stmpdir, what, debug)
+

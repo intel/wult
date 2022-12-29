@@ -44,4 +44,5 @@ class DeploySHelpers(_DeployHelpersBase.DeployHelpersBase):
         Class constructor. Arguments are the same as in '_DeployHelpersBase.DeployHelpersBase'.
         """
 
-        super().__init__(prjname, toolname, bpman, spman, btmpdir, stmpdir, "simple", debug)
+        what = f"{toolname} helpers"
+        super().__init__(prjname, toolname, bpman, spman, btmpdir, stmpdir, what, debug)
