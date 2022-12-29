@@ -142,7 +142,7 @@ def _deploy_command(args):
     _StatsCollectDeploy.deploy_command(args)
 
 def _start_command(args):
-    """Implements the 'wult start' command."""
+    """Implements the 'stats-collect start' command."""
 
     from statscollecttools import _StatsCollectStart # pylint: disable=import-outside-toplevel
 
