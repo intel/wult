@@ -183,12 +183,10 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         if not pyhelpers:
             return
 
-        dep_pyhelpers = DeployPyHelpers.DeployPyHelpers("wult", self._toolname, self._bpman,
-                                                        self._spman, self._cpman,
-                                                        self._btmpdir, self._get_ctmpdir(),
-                                                        self._get_stmpdir(),
-                                                        self._get_deployables("pyhelpers"),
-                                                        debug=self._debug)
+        dep_pyhelpers = DeployPyHelpers.DeployPyHelpers("wult", self._toolname,
+                            self._get_deployables("pyhelpers"), self._spman, self._get_stmpdir(),
+                            cpman=self._cpman, bpman=self._bpman, ctmpdir=self._get_ctmpdir(),
+                            btmpdir=self._btmpdir, debug=self._debug)
         dep_pyhelpers.deploy(self._toolname, list(pyhelpers), self._lbuild)
 
     def _adjust_installables(self):

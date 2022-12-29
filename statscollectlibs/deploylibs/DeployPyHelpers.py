@@ -206,19 +206,16 @@ class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
                            pyhelper, self._spman.hostname, srcdir, self._stmpdir)
                 self._spman.rsync(srcdir, self._stmpdir, remotesrc=False, remotedst=True)
 
-    def __init__(self, prjname, toolname, bpman, spman, cpman, btmpdir, ctmpdir, stmpdir,
-                 deployables, debug=False):
+    def __init__(self, prjname, toolname, deployables, spman, stmpdir, cpman=None, bpman=None,
+                 ctmpdir=None, btmpdir=None, debug=False):
         """
         Class constructor. Arguments are the same as in '_DeployHelpersBase.DeployHelpersBase()'
         except for:
-         * cpman - process manager associated with the controller (local host).
-         * ctmpdir - a path to a temporary directory on the controller.
          * deployables - the names of deployables to deploy.
         """
 
-        self._cpman = cpman
-        self._ctmpdir = ctmpdir
         self._deployables = deployables
 
         what = f"{toolname} python helpers"
-        super().__init__(prjname, toolname, bpman, spman, btmpdir, stmpdir, what, debug=debug)
+        super().__init__(prjname, toolname, what, spman, stmpdir, cpman=cpman, bpman=bpman,
+                         ctmpdir=ctmpdir, btmpdir=btmpdir, debug=debug)

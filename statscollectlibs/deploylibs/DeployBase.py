@@ -25,20 +25,39 @@ class DeployBase:
             if stderr:
                 _LOG.log(Logging.ERRINFO, stderr)
 
-    def __init__(self, prjname, toolname, bpman, spman, btmpdir, debug=False):
+    def __init__(self, prjname, toolname, spman, stmpdir, cpman=None, bpman=None, ctmpdir=None,
+                 btmpdir=None, debug=False):
         """
         Class constructor. Arguments are as follows:
          * prjname - name of the project the installables and 'toolname' belong to.
          * toolname - name of the tool the installables belong to.
-         * bpman - process manager associated with the build host.
-         * spman - process manager associated with the SUT.
-         * btmpdir - a path to a temporary directory on the build host.
-         * debug - a boolean variable used to enable additional debugging messages.
+         * spman - a process manager object associated with the SUT (System Under Test, the system
+                   where the installables will be deployed).
+         * stmpdir - a temporary directory on the SUT.
+         * cpman - a process manager object associated with the controller (local host). Same as
+                  'spman' by default.
+         * bpman - a process manager object associated with the build host (the host where the
+                   installable should be built). Same as 'spman' by default.
+         * ctmpdir - path to temporary directory on the controller (same as 'stmpdir' by default).
+         * btmpdir - path to temporary directory on the build host (same as 'stmpdir' by default).
+         * debug - a boolean variable for enabling additional debugging messages.
         """
+
+        if not cpman:
+            cpman = spman
+        if not bpman:
+            bpman = spman
+        if not ctmpdir:
+            ctmpdir = stmpdir
+        if not btmpdir:
+            btmpdir = stmpdir
 
         self._prjname = prjname
         self._toolname = toolname
-        self._bpman = bpman
         self._spman = spman
-        self._btmpdir = btmpdir
+        self._stmpdir = stmpdir
         self._debug = debug
+        self._cpman = cpman
+        self._bpman = bpman
+        self._ctmpdir = ctmpdir
+        self._btmpdir = btmpdir

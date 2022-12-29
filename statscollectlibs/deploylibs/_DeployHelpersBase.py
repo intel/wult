@@ -94,15 +94,16 @@ class DeployHelpersBase(DeployBase.DeployBase):
                               remotesrc=self._spman.is_remote,
                               remotedst=self._spman.is_remote)
 
-    def __init__(self, prjname, toolname, bpman, spman, btmpdir, stmpdir, what, debug=False):
+    def __init__(self, prjname, toolname, what, spman, stmpdir, cpman=None, bpman=None,
+                 ctmpdir=None, btmpdir=None, debug=False):
         """
-        Class constructor. Arguments are the same as in 'DeployBase.DeployBase' except for the
+        Class constructor. Arguments are the same as in 'DeployBase.DeployBase()' except for the
         following:
-         * stmpdir - a path to a temporary directory on the SUT.
          * what - a human-readable string describing the helpers that are being deployed.
         """
 
         self._stmpdir = stmpdir
         self._what = what
 
-        super().__init__(prjname, toolname, bpman, spman, btmpdir, debug=debug)
+        super().__init__(prjname, toolname, spman, stmpdir, cpman=cpman, bpman=bpman,
+                         ctmpdir=ctmpdir, btmpdir=btmpdir, debug=False)
