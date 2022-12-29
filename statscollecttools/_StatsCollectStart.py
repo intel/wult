@@ -16,7 +16,7 @@ from pepclibs import CPUInfo
 from pepclibs.helperlibs import Human, Logging
 from pepclibs.helperlibs.Exceptions import Error
 from statscollecttools import _Common
-from statscollectlibs.collector import STCHelpers
+from statscollectlibs.collector import StatsCollectBuilder
 from statscollectlibs.helperlibs import ReportID
 from statscollectlibs.rawresultlibs import RawResult
 
@@ -68,7 +68,7 @@ def start_command(args):
             raise Error("No statistics specified. Use '--stats' to specify which statistics "
                         "should be collected.")
 
-        stcoll_builder = STCHelpers.StatsCollectBuilder()
+        stcoll_builder = StatsCollectBuilder.StatsCollectBuilder()
         stcoll_builder.parse_stnames(args.stats)
         if args.stats_intervals:
             stcoll_builder.parse_intervals(args.stats_intervals)

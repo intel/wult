@@ -16,7 +16,7 @@ from pathlib import Path
 
 from pepclibs.helperlibs import Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from statscollectlibs.collector import STCHelpers
+from statscollectlibs.collector import StatsCollectBuilder
 from wulttools import _Common
 from wultlibs import NdlRunner, Devices
 from wultlibs.deploylibs import Deploy
@@ -65,7 +65,7 @@ def start_command(args):
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
         _Common.set_filters(args, res)
 
-        stcoll_builder = STCHelpers.StatsCollectBuilder()
+        stcoll_builder = StatsCollectBuilder.StatsCollectBuilder()
         if args.stats and args.stats != "none":
             stcoll_builder.parse_stnames(args.stats)
         if args.stats_intervals:
