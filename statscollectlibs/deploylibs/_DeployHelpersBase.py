@@ -42,14 +42,14 @@ class DeployHelpersBase(_DeployInstallableBase.DeployInstallableBase):
             helpers_path = self._spman.get_homedir() / HELPERS_LOCAL_DIR / "bin"
         return Path(helpers_path)
 
-    def deploy(self, all_helpers, toolname, lbuild):
+    def deploy(self, helpers, toolname, lbuild):
         """Deploy helpers (including python helpers) to the SUT."""
 
-        if not all_helpers:
+        if not helpers:
             return
 
         # We assume all helpers are in the same base directory.
-        helper_path = HELPERS_SRC_SUBPATH/f"{all_helpers[0]}"
+        helper_path = HELPERS_SRC_SUBPATH/f"{helpers[0]}"
         what=f"{toolname} helper sources"
         helpersrc = ProjectFiles.find_project_data("wult", helper_path, what=what)
         helpersrc = helpersrc.parent
@@ -58,12 +58,12 @@ class DeployHelpersBase(_DeployInstallableBase.DeployInstallableBase):
             raise Error(f"path '{helpersrc}' does not exist or it is not a directory")
 
         # Make sure all helpers are available.
-        for helper in all_helpers:
+        for helper in helpers:
             helperdir = helpersrc / helper
             if not helperdir.is_dir():
                 raise Error(f"path '{helperdir}' does not exist or it is not a directory")
 
-        self._prepare(helpersrc, all_helpers)
+        self._prepare(helpersrc, helpers)
 
         deploy_path = self._get_helpers_deploy_path()
 
@@ -77,7 +77,7 @@ class DeployHelpersBase(_DeployInstallableBase.DeployInstallableBase):
         helpersdst = self._stmpdir / "helpers_deployed"
         _LOG.debug("deploying helpers to '%s'%s", helpersdst, self._spman.hostmsg)
 
-        for helper in all_helpers:
+        for helper in helpers:
             bhelperpath = f"{self._btmpdir}/{helper}"
             shelperpath = f"{self._stmpdir}/{helper}"
 
