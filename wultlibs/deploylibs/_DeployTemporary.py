@@ -189,7 +189,7 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         The class constructor. The arguments are as follows.
           * toolname - name of the tool to create the deployment object for.
           * deploy_info - a dictionary describing the tool to deploy. Check 'DeployBase.__init__()'
-                          for more information.
+                          tfor more information.
           * pman - the process manager object that defines the SUT to deploy to (local host by
                    default).
           * lbuild - by default, everything is built on the SUT, but if 'lbuild' is 'True', then

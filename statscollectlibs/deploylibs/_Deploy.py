@@ -75,13 +75,11 @@ class Deploy(DeployBase.DeployBase):
         btmpdir = self._get_btmpdir()
         ctmpdir = self._get_ctmpdir()
 
-        dep_pyhelpers = DeployPyHelpers.DeployPyHelpers("wult", self._toolname, deployables,
-                                                        self._spman, self._bpman, self._cpman,
-                                                        stmpdir, btmpdir, ctmpdir,
-                                                        debug=self._debug)
-
-        pyhelpers = self._cats.get("pyhelpers")
-        dep_pyhelpers.deploy(self._toolname, list(pyhelpers))
+        with DeployPyHelpers.DeployPyHelpers("wult", self._toolname, deployables, self._spman,
+                                             self._bpman, self._cpman, stmpdir, btmpdir, ctmpdir,
+                                             debug=self._debug) as depl:
+            pyhelpers = list(self._cats.get("pyhelpers"))
+            depl.deploy(self._toolname, pyhelpers)
 
     def deploy(self):
         """Deploy all the installables to the SUT."""

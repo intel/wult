@@ -9,11 +9,11 @@
 """This module provides a base class for deploying installables."""
 
 import logging
-from pepclibs.helperlibs import Logging
+from pepclibs.helperlibs import Logging, ClassHelpers
 
 _LOG = logging.getLogger()
 
-class DeployInstallableBase:
+class DeployInstallableBase(ClassHelpers.SimpleCloseContext):
     """This base class can be inherited from to provide the API for deploying installables."""
 
     def _log_cmd_output(self, stdout, stderr):
@@ -51,9 +51,13 @@ class DeployInstallableBase:
         self._prjname = prjname
         self._toolname = toolname
         self._spman = spman
-        self._stmpdir = stmpdir
-        self._debug = debug
-        self._cpman = cpman
         self._bpman = bpman
-        self._ctmpdir = ctmpdir
+        self._stmpdir = stmpdir
         self._btmpdir = btmpdir
+        self._cpman = cpman
+        self._ctmpdir = ctmpdir
+        self._debug = debug
+
+    def close(self):
+        """Uninitialize the object."""
+        ClassHelpers.close(self, unref_attrs=("_spman", "_bpman", "_cpman"))
