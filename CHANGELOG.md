@@ -10,6 +10,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    '--stats-intervals' options).
  - Add 'stats-collect' tool. It is not very useful yet, but it will get more
    functionality later.
+ - Add warnings to wult HTML reports when a diagram has been skipped because all
+   results contain a single value for a given metric.
 ### Removed
 ### Changed
 
