@@ -83,6 +83,20 @@ def get_installed_helper_path(prjname, toolname, helper, pman=None):
             err += "\n" + get_deploy_suggestion(wpman, prjname, toolname, what, is_helper=True)
             raise ErrorNotFound(err) from None
 
+def get_insts_cats(deploy_info, categories):
+    """Build and return dictionaries for categories and installables based on 'deploy_info'."""
+
+    cats = {}
+    insts = {}
+
+    # Initialize installables and categories dictionaries.
+    cats = { cat : {} for cat in categories }
+    for name, info in deploy_info["installables"].items():
+        insts[name] = info.copy()
+        cats[info["category"]][name] = info.copy()
+
+    return insts, cats
+
 class DeployBase(ClassHelpers.SimpleCloseContext):
     """This module provides the base class that includes sharable pieces of the 'Deploy' class."""
 
@@ -168,11 +182,7 @@ class DeployBase(ClassHelpers.SimpleCloseContext):
         Initialize the dictionaries for categories and installables based on 'self._deploy_info'.
         """
 
-        # Initialize installables and categories dictionaries.
-        self._cats = { cat : {} for cat in categories }
-        for name, info in self._deploy_info["installables"].items():
-            self._insts[name] = info.copy()
-            self._cats[info["category"]][name] = info.copy()
+        self._insts, self._cats = get_insts_cats(self._deploy_info, categories)
 
     def __init__(self, prjname, toolname, deploy_info, pman=None, lbuild=False, tmpdir_path=None,
                  keep_tmpdir=False, debug=False):

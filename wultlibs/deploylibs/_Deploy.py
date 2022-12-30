@@ -19,7 +19,6 @@ from pepclibs.helperlibs import LocalProcessManager
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.deploylibs import DeployBase, _DeployHelpersBase
-from wultlibs.deploylibs import _DeployTemporary
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
 
@@ -237,7 +236,10 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         return f"the '{deployable}' {cat_descr}"
 
     def _deployable_not_found(self, deployable):
-        """Same as '_DeployTemporary._deployable_not_found()'."""
+        """
+        Called in a situation when 'deployable' was not found. Formats an error message and
+        raises 'ErrorNotFound'.
+        """
 
         installable = self._get_installable_by_deployable(deployable)
         what = self._get_deployable_print_name(installable, deployable)
@@ -372,7 +374,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         Please, refer to module docstring for more information.
         """
 
-        self._insts, self._cats = _DeployTemporary.get_insts_cats(deploy_info, _CATEGORIES)
+        self._insts, self._cats = DeployBase.get_insts_cats(deploy_info, _CATEGORIES)
         self._toolname = toolname
 
         if pman:
@@ -389,12 +391,13 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
 
         self._time_delta = None
 
+
     def close(self):
         """Uninitialize the object."""
         ClassHelpers.close(self, close_attrs=("_spman", "_khelper"))
 
 
-class Deploy(_DeployTemporary.Deploy):
+class Deploy(DeployBase.DeployBase):
     """
     This class provides the 'deploy()' method which can be used for deploying the dependencies of
     the tools of the "wult" project.
@@ -500,10 +503,56 @@ class Deploy(_DeployTemporary.Deploy):
         self._deploy_drivers()
         self._deploy_helpers(self._toolname)
 
-    def _init_insts_cats(self):
-        """Helper function for the constructor. Initialises '_ints' and '_cats'."""
+    def _adjust_installables(self):
+        """
+        Adjust the list of installables that have to be deployed to the SUT based on various
+        conditions, such as kernel version.
+        """
 
-        self._insts, self._cats = _DeployTemporary.get_insts_cats(self._deploy_info, _CATEGORIES)
+        # Python helpers need to be deployed only to a remote host. The local host should already
+        # have them:
+        #   * either deployed via 'setup.py'.
+        #   * or if running from source code, present in the source code.
+        if not self._spman.is_remote:
+            for installable in self._cats["pyhelpers"]:
+                del self._insts[installable]
+            self._cats["pyhelpers"] = {}
+
+    def deploy(self):
+        """
+        Deploy all the required installables to the SUT (drivers, helpers, etc).
+
+        We distinguish between 3 type of helper programs, or just helpers: simple helpers and python
+        helpers.
+
+        1. Simple helpers (shelpers) are stand-alone independent programs, which come in form of a
+           single executable file.
+        2. Python helpers (pyhelpers) are helper programs written in python. Unlike simple helpers,
+           they are not totally independent, but they depend on various python modules. Deploying a
+           python helpers is trickier because all python modules should also be deployed.
+        """
+
+        self._adjust_installables()
+
+        try:
+            if self._spman.is_remote:
+                self._stmpdir = self._get_stmpdir()
+            else:
+                self._stmpdir = self._get_ctmpdir()
+
+            if self._lbuild:
+                self._btmpdir = self._get_ctmpdir()
+            else:
+                self._btmpdir = self._stmpdir
+        except Exception as err:
+            self._remove_tmpdirs()
+            msg = Error(err).indent(2)
+            raise Error(f"failed to deploy the '{self._toolname}' tool:\n{msg}") from err
+
+        try:
+            self._deploy()
+        finally:
+            self._remove_tmpdirs()
 
     def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False, rebuild_bpf=False,
                  tmpdir_path=None, keep_tmpdir=False, debug=False):
@@ -514,8 +563,6 @@ class Deploy(_DeployTemporary.Deploy):
                            of the helper if this argument is 'True'. Do not re-build otherwise.
         """
 
-        super().__init__(toolname, deploy_info, pman, lbuild, tmpdir_path, keep_tmpdir, debug=debug)
-
         self._ksrc = ksrc
         self._rebuild_bpf = rebuild_bpf
         self._tchk = None
@@ -523,12 +570,13 @@ class Deploy(_DeployTemporary.Deploy):
         # Version of the kernel running on the SUT of version of the kernel to compile wult
         # components against.
         self._kver = None
-        self._khelper = _KernelHelper(self._insts, self._spman)
+        self._khelper = None
 
-        if self._lbuild:
-            self._bpman = self._cpman
-        else:
-            self._bpman = self._spman
+        super().__init__("wult", toolname, deploy_info, pman=pman, lbuild=lbuild,
+                         tmpdir_path=tmpdir_path, keep_tmpdir=keep_tmpdir, debug=debug)
+        self._init_insts_cats(_CATEGORIES)
+
+        self._khelper = _KernelHelper(self._insts, self._spman)
 
         if self._ksrc:
             if not self._bpman.is_dir(self._ksrc):
