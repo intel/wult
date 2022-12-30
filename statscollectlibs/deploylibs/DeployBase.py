@@ -42,15 +42,21 @@ def deployable_not_found(pman, toolname, what, is_helper=True):
 
     raise ErrorNotFound(err)
 
-def get_installed_helper_path(toolname, helper, pman=None):
+def get_installed_helper_path(prjname, toolname, helper, pman=None):
     """
-    Tries to figure out path to the directory the 'helper' program is installed at. Returns the
-    path in case of success (e.g., '/usr/bin') and raises the 'ErrorNotFound' an exception if the
-    helper was not found.
+    Search for helper program 'helper' belonging to the 'prjname' project. The arguments are as
+    follows:
+      * prjname - name of the project the helper program belongs to.
+      * toolname - name of the tool the helper program belongs to.
+      * helper - the helper program to find.
+      * pman - the process manager object for the host to find the helper on (local host by
+               default).
+
+    Return helper path in case of success, raises the 'ErrorNotFound' otherwise.
     """
 
     with ProcessManager.pman_or_local(pman) as wpman:
-        envvar = ProjectFiles.get_project_helpers_envvar(toolname)
+        envvar = ProjectFiles.get_project_helpers_envvar(prjname)
         dirpath = os.environ.get(envvar)
         if dirpath:
             helper_path = Path(dirpath) / helper
