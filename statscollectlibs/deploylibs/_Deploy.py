@@ -22,7 +22,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
     Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
       * toolname - name of the tool to add the 'deploy' command for.
       * deploy_info - a dictionary describing the tool to deploy, same as in
-                      'DeployInstallableBase.__init__()'.
+                      'DeployBase.__init__()'.
       * subparsers - the 'argparse' subparsers to add the 'deploy' command to.
       * func - the 'deploy' command handling function.
       * argcomplete - optional 'argcomplete' command-line arguments completer object.

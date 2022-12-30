@@ -23,7 +23,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
     Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
       * toolname - name of the tool to add the 'deploy' command for.
       * deploy_info - a dictionary describing the tool to deploy, same as in
-                      'DeployInstallableBase.__init__()'.
+                      'DeployBase.__init__()'.
       * subparsers - the 'argparse' subparsers to add the 'deploy' command to.
       * func - the 'deploy' command handling function.
       * argcomplete - optional 'argcomplete' command-line arguments completer object.
@@ -188,8 +188,8 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool to create the deployment object for.
-          * deploy_info - a dictionary describing the tool to deploy. Check
-                          'DeployInstallableBase.__init__()' for more information.
+          * deploy_info - a dictionary describing the tool to deploy. Check 'DeployBase.__init__()'
+                          for more information.
           * pman - the process manager object that defines the SUT to deploy to (local host by
                    default).
           * lbuild - by default, everything is built on the SUT, but if 'lbuild' is 'True', then
