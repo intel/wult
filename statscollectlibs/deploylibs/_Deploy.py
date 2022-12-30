@@ -10,7 +10,6 @@
 
 import logging
 from pepclibs.helperlibs import ArgParse
-from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.deploylibs import DeployBase, DeployPyHelpers
 
 _LOG = logging.getLogger()
@@ -67,13 +66,6 @@ class Deploy(DeployBase.DeployBase):
     This class provides the 'deploy()' method which can be used for deploying the dependencies of
     the "stats-collect" tool.
     """
-
-    def _get_deployables(self, category):
-        """Yields all deployable names for category 'category' (e.g., "drivers")."""
-
-        for inst_info in self._cats[category].values():
-            for deployable in inst_info["deployables"]:
-                yield deployable
 
     def _deploy(self):
         """Deploy python helpers to the SUT."""

@@ -86,6 +86,13 @@ def get_installed_helper_path(prjname, toolname, helper, pman=None):
 class DeployBase(ClassHelpers.SimpleCloseContext):
     """This module provides the base class that includes sharable pieces of the 'Deploy' class."""
 
+    def _get_deployables(self, category):
+        """Yield all deployables for category 'category'."""
+
+        for inst_info in self._cats[category].values():
+            for deployable in inst_info["deployables"]:
+                yield deployable
+
     def _get_stmpdir(self):
         """Create a temporary directory on the SUT and return its path."""
 
