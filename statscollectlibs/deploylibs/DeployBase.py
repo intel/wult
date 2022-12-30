@@ -6,13 +6,13 @@
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
+"""This module provides the base class that includes sharable pieces of the 'Deploy' class."""
+
 import os
 import logging
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import ErrorExists, ErrorNotFound
 from pepclibs.helperlibs import ClassHelpers, LocalProcessManager, ProjectFiles
-
-"""This module provides the base class that includes sharable pieces of the 'Deploy' class."""
 
 _LOG = logging.getLogger()
 
@@ -133,10 +133,13 @@ class DeployBase(ClassHelpers.SimpleCloseContext):
                 preserved.append(f"On the controller ({cpman.hostname}): {ctmpdir}")
 
         if preserved:
-            _LOG.info("Preserved the following temporary directories:\n * %s", "\n * ".join(preserved))
+            _LOG.info("Preserved the following temporary directories:\n * %s",
+                      "\n * ".join(preserved))
 
     def _init_insts_cats(self, categories):
-        """Initialize the dictionaries for categories and installables based on 'self._deploy_info'."""
+        """
+        Initialize the dictionaries for categories and installables based on 'self._deploy_info'.
+        """
 
         # Initialize installables and categories dictionaries.
         self._cats = { cat : {} for cat in categories }
