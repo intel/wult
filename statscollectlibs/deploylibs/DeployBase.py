@@ -6,7 +6,25 @@
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
-"""This module provides the base class that includes sharable pieces of the 'Deploy' class."""
+"""
+This module provides the base class that includes sharable pieces of the 'Deploy' class.
+
+Terminology.
+  * category - type of an installable. Currently there are 4 categories: drivers, simple helpers
+               (shelpers), python helpers (pyhelpers), and eBPF helpers (bpfhelpers).
+  * installable - a sub-project to install on the SUT.
+  * deployable - each installable provides one or multiple deployables. For example, wult tool has
+                 an installable called "wult driver". This is not really a single driver, this is a
+                 directory, which includes multiple drivers (kernel modules). Each kernel module is
+                 a deployable.
+
+Installable vs deployable.
+  * Installables come in the form of source code. Deployables are executable programs (script,
+    binary) or kernel drivers.
+  * An installable corresponds to a directory with source code. The source code may need to be
+    compiled. The compilation results in one or several deployables.
+  * Deployables are ultimately copied to the SUT and executed on the SUT.
+"""
 
 import logging
 from pathlib import Path
@@ -145,8 +163,7 @@ class DeployBase(ClassHelpers.SimpleCloseContext):
         The class constructor. The arguments are as follows.
           * prjname - name of the project the 'toolname' belong to.
           * toolname - name of the tool to deploy.
-          * deploy_info - a dictionary describing the tool to deploy. Check
-                          'DeployInstallableBase.__init__()' for more information.
+          * deploy_info - a dictionary describing what should be deployed.
           * pman - the process manager object that defines the SUT to deploy to (local host by
                    default).
           * lbuild - by default, everything is built on the SUT, but if 'lbuild' is 'True', then
@@ -156,6 +173,23 @@ class DeployBase(ClassHelpers.SimpleCloseContext):
           * keep_tmpdir - if 'False', remove the temporary directory when finished. If 'True', do
                           not remove it.
           * debug - if 'True', be more verbose.
+
+        The 'deploy_info' dictionary describes the tool to deploy and its dependencies. It should
+        have the following structure.
+
+        {
+            "installables" : {
+                Installable name 1 : {
+                    "category" : category name of the installable ("drivers", "shelpers", etc).
+                    "minkver"  : minimum SUT kernel version required for the installable.
+                    "deployables" : list of deployables this installable provides.
+                },
+                Installable name 2 : {},
+                ... etc for every installable ...
+            }
+        }
+
+        Please, refer to module docstring for more information.
         """
 
         self._prjname = prjname

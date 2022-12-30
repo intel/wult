@@ -28,7 +28,7 @@ from wulttools import _Common, _WultCommon
 _VERSION = "1.10.50"
 _OWN_NAME = "wult"
 
-# The deployment information dictionary. See '_Deploy.Deploy.__init__()' for details.
+# The deployment information dictionary. See 'DeployBase.__init__()' for details.
 _WULT_DEPLOY_INFO = {
     "installables" : {
         "wult" : {

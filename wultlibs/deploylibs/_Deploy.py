@@ -8,23 +8,6 @@
 
 """
 This module provides API for deploying the tools coming with the 'wult' project.
-
-Terminology.
-  * category - type of an installable. Currently there are 4 categories: drivers, simple helpers
-               (shelpers), python helpers (pyhelpers), and eBPF helpers (bpfhelpers).
-  * installable - a sub-project to install on the SUT.
-  * deployable - each installable provides one or multiple deployables. For example, wult tool has
-                 an installable called "wult driver". This is not really a single driver, this is a
-                 directory, which includes multiple drivers (kernel modules). Each kernel module is
-                 a deployable.
-
-Installable vs deployable.
-  * Installables come in the form of source code. Deployables are executable programs (script,
-    binary) or kernel drivers.
-  * An installable corresponds to a directory with source code. The source code may need to be
-    compiled. The compilation results in one or several deployables.
-  * Deployables are ultimately copied to the SUT and executed on the SUT.
-
 Note, "wult" is both name of the project and name of the tool in the project.
 """
 
@@ -52,7 +35,8 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
     """
     Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
       * toolname - name of the tool to add the 'deploy' command for.
-      * deploy_info - a dictionary describing the tool to deploy, same as in 'Deploy.__init__()'.
+      * deploy_info - a dictionary describing the tool to deploy, same as in
+                      'DeployBase.__init__()'.
       * subparsers - the 'argparse' subparsers to add the 'deploy' command to.
       * func - the 'deploy' command handling function.
       * argcomplete - optional 'argcomplete' command-line arguments completer object.
@@ -380,8 +364,8 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool to create the deployment object for.
-          * deploy_info - a dictionary describing the tool to deploy. Check 'Deploy.__init__()' for
-                          more information.
+          * deploy_info - a dictionary describing the tool to deploy. Check 'DeployBase.__init__()'
+                          for more information.
           * pman - the process manager object that defines the SUT to deploy to (local host by
                    default).
 
@@ -532,28 +516,10 @@ class Deploy(_DeployTemporary.Deploy):
     def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False, rebuild_bpf=False,
                  tmpdir_path=None, keep_tmpdir=False, debug=False):
         """
-        The class constructor. The arguments are the same as in
-        'statscollectlibs.Deploy.Deploy.__init__()' except for:
+        The class constructor. The arguments are the same as in 'DeployBase.__init__()' except for:
           * ksrc - path to the kernel sources to compile drivers against.
           * rebuild_bpf - if 'toolname' comes with an eBPF helper, re-build the the eBPF component
                            of the helper if this argument is 'True'. Do not re-build otherwise.
-
-        The 'deploy_info' dictionary describes the tool to deploy and its dependencies. It should
-        have the following structure.
-
-        {
-            "installables" : {
-                Installable name 1 : {
-                    "category" : category name of the installable ("drivers", "shelpers", etc).
-                    "minkver"  : minimum SUT kernel version required for the installable.
-                    "deployables" : list of deployables this installable provides.
-                },
-                Installable name 2 : {},
-                ... etc for every installable ...
-            }
-        }
-
-        Please, refer to module docstring for more information.
         """
 
         super().__init__(toolname, deploy_info, pman, lbuild, tmpdir_path, keep_tmpdir, debug=debug)

@@ -28,7 +28,7 @@ from wultlibs.htmlreport import NdlReportParams
 _VERSION = "1.3.15"
 _OWN_NAME = "ndl"
 
-# The deployment information dictionary. See '_Deploy.Deploy.__init__()' for details.
+# The deployment information dictionary. See 'DeployBase.__init__()' for details.
 _NDL_DEPLOY_INFO = {
     "installables" : {
         "ndl" : {

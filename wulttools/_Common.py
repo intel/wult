@@ -557,7 +557,7 @@ def reduce_installables(deploy_info, dev):
     """
     Reduce full deployment information 'deploy_info' so that it includes only the installables
     required for using device 'dev'. The arguments are as follows.
-      * deploy_info - full deployment information dictionary. Check '_Deploy.Deploy.__init__()'
+      * deploy_info - full deployment information dictionary. Check the 'DeployBase.__init__()'
                       docstring for the format of the dictionary.
       * dev - the device object created by 'Devices.GetDevice()'.
 
