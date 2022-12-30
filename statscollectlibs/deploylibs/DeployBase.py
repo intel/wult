@@ -6,14 +6,72 @@
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
+import os
 import logging
 from pathlib import Path
-from pepclibs.helperlibs.Exceptions import ErrorExists
-from pepclibs.helperlibs import ClassHelpers, LocalProcessManager
+from pepclibs.helperlibs.Exceptions import ErrorExists, ErrorNotFound
+from pepclibs.helperlibs import ClassHelpers, LocalProcessManager, ProjectFiles
 
 """This module provides the base class that includes sharable pieces of the 'Deploy' class."""
 
 _LOG = logging.getLogger()
+
+def get_deploy_cmd(pman, toolname):
+    """Returns the command that should be run to deploy the 'toolname' tool."""
+
+    cmd = f"{toolname} deploy"
+    if pman.is_remote:
+        cmd += f" -H {pman.hostname}"
+    return cmd
+
+def deployable_not_found(pman, toolname, what, is_helper=True):
+    """
+    Should be called when a deployable was not found. Raises 'ErrorNotFound' exception with a
+    helpful error message.
+    """
+
+    err = f"{what} was not found{pman.hostmsg}"
+    if is_helper:
+        envvar = ProjectFiles.get_project_helpers_envvar(toolname)
+        err += f". Here are the options to try.\n" \
+               f" * Run '{get_deploy_cmd(pman, toolname)}'.\n" \
+               f" * Ensure that {what} is in 'PATH'{pman.hostmsg}.\n" \
+               f" * Set the '{envvar}' environment variable to the path of {what}{pman.hostmsg}."
+    else:
+        err += f"\nConsider running '{get_deploy_cmd(pman, toolname)}'"
+
+    raise ErrorNotFound(err)
+
+def get_installed_helper_path(pman, toolname, helper):
+    """
+    Tries to figure out path to the directory the 'helper' program is installed at. Returns the
+    path in case of success (e.g., '/usr/bin') and raises the 'ErrorNotFound' an exception if the
+    helper was not found.
+    """
+
+    envvar = ProjectFiles.get_project_helpers_envvar(toolname)
+    dirpath = os.environ.get(envvar)
+    if dirpath:
+        helper_path = Path(dirpath) / helper
+        if pman.is_exe(helper_path):
+            return helper_path
+
+    helper_path = pman.which(helper, must_find=False)
+    if helper_path:
+        return helper_path
+
+    # Check standard paths.
+    homedir = pman.get_homedir()
+    stardard_paths = (f"{homedir}/.local/bin", "/usr/bin", "/usr/local/bin", "/bin",
+                      f"{homedir}/bin")
+
+    for dirpath in stardard_paths:
+        helper_path = Path(dirpath) / helper
+        if pman.is_exe(helper_path):
+            return helper_path
+
+    return deployable_not_found(pman, toolname, f"the '{helper}' program", is_helper=True)
+
 
 class DeployBase(ClassHelpers.SimpleCloseContext):
     """This module provides the base class that includes sharable pieces of the 'Deploy' class."""

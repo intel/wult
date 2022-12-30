@@ -18,7 +18,7 @@ import contextlib
 from pepclibs import CStates
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from pepclibs.helperlibs import ClassHelpers
-from statscollectlibs.deploylibs import _Deploy
+from statscollectlibs.deploylibs import DeployBase
 from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess
 from wultlibs.helperlibs import Human
 
@@ -254,7 +254,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._progress = _ProgressLine.WultProgressLine(period=1)
 
         if dev.helpername:
-            helper_path = _Deploy.get_installed_helper_path(pman, "wult", dev.helpername)
+            helper_path = DeployBase.get_installed_helper_path(pman, "wult", dev.helpername)
         else:
             helper_path = None
 

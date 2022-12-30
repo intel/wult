@@ -35,7 +35,7 @@ from pathlib import Path
 from pepclibs.helperlibs import LocalProcessManager
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
-from statscollectlibs.deploylibs import _DeployHelpersBase, DeployPyHelpers
+from statscollectlibs.deploylibs import DeployBase, _DeployHelpersBase, DeployPyHelpers
 from wultlibs.deploylibs import _DeployTemporary
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
@@ -229,8 +229,8 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
                 yield deployable
 
     def _get_installed_deployable_path(self, deployable):
-        """Same as '_DeployTemporary.get_installed_helper_path()'."""
-        return _DeployTemporary.get_installed_helper_path(self._spman, self._toolname, deployable)
+        """Same as 'DeployBase.get_installed_helper_path()'."""
+        return DeployBase.get_installed_helper_path(self._spman, self._toolname, deployable)
 
     def _get_installable_by_deployable(self, deployable):
         """Returns installable name and information dictionary for a deployable."""
@@ -258,7 +258,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         what = self._get_deployable_print_name(installable, deployable)
         is_helper = self._insts[installable]["category"] != "drivers"
 
-        _DeployTemporary.deployable_not_found(self._spman, self._toolname, what, is_helper)
+        DeployBase.deployable_not_found(self._spman, self._toolname, what, is_helper)
 
     def _warn_deployable_out_of_date(self, deployable):
         """Print a warning about the 'what' deployable not being up-to-date."""
@@ -268,7 +268,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
 
         _LOG.warning("%s may be out of date%s\nConsider running '%s'",
                      what, self._spman.hostmsg,
-                     _DeployTemporary.get_deploy_cmd(self._spman, self._toolname))
+                     DeployBase.get_deploy_cmd(self._spman, self._toolname))
 
     def _check_deployable_up_to_date(self, deployable, srcpath, dstpath):
         """
