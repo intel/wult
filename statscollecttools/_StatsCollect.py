@@ -52,8 +52,8 @@ def _build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    subpars = _Deploy.add_deploy_cmdline_args(_OWN_NAME, _STC_DEPLOY_INFO, subparsers,
-                                             _deploy_command, argcomplete=argcomplete)
+    subpars = _Deploy.add_deploy_cmdline_args(_OWN_NAME, subparsers, _deploy_command,
+                                              argcomplete=argcomplete)
 
     #
     # Create parsers for the "start" command.
