@@ -230,7 +230,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
 
     def _get_installed_deployable_path(self, deployable):
         """Same as 'DeployBase.get_installed_helper_path()'."""
-        return DeployBase.get_installed_helper_path(self._spman, self._toolname, deployable)
+        return DeployBase.get_installed_helper_path(self._toolname, deployable, pman=self._spman)
 
     def _get_installable_by_deployable(self, deployable):
         """Returns installable name and information dictionary for a deployable."""

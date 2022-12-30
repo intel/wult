@@ -12,7 +12,7 @@ import os
 import logging
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import ErrorExists, ErrorNotFound
-from pepclibs.helperlibs import ClassHelpers, LocalProcessManager, ProjectFiles
+from pepclibs.helperlibs import ClassHelpers, ProcessManager, LocalProcessManager, ProjectFiles
 
 _LOG = logging.getLogger()
 
@@ -42,36 +42,36 @@ def deployable_not_found(pman, toolname, what, is_helper=True):
 
     raise ErrorNotFound(err)
 
-def get_installed_helper_path(pman, toolname, helper):
+def get_installed_helper_path(toolname, helper, pman=None):
     """
     Tries to figure out path to the directory the 'helper' program is installed at. Returns the
     path in case of success (e.g., '/usr/bin') and raises the 'ErrorNotFound' an exception if the
     helper was not found.
     """
 
-    envvar = ProjectFiles.get_project_helpers_envvar(toolname)
-    dirpath = os.environ.get(envvar)
-    if dirpath:
-        helper_path = Path(dirpath) / helper
-        if pman.is_exe(helper_path):
+    with ProcessManager.pman_or_local(pman) as wpman:
+        envvar = ProjectFiles.get_project_helpers_envvar(toolname)
+        dirpath = os.environ.get(envvar)
+        if dirpath:
+            helper_path = Path(dirpath) / helper
+            if wpman.is_exe(helper_path):
+                return helper_path
+
+        helper_path = wpman.which(helper, must_find=False)
+        if helper_path:
             return helper_path
 
-    helper_path = pman.which(helper, must_find=False)
-    if helper_path:
-        return helper_path
+        # Check standard paths.
+        homedir = wpman.get_homedir()
+        stardard_paths = (f"{homedir}/.local/bin", "/usr/bin", "/usr/local/bin", "/bin",
+                        f"{homedir}/bin")
 
-    # Check standard paths.
-    homedir = pman.get_homedir()
-    stardard_paths = (f"{homedir}/.local/bin", "/usr/bin", "/usr/local/bin", "/bin",
-                      f"{homedir}/bin")
+        for dirpath in stardard_paths:
+            helper_path = Path(dirpath) / helper
+            if wpman.is_exe(helper_path):
+                return helper_path
 
-    for dirpath in stardard_paths:
-        helper_path = Path(dirpath) / helper
-        if pman.is_exe(helper_path):
-            return helper_path
-
-    return deployable_not_found(pman, toolname, f"the '{helper}' program", is_helper=True)
-
+        return deployable_not_found(wpman, toolname, f"the '{helper}' program", is_helper=True)
 
 class DeployBase(ClassHelpers.SimpleCloseContext):
     """This module provides the base class that includes sharable pieces of the 'Deploy' class."""

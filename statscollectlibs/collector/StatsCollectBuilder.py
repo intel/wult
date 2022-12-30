@@ -10,7 +10,7 @@
 
 import contextlib
 import logging
-from pepclibs.helperlibs import LocalProcessManager, Trivial
+from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.collector import StatsCollect
 from statscollectlibs.deploylibs import DeployBase
@@ -110,11 +110,10 @@ class StatsCollectBuilder:
         # Configure the 'stc-agent' program path.
         local_needed, remote_needed = stcoll.is_stcagent_needed()
         if local_needed and not local_path:
-            with LocalProcessManager.LocalProcessManager() as lpman:
-                local_path = DeployBase.get_installed_helper_path(lpman, "stats-collect",
-                                                                  "stc-agent")
+            local_path = DeployBase.get_installed_helper_path("stats-collect", "stc-agent")
         if remote_needed and not remote_path:
-            remote_path = DeployBase.get_installed_helper_path(pman, "stats-collect", "stc-agent")
+            remote_path = DeployBase.get_installed_helper_path("stats-collect", "stc-agent",
+                                                               pman=pman)
 
         stcoll.set_stcagent_path(local_path=local_path, remote_path=remote_path)
 

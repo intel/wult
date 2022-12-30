@@ -254,7 +254,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._progress = _ProgressLine.WultProgressLine(period=1)
 
         if dev.helpername:
-            helper_path = DeployBase.get_installed_helper_path(pman, "wult", dev.helpername)
+            helper_path = DeployBase.get_installed_helper_path("wult", dev.helpername, pman=pman)
         else:
             helper_path = None
 
