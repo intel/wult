@@ -76,7 +76,7 @@ class Deploy(DeployBase.DeployBase):
         """Deploy all the installables to the SUT."""
 
         if not self._cats.get("pyhelpers"):
-            _LOG.info("nothing to deploy")
+            _LOG.info("Nothing to deploy to the local host.")
             return
 
         try:
