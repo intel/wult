@@ -9,6 +9,7 @@
  */
 
 import { LitElement, html, css } from 'lit'
+import '@shoelace-style/shoelace/dist/components/alert/alert'
 
 import './diagram.js'
 import './file-preview'
@@ -27,10 +28,16 @@ class ScDataTab extends LitElement {
             grid-auto-rows: 800px;
             grid-auto-flow: dense;
         }
+
+        sl-alert {
+            margin-left: 20px;
+            margin-right: 20px;
+        }
   `;
 
     static properties = {
         paths: { type: Array },
+        alerts: { type: Array },
         fpreviews: { type: Array },
         smrytblpath: { type: String },
         smrytblfile: { type: Blob }
@@ -48,6 +55,14 @@ class ScDataTab extends LitElement {
         return html`
             <br>
             ${this.smrytblfile ? html`<sc-smry-tbl .file="${this.smrytblfile}"></sc-smry-tbl>` : html``}
+
+            ${this.alerts.length > 0
+                ? html`<br><sl-alert variant="primary" open><ul>
+                    ${this.alerts.map((alert) => html`<li>${alert}</li>`)}
+                  </ul></sl-alert>`
+                : html``
+            }
+
             ${this.fpreviews
                 ? this.fpreviews.map((fpreview) => html`
                     <sc-file-preview .title=${fpreview.title} .diff=${fpreview.diff} .paths=${fpreview.paths}></sc-file-preview>

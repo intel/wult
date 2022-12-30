@@ -108,7 +108,13 @@ class ScTabPanel extends LitElement {
             if (innerTab.tabs) {
                 dataTabs = html`${dataTabs}${this.tabPanesTemplate(innerTab)}`
             } else {
-                dataTabs = html`${dataTabs}<sc-data-tab hidden id=${convertToValidID(innerTab.name)} tabname=${innerTab.name} .smrytblpath=${innerTab.smrytblpath} .smrytblfile=${innerTab.smrytblfile} .paths=${innerTab.ppaths} .fpreviews=${innerTab.fpreviews} .dir=${innerTab.dir}></sc-data-tab>`
+                dataTabs = html`${dataTabs}
+                    <sc-data-tab hidden id=${convertToValidID(innerTab.name)}
+                        tabname=${innerTab.name} .smrytblpath=${innerTab.smrytblpath}
+                        .smrytblfile=${innerTab.smrytblfile} .paths=${innerTab.ppaths}
+                        .fpreviews=${innerTab.fpreviews} .dir=${innerTab.dir}
+                        .alerts=${innerTab.alerts}>
+                    </sc-data-tab>`
             }
         }
         return dataTabs

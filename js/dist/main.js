@@ -2203,9 +2203,19 @@
             grid-auto-rows: 800px;
             grid-auto-flow: dense;
         }
-  `;static properties={paths:{type:Array},fpreviews:{type:Array},smrytblpath:{type:String},smrytblfile:{type:Blob}};render(){return this.smrytblpath&&!this.smrytblfile&&fetch(this.smrytblpath).then((t=>t.blob())).then((t=>{this.smrytblfile=t})),H`
+
+        sl-alert {
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+  `;static properties={paths:{type:Array},alerts:{type:Array},fpreviews:{type:Array},smrytblpath:{type:String},smrytblfile:{type:Blob}};render(){return this.smrytblpath&&!this.smrytblfile&&fetch(this.smrytblpath).then((t=>t.blob())).then((t=>{this.smrytblfile=t})),H`
             <br>
             ${this.smrytblfile?H`<sc-smry-tbl .file="${this.smrytblfile}"></sc-smry-tbl>`:H``}
+
+            ${this.alerts.length>0?H`<br><sl-alert variant="primary" open><ul>
+                    ${this.alerts.map((t=>H`<li>${t}</li>`))}
+                  </ul></sl-alert>`:H``}
+
             ${this.fpreviews?this.fpreviews.map((t=>H`
                     <sc-file-preview .title=${t.title} .diff=${t.diff} .paths=${t.paths}></sc-file-preview>
                     <br>
@@ -2215,7 +2225,7 @@
                     <sc-diagram path="${t}"></sc-diagram>
                     `)):H``}
             </div>
-        `}}function Ps(t){return t.replace(/\s/g,"-").replace("%","Percent").replace(/[^a-zA-Z0-9-]+/g,"")}customElements.define("sc-data-tab",zs),customElements.define("sc-tab-panel",class extends it{static properties={tab:{type:Object}};selectTabInTabTree(t){const e=this.renderRoot.querySelectorAll("sl-tree-item[selected]");for(const t of e)t.selected=!1;const i=this.renderRoot.querySelectorAll("sl-tree-item[expanded]");for(const t of i)t.expanded=!1;let s=this.renderRoot.getElementById(`${t}-tree`);for(s.selected=!0;"SL-TREE-ITEM"===s.tagName;)s.expanded=!0,s=s.parentElement}hasDataTab(t){return this.dataTabs.includes(t)}show(t){if(!this.hasDataTab(t))return;if(this.activeDataTab?.id===t)return;this.activeDataTab&&(this.activeDataTab.hidden=!0);const e=this.renderRoot.getElementById(t);this.activeDataTab=e,e&&(e.hidden=!1),this.selectTabInTabTree(t)}tabPanesTemplate(t){let e=H``;for(const i of t.tabs)e=i.tabs?H`${e}${this.tabPanesTemplate(i)}`:H`${e}<sc-data-tab hidden id=${Ps(i.name)} tabname=${i.name} .smrytblpath=${i.smrytblpath} .smrytblfile=${i.smrytblfile} .paths=${i.ppaths} .fpreviews=${i.fpreviews} .dir=${i.dir}></sc-data-tab>`;return e}firstUpdated(){this.show(this.firstTab)}treeItemTemplate(t){if(!t.tabs){const e=Ps(t.name);return this.dataTabs.push(e),this.firstTab||(this.firstTab=e),t.name}return H`
+        `}}function Ps(t){return t.replace(/\s/g,"-").replace("%","Percent").replace(/[^a-zA-Z0-9-]+/g,"")}customElements.define("sc-data-tab",zs),customElements.define("sc-tab-panel",class extends it{static properties={tab:{type:Object}};selectTabInTabTree(t){const e=this.renderRoot.querySelectorAll("sl-tree-item[selected]");for(const t of e)t.selected=!1;const i=this.renderRoot.querySelectorAll("sl-tree-item[expanded]");for(const t of i)t.expanded=!1;let s=this.renderRoot.getElementById(`${t}-tree`);for(s.selected=!0;"SL-TREE-ITEM"===s.tagName;)s.expanded=!0,s=s.parentElement}hasDataTab(t){return this.dataTabs.includes(t)}show(t){if(!this.hasDataTab(t))return;if(this.activeDataTab?.id===t)return;this.activeDataTab&&(this.activeDataTab.hidden=!0);const e=this.renderRoot.getElementById(t);this.activeDataTab=e,e&&(e.hidden=!1),this.selectTabInTabTree(t)}tabPanesTemplate(t){let e=H``;for(const i of t.tabs)e=i.tabs?H`${e}${this.tabPanesTemplate(i)}`:H`${e}<sc-data-tab hidden id=${Ps(i.name)} tabname=${i.name} .smrytblpath=${i.smrytblpath} .smrytblfile=${i.smrytblfile} .paths=${i.ppaths} .fpreviews=${i.fpreviews} .dir=${i.dir} .alerts=${i.alerts}></sc-data-tab>`;return e}firstUpdated(){this.show(this.firstTab)}treeItemTemplate(t){if(!t.tabs){const e=Ps(t.name);return this.dataTabs.push(e),this.firstTab||(this.firstTab=e),t.name}return H`
             ${t.name}
             ${t.tabs.map((t=>{const e=Ps(t.name);return H`
                     <sl-tree-item id=${`${e}-tree`} @click=${t.tabs?()=>{}:()=>{location.hash=e}}>
