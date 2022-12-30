@@ -72,7 +72,7 @@ class DTabBuilder:
         else:
             smry_path = ""
 
-        return _Tabs.DTabDC(self.title, ppaths, smry_path)
+        return _Tabs.DTabDC(self.title, ppaths, smry_path, alerts=self._alerts)
 
     def _add_scatter(self, xdef, ydef, hover_defs=None):
         """
@@ -152,6 +152,10 @@ class DTabBuilder:
             if all((sdf[mname] == sample_dp).all() for sdf in self._reports.values()):
                 _LOG.info("Skipping %s: every datapoint in all results is the same, '%s' is always "
                           "'%s'.", plotname, mname, sample_dp)
+                if mname not in self._alerted_metrics:
+                    self._alerts.append(f"'{mname}' was always: '{sample_dp}'. One or more "
+                                        f"diagrams have been skipped.")
+                    self._alerted_metrics.add(mname)
                 return True
 
         return False
@@ -209,6 +213,11 @@ class DTabBuilder:
         self._outdir = outdir / self._fsname
         self.smry_path = self._outdir / "summary-table.txt"
         self._smrytbl = None
+
+        # Sometimes certain metrics cause diagrams to be skipped. See '_skip_metric_plot()' for more
+        # info. Add alerts to '_alerts' to inform the user why some diagrams have been skipped.
+        self._alerted_metrics = set() # Avoid alerting the user of a metric multiple times.
+        self._alerts = []
 
         if basedir is None:
             self._basedir = outdir
