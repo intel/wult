@@ -574,7 +574,7 @@ class Deploy(DeployBase.DeployBase):
 
         super().__init__("wult", toolname, deploy_info, pman=pman, lbuild=lbuild,
                          tmpdir_path=tmpdir_path, keep_tmpdir=keep_tmpdir, debug=debug)
-        self._init_insts_cats(_CATEGORIES)
+        self._init_insts_cats(deploy_info, _CATEGORIES)
 
         self._khelper = _KernelHelper(self._insts, self._spman)
 

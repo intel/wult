@@ -177,12 +177,12 @@ class DeployBase(ClassHelpers.SimpleCloseContext):
             _LOG.info("Preserved the following temporary directories:\n * %s",
                       "\n * ".join(preserved))
 
-    def _init_insts_cats(self, categories):
+    def _init_insts_cats(self, deploy_info, categories):
         """
-        Initialize the dictionaries for categories and installables based on 'self._deploy_info'.
+        Initialize the dictionaries for categories and installables based on 'deploy_info'.
         """
 
-        self._insts, self._cats = get_insts_cats(self._deploy_info, categories)
+        self._insts, self._cats = get_insts_cats(deploy_info, categories)
 
     def __init__(self, prjname, toolname, deploy_info, pman=None, lbuild=False, tmpdir_path=None,
                  keep_tmpdir=False, debug=False):
@@ -221,7 +221,6 @@ class DeployBase(ClassHelpers.SimpleCloseContext):
 
         self._prjname = prjname
         self._toolname = toolname
-        self._deploy_info = deploy_info
         self._lbuild = lbuild
         self._tmpdir_path = tmpdir_path
         self._keep_tmpdir = keep_tmpdir

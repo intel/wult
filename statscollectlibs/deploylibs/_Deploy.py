@@ -93,7 +93,7 @@ class Deploy(DeployBase.DeployBase):
         super().__init__("wult", toolname, deploy_info, pman=pman, tmpdir_path=tmpdir_path,
                          keep_tmpdir=keep_tmpdir, debug=debug)
 
-        self._init_insts_cats(_CATEGORIES)
+        self._init_insts_cats(deploy_info, _CATEGORIES)
 
         # Python helpers need to be deployed only to a remote host. The local host should already
         # have them:
