@@ -14,9 +14,6 @@ from statscollectlibs.deploylibs import DeployBase, DeployPyHelpers
 
 _LOG = logging.getLogger()
 
-# The supported installable categories.
-_CATEGORIES = {"pyhelpers"  : "python helper program"}
-
 def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete=None):
     """
     Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
@@ -27,10 +24,6 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
       * func - the 'deploy' command handling function.
       * argcomplete - optional 'argcomplete' command-line arguments completer object.
     """
-
-    cats = { cat : [] for cat in _CATEGORIES }
-    for name, info in deploy_info["installables"].items():
-        cats[info["category"]].append(name)
 
     text = f"Deploy {toolname} helpers."
     descr = f"""Deploy {toolname} helpers to a remote SUT (System Under Test)."""

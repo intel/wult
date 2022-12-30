@@ -24,12 +24,6 @@ from wultlibs.helperlibs import RemoteHelpers, KernelVersion
 
 _LOG = logging.getLogger()
 
-# The supported installable categories.
-_CATEGORIES = { "drivers"    : "kernel driver",
-                "shelpers"   : "simple helper program",
-                "pyhelpers"  : "python helper program",
-                "bpfhelpers" : "eBPF helper program"}
-
 def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete=None):
     """
     Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
@@ -41,7 +35,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
       * argcomplete - optional 'argcomplete' command-line arguments completer object.
     """
 
-    cats = { cat : [] for cat in _CATEGORIES }
+    cats = {cat : [] for cat in DeployBase.CATEGORIES}
     for name, info in deploy_info["installables"].items():
         cats[info["category"]].append(name)
 
@@ -138,7 +132,7 @@ class _KernelHelper(ClassHelpers.SimpleCloseContext):
             return
 
         if KernelVersion.kver_lt(kver, minkver):
-            cat_descr = _CATEGORIES[self._insts[installable]["category"]]
+            cat_descr = self._insts[installable]["category_descr"]
             raise ErrorNotSupported(f"version of Linux kernel{self._spman.hostmsg} is {kver}, and "
                                     f"it is not new enough for the '{installable}' {cat_descr}.\n"
                                     f"Please, use kernel version {minkver} or newer.")
@@ -169,6 +163,7 @@ class _KernelHelper(ClassHelpers.SimpleCloseContext):
     def close(self):
         """Uninitialize the object."""
         ClassHelpers.close(self, unref_attrs=("_spman"))
+
 
 class DeployCheck(ClassHelpers.SimpleCloseContext):
     """
@@ -230,7 +225,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
     def _get_deployable_print_name(self, installable, deployable):
         """Returns a nice, printable human-readable name of a deployable."""
 
-        cat_descr = _CATEGORIES[self._insts[installable]["category"]]
+        cat_descr = self._insts[installable]["category_descr"]
         if deployable != installable:
             return f"the '{deployable}' component of the '{installable}' {cat_descr}"
         return f"the '{deployable}' {cat_descr}"
@@ -391,7 +386,6 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
 
         self._time_delta = None
 
-
     def close(self):
         """Uninitialize the object."""
         ClassHelpers.close(self, close_attrs=("_spman", "_khelper"))
@@ -478,17 +472,16 @@ class Deploy(DeployBase.DeployBase):
         conditions, such as kernel version.
         """
 
-        super()._adjust_installables()
-
         # Exclude installables with unsatisfied minimum kernel version requirements.
         for installable in list(self._insts):
             try:
                 self._khelper.check_minkver(installable, self._get_kver())
             except ErrorNotSupported as err:
-                cat = self._insts[installable]["category"]
+                cat_descr = self._insts[installable]["category_descr"]
                 _LOG.notice(str(err))
-                _LOG.warning("the '%s' %s can't be installed", installable, _CATEGORIES[cat])
+                _LOG.warning("the '%s' %s can't be installed", installable, cat_descr)
 
+                cat = self._insts[installable]["category"]
                 del self._insts[installable]
                 del self._cats[cat][installable]
 
@@ -503,21 +496,6 @@ class Deploy(DeployBase.DeployBase):
         self._deploy_drivers()
         self._deploy_helpers(self._toolname)
 
-    def _adjust_installables(self):
-        """
-        Adjust the list of installables that have to be deployed to the SUT based on various
-        conditions, such as kernel version.
-        """
-
-        # Python helpers need to be deployed only to a remote host. The local host should already
-        # have them:
-        #   * either deployed via 'setup.py'.
-        #   * or if running from source code, present in the source code.
-        if not self._spman.is_remote:
-            for installable in self._cats["pyhelpers"]:
-                del self._insts[installable]
-            self._cats["pyhelpers"] = {}
-
     def deploy(self):
         """
         Deploy all the required installables to the SUT (drivers, helpers, etc).
@@ -531,8 +509,6 @@ class Deploy(DeployBase.DeployBase):
            they are not totally independent, but they depend on various python modules. Deploying a
            python helpers is trickier because all python modules should also be deployed.
         """
-
-        self._adjust_installables()
 
         try:
             if self._spman.is_remote:
@@ -584,6 +560,8 @@ class Deploy(DeployBase.DeployBase):
             self._ksrc = self._bpman.abspath(self._ksrc)
 
         self._tchk = ToolChecker.ToolChecker(self._bpman)
+
+        self._adjust_installables()
 
     def close(self):
         """Uninitialize the object."""

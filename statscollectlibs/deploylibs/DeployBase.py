@@ -35,10 +35,10 @@ from pepclibs.helperlibs import ClassHelpers, ProcessManager, LocalProcessManage
 _LOG = logging.getLogger()
 
 # The supported installable categories.
-_CATEGORIES = { "drivers"    : "kernel driver",
-                "shelpers"   : "simple helper program",
-                "pyhelpers"  : "python helper program",
-                "bpfhelpers" : "eBPF helper program"}
+CATEGORIES = {"drivers"    : "kernel driver",
+              "shelpers"   : "simple helper program",
+              "pyhelpers"  : "python helper program",
+              "bpfhelpers" : "eBPF helper program"}
 
 def get_deploy_cmd(pman, toolname):
     """Returns the command that should be run to deploy the 'toolname' tool."""
@@ -99,14 +99,14 @@ def get_insts_cats(deploy_info):
     """
 
     insts = {}
-    cats = { cat : {} for cat in _CATEGORIES}
+    cats = {cat : {} for cat in CATEGORIES}
 
     for name, info in deploy_info["installables"].items():
         info = copy.deepcopy(info)
 
         # Add category description to the installable information dictionary.
         catname = info["category"]
-        info["category_descr"] = _CATEGORIES[catname]
+        info["category_descr"] = CATEGORIES[catname]
 
         insts[name] = info
         cats[catname][name] = info
