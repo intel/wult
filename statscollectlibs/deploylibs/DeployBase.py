@@ -56,28 +56,10 @@ def get_installed_helper_path(prjname, toolname, helper, pman=None):
     """
 
     with ProcessManager.pman_or_local(pman) as wpman:
-        envvar = ProjectFiles.get_project_helpers_envvar(prjname)
-        dirpath = os.environ.get(envvar)
-        if dirpath:
-            helper_path = Path(dirpath) / helper
-            if wpman.is_exe(helper_path):
-                return helper_path
-
-        helper_path = wpman.which(helper, must_find=False)
-        if helper_path:
-            return helper_path
-
-        # Check standard paths.
-        homedir = wpman.get_homedir()
-        stardard_paths = (f"{homedir}/.local/bin", "/usr/bin", "/usr/local/bin", "/bin",
-                        f"{homedir}/bin")
-
-        for dirpath in stardard_paths:
-            helper_path = Path(dirpath) / helper
-            if wpman.is_exe(helper_path):
-                return helper_path
-
-        return deployable_not_found(wpman, toolname, f"the '{helper}' program", is_helper=True)
+        try:
+            return ProjectFiles.find_project_helper(prjname, helper, pman=wpman)
+        except ErrorNotFound:
+            return deployable_not_found(wpman, toolname, f"the '{helper}' program", is_helper=True)
 
 class DeployBase(ClassHelpers.SimpleCloseContext):
     """This module provides the base class that includes sharable pieces of the 'Deploy' class."""
