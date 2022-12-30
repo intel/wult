@@ -50,6 +50,9 @@ class DTabDC:
     # File previews to include in the tab.
     fpreviews: List[FilePreviewDC] = field(default_factory=list)
 
+    # Alerts to notify the report viewer of certain elements of the tab.
+    alerts: List[str] = field(default_factory=list)
+
 @dataclass
 class CTabDC:
     """
