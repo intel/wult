@@ -145,7 +145,7 @@ class Deploy(DeployBase.DeployBase):
         The class constructor. The arguments are the same as in 'DeployBase.__init()'.
         """
 
-        super().__init__("wult", toolname, deploy_info, pman=pman, lbuild=lbuild, tmpdir_path=tmpdir_path,
-                         keep_tmpdir=keep_tmpdir, debug=debug)
+        super().__init__("wult", toolname, deploy_info, pman=pman, lbuild=lbuild,
+                         tmpdir_path=tmpdir_path, keep_tmpdir=keep_tmpdir, debug=debug)
 
         self._init_insts_cats(_CATEGORIES)
