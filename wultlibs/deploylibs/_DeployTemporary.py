@@ -12,7 +12,6 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import ArgParse, ClassHelpers, LocalProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
-from statscollectlibs.deploylibs import DeployPyHelpers
 
 _LOG = logging.getLogger()
 
@@ -127,12 +126,6 @@ class Deploy(ClassHelpers.SimpleCloseContext):
         pyhelpers = self._cats.get("pyhelpers")
         if not pyhelpers:
             return
-
-        dep_pyhelpers = DeployPyHelpers.DeployPyHelpers("wult", self._toolname,
-                            self._get_deployables("pyhelpers"), self._spman, self._bpman,
-                            self._cpman, self._get_stmpdir(), self._btmpdir, self._get_ctmpdir(),
-                            debug=self._debug)
-        dep_pyhelpers.deploy(self._toolname, list(pyhelpers))
 
     def _adjust_installables(self):
         """

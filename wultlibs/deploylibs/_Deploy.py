@@ -18,7 +18,7 @@ from pathlib import Path
 from pepclibs.helperlibs import LocalProcessManager
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
-from statscollectlibs.deploylibs import DeployBase, _DeployHelpersBase, DeployPyHelpers
+from statscollectlibs.deploylibs import DeployBase, _DeployHelpersBase
 from wultlibs.deploylibs import _DeployTemporary
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
@@ -440,14 +440,6 @@ class Deploy(_DeployTemporary.Deploy):
         Deploy helpers (including python helpers) to the SUT. Arguments are as follows:
          * toolname - name of the tool which the helpers are supporting.
         """
-
-        pyhelpers = self._cats.get("pyhelpers")
-        if pyhelpers:
-            dep_pyhelpers = DeployPyHelpers.DeployPyHelpers("wult", self._toolname,
-                                self._get_deployables("pyhelpers"), self._spman, self._bpman,
-                                self._cpman, self._get_stmpdir(), self._btmpdir,
-                                self._get_ctmpdir(), debug=self._debug)
-            dep_pyhelpers.deploy(toolname, list(pyhelpers))
 
         shelpers = self._cats.get("shelpers")
         if shelpers:
