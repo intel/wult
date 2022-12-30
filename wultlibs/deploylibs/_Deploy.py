@@ -374,7 +374,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         Please, refer to module docstring for more information.
         """
 
-        self._insts, self._cats = DeployBase.get_insts_cats(deploy_info, _CATEGORIES)
+        self._insts, self._cats = DeployBase.get_insts_cats(deploy_info)
         self._toolname = toolname
 
         if pman:
@@ -574,7 +574,6 @@ class Deploy(DeployBase.DeployBase):
 
         super().__init__("wult", toolname, deploy_info, pman=pman, lbuild=lbuild,
                          tmpdir_path=tmpdir_path, keep_tmpdir=keep_tmpdir, debug=debug)
-        self._init_insts_cats(deploy_info, _CATEGORIES)
 
         self._khelper = _KernelHelper(self._insts, self._spman)
 

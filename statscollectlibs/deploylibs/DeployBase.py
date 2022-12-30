@@ -26,12 +26,19 @@ Installable vs deployable.
   * Deployables are ultimately copied to the SUT and executed on the SUT.
 """
 
+import copy
 import logging
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import ErrorExists, ErrorNotFound
 from pepclibs.helperlibs import ClassHelpers, ProcessManager, LocalProcessManager, ProjectFiles
 
 _LOG = logging.getLogger()
+
+# The supported installable categories.
+_CATEGORIES = { "drivers"    : "kernel driver",
+                "shelpers"   : "simple helper program",
+                "pyhelpers"  : "python helper program",
+                "bpfhelpers" : "eBPF helper program"}
 
 def get_deploy_cmd(pman, toolname):
     """Returns the command that should be run to deploy the 'toolname' tool."""
@@ -83,17 +90,26 @@ def get_installed_helper_path(prjname, toolname, helper, pman=None):
             err += "\n" + get_deploy_suggestion(wpman, prjname, toolname, what, is_helper=True)
             raise ErrorNotFound(err) from None
 
-def get_insts_cats(deploy_info, categories):
-    """Build and return dictionaries for categories and installables based on 'deploy_info'."""
+def get_insts_cats(deploy_info):
+    """
+    Build and return dictionaries for categories and installables based on 'deploy_info'. Returns a
+    tuple of '(insts, cats)', where:
+      * 'insts' is the same as 'deploy_info["installables"]' (except for some added sub-keys).
+      * 'cats' is includes installables information arranged by the category.
+    """
 
-    cats = {}
     insts = {}
+    cats = { cat : {} for cat in _CATEGORIES}
 
-    # Initialize installables and categories dictionaries.
-    cats = { cat : {} for cat in categories }
     for name, info in deploy_info["installables"].items():
-        insts[name] = info.copy()
-        cats[info["category"]][name] = info.copy()
+        info = copy.deepcopy(info)
+
+        # Add category description to the installable information dictionary.
+        catname = info["category"]
+        info["category_descr"] = _CATEGORIES[catname]
+
+        insts[name] = info
+        cats[catname][name] = info
 
     return insts, cats
 
@@ -177,13 +193,6 @@ class DeployBase(ClassHelpers.SimpleCloseContext):
             _LOG.info("Preserved the following temporary directories:\n * %s",
                       "\n * ".join(preserved))
 
-    def _init_insts_cats(self, deploy_info, categories):
-        """
-        Initialize the dictionaries for categories and installables based on 'deploy_info'.
-        """
-
-        self._insts, self._cats = get_insts_cats(deploy_info, categories)
-
     def __init__(self, prjname, toolname, deploy_info, pman=None, lbuild=False, tmpdir_path=None,
                  keep_tmpdir=False, debug=False):
         """
@@ -233,8 +242,8 @@ class DeployBase(ClassHelpers.SimpleCloseContext):
         self._close_spman = None
         self._close_cpman = None
 
-        self._insts = {}     # Installables information.
-        self._cats = {}      # Lists of installables in every category.
+        self._insts = None   # Installables information.
+        self._cats = None    # Lists of installables in every category.
         self._stmpdir = None # Temporary directory on the SUT.
         self._ctmpdir = None # Temporary directory on the controller (local host).
         self._btmpdir = None # Temporary directory on the build host.
@@ -260,6 +269,8 @@ class DeployBase(ClassHelpers.SimpleCloseContext):
 
         if self._tmpdir_path:
             self._tmpdir_path = Path(self._tmpdir_path)
+
+        self._insts, self._cats = get_insts_cats(deploy_info)
 
     def close(self):
         """Uninitialize the object."""
