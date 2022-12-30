@@ -118,6 +118,16 @@ class DeployBase(ClassHelpers.SimpleCloseContext):
 
         return self._ctmpdir
 
+    def _get_btmpdir(self):
+        """Create a temporary directory on the build host and return its path."""
+
+        if self._lbuild:
+            self._btmpdir = self._get_ctmpdir()
+        else:
+            self._btmpdir = self._get_stmpdir()
+
+        return self._btmpdir
+
     def _remove_tmpdirs(self):
         """Remove temporary directories."""
 

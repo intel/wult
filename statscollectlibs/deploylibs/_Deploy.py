@@ -78,11 +78,17 @@ class Deploy(DeployBase.DeployBase):
     def _deploy(self):
         """Deploy python helpers to the SUT."""
 
+        deployables = self._get_deployables("pyhelpers")
+        stmpdir = self._get_stmpdir()
+        btmpdir = self._get_btmpdir()
+        ctmpdir = self._get_ctmpdir()
+
+        dep_pyhelpers = DeployPyHelpers.DeployPyHelpers("wult", self._toolname, deployables,
+                                                        self._spman, self._bpman, self._cpman,
+                                                        stmpdir, btmpdir, ctmpdir,
+                                                        debug=self._debug)
+
         pyhelpers = self._cats.get("pyhelpers")
-        dep_pyhelpers = DeployPyHelpers.DeployPyHelpers("wult", self._toolname,
-                            self._get_deployables("pyhelpers"), self._spman, self._bpman,
-                            self._cpman, self._get_stmpdir(), self._btmpdir, self._get_ctmpdir(),
-                            debug=self._debug)
         dep_pyhelpers.deploy(self._toolname, list(pyhelpers))
 
     def deploy(self):
@@ -91,21 +97,6 @@ class Deploy(DeployBase.DeployBase):
         if not self._cats.get("pyhelpers"):
             _LOG.info("nothing to deploy")
             return
-
-        try:
-            if self._spman.is_remote:
-                self._stmpdir = self._get_stmpdir()
-            else:
-                self._stmpdir = self._get_ctmpdir()
-
-            if self._lbuild:
-                self._btmpdir = self._get_ctmpdir()
-            else:
-                self._btmpdir = self._stmpdir
-        except Exception as err:
-            self._remove_tmpdirs()
-            msg = Error(err).indent(2)
-            raise Error(f"failed to deploy the '{self._toolname}' tool:\n{msg}") from err
 
         try:
             self._deploy()
