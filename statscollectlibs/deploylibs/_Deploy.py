@@ -32,18 +32,9 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
     for name, info in deploy_info["installables"].items():
         cats[info["category"]].append(name)
 
-    what = "helpers"
-
-    text = f"Compile and deploy {toolname} {what}."
-    descr = f"""Compile and deploy {toolname} {what} to the SUT (System Under Test), which can be
-                can be either local or a remote host, depending on the '-H' option. By default,
-                everything is built on the SUT, but the '--local-build' can be used for building
-                on the local system."""
-
+    text = f"Deploy {toolname} helpers."
+    descr = f"""Deploy {toolname} helpers to a remote SUT (System Under Test)."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
-
-    text = f"""Build {what} locally, instead of building on HOSTNAME (the SUT)."""
-    parser.add_argument("--local-build", dest="lbuild", action="store_true", help=text)
 
     text = f"""When '{toolname}' is deployed, a random temporary directory is used. Use this option
                provide a custom path instead. It will be used as a temporary directory on both
@@ -93,14 +84,14 @@ class Deploy(DeployBase.DeployBase):
         finally:
             self._remove_tmpdirs()
 
-    def __init__(self, toolname, deploy_info, pman=None, lbuild=False, tmpdir_path=None,
+    def __init__(self, toolname, deploy_info, pman=None, tmpdir_path=None,
                  keep_tmpdir=False, debug=False):
         """
         The class constructor. The arguments are the same as in 'DeployBase.__init()'.
         """
 
-        super().__init__("wult", toolname, deploy_info, pman=pman, lbuild=lbuild,
-                         tmpdir_path=tmpdir_path, keep_tmpdir=keep_tmpdir, debug=debug)
+        super().__init__("wult", toolname, deploy_info, pman=pman, tmpdir_path=tmpdir_path,
+                         keep_tmpdir=keep_tmpdir, debug=debug)
 
         self._init_insts_cats(_CATEGORIES)
 
