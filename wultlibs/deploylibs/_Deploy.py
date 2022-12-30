@@ -259,7 +259,8 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
         what = self._get_deployable_print_name(installable, deployable)
         is_helper = self._insts[installable]["category"] != "drivers"
 
-        DeployBase.deployable_not_found(self._spman, self._toolname, what, is_helper)
+        err = DeployBase.get_deploy_suggestion(self._spman, "wult", self._toolname, what, is_helper)
+        raise ErrorNotFound(err) from None
 
     def _warn_deployable_out_of_date(self, deployable):
         """Print a warning about the 'what' deployable not being up-to-date."""

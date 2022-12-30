@@ -8,7 +8,6 @@
 
 """This module provides the base class that includes sharable pieces of the 'Deploy' class."""
 
-import os
 import logging
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import ErrorExists, ErrorNotFound
@@ -24,23 +23,26 @@ def get_deploy_cmd(pman, toolname):
         cmd += f" -H {pman.hostname}"
     return cmd
 
-def deployable_not_found(pman, toolname, what, is_helper=True):
+def get_deploy_suggestion(pman, prjname, toolname, what, is_helper):
     """
-    Should be called when a deployable was not found. Raises 'ErrorNotFound' exception with a
-    helpful error message.
+    Return a string suitable for using for an error message in a situation when an deployable was
+    not found. The arguments are as follows.
+      * pman - the process manager object for the host the deployable was supposed to be found on.
+      * prjname - name of the project the deployable belongs to.
+      * toolname - name of the tool the deployable belongs to.
+      * what - a human-readable name of the deployable.
+      * is_helper - the deployable is a helper program if 'True', otherwise 'False'.
     """
 
-    err = f"{what} was not found{pman.hostmsg}"
-    if is_helper:
-        envvar = ProjectFiles.get_project_helpers_envvar(toolname)
-        err += f". Here are the options to try.\n" \
-               f" * Run '{get_deploy_cmd(pman, toolname)}'.\n" \
-               f" * Ensure that {what} is in 'PATH'{pman.hostmsg}.\n" \
-               f" * Set the '{envvar}' environment variable to the path of {what}{pman.hostmsg}."
-    else:
-        err += f"\nConsider running '{get_deploy_cmd(pman, toolname)}'"
+    if not is_helper:
+        return f"Consider running '{get_deploy_cmd(pman, prjname)}'"
 
-    raise ErrorNotFound(err)
+    envvar = ProjectFiles.get_project_helpers_envvar(prjname)
+    msg = f"Here are the options to try.\n" \
+          f" * Run '{get_deploy_cmd(pman, toolname)}'.\n" \
+          f" * Ensure that {what} is in 'PATH'{pman.hostmsg}.\n" \
+          f" * Set the '{envvar}' environment variable to the path of {what}{pman.hostmsg}."
+    return msg
 
 def get_installed_helper_path(prjname, toolname, helper, pman=None):
     """
@@ -58,8 +60,10 @@ def get_installed_helper_path(prjname, toolname, helper, pman=None):
     with ProcessManager.pman_or_local(pman) as wpman:
         try:
             return ProjectFiles.find_project_helper(prjname, helper, pman=wpman)
-        except ErrorNotFound:
-            return deployable_not_found(wpman, toolname, f"the '{helper}' program", is_helper=True)
+        except ErrorNotFound as err:
+            what = f"the '{helper}' helper program"
+            err += "\n" + get_deploy_suggestion(wpman, prjname, toolname, what, is_helper=True)
+            raise ErrorNotFound(err) from None
 
 class DeployBase(ClassHelpers.SimpleCloseContext):
     """This module provides the base class that includes sharable pieces of the 'Deploy' class."""
