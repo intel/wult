@@ -76,48 +76,20 @@ class Deploy(DeployBase.DeployBase):
                 yield deployable
 
     def _deploy(self):
-        """Deploy helpers (including python helpers) to the SUT."""
+        """Deploy python helpers to the SUT."""
 
         pyhelpers = self._cats.get("pyhelpers")
-        if not pyhelpers:
-            return
-
         dep_pyhelpers = DeployPyHelpers.DeployPyHelpers("wult", self._toolname,
                             self._get_deployables("pyhelpers"), self._spman, self._bpman,
                             self._cpman, self._get_stmpdir(), self._btmpdir, self._get_ctmpdir(),
                             debug=self._debug)
         dep_pyhelpers.deploy(self._toolname, list(pyhelpers))
 
-    def _adjust_installables(self):
-        """
-        Adjust the list of installables that have to be deployed to the SUT based on various
-        conditions, such as kernel version.
-        """
-
-        # Python helpers need to be deployed only to a remote host. The local host should already
-        # have them:
-        #   * either deployed via 'setup.py'.
-        #   * or if running from source code, present in the source code.
-        if not self._spman.is_remote:
-            for installable in self._cats["pyhelpers"]:
-                del self._insts[installable]
-            self._cats["pyhelpers"] = {}
-
     def deploy(self):
-        """
-        Deploy all the required installables to the SUT (drivers, helpers, etc).
+        """Deploy all the installables to the SUT."""
 
-        We distinguish between 3 type of helper programs, or just helpers: simple helpers and python
-        helpers.
-
-        1. Simple helpers (shelpers) are stand-alone independent programs, which come in form of a
-           single executable file.
-        2. Python helpers (pyhelpers) are helper programs written in python. Unlike simple helpers,
-           they are not totally independent, but they depend on various python modules. Deploying a
-           python helpers is trickier because all python modules should also be deployed.
-        """
-
-        self._adjust_installables()
+        if not self._cats.get("pyhelpers"):
+            return
 
         try:
             if self._spman.is_remote:
@@ -149,3 +121,12 @@ class Deploy(DeployBase.DeployBase):
                          tmpdir_path=tmpdir_path, keep_tmpdir=keep_tmpdir, debug=debug)
 
         self._init_insts_cats(_CATEGORIES)
+
+        # Python helpers need to be deployed only to a remote host. The local host should already
+        # have them:
+        #   * either deployed via 'setup.py'.
+        #   * or if running from source code, present in the source code.
+        if not self._spman.is_remote:
+            for installable in self._cats["pyhelpers"]:
+                del self._insts[installable]
+            self._cats["pyhelpers"] = {}
