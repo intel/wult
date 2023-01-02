@@ -44,35 +44,37 @@ class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
         return deployable_path
 
     @staticmethod
-    def _get_pyhelper_dependencies(script_path):
+    def _get_deployable_dependencies(deployable_path):
         """
-        Find and return a python helper script (pyhelper) dependencies. An example of such a
+        Find and return dependencies of a python program 'deployable'. An example of such a
         dependency would be:
             /usr/lib/python3.9/site-packages/helperlibs/Trivial.py
         """
 
-        # All pyhelpers implement the '--print-module-paths' option, which prints the dependencies.
-        cmd = f"{script_path} --print-module-paths"
+        # All the deployables must implement the '--print-module-paths' option, which prints the
+        # dependencies.
+        cmd = f"{deployable_path} --print-module-paths"
         with LocalProcessManager.LocalProcessManager() as lpman:
             stdout, _ = lpman.run_verify(cmd)
         return [Path(path) for path in stdout.splitlines()]
 
-    def _create_standalone_pyhelper(self, pyhelper_path, outdir):
+    def _create_standalone_deployable(self, deployable_path, outdir):
         """
         Create a standalone version of a python program. The arguments are as follows.
-          * pyhelper_path - path to the python helper program on the local system. This method will
-                            execute it on with the '--print-module-paths' option, which this it is
-                            supposed to support. This option will provide the list of modules the
-                            python helper program depends on.
-          * outdir - path to the output directory. The standalone version of the script will be
-                     saved in this directory under the "'pyhelper'.standalone" name.
+          * deployable_path - path to the python program on the local system. This method will
+                              execute it on with the '--print-module-paths' option, which this it is
+                              supposed to support. This option will provide the list of modules the
+                              deployable python program depends on.
+          * outdir - path to the output directory. The standalone version of the 'deployable' python
+                     program will be saved in this directory under the "'deployable'.standalone"
+                     name.
         """
 
         import zipfile # pylint: disable=import-outside-toplevel
 
-        pyhelper = pyhelper_path.name
+        deployable = deployable_path.name
 
-        deps = self._get_pyhelper_dependencies(pyhelper_path)
+        deps = self._get_deployable_dependencies(deployable_path)
 
         # Create an empty '__init__.py' file. We will be copy it to the sub-directories of the
         # dependencies.
@@ -88,9 +90,9 @@ class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
             # pylint: disable=consider-using-with
             fobj = zipobj = None
 
-            # Start creating the stand-alone version of the python helper script: create an empty
-            # file and write # python shebang there.
-            standalone_path = outdir / f"{pyhelper}.standalone"
+            # Start creating the stand-alone version of the deployable: create an empty file and
+            # write # python shebang there.
+            standalone_path = outdir / f"{deployable}.standalone"
             try:
                 fobj = standalone_path.open("bw+")
                 fobj.write("#!/usr/bin/python3\n".encode("utf-8"))
@@ -113,8 +115,8 @@ class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
             # 'zipobj' operation into 'try/except'.
             zipobj = ClassHelpers.WrapExceptions(zipobj)
 
-            # Put the python helper script to the archive under the '__main__.py' name.
-            zipobj.write(pyhelper_path, arcname="./__main__.py")
+            # Put the deployable to the archive under the '__main__.py' name.
+            zipobj.write(deployable_path, arcname="./__main__.py")
 
             pkgdirs = set()
 
@@ -127,8 +129,8 @@ class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
                     try:
                         idx = src.parts.index("helperlibs")
                     except ValueError:
-                        raise Error(f"python helper script '{pyhelper}' has bad dependency '{src}' "
-                                    f"- the path does not have the 'statscollectlibs' or "
+                        raise Error(f"python program '{deployable}' has bad dependency '{src}' - "
+                                    f"the path does not have the 'statscollectlibs' or "
                                     f"'helperlibs' component in it.") from None
 
                 dst = Path(*src.parts[idx:])
@@ -181,7 +183,7 @@ class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
             basedir = self._ctmpdir / pyhelper
             for deployable in self._deployables:
                 deployable_path = self._find_deployable(deployable)
-                self._create_standalone_pyhelper(deployable_path, basedir)
+                self._create_standalone_deployable(deployable_path, basedir)
 
         # And copy the "standalone-ized" version of python helpers to the SUT.
         if self._spman.is_remote:
