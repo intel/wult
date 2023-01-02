@@ -24,6 +24,16 @@ Installable vs deployable.
   * An installable corresponds to a directory with source code. The source code may need to be
     compiled. The compilation results in one or several deployables.
   * Deployables are ultimately copied to the SUT and executed on the SUT.
+
+Helpers types.
+    1. Simple helpers (shelpers) are stand-alone independent programs, which come in form of a
+       single executable file.
+    2. eBPF helpers (bpfhelpers) consist of 2 components: the user-space component and the eBPF
+       component. The user-space component is distributed as a source code, and must be compiled.
+       The eBPF component is distributed as both source code and in binary
+    3. Python helpers (pyhelpers) are helper programs written in python. Unlike simple helpers,
+       they are not totally independent, but they depend on various python modules. Deploying a
+       python helpers is trickier because all python modules should also be deployed.
 """
 
 import copy

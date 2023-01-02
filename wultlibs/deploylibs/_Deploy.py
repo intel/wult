@@ -500,18 +500,7 @@ class Deploy(DeployBase.DeployBase):
         self._deploy_helpers(self._toolname)
 
     def deploy(self):
-        """
-        Deploy all the required installables to the SUT (drivers, helpers, etc).
-
-        We distinguish between 3 type of helper programs, or just helpers: simple helpers and python
-        helpers.
-
-        1. Simple helpers (shelpers) are stand-alone independent programs, which come in form of a
-           single executable file.
-        2. Python helpers (pyhelpers) are helper programs written in python. Unlike simple helpers,
-           they are not totally independent, but they depend on various python modules. Deploying a
-           python helpers is trickier because all python modules should also be deployed.
-        """
+        """Deploy all the required installables to the SUT (drivers, helpers, etc)."""
 
         try:
             self._deploy()
