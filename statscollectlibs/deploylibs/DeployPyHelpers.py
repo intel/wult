@@ -17,30 +17,31 @@ from statscollectlibs.deploylibs import _DeployHelpersBase
 
 _LOG = logging.getLogger()
 
-def _find_deployable(deployable):
-    """Find and return path to program 'deployable' (on the local host)."""
-
-    with LocalProcessManager.LocalProcessManager() as lpman:
-        try:
-            deployable_path = ProjectFiles.find_project_helper("wult", pman=lpman)
-        except ErrorNotFound as err1:
-            _LOG.debug(err1)
-
-            try:
-                subpath = _DeployHelpersBase.HELPERS_SRC_SUBPATH / deployable / deployable
-                what = f"the '{deployable}' python helper"
-                deployable_path = ProjectFiles.find_project_data("wult", subpath, what=what,
-                                                                 pman=lpman)
-            except ErrorNotFound as err2:
-                errmsg = str(err1).capitalize() + "\n" + str(err2).capitalize()
-                raise Error(errmsg) from err2
-
-        deployable_path = lpman.abspath(deployable_path)
-
-    return deployable_path
-
 class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
     """This class provides the API for deploying Python helpers."""
+
+    def _find_deployable(self, deployable):
+        """Find and return path to program 'deployable' (on the local host)."""
+
+        with LocalProcessManager.LocalProcessManager() as lpman:
+            try:
+                deployable_path = ProjectFiles.find_project_helper(self._prjname, deployable,
+                                                                   pman=lpman)
+            except ErrorNotFound as err1:
+                _LOG.debug(err1)
+
+                try:
+                    subpath = _DeployHelpersBase.HELPERS_SRC_SUBPATH / deployable / deployable
+                    what = f"the '{deployable}' python program"
+                    deployable_path = ProjectFiles.find_project_data(self._prjname, subpath,
+                                                                     what=what, pman=lpman)
+                except ErrorNotFound as err2:
+                    errmsg = str(err1).capitalize() + "\n" + str(err2).capitalize()
+                    raise Error(errmsg) from err2
+
+            deployable_path = lpman.abspath(deployable_path)
+
+        return deployable_path
 
     @staticmethod
     def _get_pyhelper_dependencies(script_path):
@@ -179,8 +180,8 @@ class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
             _LOG.info("Building a stand-alone version of '%s'", pyhelper)
             basedir = self._ctmpdir / pyhelper
             for deployable in self._deployables:
-                local_path = _find_deployable(pyhelper, deployable)
-                self._create_standalone_pyhelper(local_path, basedir)
+                deployable_path = self._find_deployable(deployable)
+                self._create_standalone_pyhelper(deployable_path, basedir)
 
         # And copy the "standalone-ized" version of python helpers to the SUT.
         if self._spman.is_remote:
