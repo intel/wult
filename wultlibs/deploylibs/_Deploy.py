@@ -438,17 +438,20 @@ class Deploy(DeployBase.DeployBase):
          * toolname - name of the tool which the helpers are supporting.
         """
 
+        stmpdir = self._get_stmpdir()
+        btmpdir = self._get_btmpdir()
+
         shelpers = self._cats.get("shelpers")
         if shelpers:
             dep_shelpers = _DeploySHelpers.DeploySHelpers("wult", self._toolname, self._spman,
-                                self._bpman, self._get_stmpdir(), self._btmpdir, debug=self._debug)
+                                self._bpman, stmpdir, btmpdir, debug=self._debug)
             dep_shelpers.deploy(toolname, list(shelpers))
 
         bpfhelpers = self._cats.get("bpfhelpers")
         if bpfhelpers:
             dep_bpfhelpers = _DeployBPFHelpers.DeployBPFHelpers("wult", self._toolname, self._tchk,
                                 self._get_ksrc(), self._rebuild_bpf, self._spman, self._bpman,
-                                self._get_stmpdir(), self._btmpdir, debug=self._debug)
+                                stmpdir, btmpdir, debug=self._debug)
             dep_bpfhelpers.deploy(toolname, list(bpfhelpers))
 
     def _deploy_drivers(self):
@@ -462,7 +465,7 @@ class Deploy(DeployBase.DeployBase):
             deps[dep] = self._khelper.get_module_path(dep)
 
         dep_drvr = _DeployDrivers.DeployDrivers("wult", self._toolname, self._spman, self._bpman,
-                                                self._get_stmpdir(), self._btmpdir,
+                                                self._get_stmpdir(), self._get_btmpdir(),
                                                 debug=self._debug)
         dep_drvr.deploy(self._cats["drivers"], self._get_kver(), self._get_ksrc(), deps)
 
@@ -509,21 +512,6 @@ class Deploy(DeployBase.DeployBase):
            they are not totally independent, but they depend on various python modules. Deploying a
            python helpers is trickier because all python modules should also be deployed.
         """
-
-        try:
-            if self._spman.is_remote:
-                self._stmpdir = self._get_stmpdir()
-            else:
-                self._stmpdir = self._get_ctmpdir()
-
-            if self._lbuild:
-                self._btmpdir = self._get_ctmpdir()
-            else:
-                self._btmpdir = self._stmpdir
-        except Exception as err:
-            self._remove_tmpdirs()
-            msg = Error(err).indent(2)
-            raise Error(f"failed to deploy the '{self._toolname}' tool:\n{msg}") from err
 
         try:
             self._deploy()
