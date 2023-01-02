@@ -11,7 +11,7 @@ This module contains the base class for the raw test result classes.
 
 A raw test result is a directory containing the following files.
  * info.yml - a YAML file containing miscellaneous test information, such as the report ID.
- * logs - optional directory containing wult run logs.
+ * logs - optional directory workload logs.
  * stats - optional directory containing various statistics, such as 'lscpu'.
 """
 
