@@ -38,7 +38,7 @@ def find_pyhelper_path(pyhelper, deployable=None):
 
     with LocalProcessManager.LocalProcessManager() as lpman:
         try:
-            pyhelper_path = lpman.which(deployable)
+            pyhelper_path = ProjectFiles.find_project_helper("wult")
         except ErrorNotFound as err1:
             _LOG.debug(err1)
 
