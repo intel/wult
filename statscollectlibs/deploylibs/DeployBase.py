@@ -13,10 +13,8 @@ Terminology.
   * category - type of an installable. Currently there are 4 categories: drivers, simple helpers
                (shelpers), python helpers (pyhelpers), and eBPF helpers (bpfhelpers).
   * installable - a sub-project to install on the SUT.
-  * deployable - each installable provides one or multiple deployables. For example, wult tool has
-                 an installable called "wult driver". This is not really a single driver, this is a
-                 directory, which includes multiple drivers (kernel modules). Each kernel module is
-                 a deployable.
+  * deployable - each installable provides one or multiple deployables. For example, one or multiple
+                 drivers.
 
 Installable vs deployable.
   * Installables come in the form of source code. Deployables are executable programs (script,
