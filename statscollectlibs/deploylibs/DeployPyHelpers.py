@@ -88,9 +88,8 @@ class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
 
         deps = self._get_pyhelper_dependencies(pyhelper_path)
 
-        # Create an empty '__init__.py' file. We will be adding it to the sub-directories of the
-        # dependencies. For example, if one of the dependencies is 'helperlibs/Trivial.py', we'll
-        # have to add '__init__.py' to 'wultlibs/' and 'helperlibs'.
+        # Create an empty '__init__.py' file. We will be copy it to the sub-directories of the
+        # dependencies.
         init_path = outdir / "__init__.py"
         try:
             with init_path.open("w+"):
