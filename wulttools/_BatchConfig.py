@@ -636,6 +636,13 @@ class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
             if res.exitcode != 0:
                 self._handle_error(cmd)
 
+    def wait(self):
+        """Wait until all commands have completed."""
+
+        while self._active_proc_count() != 0:
+            time.sleep(1)
+            continue
+
     def __init__(self, dry_run=False, stop_on_failure=False, proc_count=None):
         """
         The class constructor, arguments are as follows.
@@ -829,11 +836,12 @@ class BatchReport(_CmdlineRunner):
 
         self._run_command(cmd)
 
-    def __init__(self, toolpath, outpath, toolopts=None, dry_run=False, stop_on_failure=False):
+    def __init__(self, toolpath, outpath, toolopts=None, dry_run=False, stop_on_failure=False,
+                 proc_count=None):
         """The class constructor."""
 
         self._toolpath = toolpath
         self._outpath = outpath
         self._toolopts = toolopts
 
-        super().__init__(dry_run=dry_run, stop_on_failure=stop_on_failure)
+        super().__init__(dry_run=dry_run, stop_on_failure=stop_on_failure, proc_count=proc_count)

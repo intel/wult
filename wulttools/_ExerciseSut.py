@@ -178,6 +178,11 @@ _GENERATE_OPTIONS = {
         "help" : """Comma-separated list of monikers that must not be found from the result path
                     name."""
     },
+    "jobs" : {
+        "short": "-j",
+        "type" : int,
+        "help" : """Number of threads to use for generating reports with."""
+    },
 }
 
 _COMMON_OPTIONS = {
@@ -309,7 +314,8 @@ def _report_command(args):
         outdir = Path(f"{args.toolpath.name}-results")
 
     with _BatchConfig.BatchReport(args.toolpath, outdir, args.toolopts, dry_run=args.dry_run,
-                                  stop_on_failure=args.stop_on_failure) as batchreport:
+                                  stop_on_failure=args.stop_on_failure, proc_count=args.jobs) as \
+                                  batchreport:
         for outpath, respaths in batchreport.group_results(args.respaths, diff=args.diff,
                                                            include=args.include,
                                                            exclude=args.exclude):
@@ -318,6 +324,7 @@ def _report_command(args):
                 continue
 
             batchreport.generate_report(respaths, outdir / outpath)
+        batchreport.wait()
 
 def main():
     """Script entry point."""
