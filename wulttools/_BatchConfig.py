@@ -16,6 +16,7 @@ permutations.
 
 import os
 import sys
+import time
 import logging
 import itertools
 from pathlib import Path
@@ -565,6 +566,57 @@ class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
 
         _LOG.error(msg)
 
+    def _get_completed_procs(self):
+        """Yield completed command process objects."""
+
+        for proc in self._procs:
+            if proc.poll() is None:
+                continue
+
+            yield proc
+
+    def _handle_proc(self, proc):
+        """Wait for command process 'proc' and handle the output."""
+
+        stdout, stderr, exitcode = proc.wait()
+
+        if stdout:
+            _LOG.info(stdout)
+        if stderr:
+            _LOG.info(stderr)
+
+        if exitcode != 0:
+            self._handle_error(proc.cmd)
+
+    def _active_proc_count(self):
+        """
+        Go through list of started processes, handle completed ones, and return number of active
+        processes.
+        """
+
+        procs_done = set()
+        for proc in self._get_completed_procs():
+            self._handle_proc(proc)
+            procs_done.add(proc)
+
+        self._procs -= procs_done
+
+        return len(self._procs)
+
+    def _run_async(self, cmd):
+        """
+        Run command 'cmd' asynchronously. If more than 'self._proc_count' processes are already
+        running, wait until one of the running processes completes before running the command.
+        """
+
+        while self._active_proc_count() >= self._proc_count:
+            # Wait until one of the commands are done.
+            time.sleep(1)
+
+        _LOG.debug("running command: '%s'", cmd)
+        proc = self._get_lpman().run_async(cmd)
+        self._procs.add(proc)
+
     def _run_command(self, cmd):
         """
         Run command 'cmd' with process manager object 'pman'. If 'dry_run' is 'True', print the
@@ -577,16 +629,30 @@ class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
             return
 
         _LOG.debug("running command: '%s'", cmd)
-        res = self._get_lpman().run(cmd, output_fobjs=(sys.stdout, sys.stderr))
-        if res.exitcode != 0:
-            self._handle_error(cmd)
+        if self._proc_count:
+            self._run_async(cmd)
+        else:
+            res = self._get_lpman().run(cmd, output_fobjs=(sys.stdout, sys.stderr))
+            if res.exitcode != 0:
+                self._handle_error(cmd)
 
-    def __init__(self, dry_run=False, stop_on_failure=False):
-        """The class constructor."""
+    def __init__(self, dry_run=False, stop_on_failure=False, proc_count=None):
+        """
+        The class constructor, arguments are as follows.
+          * dry_run - if 'True', print the command instead of running it.
+          * stop_on_failure - if 'True', print error and terminate program execution.
+          * proc_count - number of processes to run in parallel.
+        """
 
         self._dry_run = dry_run
         self._stop_on_failure = stop_on_failure
         self._lpman = None
+        self._proc_count = proc_count
+
+        self._procs = set()
+
+        if self._proc_count:
+            _LOG.notice("Running %s commands in parallel.", self._proc_count)
 
     def close(self):
         """Uninitialize the class objetc."""
