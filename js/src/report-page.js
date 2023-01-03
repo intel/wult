@@ -16,6 +16,16 @@ import './intro-tbl'
 import './tab-group'
 
 /**
+ * Convert a 'tabName' to a valid HTML element ID.
+ */
+function convertToValidID (tabName) {
+    return tabName
+        .replace(/\s/g, '-')
+        .replace('%', 'Percent')
+        .replace(/[^a-zA-Z0-9-]+/g, '')
+}
+
+/**
  * 'LitElement' containing the other components of the HTML report.
  * @class ScReportPage
  * @extends {LitElement}
@@ -69,6 +79,23 @@ export class ScReportPage extends LitElement {
         this.reportDescr = this.reportInfo.descr
     }
 
+    generateTabIDs (tabs) {
+        for (const tab of tabs) {
+            if (tab.tabs) {
+                tab.tabs = this.generateTabIDs(tab.tabs)
+            }
+            const id = convertToValidID(tab.name)
+            if (this.tabIDs.has(id)) {
+                this.tabIDs.set(id, this.tabIDs.get(id) + 1)
+                tab.id = `${id}-${this.tabIDs.get(id)}`
+            } else {
+                this.tabIDs.set(id, 0)
+                tab.id = id
+            }
+        }
+        return tabs
+    }
+
     parseReportInfo (json) {
         this.reportInfo = json
         this.initRepProps()
@@ -82,7 +109,7 @@ export class ScReportPage extends LitElement {
 
         // Fetch tabs file.
         fetch(json.tab_file).then(resp => resp.json())
-            .then(async tabjson => { this.tabs = tabjson })
+            .then(async tabjson => { this.tabs = this.generateTabIDs(tabjson) })
     }
 
     connectedCallback () {
@@ -161,7 +188,7 @@ export class ScReportPage extends LitElement {
                 tab.tabs = await this.extractTabs(tab.tabs, useFetch)
             }
         }
-        return tabs
+        return this.generateTabIDs(tabs)
     }
 
     /**
@@ -197,6 +224,11 @@ export class ScReportPage extends LitElement {
 
         // 'reportInfo' is an 'Object' representation of the JSON contents of 'report_info.json'.
         this.reportInfo = {}
+
+        // 'tabIDs' maps tab IDs to a count of how many tabs have that ID. This is used to avoid
+        // duplicates IDs. If 3 tabs have the same ID 'tabName', then each one will be given ID
+        // 'tabName', 'tabName-1', 'tabName-2' separately.
+        this.tabIDs = new Map()
     }
 
     render () {

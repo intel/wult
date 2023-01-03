@@ -16,13 +16,6 @@ import '@shoelace-style/shoelace/dist/components/split-panel/split-panel'
 import './data-tab'
 
 /**
- * Convert a 'tabName' to a valid HTML element ID.
- */
-function convertToValidID (tabName) {
-    return tabName.replace(/\s/g, '-').replace('%', 'Percent').replace(/[^a-zA-Z0-9-]+/g, '')
-}
-
-/**
  * Populates the tab-panels with a tab-tree for naviagation and data-tabs.
  * @class ScTabPanel
  * @extends {LitElement}
@@ -109,11 +102,10 @@ class ScTabPanel extends LitElement {
                 dataTabs = html`${dataTabs}${this.tabPanesTemplate(innerTab)}`
             } else {
                 dataTabs = html`${dataTabs}
-                    <sc-data-tab hidden id=${convertToValidID(innerTab.name)}
-                        tabname=${innerTab.name} .smrytblpath=${innerTab.smrytblpath}
-                        .smrytblfile=${innerTab.smrytblfile} .paths=${innerTab.ppaths}
-                        .fpreviews=${innerTab.fpreviews} .dir=${innerTab.dir}
-                        .alerts=${innerTab.alerts}>
+                    <sc-data-tab hidden id=${innerTab.id} tabname=${innerTab.name}
+                        .smrytblpath=${innerTab.smrytblpath} .smrytblfile=${innerTab.smrytblfile}
+                        .paths=${innerTab.ppaths} .fpreviews=${innerTab.fpreviews}
+                        .dir=${innerTab.dir} .alerts=${innerTab.alerts}>
                     </sc-data-tab>`
             }
         }
@@ -134,10 +126,9 @@ class ScTabPanel extends LitElement {
     treeItemTemplate (tab) {
         // Recursive base case: the contents of a tree item is just the name.
         if (!tab.tabs) {
-            const tabID = convertToValidID(tab.name)
-            this.dataTabs.push(tabID)
+            this.dataTabs.push(tab.id)
             if (!this.firstTab) {
-                this.firstTab = tabID
+                this.firstTab = tab.id
             }
             return tab.name
         }
@@ -148,11 +139,10 @@ class ScTabPanel extends LitElement {
         return html`
             ${tab.name}
             ${tab.tabs.map((innerTab) => {
-                const innerTabID = convertToValidID(innerTab.name)
                 return html`
-                    <sl-tree-item id=${`${innerTabID}-tree`} @click=${innerTab.tabs
+                    <sl-tree-item id=${`${innerTab.id}-tree`} @click=${innerTab.tabs
                         ? () => {}
-                        : () => { location.hash = innerTabID }}>
+                        : () => { location.hash = innerTab.id }}>
                         ${this.treeItemTemplate(innerTab)}
                     </sl-tree-item>
                 `
