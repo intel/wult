@@ -228,9 +228,6 @@ int wult_tracer_send_data(struct wult_info *wi)
 	if (ltime <= ti->tbi || ltime >= ti->tai || ltime >= ti->tintr)
 		return 0;
 
-	if (WARN_ON(ltime > ti->tintr) || WARN_ON(ltime > ti->tai))
-		err_after_send = -EINVAL;
-
 	if (WARN_ON(ti->csinfo.tsc[0] > ti->csinfo.tsc[1]))
 		err_after_send = -EINVAL;
 
