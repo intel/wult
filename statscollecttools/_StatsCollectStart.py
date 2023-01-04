@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2022-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Authors: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -10,7 +10,7 @@
 """This module includes the "start" 'stats-collect' command implementation."""
 
 import contextlib
-import time
+import logging
 from pathlib import Path
 from pepclibs import CPUInfo
 from pepclibs.helperlibs import Human, Logging
@@ -18,8 +18,10 @@ from pepclibs.helperlibs.Exceptions import Error
 from statscollecttools import _Common
 from statscollectlibs.deploylibs import _Deploy
 from statscollectlibs.collector import StatsCollectBuilder
-from statscollectlibs.helperlibs import ReportID
+from statscollectlibs.helperlibs import ProcHelpers, ReportID
 from statscollectlibs.rawresultlibs import RawResult
+
+_LOG = logging.getLogger()
 
 def generate_reportid(args, pman):
     """
@@ -51,7 +53,9 @@ def start_command(args):
         pman = _Common.get_pman(args)
         stack.enter_context(pman)
 
-        args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
+        if args.tlimit:
+            args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
+
         args.reportid = generate_reportid(args, pman)
 
         if not args.outdir:
@@ -84,7 +88,14 @@ def start_command(args):
         stack.enter_context(stcoll)
 
         stcoll.start()
-        time.sleep(args.tlimit)
+
+        proc = pman.run_async(args.cmd)
+        _, _, exitcode = proc.wait(timeout=args.tlimit)
+        if exitcode is None:
+            _LOG.notice("statistics collection stopped because the time limit was reached before "
+                        "the command finished executing.")
+            ProcHelpers.kill_pids(proc.pid, kill_children=True, must_die=True, pman=pman)
+
         stcoll.stop()
         stcoll.copy_remote_data()
 

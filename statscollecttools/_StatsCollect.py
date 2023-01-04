@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2022-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Authors: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -67,7 +67,9 @@ def _build_arguments_parser():
 
     text = """The logical CPU number to measure, default is CPU 0."""
     subpars.add_argument("--cpunum", help=text, type=int, default=0)
-    subpars.add_argument("--time-limit", dest="tlimit", metavar="LIMIT", required=True)
+    text = """The time limit for statistics collection, after which the collection will stop if the
+              command 'cmd' (given as a positional argument) has not finished executing."""
+    subpars.add_argument("--time-limit", help=text, dest="tlimit", metavar="LIMIT", default=None)
     arg = subpars.add_argument("-o", "--outdir", type=Path)
     if argcomplete:
         arg.completer = argcomplete.completers.DirectoriesCompleter()
@@ -99,6 +101,11 @@ def _build_arguments_parser():
               values."""
     subpars.add_argument("--stats-intervals", help=text)
     subpars.add_argument("--report", action="store_true")
+
+    text = """Command to run on the SUT during statistics collection. If 'HOSTNAME' is provided,
+              the tool will run the command on that host, otherwise the tool will run the command on
+              'localhost'."""
+    subpars.add_argument("cmd", type=str, help=text)
 
     #
     # Create parsers for the "report" command.
