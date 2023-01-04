@@ -167,13 +167,12 @@ _COLLECT_OPTIONS = {
 
 _GENERATE_OPTIONS = {
     "diff" : {
-        "help" : """Collected data is stored in directories, and each directory consists mulptiple
-                    monikers split by dash. Comma-separated list of monikers to create diff report
-                    with."""
+        "help" : """Collected data is stored in directories, and each directory name consists of
+                    multiple monikers separated by dashes. Comma-separated list of monikers to
+                    create a diff report with."""
     },
     "include" : {
-        "help" : """Comma-separated list of monikers that must be found from the result path name.
-                    """
+        "help" : "Comma-separated list of monikers that must be found from the result path name."
     },
     "exclude" : {
         "help" : """Comma-separated list of monikers that must not be found from the result path
