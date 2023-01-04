@@ -567,16 +567,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             # may be many CPU instructions between the moment the CPU wakes up from the C-state and
             # the moment it executes wult's interrupt handler.
 
-            if self._drvname == "wult_tdt":
-                csname = dp["ReqCState"]
-                _LOG.debug("dropping datapoint with interrupts enabled - the 'wult_tdt' driver "
-                           "does not handle them correctly. The datapoint is:\n%s",
-                           Human.dict2str(dp))
-                _LOG.warn_once("the '%s' C-state has interrupts enabled and therefore, can't be "
-                               "collected with the 'wult_tdt' driver.\nDropping and all the other "
-                               "datapoints with '%s' requested C-state", csname, csname)
-                return None
-
             overhead = dp["IntrTS2"] - dp["IntrTS1"]
 
             if overhead >= dp["WakeLatency"]:
@@ -592,17 +582,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
                 return None
 
             dp["WakeLatency"] -= overhead
-
-        if self._drvname == "wult_tdt":
-            # The 'wult_tdt' driver cannot really be used for measuring Interrupt latency, because
-            # it measures 'WakeLatency' for the next TSC deadline timer, which is not necessarily
-            # the one armed by wult. But 'IntrLatency' will be measured in wult timer handler, which
-            # may be far away from the event 'WakeLatency' was measured for. Therefore, 'wult_tdt'
-            # produces many datapoints with really large (and incorrect) 'IntrLatency'. Hence, we
-            # remove it from the datapoint.
-            if "IntrLatencyRaw" in dp:
-                del dp["IntrLatencyRaw"]
-            del dp["IntrLatency"]
 
         return dp
 
