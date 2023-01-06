@@ -153,6 +153,11 @@ class SummaryTable:
                         f"'SummaryTable.add_smry_func_val()'.")
 
         ref_fdict = self.smrytbl["funcs"][ref_reportid][metric][funcname]
+        # 'raw_val' can be 'None', see 'add_smry_func()' docstring for more info. In which case the
+        # hovertext should be empty as no comparison can be made to the reference result.
+        if ref_fdict["raw_val"] is None:
+            return ""
+
         change = val - ref_fdict["raw_val"]
         if ref_fdict["raw_val"]:
             percent = (change / ref_fdict["raw_val"]) * 100
@@ -222,8 +227,12 @@ class SummaryTable:
         for name, subdict in self.smrytbl["funcs"].items():
             for metric, mdict in subdict.items():
                 for funcname, fdict in mdict.items():
-                    fdict["hovertext"] = self._get_hovertext(fdict["raw_val"], name, metric,
-                                                             funcname)
+                    # If this cell will not contain a numerical value, no hovertext is necessary.
+                    if fdict["raw_val"] is None:
+                        fdict["hovertext"] = ""
+                    else:
+                        fdict["hovertext"] = self._get_hovertext(fdict["raw_val"], name, metric,
+                                                                 funcname)
 
         self._dump(path)
 
