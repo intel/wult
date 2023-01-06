@@ -16,7 +16,7 @@ import logging
 import contextlib
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs.deploylibs import Deploy
+from statscollectlibs.deploylibs import DeployBase
 from wultlibs import _ProgressLine, _NdlRawDataProvider
 from wultlibs.helperlibs import Human
 
@@ -149,7 +149,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
         self._progress = _ProgressLine.NdlProgressLine(period=1)
 
-        ndlhelper_path = Deploy.get_installed_helper_path(pman, "ndl", dev.helpername)
+        ndlhelper_path = DeployBase.get_installed_helper_path(pman, "ndl", dev.helpername)
         self._prov = _NdlRawDataProvider.NdlRawDataProvider(dev, pman, self._ldist, ndlhelper_path,
                                                             timeout=self._timeout)
 

@@ -11,11 +11,8 @@ This module provides API for deploying the tools coming with the 'wult' project.
 Note, "wult" is both name of the project and name of the tool in the project.
 """
 
-import os
-import time
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import LocalProcessManager
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.deploylibs import DeployBase, DeployHelpersBase
@@ -165,7 +162,7 @@ class _KernelHelper(ClassHelpers.SimpleCloseContext):
         ClassHelpers.close(self, unref_attrs=("_spman"))
 
 
-class DeployCheck(ClassHelpers.SimpleCloseContext):
+class DeployCheck(DeployBase.DeployCheckBase):
     """
     This class provides the 'check_deployment()' method which can be used for verifying whether all
     the required installables are available on the SUT.
@@ -178,102 +175,6 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
             self._kver = KernelVersion.get_kver(pman=self._spman)
 
         return self._kver
-
-    @staticmethod
-    def _get_newest_mtime(path):
-        """Find and return the most recent modification time of files in paths 'paths'."""
-
-        newest = 0
-        if not path.is_dir():
-            mtime = path.stat().st_mtime
-            if mtime > newest:
-                newest = mtime
-        else:
-            for root, _, files in os.walk(path):
-                for file in files:
-                    mtime = Path(root, file).stat().st_mtime
-                    if mtime > newest:
-                        newest = mtime
-
-        if not newest:
-            raise Error(f"no files found in the '{path}'")
-        return newest
-
-    def _get_deployables(self, category):
-        """Yields all deployable names for category 'category' (e.g., "drivers")."""
-
-        for inst_info in self._cats[category].values():
-            for deployable in inst_info["deployables"]:
-                yield deployable
-
-    def _get_installed_deployable_path(self, deployable):
-        """Same as 'DeployBase.get_installed_helper_path()'."""
-        return DeployBase.get_installed_helper_path("wult", self._toolname, deployable,
-                                                    pman=self._spman)
-
-    def _get_installable_by_deployable(self, deployable):
-        """Returns installable name and information dictionary for a deployable."""
-
-        for installable, inst_info in self._insts.items():
-            if deployable in inst_info["deployables"]:
-                break
-        else:
-            raise Error(f"bad deployable name '{deployable}'")
-
-        return installable # pylint: disable=undefined-loop-variable
-
-    def _get_deployable_print_name(self, installable, deployable):
-        """Returns a nice, printable human-readable name of a deployable."""
-
-        cat_descr = self._insts[installable]["category_descr"]
-        if deployable != installable:
-            return f"the '{deployable}' component of the '{installable}' {cat_descr}"
-        return f"the '{deployable}' {cat_descr}"
-
-    def _deployable_not_found(self, deployable):
-        """
-        Called in a situation when 'deployable' was not found. Formats an error message and
-        raises 'ErrorNotFound'.
-        """
-
-        installable = self._get_installable_by_deployable(deployable)
-        what = self._get_deployable_print_name(installable, deployable)
-        is_helper = self._insts[installable]["category"] != "drivers"
-
-        err = DeployBase.get_deploy_suggestion(self._spman, "wult", self._toolname, what, is_helper)
-        raise ErrorNotFound(err) from None
-
-    def _warn_deployable_out_of_date(self, deployable):
-        """Print a warning about the 'what' deployable not being up-to-date."""
-
-        installable = self._get_installable_by_deployable(deployable)
-        what = self._get_deployable_print_name(installable, deployable)
-
-        _LOG.warning("%s may be out of date%s\nConsider running '%s'",
-                     what, self._spman.hostmsg,
-                     DeployBase.get_deploy_cmd(self._spman, self._toolname))
-
-    def _check_deployable_up_to_date(self, deployable, srcpath, dstpath):
-        """
-        Check that a deployable at 'dstpath' on SUT is up-to-date by comparing its 'mtime' to the
-        source (code) of the deployable at 'srcpath' on the controller.
-        """
-
-        if self._time_delta is None:
-            if self._spman.is_remote:
-                # Take into account the possible time difference between local and remote
-                # systems.
-                self._time_delta = time.time() - self._spman.time_time()
-            else:
-                self._time_delta = 0
-
-        src_mtime = self._get_newest_mtime(srcpath)
-        dst_mtime = self._spman.get_mtime(dstpath)
-
-        if src_mtime > self._time_delta + dst_mtime:
-            _LOG.debug("src mtime %d > %d + dst mtime %d\nsrc: %s\ndst %s",
-                       src_mtime, self._time_delta, dst_mtime, srcpath, dstpath)
-            self._warn_deployable_out_of_date(deployable)
 
     def _check_drivers_deployment(self):
         """Check if drivers are deployed and up-to-date."""
@@ -320,28 +221,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
                 if srcpath:
                     self._check_deployable_up_to_date(deployable, srcpath, deployable_path)
 
-    def _check_pyhelpers_deployment(self):
-        """Check if python helpers are deployed and up-to-date."""
-
-        for pyhelper in self._cats["pyhelpers"]:
-            try:
-                subpath = DeployHelpersBase.HELPERS_SRC_SUBDIR / pyhelper
-                what = f"the '{pyhelper}' python helper program"
-                srcpath = ProjectFiles.find_project_data("wult", subpath, what=what)
-            except ErrorNotFound:
-                continue
-
-            for deployable in self._get_deployables("pyhelpers"):
-                try:
-                    deployable_path = self._get_installed_deployable_path(deployable)
-                except ErrorNotFound:
-                    self._deployable_not_found(deployable)
-                    break
-
-                if srcpath:
-                    self._check_deployable_up_to_date(deployable, srcpath, deployable_path)
-
-    def check_deployment(self):
+    def _check_deployment(self):
         """
         Wult and other tools require additional helper programs and drivers to be installed on the
         SUT. This method checks whether the required drivers and helper programs are installed on
@@ -354,41 +234,24 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
             self._check_drivers_deployment()
         if self._cats["shelpers"] or self._cats["bpfhelpers"]:
             self._check_helpers_deployment()
-        if self._cats["pyhelpers"]:
-            self._check_pyhelpers_deployment()
 
-    def __init__(self, toolname, deploy_info, pman=None):
+    def __init__(self, prjname, toolname, deploy_info, pman=None):
         """
-        The class constructor. The arguments are as follows.
-          * toolname - name of the tool to create the deployment object for.
-          * deploy_info - a dictionary describing the tool to deploy. Check 'DeployBase.__init__()'
-                          for more information.
-          * pman - the process manager object that defines the SUT to deploy to (local host by
-                   default).
-
-        Please, refer to module docstring for more information.
+        The class constructor. The arguments are the same as in 'DeployCheckBase.__init__()'.
         """
 
-        self._insts, self._cats = DeployBase.get_insts_cats(deploy_info)
-        self._toolname = toolname
+        super().__init__(prjname, toolname, deploy_info, pman=pman)
 
-        if pman:
-            self._spman = pman
-            self._close_spman = False
-        else:
-            self._spman = LocalProcessManager.LocalProcessManager()
-            self._close_spman = True
-
-        # Version of the kernel running on the SUT of version of the kernel to compile wult
-        # components against.
+        # Version of the kernel running on the SUT, or version of the kernel to compile against.
         self._kver = None
         self._khelper = _KernelHelper(self._insts, self._spman)
-
         self._time_delta = None
 
     def close(self):
         """Uninitialize the object."""
-        ClassHelpers.close(self, close_attrs=("_spman", "_khelper"))
+
+        ClassHelpers.close(self, close_attrs=("_khelper"))
+        super().close()
 
 
 class Deploy(DeployBase.DeployBase):

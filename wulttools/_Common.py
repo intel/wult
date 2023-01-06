@@ -399,7 +399,7 @@ def scan_command(args):
         found_something = True
 
         deploy_info = reduce_installables(args.deploy_info, dev)
-        with _Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
+        with _Deploy.DeployCheck("wult", args.toolname, deploy_info, pman=pman) as depl:
             try:
                 depl.check_deployment()
             except ErrorNotFound as err:

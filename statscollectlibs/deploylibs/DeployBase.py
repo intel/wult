@@ -254,6 +254,7 @@ class DeployCheckBase(ClassHelpers.SimpleCloseContext):
 
         self._insts = None # Installables information.
         self._cats = None  # Lists of installables in every category.
+        self._time_delta = None
 
         if pman:
             self._spman = pman
@@ -263,8 +264,6 @@ class DeployCheckBase(ClassHelpers.SimpleCloseContext):
             self._close_spman = True
 
         self._insts, self._cats = get_insts_cats(deploy_info)
-
-        self._time_delta = None
 
     def close(self):
         """Uninitialize the object."""

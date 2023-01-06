@@ -19,7 +19,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.collector import StatsCollectBuilder
 from wulttools import _Common
 from wultlibs import NdlRunner, Devices
-from wultlibs.deploylibs import Deploy
+from wultlibs.deploylibs import _Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
 
@@ -85,7 +85,7 @@ def start_command(args):
         stack.enter_context(dev)
 
         deploy_info = _Common.reduce_installables(args.deploy_info, dev)
-        with Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
+        with _Deploy.DeployCheck("wult", args.toolname, deploy_info, pman=pman) as depl:
             depl.check_deployment()
 
         _Common.start_command_check_network(args, pman, dev.netif)

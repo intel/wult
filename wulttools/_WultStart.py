@@ -128,7 +128,7 @@ def start_command(args):
         stack.enter_context(dev)
 
         deploy_info = _Common.reduce_installables(args.deploy_info, dev)
-        with _Deploy.DeployCheck(args.toolname, deploy_info, pman=pman) as depl:
+        with _Deploy.DeployCheck("wult", args.toolname, deploy_info, pman=pman) as depl:
             depl.check_deployment()
 
         if getattr(dev, "netif", None):
