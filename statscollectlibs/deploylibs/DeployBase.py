@@ -97,7 +97,8 @@ def get_installed_helper_path(prjname, toolname, helper, pman=None):
             return ProjectFiles.find_project_helper(prjname, helper, pman=wpman)
         except ErrorNotFound as err:
             what = f"the '{helper}' helper program"
-            err += "\n" + get_deploy_suggestion(wpman, prjname, toolname, what, is_helper=True)
+            err = f"{err}\n"
+            err += get_deploy_suggestion(wpman, prjname, toolname, what, is_helper=True)
             raise ErrorNotFound(err) from None
 
 def get_insts_cats(deploy_info):
