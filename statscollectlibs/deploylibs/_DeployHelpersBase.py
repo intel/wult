@@ -62,9 +62,6 @@ class DeployHelpersBase(DeployInstallableBase.DeployInstallableBase):
         helpersrc = ProjectFiles.find_project_data("wult", helper_path, what=what)
         helpersrc = helpersrc.parent
 
-        if not helpersrc.is_dir():
-            raise Error(f"path '{helpersrc}' does not exist or it is not a directory")
-
         # Make sure all helpers are available.
         for helper in helpers:
             helperdir = helpersrc / helper
