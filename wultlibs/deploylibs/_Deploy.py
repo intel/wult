@@ -20,7 +20,7 @@ from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker, ProjectFile
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.deploylibs import DeployBase, DeployHelpersBase
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
-from wultlibs.helperlibs import RemoteHelpers, KernelVersion
+from wultlibs.helperlibs import KernelVersion
 
 _LOG = logging.getLogger()
 
@@ -263,7 +263,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
             if self._spman.is_remote:
                 # Take into account the possible time difference between local and remote
                 # systems.
-                self._time_delta = time.time() - RemoteHelpers.time_time(pman=self._spman)
+                self._time_delta = time.time() - self._spman.time_time()
             else:
                 self._time_delta = 0
 
