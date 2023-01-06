@@ -107,8 +107,6 @@ class DeployHelpersBase(DeployInstallableBase.DeployInstallableBase):
          * what - a human-readable string describing the helpers that are being deployed.
         """
 
-        self._stmpdir = stmpdir
         self._what = what
-
         super().__init__(prjname, toolname, spman, bpman, stmpdir, btmpdir, cpman=cpman,
                          ctmpdir=ctmpdir, debug=False)
