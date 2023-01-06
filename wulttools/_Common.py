@@ -24,10 +24,6 @@ from wultlibs.deploylibs import _Deploy
 from wultlibs.helperlibs import Human
 from statscollectlibs.helperlibs import ReportID
 
-HELPERS_LOCAL_DIR = Path(".local")
-_DRV_SRC_SUBPATH = Path("drivers/idle")
-_HELPERS_SRC_SUBPATH = Path("helpers")
-
 _LOG = logging.getLogger()
 
 # By default 'ReportID' module does not allow for the ":" character, but it is part of the PCI
