@@ -16,11 +16,11 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import ClassHelpers, LocalProcessManager, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from statscollectlibs.deploylibs import _DeployHelpersBase
+from statscollectlibs.deploylibs import DeployHelpersBase
 
 _LOG = logging.getLogger()
 
-class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
+class DeployPyHelpers(DeployHelpersBase.DeployHelpersBase):
     """This class provides the API for deploying Python helpers."""
 
     def _find_deployable(self, deployable):
@@ -34,7 +34,7 @@ class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
                 _LOG.debug(err1)
 
                 try:
-                    subpath = _DeployHelpersBase.HELPERS_SRC_SUBDIR / deployable / deployable
+                    subpath = DeployHelpersBase.HELPERS_SRC_SUBDIR / deployable / deployable
                     what = f"the '{deployable}' python program"
                     deployable_path = ProjectFiles.find_project_data(self._prjname, subpath,
                                                                      what=what, pman=lpman)
@@ -202,7 +202,7 @@ class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
     def __init__(self, prjname, toolname, deployables, spman, bpman, cpman, stmpdir, btmpdir,
                  ctmpdir, debug=False):
         """
-        Class constructor. Arguments are the same as in '_DeployHelpersBase.DeployHelpersBase()'
+        Class constructor. Arguments are the same as in 'DeployHelpersBase.DeployHelpersBase()'
         except for:
          * deployables - the names of deployables to deploy.
         """

@@ -15,11 +15,11 @@ docstring for more information.
 from pathlib import Path
 import logging
 from pepclibs.helperlibs.Exceptions import ErrorNotFound
-from statscollectlibs.deploylibs import _DeployHelpersBase
+from statscollectlibs.deploylibs import DeployHelpersBase
 
 _LOG = logging.getLogger()
 
-class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
+class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
     """This class provides the API for deploying bpf helpers."""
 
     def _check_for_shared_library(self, soname):
@@ -212,7 +212,7 @@ class DeployBPFHelpers(_DeployHelpersBase.DeployHelpersBase):
     def __init__(self, prjname, toolname, tchk, ksrc,  rebuild_src, spman, bpman, stmpdir, btmpdir,
                  debug=False):
         """
-        Class constructor. Arguments are the same as in '_DeployHelpersBase.DeployHelpersBase()'
+        Class constructor. Arguments are the same as in 'DeployHelpersBase.DeployHelpersBase()'
         except for:
          * tchk - an instance of 'ToolChecker'.
          * ksrc - path to the kernel sources to compile drivers against.

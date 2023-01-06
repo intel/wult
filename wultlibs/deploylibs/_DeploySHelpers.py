@@ -13,11 +13,11 @@ docstring for more information.
 """
 
 import logging
-from statscollectlibs.deploylibs import _DeployHelpersBase
+from statscollectlibs.deploylibs import DeployHelpersBase
 
 _LOG = logging.getLogger()
 
-class DeploySHelpers(_DeployHelpersBase.DeployHelpersBase):
+class DeploySHelpers(DeployHelpersBase.DeployHelpersBase):
     """This class provides the API for deploying simple helpers."""
 
     def _prepare(self, helpersrc, helpers):
@@ -44,7 +44,7 @@ class DeploySHelpers(_DeployHelpersBase.DeployHelpersBase):
 
     def __init__(self, prjname, toolname, spman, bpman, stmpdir, btmpdir, debug=False):
         """
-        Class constructor. Arguments are the same as in '_DeployHelpersBase.DeployHelpersBase()'.
+        Class constructor. Arguments are the same as in 'DeployHelpersBase.DeployHelpersBase()'.
         """
 
         what = f"{toolname} helpers"

@@ -18,7 +18,7 @@ from pathlib import Path
 from pepclibs.helperlibs import LocalProcessManager
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
-from statscollectlibs.deploylibs import DeployBase, _DeployHelpersBase
+from statscollectlibs.deploylibs import DeployBase, DeployHelpersBase
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
 from wultlibs.helperlibs import RemoteHelpers, KernelVersion
 
@@ -63,7 +63,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
                      following order) on the local host: {searchdirs}."""
     if cats["shelpers"] or cats["pyhelpers"]:
         searchdirs = ProjectFiles.get_project_data_search_descr("wult",
-                                                            _DeployHelpersBase.HELPERS_SRC_SUBDIR)
+                                                            DeployHelpersBase.HELPERS_SRC_SUBDIR)
         helpernames = ", ".join(cats["shelpers"] + cats["pyhelpers"] + cats["bpfhelpers"])
         descr += f""" The {toolname} tool also depends on the following helpers: {helpernames}.
                      These helpers will be compiled on the SUT and deployed to the SUT. The sources
@@ -71,7 +71,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
                      order) on the local host: {searchdirs}. By default, helpers are deployed to
                      the path defined by the 'WULT_HELPERSPATH' environment variable. If the
                      variable is not defined, helpers are deployed to
-                     '$HOME/{_DeployHelpersBase.HELPERS_DEPLOY_SUBDIR}/bin', where '$HOME' is the
+                     '$HOME/{DeployHelpersBase.HELPERS_DEPLOY_SUBDIR}/bin', where '$HOME' is the
                      home directory of user 'USERNAME' on host 'HOST' (see '--host' and '--username'
                      options)."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
@@ -304,7 +304,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
             self._khelper.check_minkver(helpername, self._get_kver())
 
             try:
-                subpath = _DeployHelpersBase.HELPERS_SRC_SUBDIR / helpername
+                subpath = DeployHelpersBase.HELPERS_SRC_SUBDIR / helpername
                 what = f"the '{helpername}' helper program"
                 srcpath = ProjectFiles.find_project_data("wult", subpath, what=what)
             except ErrorNotFound:
@@ -325,7 +325,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
 
         for pyhelper in self._cats["pyhelpers"]:
             try:
-                subpath = _DeployHelpersBase.HELPERS_SRC_SUBDIR / pyhelper
+                subpath = DeployHelpersBase.HELPERS_SRC_SUBDIR / pyhelper
                 what = f"the '{pyhelper}' python helper program"
                 srcpath = ProjectFiles.find_project_data("wult", subpath, what=what)
             except ErrorNotFound:
