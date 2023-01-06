@@ -34,10 +34,12 @@ Helpers types.
        python helpers is trickier because all python modules should also be deployed.
 """
 
+import os
+import time
 import copy
 import logging
 from pathlib import Path
-from pepclibs.helperlibs.Exceptions import ErrorExists, ErrorNotFound
+from pepclibs.helperlibs.Exceptions import Error, ErrorExists, ErrorNotFound
 from pepclibs.helperlibs import ClassHelpers, ProcessManager, LocalProcessManager, ProjectFiles
 
 _LOG = logging.getLogger()
@@ -120,6 +122,154 @@ def get_insts_cats(deploy_info):
         cats[catname][name] = info
 
     return insts, cats
+
+class DeployCheckBase(ClassHelpers.SimpleCloseContext):
+    """
+    This is a base class for verifying whether all the required installables have been deployed and
+    up-to-date.
+    """
+
+    @staticmethod
+    def _get_newest_mtime(path):
+        """Find and return the most recent modification time of files in paths 'paths'."""
+
+        newest = 0
+        if not path.is_dir():
+            mtime = path.stat().st_mtime
+            if mtime > newest:
+                newest = mtime
+        else:
+            for root, _, files in os.walk(path):
+                for file in files:
+                    mtime = Path(root, file).stat().st_mtime
+                    if mtime > newest:
+                        newest = mtime
+
+        if not newest:
+            raise Error(f"no files found in the '{path}'")
+        return newest
+
+    def _get_deployables(self, category):
+        """Yield all deployable names for category 'category' (e.g., "drivers")."""
+
+        for inst_info in self._cats[category].values():
+            for deployable in inst_info["deployables"]:
+                yield deployable
+
+    def _get_installed_deployable_path(self, deployable):
+        """Same as 'DeployBase.get_installed_helper_path()'."""
+        return get_installed_helper_path(self._prjname, self._toolname, deployable,
+                                         pman=self._spman)
+
+    def _get_installable_by_deployable(self, deployable):
+        """Returns installable name and information dictionary for a deployable."""
+
+        for installable, inst_info in self._insts.items():
+            if deployable in inst_info["deployables"]:
+                break
+        else:
+            raise Error(f"bad deployable name '{deployable}'")
+
+        return installable # pylint: disable=undefined-loop-variable
+
+    def _get_deployable_print_name(self, installable, deployable):
+        """Returns a nice, printable human-readable name of a deployable."""
+
+        cat_descr = self._insts[installable]["category_descr"]
+        if deployable != installable:
+            return f"the '{deployable}' component of the '{installable}' {cat_descr}"
+        return f"the '{deployable}' {cat_descr}"
+
+    def _deployable_not_found(self, deployable):
+        """
+        Called in a situation when 'deployable' was not found. Formats an error message and
+        raises 'ErrorNotFound'.
+        """
+
+        installable = self._get_installable_by_deployable(deployable)
+        what = self._get_deployable_print_name(installable, deployable)
+        is_helper = self._insts[installable]["category"] != "drivers"
+
+        err = get_deploy_suggestion(self._spman, self._prjname, self._toolname, what, is_helper)
+        raise ErrorNotFound(err) from None
+
+    def _warn_deployable_out_of_date(self, deployable):
+        """Print a warning about the 'what' deployable not being up-to-date."""
+
+        installable = self._get_installable_by_deployable(deployable)
+        what = self._get_deployable_print_name(installable, deployable)
+
+        _LOG.warning("%s may be out of date%s\nConsider running '%s'",
+                     what, self._spman.hostmsg, get_deploy_cmd(self._spman, self._toolname))
+
+    def _check_deployable_up_to_date(self, deployable, srcpath, dstpath):
+        """
+        Check that a deployable at 'dstpath' on SUT is up-to-date by comparing its 'mtime' to the
+        source (code) of the deployable at 'srcpath' on the controller.
+        """
+
+        if self._time_delta is None:
+            if self._spman.is_remote:
+                # Take into account the possible time difference between local and remote
+                # systems.
+                self._time_delta = time.time() - self._spman.time_time()
+            else:
+                self._time_delta = 0
+
+        src_mtime = self._get_newest_mtime(srcpath)
+        dst_mtime = self._spman.get_mtime(dstpath)
+
+        if src_mtime > self._time_delta + dst_mtime:
+            _LOG.debug("src mtime %d > %d + dst mtime %d\nsrc: %s\ndst %s",
+                       src_mtime, self._time_delta, dst_mtime, srcpath, dstpath)
+            self._warn_deployable_out_of_date(deployable)
+
+    def _check_deployment(self):
+        """
+        Check if all the required installables have been deployed and up-to-date. Has to be
+        implemented by the sub-class.
+        """
+
+        raise NotImplementedError()
+
+    def check_deployment(self):
+        """Check if all the required installables have been deployed and up-to-date."""
+
+        self._time_delta = None
+        self._check_deployment()
+
+    def __init__(self, prjname, toolname, deploy_info, pman=None):
+        """
+        The class constructor. The arguments are as follows.
+          * prjname - name of the project 'toolname' belongs to.
+          * toolname - name of the tool to check the deployment for.
+          * deploy_info - a dictionary describing the tool to deploy. Check 'DeployBase.__init__()'
+                          for more information.
+          * pman - the process manager object that defines the SUT to check the deployment at (local
+            host by default).
+        """
+
+        self._prjname = prjname
+        self._toolname = toolname
+
+        self._insts = None # Installables information.
+        self._cats = None  # Lists of installables in every category.
+
+        if pman:
+            self._spman = pman
+            self._close_spman = False
+        else:
+            self._spman = LocalProcessManager.LocalProcessManager()
+            self._close_spman = True
+
+        self._insts, self._cats = get_insts_cats(deploy_info)
+
+        self._time_delta = None
+
+    def close(self):
+        """Uninitialize the object."""
+        ClassHelpers.close(self, close_attrs=("_spman",))
+
 
 class DeployBase(ClassHelpers.SimpleCloseContext):
     """This module provides the base class that includes sharable pieces of the 'Deploy' class."""
@@ -205,7 +355,7 @@ class DeployBase(ClassHelpers.SimpleCloseContext):
                  keep_tmpdir=False, debug=False):
         """
         The class constructor. The arguments are as follows.
-          * prjname - name of the project the 'toolname' belong to.
+          * prjname - name of the project 'toolname' belongs to.
           * toolname - name of the tool to deploy.
           * deploy_info - a dictionary describing what should be deployed.
           * pman - the process manager object that defines the SUT to deploy to (local host by

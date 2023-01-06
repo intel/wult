@@ -61,7 +61,7 @@ def start_command(args):
         stack.enter_context(cpuinfo)
         args.cpunum = cpuinfo.normalize_cpu(args.cpunum)
 
-        with _Deploy.DeployCheck(args.toolname, args.deploy_info, pman=pman) as depl:
+        with _Deploy.DeployCheck("wult", args.toolname, args.deploy_info, pman=pman) as depl:
             depl.check_deployment()
 
         res = RawResult.RawResult(args.reportid, args.outdir, args.toolver, args.cpunum)
