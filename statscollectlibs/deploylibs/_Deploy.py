@@ -61,7 +61,7 @@ class Deploy(DeployBase.DeployBase):
                                              self._bpman, self._cpman, stmpdir, btmpdir, ctmpdir,
                                              debug=self._debug) as depl:
             pyhelpers = list(self._cats.get("pyhelpers"))
-            depl.deploy(self._toolname, pyhelpers)
+            depl.deploy(pyhelpers)
 
     def deploy(self):
         """Deploy all the installables to the SUT."""

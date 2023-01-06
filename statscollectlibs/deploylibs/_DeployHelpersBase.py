@@ -42,15 +42,15 @@ class DeployHelpersBase(DeployInstallableBase.DeployInstallableBase):
             helpers_path = self._spman.get_homedir() / HELPERS_LOCAL_DIR / "bin"
         return Path(helpers_path)
 
-    def deploy(self, toolname, helpers):
-        """Deploy helpers (including python helpers) to the SUT."""
+    def deploy(self, helpers):
+        """Deploy helpers to the SUT."""
 
         if not helpers:
             return
 
         # We assume all helpers are in the same base directory.
         helper_path = HELPERS_SRC_SUBPATH/f"{helpers[0]}"
-        what=f"{toolname} helper sources"
+        what = f"sources of {self._what}"
         helpersrc = ProjectFiles.find_project_data("wult", helper_path, what=what)
         helpersrc = helpersrc.parent
 

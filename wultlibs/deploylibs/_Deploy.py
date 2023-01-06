@@ -443,7 +443,7 @@ class Deploy(DeployBase.DeployBase):
                                                 self._get_ksrc(), self._rebuild_bpf, self._spman,
                                                 self._bpman, self._get_stmpdir(),
                                                 self._get_btmpdir(), debug=self._debug) as depl:
-            depl.deploy(self._toolname, list(bpfhelpers))
+            depl.deploy(list(bpfhelpers))
 
     def _deploy_shelpers(self):
         """Deploy simple helpers to the SUT."""
@@ -455,7 +455,7 @@ class Deploy(DeployBase.DeployBase):
         with _DeploySHelpers.DeploySHelpers("wult", self._toolname, self._spman, self._bpman,
                                             self._get_stmpdir(), self._get_btmpdir(),
                                             debug=self._debug) as depl:
-            depl.deploy(self._toolname, list(shelpers))
+            depl.deploy(list(shelpers))
 
     def _deploy_drivers(self):
         """Deploy drivers to the SUT."""
