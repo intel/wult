@@ -16,6 +16,7 @@ from pepclibs import CPUInfo
 from pepclibs.helperlibs import Human, Logging
 from pepclibs.helperlibs.Exceptions import Error
 from statscollecttools import _Common
+from statscollectlibs.deploylibs import _Deploy
 from statscollectlibs.collector import StatsCollectBuilder
 from statscollectlibs.helperlibs import ReportID
 from statscollectlibs.rawresultlibs import RawResult
@@ -59,6 +60,9 @@ def start_command(args):
         cpuinfo = CPUInfo.CPUInfo(pman=pman)
         stack.enter_context(cpuinfo)
         args.cpunum = cpuinfo.normalize_cpu(args.cpunum)
+
+        with _Deploy.DeployCheck(args.toolname, args.deploy_info, pman=pman) as depl:
+            depl.check_deployment()
 
         res = RawResult.RawResult(args.reportid, args.outdir, args.toolver, args.cpunum)
 
