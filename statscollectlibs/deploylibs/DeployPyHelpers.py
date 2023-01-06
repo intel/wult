@@ -44,6 +44,9 @@ class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
 
             deployable_path = lpman.abspath(deployable_path)
 
+            if not lpman.is_exe(deployable_path):
+                raise Error(f"path '{deployable_path}' exists, but it is not an executable file")
+
         return deployable_path
 
     @staticmethod
