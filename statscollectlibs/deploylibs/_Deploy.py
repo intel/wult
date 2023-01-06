@@ -10,7 +10,7 @@
 
 import logging
 from pepclibs.helperlibs import ArgParse
-from statscollectlibs.deploylibs import DeployBase, DeployPyHelpers
+from statscollectlibs.deploylibs import DeployBase, _DeployPyHelpers
 
 _LOG = logging.getLogger()
 
@@ -57,9 +57,9 @@ class Deploy(DeployBase.DeployBase):
         btmpdir = self._get_btmpdir()
         ctmpdir = self._get_ctmpdir()
 
-        with DeployPyHelpers.DeployPyHelpers("wult", self._toolname, deployables, self._spman,
-                                             self._bpman, self._cpman, stmpdir, btmpdir, ctmpdir,
-                                             debug=self._debug) as depl:
+        with _DeployPyHelpers.DeployPyHelpers("wult", self._toolname, deployables, self._spman,
+                                              self._bpman, self._cpman, stmpdir, btmpdir, ctmpdir,
+                                              debug=self._debug) as depl:
             pyhelpers = list(self._cats.get("pyhelpers"))
             depl.deploy(pyhelpers)
 
