@@ -27,7 +27,7 @@ class DeployHelpersBase(DeployInstallableBase.DeployInstallableBase):
         """
         Build and prepare helpers for deployment. The arguments are as follows:
           * helpersrc - path to the helpers base directory on the controller.
-          * helpers - helpers to build and prepare for deployment.
+          * helpers - same as in the 'deploy()' method.
 
         This method should be implemented by a child class.
         """
@@ -43,7 +43,15 @@ class DeployHelpersBase(DeployInstallableBase.DeployInstallableBase):
         return Path(helpers_path)
 
     def deploy(self, helpers):
-        """Deploy helpers to the SUT."""
+        """
+        Deploy helpers to the SUT. The arguments are as follows.
+          * helpers - the helpers to deploy. Should be a collection of helper names (e.g., a list).
+                      These are not deployable names, these are helper directory names in the
+                      'HELPERS_LOCAL_DIR' sub-directory.
+
+        This is the default implementation which deploys the helpers by running 'make' and 'make
+        install'.
+        """
 
         if not helpers:
             return
