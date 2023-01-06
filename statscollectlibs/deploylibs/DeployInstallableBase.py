@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2022-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
-"""This module provides a base class for deploying installables."""
+"""
+This module provides a base class for deploying installables. Refer to the 'DeployBase' module
+docstring for more information.
+"""
 
 import logging
 from pepclibs.helperlibs import Logging, ClassHelpers
