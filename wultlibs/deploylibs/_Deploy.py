@@ -432,42 +432,46 @@ class Deploy(DeployBase.DeployBase):
         _LOG.debug("Kernel sources path: %s", self._ksrc)
         return self._ksrc
 
-    def _deploy_helpers(self, toolname):
-        """
-        Deploy helpers (including python helpers) to the SUT. Arguments are as follows:
-         * toolname - name of the tool which the helpers are supporting.
-        """
-
-        stmpdir = self._get_stmpdir()
-        btmpdir = self._get_btmpdir()
-
-        shelpers = self._cats.get("shelpers")
-        if shelpers:
-            dep_shelpers = _DeploySHelpers.DeploySHelpers("wult", self._toolname, self._spman,
-                                self._bpman, stmpdir, btmpdir, debug=self._debug)
-            dep_shelpers.deploy(toolname, list(shelpers))
+    def _deploy_bpf_helpers(self):
+        """Deploy eBPF helpers to the SUT."""
 
         bpfhelpers = self._cats.get("bpfhelpers")
-        if bpfhelpers:
-            dep_bpfhelpers = _DeployBPFHelpers.DeployBPFHelpers("wult", self._toolname, self._tchk,
-                                self._get_ksrc(), self._rebuild_bpf, self._spman, self._bpman,
-                                stmpdir, btmpdir, debug=self._debug)
-            dep_bpfhelpers.deploy(toolname, list(bpfhelpers))
+        if not bpfhelpers:
+            return
+
+        with _DeployBPFHelpers.DeployBPFHelpers("wult", self._toolname, self._tchk,
+                                                self._get_ksrc(), self._rebuild_bpf, self._spman,
+                                                self._bpman, self._get_stmpdir(),
+                                                self._get_btmpdir(), debug=self._debug) as depl:
+            depl.deploy(self._toolname, list(bpfhelpers))
+
+    def _deploy_shelpers(self):
+        """Deploy simple helpers to the SUT."""
+
+        shelpers = self._cats.get("shelpers")
+        if not shelpers:
+            return
+
+        with _DeploySHelpers.DeploySHelpers("wult", self._toolname, self._spman, self._bpman,
+                                            self._get_stmpdir(), self._get_btmpdir(),
+                                            debug=self._debug) as depl:
+            depl.deploy(self._toolname, list(shelpers))
 
     def _deploy_drivers(self):
         """Deploy drivers to the SUT."""
 
-        if not self._cats["drivers"]:
+        drivers = self._cats["drivers"]
+        if not drivers:
             return
 
-        deps = {}
-        for dep in self._get_deployables("drivers"):
-            deps[dep] = self._khelper.get_module_path(dep)
+        with _DeployDrivers.DeployDrivers("wult", self._toolname, self._spman, self._bpman,
+                                          self._get_stmpdir(), self._get_btmpdir(),
+                                          debug=self._debug) as depl:
+            deps = {}
+            for dep in self._get_deployables("drivers"):
+                deps[dep] = self._khelper.get_module_path(dep)
 
-        dep_drvr = _DeployDrivers.DeployDrivers("wult", self._toolname, self._spman, self._bpman,
-                                                self._get_stmpdir(), self._get_btmpdir(),
-                                                debug=self._debug)
-        dep_drvr.deploy(self._cats["drivers"], self._get_kver(), self._get_ksrc(), deps)
+            depl.deploy(drivers, self._get_kver(), self._get_ksrc(), deps)
 
     def _adjust_installables(self):
         """
@@ -497,7 +501,8 @@ class Deploy(DeployBase.DeployBase):
             self._tchk.check_tool("cc")
 
         self._deploy_drivers()
-        self._deploy_helpers(self._toolname)
+        self._deploy_shelpers()
+        self._deploy_bpf_helpers()
 
     def deploy(self):
         """Deploy all the required installables to the SUT (drivers, helpers, etc)."""
