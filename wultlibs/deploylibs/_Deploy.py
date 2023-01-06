@@ -58,12 +58,12 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
 
     if cats["drivers"]:
         searchdirs = ProjectFiles.get_project_data_search_descr("wult",
-                                                                _DeployDrivers.DRV_SRC_SUBPATH)
+                                                                _DeployDrivers.DRIVERS_SRC_SUBDIR)
         descr += f""" The drivers are searched for in the following directories (and in the
                      following order) on the local host: {searchdirs}."""
     if cats["shelpers"] or cats["pyhelpers"]:
         searchdirs = ProjectFiles.get_project_data_search_descr("wult",
-                                                            _DeployHelpersBase.HELPERS_SRC_SUBPATH)
+                                                            _DeployHelpersBase.HELPERS_SRC_SUBDIR)
         helpernames = ", ".join(cats["shelpers"] + cats["pyhelpers"] + cats["bpfhelpers"])
         descr += f""" The {toolname} tool also depends on the following helpers: {helpernames}.
                      These helpers will be compiled on the SUT and deployed to the SUT. The sources
@@ -71,8 +71,8 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
                      order) on the local host: {searchdirs}. By default, helpers are deployed to
                      the path defined by the 'WULT_HELPERSPATH' environment variable. If the
                      variable is not defined, helpers are deployed to
-                     '$HOME/{_DeployHelpersBase.HELPERS_LOCAL_DIR}/bin', where '$HOME' is the home
-                     directory of user 'USERNAME' on host 'HOST' (see '--host' and '--username'
+                     '$HOME/{_DeployHelpersBase.HELPERS_DEPLOY_SUBDIR}/bin', where '$HOME' is the
+                     home directory of user 'USERNAME' on host 'HOST' (see '--host' and '--username'
                      options)."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
 
@@ -282,7 +282,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
             self._khelper.check_minkver(drvname, self._get_kver())
 
             try:
-                subpath = _DeployDrivers.DRV_SRC_SUBPATH / self._toolname
+                subpath = _DeployDrivers.DRIVERS_SRC_SUBDIR / self._toolname
                 what = f"the '{drvname}' driver"
                 srcpath = ProjectFiles.find_project_data("wult", subpath, what=what)
             except ErrorNotFound:
@@ -304,7 +304,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
             self._khelper.check_minkver(helpername, self._get_kver())
 
             try:
-                subpath = _DeployHelpersBase.HELPERS_SRC_SUBPATH / helpername
+                subpath = _DeployHelpersBase.HELPERS_SRC_SUBDIR / helpername
                 what = f"the '{helpername}' helper program"
                 srcpath = ProjectFiles.find_project_data("wult", subpath, what=what)
             except ErrorNotFound:
@@ -325,7 +325,7 @@ class DeployCheck(ClassHelpers.SimpleCloseContext):
 
         for pyhelper in self._cats["pyhelpers"]:
             try:
-                subpath = _DeployHelpersBase.HELPERS_SRC_SUBPATH / pyhelper
+                subpath = _DeployHelpersBase.HELPERS_SRC_SUBDIR / pyhelper
                 what = f"the '{pyhelper}' python helper program"
                 srcpath = ProjectFiles.find_project_data("wult", subpath, what=what)
             except ErrorNotFound:

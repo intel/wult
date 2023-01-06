@@ -34,7 +34,7 @@ class DeployPyHelpers(_DeployHelpersBase.DeployHelpersBase):
                 _LOG.debug(err1)
 
                 try:
-                    subpath = _DeployHelpersBase.HELPERS_SRC_SUBPATH / deployable / deployable
+                    subpath = _DeployHelpersBase.HELPERS_SRC_SUBDIR / deployable / deployable
                     what = f"the '{deployable}' python program"
                     deployable_path = ProjectFiles.find_project_data(self._prjname, subpath,
                                                                      what=what, pman=lpman)

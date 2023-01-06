@@ -17,7 +17,7 @@ from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import ProjectFiles
 from statscollectlibs.deploylibs import DeployInstallableBase
 
-DRV_SRC_SUBPATH = Path("drivers/idle")
+DRIVERS_SRC_SUBDIR = Path("drivers/idle")
 
 _LOG = logging.getLogger()
 
@@ -34,7 +34,7 @@ class DeployDrivers(DeployInstallableBase.DeployInstallableBase):
         """
 
         for drvname in drivers:
-            subpath = DRV_SRC_SUBPATH / drvname
+            subpath = DRIVERS_SRC_SUBDIR / drvname
             what = f"{drvname} drivers sources"
             drvsrc = ProjectFiles.find_project_data(self._prjname, subpath, what=what)
             if not drvsrc.is_dir():
@@ -73,7 +73,7 @@ class DeployDrivers(DeployInstallableBase.DeployInstallableBase):
             self._log_cmd_output(stdout, stderr)
 
             # Deploy the drivers.
-            dstdir = kmodpath / DRV_SRC_SUBPATH
+            dstdir = kmodpath / DRIVERS_SRC_SUBDIR
             self._spman.mkdir(dstdir, parents=True, exist_ok=True)
 
             for deployable, installed_module in deployables.items():

@@ -15,8 +15,8 @@ from pepclibs.helperlibs.Exceptions import Error
 from pepclibs.helperlibs import ProjectFiles
 from statscollectlibs.deploylibs import DeployInstallableBase
 
-HELPERS_LOCAL_DIR = Path(".local")
-HELPERS_SRC_SUBPATH = Path("helpers")
+HELPERS_DEPLOY_SUBDIR = Path(".local")
+HELPERS_SRC_SUBDIR = Path("helpers")
 
 _LOG = logging.getLogger()
 
@@ -39,7 +39,7 @@ class DeployHelpersBase(DeployInstallableBase.DeployInstallableBase):
 
         helpers_path = os.environ.get("WULT_HELPERSPATH")
         if not helpers_path:
-            helpers_path = self._spman.get_homedir() / HELPERS_LOCAL_DIR / "bin"
+            helpers_path = self._spman.get_homedir() / HELPERS_DEPLOY_SUBDIR / "bin"
         return Path(helpers_path)
 
     def deploy(self, helpers):
@@ -47,7 +47,7 @@ class DeployHelpersBase(DeployInstallableBase.DeployInstallableBase):
         Deploy helpers to the SUT. The arguments are as follows.
           * helpers - the helpers to deploy. Should be a collection of helper names (e.g., a list).
                       These are not deployable names, these are helper directory names in the
-                      'HELPERS_LOCAL_DIR' sub-directory.
+                      'HELPERS_DEPLOY_SUBDIR' sub-directory.
 
         This is the default implementation which deploys the helpers by running 'make' and 'make
         install'.
@@ -57,7 +57,7 @@ class DeployHelpersBase(DeployInstallableBase.DeployInstallableBase):
             return
 
         # We assume all helpers are in the same base directory.
-        helper_path = HELPERS_SRC_SUBPATH/f"{helpers[0]}"
+        helper_path = HELPERS_SRC_SUBDIR/f"{helpers[0]}"
         what = f"sources of {self._what}"
         helpersrc = ProjectFiles.find_project_data("wult", helper_path, what=what)
         helpersrc = helpersrc.parent
