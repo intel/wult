@@ -15,11 +15,14 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
-from statscollectlibs.deploylibs import DeployBase, DeployHelpersBase
+from statscollectlibs.deploylibs import DeployBase
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
 from wultlibs.helperlibs import KernelVersion
 
 _LOG = logging.getLogger()
+
+HELPERS_DEPLOY_SUBDIR = Path(".local")
+HELPERS_SRC_SUBDIR = Path("helpers")
 
 def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete=None):
     """
@@ -59,8 +62,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
         descr += f""" The drivers are searched for in the following directories (and in the
                      following order) on the local host: {searchdirs}."""
     if cats["shelpers"] or cats["pyhelpers"]:
-        searchdirs = ProjectFiles.get_project_data_search_descr("wult",
-                                                            DeployHelpersBase.HELPERS_SRC_SUBDIR)
+        searchdirs = ProjectFiles.get_project_data_search_descr("wult", HELPERS_SRC_SUBDIR)
         helpernames = ", ".join(cats["shelpers"] + cats["pyhelpers"] + cats["bpfhelpers"])
         descr += f""" The {toolname} tool also depends on the following helpers: {helpernames}.
                      These helpers will be compiled on the SUT and deployed to the SUT. The sources
@@ -68,9 +70,8 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
                      order) on the local host: {searchdirs}. By default, helpers are deployed to
                      the path defined by the 'WULT_HELPERSPATH' environment variable. If the
                      variable is not defined, helpers are deployed to
-                     '$HOME/{DeployHelpersBase.HELPERS_DEPLOY_SUBDIR}/bin', where '$HOME' is the
-                     home directory of user 'USERNAME' on host 'HOST' (see '--host' and '--username'
-                     options)."""
+                     '$HOME/{HELPERS_DEPLOY_SUBDIR}/bin', where '$HOME' is the home directory of
+                     user 'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
 
     if cats["drivers"] or cats["bpfhelpers"]:
@@ -205,7 +206,7 @@ class DeployCheck(DeployBase.DeployCheckBase):
             self._khelper.check_minkver(helpername, self._get_kver())
 
             try:
-                subpath = DeployHelpersBase.HELPERS_SRC_SUBDIR / helpername
+                subpath = HELPERS_SRC_SUBDIR / helpername
                 what = f"the '{helpername}' helper program"
                 srcpath = ProjectFiles.find_project_data("wult", subpath, what=what)
             except ErrorNotFound:
