@@ -56,6 +56,10 @@ class DeployHelpersBase(DeployInstallableBase.DeployInstallableBase):
         if not helpers:
             return
 
+        # Make sure 'cc' is available on the build host - it'll be executed by 'Makefile', so an
+        # explicit check here will generate an nice error message in case 'cc' is not available.
+        self._btchk.check_tool("cc")
+
         # We assume all helpers are in the same base directory.
         helper_path = HELPERS_SRC_SUBDIR/f"{helpers[0]}"
         what = f"sources of {self._what}"
@@ -100,7 +104,7 @@ class DeployHelpersBase(DeployInstallableBase.DeployInstallableBase):
                               remotedst=self._spman.is_remote)
 
     def __init__(self, prjname, toolname, what, spman, bpman, stmpdir, btmpdir, cpman=None,
-                 ctmpdir=None, debug=False):
+                 ctmpdir=None, btchk=None, debug=False):
         """
         Class constructor. Arguments are the same as in
         'DeployInstallableBase.DeployInstallableBase()' except for the following:
@@ -109,4 +113,4 @@ class DeployHelpersBase(DeployInstallableBase.DeployInstallableBase):
 
         self._what = what
         super().__init__(prjname, toolname, spman, bpman, stmpdir, btmpdir, cpman=cpman,
-                         ctmpdir=ctmpdir, debug=False)
+                         ctmpdir=ctmpdir, btchk=btchk, debug=False)

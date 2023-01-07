@@ -32,7 +32,8 @@ class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
         if f"cannot find -l{soname}" in stderr:
             msg = f"The 'lib{soname}' library is not installed{self._bpman.hostmsg}"
 
-            pkgname = self._tchk.tool_to_pkg(f"lib{soname}")
+            btchk = self._get_btchk()
+            pkgname = btchk.tool_to_pkg(f"lib{soname}")
             if pkgname:
                 msg += f"\nTry to install OS package '{pkgname}'."
             raise ErrorNotFound(msg)
@@ -70,8 +71,7 @@ class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
         if self._bpman.is_dir(basedir):
             search_info[basedir] = ("", "bpf")
 
-        incdirs = list()
-
+        incdirs = []
         for header in headers:
             tried = []
 
@@ -94,7 +94,8 @@ class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
                 # In Ubuntu, the '/usr/include/asm/types.h' file does not exist unless the
                 # 'gcc-multilib' package is installed. Include this information to the error
                 # message.
-                if header == "asm/types.h" and self._tchk.get_osname() == "Ubuntu":
+                btchk = self._get_btchk()
+                if header == "asm/types.h" and btchk.get_osname() == "Ubuntu":
                     err += "\nTry to install the 'gcc-multilib' Ubuntu package"
 
                 raise ErrorNotFound(err)
@@ -155,7 +156,8 @@ class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
             # 'clang' and 'bpftool' available. These tools are used from the 'Makefile'. Let's check
             # for them in order to generate a user-friendly message if one of them is not installed.
 
-            clang_path = self._tchk.check_tool("clang")
+            btchk = self._get_btchk()
+            clang_path = btchk.check_tool("clang")
 
             # Check if kernel sources provide 'bpftool' first. The user could have compiled it in
             # the kernel tree. Use it, if so.
@@ -165,7 +167,7 @@ class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
                     bpftool_path = self._ksrc / path
                     break
             if not bpftool_path:
-                bpftool_path = self._tchk.check_tool("bpftool")
+                bpftool_path = btchk.check_tool("bpftool")
 
             # Check for 'libbpf' library. We do this because the OS package that brings 'libbpf.so'
             # ('libbpf-devel' in Fedora) also brings headers like 'bpf/bpf_helper_defs.h', which are
@@ -209,19 +211,18 @@ class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
             stdout, stderr = self._bpman.run_verify(cmd)
             self._log_cmd_output(stdout, stderr)
 
-    def __init__(self, prjname, toolname, tchk, ksrc,  rebuild_src, spman, bpman, stmpdir, btmpdir,
-                 debug=False):
+    def __init__(self, prjname, toolname, ksrc,  rebuild_src, spman, bpman, stmpdir, btmpdir,
+                 btchk=None, debug=False):
         """
         Class constructor. Arguments are the same as in 'DeployHelpersBase.DeployHelpersBase()'
         except for:
-         * tchk - an instance of 'ToolChecker'.
          * ksrc - path to the kernel sources to compile drivers against.
          * rebuild_src - boolean value representing whether this method should rebuild bpf helpers.
         """
 
-        self._tchk = tchk
         self._ksrc = ksrc
         self._rebuild_src = rebuild_src
 
         what = f"{toolname} eBPF helpers"
-        super().__init__(prjname, toolname, what, spman, bpman, stmpdir, btmpdir, debug=debug)
+        super().__init__(prjname, toolname, what, spman, bpman, stmpdir, btmpdir, btchk=btchk,
+                         debug=debug)

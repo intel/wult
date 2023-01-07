@@ -33,6 +33,13 @@ class DeployDrivers(DeployInstallableBase.DeployInstallableBase):
          * deployables - a dictionary in the format '{deployable:installed_module}'.
         """
 
+        if not drivers:
+            return
+
+        # Make sure 'cc' is available on the build host - it'll be executed by 'Makefile', so an
+        # explicit check here will generate an nice error message in case 'cc' is not available.
+        self._btchk.check_tool("cc")
+
         for drvname in drivers:
             subpath = DRIVERS_SRC_SUBDIR / drvname
             what = f"{drvname} drivers sources"

@@ -13,7 +13,7 @@ Note, "wult" is both name of the project and name of the tool in the project.
 
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import ClassHelpers, ArgParse, ToolChecker, ProjectFiles
+from pepclibs.helperlibs import ClassHelpers, ArgParse, ProjectFiles, ToolChecker
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.deploylibs import DeployBase
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
@@ -303,10 +303,10 @@ class Deploy(DeployBase.DeployBase):
         if not bpfhelpers:
             return
 
-        with _DeployBPFHelpers.DeployBPFHelpers("wult", self._toolname, self._tchk,
-                                                self._get_ksrc(), self._rebuild_bpf, self._spman,
-                                                self._bpman, self._get_stmpdir(),
-                                                self._get_btmpdir(), debug=self._debug) as depl:
+        with _DeployBPFHelpers.DeployBPFHelpers("wult", self._toolname, self._get_ksrc(),
+                                                self._rebuild_bpf, self._spman, self._bpman,
+                                                self._get_stmpdir(), self._get_btmpdir(),
+                                                btchk=self._btchk, debug=self._debug) as depl:
             depl.deploy(list(bpfhelpers))
 
     def _deploy_shelpers(self):
@@ -318,7 +318,7 @@ class Deploy(DeployBase.DeployBase):
 
         with _DeploySHelpers.DeploySHelpers("wult", self._toolname, self._spman, self._bpman,
                                             self._get_stmpdir(), self._get_btmpdir(),
-                                            debug=self._debug) as depl:
+                                            btchk=self._btchk, debug=self._debug) as depl:
             depl.deploy(list(shelpers))
 
     def _deploy_drivers(self):
@@ -330,7 +330,7 @@ class Deploy(DeployBase.DeployBase):
 
         with _DeployDrivers.DeployDrivers("wult", self._toolname, self._spman, self._bpman,
                                           self._get_stmpdir(), self._get_btmpdir(),
-                                          debug=self._debug) as depl:
+                                          btchk=self._btchk, debug=self._debug) as depl:
             deps = {}
             for dep in self._get_deployables("drivers"):
                 deps[dep] = self._khelper.get_module_path(dep)
@@ -359,11 +359,6 @@ class Deploy(DeployBase.DeployBase):
     def _deploy(self):
         """Deploy required installables to the SUT."""
 
-        if self._cats["drivers"] or self._cats["shelpers"] or self._cats["bpfhelpers"]:
-            # Make sure 'cc' is available on the build host - it'll be executed by 'Makefile', so an
-            # explicit check here will generate an nice error message in case 'cc' is not available.
-            self._tchk.check_tool("cc")
-
         self._deploy_drivers()
         self._deploy_shelpers()
         self._deploy_bpf_helpers()
@@ -387,7 +382,7 @@ class Deploy(DeployBase.DeployBase):
 
         self._ksrc = ksrc
         self._rebuild_bpf = rebuild_bpf
-        self._tchk = None
+        self._btchk = None
 
         # Version of the kernel running on the SUT of version of the kernel to compile wult
         # components against.
@@ -405,12 +400,12 @@ class Deploy(DeployBase.DeployBase):
                             f"exist{self._bpman.hostmsg}")
             self._ksrc = self._bpman.abspath(self._ksrc)
 
-        self._tchk = ToolChecker.ToolChecker(self._bpman)
+        self._btchk = ToolChecker.ToolChecker(self._bpman)
 
         self._adjust_installables()
 
     def close(self):
         """Uninitialize the object."""
 
-        ClassHelpers.close(self, close_attrs=("_tchk", "_khelper"))
+        ClassHelpers.close(self, close_attrs=("_btchk", "_khelper"))
         super().close()

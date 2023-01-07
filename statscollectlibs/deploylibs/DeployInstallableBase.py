@@ -12,7 +12,7 @@ docstring for more information.
 """
 
 import logging
-from pepclibs.helperlibs import Logging, ClassHelpers
+from pepclibs.helperlibs import Logging, ClassHelpers, ToolChecker
 
 _LOG = logging.getLogger()
 
@@ -28,8 +28,17 @@ class DeployInstallableBase(ClassHelpers.SimpleCloseContext):
             if stderr:
                 _LOG.log(Logging.ERRINFO, stderr)
 
+    def _get_btchk(self):
+        """Return a 'ToolChecker' instance."""
+
+        if self._btchk:
+            return self._btchk
+
+        self._btchk = ToolChecker.ToolChecker(self._bpman)
+        return self._btchk
+
     def __init__(self, prjname, toolname, spman, bpman, stmpdir, btmpdir, cpman=None, ctmpdir=None,
-                 debug=False):
+                 btchk=None, debug=False):
         """
         Class constructor. Arguments are as follows:
          * prjname - name of the project the installables and 'toolname' belong to.
@@ -43,6 +52,8 @@ class DeployInstallableBase(ClassHelpers.SimpleCloseContext):
          * cpman - a process manager object associated with the controller (local host). Same as
                   'spman' by default.
          * ctmpdir - path to temporary directory on the controller (same as 'stmpdir' by default).
+         * btchk - an instance of 'ToolChecker' that can be used for checking availability of
+                   various tools on the build host (will be created if not provided).
          * debug - a boolean variable for enabling additional debugging messages.
         """
 
@@ -59,8 +70,14 @@ class DeployInstallableBase(ClassHelpers.SimpleCloseContext):
         self._btmpdir = btmpdir
         self._cpman = cpman
         self._ctmpdir = ctmpdir
+        self._btchk = btchk
         self._debug = debug
+
+        self._close_btchk = btchk is None
 
     def close(self):
         """Uninitialize the object."""
-        ClassHelpers.close(self, unref_attrs=("_spman", "_bpman", "_cpman"))
+
+        close_attrs=("_btchk")
+        unref_attrs=("_spman", "_bpman", "_cpman")
+        ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)
