@@ -311,10 +311,24 @@ class Deploy(DeployBase.DeployBase):
 
             depl.deploy(drivers, self._get_kver(), self._get_ksrc(), deps)
 
-    def _adjust_installables(self):
+    def _deploy(self):
+        """Deploy required installables to the SUT."""
+
+        self._deploy_drivers()
+        self._deploy_shelpers()
+        self._deploy_bpf_helpers()
+
+    def deploy(self):
+        """Deploy all the required installables to the SUT (drivers, helpers, etc)."""
+
+        try:
+            self._deploy()
+        finally:
+            self._remove_tmpdirs()
+
+    def _drop_installables(self):
         """
-        Adjust the list of installables that have to be deployed to the SUT based on various
-        conditions, such as kernel version.
+        Drop the installables that do not satisfy the minimum kernel version requirements.
         """
 
         # Exclude installables with unsatisfied minimum kernel version requirements.
@@ -330,21 +344,6 @@ class Deploy(DeployBase.DeployBase):
                 cat = self._insts[installable]["category"]
                 del self._insts[installable]
                 del self._cats[cat][installable]
-
-    def _deploy(self):
-        """Deploy required installables to the SUT."""
-
-        self._deploy_drivers()
-        self._deploy_shelpers()
-        self._deploy_bpf_helpers()
-
-    def deploy(self):
-        """Deploy all the required installables to the SUT (drivers, helpers, etc)."""
-
-        try:
-            self._deploy()
-        finally:
-            self._remove_tmpdirs()
 
     def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False, rebuild_bpf=False,
                  tmpdir_path=None, keep_tmpdir=False, debug=False):
@@ -374,7 +373,7 @@ class Deploy(DeployBase.DeployBase):
 
         self._btchk = ToolChecker.ToolChecker(self._bpman)
 
-        self._adjust_installables()
+        self._drop_installables()
 
     def close(self):
         """Uninitialize the object."""
