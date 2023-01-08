@@ -114,6 +114,7 @@ def get_insts_cats(deploy_info):
 
     for name, info in deploy_info["installables"].items():
         info = copy.deepcopy(info)
+        info["name"] = name
 
         # Add category description to the installable information dictionary.
         catname = info["category"]
