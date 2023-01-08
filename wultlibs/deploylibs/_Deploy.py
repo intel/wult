@@ -135,19 +135,6 @@ class _KernelHelper(ClassHelpers.SimpleCloseContext):
                                     f"it is not new enough for the '{installable}' {cat_descr}.\n"
                                     f"Please, use kernel version {minkver} or newer.")
 
-    def get_module_path(self, name):
-        """Return path to installed module 'name'. Returns 'None', if the module was not found."""
-
-        cmd = f"modinfo -n {name}"
-        stdout, _, exitcode = self._spman.run(cmd)
-        if exitcode != 0:
-            return None
-
-        modpath = Path(stdout.strip())
-        if self._spman.is_file(modpath):
-            return modpath
-        return None
-
     def __init__(self, insts, pman):
         """
         The class constructor. The arguments are as follows.
@@ -162,6 +149,18 @@ class _KernelHelper(ClassHelpers.SimpleCloseContext):
         """Uninitialize the object."""
         ClassHelpers.close(self, unref_attrs=("_spman"))
 
+def _get_module_path(pman, name):
+    """Return path to installed module 'name'. Returns 'None', if the module was not found."""
+
+    cmd = f"modinfo -n {name}"
+    stdout, _, exitcode = pman.run(cmd)
+    if exitcode != 0:
+        return None
+
+    modpath = Path(stdout.strip())
+    if pman.is_file(modpath):
+        return modpath
+    return None
 
 class DeployCheck(DeployBase.DeployCheckBase):
     """
@@ -191,7 +190,7 @@ class DeployCheck(DeployBase.DeployCheckBase):
                 srcpath = None
 
             for deployable in self._get_deployables("drivers"):
-                dstpath = self._khelper.get_module_path(deployable)
+                dstpath = _get_module_path(self._spman, deployable)
                 if not dstpath:
                     self._deployable_not_found(deployable)
                     break
@@ -333,7 +332,7 @@ class Deploy(DeployBase.DeployBase):
                                           btchk=self._btchk, debug=self._debug) as depl:
             deps = {}
             for dep in self._get_deployables("drivers"):
-                deps[dep] = self._khelper.get_module_path(dep)
+                deps[dep] = _get_module_path(self._spman, dep)
 
             depl.deploy(drivers, self._get_kver(), self._get_ksrc(), deps)
 
