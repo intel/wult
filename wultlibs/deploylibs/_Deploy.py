@@ -111,43 +111,25 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
     parser.set_defaults(func=func)
     return parser
 
-class _KernelHelper(ClassHelpers.SimpleCloseContext):
+def _check_minkver(pman, instinfo, kver):
     """
-    This class provides helper methods related to kernel versions and kernel module paths for
-    'Deploy' and 'DeployCheck'.
+    Check if the SUT has new enough kernel version for 'installable' to be deployed on it. The
+    argument are as follows:
+        * pman - a process manager object for the SUT.
+        * instinfo - the installable description dictionary.
+        * kver - version of the kernel running on the SUT.
     """
 
-    def check_minkver(self, installable, kver):
-        """
-        Check if the SUT has new enough kernel version for 'installable' to be deployed on it. The
-        argument are as follows:
-          * installable - name of the installable to check the kernel version for.
-          * kver - version of the kernel running on the SUT.
-        """
+    minkver = instinfo.get("minkver", None)
+    if not minkver:
+        return
 
-        minkver = self._insts[installable].get("minkver", None)
-        if not minkver:
-            return
-
-        if KernelVersion.kver_lt(kver, minkver):
-            cat_descr = self._insts[installable]["category_descr"]
-            raise ErrorNotSupported(f"version of Linux kernel{self._spman.hostmsg} is {kver}, and "
-                                    f"it is not new enough for the '{installable}' {cat_descr}.\n"
-                                    f"Please, use kernel version {minkver} or newer.")
-
-    def __init__(self, insts, pman):
-        """
-        The class constructor. The arguments are as follows.
-          * insts - a dictionary describing installables information.
-          * pman - the process manager object that defines the SUT to deploy to.
-        """
-
-        self._spman = pman
-        self._insts = insts
-
-    def close(self):
-        """Uninitialize the object."""
-        ClassHelpers.close(self, unref_attrs=("_spman"))
+    if KernelVersion.kver_lt(kver, minkver):
+        name = instinfo["name"]
+        cat_descr = instinfo["category_descr"]
+        raise ErrorNotSupported(f"version of Linux kernel{pman.hostmsg} is {kver}, and "
+                                f"it is not new enough for the '{name}' {cat_descr}.\n"
+                                f"Please, use kernel version {minkver} or newer.")
 
 def _get_module_path(pman, name):
     """Return path to installed module 'name'. Returns 'None', if the module was not found."""
@@ -179,8 +161,8 @@ class DeployCheck(DeployBase.DeployCheckBase):
     def _check_drivers_deployment(self):
         """Check if drivers are deployed and up-to-date."""
 
-        for drvname in self._cats["drivers"]:
-            self._khelper.check_minkver(drvname, self._get_kver())
+        for drvname, instinfo in self._cats["drivers"].items():
+            _check_minkver(self._spman, instinfo, self._get_kver())
 
             try:
                 subpath = _DeployDrivers.DRIVERS_SRC_SUBDIR / self._toolname
@@ -202,7 +184,7 @@ class DeployCheck(DeployBase.DeployCheckBase):
         """Check if simple and eBPF helpers are deployed and up-to-date."""
 
         for helpername in list(self._cats["shelpers"]) + list(self._cats["bpfhelpers"]):
-            self._khelper.check_minkver(helpername, self._get_kver())
+            _check_minkver(self._spman, self._insts[helpername], self._get_kver())
 
             try:
                 subpath = HELPERS_SRC_SUBDIR / helpername
@@ -244,14 +226,7 @@ class DeployCheck(DeployBase.DeployCheckBase):
 
         # Version of the kernel running on the SUT, or version of the kernel to compile against.
         self._kver = None
-        self._khelper = _KernelHelper(self._insts, self._spman)
         self._time_delta = None
-
-    def close(self):
-        """Uninitialize the object."""
-
-        ClassHelpers.close(self, close_attrs=("_khelper"))
-        super().close()
 
 
 class Deploy(DeployBase.DeployBase):
@@ -344,10 +319,11 @@ class Deploy(DeployBase.DeployBase):
 
         # Exclude installables with unsatisfied minimum kernel version requirements.
         for installable in list(self._insts):
+            instinfo = self._insts[installable]
             try:
-                self._khelper.check_minkver(installable, self._get_kver())
+                _check_minkver(self._spman, instinfo, self._get_kver())
             except ErrorNotSupported as err:
-                cat_descr = self._insts[installable]["category_descr"]
+                cat_descr = instinfo["category_descr"]
                 _LOG.notice(str(err))
                 _LOG.warning("the '%s' %s can't be installed", installable, cat_descr)
 
@@ -386,12 +362,9 @@ class Deploy(DeployBase.DeployBase):
         # Version of the kernel running on the SUT of version of the kernel to compile wult
         # components against.
         self._kver = None
-        self._khelper = None
 
         super().__init__("wult", toolname, deploy_info, pman=pman, lbuild=lbuild,
                          tmpdir_path=tmpdir_path, keep_tmpdir=keep_tmpdir, debug=debug)
-
-        self._khelper = _KernelHelper(self._insts, self._spman)
 
         if self._ksrc:
             if not self._bpman.is_dir(self._ksrc):
@@ -406,5 +379,5 @@ class Deploy(DeployBase.DeployBase):
     def close(self):
         """Uninitialize the object."""
 
-        ClassHelpers.close(self, close_attrs=("_btchk", "_khelper"))
+        ClassHelpers.close(self, close_attrs=("_btchk", ))
         super().close()
