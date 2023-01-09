@@ -5,6 +5,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.10.51] - 2023-01-09
+### Fixed
  - Fix turbostat totals tabs being unopenable in wult HTML reports.
 ### Added
  - Add statistics collection support to the 'ndl' tool ('--stats' and
@@ -13,8 +19,6 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    functionality later.
  - Add warnings to wult HTML reports when a diagram has been skipped because all
    results contain a single value for a given metric.
-### Removed
-### Changed
 
 ## [1.10.50] - 2022-12-23
 ### Fixed

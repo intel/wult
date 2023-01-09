@@ -1,3 +1,15 @@
+wult (1.10.51) unstable; urgency=low
+
+  * Fix turbostat totals tabs being unopenable in wult HTML reports.
+  * Add statistics collection support to the 'ndl' tool ('--stats' and
+    '--stats-intervals' options).
+  * Add 'stats-collect' tool. It is not very useful yet, but it will get more
+    functionality later.
+  * Add warnings to wult HTML reports when a diagram has been skipped because all
+    results contain a single value for a given metric.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 09 Jan 2023 00:00:00 +0200
+
 wult (1.10.50) unstable; urgency=low
 
   * Fix 'wult report' crashing when used on a dataset with very few datapoints.

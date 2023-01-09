@@ -2,7 +2,7 @@
 WULT
 ====
 
-:Date:   2022-12-23
+:Date:   2023-01-09
 
 .. contents::
    :depth: 3
@@ -76,20 +76,8 @@ the '-H' option. By default, everything is built on the SUT, but the
 '--local-build' can be used for building on the local system. The
 drivers are searched for in the following directories (and in the
 following order) on the local host: ./drivers/idle,
-$WULT_DATA_PATH/drivers/idle (if 'WULT_DATA_PATH' environment variable
-is defined), $HOME/.local/share/wult/drivers/idle,
-/usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.The
-wult tool also depends on the following helpers: stc-agent,
-wult-hrt-helper, wult-tdt-helper. These helpers will be compiled on the
-SUT and deployed to the SUT. The sources of the helpers are searched for
-in the following paths (and in the following order) on the local host:
-./helpers, $WULT_DATA_PATH/helpers (if 'WULT_DATA_PATH' environment
-variable is defined), $HOME/.local/share/wult/helpers,
-/usr/local/share/wult/helpers, /usr/share/wult/helpers. By default,
-helpers are deployed to the path defined by the 'WULT_HELPERSPATH'
-environment variable. If the variable is not defined, helpers are
-deployed to '$HOME/.local/bin', where '$HOME' is the home directory of
-user 'USERNAME' on host 'HOST' (see '--host' and '--username' options).
+$WULT_DATA_PATH/drivers/idle, $HOME/.local/share/wult/drivers/idle,
+/usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.
 
 OPTIONS *'wult* deploy'
 =======================

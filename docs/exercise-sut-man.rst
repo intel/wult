@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date:   2022-12-23
+:Date:   2023-01-09
 
 .. contents::
    :depth: 3
@@ -16,8 +16,8 @@ exercise-sut
 SYNOPSIS
 ========
 
-**exercise-sut** [-h] [-q] [-d] [--version] [-H HOSTNAME] [-U USERNAME]
-[-K PRIVKEY] [-T TIMEOUT] [--force-color] {collect,report} ...
+**exercise-sut** [-h] [-q] [-d] [--version] [--force-color]
+{collect,report} ...
 
 DESCRIPTION
 ===========
@@ -38,21 +38,6 @@ OPTIONS
 
 **--version**
    Print version and exit.
-
-**-H** *HOSTNAME*, **--host** *HOSTNAME*
-   Name of the host to run the command on.
-
-**-U** *USERNAME*, **--username** *USERNAME*
-   Name of the user to use for logging into the remote host over SSH.
-   The default user name is 'root'.
-
-**-K** *PRIVKEY*, **--priv-key** *PRIVKEY*
-   Path to the private SSH key that should be used for logging into the
-   remote host. By default the key is automatically found from standard
-   paths like '~/.ssh'.
-
-**-T** *TIMEOUT*, **--timeout** *TIMEOUT*
-   SSH connect timeout in seconds, default is 8.
 
 **--force-color**
    Force coloring of the text output.
@@ -76,8 +61,8 @@ REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpunum CPUNUM]
 FREQS] [--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR] [--aspm ASPM]
 [--c1-demotion C1_DEMOTION] [--c1e-autopromote C1E_AUTOPROMOTE]
 [--cstate-prewake CSTATE_PREWAKE] [--state-reset] [--deploy] [--devids
-DEVIDS] [--stop-on-failure] [--only-measured-cpu] [--outdir OUTDIR]
-[--toolpath TOOLPATH] [--toolopts TOOLOPTS] [--dry-run]
+DEVIDS] [--stop-on-failure] [--only-measured-cpu] [--toolpath TOOLPATH]
+[--toolopts TOOLOPTS] [--outdir OUTDIR] [--dry-run] [--list-monikers]
 
 Run a test tool or benchmark to collect testdata.
 
@@ -186,26 +171,32 @@ OPTIONS *'exercise-sut* collect'
    Change settings, for example CPU frequency and C-state limits, only
    for the measured CPU. By default settings are applied to all CPUs.
 
-**--outdir** *OUTDIR*, **-o** *OUTDIR*
-   Path to directory to store the results at. Default is
-   <toolname-date-time>.
-
 **--toolpath** *TOOLPATH*
    Path to the tool to run. Default is 'wult'.
 
 **--toolopts** *TOOLOPTS*
    Additional options to use for running the tool.
 
+**--outdir** *OUTDIR*, **-o** *OUTDIR*
+   Path to directory to store the results at. Default is
+   <toolname-date-time>.
+
 **--dry-run**
    Do not run any commands, only print them.
+
+**--list-monikers**
+   A moniker is an abbreviation for a setting. The 'exercise-sut' uses
+   monikers to create directory names and report IDs for collected
+   results. Use this option to list monikers assosiated with each
+   settings, if any, and exit.
 
 COMMAND *'exercise-sut* report'
 ===============================
 
 usage: exercise-sut report [-h] [-q] [-d] [--diff DIFF] [--include
-INCLUDE] [--exclude EXCLUDE] [--outdir OUTDIR] [--toolpath TOOLPATH]
-[--toolopts TOOLOPTS] [--stop-on-failure] [--dry-run] respaths [respaths
-...]
+INCLUDE] [--exclude EXCLUDE] [--toolpath TOOLPATH] [--toolopts TOOLOPTS]
+[--outdir OUTDIR] [--stop-on-failure] [--dry-run] [--list-monikers]
+respaths [respaths ...]
 
 Generate reports from collected data.
 
@@ -225,9 +216,9 @@ OPTIONS *'exercise-sut* report'
    Print debugging information.
 
 **--diff** *DIFF*
-   Collected data is stored in directories, and each directory consists
-   mulptiple monikers split by dash. Comma-separated list of monikers to
-   create diff report with.
+   Collected data is stored in directories, and each directory name
+   consists of multiple monikers separated by dashes. Comma-separated
+   list of monikers to create a diff report with.
 
 **--include** *INCLUDE*
    Comma-separated list of monikers that must be found from the result
@@ -237,21 +228,27 @@ OPTIONS *'exercise-sut* report'
    Comma-separated list of monikers that must not be found from the
    result path name.
 
-**--outdir** *OUTDIR*, **-o** *OUTDIR*
-   Path to directory to store the results at. Default is
-   <toolname-date-time>.
-
 **--toolpath** *TOOLPATH*
    Path to the tool to run. Default is 'wult'.
 
 **--toolopts** *TOOLOPTS*
    Additional options to use for running the tool.
 
+**--outdir** *OUTDIR*, **-o** *OUTDIR*
+   Path to directory to store the results at. Default is
+   <toolname-date-time>.
+
 **--stop-on-failure**
    Stop if any of the steps fail, instead of continuing (default).
 
 **--dry-run**
    Do not run any commands, only print them.
+
+**--list-monikers**
+   A moniker is an abbreviation for a setting. The 'exercise-sut' uses
+   monikers to create directory names and report IDs for collected
+   results. Use this option to list monikers assosiated with each
+   settings, if any, and exit.
 
 AUTHORS
 =======
