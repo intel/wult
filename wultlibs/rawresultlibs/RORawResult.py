@@ -136,7 +136,10 @@ class RORawResult(_RawResultBase.RawResultBase):
         restype = getattr(builtins, mdef["type"])
 
         for func, datum in subdict.items():
-            subdict[func] = restype(datum)
+            # 'calc_col_smry()' can return summary funcs with 'None' values which can't be
+            # type-casted.
+            if datum is not None:
+                subdict[func] = restype(datum)
 
         return subdict
 
