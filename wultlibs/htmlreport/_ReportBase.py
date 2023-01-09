@@ -401,7 +401,8 @@ class ReportBase:
         rep = HTMLReport.HTMLReport(self.outdir)
         rep.generate_report(tabs, stats_paths, self._intro_tbl, toolname, self.report_descr, mcpus)
 
-    def _mangle_loaded_res(self, res):
+    @staticmethod
+    def _mangle_loaded_res(res):
         """
         This method is called for every 'pandas.DataFrame' corresponding to the just loaded CSV
         file. The subclass can override this method to mangle the 'pandas.DataFrame'.
@@ -418,23 +419,8 @@ class ReportBase:
             if defs.get("drop_empty") and not res.df[metric].any():
                 _LOG.debug("dropping empty column '%s'", metric)
                 res.df.drop(metric, axis="columns", inplace=True)
+                res.metrics_set.remove(metric)
 
-        # Update metric lists in case some of the respective columns were removed from the loaded
-        # 'pandas.Dataframe'.
-        for name in ("_smry_metrics", "xaxes", "yaxes", "hist", "chist"):
-            metrics = []
-            for metric in getattr(self, name):
-                if metric in res.df:
-                    metrics.append(metric)
-            setattr(self, name, metrics)
-
-        for name in ("_hov_metrics", ):
-            metrics = []
-            val = getattr(self, name)
-            for metric in val[res.reportid]:
-                if metric in res.df:
-                    metrics.append(metric)
-            val[res.reportid] = metrics
         return res.df
 
     def _load_results(self):
@@ -498,15 +484,16 @@ class ReportBase:
         lists = ("xaxes", "yaxes", "hist", "chist")
 
         for name in lists:
-            intersection = set(getattr(self, name))
+            res_metrics = set()
             for res in self.rsts:
-                intersection = intersection & res.metrics_set
+                res_metrics.update(res.metrics_set)
+            intersection = set(getattr(self, name)) & res_metrics
             metrics = []
             for metric in getattr(self, name):
                 if metric in intersection:
                     metrics.append(metric)
                 else:
-                    _LOG.warning("dropping metric '%s' from '%s' because it is not present in one "
+                    _LOG.warning("dropping metric '%s' from '%s' because it is not present in any "
                                  "of the results", metric, name)
             setattr(self, name, metrics)
 

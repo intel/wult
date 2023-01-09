@@ -180,7 +180,8 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self.smrys = {}
         for metric in metrics:
-            self.smrys[metric] = self._calc_smry(metric, funcnames)
+            if metric in self.df:
+                self.smrys[metric] = self._calc_smry(metric, funcnames)
 
     def _load_csv(self, **kwargs):
         """Read the datapoints CSV file into a 'pandas.DataFrame' and validate it."""
