@@ -11,6 +11,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 ### Changed
  - Update 'npm' packages used in wult HTML reports.
+ - Generate tabs in wult HTML reports even when one or more results will be
+   excluded.
 
 ## [1.10.51] - 2023-01-09
 ### Fixed
