@@ -8,6 +8,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Update 'npm' packages used in wult HTML reports.
 
 ## [1.10.51] - 2023-01-09
 ### Fixed
