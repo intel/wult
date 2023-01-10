@@ -87,6 +87,9 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
             # Calculate custom bins.
             xmin, xmax = (float("inf"), -float("inf"))
             for res in self._rsts:
+                if not mdef["name"] in res.df:
+                    continue
+
                 # In case of non-numeric column there is only one x-value per bin.
                 if not res.is_numeric(mdef["name"]):
                     return {"size" : 1}

@@ -74,6 +74,16 @@ class DTabBuilder:
 
         return _Tabs.DTabDC(self.title, ppaths, smry_path, alerts=self._alerts)
 
+    @staticmethod
+    def _warn_plot_skip_res(reportid, plottitle, mtitle):
+        """
+        Helper function for '_add_scatter()' and '_add_histogram()'. Logs when a result is excluded
+        from a diagram because it does not have data for the metric with title 'mtitle'.
+        """
+
+        _LOG.info("Excluding result '%s' from %s: result does not have data for '%s'.", reportid,
+                   plottitle, mtitle)
+
     def _add_scatter(self, xdef, ydef, hover_defs=None):
         """
         Helper function for 'add_plots()'. Add a scatter plot to the report. Arguments are as
@@ -87,18 +97,25 @@ class DTabBuilder:
 
         # Initialise scatter plot.
         fname = f"{ydef['fsname']}-vs-{xdef['fsname']}.html"
+        plottitle = f"scatter plot '{ydef['title']} vs {xdef['title']}'"
+
         s_path = self._outdir / fname
         s = _ScatterPlot.ScatterPlot(xdef["name"], ydef["name"], s_path, xdef.get("title"),
                                      ydef.get("title"), xdef.get("short_unit"),
                                      ydef.get("short_unit"))
 
         for reportid, df in self._reports.items():
-            reduced_df = s.reduce_df_density(df, reportid)
-            if hover_defs is not None:
-                hovertext = s.create_hover_template(hover_defs[reportid], reduced_df)
+            for mdef in [xdef, ydef]:
+                if mdef["name"] not in df:
+                    self._warn_plot_skip_res(reportid, plottitle, mdef["title"])
+                    break
             else:
-                hovertext = None
-            s.add_df(reduced_df, reportid, hovertext)
+                reduced_df = s.reduce_df_density(df, reportid)
+                if hover_defs is not None:
+                    hovertext = s.create_hover_template(hover_defs[reportid], reduced_df)
+                else:
+                    hovertext = None
+                s.add_df(reduced_df, reportid, hovertext)
 
         s.generate()
         self._ppaths.append(s_path)
@@ -110,16 +127,20 @@ class DTabBuilder:
         'xbins' arguments.
         """
 
-        # Initialise histogram.
         if cumulative:
             h_path = self._outdir / f"Percentile-vs-{mdef['fsname']}.html"
+            plottitle = f"cumulative histogram 'Percentile vs {mdef['title']}'"
         else:
             h_path = self._outdir / f"Count-vs-{mdef['fsname']}.html"
+            plottitle = f"histogram 'Count vs {mdef['title']}'"
 
         h = _Histogram.Histogram(mdef["name"], h_path, mdef.get("title"), mdef.get("short_unit"),
                                  cumulative=cumulative, xbins=xbins)
 
         for reportid, df in self._reports.items():
+            if mdef["name"] not in df:
+                self._warn_plot_skip_res(reportid, plottitle, mdef["title"])
+                continue
             h.add_df(df, reportid)
 
         h.generate()
@@ -141,11 +162,10 @@ class DTabBuilder:
 
         for mdef in mdefs:
             mname = mdef["name"]
-            for sdf in self._reports.values():
-                # Check if there is a column for 'metric' in every stats 'pandas.DataFrame'.
-                if mname not in sdf:
-                    _LOG.info("Skipping %s: not all results have data for '%s'.", plotname, mname)
-                    return True
+            # Check that at least one result contains data for metric 'mname'.
+            if all(mname not in sdf for sdf in self._reports.values()):
+                _LOG.info("Skipping %s: no results have data for '%s'.", plotname, mname)
+                return True
 
             # Check if there is a constant value for all datapoints.
             sample_dp = list(self._reports.values())[0][mname].max()
