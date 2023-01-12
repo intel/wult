@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2020-2022 Intel Corporation
+# Copyright (C) 2020-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -35,7 +35,7 @@ def split_kver(kver, numerical=False):
 
     matchobj = re.match(r"^(\d+)\.(\d+)(?:(?:\.(\d+)){0,1}(.*)){0,1}", kver)
     if not matchobj:
-        raise Error("failed to parse kernel version string '%s'" % kver)
+        raise Error(f"failed to parse kernel version string '{kver}'")
 
     major, minor, stable, localver = matchobj.group(1, 2, 3, 4)
     if stable is None:
