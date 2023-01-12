@@ -447,7 +447,7 @@ static int parse_options(int argc, char * const *argv)
 			exit(0);
 			break;
 		case 'P':
-			msg("max. ldist: %u", LDIST_MAX);
+			msg("max. ldist: %llu", LDIST_MAX);
 			exit(0);
 		case 'v':
 			verbose = 1;
