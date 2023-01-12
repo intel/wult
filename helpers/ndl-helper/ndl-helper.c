@@ -160,7 +160,7 @@ static int handle_socket_errors(int sock, struct sockaddr_in *addr)
 	struct cmsghdr *cmsg;
 	struct msghdr msg;
 	struct iovec iov;
-	uint64_t ltime;
+	uint64_t ltime = 0;
 
 	iov.iov_base = buf;
 	iov.iov_len = sizeof(buf);
@@ -196,11 +196,18 @@ static int handle_socket_errors(int sock, struct sockaddr_in *addr)
 		}
 	}
 
-	snprintf(errqueue_buf, ERRQUEUE_BUF_SIZE,
-		"the delayed packet with lauch time %llu got error %d, origin %u, type %u, code %u",
-		(unsigned long long)ltime, serr->ee_errno,
-		(unsigned int)serr->ee_origin, (unsigned int)serr->ee_type,
-		(unsigned int)serr->ee_code);
+	if (ltime != 0)
+		snprintf(errqueue_buf, ERRQUEUE_BUF_SIZE,
+			"the delayed packet with lauch time %llu got error %d, origin %u, type %u, code %u",
+			(unsigned long long)ltime, serr->ee_errno,
+			(unsigned int)serr->ee_origin, (unsigned int)serr->ee_type,
+			(unsigned int)serr->ee_code);
+	else
+		snprintf(errqueue_buf, ERRQUEUE_BUF_SIZE,
+			"a packet with unknown lauch time got error %d, origin %u, type %u, code %u",
+			serr->ee_errno, (unsigned int)serr->ee_origin, (unsigned int)serr->ee_type,
+			(unsigned int)serr->ee_code);
+
 	return EAGAIN;
 }
 
