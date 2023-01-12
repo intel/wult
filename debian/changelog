@@ -1,3 +1,9 @@
+wult (1.10.53) unstable; urgency=low
+
+  * Fix 'wult deploy' crashing (regression in release 1.10.51).
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 12 Jan 2023 00:00:00 +0200
+
 wult (1.10.52) unstable; urgency=low
 
   * Fix report generation crashing when a summary table contains more than one

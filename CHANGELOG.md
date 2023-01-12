@@ -5,10 +5,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix 'wult deploy' crashing (regression in release 1.10.51).
 ### Added
 ### Removed
 ### Changed
+
+## [1.10.53] - 2023-01-12
+### Fixed
+ - Fix 'wult deploy' crashing (regression in release 1.10.51).
 
 ## [1.10.52] - 2023-01-12
 ### Fixed
