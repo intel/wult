@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2022 Intel Corporation
+# Copyright (C) 2019-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -93,8 +93,8 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
         # Make sure the process did not exit immediately.
         stdout, stderr, exitcode = self._phc2sys_proc.wait(timeout=1)
         if exitcode is not None:
-            raise Error("can't synchronize the NIC and system clocks, 'phc2sys' exited:\n%s"
-                        % self._phc2sys_proc.get_cmd_failure_msg(stdout, stderr, exitcode))
+            msg = self._phc2sys_proc.get_cmd_failure_msg(stdout, stderr, exitcode)
+            raise Error(f"can't synchronize the NIC and system clocks, 'phc2sys' exited:\n{msg}")
 
     def stop_phc2sys(self):
         """ Stop the 'phc2sys' process."""
@@ -110,7 +110,7 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
 
         _LOG.debug("setting up ETF qdisc with handover delta %d nanoseconds", self._handover_delta)
 
-        stdout, _ = self._pman.run_verify("%s -V" % self._tc_path)
+        stdout, _ = self._pman.run_verify(f"{self._tc_path} -V")
         match = re.match(r"^tc utility, iproute2-(ss)?(.*)$", stdout.strip())
         if not match:
             raise Error(f"failed to parse version number of the 'tc' tool{self._pman.hostmsg}")
