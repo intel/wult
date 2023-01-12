@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2020-2021 Intel Corporation
+# Copyright (C) 2020-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -48,14 +48,14 @@ def get_kver_ktree(ktree, split=False, pman=None, makecmd=None):
 
     with ProcessManager.pman_or_local(pman) as wpman:
         if not makecmd:
-            makecmd = "make -C '%s'" % ktree
+            makecmd = f"make -C '{ktree}'"
         cmd = makecmd + " --quiet -- kernelrelease"
 
         try:
             kver = wpman.run_verify(cmd)[0].strip()
         except Error as err:
-            raise Error("cannot detect kernel version in '%s':\n%s\nMake sure kernel sources are "
-                        "configured." % (ktree, err)) from err
+            raise Error(f"cannot detect kernel version in '{ktree}':\n{err}\nMake sure kernel "
+                        f"sources are configured.") from err
 
     if split:
         return split_kver(kver)
