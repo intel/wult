@@ -381,7 +381,7 @@ static int get_command(char *buf, size_t bufsize)
 /*
  * Print TAI time vs real time offset in seconds. Returns 0 on success and -1 on error.
  */
-static int print_tai_offset(void)
+static void print_tai_offset(void)
 {
 	uint64_t tai, real;
 
@@ -391,11 +391,11 @@ static int print_tai_offset(void)
 	 */
 	real = get_real_time();
 	if (real == 0)
-		return -1;
+		return;
 
 	tai = get_tai_time(0);
 	if (tai == 0)
-		return -1;
+		return;
 
 	msg("TAI offset: %llu", (tai - real)/NANO);
 }
