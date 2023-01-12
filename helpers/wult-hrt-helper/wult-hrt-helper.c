@@ -235,7 +235,7 @@ static int handle_rb_event(void *ctx, void *bpf_event, size_t sz)
 		totcyc = e->intrc - e->bic;
 
 	printf("%lu,%d,%d,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu," \
-		"%lu,%lu,%u,%u,%u,%lu,%lu,",
+		"%lu,%lu,%lu,%u,%u,%lu,%lu,",
 		e->ltime, e->ldist, e->req_cstate, e->tbi, e->tai,
 		e->tintr, e->aits1, e->aits2, e->intrts1, e->intrts2,
 		e->aiaperf, e->intraperf, e->aimperf, e->intrmperf,
