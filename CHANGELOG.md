@@ -7,6 +7,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
  - Fix report generation crashing when a summary table contains more than one
    'N/A' value.
+ - Fix 'ndl' manual pages: we mistakingly documented 'wult' tool in 'ndl' man
+   page.
 ### Added
 ### Removed
 ### Changed

@@ -16,7 +16,7 @@ VERSION_REGEX='\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)'
 
 # File paths containing the version number that we'll have to adjust.
 WULT_FILE="$BASEDIR/wulttools/_Wult.py"
-NDL_FILE="$BASEDIR/wulttools/_Wult.py"
+NDL_FILE="$BASEDIR/wulttools/_Ndl.py"
 EXERCISESUT_FILE="$BASEDIR/wulttools/_ExerciseSut.py"
 SPEC_FILE="$BASEDIR/rpm/wult.spec"
 
@@ -167,7 +167,7 @@ argparse-manpage --pyfile "$WULT_FILE" --function _build_arguments_parser \
                  --author-email 'dedekind1@gmail.com' --output "$WULT_MAN_FILE" \
                  --url 'https://github.com/intel/wult'
 argparse-manpage --pyfile "$NDL_FILE" --function _build_arguments_parser \
-                 --project-name 'wult' --author 'Artem Bityutskiy' \
+                 --project-name 'ndl' --author 'Artem Bityutskiy' \
                  --author-email 'dedekind1@gmail.com' --output "$NDL_MAN_FILE" \
                  --url 'https://github.com/intel/wult'
 argparse-manpage --pyfile "$EXERCISESUT_FILE" --function _build_arguments_parser \
