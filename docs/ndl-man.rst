@@ -1,8 +1,8 @@
-====
-WULT
-====
+===
+NDL
+===
 
-:Date:   2023-01-09
+:Date:   2023-01-12
 
 .. contents::
    :depth: 3
@@ -11,18 +11,19 @@ WULT
 NAME
 ====
 
-wult
+ndl
 
 SYNOPSIS
 ========
 
-**wult** [-h] [-q] [-d] [--version] [--force-color]
+**ndl** [-h] [-q] [-d] [--version] [--force-color]
 {deploy,scan,start,report,filter,calc} ...
 
 DESCRIPTION
 ===========
 
-wult - a tool for measuring C-state latency.
+ndl - a tool for measuring memory access latency observed by a network
+card.
 
 OPTIONS
 =======
@@ -45,42 +46,52 @@ OPTIONS
 COMMANDS
 ========
 
-**wult** *deploy*
-   Compile and deploy wult helpers and drivers.
+**ndl** *deploy*
+   Compile and deploy ndl helpers and drivers.
 
-**wult** *scan*
+**ndl** *scan*
    Scan for available devices.
 
-**wult** *start*
+**ndl** *start*
    Start the measurements.
 
-**wult** *report*
+**ndl** *report*
    Create an HTML report.
 
-**wult** *filter*
+**ndl** *filter*
    Filter datapoints out of a test result.
 
-**wult** *calc*
-   Calculate summary functions for a wult test result.
+**ndl** *calc*
+   Calculate summary functions for a ndl test result.
 
-COMMAND *'wult* deploy'
-=======================
+COMMAND *'ndl* deploy'
+======================
 
-usage: wult deploy [-h] [-q] [-d] [--kernel-src KSRC] [--rebuild-bpf]
-[--local-build] [--tmpdir-path TMPDIR_PATH] [--keep-tmpdir] [-H
-HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [--skip-drivers]
+usage: ndl deploy [-h] [-q] [-d] [--kernel-src KSRC] [--local-build]
+[--tmpdir-path TMPDIR_PATH] [--keep-tmpdir] [-H HOSTNAME] [-U USERNAME]
+[-K PRIVKEY] [-T TIMEOUT]
 
-Compile and deploy wult helpers and drivers to the SUT (System Under
+Compile and deploy ndl helpers and drivers to the SUT (System Under
 Test), which can be can be either local or a remote host, depending on
 the '-H' option. By default, everything is built on the SUT, but the
 '--local-build' can be used for building on the local system. The
 drivers are searched for in the following directories (and in the
 following order) on the local host: ./drivers/idle,
 $WULT_DATA_PATH/drivers/idle, $HOME/.local/share/wult/drivers/idle,
-/usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.
+/usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle. The
+ndl tool also depends on the following helpers: ndl-helper. These
+helpers will be compiled on the SUT and deployed to the SUT. The sources
+of the helpers are searched for in the following paths (and in the
+following order) on the local host: ./helpers, $WULT_DATA_PATH/helpers,
+$HOME/.local/share/wult/helpers, /usr/local/share/wult/helpers,
+/usr/share/wult/helpers. By default, helpers are deployed to the path
+defined by the 'WULT_HELPERSPATH' environment variable. If the variable
+is not defined, helpers are deployed to '$HOME/.local/bin', where
+'$HOME' is the home directory of user 'USERNAME' on host 'HOST' (see
+'--host' and '--username' options).
 
-OPTIONS *'wult* deploy'
-=======================
+OPTIONS *'ndl* deploy'
+======================
 
 **-h**
    Show this help message and exit.
@@ -97,28 +108,19 @@ OPTIONS *'wult* deploy'
    If '--local-build' was used, then the path is considered to be on the
    local system, rather than the SUT.
 
-**--rebuild-bpf**
-   eBPF helpers sources consist of 2 components: the user-space
-   component and the eBPF component. The user-space component is
-   distributed as a source code, and must be compiled. The eBPF
-   component is distributed as both source code and in binary (compiled)
-   form. By default, the eBPF component is not re-compiled. This option
-   is meant to be used by wult developers to re-compile the eBPF
-   component if it was modified.
-
 **--local-build**
    Build helpers and drivers locally, instead of building on HOSTNAME
    (the SUT).
 
 **--tmpdir-path** *TMPDIR_PATH*
-   When 'wult' is deployed, a random temporary directory is used. Use
+   When 'ndl' is deployed, a random temporary directory is used. Use
    this option provide a custom path instead. It will be used as a
    temporary directory on both local and remote hosts. This option is
    meant for debugging purposes.
 
 **--keep-tmpdir**
    Do not remove the temporary directories created while deploying
-   'wult'. This option is meant for debugging purposes.
+   'ndl'. This option is meant for debugging purposes.
 
 **-H** *HOSTNAME*, **--host** *HOSTNAME*
    Name of the host to run the command on.
@@ -135,20 +137,16 @@ OPTIONS *'wult* deploy'
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
 
-**--skip-drivers**
-   Deploy the eBPF helper, but do not deploy the drivers. This is a
-   debug and development option, do not use it for other purposes.
+COMMAND *'ndl* scan'
+====================
 
-COMMAND *'wult* scan'
-=====================
-
-usage: wult scan [-h] [-q] [-d] [--all] [-H HOSTNAME] [-U USERNAME] [-K
+usage: ndl scan [-h] [-q] [-d] [--all] [-H HOSTNAME] [-U USERNAME] [-K
 PRIVKEY] [-T TIMEOUT]
 
 Scan for available devices.
 
-OPTIONS *'wult* scan'
-=====================
+OPTIONS *'ndl* scan'
+====================
 
 **-h**
    Show this help message and exit.
@@ -161,8 +159,8 @@ OPTIONS *'wult* scan'
 
 **--all**
    By default this command prints only the compatible devices which are
-   supported by current wult installation. This option makes this
-   command print about all the compatible devices.
+   supported by current ndl installation. This option makes this command
+   print about all the compatible devices.
 
 **-H** *HOSTNAME*, **--host** *HOSTNAME*
    Name of the host to run the command on.
@@ -179,27 +177,24 @@ OPTIONS *'wult* scan'
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
 
-COMMAND *'wult* start'
-======================
+COMMAND *'ndl* start'
+=====================
 
-usage: wult start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K
-PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--exclude
-EXCLUDE] [--include INCLUDE] [--keep-filtered] [-o OUTDIR] [--reportid
+usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
+[-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid
 REPORTID] [--stats STATS] [--stats-intervals STATS_INTERVALS]
-[--list-stats] [-l LDIST] [--cpunum CPUNUM] [--tsc-cal-time
-TSC_CAL_TIME] [--keep-raw-data] [--no-unload] [--early-intr] [--report]
-[--force] devid
+[--list-stats] [-l LDIST] [--exclude EXCLUDE] [--include INCLUDE]
+[--keep-filtered] [--report] [--force] ifname
 
-Start measuring and recording C-state latency.
+Start measuring and recording the latency data.
 
-**devid**
-   The ID of the device to use for measuring the latency. For example,
-   it can be a PCI address of the Intel I210 device, or "tdt" for the
-   TSC deadline timer block of the CPU. Use the 'scan' command to get
-   supported devices.
+**ifname**
+   The network interface backed by the NIC to use for latency
+   measurements. Today only Intel I210 and I211 NICs are supported.
+   Please, specify NIC's network interface name (e.g., eth0).
 
-OPTIONS *'wult* start'
-======================
+OPTIONS *'ndl* start'
+=====================
 
 **-h**
    Show this help message and exit.
@@ -242,34 +237,6 @@ OPTIONS *'wult* start'
    time limit is reached, or the required amount of datapoints is
    collected.
 
-**--exclude** *EXCLUDE*
-   Datapoints to exclude: remove all the datapoints satisfying the
-   expression 'EXCLUDE'. Here is an example of an expression:
-   '(WakeLatency < 10000) \| (PC6% < 1)'. This filter expression will
-   remove all datapoints with 'WakeLatency' smaller than 10000
-   nanoseconds or package C6 residency smaller than 1%. You can use any
-   metrics in the expression.
-
-**--include** *INCLUDE*
-   Datapoints to include: remove all datapoints except for those
-   satisfying the expression 'INCLUDE'. In other words, this option is
-   the inverse of '--exclude'. This means, '--include expr' is the same
-   as '--exclude "not (expr)"'.
-
-**--keep-filtered**
-   If the '--exclude' / '--include' options are used, then the
-   datapoints not matching the selector or matching the filter are
-   discarded. This is the default behavior which can be changed with
-   this option. If '--keep-filtered' has been specified, then all
-   datapoints are saved in result. Here is an example. Suppose you want
-   to collect 100000 datapoints where PC6 residency is greater than 0.
-   In this case, you can use these options: -c 100000 --exclude="PC6% ==
-   0". The result will contain 100000 datapoints, all of them will have
-   non-zero PC6 residency. But what if you do not want to simply discard
-   the other datapoints, because they are also interesting? Well, add
-   the '--keep-filtered' option. The result will contain, say, 150000
-   datapoints, 100000 of which will have non-zero PC6 residency.
-
 **-o** *OUTDIR*, **--outdir** *OUTDIR*
    Path to the directory to store the results at.
 
@@ -307,71 +274,52 @@ OPTIONS *'wult* start'
    interval values.
 
 **--list-stats**
-   Print information about the statistics 'wult' can collect and exit.
+   Print information about the statistics 'ndl' can collect and exit.
 
 **-l** *LDIST*, **--ldist** *LDIST*
-   This tool works by scheduling a delayed event, then sleeping and
-   waiting for it to happen. This step is referred to as a "measurement
-   cycle" and it is usually repeated many times. The launch distance
-   defines how far in the future the delayed event is scheduled. By
-   default this tool randomly selects launch distance within a range.
-   The default range is [0,4ms], but you can override it with this
-   option. Specify a comma-separated range (e.g '--ldist 10,5000'), or a
-   single value if you want launch distance to be precisely that value
-   all the time. The default unit is microseconds, but you can use the
-   following specifiers as well: ms - milliseconds, us - microseconds,
-   ns - nanoseconds. For example, ' --ldist 10us,5ms' would be a
-   [10,5000] microseconds range. Too small values may cause failures or
-   prevent the SUT from reaching deep C-states. If the range starts with
-   0, the minimum possible launch distance value allowed by the delayed
-   event source will be used. The optimal launch distance range is
-   system-specific.
+   The launch distance in microseconds. This tool works by scheduling a
+   delayed network packet, then sleeping and waiting for the packet to
+   be sent. This step is referred to as a "measurement cycle" and it is
+   usually repeated many times. The launch distance defines how far in
+   the future the delayed network packets are scheduled. By default this
+   tool randomly selects launch distance in range of [5000, 50000]
+   microseconds (same as '--ldist 5000,50000'). Specify a comma-
+   separated range or a single value if you want launch distance to be
+   precisely that value all the time. The default unit is microseconds,
+   but you can use the following specifiers as well: ms - milliseconds,
+   us - microseconds, ns - nanoseconds. For example, '--ldist
+   500us,100ms' would be a [500,100000] microseconds range. Note, too
+   low values may cause failures or prevent the SUT from reaching deep
+   C-states. The optimal value is system-specific.
 
-**--cpunum** *CPUNUM*
-   The logical CPU number to measure, default is CPU 0.
+**--exclude** *EXCLUDE*
+   Datapoints to exclude: remove all the datapoints satisfying the
+   expression 'EXCLUDE'. Here is an example of an expression:
+   '(WakeLatency < 10000) \| (PC6% < 1)'. This filter expression will
+   remove all datapoints with 'WakeLatency' smaller than 10000
+   nanoseconds or package C6 residency smaller than 1%. You can use any
+   metrics in the expression.
 
-**--tsc-cal-time** *TSC_CAL_TIME*
-   Wult receives raw datapoints from the driver, then processes them,
-   and then saves the processed datapoint in the 'datapoints.csv' file.
-   The processing involves converting TSC cycles to microseconds, so
-   wult needs SUT's TSC rate. TSC rate is calculated from the
-   datapoints, which come with TSC counters and timestamps, so TSC rate
-   can be calculated as "delta TSC / delta timestamp". In other words,
-   wult needs two datapoints to calculate TSC rate. However, the
-   datapoints have to be far enough apart, and this option defines the
-   distance between the datapoints (in seconds). The default distance is
-   10 seconds, which means that wult will keep collecting and buffering
-   datapoints for 10s without processing them (because processing
-   requires TSC rate to be known). After 10s, wult will start processing
-   all the buffered datapoints, and then the newly collected datapoints.
-   Generally, longer TSC calculation time translates to better accuracy.
+**--include** *INCLUDE*
+   Datapoints to include: remove all datapoints except for those
+   satisfying the expression 'INCLUDE'. In other words, this option is
+   the inverse of '--exclude'. This means, '--include expr' is the same
+   as '--exclude "not (expr)"'.
 
-**--keep-raw-data**
-   Wult receives raw datapoints from the driver, then processes them,
-   and then saves the processed datapoint in the 'datapoints.csv' file.
-   In order to keep the CSV file smaller, wult keeps only the essential
-   information, and drops the rest. For example, raw timestamps are
-   dropped. With this option, however, wult saves all the raw data to
-   the CSV file, along with the processed data.
-
-**--no-unload**
-   This option exists for debugging and troubleshooting purposes.
-   Please, do not use for other reasons. If wult loads kernel modules,
-   they get unloaded after the measurements are done. But with this
-   option wult will not unload the modules.
-
-**--early-intr**
-   This option is for research purposes and you most probably do not
-   need it. Linux's 'cpuidle' subsystem enters most C-states with
-   interrupts disabled. So when the CPU exits the C-state because of an
-   interrupt, it will not jump to the interrupt handler, but instead,
-   continue running some 'cpuidle' housekeeping code. After this, the
-   'cpuidle' subsystem enables interrupts, and the CPU jumps to the
-   interrupt handler. Therefore, there is a tiny delay the 'cpuidle'
-   subsystem adds on top of the hardware C-state latency. For fast
-   C-states like C1, this tiny delay may even be measurable on some
-   platforms. This option allows to measure that delay. It makes wult
-   enable interrupts before linux enters the C-state.
+**--keep-filtered**
+   If the '--exclude' / '--include' options are used, then the
+   datapoints not matching the selector or matching the filter are
+   discarded. This is the default behavior which can be changed with
+   this option. If '--keep-filtered' has been specified, then all
+   datapoints are saved in result. Here is an example. Suppose you want
+   to collect 100000 datapoints where RTD is greater than 50
+   microseconds. In this case, you can use these options: -c 100000
+   --exclude="RTD > 50". The result will contain 100000 datapoints, all
+   of them will have RTD bigger than 50 microseconds. But what if you do
+   not want to simply discard the other datapoints, because they are
+   also interesting? Well, add the '--keep-filtered' option. The result
+   will contain, say, 150000 datapoints, 100000 of which will have RTD
+   value greater than 50.
 
 **--report**
    Generate an HTML report for collected results (same as calling
@@ -383,22 +331,21 @@ OPTIONS *'wult* start'
    active state, such as "up". Use '--force' to disable this safety
    mechanism. Use it with caution.
 
-COMMAND *'wult* report'
-=======================
+COMMAND *'ndl* report'
+======================
 
-usage: wult report [-h] [-q] [-d] [-o OUTDIR] [--exclude EXCLUDE]
+usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--exclude EXCLUDE]
 [--include INCLUDE] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist
 HIST] [--chist CHIST] [--reportids REPORTIDS] [--report-descr
-REPORT_DESCR] [--relocatable] [--list-metrics] [--size REPORT_SIZE]
-respaths [respaths ...]
+REPORT_DESCR] [--relocatable] [--list-metrics] respaths [respaths ...]
 
 Create an HTML report for one or multiple test results.
 
 **respaths**
-   One or multiple wult test result paths.
+   One or multiple ndl test result paths.
 
-OPTIONS *'wult* report'
-=======================
+OPTIONS *'ndl* report'
+======================
 
 **-h**
    Show this help message and exit.
@@ -411,10 +358,10 @@ OPTIONS *'wult* report'
 
 **-o** *OUTDIR*, **--outdir** *OUTDIR*
    Path to the directory to store the report at. By default the report
-   is stored in the 'wult-report-<reportid>' sub-directory of the test
+   is stored in the 'ndl-report-<reportid>' sub-directory of the test
    result directory. If there are multiple test results, the report is
-   stored in the current directory. The '<reportid>' is report ID of
-   wult test result.
+   stored in the current directory. The '<reportid>' is report ID of ndl
+   test result.
 
 **--exclude** *EXCLUDE*
    Datapoints to exclude: remove all the datapoints satisfying the
@@ -447,29 +394,28 @@ OPTIONS *'wult* report'
 **-x** *XAXES*, **--xaxes** *XAXES*
    A comma-separated list of metrics (or python style regular
    expressions matching the names) to use on X-axes of the scatter
-   plot(s), default is 'SilentTime'. Use '--list-metrics' to get the
-   list of the available metrics. Use value 'none' to disable scatter
-   plots.
+   plot(s), default is 'LDist'. Use '--list-metrics' to get the list of
+   the available metrics. Use value 'none' to disable scatter plots.
 
 **-y** *YAXES*, **--yaxes** *YAXES*
    A comma-separated list of metrics (or python style regular
    expressions matching the names) to use on the Y-axes for the scatter
    plot(s). If multiple metrics are specified for the X- or Y-axes, then
    the report will include multiple scatter plots for all the X- and
-   Y-axes combinations. The default is '.*Latency'. Use '--list-metrics'
-   to get the list of the available metrics. Use value 'none' to disable
+   Y-axes combinations. The default is 'RTD'. Use '--list-metrics' to
+   get the list of the available metrics. Use value 'none' to disable
    scatter plots.
 
 **--hist** *HIST*
    A comma-separated list of metrics (or python style regular
    expressions matching the names) to add a histogram for, default is
-   '.*Latency'. Use '--list-metrics' to get the list of the available
-   metrics. Use value 'none' to disable histograms.
+   'RTD'. Use '--list-metrics' to get the list of the available metrics.
+   Use value 'none' to disable histograms.
 
 **--chist** *CHIST*
    A comma-separated list of metrics (or python style regular
    expressions matching the names) to add a cumulative distribution for,
-   default is 'None'. Use '--list-metrics' to get the list of the
+   default is 'RTD'. Use '--list-metrics' to get the list of the
    available metrics. Use value 'none' to disable cumulative histograms.
 
 **--reportids** *REPORTIDS*
@@ -498,16 +444,11 @@ OPTIONS *'wult* report'
 **--list-metrics**
    Print the list of the available metrics and exit.
 
-**--size** *REPORT_SIZE*
-   Generate HTML report with a pre-defined set of diagrams and
-   histograms. Possible values: 'small' or 'large'. This option is
-   mutually exclusive with '--xaxes', '--yaxes', '--hist', '--chist'.
+COMMAND *'ndl* filter'
+======================
 
-COMMAND *'wult* filter'
-=======================
-
-usage: wult filter [-h] [-q] [-d] [--exclude EXCLUDE] [--include
-INCLUDE] [--exclude-metrics MEXCLUDE] [--include-metrics MINCLUDE]
+usage: ndl filter [-h] [-q] [-d] [--exclude EXCLUDE] [--include INCLUDE]
+[--exclude-metrics MEXCLUDE] [--include-metrics MINCLUDE]
 [--human-readable] [-o OUTDIR] [--list-metrics] [--reportid REPORTID]
 respath
 
@@ -517,10 +458,10 @@ and metric filter and selector options ('--include',
 '--exclude-metrics', etc). The options may be specified multiple times.
 
 **respath**
-   The wult test result path to filter.
+   The ndl test result path to filter.
 
-OPTIONS *'wult* filter'
-=======================
+OPTIONS *'ndl* filter'
+======================
 
 **-h**
    Show this help message and exit.
@@ -578,21 +519,21 @@ OPTIONS *'wult* filter'
    Report ID of the filtered version of the result (can only be used
    with '--outdir').
 
-COMMAND *'wult* calc'
-=====================
+COMMAND *'ndl* calc'
+====================
 
-usage: wult calc [-h] [-q] [-d] [--exclude EXCLUDE] [--include INCLUDE]
+usage: ndl calc [-h] [-q] [-d] [--exclude EXCLUDE] [--include INCLUDE]
 [--exclude-metrics MEXCLUDE] [--include-metrics MINCLUDE] [-f FUNCS]
 [--list-funcs] respath
 
-Calculates various summary functions for a wult test result (e.g., the
+Calculates various summary functions for a ndl test result (e.g., the
 median value for one of the CSV columns).
 
 **respath**
-   The wult test result path to calculate summary functions for.
+   The ndl test result path to calculate summary functions for.
 
-OPTIONS *'wult* calc'
-=====================
+OPTIONS *'ndl* calc'
+====================
 
 **-h**
    Show this help message and exit.
@@ -655,5 +596,5 @@ AUTHORS
 DISTRIBUTION
 ============
 
-The latest version of wult may be downloaded from
+The latest version of ndl may be downloaded from
 ` <https://github.com/intel/wult>`__

@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date:   2023-01-09
+:Date:   2023-01-12
 
 .. contents::
    :depth: 3
@@ -194,9 +194,9 @@ COMMAND *'exercise-sut* report'
 ===============================
 
 usage: exercise-sut report [-h] [-q] [-d] [--diff DIFF] [--include
-INCLUDE] [--exclude EXCLUDE] [--toolpath TOOLPATH] [--toolopts TOOLOPTS]
-[--outdir OUTDIR] [--stop-on-failure] [--dry-run] [--list-monikers]
-respaths [respaths ...]
+INCLUDE] [--exclude EXCLUDE] [--jobs JOBS] [--toolpath TOOLPATH]
+[--toolopts TOOLOPTS] [--outdir OUTDIR] [--stop-on-failure] [--dry-run]
+[--list-monikers] respaths [respaths ...]
 
 Generate reports from collected data.
 
@@ -227,6 +227,9 @@ OPTIONS *'exercise-sut* report'
 **--exclude** *EXCLUDE*
    Comma-separated list of monikers that must not be found from the
    result path name.
+
+**--jobs** *JOBS*, **-j** *JOBS*
+   Number of threads to use for generating reports with.
 
 **--toolpath** *TOOLPATH*
    Path to the tool to run. Default is 'wult'.

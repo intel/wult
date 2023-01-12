@@ -1,4 +1,4 @@
-.TH EXERCISE\-SUT "1" "2023\-01\-09" "wult" "Generated Python Manual"
+.TH EXERCISE\-SUT "1" "2023\-01\-12" "wult" "Generated Python Manual"
 .SH NAME
 exercise\-sut
 .SH SYNOPSIS
@@ -172,7 +172,8 @@ Do not run any commands, only print them.
 A moniker is an abbreviation for a setting. The 'exercise\-sut' uses monikers to create directory names and report IDs for collected results. Use this option to list monikers assosiated with each settings, if any, and exit.
 
 .SH COMMAND \fI\,'exercise\-sut report'\/\fR
-usage: exercise\-sut report [\-h] [\-q] [\-d] [\-\-diff DIFF] [\-\-include INCLUDE] [\-\-exclude EXCLUDE] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-stop\-on\-failure] [\-\-dry\-run] [\-\-list\-monikers] respaths [respaths ...]
+usage: exercise\-sut report [\-h] [\-q] [\-d] [\-\-diff DIFF] [\-\-include INCLUDE] [\-\-exclude EXCLUDE] [\-\-jobs JOBS] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-stop\-on\-failure] [\-\-dry\-run] [\-\-list\-monikers]
+                           respaths [respaths ...]
 
 Generate reports from collected data.
 
@@ -204,6 +205,10 @@ Comma\-separated list of monikers that must be found from the result path name.
 .TP
 \fB\-\-exclude\fR \fI\,EXCLUDE\/\fR
 Comma\-separated list of monikers that must not be found from the result path name.
+
+.TP
+\fB\-\-jobs\fR \fI\,JOBS\/\fR, \fB\-j\fR \fI\,JOBS\/\fR
+Number of threads to use for generating reports with.
 
 .TP
 \fB\-\-toolpath\fR \fI\,TOOLPATH\/\fR

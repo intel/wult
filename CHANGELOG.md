@@ -5,12 +5,16 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.10.52] - 2023-01-12
+### Fixed
  - Fix report generation crashing when a summary table contains more than one
    'N/A' value.
  - Fix 'ndl' manual pages: we mistakingly documented 'wult' tool in 'ndl' man
    page.
-### Added
-### Removed
 ### Changed
  - Update 'npm' packages used in wult HTML reports.
  - Generate tabs in wult HTML reports even when one or more results will be

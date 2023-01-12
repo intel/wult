@@ -1,3 +1,15 @@
+wult (1.10.52) unstable; urgency=low
+
+  * Fix report generation crashing when a summary table contains more than one
+    'N/A' value.
+  * Fix 'ndl' manual pages: we mistakingly documented 'wult' tool in 'ndl' man
+    page.
+  * Update 'npm' packages used in wult HTML reports.
+  * Generate tabs in wult HTML reports even when one or more results will be
+    excluded.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 12 Jan 2023 00:00:00 +0200
+
 wult (1.10.51) unstable; urgency=low
 
   * Fix turbostat totals tabs being unopenable in wult HTML reports.
