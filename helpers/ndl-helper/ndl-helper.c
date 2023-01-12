@@ -317,17 +317,30 @@ static unsigned long long strtoll_or_die(const char *str, const char *descr)
 
 static int read_rtd(uint64_t *rtd)
 {
+	int res;
 	const char rtdpath[] = "/sys/kernel/debug/ndl/rtd";
 	FILE *f = fopen(rtdpath, "r");
 
 	if (!f) {
-		syserrmsg("failed to open file %s", rtdpath);
-		return -1;
+		syserrmsg("failed to open file '%s'", rtdpath);
+		goto out_err;
 	}
-	fscanf(f, "%lu", rtd);
-	fclose(f);
 
+	res = fscanf(f, "%lu", rtd);
+	if (res == EOF) {
+		if (ferror(f))
+			syserrmsg("failed to read file '%s'", rtdpath);
+		else
+			syserrmsg("EOF while reading file '%s'", rtdpath);
+		goto out_err;
+	}
+
+	fclose(f);
 	return 0;
+
+out_err:
+	fclose(f);
+	return -1;
 }
 
 /*
