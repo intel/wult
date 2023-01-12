@@ -400,22 +400,26 @@ static inline u64 rdtsc(void)
 	return ((u64)high << 32) | low;
 }
 
-static void calibrate_tsc(int fd)
+static int calibrate_tsc(int fd)
 {
+	int i, read_cnt;
 	u64 tsc, tsc_perf, tsc1;
-	int i;
 	u64 min_diff = 0;
 	u64 tsc_cal, tsc_diff;
 
 	if (fd < 0) {
 		errmsg("No TSC PMU file detected for calibration.");
-		return;
+		return -1;
 	}
 
 	for (i = 0; i < 100; i++) {
 		tsc1 = rdtsc();
 
-		read(fd, &tsc_perf, sizeof(u64));
+		read_cnt = read(fd, &tsc_perf, sizeof(u64));
+		if (read_cnt == -1) {
+			syserrmsg("failed to read TSC counter via perf");
+			return -1;
+		}
 
 		tsc = rdtsc();
 
@@ -437,6 +441,8 @@ static void calibrate_tsc(int fd)
 		bpf_args.timer_calib =
 			tsc1 + (tsc - tsc1) / 3 - tsc_perf;
 	}
+
+	return 0;
 }
 
 int main(int argc, char **argv)
@@ -548,9 +554,13 @@ int main(int argc, char **argv)
 	}
 
 	/* Calibrate the TSC value from perf against locally read TSC */
-	calibrate_tsc(tsc_fd);
+	err = calibrate_tsc(tsc_fd);
+	if (err) {
+		errmsg("failed to calibrate TSC");
+		goto cleanup;
+	}
 
-	verbose("tsc calibration value: %lu", bpf_args.timer_calib);
+	verbose("TSC calibration value: %lu", bpf_args.timer_calib);
 
 	err = bpf_prog_test_run_opts(
 			bpf_program__fd(skel->progs.tdt_bpf_setup),
