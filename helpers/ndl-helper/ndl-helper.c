@@ -91,6 +91,9 @@ static int loop_forever = 1;
  */
 static char errqueue_buf[ERRQUEUE_BUF_SIZE];
 
+static char control_buf[CMSG_SPACE(PACKET_SIZE)];
+static char err_control_buf[CMSG_SPACE(sizeof(struct sock_extended_err))];
+
 /*
  * Create a socket suitable for scheduling packets to be sent in the future.
  */
@@ -155,7 +158,6 @@ err_close:
 static int handle_socket_errors(int sock, struct sockaddr_in *addr)
 {
 	unsigned char buf[PACKET_SIZE];
-	char msg_control[CMSG_SPACE(sizeof(struct sock_extended_err))];
 	struct sock_extended_err *serr;
 	struct cmsghdr *cmsg;
 	struct msghdr msg;
@@ -169,8 +171,8 @@ static int handle_socket_errors(int sock, struct sockaddr_in *addr)
 	msg.msg_iovlen = 1;
 	msg.msg_name = addr;
 	msg.msg_namelen = sizeof(*addr);
-	msg.msg_control = msg_control;
-	msg.msg_controllen = sizeof(msg_control);
+	msg.msg_control = err_control_buf;
+	msg.msg_controllen = sizeof(err_control_buf);
 
 	if (recvmsg(sock, &msg, MSG_ERRQUEUE) == -1) {
 		syserrmsg("'recvmsg()' on socket error queue failed");
@@ -255,7 +257,6 @@ static int arm(int sock, uint64_t launch_distance)
 {
 	int err;
 	uint64_t packet_buf[2];
-	char control[CMSG_SPACE(PACKET_SIZE)];
 	struct pollfd pfd;
 	struct sockaddr_in addr;
 	struct cmsghdr *cmsg;
@@ -281,9 +282,9 @@ static int arm(int sock, uint64_t launch_distance)
 	msg.msg_iov = &iov;
 	msg.msg_iovlen = 1;
 
-	memset(control, 0, sizeof(control));
-	msg.msg_control = control;
-	msg.msg_controllen = sizeof(control);
+	memset(control_buf, 0, sizeof(control_buf));
+	msg.msg_control = control_buf;
+	msg.msg_controllen = sizeof(control_buf);
 
 	cmsg = CMSG_FIRSTHDR(&msg);
 	cmsg->cmsg_level = SOL_SOCKET;
