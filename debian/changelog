@@ -1,3 +1,13 @@
+wult (1.10.54) unstable; urgency=low
+
+  * Fix reports generated with 'stats-collect start --report' having no title.
+  * Fix 'stats-collect' not maintaining reportid between 'start' and 'report'
+    commands.
+  * Reports generated with 'stats-collect start --report' will now appear in an
+    'html-report' sub-directory if no output directory is specified.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 13 Jan 2023 00:00:00 +0200
+
 wult (1.10.53) unstable; urgency=low
 
   * Fix 'wult deploy' crashing (regression in release 1.10.51).

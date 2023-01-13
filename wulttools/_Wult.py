@@ -25,7 +25,7 @@ from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.deploylibs import _Deploy
 from wulttools import _Common, _WultCommon
 
-_VERSION = "1.10.53"
+_VERSION = "1.10.54"
 _OWN_NAME = "wult"
 
 # The deployment information dictionary. See 'DeployBase.__init__()' for details.
