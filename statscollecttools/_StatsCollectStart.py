@@ -44,7 +44,7 @@ def _generate_report(res, outdir):
 
     stats_paths =  {res.reportid: res.stats_path}
     rep = HTMLReport.HTMLReport(outdir)
-    rep.generate_report(stats_paths=stats_paths)
+    rep.generate_report(stats_paths=stats_paths, title="stats-collect report")
 
 def start_command(args):
     """Implements the 'start' command."""
