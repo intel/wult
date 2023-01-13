@@ -5,9 +5,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix reports generated with 'stats-collect start --report' having no title.
 ### Added
 ### Removed
 ### Changed
+ - Reports generated with 'stats-collect start --report' will now appear in an
+   'html-report' sub-directory if no output directory is specified.
 
 ## [1.10.53] - 2023-01-12
 ### Fixed
