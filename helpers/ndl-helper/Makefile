@@ -5,7 +5,7 @@ TOOLNAME = ndl-helper
 all: $(TOOLNAME)
 
 %: %.c
-	$(CC) $(CFLAGS) -fstack-protector $< -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
 
 clean:
 	rm -rf $(TOOLNAME)
