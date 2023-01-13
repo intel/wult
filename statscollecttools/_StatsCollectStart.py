@@ -100,4 +100,4 @@ def start_command(args):
         stcoll.copy_remote_data()
 
     if args.report:
-        _generate_report(res, args.outdir)
+        _generate_report(res, args.outdir / "html-report")
