@@ -6,6 +6,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
  - Fix reports generated with 'stats-collect start --report' having no title.
+ - Fix 'stats-collect' not maintaining reportid between 'start' and 'report'
+   commands.
 ### Added
 ### Removed
 ### Changed
