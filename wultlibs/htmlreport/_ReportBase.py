@@ -399,7 +399,8 @@ class ReportBase:
         mcpus = {res.reportid: str(res.info["cpunum"]) for res in self.rsts if "cpunum" in res.info}
 
         rep = HTMLReport.HTMLReport(self.outdir)
-        rep.generate_report(tabs, stats_paths, self._intro_tbl, toolname, self.report_descr, mcpus)
+        rep.generate_report(tabs, stats_paths, self._intro_tbl, f"{toolname} Report",
+                            self.report_descr, mcpus)
 
     @staticmethod
     def _mangle_loaded_res(res):
