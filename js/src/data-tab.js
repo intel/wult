@@ -2,10 +2,13 @@
  * -*- coding: utf-8 -*-
  * vim: ts=4 sw=4 tw=100 et ai si
  *
- * Copyright (C) 2019-2022 Intel, Inc.
- * SPDX-License-Identifier: BSD-3-Clause
- *
  * Author: Adam Hawley <adam.james.hawley@intel.com>
+ */
+
+/**
+ * @license
+ * Copyright (C) 2019-2023 Intel, Inc.
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
 import { LitElement, html, css } from 'lit'

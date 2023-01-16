@@ -1,5 +1,23 @@
 /**
  * @license
+ * Copyright (C) 2019-2023 Intel, Inc.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+/**
+ * @license
+ * Copyright (C) 2021-2023 Intel, Inc.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+/**
+ * @license
+ * Copyright (C) 2022-2023 Intel, Inc.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+/**
+ * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
