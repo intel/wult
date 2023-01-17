@@ -27,7 +27,8 @@ def deploy_command(args):
         _LOG.notice(f"the statistics collection capability will not be available for "
                     f"'{args.toolname}'")
 
-    with _Common.get_pman(args) as pman, \
-         _Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, ksrc=args.ksrc,
-                       lbuild=args.lbuild, debug=args.debug) as depl:
-        depl.deploy()
+    with _Common.get_pman(args) as pman:
+        with _Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, ksrc=args.ksrc,
+                            lbuild=args.lbuild, tmpdir_path=args.tmpdir_path,
+                            keep_tmpdir=args.keep_tmpdir, debug=args.debug) as depl:
+            depl.deploy()
