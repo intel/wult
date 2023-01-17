@@ -1,36 +1,29 @@
-%bcond_without tests
+Name:     wult
+Version:  1.10.55
+Release:  %autorelease
+Summary:  A tool for measuring C-state latency in Linux
 
-Name:		wult
-Version:	1.10.55
-Release:	1%{?dist}
-Summary:	Tool for measuring Intel CPU C-state wake latency
+License:  BSD-3-Clause AND GPL-2.0-only
+Url:      https://intel.github.io/wult
+Source0:  https://github.com/intel/wult/archive/v%{version}/%{name}-%{version}.tar.gz
 
-License:	BSD-3-Clause
-Url:		https://intel.github.io/wult
-Source0:	https://github.com/intel/wult/archive/v%{version}/%{name}-%{version}.tar.gz
+# exclude backup kernel driver and duplications
+Patch0:   exclude-dirs.patch
 
-ExclusiveArch:	x86_64
+# measuring C-state latency for Intel architectures  
+ExclusiveArch:  x86_64
 
-BuildRequires:	gcc
-BuildRequires:	make
-BuildRequires:	python3-devel
-BuildRequires:	python3-plotly
-BuildRequires:	pepc >= 1.3.41
-%if %{with tests}
-BuildRequires:	python3-pandas
-BuildRequires:	python3-pluggy
-BuildRequires:	python3-pytest
-BuildRequires:	python3-numpy
-BuildRequires:	python3-pyyaml
-%endif
-Requires:	pepc >= 1.3.41
-Requires:	pciutils
-Requires:	python3-pandas
-Requires:	python3-plotly
-Requires:	python3-numpy
-Requires:	python3-pyyaml
-Requires:	python3-wult
-Requires:	%{name}-devel
+BuildRequires:  bpftool
+BuildRequires:  clang
+BuildRequires:  gcc
+BuildRequires:  make
+BuildRequires:  kernel-devel
+BuildRequires:  libbpf-devel
+BuildRequires:  python3-devel
+BuildRequires:  python3-pytest
+Requires:		pciutils
+Requires:		pepc
+Requires:		python3-%{name} = %{version}-%{release}
 
 %description
 The name Wult comes from "Wake Up Latency Tracer". Wult measures C-state
@@ -41,67 +34,57 @@ adapter. However, other devices could be supported as well, for example other
 Intel Ethernet adapters.
 
 %package -n python3-%{name}
-Summary:	Wult Python library
-Requires:	wult
+Summary: Wult Python library
+BuildArch:  noarch
 
 %description -n python3-%{name}
-Wult Python library
-
-%package -n %{name}-devel
-Summary:        Wult Kernel drivers
-Requires:	dwarves
-Requires:	elfutils-libelf-devel
-Requires:	wult
-
-%description -n %{name}-devel
-Wult Kernel drivers
+Wult Python libraries
 
 %prep
 %autosetup -p1 -n %{name}-%{version}
 
+%generate_buildrequires
+%pyproject_buildrequires -r
+
 %build
-%py3_build
-make -C helpers/ndl-helper
+%pyproject_wheel
+
+%make_build -C helpers/ndl-helper
+%make_build -C helpers/wult-hrt-helper
+%make_build -C helpers/wult-tdt-helper
 
 %install
-%py3_install
+%pyproject_install
+%pyproject_save_files wultlibs wulttools statscollectlibs statscollecttools
+
 install -pDm755 helpers/ndl-helper/ndl-helper %{buildroot}%{_bindir}/ndl-helper
+install -pDm755 helpers/wult-hrt-helper/wult-hrt-helper %{buildroot}%{_bindir}/wult-hrt-helper
+install -pDm755 helpers/wult-tdt-helper/wult-tdt-helper %{buildroot}%{_bindir}/wult-tdt-helper
+install -pDm644 docs/man1/exercise-sut.1 %{buildroot}/%{_mandir}/man1/exercise-sut.1
+install -pDm644 docs/man1/ndl.1 %{buildroot}/%{_mandir}/man1/ndl.1
+install -pDm644 docs/man1/wult.1 %{buildroot}/%{_mandir}/man1/wult.1
 
 %check
-%if %{with tests}
-%pytest
-%endif
+%pytest -v
 
 %files
-%doc README.md
-%license LICENSE.md js/dist/main.js.LICENSE.txt
+%doc README.md CHANGELOG.md
+%license LICENSE.md
+%{_bindir}/exercise-sut
 %{_bindir}/ipmi-helper
 %{_bindir}/ndl
 %{_bindir}/ndl-helper
+%{_bindir}/stats-collect
 %{_bindir}/stc-agent
 %{_bindir}/wult
-%{_datadir}/wult/defs
-%{_datadir}/wult/js
-%exclude %{_datadir}/wult/helpers
+%{_bindir}/wult-hrt-helper
+%{_bindir}/wult-tdt-helper
+%{_datadir}/wult
+%{_mandir}/man1/exercise-sut.1*
+%{_mandir}/man1/ndl.1*
+%{_mandir}/man1/wult.1*
 
-%files -n python3-%{name}
-%{python3_sitelib}/wultlibs
-%{python3_sitelib}/wulttools
-%{python3_sitelib}/statscollectlibs
-%{python3_sitelib}/wult-*.egg-info/
+%files -n python3-%{name} -f %{pyproject_files}
 
-%files -n %{name}-devel
-%{_datadir}/wult/drivers
-
-# Date format: date "+%a %b %d %Y"
 %changelog
-* Tue Jun 28 2022 Ali Erdinc Koroglu <ali.erdinc.koroglu@intel.com> - 1.10.7-1
-- Update to 1.10.7
-
-* Fri Jun 24 2022 Artem Bityutskiy <artem.bityutskiy@linux.intel.com> - 1.10.6-1
-- wult: add package C-states to turbostat statistics.
-- wult: add current and voltage to IPMI statistics.
-- Add RPM packaging support.
-
-* Tue Jun 21 2022 Ali Erdinc Koroglu <ali.erdinc.koroglu@intel.com> - 1.10.5-1
-- Initial package.
+%autochangelog
