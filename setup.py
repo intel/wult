@@ -61,9 +61,9 @@ setup(
     data_files=get_data_files("share/wult/drivers", "drivers") + \
                get_data_files("share/wult/helpers", "helpers", exclude=_PYTHON_HELPERS) + \
                get_data_files("share/wult/defs", "defs") + \
-               get_data_files("share/wult/js/dist", "js/dist") + \
-               get_data_files("share/wult/misc/servedir", "misc/servedir") + \
-               [("share/wult/js", ["js/index.html"])],
+               get_data_files("share/stats-collect/js/dist", "js/dist") + \
+               get_data_files("share/stats-collect/misc/servedir", "misc/servedir") + \
+               [("share/stats-collect/js", ["js/index.html"])],
     scripts=_TOOLNAMES + _PYTHON_HELPERS,
     packages=find_packages(),
     install_requires=["pepc>=1.3.41,<1.4.0", "plotly>=4", "numpy", "pandas", "pyyaml", "colorama"],
