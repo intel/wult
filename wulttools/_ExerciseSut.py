@@ -128,6 +128,10 @@ _COLLECT_OPTIONS = {
         "help" : f"""Comma-separated list of C1 demotion configurations to measure with. Default is
                      "{_get_reset_val('c1_demotion')}". Supported values are "on" and "off"."""
     },
+    "c1_undemotion" : {
+        "help" : f"""Comma-separated list of C1 undemotion configurations to measure with. Default
+                     is "{_get_reset_val('c1_undemotion')}". Supported values are "on" and "off"."""
+    },
     "c1e_autopromote" : {
         "help" : f"""Comma-separated list of C1E autopromote configurations to measure with. Default
                      is "{_get_reset_val('c1e_autopromote')}". Supported values are "on" and "off".
