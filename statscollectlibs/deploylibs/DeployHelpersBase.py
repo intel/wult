@@ -63,7 +63,7 @@ class DeployHelpersBase(DeployInstallableBase.DeployInstallableBase):
         # We assume all helpers are in the same base directory.
         helper_path = HELPERS_SRC_SUBDIR/f"{helpers[0]}"
         what = f"sources of {self._what}"
-        helpersrc = ProjectFiles.find_project_data("wult", helper_path, what=what)
+        helpersrc = ProjectFiles.find_project_data(self._prjname, helper_path, what=what)
         helpersrc = helpersrc.parent
 
         # Make sure all helpers are available.
