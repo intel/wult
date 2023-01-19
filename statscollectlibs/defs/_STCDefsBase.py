@@ -24,4 +24,4 @@ class STCDefsBase(DefsBase):
           * toolname - name of the tool to load the definitions for.
         """
 
-        super().__init__("wult", toolname, defsdir="defs/statscollect")
+        super().__init__("stats-collect", toolname, defsdir="defs/statscollect")
