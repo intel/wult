@@ -57,7 +57,7 @@ class DeployCheck(DeployBase.DeployCheckBase):
             try:
                 subpath = DeployHelpersBase.HELPERS_SRC_SUBDIR / pyhelper
                 what = f"the '{pyhelper}' python helper program"
-                srcpath = ProjectFiles.find_project_data("wult", subpath, what=what)
+                srcpath = ProjectFiles.find_project_data("stats-collect", subpath, what=what)
             except ErrorNotFound:
                 continue
 
