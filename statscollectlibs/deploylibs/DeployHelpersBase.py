@@ -37,7 +37,7 @@ class DeployHelpersBase(DeployInstallableBase.DeployInstallableBase):
     def _get_helpers_deploy_path(self):
         """Returns path the directory the helpers should be deployed to."""
 
-        helpers_path = os.environ.get("WULT_HELPERSPATH")
+        helpers_path = os.environ.get("STATS_COLLECT_HELPERSPATH")
         if not helpers_path:
             helpers_path = self._spman.get_homedir() / HELPERS_DEPLOY_SUBDIR / "bin"
         return Path(helpers_path)

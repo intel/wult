@@ -92,9 +92,9 @@ class Deploy(DeployBase.DeployBase):
         btmpdir = self._get_btmpdir()
         ctmpdir = self._get_ctmpdir()
 
-        with _DeployPyHelpers.DeployPyHelpers("wult", self._toolname, deployables, self._spman,
-                                              self._bpman, self._cpman, stmpdir, btmpdir, ctmpdir,
-                                              debug=self._debug) as depl:
+        with _DeployPyHelpers.DeployPyHelpers("stats-collect", self._toolname, deployables,
+                                              self._spman, self._bpman, self._cpman, stmpdir,
+                                              btmpdir, ctmpdir, debug=self._debug) as depl:
             pyhelpers = list(self._cats.get("pyhelpers"))
             depl.deploy(pyhelpers)
 
@@ -116,7 +116,7 @@ class Deploy(DeployBase.DeployBase):
         The class constructor. The arguments are the same as in 'DeployBase.__init()'.
         """
 
-        super().__init__("wult", toolname, deploy_info, pman=pman, tmpdir_path=tmpdir_path,
+        super().__init__("stats-collect", toolname, deploy_info, pman=pman, tmpdir_path=tmpdir_path,
                          keep_tmpdir=keep_tmpdir, debug=debug)
 
         # Python helpers need to be deployed only to a remote host. The local host should already
