@@ -34,12 +34,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/intel/wult"
+    "url": "git+https://github.com/intel/stats-collect"
   },
   "author": "Adam Hawley <adam.james.hawley@intel.com",
   "license": "BSD-3-Clause",
   "bugs": {
-    "url": "https://github.com/intel/wult/issues"
+    "url": "https://github.com/intel/stats-collect/issues"
   },
-  "homepage": "https://intel.github.io/wult/"
+  "homepage": "https://github.com/intel/stats-collect"
 }
