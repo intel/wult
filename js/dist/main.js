@@ -2350,8 +2350,8 @@
                 <sl-divider></sl-divider>
                 <p>
                     If you have tried uploading your report directory with the button above and it 
-                    is still not rendering properly, please see our documentation for details on
-                    other methods for viewing wult reports:
+                    is still not rendering properly, please see the following documentation for
+                    details on other methods of viewing reports:
                     <a href="https://intel.github.io/wult/pages/howto-view-local.html#open-wult-reports-locally"> here</a>.
                 </p>
             </sl-dialog>
