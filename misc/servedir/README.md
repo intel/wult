@@ -1,15 +1,15 @@
 # Viewing Reports Locally
 If you wish to view this report locally, this can be done using two methods:
-* `serve_directory.py` - a Python script found in the wult report directory which can be used to
+* `serve_directory.py` - a Python script found in the report directory which can be used to
                          serve one or more report directories (see usage details below).
-* `index.html` - an HTML document found in the wult report directory which attempts to render the
+* `index.html` - an HTML document found in the report directory which attempts to render the
                  report in a web browser. If it fails due to browser restrictions, you will be
                  prompted to upload the report directory.
 
 ## Serve a Directory (`serve_directory.py`)
 > Note that this script requires that Python 3.5 or higher is installed.
 
-This script can be found in the root directory of wult HTML reports and can be used to view one or
+This script can be found in the root directory of HTML reports and can be used to view one or
 more reports at the same time.
 
 ### GUI Usage
