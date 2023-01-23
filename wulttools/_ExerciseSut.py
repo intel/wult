@@ -229,10 +229,10 @@ def _build_arguments_parser():
     subparsers = parser.add_subparsers(title="commands", dest="a command")
     subparsers.required = True
 
-    text = "Collect testdata."
+    text = "Start collecting testdata."
     descr = "Run a test tool or benchmark to collect testdata."
-    subpars = subparsers.add_parser("collect", help=text, description=descr)
-    subpars.set_defaults(func=_collect_command)
+    subpars = subparsers.add_parser("start", help=text, description=descr)
+    subpars.set_defaults(func=_start_command)
     ArgParse.add_ssh_options(subpars)
 
     options = _COLLECT_OPTIONS
@@ -270,7 +270,7 @@ def parse_arguments():
     parser = _build_arguments_parser()
     return parser.parse_args()
 
-def _collect_command(args):
+def _start_command(args):
     """Exercise SUT and run workload for each requested system configuration."""
 
     if args.list_monikers:
