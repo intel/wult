@@ -82,7 +82,7 @@ _COLLECT_OPTIONS = {
     },
     "reportid_prefix" : {
         "default" : "",
-        "help" : """Custom report ID prefix string, default is the name of the SUT."""
+        "help" : """String to prepend to the report ID (nothing, by default)."""
     },
     "reportid_suffix" : {
         "default" : "",
@@ -230,7 +230,8 @@ def _build_arguments_parser():
     subparsers.required = True
 
     text = "Start collecting testdata."
-    descr = "Run a test tool or benchmark to collect testdata."
+    descr = """Run a test tool or benchmark to collect testdata. Unknown options are passed as-is to
+               the tool."""
     subpars = subparsers.add_parser("start", help=text, description=descr)
     subpars.set_defaults(func=_start_command)
     ArgParse.add_ssh_options(subpars)
@@ -244,7 +245,8 @@ def _build_arguments_parser():
         subpars.add_argument(*opt_names, **kwargs)
 
     text = "Generate reports."
-    descr = "Generate reports from collected data."
+    descr = """Generate reports from collected data. Unknown options are passed as-is to the report
+               tool."""
     subpars = subparsers.add_parser("report", help=text, description=descr)
     subpars.set_defaults(func=_report_command)
 
@@ -268,7 +270,16 @@ def parse_arguments():
     """Parse input arguments."""
 
     parser = _build_arguments_parser()
-    return parser.parse_args()
+    args, uargs = parser.parse_known_args()
+
+    toolopts = args.toolopts
+    if toolopts and uargs:
+        toolopts += " "
+
+    toolopts += " ".join(uargs)
+    setattr(args, "toolopts", toolopts)
+
+    return args
 
 def _start_command(args):
     """Exercise SUT and run workload for each requested system configuration."""
