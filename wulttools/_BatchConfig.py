@@ -430,7 +430,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
 
             if pname == "aspm":
                 if value == "on":
-                    value = "powersave"
+                    value = "powersupersave"
                 elif value == "off":
                     value = "performance"
 
