@@ -217,7 +217,13 @@ class HelperRawDataProviderBase(RawDataProviderBase):
                                                      timeout=self._timeout)
                 raise Error(f"{self._error_pfx()} has exited unexpectedly\n{msg}")
             if stderr:
-                raise Error(f"{self._error_pfx()} printed an error message:\n{''.join(stderr)}")
+                errmsg = f"{self._error_pfx()} printed the following to 'stderr':\n{''.join(stderr)}"
+
+                for line in stderr:
+                    if line.startswith(f"{self._helpername} error"):
+                        raise Error(errmsg)
+
+                _LOG.warning(errmsg)
             if not stdout:
                 raise ErrorTimeOut(f"{self._error_pfx()} did not provide any output for "
                                    f"{self._timeout} seconds")
