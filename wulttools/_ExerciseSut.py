@@ -169,9 +169,12 @@ _COLLECT_OPTIONS = {
 
 _GENERATE_OPTIONS = {
     "diff" : {
-        "help" : """Collected data is stored in directories, and each directory name consists of
-                    multiple monikers separated by dashes. Comma-separated list of monikers to
-                    create a diff report with."""
+        "help" : """Collected data is stored in directories, and each directory name is constructed
+                    from multiple monikers separated by dashes, e.g. 'hrt-c6-uf_max-autoc1e_off'.
+                    This option can be used to create diff reports by including multiple results in
+                    one report. Comma-separated list of monikers to select results to include in the
+                    diff report. If this option is not provided, reports with single result are
+                    generated."""
     },
     "include" : {
         "help" : "Comma-separated list of monikers that must be found from the result path name."
