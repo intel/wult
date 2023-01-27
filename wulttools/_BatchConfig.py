@@ -764,6 +764,10 @@ class BatchReport(_CmdlineRunner):
                 if moniker in diff_monikers:
                     path_monikers.remove(moniker)
 
+            # For diff reports, include only results with one of diff monikers.
+            if diff_monikers and path_monikers == respath.name.split("-"):
+                continue
+
             outpath = Path("-vs-".join(diff_monikers))
 
             outpath = outpath / "-".join(path_monikers)
