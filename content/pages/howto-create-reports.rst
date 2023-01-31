@@ -5,7 +5,7 @@
 Creating wult reports
 =====================
 
-:save_as: pages/howto-create-reports.html
+:slug: howto-create-reports
 
 .. contents:: Table of Contents
 

@@ -5,7 +5,7 @@
 Local usage install guide
 =========================
 
-:save_as: pages/install-local.html
+:slug: install-local
 
 .. contents:: Table of Contents
 

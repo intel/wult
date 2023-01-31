@@ -5,7 +5,7 @@
 Remote usage install guide
 ==========================
 
-:save_as: pages/install-remote.html
+:slug: install-remote
 
 .. contents:: Table of Contents
 

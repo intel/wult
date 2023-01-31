@@ -6,6 +6,7 @@ Overview
 ========
 
 :save_as: index.html
+:url: index.html
 
 **Important note**: both *wult* and *ndl* are research, debugging and tracing tools which require
 superuser privileges and must not be used in production environment.

@@ -5,7 +5,7 @@
 Viewing wult reports
 =========================
 
-:save_as: pages/howto-view-local.html
+:slug: howto-view-local
 
 .. contents:: Table of Contents
 

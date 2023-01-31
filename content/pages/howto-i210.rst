@@ -5,7 +5,7 @@
 Intel I210 NIC
 ==============
 
-:save_as: pages/howto-i210.html
+:slug: howto-i210
 
 .. contents:: Table of Contents
 
