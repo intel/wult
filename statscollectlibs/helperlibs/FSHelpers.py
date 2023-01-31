@@ -76,7 +76,7 @@ def copy_dir(src: Path, dst: Path, exist_ok: bool = False, ignore=None):
         raise ErrorExists(exists_err)
 
     if not src.is_dir():
-        raise Error("cannot copy '{src}' to '{dst}', the source path is not a directory.")
+        raise Error(f"cannot copy '{src}' to '{dst}', the source path is not a directory.")
 
     _copy_dir(src, dst, ignore)
 
