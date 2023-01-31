@@ -52,11 +52,11 @@
                   <a href="https://intel.github.io/wult/pages/how-it-works.html" >How it works</a>
                 </li>
 
-              <li class="btn-group">
+              <li class="btn-group active">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Install<b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu" role="menu">
-                  <li >
+                  <li class="active">
                     <a href="https://intel.github.io/wult/pages/install-local.html" >Local usage (standard case)</a>
                   </li>
                   <li >
@@ -101,7 +101,7 @@
       <div class="col-md-8">
         <div class="row">
               <div class="page-header">
-        <h1><a href="https://intel.github.io/wult/pages/local-usage-install-guide.html">Local usage install guide</a></h1>
+        <h1><a href="https://intel.github.io/wult/pages/install-local.html">Local usage install guide</a></h1>
     </div>
 
         </div>
@@ -153,7 +153,7 @@ the same as what the <cite>uname -r</cite> command prints when you run it on the
 enough to just install the kernel sources package provided by the OS, e.g.:</p>
 <ul class="simple">
 <li>Fedora: <cite>kernel-devel</cite> package</li>
-<li>Ubuntu: <cite>linux-source</cite> package</li>
+<li>Ubuntu: <cite>linux-headers</cite> package</li>
 </ul>
 <p>Advanced users can provide custom kernel sources path via <cite>wult deploy</cite> command line options (see
 the <a class="reference external" href="https://github.com/intel/wult/blob/master/docs/wult-man.rst">wult man page</a>).</p>
@@ -163,7 +163,7 @@ the <a class="reference external" href="https://github.com/intel/wult/blob/maste
 <p>Here are the required OS packages.</p>
 <p><strong>Fedora</strong></p>
 <pre class="literal-block">
-sudo dnf install -y tar bison flex make gcc elfutils-libelf-devel rsync procps-ng
+sudo dnf install -y make gcc elfutils-libelf-devel rsync procps-ng libbpf-devel
 sudo dnf install -y libffi-devel redhat-rpm-config openssl-devel
 sudo dnf install -y kernel-devel
 sudo dnf install -y git python3 python3-devel python3-pip python3-numpy
@@ -172,9 +172,9 @@ sudo dnf install -y  python3-paramiko python3-argcomplete
 </pre>
 <p><strong>Ubuntu</strong></p>
 <pre class="literal-block">
-sudo apt install -y bison flex libelf-dev libssl-dev rsync procps
-sudo apt-get source linux-source
-sudo apt install -y git python3-pip python3-numpy python3-plotly
+sudo apt install -y make gcc libelf-dev libssl-dev libbpf-dev rsync
+sudo apt install -y linux-headers-$(uname -r)
+sudo apt install -y procps git python3-pip python3-numpy python3-plotly
 sudo apt install -y python3-colorama python3-yaml python3-pandas
 sudo apt install -y python3-paramiko python3-argcomplete
 </pre>

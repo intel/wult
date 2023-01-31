@@ -52,14 +52,14 @@
                   <a href="https://intel.github.io/wult/pages/how-it-works.html" >How it works</a>
                 </li>
 
-              <li class="btn-group">
+              <li class="btn-group active">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Install<b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu" role="menu">
                   <li >
                     <a href="https://intel.github.io/wult/pages/install-local.html" >Local usage (standard case)</a>
                   </li>
-                  <li >
+                  <li class="active">
                     <a href="https://intel.github.io/wult/pages/install-remote.html" >Remote usage</a>
                   </li>
                 </ul>
@@ -101,7 +101,7 @@
       <div class="col-md-8">
         <div class="row">
               <div class="page-header">
-        <h1><a href="https://intel.github.io/wult/pages/remote-usage-install-guide.html">Remote usage install guide</a></h1>
+        <h1><a href="https://intel.github.io/wult/pages/install-remote.html">Remote usage install guide</a></h1>
     </div>
 
         </div>
@@ -147,7 +147,7 @@ on the SUT instead of the controller.</p>
 <p><strong>Fedora</strong></p>
 <p>SUT:</p>
 <pre class="literal-block">
-sudo dnf install -y tar bison flex make gcc elfutils-libelf-devel rsync
+sudo dnf install -y make gcc elfutils-libelf-devel rsync libbpf-devel
 sudo dnf install -y libffi-devel redhat-rpm-config openssl-devel
 sudo dnf install -y kernel-devel
 </pre>
@@ -160,8 +160,8 @@ sudo dnf install -y  python3-paramiko rsync
 <p><strong>Ubuntu</strong></p>
 <p>SUT:</p>
 <pre class="literal-block">
-sudo apt install -y bison flex libelf-dev libssl-dev
-sudo apt-get source linux-source
+sudo apt install -y make gcc libelf-dev libssl-dev libbpf-dev
+sudo apt install -y linux-headers-$(uname -r)
 </pre>
 <p>Controller:</p>
 <pre class="literal-block">
