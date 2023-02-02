@@ -262,7 +262,7 @@ def _build_arguments_parser():
         subpars.add_argument(*opt_names, **kwargs)
 
     text = """One or multiple paths to be searched for test results."""
-    subpars.add_argument("respaths", nargs="+", type=Path, help=text)
+    subpars.add_argument("respaths", nargs="*", type=Path, help=text)
 
     if argcomplete:
         argcomplete.autocomplete(parser)
@@ -324,6 +324,9 @@ def _report_command(args):
     if args.list_monikers:
         _BatchConfig.list_monikers()
         return
+
+    if not args.respaths:
+        _LOG.error_out("please, provide one or multiple paths to be searched for test results")
 
     outdir = args.outdir
     if not outdir:
