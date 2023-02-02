@@ -177,7 +177,7 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         if not self._sysctl:
             _LOG.notice(msg_fmt, "an NTP")
-            _LOG.notice("please, make sure NDP is disabled")
+            _LOG.notice("please, make sure NTP is disabled")
         else:
             ntp_services = self._sysctl.stop_ntp()
             if ntp_services:
