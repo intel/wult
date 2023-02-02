@@ -8,6 +8,9 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+
+## [1.10.56] - 2023-02-02
+### Changed
  - Renamed the 'stats-collect-components' JavaScript package to
    '@intc/stats-collect'.
 
