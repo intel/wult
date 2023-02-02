@@ -2,13 +2,28 @@
 -*- coding: utf-8 -*-
 vim: ts=4 sw=4 tw=100 et ai si
 
-Copyright (C) 2019-2021 Intel, Inc.
+Copyright (C) 2019-2023 Intel, Inc.
 SPDX-License-Identifier: BSD-3-Clause
 
 Author: Adam Hawley <adam.james.hawley@intel.com>
 -->
-# Stats-Collect Components
+# @intc/stats-collect
 
+## Packaging
+This JavaScript package in NOT distributed to any public 'npm' registry. This package is private to
+the 'stats-collect' project and is not intended to be installed by any other person or project.
+The only intended usage for the source code in this project is that it is bundled and distributed
+by the 'stats-collect' Python package which can be found in the same repository.
+
+## Bundling
+Files within the 'src' directory are bundled with [webpack](https://webpack.js.org/) into the 'dist'
+directory. This means that rather than having to include all of the separate JavaScript modules
+written in 'src' in the HTML report, we can include one 'main.js'.
+
+Webpack also generates a 'main.js.LICENSE.txt' file which is an aggregation of all of the licenses
+from the different packages that have been bundled together. For example, this project uses the
+['lit' npm module](https://www.npmjs.com/package/lit). At the time of writing, 'lit' uses the 'BSD
+3-Clause' license and this is reflected in the 'main.js.LICENSE.txt'.
 ## Creating & Using a New Web Component
 1. Create a new JavaScript file in './src' containing your web component. This project currently
    uses the 'lit' library for creating web components and it is recommended to view their
@@ -19,13 +34,3 @@ Author: Adam Hawley <adam.james.hawley@intel.com>
    newly-defined component in './src/index.js' so that webpack knows to include it in the bundle.
 3. Use the 'npm run build' command to re-bundle the JavaScript modules and include your new
    component in the 'dist' directory.
-
-## Bundling The JavaScript files within the 'src' directory are bundled with
-[webpack](https://webpack.js.org/) into the 'dist' directory. This means that rather than having to
-include all of the separate JavaScript modules written in 'src' in the HTML report, we can include
-one 'main.js'.
-
-Webpack also generates a 'main.js.LICENSE.txt' file which is an aggregation of all of the licenses
-from the different packages that have been bundled together. For example, this project uses the
-['lit' npm module](https://www.npmjs.com/package/lit). At the time of writing, 'lit' uses the 'BSD
-3-Clause' license and this is reflected in the 'main.js.LICENSE.txt'.
