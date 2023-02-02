@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2021 Intel Corporation
+# Copyright (C) 2019-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -671,4 +671,9 @@ def run_stats_collect_deploy(args):
             cmd += f" -T {args.timeout}"
 
     with LocalProcessManager.LocalProcessManager() as lpman:
-        lpman.run_verify(cmd, capture_output=False, output_fobjs=(sys.stdout, sys.stderr))
+        try:
+            lpman.run_verify(cmd)
+        except Error as stderr:
+            _LOG.notice(f"the statistics collection capability will not be available for "
+                        f"'{args.toolname}'")
+            _LOG.debug(stderr)
