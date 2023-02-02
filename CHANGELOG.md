@@ -5,12 +5,15 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix 'ndl deploy --tmpdir-path' option.
- - Fix 'ndl start' command.
- - Do not crash if the 'systemctl' tool is not available.
 ### Added
 ### Removed
 ### Changed
+
+## [1.10.55] - 2023-02-02
+### Fixed
+ - Fix 'ndl deploy --tmpdir-path' option.
+ - Fix 'ndl start' command.
+ - Do not crash if the 'systemctl' tool is not available.
 
 ## [1.10.54] - 2023-01-13
 ### Fixed

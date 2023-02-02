@@ -1,9 +1,9 @@
-.TH EXERCISE\-SUT "1" "2023\-01\-13" "wult" "Generated Python Manual"
+.TH EXERCISE\-SUT "1" "2023\-02\-02" "wult" "Generated Python Manual"
 .SH NAME
 exercise\-sut
 .SH SYNOPSIS
 .B exercise\-sut
-[-h] [-q] [-d] [--version] [--force-color] {collect,report} ...
+[-h] [-q] [-d] [--version] [--force-color] {start,report} ...
 .SH DESCRIPTION
 exercise\-sut \- Run a test tool or benchmark to collect testdata.
 
@@ -31,21 +31,21 @@ Force coloring of the text output.
 .SH
 COMMANDS
 .TP
-\fBexercise\-sut\fR \fI\,collect\/\fR
-Collect testdata.
+\fBexercise\-sut\fR \fI\,start\/\fR
+Start collecting testdata.
 .TP
 \fBexercise\-sut\fR \fI\,report\/\fR
 Generate reports.
 
-.SH COMMAND \fI\,'exercise\-sut collect'\/\fR
-usage: exercise\-sut collect [\-h] [\-q] [\-d] [\-H HOSTNAME] [\-U USERNAME] [\-K PRIVKEY] [\-T TIMEOUT] [\-\-datapoints DATAPOINTS] [\-\-reportid\-prefix REPORTID_PREFIX] [\-\-reportid\-suffix REPORTID_SUFFIX] [\-\-cpunum CPUNUM] [\-\-cstates CSTATES]
-                            [\-\-pcstates PCSTATES] [\-\-only\-one\-cstate] [\-\-freqs FREQS] [\-\-uncore\-freqs UNCORE_FREQS] [\-\-governor GOVERNOR] [\-\-aspm ASPM] [\-\-c1\-demotion C1_DEMOTION] [\-\-c1e\-autopromote C1E_AUTOPROMOTE]
-                            [\-\-cstate\-prewake CSTATE_PREWAKE] [\-\-state\-reset] [\-\-deploy] [\-\-devids DEVIDS] [\-\-stop\-on\-failure] [\-\-only\-measured\-cpu] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-dry\-run]
-                            [\-\-list\-monikers]
+.SH COMMAND \fI\,'exercise\-sut start'\/\fR
+usage: exercise\-sut start [\-h] [\-q] [\-d] [\-H HOSTNAME] [\-U USERNAME] [\-K PRIVKEY] [\-T TIMEOUT] [\-\-datapoints DATAPOINTS] [\-\-reportid\-prefix REPORTID_PREFIX] [\-\-reportid\-suffix REPORTID_SUFFIX] [\-\-cpunum CPUNUM] [\-\-cstates CSTATES]
+                          [\-\-pcstates PCSTATES] [\-\-only\-one\-cstate] [\-\-freqs FREQS] [\-\-uncore\-freqs UNCORE_FREQS] [\-\-governor GOVERNOR] [\-\-aspm ASPM] [\-\-c1\-demotion C1_DEMOTION] [\-\-c1\-undemotion C1_UNDEMOTION]
+                          [\-\-c1e\-autopromote C1E_AUTOPROMOTE] [\-\-cstate\-prewake CSTATE_PREWAKE] [\-\-state\-reset] [\-\-deploy] [\-\-devids DEVIDS] [\-\-stop\-on\-failure] [\-\-only\-measured\-cpu] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS]
+                          [\-\-outdir OUTDIR] [\-\-dry\-run] [\-\-list\-monikers]
 
-Run a test tool or benchmark to collect testdata.
+Run a test tool or benchmark to collect testdata. Unknown options are passed as\-is to the tool.
 
-.SH OPTIONS \fI\,'exercise\-sut collect'\/\fR
+.SH OPTIONS \fI\,'exercise\-sut start'\/\fR
 .TP
 \fB\-h\fR
 Show this help message and exit.
@@ -80,7 +80,7 @@ Applicable only for 'wult' and 'ndl' tools. Number of datapoints to collect per 
 
 .TP
 \fB\-\-reportid\-prefix\fR \fI\,REPORTID_PREFIX\/\fR
-Custom report ID prefix string, default is the name of the SUT.
+String to prepend to the report ID (nothing, by default).
 
 .TP
 \fB\-\-reportid\-suffix\fR \fI\,REPORTID_SUFFIX\/\fR
@@ -121,6 +121,10 @@ Comma\-separated list of PCIe ASPM configurations to measure with. The default i
 .TP
 \fB\-\-c1\-demotion\fR \fI\,C1_DEMOTION\/\fR
 Comma\-separated list of C1 demotion configurations to measure with. Default is "off". Supported values are "on" and "off".
+
+.TP
+\fB\-\-c1\-undemotion\fR \fI\,C1_UNDEMOTION\/\fR
+Comma\-separated list of C1 undemotion configurations to measure with. Default is "off". Supported values are "on" and "off".
 
 .TP
 \fB\-\-c1e\-autopromote\fR \fI\,C1E_AUTOPROMOTE\/\fR
@@ -175,7 +179,7 @@ A moniker is an abbreviation for a setting. The 'exercise\-sut' uses monikers to
 usage: exercise\-sut report [\-h] [\-q] [\-d] [\-\-diff DIFF] [\-\-include INCLUDE] [\-\-exclude EXCLUDE] [\-\-jobs JOBS] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-stop\-on\-failure] [\-\-dry\-run] [\-\-list\-monikers]
                            respaths [respaths ...]
 
-Generate reports from collected data.
+Generate reports from collected data. Unknown options are passed as\-is to the report tool.
 
 .TP
 \fBrespaths\fR

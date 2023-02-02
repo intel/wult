@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date:   2023-01-13
+:Date:   2023-02-02
 
 .. contents::
    :depth: 3
@@ -17,7 +17,7 @@ SYNOPSIS
 ========
 
 **exercise-sut** [-h] [-q] [-d] [--version] [--force-color]
-{collect,report} ...
+{start,report} ...
 
 DESCRIPTION
 ===========
@@ -45,29 +45,31 @@ OPTIONS
 COMMANDS
 ========
 
-**exercise-sut** *collect*
-   Collect testdata.
+**exercise-sut** *start*
+   Start collecting testdata.
 
 **exercise-sut** *report*
    Generate reports.
 
-COMMAND *'exercise-sut* collect'
-================================
+COMMAND *'exercise-sut* start'
+==============================
 
-usage: exercise-sut collect [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME]
-[-K PRIVKEY] [-T TIMEOUT] [--datapoints DATAPOINTS] [--reportid-prefix
+usage: exercise-sut start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K
+PRIVKEY] [-T TIMEOUT] [--datapoints DATAPOINTS] [--reportid-prefix
 REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpunum CPUNUM]
 [--cstates CSTATES] [--pcstates PCSTATES] [--only-one-cstate] [--freqs
 FREQS] [--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR] [--aspm ASPM]
-[--c1-demotion C1_DEMOTION] [--c1e-autopromote C1E_AUTOPROMOTE]
-[--cstate-prewake CSTATE_PREWAKE] [--state-reset] [--deploy] [--devids
-DEVIDS] [--stop-on-failure] [--only-measured-cpu] [--toolpath TOOLPATH]
-[--toolopts TOOLOPTS] [--outdir OUTDIR] [--dry-run] [--list-monikers]
+[--c1-demotion C1_DEMOTION] [--c1-undemotion C1_UNDEMOTION]
+[--c1e-autopromote C1E_AUTOPROMOTE] [--cstate-prewake CSTATE_PREWAKE]
+[--state-reset] [--deploy] [--devids DEVIDS] [--stop-on-failure]
+[--only-measured-cpu] [--toolpath TOOLPATH] [--toolopts TOOLOPTS]
+[--outdir OUTDIR] [--dry-run] [--list-monikers]
 
-Run a test tool or benchmark to collect testdata.
+Run a test tool or benchmark to collect testdata. Unknown options are
+passed as-is to the tool.
 
-OPTIONS *'exercise-sut* collect'
-================================
+OPTIONS *'exercise-sut* start'
+==============================
 
 **-h**
    Show this help message and exit.
@@ -98,7 +100,7 @@ OPTIONS *'exercise-sut* collect'
    collect per measurement. Default is 100000.
 
 **--reportid-prefix** *REPORTID_PREFIX*
-   Custom report ID prefix string, default is the name of the SUT.
+   String to prepend to the report ID (nothing, by default).
 
 **--reportid-suffix** *REPORTID_SUFFIX*
    String to append to the report ID (nothing, by default).
@@ -138,6 +140,10 @@ OPTIONS *'exercise-sut* collect'
 
 **--c1-demotion** *C1_DEMOTION*
    Comma-separated list of C1 demotion configurations to measure with.
+   Default is "off". Supported values are "on" and "off".
+
+**--c1-undemotion** *C1_UNDEMOTION*
+   Comma-separated list of C1 undemotion configurations to measure with.
    Default is "off". Supported values are "on" and "off".
 
 **--c1e-autopromote** *C1E_AUTOPROMOTE*
@@ -198,7 +204,8 @@ INCLUDE] [--exclude EXCLUDE] [--jobs JOBS] [--toolpath TOOLPATH]
 [--toolopts TOOLOPTS] [--outdir OUTDIR] [--stop-on-failure] [--dry-run]
 [--list-monikers] respaths [respaths ...]
 
-Generate reports from collected data.
+Generate reports from collected data. Unknown options are passed as-is
+to the report tool.
 
 **respaths**
    One or multiple paths to be searched for test results.
