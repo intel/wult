@@ -16,8 +16,6 @@ from wultlibs.deploylibs import _Deploy
 def deploy_command(args):
     """Implements the 'deploy' command."""
 
-    _Common.run_stats_collect_deploy(args)
-
     with _Common.get_pman(args) as pman:
         ksrc = getattr(args, "ksrc", None)
         rebuild_bpf = getattr(args, "rebuild_bpf", None)
@@ -26,3 +24,5 @@ def deploy_command(args):
                             tmpdir_path=args.tmpdir_path, keep_tmpdir=args.keep_tmpdir,
                             debug=args.debug) as depl:
             depl.deploy()
+
+    _Common.run_stats_collect_deploy(args)
