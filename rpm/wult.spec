@@ -10,7 +10,7 @@ Source0:  https://github.com/intel/wult/archive/v%{version}/%{name}-%{version}.t
 # exclude backup kernel driver and duplications
 Patch0:   exclude-dirs.patch
 
-# measuring C-state latency for Intel architectures  
+# measuring C-state latency for Intel architectures
 ExclusiveArch:  x86_64
 
 BuildRequires:  bpftool
