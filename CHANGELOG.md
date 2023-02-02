@@ -7,6 +7,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
  - Fix 'ndl deploy --tmpdir-path' option.
  - Fix 'ndl start' command.
+ - Do not crash if the 'systemctl' tool is not available.
 ### Added
 ### Removed
 ### Changed
