@@ -12,7 +12,7 @@ This module provides API for reading raw wult datapoints, as well as initializin
 
 import logging
 from pepclibs.helperlibs import Trivial, ClassHelpers, Systemctl
-from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
+from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut, ErrorNotFound
 from wultlibs import _FTrace, _RawDataProvider
 from wultlibs.helperlibs import KernelVersion
 
@@ -156,21 +156,34 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
             with self._pman.open(self._early_intr_path, "w") as fobj:
                 fobj.write("1")
 
-        self._sysctl = Systemctl.Systemctl(pman=self._pman)
+        try:
+            self._sysctl = Systemctl.Systemctl(pman=self._pman)
+            msg_fmt = ""
+        except ErrorNotFound:
+            msg_fmt = f"cannot check if %s service is active, because the 'systemctl' tool " \
+                         f"was not found{self._pman.hostmsg}."
 
         if self.dev.drvname == "wult_igb":
             # The 'irqbalance' service usually causes problems by binding the delayed events (NIC
             # interrupts) to CPUs other than the measured one. Stop the service.
-            if self._sysctl.is_active("irqbalance"):
-                self._sysctl.stop("irqbalance")
-                _LOG.info("Stopped the 'irqbalance' service")
-                self._stopped_services.append("irqbalance")
+            if not self._sysctl:
+                _LOG.notice(msg_fmt, "the 'irqbalance'")
+                _LOG.notice("please, make sure 'irqbalance' is disabled")
+            else:
+                if self._sysctl.is_active("irqbalance"):
+                    self._sysctl.stop("irqbalance")
+                    _LOG.info("Stopped the 'irqbalance' service")
+                    self._stopped_services.append("irqbalance")
 
-        ntp_services = self._sysctl.stop_ntp()
-        if ntp_services:
-            self._stopped_services += ntp_services
-            for service in ntp_services:
-                _LOG.info("Stopped the '%s' NTP service", service)
+        if not self._sysctl:
+            _LOG.notice(msg_fmt, "an NTP")
+            _LOG.notice("please, make sure NDP is disabled")
+        else:
+            ntp_services = self._sysctl.stop_ntp()
+            if ntp_services:
+                self._stopped_services += ntp_services
+                for service in ntp_services:
+                    _LOG.info("Stopped the '%s' NTP service", service)
 
     def __init__(self, dev, pman, cpunum, ldist, timeout=None, early_intr=None, unload=True):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
