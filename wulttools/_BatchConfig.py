@@ -243,7 +243,6 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         for pname, pinfo in PROP_INFOS.items():
             if not self._is_prop_supported(pname):
-                _LOG.warning("property '%s' is not supported, skip configuring it", pname)
                 continue
 
             self.props[pname] = {}
@@ -276,7 +275,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         unsupported_props = []
         for pname in props:
             if not self._is_prop_supported(pname):
-                _LOG.debug("property '%s' is not supported, do not try to configure it", pname)
+                _LOG.warning("property '%s' is not supported, skip configuring it", pname)
                 unsupported_props.append(pname)
 
         for pname in unsupported_props:
