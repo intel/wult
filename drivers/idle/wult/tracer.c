@@ -189,7 +189,7 @@ int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist)
 	ti->event_happened = false;
 	err = wi->wdi->ops->arm(wi->wdi, ldist);
 	if (err) {
-		wult_err("failed to arm a dleayed event %llu nsec away, error %d",
+		wult_err("failed to arm a delayed event %llu nsec away, error %d",
 			 *ldist, err);
 		return err;
 	}
