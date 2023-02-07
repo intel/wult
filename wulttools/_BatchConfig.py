@@ -19,6 +19,7 @@ import logging
 import itertools
 from pathlib import Path
 from pepclibs import CStates, PStates, CPUInfo
+from pepclibs.msr import PCStateConfigCtl
 from pepclibs.helperlibs import ClassHelpers, Human, LocalProcessManager, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wulttools import _Common
@@ -207,19 +208,40 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         return [csname.upper() for csname in csnames]
 
-    def _is_prop_supported(self, pname):
-        """Return 'True' if property 'pname' is supported, returns 'False' otherwise."""
+    def _is_prop_supported(self, pname, warn=False):
+        """
+        Return 'True' if property 'pname' is supported, returns 'False' otherwise. Prints warning if
+        'warn' is 'True'.
+        """
+
+        if warn:
+            log_method = _LOG.warning
+        else:
+            log_method = _LOG.debug
 
         if pname in ("cstates", "freqs", "online", "aspm"):
             return True
 
         if pname == "uncore_freqs":
-            sysfs_uncore_path =Path("/sys/devices/system/cpu/intel_uncore_frequency")
-            return self._pman.exists(sysfs_uncore_path)
+            sysfs_uncore_path = Path("/sys/devices/system/cpu/intel_uncore_frequency")
+            if not self._pman.exists(sysfs_uncore_path):
+                msg = f"Uncore frequency operations are not supported{self._pman.hostmsg}. Here " \
+                      f"are the possible reasons:\n" \
+                      f" 1. the hardware does not support uncore frequency management.\n" \
+                      f" 2. the 'intel_uncore_frequency' driver does not support this hardware.\n" \
+                      f" 3. the 'intel_uncore_frequency' driver is not enabled. Try to compile " \
+                      f"the kernel with the 'CONFIG_INTEL_UNCORE_FREQ_CONTROL' option."
+                log_method(msg)
+
+                return False
+
+            return True
 
         if pname == "pcstates":
             for _, pinfo in self._get_cstates().get_props(("pkg_cstate_limit",), "all"):
                 if pinfo["pkg_cstate_limit"].get("pkg_cstate_limit_locked", None) != "off":
+                    log_method("cannot set package C-state limit%s, MSR 0x%x is locked",
+                               self._pman.hostmsg, PCStateConfigCtl.MSR_PKG_CST_CONFIG_CONTROL)
                     return False
             return True
 
@@ -230,10 +252,12 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             pcsobj = self._get_cstates()
 
         if pcsobj is None:
+            log_method("property '%s' is not supported, skip configuring it", pname)
             return False
 
         for _, pinfo in pcsobj.get_props((pname,), cpus="all"):
             if not pinfo[pname].get(pname, None):
+                log_method("property '%s' is not supported, skip configuring it", pname)
                 return False
 
         return True
@@ -308,8 +332,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         props = {}
         for pname, values in inprops.items():
-            if not self._is_prop_supported(pname):
-                _LOG.warning("property '%s' is not supported, skip configuring it", pname)
+            if not self._is_prop_supported(pname, warn=True):
                 continue
 
             if not isinstance(values, list):
