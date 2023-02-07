@@ -366,7 +366,11 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         self._requested_cstates = None
         self.props = {}
 
-        self._init_props_dict()
+        try:
+            self._init_props_dict()
+        except Error as err:
+            _LOG.error_out("initializing property information failed%s:\n%s",
+                           self._pman.hostmsg, err)
 
     def close(self):
         """Uninitialize the class object."""
