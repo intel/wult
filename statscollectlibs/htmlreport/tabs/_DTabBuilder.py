@@ -162,14 +162,16 @@ class DTabBuilder:
 
         for mdef in mdefs:
             mname = mdef["name"]
+
+            sdfs_with_data = [sdf for sdf in self._reports.values() if mname in sdf]
             # Check that at least one result contains data for metric 'mname'.
-            if all(mname not in sdf for sdf in self._reports.values()):
+            if not sdfs_with_data:
                 _LOG.info("Skipping %s: no results have data for '%s'.", plotname, mname)
                 return True
 
             # Check if there is a constant value for all datapoints.
-            sample_dp = list(self._reports.values())[0][mname].max()
-            if all((sdf[mname] == sample_dp).all() for sdf in self._reports.values()):
+            sample_dp = sdfs_with_data[0][mname].max()
+            if all((sdf[mname] == sample_dp).all() for sdf in sdfs_with_data):
                 _LOG.info("Skipping %s: every datapoint in all results is the same, '%s' is always "
                           "'%s'.", plotname, mname, sample_dp)
                 if mname not in self._alerted_metrics:
