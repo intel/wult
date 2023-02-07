@@ -2,7 +2,7 @@
 #
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2022 Intel Corporation
+# Copyright (C) 2019-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 from setuptools import setup, find_packages
 
-_TOOLNAMES = ["wult", "ndl", "exercise-sut", "stats-collect"]
+_TOOLNAMES = ["wult", "ndl", "exercise-sut"]
 
 def get_version(filename):
     """Fetch the project version number."""
@@ -48,11 +48,6 @@ def get_data_files(installdir, subdir, exclude=None):
 
     return list(files_dict.items())
 
-# Python helpers get installed as scripts. We exclude these scripts from being installed as data.
-_PYTHON_HELPERS = ["helpers/stc-agent/stc-agent", "helpers/stc-agent/ipmi-helper"]
-# All 'stc-agent' files.
-_STC_AGENT_FILES = _PYTHON_HELPERS + ["helpers/stc-agent/Makefile"]
-
 setup(
     name="wult",
     description="Wake Up Latency Tracer tool",
@@ -62,17 +57,12 @@ setup(
     version=get_version("wulttools/wult/ToolInfo.py"),
     data_files=get_data_files("share/man/man1", "docs/man1") + \
                get_data_files("share/wult/drivers", "drivers") + \
-               get_data_files("share/wult/helpers", "helpers", exclude=_STC_AGENT_FILES) + \
-               get_data_files("share/wult/defs/wult", "defs/wult") + \
-               get_data_files("share/stats-collect/helpers/stc-agent", "helpers/stc-agent",
-                              exclude=_PYTHON_HELPERS) + \
-               get_data_files("share/stats-collect/defs/statscollect", "defs/statscollect") + \
-               get_data_files("share/javascript/stats-collect/js/dist", "js/dist") + \
-               get_data_files("share/stats-collect/misc/servedir", "misc/servedir") + \
-               [("share/stats-collect/js", ["js/index.html"])],
-    scripts=_TOOLNAMES + _PYTHON_HELPERS,
+               get_data_files("share/wult/helpers", "helpers") + \
+               get_data_files("share/wult/defs/wult", "defs/wult"),
+    scripts=_TOOLNAMES,
     packages=find_packages(),
-    install_requires=["pepc>=1.4.18", "plotly>=4", "numpy", "pandas", "pyyaml", "colorama"],
+    install_requires=["pepc>=1.4.18", "stats-collect>=1.0.4", "numpy", "pandas", "pyyaml",
+                      "colorama"],
     long_description="""This package provides wult - a Linux command-line tool for measuring Intel
                         CPU C-state wake latency.""",
     classifiers=[
