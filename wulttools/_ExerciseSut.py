@@ -99,7 +99,8 @@ _COLLECT_OPTIONS = {
                     C-states."""
     },
     "pcstates" : {
-        "help" : """Comma-separated list of package C-states to measure with."""
+        "help" : f"""Comma-separated list of package C-states to measure with. Default is
+                     "{_get_reset_val('pcstates')}"."""
     },
     "only_one_cstate" : {
         "action" : "store_true",
