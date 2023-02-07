@@ -22,7 +22,7 @@
 #include <asm/msr.h>
 #include "wult.h"
 
-#define TRACEPOINT_NAME "hrtimer_expire_entry"
+#define TIMER_TRACEPOINT_NAME "hrtimer_expire_entry"
 
 /* Maximum supported launch distance in nanoseconds. */
 #define LDIST_MAX 50000000
@@ -36,7 +36,7 @@ struct wult_tdt {
 	struct hrtimer timer;
 	struct wult_device_info wdi;
 	u64 deadline_before;
-	struct tracepoint *tp;
+	struct tracepoint *timer_tp;
 	int cpunum;
 };
 
@@ -140,21 +140,21 @@ static int enable(struct wult_device_info *wdi, bool enable)
 	struct wult_tdt *wt = wdi_to_wt(wdi);
 	int err;
 
-	if (!wt->tp) {
-		wult_err("failed to initialize the '%s' tracepoint", TRACEPOINT_NAME);
+	if (!wt->timer_tp) {
+		wult_err("failed to initialize the '%s' tracepoint", TIMER_TRACEPOINT_NAME);
 		return -EINVAL;
 	}
 
 	if (enable) {
-		err = tracepoint_probe_register(wt->tp,
+		err = tracepoint_probe_register(wt->timer_tp,
 				(void *)hrtimer_expire_entry_hook, wt);
 		if (err) {
 			wult_err("failed to register the '%s' tracepoint probe,"
-				" error %d", TRACEPOINT_NAME, err);
+				" error %d", TIMER_TRACEPOINT_NAME, err);
 			return err;
 		}
 	} else {
-		tracepoint_probe_unregister(wt->tp,
+		tracepoint_probe_unregister(wt->timer_tp,
 				(void *)hrtimer_expire_entry_hook, wt);
 	}
 
@@ -167,8 +167,8 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 
 	/* TODO: ensure that hrtimers are backed by the TSC dealine timer. */
 
-	wt->tp = wult_tracer_find_tracepoint(TRACEPOINT_NAME);
-	if (!wt->tp)
+	wt->timer_tp = wult_tracer_find_tracepoint(TIMER_TRACEPOINT_NAME);
+	if (!wt->timer_tp)
 		return -EINVAL;
 
 	wt->cpunum = cpunum;
@@ -182,7 +182,7 @@ static void exit_device(struct wult_device_info *wdi)
 	struct wult_tdt *wt = wdi_to_wt(wdi);
 
 	hrtimer_cancel(&wt->timer);
-	wt->tp = NULL;
+	wt->timer_tp = NULL;
 }
 
 static struct wult_device_ops wult_tdt_ops = {
