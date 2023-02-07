@@ -5,6 +5,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix 'wult report' crashing when generating diffs where the first result
+   contains different metrics to the rest.
+ - Fix 'wult report' crashing when custom axes are provided which result in
+   empty tabs.
 ### Added
 ### Removed
 ### Changed
