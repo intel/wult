@@ -411,9 +411,6 @@ class _PepcCmdFormatter(_PropIteratorBase):
 
         all_csnames = self._normalize_csnames("all")
 
-        if "POLL" not in self._requested_cstates and "POLL" in all_csnames:
-            all_csnames.remove("POLL")
-
         idx = all_csnames.index(csname)
         return ",".join(all_csnames[:idx+1])
 
