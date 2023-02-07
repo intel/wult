@@ -55,6 +55,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         self._smrytbl = _SummaryTable.SummaryTable()
 
         for mdef in deduped_mdefs:
+            mname = mdef["name"]
             # Create row in the summary table for each metric.
             fmt = "{:.2f}" if mdef["type"] == "float" else None
             self._smrytbl.add_metric(mdef["title"], mdef["short_unit"], mdef["descr"], fmt)
@@ -63,15 +64,15 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
             # 'std' will not be present if the result has only one datapoint. If no results have a
             # value for 'std', we need to exclude the 'std' function entirely.
             funcs = []
-            for funcname in smry_funcs[mdef["name"]]:
-                if any(res.smrys[mdef["name"]].get(funcname) is not None for res in self._rsts):
+            for funcname in smry_funcs[mname]:
+                if any(res.smrys.get(mname, {}).get(funcname) is not None for res in self._rsts):
                     funcs.append(funcname)
 
             # Populate each row with summary functions for each result.
             for res in self._rsts:
                 for funcname in funcs:
-                    if mdef["name"] in res.smrys:
-                        val = res.smrys[mdef["name"]][funcname]
+                    if mname in res.smrys:
+                        val = res.smrys[mname][funcname]
                     else:
                         val = None
                     self._smrytbl.add_smry_func(res.reportid, mdef["title"], funcname, val)
