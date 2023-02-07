@@ -851,8 +851,8 @@ class BatchReport(_CmdlineRunner):
                  proc_count=None):
         """The class constructor."""
 
-        self._toolpath = toolpath
+        super().__init__(dry_run=dry_run, stop_on_failure=stop_on_failure, proc_count=proc_count)
+
+        self._toolpath = self._lpman.which(toolpath)
         self._outpath = outpath
         self._toolopts = toolopts
-
-        super().__init__(dry_run=dry_run, stop_on_failure=stop_on_failure, proc_count=proc_count)
