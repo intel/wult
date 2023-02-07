@@ -344,8 +344,13 @@ class ReportBase:
                 continue
             _LOG.info("Generating %s tab.", metric)
             smry_metrics = []
+
             # Only add plots which have the tab metric on one of the axes.
             axes =  [xypair for xypair in plot_axes if metric in xypair]
+            # Don't generate an empty tab if no diagrams will be generated.
+            if not axes:
+                continue
+
             tab_plots = self._get_axes_defs(axes, base_col_suffix)
 
             smry_metrics += list(set.union(*[set(xypair) for xypair in axes]))
