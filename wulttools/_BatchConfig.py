@@ -489,7 +489,9 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
     def __init__(self, args):
         """The class constructor."""
 
-        self.toolpath = Path(args.toolpath)
+        with LocalProcessManager.LocalProcessManager() as lpman:
+            self.toolpath = lpman.which(args.toolpath)
+
         self._toolopts = args.toolopts
         self._outdir = args.outdir
         self._reportid_prefix = args.reportid_prefix
