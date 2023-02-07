@@ -563,14 +563,6 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
     """Helper class for running commandline commands."""
 
-    def _get_lpman(self):
-        """Return 'LocalProcessManager' object."""
-
-        if not self._lpman:
-            self._lpman = LocalProcessManager.LocalProcessManager()
-
-        return self._lpman
-
     def _handle_error(self, cmd):
         """Handle error for running command 'cmd'."""
 
@@ -629,7 +621,7 @@ class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
             time.sleep(1)
 
         _LOG.debug("running command: '%s'", cmd)
-        proc = self._get_lpman().run_async(cmd)
+        proc = self._lpman.run_async(cmd)
         self._procs.add(proc)
 
     def _run_command(self, cmd):
@@ -647,7 +639,7 @@ class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
         if self._proc_count:
             self._run_async(cmd)
         else:
-            res = self._get_lpman().run(cmd, output_fobjs=(sys.stdout, sys.stderr))
+            res = self._lpman.run(cmd, output_fobjs=(sys.stdout, sys.stderr))
             if res.exitcode != 0:
                 self._handle_error(cmd)
 
@@ -668,9 +660,9 @@ class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
 
         self._dry_run = dry_run
         self._stop_on_failure = stop_on_failure
-        self._lpman = None
         self._proc_count = proc_count
 
+        self._lpman = LocalProcessManager.LocalProcessManager()
         self._procs = set()
 
         if self._proc_count and not dry_run:
