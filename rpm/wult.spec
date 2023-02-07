@@ -23,6 +23,7 @@ BuildRequires:  python3-devel
 BuildRequires:  python3-pytest
 Requires:		pciutils
 Requires:		pepc
+Requires:		stats-collect
 Requires:		python3-%{name} = %{version}-%{release}
 
 %description
