@@ -122,12 +122,6 @@ class _CStates(ClassHelpers.SimpleCloseContext):
             rawdp["IntrOff"] = False
             return rawdp
 
-        if csname != "C1":
-            # This is another optimization. As of today, all C-states deeper than C1 are requested
-            # with interrupts disabled. Only C1 is ambiguous.
-            rawdp["IntrOff"] = True
-            return rawdp
-
         if csname in self._introff:
             rawdp["IntrOff"] = self._introff[csname]
             return self._check_rawdp_timing(rawdp)
