@@ -272,15 +272,6 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         doesn't make sense at all, returns 'None'.
         """
 
-        unsupported_props = []
-        for pname in props:
-            if not self._is_prop_supported(pname):
-                _LOG.warning("property '%s' is not supported, skip configuring it", pname)
-                unsupported_props.append(pname)
-
-        for pname in unsupported_props:
-            del props[pname]
-
         if props.get("cstates") in PC0_ONLY_STATES:
             if "pcstates" in props:
                 if props.get("pcstates") != "PC0":
@@ -315,7 +306,12 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         """
 
+        props = {}
         for pname, values in inprops.items():
+            if not self._is_prop_supported(pname):
+                _LOG.warning("property '%s' is not supported, skip configuring it", pname)
+                continue
+
             if not isinstance(values, list):
                 values = Trivial.split_csv_line(values)
 
@@ -325,14 +321,14 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             if pname == "pcstates":
                 values = [val.upper() for val in values]
 
-            inprops[pname] = values
+            props[pname] = values
 
-        for values in itertools.product(*inprops.values()):
-            props = dict(zip(inprops.keys(), values))
+        for values in itertools.product(*props.values()):
+            prop_combination = dict(zip(props.keys(), values))
 
-            props = self._strip_props(props)
-            if props:
-                yield props
+            prop_combination = self._strip_props(prop_combination)
+            if prop_combination:
+                yield prop_combination
 
     def __init__(self, pman):
         """The class constructor."""
