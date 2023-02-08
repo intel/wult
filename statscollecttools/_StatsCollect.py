@@ -24,7 +24,7 @@ from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.deploylibs import _Deploy
 from statscollectlibs.helperlibs import ReportID
 
-_VERSION = "0.0.0"
+_VERSION = "1.0.0"
 _OWN_NAME = "stats-collect"
 _STC_DEPLOY_INFO = {
     "installables" : {
@@ -38,7 +38,7 @@ _STC_DEPLOY_INFO = {
 _LOG = logging.getLogger()
 Logging.setup_logger(prefix=_OWN_NAME)
 
-def _build_arguments_parser():
+def build_arguments_parser():
     """Build and return the arguments parser object."""
 
     text = "stats-collect - a tool for collecting and visualising system statistics and telemetry."
@@ -132,7 +132,7 @@ def _build_arguments_parser():
 def _parse_arguments():
     """Parse input arguments."""
 
-    parser = _build_arguments_parser()
+    parser = build_arguments_parser()
 
     args = parser.parse_args()
     args.toolname = _OWN_NAME
