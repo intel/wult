@@ -107,50 +107,6 @@ def list_monikers():
         msg = f"{name:<{min_len}}: {moniker}"
         _LOG.info(msg)
 
-def _create_reportid(props, hostname=None, prefix=None, suffix=None):
-    """Create report id from used properties 'props'."""
-
-    reportid = ""
-
-    if prefix:
-        reportid += str(prefix)
-
-    if hostname != "localhost":
-        if reportid:
-            reportid += "-"
-        reportid += hostname
-
-    # In report id, the package C-state limit, is value for measured C-state (e.g. 'c6_pc6'). If
-    # package C-state limit does not make sense for the measured C-state (e.g. PC6 with C1), the
-    # package C-state value is not added, and moniker will be just 'c1'.
-    cstate = props.get("cstates")
-    if "pcstates" in props:
-        if cstate not in PC0_ONLY_STATES:
-            cstate += f"_{props['pcstates']}"
-    if reportid:
-        reportid += "-"
-    reportid += cstate
-
-
-    for pname, val in props.items():
-        if pname in ("cstates", "pcstates"):
-            continue
-
-        if pname in ("freqs", "uncore_freqs") and val == "unl":
-            continue
-
-        reportid += "-"
-
-        moniker = PROP_INFOS[pname].get("moniker", "")
-        if moniker:
-            reportid += f"{moniker}_"
-        reportid += f"{val}"
-
-    if suffix:
-        reportid += f"-{suffix}"
-
-    return reportid.lower()
-
 def _get_workload_cmd_formatter(args):
     """Create and return object for creating workload commands."""
 
@@ -502,6 +458,51 @@ class _PepcCmdFormatter(_PropIteratorBase):
 class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
     """A base class to help creating commands."""
 
+    def _create_reportid(self, props, devid=None):
+        """Create report ID from used properties 'props'."""
+
+        monikers = []
+
+        if self._reportid_prefix:
+            monikers.append(str(self._reportid_prefix))
+
+        if self._hostname != "localhost":
+            monikers.append(self._hostname)
+
+        if devid:
+            monikers.append(devid)
+
+        # There are core C-states that are not affected by package C-states, for example C1. Avoid
+        # appending the package C-state suffix to the moniker (e.g., avoid "c1_pc6', use 'c1'
+        # instead).
+        cstate = props.get("cstates")
+        if "pcstates" in props:
+            if cstate not in PC0_ONLY_STATES:
+                cstate += f"_{props['pcstates']}"
+
+        monikers.append(cstate)
+
+        for pname, val in props.items():
+            if pname in ("cstates", "pcstates"):
+                continue
+
+            if pname in ("freqs", "uncore_freqs") and val == "unl":
+                continue
+
+            moniker = PROP_INFOS[pname].get("moniker", "")
+            if moniker:
+                moniker = f"{moniker}_"
+            moniker += f"{val}"
+
+            monikers.append(moniker)
+
+        if self._reportid_suffix:
+            monikers.append(self._reportid_suffix)
+
+        reportid = "-".join(monikers)
+
+        return reportid.lower()
+
     def get_commands(self, props):  # pylint: disable=unused-argument
         """Create and yield command to run the tool."""
 
@@ -533,8 +534,7 @@ class _BenchmarkCmdFormatter(_ToolCmdFormatterBase):
         """Create and yield command to run the 'benchmark' tool."""
 
         for cmd in super().get_commands(props):
-            reportid = _create_reportid(props, hostname=self._hostname,
-                                        prefix=self._reportid_prefix, suffix=self._reportid_suffix)
+            reportid = self._create_reportid(props)
             cmd += f" --reportid {reportid} -o {self._outdir}/{reportid}"
 
             yield cmd
@@ -569,12 +569,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         """Create and yield 'wult' or 'ndl' commands."""
 
         for devid in self._devids:
-            prefix = devid
-            if self._reportid_prefix:
-                prefix = f"{self._reportid_prefix}-{prefix}"
-
-            reportid = _create_reportid(props, hostname=self._hostname, prefix=prefix,
-                                        suffix=self._reportid_suffix)
+            reportid = self._create_reportid(props, devid=devid)
             yield self._create_command(devid, reportid=reportid)
 
     def __init__(self, args):
