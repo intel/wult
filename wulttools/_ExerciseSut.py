@@ -25,7 +25,7 @@ from pepclibs.helperlibs.Exceptions import Error
 from wulttools import _BatchConfig
 
 _OWN_NAME = "exercise-sut"
-_VERSION = "1.1.0"
+_VERSION = "1.1.1"
 
 Logging.setup_logger(prefix=_OWN_NAME)
 _LOG = logging.getLogger()
