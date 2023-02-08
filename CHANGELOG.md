@@ -12,6 +12,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Moved the 'Busy%' turbostat tab from 'Misc' to 'C-states,Hardware' in wult
+   reports.
 
 ## [1.10.56] - 2023-02-02
 ### Changed
