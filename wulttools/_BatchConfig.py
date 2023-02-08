@@ -175,7 +175,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         for csname in csnames:
             if csname.upper() not in allcsnames:
-                raise Error("requestable C-state name '{csname}' not available{self._pman.hostmsg}")
+                raise Error(f"requestable C-state '{csname}' not available{self._pman.hostmsg}")
 
         return [csname.upper() for csname in csnames]
 
