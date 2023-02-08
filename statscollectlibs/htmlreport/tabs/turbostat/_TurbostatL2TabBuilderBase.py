@@ -138,7 +138,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         tab_hierarchy["Temperature / Power"] = {"dtabs": tp_metrics}
 
         # Add miscellaneous D-tabs to a separate C-tab.
-        misc_metrics = ["Busy%", "IRQ", "SMI", "IPC"]
+        misc_metrics = ["IRQ", "SMI", "IPC"]
         tab_hierarchy["Misc"] = {"dtabs": [m for m in misc_metrics if m in common_metrics]}
 
         # Find C-states which are common to all test results.
@@ -149,6 +149,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             metric = TurbostatDefs.get_metric_from_reqcs(cs)
             tab_hierarchy["C-states"]["Requested"]["dtabs"].append(metric)
 
+        tab_hierarchy["C-states"]["Hardware"]["dtabs"].append("Busy%")
         for cs in hw_core_cs:
             metric = TurbostatDefs.get_metric_from_hwcs(cs)
             tab_hierarchy["C-states"]["Hardware"]["dtabs"].append(metric)
