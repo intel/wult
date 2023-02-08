@@ -190,6 +190,16 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             self._psobj = PStates.PStates(pman=self._pman, cpuinfo=self._get_cpuinfo())
         return self._psobj
 
+    def props_to_str(self, props):
+        """Convert property dictionary 'props' to human readable string."""
+
+        props_strs = []
+        for pname, value in props.items():
+            name = self.props[pname].get("name")
+            props_strs.append(f"{name}: {value}")
+
+        return ", ".join(props_strs)
+
     def _normalize_csnames(self, csnames):
         """Normalize and validate list of requestable C-state names 'csnames'."""
 
@@ -299,16 +309,16 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         if props.get("cstates") in PC0_ONLY_STATES:
             if "pcstates" in props:
                 if props.get("pcstates") != "PC0":
-                    _LOG.debug("the C-state '%s' doesn't make sense with package C-state '%s', " \
-                               "skip configuration\n", props["cstates"], props["pcstates"])
+                    _LOG.warning("enabling '%s' doesn't make sense with package C-state '%s', " \
+                                 "skip configuration\n", props["cstates"], props["pcstates"])
                     return None
 
                 del props["pcstates"]
 
             for pname in ("cstate_prewake", "c1_demotion", "c1_undemotion"):
                 if props.get(pname) == "on":
-                    _LOG.debug("enabling %s with '%s' doesn't make sense, skip " \
-                               "configuration", self.props[pname]["name"], props["cstates"])
+                    _LOG.warning("enabling %s with '%s' doesn't make sense, skip configuration",
+                                 self.props[pname]["name"], props["cstates"])
                     return None
 
         return props
@@ -698,12 +708,7 @@ class BatchConfig(_CmdlineRunner):
     def props_to_str(self, props):
         """Convert property dictionary 'props' to human readable string."""
 
-        props_strs = []
-        for pname, value in props.items():
-            name = self._pepc_formatter.props[pname].get("name")
-            props_strs.append(f"{name}: {value}")
-
-        return ", ".join(props_strs)
+        return self._pepc_formatter.props_to_str(props)
 
     def get_props_batch(self, inprops):
         """
