@@ -33,7 +33,7 @@ extern const void tsc_khz __ksym;
 
 struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
-	__uint(max_entries, 4096);
+	__uint(max_entries, 16384);
 } events SEC(".maps");
 
 struct {
@@ -100,6 +100,23 @@ static u64 read_tsc(void)
 	return count;
 }
 
+static void warn_overflow(void)
+{
+	u64 t;
+	static u32 count;
+	static u64 last_warn;
+
+	count++;
+
+	t = bpf_ktime_get_boot_ns();
+
+	if (t > last_warn + 1000000000) {
+		errmsg("ringbuf overflow, event discarded (total %u)",
+		       count);
+		last_warn = t;
+	}
+}
+
 /*
  * Send a dummy ping message to userspace process to wake it up.
  */
@@ -109,7 +126,7 @@ static void ping_cpu(void)
 
 	e = bpf_ringbuf_reserve(&events, 1, 0);
 	if (!e) {
-		errmsg("ringbuf overflow, ping discarded");
+		warn_overflow();
 		return;
 	}
 
@@ -168,8 +185,8 @@ static void send_event(void)
 		 * has cleared up the buffer. Just in case, send a
 		 * message to userspace about overflow situation.
 		 */
-		errmsg("ringbuf overflow, event discarded");
-		return;
+		warn_overflow();
+		goto cleanup;
 	}
 
 	__builtin_memcpy(e, &bpf_event, sizeof(*e));
