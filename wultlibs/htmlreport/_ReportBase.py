@@ -499,7 +499,7 @@ class ReportBase:
                 if metric in intersection:
                     metrics.append(metric)
                 else:
-                    _LOG.warning("dropping metric '%s' from '%s' because it is not present in any "
+                    _LOG.notice("dropping metric '%s' from '%s' because it is not present in any "
                                  "of the results", metric, name)
             setattr(self, name, metrics)
 
@@ -510,7 +510,7 @@ class ReportBase:
                     if metric in res.defs.info:
                         metrics.append(metric)
                     else:
-                        _LOG.warning("dropping metric '%s' from '%s' because it is not present in "
+                        _LOG.notice("dropping metric '%s' from '%s' because it is not present in "
                                      "the definitions file at '%s'", metric, name, res.defs.path)
             setattr(self, name, metrics)
 
@@ -520,7 +520,7 @@ class ReportBase:
                 if metric in res.defs.info:
                     metrics.append(metric)
                 else:
-                    _LOG.warning("dropping metric '%s' from hover text because it is not present "
+                    _LOG.notice("dropping metric '%s' from hover text because it is not present "
                                  "in the definitions file at '%s'", metric, res.defs.path)
             self._hov_metrics[res.reportid] = metrics
 
