@@ -107,13 +107,18 @@ def list_monikers():
         msg = f"{name:<{min_len}}: {moniker}"
         _LOG.info(msg)
 
-def _create_reportid(props, prefix=None, suffix=None):
+def _create_reportid(props, hostname=None, prefix=None, suffix=None):
     """Create report id from used properties 'props'."""
 
     reportid = ""
 
     if prefix:
         reportid += str(prefix)
+
+    if hostname != "localhost":
+        if reportid:
+            reportid += "-"
+        reportid += hostname
 
     # In report id, the package C-state limit, is value for measured C-state (e.g. 'c6_pc6'). If
     # package C-state limit does not make sense for the measured C-state (e.g. PC6 with C1), the
@@ -516,6 +521,7 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
         self._outdir = args.outdir
         self._reportid_prefix = args.reportid_prefix
         self._reportid_suffix = args.reportid_suffix
+        self._hostname = args.hostname
 
         if not self._outdir:
             self._outdir = ReportID.format_reportid(prefix=self.toolpath.name)
@@ -527,8 +533,8 @@ class _BenchmarkCmdFormatter(_ToolCmdFormatterBase):
         """Create and yield command to run the 'benchmark' tool."""
 
         for cmd in super().get_commands(props):
-            reportid = _create_reportid(props, prefix=self._reportid_prefix,
-                                        suffix=self._reportid_suffix)
+            reportid = _create_reportid(props, hostname=self._hostname,
+                                        prefix=self._reportid_prefix, suffix=self._reportid_suffix)
             cmd += f" -o {self._outdir}/{reportid}"
 
             yield cmd
@@ -567,7 +573,8 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
             if self._reportid_prefix:
                 prefix = f"{self._reportid_prefix}-{prefix}"
 
-            reportid = _create_reportid(props, prefix=prefix, suffix=self._reportid_suffix)
+            reportid = _create_reportid(props, hostname=self._hostname, prefix=prefix,
+                                        suffix=self._reportid_suffix)
             yield self._create_command(devid, reportid=reportid)
 
     def __init__(self, args):
@@ -578,7 +585,6 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         self._devids = Trivial.split_csv_line(args.devids)
         self._cpunum = args.cpunum
         self._datapoints = args.datapoints
-        self._hostname = args.hostname
 
 class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
     """Helper class for running commandline commands."""
