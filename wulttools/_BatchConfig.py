@@ -692,7 +692,7 @@ class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
         self._procs = set()
 
         if self._proc_count and not dry_run:
-            _LOG.notice("Running %s commands in parallel.", self._proc_count)
+            _LOG.notice("running up to %s commands in parallel.", self._proc_count)
 
     def close(self):
         """Uninitialize the class objetc."""
