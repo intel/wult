@@ -535,7 +535,7 @@ class _BenchmarkCmdFormatter(_ToolCmdFormatterBase):
         for cmd in super().get_commands(props):
             reportid = _create_reportid(props, hostname=self._hostname,
                                         prefix=self._reportid_prefix, suffix=self._reportid_suffix)
-            cmd += f" -o {self._outdir}/{reportid}"
+            cmd += f" --reportid {reportid} -o {self._outdir}/{reportid}"
 
             yield cmd
 
