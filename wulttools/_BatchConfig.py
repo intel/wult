@@ -407,17 +407,20 @@ class _PepcCmdFormatter(_PropIteratorBase):
 
         csnames = set()
 
+        if csname == "all":
+            return csname
+
         if self._cstates_always_enable:
-            csnames.add(self._cstates_always_enable)
+            csnames.update(self._cstates_always_enable)
 
         if self._only_one_cstate:
             csnames.add(csname)
-            return ",".join(csnames)
+        else:
+            all_csnames = self._normalize_csnames("all")
+            idx = all_csnames.index(csname)
+            csnames.update(all_csnames[:idx+1])
 
-        all_csnames = self._normalize_csnames("all")
-
-        idx = all_csnames.index(csname)
-        csnames.update(all_csnames[:idx+1])
+        csnames = self._normalize_csnames(csnames)
         return ",".join(csnames)
 
     def get_commands(self, props):
@@ -461,6 +464,9 @@ class _PepcCmdFormatter(_PropIteratorBase):
         self._only_one_cstate = only_one_cstate
         self._cstates_always_enable = cstates_always_enable
         self._cpunum = cpunum
+
+        csnames = Trivial.split_csv_line(cstates_always_enable)
+        self._cstates_always_enable = self._normalize_csnames(csnames)
 
 class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
     """A base class to help creating commands."""

@@ -109,7 +109,7 @@ _COLLECT_OPTIONS = {
                     C-state."""
     },
     "cstates_always_enable" : {
-        "default" : None,
+        "default" : "",
         "help" : """Comma-separated list of always enabled C-states. Default is 'None'."""
     },
     "freqs" : {
