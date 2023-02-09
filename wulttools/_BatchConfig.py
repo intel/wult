@@ -404,13 +404,20 @@ class _PepcCmdFormatter(_PropIteratorBase):
         comma-separated list of C-state names.
         """
 
-        if csname == "all" or self._only_one_cstate:
-            return csname
+        csnames = set()
+
+        if self._cstates_always_enable:
+            csnames.add(self._cstates_always_enable)
+
+        if self._only_one_cstate:
+            csnames.add(csname)
+            return ",".join(csnames)
 
         all_csnames = self._normalize_csnames("all")
 
         idx = all_csnames.index(csname)
-        return ",".join(all_csnames[:idx+1])
+        csnames.update(all_csnames[:idx+1])
+        return ",".join(csnames)
 
     def get_commands(self, props):
         """Yield list of 'pepc' commands to configure system according to properties 'props'."""
@@ -444,13 +451,14 @@ class _PepcCmdFormatter(_PropIteratorBase):
 
             yield cmd
 
-    def __init__(self, pman, only_measured_cpu, only_one_cstate, cpunum):
+    def __init__(self, pman, only_measured_cpu, only_one_cstate, cstates_always_enable, cpunum):
         """The class constructor."""
 
         super().__init__(pman)
 
         self._only_measured_cpu = only_measured_cpu
         self._only_one_cstate = only_one_cstate
+        self._cstates_always_enable = cstates_always_enable
         self._cpunum = cpunum
 
 class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
@@ -745,7 +753,8 @@ class BatchConfig(_CmdlineRunner):
 
         self._pman = _Common.get_pman(args)
         self._pepc_formatter = _PepcCmdFormatter(self._pman, args.only_measured_cpu,
-                                                 args.only_one_cstate, args.cpunum)
+                                                 args.only_one_cstate, args.cstates_always_enable,
+                                                 args.cpunum)
         self._wl_formatter = _get_workload_cmd_formatter(args)
 
     def close(self):

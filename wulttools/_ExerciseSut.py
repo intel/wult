@@ -108,6 +108,10 @@ _COLLECT_OPTIONS = {
                     are enabled. This option will disable all C-states, excluding the measured
                     C-state."""
     },
+    "cstates_always_enable" : {
+        "default" : None,
+        "help" : """Comma-separated list of always enabled C-states. Default is 'None'."""
+    },
     "freqs" : {
         "help" : """Comma-separated list of frequencies to be measured with. For more information,
                     see '--min-freq' and '--max-freq' options of the 'pepc pstates config' command.
