@@ -177,7 +177,8 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             if csname.upper() not in allcsnames:
                 raise Error(f"requestable C-state '{csname}' not available{self._pman.hostmsg}")
 
-        return [csname.upper() for csname in csnames]
+        csnames = [csname.upper() for csname in csnames]
+        return [csname for csname in allcsnames if csname in csnames]
 
     def _is_prop_supported(self, pname, warn=False):
         """
