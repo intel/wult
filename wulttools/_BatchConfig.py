@@ -317,7 +317,6 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
             if pname == "cstates":
                 values = self._normalize_csnames(values)
-                self._requested_cstates = values
             if pname == "pcstates":
                 values = [val.upper() for val in values]
 
@@ -340,7 +339,6 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         self._csobj = None
         self._psobj = None
 
-        self._requested_cstates = None
         self.props = {}
 
         try:
