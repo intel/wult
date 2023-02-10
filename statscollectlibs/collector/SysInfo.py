@@ -185,6 +185,11 @@ def collect_before(outdir, pman):
     cmdinfo["outfile"] = outfile
     cmdinfo["cmd"] = f"pepc aspm info > '{outfile}' 2>&1"
 
+    cmdinfos["pepc_topology"] = cmdinfo = {}
+    outfile = outdir / "pepc_topology.raw.txt"
+    cmdinfo["outfile"] = outfile
+    cmdinfo["cmd"] = f"pepc topology info > '{outfile}' 2>&1"
+
     _run_commands(cmdinfos, pman)
     _collect_totals(outdir, "before", pman)
 
