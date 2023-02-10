@@ -229,9 +229,9 @@ static int kick_timer(void)
 
 	dbgmsg("kick_timer: ldist=%d, cpu=%d", ldist, cpu_id);
 
-	bpf_timer_start(timer, ldist, 0);
-
 	timer_armed = true;
+
+	bpf_timer_start(timer, ldist, 0);
 
 	return ret;
 }
