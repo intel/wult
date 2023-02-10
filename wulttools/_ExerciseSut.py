@@ -345,7 +345,7 @@ def _report_command(args):
                                                            include=args.include,
                                                            exclude=args.exclude):
             # Do not generate report if diff report is requested, but we have only one result.
-            if args.diff and len(respaths) < 2:
+            if args.diff and len(respaths) < len(Trivial.split_csv_line(args.diff)):
                 continue
 
             batchreport.generate_report(respaths, outdir / outpath)
