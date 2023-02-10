@@ -21,8 +21,6 @@
 struct cstate_info {
 	const char *name;
 	const unsigned int msr;
-	/* True for core C-states, false for package C-states. */
-	bool core;
 	/* True if this C-state does not exist on this CPU. */
 	bool absent;
 	/* C-state counter snapshots.  */

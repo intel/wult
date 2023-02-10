@@ -44,10 +44,10 @@ void wult_cstates_calc(struct wult_cstates_info *csinfo,
 }
 
 static struct cstate_info intel_cstates[] = {
-	{.name = "CC1", MSR_CORE_C1_RES, .core = true},
-	{.name = "CC3", MSR_CORE_C3_RESIDENCY, .core = true},
-	{.name = "CC6", MSR_CORE_C6_RESIDENCY, .core = true},
-	{.name = "CC7", MSR_CORE_C7_RESIDENCY, .core = true},
+	{.name = "CC1", MSR_CORE_C1_RES},
+	{.name = "CC3", MSR_CORE_C3_RESIDENCY},
+	{.name = "CC6", MSR_CORE_C6_RESIDENCY},
+	{.name = "CC7", MSR_CORE_C7_RESIDENCY},
 	{.name = "PC2", MSR_PKG_C2_RESIDENCY},
 	{.name = "PC3", MSR_PKG_C3_RESIDENCY},
 	{.name = "PC6", MSR_PKG_C6_RESIDENCY},
