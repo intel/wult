@@ -516,12 +516,24 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
 
         return reportid.lower()
 
+    def _get_toolopts(self, reportid):
+        """Get tool options, if any."""
+
+        toolopts = self._toolopts
+        if "__reportid__" in toolopts:
+            toolopts = toolopts.replace("__reportid__", reportid)
+
+        return toolopts
+
     def get_commands(self, props):  # pylint: disable=unused-argument
         """Create and yield command to run the tool."""
 
         cmd = str(self.toolpath)
-        if self._toolopts:
-            cmd += f" {self._toolopts}"
+
+        reportid = self._create_reportid(props)
+        toolopts = self._get_toolopts(reportid)
+        if toolopts:
+            cmd += f" {toolopts}"
 
         yield cmd
 
@@ -570,8 +582,9 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         else:
             cmd = f" -o {self._outdir}"
 
-        if self._toolopts:
-            cmd += f" {self._toolopts}"
+        toolopts = self._get_toolopts(reportid)
+        if toolopts:
+            cmd += f" {toolopts}"
 
         if self._hostname != "localhost":
             cmd += f" -H {self._hostname}"

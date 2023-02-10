@@ -203,7 +203,8 @@ _COMMON_OPTIONS = {
     },
     "toolopts" : {
         "default" : "",
-        "help" : """Additional options to use for running the tool."""
+        "help" : """Additional options to use for running the tool. The string "__reportid__" will
+                    be replaced with generated report ID."""
     },
     "outdir" : {
         "short" : "-o",
