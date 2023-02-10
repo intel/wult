@@ -23,7 +23,7 @@
 #include "wult.h"
 
 #define MSR_TRACEPOINT_NAME	"write_msr"
-#define TIMER_TRACEPOINT_NAME	"hrtimer_expire_entry"
+#define TIMER_TRACEPOINT_NAME	"local_timer_entry"
 
 /* Maximum supported launch distance in nanoseconds. */
 #define LDIST_MAX 50000000
@@ -38,9 +38,11 @@ struct wult_tdt {
 	struct wult_device_info wdi;
 	u64 tsc_deadline;
 	u64 ltime;
+	u64 intr_tsc;
 	struct tracepoint *msr_tp;
 	struct tracepoint *timer_tp;
 	int cpunum;
+	bool timer_armed;
 };
 
 static struct wult_tdt wult_tdt = {
@@ -49,6 +51,12 @@ static struct wult_tdt wult_tdt = {
 
 static enum hrtimer_restart timer_interrupt(struct hrtimer *hrtimer)
 {
+	struct wult_tdt *wt = container_of(hrtimer, struct wult_tdt, timer);
+
+	wt->timer_armed = false;
+	wult_interrupt_start();
+	wult_interrupt_finish(0);
+
 	return HRTIMER_NORESTART;
 }
 
@@ -64,6 +72,14 @@ static u64 get_time_after_idle(struct wult_device_info *wdi, u64 *adj)
 	return rdtsc_ordered();
 }
 
+static u64 get_intr_time(struct wult_device_info *wdi, u64 *adj)
+{
+	struct wult_tdt *wt = wdi_to_wt(wdi);
+
+	*adj = 0;
+	return wt->intr_tsc;
+}
+
 static int arm_event(struct wult_device_info *wdi, u64 *ldist)
 {
 	struct wult_tdt *wt = wdi_to_wt(wdi);
@@ -77,6 +93,8 @@ static int arm_event(struct wult_device_info *wdi, u64 *ldist)
 	 * some timer there and we won't sleep forever.
 	 */
 	hrtimer_start(&wt->timer, ns_to_ktime(*ldist), HRTIMER_MODE_REL_PINNED_HARD);
+	wt->timer_armed = true;
+
 	return 0;
 }
 
@@ -106,7 +124,7 @@ static void write_msr_hook(void *data, unsigned int msr, u64 val)
 	wt->tsc_deadline = val;
 }
 
-static void hrtimer_expire_entry_hook(void *data, struct hrtimer *hrtimer, ktime_t *now)
+static void local_timer_entry_hook(void *data, int vector)
 {
 	struct wult_tdt *wt = data;
 
@@ -114,13 +132,12 @@ static void hrtimer_expire_entry_hook(void *data, struct hrtimer *hrtimer, ktime
 		/* Not the CPU we are measuring. */
 		return;
 
-	if (hrtimer != &wt->timer)
+	if (!wt->timer_armed)
 		/* Not the timer we armed. */
 		return;
 
+	wt->intr_tsc = rdtsc_ordered();
 	wt->ltime = wt->tsc_deadline;
-	wult_interrupt_start();
-	wult_interrupt_finish(0);
 }
 
 static int enable(struct wult_device_info *wdi, bool enable)
@@ -144,7 +161,7 @@ static int enable(struct wult_device_info *wdi, bool enable)
 		}
 
 		err = tracepoint_probe_register(wt->timer_tp,
-				(void *)hrtimer_expire_entry_hook, wt);
+				(void *)local_timer_entry_hook, wt);
 		if (err) {
 			wult_err("failed to register the '%s' tracepoint probe,"
 				 " error %d", TIMER_TRACEPOINT_NAME, err);
@@ -154,7 +171,7 @@ static int enable(struct wult_device_info *wdi, bool enable)
 		tracepoint_probe_unregister(wt->msr_tp,
 				(void *)write_msr_hook, wt);
 		tracepoint_probe_unregister(wt->timer_tp,
-				(void *)hrtimer_expire_entry_hook, wt);
+				(void *)local_timer_entry_hook, wt);
 	}
 
 	return 0;
@@ -192,7 +209,7 @@ static void exit_device(struct wult_device_info *wdi)
 static struct wult_device_ops wult_tdt_ops = {
 	.get_time_before_idle = get_time_before_idle,
 	.get_time_after_idle = get_time_after_idle,
-	.get_intr_time = get_time_after_idle,
+	.get_intr_time = get_intr_time,
 	.arm = arm_event,
 	.event_has_happened = event_has_happened,
 	.get_launch_time = get_launch_time,
