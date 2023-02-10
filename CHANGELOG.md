@@ -10,6 +10,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
  - Fix 'wult report' crashing when custom axes are provided which result in
    empty tabs.
 ### Added
+ - Add 'pepc topology info' output to 'sysinfo' statistics collection.
+ - Add 'pepc topology info' output to 'sysinfo pepc' tab in wult reports.
 ### Removed
 ### Changed
  - Moved the 'Busy%' turbostat tab from 'Misc' to 'C-states,Hardware' in wult
