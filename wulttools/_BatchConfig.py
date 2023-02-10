@@ -880,7 +880,10 @@ class BatchReport(_CmdlineRunner):
             _LOG.warning("path '%s' exists, skip generating report", outpath)
             return
 
-        cmd = f"nice -n19 ionice -c3 {self._toolpath} report "
+        cmd = f"nice -n19 ionice -c3 {self._toolpath} "
+
+        if self._toolpath.name in ("wult", "ndl", "stats-collect"):
+            cmd += "report "
 
         if self._toolopts:
             cmd += f"{self._toolopts} "
