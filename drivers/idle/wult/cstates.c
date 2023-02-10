@@ -48,7 +48,9 @@ static struct cstate_info intel_cstates[] = {
 	{.name = "CC3", MSR_CORE_C3_RESIDENCY},
 	{.name = "CC6", MSR_CORE_C6_RESIDENCY},
 	{.name = "CC7", MSR_CORE_C7_RESIDENCY},
-	{.name = "MC6", MSR_MODULE_C6_RES_MS},
+//	{.name = "MC6", MSR_MODULE_C6_RES_MS},
+//* Temporary hack for testing: read CC6 for now.
+{.name = "MC6", MSR_CORE_C6_RESIDENCY},
 	{.name = "PC2", MSR_PKG_C2_RESIDENCY},
 	{.name = "PC3", MSR_PKG_C3_RESIDENCY},
 	{.name = "PC6", MSR_PKG_C6_RESIDENCY},
