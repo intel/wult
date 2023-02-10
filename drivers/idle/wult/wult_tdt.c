@@ -22,7 +22,8 @@
 #include <asm/msr.h>
 #include "wult.h"
 
-#define TIMER_TRACEPOINT_NAME "hrtimer_expire_entry"
+#define MSR_TRACEPOINT_NAME	"write_msr"
+#define TIMER_TRACEPOINT_NAME	"hrtimer_expire_entry"
 
 /* Maximum supported launch distance in nanoseconds. */
 #define LDIST_MAX 50000000
@@ -35,7 +36,9 @@
 struct wult_tdt {
 	struct hrtimer timer;
 	struct wult_device_info wdi;
-	u64 deadline_before;
+	u64 tsc_deadline;
+	u64 ltime;
+	struct tracepoint *msr_tp;
 	struct tracepoint *timer_tp;
 	int cpunum;
 };
@@ -51,17 +54,7 @@ static enum hrtimer_restart timer_interrupt(struct hrtimer *hrtimer)
 
 static u64 get_time_before_idle(struct wult_device_info *wdi, u64 *adj)
 {
-	struct wult_tdt *wt = wdi_to_wt(wdi);
-
 	*adj = 0;
-
-	/*
-	 * This callback is invoked just before going to idle, and now we can
-	 * find out what is the actual TSC deadline armed. If we wake up by a
-	 * TSC deadline timer, it will be the currently programed deadline, not
-	 * the timer we armed earlier in 'arm_event()'.
-	 */
-	rdmsrl(MSR_IA32_TSC_DEADLINE, wt->deadline_before);
 	return rdtsc_ordered();
 }
 
@@ -89,34 +82,28 @@ static int arm_event(struct wult_device_info *wdi, u64 *ldist)
 
 static bool event_has_happened(struct wult_device_info *wdi)
 {
-	u64 deadline;
 	struct wult_tdt *wt = wdi_to_wt(wdi);
-
-	/*
-	 * The HW zeroes out the deadline MSR value when deadline is reached,
-	 * so if it is non-zero, this is not a TSC deadline timer event.
-	 */
-	rdmsrl(MSR_IA32_TSC_DEADLINE, deadline);
-	if (deadline)
-		return false;
-
-	/* Make sure there was a TSC deadline timer armed. */
-	if (wt->deadline_before == 0)
-		return false;
-
-	if (rdtsc_ordered() <= wt->deadline_before)
-		return false;
 
 	return hrtimer_get_remaining(&wt->timer) <= 0;
 }
 
 static u64 get_launch_time(struct wult_device_info *wdi)
 {
-	/*
-	 * We piggybacked on the nearest TSC deadline, so it is our launch
-	 * time.
-	 */
-	return wdi_to_wt(wdi)->deadline_before;
+	return wdi_to_wt(wdi)->ltime;
+}
+
+static void write_msr_hook(void *data, unsigned int msr, u64 val)
+{
+	struct wult_tdt *wt = data;
+
+	if (smp_processor_id() != wt->cpunum)
+		/* Not the CPU we are measuring. */
+		return;
+
+	if (msr != MSR_IA32_TSC_DEADLINE)
+		return;
+
+	wt->tsc_deadline = val;
 }
 
 static void hrtimer_expire_entry_hook(void *data, struct hrtimer *hrtimer, ktime_t *now)
@@ -131,6 +118,7 @@ static void hrtimer_expire_entry_hook(void *data, struct hrtimer *hrtimer, ktime
 		/* Not the timer we armed. */
 		return;
 
+	wt->ltime = wt->tsc_deadline;
 	wult_interrupt_start();
 	wult_interrupt_finish(0);
 }
@@ -140,20 +128,31 @@ static int enable(struct wult_device_info *wdi, bool enable)
 	struct wult_tdt *wt = wdi_to_wt(wdi);
 	int err;
 
-	if (!wt->timer_tp) {
-		wult_err("failed to initialize the '%s' tracepoint", TIMER_TRACEPOINT_NAME);
+	if (!wt->msr_tp || !wt->timer_tp) {
+		wult_err("failed to initialize the '%s' tracepoint",
+			 !wt->msr_tp ? MSR_TRACEPOINT_NAME : TIMER_TRACEPOINT_NAME);
 		return -EINVAL;
 	}
 
 	if (enable) {
+		err = tracepoint_probe_register(wt->msr_tp,
+				(void *)write_msr_hook, wt);
+		if (err) {
+			wult_err("failed to register the '%s' tracepoint probe,"
+				 " error %d", MSR_TRACEPOINT_NAME, err);
+			return err;
+		}
+
 		err = tracepoint_probe_register(wt->timer_tp,
 				(void *)hrtimer_expire_entry_hook, wt);
 		if (err) {
 			wult_err("failed to register the '%s' tracepoint probe,"
-				" error %d", TIMER_TRACEPOINT_NAME, err);
+				 " error %d", TIMER_TRACEPOINT_NAME, err);
 			return err;
 		}
 	} else {
+		tracepoint_probe_unregister(wt->msr_tp,
+				(void *)write_msr_hook, wt);
 		tracepoint_probe_unregister(wt->timer_tp,
 				(void *)hrtimer_expire_entry_hook, wt);
 	}
@@ -166,6 +165,10 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 	struct wult_tdt *wt = wdi_to_wt(wdi);
 
 	/* TODO: ensure that hrtimers are backed by the TSC dealine timer. */
+
+	wt->msr_tp = wult_tracer_find_tracepoint(MSR_TRACEPOINT_NAME);
+	if (!wt->msr_tp)
+		return -EINVAL;
 
 	wt->timer_tp = wult_tracer_find_tracepoint(TIMER_TRACEPOINT_NAME);
 	if (!wt->timer_tp)
@@ -182,6 +185,7 @@ static void exit_device(struct wult_device_info *wdi)
 	struct wult_tdt *wt = wdi_to_wt(wdi);
 
 	hrtimer_cancel(&wt->timer);
+	wt->msr_tp = NULL;
 	wt->timer_tp = NULL;
 }
 
