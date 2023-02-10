@@ -5,6 +5,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.10.57] - 2023-02-10
+### Fixed
  - Fix 'wult report' crashing when generating diffs where the first result
    contains different metrics to the rest.
  - Fix 'wult report' crashing when custom axes are provided which result in
@@ -12,7 +18,6 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
  - Add 'pepc topology info' output to 'sysinfo' statistics collection.
  - Add 'pepc topology info' output to 'sysinfo pepc' tab in wult reports.
-### Removed
 ### Changed
  - Moved the 'Busy%' turbostat tab from 'Misc' to 'C-states,Hardware' in wult
    reports.

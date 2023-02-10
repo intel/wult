@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date:   2023-02-02
+:Date:   2023-02-10
 
 .. contents::
    :depth: 3
@@ -57,16 +57,16 @@ COMMAND *'exercise-sut* start'
 usage: exercise-sut start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K
 PRIVKEY] [-T TIMEOUT] [--datapoints DATAPOINTS] [--reportid-prefix
 REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpunum CPUNUM]
-[--cstates CSTATES] [--pcstates PCSTATES] [--only-one-cstate] [--freqs
-FREQS] [--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR] [--aspm ASPM]
+[--cstates CSTATES] [--pcstates PCSTATES] [--only-one-cstate]
+[--cstates-always-enable CSTATES_ALWAYS_ENABLE] [--freqs FREQS]
+[--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR] [--aspm ASPM]
 [--c1-demotion C1_DEMOTION] [--c1-undemotion C1_UNDEMOTION]
 [--c1e-autopromote C1E_AUTOPROMOTE] [--cstate-prewake CSTATE_PREWAKE]
 [--state-reset] [--deploy] [--devids DEVIDS] [--stop-on-failure]
 [--only-measured-cpu] [--toolpath TOOLPATH] [--toolopts TOOLOPTS]
 [--outdir OUTDIR] [--dry-run] [--list-monikers]
 
-Run a test tool or benchmark to collect testdata. Unknown options are
-passed as-is to the tool.
+Run a test tool or benchmark to collect testdata.
 
 OPTIONS *'exercise-sut* start'
 ==============================
@@ -114,12 +114,16 @@ OPTIONS *'exercise-sut* start'
    is all C-states.
 
 **--pcstates** *PCSTATES*
-   Comma-separated list of package C-states to measure with.
+   Comma-separated list of package C-states to measure with. Default is
+   "don't care".
 
 **--only-one-cstate**
    By default C-states deeper than measured C-state are disabled and
    other C-states are enabled. This option will disable all C-states,
    excluding the measured C-state.
+
+**--cstates-always-enable** *CSTATES_ALWAYS_ENABLE*
+   Comma-separated list of always enabled C-states. Default is 'None'.
 
 **--freqs** *FREQS*
    Comma-separated list of frequencies to be measured with. For more
@@ -181,7 +185,8 @@ OPTIONS *'exercise-sut* start'
    Path to the tool to run. Default is 'wult'.
 
 **--toolopts** *TOOLOPTS*
-   Additional options to use for running the tool.
+   Additional options to use for running the tool. The string
+   "__reportid__" will be replaced with generated report ID.
 
 **--outdir** *OUTDIR*, **-o** *OUTDIR*
    Path to directory to store the results at. Default is
@@ -202,10 +207,9 @@ COMMAND *'exercise-sut* report'
 usage: exercise-sut report [-h] [-q] [-d] [--diff DIFF] [--include
 INCLUDE] [--exclude EXCLUDE] [--jobs JOBS] [--toolpath TOOLPATH]
 [--toolopts TOOLOPTS] [--outdir OUTDIR] [--stop-on-failure] [--dry-run]
-[--list-monikers] respaths [respaths ...]
+[--list-monikers] [respaths ...]
 
-Generate reports from collected data. Unknown options are passed as-is
-to the report tool.
+Generate reports from collected data.
 
 **respaths**
    One or multiple paths to be searched for test results.
@@ -223,9 +227,13 @@ OPTIONS *'exercise-sut* report'
    Print debugging information.
 
 **--diff** *DIFF*
-   Collected data is stored in directories, and each directory name
-   consists of multiple monikers separated by dashes. Comma-separated
-   list of monikers to create a diff report with.
+   Collected data is stored in directories, and each directory name is
+   constructed from multiple monikers separated by dashes, e.g.
+   'hrt-c6-uf_max-autoc1e_off'. This option can be used to create diff
+   reports by including multiple results in one report. Comma-separated
+   list of monikers to select results to include in the diff report. If
+   this option is not provided, reports with single result are
+   generated.
 
 **--include** *INCLUDE*
    Comma-separated list of monikers that must be found from the result
@@ -242,7 +250,8 @@ OPTIONS *'exercise-sut* report'
    Path to the tool to run. Default is 'wult'.
 
 **--toolopts** *TOOLOPTS*
-   Additional options to use for running the tool.
+   Additional options to use for running the tool. The string
+   "__reportid__" will be replaced with generated report ID.
 
 **--outdir** *OUTDIR*, **-o** *OUTDIR*
    Path to directory to store the results at. Default is
