@@ -62,6 +62,8 @@ struct wult_device_ops {
 	u64 (*get_time_before_idle)(struct wult_device_info *wdi, u64 *adj);
 	/* Read time after idle. */
 	u64 (*get_time_after_idle)(struct wult_device_info *wdi, u64 *adj);
+	/* Read intr time. */
+	u64 (*get_intr_time)(struct wult_device_info *wdi, u64 *adj);
 	/* Arm a delayed event 'ldist' nanoseconds away. */
 	int (*arm)(struct wult_device_info *wdi, u64 *ldist);
 	/* Checks whether the delayed event has happened. */

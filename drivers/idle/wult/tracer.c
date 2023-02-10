@@ -126,7 +126,7 @@ void wult_tracer_interrupt(struct wult_info *wi)
 	struct wult_device_info *wdi = wi->wdi;
 
 	ti->intr_ts1 = ktime_get_ns();
-	ti->tintr = wdi->ops->get_time_after_idle(wdi, &ti->tintr_adj);
+	ti->tintr = wdi->ops->get_intr_time(wdi, &ti->tintr_adj);
 
 	/*
 	 * Record APERF amd MPERF value at in-interrupt point to

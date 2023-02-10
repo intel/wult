@@ -372,6 +372,7 @@ static void exit_device(struct wult_device_info *wdi)
 static const struct wult_device_ops wult_igb_ops = {
 	.get_time_before_idle = get_time_before_idle,
 	.get_time_after_idle = get_time_after_idle,
+	.get_intr_time = get_time_after_idle,
 	.arm = arm_irq,
 	.event_has_happened = event_has_happened,
 	.get_launch_time = get_launch_time,
