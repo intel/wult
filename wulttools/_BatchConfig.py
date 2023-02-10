@@ -877,8 +877,7 @@ class BatchReport(_CmdlineRunner):
         """Generate the report for list of results in 'respaths', store the report to 'outpath'."""
 
         if outpath.exists():
-            _LOG.warning("path '%s' exists, skip generating report", outpath)
-            return
+            _LOG.warning("path '%s' exists", outpath)
 
         cmd = f"nice -n19 ionice -c3 {self._toolpath} "
 
