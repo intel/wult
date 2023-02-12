@@ -102,6 +102,15 @@ CCx%:
     unit: "%"
     short_unit: "%"
     drop_empty: True
+MCx%:
+    title: "The MCx module C-state residency"
+    descr: >-
+        Percent of the time spent in the MCx package state over the idle period. Calculated as
+        ('MCxCyc' / 'TotCyc') * 100.
+    type: "float"
+    unit: "%"
+    short_unit: "%"
+    drop_empty: True
 PCx%:
     title: "The PCx package C-state residency"
     descr: >-

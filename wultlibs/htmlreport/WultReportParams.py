@@ -20,7 +20,7 @@ SMALL_HIST = f"{SMALL_YAXES}"
 SMALL_CHIST = None
 
 LARGE_XAXES = "SilentTime,LDist"
-LARGE_YAXES = r".*Latency.*,.*Delay,[PC]C.+%,SilentTime,ReqCState,CPUFreq"
+LARGE_YAXES = r".*Latency.*,.*Delay,[PMC]C.+%,SilentTime,ReqCState,CPUFreq"
 LARGE_HIST = f"{LARGE_YAXES},LDist"
 LARGE_CHIST = r".*Latency"
 
@@ -41,6 +41,6 @@ SMRY_FUNCS = {
     ".*Latency.*": ["max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min", "std"],
     "SilentTime": ["max", "min"],
     "LDist": ["max", "min"],
-    "[P|C]C.*%": ["max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min", "std"],
+    "[PMC]C.*%": ["max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min", "std"],
     ".*Delay": ["max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min", "std"]
 }

@@ -16,14 +16,12 @@ from wultlibs import _WultDefsBase
 def is_cscyc_metric(metric):
     """Returns 'True' if 'metric' is a C-state cycles count metric."""
 
-    return (metric.startswith("CC") or metric.startswith("PC")) and \
-            metric.endswith("Cyc") and len(metric) > 5
+    return len(metric) > 5 and (metric[0:2] in {"CC", "MC", "PC"}) and metric.endswith("Cyc")
 
 def is_csres_metric(metric):
     """Returns 'True' if 'metric' is a C-state residency metric."""
 
-    return (metric.startswith("CC") or metric.startswith("PC")) and \
-            metric.endswith("%") and len(metric) > 3
+    return len(metric) > 3 and (metric[0:2] in {"CC", "MC", "PC"}) and metric.endswith("%")
 
 def is_cs_metric(metric):
     """Returns 'True' if 'metric' is a C-state residency or cycles counter metric."""
@@ -45,7 +43,7 @@ def get_csname(metric, must_get=True):
     elif metric.endswith("%"):
         csname = metric[:-1]
 
-    if not csname or not (metric.startswith("CC") or metric.startswith("PC")):
+    if not csname or not (metric[0:2] in {"CC", "MC", "PC"}):
         if must_get:
             raise Error(f"cannot get C-state name for metric '{metric}'")
         return None
@@ -81,6 +79,7 @@ class WultDefs(_WultDefsBase.WultDefsBase):
         super().__init__("wult")
 
         ccnames = []
+        mcnames = []
         pcnames = []
 
         for metric in hdr:
@@ -90,10 +89,13 @@ class WultDefs(_WultDefsBase.WultDefsBase):
 
             if csname.startswith("CC"):
                 ccnames.append(csname)
-            else:
+            elif csname.startswith("PC"):
                 pcnames.append(csname)
+            else:
+                mcnames.append(csname)
 
-        placeholders_info = [{ "placeholder" : "CCx", "values" : ccnames},
-                             { "placeholder" : "PCx", "values" : pcnames}]
+        placeholders_info = [{"placeholder" : "CCx", "values" : ccnames},
+                             {"placeholder" : "MCx", "values" : mcnames},
+                             {"placeholder" : "PCx", "values" : pcnames}]
 
         super()._mangle_placeholders(placeholders_info)

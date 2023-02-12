@@ -15,7 +15,7 @@ from wultlibs.htmlreport import WultReportParams
 # Regular expressions for the metrics that should show up in the hover text of the scatter plot.
 # The middle element selects all the core and package C-state residency columns.
 HOVER_METRIC_REGEXS = [".*Latency", "IntrOff", ".*Delay", "LDist", "CPUFreq", "ReqCState",
-                       r"[PC]C.+%", "SMI.*", "NMI.*"]
+                       r"[PMC]C.+%", "SMI.*", "NMI.*"]
 
 def get_axes(optname, report_size=None, escape_percent=False):
     """
