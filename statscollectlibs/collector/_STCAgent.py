@@ -556,8 +556,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
             # Kill a possibly running stale SSH tunnel process.
             msg = "stale stc-agent SSH tunnel process"
             self._ssht_search = f"ssh -L .*:.*stc-agent-{self.sutname}-.* -N"
-            ProcHelpers.kill_processes(self._ssht_search, kill_children=True, log=True, name=msg,
-                                       pman=self._pman)
+            ProcHelpers.kill_processes(self._ssht_search, kill_children=True, log=True, name=msg)
 
         # Format the command for executing 'stc-agent'.
         self._cmd = f"{self._stca_path} --sut-name {self.sutname}"
@@ -798,12 +797,12 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
                 self._disconnect()
             self._sock = None
 
-        if getattr(self, "_pman", None):
-            if self._ssht:
-                with contextlib.suppress(Exception):
-                    ProcHelpers.kill_processes(self._ssht_search, pman=self._pman)
-                self._ssht = None
+        if getattr(self, "_ssht", None):
+            with contextlib.suppress(Exception):
+                ProcHelpers.kill_processes(self._ssht_search)
+            self._ssht = None
 
+        if getattr(self, "_pman", None):
             if self._stca:
                 with contextlib.suppress(Exception):
                     ProcHelpers.kill_processes(self._stca_search, pman=self._pman)
