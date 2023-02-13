@@ -1,3 +1,9 @@
+wult (1.10.58) unstable; urgency=low
+
+  * Add basic module C-states support.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 13 Feb 2023 00:00:00 +0200
+
 wult (1.10.57) unstable; urgency=low
 
   * Fix 'wult report' crashing when generating diffs where the first result

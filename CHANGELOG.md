@@ -6,9 +6,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
- - Add basic module C-states support.
 ### Removed
 ### Changed
+
+## [1.10.58] - 2023-02-13
+### Added
+ - Add basic module C-states support.
 
 ## [1.10.57] - 2023-02-10
 ### Fixed
