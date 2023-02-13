@@ -90,7 +90,7 @@ class DTabBuilder:
         follows:
          * xdef - definitions dictionary for the metric on the X-axis.
          * ydef - definitions dictionary for the metric on the Y-axis.
-         * hover_defs - a mapping between report id and lists of definitions dictionaries which
+         * hover_defs - a mapping between report ID and lists of definitions dictionaries which
                         represent metrics for which hovertext should be generated for that result.
                         By default, only includes hovertext for 'xdef' and 'ydef'.
         """
