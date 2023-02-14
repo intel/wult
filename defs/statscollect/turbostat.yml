@@ -49,6 +49,15 @@ Pkg%pcx:
     unit: "%"
     short_unit: "%"
     drop_empty: True
+Mod%cx:
+    title: "The MCx module C-state residency"
+    descr: >-
+        The percentage of time spent in package PCx hardware C-state. Retrieved from the "Mod%cx"
+        turbostat column.
+    type: "float"
+    unit: "%"
+    short_unit: "%"
+    drop_empty: True
 POLL%:
     title: "POLL requested percent"
     descr: >-

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2022 Intel Corporation
+# Copyright (C) 2019-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -67,6 +67,24 @@ def get_metric_from_pkgcs(pkgcs):
     """Returns the metric which represents the package state 'pkgcs'."""
 
     return f"Pkg%p{pkgcs.lower()}"
+
+def is_modcs_metric(metric):
+    """
+    Returns 'True' or 'False' based on whether 'metric' is a metric which represents a hardware
+    module C-state.
+    """
+
+    return metric.startswith("Mod%")
+
+def get_modcs_from_metric(metric):
+    """Returns the name of the module C-state represented by 'metric'."""
+
+    return metric[5:]
+
+def get_metric_from_modcs(modcs):
+    """Returns the metric which represents the module C-state 'modcs'."""
+
+    return f"Mod%c{modcs.lower()}"
 
 class TurbostatDefs(_STCDefsBase.STCDefsBase):
     """This module provides API to turbostat metrics definitions (AKA 'defs')."""
