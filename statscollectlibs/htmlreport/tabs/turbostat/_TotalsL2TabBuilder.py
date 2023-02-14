@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2022-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Authors: Adam Hawley <adam.james.hawley@intel.com>
@@ -45,6 +45,11 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
         hw_pkg_cs = self._get_common_elements(self._cstates["hardware"]["package"])
         for cs in hw_pkg_cs:
             harchy["C-states"]["Hardware"]["dtabs"].append(TurbostatDefs.get_metric_from_pkgcs(cs))
+
+        # Add module C-states.
+        hw_mod_cs = self._get_common_elements(self._cstates["hardware"]["module"])
+        for cs in hw_mod_cs:
+            harchy["C-states"]["Hardware"]["dtabs"].append(TurbostatDefs.get_metric_from_modcs(cs))
 
         return harchy
 

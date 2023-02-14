@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2022-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Authors: Adam Hawley <adam.james.hawley@intel.com>
@@ -47,6 +47,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         req_cstates = []
         hw_cstates = []
         pkg_cstates = []
+        mod_cstates = []
 
         for metric in tstat["totals"]:
             if TurbostatDefs.is_reqcs_metric(metric):
@@ -55,11 +56,14 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
                 hw_cstates.append(TurbostatDefs.get_hwcs_from_metric(metric))
             elif TurbostatDefs.is_pkgcs_metric(metric):
                 pkg_cstates.append(TurbostatDefs.get_pkgcs_from_metric(metric))
+            elif TurbostatDefs.is_modcs_metric(metric):
+                mod_cstates.append(TurbostatDefs.get_modcs_from_metric(metric))
 
         self._cstates["hardware"]["core"].append(hw_cstates)
         self._cstates["hardware"]["package"].append(pkg_cstates)
+        self._cstates["hardware"]["module"].append(mod_cstates)
         self._cstates["requested"].append(req_cstates)
-        return hw_cstates + pkg_cstates + req_cstates
+        return req_cstates + hw_cstates + pkg_cstates + mod_cstates
 
     def _read_stats_file(self, path):
         """
@@ -222,7 +226,8 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             "requested": [],
             "hardware": {
                 "core": [],
-                "package": []
+                "package": [],
+                "module": []
             }
         }
 
