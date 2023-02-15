@@ -45,25 +45,26 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         """
 
         req_cstates = []
-        hw_cstates = []
+        core_cstates = []
         pkg_cstates = []
         mod_cstates = []
 
         for metric in tstat["totals"]:
-            if TurbostatDefs.is_reqcs_metric(metric):
-                req_cstates.append(TurbostatDefs.get_reqcs_from_metric(metric))
-            elif TurbostatDefs.is_hwcs_metric(metric):
-                hw_cstates.append(TurbostatDefs.get_hwcs_from_metric(metric))
-            elif TurbostatDefs.is_pkgcs_metric(metric):
-                pkg_cstates.append(TurbostatDefs.get_pkgcs_from_metric(metric))
-            elif TurbostatDefs.is_modcs_metric(metric):
-                mod_cstates.append(TurbostatDefs.get_modcs_from_metric(metric))
+            if TurbostatDefs.ReqCSDef.check_metric(metric):
+                req_cstates.append(TurbostatDefs.ReqCSDef(metric))
+            elif TurbostatDefs.CoreCSDef.check_metric(metric):
+                core_cstates.append(TurbostatDefs.CoreCSDef(metric))
+            elif TurbostatDefs.PackageCSDef.check_metric(metric):
+                pkg_cstates.append(TurbostatDefs.PackageCSDef(metric))
+            elif TurbostatDefs.ModuleCSDef.check_metric(metric):
+                mod_cstates.append(TurbostatDefs.ModuleCSDef(metric))
 
-        self._cstates["hardware"]["core"].append(hw_cstates)
+        self._cstates["hardware"]["core"].append(core_cstates)
         self._cstates["hardware"]["package"].append(pkg_cstates)
         self._cstates["hardware"]["module"].append(mod_cstates)
         self._cstates["requested"].append(req_cstates)
-        return req_cstates + hw_cstates + pkg_cstates + mod_cstates
+        all_cstates = req_cstates + core_cstates + pkg_cstates + mod_cstates
+        return [csdef.cstate for csdef in all_cstates]
 
     def _read_stats_file(self, path):
         """
@@ -105,7 +106,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         return sdf
 
     @staticmethod
-    def _get_common_elements(lsts):
+    def _get_common_cstates(lsts):
         """
         Helper function for '_get_tab_hierarchy()'. Expects 'lsts' to be a list of lists. Finds list
         elements which are common to all lists in 'lsts'. Returns elements in the order they appear
@@ -113,10 +114,10 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         """
 
         # Create a set of elements common to all lists in 'lsts'.
-        common_elements = set.intersection(*[set(lst) for lst in lsts])
+        common_elements = set.intersection(*[set(csdef.cstate for csdef in lst) for lst in lsts])
 
         # Maintain the order of elements as they appear in the first list.
-        return [el for el in lsts[0] if el in common_elements]
+        return [el for el in lsts[0] if el.cstate in common_elements]
 
 
     def _get_tab_hierarchy(self, common_metrics):
@@ -146,17 +147,15 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         tab_hierarchy["Misc"] = {"dtabs": [m for m in misc_metrics if m in common_metrics]}
 
         # Find C-states which are common to all test results.
-        hw_core_cs = self._get_common_elements(self._cstates["hardware"]["core"])
-        req_cs = self._get_common_elements(self._cstates["requested"])
+        hw_core_cs = self._get_common_cstates(self._cstates["hardware"]["core"])
+        req_cs = self._get_common_cstates(self._cstates["requested"])
 
         for cs in req_cs:
-            metric = TurbostatDefs.get_metric_from_reqcs(cs)
-            tab_hierarchy["C-states"]["Requested"]["dtabs"].append(metric)
+            tab_hierarchy["C-states"]["Requested"]["dtabs"].append(cs.metric)
 
         tab_hierarchy["C-states"]["Hardware"]["dtabs"].append("Busy%")
         for cs in hw_core_cs:
-            metric = TurbostatDefs.get_metric_from_hwcs(cs)
-            tab_hierarchy["C-states"]["Hardware"]["dtabs"].append(metric)
+            tab_hierarchy["C-states"]["Hardware"]["dtabs"].append(cs.metric)
 
         return tab_hierarchy
 

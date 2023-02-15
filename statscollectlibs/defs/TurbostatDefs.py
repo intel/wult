@@ -6,85 +6,75 @@
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
-"""
-This module provides API to turbostat metrics definitions (AKA 'defs').
-"""
+"""This module provides the API to turbostat metrics definitions (AKA 'defs')."""
 
 from statscollectlibs.defs import _STCDefsBase
 from statscollectlibs.parsers import TurbostatParser
 
-def is_reqcs_metric(metric):
+class _CSTypeBase:
     """
-    Returns 'True' or 'False' based on whether 'metric' is a metric which represents a requestable
-    C-state.
+    Turbostat collects information about various types of C-state including, but not limited to,
+    requestable, package, and module C-states. This base class provides a common interface for all
+    of the C-state type classes.
     """
+    @staticmethod
+    def check_metric(metric):
+        """Checks if 'metric' is an instance of this type of C-state."""
+        raise NotImplementedError()
 
-    return metric == "POLL%" or (metric.startswith("C") and metric[1].isdigit() and
-                                 metric.endswith("%"))
+    def _get_cs_from_metric(self, metric):
+        """Returns the name of the C-state represented in 'metric'."""
+        raise NotImplementedError()
 
-def get_reqcs_from_metric(metric):
-    """Returns the name of the requested C-state represented by 'metric'."""
+    def __init__(self, metric):
+        """The class constructor. """
+        self.metric = metric
+        self.cstate = self._get_cs_from_metric(metric)
 
-    return metric[:-1]
+class ReqCSDef(_CSTypeBase):
+    """This class represents the 'Requestable C-state' type of C-state."""
+    @staticmethod
+    def check_metric(metric):
+        """Checks if 'metric' represents the usage of a requestable C-state."""
+        return metric == "POLL%" or (metric.startswith("C") and metric[1].isdigit() and
+                                     metric.endswith("%"))
 
-def get_metric_from_reqcs(reqcs):
-    """Returns the metric which represents the requestable state 'reqcs'."""
+    def _get_cs_from_metric(self, metric):
+        """Returns the name of the C-state represented in 'metric'."""
+        return metric[:-1]
 
-    return f"{reqcs}%"
+class CoreCSDef(_CSTypeBase):
+    """This class represents the 'Core C-state' type of C-state."""
+    @staticmethod
+    def check_metric(metric):
+        """Checks if 'metric' represents the usage of a core C-state."""
+        return metric.startswith("CPU%")
 
-def is_hwcs_metric(metric):
-    """
-    Returns 'True' or 'False' based on whether 'metric' is a metric which represents a hardware
-    C-state.
-    """
+    def _get_cs_from_metric(self, metric):
+        """Returns the name of the C-state represented in 'metric'."""
+        return metric[4:]
 
-    return metric.startswith("CPU%")
+class PackageCSDef(_CSTypeBase):
+    """This class represents the 'Package C-state' type of C-state."""
+    @staticmethod
+    def check_metric(metric):
+        """Checks if 'metric' represents the usage of a package C-state."""
+        return metric.startswith("Pkg%")
 
-def get_hwcs_from_metric(metric):
-    """Returns the name of the hardware C-state represented by 'metric'."""
+    def _get_cs_from_metric(self, metric):
+        """Returns the name of the C-state represented in 'metric'."""
+        return metric[4:]
 
-    return metric[4:]
+class ModuleCSDef(_CSTypeBase):
+    """This class represents the 'Module C-state' type of C-state."""
+    @staticmethod
+    def check_metric(metric):
+        """Checks if 'metric' represents the usage of a module C-state."""
+        return metric.startswith("Mod%")
 
-def get_metric_from_hwcs(hwcs):
-    """Returns the metric which represents the hardware state 'hwcs'."""
-
-    return f"CPU%{hwcs.lower()}"
-
-def is_pkgcs_metric(metric):
-    """
-    Returns 'True' or 'False' based on whether 'metric' is a metric which represents a hardware
-    package C-state.
-    """
-
-    return metric.startswith("Pkg%")
-
-def get_pkgcs_from_metric(metric):
-    """Returns the name of the package C-state represented by 'metric'."""
-
-    return metric[5:]
-
-def get_metric_from_pkgcs(pkgcs):
-    """Returns the metric which represents the package state 'pkgcs'."""
-
-    return f"Pkg%p{pkgcs.lower()}"
-
-def is_modcs_metric(metric):
-    """
-    Returns 'True' or 'False' based on whether 'metric' is a metric which represents a hardware
-    module C-state.
-    """
-
-    return metric.startswith("Mod%")
-
-def get_modcs_from_metric(metric):
-    """Returns the name of the module C-state represented by 'metric'."""
-
-    return metric[5:]
-
-def get_metric_from_modcs(modcs):
-    """Returns the metric which represents the module C-state 'modcs'."""
-
-    return f"Mod%c{modcs.lower()}"
+    def _get_cs_from_metric(self, metric):
+        """Returns the name of the C-state represented in 'metric'."""
+        return metric[4:]
 
 class TurbostatDefs(_STCDefsBase.STCDefsBase):
     """This module provides API to turbostat metrics definitions (AKA 'defs')."""
