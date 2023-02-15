@@ -38,9 +38,8 @@ EXCLUDE_YAXES = "SilentTime"
 # Metrics are represented by their name or a regular expression and paired with a list of summary
 # functions.
 SMRY_FUNCS = {
-    ".*Latency.*": ["max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min", "std"],
-    "SilentTime": ["max", "min"],
-    "LDist": ["max", "min"],
-    "[PMC]C.*%": ["max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min", "std"],
-    ".*Delay": ["max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min", "std"]
+    ".*Latency.*": ["99.999%", "99.99%", "99.9%", "99%", "med", "avg", "std"],
+    "[PMC]C.*%": ["99.999%", "99.99%", "99.9%", "99%", "med", "avg", "std"],
+    ".*Delay": ["99.999%", "99.99%", "99.9%", "99%", "med", "avg", "std"],
+    ".*": ["max", "min"]
 }
