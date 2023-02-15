@@ -8,6 +8,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Improve 'tdt' method to be more accurate.
+ - Improve 'tdt' method to also work for 'POLL' state.
 
 ## [1.10.58] - 2023-02-13
 ### Added
