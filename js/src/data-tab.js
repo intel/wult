@@ -25,13 +25,6 @@ import './smry-tbl'
  */
 class ScDataTab extends LitElement {
     static styles = css`
-        .grid {
-            display: grid;
-            width: 100%;
-            grid-auto-rows: 800px;
-            grid-auto-flow: dense;
-        }
-
         sl-alert {
             margin-left: 20px;
             margin-right: 20px;
@@ -73,11 +66,9 @@ class ScDataTab extends LitElement {
                 `)
                 : html``
             }
-            <div class="grid">
+            <div style="display: flex; flex-direction: column;">
                 ${this.paths
-                    ? this.paths.map((path) => html`
-                    <sc-diagram path="${path}"></sc-diagram>
-                    `)
+                    ? this.paths.map((path) => html`<sc-diagram path=${path}></sc-diagram>`)
                     : html``}
             </div>
         `

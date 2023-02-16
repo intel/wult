@@ -1390,14 +1390,8 @@
 
       <slot name="end" part="panel end" class="end"></slot>
     `}};xs.styles=$s,we([Se(".divider")],xs.prototype,"divider",2),we([Ae({type:Number,reflect:!0})],xs.prototype,"position",2),we([Ae({attribute:"position-in-pixels",type:Number})],xs.prototype,"positionInPixels",2),we([Ae({type:Boolean,reflect:!0})],xs.prototype,"vertical",2),we([Ae({type:Boolean,reflect:!0})],xs.prototype,"disabled",2),we([Ae()],xs.prototype,"primary",2),we([Ae()],xs.prototype,"snap",2),we([Ae({type:Number,attribute:"snap-threshold"})],xs.prototype,"snapThreshold",2),we([$e("position")],xs.prototype,"handlePositionChange",1),we([$e("positionInPixels")],xs.prototype,"handlePositionInPixelsChange",1),we([$e("vertical")],xs.prototype,"handleVerticalChange",1),xs=we([xe("sl-split-panel")],xs);class ks extends it{static styles=r`
-    .plot {
-        position: relative;
-        height: 100%;
-        width: 100%;
-        grid-column-start: span 3;
-    }
     .frame {
-        height: 100%;
+        height: 85vh;
         width: 100%;
     }
     .loading {
@@ -1410,9 +1404,7 @@
                 <div id="loading" class="loading">
                     <sl-spinner></sl-spinner>
                 </div>
-                <div class="plot">
-                    <iframe @load=${this.hideLoading} seamless frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
-                </div>
+                <iframe @load=${this.hideLoading} seamless frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
             `:O``}}customElements.define("sc-diagram",ks);var As=ht`
   ${de}
 
@@ -2227,13 +2219,6 @@
                 <sl-button style="margin-left:5px" @click=${this.copyTable}>Copy table</sl-button>
             </div>
         `}constructor(){super(),this.cols=0}connectedCallback(){super.connectedCallback(),this.parseSrc().then((t=>{this.template=t}))}}customElements.define("sc-smry-tbl",Ps);class Us extends it{static styles=r`
-        .grid {
-            display: grid;
-            width: 100%;
-            grid-auto-rows: 800px;
-            grid-auto-flow: dense;
-        }
-
         sl-alert {
             margin-left: 20px;
             margin-right: 20px;
@@ -2250,10 +2235,8 @@
                     <sc-file-preview .title=${t.title} .diff=${t.diff} .paths=${t.paths}></sc-file-preview>
                     <br>
                 `)):O``}
-            <div class="grid">
-                ${this.paths?this.paths.map((t=>O`
-                    <sc-diagram path="${t}"></sc-diagram>
-                    `)):O``}
+            <div style="display: flex; flex-direction: column;">
+                ${this.paths?this.paths.map((t=>O`<sc-diagram path=${t}></sc-diagram>`)):O``}
             </div>
         `}}customElements.define("sc-data-tab",Us),customElements.define("sc-tab-panel",class extends it{static properties={tab:{type:Object}};selectTabInTabTree(t){const e=this.renderRoot.querySelectorAll("sl-tree-item[selected]");for(const t of e)t.selected=!1;const i=this.renderRoot.querySelectorAll("sl-tree-item[expanded]");for(const t of i)t.expanded=!1;let s=this.renderRoot.getElementById(`${t}-tree`);for(s.selected=!0;"SL-TREE-ITEM"===s.tagName;)s.expanded=!0,s=s.parentElement}hasDataTab(t){return this.dataTabs.includes(t)}show(t){if(!this.hasDataTab(t))return;if(this.activeDataTab?.id===t)return;this.activeDataTab&&(this.activeDataTab.hidden=!0);const e=this.renderRoot.getElementById(t);this.activeDataTab=e,e&&(e.hidden=!1),this.selectTabInTabTree(t)}tabPanesTemplate(t){let e=O``;for(const i of t.tabs)e=i.tabs?O`${e}${this.tabPanesTemplate(i)}`:O`${e}
                     <sc-data-tab hidden id=${i.id} tabname=${i.name}

@@ -21,14 +21,8 @@ import '@shoelace-style/shoelace/dist/components/spinner/spinner.js'
  */
 class ScDiagram extends LitElement {
     static styles = css`
-    .plot {
-        position: relative;
-        height: 100%;
-        width: 100%;
-        grid-column-start: span 3;
-    }
     .frame {
-        height: 100%;
+        height: 85vh;
         width: 100%;
     }
     .loading {
@@ -91,9 +85,7 @@ class ScDiagram extends LitElement {
                 <div id="loading" class="loading">
                     <sl-spinner></sl-spinner>
                 </div>
-                <div class="plot">
-                    <iframe @load=${this.hideLoading} seamless frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
-                </div>
+                <iframe @load=${this.hideLoading} seamless frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
             `
         }
         return html``
