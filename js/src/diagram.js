@@ -12,6 +12,9 @@
  */
 
 import { LitElement, html, css } from 'lit'
+import '@shoelace-style/shoelace/dist/components/button/button.js'
+import '@shoelace-style/shoelace/dist/components/dialog/dialog.js'
+import '@shoelace-style/shoelace/dist/components/divider/divider.js'
 import '@shoelace-style/shoelace/dist/components/spinner/spinner.js'
 
 /**
@@ -21,16 +24,36 @@ import '@shoelace-style/shoelace/dist/components/spinner/spinner.js'
  */
 class ScDiagram extends LitElement {
     static styles = css`
-    .loading {
-        display: flex;
-        justify-content: center;
-        padding: 5% 0%;
-        font-size: 15vw;
-    }
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5% 0%;
+            font-size: 15vw;
+            height: 85vh;
+        }
+
+        sl-dialog {
+            --width: 100vw;
+            --header-spacing: var(--sl-spacing-small);
+            --body-spacing: var(--sl-spacing-2x-small);
+        }
+
+        .dialog-overview::part(panel) {
+            height: 95vh;
+            overflow: hidden;
+            display: block;
+        }
+
+        .plot-iframe {
+            height: 0%;
+            width: 100%;
+        }
   `;
 
     static properties = {
         path: { type: String },
+        _dialogOpened: { type: Boolean, state: true },
         _visible: { type: Boolean, state: true }
     };
 
@@ -65,6 +88,7 @@ class ScDiagram extends LitElement {
     constructor () {
         super()
         this._visible = false
+        this._dialogOpened = false
     }
 
     /**
@@ -83,6 +107,20 @@ class ScDiagram extends LitElement {
     }
 
     /**
+     * Opens the dialog with a fullscreen view of the diagram.
+     */
+    openFullscreen () {
+        const dialog = this.renderRoot.querySelector('.dialog-overview')
+
+        if (!dialog) {
+            throw Error('failed to find dialog element, unable to open fullscreen diagram view.')
+        }
+
+        this._dialogOpened = true
+        return dialog.show()
+    }
+
+    /**
      * Returns the HTML template for a loading spinner.
      * @param spinnerID - ID to give to the contained spinner.
      * @returns HTMLTemplate
@@ -95,16 +133,48 @@ class ScDiagram extends LitElement {
         `
     }
 
+    /**
+     * Returns an HTMLTemplate of the plot iframe and a loading spinner to indicate its loaded
+     * status.
+     * @param {String} spinnerID - an ID unique to this shadow root for the loading indicator.
+     * @param {String} iframeID - an ID unique to this shadow root for the plot iframe.
+     */
+    iframeTemplate (spinnerID, iframeID) {
+        return html`
+            ${this.spinnerTemplate(spinnerID)}
+            <iframe id=${iframeID} seamless frameborder="0" scrolling="no" class="plot-iframe"
+                @load=${() => this.hideLoading(spinnerID, iframeID)} src=${this.path}>
+            </iframe>
+        `
+    }
+
+    /**
+     * Returns an HTMLTemplate of the dialog containing the fullscreen view of the plot.
+     */
+    dialogTemplate () {
+        return html`
+            <sl-dialog class="dialog-overview">
+                ${this._dialogOpened
+                    ? this.iframeTemplate('dialog-spinner', 'dialog-iframe')
+                    : html``
+                }
+            </sl-dialog>
+        `
+    }
+
     render () {
         if (!this._visible) {
             return html``
         }
         return html`
-            ${this.spinnerTemplate('plot-spinner')}
-            <iframe id="plot-frame" frameborder="0" scrolling="no" src=${this.path} seamless
-                @load=${() => this.hideLoading('plot-spinner', 'plot-frame')}
-                style="height: 0px; width: 100%;">
-            </iframe>
+            ${this.dialogTemplate()}
+            <sl-divider></sl-divider>
+
+            <sl-button style="margin-left: 2em;" @click=${this.openFullscreen}>
+                Open Fullscreen View
+            </sl-button>
+
+            ${this.iframeTemplate('page-spinner', 'page-iframe')}
         `
     }
 }
