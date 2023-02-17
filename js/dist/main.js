@@ -1400,13 +1400,16 @@
         padding: 5% 0%;
         font-size: 15vw;
     }
-  `;static properties={path:{type:String},_visible:{type:Boolean,state:!0}};connectedCallback(){super.connectedCallback(),this.observer=new IntersectionObserver(((t,e)=>{t.forEach((t=>{t.isIntersecting?this._visible=!0:this._visible=!1}))})),this.observer.observe(this.parentElement)}disconnectedCallback(){super.disconnectedCallback(),this.observer.disconnect()}constructor(){super(),this._visible=!1}hideLoading(){this.renderRoot.querySelector("#loading").remove()}spinnerTemplate(){return O`
-            <div id="loading" class="loading">
+  `;static properties={path:{type:String},_visible:{type:Boolean,state:!0}};connectedCallback(){super.connectedCallback(),this.observer=new IntersectionObserver(((t,e)=>{t.forEach((t=>{t.isIntersecting?this._visible=!0:this._visible=!1}))})),this.observer.observe(this.parentElement)}disconnectedCallback(){super.disconnectedCallback(),this.observer.disconnect()}constructor(){super(),this._visible=!1}hideLoading(t){this.renderRoot.querySelector(`#${t}`).remove()}spinnerTemplate(t){return O`
+            <div id=${t} class="loading">
                 <sl-spinner></sl-spinner>
             </div>
         `}render(){return this._visible?O`
-                ${this.spinnerTemplate()}
-                <iframe @load=${this.hideLoading} seamless frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
+                ${this.spinnerTemplate("plot-spinner")}
+                <iframe id="plot-frame" frameborder="0" scrolling="no" class="frame"
+                    @load=${()=>this.hideLoading("plot-spinner")}>
+                    src=${this.path} seamless
+                </iframe>
             `:O``}}customElements.define("sc-diagram",ks);var As=ht`
   ${de}
 

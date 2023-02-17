@@ -74,18 +74,20 @@ class ScDiagram extends LitElement {
     /**
      * Hides the loading indicator once the diagram 'iframe' has finished loading. Intended to be
      * called when a 'load' event is detected.
+     * @param spinnerID - ID of the spinner component to hide.
      */
-    hideLoading () {
-        this.renderRoot.querySelector('#loading').remove()
+    hideLoading (spinnerID) {
+        this.renderRoot.querySelector(`#${spinnerID}`).remove()
     }
 
     /**
      * Returns the HTML template for a loading spinner.
+     * @param spinnerID - ID to give to the contained spinner.
      * @returns HTMLTemplate
      */
-    spinnerTemplate () {
+    spinnerTemplate (spinnerID) {
         return html`
-            <div id="loading" class="loading">
+            <div id=${spinnerID} class="loading">
                 <sl-spinner></sl-spinner>
             </div>
         `
@@ -94,8 +96,11 @@ class ScDiagram extends LitElement {
     render () {
         if (this._visible) {
             return html`
-                ${this.spinnerTemplate()}
-                <iframe @load=${this.hideLoading} seamless frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
+                ${this.spinnerTemplate('plot-spinner')}
+                <iframe id="plot-frame" frameborder="0" scrolling="no" class="frame"
+                    @load=${() => this.hideLoading('plot-spinner')}>
+                    src=${this.path} seamless
+                </iframe>
             `
         }
         return html``
