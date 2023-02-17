@@ -76,15 +76,25 @@ class ScDiagram extends LitElement {
      * called when a 'load' event is detected.
      */
     hideLoading () {
-        this.renderRoot.querySelector('#loading').style.display = 'none'
+        this.renderRoot.querySelector('#loading').remove()
+    }
+
+    /**
+     * Returns the HTML template for a loading spinner.
+     * @returns HTMLTemplate
+     */
+    spinnerTemplate () {
+        return html`
+            <div id="loading" class="loading">
+                <sl-spinner></sl-spinner>
+            </div>
+        `
     }
 
     render () {
         if (this._visible) {
             return html`
-                <div id="loading" class="loading">
-                    <sl-spinner></sl-spinner>
-                </div>
+                ${this.spinnerTemplate()}
                 <iframe @load=${this.hideLoading} seamless frameborder="0" scrolling="no" class="frame" src="${this.path}"></iframe>
             `
         }
