@@ -50,11 +50,19 @@ class ScTabGroup extends LitElement {
             padding: 0px 0px;
         }
         /*
-         * Also reduce the bottom padding of tabs as it makes them easier to read.
+         * Also reduce the top and bottom padding of tabs as it makes them easier to read.
          */
         .tab::part(base) {
             padding-bottom: var(--sl-spacing-x-small);
+            padding-top: var(--sl-spacing-x-small);
             font-family: Arial, sans-serif;
+        }
+
+        /*
+         * Specify height of tabs to match the button to toggle the report header.
+         */
+        sl-tab-group::part(tabs) {
+            height: 2rem;
         }
     `
 

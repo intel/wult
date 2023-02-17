@@ -50,6 +50,9 @@ export class ScReportPage extends LitElement {
             flex-direction: column;
             align-items: center;
             font-family: Arial, sans-serif;
+            transition: 0.5s;
+            max-height: 100vh;
+            overflow: hidden;
         }
 
         .cors-warning {
@@ -62,6 +65,13 @@ export class ScReportPage extends LitElement {
             position: sticky;
             top: 0;
             height: 100vh;
+        }
+
+        .toggle-header-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 1;
         }
 
         // Hide the close button as the dialog is not closable.
@@ -232,6 +242,18 @@ export class ScReportPage extends LitElement {
         // duplicates IDs. If 3 tabs have the same ID 'tabName', then each one will be given ID
         // 'tabName', 'tabName-1', 'tabName-2' separately.
         this.tabIDs = new Map()
+
+        this.headerExpanded = true
+    }
+
+    toggleHeader () {
+        const header = this.renderRoot.querySelector('.report-head')
+        if (this.headerExpanded) {
+            header.style.maxHeight = '0vh'
+        } else {
+            header.style.maxHeight = '100vh'
+        }
+        this.headerExpanded = !this.headerExpanded
     }
 
     render () {
@@ -250,8 +272,8 @@ export class ScReportPage extends LitElement {
                 }
                 ${this.introtbl ? html`<sc-intro-tbl .file=${this.introtbl}></sc-intro-tbl>` : html``}
             </div>
-            <br>
             <div class="sticky">
+                <sl-button size="small" class="toggle-header-btn" @click=${this.toggleHeader}>Toggle Header</sl-button>
                 ${this.tabs ? html`<sc-tab-group .tabs=${this.tabs}></sc-tab-group>` : html``}
             </div>
         `
