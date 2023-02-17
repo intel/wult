@@ -1405,12 +1405,12 @@
                 <sl-spinner></sl-spinner>
             </div>
         `}render(){return this._visible?O`
-                ${this.spinnerTemplate("plot-spinner")}
-                <iframe id="plot-frame" frameborder="0" scrolling="no" class="frame"
-                    @load=${()=>this.hideLoading("plot-spinner")}>
-                    src=${this.path} seamless
-                </iframe>
-            `:O``}}customElements.define("sc-diagram",ks);var As=ht`
+            ${this.spinnerTemplate("plot-spinner")}
+            <iframe id="plot-frame" frameborder="0" scrolling="no" class="frame" seamless
+                @load=${()=>this.hideLoading("plot-spinner")}
+                src=${this.path}>
+            </iframe>
+        `:O``}}customElements.define("sc-diagram",ks);var As=ht`
   ${de}
 
   :host {

@@ -94,16 +94,16 @@ class ScDiagram extends LitElement {
     }
 
     render () {
-        if (this._visible) {
-            return html`
-                ${this.spinnerTemplate('plot-spinner')}
-                <iframe id="plot-frame" frameborder="0" scrolling="no" class="frame"
-                    @load=${() => this.hideLoading('plot-spinner')}>
-                    src=${this.path} seamless
-                </iframe>
-            `
+        if (!this._visible) {
+            return html``
         }
-        return html``
+        return html`
+            ${this.spinnerTemplate('plot-spinner')}
+            <iframe id="plot-frame" frameborder="0" scrolling="no" class="frame" seamless
+                @load=${() => this.hideLoading('plot-spinner')}
+                src=${this.path}>
+            </iframe>
+        `
     }
 }
 
