@@ -8,6 +8,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
  - Fix 'hrt' method failing on AMD systems.
 ### Added
  - Add module C-state support to turbostat collection and reporting.
+ - Add fullscreen view to diagrams in wult HTML reports.
 ### Removed
 ### Changed
 
