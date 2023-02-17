@@ -1390,25 +1390,21 @@
 
       <slot name="end" part="panel end" class="end"></slot>
     `}};xs.styles=ws,$e([Se(".divider")],xs.prototype,"divider",2),$e([Ae({type:Number,reflect:!0})],xs.prototype,"position",2),$e([Ae({attribute:"position-in-pixels",type:Number})],xs.prototype,"positionInPixels",2),$e([Ae({type:Boolean,reflect:!0})],xs.prototype,"vertical",2),$e([Ae({type:Boolean,reflect:!0})],xs.prototype,"disabled",2),$e([Ae()],xs.prototype,"primary",2),$e([Ae()],xs.prototype,"snap",2),$e([Ae({type:Number,attribute:"snap-threshold"})],xs.prototype,"snapThreshold",2),$e([we("position")],xs.prototype,"handlePositionChange",1),$e([we("positionInPixels")],xs.prototype,"handlePositionInPixelsChange",1),$e([we("vertical")],xs.prototype,"handleVerticalChange",1),xs=$e([xe("sl-split-panel")],xs);class ks extends it{static styles=r`
-    .frame {
-        height: 85vh;
-        width: 100%;
-    }
     .loading {
         display: flex;
         justify-content: center;
         padding: 5% 0%;
         font-size: 15vw;
     }
-  `;static properties={path:{type:String},_visible:{type:Boolean,state:!0}};connectedCallback(){super.connectedCallback(),this.observer=new IntersectionObserver(((t,e)=>{t.forEach((t=>{t.isIntersecting?this._visible=!0:this._visible=!1}))})),this.observer.observe(this.parentElement)}disconnectedCallback(){super.disconnectedCallback(),this.observer.disconnect()}constructor(){super(),this._visible=!1}hideLoading(t){this.renderRoot.querySelector(`#${t}`).remove()}spinnerTemplate(t){return O`
+  `;static properties={path:{type:String},_visible:{type:Boolean,state:!0}};connectedCallback(){super.connectedCallback(),this.observer=new IntersectionObserver(((t,e)=>{t.forEach((t=>{t.isIntersecting?this._visible=!0:this._visible=!1}))})),this.observer.observe(this.parentElement)}disconnectedCallback(){super.disconnectedCallback(),this.observer.disconnect()}constructor(){super(),this._visible=!1}hideLoading(t,e){this.renderRoot.querySelector(`#${t}`).remove(),this.renderRoot.querySelector(`#${e}`).style.height="85vh"}spinnerTemplate(t){return O`
             <div id=${t} class="loading">
                 <sl-spinner></sl-spinner>
             </div>
         `}render(){return this._visible?O`
             ${this.spinnerTemplate("plot-spinner")}
-            <iframe id="plot-frame" frameborder="0" scrolling="no" class="frame" seamless
-                @load=${()=>this.hideLoading("plot-spinner")}
-                src=${this.path}>
+            <iframe id="plot-frame" frameborder="0" scrolling="no" src=${this.path} seamless
+                @load=${()=>this.hideLoading("plot-spinner","plot-frame")}
+                style="height: 0px; width: 100%;">
             </iframe>
         `:O``}}customElements.define("sc-diagram",ks);var As=ht`
   ${de}

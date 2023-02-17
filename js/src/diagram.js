@@ -21,10 +21,6 @@ import '@shoelace-style/shoelace/dist/components/spinner/spinner.js'
  */
 class ScDiagram extends LitElement {
     static styles = css`
-    .frame {
-        height: 85vh;
-        width: 100%;
-    }
     .loading {
         display: flex;
         justify-content: center;
@@ -75,9 +71,15 @@ class ScDiagram extends LitElement {
      * Hides the loading indicator once the diagram 'iframe' has finished loading. Intended to be
      * called when a 'load' event is detected.
      * @param spinnerID - ID of the spinner component to hide.
+     * @param iframeID - the ID of the iframe which has loaded and should have its height restored.
      */
-    hideLoading (spinnerID) {
+    hideLoading (spinnerID, iframeID) {
+        // Hide the spinner.
         this.renderRoot.querySelector(`#${spinnerID}`).remove()
+
+        // Increase the height of the iframe.
+        const iframeEl = this.renderRoot.querySelector(`#${iframeID}`)
+        iframeEl.style.height = '85vh'
     }
 
     /**
@@ -99,9 +101,9 @@ class ScDiagram extends LitElement {
         }
         return html`
             ${this.spinnerTemplate('plot-spinner')}
-            <iframe id="plot-frame" frameborder="0" scrolling="no" class="frame" seamless
-                @load=${() => this.hideLoading('plot-spinner')}
-                src=${this.path}>
+            <iframe id="plot-frame" frameborder="0" scrolling="no" src=${this.path} seamless
+                @load=${() => this.hideLoading('plot-spinner', 'plot-frame')}
+                style="height: 0px; width: 100%;">
             </iframe>
         `
     }
