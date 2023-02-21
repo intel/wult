@@ -56,7 +56,11 @@ Options:
   -P, --pepc-version - version of the 'pepc' project this 'wult' version
                        requires.
 EOF
-        exit 0
+}
+
+fail_usage() {
+    usage
+    fatal "$1"
 }
 
 ask_question() {
@@ -77,7 +81,7 @@ ask_question() {
 	done
 }
 
-TEMP=$(getopt -n $PROG -o P: --long pepc-version: -- "$@") || exit 1
+TEMP=$(getopt -n $PROG -o P:,h --long pepc-version:,help -- "$@" 2>&1) || fail_usage "$TEMP"
 eval set -- "$TEMP"
 
 pepcver=
@@ -88,6 +92,10 @@ if [ $# -gt 0 ]; then
         -P|--pepc-version)
             pepcver="$2"
             shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
             ;;
         --) shift; break
             ;;
