@@ -76,6 +76,26 @@ def _generate_report(args):
     rep.set_hover_metrics(_WultCommon.HOVER_METRIC_REGEXS)
     rep.generate()
 
+def _check_cpu_vendor(args, cpuinfo, pman):
+    """
+    Check if the CPU vendor is compatible with the requested measurement method.
+    """
+
+    vendor = cpuinfo.info["vendor"]
+    if vendor == "GenuineIntel":
+        # Every method supports at least some Intel CPUs.
+        return
+
+    if vendor != "AuthenticAMD":
+        raise ErrorNotSupported(f"unsupported CPU vendor '{vendor}'{pman.hostmsg}\nOnly Intel and "
+                                 "AMD CPUs are currently supported")
+
+    # In case of AMD CPU the TDT-based methods are not currently supported, other methods are
+    # supported.
+    if "tdt" in args.devid:
+        raise ErrorNotSupported("methods based on TSC deadline timer (TDT) support only Intel "
+                                "CPUs.\nPlease, use a non-TDT method for measuring AMD CPUs.")
+
 def start_command(args):
     """Implements the 'start' command."""
 
@@ -106,8 +126,9 @@ def start_command(args):
         cpuinfo = CPUInfo.CPUInfo(pman=pman)
         stack.enter_context(cpuinfo)
 
-        args.cpunum = cpuinfo.normalize_cpu(args.cpunum)
+        _check_cpu_vendor(args, cpuinfo, pman)
 
+        args.cpunum = cpuinfo.normalize_cpu(args.cpunum)
         res = WORawResult.WultWORawResult(args.reportid, args.outdir, args.toolver, args.cpunum)
         stack.enter_context(res)
 
