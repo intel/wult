@@ -1,3 +1,12 @@
+wult (1.11.0) unstable; urgency=low
+
+  * Fix 'hrt' method failing on AMD systems.
+  * Add module C-state support to turbostat collection and reporting.
+  * Add fullscreen view to diagrams in wult HTML reports.
+  * Add a button to hide report header in wult HTML reports.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 21 Feb 2023 00:00:00 +0200
+
 wult (1.10.59) unstable; urgency=low
 
   * Improve 'tdt' method to be more accurate.

@@ -5,13 +5,17 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.11.0] - 2023-02-21
+### Fixed
  - Fix 'hrt' method failing on AMD systems.
 ### Added
  - Add module C-state support to turbostat collection and reporting.
  - Add fullscreen view to diagrams in wult HTML reports.
  - Add a button to hide report header in wult HTML reports.
-### Removed
-### Changed
 
 ## [1.10.59] - 2023-02-15
 ### Changed
