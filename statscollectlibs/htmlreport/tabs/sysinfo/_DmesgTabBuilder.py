@@ -27,7 +27,7 @@ class DmesgTabBuilder(_SysInfoTabBuilderBase.SysInfoTabBuilderBase):
                    'dmesg'.
     """
 
-    def __init__(self, outdir):
+    def __init__(self, outdir, stats_paths):
         """Class constructor. Arguments are the same as in 'DTabBuilderBase.__init__()'."""
 
-        super().__init__("dmesg", outdir, _FILES)
+        super().__init__("dmesg", outdir, _FILES, stats_paths)

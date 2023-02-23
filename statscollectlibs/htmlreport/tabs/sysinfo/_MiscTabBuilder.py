@@ -27,7 +27,7 @@ class MiscTabBuilder(_SysInfoTabBuilderBase.SysInfoTabBuilderBase):
      * get_tab() - returns a '_Tabs.DTabDC' instance which contains various system information.
     """
 
-    def __init__(self, outdir):
+    def __init__(self, outdir, stats_paths):
         """Class constructor. Arguments are the same as in 'DTabBuilderBase.__init__()'."""
 
-        super().__init__("Misc", outdir, _FILES)
+        super().__init__("Misc", outdir, _FILES, stats_paths)

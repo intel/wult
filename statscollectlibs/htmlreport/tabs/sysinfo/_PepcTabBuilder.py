@@ -30,7 +30,7 @@ class PepcTabBuilder(_SysInfoTabBuilderBase.SysInfoTabBuilderBase):
                    'pepc' tool.
     """
 
-    def __init__(self, outdir):
+    def __init__(self, outdir, stats_paths):
         """Class constructor. Arguments are the same as in 'DTabBuilderBase.__init__()'."""
 
-        super().__init__("pepc", outdir, _FILES)
+        super().__init__("pepc", outdir, _FILES, stats_paths)

@@ -141,11 +141,11 @@ class HTMLReport:
         tabs = []
 
         for tab_builder in tab_builders:
-            tbldr = tab_builder(self.outdir)
+            tbldr = tab_builder(self.outdir, stats_paths)
 
             _LOG.info("Generating '%s' tab.", tbldr.name)
             try:
-                tabs.append(tbldr.get_tab(stats_paths))
+                tabs.append(tbldr.get_tab())
             except Error as err:
                 _LOG.info("Skipping '%s' SysInfo tab: error occurred during tab generation.",
                           tbldr.name)

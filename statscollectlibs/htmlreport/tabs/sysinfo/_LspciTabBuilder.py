@@ -28,7 +28,7 @@ class LspciTabBuilder(_SysInfoTabBuilderBase.SysInfoTabBuilderBase):
                    'lspci'.
     """
 
-    def __init__(self, outdir):
+    def __init__(self, outdir, stats_paths):
         """Class constructor. Arguments are the same as in '_SysInfoTabBuilderBase.__init__()'."""
 
-        super().__init__("lspci", outdir, _FILES)
+        super().__init__("lspci", outdir, _FILES, stats_paths)

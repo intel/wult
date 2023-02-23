@@ -27,7 +27,7 @@ class DMIDecodeTabBuilder(_SysInfoTabBuilderBase.SysInfoTabBuilderBase):
                    'dmidecode'.
     """
 
-    def __init__(self, outdir):
+    def __init__(self, outdir, stats_paths):
         """Class constructor. Arguments are the same as in 'DTabBuilderBase.__init__()'."""
 
-        super().__init__("dmidecode", outdir, _FILES)
+        super().__init__("dmidecode", outdir, _FILES, stats_paths)

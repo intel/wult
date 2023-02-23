@@ -26,15 +26,10 @@ class SysInfoTabBuilderBase:
      * get_tab() - returns a '_Tabs.DTabDC' instance which represents system information.
     """
 
-    def get_tab(self, stats_paths):
-        """
-        Returns a '_Tabs.DTabDC' instance which represents system information. Arguments are as
-        follows:
-         * stats_paths - a dictionary in the format '{ReportID: StatsDir}' where 'StatsDir' is the
-                         path to the directory which contains raw statistics files for 'ReportID'.
-        """
+    def get_tab(self):
+        """Returns a '_Tabs.DTabDC' instance which represents system information."""
 
-        if any(not fp for fp in stats_paths.values()):
+        if any(not fp for fp in self.stats_paths.values()):
             raise Error("unable to add file previews since not all reports have a statistics dir.")
 
         mdef = {
@@ -45,7 +40,7 @@ class SysInfoTabBuilderBase:
         }
 
         dtabbldr = _DTabBuilder.DTabBuilder({}, self.outdir, mdef, self.outdir)
-        dtabbldr.add_fpreviews(stats_paths, self.files)
+        dtabbldr.add_fpreviews(self.stats_paths, self.files)
 
         if dtabbldr.fpreviews:
             return dtabbldr.get_tab()
@@ -53,7 +48,7 @@ class SysInfoTabBuilderBase:
         raise Error(f"unable to build '{self.name}' SysInfo tab, no file previews could be "
                     f"generated.")
 
-    def __init__(self, name, outdir, files):
+    def __init__(self, name, outdir, files, stats_paths):
         """
         Class constructor. Arguments are as follows:
          * name - name to give the tab produced when 'get_tab()' is called.
@@ -62,8 +57,11 @@ class SysInfoTabBuilderBase:
                    Expected to be in the format '{Name: FilePath}' where 'Name' will be the title
                    of the file preview and 'FilePath' is the path of the file to preview.
                    'FilePath' should be relative to the directories in 'stats_paths'
+         * stats_paths - a dictionary in the format '{ReportID: StatsDir}' where 'StatsDir' is the
+                         path to the directory which contains raw statistics files for 'ReportID'.
         """
 
         self.name = name
         self.outdir = outdir
         self.files = files
+        self.stats_paths = stats_paths
