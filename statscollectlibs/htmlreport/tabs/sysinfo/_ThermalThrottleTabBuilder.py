@@ -11,11 +11,11 @@ This module provides the capability of populating a "thermal_throttle" SysInfo t
 information collected from '/sys/devices/system/cpu/thermal_throttle'.
 """
 
-from statscollectlibs.htmlreport.tabs.sysinfo import _DTabBuilderBase
+from statscollectlibs.htmlreport.tabs.sysinfo import _SysInfoTabBuilderBase
 
 _FILES = {"thermal throttle": "sysinfo/sys-thermal_throttle.after.raw.txt"}
 
-class ThermalThrottleTabBuilder(_DTabBuilderBase.DTabBuilderBase):
+class ThermalThrottleTabBuilder(_SysInfoTabBuilderBase.SysInfoTabBuilderBase):
     """
     This class provides the capability of populating a "thermal_throttle" info tab to visualise
     information collected from '/sys/devices/system/cpu/thermal_throttle'.

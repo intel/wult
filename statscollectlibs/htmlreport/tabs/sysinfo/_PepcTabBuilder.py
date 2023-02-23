@@ -11,7 +11,7 @@ This module provides the capability of populating a "pepc" info tab to visualise
 collected with the 'pepc' tool.
 """
 
-from statscollectlibs.htmlreport.tabs.sysinfo import _DTabBuilderBase
+from statscollectlibs.htmlreport.tabs.sysinfo import _SysInfoTabBuilderBase
 
 _FILES = {
     "pepc cstates info": "sysinfo/pepc_cstates.raw.txt",
@@ -20,7 +20,7 @@ _FILES = {
     "pepc topology info": "sysinfo/pepc_topology.raw.txt"
 }
 
-class PepcTabBuilder(_DTabBuilderBase.DTabBuilderBase):
+class PepcTabBuilder(_SysInfoTabBuilderBase.SysInfoTabBuilderBase):
     """
     This class provides the capability of populating a "pepc" info tab to visualise information
     collected with the 'pepc' tool.

@@ -11,13 +11,13 @@ This module provides the capability of populating an "x86_energy_perf_policy" Sy
 visualise various system information.
 """
 
-from statscollectlibs.htmlreport.tabs.sysinfo import _DTabBuilderBase
+from statscollectlibs.htmlreport.tabs.sysinfo import _SysInfoTabBuilderBase
 
 _FILES = {
     "x86_energy_perf_policy": "sysinfo/x86_energy_perf_policy.after.raw.txt",
 }
 
-class EPPTabBuilder(_DTabBuilderBase.DTabBuilderBase):
+class EPPTabBuilder(_SysInfoTabBuilderBase.SysInfoTabBuilderBase):
     """
     This class provides the capability of populating an "x86_energy_perf_policy" SysInfo tab to
     visualise various system information.

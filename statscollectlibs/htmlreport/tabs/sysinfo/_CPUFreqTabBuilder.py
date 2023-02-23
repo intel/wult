@@ -11,13 +11,13 @@ This module provides the capability of populating a "cpufreq" SysInfo tab to vis
 collected from '/sys/devices/system/cpu/cpufreq'.
 """
 
-from statscollectlibs.htmlreport.tabs.sysinfo import _DTabBuilderBase
+from statscollectlibs.htmlreport.tabs.sysinfo import _SysInfoTabBuilderBase
 
 _FILES = {
     "cpufreq": "sysinfo/sys-cpufreq.after.raw.txt"
 }
 
-class CPUFreqTabBuilder(_DTabBuilderBase.DTabBuilderBase):
+class CPUFreqTabBuilder(_SysInfoTabBuilderBase.SysInfoTabBuilderBase):
     """
     This class provides the capability of populating a "cpufreq" info tab to visualise information
     collected from '/sys/devices/system/cpu/cpufreq'.

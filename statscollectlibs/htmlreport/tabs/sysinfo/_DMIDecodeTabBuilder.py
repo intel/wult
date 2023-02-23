@@ -11,13 +11,13 @@ This module provides the capability of populating a "dmidecode" SysInfo tab to v
 collected with 'dmidecode'.
 """
 
-from statscollectlibs.htmlreport.tabs.sysinfo import _DTabBuilderBase
+from statscollectlibs.htmlreport.tabs.sysinfo import _SysInfoTabBuilderBase
 
 _FILES = {
     "dmidecode": "sysinfo/dmidecode.raw.txt",
 }
 
-class DMIDecodeTabBuilder(_DTabBuilderBase.DTabBuilderBase):
+class DMIDecodeTabBuilder(_SysInfoTabBuilderBase.SysInfoTabBuilderBase):
     """
     This class provides the capability of populating a "dmidecode" info tab to visualise information
     collected with 'dmidecode'.

@@ -11,13 +11,13 @@ This module provides the capability of populating a "cpuidle" SysInfo tab to vis
 collected from '/sys/devices/system/cpu/cpuidle'.
 """
 
-from statscollectlibs.htmlreport.tabs.sysinfo import _DTabBuilderBase
+from statscollectlibs.htmlreport.tabs.sysinfo import _SysInfoTabBuilderBase
 
 _FILES = {
     "cpuidle": "sysinfo/sys-cpuidle.after.raw.txt"
 }
 
-class CPUIdleTabBuilder(_DTabBuilderBase.DTabBuilderBase):
+class CPUIdleTabBuilder(_SysInfoTabBuilderBase.SysInfoTabBuilderBase):
     """
     This class provides the capability of populating a "cpuidle" info tab to visualise information
     collected from '/sys/devices/system/cpu/cpuidle'.

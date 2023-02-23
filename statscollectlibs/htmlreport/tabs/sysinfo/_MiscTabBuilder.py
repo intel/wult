@@ -11,14 +11,14 @@ This module provides the capability of populating a "Misc" SysInfo tab to visual
 information.
 """
 
-from statscollectlibs.htmlreport.tabs.sysinfo import _DTabBuilderBase
+from statscollectlibs.htmlreport.tabs.sysinfo import _SysInfoTabBuilderBase
 
 _FILES = {
     "uname -a": "sysinfo/uname-a.raw.txt",
     "cmdline": "sysinfo/proc_cmdline.raw.txt"
 }
 
-class MiscTabBuilder(_DTabBuilderBase.DTabBuilderBase):
+class MiscTabBuilder(_SysInfoTabBuilderBase.SysInfoTabBuilderBase):
     """
     This class provides the capability of populating a "Misc" SysInfo tab to visualise various
     system information.

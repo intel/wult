@@ -11,14 +11,14 @@ This module provides the capability of populating a "lspci" SysInfo tab to visua
 collected with 'lspci'.
 """
 
-from statscollectlibs.htmlreport.tabs.sysinfo import _DTabBuilderBase
+from statscollectlibs.htmlreport.tabs.sysinfo import _SysInfoTabBuilderBase
 
 _FILES = {
     "lspci": "sysinfo/lspci.raw.txt",
     "lspci -vvv": "sysinfo/lspci-vvv.raw.txt"
 }
 
-class LspciTabBuilder(_DTabBuilderBase.DTabBuilderBase):
+class LspciTabBuilder(_SysInfoTabBuilderBase.SysInfoTabBuilderBase):
     """
     This class provides the capability of populating a "lspci" info tab to visualise information
     collected with 'lspci'.
@@ -29,6 +29,6 @@ class LspciTabBuilder(_DTabBuilderBase.DTabBuilderBase):
     """
 
     def __init__(self, outdir):
-        """Class constructor. Arguments are the same as in '_DTabBuilderBase.__init__()'."""
+        """Class constructor. Arguments are the same as in '_SysInfoTabBuilderBase.__init__()'."""
 
         super().__init__("lspci", outdir, _FILES)
