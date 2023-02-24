@@ -98,10 +98,12 @@ class StatsCollect(_SpecStatsCollect.SpecStatsCollect):
       6. Optionally discover the available statistics by running the 'discover()' method. Once the
          discovery is finished, re-run 'set_enabled_stats()' to enable the discovered statistics.
       7. Run the 'configure()' method to configure the statistics collectors.
-      8. Run 'start()' to start collecting the statistics. Supposedly after the 'start()' method is
+      8. Optionally add a label using 'add_label()'.
+      9. Run 'start()' to start collecting the statistics. Supposedly after the 'start()' method is
          finished, you run a workload on the SUT.
-      9. Run 'stop()' to stop collecting the statistics. You can repeat the start/stop cycles and
-         re-configure the collectors between the cycles.
+      10. Optionally add more labels using 'add_label()'.
+      11. Run 'stop()' to stop collecting the statistics. You can repeat the start/stop cycles and
+          re-configure the collectors between the cycles.
       10. Copy statistics and logs from the remote host to the local output directory using
           'copy_remote_data()'.
     """

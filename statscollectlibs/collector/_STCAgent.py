@@ -332,6 +332,45 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         _LOG.log(self.infolvl, "Collecting %s system information", self.sutname)
         SysInfo.collect_before(self._statsdir / "sysinfo", self._pman)
 
+    def add_label(self, name, metrics=None):
+        """
+        Add a label. The arguments are as follows.
+          * name - label name.
+          * metrics - a dictionary with additional metrics to add along with the label.
+        """
+
+        import json # pylint: disable=import-outside-toplevel
+
+        if not name.isalnum():
+            raise Error(f"bad label name '{name}': must be alphanumeric")
+
+        if not metrics:
+            metrics = {}
+
+        if self._add_label_ts is None:
+            # This is the first time 'add_label()' is called. Configure the output directory.
+            labels_dir = self._statsdir / f"stc-agent-{self._pman.hostname}"
+            self._send_command("set-agent-property", arg=f"outdir {labels_dir}")
+
+        # The 'name' key will be used for label name. The 'ts' key will be used by 'stc-agent' for
+        # the time-stamp. Since everything is serialized into a single JSON string, these key names
+        # are reserved.
+        for key in ("name", "ts"):
+            if key in metrics:
+                raise Error(f"found reserved key '{key}' in metrics dictionary")
+
+        label = {"name" : name}
+        label.update(metrics)
+
+        # Serialize the metrics dictionary into a JSON string.
+        try:
+            arg = json.dumps(label)
+        except ValueError as err:
+            msg = Error(str(err)).indent(2)
+            raise Error(f"failed to serialize a label as JSON:\n{msg}") from err
+
+        self._send_command("add_label", arg=arg)
+
     def start(self):
         """Start collecting the statistics."""
 
@@ -770,6 +809,9 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         self._sock = None
         self._timeout = 60
         self._start_time = None
+
+        # When 'add_label()' was called last time.
+        self._add_label_ts = None
 
         # Initialize the statistics dictionary.
         self.stinfo = copy.deepcopy(STINFO)

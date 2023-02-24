@@ -315,6 +315,31 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
 
         self._handle_conflicting_stats()
 
+    def add_label(self, name, metrics=None):
+        """
+        Add a label. The arguments are as follows.
+          * name - label name.
+          * metrics - a dictionary with additional metrics to add along with the label.
+
+        Labels are a mechanism for synchronizing workload stages and metrics with statistics data.
+        Statistics are collected independently of the workload, but sometimes it is necessary to
+        match a piece of collected statistics with a workload stage. For example, if the workload
+        has a warmup stage, one can add a "skip" label before the warm up, and statistics
+        visualization tools will exclude it from visualization.
+        """
+
+        if _LOG.getEffectiveLevel() == logging.DEBUG:
+            if metrics:
+                metric = next(iter(metrics))
+                msg = f"Adding label '{name}', {metric}={metrics[metric]}"
+            else:
+                msg = f"Adding label '{name}'"
+            _LOG.debug(msg)
+
+        self._inbagent.add_label(name, metrics=metrics)
+        if self._oobagent:
+            self._oobagent.add_label(name, metrics=metrics)
+
     def start(self):
         """Start collecting the statistics."""
 

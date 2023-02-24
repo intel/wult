@@ -22,6 +22,7 @@ use it in production environment, use it only in isolated debugging/research set
 
 import os
 import sys
+import time
 import socket
 import signal
 import logging
@@ -475,14 +476,18 @@ class STCAgent:
 
     1. Create the statistics collector objects for the statistics names in the 'stnames' list.
        * 'create()'
-    2. Set a property of one or multiple statistic collectores. This function handles the
+    2. Set a property of the statistics collection agent.
+       * 'set_property()'
+    3. Set a property of one or multiple statistic collectors. This function handles the
        'set-collector-property' command.
        * 'set_collector_property()'
-    3. Configure collectors.
+    4. Configure collectors.
        * 'configure()'
-    4. Start collecting the statistics.
+    5. Add a label.
+       * 'add_label()'
+    6. Start collecting the statistics.
        * 'start()'
-    5. Stop collecting the statistics.
+    7. Stop collecting the statistics.
        * 'stop()'
     """
 
@@ -580,7 +585,7 @@ class STCAgent:
             raise Error("statistics collection has been started, cannot change properties")
 
         if len(args.split()) != 3:
-            raise Error(f"incorrect argument '{args}'\nThe argument must be of the following "
+            raise Error(f"incorrect argument '{args}'\nThe argument must be in the following "
                         f"format:\n<stat_name> <property_name> <property_value>")
 
         args = args.split()
@@ -603,6 +608,42 @@ class STCAgent:
         LOG.debug("set collector '%s' property '%s' to value '%s'",
                   collector.name, args[1], args[2])
 
+    @staticmethod
+    def _set_outdir(path):
+        """Set 'stc-agent' output directory."""
+
+        if not os.path.isabs(path):
+            raise Error(f"stc-agent output directory path '{path}' is not absolute")
+        if os.path.exists(path):
+            if not os.path.isdir(path):
+                raise Error(f"stc-agent output directory path '{path}' already exists and it is "
+                            f"not a directory")
+        else:
+            LOG.debug("creating sts-agent output directory '%s'", path)
+            try:
+                os.mkdir(path)
+            except OSError as err:
+                raise Error(f"cannot create stc-agent output directory '{path}':\n{err}") from None
+
+    def set_property(self, args):
+        """Set an stc-agent property."""
+
+        if len(args.split()) != 2:
+            raise Error(f"incorrect stc-agent property argument '{args}'\nIt must be in the "
+                        f"following format:\n<property_name> <property_value>")
+
+        pname, pval = args.split()
+        if pname not in self.props:
+            supported = ", ".join(self.props)
+            raise Error(f"unsupported stc-agent property '{pname}', supported properties are: "
+                        f"{supported}")
+
+        self._set_obj_property(self, pname, pval)
+        if pname == "outdir":
+            self._set_outdir(pval)
+
+        LOG.debug("set stc-agent property '%s' to value '%s'", pname, pval)
+
     def configure(self):
         """Configure the statistic collectors."""
 
@@ -614,6 +655,62 @@ class STCAgent:
 
         self._execute_collectors_methods(("configure", "kill_stale"))
         LOG.debug("configured the collectors")
+
+    def add_label(self, args):
+        """
+        Add a label. The 'args' argument is expected to be a JSON-serialized dictionary. It must
+        include the "name" key for the label name, and any number of other keys.
+        """
+
+        if not self._collectors:
+            raise Error("no statistics collectors selected")
+
+        if self.props["outdir"] == UNINITIALIZED["str"]:
+            raise Error("cannot add stc-agent label: the output directory was not set")
+
+        LOG.debug("adding label '{args}")
+
+        import json # pylint: disable=import-outside-toplevel
+
+        try:
+            label = json.loads(args)
+        except ValueError as err:
+            msg = Error(str(err)).indent(2)
+            raise Error(f"failed to parse label JSON:\n{msg}") from err
+
+        # Sanity check: make sure the 'name' key is present and make sense.
+        name = label.get("name")
+        if not name:
+            raise Error(f"no label name provided in '{args}'")
+        if not name.isalnum():
+            raise Error(f"bad label name '{name}': must be alphanumeric")
+
+        # Sanity check: there should be no 'ts' key, stc-agent is supposed to add it.
+        if "ts" in label:
+            raise Error(f"found reserved key 'ts' in label '{args}")
+
+        if not self._lfobj:
+            try:
+                path = Path(self.props["outdir"]) / "labels.txt"
+                # pylint: disable=consider-using-with
+                self._lfobj = open(path, "w", encoding="utf-8")
+            except OSError as err:
+                msg = Error(str(err)).indent(2)
+                raise Error(f"failed to create file '{path}:\n{msg}") from None
+
+            # The first line provides the list of collectors the labels file covers.
+            names = ",".join(self._collectors)
+            self._lfobj.write(f"# {names}\n")
+
+        label["ts"] = time.time()
+
+        try:
+            label = json.dumps(label)
+        except ValueError as err:
+            msg = Error(str(err)).indent(2)
+            raise Error(f"failed to serialize label JSON:\n{msg}") from err
+
+        self._lfobj.write(f"{label}\n")
 
     def start(self):
         """Start collecting the statistics."""
@@ -642,12 +739,31 @@ class STCAgent:
 
         LOG.debug("stopped the collectors")
 
+        if self._lfobj:
+            try:
+                self._lfobj.flush()
+                os.fsync(self._lfobj.fileno())
+            except OSError as err:
+                raise Error(f"failed to synchronize stc-agent labels file:\n{err.indent(2)}") \
+                            from err
+
+            self._lfobj.close()
+            self._lfobj = None
+
     def __init__(self):
         """Initialize a class instance."""
 
         self._started = False
         self._collectors = {}
         self.failed_collectors = set()
+
+        # The labels file object.
+        self._lfobj = None
+
+        # Statistics collection agent properties.
+        self.props = {}
+        # The output directory where data like labels will be stored.
+        self.props["outdir"] = UNINITIALIZED["str"]
 
 class Client(ClassHelpers.SimpleCloseContext):
     """This class represents a network client."""
@@ -844,6 +960,9 @@ def handle_command(cmd, stc_agent):
         if cmd == "set-stats":
             # Create the statistics collectors without initializing them.
             stc_agent.create([stname.strip() for stname in args.split(",")])
+        elif cmd == "set-agent-property":
+            # Set a property of 'stc-agent'.
+            stc_agent.set_property(args)
         elif cmd == "set-collector-property":
             # Set a property of a statistics collector.
             stc_agent.set_collector_property(args)
@@ -856,6 +975,8 @@ def handle_command(cmd, stc_agent):
         elif cmd == "stop":
             # Stop collecting the statistics.
             stc_agent.stop()
+        elif cmd == "add_label":
+            stc_agent.add_label(args)
         elif cmd == "get-failed-collectors":
             # Get the list of failed collectors.
             response += f" {','.join(stc_agent.failed_collectors)}"
