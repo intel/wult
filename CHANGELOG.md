@@ -5,6 +5,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix pepc dependency, allow for pepc versions greater than 1.3.x.
 ### Added
 ### Removed
 ### Changed
