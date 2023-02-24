@@ -153,12 +153,12 @@ class SysInfoTabBuilderBase:
         """
 
         if any(not fp for fp in stats_paths.values()):
-            raise Error("Unable to add file previews since not all reports have a statistics dir.")
+            raise Error("unable to add file previews since not all reports have a statistics dir.")
 
         fpreviews = self._add_fpreviews(stats_paths)
         if fpreviews:
             return _Tabs.DTabDC(self.name, fpreviews=fpreviews)
-        raise Error(f"Unable to build '{self.name}' SysInfo tab, no file previews could be "
+        raise Error(f"unable to build '{self.name}' SysInfo tab, no file previews could be "
                     f"generated.")
 
     def __init__(self, name, outdir, files):
