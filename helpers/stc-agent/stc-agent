@@ -551,20 +551,10 @@ class STCAgent:
         LOG.debug("created the collectors")
 
     def set_collector_property(self, args):
-        """
-        Set a property of one or multiple statistic collectores. This function handles the
-        'set-collector-property' command.
-        """
+        """Set a property of a statistic collector."""
 
         def do_set_collector_property(collector, args):
             """Set the requested property of a single statistics collector."""
-
-            if collector.name in self.failed_collectors:
-                # Ignore failed collectors.
-                return
-            if args[1] not in collector.props:
-                raise Error(f"the '{collector.name}' collector does not support the '{args[1]}' "
-                            f"property")
 
             # Set the property and convert it to the default type.
             the_type = type(collector.props[args[1]])
@@ -592,14 +582,21 @@ class STCAgent:
                         f"format:\n<stat_name> <property_name> <property_value>")
 
         args = args.split()
-        if args[0] != '*':
-            if args[0] not in self._collectors:
-                all_stats = ", ".join(SUPPORTED_STATS)
-                raise Error(f"unknown collector name '{args[0]}', use one of:\n{all_stats}")
-            do_set_collector_property(self._collectors[args[0]], args)
-        else:
-            for collector in self._collectors.values():
-                do_set_collector_property(collector, args)
+        if args[0] not in self._collectors:
+            all_stats = ", ".join(SUPPORTED_STATS)
+            raise Error(f"unknown collector name '{args[0]}', use one of:\n{all_stats}")
+
+        collector = self._collectors[args[0]]
+
+        if collector.name in self.failed_collectors:
+            # Ignore failed collectors.
+            return
+
+        if args[1] not in collector.props:
+            raise Error(f"the '{collector.name}' collector does not support the '{args[1]}' "
+                        f"property")
+
+        do_set_collector_property(collector, args)
 
         LOG.debug("set the property: %s", args)
 
@@ -845,7 +842,7 @@ def handle_command(cmd, stc_agent):
             # Create the statistics collectors without initializing them.
             stc_agent.create([stname.strip() for stname in args.split(",")])
         elif cmd == "set-collector-property":
-            # Set a property of one or multiple collectors.
+            # Set a property of a statistics collector.
             stc_agent.set_collector_property(args)
         elif cmd == "configure":
             # Once all the properties had been set, configure the collectors.
