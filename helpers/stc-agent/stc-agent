@@ -550,26 +550,26 @@ class STCAgent:
 
         LOG.debug("created the collectors")
 
+    @staticmethod
+    def _set_obj_property(obj, name, value):
+        """Set a property in object 'obj' (e.g., a statistics collector)."""
+
+        the_type = type(obj.props[name])
+
+        try:
+            # Since 'bool("False")' is 'True', we have to have a special case for boolean props.
+            if the_type == bool:
+                if value not in ("True", "False"):
+                    raise TypeError
+                obj.props[name] = (value == "True")
+            else:
+                obj.props[name] = the_type(value)
+        except TypeError:
+            raise Error(f"type conversion error for property '{name}' {obj.name}':\nstring "
+                        f"'{value}' cannot be converted to '{the_type}'") from None
+
     def set_collector_property(self, args):
         """Set a property of a statistic collector."""
-
-        def do_set_collector_property(collector, args):
-            """Set the requested property of a single statistics collector."""
-
-            # Set the property and convert it to the default type.
-            the_type = type(collector.props[args[1]])
-            try:
-                # Since 'bool("False")' is 'True', we have to have a special case for boolean props.
-                if the_type == bool:
-                    if args[2] not in ("True", "False"):
-                        raise TypeError
-                    collector.props[args[1]] = (args[2] == "True")
-                else:
-                    collector.props[args[1]] = the_type(args[2])
-            except TypeError as err:
-                raise Error(f"type conversion error for property '{args[1]}' of collector "
-                            f"'{collector.name}':\nstring '{args[2]}' cannot be converted to "
-                            f"'{the_type}'") from err
 
         if not self._collectors:
             raise Error("no statistics collectors selected")
@@ -596,9 +596,10 @@ class STCAgent:
             raise Error(f"the '{collector.name}' collector does not support the '{args[1]}' "
                         f"property")
 
-        do_set_collector_property(collector, args)
+        self._set_obj_property(collector, args[1], args[2])
 
-        LOG.debug("set the property: %s", args)
+        LOG.debug("set collector '%s' property '%s' to value '%s'",
+                  collector.name, args[1], args[2])
 
     def configure(self):
         """Configure the statistic collectors."""
