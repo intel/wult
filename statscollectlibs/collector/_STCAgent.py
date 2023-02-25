@@ -205,6 +205,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         try:
             self._send_msg(cmd)
         except (Error, socket.error) as err:
+            self._keep_outdir = True
             msg = Error(f"{err}\n{check_log_msg}").indent(2)
             raise Error(f"failed to send the following message to {stca_str}: {cmd}\n"
                         f"{msg}") from err
@@ -212,6 +213,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         try:
             msg = self._recv_msg()
         except (Error, socket.error) as err:
+            self._keep_outdir = True
             msg = Error(f"{err}\n{check_log_msg}").indent(2)
             raise Error(f"failed receiving the reply to the following command from {stca_str}: "
                         f"{cmd}\n{msg}") from err
@@ -222,6 +224,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         if msg.startswith("OK "):
             return msg[3:]
 
+        self._keep_outdir = True
         raise SCReplyError(f"{stca_str} did not respond with 'OK' to the following command:\n{cmd}"
                            f"\nInstead, the response was the following:\n{msg}\n{check_log_msg}")
 
@@ -749,6 +752,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         self._nice_path = None
 
         self._outdir_created = False
+        self._keep_outdir = False
         self._statsdir = None
         self._logsdir = None
         self._logpath = None
@@ -809,7 +813,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
                 self._stca = None
 
             # Remove the output directory if we created it.
-            if getattr(self, "_outdir_created", None):
+            if getattr(self, "_outdir_created", None) and not getattr(self, "_keep_outdir", None):
                 with contextlib.suppress(Exception):
                     self._pman.rmtree(self.outdir)
                 self._outdir_created = None
