@@ -9,8 +9,9 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This program implements the statistics collection agent as a service clients can connect to. Clients
-can send it commands it collect various kinds of statistics, e.g. turbostat and AC power.
+This program implements the statistics collection agent (stc-agent) as a service clients can connect
+to. Clients can send it commands to collect various kinds of statistics, e.g. turbostat and AC
+power.
 
 This program is designed to work in a local network and may require root privileges. Please, do not
 use it in production environment, use it only in isolated debugging/research setups.
@@ -130,8 +131,7 @@ def sighandler(sig, _):
 
 class _BaseCollector:
     """
-    This is the base class for all the single statistics collectors. Here is the short description
-    of the methods.
+    This is the base class for statistics collectors. Here is the methods overview.
 
     1. '__init__()' - the object constructor, performs basic initialization. The collector is not
        usable yet, because it has not been configured yet (e.g., the output directory was not yet
@@ -204,7 +204,7 @@ class _BaseCollector:
                 try:
                     os.mkdir(path)
                 except OSError as err:
-                    self._error("cannot directory '%s' (%s):\n%s", path, key, err)
+                    self._error("cannot create directory '%s' (%s):\n%s", path, key, err)
 
     def configure(self):
         """Configure the statistics collector."""
@@ -261,7 +261,7 @@ class _BaseCollector:
             except Error as err:
                 self._error(err)
 
-            # Signal the entire statistics collection process group.
+            # Signal the entire statistics collector process group.
             self._debug("sending signal %s to PGID %d (group of PID %d)",
                         self._signal, pgid, self._proc.pid)
             try:
@@ -325,7 +325,7 @@ class _BaseCollector:
         #
 
         self._fobj = None
-        # The statistics collection process.
+        # The statistics collector process.
         self._proc = None
         self._outpath = None
 
@@ -467,10 +467,12 @@ class ACPowerCollector(_BaseCollector):
 
 class STCAgent:
     """
-    This class represents the statistics collection agent and it implements all the collecting
-    functionality of this program. There is only one single instance of this class.
+    This class represents the statistics collection agent (stc-agent) and it implements all the
+    collecting functionality of this program. There should be only one single instance of this
+    class.
 
-    Public methods overview:
+    Public methods overview.
+
     1. Create the statistics collector objects for the statistics names in the 'stnames' list.
        * 'create()'
     2. Set a property of one or multiple statistic collectores. This function handles the
