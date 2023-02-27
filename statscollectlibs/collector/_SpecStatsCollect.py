@@ -403,21 +403,23 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
         self._pman.rsync(f"{srcpath}/", self.local_outdir, opts=rsync_opts, remotesrc=True,
                          remotedst=False)
 
-    def _apply_cfg(self, stcagent):
-        """
-        Helper function for the class constructor. Applies the configuration in 'self._cfg' to
-        'stcagent'.
-        """
+    def _apply_config_file(self):
+        """Read and apply the stats-collect configuration file."""
 
-        cfg_stinfo = self._cfg.get_sut_cfg(stcagent.sutname)
-        for stname, info in stcagent.stinfo.items():
-            if stname not in cfg_stinfo:
+        cfg = _StatsConfig.StatsConfig().get_sut_cfg(self._pman.hostname)
+
+        for agent in (self._inbagent, self._oobagent):
+            if not agent:
                 continue
-            for key, val in info.items():
-                if key == "props":
-                    val.update(cfg_stinfo[stname].get("props", {}))
-                else:
-                    val = cfg_stinfo[stname].get(key, val)
+
+            for stname, info in agent.stinfo.items():
+                if stname not in cfg:
+                    continue
+                for key, val in info.items():
+                    if key == "props":
+                        val.update(cfg[stname].get("props", {}))
+                    else:
+                        val = cfg[stname].get(key, val)
 
     def __init__(self, pman, local_outdir=None, remote_outdir=None):
         """Same as 'StatsCollect.__init__()'."""
@@ -465,10 +467,7 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
         else:
             self.local_outdir = self._inbagent.outdir
 
-        self._cfg = _StatsConfig.StatsConfig()
-        self._apply_cfg(self._inbagent)
-        if self._oobagent is not None:
-            self._apply_cfg(self._oobagent)
+        self._apply_config_file()
 
     def close(self):
         """Close the statistics collector."""
