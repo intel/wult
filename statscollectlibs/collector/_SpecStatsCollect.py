@@ -12,7 +12,7 @@ statistics collection.
 """
 
 import logging
-from pepclibs.helperlibs import ClassHelpers
+from pepclibs.helperlibs import ClassHelpers, YAML
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs import _StatsConfig
 from statscollectlibs.collector import _STCAgent
@@ -352,6 +352,25 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
         if self._oobagent:
             self._oobagent.start()
 
+    def _generate_info_yml(self):
+        """Save statistics information in 'stats-info.yml' file."""
+
+        yml = {}
+
+        for agent in (self._inbagent, self._oobagent):
+            if not agent:
+                continue
+
+            for stname, info in agent.stinfo.items():
+                if not info["enabled"]:
+                    continue
+
+                assert stname not in yml
+                yml[stname] = info
+
+        path = self.local_outdir / "stats" / "stats-info.yml"
+        YAML.dump(yml, path)
+
     def stop(self, sysinfo=True):
         """Stop collecting the statistics."""
 
@@ -360,12 +379,12 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
         if self._oobagent:
             self._oobagent.stop()
 
-        if not sysinfo:
-            return
+        if sysinfo:
+            self._inbagent.collect_sysinfo_after()
+            if self._oobagent:
+                self._oobagent.collect_sysinfo_after()
 
-        self._inbagent.collect_sysinfo_after()
-        if self._oobagent:
-            self._oobagent.collect_sysinfo_after()
+        self._generate_info_yml()
 
     def copy_remote_data(self, include_logs=True, include_data=True):
         """
