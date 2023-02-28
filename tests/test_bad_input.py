@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2022 Intel Corporation
+# Copyright (C) 2019-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Antti Laakso <antti.laakso@linux.intel.com>
@@ -30,7 +30,7 @@ from common import tool
 from pepclibs.helperlibs import Exceptions
 
 def test_bad_input_data(tool):
-    """Test 'report', 'calc', and 'start' commands for bad input data."""
+    """Test 'filter', 'report', 'start', and 'calc' commands for bad input data."""
 
     for cmd in ("filter", "report", "start", "calc"):
         for args in tool.bad_paths:
@@ -40,7 +40,7 @@ def test_bad_input_data(tool):
                 tool.command(cmd, args)
 
 def test_bad_filter_names(tool):
-    """Test 'filter' and 'calc' commands for bad filter names."""
+    """Test 'filter', 'calc' and 'report' commands for bad filter names."""
 
     for cmd in ("filter", "calc", "report"):
         for argname in ("exclude", "include", "mexclude", "minclude"):

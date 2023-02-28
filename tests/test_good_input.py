@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2022 Intel Corporation
+# Copyright (C) 2019-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Antti Laakso <antti.laakso@linux.intel.com>
@@ -21,7 +21,7 @@ Test module for 'wult' project. Tests following commands for 'wult' and 'ndl':
 from common import tool
 
 def test_good_input_data(tool):
-    """Test 'report', 'calc', and 'start' commands for good input data."""
+    """Test 'filter', 'report', and 'calc' commands for good input data."""
 
     for cmd in ("filter", "report", "calc"):
         for args in tool.good_paths:
