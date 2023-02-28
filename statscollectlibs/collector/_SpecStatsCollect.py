@@ -369,6 +369,10 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
                 yml[stname] = info
 
         path = self.local_outdir / "stats" / "stats-info.yml"
+
+        # Ensure that "stats" directory exists and create it if it doesn't.
+        path.parent.mkdir(parents=True, exist_ok=True)
+
         YAML.dump(yml, path)
 
     def stop(self, sysinfo=True):
