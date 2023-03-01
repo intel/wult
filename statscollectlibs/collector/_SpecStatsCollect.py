@@ -388,11 +388,10 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
                 assert stname not in yml
                 yml[stname] = info
 
+        if not yml:
+            return
+
         path = self.local_outdir / "stats" / "stats-info.yml"
-
-        # Ensure that "stats" directory exists and create it if it doesn't.
-        path.parent.mkdir(parents=True, exist_ok=True)
-
         YAML.dump(yml, path)
 
     def finalize(self):
