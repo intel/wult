@@ -347,10 +347,11 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         if not metrics:
             metrics = {}
 
-        if self._add_label_ts is None:
-            # This is the first time 'add_label()' is called. Configure the output directory.
-            labels_dir = self._statsdir / f"stc-agent-{self._pman.hostname}"
-            self._send_command("set-agent-property", arg=f"outdir {labels_dir}")
+        if not self.labels_path:
+            # This is the first time 'add_label()' is called. Configure the agent output directory.
+            self._send_command("set-agent-property", arg=f"outdir {self._agentdir}")
+            # Labels will be stored in the 'labels.txt' file.
+            self.labels_path = self._agentdir / "labels.txt"
 
         # The 'name' key will be used for label name. The 'ts' key will be used by 'stc-agent' for
         # the time-stamp. Since everything is serialized into a single JSON string, these key names
@@ -650,6 +651,8 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
             self._statsdir = self.outdir / "stats"
         self._pman.mkdir(self._statsdir, exist_ok=True)
 
+        self._agentdir = self._statsdir / f"stc-agent-{self._pman.hostname}"
+
     def _configure(self, stnames, for_discovery=False):
         """
         Configure statistic collectors. If 'for_discovery' is 'True', configure the collectors for
@@ -777,6 +780,8 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
 
         # The statistics information dictionary.
         self.stinfo = None
+        # Path to the labels file ('None' if no labels were added).
+        self.labels_path = None
 
         # Log level for some of the high-level messages.
         self.infolvl = logging.DEBUG
@@ -793,6 +798,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         self._outdir_created = False
         self._keep_outdir = False
         self._statsdir = None
+        self._agentdir = None
         self._logsdir = None
         self._logpath = None
 
@@ -809,9 +815,6 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         self._sock = None
         self._timeout = 60
         self._start_time = None
-
-        # When 'add_label()' was called last time.
-        self._add_label_ts = None
 
         # Initialize the statistics dictionary.
         self.stinfo = copy.deepcopy(STINFO)
