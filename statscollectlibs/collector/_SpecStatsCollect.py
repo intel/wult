@@ -382,41 +382,20 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
 
         self._generate_info_yml()
 
-    def copy_remote_data(self, include_logs=True, include_data=True):
-        """
-        Copy all statistics data from the 'self.remote_outdir' directory on the remote host to the
-        'self.local_outdir' directory on the local host. The arguments are as follows.
-          * include_logs - if 'True', include the remote 'stc-agent' logs as well.
-          * include_data - if 'True', include the statistics data files as well.
-        """
+    def copy_remote_data(self):
+        """Copy statistics data from the remote host to the local host."""
 
         if not self.remote_outdir:
             return
 
-        exclude = None
-        # We add trailing slash to the remote directory path in order to make rsync copy the
+        _LOG.log(self._infolvl, "Copy collected statistics from '%s' to '%s'",
+                 self._pman.hostname, self.local_outdir)
+
+        # Add trailing slash to the remote directory path in order to make rsync copy the
         # contents of the remote directory, but not the directory itself.
         srcpath = f"{self.remote_outdir}/"
-        what = "statistics data files and logs"
 
-        if include_logs and not include_data:
-            exclude = "stats"
-            what = "statistics logs"
-        elif not include_logs and include_data:
-            srcpath = f"{self.remote_outdir}/stats"
-            what = "statistics data files"
-        elif not include_logs and not include_data:
-            raise Error("either statistics logs or data have to be included")
-
-        _LOG.log(self._infolvl, "Copy %s from '%s' to '%s'",
-                 what, self._pman.hostname, self.local_outdir)
-
-        rsync_opts = "-rltD"
-        if exclude:
-            rsync_opts = f"{rsync_opts} --exclude '{exclude}'"
-
-        self._pman.rsync(f"{srcpath}/", self.local_outdir, opts=rsync_opts, remotesrc=True,
-                         remotedst=False)
+        self._pman.rsync(f"{srcpath}/", self.local_outdir, remotesrc=True, remotedst=False)
 
     def _apply_config_file(self):
         """Read and apply the stats-collect configuration file."""
