@@ -94,7 +94,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
                 if self._stcoll:
                     self._stcoll.stop(sysinfo=True)
-                    self._stcoll.copy_remote_data()
+                    self._stcoll.finalize()
 
             self._res.info["duration"] = Human.duration(self._progress.get_duration())
             self._res.write_info()
@@ -116,7 +116,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
             if self._stcoll:
                 self._stcoll.stop(sysinfo=True)
-                self._stcoll.copy_remote_data()
+                self._stcoll.finalize()
 
     def prepare(self):
         """Prepare to start measurements."""

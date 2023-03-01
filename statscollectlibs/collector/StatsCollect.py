@@ -104,8 +104,8 @@ class StatsCollect(_SpecStatsCollect.SpecStatsCollect):
       10. Optionally add more labels using 'add_label()'.
       11. Run 'stop()' to stop collecting the statistics. You can repeat the start/stop cycles and
           re-configure the collectors between the cycles.
-      10. Copy statistics and logs from the remote host to the local output directory using
-          'copy_remote_data()'.
+      10. Run 'finalize()' to finalize statistics collection (copy the data from remote host to the
+          local host, etc).
     """
 
     def _separate_aggr_vs_specific(self, stnames):

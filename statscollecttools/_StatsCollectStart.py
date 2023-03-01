@@ -98,7 +98,7 @@ def start_command(args):
             ProcHelpers.kill_pids(proc.pid, kill_children=True, must_die=True, pman=pman)
 
         stcoll.stop()
-        stcoll.copy_remote_data()
+        stcoll.finalize()
         res.write_info()
 
     if args.report:

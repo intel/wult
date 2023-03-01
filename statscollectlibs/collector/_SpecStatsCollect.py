@@ -344,6 +344,34 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
         if self._oobagent:
             self._oobagent.start()
 
+    def stop(self, sysinfo=True):
+        """Stop collecting the statistics."""
+
+        _LOG.log(self._infolvl, "Stopping statistics collectors")
+        self._inbagent.stop()
+        if self._oobagent:
+            self._oobagent.stop()
+
+        if sysinfo:
+            self._inbagent.collect_sysinfo_after()
+            if self._oobagent:
+                self._oobagent.collect_sysinfo_after()
+
+    def _copy_remote_data(self):
+        """Copy statistics data from the remote host to the local host."""
+
+        if not self.remote_outdir:
+            return
+
+        _LOG.log(self._infolvl, "Copy collected statistics from '%s' to '%s'",
+                 self._pman.hostname, self.local_outdir)
+
+        # Add trailing slash to the remote directory path in order to make rsync copy the
+        # contents of the remote directory, but not the directory itself.
+        srcpath = f"{self.remote_outdir}/"
+
+        self._pman.rsync(f"{srcpath}/", self.local_outdir, remotesrc=True, remotedst=False)
+
     def _generate_info_yml(self):
         """Save statistics information in 'stats-info.yml' file."""
 
@@ -367,35 +395,15 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
 
         YAML.dump(yml, path)
 
-    def stop(self, sysinfo=True):
-        """Stop collecting the statistics."""
+    def finalize(self):
+        """
+        Finalize the statistics collection session:
+          * copy statistics data from the remote host to the local host.
+          * generate the 'stats-info.yml' file.
+        """
 
-        _LOG.log(self._infolvl, "Stopping statistics collectors")
-        self._inbagent.stop()
-        if self._oobagent:
-            self._oobagent.stop()
-
-        if sysinfo:
-            self._inbagent.collect_sysinfo_after()
-            if self._oobagent:
-                self._oobagent.collect_sysinfo_after()
-
+        self._copy_remote_data()
         self._generate_info_yml()
-
-    def copy_remote_data(self):
-        """Copy statistics data from the remote host to the local host."""
-
-        if not self.remote_outdir:
-            return
-
-        _LOG.log(self._infolvl, "Copy collected statistics from '%s' to '%s'",
-                 self._pman.hostname, self.local_outdir)
-
-        # Add trailing slash to the remote directory path in order to make rsync copy the
-        # contents of the remote directory, but not the directory itself.
-        srcpath = f"{self.remote_outdir}/"
-
-        self._pman.rsync(f"{srcpath}/", self.local_outdir, remotesrc=True, remotedst=False)
 
     def _apply_config_file(self):
         """Read and apply the stats-collect configuration file."""

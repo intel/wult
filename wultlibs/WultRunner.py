@@ -99,7 +99,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
 
         if self._stcoll:
             self._stcoll.stop(sysinfo=True)
-            self._stcoll.copy_remote_data()
+            self._stcoll.finalize()
 
     def run(self, dpcnt=1000000, tlimit=None, keep_rawdp=False):
         """
