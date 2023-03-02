@@ -386,7 +386,19 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
                     continue
 
                 assert stname not in yml
-                yml[stname] = info
+                yml[stname] = info.copy()
+
+                info = yml[stname]
+                info["paths"] = {}
+
+                stpath = stname
+                if stname != "sysinfo":
+                    stpath += ".txt"
+                info["paths"]["stats"] = stpath
+
+                if agent.labels_path:
+                    path = agent.labels_path.relative_to(agent.statsdir)
+                    info["paths"]["labels"] = path
 
         if not yml:
             return
