@@ -330,7 +330,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
             return
 
         _LOG.log(self.infolvl, "Collecting %s system information", self.sutname)
-        SysInfo.collect_before(self._statsdir / "sysinfo", self._pman)
+        SysInfo.collect_before(self.statsdir / "sysinfo", self._pman)
 
     def add_label(self, name, metrics=None):
         """
@@ -410,7 +410,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
             return
 
         _LOG.log(self.infolvl, "Collecting more %s system information", self.sutname)
-        SysInfo.collect_after(self._statsdir / "sysinfo", self._pman)
+        SysInfo.collect_after(self.statsdir / "sysinfo", self._pman)
 
     def _get_failed_collectors(self):
         """
@@ -646,12 +646,12 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
 
         if for_discovery:
             # The statistics collected during discovery belong to the logs.
-            self._statsdir = self._logsdir / "discovery-stats"
+            self.statsdir = self._logsdir / "discovery-stats"
         else:
-            self._statsdir = self.outdir / "stats"
-        self._pman.mkdir(self._statsdir, exist_ok=True)
+            self.statsdir = self.outdir / "stats"
+        self._pman.mkdir(self.statsdir, exist_ok=True)
 
-        self._agentdir = self._statsdir / f"stc-agent-{self._pman.hostname}"
+        self._agentdir = self.statsdir / f"stc-agent-{self._pman.hostname}"
 
     def _configure(self, stnames, for_discovery=False):
         """
@@ -682,7 +682,7 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         self._send_command("set-stats", arg=",".join(stnames))
 
         for stname in stnames:
-            self._set_collector_property(stname, "outdir", self._statsdir)
+            self._set_collector_property(stname, "outdir", self.statsdir)
             self._set_collector_property(stname, "logdir", self._logsdir)
             self._set_collector_property(stname, "toolpath", self.stinfo[stname]["toolpath"])
             self._set_collector_property(stname, "interval", self.stinfo[stname]["interval"])
@@ -782,6 +782,8 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         self.stinfo = None
         # Path to the labels file ('None' if no labels were added).
         self.labels_path = None
+        # Path to the statistics sub-directory.
+        self.statsdir = None
 
         # Log level for some of the high-level messages.
         self.infolvl = logging.DEBUG
@@ -797,7 +799,6 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
 
         self._outdir_created = False
         self._keep_outdir = False
-        self._statsdir = None
         self._agentdir = None
         self._logsdir = None
         self._logpath = None
