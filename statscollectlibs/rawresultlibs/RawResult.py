@@ -58,7 +58,7 @@ class RawResult(_RawResultBase.RawResultBase):
           * reportid - reportid of the raw test result.
           * outdir - the output directory to store the raw results at.
           * toolver - version of the tool creating the report.
-          * cpunum - the to measure (Linux logical CPU number, e.g. like in '/proc/cpuinfo').
+          * cpunum - CPU number associated with this test result (e.g., measured CPU number).
         """
 
         super().__init__(outdir)

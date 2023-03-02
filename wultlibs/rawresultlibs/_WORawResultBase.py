@@ -146,12 +146,15 @@ class WORawResultBase(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseCont
 
         YAML.dump(self.info, self.info_path)
 
-    def __init__(self, reportid, outdir):
+    def __init__(self, reportid, outdir, cpunum=0):
         """
         The class constructor. The arguments are as follows.
           * reportid - reportid of the raw test result.
           * outdir - the output directory to store the raw results at.
+          * cpunum - CPU number to measure.
         """
+
+        self.cpunum = cpunum
 
         super().__init__(outdir)
 

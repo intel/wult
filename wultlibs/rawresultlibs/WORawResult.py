@@ -21,12 +21,10 @@ class WultWORawResult(_WORawResultBase.WORawResultBase):
         The class constructor. The arguments are the same as in 'WORawResultBase', except for the
         following.
           * toolver - version of the tool creating the report.
-          * cpunum - the to measure (Linux logical CPU number, e.g. like in '/proc/cpuinfo').
+          * cpunum - CPU number associated with this test result (e.g., measured CPU number).
         """
 
-        self.cpunum = cpunum
-
-        super().__init__(reportid, outdir)
+        super().__init__(reportid, outdir, cpunum=cpunum)
 
         self.info["toolname"] = "wult"
         self.info["toolver"] = toolver
