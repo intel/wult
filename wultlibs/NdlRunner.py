@@ -69,7 +69,8 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
             # Start collecting statistics.
             self._stcoll.start()
 
-        msg = f"Start measuring RTD{self._pman.hostmsg}, collecting {dpcnt} datapoints"
+        msg = f"Start measuring RTD by sending delayed packets from CPU {self._res.cpunum}" \
+              f"{self._pman.hostmsg}, collecting {dpcnt} datapoints"
         if tlimit:
             msg += f", time limit is {Human.duration(tlimit)}"
         _LOG.info(msg)
@@ -151,8 +152,8 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
         ndlhelper_path = DeployBase.get_installed_helper_path("ndl", "ndl", dev.helpername,
                                                               pman=pman)
-        self._prov = _NdlRawDataProvider.NdlRawDataProvider(dev, pman, self._ldist, ndlhelper_path,
-                                                            timeout=self._timeout)
+        self._prov = _NdlRawDataProvider.NdlRawDataProvider(dev, pman, res.cpunum, self._ldist,
+                                                            ndlhelper_path, timeout=self._timeout)
 
         drvname = self._prov.drvobjs[0].name
         self._rtd_path = self._prov.debugfs_mntpoint.joinpath(f"{drvname}/rtd")

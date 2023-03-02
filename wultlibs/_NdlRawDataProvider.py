@@ -104,7 +104,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
         super().prepare()
 
         ldist_str = ",".join([str(val) for val in self.ldist])
-        self._helper_opts = f"-l {ldist_str} {self._netif.ifname}"
+        self._helper_opts = f"-C {self._cpunum} -l {ldist_str} {self._netif.ifname}"
 
         try:
             self._nmcli = _Nmcli.Nmcli(pman=self._pman)
@@ -155,11 +155,12 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
         _LOG.info("Starting NIC-to-system clock synchronization process%s", self._pman.hostmsg)
         self._etfqdisc.start_phc2sys(tai_offset=int(tai_offset))
 
-    def __init__(self, dev, pman, ldist, ndlhelper_path, timeout=None):
+    def __init__(self, dev, pman, cpunum, ldist, ndlhelper_path, timeout=None):
         """
         Initialize a class instance. The arguments are as follows.
           * dev - the device object created with 'Devices.GetDevice()'.
           * pman - the process manager object defining host to operate on.
+          * cpunum - CPU number to send delayed packets from.
           * ldist - a pair of numbers specifying the launch distance range in nanoseconds.
           * ndlhelper_path - path to the 'ndl-helper' helper.
           * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
@@ -170,6 +171,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
         super().__init__(dev, pman, ldist, drvinfo=drvinfo, helper_path=ndlhelper_path,
                          timeout=timeout)
 
+        self._cpunum = cpunum
         self._helper_path = ndlhelper_path
         self._netif = self.dev.netif
 
