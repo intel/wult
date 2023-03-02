@@ -331,7 +331,7 @@ static int read_rtd(uint64_t *rtd)
 
 	if (!f) {
 		syserrmsg("failed to open file '%s'", rtdpath);
-		goto out_err;
+		return -1;
 	}
 
 	res = fscanf(f, "%lu", rtd);
