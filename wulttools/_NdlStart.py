@@ -59,7 +59,7 @@ def start_command(args):
             raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
         args.dpcnt = int(args.dpcnt)
 
-        res = WORawResult.NdlWORawResult(args.reportid, args.outdir, args.toolver)
+        res = WORawResult.WORawResult("ndl", args.toolver, args.reportid, args.outdir)
         stack.enter_context(res)
 
         Logging.setup_stdout_logging(args.toolname, res.logs_path)

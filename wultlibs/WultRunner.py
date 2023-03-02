@@ -219,7 +219,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
           * dev - the delayed event device object created by 'Devices.GetDevice()'.
-          * res - the 'WultWORawResult' object to store the results at.
+          * res - the 'WORawResult' object to store the results at.
           * ldist - a pair of numbers specifying the launch distance range in nanoseconds.
           * early_intr - enable interrupts before entering the C-state.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.

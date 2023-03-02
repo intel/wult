@@ -129,7 +129,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
           * pman - the process manager object that defines the host to run the measurements on.
           * dev - the network device object to use for measurements (created with
                   'Devices.GetDevice()').
-          * res - the 'NdlWORawResult' object to store the results at.
+          * res - the 'WORawResult' object to store the results at.
           * ldist - a pair of numbers specifying the launch distance range in nanoseconds (how far
           *         in the future the delayed network packets should be scheduled).
           * stcoll - the 'StatsCollect' object to use for collecting statistics. No statistics

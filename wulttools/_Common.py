@@ -356,7 +356,7 @@ def set_filters(args, res):
     This is a helper function for the following command-line options: '--include', '--exclude',
     '--include-metrics', '--exclude-metrics'. The 'args' argument should be an 'helperlibs.ArgParse'
     object, where all the above mentioned options are represented by the 'oargs' (ordered arguments)
-    field.  The 'res' argument is 'RORawResult' or 'WORawResultBase' object.
+    field.  The 'res' argument is 'RORawResult' or 'WORawResult' object.
     """
 
     def set_filter(res, ops):
