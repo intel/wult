@@ -146,7 +146,7 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
 
         YAML.dump(self.info, self.info_path)
 
-    def __init__(self, toolname, toolver, reportid, outdir, cpunum=0):
+    def __init__(self, toolname, toolver, reportid, outdir, cpunum):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool creating the report.
