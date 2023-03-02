@@ -123,6 +123,13 @@ def _build_arguments_parser():
                the SUT from reaching deep C-states. The optimal value is system-specific."""
     subpars.add_argument("-l", "--ldist", default="5000,50000", help=text)
 
+    text = """The CPU number to bind the helper to. The helper will use this CPU to send delayed
+              packets. In normal conditions this means that network packet buffers will be allocated
+              on the NUMA node local to the CPU, but not necessarily local to the network card. Use
+              this option to measure different packet memory locations on a NUMA system. Default is
+              CPU 0."""
+    subpars.add_argument("--cpunum", help=text, type=int, default=0)
+
     subpars.add_argument("--exclude", action=ArgParse.OrderedArg,
                          help=_Common.EXCL_START_DESCR)
     subpars.add_argument("--include", action=ArgParse.OrderedArg, help=_Common.INCL_DESCR)

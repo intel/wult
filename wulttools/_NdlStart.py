@@ -13,7 +13,7 @@ This module includes the "start" 'ndl' command implementation.
 import logging
 import contextlib
 from pathlib import Path
-
+from pepclibs import CPUInfo
 from pepclibs.helperlibs import Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.collector import StatsCollectBuilder
@@ -59,7 +59,12 @@ def start_command(args):
             raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
         args.dpcnt = int(args.dpcnt)
 
-        res = WORawResult.WORawResult("ndl", args.toolver, args.reportid, args.outdir)
+        cpuinfo = CPUInfo.CPUInfo(pman=pman)
+        stack.enter_context(cpuinfo)
+
+        args.cpunum = cpuinfo.normalize_cpu(args.cpunum)
+        res = WORawResult.WORawResult("ndl", args.toolver, args.reportid, args.outdir,
+                                      cpunum=args.cpunum)
         stack.enter_context(res)
 
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
