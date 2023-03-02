@@ -26,7 +26,7 @@ from wultlibs.deploylibs import _Deploy
 from wulttools import _Common, _WultCommon
 
 _VERSION = "1.11.4"
-_OWN_NAME = "wult"
+TOOLNAME = "wult"
 
 # The deployment information dictionary. See 'DeployBase.__init__()' for details.
 _WULT_DEPLOY_INFO = {
@@ -50,13 +50,13 @@ _WULT_DEPLOY_INFO = {
 }
 
 _LOG = logging.getLogger()
-Logging.setup_logger(prefix=_OWN_NAME)
+Logging.setup_logger(prefix=TOOLNAME)
 
 def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
-    text = f"{_OWN_NAME} - a tool for measuring C-state latency."
-    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=_OWN_NAME, ver=_VERSION)
+    text = f"{TOOLNAME} - a tool for measuring C-state latency."
+    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=_VERSION)
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
@@ -66,7 +66,7 @@ def _build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    subpars = _Deploy.add_deploy_cmdline_args(_OWN_NAME, _WULT_DEPLOY_INFO, subparsers,
+    subpars = _Deploy.add_deploy_cmdline_args(TOOLNAME, _WULT_DEPLOY_INFO, subparsers,
                                               _deploy_command, argcomplete=argcomplete)
     text = """Deploy the eBPF helper, but do not deploy the drivers. This is a debug and development
               option, do not use it for other purposes."""
@@ -80,7 +80,7 @@ def _build_arguments_parser():
     subpars = subparsers.add_parser("scan", help=text, description=descr)
     subpars.set_defaults(func=_Common.scan_command)
     subpars.add_argument("--all", action="store_true",
-                         help=_Common.get_scan_all_descr(_OWN_NAME))
+                         help=_Common.get_scan_all_descr(TOOLNAME))
 
     ArgParse.add_ssh_options(subpars)
 
@@ -121,7 +121,7 @@ def _build_arguments_parser():
     subpars.add_argument("--stats-intervals", help=_Common.STAT_INTERVALS_DESCR)
 
     subpars.add_argument("--list-stats", action="store_true",
-                         help=_Common.LIST_STATS_DESCR % _OWN_NAME)
+                         help=_Common.LIST_STATS_DESCR % TOOLNAME)
 
     text = f"""This tool works by scheduling a delayed event, then sleeping and waiting for it to
                happen. This step is referred to as a "measurement cycle" and it is usually repeated
@@ -141,30 +141,30 @@ def _build_arguments_parser():
     text = """The logical CPU number to measure, default is CPU 0."""
     subpars.add_argument("--cpunum", help=text, type=int, default=0)
 
-    text = f"""{_OWN_NAME.title()} receives raw datapoints from the driver, then processes them, and
+    text = f"""{TOOLNAME.title()} receives raw datapoints from the driver, then processes them, and
                then saves the processed datapoint in the 'datapoints.csv' file. The processing
-               involves converting TSC cycles to microseconds, so {_OWN_NAME} needs SUT's TSC rate.
+               involves converting TSC cycles to microseconds, so {TOOLNAME} needs SUT's TSC rate.
                TSC rate is calculated from the datapoints, which come with TSC counters and
                timestamps, so TSC rate can be calculated as "delta TSC / delta timestamp". In other
-               words, {_OWN_NAME} needs two datapoints to calculate TSC rate. However, the datapoints
+               words, {TOOLNAME} needs two datapoints to calculate TSC rate. However, the datapoints
                have to be far enough apart, and this option defines the distance between the
                datapoints (in seconds). The default distance is 10 seconds, which means that
-               {_OWN_NAME} will keep collecting and buffering datapoints for 10s without processing
-               them (because processing requires TSC rate to be known). After 10s, {_OWN_NAME} will
+               {TOOLNAME} will keep collecting and buffering datapoints for 10s without processing
+               them (because processing requires TSC rate to be known). After 10s, {TOOLNAME} will
                start processing all the buffered datapoints, and then the newly collected
                datapoints. Generally, longer TSC calculation time translates to better accuracy."""
     subpars.add_argument("--tsc-cal-time", default="10s", help=text)
 
-    text = f"""{_OWN_NAME.title()} receives raw datapoints from the driver, then processes them, and
+    text = f"""{TOOLNAME.title()} receives raw datapoints from the driver, then processes them, and
                then saves the processed datapoint in the 'datapoints.csv' file. In order to keep the
-               CSV file smaller, {_OWN_NAME} keeps only the essential information, and drops the rest.
-               For example, raw timestamps are dropped. With this option, however, {_OWN_NAME} saves
+               CSV file smaller, {TOOLNAME} keeps only the essential information, and drops the rest.
+               For example, raw timestamps are dropped. With this option, however, {TOOLNAME} saves
                all the raw data to the CSV file, along with the processed data."""
     subpars.add_argument("--keep-raw-data", action="store_true", dest="keep_rawdp", help=text)
 
     text = f"""This option exists for debugging and troubleshooting purposes. Please, do not use
-               for other reasons. If {_OWN_NAME} loads kernel modules, they get unloaded after the
-               measurements are done. But with this option {_OWN_NAME} will not unload the
+               for other reasons. If {TOOLNAME} loads kernel modules, they get unloaded after the
+               measurements are done. But with this option {TOOLNAME} will not unload the
                modules."""
     subpars.add_argument("--no-unload", action="store_true", help=text)
 
@@ -196,7 +196,7 @@ def _build_arguments_parser():
     subpars.set_defaults(func=_report_command)
 
     subpars.add_argument("-o", "--outdir", type=Path,
-                         help=_Common.get_report_outdir_descr(_OWN_NAME))
+                         help=_Common.get_report_outdir_descr(TOOLNAME))
     subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=_Common.EXCL_DESCR)
     subpars.add_argument("--include", action=ArgParse.OrderedArg, help=_Common.INCL_DESCR)
     subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
@@ -223,7 +223,7 @@ def _build_arguments_parser():
               '--yaxes', '--hist', '--chist'."""
     subpars.add_argument("--size", dest="report_size", type=str, help=text)
 
-    text = f"""One or multiple {_OWN_NAME} test result paths."""
+    text = f"""One or multiple {TOOLNAME} test result paths."""
     subpars.add_argument("respaths", nargs="+", type=Path, help=text)
 
     #
@@ -246,14 +246,14 @@ def _build_arguments_parser():
                          help=_Common.LIST_METRICS_DESCR)
     subpars.add_argument("--reportid", help=_Common.FILTER_REPORTID_DESCR)
 
-    text = f"The {_OWN_NAME} test result path to filter."
+    text = f"The {TOOLNAME} test result path to filter."
     subpars.add_argument("respath", type=Path, help=text)
 
     #
     # Create parsers for the "calc" command.
     #
-    text = f"Calculate summary functions for a {_OWN_NAME} test result."
-    descr = f"""Calculates various summary functions for a {_OWN_NAME} test result (e.g., the median
+    text = f"Calculate summary functions for a {TOOLNAME} test result."
+    descr = f"""Calculates various summary functions for a {TOOLNAME} test result (e.g., the median
                 value for one of the CSV columns)."""
     subpars = subparsers.add_parser("calc", help=text, description=descr)
     subpars.set_defaults(func=_Common.calc_command)
@@ -267,7 +267,7 @@ def _build_arguments_parser():
     subpars.add_argument("-f", "--funcs", help=_Common.FUNCS_DESCR)
     subpars.add_argument("--list-funcs", action="store_true", help=_Common.LIST_FUNCS_DESCR)
 
-    text = f"""The {_OWN_NAME} test result path to calculate summary functions for."""
+    text = f"""The {TOOLNAME} test result path to calculate summary functions for."""
     subpars.add_argument("respath", type=Path, help=text)
 
     if argcomplete:
@@ -281,7 +281,7 @@ def _parse_arguments():
     parser = _build_arguments_parser()
 
     args = parser.parse_args()
-    args.toolname = _OWN_NAME
+    args.toolname = TOOLNAME
     args.toolver = _VERSION
     args.deploy_info = _WULT_DEPLOY_INFO
 
@@ -318,7 +318,7 @@ def main():
         args = _parse_arguments()
 
         if not getattr(args, "func", None):
-            _LOG.error("please, run '%s -h' for help.", _OWN_NAME)
+            _LOG.error("please, run '%s -h' for help.", TOOLNAME)
             return -1
 
         args.func(args)
