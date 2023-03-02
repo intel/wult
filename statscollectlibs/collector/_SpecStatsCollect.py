@@ -328,14 +328,6 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
         visualization tools will exclude it from visualization.
         """
 
-        if _LOG.getEffectiveLevel() == logging.DEBUG:
-            if metrics:
-                metric = next(iter(metrics))
-                msg = f"Adding label '{name}', {metric}={metrics[metric]}"
-            else:
-                msg = f"Adding label '{name}'"
-            _LOG.debug(msg)
-
         self._inbagent.add_label(name, metrics=metrics)
         if self._oobagent:
             self._oobagent.add_label(name, metrics=metrics)
