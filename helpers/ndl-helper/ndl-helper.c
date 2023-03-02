@@ -7,7 +7,12 @@
  *
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
-
+/*
+ * _GNU_SOURCE below is needed to configure some system includes, otherwise
+ * things like CPU_SET / CPU_ZERO / sched_setaffinity() are not going to be
+ * available at all causing compiler error.
+ */
+#define _GNU_SOURCE
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -17,6 +22,7 @@
 #include <ifaddrs.h>
 #include <poll.h>
 #include <pthread.h>
+#include <sched.h>
 #include <signal.h>
 #include <string.h>
 #include <netinet/in.h>
@@ -84,6 +90,7 @@ static unsigned long long launch_range;
 static int port;
 static int verbose;
 static int loop_forever = 1;
+static int cpu = 0;
 
 /*
  * A buffer for storring socket error messages that we generally ignore, but may need at some
@@ -413,6 +420,7 @@ static void print_help(void)
 	printf("Usage: ndl-helper [options] ifname\n");
 	printf("  ifname - name of the network interface to use.\n");
 	printf("Options:\n");
+	printf("  -C, --cpu    CPU number to measure (CPU 0 by default).\n");
 	printf("  -l, --ldist  the launch distance in nanoseconds.\n");
 	printf("  -p, --port   UDP port number to use (default is a random port).\n");
 	printf("  -c, --count  number of test iterations. By default runs until stopped by\n");
@@ -429,6 +437,7 @@ static int parse_options(int argc, char * const *argv)
 {
 	int opt, cnt;
 	struct option long_opts[] = {
+		{ "cpu",             required_argument, NULL, 'C'},
 		{ "ldist",           required_argument, NULL, 'l'},
 		{ "port",            required_argument, NULL, 'p'},
 		{ "count",           required_argument, NULL, 'c'},
@@ -439,8 +448,11 @@ static int parse_options(int argc, char * const *argv)
 		{ 0 }
 	};
 
-	while ((opt = getopt_long(argc, argv, "l:p:c:TPvh", long_opts, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "C:l:p:c:TPvh", long_opts, NULL)) != -1) {
 		switch (opt) {
+		case 'C':
+			cpu = atol(optarg);
+			break;
 		case 'l':
 			sscanf(optarg, "%llu,%llu", &launch_distance, &launch_range);
 			if (launch_range > launch_distance) {
@@ -500,14 +512,23 @@ static int parse_options(int argc, char * const *argv)
 
 int main(int argc, char * const *argv)
 {
-	int zero_rtd_count = 0, arm_fail_count = 0;
+	int zero_rtd_count = 0, arm_fail_count = 0, err = 0;
 	int send_sock, ret = -1;
+	cpu_set_t cpuset;
 	uint64_t rtd;
 	char *buf;
 
 	ret = parse_options(argc, argv);
 	if (ret)
 		return -1;
+
+	CPU_ZERO(&cpuset);
+	CPU_SET(cpu, &cpuset);
+	err = sched_setaffinity(0, sizeof(cpuset), &cpuset);
+	if (err) {
+		syserrmsg("failed to set CPU affinity to %d, err=%d", cpu, err);
+		return -1;
+	}
 
 	if (setvbuf(stdout, NULL, _IOLBF, 0) || setvbuf(stdin, NULL, _IOLBF, 0)) {
 		syserrmsg("failed to set stream buffering mode");
