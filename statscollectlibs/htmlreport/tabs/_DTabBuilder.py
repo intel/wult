@@ -140,7 +140,7 @@ class DTabBuilder:
 
             if len(paths) == 2:
                 try:
-                    diff = _generate_diff(self._outdir, paths, fp)
+                    diff = _generate_diff(self._basedir, paths, fp)
                 except Error as err:
                     _LOG.info("Unable to generate diff for file preview '%s'.", name)
                     _LOG.debug(err)
