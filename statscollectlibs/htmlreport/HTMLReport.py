@@ -243,6 +243,8 @@ class HTMLReport:
 
         _copy_assets(self.outdir)
 
+        FSHelpers.set_default_perm(self.outdir)
+
     def __init__(self, outdir):
         """
         The class constructor. The arguments are as follows:
