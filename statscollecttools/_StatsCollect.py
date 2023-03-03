@@ -25,7 +25,7 @@ from statscollectlibs.deploylibs import _Deploy
 from statscollectlibs.helperlibs import ReportID
 
 _VERSION = "1.0.0"
-_OWN_NAME = "stats-collect"
+TOOLNAME = "stats-collect"
 _STC_DEPLOY_INFO = {
     "installables" : {
         "stc-agent" : {
@@ -36,13 +36,13 @@ _STC_DEPLOY_INFO = {
 }
 
 _LOG = logging.getLogger()
-Logging.setup_logger(prefix=_OWN_NAME)
+Logging.setup_logger(prefix=TOOLNAME)
 
 def build_arguments_parser():
     """Build and return the arguments parser object."""
 
     text = "stats-collect - a tool for collecting and visualising system statistics and telemetry."
-    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=_OWN_NAME, ver=_VERSION)
+    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=_VERSION)
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
@@ -52,7 +52,7 @@ def build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    subpars = _Deploy.add_deploy_cmdline_args(_OWN_NAME, subparsers, _deploy_command,
+    subpars = _Deploy.add_deploy_cmdline_args(TOOLNAME, subparsers, _deploy_command,
                                               argcomplete=argcomplete)
 
     #
@@ -116,12 +116,12 @@ def build_arguments_parser():
     subpars.set_defaults(func=_report_command)
 
     text = f"""Path to the directory to store the report at. By default the report is stored in the
-               '{_OWN_NAME}-report-<reportid>' sub-directory of the test result directory. If there
+               '{TOOLNAME}-report-<reportid>' sub-directory of the test result directory. If there
                are multiple test results, the report is stored in the current directory. The
-               '<reportid>' is report ID of {_OWN_NAME} test result."""
+               '<reportid>' is report ID of {TOOLNAME} test result."""
     subpars.add_argument("-o", "--outdir", type=Path, help=text)
 
-    text = f"""One or multiple {_OWN_NAME} test result paths."""
+    text = f"""One or multiple {TOOLNAME} test result paths."""
     subpars.add_argument("respaths", nargs="+", type=Path, help=text)
 
     if argcomplete:
@@ -129,13 +129,13 @@ def build_arguments_parser():
 
     return parser
 
-def _parse_arguments():
+def parse_arguments():
     """Parse input arguments."""
 
     parser = build_arguments_parser()
 
     args = parser.parse_args()
-    args.toolname = _OWN_NAME
+    args.toolname = TOOLNAME
     args.toolver = _VERSION
     args.deploy_info = _STC_DEPLOY_INFO
 
@@ -166,10 +166,10 @@ def main():
     """Script entry point."""
 
     try:
-        args = _parse_arguments()
+        args = parse_arguments()
 
         if not getattr(args, "func", None):
-            _LOG.error("please, run '%s -h' for help.", _OWN_NAME)
+            _LOG.error("please, run '%s -h' for help.", TOOLNAME)
             return -1
 
         args.func(args)
