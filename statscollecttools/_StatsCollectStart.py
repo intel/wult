@@ -45,6 +45,18 @@ def _generate_report(res, outdir):
     rep = HTMLReport.HTMLReport(outdir)
     rep.generate_report(stats_paths=stats_paths, title="stats-collect report")
 
+def _run_command(cmd, pman, tlimit):
+    """Run the command."""
+
+    _LOG.info("Running the following command%s: %s", pman.hostmsg, cmd)
+
+    proc = pman.run_async(cmd)
+    _, _, exitcode = proc.wait(timeout=tlimit)
+    if exitcode is None:
+        _LOG.notice("statistics collection stopped because the time limit was reached before "
+                    "the command finished executing.")
+        ProcHelpers.kill_pids(proc.pid, kill_children=True, must_die=True, pman=pman)
+
 def start_command(args):
     """Implements the 'start' command."""
 
@@ -90,12 +102,7 @@ def start_command(args):
 
             stcoll.start()
 
-        proc = pman.run_async(args.cmd)
-        _, _, exitcode = proc.wait(timeout=args.tlimit)
-        if exitcode is None:
-            _LOG.notice("statistics collection stopped because the time limit was reached before "
-                        "the command finished executing.")
-            ProcHelpers.kill_pids(proc.pid, kill_children=True, must_die=True, pman=pman)
+        _run_command(args.cmd, pman, args.tlimit)
 
         if args.stats:
             stcoll.stop()
