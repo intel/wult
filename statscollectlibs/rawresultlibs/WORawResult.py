@@ -14,8 +14,8 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorExists
 from statscollectlibs.helperlibs import FSHelpers
 from statscollectlibs.rawresultlibs import _RawResultBase
 
-class RawResult(_RawResultBase.RawResultBase):
-    """This class represents a raw test result."""
+class WORawResult(_RawResultBase.RawResultBase):
+    """This class represents a write-only raw test result."""
 
     def _init_outdir(self):
         """Initialize the output directory for writing or appending test results."""

@@ -18,7 +18,7 @@ from statscollecttools import _Common
 from statscollectlibs.deploylibs import _Deploy
 from statscollectlibs.collector import StatsCollectBuilder
 from statscollectlibs.helperlibs import ProcHelpers, ReportID
-from statscollectlibs.rawresultlibs import RawResult
+from statscollectlibs.rawresultlibs import WORawResult
 
 _LOG = logging.getLogger()
 
@@ -93,7 +93,7 @@ def start_command(args):
                                  pman=pman) as depl:
             depl.check_deployment()
 
-        res = RawResult.RawResult(args.reportid, args.outdir, args.toolver, args.cpunum)
+        res = WORawResult.WORawResult(args.reportid, args.outdir, args.toolver, args.cpunum)
 
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
 
