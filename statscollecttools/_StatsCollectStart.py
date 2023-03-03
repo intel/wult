@@ -50,9 +50,22 @@ def _run_command(cmd, pman, tlimit):
 
     _LOG.info("Running the following command%s: %s", pman.hostmsg, cmd)
 
+    if not tlimit:
+        run_forever = True
+        tlimit = 4 * 60 * 60
+    else:
+        run_forever = False
+
     proc = pman.run_async(cmd)
-    _, _, exitcode = proc.wait(timeout=tlimit)
-    if exitcode is None:
+
+    while True:
+        _, _, exitcode = proc.wait(timeout=tlimit)
+        if exitcode is not None:
+            break
+
+        if run_forever:
+            continue
+
         _LOG.notice("statistics collection stopped because the time limit was reached before "
                     "the command finished executing.")
         ProcHelpers.kill_pids(proc.pid, kill_children=True, must_die=True, pman=pman)
