@@ -14,7 +14,6 @@ import logging
 from pathlib import Path
 from pepclibs import CPUInfo
 from pepclibs.helperlibs import Human, Logging
-from pepclibs.helperlibs.Exceptions import Error
 from statscollecttools import _Common
 from statscollectlibs.deploylibs import _Deploy
 from statscollectlibs.collector import StatsCollectBuilder
@@ -74,21 +73,22 @@ def start_command(args):
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
 
         if not args.stats or args.stats == "none":
-            raise Error("No statistics specified. Use '--stats' to specify which statistics "
-                        "should be collected.")
+            args.stats = None
+            _LOG.warning("no statistics will be collected")
 
-        stcoll_builder = StatsCollectBuilder.StatsCollectBuilder()
-        stcoll_builder.parse_stnames(args.stats)
-        if args.stats_intervals:
-            stcoll_builder.parse_intervals(args.stats_intervals)
+        if args.stats:
+            stcoll_builder = StatsCollectBuilder.StatsCollectBuilder()
+            stcoll_builder.parse_stnames(args.stats)
+            if args.stats_intervals:
+                stcoll_builder.parse_intervals(args.stats_intervals)
 
-        stcoll = stcoll_builder.build_stcoll(pman, args.outdir)
-        if not stcoll:
-            return
+            stcoll = stcoll_builder.build_stcoll(pman, args.outdir)
+            if not stcoll:
+                return
 
-        stack.enter_context(stcoll)
+            stack.enter_context(stcoll)
 
-        stcoll.start()
+            stcoll.start()
 
         proc = pman.run_async(args.cmd)
         _, _, exitcode = proc.wait(timeout=args.tlimit)
@@ -97,8 +97,10 @@ def start_command(args):
                         "the command finished executing.")
             ProcHelpers.kill_pids(proc.pid, kill_children=True, must_die=True, pman=pman)
 
-        stcoll.stop()
-        stcoll.finalize()
+        if args.stats:
+            stcoll.stop()
+            stcoll.finalize()
+
         res.write_info()
 
     if args.report:
