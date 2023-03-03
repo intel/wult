@@ -6,9 +6,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
- - Add '--cpunum' option for ndl.
 ### Removed
 ### Changed
+
+## [1.11.2] - 2023-03-03
+### Added
+ - Add '--cpunum' option for ndl.
 
 ## [1.11.1] - 2023-02-24
 ### Fixed

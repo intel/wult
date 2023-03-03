@@ -2,7 +2,7 @@
 NDL
 ===
 
-:Date:   2023-02-24
+:Date:   2023-03-03
 
 .. contents::
    :depth: 3
@@ -183,8 +183,8 @@ COMMAND *'ndl* start'
 usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
 [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid
 REPORTID] [--stats STATS] [--stats-intervals STATS_INTERVALS]
-[--list-stats] [-l LDIST] [--exclude EXCLUDE] [--include INCLUDE]
-[--keep-filtered] [--report] [--force] ifname
+[--list-stats] [-l LDIST] [--cpunum CPUNUM] [--exclude EXCLUDE]
+[--include INCLUDE] [--keep-filtered] [--report] [--force] ifname
 
 Start measuring and recording the latency data.
 
@@ -253,7 +253,7 @@ OPTIONS *'ndl* start'
    collected in parallel with measuring C-state latency. They are stored
    in the the "stats" sub-directory of the output directory. By default,
    only 'sysinfo' statistics are collected. Use 'all' to collect all
-   possible statistics. Use '--stats=""' or --stats='none' to disable
+   possible statistics. Use '--stats=""' or '--stats="none"' to disable
    statistics collection. If you know exactly what statistics you need,
    specify the comma-separated list of statistics to collect. For
    example, use 'turbostat,acpower' if you need only turbostat and AC
@@ -291,6 +291,14 @@ OPTIONS *'ndl* start'
    500us,100ms' would be a [500,100000] microseconds range. Note, too
    low values may cause failures or prevent the SUT from reaching deep
    C-states. The optimal value is system-specific.
+
+**--cpunum** *CPUNUM*
+   The CPU number to bind the helper to. The helper will use this CPU to
+   send delayed packets. In normal conditions this means that network
+   packet buffers will be allocated on the NUMA node local to the CPU,
+   but not necessarily local to the network card. Use this option to
+   measure different packet memory locations on a NUMA system. Default
+   is CPU 0.
 
 **--exclude** *EXCLUDE*
    Datapoints to exclude: remove all the datapoints satisfying the
