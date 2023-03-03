@@ -1,3 +1,10 @@
+wult (1.11.3) unstable; urgency=low
+
+  * Fix a regression in v1.11.2 where 'sysinfo' tabs would fail to generate
+    diffs.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 03 Mar 2023 00:00:00 +0200
+
 wult (1.11.2) unstable; urgency=low
 
   * Add '--cpunum' option for ndl.

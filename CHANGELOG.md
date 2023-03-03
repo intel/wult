@@ -5,11 +5,14 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix a regression in v1.11.2 where 'sysinfo' tabs would fail to generate
-   diffs.
 ### Added
 ### Removed
 ### Changed
+
+## [1.11.3] - 2023-03-03
+### Fixed
+ - Fix a regression in v1.11.2 where 'sysinfo' tabs would fail to generate
+   diffs.
 
 ## [1.11.2] - 2023-03-03
 ### Added
