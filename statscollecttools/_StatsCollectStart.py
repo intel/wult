@@ -59,7 +59,7 @@ def _run_command(cmd, pman, tlimit):
     proc = pman.run_async(cmd)
 
     while True:
-        _, _, exitcode = proc.wait(timeout=tlimit)
+        stdout, stderr, exitcode = proc.wait(timeout=tlimit)
         if exitcode is not None:
             break
 
@@ -69,6 +69,8 @@ def _run_command(cmd, pman, tlimit):
         _LOG.notice("statistics collection stopped because the time limit was reached before "
                     "the command finished executing.")
         ProcHelpers.kill_pids(proc.pid, kill_children=True, must_die=True, pman=pman)
+
+    return stdout, stderr
 
 def start_command(args):
     """Implements the 'start' command."""
@@ -115,11 +117,19 @@ def start_command(args):
 
             stcoll.start()
 
-        _run_command(args.cmd, pman, args.tlimit)
+        stdout, stderr = _run_command(args.cmd, pman, args.tlimit)
 
         if args.stats:
             stcoll.stop()
             stcoll.finalize()
+
+        for ftype, txt in [("stdout", stdout,), ("stderr", stderr,)]:
+            if not txt:
+                continue
+            fpath = args.outdir / "logs" / f"cmd-{ftype}.log.txt"
+            with open(fpath, "w", encoding="utf-8") as f:
+                f.write(txt)
+            res.info[ftype] = fpath.relative_to(args.outdir)
 
         res.write_info()
 
