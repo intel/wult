@@ -7,14 +7,11 @@
 # Authors: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 #          Adam James Hawley <adam.james.hawley@linux.intel.com>
 
-"""
-This module contains miscellaneous functions used by various 'statscollecttools' modules.
-"""
+"""This module contains miscellaneous functions used by various 'statscollecttools' modules."""
 
 import logging
 from pepclibs.helperlibs import ProcessManager
-from statscollectlibs.helperlibs import FSHelpers
-from statscollectlibs.htmlreport.tabs import _Tabs
+from statscollectlibs.htmlreport.tabs import _Tabs, FilePreviewBuilder
 
 _LOG = logging.getLogger()
 
@@ -41,28 +38,17 @@ def generate_captured_output_tab(rsts, outdir):
 
     _LOG.info("Generating '%s' tab.", tab_title)
 
-    fpreviews = []
+    files = {}
     for ftype in ("stdout", "stderr"):
-        fpaths = {}
-        for res in rsts:
-            fpath = res.info.get(ftype, "")
-            src = res.dirpath / fpath
-            dst = outdir / res.reportid / fpath
+        fp = rsts[0].info.get(ftype)
+        if fp:
+            files[ftype] = fp
 
-            if not fpath or not src.exists():
-                continue
-
-            FSHelpers.move_copy_link(src, dst, "copy")
-            fpaths[res.reportid] = dst.relative_to(outdir)
-
-        if not fpaths:
-            continue
-
-        fpreview = _Tabs.FilePreviewDC(ftype, fpaths)
-        fpreviews.append(fpreview)
+    fpbuilder = FilePreviewBuilder.FilePreviewBuilder(outdir)
+    fpreviews = fpbuilder.build_fpreviews({res.reportid: res.dirpath for res in rsts}, files)
 
     if not fpreviews:
         return None
 
-    dtab = _Tabs.DTabDC(tab_title, fpreviews=fpreviews)
+    dtab = _Tabs.DTabDC(tab_title, fpreviews=fpbuilder.fpreviews)
     return _Tabs.CTabDC(tab_title, tabs=[dtab])
