@@ -43,7 +43,9 @@ def _generate_report(res, outdir):
 
     stats_paths =  {res.reportid: res.stats_path}
     rep = HTMLReport.HTMLReport(outdir)
-    rep.generate_report(stats_paths=stats_paths, title="stats-collect report")
+    tab = _Common.generate_captured_output_tab([res], outdir)
+    tabs = [tab] if tab is not None else []
+    rep.generate_report(tabs=tabs, stats_paths=stats_paths, title="stats-collect report")
 
 def _run_command(cmd, pman, tlimit):
     """Run the command."""
