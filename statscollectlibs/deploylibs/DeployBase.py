@@ -70,7 +70,7 @@ def get_deploy_suggestion(pman, prjname, toolname, what, is_helper):
     """
 
     if not is_helper:
-        return f"Consider running '{get_deploy_cmd(pman, prjname)}'"
+        return f"Consider running '{get_deploy_cmd(pman, toolname)}'"
 
     envvar = ProjectFiles.get_project_helpers_envvar(prjname)
     msg = f"Here are the options to try.\n" \
