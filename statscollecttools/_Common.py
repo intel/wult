@@ -42,7 +42,7 @@ def _trim_file(srcpath, dstpath, top, bottom):
     try:
         with open(srcpath, "r", encoding="utf-8") as f:
             lines = f.readlines()
-            if lines <= top + bottom:
+            if len(lines) <= top + bottom:
                 trimmed_lines = lines
             trimmed_lines = lines[:top] + lines[-bottom:]
     except OSError as err:
