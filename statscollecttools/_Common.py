@@ -10,7 +10,9 @@
 """This module contains miscellaneous functions used by various 'statscollecttools' modules."""
 
 import logging
+from pathlib import Path
 from pepclibs.helperlibs import ProcessManager
+from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.htmlreport.tabs import _Tabs, FilePreviewBuilder
 
 _LOG = logging.getLogger()
@@ -31,6 +33,31 @@ def get_pman(args):
     return ProcessManager.get_pman(args.hostname, username=username, privkeypath=privkeypath,
                                    timeout=timeout)
 
+def _trim_file(srcpath, dstpath, top, bottom):
+    """
+    Helper function for 'generate_captured_output_tab()'. Copies the file at 'srcpath' to 'dstpath'
+    and removes all but the top 'top' lines and bottom 'bottom' lines.
+    """
+
+    try:
+        with open(srcpath, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+            if lines <= top + bottom:
+                trimmed_lines = lines
+            trimmed_lines = lines[:top] + lines[-bottom:]
+    except OSError as err:
+        msg = Error(err).indent(2)
+        raise Error(f"unable to open captured output file at '{srcpath}':\n{msg}") from None
+
+    try:
+        dstpath.parent.mkdir(parents=True, exist_ok=True)
+        with open(dstpath, "w", encoding="utf-8") as f:
+            f.writelines(trimmed_lines)
+    except OSError as err:
+        msg = Error(err).indent(2)
+        msg = f"unable to write trimmed captured output file at '{dstpath}':\n{msg}"
+        raise Error(msg) from None
+
 def generate_captured_output_tab(rsts, outdir):
     """Generate a container tab containing the output captured in 'stats-collect start'."""
 
@@ -41,11 +68,19 @@ def generate_captured_output_tab(rsts, outdir):
     files = {}
     for ftype in ("stdout", "stderr"):
         fp = rsts[0].info.get(ftype)
-        if fp:
-            files[ftype] = fp
+
+        if not fp or not all(((res.dirpath / fp).exists() for res in rsts)):
+            continue
+
+        srcfp = Path(fp)
+        dstfp = srcfp.parent / f"trimmed-{srcfp.name}"
+        for res in rsts:
+            _trim_file(res.dirpath / srcfp, outdir / res.reportid / dstfp, 16, 32)
+        files[ftype] = dstfp
 
     fpbuilder = FilePreviewBuilder.FilePreviewBuilder(outdir)
-    fpreviews = fpbuilder.build_fpreviews({res.reportid: res.dirpath for res in rsts}, files)
+    fpreviews = fpbuilder.build_fpreviews({res.reportid: outdir / res.reportid for res in rsts},
+                                          files)
 
     if not fpreviews:
         return None
