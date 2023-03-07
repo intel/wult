@@ -572,7 +572,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         cmd = f"{self.toolpath} start -c {self._datapoints}"
 
-        if self.toolpath.name == "wult":
+        if self.toolpath.name in ("wult", "ndl"):
             cmd += f" --cpunum {self._cpunum}"
 
         cmd += f" {devid}"
