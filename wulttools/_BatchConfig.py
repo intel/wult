@@ -830,10 +830,10 @@ class BatchReport(_CmdlineRunner):
 
         return groups
 
-    def group_results(self, searchpaths, diff=None, include=None, exclude=None):
+    def group_results(self, searchpaths, diffs=None, include=None, exclude=None):
         """
         Find results from paths 'searchpaths'. Group results according to arguments:
-          * diff - Comma-separated list of monikers to group results with.
+          * diffs - Comma-separated list of monikers to group results with.
           * include - Comma-separated list of monikers that must be found from the result path name.
           * exclude - Comma-separated list of monikers that must not be found from the result path
                       name.
@@ -846,8 +846,8 @@ class BatchReport(_CmdlineRunner):
         include_monikers = None
         exclude_monikers = None
 
-        if diff:
-            diff_monikers = Trivial.split_csv_line(diff)
+        if diffs:
+            diff_monikers = Trivial.split_csv_line(diffs)
 
         if include:
             include_monikers = set(Trivial.split_csv_line(include))

@@ -173,7 +173,7 @@ _COLLECT_OPTIONS = {
 }
 
 _GENERATE_OPTIONS = {
-    "diff" : {
+    "diffs" : {
         "help" : """Collected data is stored in directories, and each directory name is constructed
                     from multiple monikers separated by dashes, e.g. 'hrt-c6-uf_max-autoc1e_off'.
                     This option can be used to create diff reports by including multiple results in
@@ -330,11 +330,11 @@ def _report_command(args):
     with _BatchConfig.BatchReport(args.toolpath, outdir, args.toolopts, dry_run=args.dry_run,
                                   stop_on_failure=args.stop_on_failure, proc_count=args.jobs) as \
                                   batchreport:
-        for outpath, respaths in batchreport.group_results(args.respaths, diff=args.diff,
+        for outpath, respaths in batchreport.group_results(args.respaths, diffs=args.diffs,
                                                            include=args.include,
                                                            exclude=args.exclude):
             # Do not generate report if diff report is requested, but we have only one result.
-            if args.diff and len(respaths) < len(Trivial.split_csv_line(args.diff)):
+            if args.diffs and len(respaths) < len(Trivial.split_csv_line(args.diffs)):
                 continue
 
             batchreport.generate_report(respaths, outdir / outpath)
