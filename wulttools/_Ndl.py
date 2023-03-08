@@ -26,7 +26,7 @@ from wultlibs.helperlibs import Human
 from wultlibs.htmlreport import NdlReportParams
 
 _VERSION = "1.3.15"
-_OWN_NAME = "ndl"
+TOOLNAME = "ndl"
 
 # The deployment information dictionary. See 'DeployBase.__init__()' for details.
 _NDL_DEPLOY_INFO = {
@@ -44,7 +44,7 @@ _NDL_DEPLOY_INFO = {
 }
 
 _LOG = logging.getLogger()
-Logging.setup_logger(prefix=_OWN_NAME)
+Logging.setup_logger(prefix=TOOLNAME)
 
 def _get_axes_default(name):
     """Returns the default CSV column names for X- or Y-axes, as well as histograms."""
@@ -57,7 +57,7 @@ def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
     text = "ndl - a tool for measuring memory access latency observed by a network card."
-    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=_OWN_NAME, ver=_VERSION)
+    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=_VERSION)
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
@@ -67,7 +67,7 @@ def _build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    _Deploy.add_deploy_cmdline_args(_OWN_NAME, _NDL_DEPLOY_INFO, subparsers, _deploy_command,
+    _Deploy.add_deploy_cmdline_args(TOOLNAME, _NDL_DEPLOY_INFO, subparsers, _deploy_command,
                                     argcomplete=argcomplete)
 
     #
@@ -78,7 +78,7 @@ def _build_arguments_parser():
     subpars = subparsers.add_parser("scan", help=text, description=descr)
     subpars.set_defaults(func=_Common.scan_command)
     subpars.add_argument("--all", action="store_true",
-                         help=_Common.get_scan_all_descr(_OWN_NAME))
+                         help=_Common.get_scan_all_descr(TOOLNAME))
 
     ArgParse.add_ssh_options(subpars)
 
@@ -108,7 +108,7 @@ def _build_arguments_parser():
     subpars.add_argument("--stats-intervals", help=_Common.STAT_INTERVALS_DESCR)
 
     subpars.add_argument("--list-stats", action="store_true",
-                         help=_Common.LIST_STATS_DESCR % _OWN_NAME)
+                         help=_Common.LIST_STATS_DESCR % TOOLNAME)
 
     text = f"""The launch distance in microseconds. This tool works by scheduling a delayed network
                packet, then sleeping and waiting for the packet to be sent. This step is referred to
@@ -161,7 +161,7 @@ def _build_arguments_parser():
     subpars.set_defaults(func=_report_command)
 
     subpars.add_argument("-o", "--outdir", type=Path,
-                         help=_Common.get_report_outdir_descr(_OWN_NAME))
+                         help=_Common.get_report_outdir_descr(TOOLNAME))
     subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=_Common.EXCL_DESCR)
     subpars.add_argument("--include", action=ArgParse.OrderedArg, help=_Common.INCL_DESCR)
     subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
@@ -178,7 +178,7 @@ def _build_arguments_parser():
     subpars.add_argument("--list-metrics", action="store_true",
                          help=_Common.LIST_METRICS_DESCR)
 
-    text = f"""One or multiple {_OWN_NAME} test result paths."""
+    text = f"""One or multiple {TOOLNAME} test result paths."""
     subpars.add_argument("respaths", nargs="+", type=Path, help=text)
 
     #
@@ -201,14 +201,14 @@ def _build_arguments_parser():
                          help=_Common.LIST_METRICS_DESCR)
     subpars.add_argument("--reportid", help=_Common.FILTER_REPORTID_DESCR)
 
-    text = f"The {_OWN_NAME} test result path to filter."
+    text = f"The {TOOLNAME} test result path to filter."
     subpars.add_argument("respath", type=Path, help=text)
 
     #
     # Create parsers for the "calc" command.
     #
-    text = f"Calculate summary functions for a {_OWN_NAME} test result."
-    descr = f"""Calculates various summary functions for a {_OWN_NAME} test result (e.g., the median
+    text = f"Calculate summary functions for a {TOOLNAME} test result."
+    descr = f"""Calculates various summary functions for a {TOOLNAME} test result (e.g., the median
                 value for one of the CSV columns)."""
     subpars = subparsers.add_parser("calc", help=text, description=descr)
     subpars.set_defaults(func=_Common.calc_command)
@@ -222,7 +222,7 @@ def _build_arguments_parser():
     subpars.add_argument("-f", "--funcs", help=_Common.FUNCS_DESCR)
     subpars.add_argument("--list-funcs", action="store_true", help=_Common.LIST_FUNCS_DESCR)
 
-    text = f"""The {_OWN_NAME} test result path to calculate summary functions for."""
+    text = f"""The {TOOLNAME} test result path to calculate summary functions for."""
     subpars.add_argument("respath", type=Path, help=text)
 
     if argcomplete:
@@ -236,7 +236,7 @@ def _parse_arguments():
     parser = _build_arguments_parser()
 
     args = parser.parse_args()
-    args.toolname = _OWN_NAME
+    args.toolname = TOOLNAME
     args.toolver = _VERSION
     args.deploy_info = _NDL_DEPLOY_INFO
 
@@ -270,7 +270,7 @@ def main():
         args = _parse_arguments()
 
         if not getattr(args, "func", None):
-            _LOG.error("please, run '%s -h' for help.", _OWN_NAME)
+            _LOG.error("please, run '%s -h' for help.", TOOLNAME)
             return -1
 
         args.func(args)
