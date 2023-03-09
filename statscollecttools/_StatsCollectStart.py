@@ -36,17 +36,6 @@ def generate_reportid(args, pman):
     return ReportID.format_reportid(prefix=prefix, reportid=args.reportid,
                                     strftime=f"{args.toolname}-%Y%m%d")
 
-def _generate_report(res, outdir):
-    """Implements the 'report' command for start."""
-
-    from statscollectlibs.htmlreport import HTMLReport # pylint: disable=import-outside-toplevel
-
-    stats_paths =  {res.reportid: res.stats_path}
-    rep = HTMLReport.HTMLReport(outdir)
-    tab = _Common.generate_captured_output_tab([res], outdir)
-    tabs = [tab] if tab is not None else []
-    rep.generate_report(tabs=tabs, stats_paths=stats_paths, title="stats-collect report")
-
 def _run_command(cmd, pman, tlimit):
     """Run the command."""
 
@@ -136,4 +125,4 @@ def start_command(args):
         res.write_info()
 
     if args.report:
-        _generate_report(res, args.outdir / "html-report")
+        _Common.generate_stc_report([res], args.outdir / "html-report")

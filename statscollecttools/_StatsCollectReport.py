@@ -11,7 +11,6 @@ This module includes the "report" 'stats-collect' command implementation.
 """
 
 from statscollecttools import _Common
-from statscollectlibs.htmlreport import HTMLReport
 from statscollectlibs.rawresultlibs import RORawResult
 
 def report_command(args):
@@ -22,8 +21,4 @@ def report_command(args):
     if not args.outdir:
         args.outdir = args.respaths[0] / "html-report"
 
-    rep = HTMLReport.HTMLReport(args.outdir)
-    stats_paths = {res.reportid: res.stats_path for res in rsts}
-    stdout_tab = _Common.generate_captured_output_tab(rsts, args.outdir)
-    tabs = [stdout_tab] if stdout_tab else None
-    rep.generate_report(tabs=tabs, stats_paths=stats_paths, title="stats-collect report")
+    _Common.generate_stc_report(rsts, args.outdir)

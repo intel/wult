@@ -13,6 +13,7 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import ProcessManager
 from pepclibs.helperlibs.Exceptions import Error
+from statscollectlibs.htmlreport import HTMLReport
 from statscollectlibs.htmlreport.tabs import _Tabs, FilePreviewBuilder
 
 _LOG = logging.getLogger()
@@ -87,3 +88,12 @@ def generate_captured_output_tab(rsts, outdir):
 
     dtab = _Tabs.DTabDC(tab_title, fpreviews=fpbuilder.fpreviews)
     return _Tabs.CTabDC(tab_title, tabs=[dtab])
+
+def generate_stc_report(rsts, outdir):
+    """Generate a 'stats-collect' report from the results 'rsts' with 'outdir'."""
+
+    rep = HTMLReport.HTMLReport(outdir)
+    stats_paths = {res.reportid: res.stats_path for res in rsts}
+    stdout_tab = generate_captured_output_tab(rsts, outdir)
+    tabs = [stdout_tab] if stdout_tab else None
+    rep.generate_report(tabs=tabs, stats_paths=stats_paths, title="stats-collect report")
