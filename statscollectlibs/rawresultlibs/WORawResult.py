@@ -52,13 +52,14 @@ class WORawResult(_RawResultBase.RawResultBase):
 
         YAML.dump(self.info, self.info_path)
 
-    def __init__(self, reportid, outdir, toolver, cpunum):
+    def __init__(self, reportid, outdir, toolver, cpunum, cmd):
         """
         The class constructor. The arguments are as follows.
           * reportid - reportid of the raw test result.
           * outdir - the output directory to store the raw results at.
           * toolver - version of the tool creating the report.
           * cpunum - CPU number associated with this test result (e.g., measured CPU number).
+          * cmd - the command executed during statistics collection.
         """
 
         super().__init__(outdir)
@@ -73,3 +74,4 @@ class WORawResult(_RawResultBase.RawResultBase):
         self.info["toolname"] = "stats-collect"
         self.info["toolver"] = toolver
         self.info["cpunum"] = self.cpunum
+        self.info["cmd"] = cmd
