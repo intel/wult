@@ -13,7 +13,7 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import ProcessManager
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs.htmlreport import HTMLReport
+from statscollectlibs.htmlreport import HTMLReport, _IntroTable
 from statscollectlibs.htmlreport.tabs import _Tabs, FilePreviewBuilder
 
 _LOG = logging.getLogger()
@@ -89,6 +89,18 @@ def generate_captured_output_tab(rsts, outdir):
     dtab = _Tabs.DTabDC(tab_title, fpreviews=fpbuilder.fpreviews)
     return _Tabs.CTabDC(tab_title, tabs=[dtab])
 
+def _generate_intro_table(rsts):
+    """
+    Helper function for 'generate_stc_report()'. Generates an intro table based on results in
+    'rsts'.
+    """
+
+    intro_tbl = _IntroTable.IntroTable()
+    cmd_row = intro_tbl.create_row("Command", "The command run during statistics collection.")
+    for res in rsts:
+        cmd_row.add_cell(res.reportid, res.info.get("cmd"))
+    return intro_tbl
+
 def generate_stc_report(rsts, outdir):
     """Generate a 'stats-collect' report from the results 'rsts' with 'outdir'."""
 
@@ -96,4 +108,6 @@ def generate_stc_report(rsts, outdir):
     stats_paths = {res.reportid: res.stats_path for res in rsts}
     stdout_tab = generate_captured_output_tab(rsts, outdir)
     tabs = [stdout_tab] if stdout_tab else None
-    rep.generate_report(tabs=tabs, stats_paths=stats_paths, title="stats-collect report")
+    intro_tbl = _generate_intro_table(rsts)
+    rep.generate_report(tabs=tabs, stats_paths=stats_paths, intro_tbl=intro_tbl,
+                        title="stats-collect report")
