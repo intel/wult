@@ -6,9 +6,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
- - Add command used in 'stats-collect start' to 'stats-collect' reports.
 ### Removed
 ### Changed
+
+## [1.11.4] - 2023-03-10
+### Added
+ - Add command used in 'stats-collect start' to 'stats-collect' reports.
 
 ## [1.11.3] - 2023-03-03
 ### Fixed

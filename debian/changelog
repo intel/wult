@@ -1,3 +1,9 @@
+wult (1.11.4) unstable; urgency=low
+
+  * Add command used in 'stats-collect start' to 'stats-collect' reports.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 10 Mar 2023 00:00:00 +0200
+
 wult (1.11.3) unstable; urgency=low
 
   * Fix a regression in v1.11.2 where 'sysinfo' tabs would fail to generate

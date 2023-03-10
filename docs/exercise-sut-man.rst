@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date:   2023-03-03
+:Date:   2023-03-10
 
 .. contents::
    :depth: 3
@@ -204,7 +204,7 @@ OPTIONS *'exercise-sut* start'
 COMMAND *'exercise-sut* report'
 ===============================
 
-usage: exercise-sut report [-h] [-q] [-d] [--diff DIFF] [--include
+usage: exercise-sut report [-h] [-q] [-d] [--diffs DIFFS] [--include
 INCLUDE] [--exclude EXCLUDE] [--jobs JOBS] [--toolpath TOOLPATH]
 [--toolopts TOOLOPTS] [--outdir OUTDIR] [--stop-on-failure] [--dry-run]
 [--list-monikers] [respaths ...]
@@ -226,7 +226,7 @@ OPTIONS *'exercise-sut* report'
 **-d**
    Print debugging information.
 
-**--diff** *DIFF*
+**--diffs** *DIFFS*
    Collected data is stored in directories, and each directory name is
    constructed from multiple monikers separated by dashes, e.g.
    'hrt-c6-uf_max-autoc1e_off'. This option can be used to create diff
