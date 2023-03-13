@@ -91,7 +91,7 @@ def build_arguments_parser():
               by the SUT, except for 'turbostat'. Use the '--list-stats' option to get more
               information about available statistics. By default, only 'sysinfo' statistics are
               collected."""
-    subpars.add_argument("--stats", default="sysinfo", help=text)
+    subpars.add_argument("--stats", default="default", help=text)
 
     text = """The intervals for statistics. Statistics collection is based on doing periodic
               snapshots of data. For example, by default the 'acpower' statistics collector reads
