@@ -103,7 +103,7 @@ def _build_arguments_parser():
 
     subpars.add_argument("--reportid", help=_Common.START_REPORTID_DESCR)
 
-    subpars.add_argument("--stats", default="sysinfo", help=_Common.STATS_DESCR)
+    subpars.add_argument("--stats", default="default", help=_Common.STATS_DESCR)
 
     subpars.add_argument("--stats-intervals", help=_Common.STAT_INTERVALS_DESCR)
 
