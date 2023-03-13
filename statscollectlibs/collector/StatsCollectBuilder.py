@@ -34,7 +34,7 @@ class StatsCollectBuilder:
 
         for stname in Trivial.split_csv_line(stnames):
             if stname == "all":
-                self.discover = True
+                self.discover = "all"
             elif stname.startswith("!"):
                 # The "!" prefix indicates that the statistics must not be collected.
                 stname = stname[1:]
@@ -91,7 +91,7 @@ class StatsCollectBuilder:
         stcoll.set_info_logging(True)
 
         if self.discover:
-            stcoll.set_enabled_stats("all")
+            stcoll.set_enabled_stats(self.discover)
             stcoll.set_disabled_stats(self.exclude)
         else:
             stcoll.set_disabled_stats("all")
@@ -121,7 +121,7 @@ class StatsCollectBuilder:
         stcoll.set_intervals(self.intervals)
 
         if self.discover:
-            stcoll.set_enabled_stats("all")
+            stcoll.set_enabled_stats(self.discover)
             stcoll.set_disabled_stats(self.exclude)
 
             discovered = stcoll.discover()
@@ -150,9 +150,9 @@ class StatsCollectBuilder:
     def __init__(self):
         """Class constructor."""
 
-        # If 'True', then include all the discovered statistics except for those in
-        # 'exclude'.
-        self.discover = False
+        # Statistic names that should try to be discovered. Statistic names in 'exclude' will not
+        # try to be discovered.
+        self.discover = set()
         # Statistics names that should be collected.
         self.include = set()
         # Statistics names that should not be collected.
