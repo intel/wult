@@ -8,6 +8,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Change 'stats-collect', 'wult' and 'ndl' to collect 'turbostat' and 'sysinfo'
+   statistics by default.
 
 ## [1.11.4] - 2023-03-10
 ### Added
