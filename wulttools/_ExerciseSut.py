@@ -24,10 +24,10 @@ from pepclibs.helperlibs import ArgParse, Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wulttools import _BatchConfig
 
-_OWN_NAME = "exercise-sut"
+TOOLNAME = "exercise-sut"
 _VERSION = "1.1.1"
 
-Logging.setup_logger(prefix=_OWN_NAME)
+Logging.setup_logger(prefix=TOOLNAME)
 _LOG = logging.getLogger()
 
 _RESET_PROPS = {
@@ -221,7 +221,7 @@ _COMMON_OPTIONS = {
     },
     "list_monikers" : {
         "action" : "store_true",
-        "help" : f"""A moniker is an abbreviation for a setting. The '{_OWN_NAME}' uses monikers to
+        "help" : f"""A moniker is an abbreviation for a setting. The '{TOOLNAME}' uses monikers to
                      create directory names and report IDs for collected results. Use this option to
                      list monikers assosiated with each settings, if any, and exit."""
     },
@@ -230,8 +230,8 @@ _COMMON_OPTIONS = {
 def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
-    text = f"{_OWN_NAME} - Run a test tool or benchmark to collect testdata."
-    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=_OWN_NAME, ver=_VERSION)
+    text = f"{TOOLNAME} - Run a test tool or benchmark to collect testdata."
+    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=_VERSION)
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
@@ -287,7 +287,7 @@ def _start_command(args):
         return
 
     if args.toolpath.name in ("wult", "ndl") and not args.devids:
-        _LOG.error_out("please, provide device ID to measure with, see '%s -h' for help", _OWN_NAME)
+        _LOG.error_out("please, provide device ID to measure with, see '%s -h' for help", TOOLNAME)
 
     inprops = {}
     for pname in _BatchConfig.PROP_INFOS:
@@ -347,7 +347,7 @@ def main():
         args = parse_arguments()
 
         if not getattr(args, "func", None):
-            _LOG.error("please, run '%s -h' for help.", _OWN_NAME)
+            _LOG.error("please, run '%s -h' for help.", TOOLNAME)
             return -1
 
         args.func(args)
