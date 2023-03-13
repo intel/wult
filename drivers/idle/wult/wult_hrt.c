@@ -107,8 +107,8 @@ static int enable(struct wult_device_info *wdi, bool enable)
 		err = tracepoint_probe_register(wt->tp,
 				(void *)hrtimer_expire_entry_hook, wt);
 		if (err) {
-			wult_err("failed to register the '%s' tracepoint probe,"
-				" error %d", TRACEPOINT_NAME, err);
+			wult_err("failed to register the '%s' tracepoint probe, error %d",
+				 TRACEPOINT_NAME, err);
 			return err;
 		}
 	} else {
