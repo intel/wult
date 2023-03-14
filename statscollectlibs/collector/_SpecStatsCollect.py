@@ -393,7 +393,7 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
 
                 stpath = stname
                 if stname != "sysinfo":
-                    stpath += ".txt"
+                    stpath += ".raw.txt"
                 info["paths"]["stats"] = stpath
 
                 if agent.labels_path:
