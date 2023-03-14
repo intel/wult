@@ -23,6 +23,7 @@ from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.deploylibs import _Deploy
 from statscollectlibs.helperlibs import ReportID
+from statscollectlibs.collector import StatsCollectBuilder
 
 _VERSION = "1.0.0"
 TOOLNAME = "stats-collect"
@@ -80,17 +81,18 @@ def build_arguments_parser():
                23, 2015. The allowed characters are: {ReportID.get_charset_descr()}."""
     subpars.add_argument("--reportid", help=text)
 
-    text = """Comma-separated list of statistics to collect. They are stored in the the "stats"
-              sub-directory of the output directory. By default, only 'sysinfo' statistics are
-              collected. Use 'all' to collect all possible statistics. Use '--stats=""' or
-              '--stats="none"' to disable statistics collection. If you know exactly what statistics
-              you need, specify the comma-separated list of statistics to collect. For example, use
-              'turbostat,acpower' if you need only turbostat and AC power meter statistics. You can
-              also specify the statistics you do not want to be collected by pre-pending the '!'
-              symbol. For example, 'all,!turbostat' would mean: collect all the statistics supported
-              by the SUT, except for 'turbostat'. Use the '--list-stats' option to get more
-              information about available statistics. By default, only 'sysinfo' statistics are
-              collected."""
+    default_stats = ", ".join(StatsCollectBuilder.DEFAULT_STNAMES)
+    text = f"""Comma-separated list of statistics to collect. They are stored in the the "stats"
+               sub-directory of the output directory. By default, only '{default_stats}' statistics
+               are collected. Use 'all' to collect all possible statistics. Use '--stats=""' or
+               '--stats="none"' to disable statistics collection. If you know exactly what
+               statistics you need, specify the comma-separated list of statistics to collect. For
+               example, use 'turbostat,acpower' if you need only turbostat and AC power meter
+               statistics. You can also specify the statistics you do not want to be collected by
+               pre-pending the '!' symbol. For example, 'all,!turbostat' would mean: collect all the
+               statistics supported by the SUT, except for 'turbostat'. Use the '--list-stats'
+               option to get more information about available statistics. By default, only 'sysinfo'
+               statistics are collected."""
     subpars.add_argument("--stats", default="default", help=text)
 
     text = """The intervals for statistics. Statistics collection is based on doing periodic
