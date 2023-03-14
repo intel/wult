@@ -10,11 +10,15 @@
 This module provides the capability of populating the AC Power statistics tab.
 """
 
+import logging
+import numpy
 import pandas
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.defs import ACPowerDefs
 from statscollectlibs.htmlreport.tabs import _TabBuilderBase
 from statscollectlibs.htmlreport.tabs import _DTabBuilder
+
+_LOG = logging.getLogger()
 
 class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
     """
@@ -38,7 +42,7 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
 
         try:
             # 'skipfooter' parameter only available with Python pandas engine.
-            sdf = pandas.read_csv(path, skipfooter=1, engine="python")
+            sdf = pandas.read_csv(path, skipfooter=1, engine="python", dtype='float64')
         except pandas.errors.ParserError as err:
             msg = Error(err).indent(2)
             raise Error(f"unable to parse CSV '{path}':\n{msg}.") from None
@@ -49,6 +53,13 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
 
         # Convert Time column from time since epoch to time since the first data point was recorded.
         sdf[self._time_metric] = sdf[self._time_metric] - sdf[self._time_metric][0]
+
+        # Remove any 'infinite' values which can appear in raw ACPower files.
+        sdf.replace([numpy.inf, -numpy.inf], numpy.nan, inplace=True)
+        if sdf.isnull().values.any():
+            _LOG.warning("dropping one or more 'nan' values from '%s' statistics file '%s'.",
+                         self.name, path)
+            sdf.dropna(inplace=True)
 
         return sdf
 
