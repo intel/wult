@@ -5,9 +5,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix 'stats-collect report' crashing on 'inf' acpower values.
 ### Added
 ### Removed
 ### Changed
+ - Change 'stats-collect', 'wult' and 'ndl' to collect 'turbostat' and 'sysinfo'
+   statistics by default.
 
 ## [1.11.4] - 2023-03-10
 ### Added

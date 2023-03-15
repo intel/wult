@@ -17,6 +17,8 @@ from statscollectlibs.deploylibs import DeployBase
 
 _LOG = logging.getLogger()
 
+DEFAULT_STNAMES = ("turbostat", "sysinfo")
+
 class StatsCollectBuilder:
     """This class provides the API for building an instance of 'StatsCollect'."""
 
@@ -25,8 +27,9 @@ class StatsCollectBuilder:
         Parse the statistics names string 'stnames'. Arguments are as follows:
          * stnames - a string containing a comma-separated list of statistic names. The "!" symbol
                      at the beginning of a statistics name means that this statistics should not be
-                     collected. The spacial "all" name means that all the discovered statistics
-                     should be included.
+                     collected. There are two special keywords which can be used:
+                        1. "all": include all discovered statistics.
+                        2. "default": include only the default set of statistics.
 
         This method parses statistics names into the following class properties: 'include',
         'exclude', 'discover'.
@@ -34,7 +37,9 @@ class StatsCollectBuilder:
 
         for stname in Trivial.split_csv_line(stnames):
             if stname == "all":
-                self.discover = True
+                self.discover = "all"
+            elif stname == "default":
+                self.discover = DEFAULT_STNAMES
             elif stname.startswith("!"):
                 # The "!" prefix indicates that the statistics must not be collected.
                 stname = stname[1:]
@@ -91,7 +96,7 @@ class StatsCollectBuilder:
         stcoll.set_info_logging(True)
 
         if self.discover:
-            stcoll.set_enabled_stats("all")
+            stcoll.set_enabled_stats(self.discover)
             stcoll.set_disabled_stats(self.exclude)
         else:
             stcoll.set_disabled_stats("all")
@@ -121,7 +126,7 @@ class StatsCollectBuilder:
         stcoll.set_intervals(self.intervals)
 
         if self.discover:
-            stcoll.set_enabled_stats("all")
+            stcoll.set_enabled_stats(self.discover)
             stcoll.set_disabled_stats(self.exclude)
 
             discovered = stcoll.discover()
@@ -150,9 +155,9 @@ class StatsCollectBuilder:
     def __init__(self):
         """Class constructor."""
 
-        # If 'True', then include all the discovered statistics except for those in
-        # 'exclude'.
-        self.discover = False
+        # Statistic names that should try to be discovered. Statistic names in 'exclude' will not
+        # try to be discovered.
+        self.discover = set()
         # Statistics names that should be collected.
         self.include = set()
         # Statistics names that should not be collected.
