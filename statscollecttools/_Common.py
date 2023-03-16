@@ -99,6 +99,18 @@ def _generate_intro_table(rsts):
     cmd_row = intro_tbl.create_row("Command", "The command run during statistics collection.")
     for res in rsts:
         cmd_row.add_cell(res.reportid, res.info.get("cmd"))
+
+    # Add tool information.
+    tinfo_row = intro_tbl.create_row("Data Collection Tool")
+    for res in rsts:
+        tool_info = f"{res.info['toolname'].capitalize()} version {res.info['toolver']}"
+        tinfo_row.add_cell(res.reportid, tool_info)
+
+    # Add run date.
+    date_row = intro_tbl.create_row("Collection Date")
+    for res in rsts:
+        date_row.add_cell(res.reportid, res.info.get("date"))
+
     return intro_tbl
 
 def generate_stc_report(rsts, outdir):
