@@ -2,7 +2,7 @@
 NDL
 ===
 
-:Date:   2023-03-10
+:Date:   2023-03-16
 
 .. contents::
    :depth: 3
@@ -252,12 +252,12 @@ OPTIONS *'ndl* start'
    Comma-separated list of statistics to collect. The statistics are
    collected in parallel with measuring C-state latency. They are stored
    in the the "stats" sub-directory of the output directory. By default,
-   only 'sysinfo' statistics are collected. Use 'all' to collect all
-   possible statistics. Use '--stats=""' or '--stats="none"' to disable
-   statistics collection. If you know exactly what statistics you need,
-   specify the comma-separated list of statistics to collect. For
-   example, use 'turbostat,acpower' if you need only turbostat and AC
-   power meter statistics. You can also specify the statistics you do
+   only 'turbostat, sysinfo' statistics are collected. Use 'all' to
+   collect all possible statistics. Use '--stats=""' or '--stats="none"'
+   to disable statistics collection. If you know exactly what statistics
+   you need, specify the comma-separated list of statistics to collect.
+   For example, use 'turbostat,acpower' if you need only turbostat and
+   AC power meter statistics. You can also specify the statistics you do
    not want to be collected by pre-pending the '!' symbol. For example,
    'all,!turbostat' would mean: collect all the statistics supported by
    the SUT, except for 'turbostat'. Use the '--list-stats' option to get
