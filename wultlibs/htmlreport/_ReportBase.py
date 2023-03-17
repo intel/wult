@@ -192,8 +192,6 @@ class ReportBase:
 
             if res.stats_path.is_dir():
                 stats_paths[res.reportid] = stats_dst
-            else:
-                stats_paths[res.reportid] = None
 
             if res.logs_path.is_dir():
                 # Stats are always copied to 'dstpath'.
