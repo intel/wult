@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix AC Power plot generation failing because of 'inf' values in raw AC Power
+   statistic files.
 ### Added
 ### Removed
 ### Changed
