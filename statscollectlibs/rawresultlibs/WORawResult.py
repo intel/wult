@@ -8,6 +8,7 @@
 
 """This module provides the API for creating raw stats-collect test results."""
 
+import time
 import os
 from pepclibs.helperlibs import YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
@@ -75,3 +76,4 @@ class WORawResult(_RawResultBase.RawResultBase):
         self.info["toolver"] = toolver
         self.info["cpunum"] = self.cpunum
         self.info["cmd"] = cmd
+        self.info["date"] = time.strftime("%d %b %Y")
