@@ -61,6 +61,10 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
                          self.name, path)
             sdf.dropna(inplace=True)
 
+            # Some 'pandas' operations break on 'pandas.DataFrame' instances without consistent
+            # indexing. Reset the index to avoid any of these problems.
+            sdf.reset_index(inplace=True)
+
         return sdf
 
     def get_tab(self):
