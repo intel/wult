@@ -12,7 +12,7 @@ statistics collection.
 """
 
 import logging
-from pepclibs.helperlibs import ClassHelpers, YAML
+from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs import _StatsConfig
 from statscollectlibs.collector import _STCAgent
@@ -372,10 +372,10 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
 
         self._pman.rsync(f"{srcpath}/", self.local_outdir, remotesrc=True, remotedst=False)
 
-    def _generate_info_yml(self):
-        """Save statistics information in 'stats-info.yml' file."""
+    def get_stinfo(self):
+        """Get statistics description dictionary for all enabled statistics."""
 
-        yml = {}
+        stinfo = {}
 
         for agent in (self._inbagent, self._oobagent):
             if not agent:
@@ -385,10 +385,10 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
                 if not info["enabled"]:
                     continue
 
-                assert stname not in yml
-                yml[stname] = info.copy()
+                assert stname not in stinfo
+                stinfo[stname] = info.copy()
 
-                info = yml[stname]
+                info = stinfo[stname]
                 info["paths"] = {}
 
                 stpath = stname
@@ -400,11 +400,7 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
                     path = agent.labels_path.relative_to(agent.statsdir)
                     info["paths"]["labels"] = path
 
-        if not yml:
-            return
-
-        path = self.local_outdir / "stats" / "stats-info.yml"
-        YAML.dump(yml, path)
+        return stinfo
 
     def finalize(self):
         """
@@ -414,7 +410,6 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
         """
 
         self._copy_remote_data()
-        self._generate_info_yml()
 
     def _apply_config_file(self):
         """Read and apply the stats-collect configuration file."""

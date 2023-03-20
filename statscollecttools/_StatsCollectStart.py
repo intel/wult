@@ -113,6 +113,9 @@ def start_command(args):
         if args.stats:
             stcoll.stop()
             stcoll.finalize()
+            stinfo = stcoll.get_stinfo()
+            if stinfo:
+                res.info["stinfo"] = stinfo
 
         for ftype, txt in [("stdout", stdout,), ("stderr", stderr,)]:
             if not txt:
