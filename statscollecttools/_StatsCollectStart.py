@@ -15,9 +15,10 @@ from pathlib import Path
 from pepclibs import CPUInfo
 from pepclibs.helperlibs import Human, Logging
 from statscollecttools import _Common
+from statscollectlibs import Runner
 from statscollectlibs.deploylibs import _Deploy
 from statscollectlibs.collector import StatsCollectBuilder
-from statscollectlibs.helperlibs import ProcHelpers, ReportID
+from statscollectlibs.helperlibs import ReportID
 from statscollectlibs.rawresultlibs import WORawResult
 
 _LOG = logging.getLogger()
@@ -35,33 +36,6 @@ def generate_reportid(args, pman):
 
     return ReportID.format_reportid(prefix=prefix, reportid=args.reportid,
                                     strftime=f"{args.toolname}-%Y%m%d")
-
-def _run_command(cmd, pman, tlimit):
-    """Run the command."""
-
-    _LOG.info("Running the following command%s: %s", pman.hostmsg, cmd)
-
-    if not tlimit:
-        run_forever = True
-        tlimit = 4 * 60 * 60
-    else:
-        run_forever = False
-
-    proc = pman.run_async(cmd)
-
-    while True:
-        stdout, stderr, exitcode = proc.wait(timeout=tlimit)
-        if exitcode is not None:
-            break
-
-        if run_forever:
-            continue
-
-        _LOG.notice("statistics collection stopped because the time limit was reached before "
-                    "the command finished executing.")
-        ProcHelpers.kill_pids(proc.pid, kill_children=True, must_die=True, pman=pman)
-
-    return stdout, stderr
 
 def start_command(args):
     """Implements the 'start' command."""
@@ -108,7 +82,7 @@ def start_command(args):
 
             stcoll.start()
 
-        stdout, stderr = _run_command(args.cmd, pman, args.tlimit)
+        stdout, stderr = Runner.run_command(args.cmd, pman, args.tlimit)
 
         if args.stats:
             stcoll.stop()
