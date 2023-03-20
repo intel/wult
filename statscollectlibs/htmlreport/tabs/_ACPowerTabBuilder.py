@@ -43,7 +43,9 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
         try:
             # 'skipfooter' parameter only available with Python pandas engine.
             sdf = pandas.read_csv(path, skipfooter=1, engine="python", dtype='float64')
-        except pandas.errors.ParserError as err:
+        except (pandas.errors.ParserError, ValueError) as err:
+            # Failed 'dtype' conversion can cause 'ValueError', otherwise most parsing exceptions
+            # are of type 'pandas.errors.ParserError'.
             msg = Error(err).indent(2)
             raise Error(f"unable to parse CSV '{path}':\n{msg}.") from None
 
