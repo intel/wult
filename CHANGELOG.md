@@ -7,6 +7,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
  - Fix AC Power plot generation failing because of 'inf' values in raw AC Power
    statistic files.
+ - Fix 'stats-collect report' crashing on on raw acpower statistic files with
+   bad headers.
 ### Added
  - Add 'tool information' and 'collection date' to 'stats-collect' report intro
    tables.
