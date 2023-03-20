@@ -16,8 +16,8 @@ from pepclibs import CPUInfo
 from pepclibs.helperlibs import Human, Logging
 from statscollecttools import _Common
 from statscollectlibs import Runner
-from statscollectlibs.deploylibs import _Deploy
 from statscollectlibs.collector import StatsCollectBuilder
+from statscollectlibs.deploylibs import _Deploy
 from statscollectlibs.helperlibs import ReportID
 from statscollectlibs.rawresultlibs import WORawResult
 
@@ -79,27 +79,12 @@ def start_command(args):
                 return
 
             stack.enter_context(stcoll)
+        else:
+            stcoll = None
 
-            stcoll.start()
+        runner = Runner.Runner(res, pman, stcoll)
 
-        stdout, stderr = Runner.run_command(args.cmd, pman, args.tlimit)
-
-        if args.stats:
-            stcoll.stop()
-            stcoll.finalize()
-            stinfo = stcoll.get_stinfo()
-            if stinfo:
-                res.info["stinfo"] = stinfo
-
-        for ftype, txt in [("stdout", stdout,), ("stderr", stderr,)]:
-            if not txt:
-                continue
-            fpath = args.outdir / "logs" / f"cmd-{ftype}.log.txt"
-            with open(fpath, "w", encoding="utf-8") as f:
-                f.write(txt)
-            res.info[ftype] = fpath.relative_to(args.outdir)
-
-        res.write_info()
+        runner.run(args.cmd, args.tlimit)
 
     if args.report:
         _Common.generate_stc_report([res], args.outdir / "html-report")
