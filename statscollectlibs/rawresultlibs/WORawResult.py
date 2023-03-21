@@ -73,7 +73,7 @@ class WORawResult(_RawResultBase.RawResultBase):
 
         self.info["format_version"] = _RawResultBase.FORMAT_VERSION
         self.info["reportid"] = reportid
-        self.info["toolname"] = "stats-collect"
+        self.info["toolname"] = ToolInfo.TOOLNAME
         self.info["toolver"] = ToolInfo.VERSION
         self.info["cpunum"] = self.cpunum
         self.info["cmd"] = cmd
