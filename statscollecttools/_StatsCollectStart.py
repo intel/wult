@@ -86,8 +86,7 @@ def start_command(args):
                                  pman=pman) as depl:
             depl.check_deployment()
 
-        res = WORawResult.WORawResult(args.reportid, args.outdir, args.toolver, args.cpunum,
-                                      args.cmd)
+        res = WORawResult.WORawResult(args.reportid, args.outdir, args.cpunum, args.cmd)
 
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
 

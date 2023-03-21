@@ -14,6 +14,7 @@ from pepclibs.helperlibs import YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
 from statscollectlibs.helperlibs import FSHelpers
 from statscollectlibs.rawresultlibs import _RawResultBase
+from statscollecttools import ToolInfo
 
 class WORawResult(_RawResultBase.RawResultBase):
     """This class represents a write-only raw test result."""
@@ -53,7 +54,7 @@ class WORawResult(_RawResultBase.RawResultBase):
 
         YAML.dump(self.info, self.info_path)
 
-    def __init__(self, reportid, outdir, toolver, cpunum, cmd):
+    def __init__(self, reportid, outdir, cpunum, cmd):
         """
         The class constructor. The arguments are as follows.
           * reportid - reportid of the raw test result.
@@ -73,7 +74,7 @@ class WORawResult(_RawResultBase.RawResultBase):
         self.info["format_version"] = _RawResultBase.FORMAT_VERSION
         self.info["reportid"] = reportid
         self.info["toolname"] = "stats-collect"
-        self.info["toolver"] = toolver
+        self.info["toolver"] = ToolInfo.VERSION
         self.info["cpunum"] = self.cpunum
         self.info["cmd"] = cmd
         self.info["date"] = time.strftime("%d %b %Y")
