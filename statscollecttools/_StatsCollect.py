@@ -24,8 +24,8 @@ from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.deploylibs import _Deploy
 from statscollectlibs.helperlibs import ReportID
 from statscollectlibs.collector import StatsCollectBuilder
+from statscollecttools import ToolInfo
 
-_VERSION = "1.0.0"
 TOOLNAME = "stats-collect"
 _STC_DEPLOY_INFO = {
     "installables" : {
@@ -43,7 +43,7 @@ def build_arguments_parser():
     """Build and return the arguments parser object."""
 
     text = "stats-collect - a tool for collecting and visualising system statistics and telemetry."
-    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=_VERSION)
+    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=ToolInfo.VERSION)
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
@@ -138,7 +138,7 @@ def parse_arguments():
 
     args = parser.parse_args()
     args.toolname = TOOLNAME
-    args.toolver = _VERSION
+    args.toolver = ToolInfo.VERSION
     args.deploy_info = _STC_DEPLOY_INFO
 
     return args
