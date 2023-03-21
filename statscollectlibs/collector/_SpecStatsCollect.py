@@ -16,6 +16,7 @@ from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs import _StatsConfig
 from statscollectlibs.collector import _STCAgent
+from statscollectlibs.rawresultlibs import WORawResult
 
 _LOG = logging.getLogger()
 
@@ -402,6 +403,7 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
         """
 
         self._copy_remote_data()
+        self.res.write_info()
 
     def _apply_config_file(self):
         """Read and apply the stats-collect configuration file."""
@@ -421,8 +423,11 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
                     else:
                         val = cfg[stname].get(key, val)
 
-    def __init__(self, pman, local_outdir=None, remote_outdir=None):
+    def __init__(self, pman, reportid, cpunum=None, cmd=None, local_outdir=None,
+                 remote_outdir=None):
         """Same as 'StatsCollect.__init__()'."""
+
+        self.res = WORawResult.WORawResult(reportid, local_outdir, cpunum, cmd)
 
         self._pman = pman
         self.local_outdir = None

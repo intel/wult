@@ -15,7 +15,6 @@ import shutil
 import contextlib
 from pepclibs.helperlibs import YAML, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
-from statscollectlibs.rawresultlibs import WORawResult as StatsCollectRes
 from wultlibs.helperlibs import FSHelpers
 from wultlibs.rawresultlibs import _CSV, _RawResultBase
 from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
@@ -145,9 +144,6 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
     def write_info(self):
         """Write the 'self.info' dictionary to the 'info.yml' file."""
 
-        if self.stats_path.exists():
-            self.stats_res.write_info()
-
         YAML.dump(self.info, self.info_path)
 
     def __init__(self, toolname, toolver, reportid, outdir, cpunum):
@@ -183,9 +179,6 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
         # 'self.info' later by the owned of this object:
         #  * toolname - name of the tool creating the report.
         #  * toolver - version of the tool creating the report.
-
-        self.stats_res = StatsCollectRes.WORawResult(reportid, self.stats_path, self.cpunum,
-                                                     cmd=None)
 
     def close(self):
         """Stop the experiment."""

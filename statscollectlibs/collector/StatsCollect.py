@@ -372,9 +372,11 @@ class StatsCollect(_SpecStatsCollect.SpecStatsCollect):
             if "resolved" not in info:
                 info["resolved"] = set()
 
-    def __init__(self, pman, local_outdir=None, remote_outdir=None):
+    def __init__(self, pman, reportid, cpunum=None, cmd=None, local_outdir=None,
+                 remote_outdir=None):
         """
-        Initialize a class instance. The arguments are as follows.
+        Initialize a class instance. The arguments are the same as
+        'WORawResult.__init__()' except for:
           * pman - the process manager object associated with the SUT (the host to collect the
                    statistics for). Note, a reference to the 'pman' object will be saved and it will
                    be used in various methods, so it has to be kept connected. The reference will be
@@ -394,7 +396,7 @@ class StatsCollect(_SpecStatsCollect.SpecStatsCollect):
         directory gets removed in the 'close()' method.
         """
 
-        super().__init__(pman, local_outdir=local_outdir, remote_outdir=remote_outdir)
+        super().__init__(pman, reportid, cpunum, cmd, local_outdir, remote_outdir)
 
         # Initialize the aggregate statistics dictionary.
         self._aggr_stinfo = copy.deepcopy(_AGGR_STINFO)

@@ -60,7 +60,6 @@ def start_command(args):
                                  pman=pman) as depl:
             depl.check_deployment()
 
-        res = WORawResult.WORawResult(args.reportid, args.outdir, args.cpunum, args.cmd)
         if not args.stats or args.stats == "none":
             args.stats = None
             stcoll = None
@@ -71,16 +70,20 @@ def start_command(args):
             if args.stats_intervals:
                 stcoll_builder.parse_intervals(args.stats_intervals)
 
-            stcoll = stcoll_builder.build_stcoll(pman, args.outdir)
-            if not stcoll:
-                return
+            stcoll = stcoll_builder.build_stcoll(pman, args.reportid, args.cpunum, args.cmd,
+                                                 args.outdir)
+            if stcoll:
+                res = stcoll.res
+            else:
+                res = WORawResult.WORawResult(args.reportid, args.outdir, args.cpunum, args.cmd)
 
             stack.enter_context(stcoll)
 
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
 
         runner = Runner.Runner(res, pman, stcoll)
+
         runner.run(args.cmd, args.tlimit)
 
     if args.report:
-        _Common.generate_stc_report([res], args.outdir / "html-report")
+        _Common.generate_stc_report([stcoll.res], args.outdir / "html-report")
