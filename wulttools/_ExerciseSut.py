@@ -296,6 +296,11 @@ def _start_command(args):
             continue
         inprops[pname] = Trivial.split_csv_line(pvalues)
 
+    if not args.devids:
+        devids = [None]
+    else:
+        devids = Trivial.split_csv_line(args.devids)
+
     with _BatchConfig.BatchConfig(args) as batchconfig:
         if args.deploy:
             batchconfig.deploy()
@@ -310,7 +315,8 @@ def _start_command(args):
             _LOG.notice(f"Measuring with properties: {batchconfig.props_to_str(props)}")
 
             batchconfig.configure(props)
-            batchconfig.run(props)
+            for devid in devids:
+                batchconfig.run(props, devid)
             _LOG.info("")
 
 def _report_command(args):

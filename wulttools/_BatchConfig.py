@@ -525,8 +525,8 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
 
         return toolopts
 
-    def get_commands(self, props):  # pylint: disable=unused-argument
-        """Create and yield command to run the tool."""
+    def get_command(self, props, devid):  # pylint: disable=unused-argument
+        """Create and return command to run the tool."""
 
         cmd = str(self.toolpath)
 
@@ -535,7 +535,7 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
         if toolopts:
             cmd += f" {toolopts}"
 
-        yield cmd
+        return cmd
 
     def __init__(self, args):
         """The class constructor."""
@@ -555,14 +555,12 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
 class _BenchmarkCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'benchmark' commands."""
 
-    def get_commands(self, props):
-        """Create and yield command to run the 'benchmark' tool."""
+    def get_command(self, props, devid):
+        """Create and return command to run the 'benchmark' tool."""
 
-        for cmd in super().get_commands(props):
-            reportid = self._create_reportid(props)
-            cmd += f" --reportid {reportid} -o {self._outdir}/{reportid}"
-
-            yield cmd
+        cmd = super().get_command(props, devid)
+        reportid = self._create_reportid(props)
+        return f"{cmd} --reportid {reportid} -o {self._outdir}/{reportid}"
 
 class _WultCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'wult' or 'ndl' commands."""
@@ -591,19 +589,17 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         return cmd
 
-    def get_commands(self, props):
-        """Create and yield 'wult' or 'ndl' commands."""
+    def get_command(self, props, devid):
+        """Create and return 'wult' or 'ndl' command."""
 
-        for devid in self._devids:
-            reportid = self._create_reportid(props, devid=devid)
-            yield self._create_command(devid, reportid=reportid)
+        reportid = self._create_reportid(props, devid=devid)
+        return self._create_command(devid, reportid=reportid)
 
     def __init__(self, args):
         """The class constructor."""
 
         super().__init__(args)
 
-        self._devids = Trivial.split_csv_line(args.devids)
         self._cpunum = args.cpunum
         self._datapoints = args.datapoints
 
@@ -748,6 +744,7 @@ class BatchConfig(_CmdlineRunner):
         Yield dictionary with system properties, with property name as key and property value as
         value.
         """
+
         yield from self._pepc_formatter.iter_props(inprops)
 
     def configure(self, props):
@@ -756,11 +753,11 @@ class BatchConfig(_CmdlineRunner):
         for cmd in self._pepc_formatter.get_commands(props):
             self._run_command(cmd)
 
-    def run(self, props):
-        """Run workload command with system properties 'props'."""
+    def run(self, props, devid):
+        """Run workload command with system properties 'props' and device ID 'devid'."""
 
-        for cmd in self._wl_formatter.get_commands(props=props):
-            self._run_command(cmd)
+        cmd = self._wl_formatter.get_command(props, devid)
+        self._run_command(cmd)
 
     def __init__(self, args):
         """The class constructor."""
