@@ -388,14 +388,6 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
                 assert stname not in stinfo
                 stinfo[stname] = info.copy()
 
-                info = stinfo[stname]
-                info["paths"] = {}
-
-                stpath = stname
-                if stname != "sysinfo":
-                    stpath += ".raw.txt"
-                info["paths"]["stats"] = stpath
-
                 if agent.labels_path:
                     path = agent.labels_path.relative_to(agent.statsdir)
                     info["paths"]["labels"] = path
