@@ -88,10 +88,9 @@ _COLLECT_OPTIONS = {
         "default" : "",
         "help" : """String to append to the report ID (nothing, by default)."""
     },
-    "cpunum" : {
-        "default" : 0,
-        "help" : """Applicable only for the 'wult' tool. The CPU number to measure with. Default is
-                    CPU0."""
+    "cpunums" : {
+        "help" : """Applicable only for the 'wult' and 'ndl' tools. Comma-separated list of CPU
+                    numbers to measure with. No CPU number is passed by default."""
     },
     "cstates" : {
         "default" : "all",
@@ -301,6 +300,11 @@ def _start_command(args):
     else:
         devids = Trivial.split_csv_line(args.devids)
 
+    if not args.cpunums:
+        cpus = [None]
+    else:
+        cpus = Trivial.split_csv_line(args.cpunums)
+
     with _BatchConfig.BatchConfig(args) as batchconfig:
         if args.deploy:
             batchconfig.deploy()
@@ -308,16 +312,23 @@ def _start_command(args):
 
         if args.state_reset:
             reset_props = {pname : pinfo["value"] for pname, pinfo in _RESET_PROPS.items()}
-            batchconfig.configure(reset_props)
-            _LOG.info("")
+            if not args.only_measured_cpu:
+                batchconfig.configure(reset_props, "all")
+                _LOG.info("")
 
-        for props in batchconfig.get_props_batch(inprops):
-            _LOG.notice(f"Measuring with properties: {batchconfig.props_to_str(props)}")
+        for cpu in cpus:
+            if args.state_reset and args.only_measured_cpu:
+                batchconfig.configure(reset_props, cpu)
+                _LOG.info("")
 
-            batchconfig.configure(props)
-            for devid in devids:
-                batchconfig.run(props, devid)
-            _LOG.info("")
+            for props in batchconfig.get_props_batch(inprops):
+                _LOG.notice(f"Measuring with properties: {batchconfig.props_to_str(props)}")
+
+                batchconfig.configure(props, cpu)
+                for devid in devids:
+                    batchconfig.run(props, devid, cpu)
+
+                _LOG.info("")
 
 def _report_command(args):
     """Implements the 'report' command."""

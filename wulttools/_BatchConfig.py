@@ -756,16 +756,16 @@ class BatchConfig(_CmdlineRunner):
 
         yield from self._pepc_formatter.iter_props(inprops)
 
-    def configure(self, props):
+    def configure(self, props, cpu):
         """Set properties 'props'."""
 
-        for cmd in self._pepc_formatter.get_commands(props, self._cpunum):
+        for cmd in self._pepc_formatter.get_commands(props, cpu):
             self._run_command(cmd)
 
-    def run(self, props, devid):
+    def run(self, props, devid, cpu):
         """Run workload command with system properties 'props' and device ID 'devid'."""
 
-        cmd = self._wl_formatter.get_command(props, devid, self._cpunum)
+        cmd = self._wl_formatter.get_command(props, devid, cpu)
         self._run_command(cmd)
 
     def __init__(self, args):
@@ -773,7 +773,6 @@ class BatchConfig(_CmdlineRunner):
 
         super().__init__(dry_run=args.dry_run, stop_on_failure=args.stop_on_failure)
 
-        self._cpunum = args.cpunum
         self._pman = _Common.get_pman(args)
         self._pepc_formatter = _PepcCmdFormatter(self._pman, args.only_measured_cpu,
                                                  args.only_one_cstate, args.cstates_always_enable)
