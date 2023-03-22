@@ -44,6 +44,7 @@ _DELIMITER = "--\n".encode("utf-8")
 #             users can modify this field and specify full path to the tool.
 # * description: the statistics collector description.
 # * props: a sub-dictionary containing various collector-specific properties.
+# * paths: a sub-dictionary containing various sub-paths to statistic-specific data.
 #
 # Here are the currently supported properties.
 #
@@ -71,6 +72,7 @@ STINFO = {
                         "second snapshot, however, includes only the information that could "
                         "potentially change while the workload was running (e.g., 'dmesg' may "
                         "include new messages).",
+        "paths" : {"stats": "sysinfo"},
     },
     "turbostat" : {
         "interval" : 5,
@@ -78,6 +80,7 @@ STINFO = {
         "toolpath" : "turbostat",
         "description" : "Periodically run the 'turbostat' tool and collect C-state residency, "
                         "average CPU frequency, RAPL data, and more.",
+        "paths" : {"stats": "turbostat.raw.txt"},
     },
     "ipmi-oob" : {
         "interval" : 5,
@@ -89,6 +92,7 @@ STINFO = {
                         "outside of the SUT (out of band), so that 'ipmitool' talks to SUT's BMC "
                         "module via the network. This is supposedly better than running 'ipmitool' "
                         "on the SUT (in-band), because it does not add to CPU load.",
+        "paths" : {"stats": "ipmi-oob.raw.txt"},
         "props" : {
             "bmchost" : None,
             "bmcuser" : None,
@@ -102,6 +106,7 @@ STINFO = {
         "toolpath" : "ipmi-helper",
         "description" : "Same as the 'ipmi-oob' statistics, but the data are collected by running "
                         "'ipmitool' on the SUT (in-band).",
+        "paths" : {"stats": "ipmi-inband.raw.txt"},
     },
     "acpower" : {
         "interval" : 1,
@@ -109,6 +114,7 @@ STINFO = {
         "toolpath" : "yokotool",
         "description" : "Collect SUT wall socket power consumption from an external Yokogawa power "
                        "meter using 'yokotool'.",
+        "paths": {"stats": "acpower.raw.txt"},
         "props" : {
             "devnode" : None,
             "pmtype" : None,
