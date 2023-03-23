@@ -164,8 +164,8 @@ class ReportBase:
             resdir = res.dirpath
             dstpath = self.outdir / f"raw-{res.reportid}"
 
-            logs_dir = res.logs_path.name
-            stats_dir  = res.stats_path.name
+            logs_dir = res.logs_path.relative_to(res.dirpath)
+            stats_dir  = res.stats_path.relative_to(res.dirpath)
 
             # Before either logs or stats have been copied to 'outdir', assume neither will be.
             logs_dst = resdir / logs_dir
