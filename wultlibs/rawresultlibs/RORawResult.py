@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2022 Intel Corporation
+# Copyright (C) 2019-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
-"""
-This module provides API for reading raw test results.
-"""
+"""This module provides API for reading raw test results."""
 
 import builtins
 import re
@@ -18,6 +16,7 @@ import pandas
 from pepclibs.helperlibs import YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
 from statscollectlibs import DFSummary
+from statscollectlibs.rawresultlibs import RORawResult as StatsCollectRes
 from wultlibs import WultDefs, _WultDefsBase
 from wultlibs.rawresultlibs import _RawResultBase
 
@@ -480,3 +479,10 @@ class RORawResult(_RawResultBase.RawResultBase):
                 self.metrics.append(metric)
 
         self.metrics_set = set(self.metrics)
+
+        try:
+            self.stats_res = StatsCollectRes.RORawResult(self.stats_path, self.reportid)
+            self.stats_path = self.stats_res.stats_path
+        except Error:
+            # Old 'wult' results might not contain a complete 'stats-collect' result.
+            self.stats_res = None
