@@ -141,7 +141,7 @@ def start_command(args):
         if args.stats_intervals:
             stcoll_builder.parse_intervals(args.stats_intervals)
 
-        stcoll = stcoll_builder.build_stcoll(pman, args.outdir)
+        stcoll = stcoll_builder.build_stcoll(pman, res.stats_res.dirpath)
         if stcoll:
             stack.enter_context(stcoll)
 
