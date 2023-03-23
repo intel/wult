@@ -9,6 +9,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    statistic files.
  - Fix 'stats-collect report' crashing on on raw acpower statistic files with
    bad headers.
+ - Fix several metrics missing 'min/max' summary functions in 'wult' HTML
+   reports.
 ### Added
  - Add 'tool information' and 'collection date' to 'stats-collect' report intro
    tables.
