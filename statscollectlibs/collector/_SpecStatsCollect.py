@@ -403,6 +403,7 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
         """
 
         self._copy_remote_data()
+        self.res.info["stinfo"] = self.get_stinfo()
         self.res.write_info()
 
     def _apply_config_file(self):

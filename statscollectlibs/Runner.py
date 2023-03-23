@@ -67,9 +67,6 @@ class Runner(ClassHelpers.SimpleCloseContext):
         if self._stcoll:
             self._stcoll.stop()
             self._stcoll.finalize()
-            stinfo = self._stcoll.get_stinfo()
-            if stinfo:
-                self.res.info["stinfo"] = stinfo
 
         for ftype, txt in [("stdout", stdout,), ("stderr", stderr,)]:
             if not txt:
