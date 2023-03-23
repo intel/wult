@@ -20,6 +20,7 @@ from pepclibs.helperlibs import Trivial, LocalProcessManager, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.htmlreport import _IntroTable, HTMLReport
 from statscollectlibs.htmlreport.tabs import _Tabs
+from statscollectlibs.rawresultlibs import RORawResult
 from wultlibs.helperlibs import FSHelpers
 from wultlibs.htmlreport import _MetricDTabBuilder
 
@@ -408,7 +409,16 @@ class ReportBase:
                 mcpus[res.reportid] = str(res.info["cpunum"])
 
         rep = HTMLReport.HTMLReport(self.outdir)
-        rep.generate_report(tabs, stats_paths, self._intro_tbl, f"{toolname} Report",
+        stats_rsts = []
+        for res in self.rsts:
+            if res.reportid not in stats_paths:
+                continue
+            if res.stats_res:
+                stats_rsts.append(res.stats_res)
+            else:
+                stats_rsts.append(RORawResult.RORawResult(res.dirpath, res.reportid))
+
+        rep.generate_report(tabs, stats_rsts, self._intro_tbl, f"{toolname} Report",
                             self.report_descr, mcpus)
 
     @staticmethod

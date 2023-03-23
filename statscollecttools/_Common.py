@@ -117,9 +117,7 @@ def generate_stc_report(rsts, outdir):
     """Generate a 'stats-collect' report from the results 'rsts' with 'outdir'."""
 
     rep = HTMLReport.HTMLReport(outdir)
-    stats_paths = {res.reportid: res.stats_path for res in rsts}
     stdout_tab = generate_captured_output_tab(rsts, outdir)
     tabs = [stdout_tab] if stdout_tab else None
     intro_tbl = _generate_intro_table(rsts)
-    rep.generate_report(tabs=tabs, stats_paths=stats_paths, intro_tbl=intro_tbl,
-                        title="stats-collect report")
+    rep.generate_report(tabs=tabs, rsts=rsts, intro_tbl=intro_tbl, title="stats-collect report")

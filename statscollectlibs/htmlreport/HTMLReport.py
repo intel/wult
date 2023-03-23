@@ -191,16 +191,14 @@ class HTMLReport:
 
         return tabs
 
-    def generate_report(self, tabs=None, stats_paths=None, intro_tbl=None, title=None, descr=None,
+    def generate_report(self, tabs=None, rsts=None, intro_tbl=None, title=None, descr=None,
                         measured_cpus=None):
         """
         Generate a report in 'outdir' with 'tabs'. Arguments are as follows:
          * tabs - a list of additional container tabs which should be included in the report. If,
                   omitted, 'stats_paths' is required to generate statistics tabs.
-         * stats_paths - a dictionary in the following format: {'report_id': 'stats_dir_path'}
-                         where 'stats_dir_path' is the directory containing raw statistics files. If
-                         not provided, no statistics tabs will be generated and 'tabs' will be
-                         required to populate the report.
+         * rsts - a list of 'RORawResult' instances for different results with statistics which
+                  should be included in the report.
          * intro_tbl - an '_IntroTable.IntroTable' instance which represents the table which will be
                        included in the report. If one is not provided, it will be omitted from the
                        report.
@@ -211,9 +209,14 @@ class HTMLReport:
                            not provided, the turbostat "Measured CPU" tab will not be generated.
         """
 
-        if not tabs and not stats_paths:
-            raise Error("both 'tabs' and 'stats_paths' can't be 'None'. One of the two parameters "
-                        "should be provided.")
+        if not tabs and not rsts:
+            raise Error("both 'tabs' and 'rsts' can't be 'None'. One of the two parameters should "
+                        "be provided.")
+
+        if rsts:
+            stats_paths = {res.reportid: res.stats_path for res in rsts}
+        else:
+            stats_paths = None
 
         if not tabs:
             tabs = []
