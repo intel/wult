@@ -473,7 +473,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
 class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
     """A base class to help creating commands."""
 
-    def _create_reportid(self, props, devid=None):
+    def _create_reportid(self, props, devid=None, cpu=None):
         """Create report ID from used properties 'props'."""
 
         monikers = []
@@ -510,6 +510,9 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
             moniker += f"{val}"
 
             monikers.append(moniker)
+
+        if cpu is not None:
+            monikers.append(f"cpu{cpu}")
 
         if self._reportid_suffix:
             monikers.append(self._reportid_suffix)
@@ -594,7 +597,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
     def get_command(self, props, devid, cpu):
         """Create and return 'wult' or 'ndl' command."""
 
-        reportid = self._create_reportid(props, devid=devid)
+        reportid = self._create_reportid(props, devid=devid, cpu=cpu)
         return self._create_command(devid, cpu, reportid=reportid)
 
     def __init__(self, pman, args):
