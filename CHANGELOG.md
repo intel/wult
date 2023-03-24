@@ -5,6 +5,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.11.6] - 2023-03-24
+### Fixed
  - Fix AC Power plot generation failing because of 'inf' values in raw AC Power
    statistic files.
  - Fix 'stats-collect report' crashing on on raw acpower statistic files with
@@ -12,8 +18,6 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
  - Add 'tool information' and 'collection date' to 'stats-collect' report intro
    tables.
-### Removed
-### Changed
 
 ## [1.11.5] - 2023-03-16
 ### Fixed

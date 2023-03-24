@@ -1,3 +1,14 @@
+wult (1.11.6) unstable; urgency=low
+
+  * Fix AC Power plot generation failing because of 'inf' values in raw AC Power
+    statistic files.
+  * Fix 'stats-collect report' crashing on on raw acpower statistic files with
+    bad headers.
+  * Add 'tool information' and 'collection date' to 'stats-collect' report intro
+    tables.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 24 Mar 2023 00:00:00 +0200
+
 wult (1.11.5) unstable; urgency=low
 
   * Fix 'stats-collect report' crashing on 'inf' acpower values.
