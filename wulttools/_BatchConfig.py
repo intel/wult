@@ -788,6 +788,12 @@ class BatchReport(_CmdlineRunner):
         """Find all result paths in list of paths 'searchpaths'. Returns single list of paths."""
 
         for searchpath in searchpaths:
+            if not searchpath.exists():
+                raise Error(f"input path '{searchpath}' does not exist")
+
+            if not searchpath.is_dir():
+                raise Error(f"input path '{searchpath}' is not a directory")
+
             for respath in os.scandir(searchpath):
                 if respath.is_dir():
                     yield Path(respath.path)
