@@ -221,11 +221,14 @@ class ReportBase:
         on the metrics in 'smry_metrics'.
         """
 
+        # Hard-code the order summary functions will appear in summary tables.
+        funcs = ["max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "std", "min"]
+
         smry_funcs = {}
-        for smry_metric in smry_metrics:
+        for metric in smry_metrics:
             # Add summary functions from 'self._smry_funcs' for each metric in 'smry_metrics'.
-            if smry_metric in self._smry_funcs:
-                smry_funcs[smry_metric] = self._smry_funcs[smry_metric]
+            if metric in self._smry_funcs:
+                smry_funcs[metric] = [func for func in funcs if func in self._smry_funcs[metric]]
 
         return smry_funcs
 
