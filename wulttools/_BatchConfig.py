@@ -107,13 +107,13 @@ def list_monikers():
         msg = f"{name:<{min_len}}: {moniker}"
         _LOG.info(msg)
 
-def _get_workload_cmd_formatter(args):
+def _get_workload_cmd_formatter(pman, args):
     """Create and return object for creating workload commands."""
 
     toolname = args.toolpath.name
 
     if toolname in ("wult", "ndl"):
-        return _WultCmdFormatter(args)
+        return _WultCmdFormatter(pman, args)
 
     if toolname == "benchmark":
         return _BenchmarkCmdFormatter(args)
@@ -595,13 +595,18 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         reportid = self._create_reportid(props, devid=devid)
         return self._create_command(devid, reportid=reportid)
 
-    def __init__(self, args):
+    def __init__(self, pman, args):
         """The class constructor."""
 
         super().__init__(args)
 
+        self._pman = pman
         self._cpunum = args.cpunum
         self._datapoints = args.datapoints
+
+    def close(self):
+        """Uninitialize the class objetc."""
+        ClassHelpers.close(self, unref_attrs=("_pman"))
 
 class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
     """Helper class for running commandline commands."""
@@ -772,7 +777,7 @@ class BatchConfig(_CmdlineRunner):
         self._pepc_formatter = _PepcCmdFormatter(self._pman, args.only_measured_cpu,
                                                  args.only_one_cstate, args.cstates_always_enable,
                                                  args.cpunum)
-        self._wl_formatter = _get_workload_cmd_formatter(args)
+        self._wl_formatter = _get_workload_cmd_formatter(self._pman, args)
 
     def close(self):
         """Uninitialize the class objetc."""
