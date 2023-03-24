@@ -525,7 +525,7 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
 
         return toolopts
 
-    def get_command(self, props, devid):  # pylint: disable=unused-argument
+    def get_command(self, props, devid, cpu): # pylint: disable=unused-argument
         """Create and return command to run the tool."""
 
         cmd = str(self.toolpath)
@@ -555,23 +555,23 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
 class _BenchmarkCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'benchmark' commands."""
 
-    def get_command(self, props, devid):
+    def get_command(self, props, devid, cpu):
         """Create and return command to run the 'benchmark' tool."""
 
-        cmd = super().get_command(props, devid)
+        cmd = super().get_command(props, devid, cpu)
         reportid = self._create_reportid(props)
         return f"{cmd} --reportid {reportid} -o {self._outdir}/{reportid}"
 
 class _WultCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'wult' or 'ndl' commands."""
 
-    def _create_command(self, devid, reportid=None):
+    def _create_command(self, devid, cpu, reportid=None):
         """Create and return 'wult' or 'ndl' command."""
 
         cmd = f"{self.toolpath} start -c {self._datapoints}"
 
         if self.toolpath.name in ("wult", "ndl"):
-            cmd += f" --cpunum {self._cpunum}"
+            cmd += f" --cpunum {cpu}"
 
         cmd += f" {devid}"
 
@@ -589,11 +589,11 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         return cmd
 
-    def get_command(self, props, devid):
+    def get_command(self, props, devid, cpu):
         """Create and return 'wult' or 'ndl' command."""
 
         reportid = self._create_reportid(props, devid=devid)
-        return self._create_command(devid, reportid=reportid)
+        return self._create_command(devid, cpu, reportid=reportid)
 
     def __init__(self, pman, args):
         """The class constructor."""
@@ -601,7 +601,6 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         super().__init__(args)
 
         self._pman = pman
-        self._cpunum = args.cpunum
         self._datapoints = args.datapoints
 
     def close(self):
@@ -761,7 +760,7 @@ class BatchConfig(_CmdlineRunner):
     def run(self, props, devid):
         """Run workload command with system properties 'props' and device ID 'devid'."""
 
-        cmd = self._wl_formatter.get_command(props, devid)
+        cmd = self._wl_formatter.get_command(props, devid, self._cpunum)
         self._run_command(cmd)
 
     def __init__(self, args):
@@ -769,10 +768,7 @@ class BatchConfig(_CmdlineRunner):
 
         super().__init__(dry_run=args.dry_run, stop_on_failure=args.stop_on_failure)
 
-        self._pman = None
-        self._wl_formatter = None
-        self._pepc_formatter = None
-
+        self._cpunum = args.cpunum
         self._pman = _Common.get_pman(args)
         self._pepc_formatter = _PepcCmdFormatter(self._pman, args.only_measured_cpu,
                                                  args.only_one_cstate, args.cstates_always_enable,
