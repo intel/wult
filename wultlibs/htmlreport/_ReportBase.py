@@ -623,7 +623,7 @@ class ReportBase:
                 else:
                     # If 'metric' already has funcs, add new funcs from 'funcs' without duplicating.
                     # This handles when a metric is in more than one regex.
-                    for func in smry_funcs:
+                    for func in funcs:
                         if func not in self._smry_funcs[metric]:
                             self._smry_funcs[metric].append(func)
 
