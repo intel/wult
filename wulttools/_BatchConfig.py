@@ -369,8 +369,11 @@ class _PepcCmdFormatter(_PropIteratorBase):
 
         return sname
 
-    def _get_prop_scope(self, pname):
-        """Get scope as CPUs for property 'pname'."""
+    def _get_prop_scope(self, pname, cpu=0):
+        """Get scope as CPUs for property 'pname', for CPU 'cpu'."""
+
+        if cpu is None:
+            cpu = 0
 
         if not self._only_measured_cpu:
             return "all"
@@ -380,7 +383,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
             return None
 
         cpuinfo = self._get_cpuinfo()
-        levels = cpuinfo.get_cpu_levels(self._cpunum)
+        levels = cpuinfo.get_cpu_levels(cpu)
 
         cpus = None
         if sname == "CPU":
@@ -423,7 +426,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
         csnames = self._normalize_csnames(csnames)
         return ",".join(csnames)
 
-    def get_commands(self, props):
+    def get_commands(self, props, cpu=0):
         """Yield list of 'pepc' commands to configure system according to properties 'props'."""
 
         for pname, value in props.items():
@@ -439,7 +442,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
                 elif value == "off":
                     value = "performance"
 
-            scope = self._get_prop_scope(pname)
+            scope = self._get_prop_scope(pname, cpu=cpu)
 
             # We use 'unl' keyword to express unlocked frequency value, and the frequency options
             # have two values.
@@ -455,7 +458,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
 
             yield cmd
 
-    def __init__(self, pman, only_measured_cpu, only_one_cstate, cstates_always_enable, cpunum):
+    def __init__(self, pman, only_measured_cpu, only_one_cstate, cstates_always_enable):
         """The class constructor."""
 
         super().__init__(pman)
@@ -463,7 +466,6 @@ class _PepcCmdFormatter(_PropIteratorBase):
         self._only_measured_cpu = only_measured_cpu
         self._only_one_cstate = only_one_cstate
         self._cstates_always_enable = cstates_always_enable
-        self._cpunum = cpunum
 
         csnames = Trivial.split_csv_line(cstates_always_enable)
         self._cstates_always_enable = self._normalize_csnames(csnames)
@@ -754,7 +756,7 @@ class BatchConfig(_CmdlineRunner):
     def configure(self, props):
         """Set properties 'props'."""
 
-        for cmd in self._pepc_formatter.get_commands(props):
+        for cmd in self._pepc_formatter.get_commands(props, self._cpunum):
             self._run_command(cmd)
 
     def run(self, props, devid):
@@ -771,8 +773,7 @@ class BatchConfig(_CmdlineRunner):
         self._cpunum = args.cpunum
         self._pman = _Common.get_pman(args)
         self._pepc_formatter = _PepcCmdFormatter(self._pman, args.only_measured_cpu,
-                                                 args.only_one_cstate, args.cstates_always_enable,
-                                                 args.cpunum)
+                                                 args.only_one_cstate, args.cstates_always_enable)
         self._wl_formatter = _get_workload_cmd_formatter(self._pman, args)
 
     def close(self):
