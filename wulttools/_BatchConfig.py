@@ -572,7 +572,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         cmd = f"{self.toolpath} start -c {self._datapoints}"
 
-        if self.toolpath.name in ("wult", "ndl"):
+        if cpu is not None and self.toolpath.name in ("wult", "ndl"):
             cmd += f" --cpunum {cpu}"
 
         cmd += f" {devid}"
