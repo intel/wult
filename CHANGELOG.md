@@ -5,11 +5,14 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix several metrics missing 'min/max' summary functions in 'wult' HTML
-   reports.
 ### Added
 ### Removed
 ### Changed
+
+## [1.11.7] - 2023-03-24
+### Fixed
+ - Fix several metrics missing 'min/max' summary functions in 'wult' HTML
+   reports.
 
 ## [1.11.6] - 2023-03-24
 ### Fixed
