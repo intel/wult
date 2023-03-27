@@ -288,6 +288,9 @@ def _start_command(args):
     if args.toolpath.name in ("wult", "ndl") and not args.devids:
         _LOG.error_out("please, provide device ID to measure with, see '%s -h' for help", TOOLNAME)
 
+    if args.only_measured_cpu and args.cpunums is None:
+        _LOG.error_out("please provide CPU numbers with '--only-measured-cpu', see '--cpunums'")
+
     inprops = {}
     for pname in _BatchConfig.PROP_INFOS:
         pvalues = getattr(args, pname, None)
