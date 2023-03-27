@@ -127,8 +127,8 @@ def _build_arguments_parser():
               packets. In normal conditions this means that network packet buffers will be allocated
               on the NUMA node local to the CPU, but not necessarily local to the network card. Use
               this option to measure different packet memory locations on a NUMA system. Default is
-              CPU 0."""
-    subpars.add_argument("--cpunum", help=text, type=int, default=0)
+              the first CPU local to the NIC."""
+    subpars.add_argument("--cpunum", help=text, type=int)
 
     subpars.add_argument("--exclude", action=ArgParse.OrderedArg,
                          help=_Common.EXCL_START_DESCR)

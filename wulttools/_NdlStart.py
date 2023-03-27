@@ -35,6 +35,21 @@ def _generate_report(args):
     rep.relocatable = False
     rep.generate()
 
+def _resolve_cpu(pman, devid):
+    """Resolve first local CPU number for the device 'devid'. Return CPU number as integer."""
+
+    try:
+        path = f"/sys/class/net/{devid}/device/local_cpulist"
+        local_cpulist = pman.read(path).strip()
+    except Error as err:
+        raise Error(f"failed to resolve local CPU number for the device '{devid}', use "
+                    f"'--cpunum' to select CPU.") from err
+
+    # local_cpulist is a string of one or multiple comma-separated CPU numbers or CPU number
+    # ranges, e.g. "24-27,31-33,37-39". Pick first CPU from the list."
+    local_cpulist = local_cpulist.split(",")[0]
+    return int(local_cpulist.split("-")[0])
+
 def start_command(args):
     """Implements the 'start' command."""
 
@@ -61,6 +76,9 @@ def start_command(args):
 
         cpuinfo = CPUInfo.CPUInfo(pman=pman)
         stack.enter_context(cpuinfo)
+
+        if args.cpunum is None:
+            args.cpunum = _resolve_cpu(pman, args.devid)
 
         args.cpunum = cpuinfo.normalize_cpu(args.cpunum)
         res = WORawResult.WORawResult("ndl", args.toolver, args.reportid, args.outdir, args.cpunum)
