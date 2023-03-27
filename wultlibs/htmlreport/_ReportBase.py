@@ -402,7 +402,10 @@ class ReportBase:
 
         toolname = self._refinfo["toolname"].title()
 
-        mcpus = {res.reportid: str(res.info["cpunum"]) for res in self.rsts if "cpunum" in res.info}
+        mcpus = {}
+        for res in self.rsts:
+            if "cpunum" in res.info and res.reportid in stats_paths:
+                mcpus[res.reportid] = str(res.info["cpunum"])
 
         rep = HTMLReport.HTMLReport(self.outdir)
         rep.generate_report(tabs, stats_paths, self._intro_tbl, f"{toolname} Report",
