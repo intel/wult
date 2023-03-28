@@ -854,7 +854,7 @@ class BatchReport(_CmdlineRunner):
         exclude_monikers = None
 
         if diffs:
-            diff_monikers = Trivial.split_csv_line(diffs)
+            diff_monikers = Trivial.split_csv_line(diffs, dedup=True)
 
         if include:
             include_monikers = set(Trivial.split_csv_line(include))
@@ -877,6 +877,10 @@ class BatchReport(_CmdlineRunner):
 
         for outpath, paths in grouped_paths.items():
             paths.sort(key=_get_path_sortkey)
+
+            # Yield paths only for diffs where all requested results are found.
+            if diff_monikers and len(paths) < len(diff_monikers):
+                continue
 
             yield outpath, paths
 

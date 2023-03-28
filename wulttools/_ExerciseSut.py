@@ -353,10 +353,6 @@ def _report_command(args):
         for outpath, respaths in batchreport.group_results(args.respaths, diffs=args.diffs,
                                                            include=args.include,
                                                            exclude=args.exclude):
-            # Do not generate report if diff report is requested, but we have only one result.
-            if args.diffs and len(respaths) < len(Trivial.split_csv_line(args.diffs)):
-                continue
-
             batchreport.generate_report(respaths, outdir / outpath)
         batchreport.wait()
 
