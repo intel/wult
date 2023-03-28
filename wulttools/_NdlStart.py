@@ -77,6 +77,15 @@ def start_command(args):
         cpuinfo = CPUInfo.CPUInfo(pman=pman)
         stack.enter_context(cpuinfo)
 
+        try:
+            dev = Devices.GetDevice(args.toolname, args.devid, pman, dmesg=True)
+        except ErrorNotFound as err:
+            msg = f"{err}\nTo list all usable network interfaces, please run: ndl scan"
+            if pman.is_remote:
+                msg += f" -H {pman.hostname}"
+            raise ErrorNotFound(msg) from err
+        stack.enter_context(dev)
+
         if args.cpunum is None:
             args.cpunum = _resolve_cpu(pman, args.devid)
 
@@ -96,15 +105,6 @@ def start_command(args):
         stcoll = stcoll_builder.build_stcoll(pman, args.outdir)
         if stcoll:
             stack.enter_context(stcoll)
-
-        try:
-            dev = Devices.GetDevice(args.toolname, args.devid, pman, dmesg=True)
-        except ErrorNotFound as err:
-            msg = f"{err}\nTo list all usable network interfaces, please run: ndl scan"
-            if pman.is_remote:
-                msg += f" -H {pman.hostname}"
-            raise ErrorNotFound(msg) from err
-        stack.enter_context(dev)
 
         deploy_info = _Common.reduce_installables(args.deploy_info, dev)
         with _Deploy.DeployCheck("wult", args.toolname, deploy_info, pman=pman) as depl:
