@@ -478,9 +478,6 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
 
         monikers = []
 
-        if self._reportid_prefix:
-            monikers.append(str(self._reportid_prefix))
-
         if self._hostname != "localhost":
             monikers.append(self._hostname)
 
@@ -514,10 +511,9 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
         if cpu is not None:
             monikers.append(f"cpu{cpu}")
 
-        if self._reportid_suffix:
-            monikers.append(self._reportid_suffix)
-
         reportid = "-".join(monikers)
+        reportid = ReportID.format_reportid(prefix=self._reportid_prefix, reportid=reportid,
+                                            append=self._reportid_suffix)
 
         return reportid.lower()
 
