@@ -863,12 +863,19 @@ class BatchReport(_CmdlineRunner):
                                                 exclude_monikers)
 
         def _get_path_sortkey(path):
-            """Method for sorting paths according to diff monikers."""
+            """
+            Method for sorting paths according to order of given diff monikers, or order of input
+            paths.
+            """
 
             path_monikers = path.name.split("-")
             for moniker in diff_monikers:
                 if moniker in path_monikers:
                     return diff_monikers.index(moniker)
+
+            for searchpath in searchpaths:
+                if path.parent == searchpath:
+                    return searchpaths.index(searchpath)
 
             return len(diff_monikers)
 
