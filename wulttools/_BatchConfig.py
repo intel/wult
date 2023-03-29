@@ -805,6 +805,9 @@ class BatchReport(_CmdlineRunner):
         Returns dictionary with common directory name as key and list matching paths as values.
         """
 
+        include_match = diff_monikers and "" in diff_monikers
+        basepath = Path("-vs-".join([moniker for moniker in diff_monikers if moniker]))
+
         groups = {}
         for respath in self._get_result_paths(searchpaths):
             path_monikers = respath.name.split("-")
@@ -820,12 +823,10 @@ class BatchReport(_CmdlineRunner):
                     path_monikers.remove(moniker)
 
             # For diff reports, include only results with one of diff monikers.
-            if diff_monikers and path_monikers == respath.name.split("-"):
+            if path_monikers == respath.name.split("-") and not include_match:
                 continue
 
-            outpath = Path("-vs-".join(diff_monikers))
-
-            outpath = outpath / "-".join(path_monikers)
+            outpath = basepath / "-".join(path_monikers)
             if outpath not in groups:
                 groups[outpath] = []
 
@@ -850,7 +851,7 @@ class BatchReport(_CmdlineRunner):
         exclude_monikers = None
 
         if diffs:
-            diff_monikers = Trivial.split_csv_line(diffs, dedup=True)
+            diff_monikers = Trivial.split_csv_line(diffs, dedup=True, keep_empty=True)
 
         if include:
             include_monikers = set(Trivial.split_csv_line(include))
