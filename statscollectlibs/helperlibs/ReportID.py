@@ -40,15 +40,21 @@ def format_reportid(prefix=None, separator="-", reportid=None, strftime="%Y%m%d-
     The 'additional_chars' argument is the same as in 'get_charset_descr()'.
     """
 
+    if not reportid:
+        reportid = time.strftime(strftime)
+
     result = ""
     if prefix:
-        result += prefix + separator
-    if reportid:
-        result += reportid
-    else:
-        result += time.strftime(strftime)
+        result += prefix.rstrip(separator)
+        if not reportid.startswith(separator):
+            result += separator
+
+    result += reportid
+
     if append:
-        result += separator + append
+        if not reportid.endswith(separator):
+            result += separator
+        result += append.lstrip(separator)
 
     return validate_reportid(result, additional_chars=additional_chars)
 
