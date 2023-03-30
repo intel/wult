@@ -2,7 +2,7 @@
 NDL
 ===
 
-:Date:   2023-03-24
+:Date:   2023-03-30
 
 .. contents::
    :depth: 3
@@ -298,7 +298,7 @@ OPTIONS *'ndl* start'
    packet buffers will be allocated on the NUMA node local to the CPU,
    but not necessarily local to the network card. Use this option to
    measure different packet memory locations on a NUMA system. Default
-   is CPU 0.
+   is the first CPU local to the NIC.
 
 **--exclude** *EXCLUDE*
    Datapoints to exclude: remove all the datapoints satisfying the

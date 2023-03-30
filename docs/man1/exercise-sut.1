@@ -1,4 +1,4 @@
-.TH EXERCISE\-SUT "1" "2023\-03\-24" "wult" "Generated Python Manual"
+.TH EXERCISE\-SUT "1" "2023\-03\-30" "wult" "Generated Python Manual"
 .SH NAME
 exercise\-sut
 .SH SYNOPSIS
@@ -38,7 +38,7 @@ Start collecting testdata.
 Generate reports.
 
 .SH COMMAND \fI\,'exercise\-sut start'\/\fR
-usage: exercise\-sut start [\-h] [\-q] [\-d] [\-H HOSTNAME] [\-U USERNAME] [\-K PRIVKEY] [\-T TIMEOUT] [\-\-datapoints DATAPOINTS] [\-\-reportid\-prefix REPORTID_PREFIX] [\-\-reportid\-suffix REPORTID_SUFFIX] [\-\-cpunum CPUNUM] [\-\-cstates CSTATES]
+usage: exercise\-sut start [\-h] [\-q] [\-d] [\-H HOSTNAME] [\-U USERNAME] [\-K PRIVKEY] [\-T TIMEOUT] [\-\-datapoints DATAPOINTS] [\-\-reportid\-prefix REPORTID_PREFIX] [\-\-reportid\-suffix REPORTID_SUFFIX] [\-\-cpunums CPUNUMS] [\-\-cstates CSTATES]
                           [\-\-pcstates PCSTATES] [\-\-only\-one\-cstate] [\-\-cstates\-always\-enable CSTATES_ALWAYS_ENABLE] [\-\-freqs FREQS] [\-\-uncore\-freqs UNCORE_FREQS] [\-\-governor GOVERNOR] [\-\-aspm ASPM] [\-\-c1\-demotion C1_DEMOTION]
                           [\-\-c1\-undemotion C1_UNDEMOTION] [\-\-c1e\-autopromote C1E_AUTOPROMOTE] [\-\-cstate\-prewake CSTATE_PREWAKE] [\-\-state\-reset] [\-\-deploy] [\-\-devids DEVIDS] [\-\-stop\-on\-failure] [\-\-only\-measured\-cpu] [\-\-toolpath TOOLPATH]
                           [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-dry\-run] [\-\-list\-monikers]
@@ -87,8 +87,8 @@ String to prepend to the report ID (nothing, by default).
 String to append to the report ID (nothing, by default).
 
 .TP
-\fB\-\-cpunum\fR \fI\,CPUNUM\/\fR
-Applicable only for the 'wult' tool. The CPU number to measure with. Default is CPU0.
+\fB\-\-cpunums\fR \fI\,CPUNUMS\/\fR
+Applicable only for the 'wult' and 'ndl' tools. Comma\-separated list of CPU numbers to measure with. No CPU number is passed by default.
 
 .TP
 \fB\-\-cstates\fR \fI\,CSTATES\/\fR

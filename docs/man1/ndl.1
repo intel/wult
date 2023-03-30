@@ -1,4 +1,4 @@
-.TH NDL "1" "2023\-03\-24" "ndl" "Generated Python Manual"
+.TH NDL "1" "2023\-03\-30" "ndl" "Generated Python Manual"
 .SH NAME
 ndl
 .SH SYNOPSIS
@@ -225,7 +225,7 @@ nanoseconds. For example, '\-\-ldist 500us,100ms' would be a [500,100000] micros
 .TP
 \fB\-\-cpunum\fR \fI\,CPUNUM\/\fR
 The CPU number to bind the helper to. The helper will use this CPU to send delayed packets. In normal conditions this means that network packet buffers will be allocated on the NUMA node local to the CPU, but not necessarily local to
-the network card. Use this option to measure different packet memory locations on a NUMA system. Default is CPU 0.
+the network card. Use this option to measure different packet memory locations on a NUMA system. Default is the first CPU local to the NIC.
 
 .TP
 \fB\-\-exclude\fR \fI\,EXCLUDE\/\fR

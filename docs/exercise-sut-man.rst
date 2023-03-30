@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date:   2023-03-24
+:Date:   2023-03-30
 
 .. contents::
    :depth: 3
@@ -56,7 +56,7 @@ COMMAND *'exercise-sut* start'
 
 usage: exercise-sut start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K
 PRIVKEY] [-T TIMEOUT] [--datapoints DATAPOINTS] [--reportid-prefix
-REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpunum CPUNUM]
+REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpunums CPUNUMS]
 [--cstates CSTATES] [--pcstates PCSTATES] [--only-one-cstate]
 [--cstates-always-enable CSTATES_ALWAYS_ENABLE] [--freqs FREQS]
 [--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR] [--aspm ASPM]
@@ -105,9 +105,9 @@ OPTIONS *'exercise-sut* start'
 **--reportid-suffix** *REPORTID_SUFFIX*
    String to append to the report ID (nothing, by default).
 
-**--cpunum** *CPUNUM*
-   Applicable only for the 'wult' tool. The CPU number to measure with.
-   Default is CPU0.
+**--cpunums** *CPUNUMS*
+   Applicable only for the 'wult' and 'ndl' tools. Comma-separated list
+   of CPU numbers to measure with. No CPU number is passed by default.
 
 **--cstates** *CSTATES*
    Comma-separated list of requestable C-states to measure with. Default

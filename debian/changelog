@@ -1,3 +1,9 @@
+wult (1.11.8) unstable; urgency=low
+
+  * Fix 'stats-collect' deployment.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 30 Mar 2023 00:00:00 +0200
+
 wult (1.11.7) unstable; urgency=low
 
   * Fix several metrics missing 'min/max' summary functions in 'wult' HTML
