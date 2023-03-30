@@ -50,6 +50,8 @@ def get_data_files(installdir, subdir, exclude=None):
 
 # Python helpers get installed as scripts. We exclude these scripts from being installed as data.
 _PYTHON_HELPERS = ["helpers/stc-agent/stc-agent", "helpers/stc-agent/ipmi-helper"]
+# All 'stc-agent' files.
+_STC_AGENT_FILES = _PYTHON_HELPERS + ["helpers/stc-agent/Makefile"]
 
 setup(
     name="wult",
@@ -59,8 +61,10 @@ setup(
     python_requires=">=3.7",
     version=get_version("wulttools/_Wult.py"),
     data_files=get_data_files("share/wult/drivers", "drivers") + \
-               get_data_files("share/wult/helpers", "helpers", exclude=_PYTHON_HELPERS) + \
+               get_data_files("share/wult/helpers", "helpers", exclude=_STC_AGENT_FILES) + \
                get_data_files("share/wult/defs/wult", "defs/wult") + \
+               get_data_files("share/stats-collect/helpers/stc-agent", "helpers/stc-agent",
+                              exclude=_PYTHON_HELPERS) + \
                get_data_files("share/stats-collect/defs/statscollect", "defs/statscollect") + \
                get_data_files("share/stats-collect/js/dist", "js/dist") + \
                get_data_files("share/stats-collect/misc/servedir", "misc/servedir") + \
