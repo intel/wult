@@ -50,25 +50,20 @@ _LOG = logging.getLogger()
 class Plot:
     """This class provides the common defaults and logic for producing plotly diagrams."""
 
-    def create_hover_template(self, hov_defs, df):
+    def _create_hover_template_col(self, row, hov_defs, columns):
         """
-        Create and return a 'plotly'-compatible hover template for the 'pandas.DataFrame' 'df'.
-        Arguments are as follows:
-         * hov_defs - a list of definitions dictionaries which represent metrics for which hovertext
-                      should be generated.
-         * df - the 'pandas.DataFrame' which contains the datapoints to label.
+        Helper function for 'create_hover_template()'. Returns the hover template for a given 'row'
+        of a 'pandas.DataFrame'.
         """
-
-        _LOG.debug("Preparing hover text for '%s vs %s'", self.ycolname, self.xcolname)
-
-        hov_defs = {mdef["name"]: mdef for mdef in hov_defs}
 
         templ = "(%{x}, %{y})<br>"
         # Units which don't include any SI-prefixes.
         base_units = {"s"}
 
-        for idx, col in enumerate(df.columns):
+        for idx, col in enumerate(columns):
             if col not in hov_defs:
+                continue
+            if not row[columns.get_loc(col)]:
                 continue
 
             mdef = hov_defs[col]
@@ -96,6 +91,22 @@ class Plot:
             templ += "<br>"
 
         return templ
+
+    def create_hover_template(self, hov_defs, df):
+        """
+        Create and return a 'plotly'-compatible hover template for the 'pandas.DataFrame' 'df'.
+        Arguments are as follows:
+         * hov_defs - a list of definitions dictionaries which represent metrics for which hovertext
+                      should be generated.
+         * df - the 'pandas.DataFrame' which contains the datapoints to label.
+        """
+
+        _LOG.debug("preparing hover text for '%s vs %s'", self.ycolname, self.xcolname)
+
+        hov_defs = {mdef["name"]: mdef for mdef in hov_defs}
+        hovertemplate = df.apply(self._create_hover_template_col, axis=1,
+                                 args=(hov_defs, df.columns))
+        return hovertemplate
 
     @staticmethod
     def _is_numeric_col(df, colname):
