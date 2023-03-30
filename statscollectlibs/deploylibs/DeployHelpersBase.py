@@ -56,10 +56,6 @@ class DeployHelpersBase(DeployInstallableBase.DeployInstallableBase):
         if not helpers:
             return
 
-        # Make sure 'cc' is available on the build host - it'll be executed by 'Makefile', so an
-        # explicit check here will generate an nice error message in case 'cc' is not available.
-        self._get_btchk().check_tool("cc")
-
         # We assume all helpers are in the same base directory.
         helper_path = HELPERS_SRC_SUBDIR/f"{helpers[0]}"
         what = f"sources of {self._what}"

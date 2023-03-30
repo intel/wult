@@ -143,6 +143,9 @@ class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
           * helpers - bpf helpers to deploy.
         """
 
+        btchk = self._get_btchk()
+        btchk.check_tool("cc")
+
         # Copy eBPF helpers to the temporary directory on the build host.
         for bpfhelper in helpers:
             srcdir = helpersrc / bpfhelper
@@ -156,7 +159,6 @@ class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
             # 'clang' and 'bpftool' available. These tools are used from the 'Makefile'. Let's check
             # for them in order to generate a user-friendly message if one of them is not installed.
 
-            btchk = self._get_btchk()
             clang_path = btchk.check_tool("clang")
 
             # Check if kernel sources provide 'bpftool' first. The user could have compiled it in

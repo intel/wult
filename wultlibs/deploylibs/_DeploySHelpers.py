@@ -27,6 +27,10 @@ class DeploySHelpers(DeployHelpersBase.DeployHelpersBase):
           * helpers - simple helpers to build and prepare for deployment.
         """
 
+        # Make sure 'cc' is available on the build host - it'll be executed by 'Makefile', so an
+        # explicit check here will generate a nice error message in case 'cc' is not available.
+        self._get_btchk().check_tool("cc")
+
         # Copy simple helpers to the temporary directory on the build host.
         for shelper in helpers:
             srcdir = helpersrc/ shelper
