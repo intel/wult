@@ -5,6 +5,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix HTML reports not being able to be viewed locally since v1.11.2.
 ### Added
 ### Removed
 ### Changed
