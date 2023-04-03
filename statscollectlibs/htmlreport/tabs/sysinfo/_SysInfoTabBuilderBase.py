@@ -58,7 +58,7 @@ class SysInfoTabBuilderBase(_DTabBuilder.DTabBuilder):
             "title": name
         }
 
-        super().__init__({}, outdir, mdef, outdir)
+        super().__init__({}, outdir / "SysInfo", mdef, outdir)
 
         self.name = name
         self.files = files
