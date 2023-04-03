@@ -25,7 +25,7 @@ from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.deploylibs import _Deploy
 from wulttools import _Common, _WultCommon
 
-_VERSION = "1.11.8"
+_VERSION = "1.11.9"
 TOOLNAME = "wult"
 
 # The deployment information dictionary. See 'DeployBase.__init__()' for details.

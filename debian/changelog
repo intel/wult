@@ -1,3 +1,9 @@
+wult (1.11.9) unstable; urgency=low
+
+  * Fix HTML reports not being able to be viewed locally since v1.11.2.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 03 Apr 2023 00:00:00 +0200
+
 wult (1.11.8) unstable; urgency=low
 
   * Fix 'stats-collect' deployment.
