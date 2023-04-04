@@ -59,7 +59,7 @@ class TurbostatTabBuilder:
 
         if measured_cpus:
             self.l2tab_bldrs.append(_MCPUL2TabBuilder.MCPUL2TabBuilder(rsts, outdir / self.name,
-                                                                       outdir, measured_cpus))
+                                                                       outdir))
 
         self.l2tab_bldrs.append(_TotalsL2TabBuilder.TotalsL2TabBuilder(rsts, outdir / self.name,
                                                                        outdir))

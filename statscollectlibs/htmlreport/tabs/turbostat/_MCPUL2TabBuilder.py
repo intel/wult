@@ -73,17 +73,17 @@ class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
 
         return pandas.DataFrame.from_dict(tstat_reduced)
 
-    def __init__(self, rsts, outdir, basedir, measured_cpus):
+    def __init__(self, rsts, outdir, basedir):
         """
         The class constructor. Adding a "measured CPU" turbostat level 2 tab will create a
         "MeasuredCPU" sub-directory and store data tabs inside it for metrics stored in the raw
         turbostat statistics files for each measured CPU. The arguments are the same as in
-        '_TurbostatL2TabBuilder.TurbostatL2TabBuilder' except for:
-         * measured_cpus - dictionary in the format {'reportid': 'measured_cpu'} where
-                           'measured_cpu' is the CPU that was being tested during the workload.
+        '_TurbostatL2TabBuilder.TurbostatL2TabBuilder'.
         """
 
-        stats_paths = {res.reportid: res.stats_path for res in rsts}
-        self._statdir_to_mcpu = {stats_paths[repid]: cpu for repid, cpu in measured_cpus.items()}
+        self._statdir_to_mcpu = {}
+        for res in rsts:
+            if "cpunum" in res.info:
+                self._statdir_to_mcpu[res.stats_path] = str(res.info["cpunum"])
 
         super().__init__(rsts, outdir / self.name, basedir)
