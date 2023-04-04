@@ -75,7 +75,7 @@ def _dump_json(obj, path, descr):
 class HTMLReport:
     """This class provides the API for generating HTML reports."""
 
-    def _generate_stats_tabs(self, rsts, measured_cpus=None):
+    def _generate_stats_tabs(self, rsts):
         """
         Generate and return a list sub-tabs for the statistics tab. The statistics tab includes
         metrics from the statistics collectors, such as 'turbostat'.
@@ -85,19 +85,17 @@ class HTMLReport:
 
         _LOG.info("Generating statistics tabs.")
 
-        if measured_cpus is None:
-            measured_cpus = {}
-        tab_builders = {
-            _ACPowerTabBuilder.ACPowerTabBuilder: {},
-            _TurbostatTabBuilder.TurbostatTabBuilder: {"measured_cpus": measured_cpus},
-            _IPMITabBuilder.IPMITabBuilder: {}
-        }
+        tab_builders = [
+            _ACPowerTabBuilder.ACPowerTabBuilder,
+            _TurbostatTabBuilder.TurbostatTabBuilder,
+            _IPMITabBuilder.IPMITabBuilder,
+        ]
 
         tabs = []
 
-        for tab_builder, args in tab_builders.items():
+        for tab_builder in tab_builders:
             try:
-                tbldr = tab_builder(rsts, self.outdir, **args)
+                tbldr = tab_builder(rsts, self.outdir)
             except ErrorNotFound as err:
                 _LOG.info("Skipping '%s' tab as '%s' statistics not found for all reports.",
                           tab_builder.name, tab_builder.name)
@@ -156,14 +154,14 @@ class HTMLReport:
 
         return tabs
 
-    def _generate_tabs(self, rsts, measured_cpus=None):
+    def _generate_tabs(self, rsts):
         """Helper function for 'generate_report()'. Generates statistics and sysinfo tabs."""
 
         tabs = []
 
         stats_paths = {res.reportid: res.stats_path for res in rsts}
         try:
-            stats_tabs = self._generate_stats_tabs(rsts, measured_cpus)
+            stats_tabs = self._generate_stats_tabs(rsts)
         except Error as err:
             _LOG.info("Error occurred during statistics tabs generation: %s", err)
             stats_tabs = []
@@ -188,8 +186,7 @@ class HTMLReport:
 
         return tabs
 
-    def generate_report(self, tabs=None, rsts=None, intro_tbl=None, title=None, descr=None,
-                        measured_cpus=None):
+    def generate_report(self, tabs=None, rsts=None, intro_tbl=None, title=None, descr=None):
         """
         Generate a report in 'outdir' with 'tabs'. Arguments are as follows:
          * tabs - a list of additional container tabs which should be included in the report. If,
@@ -201,9 +198,6 @@ class HTMLReport:
                        report.
          * title - the title of the report. If one is not provided, omits the title.
          * descr - a description of the report. If one is not provided, omits the description.
-         * measured_cpus - dictionary in the format {'reportid': 'measured_cpu'} where
-                           'measured_cpu' is the CPU that was being tested during the workload. If
-                           not provided, the turbostat "Measured CPU" tab will not be generated.
         """
 
         if not tabs and not rsts:
@@ -231,7 +225,7 @@ class HTMLReport:
             report_info["intro_tbl"] = intro_tbl_path.relative_to(self.outdir)
 
         if rsts is not None:
-            tabs += self._generate_tabs(rsts, measured_cpus)
+            tabs += self._generate_tabs(rsts)
 
         # Convert Dataclasses to dictionaries so that they are JSON serialisable.
         json_tabs = [dataclasses.asdict(tab) for tab in tabs]

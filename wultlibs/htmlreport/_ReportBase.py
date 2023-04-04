@@ -403,11 +403,6 @@ class ReportBase:
 
         toolname = self._refinfo["toolname"].title()
 
-        mcpus = {}
-        for res in self.rsts:
-            if "cpunum" in res.info and res.reportid in stats_paths:
-                mcpus[res.reportid] = str(res.info["cpunum"])
-
         rep = HTMLReport.HTMLReport(self.outdir)
         stats_rsts = []
         for res in self.rsts:
@@ -419,7 +414,7 @@ class ReportBase:
                 stats_rsts.append(RORawResult.RORawResult(res.dirpath, res.reportid))
 
         rep.generate_report(tabs, stats_rsts, self._intro_tbl, f"{toolname} Report",
-                            self.report_descr, mcpus)
+                            self.report_descr)
 
     @staticmethod
     def _mangle_loaded_res(res):
