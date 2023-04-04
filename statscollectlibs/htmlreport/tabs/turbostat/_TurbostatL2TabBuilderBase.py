@@ -212,7 +212,6 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
          * basedir - base directory of the report. All asset paths will be made relative to this.
         """
 
-        stats_paths = {res.reportid: res.stats_path for res in rsts}
         self._time_metric = "Time"
         self.outdir = outdir
 
@@ -231,5 +230,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             }
         }
 
-        super().__init__(stats_paths, outdir, ["turbostat.raw.txt"])
+        stats_paths = self._get_stats_paths(rsts, "turbostat", "turbostat.raw.txt")
+
+        super().__init__(stats_paths, outdir)
         self._basedir = basedir

@@ -10,6 +10,7 @@
 This module provides the capability of populating the IPMI statistics Tab.
 """
 
+import logging
 import numpy
 import pandas
 from pepclibs.helperlibs import Trivial
@@ -17,6 +18,8 @@ from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.defs import DefsBase, IPMIDefs
 from statscollectlibs.htmlreport.tabs import _TabBuilderBase
 from statscollectlibs.parsers import IPMIParser
+
+_LOG = logging.getLogger()
 
 class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
     """
@@ -188,8 +191,6 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
 
         self._time_metric = "Time"
 
-        stats_paths = {res.reportid: res.stats_path for res in rsts}
-
         # Metrics in IPMI statistics can be represented by multiple columns. For example the
         # "FanSpeed" of several different fans can be measured and represented in columns "Fan1",
         # "Fan2" etc. This dictionary maps the metrics to the appropriate columns. Initialise it
@@ -197,4 +198,14 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
         defs = IPMIDefs.IPMIDefs()
         self._metrics = {metric: [] for metric in defs.info}
 
-        super().__init__(stats_paths, outdir, ["ipmi-oob.raw.txt", "ipmi-inband.raw.txt"], defs)
+        inb_stats_paths = self._get_stats_paths(rsts, "ipmi-inband", "ipmi-inband.raw.txt")
+        oob_stats_paths = self._get_stats_paths(rsts, "ipmi-oob", "ipmi-oob.raw.txt")
+
+
+        if inb_stats_paths.keys() and oob_stats_paths.keys():
+            _LOG.warning("generating '%s' tab with a combination of data collected both inband "
+                         "and out-of-band.", self.name)
+
+        inb_stats_paths.update(oob_stats_paths)
+
+        super().__init__(inb_stats_paths, outdir, defs)

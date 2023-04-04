@@ -37,6 +37,29 @@ class TabBuilderBase:
     # The name of the statistics represented in the produced tab.
     name = None
 
+    @staticmethod
+    def _get_stats_paths(rsts, stname, default_name):
+        """
+        A helper function which can return a dictionary of paths to raw statistics files for
+        statistic 'stname' for the results in 'rsts'. Arguments are as follows:
+         * rsts - a list of 'RORawResult' instances for which statistics paths should be found.
+         * stname - the name of the statistic for which statistics paths should be found.
+         * default_name - the path that will be used if one is not specified by the result.
+        """
+
+        stats_paths = {}
+        for res in rsts:
+            try:
+                subpath = res.info["stinfo"][stname]["paths"]["stats"]
+            except KeyError:
+                subpath = default_name
+
+            path = res.stats_path / subpath
+            if path.exists():
+                stats_paths[res.reportid] = path
+
+        return stats_paths
+
     def _build_ctab(self, name, tab_hierarchy, outdir, plots, smry_funcs):
         """
         This is a helper function for 'get_tab()'. Build a container tab according to the
@@ -153,34 +176,25 @@ class TabBuilderBase:
         {'reportid': 'statistics_directory_path'}.
         """
 
-        for reportid, statsdir in stats_paths.items():
-            stats_exist = False
-            if statsdir:
-                for stats_file in self._stats_files:
-                    statspath = Path(statsdir) / stats_file
-                    if statspath.exists():
-                        self._add_stats(reportid, statspath)
-                        stats_exist = True
-                        break
-
-            if not stats_exist:
+        for reportid, stats_path in stats_paths.items():
+            if not stats_path.exists():
                 raise ErrorNotFound(f"failed to generate '{self.name}' tab: no raw statistics file "
                                     f"found for report '{reportid}'.")
+            self._add_stats(reportid, stats_path)
 
         if not self._reports:
-            raise ErrorNotFound(f"failed to generate '{self.name}' tab: none of the following raw "
-                                f"statistics files were found in any statistics directory: "
-                                f"'{self._stats_files}'.")
+            raise ErrorNotFound(f"failed to generate '{self.name}' tab: no results contained raw "
+                                f"statistics files containing data for this tab.")
 
-    def __init__(self, stats_paths, outdir, stats_files, defs=None):
+    def __init__(self, stats_paths, outdir, defs=None):
         """
         The class constructor. Adding a statistics container tab will create a sub-directory and
         store tabs inside it. These tabs will represent all of the metrics stored in 'stats_file'.
         Arguments are as follows:
-         * stats_paths - dictionary in the format {'reportid': 'statistics_directory_path'}.
-           This class will use these directories to locate raw statistic files.
+         * stats_paths - dictionary in the format {'reportid': 'raw_statistics_file'}, where
+                         'raw_statistics_file' is a path to the raw statistics file containing
+                         statistics data.
          * outdir - the output directory in which to create the sub-directory for the container tab.
-         * stats_files - a list of the possible names of the raw statistics file.
          * defs - a '_DefsBase.DefsBase' instance containing definitions for the metrics which
                   should be included in the output tab.
         """
@@ -194,7 +208,6 @@ class TabBuilderBase:
         self._outdir = outdir / DefsBase.get_fsname(self.name)
         self._defs = defs
 
-        self._stats_files = stats_files
         self._read_stats(stats_paths)
 
         try:

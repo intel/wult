@@ -95,8 +95,9 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
         '_TabBuilderBase.TabBuilderBase'.
         """
 
-        stats_paths = {res.reportid: res.stats_path for res in rsts}
         self._power_metric = "P"
         self._time_metric = "T"
 
-        super().__init__(stats_paths, outdir, ["acpower.raw.txt"], ACPowerDefs.ACPowerDefs())
+        stats_paths = self._get_stats_paths(rsts, "acpower", "acpower.raw.txt")
+
+        super().__init__(stats_paths, outdir, ACPowerDefs.ACPowerDefs())
