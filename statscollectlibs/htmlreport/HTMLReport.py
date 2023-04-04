@@ -160,11 +160,12 @@ class HTMLReport:
 
         return tabs
 
-    def _generate_tabs(self, stats_paths, measured_cpus=None):
+    def _generate_tabs(self, rsts, measured_cpus=None):
         """Helper function for 'generate_report()'. Generates statistics and sysinfo tabs."""
 
         tabs = []
 
+        stats_paths = {res.reportid: res.stats_path for res in rsts}
         try:
             stats_tabs = self._generate_stats_tabs(stats_paths, measured_cpus)
         except Error as err:
@@ -213,11 +214,6 @@ class HTMLReport:
             raise Error("both 'tabs' and 'rsts' can't be 'None'. One of the two parameters should "
                         "be provided.")
 
-        if rsts:
-            stats_paths = {res.reportid: res.stats_path for res in rsts}
-        else:
-            stats_paths = None
-
         if not tabs:
             tabs = []
 
@@ -238,8 +234,8 @@ class HTMLReport:
             intro_tbl.generate(intro_tbl_path)
             report_info["intro_tbl"] = intro_tbl_path.relative_to(self.outdir)
 
-        if stats_paths is not None:
-            tabs += self._generate_tabs(stats_paths, measured_cpus)
+        if rsts is not None:
+            tabs += self._generate_tabs(rsts, measured_cpus)
 
         # Convert Dataclasses to dictionaries so that they are JSON serialisable.
         json_tabs = [dataclasses.asdict(tab) for tab in tabs]
