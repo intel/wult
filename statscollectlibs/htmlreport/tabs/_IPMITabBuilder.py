@@ -178,7 +178,7 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
         sdf = sdf.rename(columns={time_colname: self._time_metric})
         return sdf
 
-    def __init__(self, stats_paths, outdir):
+    def __init__(self, rsts, outdir):
         """
         The class constructor. Adding an IPMI statistics container tab will create an 'IPMI'
         sub-directory and store tabs inside it. These tabs will represent all of the metrics stored
@@ -187,6 +187,8 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
         """
 
         self._time_metric = "Time"
+
+        stats_paths = {res.reportid: res.stats_path for res in rsts}
 
         # Metrics in IPMI statistics can be represented by multiple columns. For example the
         # "FanSpeed" of several different fans can be measured and represented in columns "Fan1",

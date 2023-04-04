@@ -42,13 +42,13 @@ class TurbostatTabBuilder:
         return _Tabs.CTabDC(self.name, l2_tabs)
 
 
-    def __init__(self, stats_paths, outdir, measured_cpus=None):
+    def __init__(self, rsts, outdir, measured_cpus=None):
         """
         The class constructor. Adding a turbostat statistics container tab will create a "Turbostat"
         sub-directory and store level 2 tabs inside it. Level 2 tabs will represent metrics stored
         in the raw turbostat statistics file using data tabs. Arguments are as follows:
-         * stats_paths - dictionary in the format {'reportid': 'statistics_directory_path'}.
-           This class will use these directories to locate raw turbostat statistic files.
+         * rsts - a list of 'RORawResult' instances for different results with statistics which
+                  should be included in the turbostat tabs.
          * outdir - the output directory in which to create the sub-directory for the turbostat tab.
          * measured_cpus - dictionary in the format {'reportid': 'measured_cpu'} where
                            'measured_cpu' is the CPU that was being tested during the workload. If
@@ -58,9 +58,8 @@ class TurbostatTabBuilder:
         self.l2tab_bldrs = []
 
         if measured_cpus:
-            self.l2tab_bldrs.append(_MCPUL2TabBuilder.MCPUL2TabBuilder(stats_paths,
-                                                                       outdir / self.name,
+            self.l2tab_bldrs.append(_MCPUL2TabBuilder.MCPUL2TabBuilder(rsts, outdir / self.name,
                                                                        outdir, measured_cpus))
 
-        self.l2tab_bldrs.append(_TotalsL2TabBuilder.TotalsL2TabBuilder(stats_paths,
-                                                                       outdir / self.name, outdir))
+        self.l2tab_bldrs.append(_TotalsL2TabBuilder.TotalsL2TabBuilder(rsts, outdir / self.name,
+                                                                       outdir))

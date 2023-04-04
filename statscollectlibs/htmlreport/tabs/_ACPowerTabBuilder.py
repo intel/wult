@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2022-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Authors: Adam Hawley <adam.james.hawley@intel.com>
@@ -88,13 +88,14 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
         tab.name = self.name
         return tab
 
-    def __init__(self, stats_paths, outdir):
+    def __init__(self, rsts, outdir):
         """
         The class constructor. Adding an ACPower tab will create an 'ACPower' sub-directory and
         store plots and the summary table in it. The arguments are the same as in
         '_TabBuilderBase.TabBuilderBase'.
         """
 
+        stats_paths = {res.reportid: res.stats_path for res in rsts}
         self._power_metric = "P"
         self._time_metric = "T"
 

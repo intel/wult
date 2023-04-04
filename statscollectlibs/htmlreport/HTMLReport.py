@@ -75,14 +75,10 @@ def _dump_json(obj, path, descr):
 class HTMLReport:
     """This class provides the API for generating HTML reports."""
 
-    def _generate_stats_tabs(self, stats_paths, measured_cpus=None):
+    def _generate_stats_tabs(self, rsts, measured_cpus=None):
         """
         Generate and return a list sub-tabs for the statistics tab. The statistics tab includes
         metrics from the statistics collectors, such as 'turbostat'.
-
-        The 'stats_paths' argument is a dictionary mapping in the following format:
-           {Report ID: Stats directory path}
-        where "stats directory path" is the directory containing raw statistics files.
 
         The elements of the returned list are tab dataclass objects, such as 'CTabDC'.
         """
@@ -101,7 +97,7 @@ class HTMLReport:
 
         for tab_builder, args in tab_builders.items():
             try:
-                tbldr = tab_builder(stats_paths, self.outdir, **args)
+                tbldr = tab_builder(rsts, self.outdir, **args)
             except ErrorNotFound as err:
                 _LOG.info("Skipping '%s' tab as '%s' statistics not found for all reports.",
                           tab_builder.name, tab_builder.name)
@@ -167,7 +163,7 @@ class HTMLReport:
 
         stats_paths = {res.reportid: res.stats_path for res in rsts}
         try:
-            stats_tabs = self._generate_stats_tabs(stats_paths, measured_cpus)
+            stats_tabs = self._generate_stats_tabs(rsts, measured_cpus)
         except Error as err:
             _LOG.info("Error occurred during statistics tabs generation: %s", err)
             stats_tabs = []

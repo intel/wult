@@ -204,7 +204,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         # Build L2 CTab with hierarchy represented in 'self._tab_hierarchy'.
         return self._build_ctab(self.name, tab_hierarchy, self.outdir, plots, smry_funcs)
 
-    def __init__(self, stats_paths, outdir, basedir):
+    def __init__(self, rsts, outdir, basedir):
         """
         The class constructor. Adding a turbostat level 2 tab will create a sub-directory and store
         data tabs inside it for metrics stored in the raw turbostat statistics file.  The arguments
@@ -212,6 +212,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
          * basedir - base directory of the report. All asset paths will be made relative to this.
         """
 
+        stats_paths = {res.reportid: res.stats_path for res in rsts}
         self._time_metric = "Time"
         self.outdir = outdir
 
