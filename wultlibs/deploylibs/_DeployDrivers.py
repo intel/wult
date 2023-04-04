@@ -83,8 +83,11 @@ class DeployDrivers(DeployInstallableBase.DeployInstallableBase):
             dstdir = kmodpath / DRIVERS_SRC_SUBDIR
             self._spman.mkdir(dstdir, parents=True, exist_ok=True)
 
+            denylist = []
+
             for deployable, installed_module in deployables.items():
                 modname = f"{deployable}.ko"
+                denylist.append(f"blacklist {deployable}")
                 srcpath = drvsrc / modname
                 dstpath = dstdir / modname
                 _LOG.info("Deploying kernel module '%s'%s", modname, self._spman.hostmsg)
@@ -99,6 +102,14 @@ class DeployDrivers(DeployInstallableBase.DeployInstallableBase):
 
             stdout, stderr = self._spman.run_verify(f"depmod -a -- '{kver}'")
             self._log_cmd_output(stdout, stderr)
+
+            # Deny automatic probing of all of our modules.
+            with self._spman.open(f"/etc/modprobe.d/{self._toolname}-blacklist.conf", "w") as fobj:
+                fobj.write(f"# '{self._toolname}' is a system tracing tool, and its helper kernel modules should not be\n"
+                           "# automatically loaded by system. Instead, they shall be manually probed by the\n" \
+                           "# tool itself when used.\n\n");
+                fobj.write("\n".join(denylist))
+                fobj.write("\n")
 
             # Potentially the deployed driver may crash the system before it gets to write-back data
             # to the file-system (e.g., what 'depmod' modified). This may lead to subsequent boot
