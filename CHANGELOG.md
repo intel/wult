@@ -5,11 +5,14 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix kernel error messages like "already have device 'wult_tdt' registered"
-   by prohibiting wult out of tree drivers to be automatically loaded.
 ### Added
 ### Removed
 ### Changed
+
+## [1.11.10] - 2023-04-05
+### Fixed
+ - Fix kernel error messages like "already have device 'wult_tdt' registered"
+   by prohibiting wult out of tree drivers to be automatically loaded.
 
 ## [1.11.9] - 2023-04-03
 ### Fixed

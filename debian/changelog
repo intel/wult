@@ -1,3 +1,10 @@
+wult (1.11.10) unstable; urgency=low
+
+  * Fix kernel error messages like "already have device 'wult_tdt' registered"
+    by prohibiting wult out of tree drivers to be automatically loaded.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 05 Apr 2023 00:00:00 +0200
+
 wult (1.11.9) unstable; urgency=low
 
   * Fix HTML reports not being able to be viewed locally since v1.11.2.
