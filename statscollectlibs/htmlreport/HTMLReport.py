@@ -13,8 +13,7 @@ import logging
 import json
 from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from pepclibs.helperlibs import ProjectFiles
-from statscollectlibs.helperlibs import FSHelpers
+from statscollectlibs.helperlibs import FSHelpers, ProjectFiles
 from statscollectlibs.htmlreport.tabs import _ACPowerTabBuilder, _IPMITabBuilder, _Tabs
 from statscollectlibs.htmlreport.tabs.turbostat import _TurbostatTabBuilder
 from statscollectlibs.htmlreport.tabs.sysinfo import (_CPUFreqTabBuilder, _CPUIdleTabBuilder,
@@ -33,19 +32,26 @@ def _copy_assets(outdir):
 
     # This list defines the assets which should be copied into the output directory. Items in the
     # list are tuples in the format: (asset_description, path_to_asset, path_of_copied_asset).
-    assets = [
+    js_assets = [
         ("bundled JavaScript", "js/dist/main.js", outdir / "js/dist/main.js"),
         ("bundled CSS", "js/dist/main.css", outdir / "js/dist/main.css"),
         ("bundled dependency licenses", "js/dist/main.js.LICENSE.txt",
             outdir / "js/dist/main.js.LICENSE.txt"),
+    ]
+
+    for asset in js_assets:
+        asset_path = ProjectFiles.find_project_web_assets("stats-collect", asset[1], what=asset[0])
+        FSHelpers.move_copy_link(asset_path, asset[2], "copy", exist_ok=True)
+
+    misc_assets = [
         ("root HTML page of the report.", "js/index.html", outdir / "index.html"),
         ("script to serve report directories.", "misc/servedir/serve_directory.py",
             outdir / "serve_directory.py"),
         ("README file for local viewing scripts", "misc/servedir/README.md",
-            outdir / "README.md")
+            outdir / "README.md"),
     ]
 
-    for asset in assets:
+    for asset in misc_assets:
         asset_path = ProjectFiles.find_project_data("stats-collect", asset[1], what=asset[0])
         FSHelpers.move_copy_link(asset_path, asset[2], "copy", exist_ok=True)
 
