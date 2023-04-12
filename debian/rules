@@ -9,8 +9,5 @@ override_dh_auto_build-arch:
 	$(MAKE) -C helpers/wult-tdt-helper
 
 override_dh_auto_test:
-	: # do nothing
-## 'pytest' currently broken in target environment, re-enable when it's fixed:
-#	python_path = $(shell realpath --relative-to=. .pybuild/*python*/build)
-#	cp -r wult ndl defs js misc $(python_path);
-#	dh_auto_test
+	cp -r wult ndl defs js misc $(shell realpath --relative-to=. .pybuild/*python*/build)
+	dh_auto_test

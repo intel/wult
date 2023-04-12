@@ -11,6 +11,7 @@ Build-Depends: debhelper (>= 12),
                python3-pytest,
                python3-py,
                python3-iniconfig,
+               python3-exceptiongroup,
                python3-pandas,
                python3-plotly
 Standards-Version: 3.9.8
