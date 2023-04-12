@@ -161,9 +161,12 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                 variants = (marker, marker.upper(), marker.title())
                 for variant in variants:
                     if variant in dmesg:
-                        _LOG.warning("found a message prefixed with '%s' in 'dmesg':\n%s",
-                                     variant, dmesg)
-                        _LOG.warning("consider reporting this to wult developers")
+                        _LOG.notice("found a message prefixed with '%s' in 'dmesg'%s:\n%s",
+                                    variant, self._pman.hostmsg, dmesg)
+                        _LOG.notice("the kernel printed these messages while wult was running.\n"
+                                    "They do not necessarily mean that there is a problem with "
+                                    "wult,\nbut you may consider reporting this to wult "
+                                    "developers.")
                         break
 
     def _get_cmdline(self):
