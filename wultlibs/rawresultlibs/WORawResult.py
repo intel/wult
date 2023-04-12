@@ -90,10 +90,13 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
         """
 
         dpfilter = self._get_dp_filter()
+        if not dpfilter:
+            return True
+
         passed = False
         try:
             # The 'eval()' expressions use the datapoint argument 'dp'.
-            passed = (not dpfilter) or eval(dpfilter) # pylint: disable=eval-used
+            passed = eval(dpfilter) # pylint: disable=eval-used
         except SyntaxError as err:
             raise Error(f"failed to evaluate expression '{dpfilter}'. Make sure you use correct "
                         f"metric names, which are also case-sensitive.") from err
