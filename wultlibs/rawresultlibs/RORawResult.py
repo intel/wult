@@ -246,7 +246,14 @@ class RORawResult(_RawResultBase.RawResultBase):
                 raise Error(f"failed to evaluate expression '{dpfilter}': {msg}\nMake sure you use "
                             f"correct metric names, which are also case-sensitive.") from err
 
-            self.df = self.df[expr].reset_index(drop=True)
+            try:
+                self.df = self.df[expr].reset_index(drop=True)
+            except KeyError as err:
+                # Example of filter causing this error - just metric name without any operator, like
+                # just "CC1%", instead of something like "CC1% > 0".
+                raise Error(f"failed to apply expression '{dpfilter}'.\nMake sure you use "
+                            f"correct metric names, which are also case-sensitive.") from err
+
             if self.df.empty:
                 raise Error(f"no data left after applying datapoint filter to CSV file "
                             f"'{self.dp_path}'")
