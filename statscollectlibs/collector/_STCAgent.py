@@ -350,6 +350,9 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         if not name.isalnum():
             raise Error(f"bad label name '{name}': must be alphanumeric")
 
+        if not self.get_enabled_stats():
+            return
+
         if not metrics:
             metrics = {}
 
