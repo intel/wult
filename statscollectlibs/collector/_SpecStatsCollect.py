@@ -390,7 +390,7 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
                 stinfo[stname] = info.copy()
 
                 if agent.labels_path:
-                    path = agent.labels_path.relative_to(agent.statsdir)
+                    path = agent.labels_path.relative_to(agent.outdir)
                     info["paths"]["labels"] = path
 
         return stinfo
