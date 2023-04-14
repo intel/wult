@@ -370,7 +370,8 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
                 raise Error(f"found reserved key '{key}' in metrics dictionary")
 
         label = {"name" : name}
-        label.update(metrics)
+        if metrics:
+            label["metrics"] = metrics
 
         # Serialize the metrics dictionary into a JSON string.
         try:
