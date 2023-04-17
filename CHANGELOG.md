@@ -6,10 +6,14 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
- - Allow empty moniker when generating reports with exercise-sut. Depends on
-   pepc version 1.4.9.
 ### Removed
 ### Changed
+
+## [1.11.11] - 2023-04-17
+### Added
+ - Allow empty moniker when generating reports with exercise-sut. Depends on
+   pepc version 1.4.9.
+ - Fix Debian build dependency for pytests to run in build environment.
 
 ## [1.11.10] - 2023-04-05
 ### Fixed
