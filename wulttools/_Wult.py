@@ -266,6 +266,7 @@ def _build_arguments_parser():
                          help=_Common.MINCLUDE_DESCR)
     subpars.add_argument("-f", "--funcs", help=_Common.FUNCS_DESCR)
     subpars.add_argument("--list-funcs", action="store_true", help=_Common.LIST_FUNCS_DESCR)
+    subpars.add_argument("--list-metrics", action="store_true", help=_Common.LIST_METRICS_DESCR)
 
     text = f"""The {TOOLNAME} test result path to calculate summary functions for."""
     subpars.add_argument("respath", type=Path, help=text)

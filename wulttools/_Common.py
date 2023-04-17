@@ -450,8 +450,7 @@ def filter_command(args):
     res = RORawResult.RORawResult(args.respath)
 
     if args.list_metrics:
-        for metric in res.metrics:
-            _LOG.info("%s: %s", metric, res.defs.info[metric]["title"])
+        list_result_metrics([res])
         return
 
     if not getattr(args, "oargs", None):
@@ -492,6 +491,11 @@ def calc_command(args):
         funcnames = None
 
     res = RORawResult.RORawResult(args.respath)
+
+    if args.list_metrics:
+        list_result_metrics([res])
+        return
+
     apply_filters(args, res)
 
     non_numeric = res.get_non_numeric_metrics()
