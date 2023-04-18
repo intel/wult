@@ -75,6 +75,9 @@ class DeployDrivers(DeployInstallableBase.DeployInstallableBase):
                 if "synth_event_" in stderr:
                     msg += "\n\nLooks like synthetic events support is disabled in your kernel, " \
                            "enable the 'CONFIG_SYNTH_EVENTS' kernel configuration option."
+                elif "objtool: No such file or directory" in stderr:
+                    msg += "\n\nLooks like 'objtool' is missing, maybe your kernel needs to be " \
+                           "prepared to build external modules. Try running 'make modules_prepare'."
                 raise Error(msg)
 
             self._log_cmd_output(stdout, stderr)
