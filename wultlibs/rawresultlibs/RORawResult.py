@@ -265,7 +265,7 @@ class RORawResult(_RawResultBase.RawResultBase):
             _LOG.debug("applying metrics selector: %s", metrics)
             self.df = self.df[metrics]
             if self.df.empty:
-                raise Error(f"no data left after applying metric selector(s) to CSV file "
+                raise Error(f"no datapoints left after applying metric selector(s) to CSV file "
                             f"'{self.dp_path}'")
 
     def load_df(self, **kwargs):
