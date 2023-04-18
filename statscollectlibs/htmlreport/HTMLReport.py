@@ -23,6 +23,29 @@ from statscollectlibs.htmlreport.tabs.sysinfo import _TurbostatTabBuilder as _Sy
 
 _LOG = logging.getLogger()
 
+def reportids_dedup(rsts):
+    """
+    Deduplicate report IDs for 'rsts' by appending '-X' to the duplicate report IDs where 'X' is an
+    integer which increments for each duplicate result ID. Modifies the result objects in-place.
+    """
+
+    reportids = set()
+    for res in rsts:
+        reportid = res.reportid
+        if reportid in reportids:
+            # Try to construct a unique report ID.
+            for idx in range(1, 20):
+                new_reportid = f"{reportid}-{idx:02}"
+                if new_reportid not in reportids:
+                    _LOG.warning("duplicate reportid '%s', using '%s' instead",
+                                 reportid, new_reportid)
+                    res.reportid = new_reportid
+                    break
+            else:
+                raise Error(f"too many duplicate report IDs, e.g., '{reportid}' is problematic")
+
+        reportids.add(res.reportid)
+
 def _copy_assets(outdir):
     """
     This is a helper function for 'generate_report()' which copies assets to 'outdir'.
@@ -225,6 +248,7 @@ class HTMLReport:
             report_info["intro_tbl"] = intro_tbl_path.relative_to(self.outdir)
 
         if rsts is not None:
+            reportids_dedup(rsts)
             tabs += self._generate_tabs(rsts)
 
         # Convert Dataclasses to dictionaries so that they are JSON serialisable.

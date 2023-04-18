@@ -577,23 +577,7 @@ class ReportBase:
                              "2. %s: created by '%s' version '%s'",
                              self._refres.dirpath, rname, rver, res.dirpath, name, ver)
 
-        # Ensure the report IDs are unique.
-        reportids = set()
-        for res in self.rsts:
-            reportid = res.reportid
-            if reportid in reportids:
-                # Try to construct a unique report ID.
-                for idx in range(1, 20):
-                    new_reportid = f"{reportid}-{idx:02}"
-                    if new_reportid not in reportids:
-                        _LOG.warning("duplicate reportid '%s', using '%s' instead",
-                                     reportid, new_reportid)
-                        res.reportid = new_reportid
-                        break
-                else:
-                    raise Error(f"too many duplicate report IDs, e.g., '{reportid}' is problematic")
-
-            reportids.add(res.reportid)
+        HTMLReport.reportids_dedup(self.rsts)
 
         if self.report_descr and Path(self.report_descr).is_file():
             try:
