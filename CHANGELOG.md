@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix 'stats-collect report' generating broken diffs when given results with
+   duplicate report IDs.
 ### Added
 ### Removed
 ### Changed
