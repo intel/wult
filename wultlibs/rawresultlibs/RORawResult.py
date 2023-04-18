@@ -227,6 +227,7 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         if dpfilter:
             _LOG.debug("applying datapoint filter: %s", dpfilter)
+            metrics_str = ", ".join(self.metrics)
             try:
                 try:
                     expr = pandas.eval(dpfilter)
@@ -244,7 +245,8 @@ class RORawResult(_RawResultBase.RawResultBase):
             except Exception as err:
                 msg = Error(err).indent(2)
                 raise Error(f"failed to evaluate expression '{dpfilter}': {msg}\nMake sure you use "
-                            f"correct metric names, which are also case-sensitive.") from err
+                            f"correct metric names, which are also case-sensitive. Available "
+                            f"metcis are:\n'{metrics_str}'") from err
 
             try:
                 self.df = self.df[expr].reset_index(drop=True)
@@ -252,7 +254,8 @@ class RORawResult(_RawResultBase.RawResultBase):
                 # Example of filter causing this error - just metric name without any operator, like
                 # just "CC1%", instead of something like "CC1% > 0".
                 raise Error(f"failed to apply expression '{dpfilter}'.\nMake sure you use "
-                            f"correct metric names, which are also case-sensitive.") from err
+                            f"operator and correct metric names, which are also case-sensitive. "
+                            f"Available metrics are:\n{metrics_str}") from err
 
             if self.df.empty:
                 raise Error(f"no data left after applying datapoint filter to CSV file "
