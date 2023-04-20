@@ -36,11 +36,11 @@ def find_project_web_assets(prjname, subpath, pman=None, what=None):
     the following order).
       * in the directory the of the running program.
       * in the directory specified by the '<prjname>_WEB_ASSETS_PATH' environment variable.
-      * in '$HOME/.local/share/web-asssets/javascript/<prjname>/', if it exists.
-      * in '$HOME/share/web-asssets/javascript/<prjname>/', if it exists.
-      * in '/usr/local/share/web-asssets/javascript/<prjname>/', if it exists.
-      * in '/usr/share/web-asssets/javascript/<prjname>/', if it exists.
+      * in '$HOME/.local/share/javascript/<prjname>/', if it exists.
+      * in '$HOME/share/javascript/<prjname>/', if it exists.
+      * in '/usr/local/share/javascript/<prjname>/', if it exists.
+      * in '/usr/share/javascript/<prjname>/', if it exists.
     """
 
-    return search_project_data(f"web-assets/javascript/{prjname}", subpath, pman, what,
+    return search_project_data(f"javascript/{prjname}", subpath, pman, what,
                                get_project_web_assets_envvar(prjname))
