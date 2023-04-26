@@ -29,19 +29,18 @@ def run_command(cmd, pman, tlimit):
     else:
         run_forever = False
 
-    proc = pman.run_async(cmd)
+    with pman.run_async(cmd) as proc:
+        while True:
+            stdout, stderr, exitcode = proc.wait(timeout=tlimit)
+            if exitcode is not None:
+                break
 
-    while True:
-        stdout, stderr, exitcode = proc.wait(timeout=tlimit)
-        if exitcode is not None:
-            break
+            if run_forever:
+                continue
 
-        if run_forever:
-            continue
-
-        _LOG.notice("statistics collection stopped because the time limit was reached before "
-                    "the command finished executing.")
-        ProcHelpers.kill_pids(proc.pid, kill_children=True, must_die=True, pman=pman)
+            _LOG.notice("statistics collection stopped because the time limit was reached before "
+                        "the command finished executing.")
+            ProcHelpers.kill_pids(proc.pid, kill_children=True, must_die=True, pman=pman)
 
     return stdout, stderr
 
