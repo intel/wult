@@ -569,7 +569,10 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
     def _create_command(self, devid, cpu, reportid=None):
         """Create and return 'wult' or 'ndl' command."""
 
-        cmd = f"{self.toolpath} start -c {self._datapoints}"
+        cmd = f"{self.toolpath} "
+        if _LOG.colored:
+            cmd += " --force-color"
+        cmd += f" start -c {self._datapoints}"
 
         if cpu is not None and self.toolpath.name in ("wult", "ndl"):
             cmd += f" --cpunum {cpu}"
