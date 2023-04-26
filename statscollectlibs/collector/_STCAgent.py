@@ -860,12 +860,14 @@ class _STCAgent(ClassHelpers.SimpleCloseContext):
         if getattr(self, "_ssht", None):
             with contextlib.suppress(Exception):
                 ProcHelpers.kill_processes(self._ssht_search)
+                self._ssht.close()
             self._ssht = None
 
         if getattr(self, "_pman", None):
             if self._stca:
                 with contextlib.suppress(Exception):
                     ProcHelpers.kill_processes(self._stca_search, pman=self._pman)
+                    self._stca.close()
                 self._stca = None
 
             # Remove the output directory if we created it.
