@@ -45,6 +45,8 @@ def _run_commands(cmdinfos, pman):
                 cmd_proc.wait(capture_output=False, timeout=5*60)
             except Error as err:
                 errors.append(str(err))
+            finally:
+                cmd_proc.close()
 
         if errors:
             _LOG.warning("Not all the system statistics were collected, here are the failures\n%s",
