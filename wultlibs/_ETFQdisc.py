@@ -103,6 +103,7 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
                    self._phc2sys_proc.pid, self._pman.hostmsg)
         ProcHelpers.kill_pids(self._phc2sys_proc.pid, kill_children=True, must_die=False,
                               pman=self._pman)
+        self._phc2sys_proc.close()
         self._phc2sys_proc = None
 
     def configure(self):
