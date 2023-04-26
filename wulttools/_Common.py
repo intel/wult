@@ -657,7 +657,7 @@ def run_stats_collect_deploy(args):
 
     cmd = str(exe_path)
 
-    if args.force_color or (sys.stdout.isatty() and sys.stderr.isatty()):
+    if _LOG.colored:
         cmd += " --force-color deploy"
     else:
         cmd += " deploy"

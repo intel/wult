@@ -74,7 +74,9 @@ class _ProgressLineBase:
         # The ending of the progress line (empty line or '\n' for the final print).
         self._end = ""
 
-        if _LOG.getEffectiveLevel() > logging.INFO or not sys.stdout.isatty():
+        # _LOG.colored means that the logger is allowed to send special teminal color values to the
+        # output. Therefore, we can assume it is OK to treat it as a terminal.
+        if _LOG.getEffectiveLevel() > logging.INFO or not _LOG.colored:
             self.enabled = False
         else:
             self.enabled = True

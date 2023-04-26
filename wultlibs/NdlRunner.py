@@ -87,7 +87,8 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
             if is_ctrl_c:
                 # In Linux Ctrl-c prints '^C' on the terminal. Make sure the next output line does
                 # not look messy.
-                print("\r", end="")
+                if self._progress.enabled:
+                    print("\r", end="")
                 _LOG.notice("interrupted, stopping the measurements")
 
             with contextlib.suppress(Error):

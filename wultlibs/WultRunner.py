@@ -131,7 +131,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
 
             if isinstance(err, KeyboardInterrupt):
-                if sys.stdout.isatty():
+                if self._progress.enabled:
                     # In Linux Ctrl-c prints '^C' on the terminal. Make sure the next output line
                     # does not look messy.
                     print("\r", end="")
