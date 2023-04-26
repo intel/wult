@@ -656,6 +656,9 @@ class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
 
         self._procs -= procs_done
 
+        for proc in procs_done:
+            proc.close()
+
         return len(self._procs)
 
     def _run_async(self, cmd):
@@ -718,6 +721,10 @@ class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
 
     def close(self):
         """Uninitialize the class objetc."""
+
+        for proc in self._procs:
+            proc.close()
+
         ClassHelpers.close(self, close_attrs=("_lpman"))
 
 class BatchConfig(_CmdlineRunner):
