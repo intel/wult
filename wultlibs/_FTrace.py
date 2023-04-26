@@ -130,12 +130,13 @@ class FTrace(ClassHelpers.SimpleCloseContext):
     def close(self):
         """Stop following the function trace buffer."""
 
-        if getattr(self, "_pman", None) and getattr(self, "_reader", None) and \
-                                            getattr(self._reader, "pid", None):
-            _LOG.debug("killing the function trace reader process PID %d%s",
-                       self._reader.pid, self._pman.hostmsg)
-            ProcHelpers.kill_pids(self._reader.pid, kill_children=True, must_die=False,
-                                  pman=self._pman)
+        if getattr(self, "_pman", None) and getattr(self, "_reader", None):
+            if getattr(self._reader, "pid", None):
+                _LOG.debug("killing the function trace reader process PID %d%s",
+                           self._reader.pid, self._pman.hostmsg)
+                ProcHelpers.kill_pids(self._reader.pid, kill_children=True, must_die=False,
+                                      pman=self._pman)
+            self._reader.close()
 
         if getattr(self, "_disable_tracing", None):
             with contextlib.suppress(Error):
