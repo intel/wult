@@ -252,24 +252,27 @@ class _BaseCollector:
     def end(self):
         """Stop collecting and get the resulting statistics."""
 
-        exitcode = self._proc.poll()
-        if exitcode is not None:
-            self._error("the following command exited prematurely with exit code %d:\n%s",
-                        exitcode, self._command)
-        else:
-            try:
-                pgid = Trivial.get_pgid(self._proc.pid)
-            except Error as err:
-                self._error(err)
+        try:
+            exitcode = self._proc.poll()
+            if exitcode is not None:
+                self._error("the following command exited prematurely with exit code %d:\n%s",
+                            exitcode, self._command)
+            else:
+                try:
+                    pgid = Trivial.get_pgid(self._proc.pid)
+                except Error as err:
+                    self._error(err)
 
-            # Signal the entire statistics collector process group.
-            self._debug("sending signal %s to PGID %d (group of PID %d)",
-                        self._signal, pgid, self._proc.pid)
-            try:
-                os.killpg(pgid, self._signal)
-            except OSError as err:
-                self._error("failed to kill the process group of PID %d, PGID %d:\n%s",
-                            self._proc.pid, pgid, err)
+                # Signal the entire statistics collector process group.
+                self._debug("sending signal %s to PGID %d (group of PID %d)",
+                            self._signal, pgid, self._proc.pid)
+                try:
+                    os.killpg(pgid, self._signal)
+                except OSError as err:
+                    self._error("failed to kill the process group of PID %d, PGID %d:\n%s",
+                                self._proc.pid, pgid, err)
+        finally:
+            self._proc.close()
 
     def save(self):
         """Save the collected statistics."""
