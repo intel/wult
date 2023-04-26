@@ -278,6 +278,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
             ProcHelpers.kill_pids(self._proc.pid, kill_children=True, must_die=False,
                                   pman=self._pman)
 
+        self._proc.close()
         self._proc = None
 
     def prepare(self):
