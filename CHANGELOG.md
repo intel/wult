@@ -10,6 +10,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Teach the 'exercise-sut' tool display 'wult' progress bar.
 
 ## [1.11.11] - 2023-04-17
 ### Added
