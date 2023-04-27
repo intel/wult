@@ -5,10 +5,14 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix 'stats-collect report' generating broken diffs when given results with
-   duplicate report IDs.
 ### Added
 ### Removed
+### Changed
+
+## [1.11.12] - 2023-04-27
+### Fixed
+ - Fix 'stats-collect report' generating broken diffs when given results with
+   duplicate report IDs.
 ### Changed
  - Teach the 'exercise-sut' tool display 'wult' progress bar.
 

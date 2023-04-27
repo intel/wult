@@ -2,7 +2,7 @@
 WULT
 ====
 
-:Date:   2023-04-17
+:Date:   2023-04-27
 
 .. contents::
    :depth: 3
@@ -583,7 +583,7 @@ COMMAND *'wult* calc'
 
 usage: wult calc [-h] [-q] [-d] [--exclude EXCLUDE] [--include INCLUDE]
 [--exclude-metrics MEXCLUDE] [--include-metrics MINCLUDE] [-f FUNCS]
-[--list-funcs] respath
+[--list-funcs] [--list-metrics] [respath]
 
 Calculates various summary functions for a wult test result (e.g., the
 median value for one of the CSV columns).
@@ -640,6 +640,9 @@ OPTIONS *'wult* calc'
 
 **--list-funcs**
    Print the list of the available summary functions.
+
+**--list-metrics**
+   Print the list of the available metrics and exit.
 
 AUTHORS
 =======

@@ -1,4 +1,4 @@
-.TH WULT "1" "2023\-04\-17" "wult" "Generated Python Manual"
+.TH WULT "1" "2023\-04\-27" "wult" "Generated Python Manual"
 .SH NAME
 wult
 .SH SYNOPSIS
@@ -429,7 +429,7 @@ Print the list of the available metrics and exit.
 Report ID of the filtered version of the result (can only be used with '\-\-outdir').
 
 .SH COMMAND \fI\,'wult calc'\/\fR
-usage: wult calc [\-h] [\-q] [\-d] [\-\-exclude EXCLUDE] [\-\-include INCLUDE] [\-\-exclude\-metrics MEXCLUDE] [\-\-include\-metrics MINCLUDE] [\-f FUNCS] [\-\-list\-funcs] respath
+usage: wult calc [\-h] [\-q] [\-d] [\-\-exclude EXCLUDE] [\-\-include INCLUDE] [\-\-exclude\-metrics MEXCLUDE] [\-\-include\-metrics MINCLUDE] [\-f FUNCS] [\-\-list\-funcs] [\-\-list\-metrics] [respath]
 
 Calculates various summary functions for a wult test result (e.g., the median value for one of the CSV columns).
 
@@ -477,6 +477,10 @@ list of supported functions.
 .TP
 \fB\-\-list\-funcs\fR
 Print the list of the available summary functions.
+
+.TP
+\fB\-\-list\-metrics\fR
+Print the list of the available metrics and exit.
 
 .SH AUTHORS
 .nf
