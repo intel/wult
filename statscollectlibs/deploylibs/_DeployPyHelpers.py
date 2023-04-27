@@ -28,16 +28,16 @@ class DeployPyHelpers(DeployHelpersBase.DeployHelpersBase):
 
         with LocalProcessManager.LocalProcessManager() as lpman:
             try:
-                deployable_path = ProjectFiles.find_project_helper(self._prjname, deployable,
-                                                                   pman=lpman)
+                subpath = DeployHelpersBase.HELPERS_SRC_SUBDIR / deployable / deployable
+                what = f"the '{deployable}' python program"
+                deployable_path = ProjectFiles.find_project_data(self._prjname, subpath,
+                                                                 what=what, pman=lpman)
             except ErrorNotFound as err1:
                 _LOG.debug(err1)
 
                 try:
-                    subpath = DeployHelpersBase.HELPERS_SRC_SUBDIR / deployable / deployable
-                    what = f"the '{deployable}' python program"
-                    deployable_path = ProjectFiles.find_project_data(self._prjname, subpath,
-                                                                     what=what, pman=lpman)
+                    deployable_path = ProjectFiles.find_project_helper(self._prjname, deployable,
+                                                                       pman=lpman)
                 except ErrorNotFound as err2:
                     errmsg = str(err1).capitalize() + "\n" + str(err2).capitalize()
                     raise Error(errmsg) from err2
