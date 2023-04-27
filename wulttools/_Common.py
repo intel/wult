@@ -499,9 +499,20 @@ def calc_command(args):
     apply_filters(args, res)
 
     non_numeric = res.get_non_numeric_metrics()
-    if non_numeric and (args.minclude or args.mexclude):
-        non_numeric = ", ".join(non_numeric)
-        _LOG.warning("skipping non-numeric metric(s): %s", non_numeric)
+    if non_numeric:
+        minclude = mexclude = []
+        if args.minclude:
+            minclude = set(Trivial.split_csv_line(args.minclude))
+        if args.mexclude:
+            mexclude = set(Trivial.split_csv_line(args.mexclude))
+        skip = []
+
+        for metric in non_numeric:
+            if metric in minclude or metric in mexclude:
+                skip.append(metric)
+
+        if skip:
+            _LOG.warning("skipping non-numeric metric(s): %s", ", ".join(skip))
 
     res.calc_smrys(funcnames=funcnames)
 
