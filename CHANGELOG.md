@@ -6,6 +6,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
  - Fix incorrect 'wult calc' warning about non-numeric metrics.
+ - Fix regression in 'stc-agent' introduced in version 1.11.12.
 ### Added
 ### Removed
 ### Changed
