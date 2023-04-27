@@ -11,7 +11,6 @@ This module implements the main wult functionality - runs wake latency measureme
 saves the results.
 """
 
-import sys
 import time
 import logging
 import contextlib

@@ -10,7 +10,6 @@
 This module implements the measurement progress line.
 """
 
-import sys
 import time
 import logging
 
