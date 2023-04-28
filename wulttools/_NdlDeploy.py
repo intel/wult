@@ -22,4 +22,4 @@ def deploy_command(args):
                             keep_tmpdir=args.keep_tmpdir, debug=args.debug) as depl:
             depl.deploy()
 
-    _Common.run_stats_collect_deploy(args)
+        _Common.run_stats_collect_deploy(args, pman)

@@ -658,7 +658,7 @@ def report_command_outdir(args, rsts):
     _LOG.info("Report output directory: %s", outdir)
     return Path(outdir)
 
-def run_stats_collect_deploy(args):
+def run_stats_collect_deploy(args, pman):
     """Run the 'stats-collect deploy' command."""
 
     # pylint: disable=import-outside-toplevel
@@ -687,10 +687,15 @@ def run_stats_collect_deploy(args):
         if args.timeout:
             cmd += f" -T {args.timeout}"
 
+    _LOG.info("Deploying statistics collectors%s", pman.hostmsg)
+
     with LocalProcessManager.LocalProcessManager() as lpman:
         try:
-            lpman.run_verify(cmd)
-        except Error as stderr:
-            _LOG.notice(f"the statistics collection capability will not be available for "
-                        f"'{args.toolname}'")
-            _LOG.debug(stderr)
+            if args.debug:
+                kwargs = {"output_fobjs" : (sys.stdout, sys.stderr)}
+            else:
+                kwargs = {}
+            lpman.run_verify(cmd, **kwargs)
+        except Error as err:
+            _LOG.warning("falied to deploy statistics collectors%s", pman.hostmsg)
+            _LOG.debug(str(err))

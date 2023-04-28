@@ -25,4 +25,4 @@ def deploy_command(args):
                             debug=args.debug) as depl:
             depl.deploy()
 
-    _Common.run_stats_collect_deploy(args)
+        _Common.run_stats_collect_deploy(args, pman)
