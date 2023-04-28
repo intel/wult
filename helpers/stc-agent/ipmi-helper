@@ -68,7 +68,7 @@ def print_module_paths():
 
         if not path.endswith(".py"):
             continue
-        if not "helperlibs/" in path:
+        if not "pepclibs/" in path:
             continue
 
         print(path)

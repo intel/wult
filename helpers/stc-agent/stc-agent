@@ -116,10 +116,9 @@ def print_module_paths():
 
         if not path.endswith(".py"):
             continue
-        if not "helperlibs/" in path:
-            continue
 
-        print(path)
+        if "pepclibs/" in path or "statscollectlibs/" in path:
+            print(path)
 
 def sighandler(sig, _):
     """

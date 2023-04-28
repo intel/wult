@@ -57,7 +57,7 @@ class DeployPyHelpers(DeployHelpersBase.DeployHelpersBase):
         """
         Find and return dependencies of a python program 'deployable'. An example of such a
         dependency would be:
-            /usr/lib/python3.9/site-packages/helperlibs/Trivial.py
+            /usr/lib/python3.9/site-packages/pepclibs/helperlibs/Trivial.py
         """
 
         # All the deployables must implement the '--print-module-paths' option, which prints the
@@ -131,16 +131,16 @@ class DeployPyHelpers(DeployHelpersBase.DeployHelpersBase):
 
             for src in deps:
                 # Form the destination path. It is just part of the source path staring from the
-                # 'statscollectlibs' of 'helperlibs' components.
+                # 'statscollectlibs' of 'pepclibs' components.
                 try:
                     idx = src.parts.index("statscollectlibs")
                 except ValueError:
                     try:
-                        idx = src.parts.index("helperlibs")
+                        idx = src.parts.index("pepclibs")
                     except ValueError:
                         raise Error(f"python program '{deployable}' has bad dependency '{src}' - "
                                     f"the path does not have the 'statscollectlibs' or "
-                                    f"'helperlibs' component in it.") from None
+                                    f"'pepclibs' component in it.") from None
 
                 dst = Path(*src.parts[idx:])
                 zipobj.write(src, arcname=dst)
