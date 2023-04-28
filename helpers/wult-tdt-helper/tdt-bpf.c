@@ -100,7 +100,7 @@ static u64 read_tsc(void)
 	return count;
 }
 
-static void warn_overflow(void)
+static void warn_overflow(const char *type)
 {
 	u64 t;
 	static u32 count;
@@ -111,28 +111,10 @@ static void warn_overflow(void)
 	t = bpf_ktime_get_boot_ns();
 
 	if (t > last_warn + 1000000000) {
-		errmsg("ringbuf overflow, event discarded (total %u)",
-		       count);
+		errmsg("ringbuf overflow, %s discarded (total %u)",
+		       type, count);
 		last_warn = t;
 	}
-}
-
-/*
- * Send a dummy ping message to userspace process to wake it up.
- */
-static void ping_cpu(void)
-{
-	struct tdt_bpf_event *e;
-
-	e = bpf_ringbuf_reserve(&events, 1, 0);
-	if (!e) {
-		warn_overflow();
-		return;
-	}
-
-	e->type = TDT_EVENT_PING;
-
-	bpf_ringbuf_submit(e, 0);
 }
 
 /*
@@ -150,6 +132,40 @@ static void cleanup_event(void)
 	e->intrc2 = 0;
 	e->tbi = 0;
 	e->ltimec = 0;
+}
+
+/*
+ * Send a dummy ping message to userspace process to wake it up.
+ * Sending the message will add the data to the ringbuffer and touch
+ * the waitqueue waking up any processes that are waiting on it.
+ * This is needed for certain C-states (e.g. POLL), where interrupts
+ * are enabled during idle, but where the interrupt itself is not enough
+ * to wake-up the system fully.
+ */
+static void ping_cpu(void)
+{
+	struct tdt_bpf_event *e;
+
+	/*
+	 * Check if we have data in ringbuffer already; if yes, it means
+	 * that userspace is already processing data and is not waiting
+	 * on the waitqueue, and sending any new data is not going to be
+	 * able to wake it up. Therefore, drop the datapoint if the
+	 * previous one has not been handled yet.
+	 */
+	if (bpf_ringbuf_query(&events, BPF_RB_AVAIL_DATA)) {
+		warn_overflow("ping");
+		cleanup_event();
+		return;
+	}
+
+	e = bpf_ringbuf_reserve(&events, 1, 0);
+	if (!e)
+		return;
+
+	e->type = TDT_EVENT_PING;
+
+	bpf_ringbuf_submit(e, 0);
 }
 
 /*
@@ -185,7 +201,7 @@ static void send_event(void)
 		 * has cleared up the buffer. Just in case, send a
 		 * message to userspace about overflow situation.
 		 */
-		warn_overflow();
+		warn_overflow("event");
 		goto cleanup;
 	}
 
