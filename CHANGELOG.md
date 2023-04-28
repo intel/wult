@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Get rid of incorrect 'WakeLatency' datapoints when measuring the 'POLL'
+   state (hrt_bpf and tdt_bpf methods only).
 ### Added
 ### Removed
 ### Changed
