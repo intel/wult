@@ -252,35 +252,40 @@ class _BaseCollector:
     def end(self):
         """Stop collecting and get the resulting statistics."""
 
+        exitcode = self._proc.poll()
+        if exitcode is not None:
+            self._error("the following command exited prematurely with exit code %d:\n%s",
+                        exitcode, self._command)
+        else:
+            try:
+                pgid = Trivial.get_pgid(self._proc.pid)
+            except Error as err:
+                self._error(err)
+
+            # Signal the entire statistics collector process group.
+            self._debug("sending signal %s to PGID %d (group of PID %d)",
+                        self._signal, pgid, self._proc.pid)
+            try:
+                os.killpg(pgid, self._signal)
+            except OSError as err:
+                self._error("failed to kill the process group of PID %d, PGID %d:\n%s",
+                            self._proc.pid, pgid, err)
+
+    def save(self):
+        """Save the collected statistics."""
+
+        # Make sure the process has exited. The reason it is done in 'save()' is a hacky
+        # optimization: we first try signal all process without waiting for them (in 'end()'), and
+        # only when all processes are signaled, start checking whether they have exited. This
+        # approach helps having the collectors stop "more simultaneously".
         try:
-            exitcode = self._proc.poll()
-            if exitcode is not None:
-                self._error("the following command exited prematurely with exit code %d:\n%s",
-                            exitcode, self._command)
-            else:
-                try:
-                    pgid = Trivial.get_pgid(self._proc.pid)
-                except Error as err:
-                    self._error(err)
-
-                # Signal the entire statistics collector process group.
-                self._debug("sending signal %s to PGID %d (group of PID %d)",
-                            self._signal, pgid, self._proc.pid)
-                try:
-                    os.killpg(pgid, self._signal)
-                except OSError as err:
-                    self._error("failed to kill the process group of PID %d, PGID %d:\n%s",
-                                self._proc.pid, pgid, err)
-
-                _, _, exitcode = self._proc.wait(timeout=10, capture_output=False)
-                if exitcode is None:
-                    self._error("PID %d refused to exit", self._proc.pid)
+            _, _, exitcode = self._proc.wait(timeout=10, capture_output=False)
+            if exitcode is None:
+                self._error("PID %d refused to exit", self._proc.pid)
         finally:
             self._proc.close()
             self._proc = None
 
-    def save(self):
-        """Save the collected statistics."""
         self._sync()
 
     def validate(self):
