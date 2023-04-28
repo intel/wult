@@ -23,12 +23,15 @@ _LOG = logging.getLogger()
 class DeployPyHelpers(DeployHelpersBase.DeployHelpersBase):
     """This class provides the API for deploying Python helpers."""
 
-    def _find_deployable(self, deployable):
-        """Find and return path to program 'deployable' (on the local host)."""
+    def _find_deployable(self, pyhelper, deployable):
+        """
+        Find and return path to program 'deployable' belonging to python helper 'pyhelper' (on
+        the local host).
+        """
 
         with LocalProcessManager.LocalProcessManager() as lpman:
             try:
-                subpath = DeployHelpersBase.HELPERS_SRC_SUBDIR / deployable / deployable
+                subpath = DeployHelpersBase.HELPERS_SRC_SUBDIR / pyhelper / deployable
                 what = f"the '{deployable}' python program"
                 deployable_path = ProjectFiles.find_project_data(self._prjname, subpath,
                                                                  what=what, pman=lpman)
@@ -188,7 +191,7 @@ class DeployPyHelpers(DeployHelpersBase.DeployHelpersBase):
             _LOG.info("Building a stand-alone version of '%s'", pyhelper)
             basedir = self._ctmpdir / pyhelper
             for deployable in self._deployables:
-                deployable_path = self._find_deployable(deployable)
+                deployable_path = self._find_deployable(pyhelper, deployable)
                 self._create_standalone_deployable(deployable_path, basedir)
 
         # And copy the "standalone-ized" version of python helpers to the SUT.
