@@ -1,3 +1,11 @@
+wult (1.11.14) unstable; urgency=low
+
+  * Get rid of incorrect 'WakeLatency' datapoints when measuring the 'POLL'
+    state (hrt_bpf and tdt_bpf methods only).
+  * Statistics collectores deployment fixes.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 28 Apr 2023 00:00:00 +0200
+
 wult (1.11.13) unstable; urgency=low
 
   * Fix incorrect 'wult calc' warning about non-numeric metrics.
