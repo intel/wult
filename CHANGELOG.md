@@ -5,6 +5,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix 'sysinfo' tabs not loading in HTML reports when viewed locally.
 ### Added
 ### Removed
 ### Changed
