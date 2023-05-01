@@ -187,14 +187,26 @@ export class ScReportPage extends LitElement {
         throw Error(`unable to find an uploaded file ending with '${query}'.`)
     }
 
+    async resolveTabFile (useFetch, filePath) {
+        if (useFetch) {
+            return await fetch(filePath).then((resp) => resp.blob())
+        } else {
+            return this.findFile(filePath)
+        }
+    }
+
     async extractTabs (tabs, useFetch) {
-        // Convert summary file paths to 'File' objects.
+        // Convert summary file and file preview paths to 'File' objects.
         for (const tab of tabs) {
             if (tab.smrytblpath) {
-                if (useFetch) {
-                    tab.smrytblfile = await fetch(tab.smrytblpath).then((resp) => resp.blob())
-                } else {
-                    tab.smrytblfile = this.findFile(tab.smrytblpath)
+                tab.smrytblfile = await this.resolveTabFile(useFetch, tab.smrytblpath)
+            }
+            if (tab.fpreviews) {
+                for (const fpreview of tab.fpreviews) {
+                    fpreview.files = {}
+                    for (const [reportid, path] of Object.entries(fpreview.paths)) {
+                        fpreview.files[reportid] = await this.resolveTabFile(useFetch, path)
+                    }
                 }
             }
             if (tab.tabs) {
