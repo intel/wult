@@ -88,6 +88,10 @@ _COLLECT_OPTIONS = {
         "default" : "",
         "help" : """String to append to the report ID (nothing, by default)."""
     },
+    "stats" : {
+        "help" : """Applicaple only for the 'wult', 'ndl' and 'benchmark' tools. Comma-separated
+                    list of statistics to collect."""
+    },
     "cpunums" : {
         "help" : """Applicable only for the 'wult' and 'ndl' tools. Comma-separated list of CPU
                     numbers to measure with. No CPU number is passed by default."""
