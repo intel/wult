@@ -814,6 +814,31 @@ class BatchReport(_CmdlineRunner):
                 if respath.is_dir():
                     yield Path(respath.path)
 
+    def _resolve_path_monikers(self, diff_monikers, path_monikers): # pylint: disable=no-self-use
+        """
+        Resolve common monikers between 'diff_monikers' and 'path_monikers' lists. Returns 'None'
+        if common monikers not found.
+        """
+
+        if not diff_monikers:
+            return path_monikers
+
+        common_monikers = []
+        for diff_moniker in diff_monikers:
+            # Diff moniker might include dash ('-'), in which case we need to look for each
+            # sub-string.
+            sub_strings = diff_moniker.split("-")
+            if set(sub_strings).issubset(path_monikers):
+                common_monikers.append(diff_moniker)
+                for sub_string in sub_strings:
+                    path_monikers.remove(sub_string)
+
+        # Include only results which have common monikers, or empty diff moniker ("") included.
+        if common_monikers or "" in diff_monikers:
+            return path_monikers
+
+        return None
+
     def _get_grouped_paths(self, searchpaths, diff_monikers, include_monikers, exclude_monikers):
         """
         Find results from paths 'searchpaths'. Group results according to arguments:
@@ -824,7 +849,6 @@ class BatchReport(_CmdlineRunner):
         Returns dictionary with common directory name as key and list matching paths as values.
         """
 
-        include_match = diff_monikers and "" in diff_monikers
         basepath = Path("-vs-".join([moniker for moniker in diff_monikers if moniker]))
 
         groups = {}
@@ -837,12 +861,8 @@ class BatchReport(_CmdlineRunner):
             if exclude_monikers and exclude_monikers.intersection(set(path_monikers)):
                 continue
 
-            for moniker in path_monikers:
-                if moniker in diff_monikers:
-                    path_monikers.remove(moniker)
-
-            # For diff reports, include only results with one of diff monikers.
-            if path_monikers == respath.name.split("-") and not include_match:
+            path_monikers = self._resolve_path_monikers(diff_monikers, path_monikers)
+            if not path_monikers:
                 continue
 
             outpath = basepath / "-".join(path_monikers)
