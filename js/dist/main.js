@@ -2183,8 +2183,8 @@
         sl-details::part(header) {
             font-weight: "bold";
         }
-    `;static properties={title:{type:String},paths:{type:Object},diff:{type:String}};getFileContents(t){return new Promise((function(e,i){fetch(t).then((t=>{if(!t.ok)throw new Error(`HTTP error: status ${t.status}`);return t.blob()})).then((t=>t.text())).then((t=>{e(t)}))}))}getNewTabBtnTemplate(t){return O`
-            <sl-button style="padding: var(--sl-spacing-x-small)" variant="primary" href=${t} target="_blank">
+    `;static properties={title:{type:String},files:{type:Object},paths:{type:Object},loadedFiles:{type:Boolean,attribute:!1},diff:{type:String}};getNewTabBtnTemplate(t){return O`
+            <sl-button style="padding: var(--sl-spacing-x-small)" variant="primary" href=${URL.createObjectURL(t)} target="_blank">
                 Open in New Tab
             </sl-button>
         `}getDiffTemplate(){if(this.diff){const t=`${this.title}-diff`;return O`
@@ -2206,17 +2206,17 @@
                     <div>
                         ${this.getNewTabBtnTemplate(e)}
                     </div>
-                    <pre><code>${ji(this.getFileContents(e),O`Loading...`)}</code></pre>
+                    <pre><code>${ji(e.text(),O`Loading...`)}</code></pre>
                 </div>
             </sl-tab-panel>
-        `}render(){return O`
+        `}async loadFiles(){for(const t of Object.entries(this.paths))await fetch(t[1]).then((t=>t.blob())).then((e=>{this.files[t[0]]=e}));this.loadedFiles=!0}connectedCallback(){super.connectedCallback(),!this.files&&this.paths?(this.files={},this.loadedFiles=!1,this.loadFiles()):this.loadedFiles=!0}render(){return this.files?O`
             <sl-details summary=${this.title}>
                 <sl-tab-group>
-                    ${Object.entries(this.paths).map((t=>this.getTabTemplate(t[0],t[1])))}
+                    ${Object.entries(this.files).map((t=>this.getTabTemplate(t[0],t[1])))}
                     ${this.getDiffTemplate()}
                 </sl-tab-group>
             </sl-details>
-        `}}customElements.define("sc-file-preview",Ts);class zs{}const Is=new WeakMap,Ls=Li(class extends Ni{render(t){return F}update(t,[e]){var i;const s=e!==this.Y;return s&&void 0!==this.Y&&this.rt(void 0),(s||this.lt!==this.ct)&&(this.Y=e,this.dt=null===(i=t.options)||void 0===i?void 0:i.host,this.rt(this.ct=t.element)),F}rt(t){var e;if("function"==typeof this.Y){const i=null!==(e=this.dt)&&void 0!==e?e:globalThis;let s=Is.get(i);void 0===s&&(s=new WeakMap,Is.set(i,s)),void 0!==s.get(this.Y)&&this.Y.call(this.dt,void 0),s.set(this.Y,t),void 0!==t&&this.Y.call(this.dt,t)}else this.Y.value=t}get lt(){var t,e,i;return"function"==typeof this.Y?null===(e=Is.get(null!==(t=this.dt)&&void 0!==t?t:globalThis))||void 0===e?void 0:e.get(this.Y):null===(i=this.Y)||void 0===i?void 0:i.value}disconnected(){this.lt===this.ct&&this.rt(void 0)}reconnected(){this.rt(this.ct)}});class Ps extends Wi{static styles=[Wi.styles,r`
+        `:O``}}customElements.define("sc-file-preview",Ts);class zs{}const Is=new WeakMap,Ls=Li(class extends Ni{render(t){return F}update(t,[e]){var i;const s=e!==this.Y;return s&&void 0!==this.Y&&this.rt(void 0),(s||this.lt!==this.ct)&&(this.Y=e,this.dt=null===(i=t.options)||void 0===i?void 0:i.host,this.rt(this.ct=t.element)),F}rt(t){var e;if("function"==typeof this.Y){const i=null!==(e=this.dt)&&void 0!==e?e:globalThis;let s=Is.get(i);void 0===s&&(s=new WeakMap,Is.set(i,s)),void 0!==s.get(this.Y)&&this.Y.call(this.dt,void 0),s.set(this.Y,t),void 0!==t&&this.Y.call(this.dt,t)}else this.Y.value=t}get lt(){var t,e,i;return"function"==typeof this.Y?null===(e=Is.get(null!==(t=this.dt)&&void 0!==t?t:globalThis))||void 0===e?void 0:e.get(this.Y):null===(i=this.Y)||void 0===i?void 0:i.value}disconnected(){this.lt===this.ct&&this.rt(void 0)}reconnected(){this.rt(this.ct)}});class Ps extends Wi{static styles=[Wi.styles,r`
         sl-details::part(base) {
             max-width: 30vw;
             font-family: Arial, sans-serif;
@@ -2264,7 +2264,7 @@
                   </ul></sl-alert>`:O``}
 
             ${this.fpreviews?this.fpreviews.map((t=>O`
-                    <sc-file-preview .title=${t.title} .diff=${t.diff} .paths=${t.paths}></sc-file-preview>
+                    <sc-file-preview .title=${t.title} .diff=${t.diff} .paths=${t.paths} .files=${t.files}></sc-file-preview>
                     <br>
                 `)):O``}
             <div style="display: flex; flex-direction: column;">

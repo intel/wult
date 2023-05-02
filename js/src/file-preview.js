@@ -55,29 +55,15 @@ class ScFilePreview extends LitElement {
 
     static properties = {
         title: { type: String },
+        files: { type: Object },
         paths: { type: Object },
+        loadedFiles: { type: Boolean, attribute: false },
         diff: { type: String }
     };
 
-    getFileContents (path) {
-        return new Promise(function (resolve, reject) {
-            fetch(path)
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error: status ${response.status}`)
-                    }
-                    return response.blob()
-                })
-                .then((blob) => blob.text())
-                .then((text) => {
-                    resolve(text)
-                })
-        })
-    }
-
-    getNewTabBtnTemplate (filePath) {
+    getNewTabBtnTemplate (file) {
         return html`
-            <sl-button style="padding: var(--sl-spacing-x-small)" variant="primary" href=${filePath} target="_blank">
+            <sl-button style="padding: var(--sl-spacing-x-small)" variant="primary" href=${URL.createObjectURL(file)} target="_blank">
                 Open in New Tab
             </sl-button>
         `
@@ -103,28 +89,52 @@ class ScFilePreview extends LitElement {
         return html``
     }
 
-    getTabTemplate (reportID, path) {
+    getTabTemplate (reportID, file) {
         const panelID = `details-panel-${this.title}-${reportID}`
         return html`
             <sl-tab class="tab" slot="nav" panel=${panelID}>${reportID}</sl-tab>
             <sl-tab-panel class="tab-panel" name=${panelID}>
                 <div class="text-field-container">
                     <div>
-                        ${this.getNewTabBtnTemplate(path)}
+                        ${this.getNewTabBtnTemplate(file)}
                     </div>
-                    <pre><code>${until(this.getFileContents(path), html`Loading...`)}</code></pre>
+                    <pre><code>${until(file.text(), html`Loading...`)}</code></pre>
                 </div>
             </sl-tab-panel>
         `
     }
 
+    async loadFiles () {
+        for (const pair of Object.entries(this.paths)) {
+            await fetch(pair[1])
+                .then((resp) => resp.blob())
+                .then((blob) => {
+                    this.files[pair[0]] = blob
+                })
+        }
+        this.loadedFiles = true
+    }
+
+    connectedCallback () {
+        super.connectedCallback()
+        if (!this.files && this.paths) {
+            this.files = {}
+            this.loadedFiles = false
+            this.loadFiles()
+        } else {
+            this.loadedFiles = true
+        }
+    }
+
     render () {
+        if (!this.files) {
+            return html``
+        }
+
         return html`
             <sl-details summary=${this.title}>
                 <sl-tab-group>
-                    ${Object.entries(this.paths).map((pair) => {
-                        return this.getTabTemplate(pair[0], pair[1])
-                    })}
+                    ${Object.entries(this.files).map((pair) => this.getTabTemplate(pair[0], pair[1]))}
                     ${this.getDiffTemplate()}
                 </sl-tab-group>
             </sl-details>

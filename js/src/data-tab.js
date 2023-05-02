@@ -61,7 +61,7 @@ class ScDataTab extends LitElement {
 
             ${this.fpreviews
                 ? this.fpreviews.map((fpreview) => html`
-                    <sc-file-preview .title=${fpreview.title} .diff=${fpreview.diff} .paths=${fpreview.paths}></sc-file-preview>
+                    <sc-file-preview .title=${fpreview.title} .diff=${fpreview.diff} .paths=${fpreview.paths} .files=${fpreview.files}></sc-file-preview>
                     <br>
                 `)
                 : html``
