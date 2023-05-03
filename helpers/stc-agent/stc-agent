@@ -995,7 +995,7 @@ def handle_command(cmd, stc_agent):
     except Error as err:
         response = f"error: {err}"
     except Exception as err: # pylint: disable=broad-except
-        response = f"Unknown exception of type '{type(Exception)}':\n{err}"
+        response = f"Unknown exception of type '{type(err).__name__}':\n{err}"
 
     return response
 
