@@ -135,7 +135,8 @@ class NetIface(ClassHelpers.SimpleCloseContext):
         try:
             with self._pman.open(path, "r") as fobj:
                 value = fobj.read()
-        except Error:
+        except Error as err:
+            _LOG.warning("failed checking carrier status:\n%s", err.indent(2))
             return None
 
         return value.strip() == "1"
