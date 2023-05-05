@@ -299,7 +299,7 @@ class _IntelI210Base(_PCIDevice):
 
         # Save the original operational state in order to restore it in 'bind()'. The reason is that
         # 'bind()' may put it to "up", even if it was "down".
-        if not self._orig_drvname:
+        if not self._orig_drvname and self.netif:
             # Save it only when unbinding for the first time.
             self._orig_operstate = self.netif.get_operstate()
 
