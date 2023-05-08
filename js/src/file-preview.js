@@ -58,7 +58,8 @@ class ScFilePreview extends LitElement {
         files: { type: Object },
         paths: { type: Object },
         loadedFiles: { type: Boolean, attribute: false },
-        diff: { type: String }
+        diff: { type: String },
+        diffFile: { type: Object }
     };
 
     getNewTabBtnTemplate (file) {
@@ -70,14 +71,14 @@ class ScFilePreview extends LitElement {
     }
 
     getDiffTemplate () {
-        if (this.diff) {
+        if (this.diffFile) {
             const panelID = `${this.title}-diff`
             return html`
                 <sl-tab class="tab" slot="nav" panel=${panelID}>Diff</sl-tab>
                 <sl-tab-panel class="tab-panel" name=${panelID}>
                     <div class="diff-div" id=${panelID}>
                         <div>
-                            ${this.getNewTabBtnTemplate(this.diff)}
+                            ${this.getNewTabBtnTemplate(this.diffFile)}
                         </div>
                         <!-- Diffs are created in the form of an HTML table so
                         viewed using an iframe  -->
@@ -111,6 +112,11 @@ class ScFilePreview extends LitElement {
                 .then((blob) => {
                     this.files[pair[0]] = blob
                 })
+        }
+        if (this.diff) {
+            await fetch(this.diff)
+                .then((resp) => resp.blob())
+                .then((blob) => { this.diffFile = blob })
         }
         this.loadedFiles = true
     }

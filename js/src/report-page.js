@@ -207,6 +207,9 @@ export class ScReportPage extends LitElement {
                     for (const [reportid, path] of Object.entries(fpreview.paths)) {
                         fpreview.files[reportid] = await this.resolveTabFile(useFetch, path)
                     }
+                    if (fpreview.diff) {
+                        fpreview.diffFile = await this.resolveTabFile(useFetch, fpreview.diff)
+                    }
                 }
             }
             if (tab.tabs) {
