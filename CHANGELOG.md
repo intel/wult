@@ -7,6 +7,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
  - Fix a bug where 'Captured Output' tabs do not load in 'stats-collect'
    reports. This bug was introduced in v1.11.15.
+ - Fix a bug where 'sysinfo' tabs in HTML reports do not generate diffs. This
+   bug was introduced in v1.11.9.
 ### Added
 ### Removed
 ### Changed
