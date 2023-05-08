@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix a bug where 'Captured Output' tabs do not load in 'stats-collect'
+   reports. This bug was introduced in v1.11.15.
 ### Added
 ### Removed
 ### Changed
