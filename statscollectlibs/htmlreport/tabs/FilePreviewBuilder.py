@@ -55,7 +55,7 @@ class FilePreviewBuilder:
         lines = []
         for diff_src in paths.values():
             try:
-                fp = self.outdir / diff_src
+                fp = self._basedir / diff_src
                 with open(fp, "r", encoding="utf-8") as f:
                     lines.append(f.readlines())
             except OSError as err:
@@ -78,7 +78,7 @@ class FilePreviewBuilder:
             msg = Error(err).indent(2)
             raise Error(f"cannot create diff at path '{diff_path}':\n{msg}") from None
 
-        return diff_path.relative_to(self.outdir)
+        return diff_path.relative_to(self._basedir)
 
     def build_fpreviews(self, base_paths, files):
         """
