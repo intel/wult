@@ -26,6 +26,11 @@ import '@shoelace-style/shoelace/dist/components/tab/tab'
  */
 class ScFilePreview extends LitElement {
     static styles = css`
+        sl-details {
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+
         .text-field-container {
             overflow: auto;
             max-height: 33vh;

@@ -2158,6 +2158,11 @@
         </div>
       </div>
     `}};Ss.styles=Es,we([Se(".details")],Ss.prototype,"details",2),we([Se(".details__header")],Ss.prototype,"header",2),we([Se(".details__body")],Ss.prototype,"body",2),we([Se(".details__expand-icon-slot")],Ss.prototype,"expandIconSlot",2),we([Ae({type:Boolean,reflect:!0})],Ss.prototype,"open",2),we([Ae()],Ss.prototype,"summary",2),we([Ae({type:Boolean,reflect:!0})],Ss.prototype,"disabled",2),we([$e("open",{waitUntilFirstUpdate:!0})],Ss.prototype,"handleOpenChange",1),Ss=we([xe("sl-details")],Ss),qe("details.show",{keyframes:[{height:"0",opacity:"0"},{height:"auto",opacity:"1"}],options:{duration:250,easing:"linear"}}),qe("details.hide",{keyframes:[{height:"auto",opacity:"1"},{height:"0",opacity:"0"}],options:{duration:250,easing:"linear"}});class Ts extends it{static styles=r`
+        sl-details {
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+
         .text-field-container {
             overflow: auto;
             max-height: 33vh;
