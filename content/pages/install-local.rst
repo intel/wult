@@ -15,11 +15,26 @@ This page provides wult installation instruction for the
 1 Update
 ========
 
-Before describing the installation steps, here is a how you update an existing wult
-installation. ::
+Before describing the installation steps, here is how to update an existing wult installation.
+
+1.1 pip
+-------
+
+If you installed `pepc` and `wult` using pip then use the following commands to upgrade to the
+latest release::
 
  sudo pip3 install --upgrade git+https://github.com/intel/pepc.git@release
  sudo pip3 install --upgrade git+https://github.com/intel/wult.git@release
+ sudo wult deploy
+
+1.2 Fedora, CentOS 8 Stream & CentOS 9 Stream
+---------------------------------------------
+
+If you installed `pepc` and `wult` using `dnf` on one of the supported operating systems listed
+in the `installation instructions`_, then upgrade to the latest version using the following
+commands::
+
+ sudo dnf upgrade pepc wult
  sudo wult deploy
 
 2 Install dependencies
@@ -89,18 +104,60 @@ Here are the required OS packages.
 #. The `git` package is required to make it possible installing *wult* python projects directly from
    their git repository (see below). Otherwise it is not necessary.
 
+.. _installation instructions:
+
 3 Install wult and pepc
 =======================
 
-`Wult` and `pepc` are python version 3 projects, and we recommend using the `pip` tool for
-installing them. Here is how to install them directly from the `release` branch of their git
-repositories: ::
+.. _pip-install:
+
+3.1 pip - Recommended
+---------------------
+
+`Wult` and `pepc` are Python 3 projects, and we recommend using the `pip` tool for installing them.
+Here is how to install them directly from the `release` branch of their git repositories: ::
 
  sudo pip3 install --upgrade git+https://github.com/intel/pepc.git@release
  sudo pip3 install --upgrade git+https://github.com/intel/wult.git@release
 
-Note, we do not suggest using the `--user` option, because in local usage model `wult` has to
-be run with superuser (root) permissions, and `--user` will make this problematic.
+Note, we do not suggest using the `--user` option, because in local usage model `wult` has to be run
+with superuser (root) permissions, and `--user` will make this problematic.
+
+It is recommended to install the tools using `pip` for quickest access to the latest release.
+
+3.2 Fedora
+----------
+
+`wult` and `pepc` are part of Fedora starting from Fedora 35. To install `pepc` and `wult`, run the
+following command::
+
+ sudo dnf install -y pepc wult
+
+If you are using Fedora 34 or older, use the `'pip' installation method <#pip-install>`_.
+
+3.3 CentOS 9 Stream
+-------------------
+
+`wult` and `pepc` are available for CentOS 9 Stream via the `epel` repository. Here is how to add
+'epel' and install `wult` and `pepc`::
+
+ sudo dnf install epel-release
+ sudo dnf install pepc wult
+
+3.4 CentOS 8 Stream
+-------------------
+
+To install `wult` and `pepc` in CentOS 8 stream, you can use the `copr` repository using the
+following commands::
+
+ sudo dnf copr enable aekoroglu/c8s-py39 centos-stream-8-x86_64
+ sudo dnf install pepc wult
+
+3.5 Ubuntu & Debian
+-------------------
+We do not provide Ubuntu/Debian packages, so you'll need to use the `'pip' installation method
+<#pip-install>`_. Install dependencies using the commands in the `os-packages`_ section before
+continuing with the `'pip' installation method <#pip-install>`_.
 
 4 Deploy wult drivers
 =====================
