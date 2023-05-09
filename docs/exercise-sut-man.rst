@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date:   2023-05-03
+:Date:   2023-05-09
 
 .. contents::
    :depth: 3
@@ -56,15 +56,15 @@ COMMAND *'exercise-sut* start'
 
 usage: exercise-sut start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K
 PRIVKEY] [-T TIMEOUT] [--datapoints DATAPOINTS] [--reportid-prefix
-REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpunums CPUNUMS]
-[--cstates CSTATES] [--pcstates PCSTATES] [--only-one-cstate]
-[--cstates-always-enable CSTATES_ALWAYS_ENABLE] [--freqs FREQS]
-[--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR] [--aspm ASPM]
-[--c1-demotion C1_DEMOTION] [--c1-undemotion C1_UNDEMOTION]
-[--c1e-autopromote C1E_AUTOPROMOTE] [--cstate-prewake CSTATE_PREWAKE]
-[--state-reset] [--deploy] [--devids DEVIDS] [--stop-on-failure]
-[--only-measured-cpu] [--toolpath TOOLPATH] [--toolopts TOOLOPTS]
-[--outdir OUTDIR] [--dry-run] [--list-monikers]
+REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--stats STATS]
+[--cpunums CPUNUMS] [--cstates CSTATES] [--pcstates PCSTATES]
+[--only-one-cstate] [--cstates-always-enable CSTATES_ALWAYS_ENABLE]
+[--freqs FREQS] [--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR]
+[--aspm ASPM] [--c1-demotion C1_DEMOTION] [--c1-undemotion
+C1_UNDEMOTION] [--c1e-autopromote C1E_AUTOPROMOTE] [--cstate-prewake
+CSTATE_PREWAKE] [--state-reset] [--deploy] [--devids DEVIDS]
+[--stop-on-failure] [--only-measured-cpu] [--toolpath TOOLPATH]
+[--toolopts TOOLOPTS] [--outdir OUTDIR] [--dry-run] [--list-monikers]
 
 Run a test tool or benchmark to collect testdata.
 
@@ -104,6 +104,10 @@ OPTIONS *'exercise-sut* start'
 
 **--reportid-suffix** *REPORTID_SUFFIX*
    String to append to the report ID (nothing, by default).
+
+**--stats** *STATS*
+   Applicaple only for the 'wult', 'ndl' and 'benchmark' tools.
+   Comma-separated list of statistics to collect.
 
 **--cpunums** *CPUNUMS*
    Applicable only for the 'wult' and 'ndl' tools. Comma-separated list

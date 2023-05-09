@@ -1,3 +1,12 @@
+wult (1.11.16) unstable; urgency=low
+
+  * Fix a bug where 'Captured Output' tabs do not load in 'stats-collect'
+    reports. This bug was introduced in v1.11.15.
+  * Fix a bug where 'sysinfo' tabs in HTML reports do not generate diffs. This
+    bug was introduced in v1.11.9.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 09 May 2023 00:00:00 +0200
+
 wult (1.11.15) unstable; urgency=low
 
   * Fix 'sysinfo' tabs not loading in HTML reports when viewed locally.
