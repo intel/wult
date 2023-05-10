@@ -213,6 +213,8 @@ static int kick_timer(void)
 	dbgmsg("kick_timer: ldist=%d, cpu=%d, has-abs=%d", ldist, cpu_id,
 	       has_abs_timer);
 
+	timer_armed = true;
+
 	if (has_abs_timer) {
 		ltime = bpf_ktime_get_boot_ns() + ldist;
 		bpf_timer_start(timer, ltime, ABS_TIMER_FLAGS);
@@ -220,8 +222,6 @@ static int kick_timer(void)
 		bpf_timer_start(timer, ldist, 0);
 		ltime = bpf_ktime_get_boot_ns() + ldist;
 	}
-
-	timer_armed = true;
 
 	return ret;
 }
