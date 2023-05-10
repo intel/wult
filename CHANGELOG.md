@@ -8,6 +8,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Install manual pages when using 'pip install'.
 
 ## [1.11.16] - 2023-05-09
 ### Fixed
