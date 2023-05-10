@@ -60,7 +60,8 @@ setup(
     author_email="artem.bityutskiy@linux.intel.com",
     python_requires=">=3.7",
     version=get_version("wulttools/_Wult.py"),
-    data_files=get_data_files("share/wult/drivers", "drivers") + \
+    data_files=get_data_files("man/man1", "docs/man1") + \
+               get_data_files("share/wult/drivers", "drivers") + \
                get_data_files("share/wult/helpers", "helpers", exclude=_STC_AGENT_FILES) + \
                get_data_files("share/wult/defs/wult", "defs/wult") + \
                get_data_files("share/stats-collect/helpers/stc-agent", "helpers/stc-agent",
