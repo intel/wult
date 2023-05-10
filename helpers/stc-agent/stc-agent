@@ -676,7 +676,7 @@ class STCAgent:
         if self.props["outdir"] == UNINITIALIZED["str"]:
             raise Error("cannot add stc-agent label: the output directory was not set")
 
-        LOG.debug("adding label '{args}")
+        LOG.debug("adding label '%s'", args)
 
         import json # pylint: disable=import-outside-toplevel
 
