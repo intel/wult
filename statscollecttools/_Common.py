@@ -40,12 +40,19 @@ def _trim_file(srcpath, dstpath, top, bottom):
     and removes all but the top 'top' lines and bottom 'bottom' lines.
     """
 
+    trim_notice_lines = [
+        "==========================\n",
+        "FILE CONTENTS REMOVED HERE\n",
+        "==========================\n"
+        ]
+
     try:
         with open(srcpath, "r", encoding="utf-8") as f:
             lines = f.readlines()
             if len(lines) <= top + bottom:
                 trimmed_lines = lines
-            trimmed_lines = lines[:top] + lines[-bottom:]
+            else:
+                trimmed_lines = lines[:top] + trim_notice_lines + lines[-bottom:]
     except OSError as err:
         msg = Error(err).indent(2)
         raise Error(f"unable to open captured output file at '{srcpath}':\n{msg}") from None
