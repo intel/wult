@@ -19,15 +19,13 @@ In general, following the `local usage install guide <install-local.html>`_ and 
 the controller. This page provides the delta (what should be done differently or additional
 aspects).
 
-.. _remoteusage-update:
-
 1 Update
 =========
 
-Run the following commands on the controller::
+Update the packages using the same method as described for `local installation
+<install-local.html#install-wult-and-pepc>`_ but run the `wult deploy` command with `-H SUTNAME` to
+deploy `wult` to the SUT and not locally, i.e::
 
- pip3 install --user --upgrade git+https://github.com/intel/pepc.git@release
- pip3 install --user --upgrade git+https://github.com/intel/wult.git@release
  wult deploy -H SUTNAME
 
 2 OS packages
@@ -66,8 +64,8 @@ Controller: ::
 3 Install wult and pepc
 =======================
 
-Install them on the controller - `same way as update <#_remoteusage-update>`_, but without
-the `--upgrade` option.
+Install them on the controller using the same method described for `local installation
+<install-local.html#install-wult-and-pepc>`_.
 
 4 Deploy wult drivers
 =====================
