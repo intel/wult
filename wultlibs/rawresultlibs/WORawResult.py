@@ -51,18 +51,11 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
 
         self.csv = _CSV.WritableCSV(self.dp_path)
 
-        if self.info_path.exists():
-            if not self.info_path.is_file():
-                raise Error(f"path '{self.info_path}' exists, but it is not a regular file")
-            # Verify that we are going to be able writing to the info file.
-            if not os.access(self.info_path, os.W_OK):
-                raise Error(f"cannot access '{self.info_path}' for writing")
-        else:
-            # Create an empty info file in advance.
-            try:
-                self.info_path.open("tw+", encoding="utf-8").close()
-            except OSError as err:
-                raise Error(f"failed to create file '{self.info_path}':\n{err}") from None
+        # Create an empty info file in advance.
+        try:
+            self.info_path.open("tw+", encoding="utf-8").close()
+        except OSError as err:
+            raise Error(f"failed to create file '{self.info_path}':\n{err}") from None
 
     def _mangle_eval_expr(self, expr):
         """
