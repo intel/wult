@@ -1,3 +1,11 @@
+wult (1.11.17) unstable; urgency=low
+
+  * Install manual pages when using 'pip install'.
+  * Improve 'hrt_bpf' and 'hrt_tdt' methods by using absolute hrtimers available
+    in Linux kernel starting with version 6.4.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 12 May 2023 00:00:00 +0200
+
 wult (1.11.16) unstable; urgency=low
 
   * Fix a bug where 'Captured Output' tabs do not load in 'stats-collect'

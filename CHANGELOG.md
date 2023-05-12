@@ -8,6 +8,9 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+
+## [1.11.17] - 2023-05-12
+### Changed
  - Install manual pages when using 'pip install'.
  - Improve 'hrt_bpf' and 'hrt_tdt' methods by using absolute hrtimers available
    in Linux kernel starting with version 6.4.
