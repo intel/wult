@@ -37,7 +37,8 @@ def get_pman(args):
 def _trim_file(srcpath, dstpath, top, bottom):
     """
     Helper function for 'generate_captured_output_tab()'. Copies the file at 'srcpath' to 'dstpath'
-    and removes all but the top 'top' lines and bottom 'bottom' lines.
+    and removes all but the top 'top' lines and bottom 'bottom' lines. Returns a boolean
+    representing if the file was trimmed or not.
     """
 
     trim_notice_lines = [
@@ -66,6 +67,8 @@ def _trim_file(srcpath, dstpath, top, bottom):
         msg = f"unable to write trimmed captured output file at '{dstpath}':\n{msg}"
         raise Error(msg) from None
 
+    return len(trimmed_lines) < len(lines)
+
 def generate_captured_output_tab(rsts, outdir):
     """Generate a container tab containing the output captured in 'stats-collect start'."""
 
@@ -74,6 +77,7 @@ def generate_captured_output_tab(rsts, outdir):
     _LOG.info("Generating '%s' tab.", tab_title)
 
     files = {}
+    trimmed_rsts = []
     for ftype in ("stdout", "stderr"):
         fp = rsts[0].info.get(ftype)
 
@@ -83,17 +87,27 @@ def generate_captured_output_tab(rsts, outdir):
         srcfp = Path(fp)
         dstfp = srcfp.parent / f"trimmed-{srcfp.name}"
         for res in rsts:
-            _trim_file(res.dirpath / srcfp, outdir / res.reportid / dstfp, 16, 32)
+            trimmed = _trim_file(res.dirpath / srcfp, outdir / res.reportid / dstfp, 16, 32)
+            if trimmed:
+                trimmed_rsts.append(res.reportid)
+
         files[ftype] = dstfp
 
     fpbuilder = FilePreviewBuilder.FilePreviewBuilder(outdir)
     fpreviews = fpbuilder.build_fpreviews({res.reportid: outdir / res.reportid for res in rsts},
-                                          files)
+                                           files)
 
     if not fpreviews:
         return None
 
-    dtab = _Tabs.DTabDC(tab_title, fpreviews=fpbuilder.fpreviews)
+    if trimmed_rsts:
+        msg = f"Note - the outputs of the following results have been trimmed to save time " \
+              f"during report generation: {', '.join(trimmed_rsts)}"
+        alerts = (msg,)
+    else:
+        alerts = []
+
+    dtab = _Tabs.DTabDC(tab_title, fpreviews=fpbuilder.fpreviews, alerts=alerts)
     return _Tabs.CTabDC(tab_title, tabs=[dtab])
 
 def _generate_intro_table(rsts):
