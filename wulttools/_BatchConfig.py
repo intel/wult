@@ -822,7 +822,7 @@ class BatchConfig(_CmdlineRunner):
 class BatchReport(_CmdlineRunner):
     """Helper class for 'exercise-sut' tool to create reports for series of results."""
 
-    def _get_result_paths(self, searchpaths): # pylint: disable=no-self-use
+    def _get_result_paths(self, searchpaths):
         """Find all result paths in list of paths 'searchpaths'. Returns single list of paths."""
 
         for searchpath in searchpaths:
@@ -836,7 +836,7 @@ class BatchReport(_CmdlineRunner):
                 if respath.is_dir():
                     yield Path(respath.path)
 
-    def _resolve_path_monikers(self, diff_monikers, path_monikers): # pylint: disable=no-self-use
+    def _resolve_path_monikers(self, diff_monikers, path_monikers):
         """
         Resolve common monikers between 'diff_monikers' and 'path_monikers' lists. Returns 'None'
         if common monikers not found.
