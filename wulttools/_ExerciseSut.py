@@ -97,7 +97,6 @@ _COLLECT_OPTIONS = {
                     numbers to measure with. No CPU number is passed by default."""
     },
     "cstates" : {
-        "default" : "all",
         "help" : """Comma-separated list of requestable C-states to measure with. Default is all
                     C-states."""
     },
