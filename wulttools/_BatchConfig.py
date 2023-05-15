@@ -640,7 +640,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
     def close(self):
         """Uninitialize the class objetc."""
-        ClassHelpers.close(self, unref_attrs=("_pman"))
+        ClassHelpers.close(self, unref_attrs=("_pman",))
 
 class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
     """Helper class for running commandline commands."""
@@ -759,7 +759,7 @@ class _CmdlineRunner(ClassHelpers.SimpleCloseContext):
         for proc in self._procs:
             proc.close()
 
-        ClassHelpers.close(self, close_attrs=("_lpman"))
+        ClassHelpers.close(self, close_attrs=("_lpman",))
 
 class BatchConfig(_CmdlineRunner):
     """
