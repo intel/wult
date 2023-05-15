@@ -161,6 +161,28 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         return ", ".join(props_strs)
 
+    def _normalize_pcsnames(self, pcsnames):
+        """Normalize and validate list of package C-state names 'pcsnames'."""
+
+        allpcsnames = []
+        for _, pinfo in self._get_cstates().get_props(("pkg_cstate_limit",), "all"):
+            _pcsnames = pinfo["pkg_cstate_limit"].get("pkg_cstate_limits", None)
+            if not _pcsnames:
+                continue
+
+            for pcsname in _pcsnames:
+                if pcsname not in allpcsnames:
+                    allpcsnames.append(pcsname)
+
+        if "all" in pcsnames:
+            return allpcsnames
+
+        for pcsname in pcsnames:
+            if pcsname.upper() not in allpcsnames:
+                raise Error(f"package C-state '{pcsname}' not available{self._pman.hostmsg}")
+
+        return [pcsname.upper() for pcsname in pcsnames]
+
     def _normalize_csnames(self, csnames):
         """Normalize and validate list of requestable C-state names 'csnames'."""
 
@@ -319,7 +341,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             if pname == "cstates":
                 values = self._normalize_csnames(values)
             if pname == "pcstates":
-                values = [val.upper() for val in values]
+                values = self._normalize_pcsnames(values)
 
             props[pname] = values
 
