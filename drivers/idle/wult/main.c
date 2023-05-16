@@ -408,6 +408,7 @@ EXPORT_SYMBOL_GPL(wult_unregister);
 static const struct x86_cpu_id intel_cpu_ids[] = {
 	X86_MATCH_VENDOR_FAM_FEATURE(INTEL, 6, X86_FEATURE_CONSTANT_TSC, NULL),
 	X86_MATCH_VENDOR_FAM_FEATURE(AMD, 23, X86_FEATURE_CONSTANT_TSC, NULL),
+	X86_MATCH_VENDOR_FAM_FEATURE(AMD, 25, X86_FEATURE_CONSTANT_TSC, NULL),
 	{}
 };
 MODULE_DEVICE_TABLE(x86cpu, intel_cpu_ids);
@@ -424,7 +425,7 @@ static int __init wult_init(void)
 
 	id = x86_match_cpu(intel_cpu_ids);
 	if (!id) {
-		wult_err("Intel CPU with constant TSC is required");
+		wult_err("unsupported CPU family: an x86 CPU with constant TSC is required");
 		return -EINVAL;
 	}
 
