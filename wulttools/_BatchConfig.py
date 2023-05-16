@@ -578,6 +578,7 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
         self._reportid_suffix = args.reportid_suffix
         self._hostname = args.hostname
         self._stats = args.stats
+        self._force = args.force
 
         if not self._outdir:
             self._outdir = ReportID.format_reportid(prefix=self.toolpath.name)
@@ -620,6 +621,9 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         if self._stats:
             cmd += f" --stats {self._stats}"
+
+        if self._force:
+            cmd += " --force"
 
         toolopts = self._get_toolopts(reportid)
         if toolopts:
