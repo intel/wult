@@ -19,7 +19,6 @@ import logging
 import itertools
 from pathlib import Path
 from pepclibs import CStates, PStates, CPUInfo
-from pepclibs.msr import PCStateConfigCtl
 from pepclibs.helperlibs import ClassHelpers, Human, LocalProcessManager, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wulttools import _Common
@@ -217,26 +216,30 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             return True
 
         if pname == "uncore_freqs":
-            sysfs_uncore_path = Path("/sys/devices/system/cpu/intel_uncore_frequency")
-            if not self._pman.exists(sysfs_uncore_path):
-                msg = f"Uncore frequency operations are not supported{self._pman.hostmsg}. Here " \
-                      f"are the possible reasons:\n" \
-                      f" 1. the hardware does not support uncore frequency management.\n" \
-                      f" 2. the 'intel_uncore_frequency' driver does not support this hardware.\n" \
-                      f" 3. the 'intel_uncore_frequency' driver is not enabled. Try to compile " \
-                      f"the kernel with the 'CONFIG_INTEL_UNCORE_FREQ_CONTROL' option."
-                log_method(msg)
+            cmd = "pepc pstates info --min-uncore-freq --max-uncore-freq"
+            stdout, _ = self._pman.run_verify(cmd)
 
-                return False
+            uncore_supported = True
+            for line in stdout.split("\n"):
+                if "not supported" in line:
+                    log_method(line)
+                    uncore_supported = False
 
-            return True
+            return uncore_supported
 
         if pname == "pcstates":
-            for _, pinfo in self._get_cstates().get_props(("pkg_cstate_limit",), "all"):
-                if pinfo["pkg_cstate_limit"].get("pkg_cstate_limit_locked", None) != "off":
-                    log_method("cannot set package C-state limit%s, MSR 0x%x is locked",
-                               self._pman.hostmsg, PCStateConfigCtl.MSR_PKG_CST_CONFIG_CONTROL)
+            cmd = "pepc cstates info --pkg-cstate-limit"
+            stdout, _ = self._pman.run_verify(cmd)
+
+            if "not supported" in stdout:
+                log_method(stdout.strip())
+                return False
+
+            for line in stdout.split("\n"):
+                if "Package C-state limit lock: 'on'" in line:
+                    log_method(line)
                     return False
+
             return True
 
         pcsobj = None
