@@ -53,9 +53,15 @@ class ScDataTab extends LitElement {
             ${this.smrytblfile ? html`<sc-smry-tbl .file="${this.smrytblfile}"></sc-smry-tbl>` : html``}
 
             ${this.alerts.length > 0
-                ? html`<br><sl-alert variant="primary" open><ul>
-                    ${this.alerts.map((alert) => html`<li>${alert}</li>`)}
-                  </ul></sl-alert>`
+                ? html`
+                    <br>
+                    <sl-alert variant="primary" open>
+                        <ul>
+                            ${this.alerts.map((alert) => html`<li>${alert}</li>`)}
+                        </ul>
+                    </sl-alert>
+                    <br>
+                `
                 : html``
             }
 

@@ -2259,9 +2259,15 @@
             <br>
             ${this.smrytblfile?O`<sc-smry-tbl .file="${this.smrytblfile}"></sc-smry-tbl>`:O``}
 
-            ${this.alerts.length>0?O`<br><sl-alert variant="primary" open><ul>
-                    ${this.alerts.map((t=>O`<li>${t}</li>`))}
-                  </ul></sl-alert>`:O``}
+            ${this.alerts.length>0?O`
+                    <br>
+                    <sl-alert variant="primary" open>
+                        <ul>
+                            ${this.alerts.map((t=>O`<li>${t}</li>`))}
+                        </ul>
+                    </sl-alert>
+                    <br>
+                `:O``}
 
             ${this.fpreviews?this.fpreviews.map((t=>O`
                     <sc-file-preview .title=${t.title}
