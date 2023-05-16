@@ -12,8 +12,6 @@
 #include <linux/ktime.h>
 #include <linux/module.h>
 #include <linux/time.h>
-#include <asm/cpu_device_id.h>
-#include <asm/intel-family.h>
 #include <asm/msr.h>
 #include "wult.h"
 
@@ -153,23 +151,8 @@ static struct wult_device_ops wult_hrt_ops = {
 	.exit = exit_device,
 };
 
-static const struct x86_cpu_id intel_cpu_ids[] = {
-	X86_MATCH_VENDOR_FAM(INTEL, 6, NULL),
-	X86_MATCH_VENDOR_FAM(AMD, 23, NULL),
-	{}
-};
-MODULE_DEVICE_TABLE(x86cpu, intel_cpu_ids);
-
 static int __init wult_hrt_init(void)
 {
-	const struct x86_cpu_id *id;
-
-	id = x86_match_cpu(intel_cpu_ids);
-	if (!id) {
-		wult_err("unsupported Intel CPU family, required family 6 or higher");
-		return -EINVAL;
-	}
-
 	wult_hrt.wdi.ldist_min = 1;
 	wult_hrt.wdi.ldist_max = LDIST_MAX;
 	wult_hrt.wdi.ldist_gran = hrtimer_resolution;
