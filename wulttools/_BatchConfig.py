@@ -294,24 +294,24 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         """
 
         if props.get("cstates") in PC0_ONLY_STATES:
-            warning = None
+            notice = None
 
             if "pcstates" in props:
                 if props.get("pcstates") != "PC0":
-                    warning = f"enabling '{props['cstates']}' doesn't make sense with package " \
-                              f"C-state '{props['pcstates']}', skip configuration:\n" \
-                              f"{self.props_to_str(props)}"
+                    notice = f"enabling '{props['cstates']}' doesn't make sense with package " \
+                             f"C-state '{props['pcstates']}', skip configuration:\n" \
+                             f"{self.props_to_str(props)}"
 
                 del props["pcstates"]
 
             for pname in ("cstate_prewake", "c1_demotion", "c1_undemotion"):
                 if props.get(pname) == "on":
                     name = self.props[pname]["name"]
-                    warning = f"enabling '{name}' with '{props['cstates']}' doesn't make sense, " \
-                              f"skip configuration:\n{self.props_to_str(props)}"
+                    notice = f"enabling '{name}' with '{props['cstates']}' doesn't make sense, " \
+                             f"skip configuration:\n{self.props_to_str(props)}"
 
-            if warning:
-                _LOG.warning(warning)
+            if notice:
+                _LOG.notice(notice)
                 return None
 
         return props
