@@ -318,6 +318,7 @@ def _start_command(args):
     else:
         cpus = Trivial.split_csv_line(args.cpunums)
 
+    work_done = False
     with _BatchConfig.BatchConfig(args) as batchconfig:
         if args.deploy:
             batchconfig.deploy()
@@ -340,8 +341,12 @@ def _start_command(args):
                 batchconfig.configure(props, cpu)
                 for devid in devids:
                     batchconfig.run(props, devid, cpu)
+                    work_done = True
 
                 _LOG.info("")
+
+    if not work_done:
+        _LOG.error("no commands to run, see '%s start -h' for help.", TOOLNAME)
 
 def _report_command(args):
     """Implements the 'report' command."""
