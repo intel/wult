@@ -514,10 +514,13 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
         # instead).
         cstate = props.get("cstates")
         if "pcstates" in props:
-            if cstate not in PC0_ONLY_STATES:
+            if cstate is None:
+                cstate = props['pcstates']
+            elif cstate not in PC0_ONLY_STATES:
                 cstate += f"_{props['pcstates']}"
 
-        monikers.append(cstate)
+        if cstate:
+            monikers.append(cstate)
 
         for pname, val in props.items():
             if pname in ("cstates", "pcstates"):
