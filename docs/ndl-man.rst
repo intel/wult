@@ -2,7 +2,7 @@
 NDL
 ===
 
-:Date:   2023-05-12
+:Date: 2023-05-17
 
 .. contents::
    :depth: 3
@@ -593,8 +593,8 @@ OPTIONS *'ndl* calc'
 **--list-metrics**
    Print the list of the available metrics and exit.
 
-AUTHORS
-=======
+AUTHOR
+======
 
 ::
 

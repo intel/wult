@@ -8,6 +8,9 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+
+## [1.11.18] - 2023-05-17
+### Changed
  - exercise-sut: change default behavior: when '--cstates' is not specify,
    assume "no C-states testing" instead of previous "test all C-state".
 

@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date:   2023-05-12
+:Date: 2023-05-17
 
 .. contents::
    :depth: 3
@@ -62,7 +62,7 @@ REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--stats STATS]
 [--freqs FREQS] [--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR]
 [--aspm ASPM] [--c1-demotion C1_DEMOTION] [--c1-undemotion
 C1_UNDEMOTION] [--c1e-autopromote C1E_AUTOPROMOTE] [--cstate-prewake
-CSTATE_PREWAKE] [--state-reset] [--deploy] [--devids DEVIDS]
+CSTATE_PREWAKE] [--state-reset] [--deploy] [--devids DEVIDS] [--force]
 [--stop-on-failure] [--only-measured-cpu] [--toolpath TOOLPATH]
 [--toolopts TOOLOPTS] [--outdir OUTDIR] [--dry-run] [--list-monikers]
 
@@ -178,6 +178,13 @@ OPTIONS *'exercise-sut* start'
    Applicable only for 'wult' and 'ndl' tools. Comma-separated list of
    device IDs to run the tools with.
 
+**--force**
+   Applicaple only for the 'wult' and 'ndl' tools. By default a network
+   card is not accepted as a measurement device if it is used by a Linux
+   network interface and the interface is in an active state, such as
+   "up". Use '--force' to disable this safety mechanism. Use it with
+   caution.
+
 **--stop-on-failure**
    Stop if any of the steps fail, instead of continuing (default).
 
@@ -273,8 +280,8 @@ OPTIONS *'exercise-sut* report'
    results. Use this option to list monikers assosiated with each
    settings, if any, and exit.
 
-AUTHORS
-=======
+AUTHOR
+======
 
 ::
 
