@@ -132,11 +132,10 @@
 the controller. This page provides the delta (what should be done differently or additional
 aspects).</p>
 <div class="section" id="update">
-<span id="remoteusage-update"></span><h2><a class="toc-backref" href="#toc-entry-1">1 Update</a></h2>
-<p>Run the following commands on the controller:</p>
+<h2><a class="toc-backref" href="#toc-entry-1">1 Update</a></h2>
+<p>Update the packages using the same method as described for <a class="reference external" href="install-local.html#install-wult-and-pepc">local installation</a> but run the <cite>wult deploy</cite> command with <cite>-H SUTNAME</cite> to
+deploy <cite>wult</cite> to the SUT and not locally, i.e:</p>
 <pre class="literal-block">
-pip3 install --user --upgrade git+https://github.com/intel/pepc.git&#64;release
-pip3 install --user --upgrade git+https://github.com/intel/wult.git&#64;release
 wult deploy -H SUTNAME
 </pre>
 </div>
@@ -172,8 +171,7 @@ sudo apt install -y python3-paramiko rsync
 </div>
 <div class="section" id="install-wult-and-pepc">
 <h2><a class="toc-backref" href="#toc-entry-3">3 Install wult and pepc</a></h2>
-<p>Install them on the controller - <a class="reference external" href="#_remoteusage-update">same way as update</a>, but without
-the <cite>--upgrade</cite> option.</p>
+<p>Install them on the controller using the same method described for <a class="reference external" href="install-local.html#install-wult-and-pepc">local installation</a>.</p>
 </div>
 <div class="section" id="deploy-wult-drivers">
 <h2><a class="toc-backref" href="#toc-entry-4">4 Deploy wult drivers</a></h2>

@@ -113,38 +113,63 @@
 <div class="contents topic" id="table-of-contents">
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
-<li><a class="reference internal" href="#update" id="toc-entry-1">1 Update</a></li>
-<li><a class="reference internal" href="#install-dependencies" id="toc-entry-2">2 Install dependencies</a><ul>
-<li><a class="reference internal" href="#kernel-sources-1" id="toc-entry-3">2.1 Kernel sources</a></li>
-<li><a class="reference internal" href="#os-packages-1" id="toc-entry-4">2.2 OS packages</a></li>
+<li><a class="reference internal" href="#update" id="toc-entry-1">1 Update</a><ul>
+<li><a class="reference internal" href="#pip" id="toc-entry-2">1.1 pip</a></li>
+<li><a class="reference internal" href="#fedora-centos-8-stream-centos-9-stream" id="toc-entry-3">1.2 Fedora, CentOS 8 Stream &amp; CentOS 9 Stream</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#install-wult-and-pepc" id="toc-entry-5">3 Install wult and pepc</a></li>
-<li><a class="reference internal" href="#deploy-wult-drivers" id="toc-entry-6">4 Deploy wult drivers</a></li>
-<li><a class="reference internal" href="#tab-completions" id="toc-entry-7">5 Tab completions</a></li>
+<li><a class="reference internal" href="#install-dependencies" id="toc-entry-4">2 Install dependencies</a><ul>
+<li><a class="reference internal" href="#kernel-sources-1" id="toc-entry-5">2.1 Kernel sources</a></li>
+<li><a class="reference internal" href="#os-packages-1" id="toc-entry-6">2.2 OS packages</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#install-wult-and-pepc" id="toc-entry-7">3 Install wult and pepc</a><ul>
+<li><a class="reference internal" href="#pip-recommended" id="toc-entry-8">3.1 pip - Recommended</a></li>
+<li><a class="reference internal" href="#fedora" id="toc-entry-9">3.2 Fedora</a></li>
+<li><a class="reference internal" href="#centos-9-stream" id="toc-entry-10">3.3 CentOS 9 Stream</a></li>
+<li><a class="reference internal" href="#centos-8-stream" id="toc-entry-11">3.4 CentOS 8 Stream</a></li>
+<li><a class="reference internal" href="#ubuntu-debian" id="toc-entry-12">3.5 Ubuntu &amp; Debian</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#deploy-wult-drivers" id="toc-entry-13">4 Deploy wult drivers</a></li>
+<li><a class="reference internal" href="#tab-completions" id="toc-entry-14">5 Tab completions</a></li>
 </ul>
 </div>
 <p>This page provides wult installation instruction for the
 <a class="reference external" href="user-guide.html#local-usage-model">local usage model</a>.</p>
 <div class="section" id="update">
 <h2><a class="toc-backref" href="#toc-entry-1">1 Update</a></h2>
-<p>Before describing the installation steps, here is a how you update an existing wult
-installation.</p>
+<p>Before describing the installation steps, here is how to update an existing wult installation.</p>
+<div class="section" id="pip">
+<h3><a class="toc-backref" href="#toc-entry-2">1.1 pip</a></h3>
+<p>If you installed <cite>pepc</cite> and <cite>wult</cite> using pip then use the following commands to upgrade to the
+latest release:</p>
 <pre class="literal-block">
 sudo pip3 install --upgrade git+https://github.com/intel/pepc.git&#64;release
 sudo pip3 install --upgrade git+https://github.com/intel/wult.git&#64;release
 sudo wult deploy
 </pre>
 </div>
+<div class="section" id="fedora-centos-8-stream-centos-9-stream">
+<h3><a class="toc-backref" href="#toc-entry-3">1.2 Fedora, CentOS 8 Stream &amp; CentOS 9 Stream</a></h3>
+<p>If you installed <cite>pepc</cite> and <cite>wult</cite> using <cite>dnf</cite> on one of the supported operating systems listed
+in the <a class="reference internal" href="#installation-instructions">installation instructions</a>, then upgrade to the latest version using the following
+commands:</p>
+<pre class="literal-block">
+sudo dnf upgrade pepc wult
+sudo wult deploy
+</pre>
+</div>
+</div>
 <div class="section" id="install-dependencies">
-<h2><a class="toc-backref" href="#toc-entry-2">2 Install dependencies</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-4">2 Install dependencies</a></h2>
 <p><em>Wult</em> has several dependencies. First of all, the sources of the running kernel must be installed
 on the SUT. Not just kernel headers for user-space programs, but full kernel source code.</p>
 <p>Wult also requires <a class="reference external" href="https://github.com/intel/pepc">pepc</a> to be installed.
 You'll also need the tools necessary for compiling kernel drivers on the SUT: <cite>gcc</cite>, <cite>make</cite>, etc.</p>
 <p>In addition to this, <em>wult</em> requires various python packages.</p>
 <div class="section" id="kernel-sources-1">
-<span id="kernel-sources"></span><h3><a class="toc-backref" href="#toc-entry-3">2.1 Kernel sources</a></h3>
+<span id="kernel-sources"></span><h3><a class="toc-backref" href="#toc-entry-5">2.1 Kernel sources</a></h3>
 <p><em>Wult</em> comes with kernel drivers which have to be built for the kernel running on the SUT.</p>
 <p>On Fedora and Ubuntu, the sources are typically located in <tt class="docutils literal"><span class="pre">/lib/modules/&lt;kernel_version&gt;/build</span></tt>.
 The <cite>&lt;kernel_version&gt;</cite> part must match the kernel running on the SUT. In other words, it has to be
@@ -159,7 +184,7 @@ enough to just install the kernel sources package provided by the OS, e.g.:</p>
 the <a class="reference external" href="https://github.com/intel/wult/blob/master/docs/wult-man.rst">wult man page</a>).</p>
 </div>
 <div class="section" id="os-packages-1">
-<span id="os-packages"></span><h3><a class="toc-backref" href="#toc-entry-4">2.2 OS packages</a></h3>
+<span id="os-packages"></span><h3><a class="toc-backref" href="#toc-entry-6">2.2 OS packages</a></h3>
 <p>Here are the required OS packages.</p>
 <p><strong>Fedora</strong></p>
 <pre class="literal-block">
@@ -189,19 +214,54 @@ their git repository (see below). Otherwise it is not necessary.</li>
 </div>
 </div>
 <div class="section" id="install-wult-and-pepc">
-<h2><a class="toc-backref" href="#toc-entry-5">3 Install wult and pepc</a></h2>
-<p><cite>Wult</cite> and <cite>pepc</cite> are python version 3 projects, and we recommend using the <cite>pip</cite> tool for
-installing them. Here is how to install them directly from the <cite>release</cite> branch of their git
-repositories:</p>
+<span id="installation-instructions"></span><h2><a class="toc-backref" href="#toc-entry-7">3 Install wult and pepc</a></h2>
+<div class="section" id="pip-recommended">
+<span id="pip-install"></span><h3><a class="toc-backref" href="#toc-entry-8">3.1 pip - Recommended</a></h3>
+<p><cite>Wult</cite> and <cite>pepc</cite> are Python 3 projects, and we recommend using the <cite>pip</cite> tool for installing them.
+Here is how to install them directly from the <cite>release</cite> branch of their git repositories:</p>
 <pre class="literal-block">
 sudo pip3 install --upgrade git+https://github.com/intel/pepc.git&#64;release
 sudo pip3 install --upgrade git+https://github.com/intel/wult.git&#64;release
 </pre>
-<p>Note, we do not suggest using the <cite>--user</cite> option, because in local usage model <cite>wult</cite> has to
-be run with superuser (root) permissions, and <cite>--user</cite> will make this problematic.</p>
+<p>Note, we do not suggest using the <cite>--user</cite> option, because in local usage model <cite>wult</cite> has to be run
+with superuser (root) permissions, and <cite>--user</cite> will make this problematic.</p>
+<p>It is recommended to install the tools using <cite>pip</cite> for quickest access to the latest release.</p>
+</div>
+<div class="section" id="fedora">
+<h3><a class="toc-backref" href="#toc-entry-9">3.2 Fedora</a></h3>
+<p><cite>wult</cite> and <cite>pepc</cite> are part of Fedora starting from Fedora 35. To install <cite>pepc</cite> and <cite>wult</cite>, run the
+following command:</p>
+<pre class="literal-block">
+sudo dnf install -y pepc wult
+</pre>
+<p>If you are using Fedora 34 or older, use the <a class="reference external" href="#pip-install">'pip' installation method</a>.</p>
+</div>
+<div class="section" id="centos-9-stream">
+<h3><a class="toc-backref" href="#toc-entry-10">3.3 CentOS 9 Stream</a></h3>
+<p><cite>wult</cite> and <cite>pepc</cite> are available for CentOS 9 Stream via the <cite>epel</cite> repository. Here is how to add
+'epel' and install <cite>wult</cite> and <cite>pepc</cite>:</p>
+<pre class="literal-block">
+sudo dnf install epel-release
+sudo dnf install pepc wult
+</pre>
+</div>
+<div class="section" id="centos-8-stream">
+<h3><a class="toc-backref" href="#toc-entry-11">3.4 CentOS 8 Stream</a></h3>
+<p>To install <cite>wult</cite> and <cite>pepc</cite> in CentOS 8 stream, you can use the <cite>copr</cite> repository using the
+following commands:</p>
+<pre class="literal-block">
+sudo dnf copr enable aekoroglu/c8s-py39 centos-stream-8-x86_64
+sudo dnf install pepc wult
+</pre>
+</div>
+<div class="section" id="ubuntu-debian">
+<h3><a class="toc-backref" href="#toc-entry-12">3.5 Ubuntu &amp; Debian</a></h3>
+<p>We do not provide Ubuntu/Debian packages, so you'll need to use the <a class="reference external" href="#pip-install">'pip' installation method</a>. Install dependencies using the commands in the <a class="reference internal" href="#os-packages">os-packages</a> section before
+continuing with the <a class="reference external" href="#pip-install">'pip' installation method</a>.</p>
+</div>
 </div>
 <div class="section" id="deploy-wult-drivers">
-<h2><a class="toc-backref" href="#toc-entry-6">4 Deploy wult drivers</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-13">4 Deploy wult drivers</a></h2>
 <p>The final step is to build and deploy wult drivers. Run this command on the SUT as &quot;root&quot;.</p>
 <pre class="literal-block">
 sudo wult deploy
@@ -211,7 +271,7 @@ sudo wult deploy
 different kernel, you have to re-run <cite>wult deploy</cite>.</p>
 </div>
 <div class="section" id="tab-completions">
-<h2><a class="toc-backref" href="#toc-entry-7">5 Tab completions</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-14">5 Tab completions</a></h2>
 <p><cite>Wult</cite> and <cite>pepc</cite> tools have bash tab completions support, but this will only work if you have
 certain environment variables defined. The following commands will do it:</p>
 <pre class="literal-block">
