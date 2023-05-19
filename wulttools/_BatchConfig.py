@@ -577,7 +577,6 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
         self._reportid_prefix = args.reportid_prefix
         self._reportid_suffix = args.reportid_suffix
         self._hostname = args.hostname
-        self._stats = args.stats
 
         if not self._outdir:
             self._outdir = ReportID.format_reportid(prefix=self.toolpath.name)
@@ -590,12 +589,7 @@ class _BenchmarkCmdFormatter(_ToolCmdFormatterBase):
 
         cmd = super().get_command(props, devid, cpu)
         reportid = self._create_reportid(props)
-        cmd = f"{cmd} --reportid {reportid} -o {self._outdir}/{reportid}"
-
-        if self._stats:
-            cmd += f" --stats {self._stats}"
-
-        return cmd
+        return f"{cmd} --reportid {reportid} -o {self._outdir}/{reportid}"
 
 class _WultCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'wult' or 'ndl' commands."""
@@ -617,9 +611,6 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
             cmd += f" --reportid {reportid} -o {self._outdir}/{reportid}"
         else:
             cmd = f" -o {self._outdir}"
-
-        if self._stats:
-            cmd += f" --stats {self._stats}"
 
         toolopts = self._get_toolopts(reportid)
         if toolopts:
