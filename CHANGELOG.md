@@ -8,6 +8,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
  - Fix stats-collect diffs only showing one result in 'Captured Output' tabs and
    intro tables when two results have the same report ID.
 ### Added
+ - Add alerts to 'Captured Output' tabs and modify output files to make it clear
+   to users when files have been trimmed.
 ### Removed
 ### Changed
 
