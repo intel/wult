@@ -116,6 +116,8 @@ def _generate_intro_table(rsts):
 def generate_stc_report(rsts, outdir):
     """Generate a 'stats-collect' report from the results 'rsts' with 'outdir'."""
 
+    HTMLReport.reportids_dedup(rsts)
+
     rep = HTMLReport.HTMLReport(outdir)
     stdout_tab = generate_captured_output_tab(rsts, outdir)
     tabs = [stdout_tab] if stdout_tab else None
