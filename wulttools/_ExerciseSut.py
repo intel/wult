@@ -163,13 +163,6 @@ _COLLECT_OPTIONS = {
         "help" : """Applicable only for 'wult' and 'ndl' tools. Comma-separated list of device IDs
                     to run the tools with."""
     },
-    "force" : {
-        "action" : "store_true",
-        "help" : """Applicaple only for the 'wult' and 'ndl' tools. By default a network card is not
-                    accepted as a measurement device if it is used by a Linux network interface and
-                    the interface is in an active state, such as "up". Use '--force' to disable this
-                    safety mechanism. Use it with caution."""
-    },
     "stop_on_failure" : {
         "action" : "store_true",
         "help" : """Stop if any of the steps fail, instead of continuing (default)."""
