@@ -12,6 +12,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    to users when files have been trimmed.
 ### Removed
 ### Changed
+ - Minor design improvements to HTML report tabs with alerts and file-previews.
 
 ## [1.11.18] - 2023-05-17
 ### Changed
