@@ -935,7 +935,7 @@ class BatchReport(_CmdlineRunner):
     def group_results(self, searchpaths, diffs=None, include=None, exclude=None):
         """
         Find results from paths 'searchpaths'. Group results according to arguments:
-          * diffs - Comma-separated list of monikers to group results with.
+          * diffs - List of lists of monikers to group results with.
           * include - Comma-separated list of monikers that must be found from the result path name.
           * exclude - Comma-separated list of monikers that must not be found from the result path
                       name.
@@ -947,8 +947,8 @@ class BatchReport(_CmdlineRunner):
         respaths = self._get_result_paths(searchpaths, include, exclude)
 
         if diffs:
-            diff_monikers = Trivial.split_csv_line(diffs, dedup=True, keep_empty=True)
-            yield from self._get_diff_paths(respaths, diff_monikers)
+            for diff_monikers in diffs:
+                yield from self._get_diff_paths(respaths, diff_monikers)
         else:
             for respath in respaths:
                 outpath = "individual" / Path(respath.name)

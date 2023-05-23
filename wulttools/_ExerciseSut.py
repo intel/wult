@@ -176,8 +176,9 @@ _GENERATE_OPTIONS = {
                     from multiple monikers separated by dashes, e.g. 'hrt-c6-uf_max-autoc1e_off'.
                     This option can be used to create diff reports by including multiple results in
                     one report. Comma-separated list of monikers to select results to include in the
-                    diff report. If this option is not provided, reports with single result are
-                    generated."""
+                    diff report. This option can be used multiple times. If this option is not
+                    provided, reports with single result are generated.""",
+        "action" : "append",
     },
     "include" : {
         "help" : "Comma-separated list of monikers that must be found from the result path name."
@@ -365,7 +366,13 @@ def _report_command(args):
     with _BatchConfig.BatchReport(args.toolpath, outdir, args.toolopts, dry_run=args.dry_run,
                                   stop_on_failure=args.stop_on_failure, proc_count=args.jobs) as \
                                   batchreport:
-        for outpath, respaths in batchreport.group_results(args.respaths, diffs=args.diffs,
+        diffs = []
+        if args.diffs:
+            for diff_csv_line in args.diffs:
+                diff_monikers = Trivial.split_csv_line(diff_csv_line, dedup=True, keep_empty=True)
+                diffs.append(diff_monikers)
+
+        for outpath, respaths in batchreport.group_results(args.respaths, diffs=diffs,
                                                            include=args.include,
                                                            exclude=args.exclude):
             batchreport.generate_report(respaths, outdir / outpath)
