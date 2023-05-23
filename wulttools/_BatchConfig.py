@@ -819,7 +819,7 @@ class BatchConfig(_CmdlineRunner):
 class BatchReport(_CmdlineRunner):
     """Helper class for 'exercise-sut' tool to create reports for series of results."""
 
-    def _get_result_paths(self, searchpaths):
+    def _search_result_paths(self, searchpaths):
         """Find all result paths in list of paths 'searchpaths'. Returns single list of paths."""
 
         for searchpath in searchpaths:
@@ -832,6 +832,36 @@ class BatchReport(_CmdlineRunner):
             for respath in os.scandir(searchpath):
                 if respath.is_dir():
                     yield Path(respath.path)
+
+    def _get_result_paths(self, searchpaths, include, exclude):
+        """
+        Find results from paths 'searchpaths'. Filter result directories with following arguments.
+          * include - List of monikers that must be found from the result path name.
+          * exclude - List of monikers that must not be found from the result path name.
+        """
+
+        include_monikers = None
+        exclude_monikers = None
+
+        if include:
+            include_monikers = set(Trivial.split_csv_line(include))
+
+        if exclude:
+            exclude_monikers = set(Trivial.split_csv_line(exclude))
+
+        respaths= []
+        for respath in self._search_result_paths(searchpaths):
+            path_monikers = respath.name.split("-")
+
+            if include_monikers and not include_monikers.issubset(set(path_monikers)):
+                continue
+
+            if exclude_monikers and exclude_monikers.intersection(set(path_monikers)):
+                continue
+
+            respaths.append(respath)
+
+        return respaths
 
     def _resolve_path_monikers(self, diff_monikers, path_monikers):
         """
@@ -858,27 +888,18 @@ class BatchReport(_CmdlineRunner):
 
         return None
 
-    def _get_grouped_paths(self, searchpaths, diff_monikers, include_monikers, exclude_monikers):
+    def _get_grouped_paths(self, respaths, diff_monikers):
         """
-        Find results from paths 'searchpaths'. Group results according to arguments:
-          * diff_monikers - List of monikers to group results with.
-          * include - List of monikers that must be found from the result path name.
-          * exclude - List of monikers that must not be found from the result path name.
-
-        Returns dictionary with common directory name as key and list matching paths as values.
+        Group results from paths 'respaths'. Group results according to list of monikers in
+        'diff_monikers', if any. Returns dictionary with common directory name as key and list
+        matching paths as values.
         """
 
         basepath = Path("-vs-".join([moniker for moniker in diff_monikers if moniker]))
 
         groups = {}
-        for respath in self._get_result_paths(searchpaths):
+        for respath in respaths:
             path_monikers = respath.name.split("-")
-
-            if include_monikers and not include_monikers.issubset(set(path_monikers)):
-                continue
-
-            if exclude_monikers and exclude_monikers.intersection(set(path_monikers)):
-                continue
 
             path_monikers = self._resolve_path_monikers(diff_monikers, path_monikers)
             if not path_monikers:
@@ -904,21 +925,13 @@ class BatchReport(_CmdlineRunner):
         value.
         """
 
-        diff_monikers = []
-        include_monikers = None
-        exclude_monikers = None
+        respaths = self._get_result_paths(searchpaths, include, exclude)
 
+        diff_monikers = []
         if diffs:
             diff_monikers = Trivial.split_csv_line(diffs, dedup=True, keep_empty=True)
 
-        if include:
-            include_monikers = set(Trivial.split_csv_line(include))
-
-        if exclude:
-            exclude_monikers = set(Trivial.split_csv_line(exclude))
-
-        grouped_paths = self._get_grouped_paths(searchpaths, diff_monikers, include_monikers,
-                                                exclude_monikers)
+        grouped_paths = self._get_grouped_paths(respaths, diff_monikers)
 
         def _get_path_sortkey(path):
             """
