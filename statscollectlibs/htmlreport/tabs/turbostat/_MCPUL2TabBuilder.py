@@ -39,9 +39,9 @@ class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
             for core in package["cores"].values():
                 for cpunum, tstats in core["cpus"].items():
                     if cpunum in cpus_to_keep:
-                        # Include the core totals as for metrics which are not available at the CPU
-                        # level.
-                        cpus_tstat[cpunum] = {**core["totals"], **tstats}
+                        # Include the package and core totals as for metrics which are not available
+                        # at the CPU level.
+                        cpus_tstat[cpunum] = {**package["totals"], **core["totals"], **tstats}
 
                     # If all measured CPUs have already been extracted then return.
                     if cpus_to_keep - set(cpus_tstat.keys()) == set():
