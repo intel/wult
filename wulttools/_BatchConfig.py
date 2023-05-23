@@ -965,7 +965,8 @@ class BatchReport(_CmdlineRunner):
             yield from self._get_diff_paths(respaths, diff_monikers)
         else:
             for respath in respaths:
-                yield respath.name, [respath]
+                outpath = "individual" / Path(respath.name)
+                yield outpath, [respath]
 
     def generate_report(self, respaths, outpath):
         """Generate the report for list of results in 'respaths', store the report to 'outpath'."""
