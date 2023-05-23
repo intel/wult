@@ -165,20 +165,21 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         """Normalize and validate list of package C-state names 'pcsnames'."""
 
         allpcsnames = []
+        pcsaliases = []
         for _, pinfo in self._get_cstates().get_props(("pkg_cstate_limit",), "all"):
-            _pcsnames = pinfo["pkg_cstate_limit"].get("pkg_cstate_limits", None)
-            if not _pcsnames:
-                continue
-
-            for pcsname in _pcsnames:
+            for pcsname in pinfo["pkg_cstate_limit"].get("pkg_cstate_limits", []):
                 if pcsname not in allpcsnames:
                     allpcsnames.append(pcsname)
+
+            for pcsalias in pinfo["pkg_cstate_limit"].get("pkg_cstate_limit_aliases", {}):
+                if pcsalias not in pcsaliases:
+                    pcsaliases.append(pcsalias)
 
         if "all" in pcsnames:
             return allpcsnames
 
         for pcsname in pcsnames:
-            if pcsname.upper() not in allpcsnames:
+            if pcsname.upper() not in allpcsnames and pcsname.upper() not in pcsaliases:
                 raise Error(f"package C-state '{pcsname}' not available{self._pman.hostmsg}")
 
         return [pcsname.upper() for pcsname in pcsnames]
