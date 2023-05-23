@@ -12,15 +12,23 @@ This module provides the capability of populating the "Totals" turbostat level 2
 Please, refer to '_TurbostatL2TabBuilderBase' for more information about level 2 tabs.
 """
 
-import pandas
+from statscollectlibs.dfbuilders import TurbostatDFBuilder
 from statscollectlibs.htmlreport.tabs.turbostat import _TurbostatL2TabBuilderBase
 
 class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
-    """
-    This class provides the capability of populating the "Totals" turbostat level 2 tab.
-    """
+    """This class provides the capability of populating the "Totals" turbostat level 2 tab."""
 
     name = "Totals"
+
+    def _read_stats_file(self, path):
+        """
+        Returns a 'pandas.DataFrame' containing the data stored in the raw turbostat statistics file
+        at 'path'.
+        """
+
+        dfbldr = TurbostatDFBuilder.TotalsDFBuilder()
+        dfbldr.load_df(path)
+        return dfbldr.df
 
     def _get_tab_hierarchy(self, common_metrics):
         """
@@ -49,27 +57,6 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
         harchy["C-states"]["Hardware"]["dtabs"] += [csdef.metric for csdef in hw_mod_cs]
 
         return harchy
-
-    def _turbostat_to_df(self, tstat, path=None):
-        """
-        Convert the 'tstat' dictionary produced by 'TurbostatParser' to a 'pandas.DataFrame'. See
-        base class '_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase' for arguments.
-        """
-
-        _time_colname = "Time_Of_Day_Seconds"
-        totals = tstat["totals"]
-
-        # 'tstat_reduced' is a reduced version of the 'tstat' which contains only the columns we
-        # want to include in the report. Initialise it by adding the timestamp column.
-        tstat_reduced = {self._time_metric: [totals[_time_colname]]}
-
-        for metric in self._defs.info:
-            if metric == self._time_metric:
-                continue
-            if metric in totals:
-                tstat_reduced[metric] = [totals[metric]]
-
-        return pandas.DataFrame.from_dict(tstat_reduced)
 
     def get_tab(self):
         """

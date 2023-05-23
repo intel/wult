@@ -14,10 +14,7 @@ For each level 2 turbostat tab, we parse raw turbostat statistics files differen
 base class expects child classes to implement '_turbostat_to_df()'.
 """
 
-import pandas
-from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.defs import TurbostatDefs
-from statscollectlibs.parsers import TurbostatParser
 from statscollectlibs.htmlreport.tabs import _TabBuilderBase
 
 class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
@@ -29,81 +26,13 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
        * '_turbostat_to_df()'
     """
 
-    def _turbostat_to_df(self, tstat, path):
-        """
-        Convert the 'tstat' dictionary to a 'pandas.DataFrame'. Arguments are as follows:
-         * tstat - dictionary produced by 'TurbostatParser'.
-         * path - path of the original raw turbostat statistics file which was parsed to produce
-                  'tstat'.
-        """
-
-        raise NotImplementedError()
-
-    def _extract_cstates(self, tstat):
-        """
-        Extract the C-states with data in 'tstat', the dictionary produced by 'TurbostatParser'.
-        """
-
-        req_cstates = []
-        core_cstates = []
-        pkg_cstates = []
-        mod_cstates = []
-
-        for metric in tstat["totals"]:
-            if TurbostatDefs.ReqCSDef.check_metric(metric):
-                req_cstates.append(TurbostatDefs.ReqCSDef(metric))
-            elif TurbostatDefs.CoreCSDef.check_metric(metric):
-                core_cstates.append(TurbostatDefs.CoreCSDef(metric))
-            elif TurbostatDefs.PackageCSDef.check_metric(metric):
-                pkg_cstates.append(TurbostatDefs.PackageCSDef(metric))
-            elif TurbostatDefs.ModuleCSDef.check_metric(metric):
-                mod_cstates.append(TurbostatDefs.ModuleCSDef(metric))
-
-        self._cstates["hardware"]["core"].append(core_cstates)
-        self._cstates["hardware"]["package"].append(pkg_cstates)
-        self._cstates["hardware"]["module"].append(mod_cstates)
-        self._cstates["requested"].append(req_cstates)
-        all_cstates = req_cstates + core_cstates + pkg_cstates + mod_cstates
-        return [csdef.cstate for csdef in all_cstates]
-
     def _read_stats_file(self, path):
         """
         Returns a 'pandas.DataFrame' containing the data stored in the raw turbostat statistics file
         at 'path'.
         """
 
-        try:
-            tstat_gen = TurbostatParser.TurbostatParser(path).next()
-
-            # Use the first turbostat snapshot to see which hardware and requestable C-states the
-            # platform under test has.
-            tstat = next(tstat_gen)
-            cstates = self._extract_cstates(tstat)
-
-            # Instantiate 'self._defs' if it has not already been instantiated.
-            if not self._defs:
-                self._defs = TurbostatDefs.TurbostatDefs(cstates)
-
-            # Initialise the stats 'pandas.DataFrame' ('sdf') with data from the first 'tstat'
-            # dictionary.
-            sdf = self._turbostat_to_df(tstat, path)
-
-            # Add the rest of the data from the raw turbostat statistics file to 'sdf'.
-            for tstat in tstat_gen:
-                df = self._turbostat_to_df(tstat, path)
-                sdf = pandas.concat([sdf, df], ignore_index=True)
-        except Exception as err:
-            msg = Error(err).indent(2)
-            raise Error(f"error reading raw statistics file '{path}':\n{msg}.") from None
-
-        # Confirm that the time column is in the 'pandas.DataFrame'.
-        if self._time_metric not in sdf:
-            raise Error(f"timestamps could not be parsed in raw statistics file '{path}'.")
-
-        # Convert 'Time' column from time since epoch to time since first data point was recorded.
-        sdf[self._time_metric] = sdf[self._time_metric] - sdf[self._time_metric][0]
-
-        return sdf
+        raise NotImplementedError()
 
     @staticmethod
     def _get_common_cstates(lsts):
@@ -177,6 +106,9 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         metric_sets = [set(sdf.columns) for sdf in self._reports.values()]
         common_metrics = set.intersection(*metric_sets)
 
+        # Limit metrics to only those with definitions.
+        common_metrics.intersection_update(set(self._defs.info.keys()))
+
         # Limit metrics to only those which are common to all test results.
         for reportid, sdf in self._reports.items():
             self._reports[reportid] = sdf[list(common_metrics)]
@@ -204,6 +136,38 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         # Build L2 CTab with hierarchy represented in 'self._tab_hierarchy'.
         return self._build_ctab(self.name, tab_hierarchy, self.outdir, plots, smry_funcs)
 
+    def _init_cstates(self, dfs):
+        """
+        Find common C-states present in all results in 'dfs' and categorise them into the
+        'self._cstates' dictionary. Returns a list of all of the common C-states.
+        """
+
+        req_cstates = []
+        core_cstates = []
+        pkg_cstates = []
+        mod_cstates = []
+
+        for metric in list(dfs.values())[0]:
+            if not all(metric in df.columns for df in dfs.values()):
+                continue
+
+            if TurbostatDefs.ReqCSDef.check_metric(metric):
+                req_cstates.append(TurbostatDefs.ReqCSDef(metric))
+            elif TurbostatDefs.CoreCSDef.check_metric(metric):
+                core_cstates.append(TurbostatDefs.CoreCSDef(metric))
+            elif TurbostatDefs.PackageCSDef.check_metric(metric):
+                pkg_cstates.append(TurbostatDefs.PackageCSDef(metric))
+            elif TurbostatDefs.ModuleCSDef.check_metric(metric):
+                mod_cstates.append(TurbostatDefs.ModuleCSDef(metric))
+
+        self._cstates["hardware"]["core"].append(core_cstates)
+        self._cstates["hardware"]["package"].append(pkg_cstates)
+        self._cstates["hardware"]["module"].append(mod_cstates)
+        self._cstates["requested"].append(req_cstates)
+
+        all_cstates = req_cstates + core_cstates + pkg_cstates + mod_cstates
+        return [csdef.cstate for csdef in all_cstates]
+
     def __init__(self, rsts, outdir, basedir):
         """
         The class constructor. Adding a turbostat level 2 tab will create a sub-directory and store
@@ -219,8 +183,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         # property will be assigned a 'TurbostatDefs.TurbostatDefs' instance.
         self._defs = None
 
-        # Store C-states for which there is data in each raw turbostat statistics file. Each leaf
-        # value contains a list of lists where each file has its own sub-list of C-states.
+        # Store C-states for which there is data in each raw turbostat statistics file.
         self._cstates = {
             "requested": [],
             "hardware": {
@@ -230,7 +193,11 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             }
         }
 
+
         stats_paths = self._get_stats_paths(rsts, "turbostat", "turbostat.raw.txt")
 
         super().__init__(stats_paths, outdir)
         self._basedir = basedir
+
+        all_cstates = self._init_cstates(self._reports)
+        self._defs = TurbostatDefs.TurbostatDefs(all_cstates)
