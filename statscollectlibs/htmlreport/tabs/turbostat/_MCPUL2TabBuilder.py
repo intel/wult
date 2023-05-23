@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Authors: Adam Hawley <adam.james.hawley@intel.com>
@@ -13,6 +13,7 @@ Please, refer to '_TurbostatL2TabBuilderBase' for more information about level 2
 """
 
 import pandas
+from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.htmlreport.tabs.turbostat import _TurbostatL2TabBuilderBase
 
 class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
@@ -69,7 +70,11 @@ class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
                 continue
 
             if metric in totals:
-                tstat_reduced[metric] = [cpu_tstat[mcpu][metric]]
+                try:
+                    tstat_reduced[metric] = [cpu_tstat[mcpu][metric]]
+                except KeyError:
+                    raise Error(f"no value available for metric '{metric}' for cpu "
+                                f"'{mcpu}'.") from None
 
         return pandas.DataFrame.from_dict(tstat_reduced)
 
