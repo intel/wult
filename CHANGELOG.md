@@ -7,6 +7,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
  - Fix stats-collect diffs only showing one result in 'Captured Output' tabs and
    intro tables when two results have the same report ID.
+ - Fix 'Measured CPU' tab generation crashing when the measured CPU of a result
+   is not 0.
 ### Added
  - Add alerts to 'Captured Output' tabs and modify output files to make it clear
    to users when files have been trimmed.
