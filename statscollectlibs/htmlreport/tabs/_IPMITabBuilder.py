@@ -11,13 +11,11 @@ This module provides the capability of populating the IPMI statistics Tab.
 """
 
 import logging
-import numpy
-import pandas
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.defs import DefsBase, IPMIDefs
+from statscollectlibs.dfbuilders import IPMIDFBuilder
 from statscollectlibs.htmlreport.tabs import _TabBuilderBase
-from statscollectlibs.parsers import IPMIParser
 
 _LOG = logging.getLogger()
 
@@ -122,64 +120,16 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
 
         return self._build_ctab(self.name, tab_hierarchy, self._outdir, plots, smry_funcs)
 
-    def _categorise_cols(self, ipmi):
-        """
-        Associates column names in the IPMIParser dict 'ipmi' to the metrics they represent. For
-        example, 'FanSpeed' can be represented by several columns such as 'Fan1', 'Fan Speed' etc.
-        This function will add those column names to the 'FanSpeed' metric.
-        """
-
-        for colname, val in ipmi.items():
-            unit = val[1]
-            metric = self._defs.get_metric_from_unit(unit)
-            if metric:
-                self._metrics[metric].append(colname)
-
     def _read_stats_file(self, path):
         """
         Returns a 'pandas.DataFrame' containing the data stored in the raw IPMI statistics file at
         'path'.
         """
 
-        time_colname = "timestamp"
-
-        def _ipmi_to_df(ipmi):
-            """Convert IPMIParser dict to 'pandas.DataFrame'."""
-
-            # Reduce IPMI values from ('value', 'unit') to just 'value'.
-            # If "no reading" is parsed in a line of a raw IPMI file, 'None' is returned. In this
-            # case, we should exclude that IPMI metric.
-            i = {k:[v[0]] for k, v in ipmi.items() if v[0] is not None}
-            return pandas.DataFrame.from_dict(i)
-
-        ipmi_gen = IPMIParser.IPMIParser(path).next()
-
-        try:
-            # Try to read the first data point from raw statistics file.
-            i = next(ipmi_gen)
-        except StopIteration:
-            raise Error(f"empty or incorrectly formatted {self.name} raw statistics file at "
-                        f"'{path}'.") from None
-
-        # Populate 'self._metrics' using the columns from the first data point.
-        self._categorise_cols(i)
-        sdf = _ipmi_to_df(i)
-
-        for i in ipmi_gen:
-            df = _ipmi_to_df(i)
-            # Append dataset for a single timestamp to the main 'pandas.DataFrame'.
-            sdf = pandas.concat([sdf, df], ignore_index=True)
-
-        # Confirm that the time column is in the 'pandas.DataFrame'.
-        if time_colname not in sdf:
-            raise Error(f"column '{time_colname}' not found in statistics file '{path}'.")
-
-        # Convert Time column from time stamp to time since the first data point was recorded.
-        sdf[time_colname] = sdf[time_colname] - sdf[time_colname][0]
-        sdf[time_colname] = sdf[time_colname] / numpy.timedelta64(1, "s")
-
-        sdf = sdf.rename(columns={time_colname: self._time_metric})
-        return sdf
+        dfbldr = IPMIDFBuilder.IPMIDFBuilder()
+        dfbldr.load_df(path)
+        self._metrics = dfbldr.metrics
+        return dfbldr.df
 
     def __init__(self, rsts, outdir):
         """
