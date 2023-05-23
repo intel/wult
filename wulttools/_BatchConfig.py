@@ -913,6 +913,39 @@ class BatchReport(_CmdlineRunner):
 
         return groups
 
+    def _get_diff_paths(self, respaths, diff_monikers):
+        """
+        Find results matching to list of monikers 'diff_monikers' and yield diff output path with
+        list of result paths.
+        """
+
+        def _get_path_sortkey(path):
+            """
+            Method for sorting paths according to order of given diff monikers, or order of input
+            paths.
+            """
+
+            path_monikers = path.name.split("-")
+            for moniker in diff_monikers:
+                if moniker in path_monikers:
+                    return diff_monikers.index(moniker)
+
+            for respath in respaths:
+                if path.parent == respath:
+                    return respaths.index(respath)
+
+            return len(diff_monikers)
+
+        grouped_paths = self._get_grouped_paths(respaths, diff_monikers)
+        for outpath, paths in grouped_paths.items():
+            paths.sort(key=_get_path_sortkey)
+
+            # Yield paths only for diffs where all requested results are found.
+            if diff_monikers and len(paths) < len(diff_monikers):
+                continue
+
+            yield outpath, paths
+
     def group_results(self, searchpaths, diffs=None, include=None, exclude=None):
         """
         Find results from paths 'searchpaths'. Group results according to arguments:
@@ -927,37 +960,12 @@ class BatchReport(_CmdlineRunner):
 
         respaths = self._get_result_paths(searchpaths, include, exclude)
 
-        diff_monikers = []
         if diffs:
             diff_monikers = Trivial.split_csv_line(diffs, dedup=True, keep_empty=True)
-
-        grouped_paths = self._get_grouped_paths(respaths, diff_monikers)
-
-        def _get_path_sortkey(path):
-            """
-            Method for sorting paths according to order of given diff monikers, or order of input
-            paths.
-            """
-
-            path_monikers = path.name.split("-")
-            for moniker in diff_monikers:
-                if moniker in path_monikers:
-                    return diff_monikers.index(moniker)
-
-            for searchpath in searchpaths:
-                if path.parent == searchpath:
-                    return searchpaths.index(searchpath)
-
-            return len(diff_monikers)
-
-        for outpath, paths in grouped_paths.items():
-            paths.sort(key=_get_path_sortkey)
-
-            # Yield paths only for diffs where all requested results are found.
-            if diff_monikers and len(paths) < len(diff_monikers):
-                continue
-
-            yield outpath, paths
+            yield from self._get_diff_paths(respaths, diff_monikers)
+        else:
+            for respath in respaths:
+                yield respath.name, [respath]
 
     def generate_report(self, respaths, outpath):
         """Generate the report for list of results in 'respaths', store the report to 'outpath'."""
