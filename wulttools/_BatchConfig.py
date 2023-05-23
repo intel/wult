@@ -849,30 +849,19 @@ class BatchReport(_CmdlineRunner):
 
         return respaths
 
-    def _resolve_path_monikers(self, diff_monikers, path_monikers):
-        """
-        Resolve common monikers between 'diff_monikers' and 'path_monikers' lists. Returns 'None'
-        if common monikers not found.
-        """
-
-        if not diff_monikers:
-            return path_monikers
+    def _match_reportid_monikers(self, diff_monikers, reportid_monikers):
+        """Find common monikers of moniker lists 'diff_monikers' and 'reportid_monikers'."""
 
         common_monikers = []
         for diff_moniker in diff_monikers:
             # Diff moniker might include dash ('-'), in which case we need to look for each
             # sub-string.
             sub_strings = diff_moniker.split("-")
-            if set(sub_strings).issubset(path_monikers):
-                common_monikers.append(diff_moniker)
+            if set(sub_strings).issubset(reportid_monikers):
                 for sub_string in sub_strings:
-                    path_monikers.remove(sub_string)
+                    common_monikers.append(sub_string)
 
-        # Include only results which have common monikers, or empty diff moniker ("") included.
-        if common_monikers or "" in diff_monikers:
-            return path_monikers
-
-        return None
+        return common_monikers
 
     def _get_grouped_paths(self, respaths, diff_monikers):
         """
@@ -885,13 +874,17 @@ class BatchReport(_CmdlineRunner):
 
         groups = {}
         for respath in respaths:
-            path_monikers = respath.name.split("-")
-
-            path_monikers = self._resolve_path_monikers(diff_monikers, path_monikers)
-            if not path_monikers:
+            result_monikers = respath.name.split("-")
+            common_monikers = self._match_reportid_monikers(diff_monikers, result_monikers)
+            if not common_monikers and "" not in diff_monikers:
                 continue
 
-            outpath = basepath / "-".join(path_monikers)
+            # Remove common monikers from path name.
+            for common_moniker in common_monikers:
+                if common_moniker in result_monikers:
+                    result_monikers.remove(common_moniker)
+
+            outpath = basepath / "-".join(result_monikers)
             if outpath not in groups:
                 groups[outpath] = []
 
