@@ -33,6 +33,7 @@ PROP_INFOS = {
         "cmd" : "pepc cstates config --disable all --enable {} --cpus {scope}"},
     "pcstates" : {
         "name" : "Package C-state",
+        "moniker" : "pcs",
         "sname" : "package",
         "cmd" : "pepc cstates config --pkg-cstate-limit {} --cpus {scope}"},
     "freqs" : {
@@ -509,23 +510,7 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
         if devid:
             monikers.append(devid)
 
-        # There are core C-states that are not affected by package C-states, for example C1. Avoid
-        # appending the package C-state suffix to the moniker (e.g., avoid "c1_pc6', use 'c1'
-        # instead).
-        cstate = props.get("cstates")
-        if "pcstates" in props:
-            if cstate is None:
-                cstate = props['pcstates']
-            elif cstate not in PC0_ONLY_STATES:
-                cstate += f"_{props['pcstates']}"
-
-        if cstate:
-            monikers.append(cstate)
-
         for pname, val in props.items():
-            if pname in ("cstates", "pcstates"):
-                continue
-
             if pname in ("freqs", "uncore_freqs") and val == "unl":
                 continue
 
