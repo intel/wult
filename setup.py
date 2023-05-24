@@ -72,7 +72,7 @@ setup(
                [("share/stats-collect/js", ["js/index.html"])],
     scripts=_TOOLNAMES + _PYTHON_HELPERS,
     packages=find_packages(),
-    install_requires=["pepc>=1.4.14", "plotly>=4", "numpy", "pandas", "pyyaml", "colorama"],
+    install_requires=["pepc>=1.4.18", "plotly>=4", "numpy", "pandas", "pyyaml", "colorama"],
     long_description="""This package provides wult - a Linux command-line tool for measuring Intel
                         CPU C-state wake latency.""",
     classifiers=[

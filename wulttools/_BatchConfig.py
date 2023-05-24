@@ -19,7 +19,7 @@ import logging
 import itertools
 from pathlib import Path
 from pepclibs import CStates, PStates, CPUInfo
-from pepclibs.helperlibs import ClassHelpers, Human, LocalProcessManager, Trivial
+from pepclibs.helperlibs import ClassHelpers, Human, LocalProcessManager, Trivial, Systemctl
 from pepclibs.helperlibs.Exceptions import Error
 from wulttools import _Common
 from statscollectlibs.helperlibs import ReportID
@@ -804,9 +804,17 @@ class BatchConfig(_CmdlineRunner):
                                                  args.only_one_cstate, args.cstates_always_enable)
         self._wl_formatter = _get_workload_cmd_formatter(self._pman, args)
 
+        self._systemctl = Systemctl.Systemctl(pman=self._pman)
+        if self._systemctl.is_active("tuned"):
+            self._systemctl.stop("tuned", save=True)
+
     def close(self):
         """Uninitialize the class objetc."""
-        ClassHelpers.close(self, close_attrs=("_pepc_formatter", "_pman"))
+
+        if self._systemctl:
+            self._systemctl.restore()
+
+        ClassHelpers.close(self, close_attrs=("_pepc_formatter", "_pman", "_systemctl"))
 
 class BatchReport(_CmdlineRunner):
     """Helper class for 'exercise-sut' tool to create reports for series of results."""
