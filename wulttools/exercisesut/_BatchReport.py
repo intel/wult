@@ -12,14 +12,25 @@
 import os
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import Trivial
-from pepclibs.helperlibs.Exceptions import Error
+from pepclibs.helperlibs import Trivial, YAML
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from wulttools.exercisesut import _Common
 
 _LOG = logging.getLogger()
 
 class BatchReport(_Common.CmdlineRunner):
     """Helper class for 'exercise-sut' tool to create reports for series of results."""
+
+    def _resolve_toolpath(self):
+        """Find out tool name from results, and return full path to it."""
+
+        try:
+            infopath = self._respaths[0] / "info.yml"
+            resinfo = YAML.load(infopath)
+            return self._lpman.which(resinfo["toolname"])
+        except Error as err:
+            raise ErrorNotFound(f"failed to read toolname from '{infopath}', use '--toolpath' to "
+                                f"specify tool to generate reports\n{err}") from err
 
     def _search_result_paths(self, searchpaths):
         """Find all result paths in list of paths 'searchpaths'. Returns single list of paths."""
@@ -191,7 +202,10 @@ class BatchReport(_Common.CmdlineRunner):
         super().__init__(dry_run=args.dry_run, stop_on_failure=args.stop_on_failure,
                          proc_count=args.jobs)
 
-        self._toolpath = self._lpman.which(args.toolpath)
         self._outdir = args.outdir
         self._toolopts = args.toolopts
         self._respaths = self._search_result_paths(args.respaths)
+        self._toolpath = args.toolpath
+
+        if not self._toolpath:
+            self._toolpath = self._resolve_toolpath()
