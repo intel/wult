@@ -145,6 +145,26 @@ _COLLECT_OPTIONS = {
                      is "{_get_reset_val('cstate_prewake')}". Supported values are "on" and "off".
                      """
     },
+    "epp" : {
+        "help" : f"""Comma-separated list of EPP configurations to measure with. Default is
+                     "{_get_reset_val('epp')}". See 'pepc pstates config --epp' for more information
+                     .""",
+    },
+    "epp-hw" : {
+        "help" : f"""Comma-separated list of EPP configurations to measure with. Default is
+                     "{_get_reset_val('epp-hw')}". See 'pepc pstates config --epp-hw' for more
+                     information.""",
+    },
+    "epb" : {
+        "help" : f"""Comma-separated list of EPB configurations to measure with. Default is
+                     "{_get_reset_val('epb')}". See 'pepc pstates config --epb' for more information
+                     .""",
+    },
+    "epb-hw" : {
+        "help" : f"""Comma-separated list of EPB configurations to measure with. Default is
+                     "{_get_reset_val('epb-hw')}". See 'pepc pstates config --epb-hw' for more
+                     information.""",
+    },
     "state_reset" : {
         "action" : "store_true",
         "help" : f"""Set SUT settings to default values before starting measurements. The default
