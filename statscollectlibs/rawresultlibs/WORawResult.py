@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -17,6 +17,11 @@ from statscollecttools import ToolInfo
 
 class WORawResult(_RawResultBase.RawResultBase):
     """This class represents a write-only raw test result."""
+
+    def write_info(self):
+        """Write the 'self.info' dictionary to the 'info.yml' file."""
+
+        YAML.dump(self.info, self.info_path)
 
     def _init_outdir(self):
         """Initialize the output directory for writing or appending test results."""
@@ -40,11 +45,6 @@ class WORawResult(_RawResultBase.RawResultBase):
             self.info_path.open("tw+", encoding="utf-8").close()
         except OSError as err:
             raise Error(f"failed to create file '{self.info_path}':\n{err}") from None
-
-    def write_info(self):
-        """Write the 'self.info' dictionary to the 'info.yml' file."""
-
-        YAML.dump(self.info, self.info_path)
 
     def __init__(self, reportid, outdir, cpunum, cmd):
         """
