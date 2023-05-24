@@ -42,7 +42,7 @@
 static char ver_buf[256];
 static char *version = ver_buf;
 
-static bool verbose;
+static int verbose;
 static int perf_ev_amt;
 static int cpu = -1;
 static double tsc_to_nsec;
@@ -312,8 +312,21 @@ static void print_help(void)
 	       "                         nanoseconds and exit.\n");
 	printf("  -V, --version print version info and exit (both tool version and\n");
 	printf("                kernel version against which the tool was built).\n");
-	printf("  -v, --verbose  be verbose.\n");
+	printf("  -v, --verbose  be verbose. Specify two times for increased verbosity.\n");
 	printf("  -h, --help    show this help message and exit.\n");
+}
+
+static int libbpf_debug_print(enum libbpf_print_level level, const char *format,
+			      va_list args)
+{
+	char buf[BUFSIZ];
+	char *cur = buf;
+	char *end = buf + BUFSIZ;
+
+	cur += snprintf(buf, BUFSIZ, "wult-tdt-helper: ");
+
+	vsnprintf(cur, end - cur, format, args);
+	return fprintf(stderr, buf);
 }
 
 static int parse_options(int argc, char **argv)
@@ -331,7 +344,7 @@ static int parse_options(int argc, char **argv)
 		{ 0 },
 	};
 
-	while ((opt = getopt_long(argc, argv, "c:l:PVvh", long_options,
+	while ((opt = getopt_long(argc, argv, "c:l:PVv::h", long_options,
 				  NULL)) != -1) {
 		switch (opt) {
 		case 'c':
@@ -381,14 +394,31 @@ static int parse_options(int argc, char **argv)
 			exit(0);
 			break;
 		case 'v':
-			verbose = true;
+			verbose++;
 			bpf_args.debug = 1;
+			while (optarg && optarg[0]) {
+				if (optarg[0] == 'v') {
+					verbose++;
+				} else {
+					errmsg("bad argument to verbose: %s", optarg);
+					exit(1);
+				}
+				optarg++;
+			}
 			break;
 		default:
 			print_help();
 			exit(0);
 		}
 	}
+
+	if (verbose > 2) {
+		errmsg("too many '-v' / '--verbose' options, specify it two times at max.");
+		exit(1);
+	}
+
+	if (verbose == 2)
+		libbpf_set_print(libbpf_debug_print);
 
 	return 0;
 }
