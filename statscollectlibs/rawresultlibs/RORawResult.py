@@ -6,19 +6,51 @@
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
-"""
-This module provides API for reading raw test results.
-"""
+"""This module provides API for reading raw test results."""
 
-import logging
 from pepclibs.helperlibs import YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
 from statscollectlibs.rawresultlibs import _RawResultBase
 
-_LOG = logging.getLogger()
-
 class RORawResult(_RawResultBase.RawResultBase):
     """This class represents a read-only raw test result."""
+
+    def _get_stats_path(self, stname, default_name):
+        """
+        A helper function which can return a dictionary of paths to raw statistics files for
+        statistic 'stname' for the results in 'rsts'. Arguments are as follows:
+         * stname - the name of the statistic for which statistics paths should be found.
+         * default_name - the path that will be used if one is not specified by the result.
+        """
+
+        try:
+            subpath = self.info["stinfo"][stname]["paths"]["stats"]
+        except KeyError:
+            subpath = default_name
+
+        path = self.stats_path / subpath
+        if path.exists():
+            return path
+
+        raise Error("")
+
+    def load_stat(self, stname, dfbldr, default_name):
+        """
+        Loads data for statistic 'stname' into 'self.dfs'. Returns a 'pandas.DataFrame' containing
+        'stname' data for this result. Arguments are as follows:
+         * stname - the name of the statistic for which a 'pandas.DataFrame' should be retrieved.
+         * dfbldr - an instance of '_DFBuilderBase.DFBuilderBase' to use to build a
+                    'pandas.DataFrame' from the raw statistics file.
+         * default_name - the name of the raw statistics file which will be used if one is not
+                          defined in 'info.yml'.
+        """
+
+        if stname in self.dfs:
+            return self.dfs[stname]
+
+        path = self._get_stats_path(stname, default_name)
+        self.dfs[stname] = dfbldr.load_df(path)
+        return self.dfs[stname]
 
     def __init__(self, dirpath, reportid=None):
         """
@@ -67,3 +99,7 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         if not self.stats_path.is_dir():
             raise Error(f"unable to find statistics directory '{self.stats_path}'")
+
+        # Store each loaded 'pandas.DataFrame' so that it does not need to be re-loaded in future.
+        # This dictionary maps statistic names to 'pandas.DataFrames'.
+        self.dfs = {}
