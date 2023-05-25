@@ -100,11 +100,11 @@ class BatchReport(_Common.CmdlineRunner):
                 if common_moniker in result_monikers:
                     result_monikers.remove(common_moniker)
 
-            outpath = basepath / "-".join(result_monikers)
-            if outpath not in groups:
-                groups[outpath] = []
+            outdir = basepath / "-".join(result_monikers)
+            if outdir not in groups:
+                groups[outdir] = []
 
-            groups[outpath].append(respath)
+            groups[outdir].append(respath)
 
         return groups
 
@@ -132,14 +132,14 @@ class BatchReport(_Common.CmdlineRunner):
             return len(diff_monikers)
 
         grouped_paths = self._get_grouped_paths(respaths, diff_monikers)
-        for outpath, paths in grouped_paths.items():
+        for outdir, paths in grouped_paths.items():
             paths.sort(key=_get_path_sortkey)
 
             # Yield paths only for diffs where all requested results are found.
             if diff_monikers and len(paths) < len(diff_monikers):
                 continue
 
-            yield outpath, paths
+            yield outdir, paths
 
     def group_results(self, searchpaths, diffs=None, include=None, exclude=None):
         """
@@ -160,14 +160,14 @@ class BatchReport(_Common.CmdlineRunner):
                 yield from self._get_diff_paths(respaths, diff_monikers)
         else:
             for respath in respaths:
-                outpath = "individual" / Path(respath.name)
-                yield outpath, [respath]
+                outdir = "individual" / Path(respath.name)
+                yield outdir, [respath]
 
-    def generate_report(self, respaths, outpath):
-        """Generate the report for list of results in 'respaths', store the report to 'outpath'."""
+    def generate_report(self, respaths, outdir):
+        """Generate the report for list of results in 'respaths', store the report to 'outdir'."""
 
-        if outpath.exists():
-            _LOG.warning("path '%s' exists", outpath)
+        if outdir.exists():
+            _LOG.warning("path '%s' exists", outdir)
 
         cmd = f"nice -n19 ionice -c3 {self._toolpath} "
 
@@ -178,16 +178,16 @@ class BatchReport(_Common.CmdlineRunner):
             cmd += f"{self._toolopts} "
 
         res_str = " ".join([str(path) for path in respaths])
-        cmd += f"{res_str} -o {outpath}"
+        cmd += f"{res_str} -o {outdir}"
 
         self._run_command(cmd)
 
-    def __init__(self, toolpath, outpath, toolopts=None, dry_run=False, stop_on_failure=False,
+    def __init__(self, toolpath, outdir, toolopts=None, dry_run=False, stop_on_failure=False,
                  proc_count=None):
         """The class constructor."""
 
         super().__init__(dry_run=dry_run, stop_on_failure=stop_on_failure, proc_count=proc_count)
 
         self._toolpath = self._lpman.which(toolpath)
-        self._outpath = outpath
+        self._outdir = outdir
         self._toolopts = toolopts
