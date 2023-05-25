@@ -26,9 +26,7 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
         at 'path'.
         """
 
-        dfbldr = TurbostatDFBuilder.TotalsDFBuilder()
-        dfbldr.load_df(path)
-        return dfbldr.df
+        raise NotImplementedError()
 
     def _get_tab_hierarchy(self, common_metrics):
         """
@@ -67,12 +65,23 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
         self._defs.mangle_descriptions()
         return super().get_tab()
 
-    def __init__(self, stats_paths, outdir, basedir):
+    def __init__(self, rsts, outdir, basedir):
         """
         The class constructor. Adding a "totals" turbostat level 2 tab will create a "Totals"
         sub-directory and store data tabs inside it for metrics stored in the raw turbostat
-        statistics file. The arguments are the same as in
-        '_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase'.
+        statistics file. Arguments are as follows:
+         * rsts - a list of 'RORawResult' instances for which data should be included in the built
+                  tab.
+         * outdir - the output directory in which to create the sub-directory for the built tab.
+         * basedir - base directory of the report. All asset paths will be made relative to this.
         """
 
-        super().__init__(stats_paths, outdir / self.name, basedir)
+        dfs = {}
+        for res in rsts:
+            if "turbostat" not in res.info["stinfo"]:
+                continue
+
+            dfs[res.reportid] = res.load_stat("turbostat", TurbostatDFBuilder.TotalsDFBuilder(),
+                                              "turbostat.raw.txt")
+
+        super().__init__(dfs, outdir / self.name, basedir)

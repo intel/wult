@@ -168,11 +168,13 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         all_cstates = req_cstates + core_cstates + pkg_cstates + mod_cstates
         return [csdef.cstate for csdef in all_cstates]
 
-    def __init__(self, rsts, outdir, basedir):
+    def __init__(self, dfs, outdir, basedir):
         """
         The class constructor. Adding a turbostat level 2 tab will create a sub-directory and store
         data tabs inside it for metrics stored in the raw turbostat statistics file.  The arguments
         are the same as in '_TabBuilderBase.TabBuilderBase' except for:
+         * dfs - a dictionary in the format '{ReportId: pandas.DataFrame}' for each result where the
+                 'pandas.DataFrame' contains that statistics data for that result.
          * basedir - base directory of the report. All asset paths will be made relative to this.
         """
 
@@ -193,10 +195,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             }
         }
 
-
-        stats_paths = self._get_stats_paths(rsts, "turbostat", "turbostat.raw.txt")
-
-        super().__init__(stats_paths, outdir)
+        super().__init__({}, outdir, dfs=dfs)
         self._basedir = basedir
 
         all_cstates = self._init_cstates(self._reports)

@@ -28,21 +28,29 @@ class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
         at 'path'.
         """
 
-        dfbldr = TurbostatDFBuilder.MCPUDFBuilder(self._statdir_to_mcpu[path.parent])
-        dfbldr.load_df(path)
-        return dfbldr.df
+        raise NotImplementedError()
 
     def __init__(self, rsts, outdir, basedir):
         """
         The class constructor. Adding a "measured CPU" turbostat level 2 tab will create a
         "MeasuredCPU" sub-directory and store data tabs inside it for metrics stored in the raw
-        turbostat statistics files for each measured CPU. The arguments are the same as in
-        '_TurbostatL2TabBuilder.TurbostatL2TabBuilder'.
+        turbostat statistics files for each measured CPU. Arguments are as follows:
+         * rsts - a list of 'RORawResult' instances for which data should be included in the built
+                  tab.
+         * outdir - the output directory in which to create the sub-directory for the built tab.
+         * basedir - base directory of the report. All asset paths will be made relative to this.
         """
 
-        self._statdir_to_mcpu = {}
+        dfs = {}
         for res in rsts:
-            if "cpunum" in res.info:
-                self._statdir_to_mcpu[res.stats_path] = str(res.info["cpunum"])
+            if "turbostat" not in res.info["stinfo"]:
+                continue
 
-        super().__init__(rsts, outdir / self.name, basedir)
+            if "cpunum" not in res.info:
+                continue
+
+            mcpu = str(res.info["cpunum"])
+            dfs[res.reportid] = res.load_stat("turbostat", TurbostatDFBuilder.MCPUDFBuilder(mcpu),
+                                              "turbostat.raw.txt")
+
+        super().__init__(dfs, outdir / self.name, basedir)
