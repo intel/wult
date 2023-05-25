@@ -12,7 +12,7 @@ import dataclasses
 import logging
 import json
 from pathlib import Path
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists
 from statscollectlibs.helperlibs import FSHelpers, ProjectFiles
 from statscollectlibs.htmlreport.tabs import _ACPowerTabBuilder, _IPMITabBuilder, _Tabs
 from statscollectlibs.htmlreport.tabs.turbostat import _TurbostatTabBuilder
@@ -94,6 +94,18 @@ def _dump_json(obj, path, descr):
         msg = Error(err).indent(2)
         raise Error(f"could not generate report: failed to JSON dump '{descr}' to '{path}':\n"
                     f"{msg}") from None
+
+def validate_outdir(outdir):
+    """If directory 'outdir' exists and it already has valid data, raise an ErrorExists."""
+
+    if outdir.exists():
+        if not outdir.is_dir():
+            raise Error(f"path '{outdir}' already exists and it is not a directory")
+
+        index_path = outdir / "index.html"
+        if index_path.exists():
+            raise ErrorExists(f"cannot use path '{outdir}' as the output directory, it already "
+                              f"contains '{index_path.name}'")
 
 class HTMLReport:
     """This class provides the API for generating HTML reports."""
@@ -271,3 +283,4 @@ class HTMLReport:
         """
 
         self.outdir = Path(outdir)
+        validate_outdir(outdir)
