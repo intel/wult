@@ -10,13 +10,10 @@
 This module provides the capability of populating the AC Power statistics tab.
 """
 
-import logging
 from statscollectlibs.defs import ACPowerDefs
-from statscollectlibs.dfbuilders.ACPowerDFBuilder import ACPowerDFBuilder
+from statscollectlibs.dfbuilders import ACPowerDFBuilder
 from statscollectlibs.htmlreport.tabs import _TabBuilderBase
 from statscollectlibs.htmlreport.tabs import _DTabBuilder
-
-_LOG = logging.getLogger()
 
 class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
     """
@@ -36,9 +33,7 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
         file at 'path'.
         """
 
-        dfbldr = ACPowerDFBuilder()
-        dfbldr.load_df(path)
-        return dfbldr.df
+        raise NotImplementedError()
 
     def get_tab(self):
         """
@@ -62,13 +57,20 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
     def __init__(self, rsts, outdir):
         """
         The class constructor. Adding an ACPower tab will create an 'ACPower' sub-directory and
-        store plots and the summary table in it. The arguments are the same as in
-        '_TabBuilderBase.TabBuilderBase'.
+        store plots and the summary table in it. Arguments are as follows:
+         * rsts - a list of 'RORawResult' instances for which data should be included in the built
+                  tab.
+         * outdir - the output directory in which to create the sub-directory for the built tab.
         """
 
         self._power_metric = "P"
         self._time_metric = "T"
 
-        stats_paths = self._get_stats_paths(rsts, "acpower", "acpower.raw.txt")
+        dfs = {}
+        dfbldr = ACPowerDFBuilder.ACPowerDFBuilder()
+        for res in rsts:
+            if "acpower" not in res.info["stinfo"]:
+                continue
+            dfs[res.reportid] = res.load_stat("acpower", dfbldr, "acpower.raw.txt")
 
-        super().__init__(stats_paths, outdir, ACPowerDefs.ACPowerDefs())
+        super().__init__({}, outdir, defs=ACPowerDefs.ACPowerDefs(), dfs=dfs)
