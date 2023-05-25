@@ -186,7 +186,7 @@ class TabBuilderBase:
             raise ErrorNotFound(f"failed to generate '{self.name}' tab: no results contained raw "
                                 f"statistics files containing data for this tab.")
 
-    def __init__(self, stats_paths, outdir, defs=None):
+    def __init__(self, stats_paths, outdir, defs=None, dfs=None):
         """
         The class constructor. Adding a statistics container tab will create a sub-directory and
         store tabs inside it. These tabs will represent all of the metrics stored in 'stats_file'.
@@ -197,18 +197,23 @@ class TabBuilderBase:
          * outdir - the output directory in which to create the sub-directory for the container tab.
          * defs - a '_DefsBase.DefsBase' instance containing definitions for the metrics which
                   should be included in the output tab.
+         * dfs - dictionary in the format {'reportid': 'pandas.DataFrame'}, if provided will use the
+                 'pandas.DataFrames' rather than re-loading the data from raw statistics files.
         """
 
         if self.name is None:
             raise Error(f"failed to initalise '{type(self).__name__}': 'name' class attribute not "
                         f"populated.")
 
-        self._reports = {}
         self._basedir = outdir
         self._outdir = outdir / DefsBase.get_fsname(self.name)
         self._defs = defs
 
-        self._read_stats(stats_paths)
+        if dfs:
+            self._reports = dfs
+        else:
+            self._reports = {}
+            self._read_stats(stats_paths)
 
         try:
             self._outdir.mkdir(parents=True, exist_ok=True)
