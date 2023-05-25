@@ -126,17 +126,16 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
         'path'.
         """
 
-        dfbldr = IPMIDFBuilder.IPMIDFBuilder()
-        dfbldr.load_df(path)
-        self._metrics = dfbldr.metrics
-        return dfbldr.df
+        raise NotImplementedError()
 
     def __init__(self, rsts, outdir):
         """
         The class constructor. Adding an IPMI statistics container tab will create an 'IPMI'
         sub-directory and store tabs inside it. These tabs will represent all of the metrics stored
-        in the raw IPMI statistics file. The arguments are the same as in
-        '_TabBuilderBase.TabBuilderBase'.
+        in the raw IPMI statistics file. Arguments are as follows:
+         * rsts - a list of 'RORawResult' instances for which data should be included in the built
+                  tab.
+         * outdir - the output directory in which to create the sub-directory for the built tab.
         """
 
         self._time_metric = "Time"
@@ -146,16 +145,23 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
         # "Fan2" etc. This dictionary maps the metrics to the appropriate columns. Initialise it
         # with empty column sets for each metric.
         defs = IPMIDefs.IPMIDefs()
-        self._metrics = {metric: [] for metric in defs.info}
+        self._metrics = {}
 
-        inb_stats_paths = self._get_stats_paths(rsts, "ipmi-inband", "ipmi-inband.raw.txt")
-        oob_stats_paths = self._get_stats_paths(rsts, "ipmi-oob", "ipmi-oob.raw.txt")
+        stnames = set()
+        dfs = {}
+        dfbldr = IPMIDFBuilder.IPMIDFBuilder()
+        for res in rsts:
+            for stname in ("ipmi-oob", "ipmi-inband"):
+                if stname not in res.info["stinfo"]:
+                    continue
 
+                dfs[res.reportid] = res.load_stat(stname, dfbldr, f"{stname}.raw.txt")
+                self._metrics.update(dfbldr.metrics)
+                stnames.add(stname)
+                break
 
-        if inb_stats_paths.keys() and oob_stats_paths.keys():
+        if len(stnames) > 1:
             _LOG.warning("generating '%s' tab with a combination of data collected both inband "
                          "and out-of-band.", self.name)
 
-        inb_stats_paths.update(oob_stats_paths)
-
-        super().__init__(inb_stats_paths, outdir, defs)
+        super().__init__({}, outdir, defs=defs, dfs=dfs)
