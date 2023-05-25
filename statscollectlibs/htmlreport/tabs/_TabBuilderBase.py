@@ -37,29 +37,6 @@ class TabBuilderBase:
     # The name of the statistics represented in the produced tab.
     name = None
 
-    @staticmethod
-    def _get_stats_paths(rsts, stname, default_name):
-        """
-        A helper function which can return a dictionary of paths to raw statistics files for
-        statistic 'stname' for the results in 'rsts'. Arguments are as follows:
-         * rsts - a list of 'RORawResult' instances for which statistics paths should be found.
-         * stname - the name of the statistic for which statistics paths should be found.
-         * default_name - the path that will be used if one is not specified by the result.
-        """
-
-        stats_paths = {}
-        for res in rsts:
-            try:
-                subpath = res.info["stinfo"][stname]["paths"]["stats"]
-            except KeyError:
-                subpath = default_name
-
-            path = res.stats_path / subpath
-            if path.exists():
-                stats_paths[res.reportid] = path
-
-        return stats_paths
-
     def _build_ctab(self, name, tab_hierarchy, outdir, plots, smry_funcs):
         """
         This is a helper function for 'get_tab()'. Build a container tab according to the
@@ -143,48 +120,6 @@ class TabBuilderBase:
         """
 
         raise NotImplementedError()
-
-    def _read_stats_file(self, path):
-        """
-        Returns a 'pandas.DataFrame' containing the data stored in the raw statistics file at
-        'path'.
-        """
-
-        raise NotImplementedError()
-
-    def _add_stats(self, reportid, rawpath):
-        """
-        Add statistics contained in the raw statistics file at 'rawpath' for report 'reportid'. This
-        will parse and associate the stats data with the report 'reportid'.
-        """
-
-        try:
-            sdf = self._read_stats_file(rawpath)
-        except Error as err:
-            _LOG.warning("unfortunately report '%s' had issues with %s data, here are the details: "
-                         "\nInvalid statistics file: %s \n", reportid, self.name, err)
-            return
-
-        self._reports[reportid] = sdf
-
-
-    def _read_stats(self, stats_paths):
-        """
-        Given a dictionary of statistics directories, check which directories contain raw statistic
-        files. If any of those files are found, process them and add the statistics they contain to
-        the tab. 'stats_paths' is in the format:
-        {'reportid': 'statistics_directory_path'}.
-        """
-
-        for reportid, stats_path in stats_paths.items():
-            if not stats_path.exists():
-                raise ErrorNotFound(f"failed to generate '{self.name}' tab: no raw statistics file "
-                                    f"found for report '{reportid}'.")
-            self._add_stats(reportid, stats_path)
-
-        if not self._reports:
-            raise ErrorNotFound(f"failed to generate '{self.name}' tab: no results contained raw "
-                                f"statistics files containing data for this tab.")
 
     def __init__(self, dfs, outdir, defs=None):
         """

@@ -22,14 +22,6 @@ class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
 
     name = "Measured CPU"
 
-    def _read_stats_file(self, path):
-        """
-        Returns a 'pandas.DataFrame' containing the data stored in the raw turbostat statistics file
-        at 'path'.
-        """
-
-        raise NotImplementedError()
-
     def __init__(self, rsts, outdir, basedir):
         """
         The class constructor. Adding a "measured CPU" turbostat level 2 tab will create a

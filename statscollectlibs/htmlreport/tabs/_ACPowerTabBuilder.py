@@ -27,14 +27,6 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
 
     name = "AC Power"
 
-    def _read_stats_file(self, path):
-        """
-        Returns a 'pandas.DataFrame' containing the data stored in the raw AC Power statistics CSV
-        file at 'path'.
-        """
-
-        raise NotImplementedError()
-
     def get_tab(self):
         """
         Returns a '_Tabs.DTabDC' instance containing a summary table and plots describing data in

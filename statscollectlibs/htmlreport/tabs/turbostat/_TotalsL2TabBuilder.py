@@ -20,14 +20,6 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
 
     name = "Totals"
 
-    def _read_stats_file(self, path):
-        """
-        Returns a 'pandas.DataFrame' containing the data stored in the raw turbostat statistics file
-        at 'path'.
-        """
-
-        raise NotImplementedError()
-
     def _get_tab_hierarchy(self, common_metrics):
         """
         Extends '_get_tab_hierarchy()' from the parent class to add tabs specifically for this

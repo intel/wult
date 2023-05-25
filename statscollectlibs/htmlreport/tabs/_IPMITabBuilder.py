@@ -120,14 +120,6 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
 
         return self._build_ctab(self.name, tab_hierarchy, self._outdir, plots, smry_funcs)
 
-    def _read_stats_file(self, path):
-        """
-        Returns a 'pandas.DataFrame' containing the data stored in the raw IPMI statistics file at
-        'path'.
-        """
-
-        raise NotImplementedError()
-
     def __init__(self, rsts, outdir):
         """
         The class constructor. Adding an IPMI statistics container tab will create an 'IPMI'

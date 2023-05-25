@@ -26,14 +26,6 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
        * '_turbostat_to_df()'
     """
 
-    def _read_stats_file(self, path):
-        """
-        Returns a 'pandas.DataFrame' containing the data stored in the raw turbostat statistics file
-        at 'path'.
-        """
-
-        raise NotImplementedError()
-
     @staticmethod
     def _get_common_cstates(lsts):
         """
