@@ -17,7 +17,7 @@ import logging
 import contextlib
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, LocalProcessManager, ProjectFiles
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorExists
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.htmlreport import _IntroTable, HTMLReport
 from statscollectlibs.htmlreport.tabs import _Tabs
 from statscollectlibs.rawresultlibs import RORawResult
@@ -559,14 +559,7 @@ class ReportBase:
     def _validate_init_args(self):
         """Validate the class constructor input arguments."""
 
-        if self.outdir.exists():
-            if not self.outdir.is_dir():
-                raise Error(f"path '{self.outdir}' already exists and it is not a directory")
-
-            index_path = self.outdir / "index.html"
-            if index_path.exists():
-                raise ErrorExists(f"cannot use path '{self.outdir}' as the output directory, it "
-                                  f"already contains '{index_path.name}'")
+        HTMLReport.validate_outdir(self.outdir)
 
         # Ensure that results are compatible.
         rname, rver = self._refinfo["toolname"], self._refinfo["toolver"]
