@@ -199,6 +199,11 @@ _COLLECT_OPTIONS = {
         "help" : """Change settings, for example CPU frequency and C-state limits, only for the
                     measured CPU. By default settings are applied to all CPUs."""
     },
+    "toolpath" : {
+        "type" : Path,
+        "default" : "wult",
+        "help" : """Path to the tool to run. Default is 'wult'."""
+    },
 }
 
 _GENERATE_OPTIONS = {
@@ -223,14 +228,14 @@ _GENERATE_OPTIONS = {
         "type" : int,
         "help" : """Number of threads to use for generating reports with."""
     },
+    "toolpath" : {
+        "type" : Path,
+        "help" : """By default, name of the report tool is resolved from the results. This option
+                    can be used to override the tool."""
+    },
 }
 
 _COMMON_OPTIONS = {
-    "toolpath" : {
-        "type" : Path,
-        "default" : "wult",
-        "help" : """Path to the tool to run. Default is 'wult'."""
-    },
     "toolopts" : {
         "default" : "",
         "help" : """Additional options to use for running the tool. The string "__reportid__" will
