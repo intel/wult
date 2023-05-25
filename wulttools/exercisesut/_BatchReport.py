@@ -182,12 +182,12 @@ class BatchReport(_Common.CmdlineRunner):
 
         self._run_command(cmd)
 
-    def __init__(self, toolpath, outdir, toolopts=None, dry_run=False, stop_on_failure=False,
-                 proc_count=None):
+    def __init__(self, args):
         """The class constructor."""
 
-        super().__init__(dry_run=dry_run, stop_on_failure=stop_on_failure, proc_count=proc_count)
+        super().__init__(dry_run=args.dry_run, stop_on_failure=args.stop_on_failure,
+                         proc_count=args.jobs)
 
-        self._toolpath = self._lpman.which(toolpath)
-        self._outdir = outdir
-        self._toolopts = toolopts
+        self._toolpath = self._lpman.which(args.toolpath)
+        self._outdir = args.outdir
+        self._toolopts = args.toolopts

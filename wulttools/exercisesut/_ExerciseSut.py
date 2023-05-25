@@ -403,9 +403,7 @@ def _report_command(args):
     if not outdir:
         outdir = Path(f"{args.toolpath.name}-results")
 
-    with _BatchReport.BatchReport(args.toolpath, outdir, args.toolopts, dry_run=args.dry_run,
-                                  stop_on_failure=args.stop_on_failure, proc_count=args.jobs) as \
-                                  batchreport:
+    with _BatchReport.BatchReport(args) as batchreport:
         diffs = []
         if args.diffs:
             for diff_csv_line in args.diffs:
