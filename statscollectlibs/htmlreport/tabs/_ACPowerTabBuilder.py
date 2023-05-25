@@ -73,4 +73,4 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
                 continue
             dfs[res.reportid] = res.load_stat("acpower", dfbldr, "acpower.raw.txt")
 
-        super().__init__({}, outdir, defs=ACPowerDefs.ACPowerDefs(), dfs=dfs)
+        super().__init__(dfs, outdir, defs=ACPowerDefs.ACPowerDefs())

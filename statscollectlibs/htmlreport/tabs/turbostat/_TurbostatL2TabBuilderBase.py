@@ -195,8 +195,9 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             }
         }
 
-        super().__init__({}, outdir, dfs=dfs)
+        super().__init__(dfs, outdir)
+
         self._basedir = basedir
 
-        all_cstates = self._init_cstates(self._reports)
+        all_cstates = self._init_cstates(dfs)
         self._defs = TurbostatDefs.TurbostatDefs(all_cstates)

@@ -186,34 +186,30 @@ class TabBuilderBase:
             raise ErrorNotFound(f"failed to generate '{self.name}' tab: no results contained raw "
                                 f"statistics files containing data for this tab.")
 
-    def __init__(self, stats_paths, outdir, defs=None, dfs=None):
+    def __init__(self, dfs, outdir, defs=None):
         """
         The class constructor. Adding a statistics container tab will create a sub-directory and
         store tabs inside it. These tabs will represent all of the metrics stored in 'stats_file'.
         Arguments are as follows:
-         * stats_paths - dictionary in the format {'reportid': 'raw_statistics_file'}, where
-                         'raw_statistics_file' is a path to the raw statistics file containing
-                         statistics data.
+         * dfs - a dictionary in the format '{ReportId: pandas.DataFrame}' for each result where the
+                 'pandas.DataFrame' contains that statistics data for that result.
          * outdir - the output directory in which to create the sub-directory for the container tab.
          * defs - a '_DefsBase.DefsBase' instance containing definitions for the metrics which
                   should be included in the output tab.
-         * dfs - dictionary in the format {'reportid': 'pandas.DataFrame'}, if provided will use the
-                 'pandas.DataFrames' rather than re-loading the data from raw statistics files.
         """
 
         if self.name is None:
             raise Error(f"failed to initalise '{type(self).__name__}': 'name' class attribute not "
                         f"populated.")
 
+        if not dfs:
+            raise ErrorNotFound(f"failed to initalise '{type(self).__name__}': no results contain "
+                                f"data for this statistic.")
+
+        self._reports = dfs
         self._basedir = outdir
         self._outdir = outdir / DefsBase.get_fsname(self.name)
         self._defs = defs
-
-        if dfs:
-            self._reports = dfs
-        else:
-            self._reports = {}
-            self._read_stats(stats_paths)
 
         try:
             self._outdir.mkdir(parents=True, exist_ok=True)

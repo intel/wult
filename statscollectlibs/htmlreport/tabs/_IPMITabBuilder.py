@@ -164,4 +164,4 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
             _LOG.warning("generating '%s' tab with a combination of data collected both inband "
                          "and out-of-band.", self.name)
 
-        super().__init__({}, outdir, defs=defs, dfs=dfs)
+        super().__init__(dfs, outdir, defs=defs)
