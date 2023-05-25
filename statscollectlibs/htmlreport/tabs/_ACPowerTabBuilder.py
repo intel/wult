@@ -11,10 +11,8 @@ This module provides the capability of populating the AC Power statistics tab.
 """
 
 import logging
-import numpy
-import pandas
-from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.defs import ACPowerDefs
+from statscollectlibs.dfbuilders.ACPowerDFBuilder import ACPowerDFBuilder
 from statscollectlibs.htmlreport.tabs import _TabBuilderBase
 from statscollectlibs.htmlreport.tabs import _DTabBuilder
 
@@ -38,36 +36,9 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
         file at 'path'.
         """
 
-        sdf = pandas.DataFrame()
-
-        try:
-            # 'skipfooter' parameter only available with Python pandas engine.
-            sdf = pandas.read_csv(path, skipfooter=1, engine="python", dtype='float64')
-        except (pandas.errors.ParserError, ValueError) as err:
-            # Failed 'dtype' conversion can cause 'ValueError', otherwise most parsing exceptions
-            # are of type 'pandas.errors.ParserError'.
-            msg = Error(err).indent(2)
-            raise Error(f"unable to parse CSV '{path}':\n{msg}.") from None
-
-        # Confirm that the time metric is in the CSV headers.
-        if self._time_metric not in sdf:
-            raise Error(f"column '{self._time_metric}' not found in statistics file '{path}'.")
-
-        # Convert Time column from time since epoch to time since the first data point was recorded.
-        sdf[self._time_metric] = sdf[self._time_metric] - sdf[self._time_metric][0]
-
-        # Remove any 'infinite' values which can appear in raw ACPower files.
-        sdf.replace([numpy.inf, -numpy.inf], numpy.nan, inplace=True)
-        if sdf.isnull().values.any():
-            _LOG.warning("dropping one or more 'nan' values from '%s' statistics file '%s'.",
-                         self.name, path)
-            sdf.dropna(inplace=True)
-
-            # Some 'pandas' operations break on 'pandas.DataFrame' instances without consistent
-            # indexing. Reset the index to avoid any of these problems.
-            sdf.reset_index(inplace=True)
-
-        return sdf
+        dfbldr = ACPowerDFBuilder()
+        dfbldr.load_df(path)
+        return dfbldr.df
 
     def get_tab(self):
         """
