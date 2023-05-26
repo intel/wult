@@ -355,6 +355,11 @@ class StatsCollect(_SpecStatsCollect.SpecStatsCollect):
                 _LOG.log(self._infolvl, "Resolved the '%s' statistic to '%s'",
                          astname, ", ".join(discovered_stnames))
                 super().set_enabled_stats(discovered_stnames)
+
+                # Make sure only the resolved 'stname' is enabled out of all of the
+                # 'astinfo["stnames"]'.
+                unused = {stat for stat in astinfo["stnames"] if stat not in discovered_stnames}
+                super().set_disabled_stats(unused)
             else:
                 stnames = ", ".join(astinfo["stnames"])
                 raise Error(f"cannot configure aggregate statistic '{astname}' - none of the "
