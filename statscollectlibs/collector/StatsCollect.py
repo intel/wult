@@ -199,7 +199,9 @@ class StatsCollect(_SpecStatsCollect.SpecStatsCollect):
 
         enabled_stnames = super().get_enabled_stats()
         for astname, astinfo in self._aggr_stinfo.items():
-            if enabled_stnames & astinfo["stnames"]:
+            # If every 'stname' for an abstract statistic is enabled, include the abstract statistic
+            # as enabled.
+            if all(stname in enabled_stnames for stname in astinfo["stnames"]):
                 enabled_stnames.add(astname)
         return enabled_stnames
 
