@@ -121,8 +121,6 @@ struct wult_info {
 	unsigned int cpunum;
 	/* Whether the measurement is enabled. */
 	bool enabled;
-	/* Whether the early interrupts feature is enabled. */
-	bool early_intr;
 	/*
 	 * Launch distance range in nanoseconds. We pick a random number from
 	 * this range when selecting time for the delayed event.
@@ -130,8 +128,8 @@ struct wult_info {
 	u64 ldist_from, ldist_to;
 	/*
 	 * Serialises wult measurements enabling and disabling, protects the
-	 * following fields of this structure: 'enabled', 'early_intr',
-	 * 'ldist_from', 'ldist_to'.
+	 * following fields of this structure: 'enabled', 'ldist_from',
+	 * 'ldist_to'.
 	 */
 	struct mutex enable_mutex;
 	/* Wult tracer information. */

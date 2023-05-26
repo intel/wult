@@ -29,9 +29,6 @@
 /* Name of debugfs file for starting and stopping the measurements. */
 #define ENABLED_FNAME "enabled"
 
-/* Name of debugfs file for enabling early interrupts. */
-#define EARLY_INTR_FNAME "early_intr"
-
 static int set_enabled(bool enabled)
 {
 	int err = 0;
@@ -84,8 +81,6 @@ static ssize_t dfs_write_bool_file(struct file *file,
 
 	if (!strcmp(dent->d_name.name, ENABLED_FNAME))
 		err = set_enabled(val);
-	else if (!strcmp(dent->d_name.name, EARLY_INTR_FNAME))
-		err = set_bool(wi, &wi->early_intr, val);
 	else
 		err = -EINVAL;
 
@@ -111,8 +106,6 @@ static ssize_t dfs_read_bool_file(struct file *file, char __user *user_buf,
 
 	if (!strcmp(dent->d_name.name, ENABLED_FNAME)) {
 		val = wi->enabled;
-	} else if (!strcmp(dent->d_name.name, EARLY_INTR_FNAME)) {
-		val = wi->early_intr;
 	} else {
 		err = -EINVAL;
 		goto error;
@@ -288,8 +281,6 @@ int wult_uapi_device_register(struct wult_info *wi)
 		return PTR_ERR(wi->dfsroot);
 
 	debugfs_create_file(ENABLED_FNAME, 0644, wi->dfsroot, wi,
-			    &dfs_ops_bool);
-	debugfs_create_file(EARLY_INTR_FNAME, 0644, wi->dfsroot, wi,
 			    &dfs_ops_bool);
 	debugfs_create_file(LDIST_MIN_FNAME, 0444, wi->dfsroot, wi,
 			    &dfs_ops_ro_u64);

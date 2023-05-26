@@ -161,9 +161,8 @@ def start_command(args):
 
         _check_settings(pman, dev, csinfo, args.cpunum, args.devid)
 
-        runner = WultRunner.WultRunner(pman, dev, res, args.ldist, early_intr=args.early_intr,
-                                       tsc_cal_time=args.tsc_cal_time, rcsobj=rcsobj, stcoll=stcoll,
-                                       unload=not args.no_unload)
+        runner = WultRunner.WultRunner(pman, dev, res, args.ldist, tsc_cal_time=args.tsc_cal_time,
+                                       rcsobj=rcsobj, stcoll=stcoll, unload=not args.no_unload)
         stack.enter_context(runner)
 
         runner.prepare()

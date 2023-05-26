@@ -111,12 +111,6 @@ class _CStates(ClassHelpers.SimpleCloseContext):
 
         csname = rawdp["ReqCState"] = self._get_req_cstate_name(rawdp)
 
-        if self._early_intr:
-            # When the "early interrupts" feature is used, wult enables interrupts before the
-            # C-state is requested.
-            rawdp["IntrOff"] = False
-            return rawdp
-
         if csname == "POLL":
             # This is an optimization. The 'POLL' state is always requested with interrupts enabled.
             rawdp["IntrOff"] = False
@@ -183,19 +177,17 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         for csname in delete_csnames:
             del self._intr_order[csname]
 
-    def __init__(self, cpunum, pman, rcsobj=None, early_intr=None):
+    def __init__(self, cpunum, pman, rcsobj=None):
         """
         The class constructor. The arguments are as follows.
           * cpunum - the measured CPU number.
           * pman - the process manager object that defines the host to run the measurements on.
           * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
-          * early_intr - enable interrupts before entering the C-state.
         """
 
         self._cpunum = cpunum
         self._pman = pman
         self._rcsobj = rcsobj
-        self._early_intr = early_intr
 
         self._close_rcsobj = rcsobj is None
 
@@ -523,14 +515,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             # 2. The interrupt handler is executed shortly after 'after_idle()' finishes and the
             #    "cpuidle" Linux kernel subsystem re-enables CPU interrupts.
 
-            if self._early_intr:
-                msg = "hit a datapoint with interrupts disabled even though the early " \
-                      "interrupts feature was enabled. The datapoint is:\n%s\n" \
-                      "Dropping this and all the other datapoints like this."
-                _LOG.debug(msg, Human.dict2str(dp))
-                _LOG.warn_once(msg, Human.dict2str(dp))
-                return None
-
             overhead = dp["AITS2"] - dp["AITS1"]
 
             if overhead >= dp["IntrLatency"]:
@@ -776,13 +760,12 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             for field in raw_fields:
                 self._fields[field] = None
 
-    def __init__(self, cpunum, pman, drvname, early_intr=None, tsc_cal_time=10, rcsobj=None):
+    def __init__(self, cpunum, pman, drvname, tsc_cal_time=10, rcsobj=None):
         """
         The class constructor. The arguments are as follows.
           * cpunum - the measured CPU number.
           * pman - the process manager object that defines the host to run the measurements on.
           * drvname - name of the driver providing the datapoints.
-          * early_intr - enable interrupts before entering the C-state.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
           * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
         """
@@ -790,7 +773,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         self._cpunum = cpunum
         self._pman = pman
         self._drvname = drvname
-        self._early_intr = early_intr
 
         # A '_CStates' class object.
         self._csobj = None
@@ -805,7 +787,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         self._cs_fields = None
         self._us_fields_set = None
 
-        self._csobj = _CStates(self._cpunum, self._pman, rcsobj=rcsobj, early_intr=early_intr)
+        self._csobj = _CStates(self._cpunum, self._pman, rcsobj=rcsobj)
         self._tscrate = _TSCRate(tsc_cal_time)
 
     def close(self):

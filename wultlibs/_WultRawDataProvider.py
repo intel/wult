@@ -152,10 +152,6 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         self._adjust_and_validate_ldist()
         self._set_launch_distance()
 
-        if self._early_intr:
-            with self._pman.open(self._early_intr_path, "w") as fobj:
-                fobj.write("1")
-
         try:
             self._sysctl = Systemctl.Systemctl(pman=self._pman)
             msg_fmt = ""
@@ -185,14 +181,12 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                 for service in ntp_services:
                     _LOG.info("Stopped the '%s' NTP service", service)
 
-    def __init__(self, dev, pman, cpunum, ldist, timeout=None, early_intr=None, unload=True):
+    def __init__(self, dev, pman, cpunum, ldist, timeout=None, unload=True):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
 
         drvinfo = { "wult" : { "params" : f"cpunum={cpunum}" },
                      dev.drvname : { "params" : None }}
         super().__init__(dev, pman, ldist, drvinfo=drvinfo, timeout=timeout, unload=unload)
-
-        self._early_intr = early_intr
 
         self._ftrace = None
         self._sysctl = None
@@ -206,7 +200,6 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         self._basedir = self.debugfs_mntpoint / "wult"
         self._enabled_path = self._basedir / "enabled"
-        self._early_intr_path = self._basedir / "early_intr"
 
     def close(self):
         """Uninitialize everything."""
@@ -317,8 +310,7 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
 
         self._wult_lines = None
 
-def WultRawDataProvider(dev, pman, cpunum, ldist, helper_path=None, timeout=None,
-                        early_intr=None, unload=True):
+def WultRawDataProvider(dev, pman, cpunum, ldist, helper_path=None, timeout=None, unload=True):
     """
     Create and return a raw data provider class suitable for a delayed event device 'dev'. The
     arguments are as follows.
@@ -329,13 +321,11 @@ def WultRawDataProvider(dev, pman, cpunum, ldist, helper_path=None, timeout=None
       * helper_path - path to the 'wult-hrt-helper' program.
       * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
                   seconds.
-      * early_intr - enable interrupts before entering the C-state.
       * unload - whether or not to unload the kernel driver after finishing measurement.
     """
 
     if dev.drvname:
-        return _WultDrvRawDataProvider(dev, pman, cpunum, ldist, timeout=timeout,
-                                       early_intr=early_intr, unload=unload)
+        return _WultDrvRawDataProvider(dev, pman, cpunum, ldist, timeout=timeout, unload=unload)
     if not helper_path:
         raise Error("BUG: the 'wult-hrt-helper' program path was not specified")
 

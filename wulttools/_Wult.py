@@ -168,17 +168,6 @@ def _build_arguments_parser():
                modules."""
     subpars.add_argument("--no-unload", action="store_true", help=text)
 
-    text = """This option is for research purposes and you most probably do not need it. Linux's
-              'cpuidle' subsystem enters most C-states with interrupts disabled. So when the CPU
-              exits the C-state because of an interrupt, it will not jump to the interrupt
-              handler, but instead, continue running some 'cpuidle' housekeeping code. After this,
-              the 'cpuidle' subsystem enables interrupts, and the CPU jumps to the interrupt
-              handler. Therefore, there is a tiny delay the 'cpuidle' subsystem adds on top of the
-              hardware C-state latency. For fast C-states like C1, this tiny delay may even be
-              measurable on some platforms. This option allows to measure that delay. It makes wult
-              enable interrupts before linux enters the C-state."""
-    subpars.add_argument("--early-intr", action="store_true", help=text)
-
     subpars.add_argument("--report", action="store_true", help=_Common.START_REPORT_DESCR)
     subpars.add_argument("--force", action="store_true", help=_Common.START_FORCE_DESCR)
 

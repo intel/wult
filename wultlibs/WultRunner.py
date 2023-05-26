@@ -187,7 +187,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._res.info["devid"] = self._dev.info["devid"]
         self._res.info["devdescr"] = self._dev.info["descr"]
         self._res.info["resolution"] = self._dev.info["resolution"]
-        self._res.info["early_intr"] = self._early_intr
 
     def _validate_sut(self, cpunum):
         """Check the SUT to insure we have everything to measure it."""
@@ -215,15 +214,14 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             raise Error(f"unsupported idle driver '{drvname}'{self._pman.hostmsg},\n"
                         f"only the following drivers are supported: {supported}")
 
-    def __init__(self, pman, dev, res, ldist, early_intr=None, tsc_cal_time=10, rcsobj=None,
-                 stcoll=None, unload=True):
+    def __init__(self, pman, dev, res, ldist, tsc_cal_time=10, rcsobj=None, stcoll=None,
+                 unload=True):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
           * dev - the delayed event device object created by 'Devices.GetDevice()'.
           * res - the 'WORawResult' object to store the results at.
           * ldist - a pair of numbers specifying the launch distance range in nanoseconds.
-          * early_intr - enable interrupts before entering the C-state.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
           * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
           * stcoll - the 'StatsCollect' object to use for collecting statistics. No statistics
@@ -235,7 +233,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._dev = dev
         self._res = res
         self._ldist = ldist
-        self._early_intr = early_intr
         self._rcsobj = rcsobj
         self._stcoll = stcoll
 
@@ -250,9 +247,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
 
         self._validate_sut(res.cpunum)
 
-        if self._dev.drvname == "wult_tdt" and self._early_intr:
-            raise Error("the 'tdt' driver does not support the early interrupt feature")
-
         self._progress = _ProgressLine.WultProgressLine(period=1)
 
         if dev.helpername:
@@ -264,11 +258,9 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._prov = _WultRawDataProvider.WultRawDataProvider(dev, pman, res.cpunum, self._ldist,
                                                               helper_path=helper_path,
                                                               timeout=self._timeout,
-                                                              early_intr=self._early_intr,
                                                               unload=unload)
 
         self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, pman, self._dev.drvname,
-                                                      early_intr=self._early_intr,
                                                       tsc_cal_time=tsc_cal_time, rcsobj=rcsobj)
 
     def close(self):

@@ -1,7 +1,6 @@
 cpunum: 0
 devdescr: TSC deadline timer
 devid: tdt
-early_intr: false
 format_version: '1.2'
 reportid: testdata
 resolution: 1
