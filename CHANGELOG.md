@@ -14,6 +14,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    to users when files have been trimmed.
  - Add 'duration' to 'stats-collect' HTML report intro tables.
 ### Removed
+ - Remove 'wult start --early-intr' option.
 ### Changed
  - Minor design improvements to HTML report tabs with alerts and file-previews.
 
