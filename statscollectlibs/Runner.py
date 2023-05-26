@@ -13,7 +13,8 @@ collection of statistics.
 """
 
 import logging
-from pepclibs.helperlibs import ClassHelpers
+import time
+from pepclibs.helperlibs import ClassHelpers, Human
 from statscollectlibs.helperlibs import ProcHelpers
 
 _LOG = logging.getLogger()
@@ -61,7 +62,9 @@ class Runner(ClassHelpers.SimpleCloseContext):
         if self._stcoll:
             self._stcoll.start()
 
+        start_time = time.time()
         stdout, stderr = run_command(cmd, self._pman, tlimit)
+        duration = time.time() - start_time
 
         if self._stcoll:
             self._stcoll.stop()
@@ -75,6 +78,7 @@ class Runner(ClassHelpers.SimpleCloseContext):
                 f.write(txt)
             self.res.info[ftype] = fpath.relative_to(self.res.dirpath)
 
+        self.res.info["duration"] = Human.duration(duration)
         self.res.write_info()
 
     def __init__(self, res, pman, stcoll=None):
