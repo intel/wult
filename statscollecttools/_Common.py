@@ -132,6 +132,11 @@ def _generate_intro_table(rsts):
     for res in rsts:
         date_row.add_cell(res.reportid, res.info.get("date"))
 
+    # Add duration.
+    date_row = intro_tbl.create_row("Duration")
+    for res in rsts:
+        date_row.add_cell(res.reportid, res.info.get("duration"))
+
     return intro_tbl
 
 def generate_stc_report(rsts, outdir):
