@@ -26,21 +26,6 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
        * '_turbostat_to_df()'
     """
 
-    @staticmethod
-    def _get_common_cstates(lsts):
-        """
-        Helper function for '_get_tab_hierarchy()'. Expects 'lsts' to be a list of lists. Finds list
-        elements which are common to all lists in 'lsts'. Returns elements in the order they appear
-        in the first list.
-        """
-
-        # Create a set of elements common to all lists in 'lsts'.
-        common_elements = set.intersection(*[set(csdef.cstate for csdef in lst) for lst in lsts])
-
-        # Maintain the order of elements as they appear in the first list.
-        return [el for el in lsts[0] if el.cstate in common_elements]
-
-
     def _get_tab_hierarchy(self, common_metrics):
         """
         Get the tab hierarchy which is populated with 'common_metrics' and using the C-states in
@@ -67,15 +52,11 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         misc_metrics = ["IRQ", "SMI", "IPC"]
         tab_hierarchy["Misc"] = {"dtabs": [m for m in misc_metrics if m in common_metrics]}
 
-        # Find C-states which are common to all test results.
-        hw_core_cs = self._get_common_cstates(self._cstates["hardware"]["core"])
-        req_cs = self._get_common_cstates(self._cstates["requested"])
-
-        for cs in req_cs:
+        for cs in self._cstates["requested"]:
             tab_hierarchy["C-states"]["Requested"]["dtabs"].append(cs.metric)
 
         tab_hierarchy["C-states"]["Hardware"]["dtabs"].append("Busy%")
-        for cs in hw_core_cs:
+        for cs in self._cstates["hardware"]["core"]:
             tab_hierarchy["C-states"]["Hardware"]["dtabs"].append(cs.metric)
 
         return tab_hierarchy
@@ -152,10 +133,10 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
             elif TurbostatDefs.ModuleCSDef.check_metric(metric):
                 mod_cstates.append(TurbostatDefs.ModuleCSDef(metric))
 
-        self._cstates["hardware"]["core"].append(core_cstates)
-        self._cstates["hardware"]["package"].append(pkg_cstates)
-        self._cstates["hardware"]["module"].append(mod_cstates)
-        self._cstates["requested"].append(req_cstates)
+        self._cstates["hardware"]["core"] = core_cstates
+        self._cstates["hardware"]["package"] = pkg_cstates
+        self._cstates["hardware"]["module"] = mod_cstates
+        self._cstates["requested"] = req_cstates
 
         all_cstates = req_cstates + core_cstates + pkg_cstates + mod_cstates
         return [csdef.cstate for csdef in all_cstates]
