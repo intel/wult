@@ -9,6 +9,9 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    intro tables when two results have the same report ID.
  - Fix 'Measured CPU' tab generation crashing when the measured CPU of a result
    is not 0.
+ - Fix '--stats=ipmi' not resolving to 'ipmi-inband' and 'ipmi-oob' properly.
+ - Fix '--stats=ipmi-inband' or '--stats=ipmi-oob' sometimes resulting in the
+   other 'ipmi' collection method being used.
 ### Added
  - Add alerts to 'Captured Output' tabs and modify output files to make it clear
    to users when files have been trimmed.
