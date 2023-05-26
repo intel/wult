@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date: 2023-05-17
+:Date: 2023-05-26
 
 .. contents::
    :depth: 3
@@ -56,17 +56,19 @@ COMMAND *'exercise-sut* start'
 
 usage: exercise-sut start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K
 PRIVKEY] [-T TIMEOUT] [--datapoints DATAPOINTS] [--reportid-prefix
-REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--stats STATS]
-[--cpunums CPUNUMS] [--cstates CSTATES] [--pcstates PCSTATES]
-[--only-one-cstate] [--cstates-always-enable CSTATES_ALWAYS_ENABLE]
-[--freqs FREQS] [--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR]
-[--aspm ASPM] [--c1-demotion C1_DEMOTION] [--c1-undemotion
-C1_UNDEMOTION] [--c1e-autopromote C1E_AUTOPROMOTE] [--cstate-prewake
-CSTATE_PREWAKE] [--state-reset] [--deploy] [--devids DEVIDS] [--force]
-[--stop-on-failure] [--only-measured-cpu] [--toolpath TOOLPATH]
-[--toolopts TOOLOPTS] [--outdir OUTDIR] [--dry-run] [--list-monikers]
+REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpunums CPUNUMS]
+[--cstates CSTATES] [--pcstates PCSTATES] [--only-one-cstate]
+[--cstates-always-enable CSTATES_ALWAYS_ENABLE] [--freqs FREQS]
+[--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR] [--aspm ASPM]
+[--c1-demotion C1_DEMOTION] [--c1-undemotion C1_UNDEMOTION]
+[--c1e-autopromote C1E_AUTOPROMOTE] [--cstate-prewake CSTATE_PREWAKE]
+[--epp EPP] [--epp-hw EPP_HW] [--epb EPB] [--epb-hw EPB_HW]
+[--state-reset] [--deploy] [--devids DEVIDS] [--stop-on-failure]
+[--only-measured-cpu] [--toolpath TOOLPATH] [--toolopts TOOLOPTS]
+[--outdir OUTDIR] [--dry-run] [--list-monikers]
 
-Run a test tool or benchmark to collect testdata.
+Run a test tool or benchmark to collect testdata. Unknown options are
+passed as-is to the tool.
 
 OPTIONS *'exercise-sut* start'
 ==============================
@@ -104,10 +106,6 @@ OPTIONS *'exercise-sut* start'
 
 **--reportid-suffix** *REPORTID_SUFFIX*
    String to append to the report ID (nothing, by default).
-
-**--stats** *STATS*
-   Applicaple only for the 'wult', 'ndl' and 'benchmark' tools.
-   Comma-separated list of statistics to collect.
 
 **--cpunums** *CPUNUMS*
    Applicable only for the 'wult' and 'ndl' tools. Comma-separated list
@@ -162,6 +160,26 @@ OPTIONS *'exercise-sut* start'
    Comma-separated list of C-state prewake configurations to measure
    with. Default is "off". Supported values are "on" and "off".
 
+**--epp** *EPP*
+   Comma-separated list of EPP configurations to measure with. Default
+   is "balance_performance". See 'pepc pstates config --epp' for more
+   information .
+
+**--epp-hw** *EPP_HW*
+   Comma-separated list of EPP configurations to measure with. Default
+   is "don't care". See 'pepc pstates config --epp-hw' for more
+   information.
+
+**--epb** *EPB*
+   Comma-separated list of EPB configurations to measure with. Default
+   is "balance-performance". See 'pepc pstates config --epb' for more
+   information .
+
+**--epb-hw** *EPB_HW*
+   Comma-separated list of EPB configurations to measure with. Default
+   is "don't care". See 'pepc pstates config --epb-hw' for more
+   information.
+
 **--state-reset**
    Set SUT settings to default values before starting measurements. The
    default values are: online all CPUs, enable all C-states, disable C1
@@ -177,13 +195,6 @@ OPTIONS *'exercise-sut* start'
 **--devids** *DEVIDS*
    Applicable only for 'wult' and 'ndl' tools. Comma-separated list of
    device IDs to run the tools with.
-
-**--force**
-   Applicaple only for the 'wult' and 'ndl' tools. By default a network
-   card is not accepted as a measurement device if it is used by a Linux
-   network interface and the interface is in an active state, such as
-   "up". Use '--force' to disable this safety mechanism. Use it with
-   caution.
 
 **--stop-on-failure**
    Stop if any of the steps fail, instead of continuing (default).
@@ -220,7 +231,8 @@ INCLUDE] [--exclude EXCLUDE] [--jobs JOBS] [--toolpath TOOLPATH]
 [--toolopts TOOLOPTS] [--outdir OUTDIR] [--stop-on-failure] [--dry-run]
 [--list-monikers] [respaths ...]
 
-Generate reports from collected data.
+Generate reports from collected data. Unknown options are passed as-is
+to the report tool.
 
 **respaths**
    One or multiple paths to be searched for test results.
@@ -242,9 +254,9 @@ OPTIONS *'exercise-sut* report'
    constructed from multiple monikers separated by dashes, e.g.
    'hrt-c6-uf_max-autoc1e_off'. This option can be used to create diff
    reports by including multiple results in one report. Comma-separated
-   list of monikers to select results to include in the diff report. If
-   this option is not provided, reports with single result are
-   generated.
+   list of monikers to select results to include in the diff report.
+   This option can be used multiple times. If this option is not
+   provided, reports with single result are generated.
 
 **--include** *INCLUDE*
    Comma-separated list of monikers that must be found from the result

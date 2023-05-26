@@ -1,3 +1,20 @@
+wult (1.11.19) unstable; urgency=low
+
+  * Fix stats-collect diffs only showing one result in 'Captured Output' tabs and
+    intro tables when two results have the same report ID.
+  * Fix 'Measured CPU' tab generation crashing when the measured CPU of a result
+    is not 0.
+  * Fix '--stats=ipmi' not resolving to 'ipmi-inband' and 'ipmi-oob' properly.
+  * Fix '--stats=ipmi-inband' or '--stats=ipmi-oob' sometimes resulting in the
+    other 'ipmi' collection method being used.
+  * Add alerts to 'Captured Output' tabs and modify output files to make it clear
+    to users when files have been trimmed.
+  * Add 'duration' to 'stats-collect' HTML report intro tables.
+  * Remove 'wult start --early-intr' option.
+  * Minor design improvements to HTML report tabs with alerts and file-previews.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 26 May 2023 00:00:00 +0200
+
 wult (1.11.18) unstable; urgency=low
 
   * exercise-sut: change default behavior: when '--cstates' is not specify,

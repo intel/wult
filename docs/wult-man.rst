@@ -2,7 +2,7 @@
 WULT
 ====
 
-:Date: 2023-05-17
+:Date: 2023-05-26
 
 .. contents::
    :depth: 3
@@ -187,8 +187,7 @@ PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--exclude
 EXCLUDE] [--include INCLUDE] [--keep-filtered] [-o OUTDIR] [--reportid
 REPORTID] [--stats STATS] [--stats-intervals STATS_INTERVALS]
 [--list-stats] [-l LDIST] [--cpunum CPUNUM] [--tsc-cal-time
-TSC_CAL_TIME] [--keep-raw-data] [--no-unload] [--early-intr] [--report]
-[--force] devid
+TSC_CAL_TIME] [--keep-raw-data] [--no-unload] [--report] [--force] devid
 
 Start measuring and recording C-state latency.
 
@@ -359,19 +358,6 @@ OPTIONS *'wult* start'
    Please, do not use for other reasons. If wult loads kernel modules,
    they get unloaded after the measurements are done. But with this
    option wult will not unload the modules.
-
-**--early-intr**
-   This option is for research purposes and you most probably do not
-   need it. Linux's 'cpuidle' subsystem enters most C-states with
-   interrupts disabled. So when the CPU exits the C-state because of an
-   interrupt, it will not jump to the interrupt handler, but instead,
-   continue running some 'cpuidle' housekeeping code. After this, the
-   'cpuidle' subsystem enables interrupts, and the CPU jumps to the
-   interrupt handler. Therefore, there is a tiny delay the 'cpuidle'
-   subsystem adds on top of the hardware C-state latency. For fast
-   C-states like C1, this tiny delay may even be measurable on some
-   platforms. This option allows to measure that delay. It makes wult
-   enable interrupts before linux enters the C-state.
 
 **--report**
    Generate an HTML report for collected results (same as calling

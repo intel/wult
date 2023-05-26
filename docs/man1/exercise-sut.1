@@ -1,4 +1,4 @@
-.TH EXERCISE\-SUT "1" "2023\-05\-17" "wult" "Generated Python Manual"
+.TH EXERCISE\-SUT "1" "2023\-05\-26" "wult" "Generated Python Manual"
 .SH NAME
 exercise\-sut
 .SH SYNOPSIS
@@ -38,12 +38,12 @@ Start collecting testdata.
 Generate reports.
 
 .SH COMMAND \fI\,'exercise\-sut start'\/\fR
-usage: exercise\-sut start [\-h] [\-q] [\-d] [\-H HOSTNAME] [\-U USERNAME] [\-K PRIVKEY] [\-T TIMEOUT] [\-\-datapoints DATAPOINTS] [\-\-reportid\-prefix REPORTID_PREFIX] [\-\-reportid\-suffix REPORTID_SUFFIX] [\-\-stats STATS] [\-\-cpunums CPUNUMS]
-                          [\-\-cstates CSTATES] [\-\-pcstates PCSTATES] [\-\-only\-one\-cstate] [\-\-cstates\-always\-enable CSTATES_ALWAYS_ENABLE] [\-\-freqs FREQS] [\-\-uncore\-freqs UNCORE_FREQS] [\-\-governor GOVERNOR] [\-\-aspm ASPM]
-                          [\-\-c1\-demotion C1_DEMOTION] [\-\-c1\-undemotion C1_UNDEMOTION] [\-\-c1e\-autopromote C1E_AUTOPROMOTE] [\-\-cstate\-prewake CSTATE_PREWAKE] [\-\-state\-reset] [\-\-deploy] [\-\-devids DEVIDS] [\-\-force] [\-\-stop\-on\-failure]
-                          [\-\-only\-measured\-cpu] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-dry\-run] [\-\-list\-monikers]
+usage: exercise\-sut start [\-h] [\-q] [\-d] [\-H HOSTNAME] [\-U USERNAME] [\-K PRIVKEY] [\-T TIMEOUT] [\-\-datapoints DATAPOINTS] [\-\-reportid\-prefix REPORTID_PREFIX] [\-\-reportid\-suffix REPORTID_SUFFIX] [\-\-cpunums CPUNUMS] [\-\-cstates CSTATES]
+                          [\-\-pcstates PCSTATES] [\-\-only\-one\-cstate] [\-\-cstates\-always\-enable CSTATES_ALWAYS_ENABLE] [\-\-freqs FREQS] [\-\-uncore\-freqs UNCORE_FREQS] [\-\-governor GOVERNOR] [\-\-aspm ASPM] [\-\-c1\-demotion C1_DEMOTION]
+                          [\-\-c1\-undemotion C1_UNDEMOTION] [\-\-c1e\-autopromote C1E_AUTOPROMOTE] [\-\-cstate\-prewake CSTATE_PREWAKE] [\-\-epp EPP] [\-\-epp\-hw EPP_HW] [\-\-epb EPB] [\-\-epb\-hw EPB_HW] [\-\-state\-reset] [\-\-deploy] [\-\-devids DEVIDS]
+                          [\-\-stop\-on\-failure] [\-\-only\-measured\-cpu] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-dry\-run] [\-\-list\-monikers]
 
-Run a test tool or benchmark to collect testdata.
+Run a test tool or benchmark to collect testdata. Unknown options are passed as\-is to the tool.
 
 .SH OPTIONS \fI\,'exercise\-sut start'\/\fR
 .TP
@@ -85,10 +85,6 @@ String to prepend to the report ID (nothing, by default).
 .TP
 \fB\-\-reportid\-suffix\fR \fI\,REPORTID_SUFFIX\/\fR
 String to append to the report ID (nothing, by default).
-
-.TP
-\fB\-\-stats\fR \fI\,STATS\/\fR
-Applicaple only for the 'wult', 'ndl' and 'benchmark' tools. Comma\-separated list of statistics to collect.
 
 .TP
 \fB\-\-cpunums\fR \fI\,CPUNUMS\/\fR
@@ -143,6 +139,22 @@ Comma\-separated list of C1E autopromote configurations to measure with. Default
 Comma\-separated list of C\-state prewake configurations to measure with. Default is "off". Supported values are "on" and "off".
 
 .TP
+\fB\-\-epp\fR \fI\,EPP\/\fR
+Comma\-separated list of EPP configurations to measure with. Default is "balance_performance". See 'pepc pstates config \-\-epp' for more information .
+
+.TP
+\fB\-\-epp\-hw\fR \fI\,EPP_HW\/\fR
+Comma\-separated list of EPP configurations to measure with. Default is "don't care". See 'pepc pstates config \-\-epp\-hw' for more information.
+
+.TP
+\fB\-\-epb\fR \fI\,EPB\/\fR
+Comma\-separated list of EPB configurations to measure with. Default is "balance\-performance". See 'pepc pstates config \-\-epb' for more information .
+
+.TP
+\fB\-\-epb\-hw\fR \fI\,EPB_HW\/\fR
+Comma\-separated list of EPB configurations to measure with. Default is "don't care". See 'pepc pstates config \-\-epb\-hw' for more information.
+
+.TP
 \fB\-\-state\-reset\fR
 Set SUT settings to default values before starting measurements. The default values are: online all CPUs, enable all C\-states, disable C1 demotion, disable C1 undemotion, disable C1E autopromotion, disable C\-state prewake, unlock CPU
 frequency, unlock uncore frequency, set EPP policy to 'balance_performance', set EPB policy to 'balance\-performance'.
@@ -154,11 +166,6 @@ Applicable only for 'wult' and 'ndl' tools. Run the 'deploy' command before star
 .TP
 \fB\-\-devids\fR \fI\,DEVIDS\/\fR
 Applicable only for 'wult' and 'ndl' tools. Comma\-separated list of device IDs to run the tools with.
-
-.TP
-\fB\-\-force\fR
-Applicaple only for the 'wult' and 'ndl' tools. By default a network card is not accepted as a measurement device if it is used by a Linux network interface and the interface is in an active state, such as "up". Use '\-\-force' to disable
-this safety mechanism. Use it with caution.
 
 .TP
 \fB\-\-stop\-on\-failure\fR
@@ -192,7 +199,7 @@ A moniker is an abbreviation for a setting. The 'exercise\-sut' uses monikers to
 usage: exercise\-sut report [\-h] [\-q] [\-d] [\-\-diffs DIFFS] [\-\-include INCLUDE] [\-\-exclude EXCLUDE] [\-\-jobs JOBS] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-stop\-on\-failure] [\-\-dry\-run] [\-\-list\-monikers]
                            [respaths ...]
 
-Generate reports from collected data.
+Generate reports from collected data. Unknown options are passed as\-is to the report tool.
 
 .TP
 \fBrespaths\fR
@@ -214,7 +221,7 @@ Print debugging information.
 .TP
 \fB\-\-diffs\fR \fI\,DIFFS\/\fR
 Collected data is stored in directories, and each directory name is constructed from multiple monikers separated by dashes, e.g. 'hrt\-c6\-uf_max\-autoc1e_off'. This option can be used to create diff reports by including multiple results
-in one report. Comma\-separated list of monikers to select results to include in the diff report. If this option is not provided, reports with single result are generated.
+in one report. Comma\-separated list of monikers to select results to include in the diff report. This option can be used multiple times. If this option is not provided, reports with single result are generated.
 
 .TP
 \fB\-\-include\fR \fI\,INCLUDE\/\fR
