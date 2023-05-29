@@ -17,8 +17,8 @@ class RORawResult(_RawResultBase.RawResultBase):
 
     def _get_stats_path(self, stname, default_name):
         """
-        A helper function which can return a dictionary of paths to raw statistics files for
-        statistic 'stname' for the results in 'rsts'. Arguments are as follows:
+        A helper function which returns a path to the raw statistics file for statistic 'stname'.
+        Arguments are as follows:
          * stname - the name of the statistic for which statistics paths should be found.
          * default_name - the path that will be used if one is not specified by the result.
         """
@@ -32,7 +32,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         if path.exists():
             return path
 
-        raise Error("")
+        raise ErrorNotFound(f"raw '{stname}' statistics file not found at path: {path}")
 
     def load_stat(self, stname, dfbldr, default_name):
         """
