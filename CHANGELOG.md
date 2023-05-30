@@ -5,15 +5,18 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.11.20] - 2023-05-30
+### Fixed
  - Fix a regression introduced in v1.11.19, which caused
    'stats-collect start --report' to crash.
  - Fix 'stats-collect start --stats=none' crashing. Regression introduced in
    v1.11.11.
  - Fix 'wult' report generation crashing if no statistics were collected.
    Regression introduced in v1.11.19.
-### Added
-### Removed
-### Changed
 
 ## [1.11.19] - 2023-05-26
 ### Fixed
