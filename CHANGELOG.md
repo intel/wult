@@ -9,6 +9,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    'stats-collect start --report' to crash.
  - Fix 'stats-collect start --stats=none' crashing. Regression introduced in
    v1.11.11.
+ - Fix 'wult' report generation crashing if no statistics were collected.
+   Regression introduced in v1.11.19.
 ### Added
 ### Removed
 ### Changed
