@@ -191,7 +191,7 @@ class ReportBase:
                     _LOG.warning("unable to copy log files to the generated report: %s", err)
                     logs_dst = resdir / logs_dir
 
-            if res.stats_path.is_dir():
+            if res.stats_res:
                 stats_paths[res.reportid] = stats_dst
 
             if res.logs_path.is_dir():
