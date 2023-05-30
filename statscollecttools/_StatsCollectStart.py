@@ -73,12 +73,12 @@ def start_command(args):
 
             stcoll = stcoll_builder.build_stcoll(pman, args.reportid, args.cpunum, args.cmd,
                                                  args.outdir)
+            stack.enter_context(stcoll)
+
             if stcoll:
                 res = stcoll.res
             else:
                 res = WORawResult.WORawResult(args.reportid, args.outdir, args.cpunum, args.cmd)
-
-            stack.enter_context(stcoll)
 
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
 
