@@ -70,3 +70,4 @@ class WORawResult(_RawResultBase.RawResultBase):
         self.info["cpunum"] = self.cpunum
         self.info["cmd"] = cmd
         self.info["date"] = time.strftime("%d %b %Y")
+        self.info["stinfo"] = {}
