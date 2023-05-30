@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix a regression introduced in v1.11.19, which caused
+   'stats-collect start --report' to crash.
 ### Added
 ### Removed
 ### Changed
