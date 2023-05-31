@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix turbostat tabs failing to generate because of two or more results do not
+   have enough turbostat metrics in common.
 ### Added
 ### Removed
 ### Changed
