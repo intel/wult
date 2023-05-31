@@ -80,7 +80,7 @@ _COLLECT_OPTIONS = {
     "datapoints" : {
         "short" : "-c",
         "default" : 100000,
-        "help" : """Applicable only for 'wult' and 'ndl' tools. Number of datapoints to collect per
+        "help" : """Applicable only to 'wult' and 'ndl' tools. Number of datapoints to collect per
                     measurement. Default is 100000."""
     },
     "reportid_prefix" : {
@@ -92,7 +92,7 @@ _COLLECT_OPTIONS = {
         "help" : """String to append to the report ID (nothing, by default)."""
     },
     "cpunums" : {
-        "help" : """Applicable only for the 'wult' and 'ndl' tools. Comma-separated list of CPU
+        "help" : """Applicable only to the 'wult' and 'ndl' tools. Comma-separated list of CPU
                     numbers to measure with. No CPU number is passed by default."""
     },
     "cstates" : {
@@ -179,11 +179,11 @@ _COLLECT_OPTIONS = {
     },
     "deploy" : {
         "action" : "store_true",
-        "help" : """Applicable only for 'wult' and 'ndl' tools. Run the 'deploy' command before
+        "help" : """Applicable only to 'wult' and 'ndl' tools. Run the 'deploy' command before
                     starting the measurements."""
     },
     "devids" : {
-        "help" : """Applicable only for 'wult' and 'ndl' tools. Comma-separated list of device IDs
+        "help" : """Applicable only to 'wult' and 'ndl' tools. Comma-separated list of device IDs
                     to run the tools with."""
     },
     "stop_on_failure" : {
