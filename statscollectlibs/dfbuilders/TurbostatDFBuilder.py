@@ -61,8 +61,11 @@ class TurbostatDFBuilderBase(_DFBuilderBase.DFBuilderBase):
         if self._time_metric not in sdf:
             raise Error(f"timestamps could not be parsed in raw statistics file '{path}'.")
 
+        if labels:
+            self._apply_labels(sdf, labels, self._time_metric)
+
         # Convert 'Time' column from time since epoch to time since first data point was recorded.
-        sdf[self._time_metric] = sdf[self._time_metric] - sdf[self._time_metric][0]
+        sdf[self._time_metric] = sdf[self._time_metric] - sdf[self._time_metric].iloc[0]
 
         return sdf
 
