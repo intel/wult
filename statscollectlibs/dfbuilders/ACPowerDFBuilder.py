@@ -46,8 +46,11 @@ class ACPowerDFBuilder(_DFBuilderBase.DFBuilderBase):
         if self._time_metric not in sdf:
             raise Error(f"column '{self._time_metric}' not found in statistics file '{path}'.")
 
+        if labels:
+            self._apply_labels(sdf, labels, self._time_metric)
+
         # Convert Time column from time since epoch to time since the first data point was recorded.
-        sdf[self._time_metric] = sdf[self._time_metric] - sdf[self._time_metric][0]
+        sdf[self._time_metric] = sdf[self._time_metric] - sdf[self._time_metric].iloc[0]
 
         # Remove any 'infinite' values which can appear in raw ACPower files.
         sdf.replace([numpy.inf, -numpy.inf], numpy.nan, inplace=True)

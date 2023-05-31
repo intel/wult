@@ -24,6 +24,50 @@ class DFBuilderBase:
        * '_read_stats_file()'
     """
 
+    def _apply_labels(self, df, labels, time_colname):
+        """
+        Apply 'labels' to 'pandas.DataFrame' 'df'. Arguments are as follows:
+         * df - the 'pandas.DataFrame' to which the labels should be applied.
+         * labels - a list of label dictionaries parsed from the labels file.
+         * time_colname - the name of the column in 'df' which contains the datapoint timestamps.
+        """
+
+        time_col = df[time_colname]
+
+        if labels[0]["ts"] > time_col.iloc[-1]:
+            raise Error("first label's timestamp is after the last datapoint was measured.")
+
+        lcnt = len(labels)
+        df["label"] = None
+
+        for i, label in enumerate(labels):
+            # 'filtered_rows' contains an index of all of the datapoints which 'label' applies to.
+            filtered_rows = time_col >= label["ts"]
+
+            if i < lcnt - 1:
+                # Only one label is applicable at a time. Therefore, if there is still at least one
+                # label to apply, only apply 'label' to datapoints before the next one is
+                # applicable.
+                next_label = labels[i + 1]
+                filtered_rows &= time_col < next_label["ts"]
+
+            if label["name"] == "skip":
+                # Datapoints labelled 'skip' are dropped from the 'pandas.DataFrame'.
+                df.drop(df[filtered_rows].index, inplace=True)
+                continue
+
+            if len(filtered_rows) < 1:
+                continue
+
+            df["label"] = label.get("name", None)
+            for metric, val in label.get("metrics", {}).items():
+                if metric not in df.columns:
+                    df[metric] = None
+
+                # Assign 'val' in the column for the label metric for all of the datapoints which
+                # 'label' corresponds to.
+                df.loc[filtered_rows, metric] = val
+
     def _read_stats_file(self, path, labels=None):
         """
         Returns a 'pandas.DataFrame' containing the data stored in the raw statistics file at
