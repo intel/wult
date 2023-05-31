@@ -34,6 +34,20 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         raise ErrorNotFound(f"raw '{stname}' statistics file not found at path: {path}")
 
+    def _get_labels_path(self, stname):
+        """A helper function which returns the path to the labels file for statistic 'stname'."""
+
+        try:
+            subpath = self.info["stinfo"][stname]["paths"]["labels"]
+        except KeyError:
+            return None
+
+        path = self.dirpath / subpath
+        if path.exists():
+            return path
+
+        raise ErrorNotFound(f"no labels file found for statistic '{stname}' at path: {path} '")
+
     def load_stat(self, stname, dfbldr, default_name):
         """
         Loads data for statistic 'stname' into 'self.dfs'. Returns a 'pandas.DataFrame' containing
@@ -49,7 +63,8 @@ class RORawResult(_RawResultBase.RawResultBase):
             return self.dfs[stname]
 
         path = self._get_stats_path(stname, default_name)
-        self.dfs[stname] = dfbldr.load_df(path)
+        labels_path = self._get_labels_path(stname)
+        self.dfs[stname] = dfbldr.load_df(path, labels_path)
         return self.dfs[stname]
 
     def __init__(self, dirpath, reportid=None):

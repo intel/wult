@@ -32,7 +32,7 @@ class TurbostatDFBuilderBase(_DFBuilderBase.DFBuilderBase):
 
         raise NotImplementedError()
 
-    def _read_stats_file(self, path):
+    def _read_stats_file(self, path, labels=None):
         """
         Returns a 'pandas.DataFrame' containing the data stored in the raw turbostat statistics file
         at 'path'.

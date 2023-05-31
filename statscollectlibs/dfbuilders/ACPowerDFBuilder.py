@@ -25,7 +25,7 @@ class ACPowerDFBuilder(_DFBuilderBase.DFBuilderBase):
     statistics file.
     """
 
-    def _read_stats_file(self, path):
+    def _read_stats_file(self, path, labels=None):
         """
         Returns a 'pandas.DataFrame' containing the data stored in the raw AC Power statistics CSV
         file at 'path'.
