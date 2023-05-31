@@ -40,8 +40,8 @@ class TabBuilderBase:
     def _build_ctab(self, name, tab_hierarchy, outdir, plots, smry_funcs):
         """
         This is a helper function for 'get_tab()'. Build a container tab according to the
-        'tab_hierarchy' dictionary. If no sub-tabs can be generated then raises an 'Error'.
-        Arguments are as follows:
+        'tab_hierarchy' dictionary. If no sub-tabs can be generated then raises an 'Error' and if
+        the 'tab_hierarchy' provided is empty then returns 'None'. Arguments are as follows:
          * name - name of the returned container tab.
          * tab_hierarchy - dictionary representation of the desired tab hierarchy. Schema is as
                            follows:
@@ -70,6 +70,9 @@ class TabBuilderBase:
                         Metric2: ["max", "min",...]
                     }
         """
+
+        if tab_hierarchy == {"dtabs": []}:
+            return None
 
         # Sub-tabs which will be contained by the returned container tab.
         sub_tabs = []
