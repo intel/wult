@@ -59,7 +59,7 @@ class IPMIDFBuilder(_DFBuilderBase.DFBuilderBase):
             # Try to read the first data point from raw statistics file.
             i = next(ipmi_gen)
         except StopIteration:
-            raise Error("empty or incorrectly formatted IPMI raw statistics file.") from None
+            raise Error("empty or incorrectly formatted IPMI raw statistics file") from None
 
         # Populate 'self._metrics' using the columns from the first data point.
         self._categorise_cols(i)
@@ -74,9 +74,17 @@ class IPMIDFBuilder(_DFBuilderBase.DFBuilderBase):
         if time_colname not in sdf:
             raise Error(f"column '{time_colname}' not found in statistics file '{path}'.")
 
+        # Convert time column format to be 'time since epoch in seconds' so it is consistent with
+        # other time columns for other statistics and so that labels can be applied using
+        # '_apply_labels()'.
+        sdf[time_colname] -= numpy.datetime64('1970-01-01T00:00:00Z')
+        sdf[time_colname] /= numpy.timedelta64(1, "s")
+
+        if labels:
+            self._apply_labels(sdf, labels, time_colname)
+
         # Convert Time column from time stamp to time since the first data point was recorded.
         sdf[time_colname] = sdf[time_colname] - sdf[time_colname][0]
-        sdf[time_colname] = sdf[time_colname] / numpy.timedelta64(1, "s")
 
         sdf = sdf.rename(columns={time_colname: self._time_metric})
         return sdf
