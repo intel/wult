@@ -368,7 +368,7 @@ def _start_command(args):
 
                 batchconfig.configure(props, cpu)
                 for devid in devids:
-                    batchconfig.run(props, devid, cpu)
+                    batchconfig.run(props, cpu, devid=devid)
                     work_done = True
 
                 _LOG.info("")

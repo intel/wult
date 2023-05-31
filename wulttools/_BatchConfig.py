@@ -506,7 +506,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
 class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
     """A base class to help creating commands."""
 
-    def _create_reportid(self, props, devid=None, cpu=None):
+    def _create_reportid(self, props, cpu=None, **kwargs):
         """Create report ID from used properties 'props'."""
 
         monikers = []
@@ -514,8 +514,8 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
         if self._hostname != "localhost":
             monikers.append(self._hostname)
 
-        if devid:
-            monikers.append(devid)
+        if "devid" in kwargs:
+            monikers.append(kwargs["devid"])
 
         for pname, val in props.items():
             if pname in ("freqs", "uncore_freqs") and val == "unl":
@@ -546,7 +546,7 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
 
         return toolopts
 
-    def get_command(self, props, devid, cpu): # pylint: disable=unused-argument
+    def get_command(self, props, cpu, **kwargs): # pylint: disable=unused-argument
         """Create and return command to run the tool."""
 
         cmd = str(self.toolpath)
@@ -576,17 +576,17 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
 class _BenchmarkCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'benchmark' commands."""
 
-    def get_command(self, props, devid, cpu):
+    def get_command(self, props, cpu, **kwargs):
         """Create and return command to run the 'benchmark' tool."""
 
-        cmd = super().get_command(props, devid, cpu)
+        cmd = super().get_command(props, cpu, **kwargs)
         reportid = self._create_reportid(props)
         return f"{cmd} --reportid {reportid} -o {self._outdir}/{reportid}"
 
 class _WultCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'wult' or 'ndl' commands."""
 
-    def _create_command(self, devid, cpu, reportid=None):
+    def _create_command(self, cpu, devid, reportid=None):
         """Create and return 'wult' or 'ndl' command."""
 
         cmd = f"{self.toolpath} "
@@ -613,11 +613,11 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         return cmd
 
-    def get_command(self, props, devid, cpu):
+    def get_command(self, props, cpu, **kwargs):
         """Create and return 'wult' or 'ndl' command."""
 
-        reportid = self._create_reportid(props, devid=devid, cpu=cpu)
-        return self._create_command(devid, cpu, reportid=reportid)
+        reportid = self._create_reportid(props, cpu=cpu, **kwargs)
+        return self._create_command(cpu, kwargs["devid"], reportid=reportid)
 
     def __init__(self, pman, args):
         """The class constructor."""
@@ -788,10 +788,10 @@ class BatchConfig(_CmdlineRunner):
         for cmd in self._pepc_formatter.get_commands(props, cpu):
             self._run_command(cmd)
 
-    def run(self, props, devid, cpu):
-        """Run workload command with system properties 'props' and device ID 'devid'."""
+    def run(self, props, cpu, **kwargs):
+        """Run workload command with system properties 'props'."""
 
-        cmd = self._wl_formatter.get_command(props, devid, cpu)
+        cmd = self._wl_formatter.get_command(props, cpu, **kwargs)
         self._run_command(cmd)
 
     def __init__(self, args):
