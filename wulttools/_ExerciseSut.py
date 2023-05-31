@@ -49,6 +49,9 @@ _RESET_PROPS = {
     "cstate_prewake" : {
         "value" : "off",
         "text" : "disable C-state prewake"},
+    "turbo" : {
+        "value" : "on",
+        "text" : "enable turbo"},
     "freqs" : {
         "value" : "unl",
         "text" : "unlock CPU frequency"},
@@ -109,6 +112,10 @@ _COLLECT_OPTIONS = {
     "cstates_always_enable" : {
         "default" : "",
         "help" : """Comma-separated list of always enabled C-states. Default is 'None'."""
+    },
+    "turbo" : {
+        "help" : f"""Comma-separated list of turbo configurations to measure with. The default
+                     is "{_get_reset_val('turbo')}". Supported values are "on" and "off"."""
     },
     "freqs" : {
         "help" : """Comma-separated list of frequencies to be measured with. For more information,
