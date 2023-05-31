@@ -11,6 +11,7 @@ This module provides the capability of populating a 'File Preview'. See '_Tabs.F
 more information on file previews.
 """
 
+import filecmp
 import logging
 from difflib import HtmlDiff
 from pepclibs.helperlibs import Human
@@ -50,6 +51,10 @@ class FilePreviewBuilder:
         filename 'diff_name.html' in a "diffs" sub-directory. Returns the path of the HTML diff
         relative to 'outdir'.
         """
+
+        if filecmp.cmp(*(self._basedir / path for path in paths.values())):
+            _LOG.info("Skipping '%s' diff as both files are identical.", diff_name)
+            return None
 
         # Read the contents of the files into 'lines'.
         lines = []
