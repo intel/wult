@@ -186,6 +186,10 @@ _COLLECT_OPTIONS = {
         "help" : """Applicable only to 'wult' and 'ndl' tools. Comma-separated list of device IDs
                     to run the tools with."""
     },
+    "command" : {
+        "help" : """Applicable only to 'stats-collect' tool. The command to that 'stats-collect'
+                    should run."""
+    },
     "stop_on_failure" : {
         "action" : "store_true",
         "help" : """Stop if any of the steps fail, instead of continuing (default)."""
@@ -324,10 +328,13 @@ def _start_command(args):
         return
 
     if args.toolpath.name in ("wult", "ndl") and not args.devids:
-        _LOG.error_out("please, provide device ID to measure with, see '%s -h' for help", TOOLNAME)
+        _LOG.error_out("please, provide device ID to measure with, use '--devids'")
+
+    if args.toolpath.name == "stats-collect" and not args.command:
+        _LOG.error_out("please, provide the command 'stats-collect' should run, use '--command'")
 
     if args.only_measured_cpu and args.cpunums is None:
-        _LOG.error_out("please provide CPU numbers with '--only-measured-cpu', see '--cpunums'")
+        _LOG.error_out("please provide CPU numbers with '--only-measured-cpu', use '--cpunums'")
 
     inprops = {}
     for pname in _BatchConfig.PROP_INFOS:
@@ -368,7 +375,13 @@ def _start_command(args):
 
                 batchconfig.configure(props, cpu)
                 for devid in devids:
-                    batchconfig.run(props, cpu, devid=devid)
+                    kwargs = {}
+                    if devid:
+                        kwargs["devid"] = devid
+                    if args.command:
+                        kwargs["command"] = args.command
+
+                    batchconfig.run(props, cpu, **kwargs)
                     work_done = True
 
                 _LOG.info("")

@@ -121,6 +121,9 @@ def _get_workload_cmd_formatter(pman, args):
     if toolname in ("wult", "ndl"):
         return _WultCmdFormatter(pman, args)
 
+    if toolname == "stats-collect":
+        return _StatsCollectCmdFormatter(pman, args)
+
     if toolname == "benchmark":
         return _BenchmarkCmdFormatter(args)
 
@@ -623,6 +626,51 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         reportid = self._create_reportid(props, **kwargs)
         return self._create_command(kwargs["cpu"], kwargs["devid"], reportid=reportid)
+
+    def __init__(self, pman, args):
+        """The class constructor."""
+
+        super().__init__(args)
+
+        self._pman = pman
+        self._datapoints = args.datapoints
+
+    def close(self):
+        """Uninitialize the class objetc."""
+        ClassHelpers.close(self, unref_attrs=("_pman",))
+
+class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
+    """A Helper class for creating 'stats-collect' commands."""
+
+    def _create_command(self, command, reportid=None):
+        """Create and return 'stats-collect' command."""
+
+        cmd = f"{self.toolpath} "
+        if _LOG.colored:
+            cmd += " --force-color"
+        cmd += " start"
+
+        if reportid:
+            cmd += f" --reportid {reportid} -o {self._outdir}/{reportid}"
+        else:
+            cmd = f" -o {self._outdir}"
+
+        toolopts = self._get_toolopts(reportid)
+        if toolopts:
+            cmd += f" {toolopts}"
+
+        if self._hostname != "localhost":
+            cmd += f" -H {self._hostname}"
+
+        cmd += f" {command}"
+
+        return cmd
+
+    def get_command(self, props, **kwargs):
+        """Create and return 'stats-collect' command."""
+
+        reportid = self._create_reportid(props, **kwargs)
+        return self._create_command(kwargs["command"], reportid=reportid)
 
     def __init__(self, pman, args):
         """The class constructor."""
