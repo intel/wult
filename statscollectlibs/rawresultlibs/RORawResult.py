@@ -13,7 +13,31 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFou
 from statscollectlibs.rawresultlibs import _RawResultBase
 
 class RORawResult(_RawResultBase.RawResultBase):
-    """This class represents a read-only raw test result."""
+    """
+    This class represents a read-only raw test result. The class API works with the following
+    concepts:
+     * labels - labels are created during statistics collection and provide extra data about
+                datapoints.
+     * label definitions - dictionaries defining the metrics which label data measure. For example,
+                           if a label contains data about power consumption, the label definition
+                           might explain that the data is measured in 'Watts'.
+
+    Public method overview:
+     * set_label_defs() - set label definitions for a specific statistic.
+     * get_label_defs() - get label definitions for a specific statistic.
+     * load_stat() - loads and returns a 'pandas.DataFrame' containing statistics data for this
+                     result.
+    """
+
+    def set_label_defs(self, stname, defs):
+        """Set metric definitions for the 'stname' labels."""
+
+        self._labels_defs[stname] = defs
+
+    def get_label_defs(self, stname):
+        """Returns metric definitions for 'stname' data."""
+
+        return self._labels_defs.get(stname, {})
 
     def _get_stats_path(self, stname, default_name):
         """
@@ -65,6 +89,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         path = self._get_stats_path(stname, default_name)
         labels_path = self._get_labels_path(stname)
         self.dfs[stname] = dfbldr.load_df(path, labels_path)
+
         return self.dfs[stname]
 
     def __init__(self, dirpath, reportid=None):
@@ -118,3 +143,6 @@ class RORawResult(_RawResultBase.RawResultBase):
         # Store each loaded 'pandas.DataFrame' so that it does not need to be re-loaded in future.
         # This dictionary maps statistic names to 'pandas.DataFrames'.
         self.dfs = {}
+
+        # Store label metric definitions provided to 'set_label_defs()'.
+        self._labels_defs = {}
