@@ -603,7 +603,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
             cmd += " --force-color"
         cmd += f" start -c {self._datapoints}"
 
-        if cpu is not None and self.toolpath.name in ("wult", "ndl"):
+        if cpu is not None:
             cmd += f" --cpunum {cpu}"
 
         cmd += f" {devid}"
