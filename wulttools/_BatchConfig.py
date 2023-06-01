@@ -511,7 +511,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
 class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
     """A base class to help creating commands."""
 
-    def _create_reportid(self, props, cpu=None, **kwargs):
+    def _create_reportid(self, props, **kwargs):
         """Create report ID from used properties 'props'."""
 
         monikers = []
@@ -533,8 +533,8 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
 
             monikers.append(moniker)
 
-        if cpu is not None:
-            monikers.append(f"cpu{cpu}")
+        if "cpu" in kwargs:
+            monikers.append(f"cpu{kwargs['cpu']}")
 
         reportid = "-".join(monikers)
         reportid = ReportID.format_reportid(prefix=self._reportid_prefix, reportid=reportid,
@@ -551,7 +551,7 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
 
         return toolopts
 
-    def get_command(self, props, cpu, **kwargs): # pylint: disable=unused-argument
+    def get_command(self, props, **kwargs): # pylint: disable=unused-argument
         """Create and return command to run the tool."""
 
         cmd = str(self.toolpath)
@@ -581,10 +581,10 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
 class _BenchmarkCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'benchmark' commands."""
 
-    def get_command(self, props, cpu, **kwargs):
+    def get_command(self, props, **kwargs):
         """Create and return command to run the 'benchmark' tool."""
 
-        cmd = super().get_command(props, cpu, **kwargs)
+        cmd = super().get_command(props, **kwargs)
         reportid = self._create_reportid(props)
         return f"{cmd} --reportid {reportid} -o {self._outdir}/{reportid}"
 
@@ -618,11 +618,11 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         return cmd
 
-    def get_command(self, props, cpu, **kwargs):
+    def get_command(self, props, **kwargs):
         """Create and return 'wult' or 'ndl' command."""
 
-        reportid = self._create_reportid(props, cpu=cpu, **kwargs)
-        return self._create_command(cpu, kwargs["devid"], reportid=reportid)
+        reportid = self._create_reportid(props, **kwargs)
+        return self._create_command(kwargs["cpu"], kwargs["devid"], reportid=reportid)
 
     def __init__(self, pman, args):
         """The class constructor."""
@@ -796,7 +796,7 @@ class BatchConfig(_CmdlineRunner):
     def run(self, props, cpu, **kwargs):
         """Run workload command with system properties 'props'."""
 
-        cmd = self._wl_formatter.get_command(props, cpu, **kwargs)
+        cmd = self._wl_formatter.get_command(props, cpu=cpu, **kwargs)
         self._run_command(cmd)
 
     def __init__(self, args):
