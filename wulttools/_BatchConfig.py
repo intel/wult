@@ -536,8 +536,9 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
 
             monikers.append(moniker)
 
-        if "cpu" in kwargs:
-            monikers.append(f"cpu{kwargs['cpu']}")
+        cpu = kwargs.get("cpu", None)
+        if cpu is not None:
+            monikers.append(f"cpu{cpu}")
 
         reportid = "-".join(monikers)
         reportid = ReportID.format_reportid(prefix=self._reportid_prefix, reportid=reportid,
