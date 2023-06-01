@@ -66,8 +66,12 @@ def build_arguments_parser():
 
     ArgParse.add_ssh_options(subpars)
 
-    text = """The logical CPU number to measure, default is CPU 0."""
+    text = f"""If the executed command stresses a particular CPU number, you can specify it via this
+               option so that the number is saved in the test result and later the
+               '{ToolInfo.TOOLNAME} report' command will take this into account while generating the
+               test report."""
     subpars.add_argument("--cpunum", help=text, type=int, default=0)
+
     text = """The time limit for statistics collection, after which the collection will stop if the
               command 'cmd' (given as a positional argument) has not finished executing."""
     subpars.add_argument("--time-limit", help=text, dest="tlimit", metavar="LIMIT", default=None)
