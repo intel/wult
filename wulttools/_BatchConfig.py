@@ -405,9 +405,6 @@ class _PepcCmdFormatter(_PropIteratorBase):
     def _get_prop_scope(self, pname, cpu=0):
         """Get scope as CPUs for property 'pname', for CPU 'cpu'."""
 
-        if cpu is None:
-            cpu = 0
-
         if not self._only_measured_cpu:
             return "all"
 
@@ -459,8 +456,11 @@ class _PepcCmdFormatter(_PropIteratorBase):
         csnames = self._normalize_csnames(csnames)
         return ",".join(csnames)
 
-    def get_commands(self, props, cpu=0):
+    def get_commands(self, props, cpu=None):
         """Yield list of 'pepc' commands to configure system according to properties 'props'."""
+
+        if cpu is None:
+            cpu = 0
 
         for pname, value in props.items():
             if pname not in self.props:
