@@ -402,8 +402,13 @@ class _PepcCmdFormatter(_PropIteratorBase):
 
         return sname
 
-    def _get_prop_scope(self, pname, cpu=0):
-        """Get scope as CPUs for property 'pname', for CPU 'cpu'."""
+    def _get_cpus_by_prop_scope(self, pname, cpu=0):
+        """
+        Build and return a list of CPU number which includes 'cpu' plus all the other CPUs that
+        would be affected if property 'pname' was changed on CPU 'cpu'. In other words, property
+        'pname' has a scope (e.g., "package"), and the methods list of CPUs including 'cpu' and all
+        other CPU numbers corresponding to the scope.
+        """
 
         if not self._only_measured_cpu:
             return "all"
@@ -475,7 +480,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
                 elif value == "off":
                     value = "performance"
 
-            scope = self._get_prop_scope(pname, cpu=cpu)
+            scope = self._get_cpus_by_prop_scope(pname, cpu=cpu)
 
             # We use 'unl' keyword to express unlocked frequency value, and the frequency options
             # have two values.
