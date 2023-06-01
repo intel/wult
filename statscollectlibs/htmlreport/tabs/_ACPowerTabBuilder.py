@@ -36,7 +36,9 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
         dtab_bldr = _DTabBuilder.DTabBuilder(self._reports, self._outdir,
                                              self._defs.info[self._power_metric], self._basedir)
         scatter_axes = [(self._defs.info[self._time_metric], self._defs.info[self._power_metric])]
-        dtab_bldr.add_plots(scatter_axes, [self._defs.info[self._power_metric]])
+
+        dtab_bldr.add_plots(scatter_axes, [self._defs.info[self._power_metric]],
+                            hover_defs=self._hover_defs)
         smry_funcs = {self._power_metric: ["max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg",
                                            "min", "std"]}
         dtab_bldr.add_smrytbl(smry_funcs, self._defs)
@@ -60,9 +62,12 @@ class ACPowerTabBuilder(_TabBuilderBase.TabBuilderBase):
 
         dfs = {}
         dfbldr = ACPowerDFBuilder.ACPowerDFBuilder()
+        self._hover_defs = {}
         for res in rsts:
             if "acpower" not in res.info["stinfo"]:
                 continue
+
             dfs[res.reportid] = res.load_stat("acpower", dfbldr, "acpower.raw.txt")
+            self._hover_defs[res.reportid] = res.get_label_defs("acpower")
 
         super().__init__(dfs, outdir, defs=ACPowerDefs.ACPowerDefs())
