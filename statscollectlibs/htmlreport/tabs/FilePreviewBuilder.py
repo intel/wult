@@ -11,9 +11,9 @@ This module provides the capability of populating a 'File Preview'. See '_Tabs.F
 more information on file previews.
 """
 
+import difflib
 import filecmp
 import logging
-from difflib import HtmlDiff
 from pepclibs.helperlibs import Human
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
 from statscollectlibs.helperlibs import FSHelpers
@@ -67,8 +67,8 @@ class FilePreviewBuilder:
                 msg = Error(err).indent(2)
                 raise Error(f"cannot open file at '{fp}' to create diff:\n{msg}") from None
 
-        # Store the diff in a separate directory and with the '.html' file ending.
-        diff_path = (self.outdir / "diffs" / diff_name).with_suffix('.html')
+        # Store the diff in a separate directory and with the '.diff' file ending.
+        diff_path = (self.outdir / "diffs" / diff_name).with_suffix('.diff')
         try:
             diff_path.parent.mkdir(parents=True, exist_ok=True)
         except OSError as err:
@@ -78,7 +78,9 @@ class FilePreviewBuilder:
 
         try:
             with open(diff_path, "w", encoding="utf-8") as f:
-                f.write(HtmlDiff().make_file(lines[0], lines[1]))
+                reportids = [str(path) for path in paths.values()]
+                f.writelines(difflib.unified_diff(lines[0], lines[1],
+                                                  fromfile=reportids[0], tofile=reportids[1]))
         except Exception as err:
             msg = Error(err).indent(2)
             raise Error(f"cannot create diff at path '{diff_path}':\n{msg}") from None
