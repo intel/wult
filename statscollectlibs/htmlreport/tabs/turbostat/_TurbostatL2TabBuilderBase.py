@@ -103,7 +103,8 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
                                       "med", "avg", "min", "std"]
 
         # Build L2 CTab with hierarchy represented in 'self._tab_hierarchy'.
-        return self._build_ctab(self.name, tab_hierarchy, self.outdir, plots, smry_funcs)
+        return self._build_ctab(self.name, tab_hierarchy, self.outdir, plots, smry_funcs,
+                                self._hover_defs)
 
     def _init_cstates(self, dfs):
         """
@@ -137,7 +138,7 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         all_cstates = req_cstates + core_cstates + pkg_cstates + mod_cstates
         return [csdef.cstate for csdef in all_cstates]
 
-    def __init__(self, dfs, outdir, basedir):
+    def __init__(self, dfs, outdir, basedir, hover_defs=None):
         """
         The class constructor. Adding a turbostat level 2 tab will create a sub-directory and store
         data tabs inside it for metrics stored in the raw turbostat statistics file.  The arguments
@@ -145,10 +146,13 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
          * dfs - a dictionary in the format '{ReportId: pandas.DataFrame}' for each result where the
                  'pandas.DataFrame' contains that statistics data for that result.
          * basedir - base directory of the report. All asset paths will be made relative to this.
+         * hover_defs - a mapping from 'reportid' to definition dictionaries of metrics which
+                        should be included in the hovertext of scatter plots.
         """
 
         self._time_metric = "Time"
         self.outdir = outdir
+        self._hover_defs = hover_defs
 
         # After C-states have been extracted from the first raw turbostat statistics file, this
         # property will be assigned a 'TurbostatDefs.TurbostatDefs' instance.

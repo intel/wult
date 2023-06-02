@@ -34,6 +34,7 @@ class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
         """
 
         dfs = {}
+        hover_defs = {}
         for res in rsts:
             if "turbostat" not in res.info["stinfo"]:
                 continue
@@ -46,4 +47,6 @@ class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
             dfs[res.reportid] = res.load_stat("turbostat", TurbostatDFBuilder.MCPUDFBuilder(mcpu),
                                               "turbostat.raw.txt")
 
-        super().__init__(dfs, outdir / self.name, basedir)
+            hover_defs[res.reportid] = res.get_label_defs("turbostat")
+
+        super().__init__(dfs, outdir / self.name, basedir, hover_defs)
