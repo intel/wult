@@ -37,7 +37,7 @@ class TabBuilderBase:
     # The name of the statistics represented in the produced tab.
     name = None
 
-    def _build_ctab(self, name, tab_hierarchy, outdir, plots, smry_funcs):
+    def _build_ctab(self, name, tab_hierarchy, outdir, plots, smry_funcs, hover_defs=None):
         """
         This is a helper function for 'get_tab()'. Build a container tab according to the
         'tab_hierarchy' dictionary. If no sub-tabs can be generated then raises an 'Error' and if
@@ -69,6 +69,8 @@ class TabBuilderBase:
                         Metric1: ["99.999%", "99.99%",...],
                         Metric2: ["max", "min",...]
                     }
+         * hover_defs - a mapping from 'reportid' to defs of metrics which should be included in the
+                        hovertext of scatter plots.
         """
 
         if tab_hierarchy == {"dtabs": []}:
@@ -90,7 +92,7 @@ class TabBuilderBase:
                                                    self._basedir)
                     if metric in plots:
                         tab.add_plots(plots[metric].get("scatter"), plots[metric].get("hist"),
-                                      plots[metric].get("chist"))
+                                      plots[metric].get("chist"), hover_defs=hover_defs)
                     tab.add_smrytbl({metric: smry_funcs[metric]}, self._defs)
                     sub_tabs.append(tab.get_tab())
                 except Error as err:
@@ -107,7 +109,8 @@ class TabBuilderBase:
             # Tabs not labelled by the "dtabs" key in the tab hierarchy are container tabs. For each
             # sub container tab, recursively call 'self._build_ctab()'.
             subdir = Path(outdir) / DefsBase.get_fsname(tab_name)
-            subtab = self._build_ctab(tab_name, sub_hierarchy, subdir, plots, smry_funcs)
+            subtab = self._build_ctab(tab_name, sub_hierarchy, subdir, plots, smry_funcs,
+                                      hover_defs)
             if subtab:
                 sub_tabs.append(subtab)
 
