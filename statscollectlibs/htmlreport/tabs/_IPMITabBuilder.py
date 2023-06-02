@@ -118,7 +118,8 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
             smry_funcs[metric] = ["max", "99.999%", "99.99%", "99.9%", "99%",
                                   "med", "avg", "min", "std"]
 
-        return self._build_ctab(self.name, tab_hierarchy, self._outdir, plots, smry_funcs)
+        return self._build_ctab(self.name, tab_hierarchy, self._outdir, plots, smry_funcs,
+                                self._hover_defs)
 
     def __init__(self, rsts, outdir):
         """
@@ -142,12 +143,14 @@ class IPMITabBuilder(_TabBuilderBase.TabBuilderBase):
         stnames = set()
         dfs = {}
         dfbldr = IPMIDFBuilder.IPMIDFBuilder()
+        self._hover_defs = {}
         for res in rsts:
             for stname in ("ipmi-oob", "ipmi-inband"):
                 if stname not in res.info["stinfo"]:
                     continue
 
                 dfs[res.reportid] = res.load_stat(stname, dfbldr, f"{stname}.raw.txt")
+                self._hover_defs[res.reportid] = res.get_label_defs(stname)
                 self._metrics.update(dfbldr.metrics)
                 stnames.add(stname)
                 break
