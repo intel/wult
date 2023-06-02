@@ -82,10 +82,6 @@ class TurbostatL2TabBuilderBase(_TabBuilderBase.TabBuilderBase):
         # Limit metrics to only those with definitions.
         common_metrics.intersection_update(set(self._defs.info.keys()))
 
-        # Limit metrics to only those which are common to all test results.
-        for reportid, sdf in self._reports.items():
-            self._reports[reportid] = sdf[list(common_metrics)]
-
         # All raw turbostat statistic files have been parsed so we can now get a tab hierarchy with
         # tabs which are common to all sets of results.
         tab_hierarchy = self._get_tab_hierarchy(common_metrics)
