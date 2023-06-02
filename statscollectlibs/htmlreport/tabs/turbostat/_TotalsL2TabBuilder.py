@@ -40,11 +40,15 @@ class TotalsL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
 
         # Add package C-states.
         hw_pkg_cs = self._cstates["hardware"]["package"]
-        harchy["C-states"]["Hardware"]["dtabs"] += [csdef.metric for csdef in hw_pkg_cs]
+        for csdef in hw_pkg_cs:
+            if csdef.metric in common_metrics:
+                harchy["C-states"]["Hardware"]["dtabs"].append(csdef.metric)
 
         # Add module C-states.
         hw_mod_cs = self._cstates["hardware"]["module"]
-        harchy["C-states"]["Hardware"]["dtabs"] += [csdef.metric for csdef in hw_mod_cs]
+        for csdef in hw_mod_cs:
+            if csdef.metric in common_metrics:
+                harchy["C-states"]["Hardware"]["dtabs"].append(csdef.metric)
 
         return harchy
 
