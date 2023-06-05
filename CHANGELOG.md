@@ -8,6 +8,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
  - Fix turbostat tabs failing to generate because of two or more results do not
    have enough turbostat metrics in common.
 ### Added
+ - Add 'stats-collect report --reportids' option.
 ### Removed
 ### Changed
  - Changed 'wult' and 'stats-collect' to skip generating SysInfo diffs if the
