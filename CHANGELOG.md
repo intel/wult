@@ -9,6 +9,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    have enough turbostat metrics in common.
 ### Added
  - Add 'stats-collect report --reportids' option.
+ - Add 'pepc power info' output to 'pepc SysInfo' tabs in HTML reports.
 ### Removed
 ### Changed
  - Changed 'wult' and 'stats-collect' to skip generating SysInfo diffs if the
