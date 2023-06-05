@@ -17,7 +17,8 @@ _FILES = {
     "pepc cstates info": "sysinfo/pepc_cstates.raw.txt",
     "pepc pstates info": "sysinfo/pepc_pstates.raw.txt",
     "pepc aspm info": "sysinfo/pepc_aspm.raw.txt",
-    "pepc topology info": "sysinfo/pepc_topology.raw.txt"
+    "pepc topology info": "sysinfo/pepc_topology.raw.txt",
+    "pepc power info": "sysinfo/pepc_power.raw.txt"
 }
 
 class PepcTabBuilder(_SysInfoTabBuilderBase.SysInfoTabBuilderBase):
