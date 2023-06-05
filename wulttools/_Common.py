@@ -536,7 +536,7 @@ def open_raw_results(respaths, toolname, reportids=None):
 
     if len(reportids) > len(respaths):
         raise Error(f"there are {len(reportids)} report IDs to assign to {len(respaths)} input "
-                    f"test results. Please, provide {len(respaths)} or less report IDs.")
+                    f"test results. Please, provide {len(respaths)} or fewer report IDs.")
 
     # Append the required amount of 'None's to make the 'reportids' list be of the same length as
     # the 'respaths' list.
