@@ -127,6 +127,16 @@ def build_arguments_parser():
                The '<reportid>' is report ID of {ToolInfo.TOOLNAME} test result."""
     subpars.add_argument("-o", "--outdir", type=Path, help=text)
 
+    text = """Every input raw result comes with a report ID. This report ID is basically a short
+            name for the test result, and it used in the HTML report to refer to the test result.
+            However, sometimes it is helpful to temporarily override the report IDs just for the
+            HTML report, and this is what the '--reportids' option does. Please, specify a
+            comma-separated list of report IDs for every input raw test result. The first report ID
+            will be used for the first raw rest result, the second report ID will be used for the
+            second raw test result, and so on. Please, refer to the '--reportid' option description
+            in the 'start' command for more information about the report ID."""
+    subpars.add_argument("--reportids", help=text)
+
     text = f"""One or multiple {ToolInfo.TOOLNAME} test result paths."""
     subpars.add_argument("respaths", nargs="+", type=Path, help=text)
 
