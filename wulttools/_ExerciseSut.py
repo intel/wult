@@ -22,7 +22,7 @@ except ImportError:
     argcomplete = None
 from pepclibs.helperlibs import ArgParse, Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error
-from wulttools import _BatchConfig
+from wulttools.exercisesut import _BatchConfig
 
 TOOLNAME = "exercise-sut"
 _VERSION = "1.1.1"
