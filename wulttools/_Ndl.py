@@ -260,7 +260,7 @@ def _start_command(args):
 def _report_command(args):
     """Implements the 'ndl report' command."""
 
-    from wulttools import _NdlReport # pylint: disable=import-outside-toplevel
+    from wulttools.ndl import _NdlReport # pylint: disable=import-outside-toplevel
 
     _NdlReport.report_command(args)
 
