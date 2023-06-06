@@ -14,7 +14,7 @@ A helper tool for exercising SUT, running workloads with various system setting 
 """
 
 import sys
-from wulttools._ExerciseSut import main
+from wulttools.exercisesut._ExerciseSut import main
 
 if __name__ == '__main__':
     sys.exit(main())
