@@ -38,7 +38,8 @@ class MCPUL2TabBuilder(_TurbostatL2TabBuilderBase.TurbostatL2TabBuilderBase):
             if "turbostat" not in res.info["stinfo"]:
                 continue
 
-            if "cpunum" not in res.info:
+            cpunum = res.info.get("cpunum", None)
+            if cpunum is None:
                 continue
 
             mcpu = str(res.info["cpunum"])
