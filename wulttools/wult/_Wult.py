@@ -24,10 +24,10 @@ from pepclibs.helperlibs import Logging, Human, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.deploylibs import _Deploy
 from wulttools import _Common
-from wulttools.wult import _WultCommon
+from wulttools.wult import _WultCommon, ToolInfo
 
-VERSION = "1.11.22"
-TOOLNAME = "wult"
+VERSION = ToolInfo.VERSION
+TOOLNAME = ToolInfo.TOOLNAME
 
 # The deployment information dictionary. See 'DeployBase.__init__()' for details.
 _WULT_DEPLOY_INFO = {

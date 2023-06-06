@@ -15,6 +15,7 @@ BASEDIR="$(readlink -ev -- ${0%/*}/..)"
 VERSION_REGEX='\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)'
 
 # File paths containing the version number that we'll have to adjust.
+WULT_TOOLINFO="$BASEDIR/wulttools/wult/ToolInfo.py"
 WULT_FILE="$BASEDIR/wulttools/wult/_Wult.py"
 NDL_FILE="$BASEDIR/wulttools/ndl/_Ndl.py"
 EXERCISESUT_FILE="$BASEDIR/wulttools/exercisesut/_ExerciseSut.py"
@@ -114,8 +115,8 @@ if [ $# -eq 1 ]; then
 elif [ $# -eq 0 ]; then
     # The new version was not provided, increment the current version umber.
     sed_regex="^VERSION = \"$VERSION_REGEX\"$"
-    ver_start="$(sed -n -e "s/$sed_regex/\1.\2./p" "$WULT_FILE")"
-    ver_end="$(sed -n -e "s/$sed_regex/\3/p" "$WULT_FILE")"
+    ver_start="$(sed -n -e "s/$sed_regex/\1.\2./p" "$WULT_TOOLINFO")"
+    ver_end="$(sed -n -e "s/$sed_regex/\3/p" "$WULT_TOOLINFO")"
     ver_end="$(($ver_end+1))"
     new_ver="$ver_start$ver_end"
 else
@@ -165,7 +166,7 @@ fi
                           -e "artem.bityutskiy@intel.com" "$CHANGELOG_FILE"
 
 # Change the tool version.
-sed -i -e "s/^VERSION = \"$VERSION_REGEX\"$/VERSION = \"$new_ver\"/" "$WULT_FILE"
+sed -i -e "s/^VERSION = \"$VERSION_REGEX\"$/VERSION = \"$new_ver\"/" "$WULT_TOOLINFO"
 # Change RPM package version.
 sed -i -e "s/^Version:\(\s\+\)$VERSION_REGEX$/Version:\1$new_ver/" "$SPEC_FILE"
 
