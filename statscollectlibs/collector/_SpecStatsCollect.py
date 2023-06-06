@@ -428,7 +428,7 @@ class SpecStatsCollect(ClassHelpers.SimpleCloseContext):
                  remote_outdir=None):
         """Same as 'StatsCollect.__init__()'."""
 
-        self.res = WORawResult.WORawResult(reportid, local_outdir, cpunum, cmd)
+        self.res = WORawResult.WORawResult(reportid, local_outdir, cmd, cpunum=cpunum)
 
         self._pman = pman
         self.local_outdir = None

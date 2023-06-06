@@ -46,14 +46,14 @@ class WORawResult(_RawResultBase.RawResultBase):
         except OSError as err:
             raise Error(f"failed to create file '{self.info_path}':\n{err}") from None
 
-    def __init__(self, reportid, outdir, cpunum, cmd):
+    def __init__(self, reportid, outdir, cmd, cpunum=None):
         """
         The class constructor. The arguments are as follows.
           * reportid - reportid of the raw test result.
           * outdir - the output directory to store the raw results at.
           * toolver - version of the tool creating the report.
-          * cpunum - CPU number associated with this test result (e.g., measured CPU number).
           * cmd - the command executed during statistics collection.
+          * cpunum - CPU number associated with this test result (e.g., measured CPU number).
         """
 
         super().__init__(outdir)

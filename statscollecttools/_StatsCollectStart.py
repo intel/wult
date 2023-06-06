@@ -64,7 +64,7 @@ def start_command(args):
             args.stats = None
             stcoll = None
             _LOG.warning("no statistics will be collected")
-            res = WORawResult.WORawResult(args.reportid, args.outdir, args.cpunum, args.cmd)
+            res = WORawResult.WORawResult(args.reportid, args.outdir, args.cmd, cpunum=args.cpunum)
         else:
             stcoll_builder = StatsCollectBuilder.StatsCollectBuilder()
             stcoll_builder.parse_stnames(args.stats)
@@ -78,7 +78,8 @@ def start_command(args):
             if stcoll:
                 res = stcoll.res
             else:
-                res = WORawResult.WORawResult(args.reportid, args.outdir, args.cpunum, args.cmd)
+                res = WORawResult.WORawResult(args.reportid, args.outdir, args.cmd,
+                                              cpunum=args.cpunum)
 
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
 
