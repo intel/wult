@@ -22,10 +22,10 @@ except ImportError:
     argcomplete = None
 from pepclibs.helperlibs import ArgParse, Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error
-from wulttools.exercisesut import _BatchConfig
+from wulttools.exercisesut import _BatchConfig, ToolInfo
 
-TOOLNAME = "exercise-sut"
-VERSION = "1.1.1"
+TOOLNAME = ToolInfo.TOOLNAME
+VERSION = ToolInfo.VERSION
 
 Logging.setup_logger(prefix=TOOLNAME)
 _LOG = logging.getLogger()
