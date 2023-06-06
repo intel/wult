@@ -298,7 +298,7 @@ def _start_command(args):
 def _report_command(args):
     """Implements the 'wult report' command."""
 
-    from wulttools import _WultReport # pylint: disable=import-outside-toplevel
+    from wulttools.wult import _WultReport # pylint: disable=import-outside-toplevel
 
     _WultReport.report_command(args)
 
