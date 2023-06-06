@@ -14,6 +14,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
  - Changed 'wult' and 'stats-collect' to skip generating SysInfo diffs if the
    files are identical to speed up report generation.
+ - Changed the default value of 'stats-collect start --cpunum' to 'None'.
 
 ## [1.11.20] - 2023-05-30
 ### Fixed
