@@ -22,7 +22,8 @@ from wultlibs.deploylibs import _Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs import Devices, WultRunner
-from wulttools import _Common, _WultCommon
+from wulttools import _Common
+from wulttools.wult import _WultCommon
 
 _LOG = logging.getLogger()
 

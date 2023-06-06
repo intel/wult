@@ -13,7 +13,8 @@ This module includes the "report" 'wult' command implementation.
 from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.htmlreport import WultReport
-from wulttools import _Common, _WultCommon
+from wulttools import _Common
+from wulttools.wult import _WultCommon
 
 def report_command(args):
     """Implements the 'report' command."""
