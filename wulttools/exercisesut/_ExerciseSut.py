@@ -25,7 +25,7 @@ from pepclibs.helperlibs.Exceptions import Error
 from wulttools.exercisesut import _BatchConfig
 
 TOOLNAME = "exercise-sut"
-_VERSION = "1.1.1"
+VERSION = "1.1.1"
 
 Logging.setup_logger(prefix=TOOLNAME)
 _LOG = logging.getLogger()
@@ -261,7 +261,7 @@ def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
     text = f"{TOOLNAME} - Run a test tool or benchmark to collect testdata."
-    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=_VERSION)
+    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)

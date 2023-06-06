@@ -26,7 +26,7 @@ from wultlibs.deploylibs import _Deploy
 from wulttools import _Common
 from wulttools.wult import _WultCommon
 
-_VERSION = "1.11.22"
+VERSION = "1.11.22"
 TOOLNAME = "wult"
 
 # The deployment information dictionary. See 'DeployBase.__init__()' for details.
@@ -57,7 +57,7 @@ def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
     text = f"{TOOLNAME} - a tool for measuring C-state latency."
-    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=_VERSION)
+    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
@@ -273,7 +273,7 @@ def _parse_arguments():
 
     args = parser.parse_args()
     args.toolname = TOOLNAME
-    args.toolver = _VERSION
+    args.toolver = VERSION
     args.deploy_info = _WULT_DEPLOY_INFO
 
     return args

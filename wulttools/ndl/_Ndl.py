@@ -25,7 +25,7 @@ from wultlibs.deploylibs import _Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.htmlreport import NdlReportParams
 
-_VERSION = "1.3.15"
+VERSION = "1.3.15"
 TOOLNAME = "ndl"
 
 # The deployment information dictionary. See 'DeployBase.__init__()' for details.
@@ -57,7 +57,7 @@ def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
     text = "ndl - a tool for measuring memory access latency observed by a network card."
-    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=_VERSION)
+    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
@@ -238,7 +238,7 @@ def _parse_arguments():
 
     args = parser.parse_args()
     args.toolname = TOOLNAME
-    args.toolver = _VERSION
+    args.toolver = VERSION
     args.deploy_info = _NDL_DEPLOY_INFO
 
     return args

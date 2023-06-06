@@ -113,7 +113,7 @@ if [ $# -eq 1 ]; then
            fatal "please, provide new version in X.Y.Z format"
 elif [ $# -eq 0 ]; then
     # The new version was not provided, increment the current version umber.
-    sed_regex="^_VERSION = \"$VERSION_REGEX\"$"
+    sed_regex="^VERSION = \"$VERSION_REGEX\"$"
     ver_start="$(sed -n -e "s/$sed_regex/\1.\2./p" "$WULT_FILE")"
     ver_end="$(sed -n -e "s/$sed_regex/\3/p" "$WULT_FILE")"
     ver_end="$(($ver_end+1))"
@@ -165,7 +165,7 @@ fi
                           -e "artem.bityutskiy@intel.com" "$CHANGELOG_FILE"
 
 # Change the tool version.
-sed -i -e "s/^_VERSION = \"$VERSION_REGEX\"$/_VERSION = \"$new_ver\"/" "$WULT_FILE"
+sed -i -e "s/^VERSION = \"$VERSION_REGEX\"$/VERSION = \"$new_ver\"/" "$WULT_FILE"
 # Change RPM package version.
 sed -i -e "s/^Version:\(\s\+\)$VERSION_REGEX$/Version:\1$new_ver/" "$SPEC_FILE"
 
