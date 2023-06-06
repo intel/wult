@@ -246,7 +246,7 @@ def _parse_arguments():
 def _deploy_command(args):
     """Implements the 'ndl deploy' command."""
 
-    from wulttools import _NdlDeploy # pylint: disable=import-outside-toplevel
+    from wulttools.ndl import _NdlDeploy # pylint: disable=import-outside-toplevel
 
     _NdlDeploy.deploy_command(args)
 
