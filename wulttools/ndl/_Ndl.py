@@ -21,12 +21,13 @@ except ImportError:
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
 from wulttools import _Common
+from wulttools.ndl import ToolInfo
 from wultlibs.deploylibs import _Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.htmlreport import NdlReportParams
 
-VERSION = "1.3.15"
-TOOLNAME = "ndl"
+VERSION = ToolInfo.VERSION
+TOOLNAME = ToolInfo.TOOLNAME
 
 # The deployment information dictionary. See 'DeployBase.__init__()' for details.
 _NDL_DEPLOY_INFO = {
