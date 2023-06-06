@@ -15,7 +15,7 @@ BASEDIR="$(readlink -ev -- ${0%/*}/..)"
 VERSION_REGEX='\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)'
 
 # File paths containing the version number that we'll have to adjust.
-WULT_FILE="$BASEDIR/wulttools/_Wult.py"
+WULT_FILE="$BASEDIR/wulttools/wult/_Wult.py"
 NDL_FILE="$BASEDIR/wulttools/_Ndl.py"
 EXERCISESUT_FILE="$BASEDIR/wulttools/_ExerciseSut.py"
 SPEC_FILE="$BASEDIR/rpm/wult.spec"

@@ -13,7 +13,7 @@ wult - a tool for measuring C-state latency.
 """
 
 import sys
-from wulttools._Wult import main
+from wulttools.wult._Wult import main
 
 if __name__ == "__main__":
     sys.exit(main())
