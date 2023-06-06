@@ -52,9 +52,10 @@ def start_command(args):
         if not args.outdir:
             args.outdir = Path(f"./{args.reportid}")
 
-        cpuinfo = CPUInfo.CPUInfo(pman=pman)
-        stack.enter_context(cpuinfo)
-        args.cpunum = cpuinfo.normalize_cpu(args.cpunum)
+        if args.cpunum is not None:
+            cpuinfo = CPUInfo.CPUInfo(pman=pman)
+            stack.enter_context(cpuinfo)
+            args.cpunum = cpuinfo.normalize_cpu(args.cpunum)
 
         with _Deploy.DeployCheck("stats-collect", args.toolname, args.deploy_info,
                                  pman=pman) as depl:
