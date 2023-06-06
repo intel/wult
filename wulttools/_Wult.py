@@ -291,7 +291,7 @@ def _deploy_command(args):
 def _start_command(args):
     """Implements the 'wult start' command."""
 
-    from wulttools import _WultStart # pylint: disable=import-outside-toplevel
+    from wulttools.wult import _WultStart # pylint: disable=import-outside-toplevel
 
     _WultStart.start_command(args)
 
