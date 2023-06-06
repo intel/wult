@@ -6,7 +6,10 @@
 #
 # Author: Adam Hawley <adam.james.hawley@linux.intel.com>
 
-"""This module contains miscellaneous functions used by various 'statscollecttools' modules."""
+"""
+This module provides constants for information about the 'stats-collect' tool, such as version
+and toolname.
+"""
 
 VERSION = "1.0.0"
 TOOLNAME = "stats-collect"
