@@ -253,7 +253,7 @@ def _deploy_command(args):
 def _start_command(args):
     """Implements the 'ndl start' command."""
 
-    from wulttools import _NdlStart # pylint: disable=import-outside-toplevel
+    from wulttools.ndl import _NdlStart # pylint: disable=import-outside-toplevel
 
     _NdlStart.start_command(args)
 
