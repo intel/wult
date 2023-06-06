@@ -107,6 +107,8 @@ class FTrace(ClassHelpers.SimpleCloseContext):
         self._paths["trace"] = self._debugfs_mntpoint.joinpath("tracing/trace")
         self._paths["trace_pipe"] = self._debugfs_mntpoint.joinpath("tracing/trace_pipe")
         self._paths["tracing_on"] = self._debugfs_mntpoint.joinpath("tracing/tracing_on")
+        self._paths["current_tracer"] = self._debugfs_mntpoint.joinpath("tracing/current_tracer")
+        self._paths["set_event"] = self._debugfs_mntpoint.joinpath("tracing/set_event")
 
         for path in self._paths.values():
             if not self._pman.is_file(path):
@@ -123,6 +125,22 @@ class FTrace(ClassHelpers.SimpleCloseContext):
                 _LOG.debug("enabling tracing")
                 fobj.write("1")
                 self._disable_tracing = True
+
+        # Set current tracer to 'nop'. There are multiple ftrace output
+        # formats, and not all are supported by this module. Reset ftrace
+        # to the default format.
+        with self._pman.open(self._paths["current_tracer"], "w+") as fobj:
+            val = fobj.read()
+            if val.strip() != "nop":
+                _LOG.debug("setting tracer to 'nop'")
+                fobj.write("nop")
+
+        # Set tracer events that are supported by this module. eBPF
+        # helpers use 'bpf_trace_printk()' to pass information, such as
+        # debugging messages. Enable the corresponding event.
+        with self._pman.open(self._paths["set_event"], "w") as fobj:
+            _LOG.debug("setting trace events to 'bpf_trace_printk'")
+            fobj.write("bpf_trace:bpf_trace_printk")
 
         self._clear()
         self._reader = self._pman.run_async(cmd)
