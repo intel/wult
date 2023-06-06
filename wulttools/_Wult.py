@@ -281,7 +281,7 @@ def _parse_arguments():
 def _deploy_command(args):
     """Implements the 'wult deploy' command."""
 
-    from wulttools import _WultDeploy # pylint: disable=import-outside-toplevel
+    from wulttools.wult import _WultDeploy # pylint: disable=import-outside-toplevel
 
     if args.skip_drivers:
         del args.deploy_info["installables"]["wult"]
