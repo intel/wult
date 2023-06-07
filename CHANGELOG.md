@@ -9,6 +9,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 ### Changed
 
+## [1.11.22] - 2023-06-07
+### Fixed
+ - Fix SVOS distro compilation issues.
+
 ## [1.11.21] - 2023-06-07
 ### Fixed
  - Fix turbostat tabs failing to generate because of two or more results do not
