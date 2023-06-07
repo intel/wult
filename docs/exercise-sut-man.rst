@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date: 2023-05-30
+:Date: 2023-06-07
 
 .. contents::
    :depth: 3
@@ -58,14 +58,14 @@ usage: exercise-sut start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K
 PRIVKEY] [-T TIMEOUT] [--datapoints DATAPOINTS] [--reportid-prefix
 REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpunums CPUNUMS]
 [--cstates CSTATES] [--pcstates PCSTATES] [--only-one-cstate]
-[--cstates-always-enable CSTATES_ALWAYS_ENABLE] [--freqs FREQS]
-[--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR] [--aspm ASPM]
+[--cstates-always-enable CSTATES_ALWAYS_ENABLE] [--turbo TURBO] [--freqs
+FREQS] [--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR] [--aspm ASPM]
 [--c1-demotion C1_DEMOTION] [--c1-undemotion C1_UNDEMOTION]
 [--c1e-autopromote C1E_AUTOPROMOTE] [--cstate-prewake CSTATE_PREWAKE]
 [--epp EPP] [--epp-hw EPP_HW] [--epb EPB] [--epb-hw EPB_HW]
-[--state-reset] [--deploy] [--devids DEVIDS] [--stop-on-failure]
-[--only-measured-cpu] [--toolpath TOOLPATH] [--toolopts TOOLOPTS]
-[--outdir OUTDIR] [--dry-run] [--list-monikers]
+[--state-reset] [--deploy] [--devids DEVIDS] [--command COMMAND]
+[--stop-on-failure] [--only-measured-cpu] [--toolpath TOOLPATH]
+[--toolopts TOOLOPTS] [--outdir OUTDIR] [--dry-run] [--list-monikers]
 
 Run a test tool or benchmark to collect testdata. Unknown options are
 passed as-is to the tool.
@@ -98,7 +98,7 @@ OPTIONS *'exercise-sut* start'
    SSH connect timeout in seconds, default is 8.
 
 **--datapoints** *DATAPOINTS*, **-c** *DATAPOINTS*
-   Applicable only for 'wult' and 'ndl' tools. Number of datapoints to
+   Applicable only to 'wult' and 'ndl' tools. Number of datapoints to
    collect per measurement. Default is 100000.
 
 **--reportid-prefix** *REPORTID_PREFIX*
@@ -108,7 +108,7 @@ OPTIONS *'exercise-sut* start'
    String to append to the report ID (nothing, by default).
 
 **--cpunums** *CPUNUMS*
-   Applicable only for the 'wult' and 'ndl' tools. Comma-separated list
+   Applicable only to the 'wult' and 'ndl' tools. Comma-separated list
    of CPU numbers to measure with. No CPU number is passed by default.
 
 **--cstates** *CSTATES*
@@ -126,6 +126,10 @@ OPTIONS *'exercise-sut* start'
 
 **--cstates-always-enable** *CSTATES_ALWAYS_ENABLE*
    Comma-separated list of always enabled C-states. Default is 'None'.
+
+**--turbo** *TURBO*
+   Comma-separated list of turbo configurations to measure with. The
+   default is "on". Supported values are "on" and "off".
 
 **--freqs** *FREQS*
    Comma-separated list of frequencies to be measured with. For more
@@ -184,17 +188,21 @@ OPTIONS *'exercise-sut* start'
    Set SUT settings to default values before starting measurements. The
    default values are: online all CPUs, enable all C-states, disable C1
    demotion, disable C1 undemotion, disable C1E autopromotion, disable
-   C-state prewake, unlock CPU frequency, unlock uncore frequency, set
-   EPP policy to 'balance_performance', set EPB policy to
+   C-state prewake, enable turbo, unlock CPU frequency, unlock uncore
+   frequency, set EPP policy to 'balance_performance', set EPB policy to
    'balance-performance'.
 
 **--deploy**
-   Applicable only for 'wult' and 'ndl' tools. Run the 'deploy' command
+   Applicable only to 'wult' and 'ndl' tools. Run the 'deploy' command
    before starting the measurements.
 
 **--devids** *DEVIDS*
-   Applicable only for 'wult' and 'ndl' tools. Comma-separated list of
+   Applicable only to 'wult' and 'ndl' tools. Comma-separated list of
    device IDs to run the tools with.
+
+**--command** *COMMAND*
+   Applicable only to 'stats-collect' tool. The command to that
+   'stats-collect' should run.
 
 **--stop-on-failure**
    Stop if any of the steps fail, instead of continuing (default).

@@ -1,4 +1,4 @@
-.TH EXERCISE\-SUT "1" "2023\-05\-30" "wult" "Generated Python Manual"
+.TH EXERCISE\-SUT "1" "2023\-06\-07" "wult" "Generated Python Manual"
 .SH NAME
 exercise\-sut
 .SH SYNOPSIS
@@ -39,9 +39,9 @@ Generate reports.
 
 .SH COMMAND \fI\,'exercise\-sut start'\/\fR
 usage: exercise\-sut start [\-h] [\-q] [\-d] [\-H HOSTNAME] [\-U USERNAME] [\-K PRIVKEY] [\-T TIMEOUT] [\-\-datapoints DATAPOINTS] [\-\-reportid\-prefix REPORTID_PREFIX] [\-\-reportid\-suffix REPORTID_SUFFIX] [\-\-cpunums CPUNUMS] [\-\-cstates CSTATES]
-                          [\-\-pcstates PCSTATES] [\-\-only\-one\-cstate] [\-\-cstates\-always\-enable CSTATES_ALWAYS_ENABLE] [\-\-freqs FREQS] [\-\-uncore\-freqs UNCORE_FREQS] [\-\-governor GOVERNOR] [\-\-aspm ASPM] [\-\-c1\-demotion C1_DEMOTION]
-                          [\-\-c1\-undemotion C1_UNDEMOTION] [\-\-c1e\-autopromote C1E_AUTOPROMOTE] [\-\-cstate\-prewake CSTATE_PREWAKE] [\-\-epp EPP] [\-\-epp\-hw EPP_HW] [\-\-epb EPB] [\-\-epb\-hw EPB_HW] [\-\-state\-reset] [\-\-deploy] [\-\-devids DEVIDS]
-                          [\-\-stop\-on\-failure] [\-\-only\-measured\-cpu] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-dry\-run] [\-\-list\-monikers]
+                          [\-\-pcstates PCSTATES] [\-\-only\-one\-cstate] [\-\-cstates\-always\-enable CSTATES_ALWAYS_ENABLE] [\-\-turbo TURBO] [\-\-freqs FREQS] [\-\-uncore\-freqs UNCORE_FREQS] [\-\-governor GOVERNOR] [\-\-aspm ASPM]
+                          [\-\-c1\-demotion C1_DEMOTION] [\-\-c1\-undemotion C1_UNDEMOTION] [\-\-c1e\-autopromote C1E_AUTOPROMOTE] [\-\-cstate\-prewake CSTATE_PREWAKE] [\-\-epp EPP] [\-\-epp\-hw EPP_HW] [\-\-epb EPB] [\-\-epb\-hw EPB_HW] [\-\-state\-reset]
+                          [\-\-deploy] [\-\-devids DEVIDS] [\-\-command COMMAND] [\-\-stop\-on\-failure] [\-\-only\-measured\-cpu] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-dry\-run] [\-\-list\-monikers]
 
 Run a test tool or benchmark to collect testdata. Unknown options are passed as\-is to the tool.
 
@@ -76,7 +76,7 @@ SSH connect timeout in seconds, default is 8.
 
 .TP
 \fB\-\-datapoints\fR \fI\,DATAPOINTS\/\fR, \fB\-c\fR \fI\,DATAPOINTS\/\fR
-Applicable only for 'wult' and 'ndl' tools. Number of datapoints to collect per measurement. Default is 100000.
+Applicable only to 'wult' and 'ndl' tools. Number of datapoints to collect per measurement. Default is 100000.
 
 .TP
 \fB\-\-reportid\-prefix\fR \fI\,REPORTID_PREFIX\/\fR
@@ -88,7 +88,7 @@ String to append to the report ID (nothing, by default).
 
 .TP
 \fB\-\-cpunums\fR \fI\,CPUNUMS\/\fR
-Applicable only for the 'wult' and 'ndl' tools. Comma\-separated list of CPU numbers to measure with. No CPU number is passed by default.
+Applicable only to the 'wult' and 'ndl' tools. Comma\-separated list of CPU numbers to measure with. No CPU number is passed by default.
 
 .TP
 \fB\-\-cstates\fR \fI\,CSTATES\/\fR
@@ -105,6 +105,10 @@ By default C\-states deeper than measured C\-state are disabled and other C\-sta
 .TP
 \fB\-\-cstates\-always\-enable\fR \fI\,CSTATES_ALWAYS_ENABLE\/\fR
 Comma\-separated list of always enabled C\-states. Default is 'None'.
+
+.TP
+\fB\-\-turbo\fR \fI\,TURBO\/\fR
+Comma\-separated list of turbo configurations to measure with. The default is "on". Supported values are "on" and "off".
 
 .TP
 \fB\-\-freqs\fR \fI\,FREQS\/\fR
@@ -156,16 +160,20 @@ Comma\-separated list of EPB configurations to measure with. Default is "don't c
 
 .TP
 \fB\-\-state\-reset\fR
-Set SUT settings to default values before starting measurements. The default values are: online all CPUs, enable all C\-states, disable C1 demotion, disable C1 undemotion, disable C1E autopromotion, disable C\-state prewake, unlock CPU
-frequency, unlock uncore frequency, set EPP policy to 'balance_performance', set EPB policy to 'balance\-performance'.
+Set SUT settings to default values before starting measurements. The default values are: online all CPUs, enable all C\-states, disable C1 demotion, disable C1 undemotion, disable C1E autopromotion, disable C\-state prewake, enable turbo,
+unlock CPU frequency, unlock uncore frequency, set EPP policy to 'balance_performance', set EPB policy to 'balance\-performance'.
 
 .TP
 \fB\-\-deploy\fR
-Applicable only for 'wult' and 'ndl' tools. Run the 'deploy' command before starting the measurements.
+Applicable only to 'wult' and 'ndl' tools. Run the 'deploy' command before starting the measurements.
 
 .TP
 \fB\-\-devids\fR \fI\,DEVIDS\/\fR
-Applicable only for 'wult' and 'ndl' tools. Comma\-separated list of device IDs to run the tools with.
+Applicable only to 'wult' and 'ndl' tools. Comma\-separated list of device IDs to run the tools with.
+
+.TP
+\fB\-\-command\fR \fI\,COMMAND\/\fR
+Applicable only to 'stats\-collect' tool. The command to that 'stats\-collect' should run.
 
 .TP
 \fB\-\-stop\-on\-failure\fR

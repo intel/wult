@@ -5,12 +5,17 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.11.21] - 2023-06-07
+### Fixed
  - Fix turbostat tabs failing to generate because of two or more results do not
    have enough turbostat metrics in common.
 ### Added
  - Add 'stats-collect report --reportids' option.
  - Add 'pepc power info' output to 'pepc SysInfo' tabs in HTML reports.
-### Removed
 ### Changed
  - Changed 'wult' and 'stats-collect' to skip generating SysInfo diffs if the
    files are identical to speed up report generation.
