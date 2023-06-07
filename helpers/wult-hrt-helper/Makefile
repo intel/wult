@@ -22,7 +22,7 @@ U_INC := -I$(KSRC)/tools/include \
 BPFOBJS = hrt-bpf.o
 UOBJS = wult-hrt-helper.o
 
-CFLAGS ?= -Wall -O2 -Wmissing-prototypes -Wstrict-prototypes
+CFLAGS ?= -Wall -O2 -Wmissing-prototypes -Wstrict-prototypes -Wformat -Werror=format-security
 BPF_CFLAGS ?= -O2 -g -target bpf
 LDFLAGS ?=
 

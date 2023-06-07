@@ -326,7 +326,7 @@ static int libbpf_debug_print(enum libbpf_print_level level, const char *format,
 	cur += snprintf(buf, BUFSIZ, "wult-tdt-helper: ");
 
 	vsnprintf(cur, end - cur, format, args);
-	return fprintf(stderr, buf);
+	return fprintf(stderr, "%s", buf);
 }
 
 static int parse_options(int argc, char **argv)

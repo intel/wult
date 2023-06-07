@@ -1,6 +1,7 @@
 PREFIX ?= /tmp/ndl-helper
 BINDIR := $(PREFIX)/bin
 TOOLNAME = ndl-helper
+CFLAGS ?= -Wall -O2 -Wmissing-prototypes -Wstrict-prototypes -Wformat -Werror=format-security
 
 all: $(TOOLNAME)
 
