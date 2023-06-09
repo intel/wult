@@ -63,10 +63,14 @@ static int max_ldist;
 static struct tdt_bpf_event bpf_event;
 static u64 ltimec;
 static u32 ldist;
-static u64 calibrate_timer_delta;
 static bool timer_armed;
 static bool restart_timer;
 static int perf_ev_amt;
+
+static bool reading_tsc;
+static int tsc_event_count;
+static bool tsc_event_captured;
+static struct perf_event *tsc_event;
 
 const u32 linux_version_code = LINUX_VERSION_CODE;
 
@@ -87,8 +91,30 @@ static u64 read_tsc(void)
 	u64 count;
 	s64 err;
 
-	count = bpf_perf_event_read(&perf, MSR_TSC);
-	err = (s64)count;
+	/*
+	 * Read the relative value of TSC via perf. We don't really care
+	 * about the returned value except for error checking, instead
+	 * we read the raw TSC value later by directly accessing the
+	 * kernel data structure via bpf_core_read().
+	 */
+	reading_tsc = true;
+	tsc_event_count = 0;
+	err = bpf_perf_event_read(&perf, MSR_TSC);
+	reading_tsc = false;
+
+	/*
+	 * If TSC event hasn't been captured yet, check if we captured it now.
+	 * This requires that the event_count is one and one only.
+	 * If it is still not captured, we don't know the raw TSC value,
+	 * so we just bail out returning 0.
+	 */
+	if (!tsc_event_captured) {
+		if (tsc_event_count == 1) {
+			tsc_event_captured = true;
+			dbgmsg("Captured TSC event %p", tsc_event);
+		} else
+			return 0;
+	}
 
 	/*
 	 * Check if reading TSC has failed for some reason. This is not
@@ -98,6 +124,13 @@ static u64 read_tsc(void)
 	if (err >= -512 && err < 0) {
 		errmsg("TSC read error: %d", err);
 		count = 0;
+	} else {
+		/*
+		 * Read the raw performance counter value from the saved
+		 * perf_event as it has just been updated by the above
+		 * call to the bpf_perf_event_read().
+		 */
+		bpf_core_read(&count, sizeof(u64), &tsc_event->hw.prev_count);
 	}
 
 	return count;
@@ -338,7 +371,6 @@ int tdt_bpf_setup(struct tdt_bpf_args *args)
 	struct bpf_timer *timer;
 	u32 freq;
 
-	calibrate_timer_delta = args->timer_calib;
 	if (args->perf_ev_amt > WULT_TDT_HELPER_NUM_PERF_COUNTERS)
 		return -EINVAL;
 
@@ -448,6 +480,23 @@ int BPF_PROG(tdt_bpf_nmi_handler, void *handler, s64 t, int vector)
 }
 
 /*
+ * Capture handle to the TSC perf_event. This handle is used later to
+ * directly read the raw TSC value from kernel data structure whenever
+ * needed. Only needs to effectively execute once during the startup
+ * of the program as the pointer will not change after that.
+ */
+SEC("kprobe/msr_event_update")
+int BPF_KPROBE(tdt_bpf_msr_event_update_entry, struct perf_event *event)
+{
+	if (reading_tsc && !tsc_event_captured) {
+		tsc_event = event;
+		tsc_event_count++;
+	}
+
+	return 0;
+}
+
+/*
  * Write MSR tracepoint. This captures any MSR writes to the system,
  * and specifically this is used to capture the next HW timer programming,
  * so that we know the cycle accurate time of the next timer expire.
@@ -458,9 +507,19 @@ int BPF_PROG(tdt_bpf_write_msr, unsigned int msr, u64 val)
 	int cpu_id = bpf_get_smp_processor_id();
 
 	if (cpu_id == cpu_num && msr == MSR_IA32_TSC_DEADLINE)
-		ltimec = val - calibrate_timer_delta;
+		ltimec = val;
 
 	return 0;
+}
+
+/*
+ * Check if TSC perf event has been captured yet or not. Returns true
+ * if it has been captured, false otherwise.
+ */
+SEC("syscall")
+int tdt_bpf_tsc_event_captured(void *args)
+{
+	return tsc_event_captured;
 }
 
 /*

@@ -39,6 +39,9 @@
 	__retval; \
 	})
 
+#define tdt_bpf__detach_prog(s,pname) \
+	bpf_link__destroy(s->links.tdt_bpf_ ## pname)
+
 static char ver_buf[256];
 static char *version = ver_buf;
 
@@ -423,54 +426,44 @@ static int parse_options(int argc, char **argv)
 	return 0;
 }
 
-static inline u64 rdtsc(void)
+/*
+ * Waits until eBPF side has had enough time to capture the TSC perf event.
+ * Lets the eBPF to execute some time in the idle loop, and periodically
+ * polls if the perf event has been captured or not. Attaches a temporary
+ * kprobe to capture the event, and once done removes it so that it
+ * doesn't unnecessarily delay perf event update routines later when
+ * it is not needed.
+ */
+static int capture_tsc_perf(struct tdt_bpf *skel)
 {
-	u32 low, high;
-	__asm__ __volatile__("rdtscp" : "=a" (low), "=d" (high));
-	return ((u64)high << 32) | low;
-}
+	int err;
+	LIBBPF_OPTS(bpf_test_run_opts, topts);
+	struct timespec tv = {0, 10};
 
-static int calibrate_tsc(int fd)
-{
-	int i, read_cnt;
-	u64 tsc, tsc_perf, tsc1;
-	u64 min_diff = 0;
-	u64 tsc_cal, tsc_diff;
-
-	if (fd < 0) {
-		errmsg("No TSC PMU file detected for calibration.");
+	err = tdt_bpf__attach_prog(skel, msr_event_update_entry);
+	if (err)
 		return -1;
-	}
 
-	for (i = 0; i < 100; i++) {
-		tsc1 = rdtsc();
-
-		read_cnt = read(fd, &tsc_perf, sizeof(u64));
-		if (read_cnt == -1) {
-			syserrmsg("failed to read TSC counter via perf");
-			return -1;
-		}
-
-		tsc = rdtsc();
-
-		/* Ignore first few values */
-		if (i < 10)
-			continue;
+	while (1) {
+		/*
+		 * Sleep for a bit. This lets idle to kick in and to attempt
+		 * to read TSC.
+		 */
+		usleep(100);
 
 		/*
-		 * Search for minimum TSC delta; this gives most accurate
-		 * result for the calibration value.
+		 * Check if we captured the event. We call the
+		 * tdt_bpf_tsc_event_captured() function and if its return
+		 * value is true, we have captured the event.
 		 */
-		tsc_diff = tsc - tsc1;
+		err = bpf_prog_test_run_opts(
+			bpf_program__fd(skel->progs.tdt_bpf_tsc_event_captured),
+			&topts);
+		if (topts.retval)
+			break;
+        }
 
-		if (min_diff && min_diff < tsc_diff)
-			continue;
-
-		min_diff = tsc_diff;
-
-		bpf_args.timer_calib =
-			tsc1 + (tsc - tsc1) / 3 - tsc_perf;
-	}
+	tdt_bpf__detach_prog(skel, msr_event_update_entry);
 
 	return 0;
 }
@@ -484,7 +477,6 @@ int main(int argc, char **argv)
 	u32 value;
 	int fd;
 	int pmu_fd;
-	int tsc_fd = -1;
 	int perf_map_fd;
 	FILE *f;
 	struct ring_buffer *event_rb;
@@ -578,19 +570,7 @@ int main(int argc, char **argv)
 			       pmu_configs[i].type, pmu_configs[i].attr.config);
 			exit(1);
 		}
-
-		if (i == MSR_TSC)
-			tsc_fd = pmu_fd;
 	}
-
-	/* Calibrate the TSC value from perf against locally read TSC */
-	err = calibrate_tsc(tsc_fd);
-	if (err) {
-		errmsg("failed to calibrate TSC");
-		goto cleanup;
-	}
-
-	verbose("TSC calibration value: %lu", bpf_args.timer_calib);
 
 	err = bpf_prog_test_run_opts(
 			bpf_program__fd(skel->progs.tdt_bpf_setup),
@@ -607,6 +587,8 @@ int main(int argc, char **argv)
 	}
 
 	tsc_to_nsec = bpf_args.tsc_khz / 1000000.0;
+
+	capture_tsc_perf(skel);
 
 	verbose("TSC rate: %ukHz, tsc_to_nsec=%e", bpf_args.tsc_khz,
 		tsc_to_nsec);

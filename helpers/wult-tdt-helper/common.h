@@ -63,7 +63,6 @@ struct tdt_bpf_args {
 	u32 min_ldist;
 	u32 max_ldist;
 	u32 tsc_khz;
-	u64 timer_calib;
 	int perf_ev_amt;
 };
 
