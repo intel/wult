@@ -4,9 +4,7 @@
  * Author: Tero Kristo <tero.kristo@linux.intel.com>
  */
 
-#include <uapi/linux/bpf.h>
-#include <uapi/linux/time.h>
-#include <uapi/linux/errno.h>
+#include "vmlinux.h"
 #include <linux/version.h>
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
@@ -28,6 +26,11 @@
 #define PWR_EVENT_EXIT -1
 
 #define MSR_IA32_TSC_DEADLINE		0x6e0
+
+#define CLOCK_MONOTONIC			1
+
+#define ENOENT				2
+#define EINVAL				22
 
 extern const void tsc_khz __ksym;
 

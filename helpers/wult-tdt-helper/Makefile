@@ -40,7 +40,7 @@ all: $(TOOLNAME)
 # not need to be re-built. The below special target fixes the problem.
 .DELETE_ON_ERROR:
 
-$(BPFOBJS): %.o: %.c
+$(BPFOBJS): %.o: %.c vmlinux.h
 	$(CLANG) $(BPF_INC) \
 		-D__KERNEL__ -D__BPF_TRACING__ -D__TARGET_ARCH_x86 \
 		-Wno-unused-value -Wno-pointer-sign \
@@ -61,6 +61,9 @@ $(TOOLNAME): $(UOBJS)
 	$(CC) -o $@ $(UOBJS) $(CFLAGS) $(LIBBPF) $(LDFLAGS) -lrt
 
 bpf: $(BPFOBJS)
+
+vmlinux.h:
+	$(BPFTOOL) btf dump file /sys/kernel/btf/vmlinux format c > vmlinux.h
 
 clean:
 	rm -f $(BPFOBJS) $(UOBJS) $(TOOLNAME)
