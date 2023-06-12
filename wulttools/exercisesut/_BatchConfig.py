@@ -143,7 +143,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         """Return 'CPUIdle.CPUIdle()' object."""
 
         if not self._cpuidle:
-            self._cpuidle = CPUIdle.CPUIdle(pman=self._pman)
+            self._cpuidle = CPUIdle.CPUIdle(pman=self._pman, cpuinfo=self._get_cpuinfo())
         return self._cpuidle
 
     def _get_cstates(self):
