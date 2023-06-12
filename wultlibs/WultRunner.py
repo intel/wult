@@ -203,10 +203,11 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             except Error as err:
                 raise Error(errmsg) from err
 
-            idleoption = [item for item in cmdline.split() if "idle=" in item]
-            if idleoption:
-                errmsg += f". Your system uses the '{idleoption[0]}' kernel boot parameter, try " \
-                          f"removing it."
+            for opt in cmdline.split():
+                if opt == "cpuidle.off=1" or opt.startswith("idle="):
+                    errmsg += f". Your system has '{opt}' kernel boot parameter, try removing it."
+                    raise Error(errmsg)
+
             raise Error(errmsg)
 
         supported = ("intel_idle", "acpi_idle")
