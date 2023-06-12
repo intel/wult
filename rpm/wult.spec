@@ -56,7 +56,7 @@ Wult Python libraries
 
 %install
 %pyproject_install
-%pyproject_save_files wultlibs wulttools statscollectlibs statscollecttools
+%pyproject_save_files wultlibs wulttools
 
 install -pDm755 helpers/ndl-helper/ndl-helper %{buildroot}%{_bindir}/ndl-helper
 install -pDm755 helpers/wult-hrt-helper/wult-hrt-helper %{buildroot}%{_bindir}/wult-hrt-helper
@@ -75,7 +75,6 @@ install -pDm644 docs/man1/wult.1 %{buildroot}/%{_mandir}/man1/wult.1
 %{_bindir}/ipmi-helper
 %{_bindir}/ndl
 %{_bindir}/ndl-helper
-%{_bindir}/stats-collect
 %{_bindir}/stc-agent
 %{_bindir}/wult
 %{_bindir}/wult-hrt-helper
