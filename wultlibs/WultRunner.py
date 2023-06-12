@@ -14,7 +14,7 @@ saves the results.
 import time
 import logging
 import contextlib
-from pepclibs import CStates
+from pepclibs import CPUIdle
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from pepclibs.helperlibs import ClassHelpers
 from statscollectlibs.deploylibs import DeployBase
@@ -188,12 +188,12 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._res.info["devdescr"] = self._dev.info["descr"]
         self._res.info["resolution"] = self._dev.info["resolution"]
 
-    def _validate_sut(self, cpunum):
+    def _validate_sut(self):
         """Check the SUT to insure we have everything to measure it."""
 
         # Make sure a supported idle driver is in use.
-        with CStates.CStates(pman=self._pman, cpuidle=self._cpuidle) as csobj:
-            drvname = csobj.get_cpu_prop("idle_driver", cpunum)["idle_driver"]["idle_driver"]
+        with CPUIdle.CPUIdle(pman=self._pman) as cpuidle:
+            drvname = cpuidle.get_idle_driver()
 
         if not drvname:
             errmsg = f"no idle driver in use{self._pman.hostmsg}"
@@ -245,7 +245,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             raise Error(f"unsupported non-wult test result at {res.dirpath}.\nPlease, provide a "
                         f"wult test result.")
 
-        self._validate_sut(res.cpunum)
+        self._validate_sut()
 
         self._progress = _ProgressLine.WultProgressLine(period=1)
 
