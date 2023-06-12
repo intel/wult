@@ -195,7 +195,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         with CStates.CStates(pman=self._pman, cpuidle=self._cpuidle) as csobj:
             drvname = csobj.get_cpu_prop("idle_driver", cpunum)["idle_driver"]["idle_driver"]
 
-        if drvname == "none":
+        if not drvname:
             errmsg = f"no idle driver in use{self._pman.hostmsg}"
             try:
                 cmdline = self._get_cmdline()
