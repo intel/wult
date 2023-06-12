@@ -192,7 +192,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         """Check the SUT to insure we have everything to measure it."""
 
         # Make sure a supported idle driver is in use.
-        with CStates.CStates(pman=self._pman, rcsobj=self._rcsobj) as csobj:
+        with CStates.CStates(pman=self._pman, cpuidle=self._cpuidle) as csobj:
             drvname = csobj.get_cpu_prop("idle_driver", cpunum)["idle_driver"]["idle_driver"]
 
         if drvname == "none":
@@ -214,7 +214,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             raise Error(f"unsupported idle driver '{drvname}'{self._pman.hostmsg},\n"
                         f"only the following drivers are supported: {supported}")
 
-    def __init__(self, pman, dev, res, ldist, tsc_cal_time=10, rcsobj=None, stcoll=None,
+    def __init__(self, pman, dev, res, ldist, tsc_cal_time=10, cpuidle=None, stcoll=None,
                  unload=True):
         """
         The class constructor. The arguments are as follows.
@@ -223,7 +223,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
           * res - the 'WORawResult' object to store the results at.
           * ldist - a pair of numbers specifying the launch distance range in nanoseconds.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
-          * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
+          * cpuidle - the 'CPUIdle.CPUIdle()' object initialized for the measured system.
           * stcoll - the 'StatsCollect' object to use for collecting statistics. No statistics
                      are collected by default.
           * unload - whether or not to unload the kernel driver after finishing measurement.
@@ -233,7 +233,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._dev = dev
         self._res = res
         self._ldist = ldist
-        self._rcsobj = rcsobj
+        self._cpuidle = cpuidle
         self._stcoll = stcoll
 
         self._prov = None
@@ -261,11 +261,11 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                                                               unload=unload)
 
         self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, pman, self._dev.drvname,
-                                                      tsc_cal_time=tsc_cal_time, rcsobj=rcsobj)
+                                                      tsc_cal_time=tsc_cal_time, cpuidle=cpuidle)
 
     def close(self):
         """Stop the measurements."""
 
         close_attrs = ("_dpp", "_prov")
-        unref_attrs = ("_res", "_dev", "_pman", "_rcsobj", "_stcoll")
+        unref_attrs = ("_res", "_dev", "_pman", "_cpuidle", "_stcoll")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)

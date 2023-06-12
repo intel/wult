@@ -18,11 +18,11 @@ import time
 import logging
 import itertools
 from pathlib import Path
-from pepclibs import CStates, PStates, CPUInfo
+from pepclibs import CStates, PStates, CPUIdle, CPUInfo
 from pepclibs.helperlibs import ClassHelpers, Human, LocalProcessManager, Trivial, Systemctl
 from pepclibs.helperlibs.Exceptions import Error
-from wulttools import _Common
 from statscollectlibs.helperlibs import ReportID
+from wulttools import _Common
 
 _LOG = logging.getLogger()
 
@@ -139,12 +139,12 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             self._cpuinfo = CPUInfo.CPUInfo(pman=self._pman)
         return self._cpuinfo
 
-    def _get_reqcstates(self):
-        """Return 'CStates.ReqCStates()' object."""
+    def _get_cpuidle(self):
+        """Return 'CPUIdle.CPUIdle()' object."""
 
-        if not self._rcsobj:
-            self._rcsobj = CStates.ReqCStates(pman=self._pman, cpuinfo=self._get_cpuinfo())
-        return self._rcsobj
+        if not self._cpuidle:
+            self._cpuidle = CPUIdle.CPUIdle(pman=self._pman)
+        return self._cpuidle
 
     def _get_cstates(self):
         """Return 'CStates.CStates()' object."""
@@ -197,7 +197,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         """Normalize and validate list of requestable C-state names 'csnames'."""
 
         allcsnames = []
-        for _, csinfo in self._get_reqcstates().get_cstates_info(csnames="all", cpus="all"):
+        for _, csinfo in self._get_cpuidle().get_cstates_info(csnames="all", cpus="all"):
             for csname in csinfo:
                 if csname not in allcsnames:
                     allcsnames.append(csname)
@@ -372,7 +372,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         self._pman = pman
 
         self._cpuinfo = None
-        self._rcsobj = None
+        self._cpuidle = None
         self._csobj = None
         self._psobj = None
 
@@ -387,7 +387,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
     def close(self):
         """Uninitialize the class object."""
 
-        ClassHelpers.close(self, close_attrs={"_cpuinfo", "_rcsobj", "_csobj", "_psobj"})
+        ClassHelpers.close(self, close_attrs={"_cpuinfo", "_cpuidle", "_csobj", "_psobj"})
 
 class _PepcCmdFormatter(_PropIteratorBase):
     """A Helper class for creating 'pepc' commands."""

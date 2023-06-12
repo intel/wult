@@ -16,7 +16,7 @@ from pathlib import Path
 from pepclibs.helperlibs import Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs.msr import PowerCtl
-from pepclibs import CStates, CPUInfo
+from pepclibs import CPUIdle, CPUInfo
 from statscollectlibs.collector import StatsCollectBuilder
 from wultlibs.deploylibs import _Deploy
 from wultlibs.helperlibs import Human
@@ -157,13 +157,13 @@ def start_command(args):
         if getattr(dev, "netif", None):
             _Common.start_command_check_network(args, pman, dev.netif)
 
-        rcsobj = CStates.ReqCStates(pman=pman)
-        csinfo = rcsobj.get_cpu_cstates_info(res.cpunum)
+        cpuidle = CPUIdle.CPUIdle(pman=pman)
+        csinfo = cpuidle.get_cpu_cstates_info(res.cpunum)
 
         _check_settings(pman, dev, csinfo, args.cpunum, args.devid)
 
         runner = WultRunner.WultRunner(pman, dev, res, args.ldist, tsc_cal_time=args.tsc_cal_time,
-                                       rcsobj=rcsobj, stcoll=stcoll, unload=not args.no_unload)
+                                       cpuidle=cpuidle, stcoll=stcoll, unload=not args.no_unload)
         stack.enter_context(runner)
 
         runner.prepare()

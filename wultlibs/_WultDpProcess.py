@@ -11,7 +11,7 @@ This module provides the 'DatapointProcessor' class which implements raw datapoi
 """
 
 import logging
-from pepclibs import CStates
+from pepclibs import CPUIdle
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import WultDefs
@@ -177,21 +177,21 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         for csname in delete_csnames:
             del self._intr_order[csname]
 
-    def __init__(self, cpunum, pman, rcsobj=None):
+    def __init__(self, cpunum, pman, cpuidle=None):
         """
         The class constructor. The arguments are as follows.
           * cpunum - the measured CPU number.
           * pman - the process manager object that defines the host to run the measurements on.
-          * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
+          * cpuidle - the 'CPUIdle.CPUIdle()' object initialized for the measured system.
         """
 
         self._cpunum = cpunum
         self._pman = pman
-        self._rcsobj = rcsobj
+        self._cpuidle = cpuidle
 
-        self._close_rcsobj = rcsobj is None
+        self._close_cpuidle = cpuidle is None
 
-        # C-states information provided by ''Cstates.ReqCStates()'
+        # C-states information provided by 'CPUIdle.CPUIdle()'
         self._rcsinfo = None
         # C-state index -> C-state name dictionary..
         self._idx2name = {}
@@ -205,16 +205,16 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         #   * 'False' if the C-state is requested with interrupts enabled.
         self._introff = {}
 
-        if not self._rcsobj:
-            self._rcsobj = CStates.ReqCStates(pman=self._pman)
+        if not self._cpuidle:
+            self._cpuidle = CPUIdle.CPUIdle(pman=self._pman)
 
-        self._rcsinfo = self._rcsobj.get_cpu_cstates_info(self._cpunum)
+        self._rcsinfo = self._cpuidle.get_cpu_cstates_info(self._cpunum)
 
         self._init_idx2name()
 
     def close(self):
         """Uninitialize and close the object."""
-        ClassHelpers.close(self, close_attrs=("_rcsobj",), unref_attrs=("_pman", "_rcsinfo"))
+        ClassHelpers.close(self, close_attrs=("_cpuidle",), unref_attrs=("_pman", "_rcsinfo"))
 
 class _TSCRate:
     """
@@ -760,14 +760,14 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             for field in raw_fields:
                 self._fields[field] = None
 
-    def __init__(self, cpunum, pman, drvname, tsc_cal_time=10, rcsobj=None):
+    def __init__(self, cpunum, pman, drvname, tsc_cal_time=10, cpuidle=None):
         """
         The class constructor. The arguments are as follows.
           * cpunum - the measured CPU number.
           * pman - the process manager object that defines the host to run the measurements on.
           * drvname - name of the driver providing the datapoints.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
-          * rcsobj - the 'Cstates.ReqCStates()' object initialized for the measured system.
+          * cpuidle - the 'CPUIdle.CPUIdle()' object initialized for the measured system.
         """
 
         self._cpunum = cpunum
@@ -787,7 +787,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         self._cs_fields = None
         self._us_fields_set = None
 
-        self._csobj = _CStates(self._cpunum, self._pman, rcsobj=rcsobj)
+        self._csobj = _CStates(self._cpunum, self._pman, cpuidle=cpuidle)
         self._tscrate = _TSCRate(tsc_cal_time)
 
     def close(self):
