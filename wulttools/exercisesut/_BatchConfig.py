@@ -150,7 +150,8 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         """Return 'CStates.CStates()' object."""
 
         if not self._csobj:
-            self._csobj = CStates.CStates(pman=self._pman, cpuinfo=self._get_cpuinfo())
+            self._csobj = CStates.CStates(pman=self._pman, cpuinfo=self._get_cpuinfo(),
+                                          cpuidle=self._get_cpuidle())
         return self._csobj
 
     def _get_pstates(self):
