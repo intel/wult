@@ -34,8 +34,6 @@ EXERCISESUT_RST_FILE="$BASEDIR/docs/exercise-sut-man.rst"
 
 # Path to 'pepc' project sources.
 PEPC_SRC_PATH="$BASEDIR/../pepc"
-# Path to the CHANGELOG.md file of the 'pepc' project.
-PEPC_CHANGELOG_MD="$PEPC_SRC_PATH/CHANGELOG.md"
 # Path to the script converting CHANGELOG.md into debian changelog.
 CHANGELOG_MD_TO_DEBIAN="$PEPC_SRC_PATH/misc/changelog_md_to_debian"
 # Path to the script that prepares CHANGELOG.md for the release.
@@ -52,10 +50,6 @@ Usage: ${0##*/} [optins] <new_ver>
 
 <new_ver> - new tool version to make in X.Y.Z format. The X.Y.(Z+1) version
             will be used by default.
-
-Options:
-  -P, --pepc-version - version of the 'pepc' project this 'wult' version
-                       requires.
 EOF
 }
 
@@ -82,18 +76,12 @@ ask_question() {
 	done
 }
 
-TEMP=$(getopt -n $PROG -o P:,h --long pepc-version:,help -- "$@" 2>&1) || fail_usage "$TEMP"
+TEMP=$(getopt -n $PROG -o h --long help -- "$@" 2>&1) || fail_usage "$TEMP"
 eval set -- "$TEMP"
-
-pepcver=
 
 if [ $# -gt 0 ]; then
     while true; do
         case "$1" in
-        -P|--pepc-version)
-            pepcver="$2"
-            shift
-            ;;
         -h|--help)
             usage
             exit 0
@@ -123,23 +111,23 @@ else
     usage
 fi
 
-echo "New version: $new_ver"
+echo "New wult version: $new_ver"
 
 # Validate the new version.
 printf "%s" "$new_ver" | grep -q -x "$VERSION_REGEX" ||
          fatal "please, provide new version in X.Y.Z format"
 
-if [ -n "$pepcver" ]; then
-    echo "Required pepc version: $pepcver"
+pepc_ver="$(sed -n -e "s/.*pepc\s*>=\s*\($VERSION_REGEX\).*/\1/p" "$BASEDIR/setup.py")"
+stcoll_ver="$(sed -n -e "s/.*stats-collect\s*>=\s*\($VERSION_REGEX\).*/\1/p" "$BASEDIR/setup.py")"
 
-    # Validate the pepc dependency version.
-    grep -q -x "^## \[$pepcver\] - .*" $PEPC_CHANGELOG_MD && exit_status=0 || exit_status="$?"
-    if [ "$exit_status" == "1" ]; then
-        fatal "bad pepc version \"$pepcver\": not found in \"$PEPC_CHANGELOG_MD\""
-    elif [ "$exit_status" != "0" ]; then
-        exit 1
-    fi
-fi
+echo "Dependency: pepc version >= $pepc_ver"
+echo "Dependency: stats-collect version >= $stcoll_ver"
+
+# Validate 'pepc' and 'stats-collect' versions.
+printf "%s" "$pepc_ver" | grep -q -x "$VERSION_REGEX" ||
+         fatal "bad 'pepc' version '$pepc_ver' in '$BASEDIR/setup.py'"
+printf "%s" "$stcoll_ver" | grep -q -x "$VERSION_REGEX" ||
+         fatal "bad 'stats-collect' version '$stcoll_ver' in '$BASEDIR/setup.py'"
 
 # Make sure that the current branch is 'main' or 'release'.
 current_branch="$(git -C "$BASEDIR" branch | sed -n -e '/^*/ s/^* //p')"
@@ -150,14 +138,13 @@ fi
 # Remind the maintainer about various important things.
 ask_question "Did you run tests"
 ask_question "Did you update 'CHANGELOG.md'"
-ask_question "Did you specify the min. required pepc version"
 
-if [ -n "$pepcver" ]; then
-    # Update 'pepc' version dependency.
-    sed -i -e "s/\(pepc\s*>=\s*\)$VERSION_REGEX/\1$pepcver/g" "$BASEDIR/setup.py"
-    sed -i -e "s/\(pepc\s*>=\s*\)$VERSION_REGEX/\1$pepcver/g" "$BASEDIR/rpm/wult.spec"
-    sed -i -e "s/^\(\s\+pepc\s*(>=\s*\)$VERSION_REGEX)/\1$pepcver)/g" "$BASEDIR/debian/control"
-fi
+# Update 'pepc' version.
+sed -i -e "s/\(pepc\s*>=\s*\)$VERSION_REGEX/\1$pepc_ver/g" "$BASEDIR/rpm/wult.spec"
+sed -i -e "s/^\(\s\+pepc\s*(>=\s*\)$VERSION_REGEX)/\1$pepc_ver)/g" "$BASEDIR/debian/control"
+# Update 'stats-collect' version.
+sed -i -e "s/\(stats-collect\s*>=\s*\)$VERSION_REGEX/\1$stcoll_ver/g" "$BASEDIR/rpm/wult.spec"
+sed -i -e "s/^\(\s\+stats-collect\s*(>=\s*\)$VERSION_REGEX)/\1$stcoll_ver)/g" "$BASEDIR/debian/control"
 
 # Update CHANGELOG.md.
 "$PREPARE_CHENGELOG_MD" "$new_ver" "$CHANGELOG_FILE"
