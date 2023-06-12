@@ -192,9 +192,10 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         """Check the SUT to insure we have everything to measure it."""
 
         # Make sure a supported idle driver is in use.
-        with CPUIdle.CPUIdle(pman=self._pman) as cpuidle:
-            drvname = cpuidle.get_idle_driver()
+        if not self._cpuidle:
+            self._cpuidle = CPUIdle.CPUIdle(self._pman)
 
+        drvname = self._cpuidle.get_idle_driver()
         if not drvname:
             errmsg = f"no idle driver in use{self._pman.hostmsg}"
             try:
@@ -236,6 +237,8 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._cpuidle = cpuidle
         self._stcoll = stcoll
 
+        self._close_cpuidle = cpuidle is None
+
         self._prov = None
         self._dpp = None
         self._timeout = 10
@@ -261,11 +264,12 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                                                               unload=unload)
 
         self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, pman, self._dev.drvname,
-                                                      tsc_cal_time=tsc_cal_time, cpuidle=cpuidle)
+                                                      tsc_cal_time=tsc_cal_time,
+                                                      cpuidle=self._cpuidle)
 
     def close(self):
         """Stop the measurements."""
 
-        close_attrs = ("_dpp", "_prov")
-        unref_attrs = ("_res", "_dev", "_pman", "_cpuidle", "_stcoll")
+        close_attrs = ("_dpp", "_prov", "_cpuidle")
+        unref_attrs = ("_res", "_dev", "_pman", "_stcoll")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)
