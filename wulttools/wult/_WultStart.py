@@ -157,7 +157,7 @@ def start_command(args):
         if getattr(dev, "netif", None):
             _Common.start_command_check_network(args, pman, dev.netif)
 
-        cpuidle = CPUIdle.CPUIdle(pman=pman)
+        cpuidle = CPUIdle.CPUIdle(pman=pman, cpuinfo=cpuinfo)
         csinfo = cpuidle.get_cpu_cstates_info(res.cpunum)
 
         _check_settings(pman, dev, csinfo, args.cpunum, args.devid)
