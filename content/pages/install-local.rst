@@ -20,21 +20,23 @@ Before describing the installation steps, here is how to update an existing wult
 1.1 pip
 -------
 
-If you installed `pepc` and `wult` using pip then use the following commands to upgrade to the
+If you installed `pepc`, `stats-collect` and `wult` using pip then use the following commands to upgrade to the
 latest release::
 
  sudo pip3 install --upgrade git+https://github.com/intel/pepc.git@release
+ sudo pip3 install --upgrade git+https://github.com/intel/stats-collect.git@release
  sudo pip3 install --upgrade git+https://github.com/intel/wult.git@release
  sudo wult deploy
 
 1.2 Fedora, CentOS 8 Stream & CentOS 9 Stream
 ---------------------------------------------
 
-If you installed `pepc` and `wult` using `dnf` on one of the supported operating systems listed
+If you installed `pepc`, `stats-collect` and `wult` using `dnf` on one of the supported operating systems listed
 in the `installation instructions`_, then upgrade to the latest version using the following
 commands::
 
- sudo dnf upgrade pepc wult
+ sudo dnf upgrade pepc stats-collect wult
+ sudo stats-collect deploy
  sudo wult deploy
 
 2 Install dependencies
@@ -43,7 +45,8 @@ commands::
 *Wult* has several dependencies. First of all, the sources of the running kernel must be installed
 on the SUT. Not just kernel headers for user-space programs, but full kernel source code.
 
-Wult also requires `pepc <https://github.com/intel/pepc>`_ to be installed.
+Wult also requires `pepc <https://github.com/intel/pepc>`_  and
+`stats-collect <https://github.com/intel/stats-collect>`_ to be installed.
 You'll also need the tools necessary for compiling kernel drivers on the SUT: `gcc`, `make`, etc.
 
 In addition to this, *wult* requires various python packages.
@@ -84,7 +87,7 @@ Here are the required OS packages.
  sudo dnf install -y kernel-devel
  sudo dnf install -y git python3 python3-devel python3-pip python3-numpy
  sudo dnf install -y python3-colorama python3-yaml python3-pandas
- sudo dnf install -y  python3-paramiko python3-argcomplete
+ sudo dnf install -y python3-paramiko python3-argcomplete
 
 **Ubuntu**
 
@@ -106,18 +109,19 @@ Here are the required OS packages.
 
 .. _installation instructions:
 
-3 Install wult and pepc
-=======================
+3 Install wult, stats-collect and pepc
+======================================
 
 .. _pip-install:
 
 3.1 pip - Recommended
 ---------------------
 
-`Wult` and `pepc` are Python 3 projects, and we recommend using the `pip` tool for installing them.
+`Wult`, `stats-collect` and `pepc` are Python 3 projects, and we recommend using the `pip` tool for installing them.
 Here is how to install them directly from the `release` branch of their git repositories: ::
 
  sudo pip3 install --upgrade git+https://github.com/intel/pepc.git@release
+ sudo pip3 install --upgrade git+https://github.com/intel/stats-collect.git@release
  sudo pip3 install --upgrade git+https://github.com/intel/wult.git@release
 
 Note, we do not suggest using the `--user` option, because in local usage model `wult` has to be run
@@ -128,30 +132,30 @@ It is recommended to install the tools using `pip` for quickest access to the la
 3.2 Fedora
 ----------
 
-`wult` and `pepc` are part of Fedora starting from Fedora 35. To install `pepc` and `wult`, run the
-following command::
+`wult`, `stats-collect` and `pepc` are part of Fedora starting from Fedora 35. To install `pepc`,
+`stats-collect`, and `wult`, run the following command::
 
- sudo dnf install -y pepc wult
+ sudo dnf install -y pepc stats-collect wult
 
 If you are using Fedora 34 or older, use the `'pip' installation method <#pip-install>`_.
 
 3.3 CentOS 9 Stream
 -------------------
 
-`wult` and `pepc` are available for CentOS 9 Stream via the `epel` repository. Here is how to add
-'epel' and install `wult` and `pepc`::
+`wult`, `stats-collect` and `pepc` are available for CentOS 9 Stream via the `epel` repository. Here
+is how to add 'epel' and install `wult`, `stats-collect` and `pepc`::
 
  sudo dnf install epel-release
- sudo dnf install pepc wult
+ sudo dnf install pepc stats-collect wult
 
 3.4 CentOS 8 Stream
 -------------------
 
-To install `wult` and `pepc` in CentOS 8 stream, you can use the `copr` repository using the
-following commands::
+To install `wult`, `stats-collect` and `pepc` in CentOS 8 stream, you can use the `copr` repository
+using the following commands::
 
  sudo dnf copr enable aekoroglu/c8s-py39 centos-stream-8-x86_64
- sudo dnf install pepc wult
+ sudo dnf install pepc stats-collect wult
 
 3.5 Ubuntu & Debian
 -------------------
@@ -162,8 +166,10 @@ continuing with the `'pip' installation method <#pip-install>`_.
 4 Deploy wult drivers
 =====================
 
-The final step is to build and deploy wult drivers. Run this command on the SUT as "root". ::
+The final step is to build and deploy `wult` drivers and `stats-collect` statistics collectors . Run
+these commands on the SUT as "root". ::
 
+ sudo stats-collect deploy
  sudo wult deploy
 
 **Important note**
@@ -174,11 +180,12 @@ different kernel, you have to re-run `wult deploy`.
 5 Tab completions
 =================
 
-`Wult` and `pepc` tools have bash tab completions support, but this will only work if you have
-certain environment variables defined. The following commands will do it: ::
+`Wult`, `stats-collect` and `pepc` tools have bash tab completions support, but this will only work
+if you have certain environment variables defined. The following commands will do it: ::
 
  eval $(register-python-argcomplete wult)
  eval $(register-python-argcomplete pepc)
+ eval $(register-python-argcomplete stats-collect)
 
 You can put these lines to your `.bashrc` file in order to have `wult` and `pepc` tab completions
 enabled by default.
