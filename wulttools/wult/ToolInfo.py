@@ -11,5 +11,5 @@ This module provides constants for information about the 'wult' tool, such as ve
 and toolname.
 """
 
-VERSION = "1.12.0"
+VERSION = "1.12.1"
 TOOLNAME = "wult"

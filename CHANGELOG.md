@@ -8,6 +8,9 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+
+## [1.12.1] - 2023-06-12
+### Changed
  - Move 'stats-collect' to a separate git repository.
 
 ## [1.11.22] - 2023-06-07
