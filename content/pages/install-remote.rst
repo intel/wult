@@ -23,8 +23,8 @@ aspects).
 =========
 
 Update the packages using the same method as described for `local installation
-<install-local.html#install-wult-and-pepc>`_ but run the `wult deploy` command with `-H SUTNAME` to
-deploy `wult` to the SUT and not locally, i.e::
+<install-local.html#installation_instructions>`_ but run the `wult deploy` command with `-H SUTNAME`
+to deploy `wult` to the SUT and not locally, i.e::
 
  wult deploy -H SUTNAME
 
@@ -46,7 +46,7 @@ Controller: ::
 
  sudo dnf install -y git python3 python3-devel python3-pip python3-numpy
  sudo dnf install -y python3-colorama python3-yaml python3-pandas
- sudo dnf install -y  python3-paramiko rsync
+ sudo dnf install -y python3-paramiko rsync
 
 **Ubuntu**
 
@@ -61,11 +61,11 @@ Controller: ::
  sudo apt install -y python3-colorama python3-yaml python3-pandas
  sudo apt install -y python3-paramiko rsync
 
-3 Install wult and pepc
-=======================
+3 Install wult, stats-collect and pepc
+======================================
 
 Install them on the controller using the same method described for `local installation
-<install-local.html#install-wult-and-pepc>`_.
+<install-local.html#installation_instructions>`_.
 
 4 Deploy wult drivers
 =====================
