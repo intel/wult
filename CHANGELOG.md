@@ -8,6 +8,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Get rid of TSC calibration logic in the 'tdt_bpf' method. Instead, use
+   kprobes to retreive absolute TSC value from the kernel.
 
 ## [1.12.1] - 2023-06-12
 ### Changed
