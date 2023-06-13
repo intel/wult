@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2022 Intel Corporation
+# Copyright (C) 2019-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -10,8 +10,9 @@
 This module includes the "report" 'ndl' command implementation.
 """
 
-from pepclibs.helperlibs import Trivial
+from pepclibs.helperlibs import Logging, Trivial
 from wulttools import _Common
+from wulttools.ndl import ToolInfo
 from wultlibs.htmlreport import NdlReport
 
 def report_command(args):
@@ -39,6 +40,8 @@ def report_command(args):
         _Common.even_up_dpcnt(rsts)
 
     args.outdir = _Common.report_command_outdir(args, rsts)
+
+    Logging.setup_stdout_logging(ToolInfo.TOOLNAME, args.outdir)
 
     rep = NdlReport.NdlReport(rsts, args.outdir, report_descr=args.report_descr,
                               xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
