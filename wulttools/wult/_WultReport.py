@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2022 Intel Corporation
+# Copyright (C) 2019-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -10,11 +10,11 @@
 This module includes the "report" 'wult' command implementation.
 """
 
-from pepclibs.helperlibs import Trivial
+from pepclibs.helperlibs import Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.htmlreport import WultReport
 from wulttools import _Common
-from wulttools.wult import _WultCommon
+from wulttools.wult import _WultCommon, ToolInfo
 
 def report_command(args):
     """Implements the 'report' command."""
@@ -54,6 +54,8 @@ def report_command(args):
         _Common.even_up_dpcnt(rsts)
 
     args.outdir = _Common.report_command_outdir(args, rsts)
+
+    Logging.setup_stdout_logging(ToolInfo.TOOLNAME, args.outdir)
 
     rep = WultReport.WultReport(rsts, args.outdir, report_descr=args.report_descr,
                                 xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
