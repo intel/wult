@@ -19,11 +19,11 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, YAML, ProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
+from statscollectlibs.helperlibs import ReportID
+from statscollectlibs.collector import StatsCollectBuilder
 from wultlibs import Devices
 from wultlibs.deploylibs import _Deploy
 from wultlibs.helperlibs import Human
-from statscollectlibs.helperlibs import ReportID
-from statscollectlibs.collector import StatsCollectBuilder
 
 _LOG = logging.getLogger()
 
