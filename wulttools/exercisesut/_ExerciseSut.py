@@ -22,7 +22,7 @@ except ImportError:
     argcomplete = None
 from pepclibs.helperlibs import ArgParse, Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error
-from wulttools.exercisesut import _BatchConfig, ToolInfo
+from wulttools.exercisesut import _BatchConfig, _BatchReport, ToolInfo
 
 TOOLNAME = ToolInfo.TOOLNAME
 VERSION = ToolInfo.VERSION
@@ -403,7 +403,7 @@ def _report_command(args):
     if not outdir:
         outdir = Path(f"{args.toolpath.name}-results")
 
-    with _BatchConfig.BatchReport(args.toolpath, outdir, args.toolopts, dry_run=args.dry_run,
+    with _BatchReport.BatchReport(args.toolpath, outdir, args.toolopts, dry_run=args.dry_run,
                                   stop_on_failure=args.stop_on_failure, proc_count=args.jobs) as \
                                   batchreport:
         diffs = []
