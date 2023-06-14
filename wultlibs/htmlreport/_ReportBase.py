@@ -587,11 +587,6 @@ class ReportBase:
                 raise Error(f"failed to read the report description file {self.report_descr}:\n"
                             f"{msg}") from err
 
-        for res in self.rsts:
-            if res.dirpath.resolve() == self.outdir.resolve():
-                # Don't create report in results directory, use 'html-report' subdirectory instead.
-                self.outdir = self.outdir.joinpath("html-report")
-
     def _init_smry_funcs(self, smry_funcs):
         """
         Assign which summary functions to calculate and include for each metric. Stores the result

@@ -72,7 +72,7 @@ def _generate_report(args):
     from wultlibs.htmlreport import WultReport # pylint: disable=import-outside-toplevel
 
     rsts = _Common.open_raw_results([args.outdir], args.toolname)
-    rep = WultReport.WultReport(rsts, args.outdir, report_descr=args.reportid)
+    rep = WultReport.WultReport(rsts, args.outdir / "html-report", report_descr=args.reportid)
     rep.relocatable = False
     rep.set_hover_metrics(_WultCommon.HOVER_METRIC_REGEXS)
     rep.generate()

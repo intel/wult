@@ -654,6 +654,8 @@ def report_command_outdir(args, rsts):
                                           additional_chars=_REPORTID_ADDITIONAL_CHARS)
     else:
         outdir = args.respaths[0]
+        # Don't create report in results directory, use 'html-report' subdirectory instead.
+        outdir = outdir.joinpath("html-report")
 
     _LOG.info("Report output directory: %s", outdir)
     return Path(outdir)

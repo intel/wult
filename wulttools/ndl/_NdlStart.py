@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2022 Intel Corporation
+# Copyright (C) 2019-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -31,7 +31,7 @@ def _generate_report(args):
     from wultlibs.htmlreport import NdlReport # pylint: disable=import-outside-toplevel
 
     rsts = _Common.open_raw_results([args.outdir], args.toolname)
-    rep = NdlReport.NdlReport(rsts, args.outdir, report_descr=args.reportid)
+    rep = NdlReport.NdlReport(rsts, args.outdir / "html-report", report_descr=args.reportid)
     rep.relocatable = False
     rep.generate()
 
