@@ -1,0 +1,136 @@
+# -*- coding: utf-8 -*-
+# vim: ts=4 sw=4 tw=100 et ai si
+#
+# Copyright (C) 2023 Intel Corporation
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Author: Antti Laakso <antti.laakso@linux.intel.com>
+#         Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+
+"""Common code for the 'exercise-sut' tool."""
+
+import sys
+import time
+import logging
+from pepclibs.helperlibs import ClassHelpers, LocalProcessManager
+
+_LOG = logging.getLogger()
+
+class CmdlineRunner(ClassHelpers.SimpleCloseContext):
+    """Helper class for running commandline commands."""
+
+    def _handle_error(self, cmd):
+        """Handle error for running command 'cmd'."""
+
+        msg = f"failed to run command:\n'{cmd}'"
+        if self._stop_on_failure:
+            msg += "\nstop processing more commands and exit"
+            _LOG.error_out(msg)
+
+        _LOG.error(msg)
+
+    def _get_completed_procs(self):
+        """Yield completed command process objects."""
+
+        for proc in self._procs:
+            if proc.poll() is None:
+                continue
+
+            yield proc
+
+    def _handle_proc(self, proc):
+        """Wait for command process 'proc' and handle the output."""
+
+        stdout, stderr, exitcode = proc.wait()
+
+        if stdout:
+            _LOG.info(stdout)
+        if stderr:
+            _LOG.info(stderr)
+
+        if exitcode != 0:
+            self._handle_error(proc.cmd)
+
+    def _active_proc_count(self):
+        """
+        Go through list of started processes, handle completed ones, and return number of active
+        processes.
+        """
+
+        procs_done = set()
+        for proc in self._get_completed_procs():
+            self._handle_proc(proc)
+            procs_done.add(proc)
+
+        self._procs -= procs_done
+
+        for proc in procs_done:
+            proc.close()
+
+        return len(self._procs)
+
+    def _run_async(self, cmd):
+        """
+        Run command 'cmd' asynchronously. If more than 'self._proc_count' processes are already
+        running, wait until one of the running processes completes before running the command.
+        """
+
+        while self._active_proc_count() >= self._proc_count:
+            # Wait until one of the commands are done.
+            time.sleep(1)
+
+        _LOG.debug("running command: '%s'", cmd)
+        proc = self._lpman.run_async(cmd)
+        self._procs.add(proc)
+
+    def _run_command(self, cmd):
+        """
+        Run command 'cmd' with process manager object 'pman'. If 'dry_run' is 'True', print the
+        command instad of running it. If any of the commands failed and 'stop_on_failure' is 'True',
+        print error and exit.
+        """
+
+        if self._dry_run:
+            _LOG.info(cmd)
+            return
+
+        _LOG.debug("running command: '%s'", cmd)
+        if self._proc_count:
+            self._run_async(cmd)
+        else:
+            res = self._lpman.run(cmd, output_fobjs=(sys.stdout, sys.stderr))
+            if res.exitcode != 0:
+                self._handle_error(cmd)
+
+    def wait(self):
+        """Wait until all commands have completed."""
+
+        while self._active_proc_count() != 0:
+            time.sleep(1)
+            continue
+
+    def __init__(self, dry_run=False, stop_on_failure=False, proc_count=None):
+        """
+        The class constructor, arguments are as follows.
+          * dry_run - if 'True', print the command instead of running it.
+          * stop_on_failure - if 'True', print error and terminate program execution.
+          * proc_count - number of processes to run in parallel.
+        """
+
+        self._dry_run = dry_run
+        self._stop_on_failure = stop_on_failure
+        self._proc_count = proc_count
+
+        self._lpman = LocalProcessManager.LocalProcessManager()
+        self._procs = set()
+
+        if self._proc_count and not dry_run:
+            _LOG.notice("running up to %s commands in parallel.", self._proc_count)
+
+    def close(self):
+        """Uninitialize the class objetc."""
+
+        for proc in self._procs:
+            proc.close()
+
+        ClassHelpers.close(self, close_attrs=("_lpman",))
