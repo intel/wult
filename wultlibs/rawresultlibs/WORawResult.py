@@ -53,7 +53,8 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
 
         # Create an empty info file in advance.
         try:
-            self.info_path.open("tw+", encoding="utf-8").close()
+            with self.info_path.open("tw+", encoding="utf-8"):
+                pass
         except OSError as err:
             raise Error(f"failed to create file '{self.info_path}':\n{err}") from None
 
@@ -167,7 +168,7 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
 
         self.info["toolname"] = toolname
         self.info["toolver"] = toolver
-        if cpunum is not None
+        if cpunum is not None:
             self.info["cpunum"] = self.cpunum
         self.info["format_version"] = FORMAT_VERSION
         self.info["reportid"] = reportid
