@@ -90,7 +90,8 @@ def start_command(args):
             args.cpunum = _resolve_cpu(pman, args.devid)
 
         args.cpunum = cpuinfo.normalize_cpu(args.cpunum)
-        res = WORawResult.WORawResult("ndl", args.toolver, args.reportid, args.outdir, args.cpunum)
+        res = WORawResult.WORawResult("ndl", args.toolver, args.reportid, args.outdir,
+                                      cpunum=args.cpunum)
         stack.enter_context(res)
 
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
