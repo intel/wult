@@ -8,7 +8,7 @@
 
 """
 This module provides constants for information about the 'exercise-sut' tool, such as version
-and toolname.
+and tool name.
 """
 
 TOOLNAME = "exercise-sut"

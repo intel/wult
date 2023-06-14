@@ -8,7 +8,7 @@
 
 """
 This module provides constants for information about the 'wult' tool, such as version
-and toolname.
+and tool name.
 """
 
 VERSION = "1.12.1"
