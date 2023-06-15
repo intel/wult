@@ -138,13 +138,15 @@ def start_command(args):
         _Common.set_filters(args, res)
 
         stcoll_builder = StatsCollectBuilder.StatsCollectBuilder()
+        stack.enter_context(stcoll_builder)
+
         if args.stats and args.stats != "none":
             stcoll_builder.parse_stnames(args.stats)
         if args.stats_intervals:
             stcoll_builder.parse_intervals(args.stats_intervals)
 
-        stcoll = stcoll_builder.build_stcoll(pman, args.reportid, cpunum=args.cpunum,
-                                             local_outdir=res.stats_path)
+        stcoll = stcoll_builder.build_stcoll_nores(pman, args.reportid, cpunum=args.cpunum,
+                                                   local_outdir=res.stats_path)
         if stcoll:
             stack.enter_context(stcoll)
 
