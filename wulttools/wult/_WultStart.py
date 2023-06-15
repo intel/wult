@@ -130,7 +130,7 @@ def start_command(args):
         _check_cpu_vendor(args, cpuinfo, pman)
 
         args.cpunum = cpuinfo.normalize_cpu(args.cpunum)
-        res = WORawResult.WORawResult("wult", args.toolver, args.reportid, args.outdir,
+        res = WORawResult.WORawResult(args.toolname, args.toolver, args.reportid, args.outdir,
                                       cpunum=args.cpunum)
         stack.enter_context(res)
 
