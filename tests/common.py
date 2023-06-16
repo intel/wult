@@ -11,17 +11,12 @@
 """Common code for test modules."""
 
 import os
-import logging
-import subprocess
 from pathlib import Path
 import pytest
 from pepclibs.helperlibs import TestRunner
-from pepclibs.helperlibs.Exceptions import Error
 from wulttools.wult import _Wult, ToolInfo as WultToolInfo
 from wulttools.ndl import _Ndl, ToolInfo as NdlToolInfo
 
-logging.basicConfig(level=logging.DEBUG)
-_LOG = logging.getLogger()
 
 def run_wult(arguments, exp_exc=None):
     """
@@ -42,29 +37,10 @@ def run_ndl(arguments, exp_exc=None):
 class CmdLineRunner():
     """Class for running commandline commands."""
 
-    @staticmethod
-    def _command(cmd):
-        """Run 'cmd' command and return output, if any."""
-
-        _LOG.debug("running: %s", " ".join([str(elt) for elt in cmd]))
-
-        try:
-            result = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
-        except subprocess.CalledProcessError as err:
-            raise Error(str(err)) from err
-
-        if not result:
-            return None
-
-        return result.decode("utf-8").strip()
-
     def _has_outdir(self, cmd):
         """Check if 'cmd' command has 'outdir' -option."""
 
-        cmd = [self._tool_path, cmd, "-h"]
-        helptext = self._command(cmd)
-
-        return "outdir" in helptext
+        return "report" in cmd
 
     def command(self, cmd, arg=None, exp_exc=None):
         """Run commandline tool with arguments."""
