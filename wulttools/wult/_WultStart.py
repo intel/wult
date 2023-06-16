@@ -51,8 +51,13 @@ def _check_settings(pman, dev, csinfo, cpunum, devid):
         # Check for the following 3 conditions to be true at the same time.
         # * C6 is enabled.
         # * C6 pre-wake is enabled.
-        # * The "tdt" method is used.
-        if devid == "tdt" and "C6" in enabled_cstates and \
+        # * A timer-based method is used.
+
+        # Hackish, but only NIC-based methods have the 'aspm_enabled' key. Use this to distinguish
+        # local timer-based methods.
+        is_timer_based = "aspm_enabled" not in dev.info
+
+        if is_timer_based and "C6" in enabled_cstates and \
             powerctl.is_cpu_feature_supported("cstate_prewake", cpunum) and \
             powerctl.is_cpu_feature_enabled("cstate_prewake", cpunum):
             _LOG.notice("C-state prewake is enabled, and this usually hides the real "
