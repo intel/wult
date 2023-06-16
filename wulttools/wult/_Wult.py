@@ -266,7 +266,7 @@ def _build_arguments_parser():
 
     return parser
 
-def _parse_arguments():
+def parse_arguments():
     """Parse input arguments."""
 
     parser = _build_arguments_parser()
@@ -306,7 +306,7 @@ def main():
     """Script entry point."""
 
     try:
-        args = _parse_arguments()
+        args = parse_arguments()
 
         if not getattr(args, "func", None):
             _LOG.error("please, run '%s -h' for help.", TOOLNAME)
