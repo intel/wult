@@ -24,6 +24,7 @@ class BatchReport(_Common.CmdlineRunner):
     def _search_result_paths(self, searchpaths):
         """Find all result paths in list of paths 'searchpaths'. Returns single list of paths."""
 
+        respaths = []
         for searchpath in searchpaths:
             if not searchpath.exists():
                 raise Error(f"input path '{searchpath}' does not exist")
@@ -33,11 +34,13 @@ class BatchReport(_Common.CmdlineRunner):
 
             for respath in os.scandir(searchpath):
                 if respath.is_dir():
-                    yield Path(respath.path)
+                    respaths.append(Path(respath.path))
 
-    def _get_result_paths(self, searchpaths, include, exclude):
+        return respaths
+
+    def _filter_result_paths(self, include, exclude):
         """
-        Find results from paths 'searchpaths'. Filter result directories with following arguments.
+        Filter result directories with following arguments.
           * include - List of monikers that must be found from the result path name.
           * exclude - List of monikers that must not be found from the result path name.
         """
@@ -52,7 +55,7 @@ class BatchReport(_Common.CmdlineRunner):
             exclude_monikers = set(Trivial.split_csv_line(exclude))
 
         respaths= []
-        for respath in self._search_result_paths(searchpaths):
+        for respath in self._respaths:
             path_monikers = respath.name.split("-")
 
             if include_monikers and not include_monikers.issubset(set(path_monikers)):
@@ -153,7 +156,7 @@ class BatchReport(_Common.CmdlineRunner):
         value.
         """
 
-        respaths = self._get_result_paths(self._searchpaths, include, exclude)
+        respaths = self._filter_result_paths(include, exclude)
 
         if diffs:
             for diff_monikers in diffs:
@@ -191,4 +194,4 @@ class BatchReport(_Common.CmdlineRunner):
         self._toolpath = self._lpman.which(args.toolpath)
         self._outdir = args.outdir
         self._toolopts = args.toolopts
-        self._searchpaths = args.respaths
+        self._respaths = self._search_result_paths(args.respaths)
