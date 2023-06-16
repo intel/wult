@@ -25,9 +25,8 @@ Test module for 'wult' project. Includes following bad input tests for both, 'wu
 # pylint: disable=redefined-outer-name
 # pylint: disable=unused-import
 
-import pytest
 from common import tool
-from pepclibs.helperlibs import Exceptions
+from pepclibs.helperlibs.Exceptions import Error
 
 def test_bad_input_data(tool):
     """Test 'filter', 'report', 'start', and 'calc' commands for bad input data."""
@@ -36,8 +35,8 @@ def test_bad_input_data(tool):
         for args in tool.bad_paths:
             if cmd == "filter":
                 args = f"--exclude index!=0 {args}"
-            with pytest.raises(Exceptions.Error):
-                tool.command(cmd, args)
+
+            tool.command(cmd, args, exp_exc=Error)
 
 def test_bad_filter_names(tool):
     """Test 'filter', 'calc' and 'report' commands for bad filter names."""
@@ -49,11 +48,10 @@ def test_bad_filter_names(tool):
                 continue
             # Need only one good testdata path.
             args = f"--{argname} 'bad_filter' {tool.good_paths[0]}"
-            with pytest.raises(Exceptions.Error):
-                tool.command(cmd, args)
+
+            tool.command(cmd, args, exp_exc=Error)
 
 def test_calc(tool):
     """Test 'calc' command for bad arguments."""
 
-    with pytest.raises(Exceptions.Error):
-        tool.command("calc", f"-f 'bad_function' {tool.good_paths[0]}")
+    tool.command("calc", f"-f 'bad_function' {tool.good_paths[0]}", exp_exc=Error)
