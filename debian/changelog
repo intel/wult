@@ -1,3 +1,11 @@
+wult (1.12.2) unstable; urgency=low
+
+  * Add report generation log to 'wult' and 'ndl' report directories.
+  * Get rid of TSC calibration logic in the 'tdt_bpf' method. Instead, use
+    kprobes to retreive absolute TSC value from the kernel.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 16 Jun 2023 00:00:00 +0200
+
 wult (1.12.1) unstable; urgency=low
 
   * Move 'stats-collect' to a separate git repository.

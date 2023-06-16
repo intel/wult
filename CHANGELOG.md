@@ -6,8 +6,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
- - Add report generation log to 'wult' and 'ndl' report directories.
 ### Removed
+### Changed
+
+## [1.12.2] - 2023-06-16
+### Added
+ - Add report generation log to 'wult' and 'ndl' report directories.
 ### Changed
  - Get rid of TSC calibration logic in the 'tdt_bpf' method. Instead, use
    kprobes to retreive absolute TSC value from the kernel.

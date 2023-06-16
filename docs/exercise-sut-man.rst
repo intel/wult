@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date: 2023-06-12
+:Date: 2023-06-16
 
 .. contents::
    :depth: 3
@@ -278,7 +278,8 @@ OPTIONS *'exercise-sut* report'
    Number of threads to use for generating reports with.
 
 **--toolpath** *TOOLPATH*
-   Path to the tool to run. Default is 'wult'.
+   By default, name of the report tool is resolved from the results.
+   This option can be used to override the tool.
 
 **--toolopts** *TOOLOPTS*
    Additional options to use for running the tool. The string
