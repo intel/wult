@@ -183,9 +183,9 @@ class BatchReport(_Common.CmdlineRunner):
         if outdir.exists():
             _LOG.warning("path '%s' exists", outdir)
 
-        cmd = f"nice -n19 ionice -c3 {self._toolpath} "
+        cmd = f"nice -n19 ionice -c3 {self.toolpath} "
 
-        if self._toolpath.name in ("wult", "ndl", "stats-collect"):
+        if self.toolpath.name in ("wult", "ndl", "stats-collect"):
             cmd += "report "
 
         if self._toolopts:
@@ -205,7 +205,7 @@ class BatchReport(_Common.CmdlineRunner):
         self._outdir = args.outdir
         self._toolopts = args.toolopts
         self._respaths = self._search_result_paths(args.respaths)
-        self._toolpath = args.toolpath
+        self.toolpath = args.toolpath
 
-        if not self._toolpath:
-            self._toolpath = self._resolve_toolpath()
+        if not self.toolpath:
+            self.toolpath = self._resolve_toolpath()

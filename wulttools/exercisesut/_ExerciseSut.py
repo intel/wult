@@ -404,11 +404,11 @@ def _report_command(args):
     if not args.respaths:
         _LOG.error_out("please, provide one or multiple paths to be searched for test results")
 
-    outdir = args.outdir
-    if not outdir:
-        outdir = Path(f"{args.toolpath.name}-results")
-
     with _BatchReport.BatchReport(args) as batchreport:
+        outdir = args.outdir
+        if not outdir:
+            outdir = Path(f"{batchreport.toolpath.name}-results")
+
         diffs = []
         if args.diffs:
             for diff_csv_line in args.diffs:
