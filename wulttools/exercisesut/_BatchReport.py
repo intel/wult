@@ -141,9 +141,9 @@ class BatchReport(_Common.CmdlineRunner):
 
             yield outdir, paths
 
-    def group_results(self, searchpaths, diffs=None, include=None, exclude=None):
+    def group_results(self, diffs=None, include=None, exclude=None):
         """
-        Find results from paths 'searchpaths'. Group results according to arguments:
+        Find results and goup them according to arguments:
           * diffs - List of lists of monikers to group results with.
           * include - Comma-separated list of monikers that must be found from the result path name.
           * exclude - Comma-separated list of monikers that must not be found from the result path
@@ -153,7 +153,7 @@ class BatchReport(_Common.CmdlineRunner):
         value.
         """
 
-        respaths = self._get_result_paths(searchpaths, include, exclude)
+        respaths = self._get_result_paths(self._searchpaths, include, exclude)
 
         if diffs:
             for diff_monikers in diffs:
@@ -191,3 +191,4 @@ class BatchReport(_Common.CmdlineRunner):
         self._toolpath = self._lpman.which(args.toolpath)
         self._outdir = args.outdir
         self._toolopts = args.toolopts
+        self._searchpaths = args.respaths

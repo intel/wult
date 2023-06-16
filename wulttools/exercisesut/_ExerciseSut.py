@@ -410,8 +410,7 @@ def _report_command(args):
                 diff_monikers = Trivial.split_csv_line(diff_csv_line, dedup=True, keep_empty=True)
                 diffs.append(diff_monikers)
 
-        for outpath, respaths in batchreport.group_results(args.respaths, diffs=diffs,
-                                                           include=args.include,
+        for outpath, respaths in batchreport.group_results(diffs=diffs, include=args.include,
                                                            exclude=args.exclude):
             batchreport.generate_report(respaths, outdir / outpath)
         batchreport.wait()
