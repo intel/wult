@@ -17,6 +17,13 @@ from pepclibs.helperlibs import TestRunner
 from wulttools.wult import _Wult, ToolInfo as WultToolInfo
 from wulttools.ndl import _Ndl, ToolInfo as NdlToolInfo
 
+def _use_local_data():
+    """
+    Helper function for 'run_wult()' and 'run_ndl()' which forces the tester to use local data
+    rather than data anywhere else on the system.
+    """
+
+    os.environ["WULT_DATA_PATH"] = str(Path(__file__).parents[1])
 
 def run_wult(arguments, exp_exc=None):
     """
@@ -27,11 +34,13 @@ def run_wult(arguments, exp_exc=None):
                  considered to be a failure.
     """
 
+    _use_local_data()
     TestRunner.run_tool(_Wult, WultToolInfo.TOOLNAME, arguments, exp_exc=exp_exc)
 
 def run_ndl(arguments, exp_exc=None):
     """Same as 'run_wult()', but runs the 'ndl' command."""
 
+    _use_local_data()
     TestRunner.run_tool(_Ndl, NdlToolInfo.TOOLNAME, arguments, exp_exc=exp_exc)
 
 class CmdLineRunner():
