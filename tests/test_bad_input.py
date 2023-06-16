@@ -43,9 +43,9 @@ def test_bad_filter_names(tool):
     """Test 'filter', 'calc' and 'report' commands for bad filter names."""
 
     for cmd in ("filter", "calc", "report"):
-        for argname in ("exclude", "include", "mexclude", "minclude"):
+        for argname in ("exclude", "include", "exclude-metrics", "include-metrics"):
             # 'report' command don't have 'mexclude' and 'minclude' arguments.
-            if cmd == "report" and argname in ("mexclude", "minclude"):
+            if cmd == "report" and argname in ("exclude-metrics", "include-metrics"):
                 continue
             # Need only one good testdata path.
             args = f"--{argname} 'bad_filter' {tool.good_paths[0]}"
