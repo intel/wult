@@ -609,7 +609,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         if reportid:
             cmd += f" --reportid {reportid} -o {self._outdir}/{reportid}"
         else:
-            cmd = f" -o {self._outdir}"
+            cmd += f" -o {self._outdir}"
 
         toolopts = self._get_toolopts(reportid)
         if toolopts:
@@ -652,7 +652,7 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
         if reportid:
             cmd += f" --reportid {reportid} -o {self._outdir}/{reportid}"
         else:
-            cmd = f" -o {self._outdir}"
+            cmd += f" -o {self._outdir}"
 
         toolopts = self._get_toolopts(reportid)
         if toolopts:
