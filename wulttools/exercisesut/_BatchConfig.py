@@ -512,7 +512,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
 class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
     """A base class to help creating commands."""
 
-    def _create_reportid(self, props, **kwargs):
+    def create_reportid(self, props, **kwargs):
         """Create report ID from used properties 'props'."""
 
         monikers = []
@@ -553,12 +553,11 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
 
         return toolopts
 
-    def get_command(self, props, **kwargs): # pylint: disable=unused-argument
+    def get_command(self, props, reportid, **kwargs): # pylint: disable=unused-argument
         """Create and return command to run the tool."""
 
         cmd = str(self.toolpath)
 
-        reportid = self._create_reportid(props)
         toolopts = self._get_toolopts(reportid)
         if toolopts:
             cmd += f" {toolopts}"
@@ -583,11 +582,10 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
 class _BenchmarkCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'benchmark' commands."""
 
-    def get_command(self, props, **kwargs):
+    def get_command(self, props, reportid, **kwargs):
         """Create and return command to run the 'benchmark' tool."""
 
-        cmd = super().get_command(props, **kwargs)
-        reportid = self._create_reportid(props)
+        cmd = super().get_command(props, reportid, **kwargs)
         return f"{cmd} --reportid {reportid} -o {self._outdir}/{reportid}"
 
 class _WultCmdFormatter(_ToolCmdFormatterBase):
@@ -620,10 +618,9 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         return cmd
 
-    def get_command(self, props, **kwargs):
+    def get_command(self, props, reportid, **kwargs):
         """Create and return 'wult' or 'ndl' command."""
 
-        reportid = self._create_reportid(props, **kwargs)
         return self._create_command(kwargs["cpu"], kwargs["devid"], reportid=reportid)
 
     def __init__(self, pman, args):
@@ -665,10 +662,9 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
 
         return cmd
 
-    def get_command(self, props, **kwargs):
+    def get_command(self, props, reportid, **kwargs):
         """Create and return 'stats-collect' command."""
 
-        reportid = self._create_reportid(props, **kwargs)
         return self._create_command(kwargs["command"], reportid=reportid)
 
     def __init__(self, pman, args):
@@ -721,10 +717,14 @@ class BatchConfig(_Common.CmdlineRunner):
         for cmd in self._pepc_formatter.get_commands(props, cpu):
             self._run_command(cmd)
 
-    def run(self, props, cpu, **kwargs):
+    def create_reportid(self, props, **kwargs):
+        """Create and return report ID."""
+        return self._wl_formatter.create_reportid(props, **kwargs)
+
+    def run(self, props, cpu, reportid, **kwargs):
         """Run workload command with system properties 'props'."""
 
-        cmd = self._wl_formatter.get_command(props, cpu=cpu, **kwargs)
+        cmd = self._wl_formatter.get_command(props, cpu=cpu, reportid=reportid, **kwargs)
         self._run_command(cmd)
 
     def __init__(self, args):

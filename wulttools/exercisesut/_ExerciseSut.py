@@ -376,9 +376,8 @@ def _start_command(args):
                 _LOG.info("")
 
             for props in batchconfig.get_props_batch(inprops):
-                _LOG.notice(f"Measuring with properties: {batchconfig.props_to_str(props)}")
-
                 batchconfig.configure(props, cpu)
+
                 for devid in devids:
                     kwargs = {}
                     if devid:
@@ -386,7 +385,11 @@ def _start_command(args):
                     if args.command:
                         kwargs["command"] = args.command
 
-                    batchconfig.run(props, cpu, **kwargs)
+                    reportid = batchconfig.create_reportid(props, **kwargs)
+                    _LOG.notice(f"Measuring with properties: {batchconfig.props_to_str(props)}, "
+                                f"report ID: '{reportid}'")
+
+                    batchconfig.run(props, cpu, reportid, **kwargs)
                     work_done = True
 
                 _LOG.info("")
