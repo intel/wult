@@ -135,10 +135,16 @@ class BatchReport(_Common.CmdlineRunner):
             """
 
             path_monikers = path.name.split("-")
+            # If diff, sort according to diff monikers.
             for moniker in diff_monikers:
                 if moniker in path_monikers:
                     return diff_monikers.index(moniker)
 
+            # Empty diff moniker is special, handle it after non-empty diff monikers.
+            if "" in diff_monikers:
+                return diff_monikers.index("")
+
+            # If no diff, sort according to order of result paths.
             for respath in respaths:
                 if path.parent == respath:
                     return respaths.index(respath)
