@@ -490,10 +490,13 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self.metrics_set = set(self.metrics)
 
+        self.stats_res = None
+        if not self.stats_path.exists():
+            return
+
         try:
             self.stats_res = StatsCollectRes.RORawResult(self.stats_path, self.reportid)
         except Error as err:
             # If the 'stats-collect' result is malformed. Load the 'wult' result with no stats but
             # warn the user that there was a problem.
-            self.stats_res = None
             _LOG.warning("Unable to load statistics for '%s':\n%s", self.reportid, err.indent(2))
