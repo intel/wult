@@ -363,7 +363,7 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         # This is not generic, but today we have to deal only with microseconds and megahertz, so
         # this is good enough.
-        if mdef.get("unit") not in ("microsecond","megahertz"):
+        if mdef.get("unit") not in ("microsecond", "nanosecond", "megahertz"):
             return df[colname]
 
         base_colname = colname + base_col_suffix
@@ -372,6 +372,8 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         if mdef["unit"] == "megahertz":
             df.loc[:, base_colname] = df[colname] * 1000000
+        elif mdef["unit"] == "nanosecond":
+            df.loc[:, base_colname] = df[colname] / 1000000000
         elif mdef["unit"] == "microsecond":
             df.loc[:, base_colname] = df[colname] / 1000000
         return df[base_colname]
@@ -390,6 +392,8 @@ class RORawResult(_RawResultBase.RawResultBase):
         # This is not generic, but today we have to deal only with microseconds and megahertz, so
         # this is good enough.
         if mdef.get("short_unit") == "us":
+            mdef["short_unit"] = "s"
+        elif mdef.get("short_unit") == "ns":
             mdef["short_unit"] = "s"
         elif mdef.get("short_unit") == "MHz":
             mdef["short_unit"] = "Hz"
