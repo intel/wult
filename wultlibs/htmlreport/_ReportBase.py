@@ -341,8 +341,10 @@ class ReportBase:
         for reportid, metrics in self._hov_metrics.items():
             hover_defs[reportid] = [reports[reportid].defs.info[m] for m in metrics]
 
+        silenttime_ldist = ("SilentTime", "LDist")
+        skip_silenttime_ldist = all(metric in tab_metrics for metric in silenttime_ldist)
         for metric in tab_metrics:
-            if metric in ("SilentTime", "LDist"):
+            if skip_silenttime_ldist and metric in silenttime_ldist:
                 continue
             _LOG.info("Generating %s tab.", metric)
             smry_metrics = []
@@ -375,7 +377,7 @@ class ReportBase:
 
             dtabs.append(dtab_bldr.get_tab())
 
-        if "SilentTime" in tab_metrics or "LDist" in tab_metrics:
+        if skip_silenttime_ldist:
             stime_ldist_tab = self._gen_stime_ldist_tab(tab_metrics, base_col_suffix, hover_defs)
             if stime_ldist_tab is not None:
                 dtabs.append(stime_ldist_tab)
