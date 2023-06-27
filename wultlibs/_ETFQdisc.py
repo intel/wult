@@ -13,10 +13,9 @@ discipline).
 
 import re
 import logging
-from pepclibs.helperlibs import ToolChecker, LocalProcessManager, ClassHelpers
+from pepclibs.helperlibs import ToolChecker, LocalProcessManager, ClassHelpers, KernelVersion
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.helperlibs import ProcHelpers
-from wultlibs.helperlibs import KernelVersion
 
 _LOG = logging.getLogger()
 

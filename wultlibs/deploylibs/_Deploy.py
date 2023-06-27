@@ -13,11 +13,10 @@ Note, "wult" is both name of the project and name of the tool in the project.
 
 import logging
 from pathlib import Path
-from pepclibs.helperlibs import ClassHelpers, ArgParse, ProjectFiles, ToolChecker
+from pepclibs.helperlibs import ClassHelpers, ArgParse, ProjectFiles, ToolChecker, KernelVersion
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.deploylibs import DeployBase
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
-from wultlibs.helperlibs import KernelVersion
 
 _LOG = logging.getLogger()
 
