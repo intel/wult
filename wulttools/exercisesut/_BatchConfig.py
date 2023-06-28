@@ -37,7 +37,6 @@ PROP_INFOS = {
         "cmd" : "pepc cstates config --disable all --enable {} --cpus {scope}"},
     "pcstates" : {
         "name" : "Package C-state",
-        "moniker" : "pcs",
         "sname" : "package",
         "cmd" : "pepc cstates config --pkg-cstate-limit {} --cpus {scope}"},
     "freqs" : {
