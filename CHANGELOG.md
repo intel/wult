@@ -8,6 +8,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Improve 'wult' and 'exercise-sut' console output.
 
 ## [1.12.2] - 2023-06-16
 ### Added
