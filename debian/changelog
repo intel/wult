@@ -1,3 +1,9 @@
+wult (1.12.5) unstable; urgency=low
+
+  * Disable self-tests in debian packaging for now.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 14 Jul 2023 00:00:00 +0200
+
 wult (1.12.4) unstable; urgency=low
 
   * Workaround for a failure enabling 'bpf_trace_printk'.

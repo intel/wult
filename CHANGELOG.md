@@ -8,6 +8,9 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+
+## [1.12.5] - 2023-07-14
+### Changed
  - Disable self-tests in debian packaging for now.
 
 ## [1.12.4] - 2023-07-14
