@@ -5,6 +5,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Workaround for a failure enabling 'bpf_trace_printk'.
 ### Added
 ### Removed
 ### Changed
