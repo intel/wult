@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date: 2023-06-28
+:Date: 2023-07-14
 
 .. contents::
    :depth: 3
@@ -138,7 +138,8 @@ OPTIONS *'exercise-sut* start'
 
 **--uncore-freqs** *UNCORE_FREQS*
    Comma-separated list of package uncore frequencies to measure with.
-   For more information, see '--min-uncore-freq' and
+   For more information, see '--min-uncore-freq' and '--max-uncore-freq'
+   options of the 'pepc pstates config' command.
 
 **--governor** *GOVERNOR*
    Name of the CPU frequency governor to measure with.
@@ -170,7 +171,7 @@ OPTIONS *'exercise-sut* start'
 
 **--epp-hw** *EPP_HW*
    Comma-separated list of EPP configurations to measure with. Default
-   is "don't care". See 'pepc pstates config --epp- hw' for more
+   is "don't care". See 'pepc pstates config --epp-hw' for more
    information.
 
 **--epb** *EPB*
@@ -180,7 +181,7 @@ OPTIONS *'exercise-sut* start'
 
 **--epb-hw** *EPB_HW*
    Comma-separated list of EPB configurations to measure with. Default
-   is "don't care". See 'pepc pstates config --epb- hw' for more
+   is "don't care". See 'pepc pstates config --epb-hw' for more
    information.
 
 **--state-reset**
@@ -189,6 +190,7 @@ OPTIONS *'exercise-sut* start'
    demotion, disable C1 undemotion, disable C1E autopromotion, disable
    C-state prewake, enable turbo, unlock CPU frequency, unlock uncore
    frequency, set EPP policy to 'balance_performance', set EPB policy to
+   'balance-performance'.
 
 **--deploy**
    Applicable only to 'wult' and 'ndl' tools. Run the 'deploy' command

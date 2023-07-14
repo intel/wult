@@ -2,7 +2,7 @@
 NDL
 ===
 
-:Date: 2023-06-28
+:Date: 2023-07-14
 
 .. contents::
    :depth: 3
@@ -224,11 +224,7 @@ OPTIONS *'ndl* start'
    How many datapoints should the test result include, default is
    1000000. Note, unless the '--start-over' option is used, the
    pre-existing datapoints are taken into account. For example, if the
-   test result already has 6000 datapoints and '-c 10000' is used, the
-   tool will collect 4000 datapoints and exit. Warning: collecting too
-   many datapoints may result in a very large test result file, which
-   will be difficult to process later, because that would require a lot
-   of memory.
+   test result already has 6000 datapoints and memory.
 
 **--time-limit** *LIMIT*
    The measurement time limit, i.e., for how long the SUT should be
@@ -263,18 +259,19 @@ OPTIONS *'ndl* start'
    For example, use 'turbostat,acpower' if you need only turbostat and
    AC power meter statistics. You can also specify the statistics you do
    not want to be collected by pre-pending the '!' symbol. For example,
-
-stats' option to get more information about available statistics. By
-default, only 'sysinfo' statistics are collected.
+   'all,!turbostat' would mean: collect all the statistics supported by
+   the SUT, except for 'turbostat'. Use the '--list-stats' option to get
+   more information about available statistics. By default, only
+   'sysinfo' statistics are collected.
 
 **--stats-intervals** *STATS_INTERVALS*
    The intervals for statistics. Statistics collection is based on doing
    periodic snapshots of data. For example, by default the 'acpower'
    statistics collector reads SUT power consumption for the last second
-   every second, and
-
-correspondingly. Use the '--list-stats' to get the default interval
-values.
+   every second, and 'turbostat' default interval is 5 seconds. Use
+   'acpower:5,turbostat:10' to increase the intervals to 5 and 10
+   seconds correspondingly. Use the '--list-stats' to get the default
+   interval values.
 
 **--list-stats**
    Print information about the statistics 'ndl' can collect and exit.
@@ -286,14 +283,14 @@ values.
    usually repeated many times. The launch distance defines how far in
    the future the delayed network packets are scheduled. By default this
    tool randomly selects launch distance in range of [5000, 50000]
-   microseconds (same as '--ldist 5000,50000'). Specify a
-   comma-separated range or a single value if you want launch distance
-   to be precisely that value all the time. The default unit is
-   microseconds, but you can use the following specifiers as well: ms -
-   milliseconds, us - microseconds, ns - nanoseconds. For example,
-   '--ldist 500us,100ms' would be a [500,100000] microseconds range.
-   Note, too low values may cause failures or prevent the SUT from
-   reaching deep C-states. The optimal value is system-specific.
+   microseconds (same as '--ldist 5000,50000'). Specify a comma-
+   separated range or a single value if you want launch distance to be
+   precisely that value all the time. The default unit is microseconds,
+   but you can use the following specifiers as well: ms - milliseconds,
+   us - microseconds, ns - nanoseconds. For example, '--ldist
+   500us,100ms' would be a [500,100000] microseconds range. Note, too
+   low values may cause failures or prevent the SUT from reaching deep
+   C-states. The optimal value is system-specific.
 
 **--cpunum** *CPUNUM*
    The CPU number to bind the helper to. The helper will use this CPU to
@@ -369,7 +366,7 @@ OPTIONS *'ndl* report'
 
 **-o** *OUTDIR*, **--outdir** *OUTDIR*
    Path to the directory to store the report at. By default the report
-   is stored in the 'ndl-report-<reportid>' sub- directory of the test
+   is stored in the 'ndl-report-<reportid>' sub-directory of the test
    result directory. If there are multiple test results, the report is
    stored in the current directory. The '<reportid>' is report ID of ndl
    test result.
@@ -510,7 +507,7 @@ OPTIONS *'ndl* filter'
 
 **--include-metrics** *MINCLUDE*
    The metrics to include: remove all metrics except for those specified
-   by this option. The syntax is the same as for ' --exclude-metrics'.
+   by this option. The syntax is the same as for '--exclude-metrics'.
 
 **--human-readable**
    By default the result 'filter' command print the result as a CSV file
@@ -582,7 +579,7 @@ OPTIONS *'ndl* calc'
 
 **--include-metrics** *MINCLUDE*
    The metrics to include: remove all metrics except for those specified
-   by this option. The syntax is the same as for ' --exclude-metrics'.
+   by this option. The syntax is the same as for '--exclude-metrics'.
 
 **-f** *FUNCS*, **--funcs** *FUNCS*
    Comma-separated list of summary functions to calculate. By default
