@@ -135,13 +135,6 @@ class FTrace(ClassHelpers.SimpleCloseContext):
                 _LOG.debug("setting tracer to 'nop'")
                 fobj.write("nop")
 
-        # Set tracer events that are supported by this module. eBPF
-        # helpers use 'bpf_trace_printk()' to pass information, such as
-        # debugging messages. Enable the corresponding event.
-        with self._pman.open(self._paths["set_event"], "w") as fobj:
-            _LOG.debug("setting trace events to 'bpf_trace_printk'")
-            fobj.write("bpf_trace:bpf_trace_printk")
-
         self._clear()
         self._reader = self._pman.run_async(cmd)
 
