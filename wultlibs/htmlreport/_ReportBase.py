@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2022 Intel Corporation
+# Copyright (C) 2019-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Authors: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -14,10 +14,9 @@ This module provides the base class for generating HTML reports for raw test res
 import itertools
 import json
 import logging
-import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import Trivial, LocalProcessManager, ProjectFiles
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
+from pepclibs.helperlibs import Trivial, ProjectFiles
+from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.htmlreport import _IntroTable, HTMLReport
 from statscollectlibs.htmlreport.tabs import _Tabs
 from statscollectlibs.rawresultlibs import RORawResult
@@ -129,29 +128,6 @@ class ReportBase:
         # Add links to the logs directories.
         self._add_intro_tbl_links("Logs", logs_paths)
 
-    @staticmethod
-    def _copy_dir(srcdir, dstpath):
-        """
-        Helper function for '_copy_raw_data()'. Copy the 'srcdir' to 'dstpath' and set permissions
-        accordingly.
-        """
-
-        try:
-            FSHelpers.copy_dir(srcdir, dstpath, exist_ok=True, ignore=["html-report"])
-            FSHelpers.set_default_perm(dstpath)
-
-            # This block of code helps on SELinux-enabled systems when the output directory
-            # ('self.outdir') is exposed via HTTP. In this case, the output directory should
-            # have the right SELinux attributes (e.g., 'httpd_user_content_t' in Fedora 35).
-            # The raw wult data that we just copied does not have the SELinux attribute, and
-            # won't be accessible via HTTPs. Run 'restorecon' tool to fix up the SELinux
-            # attributes.
-            with LocalProcessManager.LocalProcessManager() as lpman:
-                with contextlib.suppress(ErrorNotFound):
-                    lpman.run_verify(f"restorecon -R {dstpath}")
-        except Error as err:
-            msg = Error(err).indent(2)
-            raise Error(f"failed to copy raw data to report directory:\n{msg}") from None
 
     def _copy_raw_data(self):
         """Copy raw test results to the output directory."""
@@ -173,7 +149,7 @@ class ReportBase:
             stats_dst = resdir / stats_dir
 
             if self.relocatable:
-                self._copy_dir(resdir, dstpath)
+                HTMLReport.copy_dir(resdir, dstpath)
 
                 # Use the path of the copied raw results rather than the original.
                 logs_dst = dstpath / logs_dir
@@ -185,7 +161,7 @@ class ReportBase:
 
                     logs_dst = dstpath / logs_dir
                     if not logs_dst.exists():
-                        self._copy_dir(resdir / logs_dir, logs_dst)
+                        HTMLReport.copy_dir(resdir / logs_dir, logs_dst)
 
                 except (OSError, Error) as err:
                     _LOG.warning("unable to copy log files to the generated report: %s", err)
