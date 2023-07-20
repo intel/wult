@@ -93,6 +93,11 @@ class ReportBase:
             logs_paths = self._copy_logs()
             stats_paths = {}
 
+        for res in self.rsts:
+            if res.stats_res:
+                logs_dst = logs_paths[res.reportid] / "stats-collect-logs"
+                HTMLReport.copy_dir(res.stats_res.logs_path, logs_dst)
+
         return stats_paths, logs_paths
 
     def _add_intro_tbl_links(self, label, paths):
