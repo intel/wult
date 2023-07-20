@@ -48,8 +48,8 @@ class ReportBase:
     def _add_intro_tbl_links(self, label, paths):
         """
         Add links in 'paths' to the 'intro_tbl' dictionary. Arguments are as follows:
-            * paths - dictionary in the format {Report ID: Path to Link to}.
-            * label - the label that will be shown in the intro table for these links.
+         * label - the label that will be shown in the intro table for these links.
+         * paths - dictionary in the format {Report ID: Path to Link to}.
         """
 
         valid_paths = {}
@@ -79,6 +79,7 @@ class ReportBase:
         and containing the stats directory path. Similarly, the 'logs_paths' contains paths to the
         logs. Returns the path of the intro table file generated.
         """
+
         # Add tool information.
         tinfo_row = self._intro_tbl.create_row("Data Collection Tool")
         for res in self.rsts:
@@ -125,16 +126,14 @@ class ReportBase:
 
         # Add links to the stats directories.
         self._add_intro_tbl_links("Statistics", stats_paths)
+
         # Add links to the logs directories.
         self._add_intro_tbl_links("Logs", logs_paths)
-
 
     def _copy_raw_data(self):
         """Copy raw test results to the output directory."""
 
-        # Paths to the stats directory.
         stats_paths = {}
-        # Paths to the logs directory.
         logs_paths = {}
 
         for res in self.rsts:
@@ -148,6 +147,7 @@ class ReportBase:
             logs_dst = resdir / logs_dir
             stats_dst = resdir / stats_dir
 
+            # If 'relocatable', copy the whole result directory; else, only copy log files.
             if self.relocatable:
                 HTMLReport.copy_dir(resdir, dstpath)
 
@@ -156,7 +156,6 @@ class ReportBase:
                 stats_dst = dstpath / stats_dir
             else:
                 try:
-                    # Copy only the logs across if the report is not 'relocatable'.
                     dstpath.mkdir(parents=True, exist_ok=True)
 
                     logs_dst = dstpath / logs_dir
@@ -171,10 +170,7 @@ class ReportBase:
                 stats_paths[res.reportid] = stats_dst
 
             if res.logs_path.is_dir():
-                # Stats are always copied to 'dstpath'.
                 logs_paths[res.reportid] = logs_dst
-            else:
-                logs_paths[res.reportid] = None
 
         return stats_paths, logs_paths
 
