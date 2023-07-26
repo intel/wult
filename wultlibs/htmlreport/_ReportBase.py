@@ -45,6 +45,56 @@ class ReportBase:
             raise Error(f"could not generate report: failed to JSON dump '{descr}' to '{path}':\n"
                         f"{msg}") from None
 
+    def _copy_results(self):
+        """Copies each result directory into the report directory."""
+
+        stats_paths = {}
+        logs_paths = {}
+
+        for res in self.rsts:
+            srcdir = res.dirpath
+            dstdir = self.outdir / f"raw-{res.reportid}"
+
+            HTMLReport.copy_dir(srcdir, dstdir)
+            logs_paths[res.reportid] = dstdir / res.logs_path.relative_to(res.dirpath)
+
+            stats_path = dstdir / res.stats_path.relative_to(res.dirpath)
+            if stats_path.exists():
+                stats_paths[res.reportid] = stats_path
+
+        return stats_paths, logs_paths
+
+    def _copy_logs(self):
+        """Copies the log files for each result into the report directory."""
+
+        logs_paths = {}
+
+        for res in self.rsts:
+            dstdir = self.outdir / f"raw-{res.reportid}"
+
+            try:
+                dstdir.mkdir(parents=True, exist_ok=True)
+                logs_path = res.logs_path.relative_to(res.dirpath)
+                HTMLReport.copy_dir(res.dirpath / logs_path, dstdir / logs_path)
+                logs_paths[res.reportid] = dstdir / res.logs_path.relative_to(res.dirpath)
+            except (OSError, Error) as err:
+                _LOG.warning("unable to copy log files to the generated report: %s", err)
+
+        return logs_paths
+
+    def _copy_raw_data(self):
+        """
+        Helper function for '_prepare_intro_table()'. Copies result data into the report directory.
+        """
+
+        if self.relocatable:
+            stats_paths, logs_paths = self._copy_results()
+        else:
+            logs_paths = self._copy_logs()
+            stats_paths = {}
+
+        return stats_paths, logs_paths
+
     def _add_intro_tbl_links(self, label, paths):
         """
         Add links in 'paths' to the 'intro_tbl' dictionary. Arguments are as follows:
@@ -72,12 +122,10 @@ class ReportBase:
         for reportid, path in valid_paths.items():
             row.add_cell(reportid, label, link=path)
 
-    def _prepare_intro_table(self, stats_paths, logs_paths):
+    def _prepare_intro_table(self):
         """
         Create the intro table, which is the very first table in the report and it shortly
-        summarizes the entire report. The 'stats_paths' should be a dictionary indexed by report ID
-        and containing the stats directory path. Similarly, the 'logs_paths' contains paths to the
-        logs. Returns the path of the intro table file generated.
+        summarizes the entire report. Returns the path of the intro table file generated.
         """
 
         # Add tool information.
@@ -124,55 +172,13 @@ class ReportBase:
                 devid_text += f" ({res.info['devdescr']})"
             devid_row.add_cell(res.reportid, devid_text)
 
+        stats_paths, logs_paths = self._copy_raw_data()
+
         # Add links to the stats directories.
         self._add_intro_tbl_links("Statistics", stats_paths)
 
         # Add links to the logs directories.
         self._add_intro_tbl_links("Logs", logs_paths)
-
-    def _copy_raw_data(self):
-        """Copy raw test results to the output directory."""
-
-        stats_paths = {}
-        logs_paths = {}
-
-        for res in self.rsts:
-            resdir = res.dirpath
-            dstpath = self.outdir / f"raw-{res.reportid}"
-
-            logs_dir = res.logs_path.relative_to(res.dirpath)
-            stats_dir  = res.stats_path.relative_to(res.dirpath)
-
-            # Before either logs or stats have been copied to 'outdir', assume neither will be.
-            logs_dst = resdir / logs_dir
-            stats_dst = resdir / stats_dir
-
-            # If 'relocatable', copy the whole result directory; else, only copy log files.
-            if self.relocatable:
-                HTMLReport.copy_dir(resdir, dstpath)
-
-                # Use the path of the copied raw results rather than the original.
-                logs_dst = dstpath / logs_dir
-                stats_dst = dstpath / stats_dir
-            else:
-                try:
-                    dstpath.mkdir(parents=True, exist_ok=True)
-
-                    logs_dst = dstpath / logs_dir
-                    if not logs_dst.exists():
-                        HTMLReport.copy_dir(resdir / logs_dir, logs_dst)
-
-                except (OSError, Error) as err:
-                    _LOG.warning("unable to copy log files to the generated report: %s", err)
-                    logs_dst = resdir / logs_dir
-
-            if res.stats_res:
-                stats_paths[res.reportid] = stats_dst
-
-            if res.logs_path.is_dir():
-                logs_paths[res.reportid] = logs_dst
-
-        return stats_paths, logs_paths
 
     @staticmethod
     def _copy_asset(src, what, dst):
@@ -368,8 +374,7 @@ class ReportBase:
             msg = Error(err).indent(2)
             raise Error(f"failed to create directory '{self.outdir}':\n{msg}") from None
 
-        stats_paths, logs_paths = self._copy_raw_data()
-        self._prepare_intro_table(stats_paths, logs_paths)
+        self._prepare_intro_table()
 
         results_tabs = self._generate_results_tabs()
 
@@ -380,7 +385,7 @@ class ReportBase:
         rep = HTMLReport.HTMLReport(self.outdir)
         stats_rsts = []
         for res in self.rsts:
-            if res.reportid not in stats_paths:
+            if not res.stats_path.exists():
                 continue
             if res.stats_res:
                 stats_rsts.append(res.stats_res)
