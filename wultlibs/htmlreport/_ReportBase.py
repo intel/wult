@@ -397,8 +397,9 @@ class ReportBase:
             else:
                 stats_rsts.append(RORawResult.RORawResult(res.dirpath, res.reportid))
 
-        rep.generate_report(tabs, stats_rsts, self._intro_tbl, f"{toolname} Report",
-                            self.report_descr)
+        rep.generate_report(tabs=tabs, rsts=stats_rsts, intro_tbl=self._intro_tbl,
+                            title=f"{toolname} Report", descr=self.report_descr,
+                            toolname=self.toolname, toolver=self.toolver)
 
     @staticmethod
     def _mangle_loaded_res(res):
@@ -598,13 +599,15 @@ class ReportBase:
                         if func not in self._smry_funcs[metric]:
                             self._smry_funcs[metric].append(func)
 
-    def __init__(self, rsts, outdir, report_descr=None, xaxes=None, yaxes=None, hist=None,
-                 chist=None, exclude_xaxes=None, exclude_yaxes=None, smry_funcs=None):
+    def __init__(self, rsts, outdir, toolname, toolver, report_descr=None, xaxes=None, yaxes=None,
+                 hist=None, chist=None, exclude_xaxes=None, exclude_yaxes=None, smry_funcs=None):
         """
         The class constructor. The arguments are as follows.
           * rsts - list of 'RORawResult' objects representing the raw test results to generate the
                    HTML report for.
           * outdir - the path at which to store the output directory of the HTML report.
+          * toolname - the name of the tool used to generate the report.
+          * toolver - the version of the tool used to generate the report.
           * report_descr - a string describing this report or a file path containing the
                            description. The description will be put at the top part of the HTML
                            report. It should describe the report in general (e.g. it compares
@@ -639,6 +642,8 @@ class ReportBase:
 
         self.rsts = rsts
         self.outdir = Path(outdir)
+        self.toolname = toolname
+        self.toolver = toolver
         self.report_descr = report_descr
         self.xaxes = xaxes
         self.yaxes = yaxes
