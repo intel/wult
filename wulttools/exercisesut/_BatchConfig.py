@@ -240,7 +240,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             return uncore_supported
 
         if pname == "pcstates":
-            cmd = "pepc cstates info --pkg-cstate-limit"
+            cmd = "pepc cstates info --pkg-cstate-limit --pkg-cstate-limit-lock"
             stdout, _ = self._pman.run_verify(cmd)
 
             if "not supported" in stdout:
