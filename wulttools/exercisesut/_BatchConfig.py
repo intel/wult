@@ -197,21 +197,21 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
     def _normalize_csnames(self, csnames):
         """Normalize and validate list of requestable C-state names 'csnames'."""
 
-        allcsnames = []
+        allcsnames = set()
         for _, csinfo in self._get_cpuidle().get_cstates_info(csnames="all", cpus="all"):
             for csname in csinfo:
-                if csname not in allcsnames:
-                    allcsnames.append(csname)
+                allcsnames.add(csname)
 
         if "all" in csnames:
-            return allcsnames
-
-        for csname in csnames:
-            if csname.upper() not in allcsnames:
-                raise Error(f"requestable C-state '{csname}' not available{self._pman.hostmsg}")
+            return list(allcsnames)
 
         csnames = [csname.upper() for csname in csnames]
-        return [csname for csname in allcsnames if csname in csnames]
+
+        for csname in csnames:
+            if csname not in allcsnames:
+                raise Error(f"requestable C-state '{csname}' not available{self._pman.hostmsg}")
+
+        return csnames
 
     def _is_prop_supported(self, pname, warn=False):
         """
