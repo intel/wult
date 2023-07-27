@@ -7,6 +7,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 ### Added
  - Add 'stats-collect' logs to HTML reports.
+ - Add the version of 'wult/ndl' to HTML reports to indicate which version was
+   used to generate the report.
 ### Removed
 ### Changed
 
