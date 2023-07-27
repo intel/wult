@@ -173,14 +173,17 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         allpcsnames = []
         pcsaliases = []
-        for _, pinfo in self._get_cstates().get_props(("pkg_cstate_limit",), "all"):
-            for pcsname in pinfo["pkg_cstate_limit"].get("pkg_cstate_limits", []):
-                if pcsname not in allpcsnames:
-                    allpcsnames.append(pcsname)
+        cstates = self._get_cstates()
+        for _, pinfo in cstates.get_props(("pkg_cstate_limits", "pkg_cstate_limit_aliases")):
+            if pinfo["pkg_cstate_limits"]:
+                for pcsname in pinfo["pkg_cstate_limits"]:
+                    if pcsname not in allpcsnames:
+                        allpcsnames.append(pcsname)
 
-            for pcsalias in pinfo["pkg_cstate_limit"].get("pkg_cstate_limit_aliases", {}):
-                if pcsalias not in pcsaliases:
-                    pcsaliases.append(pcsalias)
+            if pinfo["pkg_cstate_limit_aliases"]:
+                for pcsalias in pinfo["pkg_cstate_limit_aliases"]:
+                    if pcsalias not in pcsaliases:
+                        pcsaliases.append(pcsalias)
 
         if "all" in pcsnames:
             return allpcsnames
@@ -262,7 +265,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             return False
 
         for _, pinfo in pcsobj.get_props((pname,), cpus="all"):
-            if not pinfo[pname].get(pname, None):
+            if not pinfo[pname]:
                 log_method("property '%s' is not supported, skip configuring it", pname)
                 return False
 
