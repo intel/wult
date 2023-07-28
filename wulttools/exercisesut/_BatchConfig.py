@@ -171,20 +171,22 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
     def _normalize_pcsnames(self, pcsnames):
         """Normalize and validate list of package C-state names 'pcsnames'."""
 
-        allpcsnames = set()
-        pcsaliases = set()
+        allpcsnames = []
+        pcsaliases = []
         cstates = self._get_cstates()
         for _, pinfo in cstates.get_props(("pkg_cstate_limits", "pkg_cstate_limit_aliases")):
             if pinfo["pkg_cstate_limits"]:
                 for pcsname in pinfo["pkg_cstate_limits"]:
-                    allpcsnames.add(pcsname)
+                    if pcsname not in allpcsnames:
+                        allpcsnames.append(pcsname)
 
             if pinfo["pkg_cstate_limit_aliases"]:
                 for pcsalias in pinfo["pkg_cstate_limit_aliases"]:
-                    pcsaliases.add(pcsalias)
+                    if pcsalias not in pcsaliases:
+                        pcsaliases.append(pcsalias)
 
         if "all" in pcsnames:
-            return list(allpcsnames)
+            return allpcsnames
 
         pcsnames = [pcsname.upper() for pcsname in pcsnames]
 
@@ -197,13 +199,14 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
     def _normalize_csnames(self, csnames):
         """Normalize and validate list of requestable C-state names 'csnames'."""
 
-        allcsnames = set()
+        allcsnames = []
         for _, csinfo in self._get_cpuidle().get_cstates_info(csnames="all", cpus="all"):
             for csname in csinfo:
-                allcsnames.add(csname)
+                if csname not in allcsnames:
+                    allcsnames.append(csname)
 
         if "all" in csnames:
-            return list(allcsnames)
+            return allcsnames
 
         csnames = [csname.upper() for csname in csnames]
 
