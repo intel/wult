@@ -61,7 +61,7 @@ setup(
                get_data_files("share/wult/defs/wult", "defs/wult"),
     scripts=_TOOLNAMES,
     packages=find_packages(),
-    install_requires=["pepc>=1.4.25", "stats-collect>=1.0.14", "numpy", "pandas", "pyyaml",
+    install_requires=["pepc>=1.4.29", "stats-collect>=1.0.14", "numpy", "pandas", "pyyaml",
                       "colorama"],
     long_description="""This package provides wult - a Linux command-line tool for measuring Intel
                         CPU C-state wake latency.""",
