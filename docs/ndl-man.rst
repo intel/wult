@@ -2,7 +2,7 @@
 NDL
 ===
 
-:Date: 2023-07-14
+:Date: 2023-07-31
 
 .. contents::
    :depth: 3
@@ -222,9 +222,13 @@ OPTIONS *'ndl* start'
 
 **-c** *COUNT*, **--datapoints** *COUNT*
    How many datapoints should the test result include, default is
-   1000000. Note, unless the '--start-over' option is used, the
-   pre-existing datapoints are taken into account. For example, if the
-   test result already has 6000 datapoints and memory.
+   1000000. Note, unless the '--start-over' option is used, the pre-
+   existing datapoints are taken into account. For example, if the test
+   result already has 6000 datapoints and '-c 10000' is used, the tool
+   will collect 4000 datapoints and exit. Warning: collecting too many
+   datapoints may result in a very large test result file, which will be
+   difficult to process later, because that would require a lot of
+   memory.
 
 **--time-limit** *LIMIT*
    The measurement time limit, i.e., for how long the SUT should be
@@ -260,18 +264,17 @@ OPTIONS *'ndl* start'
    AC power meter statistics. You can also specify the statistics you do
    not want to be collected by pre-pending the '!' symbol. For example,
    'all,!turbostat' would mean: collect all the statistics supported by
-   the SUT, except for 'turbostat'. Use the '--list-stats' option to get
-   more information about available statistics. By default, only
-   'sysinfo' statistics are collected.
+   the SUT, except for
+
+statistics are collected.
 
 **--stats-intervals** *STATS_INTERVALS*
    The intervals for statistics. Statistics collection is based on doing
-   periodic snapshots of data. For example, by default the 'acpower'
-   statistics collector reads SUT power consumption for the last second
-   every second, and 'turbostat' default interval is 5 seconds. Use
-   'acpower:5,turbostat:10' to increase the intervals to 5 and 10
-   seconds correspondingly. Use the '--list-stats' to get the default
-   interval values.
+   periodic snapshots of data. For example, by default the
+
+seconds. Use 'acpower:5,turbostat:10' to increase the intervals to 5 and
+10 seconds correspondingly. Use the '--list-stats' to get the default
+interval values.
 
 **--list-stats**
    Print information about the statistics 'ndl' can collect and exit.
@@ -283,14 +286,14 @@ OPTIONS *'ndl* start'
    usually repeated many times. The launch distance defines how far in
    the future the delayed network packets are scheduled. By default this
    tool randomly selects launch distance in range of [5000, 50000]
-   microseconds (same as '--ldist 5000,50000'). Specify a comma-
-   separated range or a single value if you want launch distance to be
-   precisely that value all the time. The default unit is microseconds,
-   but you can use the following specifiers as well: ms - milliseconds,
-   us - microseconds, ns - nanoseconds. For example, '--ldist
-   500us,100ms' would be a [500,100000] microseconds range. Note, too
-   low values may cause failures or prevent the SUT from reaching deep
-   C-states. The optimal value is system-specific.
+   microseconds (same as '--ldist 5000,50000'). Specify a
+   comma-separated range or a single value if you want launch distance
+   to be precisely that value all the time. The default unit is
+   microseconds, but you can use the following specifiers as well: ms -
+   milliseconds, us - microseconds, ns - nanoseconds. For example,
+   '--ldist 500us,100ms' would be a [500,100000] microseconds range.
+   Note, too low values may cause failures or prevent the SUT from
+   reaching deep C-states. The optimal value is system-specific.
 
 **--cpunum** *CPUNUM*
    The CPU number to bind the helper to. The helper will use this CPU to
@@ -303,8 +306,6 @@ OPTIONS *'ndl* start'
 **--exclude** *EXCLUDE*
    Datapoints to exclude: remove all the datapoints satisfying the
    expression 'EXCLUDE'. Here is an example of an expression:
-   '(WakeLatency < 10000) \| (PC6% < 1)'. This filter expression will
-   remove all datapoints with 'WakeLatency' smaller than 10000
    nanoseconds or package C6 residency smaller than 1%. You can use any
    metrics in the expression.
 
@@ -374,14 +375,12 @@ OPTIONS *'ndl* report'
 **--exclude** *EXCLUDE*
    Datapoints to exclude: remove all the datapoints satisfying the
    expression 'EXCLUDE'. Here is an example of an expression:
-   '(WakeLatency < 10000) \| (PC6% < 1)'. This filter expression will
-   remove all datapoints with 'WakeLatency' smaller than 10000
    nanoseconds or package C6 residency smaller than 1%. The detailed
-   expression syntax can be found in the documentation for the 'eval()'
-   function of Python 'pandas' module. You can use metrics in the
-   expression, or the special word 'index' for the row number (0-based
-   index) of a datapoint in the results. For example, expression 'index
-   >= 10' will get rid of all datapoints except for the first 10 ones.
+   expression syntax can be found in the documentation for the
+
+(0-based index) of a datapoint in the results. For example, expression
+'index >= 10' will get rid of all datapoints except for the first 10
+ones.
 
 **--include** *INCLUDE*
    Datapoints to include: remove all datapoints except for those
@@ -417,8 +416,6 @@ OPTIONS *'ndl* report'
 **--hist** *HIST*
    A comma-separated list of metrics (or python style regular
    expressions matching the names) to add a histogram for, default is
-   'RTD'. Use '--list-metrics' to get the list of the available metrics.
-   Use value 'none' to disable histograms.
 
 **--chist** *CHIST*
    A comma-separated list of metrics (or python style regular
@@ -442,7 +439,9 @@ OPTIONS *'ndl* report'
    The report description - any text describing this report as whole, or
    path to a file containing the overall report description. For
    example, if the report compares platform A and platform B, the
-   description could be something like
+   description could be something like 'platform A vs B comparison'.
+   This text will be included into the very beginning of the resulting
+   HTML report.
 
 **--relocatable**
    Generate a report which contains a copy of the raw test results. With
@@ -483,14 +482,12 @@ OPTIONS *'ndl* filter'
 **--exclude** *EXCLUDE*
    Datapoints to exclude: remove all the datapoints satisfying the
    expression 'EXCLUDE'. Here is an example of an expression:
-   '(WakeLatency < 10000) \| (PC6% < 1)'. This filter expression will
-   remove all datapoints with 'WakeLatency' smaller than 10000
    nanoseconds or package C6 residency smaller than 1%. The detailed
-   expression syntax can be found in the documentation for the 'eval()'
-   function of Python 'pandas' module. You can use metrics in the
-   expression, or the special word 'index' for the row number (0-based
-   index) of a datapoint in the results. For example, expression 'index
-   >= 10' will get rid of all datapoints except for the first 10 ones.
+   expression syntax can be found in the documentation for the
+
+(0-based index) of a datapoint in the results. For example, expression
+'index >= 10' will get rid of all datapoints except for the first 10
+ones.
 
 **--include** *INCLUDE*
    Datapoints to include: remove all datapoints except for those
@@ -507,7 +504,7 @@ OPTIONS *'ndl* filter'
 
 **--include-metrics** *MINCLUDE*
    The metrics to include: remove all metrics except for those specified
-   by this option. The syntax is the same as for '--exclude-metrics'.
+   by this option. The syntax is the same as for '--exclude- metrics'.
 
 **--human-readable**
    By default the result 'filter' command print the result as a CSV file
@@ -555,14 +552,12 @@ OPTIONS *'ndl* calc'
 **--exclude** *EXCLUDE*
    Datapoints to exclude: remove all the datapoints satisfying the
    expression 'EXCLUDE'. Here is an example of an expression:
-   '(WakeLatency < 10000) \| (PC6% < 1)'. This filter expression will
-   remove all datapoints with 'WakeLatency' smaller than 10000
    nanoseconds or package C6 residency smaller than 1%. The detailed
-   expression syntax can be found in the documentation for the 'eval()'
-   function of Python 'pandas' module. You can use metrics in the
-   expression, or the special word 'index' for the row number (0-based
-   index) of a datapoint in the results. For example, expression 'index
-   >= 10' will get rid of all datapoints except for the first 10 ones.
+   expression syntax can be found in the documentation for the
+
+(0-based index) of a datapoint in the results. For example, expression
+'index >= 10' will get rid of all datapoints except for the first 10
+ones.
 
 **--include** *INCLUDE*
    Datapoints to include: remove all datapoints except for those
@@ -579,7 +574,7 @@ OPTIONS *'ndl* calc'
 
 **--include-metrics** *MINCLUDE*
    The metrics to include: remove all metrics except for those specified
-   by this option. The syntax is the same as for '--exclude-metrics'.
+   by this option. The syntax is the same as for '--exclude- metrics'.
 
 **-f** *FUNCS*, **--funcs** *FUNCS*
    Comma-separated list of summary functions to calculate. By default

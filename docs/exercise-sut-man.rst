@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date: 2023-07-14
+:Date: 2023-07-31
 
 .. contents::
    :depth: 3
@@ -133,13 +133,12 @@ OPTIONS *'exercise-sut* start'
 
 **--freqs** *FREQS*
    Comma-separated list of frequencies to be measured with. For more
-   information, see '--min-freq' and '--max-freq' options of the 'pepc
-   pstates config' command.
+   information, see '--min-freq' and '--max-freq' options of the
 
 **--uncore-freqs** *UNCORE_FREQS*
    Comma-separated list of package uncore frequencies to measure with.
-   For more information, see '--min-uncore-freq' and '--max-uncore-freq'
-   options of the 'pepc pstates config' command.
+   For more information, see '--min-uncore-freq' and '--max-
+   uncore-freq' options of the 'pepc pstates config' command.
 
 **--governor** *GOVERNOR*
    Name of the CPU frequency governor to measure with.
@@ -260,11 +259,10 @@ OPTIONS *'exercise-sut* report'
 **--diffs** *DIFFS*
    Collected data is stored in directories, and each directory name is
    constructed from multiple monikers separated by dashes, e.g.
-   'hrt-c6-uf_max-autoc1e_off'. This option can be used to create diff
-   reports by including multiple results in one report. Comma-separated
-   list of monikers to select results to include in the diff report.
-   This option can be used multiple times. If this option is not
-   provided, reports with single result are generated.
+
+separated list of monikers to select results to include in the diff
+report. This option can be used multiple times. If this option is not
+provided, reports with single result are generated.
 
 **--include** *INCLUDE*
    Comma-separated list of monikers that must be found from the result
