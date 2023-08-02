@@ -20,6 +20,8 @@
 
 #define I210_RR2DCDELAY 0x5BF4
 #define I210_RR2DCDELAY_INCR 16
+#define I210_TXDCTL	0xE028
+#define I210_WTHRESH_MASK	GENMASK(20, 16)
 
 /* Name of the network device to attach to. */
 static char *ifname;
@@ -35,6 +37,9 @@ static u8 __iomem *i210_iomem;
 
 /* Driver's root debugfs directory. */
 static struct dentry *dfsroot;
+
+/* Saved DMA coalescing config. */
+static int wthresh_save[4];
 
 static ssize_t dfs_read_file(struct file *file, char __user *user_buf,
 			     size_t count, loff_t *ppos)
@@ -77,6 +82,36 @@ static int dfs_create(void)
 	}
 
 	return 0;
+}
+
+/*
+ * Disable DMA coalescing for the I210 device. This is done to avoid potential
+ * latency spikes during the measurement.
+ */
+static void dma_coalescing_disable(void)
+{
+	int i;
+	u32 val;
+
+	for (i = 0; i <= 3; i++) {
+		val = readl(&i210_iomem[I210_TXDCTL + i * 0x40]);
+		wthresh_save[i] = FIELD_GET(I210_WTHRESH_MASK, val);
+		val &= ~I210_WTHRESH_MASK;
+		writel(val, &i210_iomem[I210_TXDCTL + i * 0x40]);
+	}
+}
+
+/* Restore previosly saved DMA coalescing value */
+static void dma_coalescing_restore(void)
+{
+	int i;
+	u32 val;
+
+	for (i = 0; i <= 3; i++) {
+		val = readl(&i210_iomem[I210_TXDCTL + i * 0x40]);
+		val |= FIELD_PREP(I210_WTHRESH_MASK, wthresh_save[i]);
+		writel(val, &i210_iomem[I210_TXDCTL + i * 0x40]);
+	}
 }
 
 /* Find the PCI device for a network device. */
@@ -124,6 +159,8 @@ static int ndl_do_init(void)
 	if (err)
 		goto error_put_pdev;
 
+	dma_coalescing_disable();
+
 	return 0;
 
 error_put_pdev:
@@ -138,6 +175,7 @@ error_put_ndev:
 
 static void ndl_do_exit(void)
 {
+	dma_coalescing_restore();
 	dev_put(i210_ndev);
 	i210_ndev = NULL;
 	pci_dev_put(i210_pdev);
