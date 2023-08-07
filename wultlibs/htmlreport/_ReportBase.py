@@ -664,14 +664,9 @@ class ReportBase:
         # The intro table which appears at the top of all reports.
         self._intro_tbl = _IntroTable.IntroTable()
 
-        # Names of metrics to provide the summary function values for (e.g., median, 99th
-        # percentile). The summaries will show up in the summary tables (one table per metric).
-        self._smry_metrics = None
-        # Dictionary of 'metric':'smry_funcs' pairs where 'smry_funcs' is a list of summary
-        # functions to calculate for 'metric'. Instantiated by 'self._init_smry_funcs()'.
-        self._smry_metrics = None
-        # Per-test result list of metrics to include into the hover text of the scatter plot.
-        # By default only the x and y axis values are included.
+        # Dictionary in the format {'reportid': 'hov_metrics'} where 'hov_metrics' is a list of
+        # metrics to include in the hover text of 'reportid' datapoints on scatter plots. By default
+        # only the x and y axis values are included, but can be modified using 'set_hover_metrics()'
         self._hov_metrics = {}
         # Additional metrics to load, if the results contain data for them.
         self._more_metrics = []
@@ -679,15 +674,17 @@ class ReportBase:
         self._validate_init_args()
         self._init_metrics()
 
-        # Summary table includes all test results, but the results may have data for different
-        # metrics (e.g. they were collected with different wult versions, using different methods,
-        # or on different systems). Therefore, assign each result its own list of metrics for which
-        # summaries should be calculated.
-        diag_metrics = Trivial.list_dedup(self.yaxes + self.xaxes + self.hist + self.chist)
+        # Dictionary in the format {'reportid': 'smry_metrics'} where 'smry_metrics is a list of
+        # metrics to provide the summary function values for (e.g., median, 99th percentile). The
+        # summaries will show up in the summary tables (one table per metric).
         self._smry_metrics = {}
+        diag_metrics = Trivial.list_dedup(self.yaxes + self.xaxes + self.hist + self.chist)
         for res in self.rsts:
             self._smry_metrics[res.reportid] = [m for m in diag_metrics if m in res.metrics_set]
 
+        # Dictionary in the format {'metric':'smry_funcs'} where 'smry_funcs' is a list of summary
+        # functions to calculate for 'metric'. Instantiated by 'self._init_smry_funcs()'.
+        self._smry_funcs = None
         if smry_funcs is None:
             smry_funcs = {}
         self._init_smry_funcs(smry_funcs)
