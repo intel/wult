@@ -487,25 +487,14 @@ class ReportBase:
             res_metrics = set()
             for res in self.rsts:
                 res_metrics.update(res.metrics_set)
-            intersection = set(getattr(self, name)) & res_metrics
+            union = set(getattr(self, name)) | res_metrics
             metrics = []
             for metric in getattr(self, name):
-                if metric in intersection:
+                if metric in union:
                     metrics.append(metric)
                 else:
                     _LOG.notice("dropping metric '%s' from '%s' because it is not present in any "
-                                 "of the results", metric, name)
-            setattr(self, name, metrics)
-
-        for name in lists:
-            for res in self.rsts:
-                metrics = []
-                for metric in getattr(self, name):
-                    if metric in res.defs.info:
-                        metrics.append(metric)
-                    else:
-                        _LOG.notice("dropping metric '%s' from '%s' because it is not present in "
-                                     "the definitions file at '%s'", metric, name, res.defs.path)
+                                "of the results", metric, name)
             setattr(self, name, metrics)
 
         for res in self.rsts:
@@ -515,7 +504,7 @@ class ReportBase:
                     metrics.append(metric)
                 else:
                     _LOG.notice("dropping metric '%s' from hover text because it is not present "
-                                 "in the definitions file at '%s'", metric, res.defs.path)
+                                "in the definitions file at '%s'", metric, res.defs.path)
             self._hov_metrics[res.reportid] = metrics
 
     def _init_metrics(self):
