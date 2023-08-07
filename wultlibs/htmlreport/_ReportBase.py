@@ -433,12 +433,12 @@ class ReportBase:
 
             _LOG.debug("hover metrics: %s", ", ".join(self._hov_metrics[res.reportid]))
 
-            metrics = []
-            for metric in self._hov_metrics[res.reportid] + self._more_metrics:
-                if metric in res.metrics_set:
-                    metrics.append(metric)
+            # Metrics in 'self._more_metrics' are not guaranteed to be present in all results, so
+            # filter the metrics for those present in 'res'.
+            more_metrics = {metric for metric in self._more_metrics if metric in res.metrics_set}
+            minclude = more_metrics.union(self._hov_metrics[res.reportid],
+                                          self._smry_metrics[res.reportid])
 
-            minclude = Trivial.list_dedup(self._smry_metrics[res.reportid] + metrics)
             res.set_minclude(minclude)
             res.load_df()
 
