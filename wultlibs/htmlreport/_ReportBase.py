@@ -303,7 +303,7 @@ class ReportBase:
             _LOG.debug("calculate summary functions for '%s'", res.reportid)
             smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
                           "std")
-            res.calc_smrys(regexs=self._smry_metrics, funcnames=smry_funcs)
+            res.calc_smrys(regexs=self._smry_metrics[res.reportid], funcnames=smry_funcs)
 
         plot_axes = [(x, y) for x, y in itertools.product(self.xaxes, self.yaxes) if x != y]
 
@@ -426,11 +426,11 @@ class ReportBase:
     def _load_results(self):
         """Load the test results from the CSV file and/or apply the metrics selector."""
 
-        _LOG.debug("summaries will be calculated for these metrics: %s",
-                   ", ".join(self._smry_metrics))
-        _LOG.debug("additional metrics: %s", ", ".join(self._more_metrics))
-
         for res in self.rsts:
+            _LOG.debug("summaries will be calculated for these metrics: %s",
+                       ", ".join(self._smry_metrics[res.reportid]))
+            _LOG.debug("additional metrics: %s", ", ".join(self._more_metrics))
+
             _LOG.debug("hover metrics: %s", ", ".join(self._hov_metrics[res.reportid]))
 
             metrics = []
@@ -438,7 +438,7 @@ class ReportBase:
                 if metric in res.metrics_set:
                     metrics.append(metric)
 
-            minclude = Trivial.list_dedup(self._smry_metrics + metrics)
+            minclude = Trivial.list_dedup(self._smry_metrics[res.reportid] + metrics)
             res.set_minclude(minclude)
             res.load_df()
 
@@ -679,18 +679,14 @@ class ReportBase:
         self._validate_init_args()
         self._init_metrics()
 
-        # We'll provide summaries for every metric participating in at least one diagram.
-        smry_metrics = Trivial.list_dedup(self.yaxes + self.xaxes + self.hist + self.chist)
         # Summary table includes all test results, but the results may have data for different
         # metrics (e.g. they were collected with different wult versions, using different methods,
-        # or on different systems). Therefore, only include metrics common to all test results.
-        self._smry_metrics = []
-        for metric in smry_metrics:
-            for res in rsts:
-                if metric not in res.metrics_set:
-                    break
-            else:
-                self._smry_metrics.append(metric)
+        # or on different systems). Therefore, assign each result its own list of metrics for which
+        # summaries should be calculated.
+        diag_metrics = Trivial.list_dedup(self.yaxes + self.xaxes + self.hist + self.chist)
+        self._smry_metrics = {}
+        for res in self.rsts:
+            self._smry_metrics[res.reportid] = [m for m in diag_metrics if m in res.metrics_set]
 
         if smry_funcs is None:
             smry_funcs = {}
