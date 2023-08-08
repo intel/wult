@@ -8,6 +8,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - ndl: disable DMA coalescing to avoid potential latency spikes
  - Change the way that 'wult' and 'ndl' HTML reports are generated so that tabs
    will be included if any result contains data for them rather than only being
    included if all results have relevant data.
