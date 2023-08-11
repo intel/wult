@@ -83,6 +83,9 @@ class FTrace(ClassHelpers.SimpleCloseContext):
         Yield trace buffer lines one-by-one. Wait for a trace line for maximum 'timeout' seconds.
         """
 
+        if self._reader is None:
+            self._reader = self._pman.run_async(self._reader_cmd)
+
         while True:
             stdout, stderr, exitcode = self._reader.wait(timeout=self.timeout, lines=[32, None],
                                                          join=False)
@@ -111,6 +114,7 @@ class FTrace(ClassHelpers.SimpleCloseContext):
         """
 
         self._reader = None
+        self._reader_cmd = None
         self._pman = pman
         self.timeout = timeout
 
@@ -131,12 +135,12 @@ class FTrace(ClassHelpers.SimpleCloseContext):
             if not self._pman.is_file(path):
                 raise ErrorNotSupported(f"linux ftrace file '{path}' not found{self._pman.hostmsg}")
 
-        cmd = f"cat {self._paths['trace_pipe']}"
+        self._reader_cmd = f"cat {self._paths['trace_pipe']}"
         name = "stale wult function trace reader process"
-        ProcHelpers.kill_processes(cmd, kill_children=True, log=True, name=name, pman=self._pman)
+        ProcHelpers.kill_processes(self._reader_cmd, kill_children=True, log=True, name=name,
+                                   pman=self._pman)
 
         self._reset_state()
-        self._reader = self._pman.run_async(cmd)
 
     def close(self):
         """Stop following the function trace buffer."""
