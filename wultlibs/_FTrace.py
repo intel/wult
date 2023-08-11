@@ -73,6 +73,11 @@ class FTrace(ClassHelpers.SimpleCloseContext):
                 _LOG.debug("setting tracer to 'nop'")
                 fobj.write("nop")
 
+        # Disable all trace events.
+        with self._pman.open(self._paths["set_event"], "w") as fobj:
+            _LOG.debug("clearing trace events")
+            fobj.write("")
+
         # Clear the function trace buffer.
         _LOG.debug("clearing the trace buffer")
         with self._pman.open(self._paths["trace"], "w+") as fobj:
