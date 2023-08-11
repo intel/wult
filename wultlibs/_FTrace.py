@@ -147,6 +147,15 @@ class FTrace(ClassHelpers.SimpleCloseContext):
 
         self._reset_state()
 
+    def enable_event(self, event):
+        """Enable trace event 'event'."""
+
+        path = self._debugfs_mntpoint.joinpath(f"tracing/events/{event}/enable")
+        _LOG.debug("enabling trace event '%s'", event)
+
+        with self._pman.open(path, "w") as fobj:
+            fobj.write("1")
+
     def close(self):
         """Stop following the function trace buffer."""
 
