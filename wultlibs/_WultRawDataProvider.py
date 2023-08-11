@@ -309,6 +309,15 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
 
         self._wult_lines = None
 
+        self._ftrace = _FTrace.FTrace(pman=self._pman, timeout=self._timeout)
+
+        try:
+            self._ftrace.enable_event("bpf_trace/bpf_trace_printk")
+        except Error as err:
+            raise Error(f"can't enable trace event 'bpf_trace_printk':\n{err.indent(2)}\n"
+                        f"Make sure you have 'CONFIG_BPF' enabled in the kernel"
+                        f"{self._pman.hostmsg}") from err
+
 def WultRawDataProvider(dev, pman, cpunum, ldist, helper_path=None, timeout=None, unload=True):
     """
     Create and return a raw data provider class suitable for a delayed event device 'dev'. The
