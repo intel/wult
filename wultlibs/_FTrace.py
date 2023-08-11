@@ -54,9 +54,26 @@ class FTraceLine():
 class FTrace(ClassHelpers.SimpleCloseContext):
     """This class represents the Linux function trace buffer."""
 
-    def _clear(self):
-        """Clear the function trace buffer."""
+    def _reset_state(self):
+        """Reset the function tracer to a known state."""
 
+        # Enable tracing if necessary.
+        with self._pman.open(self._paths["tracing_on"], "w+") as fobj:
+            val = fobj.read()
+            if val.strip() != "1":
+                _LOG.debug("enabling tracing")
+                fobj.write("1")
+                self._disable_tracing = True
+
+        # Set current tracer to 'nop'. There are multiple ftrace output formats, and not all are
+        # supported by this module. Reset ftrace to the default format.
+        with self._pman.open(self._paths["current_tracer"], "w+") as fobj:
+            val = fobj.read()
+            if val.strip() != "nop":
+                _LOG.debug("setting tracer to 'nop'")
+                fobj.write("nop")
+
+        # Clear the function trace buffer.
         _LOG.debug("clearing the trace buffer")
         with self._pman.open(self._paths["trace"], "w+") as fobj:
             fobj.write("0")
@@ -118,24 +135,7 @@ class FTrace(ClassHelpers.SimpleCloseContext):
         name = "stale wult function trace reader process"
         ProcHelpers.kill_processes(cmd, kill_children=True, log=True, name=name, pman=self._pman)
 
-        # Enable tracing if necessary.
-        with self._pman.open(self._paths["tracing_on"], "w+") as fobj:
-            val = fobj.read()
-            if val.strip() != "1":
-                _LOG.debug("enabling tracing")
-                fobj.write("1")
-                self._disable_tracing = True
-
-        # Set current tracer to 'nop'. There are multiple ftrace output
-        # formats, and not all are supported by this module. Reset ftrace
-        # to the default format.
-        with self._pman.open(self._paths["current_tracer"], "w+") as fobj:
-            val = fobj.read()
-            if val.strip() != "nop":
-                _LOG.debug("setting tracer to 'nop'")
-                fobj.write("nop")
-
-        self._clear()
+        self._reset_state()
         self._reader = self._pman.run_async(cmd)
 
     def close(self):
