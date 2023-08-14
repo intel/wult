@@ -1,3 +1,12 @@
+wult (1.12.7) unstable; urgency=low
+
+  * ndl: disable DMA coalescing to avoid potential latency spikes
+  * Change the way that 'wult' and 'ndl' HTML reports are generated so that tabs
+    will be included if any result contains data for them rather than only being
+    included if all results have relevant data.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 14 Aug 2023 00:00:00 +0200
+
 wult (1.12.6) unstable; urgency=low
 
   * Add 'stats-collect' logs to HTML reports.
