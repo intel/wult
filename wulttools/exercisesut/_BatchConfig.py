@@ -734,10 +734,10 @@ class BatchConfig(_Common.CmdlineRunner):
         """Create and return report ID."""
         return self._wl_formatter.create_reportid(props, **kwargs)
 
-    def run(self, props, cpu, reportid, **kwargs):
+    def run(self, props, reportid, **kwargs):
         """Run workload command with system properties 'props'."""
 
-        cmd = self._wl_formatter.get_command(props, cpu=cpu, reportid=reportid, **kwargs)
+        cmd = self._wl_formatter.get_command(props, reportid=reportid, **kwargs)
         self._run_command(cmd)
 
     def __init__(self, args):
