@@ -19,7 +19,6 @@ from pepclibs.helperlibs import Trivial, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.htmlreport import _IntroTable, HTMLReport
 from statscollectlibs.htmlreport.tabs import _Tabs
-from statscollectlibs.rawresultlibs import RORawResult
 from wultlibs.helperlibs import FSHelpers
 from wultlibs.htmlreport import _MetricDTabBuilder
 
@@ -394,8 +393,6 @@ class ReportBase:
                 continue
             if res.stats_res:
                 stats_rsts.append(res.stats_res)
-            else:
-                stats_rsts.append(RORawResult.RORawResult(res.dirpath, res.reportid))
 
         rep.generate_report(tabs=tabs, rsts=stats_rsts, intro_tbl=self._intro_tbl,
                             title=f"{toolname} Report", descr=self.report_descr,

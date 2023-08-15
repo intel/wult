@@ -424,6 +424,30 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self.defs.info.update(mdefs_to_add)
 
+    def _mock_stats_res(self):
+        """
+        Helper function for the class constructor. Some result directories with 'format_version'
+        '1.2', only contain raw statistics files and a 'stats-info.yml' file.
+
+        Populate 'self.stats_res' with a 'stats-collect' 'RORawResult' based on the contents of
+        'stats-info.yml'
+        """
+
+        stats_info_path = self.stats_path / "stats-info.yml"
+        tool = f"{self.info['toolname']} v{self.info['toolver']}"
+        if not stats_info_path.exists():
+            raise Error(f"unable to read statistics for result '{self.reportid}'. Please downgrade "
+                        f"to '{tool}'")
+
+        self.stats_res = StatsCollectRes.RORawResult(self.dirpath, self.reportid)
+        self.stats_res.info_path = self.stats_path / "stats-info.yml"
+        self.stats_res.stats_path = self.stats_path
+        self.stats_res.info = {}
+        self.stats_res.info["stinfo"] = YAML.load(self.stats_res.info_path)
+
+        _LOG.warning("result '%s' was generated with '%s'. It is recommended that you downgrade to "
+                     "'%s' if you have any issues.", self.reportid, tool, tool)
+
     def __init__(self, dirpath, reportid=None):
         """
         The class constructor. The arguments are as follows.
@@ -501,6 +525,16 @@ class RORawResult(_RawResultBase.RawResultBase):
         try:
             self.stats_res = StatsCollectRes.RORawResult(self.stats_path, self.reportid)
         except Error as err:
-            # If the 'stats-collect' result is malformed. Load the 'wult' result with no stats but
-            # warn the user that there was a problem.
-            _LOG.warning("Unable to load statistics for '%s':\n%s", self.reportid, err.indent(2))
+            if self.info["format_version"] != "1.2":
+                raise err
+
+            # 'format_version 1.2' contained several forms of result. Some results contained
+            # statistics in a different way which can cause loading statistics to fail. Attempt to
+            # load the statistics as they used to be.
+            try:
+                self._mock_stats_res()
+            except Error:
+                # If the 'stats-collect' result is malformed. Load the result with no stats but warn
+                # the user that there was a problem.
+                _LOG.warning("unable to load statistics for '%s':\n%s", self.reportid,
+                             err.indent(2))
