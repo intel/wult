@@ -22,6 +22,10 @@ from wultlibs.rawresultlibs import _RawResultBase
 
 _LOG = logging.getLogger()
 
+# Format version '1.2' contained multiple format versions. It is planned to be removed from the list
+# of supported versions in 2025.
+_SUPPORTED_FORMAT_VERSIONS = {"1.2", "1.3"}
+
 class RORawResult(_RawResultBase.RawResultBase):
     """This class represents a read-only raw test result."""
 
@@ -497,6 +501,12 @@ class RORawResult(_RawResultBase.RawResultBase):
         toolver = self.info.get("toolver")
         if not toolver:
             raise Error(f"bad '{self.info_path}' format - the 'toolver' key is missing")
+
+        format_ver = self.info.get("format_version")
+        if format_ver not in _SUPPORTED_FORMAT_VERSIONS:
+            _LOG.warning("result '%s' has format version '%s' which is not supported by this "
+                         "version so may cause unexpected behavour. Please use '%s v%s'.",
+                         self.reportid, format_ver, toolname, toolver)
 
         # Read the metrics from the column names in the CSV file.
         try:
