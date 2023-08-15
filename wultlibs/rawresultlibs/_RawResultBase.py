@@ -20,8 +20,9 @@ A raw test result is a directory containing the following files.
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.rawresultlibs import _RawResultBase
 
-# The latest supported raw results format version.
-FORMAT_VERSION = "1.2"
+# The latest supported raw results format version. Note that version 1.2 incorrectly contained
+# multiple forms of the format.
+FORMAT_VERSION = "1.3"
 
 class RawResultBase(_RawResultBase.RawResultBase):
     """
