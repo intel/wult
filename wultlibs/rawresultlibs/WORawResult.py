@@ -174,7 +174,7 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
         self.info["reportid"] = reportid
 
         # Note, this format version assumes that the following elements should be added to
-        # 'self.info' later by the owned of this object:
+        # 'self.info' later by the owner of this object:
         #  * toolname - name of the tool creating the report.
         #  * toolver - version of the tool creating the report.
 
