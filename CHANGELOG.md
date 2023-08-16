@@ -5,9 +5,11 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix 'wult/ndl report' crashing for results with format version '1.2'.
 ### Added
 ### Removed
 ### Changed
+ - Increment the format version of 'wult/ndl' results to '1.3'.
 
 ## [1.12.7] - 2023-08-14
 ### Changed
