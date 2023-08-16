@@ -2,7 +2,7 @@
 NDL
 ===
 
-:Date: 2023-08-14
+:Date: 2023-08-16
 
 .. contents::
    :depth: 3
@@ -224,7 +224,11 @@ OPTIONS *'ndl* start'
    How many datapoints should the test result include, default is
    1000000. Note, unless the '--start-over' option is used, the
    pre-existing datapoints are taken into account. For example, if the
-   test result already has 6000 datapoints and memory.
+   test result already has 6000 datapoints and '-c 10000' is used, the
+   tool will collect 4000 datapoints and exit. Warning: collecting too
+   many datapoints may result in a very large test result file, which
+   will be difficult to process later, because that would require a lot
+   of memory.
 
 **--time-limit** *LIMIT*
    The measurement time limit, i.e., for how long the SUT should be
@@ -269,9 +273,6 @@ OPTIONS *'ndl* start'
    periodic snapshots of data. For example, by default the 'acpower'
    statistics collector reads SUT power consumption for the last second
    every second, and 'turbostat' default interval is 5 seconds. Use
-   'acpower:5,turbostat:10' to increase the intervals to 5 and 10
-   seconds correspondingly. Use the '--list-stats' to get the default
-   interval values.
 
 **--list-stats**
    Print information about the statistics 'ndl' can collect and exit.
@@ -283,14 +284,14 @@ OPTIONS *'ndl* start'
    usually repeated many times. The launch distance defines how far in
    the future the delayed network packets are scheduled. By default this
    tool randomly selects launch distance in range of [5000, 50000]
-   microseconds (same as '--ldist 5000,50000'). Specify a comma-
-   separated range or a single value if you want launch distance to be
-   precisely that value all the time. The default unit is microseconds,
-   but you can use the following specifiers as well: ms - milliseconds,
-   us - microseconds, ns - nanoseconds. For example, '--ldist
-   500us,100ms' would be a [500,100000] microseconds range. Note, too
-   low values may cause failures or prevent the SUT from reaching deep
-   C-states. The optimal value is system-specific.
+   microseconds (same as '--ldist 5000,50000'). Specify a
+   comma-separated range or a single value if you want launch distance
+   to be precisely that value all the time. The default unit is
+   microseconds, but you can use the following specifiers as well: ms -
+   milliseconds, us - microseconds, ns - nanoseconds. For example,
+   '--ldist 500us,100ms' would be a [500,100000] microseconds range.
+   Note, too low values may cause failures or prevent the SUT from
+   reaching deep C-states. The optimal value is system-specific.
 
 **--cpunum** *CPUNUM*
    The CPU number to bind the helper to. The helper will use this CPU to
@@ -442,7 +443,9 @@ OPTIONS *'ndl* report'
    The report description - any text describing this report as whole, or
    path to a file containing the overall report description. For
    example, if the report compares platform A and platform B, the
-   description could be something like
+   description could be something like 'platform A vs B comparison'.
+   This text will be included into the very beginning of the resulting
+   HTML report.
 
 **--relocatable**
    Generate a report which contains a copy of the raw test results. With
@@ -503,7 +506,7 @@ OPTIONS *'ndl* filter'
    or python style regular expressions matching the names. For example,
    the expression 'SilentTime,WarmupDelay,.*Cyc', would remove metrics
    'SilentTime', 'WarmupDelay' and all metrics with 'Cyc' in their name.
-   Use '--list-metrics' to get the list of the available metrics.
+   Use
 
 **--include-metrics** *MINCLUDE*
    The metrics to include: remove all metrics except for those specified
@@ -575,7 +578,7 @@ OPTIONS *'ndl* calc'
    or python style regular expressions matching the names. For example,
    the expression 'SilentTime,WarmupDelay,.*Cyc', would remove metrics
    'SilentTime', 'WarmupDelay' and all metrics with 'Cyc' in their name.
-   Use '--list-metrics' to get the list of the available metrics.
+   Use
 
 **--include-metrics** *MINCLUDE*
    The metrics to include: remove all metrics except for those specified

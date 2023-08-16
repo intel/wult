@@ -1,3 +1,10 @@
+wult (1.12.8) unstable; urgency=low
+
+  * Fix 'wult/ndl report' crashing for results with format version '1.2'.
+  * Increment the format version of 'wult/ndl' results to '1.3'.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 16 Aug 2023 00:00:00 +0200
+
 wult (1.12.7) unstable; urgency=low
 
   * ndl: disable DMA coalescing to avoid potential latency spikes
