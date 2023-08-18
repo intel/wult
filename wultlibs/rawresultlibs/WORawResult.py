@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2021 Intel Corporation
+# Copyright (C) 2019-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -10,6 +10,7 @@
 This module provides API for write-only raw test results.
 """
 
+import logging
 import os
 import shutil
 import contextlib
@@ -18,6 +19,8 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorExists
 from wultlibs.helperlibs import FSHelpers
 from wultlibs.rawresultlibs import _CSV, _RawResultBase
 from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
+
+_LOG = logging.getLogger()
 
 class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext):
     """This class represents a write-only raw test result."""
@@ -46,6 +49,7 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
                 self.dirpath.mkdir(parents=True, exist_ok=True)
                 self._created_paths.append(self.dirpath)
                 FSHelpers.set_default_perm(self.dirpath)
+                _LOG.info("Created result directory '%s'", self.dirpath)
             except OSError as err:
                 raise Error(f"failed to create directory '{self.dirpath}':\n{err}") from None
 
@@ -190,6 +194,10 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
         paths = []
         if (not dp_path or not dp_path.exists()) or dp_path.stat().st_size == 0:
             paths = getattr(self, "_created_paths", [])
+
+        if paths:
+            _LOG.info("No data was collected so the following paths which were created will be "
+                      "deleted:\n  - %s", "\n  - ".join(str(path) for path in self._created_paths))
 
         for path in paths:
             if not path.exists():
