@@ -1,4 +1,4 @@
-.TH EXERCISE\-SUT "1" "2023\-08\-16" "wult" "Generated Python Manual"
+.TH EXERCISE\-SUT "1" "2023\-08\-18" "wult" "Generated Python Manual"
 .SH NAME
 exercise\-sut
 .SH SYNOPSIS
@@ -38,10 +38,10 @@ Start collecting testdata.
 Generate reports.
 
 .SH COMMAND \fI\,'exercise\-sut start'\/\fR
-usage: exercise\-sut start [\-h] [\-q] [\-d] [\-H HOSTNAME] [\-U USERNAME] [\-K PRIVKEY] [\-T TIMEOUT] [\-\-datapoints DATAPOINTS] [\-\-reportid\-prefix REPORTID_PREFIX] [\-\-reportid\-suffix REPORTID_SUFFIX] [\-\-cpunums CPUNUMS] [\-\-cstates CSTATES] [\-\-pcstates PCSTATES] [\-\-only\-one\-cstate]
-                          [\-\-cstates\-always\-enable CSTATES_ALWAYS_ENABLE] [\-\-turbo TURBO] [\-\-freqs FREQS] [\-\-uncore\-freqs UNCORE_FREQS] [\-\-governor GOVERNOR] [\-\-aspm ASPM] [\-\-c1\-demotion C1_DEMOTION] [\-\-c1\-undemotion C1_UNDEMOTION] [\-\-c1e\-autopromote C1E_AUTOPROMOTE]
-                          [\-\-cstate\-prewake CSTATE_PREWAKE] [\-\-epp EPP] [\-\-epp\-hw EPP_HW] [\-\-epb EPB] [\-\-epb\-hw EPB_HW] [\-\-state\-reset] [\-\-deploy] [\-\-devids DEVIDS] [\-\-command COMMAND] [\-\-stop\-on\-failure] [\-\-only\-measured\-cpu] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS]
-                          [\-\-outdir OUTDIR] [\-\-dry\-run] [\-\-list\-monikers]
+usage: exercise\-sut start [\-h] [\-q] [\-d] [\-H HOSTNAME] [\-U USERNAME] [\-K PRIVKEY] [\-T TIMEOUT] [\-\-datapoints DATAPOINTS] [\-\-reportid\-prefix REPORTID_PREFIX] [\-\-reportid\-suffix REPORTID_SUFFIX] [\-\-cpunums CPUNUMS] [\-\-cstates CSTATES]
+                          [\-\-pcstates PCSTATES] [\-\-only\-one\-cstate] [\-\-cstates\-always\-enable CSTATES_ALWAYS_ENABLE] [\-\-turbo TURBO] [\-\-freqs FREQS] [\-\-uncore\-freqs UNCORE_FREQS] [\-\-governor GOVERNOR] [\-\-aspm ASPM]
+                          [\-\-c1\-demotion C1_DEMOTION] [\-\-c1\-undemotion C1_UNDEMOTION] [\-\-c1e\-autopromote C1E_AUTOPROMOTE] [\-\-cstate\-prewake CSTATE_PREWAKE] [\-\-epp EPP] [\-\-epp\-hw EPP_HW] [\-\-epb EPB] [\-\-epb\-hw EPB_HW] [\-\-state\-reset]
+                          [\-\-deploy] [\-\-devids DEVIDS] [\-\-command COMMAND] [\-\-stop\-on\-failure] [\-\-only\-measured\-cpu] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-dry\-run] [\-\-list\-monikers]
 
 Run a test tool or benchmark to collect testdata. Unknown options are passed as\-is to the tool.
 
@@ -160,8 +160,8 @@ Comma\-separated list of EPB configurations to measure with. Default is "don't c
 
 .TP
 \fB\-\-state\-reset\fR
-Set SUT settings to default values before starting measurements. The default values are: online all CPUs, enable all C\-states, disable C1 demotion, disable C1 undemotion, disable C1E autopromotion, disable C\-state prewake, enable turbo, unlock CPU frequency, unlock uncore
-frequency, set EPP policy to 'balance_performance', set EPB policy to 'balance\-performance'.
+Set SUT settings to default values before starting measurements. The default values are: online all CPUs, enable all C\-states, disable C1 demotion, disable C1 undemotion, disable C1E autopromotion, disable C\-state prewake, enable turbo,
+unlock CPU frequency, unlock uncore frequency, set EPP policy to 'balance_performance', set EPB policy to 'balance\-performance'.
 
 .TP
 \fB\-\-deploy\fR
@@ -204,7 +204,8 @@ Do not run any commands, only print them.
 A moniker is an abbreviation for a setting. The 'exercise\-sut' uses monikers to create directory names and report IDs for collected results. Use this option to list monikers assosiated with each settings, if any, and exit.
 
 .SH COMMAND \fI\,'exercise\-sut report'\/\fR
-usage: exercise\-sut report [\-h] [\-q] [\-d] [\-\-diffs DIFFS] [\-\-include INCLUDE] [\-\-exclude EXCLUDE] [\-\-jobs JOBS] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-stop\-on\-failure] [\-\-dry\-run] [\-\-list\-monikers] [respaths ...]
+usage: exercise\-sut report [\-h] [\-q] [\-d] [\-\-diffs DIFFS] [\-\-include INCLUDE] [\-\-exclude EXCLUDE] [\-\-jobs JOBS] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-stop\-on\-failure] [\-\-dry\-run] [\-\-list\-monikers]
+                           [respaths ...]
 
 Generate reports from collected data. Unknown options are passed as\-is to the report tool.
 
@@ -227,8 +228,8 @@ Print debugging information.
 
 .TP
 \fB\-\-diffs\fR \fI\,DIFFS\/\fR
-Collected data is stored in directories, and each directory name is constructed from multiple monikers separated by dashes, e.g. 'hrt\-c6\-uf_max\-autoc1e_off'. This option can be used to create diff reports by including multiple results in one report. Comma\-separated list of
-monikers to select results to include in the diff report. This option can be used multiple times. If this option is not provided, reports with single result are generated.
+Collected data is stored in directories, and each directory name is constructed from multiple monikers separated by dashes, e.g. 'hrt\-c6\-uf_max\-autoc1e_off'. This option can be used to create diff reports by including multiple results
+in one report. Comma\-separated list of monikers to select results to include in the diff report. This option can be used multiple times. If this option is not provided, reports with single result are generated.
 
 .TP
 \fB\-\-include\fR \fI\,INCLUDE\/\fR

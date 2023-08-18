@@ -1,3 +1,9 @@
+wult (1.12.9) unstable; urgency=low
+
+- Fix 'exercise-sut' crashing with pepc version '1.4.32'.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 18 Aug 2023 00:00:00 +0200
+
 wult (1.12.8) unstable; urgency=low
 
   * Fix 'wult/ndl report' crashing for results with format version '1.2'.

@@ -5,10 +5,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
-- Fix 'exercise-sut' crashing with pepc version '1.4.32'.
 ### Added
 ### Removed
 ### Changed
+
+## [1.12.9] - 2023-08-18
+### Fixed
+- Fix 'exercise-sut' crashing with pepc version '1.4.32'.
 
 ## [1.12.8] - 2023-08-16
 ### Fixed
