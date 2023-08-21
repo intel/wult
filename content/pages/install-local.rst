@@ -28,7 +28,7 @@ latest release::
  sudo pip3 install --upgrade git+https://github.com/intel/wult.git@release
  sudo wult deploy
 
-1.2 Fedora, CentOS 8 Stream & CentOS 9 Stream
+1.2 Fedora & CentOS 8 Stream
 ---------------------------------------------
 
 If you installed `pepc`, `stats-collect` and `wult` using `dnf` on one of the supported operating systems listed
@@ -139,16 +139,7 @@ It is recommended to install the tools using `pip` for quickest access to the la
 
 If you are using Fedora 34 or older, use the `'pip' installation method <#pip-install>`_.
 
-3.3 CentOS 9 Stream
--------------------
-
-`wult`, `stats-collect` and `pepc` are available for CentOS 9 Stream via the `epel` repository. Here
-is how to add 'epel' and install `wult`, `stats-collect` and `pepc`::
-
- sudo dnf install epel-release
- sudo dnf install pepc stats-collect wult
-
-3.4 CentOS 8 Stream
+3.3 CentOS 8 Stream
 -------------------
 
 To install `wult`, `stats-collect` and `pepc` in CentOS 8 stream, you can use the `copr` repository
@@ -157,7 +148,7 @@ using the following commands::
  sudo dnf copr enable aekoroglu/c8s-py39 centos-stream-8-x86_64
  sudo dnf install pepc stats-collect wult
 
-3.5 Ubuntu & Debian
+3.4 Ubuntu & Debian
 -------------------
 We do not provide Ubuntu/Debian packages, so you'll need to use the `'pip' installation method
 <#pip-install>`_. Install dependencies using the commands in the `os-packages`_ section before
