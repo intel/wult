@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix 'wult/ndl' not generating statistics tabs in HTML reports for some
+   results with format version '1.2'.
 ### Added
 ### Removed
 ### Changed
