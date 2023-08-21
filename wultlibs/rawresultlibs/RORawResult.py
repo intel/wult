@@ -17,6 +17,7 @@ from pepclibs.helperlibs import YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
 from statscollectlibs import DFSummary
 from statscollectlibs.rawresultlibs import RORawResult as StatsCollectRes
+from statscollectlibs.collector._STCAgent import STINFO
 from wultlibs import WultDefs, _WultDefsBase
 from wultlibs.rawresultlibs import _RawResultBase
 
@@ -437,17 +438,21 @@ class RORawResult(_RawResultBase.RawResultBase):
         'stats-info.yml'
         """
 
-        stats_info_path = self.stats_path / "stats-info.yml"
         tool = f"{self.info['toolname']} v{self.info['toolver']}"
-        if not stats_info_path.exists():
-            raise Error(f"unable to read statistics for result '{self.reportid}'. Please downgrade "
-                        f"to '{tool}'")
 
+        stats_info_path = self.stats_path / "stats-info.yml"
         self.stats_res = StatsCollectRes.RORawResult(self.dirpath, self.reportid)
         self.stats_res.info_path = self.stats_path / "stats-info.yml"
         self.stats_res.stats_path = self.stats_path
+
+        if stats_info_path.exists():
+            stinfo = YAML.load(self.stats_res.info_path)
+        else:
+            YAML.dump(STINFO, self.stats_path / "stats-info.yml")
+            stinfo = STINFO
+
         self.stats_res.info = {}
-        self.stats_res.info["stinfo"] = YAML.load(self.stats_res.info_path)
+        self.stats_res.info["stinfo"] = stinfo
 
         _LOG.warning("result '%s' was generated with '%s'. It is recommended that you downgrade to "
                      "'%s' if you have any issues.", self.reportid, tool, tool)
