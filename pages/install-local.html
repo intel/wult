@@ -115,7 +115,7 @@
 <ul class="simple">
 <li><a class="reference internal" href="#update" id="toc-entry-1">1 Update</a><ul>
 <li><a class="reference internal" href="#pip" id="toc-entry-2">1.1 pip</a></li>
-<li><a class="reference internal" href="#fedora-centos-8-stream-centos-9-stream" id="toc-entry-3">1.2 Fedora, CentOS 8 Stream &amp; CentOS 9 Stream</a></li>
+<li><a class="reference internal" href="#fedora-centos-8-stream" id="toc-entry-3">1.2 Fedora &amp; CentOS 8 Stream</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#install-dependencies" id="toc-entry-4">2 Install dependencies</a><ul>
@@ -126,13 +126,12 @@
 <li><a class="reference internal" href="#install-wult-stats-collect-and-pepc" id="toc-entry-7">3 Install wult, stats-collect and pepc</a><ul>
 <li><a class="reference internal" href="#pip-recommended" id="toc-entry-8">3.1 pip - Recommended</a></li>
 <li><a class="reference internal" href="#fedora" id="toc-entry-9">3.2 Fedora</a></li>
-<li><a class="reference internal" href="#centos-9-stream" id="toc-entry-10">3.3 CentOS 9 Stream</a></li>
-<li><a class="reference internal" href="#centos-8-stream" id="toc-entry-11">3.4 CentOS 8 Stream</a></li>
-<li><a class="reference internal" href="#ubuntu-debian" id="toc-entry-12">3.5 Ubuntu &amp; Debian</a></li>
+<li><a class="reference internal" href="#centos-8-stream" id="toc-entry-10">3.3 CentOS 8 Stream</a></li>
+<li><a class="reference internal" href="#ubuntu-debian" id="toc-entry-11">3.4 Ubuntu &amp; Debian</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#deploy-wult-drivers" id="toc-entry-13">4 Deploy wult drivers</a></li>
-<li><a class="reference internal" href="#tab-completions" id="toc-entry-14">5 Tab completions</a></li>
+<li><a class="reference internal" href="#deploy-wult-drivers" id="toc-entry-12">4 Deploy wult drivers</a></li>
+<li><a class="reference internal" href="#tab-completions" id="toc-entry-13">5 Tab completions</a></li>
 </ul>
 </div>
 <p>This page provides wult installation instruction for the
@@ -151,8 +150,8 @@ sudo pip3 install --upgrade git+https://github.com/intel/wult.git&#64;release
 sudo wult deploy
 </pre>
 </div>
-<div class="section" id="fedora-centos-8-stream-centos-9-stream">
-<h3><a class="toc-backref" href="#toc-entry-3">1.2 Fedora, CentOS 8 Stream &amp; CentOS 9 Stream</a></h3>
+<div class="section" id="fedora-centos-8-stream">
+<h3><a class="toc-backref" href="#toc-entry-3">1.2 Fedora &amp; CentOS 8 Stream</a></h3>
 <p>If you installed <cite>pepc</cite>, <cite>stats-collect</cite> and <cite>wult</cite> using <cite>dnf</cite> on one of the supported operating systems listed
 in the <a class="reference internal" href="#installation-instructions">installation instructions</a>, then upgrade to the latest version using the following
 commands:</p>
@@ -240,17 +239,8 @@ sudo dnf install -y pepc stats-collect wult
 </pre>
 <p>If you are using Fedora 34 or older, use the <a class="reference external" href="#pip-install">'pip' installation method</a>.</p>
 </div>
-<div class="section" id="centos-9-stream">
-<h3><a class="toc-backref" href="#toc-entry-10">3.3 CentOS 9 Stream</a></h3>
-<p><cite>wult</cite>, <cite>stats-collect</cite> and <cite>pepc</cite> are available for CentOS 9 Stream via the <cite>epel</cite> repository. Here
-is how to add 'epel' and install <cite>wult</cite>, <cite>stats-collect</cite> and <cite>pepc</cite>:</p>
-<pre class="literal-block">
-sudo dnf install epel-release
-sudo dnf install pepc stats-collect wult
-</pre>
-</div>
 <div class="section" id="centos-8-stream">
-<h3><a class="toc-backref" href="#toc-entry-11">3.4 CentOS 8 Stream</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-10">3.3 CentOS 8 Stream</a></h3>
 <p>To install <cite>wult</cite>, <cite>stats-collect</cite> and <cite>pepc</cite> in CentOS 8 stream, you can use the <cite>copr</cite> repository
 using the following commands:</p>
 <pre class="literal-block">
@@ -259,13 +249,13 @@ sudo dnf install pepc stats-collect wult
 </pre>
 </div>
 <div class="section" id="ubuntu-debian">
-<h3><a class="toc-backref" href="#toc-entry-12">3.5 Ubuntu &amp; Debian</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-11">3.4 Ubuntu &amp; Debian</a></h3>
 <p>We do not provide Ubuntu/Debian packages, so you'll need to use the <a class="reference external" href="#pip-install">'pip' installation method</a>. Install dependencies using the commands in the <a class="reference internal" href="#os-packages">os-packages</a> section before
 continuing with the <a class="reference external" href="#pip-install">'pip' installation method</a>.</p>
 </div>
 </div>
 <div class="section" id="deploy-wult-drivers">
-<h2><a class="toc-backref" href="#toc-entry-13">4 Deploy wult drivers</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-12">4 Deploy wult drivers</a></h2>
 <p>The final step is to build and deploy <cite>wult</cite> drivers and <cite>stats-collect</cite> statistics collectors . Run
 these commands on the SUT as &quot;root&quot;.</p>
 <pre class="literal-block">
@@ -277,7 +267,7 @@ sudo wult deploy
 different kernel, you have to re-run <cite>wult deploy</cite>.</p>
 </div>
 <div class="section" id="tab-completions">
-<h2><a class="toc-backref" href="#toc-entry-14">5 Tab completions</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-13">5 Tab completions</a></h2>
 <p><cite>Wult</cite>, <cite>stats-collect</cite> and <cite>pepc</cite> tools have bash tab completions support, but this will only work
 if you have certain environment variables defined. The following commands will do it:</p>
 <pre class="literal-block">
