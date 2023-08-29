@@ -174,30 +174,39 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         return ", ".join(props_strs)
 
-    def _normalize_pcsnames(self, pcsnames):
-        """Normalize and validate list of package C-state names 'pcsnames'."""
+    def _get_pcsinfo(self):
+        """Helper to read package C-state information, returns a dictionary."""
 
-        allpcsnames = []
-        pcsaliases = []
+        pcsinfo = {}
+        pcsinfo["allnames"] = []
+        pcsinfo["aliases"] = []
+
         cstates = self._get_cstates()
         for _, pinfo in cstates.get_props(("pkg_cstate_limits", "pkg_cstate_limit_aliases")):
             if pinfo["pkg_cstate_limits"]:
                 for pcsname in pinfo["pkg_cstate_limits"]:
-                    if pcsname not in allpcsnames:
-                        allpcsnames.append(pcsname)
+                    if pcsname not in pcsinfo["allnames"]:
+                        pcsinfo["allnames"].append(pcsname)
 
             if pinfo["pkg_cstate_limit_aliases"]:
                 for pcsalias in pinfo["pkg_cstate_limit_aliases"]:
-                    if pcsalias not in pcsaliases:
-                        pcsaliases.append(pcsalias)
+                    if pcsalias not in pcsinfo["pcsaliases"]:
+                        pcsinfo["aliases"].append(pcsalias)
+
+        return pcsinfo
+
+    def _normalize_pcsnames(self, pcsnames):
+        """Normalize and validate list of package C-state names 'pcsnames'."""
+
+        pcsinfo = self._get_pcsinfo()
 
         if "all" in pcsnames:
-            return allpcsnames
+            return pcsinfo["allnames"]
 
         pcsnames = [pcsname.upper() for pcsname in pcsnames]
 
         for pcsname in pcsnames:
-            if pcsname not in allpcsnames and pcsname not in pcsaliases:
+            if pcsname not in pcsinfo["allnames"] and pcsname not in pcsinfo["aliases"]:
                 raise Error(f"package C-state '{pcsname}' not available{self._pman.hostmsg}")
 
         return pcsnames
