@@ -14,7 +14,10 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
+from statscollecttools import ToolInfo as StcToolInfo
 from wulttools.exercisesut import _Common
+from wulttools.ndl import ToolInfo as NdlToolInfo
+from wulttools.wult import ToolInfo as WultToolInfo
 
 _LOG = logging.getLogger()
 
@@ -191,7 +194,8 @@ class BatchReport(_Common.CmdlineRunner):
 
         cmd = f"nice -n19 ionice -c3 {self.toolpath} "
 
-        if self.toolpath.name in ("wult", "ndl", "stats-collect"):
+        if self.toolpath.name in (NdlToolInfo.TOOLNAME, WultToolInfo.TOOLNAME,
+                                  StcToolInfo.TOOLNAME):
             cmd += "report "
 
         if self._toolopts:

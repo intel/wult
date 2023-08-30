@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Antti Laakso <antti.laakso@linux.intel.com>
@@ -22,7 +22,14 @@ except ImportError:
     argcomplete = None
 from pepclibs.helperlibs import ArgParse, Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error
+from statscollecttools import ToolInfo as StcToolInfo
 from wulttools.exercisesut import _BatchConfig, _BatchReport, ToolInfo
+from wulttools.ndl import ToolInfo as NdlToolInfo
+from wulttools.wult import ToolInfo as WultToolInfo
+
+NDL_TOOLNAME = NdlToolInfo.TOOLNAME
+STC_TOOLNAME = StcToolInfo.TOOLNAME
+WULT_TOOLNAME = WultToolInfo.TOOLNAME
 
 TOOLNAME = ToolInfo.TOOLNAME
 VERSION = ToolInfo.VERSION
@@ -80,8 +87,8 @@ _COLLECT_OPTIONS = {
     "datapoints" : {
         "short" : "-c",
         "default" : 100000,
-        "help" : """Applicable only to 'wult' and 'ndl' tools. Number of datapoints to collect per
-                    measurement. Default is 100000."""
+        "help" : f"""Applicable only to '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools. Number of
+                     datapoints to collect per measurement. Default is 100000."""
     },
     "reportid_prefix" : {
         "default" : "",
@@ -92,8 +99,9 @@ _COLLECT_OPTIONS = {
         "help" : """String to append to the report ID (nothing, by default)."""
     },
     "cpunums" : {
-        "help" : """Applicable only to the 'wult' and 'ndl' tools. Comma-separated list of CPU
-                    numbers to measure with. No CPU number is passed by default."""
+        "help" : f"""Applicable only to the '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools.
+                     Comma-separated list of CPU numbers to measure with. No CPU number is passed by
+                     default."""
     },
     "cstates" : {
         "help" : """Comma-separated list of requestable C-states to measure with. Default is all
@@ -179,12 +187,12 @@ _COLLECT_OPTIONS = {
     },
     "deploy" : {
         "action" : "store_true",
-        "help" : """Applicable only to 'wult' and 'ndl' tools. Run the 'deploy' command before
-                    starting the measurements."""
+        "help" : f"""Applicable only to '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools. Run the
+                     'deploy' command before starting the measurements."""
     },
     "devids" : {
-        "help" : """Applicable only to 'wult' and 'ndl' tools. Comma-separated list of device IDs
-                    to run the tools with."""
+        "help" : f"""Applicable only to '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools.
+                     Comma-separated list of device IDs to run the tools with."""
     },
     "command" : {
         "help" : """Applicable only to 'stats-collect' tool. The command to that 'stats-collect'
@@ -201,8 +209,8 @@ _COLLECT_OPTIONS = {
     },
     "toolpath" : {
         "type" : Path,
-        "default" : "wult",
-        "help" : """Path to the tool to run. Default is 'wult'."""
+        "default" : WULT_TOOLNAME,
+        "help" : f"""Path to the tool to run. Default is '{WULT_TOOLNAME}'."""
     },
 }
 
@@ -332,10 +340,10 @@ def _start_command(args):
         _BatchConfig.list_monikers()
         return
 
-    if args.toolpath.name in ("wult", "ndl") and not args.devids:
+    if args.toolpath.name in (WULT_TOOLNAME, NDL_TOOLNAME) and not args.devids:
         _LOG.error_out("please, provide device ID to measure with, use '--devids'")
 
-    if args.toolpath.name == "stats-collect" and not args.command:
+    if args.toolpath.name == STC_TOOLNAME and not args.command:
         _LOG.error_out("please, provide the command 'stats-collect' should run, use '--command'")
 
     if args.only_measured_cpu and args.cpunums is None:

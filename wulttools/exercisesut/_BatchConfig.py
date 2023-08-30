@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Antti Laakso <antti.laakso@linux.intel.com>
@@ -18,10 +18,17 @@ from pepclibs import CStates, PStates, CPUIdle, CPUInfo
 from pepclibs.helperlibs import ClassHelpers, Human, LocalProcessManager, Trivial, Systemctl
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.helperlibs import ReportID
+from statscollecttools import ToolInfo as StcToolInfo
 from wulttools._Common import get_pman
+from wulttools.wult import ToolInfo as WultToolInfo
+from wulttools.ndl import ToolInfo as NdlToolInfo
 from wulttools.exercisesut import _Common
 
 _LOG = logging.getLogger()
+
+NDL_TOOLNAME = NdlToolInfo.TOOLNAME
+STC_TOOLNAME = StcToolInfo.TOOLNAME
+WULT_TOOLNAME = WultToolInfo.TOOLNAME
 
 PROP_INFOS = {
     "cstates" : {
@@ -115,10 +122,10 @@ def _get_workload_cmd_formatter(pman, args):
 
     toolname = args.toolpath.name
 
-    if toolname in ("wult", "ndl"):
+    if toolname in (WULT_TOOLNAME, NDL_TOOLNAME):
         return _WultCmdFormatter(pman, args)
 
-    if toolname == "stats-collect":
+    if toolname == STC_TOOLNAME:
         return _StatsCollectCmdFormatter(pman, args)
 
     if toolname == "benchmark":
@@ -694,8 +701,8 @@ class BatchConfig(_Common.CmdlineRunner):
     def deploy(self):
         """Deploy 'wult' to the SUT."""
 
-        if self._wl_formatter.toolpath.name not in ("wult", "ndl"):
-            raise Error("deploy supported only by tools 'wult' and 'ndl'")
+        if self._wl_formatter.toolpath.name not in (WULT_TOOLNAME, NDL_TOOLNAME):
+            raise Error(f"deploy supported only by tools '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}'")
 
         deploy_cmd = f"{self._wl_formatter.toolpath} deploy"
 
