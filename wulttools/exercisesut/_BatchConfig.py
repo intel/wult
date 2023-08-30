@@ -699,10 +699,11 @@ class BatchConfig(_Common.CmdlineRunner):
     """
 
     def deploy(self):
-        """Deploy 'wult' to the SUT."""
+        """Deploy 'ndl', 'wult' or 'stats-collect' to the SUT."""
 
-        if self._wl_formatter.toolpath.name not in (WULT_TOOLNAME, NDL_TOOLNAME):
-            raise Error(f"deploy supported only by tools '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}'")
+        if self._wl_formatter.toolpath.name not in (WULT_TOOLNAME, NDL_TOOLNAME, STC_TOOLNAME):
+            raise Error(f"deploy supported only by tools '{WULT_TOOLNAME}', '{NDL_TOOLNAME}' and "
+                        f"'{STC_TOOLNAME}'")
 
         deploy_cmd = f"{self._wl_formatter.toolpath} deploy"
 
