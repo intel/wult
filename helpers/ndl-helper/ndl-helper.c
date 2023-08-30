@@ -92,6 +92,10 @@ static int verbose;
 static int loop_forever = 1;
 static int cpu = 0;
 
+/* CPU cache trashing buffer and its size. */
+static char *cbuf;
+static unsigned long long cbuf_size;
+
 /*
  * A buffer for storring socket error messages that we generally ignore, but may need at some
  * point.
@@ -425,6 +429,10 @@ static void print_help(void)
 	printf("  -p, --port   UDP port number to use (default is a random port).\n");
 	printf("  -c, --count  number of test iterations. By default runs until stopped by\n");
 	printf("               typing 'q'.\n");
+	printf("  --trash-cpu-cache  allocate a buffer of the given size and fill it with\n"
+	       "                     data every time a delayed network packet is armed,\n"
+	       "                     in order to trash CPU cache and make sure the NIC\n"
+	       "                     fetches data from the memory, not CPU cache.\n");
 	printf("  -T, --tai-offset  print TAI time vs. real time offset in seconds and exit.\n");
 	printf("  -P, --print-max-ldist  print the maximum supported launch distance in\n"
 	       "                         nanoseconds and exit.\n");
@@ -441,6 +449,7 @@ static int parse_options(int argc, char * const *argv)
 		{ "ldist",           required_argument, NULL, 'l'},
 		{ "port",            required_argument, NULL, 'p'},
 		{ "count",           required_argument, NULL, 'c'},
+		{ "trash-cpu-cache", required_argument, NULL, 'S'},
 		{ "tai-offset",      no_argument, NULL, 'T'},
 		{ "print-max-ldist", no_argument, NULL, 'P' },
 		{ "verbose",         no_argument, NULL, 'v'},
@@ -448,7 +457,7 @@ static int parse_options(int argc, char * const *argv)
 		{ 0 }
 	};
 
-	while ((opt = getopt_long(argc, argv, "C:l:p:c:TPvh", long_opts, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "C:l:p:c:S:TPvh", long_opts, NULL)) != -1) {
 		switch (opt) {
 		case 'C':
 			cpu = atol(optarg);
@@ -474,6 +483,9 @@ static int parse_options(int argc, char * const *argv)
 		case 'c':
 			dpcnt = strtoll_or_die(optarg, "number of datapoints");
 			loop_forever = 0;
+			break;
+		case 'S':
+			cbuf_size = strtoll_or_die(optarg, "CPU cache trashing buffer size");
 			break;
 		case 'T':
 			print_tai_offset();
@@ -510,12 +522,22 @@ static int parse_options(int argc, char * const *argv)
 	return 0;
 }
 
+static void trash_cpu_cache(void)
+{
+	static int cbuf_byte;
+
+	if (!cbuf_size)
+		return;
+
+	memset(cbuf, cbuf_byte, cbuf_size);
+}
+
 int main(int argc, char * const *argv)
 {
-	int zero_rtd_count = 0, arm_fail_count = 0, err = 0;
+	int zero_rtd_count = 0, arm_fail_count = 0, missed_time_count = 0, err = 0;
 	int send_sock, ret = -1;
 	cpu_set_t cpuset;
-	uint64_t rtd;
+	uint64_t rtd, overhead = 0;
 	char *buf;
 
 	ret = parse_options(argc, argv);
@@ -550,6 +572,15 @@ int main(int argc, char * const *argv)
 		goto error_out;
 	}
 
+	if (cbuf_size) {
+		cbuf = malloc(cbuf_size);
+		if (!cbuf) {
+			syserrmsg("failed to allocate %llu bytes of memory for CPU cache trashing",
+				  cbuf_size);
+			goto error_out;
+		}
+	}
+
 	/* Clear read 'RTD' by reading before measure loop */
 	ret = read_rtd(&rtd);
 	if (ret)
@@ -557,7 +588,7 @@ int main(int argc, char * const *argv)
 
 	while (dpcnt || loop_forever) {
 		struct timespec req = {0, 0};
-		uint64_t ldist;
+		uint64_t ldist, t1, t2, new_overhead;
 
 		ret = get_command(buf, CMD_BUF_SIZE);
 		if (ret < 0)
@@ -569,7 +600,14 @@ int main(int argc, char * const *argv)
 
 		ldist = get_launch_distance();
 
-		ret = arm(send_sock, ldist);
+		/* Continuously measure the overhead of arming and preparing to sleep. */
+		t1 = get_real_time();
+		if (!t1) {
+			ret = -1;
+			break;
+		}
+
+		ret = arm(send_sock, ldist + overhead);
 		if (ret < 0)
 			break;
 
@@ -591,7 +629,31 @@ int main(int argc, char * const *argv)
 		}
 		arm_fail_count = 0;
 
-		req.tv_nsec = ldist*1.1;
+		trash_cpu_cache();
+
+		t2 = get_real_time();
+		if (!t2) {
+			ret = -1;
+			break;
+		}
+
+		new_overhead = (overhead + (t2 - t1)) / 2;
+
+		if (t2 - t1 >= ldist + overhead) {
+			missed_time_count += 1;
+			if (missed_time_count > 16) {
+				errmsg("missed launch time %d times", missed_time_count);
+				break;
+			}
+
+			overhead = new_overhead;
+			continue;
+		}
+		missed_time_count = 0;
+
+		overhead = new_overhead;
+		req.tv_nsec = (ldist + overhead - (t2 - t1)) *1.1;
+
 		/*
 		 * Simply sleeping here until we are sure that NIC has sent the
 		 * scheduled packet. Smarter implemention would be to detect
@@ -628,6 +690,8 @@ int main(int argc, char * const *argv)
 	}
 
 error_out:
+	if (cbuf)
+		free(cbuf);
 	if (buf)
 		free(buf);
 	close(send_sock);
