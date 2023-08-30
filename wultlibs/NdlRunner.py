@@ -125,7 +125,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
         self._prov.prepare()
 
-    def __init__(self, pman, dev, res, ldist, stcoll=None):
+    def __init__(self, pman, dev, res, ldist, stcoll=None, cbuf_size=0):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
@@ -136,6 +136,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
           *         in the future the delayed network packets should be scheduled).
           * stcoll - the 'StatsCollect' object to use for collecting statistics. No statistics
                      are collected by default.
+          * cbuf_size - CPU cache trashing buffer size.
         """
 
         self._pman = pman
@@ -154,7 +155,8 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         ndlhelper_path = DeployBase.get_installed_helper_path("ndl", "ndl", dev.helpername,
                                                               pman=pman)
         self._prov = _NdlRawDataProvider.NdlRawDataProvider(dev, pman, res.cpunum, self._ldist,
-                                                            ndlhelper_path, timeout=self._timeout)
+                                                            ndlhelper_path, timeout=self._timeout,
+                                                            cbuf_size=cbuf_size)
 
         drvname = self._prov.drvobjs[0].name
         self._rtd_path = self._prov.debugfs_mntpoint.joinpath(f"{drvname}/rtd")

@@ -104,7 +104,10 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
         super().prepare()
 
         ldist_str = ",".join([str(val) for val in self.ldist])
-        self._helper_opts = f"-C {self._cpunum} -l {ldist_str} {self._netif.ifname}"
+        self._helper_opts = f"-C {self._cpunum} -l {ldist_str}"
+        if self._cbuf_size:
+            self._helper_opts += f" --trash-cpu-cache {self._cbuf_size}"
+        self._helper_opts += f" {self._netif.ifname}"
 
         try:
             self._nmcli = _Nmcli.Nmcli(pman=self._pman)
@@ -155,7 +158,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
         _LOG.info("Starting NIC-to-system clock synchronization process%s", self._pman.hostmsg)
         self._etfqdisc.start_phc2sys(tai_offset=int(tai_offset))
 
-    def __init__(self, dev, pman, cpunum, ldist, ndlhelper_path, timeout=None):
+    def __init__(self, dev, pman, cpunum, ldist, ndlhelper_path, timeout=None, cbuf_size=0):
         """
         Initialize a class instance. The arguments are as follows.
           * dev - the device object created with 'Devices.GetDevice()'.
@@ -165,6 +168,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
           * ndlhelper_path - path to the 'ndl-helper' helper.
           * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
                       seconds.
+          * cbuf_size - CPU cache trashing buffer size.
         """
 
         drvinfo = {dev.drvname : {"params" : f"ifname={dev.netif.ifname}"}}
@@ -174,6 +178,7 @@ class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
         self._cpunum = cpunum
         self._helper_path = ndlhelper_path
         self._netif = self.dev.netif
+        self._cbuf_size= cbuf_size
 
         self._ndl_lines = None
         self._etfqdisc = None

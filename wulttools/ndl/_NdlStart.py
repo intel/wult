@@ -50,6 +50,22 @@ def _resolve_cpu(pman, devid):
     local_cpulist = local_cpulist.split(",")[0]
     return int(local_cpulist.split("-")[0])
 
+def _get_cbuf_size(args, cpuinfo):
+    """Calculate the CPU cache trashing buffer size."""
+
+    if not args.trash_cpu_cache:
+        return 0
+
+    cbuf_size = 0
+
+    # It should be enough to write to a buffer of size equivalent to sum of all CPU caches.
+    cacheinfo = cpuinfo.get_cache_info()
+    for cinfo in cacheinfo.values():
+        if cinfo["type"] in ("Data", "Unified"):
+            cbuf_size += cinfo["all-size"]
+
+    return cbuf_size
+
 def start_command(args):
     """Implements the 'start' command."""
 
@@ -97,6 +113,11 @@ def start_command(args):
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
         _Common.set_filters(args, res)
 
+        cbuf_size = _get_cbuf_size(args, cpuinfo)
+        if cbuf_size:
+            human_size = Human.bytesize(cbuf_size)
+            _LOG.info("CPU cache trashing buffer size: %s", {human_size})
+
         stcoll_builder = StatsCollectBuilder.StatsCollectBuilder()
         stack.enter_context(stcoll_builder)
 
@@ -121,7 +142,7 @@ def start_command(args):
             _LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "
                         "the measured latency.", args.devid)
 
-        runner = NdlRunner.NdlRunner(pman, dev, res, args.ldist, stcoll=stcoll)
+        runner = NdlRunner.NdlRunner(pman, dev, res, args.ldist, stcoll=stcoll, cbuf_size=cbuf_size)
         stack.enter_context(runner)
 
         runner.prepare()

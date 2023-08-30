@@ -146,7 +146,16 @@ def _build_arguments_parser():
     text = """Generate an HTML report for collected results (same as calling 'report' command with
               default arguments)."""
     subpars.add_argument("--report", action="store_true", help=text)
+
     subpars.add_argument("--force", action="store_true", help=_Common.START_FORCE_DESCR)
+
+    text = f"""Trash CPU cache to make sure NIC accesses memory when measuring latency. Without
+               this option, there is a change the data NIC accesses is in a CPU cache. With this
+               option, {TOOLNAME} allocates a buffer and fills it with data every time a delayed
+               packet is scheduled. Supposedly, this should push out cached data to the memory. By
+               default, the CPU cache trashing buffer size a sum of sizes of all caches on all CPUs
+               (includes all levels, excludes instruction cache)."""
+    subpars.add_argument("--trash-cpu-cache", action="store_true", help=text)
 
     text = """The network interface backed by the NIC to use for latency measurements. Today only
               Intel I210 and I211 NICs are supported. Please, specify NIC's network interface name
