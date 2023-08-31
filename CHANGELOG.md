@@ -14,6 +14,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    memory, and not from a CPU cache.
 ### Removed
 ### Changed
+ - Improve exercise-sut package C-state handling.
 
 ## [1.12.9] - 2023-08-18
 ### Fixed
