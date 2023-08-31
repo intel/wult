@@ -354,21 +354,10 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         return props
 
-    def iter_props(self, inprops):
+    def _normalize_inprops(self, inprops):
         """
-        Options, like C-states, may hold multiple different values we want to run workload
-        with. Create all possible permutations of the settings and yield each permutation
-        as a dictionary.
-
-        E.g. if 'inprops' would have following option values:
-        {"cstates" : ["C1", "C6"], "cstate_prewake" : ["on", "off"]}
-
-        this method would yield following permutations:
-        {'cstates': 'C1', 'cstate_prewake': 'on'}
-        {'cstates': 'C1', 'cstate_prewake': 'off'}
-        {'cstates': 'C6', 'cstate_prewake': 'on'}
-        {'cstates': 'C6', 'cstate_prewake': 'off'}
-
+        Normalize input properties 'inprops', and return it as a dictionary of property name as
+        key and list of values as value.
         """
 
         props = {}
@@ -386,8 +375,28 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
             props[pname] = values
 
-        for values in itertools.product(*props.values()):
-            prop_combination = dict(zip(props.keys(), values))
+        return props
+
+    def iter_props(self, inprops):
+        """
+        Options, like C-states, may hold multiple different values we want to run workload
+        with. Create all possible permutations of the settings and yield each permutation
+        as a dictionary.
+
+        E.g. if 'inprops' would have following option values:
+        {"cstates" : ["C1", "C6"], "cstate_prewake" : ["on", "off"]}
+
+        this method would yield following permutations:
+        {'cstates': 'C1', 'cstate_prewake': 'on'}
+        {'cstates': 'C1', 'cstate_prewake': 'off'}
+        {'cstates': 'C6', 'cstate_prewake': 'on'}
+        {'cstates': 'C6', 'cstate_prewake': 'off'}
+
+        """
+
+        inprops = self._normalize_inprops(inprops)
+        for values in itertools.product(*inprops.values()):
+            prop_combination = dict(zip(inprops.keys(), values))
 
             prop_combination = self._strip_props(prop_combination)
             if prop_combination:
