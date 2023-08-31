@@ -403,7 +403,8 @@ def _start_command(args):
                 _LOG.info("")
 
     if not work_done:
-        _LOG.error("no commands to run, see '%s start -h' for help.", TOOLNAME)
+        _LOG.error("no commands to run. Please, specify system properties to collect test data " \
+                   "with. See '%s start -h' for help.", TOOLNAME)
 
 def _report_command(args):
     """Implements the 'report' command."""
