@@ -323,29 +323,6 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             self.props[pname]["sname"] = sname
             self.props[pname]["name"] = name
 
-    def _strip_props(self, props):
-        """
-        The properties 'props' might include properties which are not supported or needed for the
-        configuration. E.g. configuring package C-state to 'PC0' is not needed when we are testing
-        'C1'. Return property dictionary with supported and needed properties. If the configuration
-        doesn't make sense at all, returns 'None'.
-        """
-
-        if props.get("cstates") in PC0_ONLY_STATES:
-            msg = None
-
-            for pname in ("cstate_prewake", "c1_demotion", "c1_undemotion"):
-                if props.get(pname) == "on":
-                    name = self.props[pname]["name"]
-                    msg = f"enabling '{name}' with '{props['cstates']}' doesn't make sense, " \
-                          f"skip configuration:\n{self.props_to_str(props)}"
-
-            if msg:
-                _LOG.notice(msg)
-                return None
-
-        return props
-
     def _normalize_inprops(self, inprops):
         """
         Normalize input properties 'inprops', and return it as a dictionary of property name as
@@ -413,9 +390,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             if self._skip_alike(handled_props, props):
                 continue
 
-            props = self._strip_props(props)
-            if props:
-                yield props
+            yield props
 
             handled_props.append(props)
 
