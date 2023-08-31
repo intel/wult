@@ -334,14 +334,6 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         if props.get("cstates") in PC0_ONLY_STATES:
             msg = None
 
-            if "pcstates" in props:
-                if props.get("pcstates") != "PC0":
-                    msg = f"enabling '{props['cstates']}' doesn't make sense with package " \
-                          f"C-state '{props['pcstates']}', skip configuration:\n" \
-                          f"{self.props_to_str(props)}"
-
-                del props["pcstates"]
-
             for pname in ("cstate_prewake", "c1_demotion", "c1_undemotion"):
                 if props.get(pname) == "on":
                     name = self.props[pname]["name"]
@@ -377,6 +369,25 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         return props
 
+    def _skip_alike(self, handled_props, props):
+        """
+        We might have properties which would result in duplicate configuration. E.g. requestable
+        C-state 'C1' would be same with 'PC2' and with 'PC6'. Return 'True' if similar properties
+        are found in list of already handled properties 'handled_props'.
+        """
+
+        if "pcstates" not in props or props["pcstates"] == "PC0":
+            return False
+
+        if "cstates" not in props or props["cstates"] not in PC0_ONLY_STATES:
+            return False
+
+        for _props in handled_props:
+            if _props.get("cstates") == props["cstates"] and _props.get("pcstates") != "PC0":
+                return True
+
+        return False
+
     def iter_props(self, inprops):
         """
         Options, like C-states, may hold multiple different values we want to run workload
@@ -394,13 +405,20 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         """
 
+        handled_props = []
         inprops = self._normalize_inprops(inprops)
         for values in itertools.product(*inprops.values()):
-            prop_combination = dict(zip(inprops.keys(), values))
+            props = dict(zip(inprops.keys(), values))
 
-            prop_combination = self._strip_props(prop_combination)
-            if prop_combination:
-                yield prop_combination
+            if self._skip_alike(handled_props, props):
+                continue
+
+            props = self._strip_props(props)
+            if props:
+                yield props
+
+            handled_props.append(props)
+
 
     def __init__(self, pman):
         """The class constructor."""
