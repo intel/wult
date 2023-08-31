@@ -178,20 +178,24 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         """Helper to read package C-state information, returns a dictionary."""
 
         pcsinfo = {}
-        pcsinfo["allnames"] = []
-        pcsinfo["aliases"] = []
+        pcsinfo["names"] = []
+        pcsinfo["aliases"] = {}
 
         cstates = self._get_cstates()
-        for _, pinfo in cstates.get_props(("pkg_cstate_limits", "pkg_cstate_limit_aliases")):
+        for _, pinfo in cstates.get_props(("pkg_cstate_limit", "pkg_cstate_limits",
+                                           "pkg_cstate_limit_aliases", "pkg_cstate_limit_lock")):
             if pinfo["pkg_cstate_limits"]:
                 for pcsname in pinfo["pkg_cstate_limits"]:
-                    if pcsname not in pcsinfo["allnames"]:
-                        pcsinfo["allnames"].append(pcsname)
+                    if pcsname not in pcsinfo["names"]:
+                        pcsinfo["names"].append(pcsname)
 
             if pinfo["pkg_cstate_limit_aliases"]:
-                for pcsalias in pinfo["pkg_cstate_limit_aliases"]:
-                    if pcsalias not in pcsinfo["pcsaliases"]:
-                        pcsinfo["aliases"].append(pcsalias)
+                for pcsalias, pcsname in pinfo["pkg_cstate_limit_aliases"].items():
+                    if pcsalias not in pcsinfo["aliases"]:
+                        pcsinfo["aliases"][pcsalias] = pcsname
+
+            pcsinfo["limit_locked"] = pinfo.get("pkg_cstate_limit_lock") == "on"
+            pcsinfo["current_limit"] = pinfo["pkg_cstate_limit"]
 
         return pcsinfo
 
@@ -201,15 +205,24 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         pcsinfo = self._get_pcsinfo()
 
         if "all" in pcsnames:
-            return pcsinfo["allnames"]
+            if pcsinfo.get("limit_locked"):
+                return [pcsinfo["current_limit"]]
+            return pcsinfo["names"]
 
-        pcsnames = [pcsname.upper() for pcsname in pcsnames]
-
+        normalized_pcsnames = []
         for pcsname in pcsnames:
-            if pcsname not in pcsinfo["allnames"] and pcsname not in pcsinfo["aliases"]:
-                raise Error(f"package C-state '{pcsname}' not available{self._pman.hostmsg}")
+            _pcsname = pcsname.upper()
+            _pcsname = pcsinfo["aliases"].get(_pcsname, _pcsname)
 
-        return pcsnames
+            if _pcsname not in pcsinfo["names"]:
+                raise Error(f"package C-state '{pcsname}' not available{self._pman.hostmsg}")
+            if pcsinfo["limit_locked"] and _pcsname != pcsinfo["current_limit"]:
+                raise Error(f"cannot set package C-state limit to '{pcsname}'{self._pman.hostmsg}, "
+                            f"the MSR is locked and current limit is '{pcsinfo['current_limit']}'")
+
+            normalized_pcsnames.append(_pcsname)
+
+        return normalized_pcsnames
 
     def _normalize_csnames(self, csnames):
         """Normalize and validate list of requestable C-state names 'csnames'."""
@@ -264,11 +277,6 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             if "not supported" in stdout:
                 log_method(stdout.strip())
                 return False
-
-            for line in stdout.split("\n"):
-                if "Package C-state limit lock: 'on'" in line:
-                    log_method(line)
-                    return False
 
             return True
 
