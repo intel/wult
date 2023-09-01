@@ -35,18 +35,18 @@ def _generate_report(args):
     rep.relocatable = False
     rep.generate()
 
-def _get_local_cpus(pman, devid):
+def _get_local_cpus(pman, ifname):
     """
     Get and return the list of integer CPU numbers local to the NIC. The list is sorted in
     ascending CPU number order.
     """
 
-    path = f"/sys/class/net/{devid}/device/local_cpulist"
+    path = f"/sys/class/net/{ifname}/device/local_cpulist"
 
     try:
         str_of_ranges = pman.read(path).strip()
     except Error as err:
-        raise Error(f"failed to find local CPUs for the device '{devid}'.\n{err.indent(2)}.\n"
+        raise Error(f"failed to find local CPUs for the '{ifname}' NIC.\n{err.indent(2)}.\n"
                     f"Please specify CPU number, use '--cpunum'.") from err
 
     # The 'local_cpulist' file contains a string of comma-separated CPU numbers or ranges, smaller
@@ -54,17 +54,17 @@ def _get_local_cpus(pman, devid):
     # string and turn into a list of integers.
     cpus = ArgParse.parse_int_list(str_of_ranges, ints=True)
     if not cpus:
-        raise Error(f"failed to find local CPUs for the device '{devid}':\n  no CPU numbers in "
+        raise Error(f"failed to find local CPUs for the '{ifname}' NIC:\n  no CPU numbers in "
                     f"'{path}'")
     return cpus
 
-def _get_remote_cpus(pman, devid, cpuinfo):
+def _get_remote_cpus(pman, ifname, cpuinfo):
     """
     Get and return the list of integer CPU numbers remote to the NIC. The list is sorted in
     ascending CPU number order.
     """
 
-    lcpus = _get_local_cpus(pman, devid)
+    lcpus = _get_local_cpus(pman, ifname)
     all_cpus = cpuinfo.get_cpus()
 
     rcpus = set(all_cpus) - set(lcpus)
@@ -141,11 +141,11 @@ def start_command(args):
         if Trivial.is_int(args.cpunum):
             args.cpunum = cpuinfo.normalize_cpu(int(args.cpunum))
         elif args.cpunum == "local":
-            lcpus = _get_local_cpus(pman, args.devid)
+            lcpus = _get_local_cpus(pman, dev.info["alias"])
             args.cpunum = lcpus[0]
             _LOG.info("Local CPU numbers: %s", Human.rangify(lcpus))
         elif args.cpunum == "remote":
-            rcpus = _get_remote_cpus(pman, args.devid, cpuinfo)
+            rcpus = _get_remote_cpus(pman, dev.info["alias"], cpuinfo)
             args.cpunum = rcpus[0]
             _LOG.info("Remote CPU numbers: %s", Human.rangify(rcpus))
         else:
