@@ -10,6 +10,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
  - Fix failure when NIC is specified by MAC address.
 ### Added
  - ndl start: support 'local' and 'remote' values for the '--cpunum' option.
+ - ndl start: add '--trash-cpu-cache' option, helps ensuring NIC reads from
+   memory, and not from a CPU cache.
 ### Removed
 ### Changed
 
