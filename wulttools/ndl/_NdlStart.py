@@ -116,7 +116,7 @@ def start_command(args):
         cbuf_size = _get_cbuf_size(args, cpuinfo)
         if cbuf_size:
             human_size = Human.bytesize(cbuf_size)
-            _LOG.info("CPU cache trashing buffer size: %s", {human_size})
+            _LOG.info("CPU cache trashing buffer size: %s", human_size)
 
         stcoll_builder = StatsCollectBuilder.StatsCollectBuilder()
         stack.enter_context(stcoll_builder)
