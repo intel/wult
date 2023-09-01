@@ -14,7 +14,7 @@ import logging
 import contextlib
 from pathlib import Path
 from pepclibs import CPUInfo
-from pepclibs.helperlibs import Logging, Trivial
+from pepclibs.helperlibs import Logging, Trivial, ArgParse
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.collector import StatsCollectBuilder
 from wulttools import _Common
@@ -35,20 +35,56 @@ def _generate_report(args):
     rep.relocatable = False
     rep.generate()
 
-def _resolve_cpu(pman, devid):
-    """Resolve first local CPU number for the device 'devid'. Return CPU number as integer."""
+def _get_local_cpus(pman, devid):
+    """
+    Get and return the list of integer CPU numbers local to the NIC. The list is sorted in
+    ascending CPU number order.
+    """
+
+    path = f"/sys/class/net/{devid}/device/local_cpulist"
 
     try:
-        path = f"/sys/class/net/{devid}/device/local_cpulist"
-        local_cpulist = pman.read(path).strip()
+        str_of_ranges = pman.read(path).strip()
     except Error as err:
-        raise Error(f"failed to resolve local CPU number for the device '{devid}', use "
-                    f"'--cpunum' to select CPU.") from err
+        raise Error(f"failed to find local CPUs for the device '{devid}'.\n{err.indent(2)}.\n"
+                    f"Please specify CPU number, use '--cpunum'.") from err
 
-    # local_cpulist is a string of one or multiple comma-separated CPU numbers or CPU number
-    # ranges, e.g. "24-27,31-33,37-39". Pick first CPU from the list."
-    local_cpulist = local_cpulist.split(",")[0]
-    return int(local_cpulist.split("-")[0])
+    # The 'local_cpulist' file contains a string of comma-separated CPU numbers or ranges, smaller
+    # CPU numbers go first. Example: "24-27,31-33,37-39". Only online CPUs are included. Parse the
+    # string and turn into a list of integers.
+    cpus = ArgParse.parse_int_list(str_of_ranges, ints=True)
+    if not cpus:
+        raise Error(f"failed to find local CPUs for the device '{devid}':\n  no CPU numbers in "
+                    f"'{path}'")
+    return cpus
+
+def _get_remote_cpus(pman, devid, cpuinfo):
+    """
+    Get and return the list of integer CPU numbers remote to the NIC. The list is sorted in
+    ascending CPU number order.
+    """
+
+    lcpus = _get_local_cpus(pman, devid)
+    all_cpus = cpuinfo.get_cpus()
+
+    rcpus = set(all_cpus) - set(lcpus)
+
+    # Get list of NUMA node and package numbers the local CPUs belong to.
+    lnodes, lpackages = set(), set()
+    for lcpu in lcpus:
+        levels = cpuinfo.get_cpu_levels(lcpu, levels=("node", "package"))
+        lnodes.add(levels["node"])
+        lpackages.add(levels["package"])
+
+    # Try to exclude remote CPUs that are on the same NUMA node or package as local CPUs.
+    new_rcpus = rcpus - set(cpuinfo.nodes_to_cpus(nodes=lnodes))
+    if new_rcpus:
+        rcpus = new_rcpus
+    new_rcpus = rcpus - set(cpuinfo.packages_to_cpus(packages=lpackages))
+    if new_rcpus:
+        rcpus = new_rcpus
+
+    return list(rcpus)
 
 def _get_cbuf_size(args, cpuinfo):
     """Calculate the CPU cache trashing buffer size."""
@@ -102,10 +138,20 @@ def start_command(args):
             raise ErrorNotFound(msg) from err
         stack.enter_context(dev)
 
-        if args.cpunum is None:
-            args.cpunum = _resolve_cpu(pman, args.devid)
+        if Trivial.is_int(args.cpunum):
+            args.cpunum = cpuinfo.normalize_cpu(int(args.cpunum))
+            _LOG.info("Bind to CPU number %d", args.cpunum)
+        elif args.cpunum == "local":
+            lcpus = _get_local_cpus(pman, args.devid)
+            args.cpunum = lcpus[0]
+            _LOG.info("Local CPU numbers: %s. Bind to CPU %s", Human.rangify(lcpus), args.cpunum)
+        elif args.cpunum == "remote":
+            rcpus = _get_remote_cpus(pman, args.devid, cpuinfo)
+            args.cpunum = rcpus[0]
+            _LOG.info("Remote CPU numbers: %s Bind to CPU %s", Human.rangify(rcpus), args.cpunum)
+        else:
+            raise Error("bad CPU number '{args.cpunum}")
 
-        args.cpunum = cpuinfo.normalize_cpu(args.cpunum)
         res = WORawResult.WORawResult(args.toolname, args.toolver, args.reportid, args.outdir,
                                       cpunum=args.cpunum)
         stack.enter_context(res)
