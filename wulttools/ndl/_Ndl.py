@@ -158,7 +158,7 @@ def _build_arguments_parser():
                packet is scheduled. Supposedly, this should push out cached data to the memory. By
                default, the CPU cache trashing buffer size a sum of sizes of all caches on all CPUs
                (includes all levels, excludes instruction cache)."""
-    subpars.add_argument("--trash-cpu-cache", action="store_true", help=argparse.SUPPRESS)
+    subpars.add_argument("--trash-cpu-cache", action="store_true", help=text)
 
     text = """The network interface backed by the NIC to use for latency measurements. Today only
               Intel I210 and I211 NICs are supported. Please, specify NIC's network interface name
