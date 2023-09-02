@@ -140,23 +140,28 @@ def start_command(args):
 
         if Trivial.is_int(args.cpunum):
             args.cpunum = cpuinfo.normalize_cpu(int(args.cpunum))
+            cpus_msg = None
         elif args.cpunum == "local":
             lcpus = _get_local_cpus(pman, dev.info["alias"])
             args.cpunum = lcpus[0]
-            _LOG.info("Local CPU numbers: %s", Human.rangify(lcpus))
+            cpus_msg = f"Local CPU numbers: {Human.rangify(lcpus)}"
         elif args.cpunum == "remote":
             rcpus = _get_remote_cpus(pman, dev.info["alias"], cpuinfo)
             args.cpunum = rcpus[0]
-            _LOG.info("Remote CPU numbers: %s", Human.rangify(rcpus))
+            cpus_msg = f"Remote CPU numbers: {Human.rangify(rcpus)}"
         else:
-            raise Error("bad CPU number '{args.cpunum}")
+            raise Error(f"bad CPU number '{args.cpunum}")
 
-        _LOG.info("Bind to CPU %d", args.cpunum)
         res = WORawResult.WORawResult(args.toolname, args.toolver, args.reportid, args.outdir,
                                       cpunum=args.cpunum)
         stack.enter_context(res)
 
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
+
+        if cpus_msg:
+            _LOG.info(cpus_msg)
+        _LOG.info("Bind to CPU %d", args.cpunum)
+
         _Common.set_filters(args, res)
 
         cbuf_size = _get_cbuf_size(args, cpuinfo)
