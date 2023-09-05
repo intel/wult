@@ -333,12 +333,21 @@ def parse_arguments():
 
     return args
 
-def _start_command(args):
-    """Exercise SUT and run workload for each requested system configuration."""
+def _start_check_args(args, inprops):
+    """
+    Check arguments and print error message and exit if we cannot proceed with provided
+    arguments.
+    """
 
-    if args.list_monikers:
-        _BatchConfig.list_monikers()
-        return
+    if args.only_measured_cpu and args.cpunums is None:
+        _LOG.error_out("please provide CPU numbers with '--only-measured-cpu', use '--cpunums'")
+
+    if not inprops:
+        if args.state_reset:
+            return
+
+        _LOG.error("no commands to run. Please, specify system properties to collect test data " \
+                   "with. See '%s start -h' for help.", TOOLNAME)
 
     if args.toolpath.name in (WULT_TOOLNAME, NDL_TOOLNAME) and not args.devids:
         _LOG.error_out("please, provide device ID to measure with, use '--devids'")
@@ -346,8 +355,12 @@ def _start_command(args):
     if args.toolpath.name == STC_TOOLNAME and not args.command:
         _LOG.error_out("please, provide the command 'stats-collect' should run, use '--command'")
 
-    if args.only_measured_cpu and args.cpunums is None:
-        _LOG.error_out("please provide CPU numbers with '--only-measured-cpu', use '--cpunums'")
+def _start_command(args):
+    """Exercise SUT and run workload for each requested system configuration."""
+
+    if args.list_monikers:
+        _BatchConfig.list_monikers()
+        return
 
     inprops = {}
     for pname in _BatchConfig.PROP_INFOS:
@@ -355,6 +368,8 @@ def _start_command(args):
         if not pvalues:
             continue
         inprops[pname] = Trivial.split_csv_line(pvalues)
+
+    _start_check_args(args, inprops)
 
     if not args.devids:
         devids = [None]
@@ -366,7 +381,6 @@ def _start_command(args):
     else:
         cpus = Trivial.split_csv_line(args.cpunums)
 
-    work_done = False
     with _BatchConfig.BatchConfig(args) as batchconfig:
         if args.deploy:
             batchconfig.deploy()
@@ -400,13 +414,8 @@ def _start_command(args):
                                 f"report ID: '{reportid}'")
 
                     batchconfig.run(props, reportid, **kwargs)
-                    work_done = True
 
                 _LOG.info("")
-
-    if not work_done:
-        _LOG.error("no commands to run. Please, specify system properties to collect test data " \
-                   "with. See '%s start -h' for help.", TOOLNAME)
 
 def _report_command(args):
     """Implements the 'report' command."""
