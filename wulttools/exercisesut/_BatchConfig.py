@@ -540,8 +540,9 @@ class _PepcCmdFormatter(_PropIteratorBase):
         self._only_one_cstate = only_one_cstate
         self._cstates_always_enable = cstates_always_enable
 
-        csnames = Trivial.split_csv_line(cstates_always_enable)
-        self._cstates_always_enable = self._normalize_csnames(csnames)
+        if self._cstates_always_enable:
+            csnames = Trivial.split_csv_line(cstates_always_enable)
+            self._cstates_always_enable = self._normalize_csnames(csnames)
 
 class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
     """A base class to help creating commands."""
