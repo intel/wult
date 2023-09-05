@@ -449,8 +449,8 @@ class _PepcCmdFormatter(_PropIteratorBase):
             return "all"
 
         sname = self._get_prop_sname(pname)
-        if sname is None:
-            return None
+        if sname in (None, "global"):
+            return "all"
 
         cpuinfo = self._get_cpuinfo()
         levels = cpuinfo.get_cpu_levels(cpu)
