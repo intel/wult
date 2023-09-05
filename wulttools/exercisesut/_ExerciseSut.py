@@ -91,11 +91,9 @@ _COLLECT_OPTIONS = {
                      datapoints to collect per measurement. Default is 100000."""
     },
     "reportid_prefix" : {
-        "default" : "",
         "help" : """String to prepend to the report ID (nothing, by default)."""
     },
     "reportid_suffix" : {
-        "default" : "",
         "help" : """String to append to the report ID (nothing, by default)."""
     },
     "cpunums" : {
@@ -118,7 +116,6 @@ _COLLECT_OPTIONS = {
                     C-state."""
     },
     "cstates_always_enable" : {
-        "default" : "",
         "help" : """Comma-separated list of always enabled C-states. Default is 'None'."""
     },
     "turbo" : {
