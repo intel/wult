@@ -384,6 +384,9 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         handled_props = []
         inprops = self._normalize_inprops(inprops)
+        if not inprops:
+            return
+
         for values in itertools.product(*inprops.values()):
             props = dict(zip(inprops.keys(), values))
 
