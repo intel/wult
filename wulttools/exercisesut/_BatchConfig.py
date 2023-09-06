@@ -353,14 +353,16 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         are found in list of already handled properties 'handled_props'.
         """
 
-        if "pcstates" not in props or props["pcstates"] == "PC0":
-            return False
-
         if "cstates" not in props or props["cstates"] not in PC0_ONLY_STATES:
             return False
 
         for _props in handled_props:
-            if _props.get("cstates") == props["cstates"] and _props.get("pcstates") != "PC0":
+            if "pcstates" not in _props or _props["pcstates"] == "PC0":
+                continue
+
+            # Skip if only difference is package C-states.
+            diff = dict(set(_props.items()) ^ set(props.items()))
+            if len(diff) == 1 and "pcstates" in diff:
                 return True
 
         return False
