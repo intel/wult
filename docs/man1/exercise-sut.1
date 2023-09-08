@@ -1,4 +1,4 @@
-.TH EXERCISE\-SUT "1" "2023\-08\-18" "wult" "Generated Python Manual"
+.TH EXERCISE\-SUT "1" "2023\-09\-08" "wult" "Generated Python Manual"
 .SH NAME
 exercise\-sut
 .SH SYNOPSIS
@@ -92,11 +92,11 @@ Applicable only to the 'wult' and 'ndl' tools. Comma\-separated list of CPU numb
 
 .TP
 \fB\-\-cstates\fR \fI\,CSTATES\/\fR
-Comma\-separated list of requestable C\-states to measure with. Default is all C\-states.
+Comma\-separated list of requestable C\-states to measure with. No C\-states are passed by default.
 
 .TP
 \fB\-\-pcstates\fR \fI\,PCSTATES\/\fR
-Comma\-separated list of package C\-states to measure with. Default is "don't care".
+Comma\-separated list of package C\-states to measure with. No package C\-states is passed by default.
 
 .TP
 \fB\-\-only\-one\-cstate\fR
@@ -108,55 +108,55 @@ Comma\-separated list of always enabled C\-states. Default is 'None'.
 
 .TP
 \fB\-\-turbo\fR \fI\,TURBO\/\fR
-Comma\-separated list of turbo configurations to measure with. The default is "on". Supported values are "on" and "off".
+Comma\-separated list of turbo configurations to measure with. The default is "don't touch". Supported values are "on" and "off".
 
 .TP
 \fB\-\-freqs\fR \fI\,FREQS\/\fR
-Comma\-separated list of frequencies to be measured with. For more information, see '\-\-min\-freq' and '\-\-max\-freq' options of the 'pepc pstates config' command.
+Comma\-separated list of frequencies to be measured with. The default is "don't touch". For more information, see '\-\-min\-freq' and '\-\-max\-freq' options of the 'pepc pstates config' command.
 
 .TP
 \fB\-\-uncore\-freqs\fR \fI\,UNCORE_FREQS\/\fR
-Comma\-separated list of package uncore frequencies to measure with. For more information, see '\-\-min\-uncore\-freq' and '\-\-max\-uncore\-freq' options of the 'pepc pstates config' command.
+Comma\-separated list of package uncore frequencies to measure with. The default is "don't touch". For more information, see '\-\-min\-uncore\-freq' and '\-\-max\-uncore\-freq' options of the 'pepc pstates config' command.
 
 .TP
 \fB\-\-governor\fR \fI\,GOVERNOR\/\fR
-Name of the CPU frequency governor to measure with.
+Name of the CPU frequency governor to measure with. The default is "don't touch" .
 
 .TP
 \fB\-\-aspm\fR \fI\,ASPM\/\fR
-Comma\-separated list of PCIe ASPM configurations to measure with. The default is "don't care". Supported values are "on" and "off".
+Comma\-separated list of PCIe ASPM configurations to measure with. The default is "don't touch". Supported values are "on" and "off".
 
 .TP
 \fB\-\-c1\-demotion\fR \fI\,C1_DEMOTION\/\fR
-Comma\-separated list of C1 demotion configurations to measure with. Default is "off". Supported values are "on" and "off".
+Comma\-separated list of C1 demotion configurations to measure with. Default is "don't touch". Supported values are "on" and "off".
 
 .TP
 \fB\-\-c1\-undemotion\fR \fI\,C1_UNDEMOTION\/\fR
-Comma\-separated list of C1 undemotion configurations to measure with. Default is "off". Supported values are "on" and "off".
+Comma\-separated list of C1 undemotion configurations to measure with. Default is "don't touch". Supported values are "on" and "off".
 
 .TP
 \fB\-\-c1e\-autopromote\fR \fI\,C1E_AUTOPROMOTE\/\fR
-Comma\-separated list of C1E autopromote configurations to measure with. Default is "off". Supported values are "on" and "off".
+Comma\-separated list of C1E autopromote configurations to measure with. Default is "don't touch". Supported values are "on" and "off".
 
 .TP
 \fB\-\-cstate\-prewake\fR \fI\,CSTATE_PREWAKE\/\fR
-Comma\-separated list of C\-state prewake configurations to measure with. Default is "off". Supported values are "on" and "off".
+Comma\-separated list of C\-state prewake configurations to measure with. Default is "don't touch". Supported values are "on" and "off".
 
 .TP
 \fB\-\-epp\fR \fI\,EPP\/\fR
-Comma\-separated list of EPP configurations to measure with. Default is "balance_performance". See 'pepc pstates config \-\-epp' for more information .
+Comma\-separated list of EPP configurations to measure with. Default is "don't touch". See 'pepc pstates config \-\-epp' for more information.
 
 .TP
 \fB\-\-epp\-hw\fR \fI\,EPP_HW\/\fR
-Comma\-separated list of EPP configurations to measure with. Default is "don't care". See 'pepc pstates config \-\-epp\-hw' for more information.
+Comma\-separated list of EPP configurations to measure with. Default is "don't touch". See 'pepc pstates config \-\-epp\-hw' for more information.
 
 .TP
 \fB\-\-epb\fR \fI\,EPB\/\fR
-Comma\-separated list of EPB configurations to measure with. Default is "balance\-performance". See 'pepc pstates config \-\-epb' for more information .
+Comma\-separated list of EPB configurations to measure with. Default is "don't touch". See 'pepc pstates config \-\-epb' for more information.
 
 .TP
 \fB\-\-epb\-hw\fR \fI\,EPB_HW\/\fR
-Comma\-separated list of EPB configurations to measure with. Default is "don't care". See 'pepc pstates config \-\-epb\-hw' for more information.
+Comma\-separated list of EPB configurations to measure with. Default is "don't touch". See 'pepc pstates config \-\-epb\-hw' for more information.
 
 .TP
 \fB\-\-state\-reset\fR

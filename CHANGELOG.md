@@ -5,6 +5,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.12.10] - 2023-09-08
+### Fixed
  - Fix 'wult/ndl' not generating statistics tabs in HTML reports for some
    results with format version '1.2'.
  - Fix failure when NIC is specified by MAC address.
@@ -14,7 +20,6 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
  - ndl start: support 'local' and 'remote' values for the '--cpunum' option.
  - ndl start: add '--trash-cpu-cache' option, helps ensuring NIC reads from
    memory, and not from a CPU cache.
-### Removed
 ### Changed
  - Improve exercise-sut package C-state handling.
  - Accept '--state-reset' option alone for 'exercise-sut start' command.

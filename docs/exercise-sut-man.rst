@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date: 2023-08-18
+:Date: 2023-09-08
 
 .. contents::
    :depth: 3
@@ -112,12 +112,12 @@ OPTIONS *'exercise-sut* start'
    of CPU numbers to measure with. No CPU number is passed by default.
 
 **--cstates** *CSTATES*
-   Comma-separated list of requestable C-states to measure with. Default
-   is all C-states.
+   Comma-separated list of requestable C-states to measure with. No
+   C-states are passed by default.
 
 **--pcstates** *PCSTATES*
-   Comma-separated list of package C-states to measure with. Default is
-   "don't care".
+   Comma-separated list of package C-states to measure with. No package
+   C-states is passed by default.
 
 **--only-one-cstate**
    By default C-states deeper than measured C-state are disabled and
@@ -129,59 +129,61 @@ OPTIONS *'exercise-sut* start'
 
 **--turbo** *TURBO*
    Comma-separated list of turbo configurations to measure with. The
-   default is "on". Supported values are "on" and "off".
+   default is "don't touch". Supported values are "on" and "off".
 
 **--freqs** *FREQS*
-   Comma-separated list of frequencies to be measured with. For more
-   information, see '--min-freq' and '--max-freq' options of the 'pepc
-   pstates config' command.
+   Comma-separated list of frequencies to be measured with. The default
+   is "don't touch". For more information, see '--min-freq' and
+   '--max-freq' options of the 'pepc pstates config' command.
 
 **--uncore-freqs** *UNCORE_FREQS*
    Comma-separated list of package uncore frequencies to measure with.
-   For more information, see '--min-uncore-freq' and '--max-uncore-freq'
-   options of the 'pepc pstates config' command.
+   The default is "don't touch". For more information, see
+   '--min-uncore-freq' and '--max-uncore-freq' options of the 'pepc
+   pstates config' command.
 
 **--governor** *GOVERNOR*
-   Name of the CPU frequency governor to measure with.
+   Name of the CPU frequency governor to measure with. The default is
+   "don't touch" .
 
 **--aspm** *ASPM*
    Comma-separated list of PCIe ASPM configurations to measure with. The
-   default is "don't care". Supported values are "on" and "off".
+   default is "don't touch". Supported values are "on" and "off".
 
 **--c1-demotion** *C1_DEMOTION*
    Comma-separated list of C1 demotion configurations to measure with.
-   Default is "off". Supported values are "on" and "off".
+   Default is "don't touch". Supported values are "on" and "off".
 
 **--c1-undemotion** *C1_UNDEMOTION*
    Comma-separated list of C1 undemotion configurations to measure with.
-   Default is "off". Supported values are "on" and "off".
+   Default is "don't touch". Supported values are "on" and "off".
 
 **--c1e-autopromote** *C1E_AUTOPROMOTE*
    Comma-separated list of C1E autopromote configurations to measure
-   with. Default is "off". Supported values are "on" and "off".
+   with. Default is "don't touch". Supported values are "on" and "off".
 
 **--cstate-prewake** *CSTATE_PREWAKE*
    Comma-separated list of C-state prewake configurations to measure
-   with. Default is "off". Supported values are "on" and "off".
+   with. Default is "don't touch". Supported values are "on" and "off".
 
 **--epp** *EPP*
    Comma-separated list of EPP configurations to measure with. Default
-   is "balance_performance". See 'pepc pstates config --epp' for more
-   information .
+   is "don't touch". See 'pepc pstates config --epp' for more
+   information.
 
 **--epp-hw** *EPP_HW*
    Comma-separated list of EPP configurations to measure with. Default
-   is "don't care". See 'pepc pstates config --epp-hw' for more
+   is "don't touch". See 'pepc pstates config --epp-hw' for more
    information.
 
 **--epb** *EPB*
    Comma-separated list of EPB configurations to measure with. Default
-   is "balance-performance". See 'pepc pstates config --epb' for more
-   information .
+   is "don't touch". See 'pepc pstates config --epb' for more
+   information.
 
 **--epb-hw** *EPB_HW*
    Comma-separated list of EPB configurations to measure with. Default
-   is "don't care". See 'pepc pstates config --epb-hw' for more
+   is "don't touch". See 'pepc pstates config --epb-hw' for more
    information.
 
 **--state-reset**

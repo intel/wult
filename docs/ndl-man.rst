@@ -2,7 +2,7 @@
 NDL
 ===
 
-:Date: 2023-08-18
+:Date: 2023-09-08
 
 .. contents::
    :depth: 3
@@ -184,7 +184,8 @@ usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
 [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid
 REPORTID] [--stats STATS] [--stats-intervals STATS_INTERVALS]
 [--list-stats] [-l LDIST] [--cpunum CPUNUM] [--exclude EXCLUDE]
-[--include INCLUDE] [--keep-filtered] [--report] [--force] ifname
+[--include INCLUDE] [--keep-filtered] [--report] [--force]
+[--trash-cpu-cache] ifname
 
 Start measuring and recording the latency data.
 
@@ -297,8 +298,9 @@ OPTIONS *'ndl* start'
    send delayed packets. In normal conditions this means that network
    packet buffers will be allocated on the NUMA node local to the CPU,
    but not necessarily local to the network card. Use this option to
-   measure different packet memory locations on a NUMA system. Default
-   is the first CPU local to the NIC.
+   measure different packet memory locations on a NUMA system. Special
+   value 'local' can be used to specify a CPU with lowest CPU number
+   local to the NIC, and this is the default value.a Special value
 
 **--exclude** *EXCLUDE*
    Datapoints to exclude: remove all the datapoints satisfying the
@@ -338,6 +340,15 @@ OPTIONS *'ndl* start'
    it is used by a Linux network interface and the interface is in an
    active state, such as "up". Use '--force' to disable this safety
    mechanism. Use it with caution.
+
+**--trash-cpu-cache**
+   Trash CPU cache to make sure NIC accesses memory when measuring
+   latency. Without this option, there is a change the data NIC accesses
+   is in a CPU cache. With this option, ndl allocates a buffer and fills
+   it with data every time a delayed packet is scheduled. Supposedly,
+   this should push out cached data to the memory. By default, the CPU
+   cache trashing buffer size a sum of sizes of all caches on all CPUs
+   (includes all levels, excludes instruction cache).
 
 COMMAND *'ndl* report'
 ======================

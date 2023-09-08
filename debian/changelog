@@ -1,3 +1,18 @@
+wult (1.12.10) unstable; urgency=low
+
+  * Fix 'wult/ndl' not generating statistics tabs in HTML reports for some
+    results with format version '1.2'.
+  * Fix failure when NIC is specified by MAC address.
+  * Fix exercise-sut skipping valid configurations.
+  * Fix ndl driver build for older kernels (~linux 5.15).
+  * ndl start: support 'local' and 'remote' values for the '--cpunum' option.
+  * ndl start: add '--trash-cpu-cache' option, helps ensuring NIC reads from
+    memory, and not from a CPU cache.
+  * Improve exercise-sut package C-state handling.
+  * Accept '--state-reset' option alone for 'exercise-sut start' command.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 08 Sep 2023 00:00:00 +0200
+
 wult (1.12.9) unstable; urgency=low
 
 - Fix 'exercise-sut' crashing with pepc version '1.4.32'.
