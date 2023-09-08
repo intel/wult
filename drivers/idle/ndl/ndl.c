@@ -6,6 +6,7 @@
 
 #define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
 
+#include <linux/bitfield.h>
 #include <linux/debugfs.h>
 #include <linux/err.h>
 #include <linux/fs.h>
