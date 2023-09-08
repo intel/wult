@@ -9,6 +9,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    results with format version '1.2'.
  - Fix failure when NIC is specified by MAC address.
  - Fix exercise-sut skipping valid configurations.
+ - Fix ndl driver build for older kernels (~linux 5.15)
 ### Added
  - ndl start: support 'local' and 'remote' values for the '--cpunum' option.
  - ndl start: add '--trash-cpu-cache' option, helps ensuring NIC reads from
