@@ -119,4 +119,4 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         self._refres = rsts[0]
 
         reports = {res.reportid: res.df for res in rsts}
-        super().__init__(reports, outdir, metric_def, basedir)
+        super().__init__(reports, outdir, self._tabmdef["name"], basedir)
