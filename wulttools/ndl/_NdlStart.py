@@ -13,9 +13,9 @@ This module includes the "start" 'ndl' command implementation.
 import logging
 import contextlib
 from pathlib import Path
-from pepclibs import CPUInfo
+from pepclibs import CPUInfo, CPUIdle, CStates
 from pepclibs.helperlibs import Logging, Trivial, ArgParse
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.collector import StatsCollectBuilder
 from wulttools import _Common
 from wultlibs import NdlRunner, Devices
@@ -102,6 +102,34 @@ def _get_cbuf_size(args, cpuinfo):
 
     return cbuf_size
 
+def _check_settings(pman, cpuinfo, cpunum):
+    """
+    Check platform settings and notify the user about potential "pitfalls" - the settings that may
+    affect the measurements in a way an average user does not usually want.
+    """
+
+    with contextlib.suppress(ErrorNotSupported), \
+         CPUIdle.CPUIdle(pman=pman, cpuinfo=cpuinfo) as cpuidle, \
+         CStates.CStates(pman=pman, cpuinfo=cpuinfo, cpuidle=cpuidle) as cstates:
+        pinfos = cstates.get_cpu_props(("pkg_cstate_limit", "c1_demotion", "cstate_prewake"),
+                                        cpunum)
+
+        if pinfos.get("pkg_cstate_limit") == "PC0":
+            return
+
+        csinfo = cpuidle.get_cpu_cstates_info(cpunum)
+        for info in csinfo.values():
+            if info["name"].startswith("C6") and not info["disable"]:
+                break
+        else:
+            return
+
+        for pname in ("c1_demotion", "cstate_prewake"):
+            if pinfos.get(pname) == "on":
+                name = cstates.props[pname]["name"]
+                _LOG.notice("%s is enabled, this may lead to lower C6 residency. It is " \
+                            "recommended to disable %s.", name, name)
+
 def start_command(args):
     """Implements the 'start' command."""
 
@@ -187,6 +215,7 @@ def start_command(args):
             depl.check_deployment()
 
         _Common.start_command_check_network(args, pman, dev.netif)
+        _check_settings(pman, cpuinfo, args.cpunum)
 
         info = dev.netif.get_pci_info()
         if info.get("aspm_enabled"):
