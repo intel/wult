@@ -373,7 +373,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         if dp["TotCyc"] < dp["CC0Cyc"]:
             msg = f"total cycles is smaller than CC0 cycles for the following datapoint:\n" \
                   f"{Human.dict2str(dp)}\nWe are not sure why this happens, but we observed " \
-                  f"this on non-server platforms.\nThis an all the other datapoints like this " \
+                  f"this on non-server platforms.\nThis and all the other datapoints like this " \
                   f"will be dropped"
             _LOG.debug(msg)
             _LOG.warn_once(msg)
