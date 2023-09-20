@@ -12,7 +12,8 @@ This module provides API for dealing with Linux function trace buffer.
 
 import logging
 import contextlib
-from pepclibs.helperlibs import ClassHelpers
+import re
+from pepclibs.helperlibs import ClassHelpers, KernelVersion
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorTimeOut
 from statscollectlibs.helperlibs import ProcHelpers
 from wultlibs.helperlibs import FSHelpers
@@ -103,6 +104,15 @@ class FTrace(ClassHelpers.SimpleCloseContext):
             # The process has terminated or printed something to standard error.
             if exitcode is not None or stderr:
                 msg = self._reader.get_cmd_failure_msg(stdout, stderr, exitcode)
+
+                # Check for 6.5 kernel bug. Attempting to open trace_pipe will return -EBUSY. Detect
+                # this situation and print a useful error to the user.
+                if re.search("trace_pipe: Device or resource busy", msg, re.MULTILINE):
+                    kver = KernelVersion.get_kver(pman=self._pman)
+                    if KernelVersion.kver_ge(kver, "6.5") and KernelVersion.kver_lt(kver, "6.6"):
+                        raise Error(f"kernel bug detected with kernel {kver}. Trace subsystem with "
+                                    f"6.5-6.6 kernels is known to be bugged, please upgrade your "
+                                    f"kernel to latest 6.5-stable or 6.6-rc2.")
                 raise Error(f"the function trace reader process has exited unexpectedly:\n{msg}")
 
             for line in stdout:
