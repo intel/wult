@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2022 Intel Corporation
+# Copyright (C) 2019-2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Authors: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -13,7 +13,7 @@ This module defines what is expected by the JavaScript side when adding a Metric
 reports.
 """
 
-from pepclibs.helperlibs import Trivial
+from pepclibs.helperlibs import Human, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.htmlreport import _SummaryTable
 from statscollectlibs.htmlreport.tabs import _DTabBuilder
@@ -95,7 +95,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                 if not res.is_numeric(mdef["name"]):
                     return {"size" : 1}
 
-                xdata = res.df[mdef["name"]]
+                xdata = Human.scale_si_val(res.df[mdef["name"]], mdef["short_unit"])
                 xmin = min(xmin, xdata.min())
                 xmax = max(xmax, xdata.max())
 

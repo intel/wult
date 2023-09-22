@@ -213,32 +213,7 @@ class ReportBase:
 
         return smry_funcs
 
-    def _get_axis_def(self, axis, base_col_suffix):
-        """
-        Get the metric definition for 'axis'. First tries to retrieve the "base metric" (using
-        'base_col_suffix') and uses the definition for 'axis' if no "base metric" is found.
-        """
-
-        defs = self._refres.defs.info
-        base_axis = axis + base_col_suffix
-        # Try to add a 'base' metric if it has been calculated, otherwise take the unscaled column.
-        return defs[base_axis] if base_axis in self._refres.df else defs[axis]
-
-    def _get_axes_defs(self, axes, base_col_suffix):
-        """
-        Returns the definition dictionaries for the metrics on the axes in 'axes'. For each axis in
-        'axes', tries to find the "base metric" if one has been calculated. Otherwise, uses the axis
-        metric.
-        """
-
-        plot_defs = []
-        for xy_pair in axes:
-            xdef = self._get_axis_def(xy_pair[0], base_col_suffix)
-            ydef = self._get_axis_def(xy_pair[1], base_col_suffix)
-            plot_defs.append((xdef, ydef,))
-        return plot_defs
-
-    def _gen_stime_ldist_tab(self, tab_metrics, base_col_suffix, hover_defs):
+    def _gen_stime_ldist_tab(self, tab_metrics, hover_defs):
         """
         Helper method for '_generate_results_tabs()'. Generate a tab for the 'SilentTime' and/or
         'LDist' metrics. Returns 'None', if the tab had to be skipped for some reason.
@@ -271,8 +246,8 @@ class ReportBase:
             _LOG.debug("skipping 'SilentTime/LDist' tab since neither metric is included as a tab.")
             return None
 
-        s_defs = self._get_axes_defs(tab_config["scatter"], base_col_suffix)
-        h_defs = [self._get_axis_def(metric, base_col_suffix) for metric in tab_config["hist"]]
+        s_defs = [(defs[x], defs[y]) for x,y in tab_config["scatter"]]
+        h_defs = [defs[x] for x in tab_config["hist"]]
 
         dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, tab_mdef)
         dtab_bldr.title = tab_config["title"]
@@ -293,12 +268,9 @@ class ReportBase:
         objects, such as 'DTabDC'.
         """
 
-        # Scale all results to their base units (i.e. without any SI prefixes) so that 'plotly'
-        # can dynamically scale the units in plots.
-        base_col_suffix = "_base" # Add this suffix to the names of scaled columns.
-        for res in self.rsts:
-            res.scale_to_base_units(base_col_suffix)
+        defs = self._refres.defs.info
 
+        for res in self.rsts:
             _LOG.debug("calculate summary functions for '%s'", res.reportid)
             smry_funcs = ("nzcnt", "max", "99.999%", "99.99%", "99.9%", "99%", "med", "avg", "min",
                           "std")
@@ -337,7 +309,7 @@ class ReportBase:
             if not axes:
                 continue
 
-            tab_plots = self._get_axes_defs(axes, base_col_suffix)
+            tab_plots = [(defs[x], defs[y],) for x,y in axes]
 
             smry_metrics += list(set.union(*[set(xypair) for xypair in axes]))
             smry_metrics = Trivial.list_dedup(smry_metrics)
@@ -350,17 +322,14 @@ class ReportBase:
             if smry_funcs:
                 dtab_bldr.add_smrytbl(smry_funcs, self._refres.defs)
 
-            metric_def = self._refres.defs.info.get(metric + base_col_suffix, metric_def)
-            hist_metrics = [metric] if metric in self.hist else []
-            hist_defs = [self._get_axis_def(metric, base_col_suffix) for metric in hist_metrics]
-            chist_metrics = [metric] if metric in self.chist else []
-            chist_defs = [self._get_axis_def(metric, base_col_suffix) for metric in chist_metrics]
-            dtab_bldr.add_plots(tab_plots, hist_defs, chist_defs, hover_defs)
+            hist_defs = [defs[metric]] if metric in self.hist else []
+            chist_defs = [defs[metric]] if metric in self.chist else []
 
+            dtab_bldr.add_plots(tab_plots, hist_defs, chist_defs, hover_defs)
             dtabs.append(dtab_bldr.get_tab())
 
         if skip_silenttime_ldist:
-            stime_ldist_tab = self._gen_stime_ldist_tab(tab_metrics, base_col_suffix, hover_defs)
+            stime_ldist_tab = self._gen_stime_ldist_tab(tab_metrics, hover_defs)
             if stime_ldist_tab is not None:
                 dtabs.append(stime_ldist_tab)
 
