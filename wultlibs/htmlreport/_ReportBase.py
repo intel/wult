@@ -335,7 +335,7 @@ class ReportBase:
 
         return dtabs
 
-    def _generate_report(self):
+    def _generate_report(self, tab_cfgs):
         """Put together the final HTML report."""
 
         _LOG.info("Generating the HTML report.")
@@ -355,17 +355,10 @@ class ReportBase:
 
         toolname = self._refinfo["toolname"].title()
 
-        rep = HTMLReport.HTMLReport(self.outdir)
-        stats_rsts = []
-        for res in self.rsts:
-            if not res.stats_path.exists():
-                continue
-            if res.stats_res:
-                stats_rsts.append(res.stats_res)
-
-        rep.generate_report(tabs=tabs, rsts=stats_rsts, intro_tbl=self._intro_tbl,
-                            title=f"{toolname} Report", descr=self.report_descr,
-                            toolname=self.toolname, toolver=self.toolver)
+        self._stats_rep.generate_report(tabs=tabs, rsts=self._stats_rsts, intro_tbl=self._intro_tbl,
+                                        title=f"{toolname} Report", descr=self.report_descr,
+                                        toolname=self.toolname, toolver=self.toolver,
+                                        tab_cfgs=tab_cfgs)
 
     @staticmethod
     def _mangle_loaded_res(res):
@@ -415,8 +408,14 @@ class ReportBase:
         # Some metrics from the axes lists could have been dropped, update the lists.
         self._drop_absent_metrics()
 
-    def generate(self):
-        """Generate the HTML report and store the result in 'self.outdir'.
+    def generate(self, tab_cfgs=None):
+        """
+        Generate the HTML report and store the result in 'self.outdir'.
+
+        Optionally provide 'tab_cfgs', a dictionary in the format '{stname: TabConfig}',
+        where 'TabConfig' is an instance of 'statscollectlibs.htmlreport.tabs.TabConfig.CTabConfig',
+        to overwrite the tab configurations used to generate statistics tabs. By default, no custom
+        configurations will be used so the default statistics tabs will be generated.
 
         Important note: this method will modify the input test results in 'self.rsts'. This is done
         for effeciency purposes, to avoid copying the potentially large amounts of data
@@ -427,7 +426,8 @@ class ReportBase:
         self._load_results()
 
         # Put together the final HTML report.
-        self._generate_report()
+        self._generate_report(tab_cfgs)
+
 
     def set_hover_metrics(self, regexs):
         """
@@ -606,6 +606,18 @@ class ReportBase:
         self.exclude_yaxes = exclude_yaxes
         self.hist = hist
         self.chist = chist
+
+        # This class is implemented by adding tabs to the 'HTMLReport' class provided by
+        # 'stats-collect'. Instantiate 'stats_rep' now so that child classes can use features of
+        # 'HTMLReport' specific to those reports.
+        self._stats_rep = HTMLReport.HTMLReport(self.outdir)
+
+        self._stats_rsts = []
+        for res in self.rsts:
+            if not res.stats_path.exists():
+                continue
+            if res.stats_res:
+                self._stats_rsts.append(res.stats_res)
 
         # Users can change this to 'True' to make the reports relocatable. In which case the raw
         # results files will be copied from the test result directories to the output directory.
