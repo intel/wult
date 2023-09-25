@@ -121,10 +121,11 @@ class FTrace(ClassHelpers.SimpleCloseContext):
                 self.raw_line = line.strip()
                 yield FTraceLine(line)
 
-    def __init__(self, pman, timeout=30):
+    def __init__(self, pman, cpunum, timeout=30):
         """
         Class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to operate on.
+          * cpunum - the CPU to read trace buffer for.
           * timeout - longest time in seconds to wait for data in the trace buffer.
         """
 
@@ -141,7 +142,8 @@ class FTrace(ClassHelpers.SimpleCloseContext):
 
         self._debugfs_mntpoint, self._unmount_debugfs = FSHelpers.mount_debugfs(pman=self._pman)
         self._paths["trace"] = self._debugfs_mntpoint.joinpath("tracing/trace")
-        self._paths["trace_pipe"] = self._debugfs_mntpoint.joinpath("tracing/trace_pipe")
+        self._paths["trace_pipe"] = \
+            self._debugfs_mntpoint.joinpath(f"tracing/per_cpu/cpu{cpunum}/trace_pipe")
         self._paths["tracing_on"] = self._debugfs_mntpoint.joinpath("tracing/tracing_on")
         self._paths["current_tracer"] = self._debugfs_mntpoint.joinpath("tracing/current_tracer")
         self._paths["set_event"] = self._debugfs_mntpoint.joinpath("tracing/set_event")

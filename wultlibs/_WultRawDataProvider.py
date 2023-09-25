@@ -195,7 +195,7 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         self._enabled_path = None
         self._fields = None
 
-        self._ftrace = _FTrace.FTrace(pman=self._pman, timeout=self._timeout)
+        self._ftrace = _FTrace.FTrace(pman=self._pman, cpunum=cpunum, timeout=self._timeout)
 
         self._basedir = self.debugfs_mntpoint / "wult"
         self._enabled_path = self._basedir / "enabled"
@@ -309,7 +309,7 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
 
         self._wult_lines = None
 
-        self._ftrace = _FTrace.FTrace(pman=self._pman, timeout=self._timeout)
+        self._ftrace = _FTrace.FTrace(pman=self._pman, cpunum=cpunum, timeout=self._timeout)
 
         try:
             self._ftrace.enable_event("bpf_trace/bpf_trace_printk")
