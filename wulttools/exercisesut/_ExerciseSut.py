@@ -257,7 +257,7 @@ _COMMON_OPTIONS = {
 def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
-    text = f"{TOOLNAME} - Run a test tool or benchmark to collect testdata."
+    text = f"{TOOLNAME} - Run a test tool or benchmark to collect test data."
     parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
 
     text = "Force coloring of the text output."
@@ -265,9 +265,9 @@ def _build_arguments_parser():
     subparsers = parser.add_subparsers(title="commands", dest="a command")
     subparsers.required = True
 
-    text = "Start collecting testdata."
-    descr = """Run a test tool or benchmark to collect testdata. Unknown options are passed as-is to
-               the tool."""
+    text = "Start collecting test data."
+    descr = """Run a test tool or benchmark to collect test data. Unknown options are passed as-is
+               to the tool."""
     subpars = subparsers.add_parser("start", help=text, description=descr)
     subpars.set_defaults(func=_start_command)
     ArgParse.add_ssh_options(subpars)
