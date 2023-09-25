@@ -50,17 +50,17 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
 
         for rawdp in datapoints:
             if time.time() - last_rawdp_time > timeout:
-                # 6.5+ kernels have a bug where synthetic trace events passed from kernel print out
+                # 6.4+ kernels have a bug where synthetic trace events passed from kernel print out
                 # pointer values instead of the value itself. Detect the situation by checking for
                 # ridiculously high SMICnt which can never happen, and additionally checking that we
                 # have running pointer values in the adjacent data values (in the wult drivers,
                 # address of the NMICnt is SMICnt + 8 as the data type is u64.)
                 if rawdp['SMICnt'] > 1000000 and rawdp['SMICnt'] + 8 == rawdp['NMICnt']:
                     kver = KernelVersion.get_kver(pman=self._pman)
-                    if KernelVersion.kver_ge(kver, "6.5") and KernelVersion.kver_lt(kver, "6.7"):
+                    if KernelVersion.kver_ge(kver, "6.4") and KernelVersion.kver_lt(kver, "6.7"):
                         raise Error(f"kernel bug detected with kernel {kver}. Trace subsystem with "
-                                    f"6.5-6.6 kernels is known to be bugged, please upgrade your "
-                                    f"kernel to latest 6.5-stable or 6.6-rc2.")
+                                    f"6.4-6.6 kernels is known to be bugged, please upgrade your "
+                                    f"kernel to latest stable or 6.6-rc2.")
 
                 raise ErrorTimeOut(f"no datapoints accepted for {timeout} seconds. While the "
                                    f"driver does produce them, they are being rejected. One "
