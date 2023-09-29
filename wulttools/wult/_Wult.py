@@ -20,7 +20,7 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
 
-from pepclibs.helperlibs import Logging, Human, ArgParse
+from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.deploylibs import _Deploy
 from wulttools import _Common
@@ -131,7 +131,7 @@ def _build_arguments_parser():
                default range is [0,4ms], but you can override it with this option. Specify a
                comma-separated range (e.g '--ldist 10,5000'), or a single value if you want launch
                distance to be precisely that value all the time.  The default unit is microseconds,
-               but you can use the following specifiers as well: {Human.DURATION_NS_SPECS_DESCR}.
+               but you can use the following specifiers as well: {_Common.DURATION_NS_SPECS_DESCR}.
                For example, '--ldist 10us,5ms' would be a [10,5000] microseconds range. Too small
                values may cause failures or prevent the SUT from reaching deep C-states. If the
                range starts with 0, the minimum possible launch distance value allowed by the

@@ -24,7 +24,6 @@ from pepclibs.helperlibs.Exceptions import Error
 from wulttools import _Common
 from wulttools.ndl import ToolInfo
 from wultlibs.deploylibs import _Deploy
-from wultlibs.helperlibs import Human
 from wultlibs.htmlreport import NdlReportParams
 
 VERSION = ToolInfo.VERSION
@@ -120,7 +119,7 @@ def _build_arguments_parser():
                microseconds (same as '--ldist 5000,50000'). Specify a comma-separated range or a
                single value if you want launch distance to be precisely that value all the time. The
                default unit is microseconds, but you can use the following specifiers as well:
-               {Human.DURATION_NS_SPECS_DESCR}. For example, '--ldist 500us,100ms' would be a
+               {_Common.DURATION_NS_SPECS_DESCR}. For example, '--ldist 500us,100ms' would be a
                [500,100000] microseconds range.  Note, too low values may cause failures or prevent
                the SUT from reaching deep C-states. The optimal value is system-specific."""
     subpars.add_argument("-l", "--ldist", default="5000,50000", help=text)
