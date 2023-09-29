@@ -293,7 +293,7 @@ def _validate_range(rng, what, single_ok):
     vals = [None] * len(split_rng)
 
     for idx, val in enumerate(split_rng):
-        vals[idx] = Human.parse_duration_ns(val, default_unit="us", name=what)
+        vals[idx] = Human.parse_human(val, unit="us", target_unit="ns", integer=True, name=what)
         if vals[idx] < 0:
             raise Error(f"bad {what} value '{split_rng[idx]}', should be greater than zero")
 
@@ -312,9 +312,9 @@ def _validate_range(rng, what, single_ok):
 def parse_ldist(ldist, single_ok=True):
     """
     Parse and validate the launch distance range ('--ldist' option). The 'ldist' argument is a
-    string of single or two comma-separated launch distance values. The values are parsed with
-    'Human.parse_duration_ns()', so they can include specifiers like 'ms' or 'us'. Returns launch
-    launch distance range as a list of two integers in nanoseconds.
+    string of single or two comma-separated launch distance values in microseconds. The values are
+    parsed with 'Human.parse_human()', so they can include specifiers like 'ms' or 'us'. Returns
+    launch launch distance range as a list of two integers in nanoseconds.
 
     My default, 'ldist' may include a single number, but if 'single_ok' is 'False', then this
     function will raise the exception in case there is only one number.

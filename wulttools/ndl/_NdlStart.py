@@ -146,7 +146,9 @@ def start_command(args):
         if not args.outdir:
             args.outdir = Path(f"./{args.reportid}")
         if args.tlimit:
-            args.tlimit = Human.parse_duration(args.tlimit, default_unit="m", name="time limit")
+            if Trivial.is_num(args.tlimit):
+                args.tlimit = f"{args.tlimit}m"
+            args.tlimit = Human.parse_human(args.tlimit, unit="s", integer=True, name="time limit")
 
         args.ldist = _Common.parse_ldist(args.ldist)
 
