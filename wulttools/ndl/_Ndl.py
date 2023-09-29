@@ -10,7 +10,6 @@
 
 import sys
 import logging
-import argparse
 from pathlib import Path
 
 try:
