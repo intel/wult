@@ -1,3 +1,12 @@
+wult (1.12.11) unstable; urgency=low
+
+  * Add partial workaround for kernel tracing sub-system regression by using
+    per-cpu 'trace_pipe' sysfs file instead of using the global one.
+  * Detect buggy kernels and print a helpful error messages suggesting to
+    update the kernel to the latest stable version.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 04 Oct 2023 00:00:00 +0200
+
 wult (1.12.10) unstable; urgency=low
 
   * Fix 'wult/ndl' not generating statistics tabs in HTML reports for some

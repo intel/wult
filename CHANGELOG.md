@@ -5,13 +5,16 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.12.11] - 2023-10-04
+### Fixed
  - Add partial workaround for kernel tracing sub-system regression by using
    per-cpu 'trace_pipe' sysfs file instead of using the global one.
  - Detect buggy kernels and print a helpful error messages suggesting to
    update the kernel to the latest stable version.
-### Added
-### Removed
-### Changed
 
 ## [1.12.10] - 2023-09-08
 ### Fixed

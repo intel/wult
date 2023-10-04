@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date: 2023-09-08
+:Date: 2023-10-04
 
 .. contents::
    :depth: 3
@@ -22,7 +22,7 @@ SYNOPSIS
 DESCRIPTION
 ===========
 
-exercise-sut - Run a test tool or benchmark to collect testdata.
+exercise-sut - Run a test tool or benchmark to collect test data.
 
 OPTIONS
 =======
@@ -46,7 +46,7 @@ COMMANDS
 ========
 
 **exercise-sut** *start*
-   Start collecting testdata.
+   Start collecting test data.
 
 **exercise-sut** *report*
    Generate reports.
@@ -67,7 +67,7 @@ FREQS] [--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR] [--aspm ASPM]
 [--stop-on-failure] [--only-measured-cpu] [--toolpath TOOLPATH]
 [--toolopts TOOLOPTS] [--outdir OUTDIR] [--dry-run] [--list-monikers]
 
-Run a test tool or benchmark to collect testdata. Unknown options are
+Run a test tool or benchmark to collect test data. Unknown options are
 passed as-is to the tool.
 
 OPTIONS *'exercise-sut* start'
