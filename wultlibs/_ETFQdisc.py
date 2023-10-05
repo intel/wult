@@ -58,13 +58,13 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
                     errmsg += f"Try to install package '{pkgname}'{self._pman.hostmsg}\n"      \
                               f"Currently running kernel version is '{kver}', make sure the\n" \
                               f"installed '{pkgname}' also has version '{kver}'.\n"
-                errmsg += "Try to ensure that the kernel has the following features enabled:\n"  \
-                          "* QoS / fair queuing (CONFIG_NET_SCHED)\n"                            \
-                          "* Multi-queue priority scheduler (CONFIG_NET_SCH_MQPRIO)\n"           \
-                          "* Earliest TxTime First (CONFIG_NET_SCH_ETF)\n"                       \
-                          "* Netfilter (CONFIG_NETFILTER_NETLINK)\n"                             \
-                          "And related modules, such as 'sch_etf' and 'sch_mqprio',\n"           \
-                          "loaded if needed."
+                errmsg += "Try to ensure that the kernel has the following features enabled:\n"    \
+                          "* QoS / fair queuing (CONFIG_NET_SCHED)\n"                              \
+                          "* Multi-queue priority scheduler (CONFIG_NET_SCH_MQPRIO)\n"             \
+                          "* Earliest TxTime First (CONFIG_NET_SCH_ETF)\n"                         \
+                          "* Netfilter (CONFIG_NETFILTER_NETLINK)\n\n"                             \
+                          "Make sure these kernel modules are available: 'sch_etf', 'sch_mqprio'." \
+                          "Make sure you can load them, e.g., try 'modprobme sch_mqprio'."
 
             elif "Unknown qdisc \"etf\"" in stderr:
                 errmsg += self._old_tc_err_msg
