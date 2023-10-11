@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix 'wult scan' and 'ndl scan' - they sometimes did not show all the
+   compatible PCIe devices.
 ### Added
 ### Removed
 ### Changed
