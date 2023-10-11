@@ -4,7 +4,7 @@
 # Authors: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 ifneq ($(KERNELRELEASE),)
-# We've are part of the kernel build system.
+# We are part of the kernel build system.
 wult-objs := main.o uapi.o tracer.o cstates.o
 obj-m += wult.o
 obj-m += wult_igb.o
