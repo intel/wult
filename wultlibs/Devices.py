@@ -19,9 +19,10 @@ import time
 import logging
 import contextlib
 from pathlib import Path
+from pepclibs import LsPCI
 from pepclibs.helperlibs import Dmesg, ClassHelpers, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
-from wultlibs import NetIface, LsPCI
+from wultlibs import NetIface
 
 # All the possible wult/ndl device driver names in order suitable for unloading.
 ALL_DRVNAMES = ("ndl", "wult_igb", "wult_hrt", "wult_tdt")

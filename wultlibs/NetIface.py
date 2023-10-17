@@ -21,7 +21,7 @@ from pathlib import Path
 from collections import namedtuple
 from pepclibs.helperlibs import LocalProcessManager, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from wultlibs import LsPCI
+from pepclibs import LsPCI
 
 _LOG = logging.getLogger()
 
