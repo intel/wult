@@ -262,8 +262,7 @@ def _build_arguments_parser():
     subparsers.required = True
 
     text = "Start collecting test data."
-    descr = """Run a test tool or benchmark to collect test data. Unknown options are passed as-is
-               to the tool."""
+    descr = """Run a test tool or benchmark to collect test data."""
     subpars = subparsers.add_parser("start", help=text, description=descr)
     subpars.set_defaults(func=_start_command)
     ArgParse.add_ssh_options(subpars)
@@ -277,8 +276,7 @@ def _build_arguments_parser():
         subpars.add_argument(*opt_names, **kwargs)
 
     text = "Generate reports."
-    descr = """Generate reports from collected data. Unknown options are passed as-is to the report
-               tool."""
+    descr = """Generate reports from collected data."""
     subpars = subparsers.add_parser("report", help=text, description=descr)
     subpars.set_defaults(func=_report_command)
 
@@ -302,16 +300,7 @@ def parse_arguments():
     """Parse input arguments."""
 
     parser = _build_arguments_parser()
-    args, uargs = parser.parse_known_args()
-
-    toolopts = args.toolopts
-    if toolopts and uargs:
-        toolopts += " "
-
-    toolopts += " ".join(uargs)
-    setattr(args, "toolopts", toolopts)
-
-    return args
+    return parser.parse_args()
 
 def _start_check_args(args, inprops):
     """
