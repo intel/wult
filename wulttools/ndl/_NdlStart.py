@@ -111,10 +111,8 @@ def _check_settings(pman, cpuinfo, cpunum):
     with contextlib.suppress(ErrorNotSupported), \
          CPUIdle.CPUIdle(pman=pman, cpuinfo=cpuinfo) as cpuidle, \
          CStates.CStates(pman=pman, cpuinfo=cpuinfo, cpuidle=cpuidle) as cstates:
-        pinfos = cstates.get_cpu_props(("pkg_cstate_limit", "c1_demotion", "cstate_prewake"),
-                                        cpunum)
 
-        if pinfos.get("pkg_cstate_limit") == "PC0":
+        if cstates.get_cpu_prop(pname, cpunum) == "PC0":
             return
 
         csinfo = cpuidle.get_cpu_cstates_info(cpunum)
@@ -125,7 +123,7 @@ def _check_settings(pman, cpuinfo, cpunum):
             return
 
         for pname in ("c1_demotion", "cstate_prewake"):
-            if pinfos.get(pname) == "on":
+            if cstates.get_cpu_prop(pname, cpunum) == "on"
                 name = cstates.props[pname]["name"]
                 _LOG.notice("%s is enabled, this may lead to lower C6 residency. It is " \
                             "recommended to disable %s.", name, name)

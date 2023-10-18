@@ -182,20 +182,25 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         pcsinfo["aliases"] = {}
 
         cstates = self._get_cstates()
-        for _, pinfo in cstates.get_props(("pkg_cstate_limit", "pkg_cstate_limits",
-                                           "pkg_cstate_limit_aliases", "pkg_cstate_limit_lock")):
-            if pinfo["pkg_cstate_limits"]:
-                for pcsname in pinfo["pkg_cstate_limits"]:
-                    if pcsname not in pcsinfo["names"]:
-                        pcsinfo["names"].append(pcsname)
+        pnames = ("pkg_cstate_limit", "pkg_cstate_limits", "pkg_cstate_limit_aliases",
+                  "pkg_cstate_limit_lock")
+        pinfo = {}
+        for pname in pnames:
+            for _, val in cstates.get_prop(pname):
+                pinfo[pname] = val
 
-            if pinfo["pkg_cstate_limit_aliases"]:
-                for pcsalias, pcsname in pinfo["pkg_cstate_limit_aliases"].items():
-                    if pcsalias not in pcsinfo["aliases"]:
-                        pcsinfo["aliases"][pcsalias] = pcsname
+        if pinfo["pkg_cstate_limits"]:
+            for pcsname in pinfo["pkg_cstate_limits"]:
+                if pcsname not in pcsinfo["names"]:
+                    pcsinfo["names"].append(pcsname)
 
-            pcsinfo["limit_locked"] = pinfo.get("pkg_cstate_limit_lock") == "on"
-            pcsinfo["current_limit"] = pinfo["pkg_cstate_limit"]
+        if pinfo["pkg_cstate_limit_aliases"]:
+            for pcsalias, pcsname in pinfo["pkg_cstate_limit_aliases"].items():
+                if pcsalias not in pcsinfo["aliases"]:
+                    pcsinfo["aliases"][pcsalias] = pcsname
+
+        pcsinfo["limit_locked"] = pinfo.get("pkg_cstate_limit_lock") == "on"
+        pcsinfo["current_limit"] = pinfo["pkg_cstate_limit"]
 
         return pcsinfo
 
@@ -290,8 +295,8 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             log_method("property '%s' is not supported, skip configuring it", pname)
             return False
 
-        for _, pinfo in pcsobj.get_props((pname,), cpus="all"):
-            if not pinfo[pname]:
+        for _, val in pcsobj.get_prop(pname, cpus="all"):
+            if not val:
                 log_method("property '%s' is not supported, skip configuring it", pname)
                 return False
 
