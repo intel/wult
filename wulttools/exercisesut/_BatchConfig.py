@@ -186,8 +186,8 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
                   "pkg_cstate_limit_lock")
         pinfo = {}
         for pname in pnames:
-            for _, val in cstates.get_prop(pname):
-                pinfo[pname] = val
+            for pvinfo in cstates.get_prop(pname):
+                pinfo[pname] = pvinfo["val"]
 
         if pinfo["pkg_cstate_limits"]:
             for pcsname in pinfo["pkg_cstate_limits"]:
@@ -295,8 +295,8 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             log_method("property '%s' is not supported, skip configuring it", pname)
             return False
 
-        for _, val in pcsobj.get_prop(pname, cpus="all"):
-            if not val:
+        for pvinfo in pcsobj.get_prop(pname, cpus="all"):
+            if not pvinfo["val"]:
                 log_method("property '%s' is not supported, skip configuring it", pname)
                 return False
 
