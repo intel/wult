@@ -40,6 +40,10 @@ _NDL_DEPLOY_INFO = {
             "category" : "shelpers",
             "deployables" : ("ndl-helper", ),
         },
+        "freq-helper" : {
+            "category" : "pyhelpers",
+            "deployables" : ("freq-helper", ),
+        },
     },
 }
 
@@ -157,6 +161,8 @@ def _build_arguments_parser():
                default, the CPU cache trashing buffer size a sum of sizes of all caches on all CPUs
                (includes all levels, excludes instruction cache)."""
     subpars.add_argument("--trash-cpu-cache", action="store_true", help=text)
+
+    _Common.add_freq_noise_cmdline_args(subpars)
 
     text = """The network interface backed by the NIC to use for latency measurements. Today only
               Intel I210 and I211 NICs are supported. Please, specify NIC's network interface name

@@ -18,7 +18,7 @@ from pepclibs.helperlibs import Logging, Trivial, ArgParse
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.collector import StatsCollectBuilder
 from wulttools import _Common
-from wultlibs import NdlRunner, Devices
+from wultlibs import NdlRunner, Devices, _FreqNoise
 from wultlibs.deploylibs import _Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
@@ -224,7 +224,11 @@ def start_command(args):
             _LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "
                         "the measured latency.", args.devid)
 
-        runner = NdlRunner.NdlRunner(pman, dev, res, args.ldist, stcoll=stcoll, cbuf_size=cbuf_size)
+        fnobj = _FreqNoise.FreqNoise(_Common.parse_freq_noise_cmdline_args(args), pman=pman)
+        stack.enter_context(fnobj)
+
+        runner = NdlRunner.NdlRunner(pman, dev, res, args.ldist, stcoll=stcoll, cbuf_size=cbuf_size,
+                                     fnobj=fnobj)
         stack.enter_context(runner)
 
         runner.prepare()
