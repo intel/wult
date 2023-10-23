@@ -83,23 +83,20 @@ _COLLECT_OPTIONS = {
                      datapoints to collect per measurement. Default is 100000."""
     },
     "reportid_prefix" : {
-        "help" : """String to prepend to the report ID (nothing, by default)."""
+        "help" : """String to prepend to the report ID."""
     },
     "reportid_suffix" : {
-        "help" : """String to append to the report ID (nothing, by default)."""
+        "help" : """String to append to the report ID."""
     },
     "cpunums" : {
         "help" : f"""Applicable only to the '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools.
-                     Comma-separated list of CPU numbers to measure with. No CPU number is passed by
-                     default."""
+                     Comma-separated list of CPU numbers to measure with."""
     },
     "cstates" : {
-        "help" : """Comma-separated list of requestable C-states to measure with. No C-states are
-                    passed by default."""
+        "help" : """Comma-separated list of requestable C-states to measure with."""
     },
     "pcstates" : {
-        "help" : """Comma-separated list of package C-states to measure with. No package C-states
-                    is passed by default."""
+        "help" : """Comma-separated list of package C-states to measure with."""
     },
     "only_one_cstate" : {
         "action" : "store_true",
@@ -108,61 +105,60 @@ _COLLECT_OPTIONS = {
                     C-state."""
     },
     "cstates_always_enable" : {
-        "help" : """Comma-separated list of always enabled C-states. Default is 'None'."""
+        "help" : """Comma-separated list of always enabled C-states."""
     },
     "turbo" : {
-        "help" : """Comma-separated list of turbo configurations to measure with. The default is
-                    "don't touch". Supported values are "on" and "off"."""
+        "help" : """Comma-separated list of turbo configurations to measure with. Supported values
+                    are "on" and "off"."""
     },
     "freqs" : {
-        "help" : """Comma-separated list of frequencies to be measured with. The default is "don't 
-                    touch". For more information, see '--min-freq' and '--max-freq' options of the
-                    'pepc pstates config' command."""
+        "help" : """Comma-separated list of frequencies to be measured with. For more information,
+                    see '--min-freq' and '--max-freq' options of the 'pepc pstates config' command.
+                    """
     },
     "uncore_freqs" : {
-        "help" : """Comma-separated list of package uncore frequencies to measure with. The default
-                    is "don't touch". For more information, see '--min-uncore-freq' and
-                    '--max-uncore-freq' options of the 'pepc pstates config' command."""
+        "help" : """Comma-separated list of package uncore frequencies to measure with. For more
+                    information, see '--min-uncore-freq' and '--max-uncore-freq' options of the
+                    'pepc pstates config' command."""
     },
     "governor" : {
-        "help" : """Name of the CPU frequency governor to measure with. The default is "don't touch"
-                    ."""
+        "help" : """Name of the CPU frequency governor to measure with."""
     },
     "aspm" : {
-        "help" : """Comma-separated list of PCIe ASPM configurations to measure with. The default is
-                    "don't touch". Supported values are "on" and "off"."""
+        "help" : """Comma-separated list of PCIe ASPM configurations to measure with. Supported
+                    values are "on" and "off"."""
     },
     "c1_demotion" : {
-        "help" : """Comma-separated list of C1 demotion configurations to measure with. Default is
-                    "don't touch". Supported values are "on" and "off"."""
+        "help" : """Comma-separated list of C1 demotion configurations to measure with. Supported
+                    values are "on" and "off"."""
     },
     "c1_undemotion" : {
-        "help" : """Comma-separated list of C1 undemotion configurations to measure with. Default is
-                    "don't touch". Supported values are "on" and "off"."""
+        "help" : """Comma-separated list of C1 undemotion configurations to measure with. Supported
+                    values are "on" and "off"."""
     },
     "c1e_autopromote" : {
-        "help" : """Comma-separated list of C1E autopromote configurations to measure with. Default
-                    is "don't touch". Supported values are "on" and "off"."""
+        "help" : """Comma-separated list of C1E autopromote configurations to measure with.
+                    Supported values are "on" and "off"."""
     },
     "cstate_prewake" : {
-        "help" : """Comma-separated list of C-state prewake configurations to measure with. Default
-                    is "don't touch". Supported values are "on" and "off"."""
+        "help" : """Comma-separated list of C-state prewake configurations to measure with.
+                    Supported values are "on" and "off"."""
     },
     "epp" : {
-        "help" : """Comma-separated list of EPP configurations to measure with. Default is
-                     "don't touch". See 'pepc pstates config --epp' for more information.""",
+        "help" : """Comma-separated list of EPP configurations to measure with. See 'pepc pstates
+                    config --epp' for more information.""",
     },
     "epp-hw" : {
-        "help" : """Comma-separated list of EPP configurations to measure with. Default is "don't
-                    touch". See 'pepc pstates config --epp-hw' for more information.""",
+        "help" : """Comma-separated list of EPP configurations to measure with. See 'pepc pstates
+                    config --epp-hw' for more information.""",
     },
     "epb" : {
-        "help" : """Comma-separated list of EPB configurations to measure with. Default is "don't
-                    touch". See 'pepc pstates config --epb' for more information.""",
+        "help" : """Comma-separated list of EPB configurations to measure with. See 'pepc pstates
+                    config --epb' for more information.""",
     },
     "epb-hw" : {
-        "help" : """Comma-separated list of EPB configurations to measure with. Default is "don't
-                    touch". See 'pepc pstates config --epb-hw' for more information.""",
+        "help" : """Comma-separated list of EPB configurations to measure with. See 'pepc pstates
+                    config --epb-hw' for more information.""",
     },
     "state_reset" : {
         "action" : "store_true",
