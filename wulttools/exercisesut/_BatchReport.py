@@ -59,18 +59,20 @@ class BatchReport(_Common.CmdlineRunner):
           * exclude - List of monikers that must not be found from the result path name.
         """
 
-        include_monikers = None
-        exclude_monikers = None
+        include_monikers = set()
+        exclude_monikers = set()
 
         if include:
-            include_monikers = set(Trivial.split_csv_line(include))
+            for moniker in Trivial.split_csv_line(include):
+                include_monikers.add(moniker.lower())
 
         if exclude:
-            exclude_monikers = set(Trivial.split_csv_line(exclude))
+            for moniker in Trivial.split_csv_line(exclude):
+                exclude_monikers.add(moniker.lower())
 
         respaths= []
         for respath in self._respaths:
-            path_monikers = respath.name.split("-")
+            path_monikers = [moniker.lower() for moniker in respath.name.split("-")]
 
             if include_monikers and not include_monikers.issubset(set(path_monikers)):
                 continue
@@ -180,6 +182,7 @@ class BatchReport(_Common.CmdlineRunner):
 
         if diffs:
             for diff_monikers in diffs:
+                diff_monikers = [moniker.lower() for moniker in diff_monikers]
                 yield from self._get_diff_paths(respaths, diff_monikers)
         else:
             for respath in respaths:

@@ -236,7 +236,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         for _, csinfo in self._get_cpuidle().get_cstates_info(csnames="all", cpus="all"):
             for csname in csinfo:
                 if csname not in allcsnames:
-                    allcsnames.append(csname)
+                    allcsnames.append(csname.upper())
 
         if "all" in csnames:
             return allcsnames
