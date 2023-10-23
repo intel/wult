@@ -15,7 +15,7 @@ import logging
 from pathlib import Path
 from pepclibs.helperlibs import ClassHelpers, ArgParse, ProjectFiles, ToolChecker, KernelVersion
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
-from statscollectlibs.deploylibs import DeployBase
+from statscollectlibs.deploylibs import DeployBase, _DeployPyHelpers
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
 
 _LOG = logging.getLogger()
@@ -294,6 +294,19 @@ class Deploy(DeployBase.DeployBase):
                                             btchk=self._btchk, debug=self._debug) as depl:
             depl.deploy(list(shelpers))
 
+    def _deploy_pyhelpers(self):
+        """Deploy python helpers to the SUT."""
+
+        pyhelpers = self._cats.get("pyhelpers")
+        if not pyhelpers:
+            return
+
+        with _DeployPyHelpers.DeployPyHelpers("wult", self._toolname, pyhelpers, self._spman,
+                                              self._bpman, self._cpman, self._get_stmpdir(),
+                                              self._get_btmpdir(), self._get_ctmpdir(),
+                                              debug=self._debug) as depl:
+            depl.deploy(list(pyhelpers))
+
     def _deploy_drivers(self):
         """Deploy drivers to the SUT."""
 
@@ -315,6 +328,7 @@ class Deploy(DeployBase.DeployBase):
 
         self._deploy_drivers()
         self._deploy_shelpers()
+        self._deploy_pyhelpers()
         self._deploy_bpf_helpers()
 
     def deploy(self):
