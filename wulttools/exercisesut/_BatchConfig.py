@@ -177,32 +177,45 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
     def _get_pcsinfo(self):
         """Helper to read package C-state information, returns a dictionary."""
 
-        pcsinfo = {}
-        pcsinfo["names"] = []
-        pcsinfo["aliases"] = {}
-
+        cpuinfo = self._get_cpuinfo()
         cstates = self._get_cstates()
-        pnames = ("pkg_cstate_limit", "pkg_cstate_limits", "pkg_cstate_limit_aliases",
-                  "pkg_cstate_limit_lock")
-        pinfo = {}
-        for pname in pnames:
-            for pvinfo in cstates.get_prop(pname):
-                pinfo[pname] = pvinfo["val"]
+        pcsinfo = {}
+        cpu_to_pkg = {}
 
-        if pinfo["pkg_cstate_limits"]:
-            for pcsname in pinfo["pkg_cstate_limits"]:
-                if pcsname not in pcsinfo["names"]:
-                    pcsinfo["names"].append(pcsname)
+        for package in cpuinfo.get_packages():
+            cpu = cpuinfo.package_to_cpus(package)[0]
+            cpu_to_pkg[cpu] = package
+            pcsinfo[package] = {}
 
-        if pinfo["pkg_cstate_limit_aliases"]:
-            for pcsalias, pcsname in pinfo["pkg_cstate_limit_aliases"].items():
-                if pcsalias not in pcsinfo["aliases"]:
-                    pcsinfo["aliases"][pcsalias] = pcsname
+        for pinfo in cstates.get_prop("pkg_cstate_limit", cpus=cpu_to_pkg):
+            pkg = cpu_to_pkg[pinfo["cpu"]]
+            pcsinfo[pkg]["current_limit"] = pinfo["val"]
 
-        pcsinfo["limit_locked"] = pinfo.get("pkg_cstate_limit_lock") == "on"
-        pcsinfo["current_limit"] = pinfo["pkg_cstate_limit"]
+        for pinfo in cstates.get_prop("pkg_cstate_limits", cpus=cpu_to_pkg):
+            pkg = cpu_to_pkg[pinfo["cpu"]]
+            pcsinfo[pkg]["names"] = pinfo["val"]
+
+        for pinfo in cstates.get_prop("pkg_cstate_limit_aliases", cpus=cpu_to_pkg):
+            pkg = cpu_to_pkg[pinfo["cpu"]]
+            pcsinfo[pkg]["aliases"] = pinfo["val"]
+
+        for pinfo in cstates.get_prop("pkg_cstate_limit_lock", cpus=cpu_to_pkg):
+            pkg = cpu_to_pkg[pinfo["cpu"]]
+            pcsinfo[pkg]["limit_locked"] = pinfo["val"] == "on"
 
         return pcsinfo
+
+    def _validate_pcsname(self, pcsinfo, pcsname):
+        """Validate package C-state name 'pcsname'."""
+
+        for _pcsinfo in pcsinfo.values():
+            _pcsname = _pcsinfo["aliases"].get(pcsname, pcsname)
+
+            if _pcsname not in _pcsinfo["names"]:
+                raise Error(f"package C-state '{pcsname}' not available{self._pman.hostmsg}")
+            if _pcsinfo["limit_locked"] and _pcsname != _pcsinfo["current_limit"]:
+                raise Error(f"cannot set package C-state limit to '{pcsname}'{self._pman.hostmsg}, "
+                            f"the MSR is locked and current limit is '{_pcsinfo['current_limit']}'")
 
     def _normalize_pcsnames(self, pcsnames):
         """Normalize and validate list of package C-state names 'pcsnames'."""
@@ -210,21 +223,20 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         pcsinfo = self._get_pcsinfo()
 
         if "all" in pcsnames:
-            if pcsinfo.get("limit_locked"):
-                return [pcsinfo["current_limit"]]
-            return pcsinfo["names"]
+            # Use values from first package.
+            for _pcsinfo in pcsinfo.values():
+                if _pcsinfo.get("limit_locked"):
+                    return [_pcsinfo["current_limit"]]
+                return _pcsinfo["names"]
 
         normalized_pcsnames = []
         for pcsname in pcsnames:
             _pcsname = pcsname.upper()
-            _pcsname = pcsinfo["aliases"].get(_pcsname, _pcsname)
+            # Special case for 'unlimited' value.
+            if not _pcsname.startswith("PC"):
+                _pcsname = pcsname.lower()
 
-            if _pcsname not in pcsinfo["names"]:
-                raise Error(f"package C-state '{pcsname}' not available{self._pman.hostmsg}")
-            if pcsinfo["limit_locked"] and _pcsname != pcsinfo["current_limit"]:
-                raise Error(f"cannot set package C-state limit to '{pcsname}'{self._pman.hostmsg}, "
-                            f"the MSR is locked and current limit is '{pcsinfo['current_limit']}'")
-
+            self._validate_pcsname(pcsinfo, _pcsname)
             normalized_pcsnames.append(_pcsname)
 
         return normalized_pcsnames
