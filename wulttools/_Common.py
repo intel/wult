@@ -16,6 +16,7 @@ module require the 'args' object which represents the command-line arguments.
 
 import sys
 import logging
+import re
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, YAML, ProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
@@ -705,3 +706,65 @@ def run_stats_collect_deploy(args, pman):
         except Error as err:
             _LOG.warning("falied to deploy statistics collectors%s", pman.hostmsg)
             _LOG.debug(str(err))
+
+def add_freq_noise_cmdline_args(subparser):
+    """
+    Add the 'freq-noise' options to the 'argparse' data. The input arguments are as follows.
+      * subparser - the 'argparse' subparser to add the 'freq-noise' options to
+    """
+
+    text = """Add frequency scaling noise to the measured system. This runs a background process
+              that repeatedly modifies CPU or uncore frequencies for given domains. The reason for
+              doing this is because frequency scaling is generally an expensive operation and is
+              known to impact system latency. 'FREQ_NOISE' is specified as 'TYPE:ID:MIN:MAX', where:
+              TYPE should be 'cpu' or 'uncore', specifies whether CPU or uncore frequency should be
+              modified; ID is either CPU number or uncore domain ID to modify the frequency for
+              (e.g. 'cpu:12:...' would target CPU12); MIN is the minimum CPU/uncore frequency value;
+              MAX is the maximum CPU/uncore frequency value. For example, to add frequency scaling
+              noise for CPU0, add '--freq-noise cpu:0:min:max'. To add uncore frequency noise for
+              uncore domain 0, add '--freq-noise uncore:0:min:max'. The parameter can be added
+              multiple times to specify multiple frequency noise domains."""
+    subparser.add_argument("--freq-noise", action="append", help=text)
+
+    text = """Sleep between frequency noise operations. This time is added between every frequency
+              scaling operation executed by the 'freq-noise' feature. The default time unit is
+              microseconds, but it is possible to use time specifiers as well, ms - milliseconds,
+              us - microseconds, ns - nanoseconds. Default sleep time is 50ms."""
+    subparser.add_argument("--freq-noise-sleep", help=text)
+
+def parse_freq_noise_cmdline_args(args):
+    """
+    Parse the frequency noise related command line arguments, and return parsed data as a dictionary
+    to be passed to the '_FreqNoise' module.
+    """
+
+    if not args.freq_noise:
+        return None
+
+    specs = []
+
+    for spec in args.freq_noise:
+        tokens = spec.split(":")
+        if tokens[0] not in ("uncore", "cpu"):
+            raise Error(f"bad domain type for freq-noise: '{tokens[0]}'. Only 'cpu' and 'uncore'"
+                        "are supported.")
+        match = re.match(r"^\d+$", tokens[1])
+        if not match:
+            raise Error(f"bad domain ID for freq-noise: '{tokens[1]}'. Must provide a positive "
+                        "integer value.")
+
+        for idx in (2, 3):
+            if tokens[idx] not in ("min", "max"):
+                try:
+                    tokens[idx] = Human.parse_human(tokens[idx], unit="Hz", integer=True)
+                except Error as err:
+                    raise Error(f"failed to parse freq-noise frequency '{tokens[idx]}'") from err
+
+        specs += [{ 'type': tokens[0], 'id': tokens[1], 'min': tokens[2], 'max': tokens[3] }]
+
+    if args.freq_noise_sleep:
+        val = Human.parse_human(args.freq_noise_sleep, unit="s", target_unit="us", integer=True,
+                                name="frequency noise sleep time")
+        specs += [{ 'type': 'sleep', 'val': val }]
+
+    return specs
