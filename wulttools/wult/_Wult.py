@@ -47,6 +47,10 @@ _WULT_DEPLOY_INFO = {
             "minkver"  : "5.15",
             "deployables" : ("wult-tdt-helper", ),
         },
+        "freq-helper" : {
+            "category" : "pyhelpers",
+            "deployables" : ("freq-helper", ),
+        },
     },
 }
 
@@ -176,6 +180,8 @@ def _build_arguments_parser():
               address of the Intel I210 device, or "tdt" for the TSC deadline timer block of the
               CPU. Use the 'scan' command to get supported devices."""
     subpars.add_argument("devid", nargs= '?' if '--list-stats' in sys.argv else None, help=text)
+
+    _Common.add_freq_noise_cmdline_args(subpars)
 
     #
     # Create parsers for the "report" command.
