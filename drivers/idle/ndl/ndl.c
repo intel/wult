@@ -102,7 +102,7 @@ static void dma_coalescing_disable(void)
 	}
 }
 
-/* Restore previosly saved DMA coalescing value */
+/* Restore previously saved DMA coalescing value. */
 static void dma_coalescing_restore(void)
 {
 	int i;
