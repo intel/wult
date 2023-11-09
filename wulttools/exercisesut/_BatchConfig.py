@@ -187,19 +187,19 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             cpu_to_pkg[cpu] = package
             pcsinfo[package] = {}
 
-        for pinfo in cstates.get_prop("pkg_cstate_limit", cpus=cpu_to_pkg):
+        for pinfo in cstates.get_prop_cpus("pkg_cstate_limit", cpus=cpu_to_pkg):
             pkg = cpu_to_pkg[pinfo["cpu"]]
             pcsinfo[pkg]["current_limit"] = pinfo["val"]
 
-        for pinfo in cstates.get_prop("pkg_cstate_limits", cpus=cpu_to_pkg):
+        for pinfo in cstates.get_prop_cpus("pkg_cstate_limits", cpus=cpu_to_pkg):
             pkg = cpu_to_pkg[pinfo["cpu"]]
             pcsinfo[pkg]["names"] = pinfo["val"]
 
-        for pinfo in cstates.get_prop("pkg_cstate_limit_aliases", cpus=cpu_to_pkg):
+        for pinfo in cstates.get_prop_cpus("pkg_cstate_limit_aliases", cpus=cpu_to_pkg):
             pkg = cpu_to_pkg[pinfo["cpu"]]
             pcsinfo[pkg]["aliases"] = pinfo["val"]
 
-        for pinfo in cstates.get_prop("pkg_cstate_limit_lock", cpus=cpu_to_pkg):
+        for pinfo in cstates.get_prop_cpus("pkg_cstate_limit_lock", cpus=cpu_to_pkg):
             pkg = cpu_to_pkg[pinfo["cpu"]]
             pcsinfo[pkg]["limit_locked"] = pinfo["val"] == "on"
 
@@ -307,7 +307,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             log_method("property '%s' is not supported, skip configuring it", pname)
             return False
 
-        for pvinfo in pcsobj.get_prop(pname, cpus="all"):
+        for pvinfo in pcsobj.get_prop_cpus(pname, cpus="all"):
             if not pvinfo["val"]:
                 log_method("property '%s' is not supported, skip configuring it", pname)
                 return False
