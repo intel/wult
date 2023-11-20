@@ -630,6 +630,7 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
         self._reportid_suffix = args.reportid_suffix
         self._hostname = args.hostname
         self._debug = args.debug
+        self._stats = args.stats
 
         if not self._outdir:
             self._outdir = ReportID.format_reportid(prefix=self.toolpath.name)
@@ -653,6 +654,9 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         if _LOG.colored:
             cmd += " --force-color"
         cmd += f" start -c {self._datapoints}"
+
+        if self._stats is not None:
+            cmd += f" --stats=\"{self._stats}\""
 
         if cpu is not None:
             cmd += f" --cpunum {cpu}"
@@ -688,6 +692,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         self._pman = pman
         self._datapoints = args.datapoints
+        self._stats = args.stats
 
     def close(self):
         """Uninitialize the class objetc."""
@@ -703,6 +708,9 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
         if _LOG.colored:
             cmd += " --force-color"
         cmd += " start"
+
+        if self._stats is not None:
+            cmd += f" --stats=\"{self._stats}\""
 
         if reportid:
             cmd += f" --reportid {reportid} -o {self._outdir}/{reportid}"

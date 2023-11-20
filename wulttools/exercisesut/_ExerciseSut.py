@@ -174,6 +174,10 @@ _COLLECT_OPTIONS = {
         "help" : f"""Applicable only to '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools.
                      Comma-separated list of device IDs to run the tools with."""
     },
+    "stats" : {
+        "help" : f"""Applicable to '{WULT_TOOLNAME}', '{NDL_TOOLNAME}' '{STC_TOOLNAME}'tools.
+                     Comma-separated list of statistics to collect."""
+    },
     "command" : {
         "help" : """Applicable only to 'stats-collect' tool. The command to that 'stats-collect'
                     should run."""
