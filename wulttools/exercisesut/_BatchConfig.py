@@ -89,6 +89,17 @@ PROP_INFOS = {
 
 PC0_ONLY_STATES = ("POLL", "C1", "C1E")
 
+CSTATE_FILTERS = {
+    "POLL" : "ReqCState == 'POLL'",
+    "C1" : "(ReqCState == 'C1') & (CC1% > 0)",
+    "C1E" : "(ReqCState == 'C1E') & (CC1% > 0)",
+    "C6" : "(ReqCState == 'C6') & (CC6% > 0)",
+    "C6P" : "(ReqCState == 'C6P') & (PC6% > 0)",
+    "C6S" : "(ReqCState == 'C6S') & (MC6% > 0)",
+    "C6SP" : "(ReqCState == 'C6SP') & (PC6% > 0)",
+    "PC6" : "(PC6% > 0)"
+}
+
 def list_monikers():
     """Helper to print moniker for each property, if any."""
 
@@ -647,7 +658,7 @@ class _BenchmarkCmdFormatter(_ToolCmdFormatterBase):
 class _WultCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'wult' or 'ndl' commands."""
 
-    def _create_command(self, cpu, devid, reportid=None):
+    def _create_command(self, cpu, devid, reportid=None, cstate_filter=None):
         """Create and return 'wult' or 'ndl' command."""
 
         cmd = f"{self.toolpath} "
@@ -660,6 +671,9 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         if cpu is not None:
             cmd += f" --cpunum {cpu}"
+
+        if cstate_filter:
+            cmd += f" --include=\"{cstate_filter}\""
 
         cmd += f" {devid}"
 
@@ -683,7 +697,16 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
     def get_command(self, props, reportid, **kwargs):
         """Create and return 'wult' or 'ndl' command."""
 
-        return self._create_command(kwargs["cpu"], kwargs["devid"], reportid=reportid)
+        cstate_filter = None
+        reqcstate = props.get("cstates")
+        if reqcstate:
+            cstate_filter = CSTATE_FILTERS.get(reqcstate)
+
+            if reqcstate == "C6" and props.get("pcstates") == "PC6":
+                cstate_filter += f" & {CSTATE_FILTERS.get('PC6')}"
+
+        return self._create_command(kwargs["cpu"], kwargs["devid"], reportid=reportid, \
+                                    cstate_filter=cstate_filter)
 
     def __init__(self, pman, args):
         """The class constructor."""

@@ -98,15 +98,6 @@ _COLLECT_OPTIONS = {
     "pcstates" : {
         "help" : """Comma-separated list of package C-states to measure with."""
     },
-    "only_one_cstate" : {
-        "action" : "store_true",
-        "help" : """By default C-states deeper than measured C-state are disabled and other C-states
-                    are enabled. This option will disable all C-states, excluding the measured
-                    C-state."""
-    },
-    "cstates_always_enable" : {
-        "help" : """Comma-separated list of always enabled C-states."""
-    },
     "turbo" : {
         "help" : """Comma-separated list of turbo configurations to measure with. Supported values
                     are "on" and "off"."""
@@ -195,6 +186,20 @@ _COLLECT_OPTIONS = {
         "type" : Path,
         "default" : WULT_TOOLNAME,
         "help" : f"""Path to the tool to run. Default is '{WULT_TOOLNAME}'."""
+    },
+    "only_one_cstate" : {
+        "action" : "store_true",
+        "help" : """By default C-states deeper than measured C-state are disabled and other C-states
+                    are enabled. This option will disable all C-states, excluding the measured
+                    C-state."""
+    },
+    "cstates_always_enable" : {
+        "help" : """Comma-separated list of always enabled C-states."""
+    },
+    "use-cstate-filters" : {
+        "action" : "store_true",
+        "help" : f"""Applicable to '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools. Use filters to
+                     exclude datapoints with zero residency of measured C-state."""
     },
 }
 
