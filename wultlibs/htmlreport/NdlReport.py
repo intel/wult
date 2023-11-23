@@ -19,7 +19,7 @@ class NdlReport(_ReportBase.ReportBase):
     """This module provides API for generating HTML reports for ndl test results."""
 
     def __init__(self, rsts, outdir, report_descr=None, xaxes=None, yaxes=None, hist=None,
-                 chist=None):
+                 chist=None, logpath=None):
         """The class constructor. The arguments are the same as in 'HTMLReportBase()'."""
 
         args = {"xaxes": xaxes, "yaxes": yaxes, "hist": hist, "chist": chist}
@@ -34,4 +34,4 @@ class NdlReport(_ReportBase.ReportBase):
         super().__init__(rsts, outdir, ToolInfo.TOOLNAME, ToolInfo.VERSION,
                          report_descr=report_descr, xaxes=args["xaxes"], yaxes=args["yaxes"],
                          hist=args["hist"], chist=args["chist"],
-                         smry_funcs=NdlReportParams.SMRY_FUNCS)
+                         smry_funcs=NdlReportParams.SMRY_FUNCS, logpath=logpath)

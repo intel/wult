@@ -555,7 +555,8 @@ class ReportBase:
                             self._smry_funcs[metric].append(func)
 
     def __init__(self, rsts, outdir, toolname, toolver, report_descr=None, xaxes=None, yaxes=None,
-                 hist=None, chist=None, exclude_xaxes=None, exclude_yaxes=None, smry_funcs=None):
+                 hist=None, chist=None, exclude_xaxes=None, exclude_yaxes=None, smry_funcs=None,
+                 logpath=None):
         """
         The class constructor. The arguments are as follows.
           * rsts - list of 'RORawResult' objects representing the raw test results to generate the
@@ -593,6 +594,7 @@ class ReportBase:
                          summary functions to be calculated for metrics represented by the regular
                          expression 'regex'. Default value of 'None' will not generate any summary
                          tables.
+          * the path to the report generation log file.
         """
 
         self.rsts = rsts
@@ -610,7 +612,7 @@ class ReportBase:
         # This class is implemented by adding tabs to the 'HTMLReport' class provided by
         # 'stats-collect'. Instantiate 'stats_rep' now so that child classes can use features of
         # 'HTMLReport' specific to those reports.
-        self._stats_rep = HTMLReport.HTMLReport(self.outdir)
+        self._stats_rep = HTMLReport.HTMLReport(self.outdir, logpath=logpath)
 
         self._stats_rsts = []
         for res in self.rsts:

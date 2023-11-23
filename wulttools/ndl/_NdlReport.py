@@ -10,6 +10,7 @@
 This module includes the "report" 'ndl' command implementation.
 """
 
+from pathlib import Path
 from pepclibs.helperlibs import Logging, Trivial
 from wulttools import _Common
 from wulttools.ndl import ToolInfo
@@ -41,10 +42,11 @@ def report_command(args):
 
     args.outdir = _Common.report_command_outdir(args, rsts)
 
-    Logging.setup_stdout_logging(ToolInfo.TOOLNAME, args.outdir)
+    logpath = Logging.setup_stdout_logging(ToolInfo.TOOLNAME, args.outdir)
+    logpath = Path(logpath).relative_to(args.outdir)
 
     rep = NdlReport.NdlReport(rsts, args.outdir, report_descr=args.report_descr,
                               xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
-                              chist=args.chist)
+                              chist=args.chist, logpath=logpath)
     rep.relocatable = args.relocatable
     rep.generate()

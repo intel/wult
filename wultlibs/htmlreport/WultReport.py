@@ -20,7 +20,7 @@ class WultReport(_ReportBase.ReportBase):
     """This module provides API for generating HTML reports for wult test results."""
 
     def __init__(self, rsts, outdir, report_descr=None, xaxes=None, yaxes=None, hist=None,
-                 chist=None):
+                 chist=None, logpath=None):
         """The class constructor. The arguments are the same as in 'HTMLReportBase()'."""
 
         args = {"xaxes": xaxes, "yaxes": yaxes, "hist": hist, "chist": chist}
@@ -37,4 +37,4 @@ class WultReport(_ReportBase.ReportBase):
                          hist=args["hist"], chist=args["chist"],
                          exclude_xaxes=Trivial.split_csv_line(WultReportParams.EXCLUDE_XAXES),
                          exclude_yaxes=Trivial.split_csv_line(WultReportParams.EXCLUDE_YAXES),
-                         smry_funcs=WultReportParams.SMRY_FUNCS)
+                         smry_funcs=WultReportParams.SMRY_FUNCS, logpath=logpath)
