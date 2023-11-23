@@ -8,6 +8,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - The 'exercise-sut' tool now supports the '--stats' option for the standard
+   workloads: wult, stats-collect, ndl.
 
 ## [1.12.13] - 2023-10-25
 ### Changed
