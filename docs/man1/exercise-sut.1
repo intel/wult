@@ -1,4 +1,4 @@
-.TH EXERCISE\-SUT "1" "2023\-10\-25" "wult" "Generated Python Manual"
+.TH EXERCISE\-SUT "1" "2023\-11\-24" "wult" "Generated Python Manual"
 .SH NAME
 exercise\-sut
 .SH SYNOPSIS
@@ -39,11 +39,12 @@ Generate reports.
 
 .SH COMMAND \fI\,'exercise\-sut start'\/\fR
 usage: exercise\-sut start [\-h] [\-q] [\-d] [\-H HOSTNAME] [\-U USERNAME] [\-K PRIVKEY] [\-T TIMEOUT] [\-\-datapoints DATAPOINTS] [\-\-reportid\-prefix REPORTID_PREFIX] [\-\-reportid\-suffix REPORTID_SUFFIX] [\-\-cpunums CPUNUMS] [\-\-cstates CSTATES]
-                          [\-\-pcstates PCSTATES] [\-\-only\-one\-cstate] [\-\-cstates\-always\-enable CSTATES_ALWAYS_ENABLE] [\-\-turbo TURBO] [\-\-freqs FREQS] [\-\-uncore\-freqs UNCORE_FREQS] [\-\-governor GOVERNOR] [\-\-aspm ASPM]
-                          [\-\-c1\-demotion C1_DEMOTION] [\-\-c1\-undemotion C1_UNDEMOTION] [\-\-c1e\-autopromote C1E_AUTOPROMOTE] [\-\-cstate\-prewake CSTATE_PREWAKE] [\-\-epp EPP] [\-\-epp\-hw EPP_HW] [\-\-epb EPB] [\-\-epb\-hw EPB_HW] [\-\-state\-reset]
-                          [\-\-deploy] [\-\-devids DEVIDS] [\-\-command COMMAND] [\-\-stop\-on\-failure] [\-\-only\-measured\-cpu] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-dry\-run] [\-\-list\-monikers]
+                          [\-\-pcstates PCSTATES] [\-\-turbo TURBO] [\-\-freqs FREQS] [\-\-uncore\-freqs UNCORE_FREQS] [\-\-governor GOVERNOR] [\-\-aspm ASPM] [\-\-c1\-demotion C1_DEMOTION] [\-\-c1\-undemotion C1_UNDEMOTION]
+                          [\-\-c1e\-autopromote C1E_AUTOPROMOTE] [\-\-cstate\-prewake CSTATE_PREWAKE] [\-\-epp EPP] [\-\-epp\-hw EPP_HW] [\-\-epb EPB] [\-\-epb\-hw EPB_HW] [\-\-state\-reset] [\-\-deploy] [\-\-devids DEVIDS] [\-\-stats STATS] [\-\-command COMMAND]
+                          [\-\-stop\-on\-failure] [\-\-only\-measured\-cpu] [\-\-toolpath TOOLPATH] [\-\-only\-one\-cstate] [\-\-cstates\-always\-enable CSTATES_ALWAYS_ENABLE] [\-\-use\-cstate\-filters] [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-dry\-run]
+                          [\-\-list\-monikers]
 
-Run a test tool or benchmark to collect test data. Unknown options are passed as\-is to the tool.
+Run a test tool or benchmark to collect test data.
 
 .SH OPTIONS \fI\,'exercise\-sut start'\/\fR
 .TP
@@ -80,83 +81,75 @@ Applicable only to 'wult' and 'ndl' tools. Number of datapoints to collect per m
 
 .TP
 \fB\-\-reportid\-prefix\fR \fI\,REPORTID_PREFIX\/\fR
-String to prepend to the report ID (nothing, by default).
+String to prepend to the report ID.
 
 .TP
 \fB\-\-reportid\-suffix\fR \fI\,REPORTID_SUFFIX\/\fR
-String to append to the report ID (nothing, by default).
+String to append to the report ID.
 
 .TP
 \fB\-\-cpunums\fR \fI\,CPUNUMS\/\fR
-Applicable only to the 'wult' and 'ndl' tools. Comma\-separated list of CPU numbers to measure with. No CPU number is passed by default.
+Applicable only to the 'wult' and 'ndl' tools. Comma\-separated list of CPU numbers to measure with.
 
 .TP
 \fB\-\-cstates\fR \fI\,CSTATES\/\fR
-Comma\-separated list of requestable C\-states to measure with. No C\-states are passed by default.
+Comma\-separated list of requestable C\-states to measure with.
 
 .TP
 \fB\-\-pcstates\fR \fI\,PCSTATES\/\fR
-Comma\-separated list of package C\-states to measure with. No package C\-states is passed by default.
-
-.TP
-\fB\-\-only\-one\-cstate\fR
-By default C\-states deeper than measured C\-state are disabled and other C\-states are enabled. This option will disable all C\-states, excluding the measured C\-state.
-
-.TP
-\fB\-\-cstates\-always\-enable\fR \fI\,CSTATES_ALWAYS_ENABLE\/\fR
-Comma\-separated list of always enabled C\-states. Default is 'None'.
+Comma\-separated list of package C\-states to measure with.
 
 .TP
 \fB\-\-turbo\fR \fI\,TURBO\/\fR
-Comma\-separated list of turbo configurations to measure with. The default is "don't touch". Supported values are "on" and "off".
+Comma\-separated list of turbo configurations to measure with. Supported values are "on" and "off".
 
 .TP
 \fB\-\-freqs\fR \fI\,FREQS\/\fR
-Comma\-separated list of frequencies to be measured with. The default is "don't touch". For more information, see '\-\-min\-freq' and '\-\-max\-freq' options of the 'pepc pstates config' command.
+Comma\-separated list of frequencies to be measured with. For more information, see '\-\-min\-freq' and '\-\-max\-freq' options of the 'pepc pstates config' command.
 
 .TP
 \fB\-\-uncore\-freqs\fR \fI\,UNCORE_FREQS\/\fR
-Comma\-separated list of package uncore frequencies to measure with. The default is "don't touch". For more information, see '\-\-min\-uncore\-freq' and '\-\-max\-uncore\-freq' options of the 'pepc pstates config' command.
+Comma\-separated list of package uncore frequencies to measure with. For more information, see '\-\-min\-uncore\-freq' and '\-\-max\-uncore\-freq' options of the 'pepc pstates config' command.
 
 .TP
 \fB\-\-governor\fR \fI\,GOVERNOR\/\fR
-Name of the CPU frequency governor to measure with. The default is "don't touch" .
+Name of the CPU frequency governor to measure with.
 
 .TP
 \fB\-\-aspm\fR \fI\,ASPM\/\fR
-Comma\-separated list of PCIe ASPM configurations to measure with. The default is "don't touch". Supported values are "on" and "off".
+Comma\-separated list of PCIe ASPM configurations to measure with. Supported values are "on" and "off".
 
 .TP
 \fB\-\-c1\-demotion\fR \fI\,C1_DEMOTION\/\fR
-Comma\-separated list of C1 demotion configurations to measure with. Default is "don't touch". Supported values are "on" and "off".
+Comma\-separated list of C1 demotion configurations to measure with. Supported values are "on" and "off".
 
 .TP
 \fB\-\-c1\-undemotion\fR \fI\,C1_UNDEMOTION\/\fR
-Comma\-separated list of C1 undemotion configurations to measure with. Default is "don't touch". Supported values are "on" and "off".
+Comma\-separated list of C1 undemotion configurations to measure with. Supported values are "on" and "off".
 
 .TP
 \fB\-\-c1e\-autopromote\fR \fI\,C1E_AUTOPROMOTE\/\fR
-Comma\-separated list of C1E autopromote configurations to measure with. Default is "don't touch". Supported values are "on" and "off".
+Comma\-separated list of C1E autopromote configurations to measure with. Supported values are "on" and "off".
 
 .TP
 \fB\-\-cstate\-prewake\fR \fI\,CSTATE_PREWAKE\/\fR
-Comma\-separated list of C\-state prewake configurations to measure with. Default is "don't touch". Supported values are "on" and "off".
+Comma\-separated list of C\-state prewake configurations to measure with. Supported values are "on" and "off".
 
 .TP
 \fB\-\-epp\fR \fI\,EPP\/\fR
-Comma\-separated list of EPP configurations to measure with. Default is "don't touch". See 'pepc pstates config \-\-epp' for more information.
+Comma\-separated list of EPP configurations to measure with. See 'pepc pstates config \-\-epp' for more information.
 
 .TP
 \fB\-\-epp\-hw\fR \fI\,EPP_HW\/\fR
-Comma\-separated list of EPP configurations to measure with. Default is "don't touch". See 'pepc pstates config \-\-epp\-hw' for more information.
+Comma\-separated list of EPP configurations to measure with. See 'pepc pstates config \-\-epp\-hw' for more information.
 
 .TP
 \fB\-\-epb\fR \fI\,EPB\/\fR
-Comma\-separated list of EPB configurations to measure with. Default is "don't touch". See 'pepc pstates config \-\-epb' for more information.
+Comma\-separated list of EPB configurations to measure with. See 'pepc pstates config \-\-epb' for more information.
 
 .TP
 \fB\-\-epb\-hw\fR \fI\,EPB_HW\/\fR
-Comma\-separated list of EPB configurations to measure with. Default is "don't touch". See 'pepc pstates config \-\-epb\-hw' for more information.
+Comma\-separated list of EPB configurations to measure with. See 'pepc pstates config \-\-epb\-hw' for more information.
 
 .TP
 \fB\-\-state\-reset\fR
@@ -170,6 +163,10 @@ Applicable only to 'wult' and 'ndl' tools. Run the 'deploy' command before start
 .TP
 \fB\-\-devids\fR \fI\,DEVIDS\/\fR
 Applicable only to 'wult' and 'ndl' tools. Comma\-separated list of device IDs to run the tools with.
+
+.TP
+\fB\-\-stats\fR \fI\,STATS\/\fR
+Applicable to 'wult', 'ndl' 'stats\-collect'tools. Comma\-separated list of statistics to collect.
 
 .TP
 \fB\-\-command\fR \fI\,COMMAND\/\fR
@@ -186,6 +183,18 @@ Change settings, for example CPU frequency and C\-state limits, only for the mea
 .TP
 \fB\-\-toolpath\fR \fI\,TOOLPATH\/\fR
 Path to the tool to run. Default is 'wult'.
+
+.TP
+\fB\-\-only\-one\-cstate\fR
+By default C\-states deeper than measured C\-state are disabled and other C\-states are enabled. This option will disable all C\-states, excluding the measured C\-state.
+
+.TP
+\fB\-\-cstates\-always\-enable\fR \fI\,CSTATES_ALWAYS_ENABLE\/\fR
+Comma\-separated list of always enabled C\-states.
+
+.TP
+\fB\-\-use\-cstate\-filters\fR
+Applicable to 'wult' and 'ndl' tools. Use filters to exclude datapoints with zero residency of measured C\-state.
 
 .TP
 \fB\-\-toolopts\fR \fI\,TOOLOPTS\/\fR
@@ -207,7 +216,7 @@ A moniker is an abbreviation for a setting. The 'exercise\-sut' uses monikers to
 usage: exercise\-sut report [\-h] [\-q] [\-d] [\-\-diffs DIFFS] [\-\-include INCLUDE] [\-\-exclude EXCLUDE] [\-\-jobs JOBS] [\-\-toolpath TOOLPATH] [\-\-toolopts TOOLOPTS] [\-\-outdir OUTDIR] [\-\-stop\-on\-failure] [\-\-dry\-run] [\-\-list\-monikers]
                            [respaths ...]
 
-Generate reports from collected data. Unknown options are passed as\-is to the report tool.
+Generate reports from collected data.
 
 .TP
 \fBrespaths\fR

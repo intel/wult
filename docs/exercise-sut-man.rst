@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date: 2023-10-25
+:Date: 2023-11-24
 
 .. contents::
    :depth: 3
@@ -57,18 +57,18 @@ COMMAND *'exercise-sut* start'
 usage: exercise-sut start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K
 PRIVKEY] [-T TIMEOUT] [--datapoints DATAPOINTS] [--reportid-prefix
 REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpunums CPUNUMS]
-[--cstates CSTATES] [--pcstates PCSTATES] [--only-one-cstate]
-[--cstates-always-enable CSTATES_ALWAYS_ENABLE] [--turbo TURBO] [--freqs
+[--cstates CSTATES] [--pcstates PCSTATES] [--turbo TURBO] [--freqs
 FREQS] [--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR] [--aspm ASPM]
 [--c1-demotion C1_DEMOTION] [--c1-undemotion C1_UNDEMOTION]
 [--c1e-autopromote C1E_AUTOPROMOTE] [--cstate-prewake CSTATE_PREWAKE]
 [--epp EPP] [--epp-hw EPP_HW] [--epb EPB] [--epb-hw EPB_HW]
-[--state-reset] [--deploy] [--devids DEVIDS] [--command COMMAND]
-[--stop-on-failure] [--only-measured-cpu] [--toolpath TOOLPATH]
-[--toolopts TOOLOPTS] [--outdir OUTDIR] [--dry-run] [--list-monikers]
+[--state-reset] [--deploy] [--devids DEVIDS] [--stats STATS] [--command
+COMMAND] [--stop-on-failure] [--only-measured-cpu] [--toolpath TOOLPATH]
+[--only-one-cstate] [--cstates-always-enable CSTATES_ALWAYS_ENABLE]
+[--use-cstate-filters] [--toolopts TOOLOPTS] [--outdir OUTDIR]
+[--dry-run] [--list-monikers]
 
-Run a test tool or benchmark to collect test data. Unknown options are
-passed as-is to the tool.
+Run a test tool or benchmark to collect test data.
 
 OPTIONS *'exercise-sut* start'
 ==============================
@@ -102,89 +102,73 @@ OPTIONS *'exercise-sut* start'
    collect per measurement. Default is 100000.
 
 **--reportid-prefix** *REPORTID_PREFIX*
-   String to prepend to the report ID (nothing, by default).
+   String to prepend to the report ID.
 
 **--reportid-suffix** *REPORTID_SUFFIX*
-   String to append to the report ID (nothing, by default).
+   String to append to the report ID.
 
 **--cpunums** *CPUNUMS*
    Applicable only to the 'wult' and 'ndl' tools. Comma-separated list
-   of CPU numbers to measure with. No CPU number is passed by default.
+   of CPU numbers to measure with.
 
 **--cstates** *CSTATES*
-   Comma-separated list of requestable C-states to measure with. No
-   C-states are passed by default.
+   Comma-separated list of requestable C-states to measure with.
 
 **--pcstates** *PCSTATES*
-   Comma-separated list of package C-states to measure with. No package
-   C-states is passed by default.
-
-**--only-one-cstate**
-   By default C-states deeper than measured C-state are disabled and
-   other C-states are enabled. This option will disable all C-states,
-   excluding the measured C-state.
-
-**--cstates-always-enable** *CSTATES_ALWAYS_ENABLE*
-   Comma-separated list of always enabled C-states. Default is 'None'.
+   Comma-separated list of package C-states to measure with.
 
 **--turbo** *TURBO*
-   Comma-separated list of turbo configurations to measure with. The
-   default is "don't touch". Supported values are "on" and "off".
+   Comma-separated list of turbo configurations to measure with.
+   Supported values are "on" and "off".
 
 **--freqs** *FREQS*
-   Comma-separated list of frequencies to be measured with. The default
-   is "don't touch". For more information, see '--min-freq' and
-   '--max-freq' options of the 'pepc pstates config' command.
+   Comma-separated list of frequencies to be measured with. For more
+   information, see '--min-freq' and '--max-freq' options of the 'pepc
+   pstates config' command.
 
 **--uncore-freqs** *UNCORE_FREQS*
    Comma-separated list of package uncore frequencies to measure with.
-   The default is "don't touch". For more information, see
-   '--min-uncore-freq' and '--max-uncore-freq' options of the 'pepc
-   pstates config' command.
+   For more information, see '--min-uncore-freq' and '--max-uncore-freq'
+   options of the 'pepc pstates config' command.
 
 **--governor** *GOVERNOR*
-   Name of the CPU frequency governor to measure with. The default is
-   "don't touch" .
+   Name of the CPU frequency governor to measure with.
 
 **--aspm** *ASPM*
-   Comma-separated list of PCIe ASPM configurations to measure with. The
-   default is "don't touch". Supported values are "on" and "off".
+   Comma-separated list of PCIe ASPM configurations to measure with.
+   Supported values are "on" and "off".
 
 **--c1-demotion** *C1_DEMOTION*
    Comma-separated list of C1 demotion configurations to measure with.
-   Default is "don't touch". Supported values are "on" and "off".
+   Supported values are "on" and "off".
 
 **--c1-undemotion** *C1_UNDEMOTION*
    Comma-separated list of C1 undemotion configurations to measure with.
-   Default is "don't touch". Supported values are "on" and "off".
+   Supported values are "on" and "off".
 
 **--c1e-autopromote** *C1E_AUTOPROMOTE*
    Comma-separated list of C1E autopromote configurations to measure
-   with. Default is "don't touch". Supported values are "on" and "off".
+   with. Supported values are "on" and "off".
 
 **--cstate-prewake** *CSTATE_PREWAKE*
    Comma-separated list of C-state prewake configurations to measure
-   with. Default is "don't touch". Supported values are "on" and "off".
+   with. Supported values are "on" and "off".
 
 **--epp** *EPP*
-   Comma-separated list of EPP configurations to measure with. Default
-   is "don't touch". See 'pepc pstates config --epp' for more
-   information.
+   Comma-separated list of EPP configurations to measure with. See 'pepc
+   pstates config --epp' for more information.
 
 **--epp-hw** *EPP_HW*
-   Comma-separated list of EPP configurations to measure with. Default
-   is "don't touch". See 'pepc pstates config --epp-hw' for more
-   information.
+   Comma-separated list of EPP configurations to measure with. See 'pepc
+   pstates config --epp-hw' for more information.
 
 **--epb** *EPB*
-   Comma-separated list of EPB configurations to measure with. Default
-   is "don't touch". See 'pepc pstates config --epb' for more
-   information.
+   Comma-separated list of EPB configurations to measure with. See 'pepc
+   pstates config --epb' for more information.
 
 **--epb-hw** *EPB_HW*
-   Comma-separated list of EPB configurations to measure with. Default
-   is "don't touch". See 'pepc pstates config --epb-hw' for more
-   information.
+   Comma-separated list of EPB configurations to measure with. See 'pepc
+   pstates config --epb-hw' for more information.
 
 **--state-reset**
    Set SUT settings to default values before starting measurements. The
@@ -202,6 +186,10 @@ OPTIONS *'exercise-sut* start'
    Applicable only to 'wult' and 'ndl' tools. Comma-separated list of
    device IDs to run the tools with.
 
+**--stats** *STATS*
+   Applicable to 'wult', 'ndl' 'stats-collect'tools. Comma-separated
+   list of statistics to collect.
+
 **--command** *COMMAND*
    Applicable only to 'stats-collect' tool. The command to that
    'stats-collect' should run.
@@ -215,6 +203,18 @@ OPTIONS *'exercise-sut* start'
 
 **--toolpath** *TOOLPATH*
    Path to the tool to run. Default is 'wult'.
+
+**--only-one-cstate**
+   By default C-states deeper than measured C-state are disabled and
+   other C-states are enabled. This option will disable all C-states,
+   excluding the measured C-state.
+
+**--cstates-always-enable** *CSTATES_ALWAYS_ENABLE*
+   Comma-separated list of always enabled C-states.
+
+**--use-cstate-filters**
+   Applicable to 'wult' and 'ndl' tools. Use filters to exclude
+   datapoints with zero residency of measured C-state.
 
 **--toolopts** *TOOLOPTS*
    Additional options to use for running the tool. The string
@@ -241,8 +241,7 @@ INCLUDE] [--exclude EXCLUDE] [--jobs JOBS] [--toolpath TOOLPATH]
 [--toolopts TOOLOPTS] [--outdir OUTDIR] [--stop-on-failure] [--dry-run]
 [--list-monikers] [respaths ...]
 
-Generate reports from collected data. Unknown options are passed as-is
-to the report tool.
+Generate reports from collected data.
 
 **respaths**
    One or multiple paths to be searched for test results.

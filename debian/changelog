@@ -1,3 +1,12 @@
+wult (1.12.14) unstable; urgency=low
+
+  * Fix MC6 counter collection in the 'hrt' and 'tdt' drivers. It was collecting
+    CC6 instead.
+  * The 'exercise-sut' tool now supports the '--stats' option for the standard
+    workloads: wult, stats-collect, ndl.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 24 Nov 2023 00:00:00 +0200
+
 wult (1.12.13) unstable; urgency=low
 
   * Minor adjustment to match new 'pepc' API. No functional changes.

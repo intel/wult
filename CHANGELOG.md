@@ -5,10 +5,14 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix MC6 counter collection in the 'hrt' and 'tdt' drivers. It was collecting
-   CC6 instead.
 ### Added
 ### Removed
+### Changed
+
+## [1.12.14] - 2023-11-24
+### Fixed
+ - Fix MC6 counter collection in the 'hrt' and 'tdt' drivers. It was collecting
+   CC6 instead.
 ### Changed
  - The 'exercise-sut' tool now supports the '--stats' option for the standard
    workloads: wult, stats-collect, ndl.
