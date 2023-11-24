@@ -780,11 +780,11 @@ class BatchConfig(_Common.CmdlineRunner):
     def deploy(self):
         """Deploy 'ndl', 'wult' or 'stats-collect' to the SUT."""
 
-        if self._wl_formatter.toolpath.name not in (WULT_TOOLNAME, NDL_TOOLNAME, STC_TOOLNAME):
+        if self._wfmt.toolpath.name not in (WULT_TOOLNAME, NDL_TOOLNAME, STC_TOOLNAME):
             raise Error(f"deploy supported only by tools '{WULT_TOOLNAME}', '{NDL_TOOLNAME}' and "
                         f"'{STC_TOOLNAME}'")
 
-        deploy_cmd = f"{self._wl_formatter.toolpath} deploy"
+        deploy_cmd = f"{self._wfmt.toolpath} deploy"
 
         if self._pman.hostname != "localhost":
             deploy_cmd += f" -H {self._pman.hostname}"
@@ -794,7 +794,7 @@ class BatchConfig(_Common.CmdlineRunner):
     def props_to_str(self, props):
         """Convert property dictionary 'props' to human readable string."""
 
-        return self._pepc_formatter.props_to_str(props)
+        return self._pfmt.props_to_str(props)
 
     def get_props_batch(self, inprops):
         """
@@ -802,22 +802,22 @@ class BatchConfig(_Common.CmdlineRunner):
         value.
         """
 
-        yield from self._pepc_formatter.iter_props(inprops)
+        yield from self._pfmt.iter_props(inprops)
 
     def configure(self, props, cpu):
         """Set properties 'props'."""
 
-        for cmd in self._pepc_formatter.get_commands(props, cpu):
+        for cmd in self._pfmt.get_commands(props, cpu):
             self._run_command(cmd)
 
     def create_reportid(self, props, **kwargs):
         """Create and return report ID."""
-        return self._wl_formatter.create_reportid(props, **kwargs)
+        return self._wfmt.create_reportid(props, **kwargs)
 
     def run(self, props, reportid, **kwargs):
         """Run workload command with system properties 'props'."""
 
-        cmd = self._wl_formatter.get_command(props, reportid=reportid, **kwargs)
+        cmd = self._wfmt.get_command(props, reportid=reportid, **kwargs)
         self._run_command(cmd)
 
     def __init__(self, args):
@@ -826,9 +826,9 @@ class BatchConfig(_Common.CmdlineRunner):
         super().__init__(dry_run=args.dry_run, stop_on_failure=args.stop_on_failure)
 
         self._pman = get_pman(args)
-        self._pepc_formatter = _PepcCmdFormatter(self._pman, args.only_measured_cpu,
-                                                 args.only_one_cstate, args.cstates_always_enable)
-        self._wl_formatter = _get_workload_cmd_formatter(self._pman, args)
+        self._pfmt = _PepcCmdFormatter(self._pman, args.only_measured_cpu, args.only_one_cstate,
+                                       args.cstates_always_enable)
+        self._wfmt = _get_workload_cmd_formatter(self._pman, args)
 
         self._systemctl = Systemctl.Systemctl(pman=self._pman)
         if self._systemctl.is_active("tuned"):
@@ -840,4 +840,4 @@ class BatchConfig(_Common.CmdlineRunner):
         if self._systemctl:
             self._systemctl.restore()
 
-        ClassHelpers.close(self, close_attrs=("_pepc_formatter", "_pman", "_systemctl"))
+        ClassHelpers.close(self, close_attrs=("_pepc", "_pman", "_systemctl"))
