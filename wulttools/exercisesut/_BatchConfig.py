@@ -146,25 +146,18 @@ def _get_workload_cmd_formatter(pman, args):
 class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
     """Class to help iterating system property permutations."""
 
-    def _get_cpuinfo(self):
-        """Return 'CPUInfo.CPUInfo()' object."""
-
-        if not self._cpuinfo:
-            self._cpuinfo = CPUInfo.CPUInfo(pman=self._pman)
-        return self._cpuinfo
-
     def _get_cpuidle(self):
         """Return 'CPUIdle.CPUIdle()' object."""
 
         if not self._cpuidle:
-            self._cpuidle = CPUIdle.CPUIdle(pman=self._pman, cpuinfo=self._get_cpuinfo())
+            self._cpuidle = CPUIdle.CPUIdle(pman=self._pman, cpuinfo=self._cpuinfo)
         return self._cpuidle
 
     def _get_cstates(self):
         """Return 'CStates.CStates()' object."""
 
         if not self._csobj:
-            self._csobj = CStates.CStates(pman=self._pman, cpuinfo=self._get_cpuinfo(),
+            self._csobj = CStates.CStates(pman=self._pman, cpuinfo=self._cpuinfo,
                                           cpuidle=self._get_cpuidle())
         return self._csobj
 
@@ -172,7 +165,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         """Return 'CStates.CStates()' object."""
 
         if not self._psobj:
-            self._psobj = PStates.PStates(pman=self._pman, cpuinfo=self._get_cpuinfo())
+            self._psobj = PStates.PStates(pman=self._pman, cpuinfo=self._cpuinfo)
         return self._psobj
 
     def props_to_str(self, props):
@@ -188,13 +181,12 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
     def _get_pcsinfo(self):
         """Helper to read package C-state information, returns a dictionary."""
 
-        cpuinfo = self._get_cpuinfo()
         cstates = self._get_cstates()
         pcsinfo = {}
         cpu_to_pkg = {}
 
-        for package in cpuinfo.get_packages():
-            cpu = cpuinfo.package_to_cpus(package)[0]
+        for package in self._cpuinfo.get_packages():
+            cpu = self._cpuinfo.package_to_cpus(package)[0]
             cpu_to_pkg[cpu] = package
             pcsinfo[package] = {}
 
@@ -427,13 +419,12 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
             handled_props.append(props)
 
-
-    def __init__(self, pman):
+    def __init__(self, pman, cpuinfo):
         """The class constructor."""
 
         self._pman = pman
+        self._cpuinfo = cpuinfo
 
-        self._cpuinfo = None
         self._cpuidle = None
         self._csobj = None
         self._psobj = None
@@ -449,7 +440,8 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
     def close(self):
         """Uninitialize the class object."""
 
-        ClassHelpers.close(self, close_attrs={"_cpuinfo", "_cpuidle", "_csobj", "_psobj"})
+        ClassHelpers.close(self, close_attrs={"_cpuidle", "_csobj", "_psobj"},
+                           unref_attrs={"_cpuinfo"})
 
 class _PepcCmdFormatter(_PropIteratorBase):
     """A Helper class for creating 'pepc' commands."""
@@ -482,17 +474,16 @@ class _PepcCmdFormatter(_PropIteratorBase):
         if sname in (None, "global"):
             return "all"
 
-        cpuinfo = self._get_cpuinfo()
-        levels = cpuinfo.get_cpu_levels(cpu)
+        levels = self._cpuinfo.get_cpu_levels(cpu)
 
         cpus = None
         if sname == "CPU":
             cpus = levels["CPU"]
         if sname in ("core", "node", "die"):
-            method = getattr(cpuinfo, f"{sname}s_to_cpus")
+            method = getattr(self._cpuinfo, f"{sname}s_to_cpus")
             cpus = method(levels[sname], packages=levels["package"])
         if sname == "package":
-            cpus = cpuinfo.packages_to_cpus(packages=levels["package"])
+            cpus = self._cpuinfo.packages_to_cpus(packages=levels["package"])
 
         if cpus is None:
             raise Error(f"unknown scope for property '{pname}'")
@@ -561,10 +552,10 @@ class _PepcCmdFormatter(_PropIteratorBase):
 
             yield cmd
 
-    def __init__(self, pman, args):
+    def __init__(self, pman, cpuinfo, args):
         """The class constructor."""
 
-        super().__init__(pman)
+        super().__init__(pman, cpuinfo)
 
         self._only_measured_cpu = args.only_measured_cpu
         self._only_one_cstate = args.only_one_cstate
@@ -826,7 +817,8 @@ class BatchConfig(_Common.CmdlineRunner):
         super().__init__(dry_run=args.dry_run, stop_on_failure=args.stop_on_failure)
 
         self._pman = get_pman(args)
-        self._pfmt = _PepcCmdFormatter(self._pman, args)
+        self._cpuinfo = CPUInfo.CPUInfo(pman=self._pman)
+        self._pfmt = _PepcCmdFormatter(self._pman, self._cpuinfo, args)
         self._wfmt = _get_workload_cmd_formatter(self._pman, args)
 
         self._systemctl = Systemctl.Systemctl(pman=self._pman)
@@ -839,4 +831,4 @@ class BatchConfig(_Common.CmdlineRunner):
         if self._systemctl:
             self._systemctl.restore()
 
-        ClassHelpers.close(self, close_attrs=("_pepc", "_pman", "_systemctl"))
+        ClassHelpers.close(self, close_attrs=("_pepc", "_pman", "_systemctl", "_cpuinfo",))
