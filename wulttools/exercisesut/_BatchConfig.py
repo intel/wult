@@ -561,17 +561,17 @@ class _PepcCmdFormatter(_PropIteratorBase):
 
             yield cmd
 
-    def __init__(self, pman, only_measured_cpu, only_one_cstate, cstates_always_enable):
+    def __init__(self, pman, args):
         """The class constructor."""
 
         super().__init__(pman)
 
-        self._only_measured_cpu = only_measured_cpu
-        self._only_one_cstate = only_one_cstate
-        self._cstates_always_enable = cstates_always_enable
+        self._only_measured_cpu = args.only_measured_cpu
+        self._only_one_cstate = args.only_one_cstate
+        self._cstates_always_enable = args.cstates_always_enable
 
         if self._cstates_always_enable:
-            csnames = Trivial.split_csv_line(cstates_always_enable)
+            csnames = Trivial.split_csv_line(self._cstates_always_enable)
             self._cstates_always_enable = self._normalize_csnames(csnames)
 
 class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
@@ -826,8 +826,7 @@ class BatchConfig(_Common.CmdlineRunner):
         super().__init__(dry_run=args.dry_run, stop_on_failure=args.stop_on_failure)
 
         self._pman = get_pman(args)
-        self._pfmt = _PepcCmdFormatter(self._pman, args.only_measured_cpu, args.only_one_cstate,
-                                       args.cstates_always_enable)
+        self._pfmt = _PepcCmdFormatter(self._pman, args)
         self._wfmt = _get_workload_cmd_formatter(self._pman, args)
 
         self._systemctl = Systemctl.Systemctl(pman=self._pman)
