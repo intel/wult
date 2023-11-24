@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix MC6 counter collection in the 'hrt' and 'tdt' drivers. It was collecting
+   CC6 instead.
 ### Added
 ### Removed
 ### Changed
