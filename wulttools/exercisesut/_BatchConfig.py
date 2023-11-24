@@ -127,13 +127,13 @@ def list_monikers():
         msg = f"{name:<{min_len}}: {moniker}"
         _LOG.info(msg)
 
-def _get_workload_cmd_formatter(pman, args):
+def _get_workload_cmd_formatter(pman, cpuinfo, args):
     """Create and return object for creating workload commands."""
 
     toolname = args.toolpath.name
 
     if toolname in (WULT_TOOLNAME, NDL_TOOLNAME):
-        return _WultCmdFormatter(pman, args)
+        return _WultCmdFormatter(pman, cpuinfo, args)
 
     if toolname == STC_TOOLNAME:
         return _StatsCollectCmdFormatter(pman, args)
@@ -699,18 +699,19 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         return self._create_command(kwargs["cpu"], kwargs["devid"], reportid=reportid, \
                                     cstate_filter=cstate_filter)
 
-    def __init__(self, pman, args):
+    def __init__(self, pman, cpuinfo, args):
         """The class constructor."""
 
         super().__init__(args)
 
         self._pman = pman
+        self._cpuinfo = cpuinfo
         self._datapoints = args.datapoints
         self._stats = args.stats
 
     def close(self):
         """Uninitialize the class objetc."""
-        ClassHelpers.close(self, unref_attrs=("_pman",))
+        ClassHelpers.close(self, unref_attrs=("_pman", "_cpuinfo",))
 
 class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'stats-collect' commands."""
@@ -819,7 +820,7 @@ class BatchConfig(_Common.CmdlineRunner):
         self._pman = get_pman(args)
         self._cpuinfo = CPUInfo.CPUInfo(pman=self._pman)
         self._pfmt = _PepcCmdFormatter(self._pman, self._cpuinfo, args)
-        self._wfmt = _get_workload_cmd_formatter(self._pman, args)
+        self._wfmt = _get_workload_cmd_formatter(self._pman, self._cpuinfo, args)
 
         self._systemctl = Systemctl.Systemctl(pman=self._pman)
         if self._systemctl.is_active("tuned"):
