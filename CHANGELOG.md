@@ -8,6 +8,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
  - Add a link to report generation logs in HTML reports.
  - Add new wult/ndl "start" option support: '--freq-noise'.
+ - Add '--use-cstate-filters' option to exercise-sut tool to filter datapoints
+   with wult and ndl tools.
 ### Removed
 ### Changed
 
