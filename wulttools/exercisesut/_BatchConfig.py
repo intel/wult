@@ -127,13 +127,13 @@ def list_monikers():
         msg = f"{name:<{min_len}}: {moniker}"
         _LOG.info(msg)
 
-def _get_workload_cmd_formatter(pman, cpuinfo, args):
+def _get_workload_cmd_formatter(pman, cpuinfo, cpuidle, args):
     """Create and return object for creating workload commands."""
 
     toolname = args.toolpath.name
 
     if toolname in (WULT_TOOLNAME, NDL_TOOLNAME):
-        return _WultCmdFormatter(pman, cpuinfo, args)
+        return _WultCmdFormatter(pman, cpuinfo, cpuidle, args)
 
     if toolname == STC_TOOLNAME:
         return _StatsCollectCmdFormatter(pman, args)
@@ -146,19 +146,12 @@ def _get_workload_cmd_formatter(pman, cpuinfo, args):
 class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
     """Class to help iterating system property permutations."""
 
-    def _get_cpuidle(self):
-        """Return 'CPUIdle.CPUIdle()' object."""
-
-        if not self._cpuidle:
-            self._cpuidle = CPUIdle.CPUIdle(pman=self._pman, cpuinfo=self._cpuinfo)
-        return self._cpuidle
-
     def _get_cstates(self):
         """Return 'CStates.CStates()' object."""
 
         if not self._csobj:
             self._csobj = CStates.CStates(pman=self._pman, cpuinfo=self._cpuinfo,
-                                          cpuidle=self._get_cpuidle())
+                                          cpuidle=self._cpuidle)
         return self._csobj
 
     def _get_pstates(self):
@@ -248,7 +241,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         """Normalize and validate list of requestable C-state names 'csnames'."""
 
         allcsnames = []
-        for _, csinfo in self._get_cpuidle().get_cstates_info(csnames="all", cpus="all"):
+        for _, csinfo in self._cpuidle.get_cstates_info(csnames="all", cpus="all"):
             for csname in csinfo:
                 if csname not in allcsnames:
                     allcsnames.append(csname.upper())
@@ -419,13 +412,13 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
             handled_props.append(props)
 
-    def __init__(self, pman, cpuinfo):
+    def __init__(self, pman, cpuinfo, cpuidle):
         """The class constructor."""
 
         self._pman = pman
         self._cpuinfo = cpuinfo
+        self._cpuidle = cpuidle
 
-        self._cpuidle = None
         self._csobj = None
         self._psobj = None
 
@@ -441,7 +434,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         """Uninitialize the class object."""
 
         ClassHelpers.close(self, close_attrs={"_cpuidle", "_csobj", "_psobj"},
-                           unref_attrs={"_cpuinfo"})
+                           unref_attrs={"_cpuinfo", "_cpuidle", })
 
 class _PepcCmdFormatter(_PropIteratorBase):
     """A Helper class for creating 'pepc' commands."""
@@ -552,10 +545,10 @@ class _PepcCmdFormatter(_PropIteratorBase):
 
             yield cmd
 
-    def __init__(self, pman, cpuinfo, args):
+    def __init__(self, pman, cpuinfo, cpuidle, args):
         """The class constructor."""
 
-        super().__init__(pman, cpuinfo)
+        super().__init__(pman, cpuinfo, cpuidle)
 
         self._only_measured_cpu = args.only_measured_cpu
         self._only_one_cstate = args.only_one_cstate
@@ -707,20 +700,21 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         return self._create_command(kwargs["cpu"], kwargs["devid"], reportid=reportid, \
                                     cstate_filter=self._get_cstate_filter(props))
 
-    def __init__(self, pman, cpuinfo, args):
+    def __init__(self, pman, cpuinfo, cpuidle, args):
         """The class constructor."""
 
         super().__init__(args)
 
         self._pman = pman
         self._cpuinfo = cpuinfo
+        self._cpuidle = cpuidle
         self._datapoints = args.datapoints
         self._stats = args.stats
         self._use_cstate_filters = args.use_cstate_filters
 
     def close(self):
         """Uninitialize the class objetc."""
-        ClassHelpers.close(self, unref_attrs=("_pman", "_cpuinfo",))
+        ClassHelpers.close(self, unref_attrs=("_pman", "_cpuinfo", "_cpuidle", ))
 
 class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'stats-collect' commands."""
@@ -828,8 +822,9 @@ class BatchConfig(_Common.CmdlineRunner):
 
         self._pman = get_pman(args)
         self._cpuinfo = CPUInfo.CPUInfo(pman=self._pman)
-        self._pfmt = _PepcCmdFormatter(self._pman, self._cpuinfo, args)
-        self._wfmt = _get_workload_cmd_formatter(self._pman, self._cpuinfo, args)
+        self._cpuidle = CPUIdle.CPUIdle(pman=self._pman, cpuinfo=self._cpuinfo)
+        self._pfmt = _PepcCmdFormatter(self._pman, self._cpuinfo, self._cpuidle, args)
+        self._wfmt = _get_workload_cmd_formatter(self._pman, self._cpuinfo, self._cpuidle, args)
 
         self._systemctl = Systemctl.Systemctl(pman=self._pman)
         if self._systemctl.is_active("tuned"):
@@ -841,4 +836,5 @@ class BatchConfig(_Common.CmdlineRunner):
         if self._systemctl:
             self._systemctl.restore()
 
-        ClassHelpers.close(self, close_attrs=("_pepc", "_pman", "_systemctl", "_cpuinfo",))
+        ClassHelpers.close(self, close_attrs=("_pepc", "_pman", "_systemctl", "_cpuinfo",
+                                              "_cpuidle"))
