@@ -688,8 +688,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         reqcstate = props.get("cstates")
         if reqcstate:
             cstate_filter = CSTATE_FILTERS.get(reqcstate)
-
-            if reqcstate == "C6" and props.get("pcstates") == "PC6":
+            if reqcstate == "C6" and props.get("pcstates") == "PC6" and self._c6_enters_pc6:
                 cstate_filter += f" & {CSTATE_FILTERS.get('PC6')}"
 
         return cstate_filter
@@ -699,6 +698,16 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         return self._create_command(kwargs["cpu"], kwargs["devid"], reportid=reportid, \
                                     cstate_filter=self._get_cstate_filter(props))
+
+    def _c6p_exists(self):
+        """Check if requestable C-state C6P or C6S is supported by the SUT."""
+
+        for _, csinfo in self._cpuidle.get_cstates_info(csnames="all", cpus="all"):
+            for csname in csinfo:
+                if csname in ("C6P", "C6S"):
+                    return True
+
+        return False
 
     def __init__(self, pman, cpuinfo, cpuidle, args):
         """The class constructor."""
@@ -711,6 +720,8 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         self._datapoints = args.datapoints
         self._stats = args.stats
         self._use_cstate_filters = args.use_cstate_filters
+
+        self._c6_enters_pc6 = not self._c6p_exists()
 
     def close(self):
         """Uninitialize the class objetc."""
