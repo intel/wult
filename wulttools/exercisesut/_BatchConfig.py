@@ -351,8 +351,8 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         props = {}
         for pname, values in inprops.items():
-            if not self._is_prop_supported(pname, warn=True):
-                continue
+            if not self._is_prop_supported(pname):
+                raise Error(f"The '{pname}' is not supported{self._pman.hostmsg}")
 
             if not isinstance(values, list):
                 values = Trivial.split_csv_line(values)
