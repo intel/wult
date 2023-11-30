@@ -255,21 +255,26 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         """Make the helper program exit."""
 
         _LOG.debug("stopping '%s'", self._helpername)
-        self._proc.stdin.write("q\n".encode("utf-8"))
-        # self._proc.stdin.flush()
-        # Note: the above line causes a stacktrace if 'self._proc' is an 'SSHProcessManager'. I
-        # think it is a paramiko bug. As a work around, we do not flush and rely that
-        # 'self._proc.stdin' is either unbuffered or line-buffered, which is the case for both
-        # 'LocalProcessManager' and 'SSHProcessManager'.
-        #
-        # Traceback (most recent call last):
-        #  File "/usr/lib/python3.10/site-packages/paramiko/file.py", line 66, in __del__
-        #    self.close()
-        #  File "/usr/lib/python3.10/site-packages/paramiko/file.py", line 84, in close
-        #    self.flush()
-        #  File "/usr/lib/python3.10/site-packages/paramiko/file.py", line 92, in flush
-        #    self._write_all(self._wbuffer.getvalue())
-        # ValueError: I/O operation on closed file.
+        try:
+            self._proc.stdin.write("q\n".encode("utf-8"))
+            # self._proc.stdin.flush()
+            # Note: the above line causes a stacktrace if 'self._proc' is an 'SSHProcessManager'. I
+            # think it is a paramiko bug. As a work around, we do not flush and rely that
+            # 'self._proc.stdin' is either unbuffered or line-buffered, which is the case for both
+            # 'LocalProcessManager' and 'SSHProcessManager'.
+            #
+            # Traceback (most recent call last):
+            #  File "/usr/lib/python3.10/site-packages/paramiko/file.py", line 66, in __del__
+            #    self.close()
+            #  File "/usr/lib/python3.10/site-packages/paramiko/file.py", line 84, in close
+            #    self.flush()
+            #  File "/usr/lib/python3.10/site-packages/paramiko/file.py", line 92, in flush
+            #    self._write_all(self._wbuffer.getvalue())
+            # ValueError: I/O operation on closed file.
+        except Error:
+            # If the 'q' command fails for any reason, it is OK as, if it has not terminated
+            # already, we will kill the process below.
+            pass
 
         _, _, exitcode = self._proc.wait(timeout=5)
         if exitcode is None:
