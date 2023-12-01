@@ -7,7 +7,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 ### Added
  - Add a link to report generation logs in HTML reports.
- - ndl start/wult start: add support for '--freq-noise' generation.
+ - Add new wult/ndl "start" option support: '--freq-noise'.
 ### Removed
 ### Changed
 
