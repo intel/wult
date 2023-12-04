@@ -685,8 +685,11 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         return cmd
 
-    def get_command(self, props, reportid, **kwargs):
-        """Create and return 'wult' or 'ndl' command."""
+    def _get_cstate_filter(self, props):
+        """Get C-state filter string to include only datapoints with requested C-state residency."""
+
+        if not self._use_cstate_filters:
+            return None
 
         cstate_filter = None
         reqcstate = props.get("cstates")
@@ -696,8 +699,13 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
             if reqcstate == "C6" and props.get("pcstates") == "PC6":
                 cstate_filter += f" & {CSTATE_FILTERS.get('PC6')}"
 
+        return cstate_filter
+
+    def get_command(self, props, reportid, **kwargs):
+        """Create and return 'wult' or 'ndl' command."""
+
         return self._create_command(kwargs["cpu"], kwargs["devid"], reportid=reportid, \
-                                    cstate_filter=cstate_filter)
+                                    cstate_filter=self._get_cstate_filter(props))
 
     def __init__(self, pman, cpuinfo, args):
         """The class constructor."""
@@ -708,6 +716,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         self._cpuinfo = cpuinfo
         self._datapoints = args.datapoints
         self._stats = args.stats
+        self._use_cstate_filters = args.use_cstate_filters
 
     def close(self):
         """Uninitialize the class objetc."""
