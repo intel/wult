@@ -333,7 +333,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
 
         # Validate the helper path.
         if not self._pman.is_exe(self._helper_path):
-            raise Error(f"bad 'self._helpername' helper path '{self._helper_path}' - does not "
+            raise Error(f"bad '{self._helpername}' helper path '{self._helper_path}' - does not "
                         f"exist{self._pman.hostmsg} or not an executable file")
 
         self.ldist_limits = self._get_ldist_limits()
