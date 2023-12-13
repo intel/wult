@@ -71,15 +71,9 @@ PROP_INFOS = {
     "epp" : {
         "moniker" : "epp",
         "cmd" : "pepc pstates config --epp {} --cpus {scope}"},
-    "epp_hw" : {
-        "moniker" : "epp",
-        "cmd" : "pepc pstates config --epp-hw {} --cpus {scope}"},
     "epb" : {
         "moniker" : "epb",
         "cmd" : "pepc pstates config --epb {} --cpus {scope}"},
-    "epb_hw" : {
-        "moniker" : "epb",
-        "cmd" : "pepc pstates config --epb-hw {} --cpus {scope}"},
     "turbo" : {
         "moniker" : "turbo",
         "cmd" : "pepc pstates config --turbo {}"},

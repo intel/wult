@@ -139,17 +139,9 @@ _COLLECT_OPTIONS = {
         "help" : """Comma-separated list of EPP configurations to measure with. See 'pepc pstates
                     config --epp' for more information.""",
     },
-    "epp-hw" : {
-        "help" : """Comma-separated list of EPP configurations to measure with. See 'pepc pstates
-                    config --epp-hw' for more information.""",
-    },
     "epb" : {
         "help" : """Comma-separated list of EPB configurations to measure with. See 'pepc pstates
                     config --epb' for more information.""",
-    },
-    "epb-hw" : {
-        "help" : """Comma-separated list of EPB configurations to measure with. See 'pepc pstates
-                    config --epb-hw' for more information.""",
     },
     "state_reset" : {
         "action" : "store_true",
