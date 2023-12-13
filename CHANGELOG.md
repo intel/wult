@@ -5,6 +5,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix 'exercise-sut start --list-monikers' crashing.
 ### Added
  - Add a link to report generation logs in HTML reports.
  - Add new wult/ndl "start" option support: '--freq-noise'.
