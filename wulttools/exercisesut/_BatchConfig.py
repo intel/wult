@@ -823,6 +823,13 @@ class BatchConfig(_Common.CmdlineRunner):
     def __init__(self, args):
         """The class constructor."""
 
+        self._pman = None
+        self._cpuinfo = None
+        self._cpuidle = None
+        self._pfmt = None
+        self._wfmt = None
+        self._systemctl = None
+
         super().__init__(dry_run=args.dry_run, stop_on_failure=args.stop_on_failure)
 
         self._pman = get_pman(args)
@@ -841,5 +848,4 @@ class BatchConfig(_Common.CmdlineRunner):
         if self._systemctl:
             self._systemctl.restore()
 
-        ClassHelpers.close(self, close_attrs=("_pepc", "_pman", "_systemctl", "_cpuinfo",
-                                              "_cpuidle"))
+        ClassHelpers.close(self, close_attrs=("_pfmt", "_wfmt", "_pman", "_systemctl"))
