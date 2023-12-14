@@ -105,12 +105,16 @@ _COLLECT_OPTIONS = {
     "freqs" : {
         "help" : """Comma-separated list of frequencies to be measured with. For more information,
                     see '--min-freq' and '--max-freq' options of the 'pepc pstates config' command.
-                    """
+                    Special value 'unl' can be used to measure with unlocked frequency (minimum
+                    frequency set to smallest supported value, and maximum frequency set to highest
+                    supported value."""
     },
     "uncore_freqs" : {
         "help" : """Comma-separated list of package uncore frequencies to measure with. For more
                     information, see '--min-uncore-freq' and '--max-uncore-freq' options of the
-                    'pepc pstates config' command."""
+                    'pepc pstates config' command. Special value 'unl' can be used to measure with
+                    unlocked frequency (minimum frequency set to smallest supported value, and
+                    maximum frequency set to highest supported value."""
     },
     "governor" : {
         "help" : """Name of the CPU frequency governor to measure with."""
