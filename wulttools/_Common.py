@@ -663,14 +663,7 @@ def start_command_list_stats():
     """Implement the '--list-stats' command line option."""
 
     from statscollectlibs.collector import StatsCollect # pylint: disable=import-outside-toplevel
-
-    for stname in StatsCollect.get_stnames():
-        stinfo = StatsCollect.get_stinfo(stname)
-
-        _LOG.info("* %s", stname)
-        if stinfo.get("interval"):
-            _LOG.info("  - Default interval: %.1fs", stinfo["interval"])
-        _LOG.info("  - %s", stinfo["description"])
+    StatsCollect.list_stats()
 
 def report_command_outdir(args, rsts):
     """
