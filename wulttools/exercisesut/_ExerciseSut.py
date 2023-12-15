@@ -264,7 +264,7 @@ def _build_arguments_parser():
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
     subparsers = parser.add_subparsers(title="commands", dest="a command")
-    subparsers.required = True
+    subparsers.required = True # pylint: disable=pepc-unused-variable
 
     text = "Start collecting test data."
     descr = """Run a test tool or benchmark to collect test data."""
@@ -361,7 +361,7 @@ def _start_command(args):
             _LOG.info("")
 
         if args.state_reset:
-            reset_props = {pname : pinfo["value"] for pname, pinfo in _RESET_PROPS.items()}
+            reset_props = {pname: pinfo["value"] for pname, pinfo in _RESET_PROPS.items()}
             if not args.only_measured_cpu:
                 batchconfig.configure(reset_props, "all")
                 _LOG.info("")
@@ -424,7 +424,7 @@ def main():
         args = parse_arguments()
 
         if not getattr(args, "func", None):
-            _LOG.error("please, run '%s -h' for help.", TOOLNAME)
+            _LOG.error("please, run '%s -h' for help", TOOLNAME)
             return -1
 
         args.func(args)
@@ -437,5 +437,5 @@ def main():
 
     return 0
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())
