@@ -143,7 +143,12 @@ class BatchReport(_Common.CmdlineRunner):
             path_monikers = path.name.split("-")
             # If diff, sort according to diff monikers.
             for moniker in diff_monikers:
-                if moniker in path_monikers:
+                # See if single or multi-part moniker is part of path monikers.
+                # Example, where both diff_monikers are found:
+                # path: "spr0-hrt-c6-hfm-uf_2ghz"
+                # path_monikers: ['spr0', 'hrt', 'c6', 'hfm', 'uf_2ghz']
+                # diff_monikers: ['spr0-hrt', 'hfm']
+                if moniker in path_monikers or set(moniker.split("-")).issubset(set(path_monikers)):
                     return diff_monikers.index(moniker)
 
             # Empty diff moniker is special, handle it after non-empty diff monikers.
