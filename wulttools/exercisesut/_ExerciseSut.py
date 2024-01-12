@@ -316,7 +316,7 @@ def _start_check_args(args, inprops):
         if args.state_reset:
             return
 
-        _LOG.error("no commands to run. Please, specify system properties to collect test data " \
+        _LOG.error("no commands to run. Please, specify system properties to collect test data "
                    "with. See '%s start -h' for help.", TOOLNAME)
 
     if args.toolpath.name in (WULT_TOOLNAME, NDL_TOOLNAME) and not args.devids:
