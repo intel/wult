@@ -267,7 +267,6 @@ class _PCIDevice(_DeviceBase):
 
         self.info["descr"] += f". PCI address {self._pci_info['pciaddr']}, Vendor ID " \
                               f"{self._pci_info['vendorid']}, Device ID {self._pci_info['devid']}."
-        self.info["aspm_enabled"] = self._pci_info["aspm_enabled"]
 
     def close(self):
         """Uninitialize the device."""

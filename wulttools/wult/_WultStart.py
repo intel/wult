@@ -33,7 +33,7 @@ def _check_settings(args, pman, dev, csinfo):
     for such settings and if found, print a notice message.
     """
 
-    _Common.check_aspm_setting(dev.info, f"the '{args.devid}' delayed event device")
+    _Common.check_aspm_setting(pman, dev, f"the '{args.devid}' delayed event device")
 
     enabled_cstates = []
     for _, info in csinfo.items():

@@ -18,6 +18,7 @@ import sys
 import logging
 import re
 from pathlib import Path
+from pepclibs import ASPM
 from pepclibs.helperlibs import Trivial, YAML, ProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollectlibs.helperlibs import ReportID
@@ -803,13 +804,18 @@ def parse_freq_noise_cmdline_args(args):
 
     return specs
 
-def check_aspm_setting(devinfo, devname):
+def check_aspm_setting(pman, dev, devname):
     """
     If PCI ASPM is enabled for a device, print a notice message. The arguments are as follows.
-      * devinfo - the device information dictionary.
+      * dev - the delayed event device object created by 'Devices.GetDevice()'.
+      * pman - the process manager object for the target system.
       * devname - the device name to use in the message.
     """
 
-    if devinfo.get("aspm_enabled"):
-        _LOG.notice("PCI ASPM is enabled for %s, and this typically increases the measured latency",
-                    devname)
+    if not dev.is_pci:
+        return
+
+    with ASPM.ASPM(pman=pman) as aspm:
+        if aspm.is_l1_aspm_enabled(dev.info["devid"]):
+            _LOG.notice("PCI ASPM is enabled for %s, and this typically increases the measured "
+                        "latency", devname)

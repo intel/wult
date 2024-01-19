@@ -108,8 +108,7 @@ def _check_settings(args, pman, dev, cpuinfo):
     affect the measurements in a way an average user does not usually want.
     """
 
-    info = dev.netif.get_pci_info()
-    _Common.check_aspm_setting(info, f"the '{args.devid}' NIC")
+    _Common.check_aspm_setting(pman, dev, f"the '{args.devid}' NIC")
 
     with contextlib.suppress(ErrorNotSupported), \
          CPUIdle.CPUIdle(pman=pman, cpuinfo=cpuinfo) as cpuidle, \
