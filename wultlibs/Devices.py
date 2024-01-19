@@ -77,6 +77,13 @@ class _DeviceBase(ClassHelpers.SimpleCloseContext):
         self.drvname = drvname
         self.helpername = helpername
 
+        # 'True' if this is a PCI device.
+        self.is_pci = False
+        # 'True' if this is a NIC.
+        self.is_nic = False
+        # 'True' if this device is based on processors' LAPIC timers.
+        self.is_timer = False
+
         self.dmesg_obj = None
 
         if dmesg:
@@ -250,6 +257,8 @@ class _PCIDevice(_DeviceBase):
                                     f"{self._pci_info['devid']}) is not supported{drvtext}.\n"
                                     f"Here is the list of supported PCI IDs:\n* {supported}")
 
+        self.is_pci = True
+
         self.info["devid"] = self._pci_info["pciaddr"]
         if self.supported_devices:
             self.info["descr"] = self.supported_devices[self._pci_info["devid"]]
@@ -345,6 +354,8 @@ class _IntelI210Base(_PCIDevice):
 
         super().__init__(hwaddr, pman, drvname=drvname, helpername=helpername, dmesg=dmesg)
 
+        self.is_nic = True
+
         self.netif = netif
         self.info["alias"] = alias
         # I210 NIC clock has 1 nanosecond resolution.
@@ -410,6 +421,8 @@ class _WultTSCDeadlineTimer(_DeviceBase):
                                         f"should be 'lapic-deadline' (see {path})")
 
         super().__init__(devid, pman, drvname="wult_tdt", dmesg=dmesg)
+
+        self.is_timer = True
 
         self.info["devid"] = devid
         self.info["descr"] = self.supported_devices["tdt"]
@@ -490,6 +503,7 @@ class _HRTimerDeviceBase(_DeviceBase):
 
         super().__init__(devid, pman, drvname=drvname, helpername=helpername, dmesg=dmesg)
 
+        self.is_timer = True
         self.info["devid"] = devid
         self.info["resolution"] = self._get_resolution()
 
@@ -527,6 +541,7 @@ class _WultTDTBPF(_DeviceBase):
 
         super().__init__(devid, pman, helpername="wult-tdt-helper", dmesg=dmesg)
 
+        self.is_timer = True
         self.info["devid"] = devid
         self.info["descr"] = self.supported_devices["tdt_bpf"]
         self.info["resolution"] = 1
