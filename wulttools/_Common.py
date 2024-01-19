@@ -802,3 +802,14 @@ def parse_freq_noise_cmdline_args(args):
         specs += [{"type": "sleep", "val": val}]
 
     return specs
+
+def check_aspm_setting(devinfo, devname):
+    """
+    If PCI ASPM is enabled for a device, print a notice message. The arguments are as follows.
+      * devinfo - the device information dictionary.
+      * devname - the device name to use in the message.
+    """
+
+    if devinfo.get("aspm_enabled"):
+        _LOG.notice("PCI ASPM is enabled for %s, and this typically increases the measured latency",
+                    devname)

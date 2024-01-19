@@ -27,20 +27,13 @@ from wulttools.wult import _WultCommon
 
 _LOG = logging.getLogger()
 
-def _check_settings(pman, dev, csinfo, cpunum, devid):
+def _check_settings(args, pman, dev, csinfo):
     """
     Some settings of the SUT may lead to results that are potentially confusing for the user. Look
-    for such settings and if found, print a notice message. The arguments are as follows.
-      * pman - the process manager object that defines the host to run the measurements on.
-      * dev - the delayed event device object created by 'Devices.GetDevice()'.
-      * devid - the ID of the device used for measuring the latency.
-      * csinfo - cstate info from 'CStates.get_cstates_info()'.
-      * cpunum - the logical CPU number to measure.
+    for such settings and if found, print a notice message.
     """
 
-    if dev.info.get("aspm_enabled"):
-        _LOG.notice("PCI ASPM is enabled for the delayed event device '%s', and this "
-                    "typically increases the measured latency", devid)
+    _Common.check_aspm_setting(dev.info, f"the '{args.devid}' delayed event device")
 
     enabled_cstates = []
     for _, info in csinfo.items():
@@ -58,16 +51,16 @@ def _check_settings(pman, dev, csinfo, cpunum, devid):
         is_timer_based = "aspm_enabled" not in dev.info
 
         if is_timer_based and "C6" in enabled_cstates and \
-           powerctl.is_cpu_feature_supported("cstate_prewake", cpunum) and \
-           powerctl.is_cpu_feature_enabled("cstate_prewake", cpunum):
+           powerctl.is_cpu_feature_supported("cstate_prewake", args.cpunum) and \
+           powerctl.is_cpu_feature_enabled("cstate_prewake", args.cpunum):
             _LOG.notice("C-state prewake is enabled, and this usually hides the real "
-                        "latency when using '%s' as delayed event device", devid)
+                        "latency when using '%s' as delayed event device", args.devid)
 
         # Check for the following 2 conditions to be true at the same time.
         # * C1 is enabled.
         # * C1E auto-promotion is enabled.
         if enabled_cstates in [["C1"], ["C1_ACPI"]]:
-            if powerctl.is_cpu_feature_enabled("c1e_autopromote", cpunum):
+            if powerctl.is_cpu_feature_enabled("c1e_autopromote", args.cpunum):
                 _LOG.notice("C1E autopromote is enabled, all %s requests are converted to C1E",
                             enabled_cstates[0])
 
@@ -173,7 +166,7 @@ def start_command(args):
         cpuidle = CPUIdle.CPUIdle(pman=pman, cpuinfo=cpuinfo)
         csinfo = cpuidle.get_cpu_cstates_info(res.cpunum)
 
-        _check_settings(pman, dev, csinfo, args.cpunum, args.devid)
+        _check_settings(args, pman, dev, csinfo)
 
         fnobj = _FreqNoise.FreqNoise(_Common.parse_freq_noise_cmdline_args(args), pman=pman)
         stack.enter_context(fnobj)

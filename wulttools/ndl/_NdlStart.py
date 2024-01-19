@@ -102,21 +102,24 @@ def _get_cbuf_size(args, cpuinfo):
 
     return cbuf_size
 
-def _check_settings(pman, cpuinfo, cpunum):
+def _check_settings(args, pman, dev, cpuinfo):
     """
     Check platform settings and notify the user about potential "pitfalls" - the settings that may
     affect the measurements in a way an average user does not usually want.
     """
 
+    info = dev.netif.get_pci_info()
+    _Common.check_aspm_setting(info, f"the '{args.devid}' NIC")
+
     with contextlib.suppress(ErrorNotSupported), \
          CPUIdle.CPUIdle(pman=pman, cpuinfo=cpuinfo) as cpuidle, \
          CStates.CStates(pman=pman, cpuinfo=cpuinfo, cpuidle=cpuidle) as cstates:
 
-        pvinfo = cstates.get_cpu_prop("pkg_cstate_limit", cpunum)
+        pvinfo = cstates.get_cpu_prop("pkg_cstate_limit", args.cpunum)
         if pvinfo["val"] == "PC0":
             return
 
-        csinfo = cpuidle.get_cpu_cstates_info(cpunum)
+        csinfo = cpuidle.get_cpu_cstates_info(args.cpunum)
         for info in csinfo.values():
             if info["name"].startswith("C6") and not info["disable"]:
                 break
@@ -124,7 +127,7 @@ def _check_settings(pman, cpuinfo, cpunum):
             return
 
         for pname in ("c1_demotion", "cstate_prewake"):
-            pvinfo = cstates.get_cpu_prop(pname, cpunum)
+            pvinfo = cstates.get_cpu_prop(pname, args.cpunum)
             if pvinfo["val"] == "on":
                 name = cstates.props[pname]["name"]
                 _LOG.notice("%s is enabled, this may lead to lower C6 residency. It is "
@@ -220,12 +223,7 @@ def start_command(args):
             depl.check_deployment()
 
         _Common.start_command_check_network(args, pman, dev.netif)
-        _check_settings(pman, cpuinfo, args.cpunum)
-
-        info = dev.netif.get_pci_info()
-        if info.get("aspm_enabled"):
-            _LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "
-                        "the measured latency", args.devid)
+        _check_settings(args, pman, dev, cpuinfo)
 
         fnobj = _FreqNoise.FreqNoise(_Common.parse_freq_noise_cmdline_args(args), pman=pman)
         stack.enter_context(fnobj)
