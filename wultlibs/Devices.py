@@ -412,7 +412,7 @@ class _HRTimerDeviceBase(_DeviceBase):
 
     supported_devices = {}
 
-    def _get_resoluion(self):
+    def _get_resolution(self):
         """Returns Linux High Resolution Timer resolution in nanoseconds."""
 
         errmsg_prefix = "Linux High Resolution Timer"
@@ -428,7 +428,7 @@ class _HRTimerDeviceBase(_DeviceBase):
 
             if not Trivial.is_int(resolution):
                 raise Error(f"{errmsg_prefix}: bad resolution '{resolution}' - should be an "
-                            f"integer amount of nandoseconds.\n{errmsg_suffix}:\n\t{cmd}")
+                            f"integer amount of nanoseconds.\n{errmsg_suffix}:\n\t{cmd}")
         else:
             resolution = time.clock_getres(time.CLOCK_MONOTONIC) * 1000000000
 
@@ -471,7 +471,7 @@ class _HRTimerDeviceBase(_DeviceBase):
         super().__init__(devid, pman, drvname=drvname, helpername=helpername, dmesg=dmesg)
 
         self.info["devid"] = devid
-        self.info["resolution"] = self._get_resoluion()
+        self.info["resolution"] = self._get_resolution()
 
 class _WultHRT(_HRTimerDeviceBase):
     """The High Resolution Timers device controlled by the 'wult_hrt' driver."""
@@ -551,7 +551,7 @@ def scan_devices(toolname, pman):
     """
     Scan the host defined by 'pman' for devices suitable for the 'toolname' tool. The arguments are
     as follows.
-      * toolname - name of the tool scan for ("wult" or "ndl").
+      * toolname - name of the tool to scan for ("wult" or "ndl").
       * pman - the process manager object defining the host to scan on.
 
     Yields the device object for every compatible device.
