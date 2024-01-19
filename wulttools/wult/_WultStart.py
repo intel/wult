@@ -29,8 +29,8 @@ _LOG = logging.getLogger()
 
 def _check_settings(pman, dev, csinfo, cpunum, devid):
     """
-    Some settings of the SUT may lead to results that are potentially confusing for the user. This
-    function looks for such settings and if found, prints a notice message.
+    Some settings of the SUT may lead to results that are potentially confusing for the user. Look
+    for such settings and if found, print a notice message. The arguments are as follows.
       * pman - the process manager object that defines the host to run the measurements on.
       * dev - the delayed event device object created by 'Devices.GetDevice()'.
       * devid - the ID of the device used for measuring the latency.
@@ -40,7 +40,7 @@ def _check_settings(pman, dev, csinfo, cpunum, devid):
 
     if dev.info.get("aspm_enabled"):
         _LOG.notice("PCI ASPM is enabled for the delayed event device '%s', and this "
-                    "typically increases the measured latency.", devid)
+                    "typically increases the measured latency", devid)
 
     enabled_cstates = []
     for _, info in csinfo.items():
@@ -58,21 +58,21 @@ def _check_settings(pman, dev, csinfo, cpunum, devid):
         is_timer_based = "aspm_enabled" not in dev.info
 
         if is_timer_based and "C6" in enabled_cstates and \
-            powerctl.is_cpu_feature_supported("cstate_prewake", cpunum) and \
-            powerctl.is_cpu_feature_enabled("cstate_prewake", cpunum):
+           powerctl.is_cpu_feature_supported("cstate_prewake", cpunum) and \
+           powerctl.is_cpu_feature_enabled("cstate_prewake", cpunum):
             _LOG.notice("C-state prewake is enabled, and this usually hides the real "
-                        "latency when using '%s' as delayed event device.", devid)
+                        "latency when using '%s' as delayed event device", devid)
 
         # Check for the following 2 conditions to be true at the same time.
         # * C1 is enabled.
         # * C1E auto-promotion is enabled.
         if enabled_cstates in [["C1"], ["C1_ACPI"]]:
             if powerctl.is_cpu_feature_enabled("c1e_autopromote", cpunum):
-                _LOG.notice("C1E autopromote is enabled, all %s requests are converted to C1E.",
+                _LOG.notice("C1E autopromote is enabled, all %s requests are converted to C1E",
                             enabled_cstates[0])
 
 def _generate_report(args):
-    """Implements the 'report' command for start."""
+    """Implement the 'report' command for start."""
 
     from wultlibs.htmlreport import WultReport # pylint: disable=import-outside-toplevel
 
@@ -93,8 +93,8 @@ def _check_cpu_vendor(args, cpuinfo, pman):
         return
 
     if vendor != "AuthenticAMD":
-        raise ErrorNotSupported(f"unsupported CPU vendor '{vendor}'{pman.hostmsg}\nOnly Intel and "
-                                 "AMD CPUs are currently supported")
+        raise ErrorNotSupported(f"unsupported CPU vendor '{vendor}'{pman.hostmsg}.\nOnly Intel and "
+                                f"AMD CPUs are currently supported.")
 
     # In case of AMD CPU the TDT-based methods are not currently supported, other methods are
     # supported.
@@ -103,7 +103,10 @@ def _check_cpu_vendor(args, cpuinfo, pman):
                                 "CPUs.\nPlease, use a non-TDT method for measuring AMD CPUs.")
 
 def start_command(args):
-    """Implements the 'start' command."""
+    """
+    Implement the 'start' command. The arguments are as follows.
+      * args - the command line arguments object.
+    """
 
     if args.list_stats:
         _Common.start_command_list_stats()
