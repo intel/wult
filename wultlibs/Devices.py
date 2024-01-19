@@ -35,13 +35,13 @@ _LOG = logging.getLogger()
 class _DeviceBase(ClassHelpers.SimpleCloseContext):
     """This is the base class for device classes."""
 
-    def bind(self, drvname=None): # pylint: disable=no-self-use
+    def bind(self, drvname=None):
         """
         Bind the device its driver. The arguments are as follows.
           * drvname - name of the driver to bind to (wult/ndl driver by default).
         """
 
-    def unbind(self): # pylint: disable=no-self-use
+    def unbind(self):
         """
         Unbind the device from its driver if it is bound to any driver. Returns name of the
         driver the device was unbinded from (or 'None' if it was not).
@@ -64,7 +64,7 @@ class _DeviceBase(ClassHelpers.SimpleCloseContext):
         The class constructor. The arguments are as follows.
           * devid - device ID. What the "ID" is depends on the device type.
           * pman - the process manager object defining the host to operate on.
-          * drvname - name of the kernel driver which will be uses for handling this device.
+          * drvname - name of the kernel driver which will be used for handling this device.
           * helpername - name of the helper tool required for handling this device.
           * dmesg - 'True' to enable 'dmesg' output checks, 'False' to disable them.
         """
@@ -144,9 +144,10 @@ class _PCIDevice(_DeviceBase):
             raise Error(f"{failmsg}:\nit is already bound to driver '{cur_drvname}'")
 
         # At this point we do not know if the driver supports this PCI ID. So start with the
-        # assumption that it does not, in which case writing to the 'new_id' file should do both:
-        # * make the driver aware of the PCI ID
-        # * bind the device
+        # assumption that it does not, in which case writing to the 'new_id' file should do both of
+        # the following.
+        # * make the driver aware of the PCI ID.
+        # * bind the device.
         path = f"{drvpath}/new_id"
         val = f"{self._pci_info['vendorid']} {self._pci_info['devid']}"
         bound = True
@@ -215,7 +216,14 @@ class _PCIDevice(_DeviceBase):
         return drvname
 
     def __init__(self, devid, pman, drvname=None, helpername=None, dmesg=None):
-        """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
+        """
+        The class constructor. The arguments are as follows.
+          * devid - PCI address of the device.
+          * pman - the process manager object defining the host to operate on.
+          * drvname - name of the kernel driver which will be used for handling this device.
+          * helpername - name of the helper tool required for handling this device.
+          * dmesg - 'True' to enable 'dmesg' output checks, 'False' to disable them.
+        """
 
         super().__init__(devid, pman, drvname=drvname, helpername=helpername, dmesg=dmesg)
 
@@ -268,13 +276,13 @@ class _IntelI210Base(_PCIDevice):
     """
 
     supported_devices = {
-        '1533' : 'Intel I210 (copper)',
-        '1536' : 'Intel I210 (fiber)',
-        '1537' : 'Intel I210 (serdes)',
-        '1538' : 'Intel I210 (sgmii)',
-        '157b' : 'Intel I210 (copper flashless)',
-        '157c' : 'Intel I210 (serdes flashless)',
-        '1539' : 'Intel I211 (copper)'}
+        "1533": "Intel I210 (copper)",
+        "1536": "Intel I210 (fiber)",
+        "1537": "Intel I210 (serdes)",
+        "1538": "Intel I210 (sgmii)",
+        "157b": "Intel I210 (copper flashless)",
+        "157c": "Intel I210 (serdes flashless)",
+        "1539": "Intel I211 (copper)"}
 
     def bind(self, drvname=None):
         """Bind the PCI device to driver 'drvname' (wult/ndl driver by default)."""
@@ -309,9 +317,13 @@ class _IntelI210Base(_PCIDevice):
     def __init__(self, devid, pman, drvname=None, helpername=None, no_netif_ok=True, dmesg=None):
         """
         The class constructor. The arguments are as follows.
+          * devid - device ID (network interface name or PCI address).
+          * pman - the process manager object defining the host to operate on.
+          * drvname - name of the kernel driver which will be used for handling this device.
+          * helpername - name of the helper tool required for handling this device.
           * no_netif_ok - if 'True', the network interface does not have to exist for the NIC,
                           otherwise raises an exception if the network interface does not exist.
-          * other arguments are the same as in '_DeviceBase.__init__()'.
+          * dmesg - 'True' to enable 'dmesg' output checks, 'False' to disable them.
 
         Note, 'devid' can be be the PCI address or the network interface name.
         """
@@ -380,9 +392,10 @@ class _WultTSCDeadlineTimer(_DeviceBase):
     def __init__(self, devid, pman, cpunum=0, dmesg=None):
         """
         The class constructor. The arguments are as follows.
-          * devid - same as in '_DeviceBase.__init__()'.
+          * devid - device ID.
+          * pman - the process manager object defining the host to operate on.
           * cpunum - measured CPU number.
-          * Rest of the arguments are the same as in '_DeviceBase.__init__()'.
+          * dmesg - 'True' to enable 'dmesg' output checks, 'False' to disable them.
         """
 
         errmsg = f"device '{devid}' is not supported for CPU {cpunum}{pman.hostmsg}."
@@ -435,8 +448,8 @@ class _HRTimerDeviceBase(_DeviceBase):
         resolution = int(resolution)
 
         if resolution < 1:
-            raise Error(f"{errmsg_prefix}: bad resolution of 0 nanoseconds.\n{errmsg_suffix}" \
-                        f"\n\t{cmd}")
+            raise Error(f"{errmsg_prefix}: bad resolution of 0 nanoseconds.\n"
+                        f"{errmsg_suffix}:\n\t{cmd}")
 
         if resolution > 1:
             msg = f"{errmsg_prefix}: poor resolution of '{resolution}' nanoseconds."
@@ -463,7 +476,14 @@ class _HRTimerDeviceBase(_DeviceBase):
         return resolution
 
     def __init__(self, devid, pman, drvname=None, helpername=None, dmesg=None):
-        """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
+        """
+        The class constructor. The arguments are as follows.
+          * devid - device ID.
+          * pman - the process manager object defining the host to operate on.
+          * drvname - name of the kernel driver which will be used for handling this device.
+          * helpername - name of the helper tool required for handling this device.
+          * dmesg - 'True' to enable 'dmesg' output checks, 'False' to disable them.
+          """
 
         if devid not in self.supported_devices:
             raise ErrorNotSupported(f"device '{devid}' is not supported{pman.hostmsg}.")
@@ -519,7 +539,7 @@ def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
       * devid - same as in '_DeviceBase.__init__()'.
       * pman - same as in '_DeviceBase.__init__()'.
       * cpunum - measured CPU number.
-      * other arguments documented in '_DeviceBase.__init__()'.
+      * dmesg - 'True' to enable 'dmesg' output checks, 'False' to disable them.
     """
 
     if toolname == "wult":
@@ -588,8 +608,8 @@ def scan_devices(toolname, pman):
     with LsPCI.LsPCI(pman) as lspci:
         for pci_info in lspci.get_devices():
             cls = globals().get(clsname)
-            if not cls.supported_devices.get(pci_info['devid']):
+            if not cls.supported_devices.get(pci_info["devid"]):
                 continue
             with contextlib.suppress(ErrorNotSupported):
-                with cls(pci_info['pciaddr'], pman, dmesg=False) as i210dev:
+                with cls(pci_info["pciaddr"], pman, dmesg=False) as i210dev:
                     yield i210dev
