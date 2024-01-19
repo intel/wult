@@ -26,7 +26,7 @@ from wultlibs.rawresultlibs import WORawResult
 _LOG = logging.getLogger()
 
 def _generate_report(args):
-    """Implements the 'report' command for start."""
+    """Implement the 'report' command for start."""
 
     from wultlibs.htmlreport import NdlReport # pylint: disable=import-outside-toplevel
 
@@ -127,11 +127,14 @@ def _check_settings(pman, cpuinfo, cpunum):
             pvinfo = cstates.get_cpu_prop(pname, cpunum)
             if pvinfo["val"] == "on":
                 name = cstates.props[pname]["name"]
-                _LOG.notice("%s is enabled, this may lead to lower C6 residency. It is " \
+                _LOG.notice("%s is enabled, this may lead to lower C6 residency. It is "
                             "recommended to disable %s.", name, name)
 
 def start_command(args):
-    """Implements the 'start' command."""
+    """
+    Implement the 'start' command. The arguments are as follows.
+      * args - the command line arguments object.
+    """
 
     if args.list_stats:
         _Common.start_command_list_stats()
@@ -222,7 +225,7 @@ def start_command(args):
         info = dev.netif.get_pci_info()
         if info.get("aspm_enabled"):
             _LOG.notice("PCI ASPM is enabled for the NIC '%s', and this typically increases "
-                        "the measured latency.", args.devid)
+                        "the measured latency", args.devid)
 
         fnobj = _FreqNoise.FreqNoise(_Common.parse_freq_noise_cmdline_args(args), pman=pman)
         stack.enter_context(fnobj)
