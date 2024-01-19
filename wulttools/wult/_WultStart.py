@@ -46,11 +46,7 @@ def _check_settings(args, pman, dev, csinfo):
         # * C6 pre-wake is enabled.
         # * A timer-based method is used.
 
-        # Hackish, but only NIC-based methods have the 'aspm_enabled' key. Use this to distinguish
-        # local timer-based methods.
-        is_timer_based = "aspm_enabled" not in dev.info
-
-        if is_timer_based and "C6" in enabled_cstates and \
+        if dev.is_timer and "C6" in enabled_cstates and \
            powerctl.is_cpu_feature_supported("cstate_prewake", args.cpunum) and \
            powerctl.is_cpu_feature_enabled("cstate_prewake", args.cpunum):
             _LOG.notice("C-state prewake is enabled, and this usually hides the real "
