@@ -92,13 +92,13 @@ STATS_DESCR = f"""Comma-separated list of statistics to collect. The statistics 
                   default, only 'sysinfo' statistics are collected."""
 
 # Description for the '--stat-intervals' option of the 'start' command.
-STAT_INTERVALS_DESCR =  """The intervals for statistics. Statistics collection is based on doing
-                           periodic snapshots of data. For example, by default the 'acpower'
-                           statistics collector reads SUT power consumption for the last second
-                           every second, and 'turbostat' default interval is 5 seconds. Use
-                           'acpower:5,turbostat:10' to increase the intervals to 5 and 10 seconds
-                           correspondingly. Use the '--list-stats' to get the default interval
-                           values."""
+STAT_INTERVALS_DESCR = """The intervals for statistics. Statistics collection is based on doing
+                          periodic snapshots of data. For example, by default the 'acpower'
+                          statistics collector reads SUT power consumption for the last second
+                          every second, and 'turbostat' default interval is 5 seconds. Use
+                          'acpower:5,turbostat:10' to increase the intervals to 5 and 10 seconds
+                          correspondingly. Use the '--list-stats' to get the default interval
+                          values."""
 
 # Description for the '--list-stats' option of the 'start' command.
 LIST_STATS_DESCR = """Print information about the statistics '%s' can collect and exit."""
@@ -106,7 +106,9 @@ LIST_STATS_DESCR = """Print information about the statistics '%s' can collect an
 # Description for the '--outdir' option of the 'report' command.
 def get_report_outdir_descr(toolname):
     """
-    Returns description for the '--outdir' option of the 'report' command for the 'toolname' tool.
+    Return description for the '--outdir' option of the 'report' command. The arguments are as
+    follows.
+      * toolname - name of the tool to return the description for.
     """
 
     descr = f"""Path to the directory to store the report at. By default the report is stored in the
@@ -121,11 +123,11 @@ START_FORCE_DESCR = """By default a network card is not accepted as a measuremen
                        such as "up". Use '--force' to disable this safety mechanism. Use it with
                        caution."""
 
-
 # Description of the '--all' option of the 'scan' command.
 def get_scan_all_descr(toolname):
     """
-    Returns description for the '--all' option of the 'scan' command for the 'toolname' tool.
+    Return description for the '--all' option of the 'scan' command. The arguments are as follows.
+      * toolname - name of the tool to return the description for.
     """
 
     descr = f"""By default this command prints only the compatible devices which are supported by
@@ -262,8 +264,11 @@ LIST_FUNCS_DESCR = "Print the list of the available summary functions."
 
 def get_pman(args):
     """
-    Returns the process manager object for host 'hostname'. The returned object should either be
-    used with a 'with' statement, or closed with the 'close()' method.
+    Return the process manager object for host 'hostname'. The arguments are as follows.
+      * args - the command line arguments object.
+
+    The returned object should either be used with the 'with' statement, or closed with the
+    'close()' method.
     """
 
     if args.hostname == "localhost":
@@ -277,7 +282,7 @@ def get_pman(args):
                                    timeout=timeout)
 
 def _validate_range(rng, what, single_ok):
-    """Implements 'parse_ldist()'."""
+    """Implement 'parse_ldist()'."""
 
     if single_ok:
         min_len = 1
@@ -312,22 +317,25 @@ def _validate_range(rng, what, single_ok):
 
 def parse_ldist(ldist, single_ok=True):
     """
-    Parse and validate the launch distance range ('--ldist' option). The 'ldist' argument is a
-    string of single or two comma-separated launch distance values in microseconds. The values are
-    parsed with 'Human.parse_human()', so they can include specifiers like 'ms' or 'us'. Returns
-    launch launch distance range as a list of two integers in nanoseconds.
+    Parse and validate the launch distance range ('--ldist' option). The arguments are as follows.
+      * ldist - a string of single or two comma-separated launch distance values.
+      * single_ok - if 'True', raise an exception when 'ldist' contains only a single number
 
-    My default, 'ldist' may include a single number, but if 'single_ok' is 'False', then this
-    function will raise the exception in case there is only one number.
+    The default 'ldist' unit is 'microseconds', but the 'ldist' values are parsed with
+    'Human.parse_human()', so they can include specifiers like 'ms' or 'us'.
+
+    Return launch distance range as a list of two integers in nanoseconds.
     """
 
     return _validate_range(ldist, "launch distance", single_ok)
 
 def even_up_dpcnt(rsts):
     """
-    This is a helper function for the '--even-up-datapoints' option. It takes a list of
-    'RORawResult' objects ('rsts') and truncates them to the size of the smallest test result, where
-    "size" is defined as the count of rows in the CSV file.
+    Implement the '--even-up-datapoints' option. The arguments are as follows.
+      * rsts -  a list of 'RORawResult' objects to even up datapoints count in.
+
+    Truncate datapoints count in 'rsts' to the size of the smallest test result, where "size" is
+    defined as the count of rows in the CSV file.
     """
 
     # Find test with the smallest CSV file. It should be a good approximation for the smallest test
@@ -356,14 +364,14 @@ def even_up_dpcnt(rsts):
     for res in rsts:
         dpcnt = len(res.df.index)
         if dpcnt > min_dpcnt:
-            res.df = res.df.truncate(after=min_dpcnt-1)
+            res.df = res.df.truncate(after=min_dpcnt - 1)
 
 def set_filters(args, res):
     """
-    This is a helper function for the following command-line options: '--include', '--exclude',
-    '--include-metrics', '--exclude-metrics'. The 'args' argument should be an 'helperlibs.ArgParse'
-    object, where all the above mentioned options are represented by the 'oargs' (ordered arguments)
-    field.  The 'res' argument is 'RORawResult' or 'WORawResult' object.
+    Implement the following command-line options: '--include', '--exclude', '--include-metrics',
+    '--exclude-metrics'. The arguments are as follows.
+      * args - the command line arguments object.
+      * res - a 'RORawResult' or 'WORawResult' object to set filters for.
     """
 
     def set_filter(res, ops):
@@ -386,15 +394,19 @@ def set_filters(args, res):
 
 def apply_filters(args, res):
     """
-    Same as 'set_filters()' but filters are also applied to results in 'res'. The 'res' argument is
-    'RORawResult'.
+    Set and apply filters. The arguments are as follows.
+      * args - the command line arguments object.
+      * res - a 'RORawResult' or 'WORawResult' object to set and apply filters for.
     """
 
     set_filters(args, res)
     res.load_df()
 
 def scan_command(args):
-    """Implements the 'scan' command for the 'wult' and 'ndl' tools."""
+    """
+    Implement the 'scan' command for the 'wult' and 'ndl' tools. The arguments are as follows.
+      * args - the command line arguments object.
+    """
 
     pman = get_pman(args)
 
@@ -402,7 +414,7 @@ def scan_command(args):
     supported_msgs = unsupported_msgs = ""
 
     for dev in Devices.scan_devices(args.toolname, pman):
-        err_msg= None
+        err_msg = None
         found_something = True
 
         deploy_info = reduce_installables(args.deploy_info, dev)
@@ -448,7 +460,10 @@ def scan_command(args):
         _LOG.info("%s", unsupported_msgs.strip())
 
 def filter_command(args):
-    """Implements the 'filter' command for the 'wult' and 'ndl' tools."""
+    """
+    Implement the 'filter' command for the 'wult' and 'ndl' tools. The arguments are as follows.
+      * args - the command line arguments object.
+    """
 
     from wultlibs.rawresultlibs import RORawResult # pylint: disable=import-outside-toplevel
 
@@ -459,7 +474,7 @@ def filter_command(args):
         return
 
     if not getattr(args, "oargs", None):
-        raise Error("please, specify at least one reduction criteria.")
+        raise Error("please, specify at least one reduction criterion")
     if args.reportid and not args.outdir:
         raise Error("'--reportid' can be used only with '-o'/'--outdir'")
 
@@ -479,7 +494,10 @@ def filter_command(args):
             _LOG.info(Human.dict2str(dict(dp)))
 
 def calc_command(args):
-    """Implements the 'calc' command  for the 'wult' and 'ndl' tools."""
+    """
+    Implement the 'calc' command for the 'wult' and 'ndl' tools. The arguments are as follows.
+      * args - the command line arguments object.
+    """
 
     if args.list_funcs:
         from statscollectlibs import DFSummary # pylint: disable=import-outside-toplevel
@@ -526,7 +544,8 @@ def calc_command(args):
 
 def open_raw_results(respaths, toolname, reportids=None):
     """
-    Opens the input raw test results, and returns the list of 'RORawResult' objects.
+    Open the input raw test results and return the list of 'RORawResult' objects. The arguments are
+    as follows.
       * respaths - list of paths to raw results.
       * toolname - name of the tool opening raw results.
       * reportids - list of reportids to override report IDs in raw results.
@@ -562,7 +581,9 @@ def open_raw_results(respaths, toolname, reportids=None):
 
 def list_result_metrics(rsts):
     """
-    Implements the '--list-metrics' option by printing the metrics for each raw result 'rsts'.
+    Implement the '--list-metrics' option by printing the metrics for each raw result 'rsts'. The
+    arguments are as follows.
+      * rsts - an iterable collection of test results to print the metrics for.
     """
 
     for rst in rsts:
@@ -579,7 +600,7 @@ def reduce_installables(deploy_info, dev):
                       docstring for the format of the dictionary.
       * dev - the device object created by 'Devices.GetDevice()'.
 
-    Returns the reduced version of 'deploy_info'.
+    Return the reduced version of 'deploy_info'.
     """
 
     # Copy the original dictionary, 2 levels are enough.
@@ -597,8 +618,10 @@ def reduce_installables(deploy_info, dev):
 
 def start_command_reportid(args, pman):
     """
-    If user provided report ID for the 'start' command, this function validates it and returns.
-    Otherwise, it generates the default report ID and returns it.
+    Validate and return user-provided report ID. If not report ID was provided, generate and return
+    the default report ID. The arguments are as follows.
+      * args - the command line arguments object.
+      * pman - the process manager object that defines the host to measure.
     """
 
     if not args.reportid and pman.is_remote:
@@ -614,7 +637,11 @@ def start_command_check_network(args, pman, netif):
     """
     In case the device that is used for measurement is a network card, check that it is not in the
     'up' state. This makes sure users do not lose networking by specifying a wrong device by a
-    mistake.
+    mistake. The arguments are as follows.
+      * args - the command line arguments object.
+      * pman - the process manager object that defines the host to measure.
+      * netif - the network interface object ('NetIface.NetIface()') that will be used for measuring
+                the host.
     """
 
     if args.force:
@@ -632,10 +659,7 @@ def start_command_check_network(args, pman, netif):
                     "it for measurements.")
 
 def start_command_list_stats():
-    """
-    This helper handles the '--list-stats' command line option and print information about
-    statistics.
-    """
+    """Implement the '--list-stats' command line option."""
 
     from statscollectlibs.collector import StatsCollect # pylint: disable=import-outside-toplevel
 
@@ -648,7 +672,12 @@ def start_command_list_stats():
         _LOG.info("  - %s", stinfo["description"])
 
 def report_command_outdir(args, rsts):
-    """Return the default or user-provided output directory path for the 'report' command."""
+    """
+    Return the default or user-provided output directory path for the 'report' command. The
+    arguments are as follows.
+      * args - the command line arguments object.
+      * rsts -  a list of 'RORawResult' objects to return the output directory for.
+    """
 
     if args.outdir is not None:
         return args.outdir
@@ -666,7 +695,11 @@ def report_command_outdir(args, rsts):
     return Path(outdir)
 
 def run_stats_collect_deploy(args, pman):
-    """Run the 'stats-collect deploy' command."""
+    """
+    Run the 'stats-collect deploy' command. The arguments are as follows.
+      * args - the command line arguments object.
+      * pman - the process manager object that defines the host to run on.
+    """
 
     # pylint: disable=import-outside-toplevel
     from pepclibs.helperlibs import ProjectFiles, LocalProcessManager
@@ -710,7 +743,7 @@ def run_stats_collect_deploy(args, pman):
 def add_freq_noise_cmdline_args(subparser):
     """
     Add the 'freq-noise' options to the 'argparse' data. The input arguments are as follows.
-      * subparser - the 'argparse' subparser to add the 'freq-noise' options to
+      * subparser - the 'argparse' subparser to add the 'freq-noise' options to.
     """
 
     text = """Add frequency scaling noise to the measured system. This runs a background process
@@ -735,7 +768,8 @@ def add_freq_noise_cmdline_args(subparser):
 def parse_freq_noise_cmdline_args(args):
     """
     Parse the frequency noise related command line arguments, and return parsed data as a dictionary
-    to be passed to the '_FreqNoise' module.
+    to be passed to the '_FreqNoise' module. The arguments are as follows.
+      * args - the command line arguments object.
     """
 
     if not args.freq_noise:
@@ -760,11 +794,11 @@ def parse_freq_noise_cmdline_args(args):
                 except Error as err:
                     raise Error(f"failed to parse freq-noise frequency '{tokens[idx]}'") from err
 
-        specs += [{ 'type': tokens[0], 'id': tokens[1], 'min': tokens[2], 'max': tokens[3] }]
+        specs += [{"type": tokens[0], "id": tokens[1], "min": tokens[2], "max": tokens[3]}]
 
     if args.freq_noise_sleep:
         val = Human.parse_human(args.freq_noise_sleep, unit="s", target_unit="us", integer=True,
                                 name="frequency noise sleep time")
-        specs += [{ 'type': 'sleep', 'val': val }]
+        specs += [{"type": "sleep", "val": val}]
 
     return specs
