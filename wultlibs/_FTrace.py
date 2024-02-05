@@ -15,8 +15,7 @@ import contextlib
 import re
 from pepclibs.helperlibs import ClassHelpers, KernelVersion
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorTimeOut
-from statscollectlibs.helperlibs import ProcHelpers
-from wultlibs.helperlibs import FSHelpers
+from statscollectlibs.helperlibs import ProcHelpers, FSHelpers
 
 _LOG = logging.getLogger()
 

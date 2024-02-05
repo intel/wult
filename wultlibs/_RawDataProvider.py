@@ -13,9 +13,9 @@ This module implements the base class for raw data provider classes.
 import logging
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from pepclibs.helperlibs import Trivial, ClassHelpers, KernelModule
-from statscollectlibs.helperlibs import ProcHelpers
+from statscollectlibs.helperlibs import ProcHelpers, FSHelpers
 from wultlibs import Devices
-from wultlibs.helperlibs import FSHelpers, Human
+from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
 

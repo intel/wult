@@ -19,7 +19,7 @@ from pepclibs.helperlibs import Trivial, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.htmlreport import _IntroTable, HTMLReport
 from statscollectlibs.htmlreport.tabs import _Tabs
-from wultlibs.helperlibs import FSHelpers
+from statscollectlibs.helperlibs import FSHelpers
 from wultlibs.htmlreport import _MetricDTabBuilder
 
 _LOG = logging.getLogger()
