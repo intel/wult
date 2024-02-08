@@ -14,8 +14,9 @@ import logging
 import os
 import shutil
 import contextlib
-from pepclibs.helperlibs import YAML, ClassHelpers, FSHelpers
+from pepclibs.helperlibs import YAML, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
+from statscollectlibs.helperlibs import FSHelpers
 from wultlibs.rawresultlibs import _CSV, _RawResultBase
 from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
 
