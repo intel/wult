@@ -27,7 +27,7 @@ from wulttools.wult import _WultCommon
 
 _LOG = logging.getLogger()
 
-def _check_settings(args, pman, dev, csinfo):
+def _check_settings(args, pman, dev, csinfo, cpuinfo):
     """
     Some settings of the SUT may lead to results that are potentially confusing for the user. Look
     for such settings and if found, print a notice message.
@@ -40,7 +40,7 @@ def _check_settings(args, pman, dev, csinfo):
         if info["disable"] == 0 and info["name"] != "POLL":
             enabled_cstates.append(info["name"])
 
-    with contextlib.suppress(ErrorNotSupported), PowerCtl.PowerCtl(pman=pman) as powerctl:
+    with contextlib.suppress(ErrorNotSupported), PowerCtl.PowerCtl(cpuinfo, pman=pman) as powerctl:
         # Check for the following 3 conditions to be true at the same time.
         # * C6 is enabled.
         # * C6 pre-wake is enabled.
@@ -162,7 +162,7 @@ def start_command(args):
         cpuidle = CPUIdle.CPUIdle(pman=pman, cpuinfo=cpuinfo)
         csinfo = cpuidle.get_cpu_cstates_info(res.cpunum)
 
-        _check_settings(args, pman, dev, csinfo)
+        _check_settings(args, pman, dev, csinfo, cpuinfo)
 
         fnobj = _FreqNoise.FreqNoise(_Common.parse_freq_noise_cmdline_args(args), pman=pman)
         stack.enter_context(fnobj)
