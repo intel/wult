@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date: 2023-11-24
+:Date: 2024-02-09
 
 .. contents::
    :depth: 3
@@ -61,12 +61,11 @@ REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpunums CPUNUMS]
 FREQS] [--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR] [--aspm ASPM]
 [--c1-demotion C1_DEMOTION] [--c1-undemotion C1_UNDEMOTION]
 [--c1e-autopromote C1E_AUTOPROMOTE] [--cstate-prewake CSTATE_PREWAKE]
-[--epp EPP] [--epp-hw EPP_HW] [--epb EPB] [--epb-hw EPB_HW]
-[--state-reset] [--deploy] [--devids DEVIDS] [--stats STATS] [--command
-COMMAND] [--stop-on-failure] [--only-measured-cpu] [--toolpath TOOLPATH]
-[--only-one-cstate] [--cstates-always-enable CSTATES_ALWAYS_ENABLE]
-[--use-cstate-filters] [--toolopts TOOLOPTS] [--outdir OUTDIR]
-[--dry-run] [--list-monikers]
+[--epp EPP] [--epb EPB] [--state-reset] [--deploy] [--devids DEVIDS]
+[--stats STATS] [--command COMMAND] [--stop-on-failure]
+[--only-measured-cpu] [--toolpath TOOLPATH] [--only-one-cstate]
+[--cstates-always-enable CSTATES_ALWAYS_ENABLE] [--use-cstate-filters]
+[--toolopts TOOLOPTS] [--outdir OUTDIR] [--dry-run] [--list-monikers]
 
 Run a test tool or benchmark to collect test data.
 
@@ -158,17 +157,9 @@ OPTIONS *'exercise-sut* start'
    Comma-separated list of EPP configurations to measure with. See 'pepc
    pstates config --epp' for more information.
 
-**--epp-hw** *EPP_HW*
-   Comma-separated list of EPP configurations to measure with. See 'pepc
-   pstates config --epp-hw' for more information.
-
 **--epb** *EPB*
    Comma-separated list of EPB configurations to measure with. See 'pepc
    pstates config --epb' for more information.
-
-**--epb-hw** *EPB_HW*
-   Comma-separated list of EPB configurations to measure with. See 'pepc
-   pstates config --epb-hw' for more information.
 
 **--state-reset**
    Set SUT settings to default values before starting measurements. The

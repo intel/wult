@@ -1,3 +1,13 @@
+wult (1.12.15) unstable; urgency=low
+
+  * Fix 'exercise-sut start --list-monikers' crashing.
+  * Add a link to report generation logs in HTML reports.
+  * Add new wult/ndl "start" option support: '--freq-noise'.
+  * Add '--use-cstate-filters' option to exercise-sut tool to filter datapoints
+    with wult and ndl tools.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 09 Feb 2024 00:00:00 +0200
+
 wult (1.12.14) unstable; urgency=low
 
   * Fix MC6 counter collection in the 'hrt' and 'tdt' drivers. It was collecting

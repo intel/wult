@@ -5,14 +5,18 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.12.15] - 2024-02-09
+### Fixed
  - Fix 'exercise-sut start --list-monikers' crashing.
 ### Added
  - Add a link to report generation logs in HTML reports.
  - Add new wult/ndl "start" option support: '--freq-noise'.
  - Add '--use-cstate-filters' option to exercise-sut tool to filter datapoints
    with wult and ndl tools.
-### Removed
-### Changed
 
 ## [1.12.14] - 2023-11-24
 ### Fixed

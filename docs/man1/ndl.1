@@ -1,4 +1,4 @@
-.TH NDL "1" "2023\-11\-24" "ndl" "Generated Python Manual"
+.TH NDL "1" "2024\-02\-09" "ndl" "Generated Python Manual"
 .SH NAME
 ndl
 .SH SYNOPSIS
@@ -52,7 +52,7 @@ Calculate summary functions for a ndl test result.
 .SH COMMAND \fI\,'ndl deploy'\/\fR
 usage: ndl deploy [\-h] [\-q] [\-d] [\-\-kernel\-src KSRC] [\-\-local\-build] [\-\-tmpdir\-path TMPDIR_PATH] [\-\-keep\-tmpdir] [\-H HOSTNAME] [\-U USERNAME] [\-K PRIVKEY] [\-T TIMEOUT]
 
-Compile and deploy ndl helpers and drivers to the SUT (System Under Test), which can be can be either local or a remote host, depending on the '\-H' option. By default, everything is built on the SUT, but the '\-\-local\-build' can be used for building on the local system. The drivers are searched for in the following directories (and in the following order) on the local host: ./drivers/idle, $WULT_DATA_PATH/drivers/idle, $HOME/.local/share/wult/drivers/idle, /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle. The ndl tool also depends on the following helpers: ndl\-helper. These helpers will be compiled on the SUT and deployed to the SUT. The sources of the helpers are searched for in the following paths (and in the following order) on the local host: ./helpers, $WULT_DATA_PATH/helpers, $HOME/.local/share/wult/helpers, /usr/local/share/wult/helpers, /usr/share/wult/helpers. By default, helpers are deployed to the path defined by the 'WULT_HELPERSPATH' environment variable. If the variable is not defined, helpers are deployed to '$HOME/.local/bin', where '$HOME' is the home directory of user 'USERNAME' on host 'HOST' (see '\-\-host' and '\-\-username' options).
+Compile and deploy ndl helpers and drivers to the SUT (System Under Test), which can be can be either local or a remote host, depending on the '\-H' option. By default, everything is built on the SUT, but the '\-\-local\-build' can be used for building on the local system. The drivers are searched for in the following directories (and in the following order) on the local host: ./drivers/idle, $WULT_DATA_PATH/drivers/idle, $HOME/.local/share/wult/drivers/idle, /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle. The ndl tool also depends on the following helpers: ndl\-helper, freq\-helper. These helpers will be compiled on the SUT and deployed to the SUT. The sources of the helpers are searched for in the following paths (and in the following order) on the local host: ./helpers, $WULT_DATA_PATH/helpers, $HOME/.local/share/wult/helpers, /usr/local/share/wult/helpers, /usr/share/wult/helpers. By default, helpers are deployed to the path defined by the 'WULT_HELPERSPATH' environment variable. If the variable is not defined, helpers are deployed to '$HOME/.local/bin', where '$HOME' is the home directory of user 'USERNAME' on host 'HOST' (see '\-\-host' and '\-\-username' options).
 
 .SH OPTIONS \fI\,'ndl deploy'\/\fR
 .TP
@@ -140,7 +140,7 @@ SSH connect timeout in seconds, default is 8.
 
 .SH COMMAND \fI\,'ndl start'\/\fR
 usage: ndl start [\-h] [\-q] [\-d] [\-H HOSTNAME] [\-U USERNAME] [\-K PRIVKEY] [\-T TIMEOUT] [\-c COUNT] [\-\-time\-limit LIMIT] [\-o OUTDIR] [\-\-reportid REPORTID] [\-\-stats STATS] [\-\-stats\-intervals STATS_INTERVALS] [\-\-list\-stats] [\-l LDIST]
-                 [\-\-cpunum CPUNUM] [\-\-exclude EXCLUDE] [\-\-include INCLUDE] [\-\-keep\-filtered] [\-\-report] [\-\-force] [\-\-trash\-cpu\-cache]
+                 [\-\-cpunum CPUNUM] [\-\-exclude EXCLUDE] [\-\-include INCLUDE] [\-\-keep\-filtered] [\-\-report] [\-\-force] [\-\-trash\-cpu\-cache] [\-\-freq\-noise FREQ_NOISE] [\-\-freq\-noise\-sleep FREQ_NOISE_SLEEP]
                  ifname
 
 Start measuring and recording the latency data.
@@ -256,6 +256,18 @@ By default a network card is not accepted as a measurement device if it is used 
 \fB\-\-trash\-cpu\-cache\fR
 Trash CPU cache to make sure NIC accesses memory when measuring latency. Without this option, there is a change the data NIC accesses is in a CPU cache. With this option, ndl allocates a buffer and fills it with data every time a
 delayed packet is scheduled. Supposedly, this should push out cached data to the memory. By default, the CPU cache trashing buffer size a sum of sizes of all caches on all CPUs (includes all levels, excludes instruction cache).
+
+.TP
+\fB\-\-freq\-noise\fR \fI\,FREQ_NOISE\/\fR
+Add frequency scaling noise to the measured system. This runs a background process that repeatedly modifies CPU or uncore frequencies for given domains. The reason for doing this is because frequency scaling is generally an expensive
+operation and is known to impact system latency. 'FREQ_NOISE' is specified as 'TYPE:ID:MIN:MAX', where: TYPE should be 'cpu' or 'uncore', specifies whether CPU or uncore frequency should be modified; ID is either CPU number or uncore
+domain ID to modify the frequency for (e.g. 'cpu:12:...' would target CPU12); MIN is the minimum CPU/uncore frequency value; MAX is the maximum CPU/uncore frequency value. For example, to add frequency scaling noise for CPU0, add '\-\-
+freq\-noise cpu:0:min:max'. To add uncore frequency noise for uncore domain 0, add '\-\-freq\-noise uncore:0:min:max'. The parameter can be added multiple times to specify multiple frequency noise domains.
+
+.TP
+\fB\-\-freq\-noise\-sleep\fR \fI\,FREQ_NOISE_SLEEP\/\fR
+Sleep between frequency noise operations. This time is added between every frequency scaling operation executed by the 'freq\-noise' feature. The default time unit is microseconds, but it is possible to use time specifiers as well, ms \-
+milliseconds, us \- microseconds, ns \- nanoseconds. Default sleep time is 50ms.
 
 .SH COMMAND \fI\,'ndl report'\/\fR
 usage: ndl report [\-h] [\-q] [\-d] [\-o OUTDIR] [\-\-exclude EXCLUDE] [\-\-include INCLUDE] [\-\-even\-up\-dp\-count] [\-x XAXES] [\-y YAXES] [\-\-hist HIST] [\-\-chist CHIST] [\-\-reportids REPORTIDS] [\-\-report\-descr REPORT_DESCR] [\-\-relocatable]
