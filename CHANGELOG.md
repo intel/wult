@@ -5,10 +5,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix 'freq-noise' helper deployment failure on some systems.
 ### Added
 ### Removed
 ### Changed
+
+## [1.12.16] - 2024-02-16
+### Fixed
+ - Fix 'freq-noise' helper deployment failure on some systems.
 
 ## [1.12.15] - 2024-02-09
 ### Fixed

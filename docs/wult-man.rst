@@ -2,7 +2,7 @@
 WULT
 ====
 
-:Date: 2024-02-09
+:Date: 2024-02-16
 
 .. contents::
    :depth: 3
@@ -288,7 +288,7 @@ OPTIONS *'wult* start'
    report ID is the current date, prefixed with the remote host name in
    case the '-H' option was used: [hostname-]YYYYMMDD. For example,
    "20150323" is a report ID for a run made on March 23, 2015. The
-   allowed characters are: ACSII alphanumeric, '-', '.', ',', '_', '~',
+   allowed characters are: ACSII alphanumeric, '-', '.', ',', '\_', '~',
    and ':'.
 
 **--stats** *STATS*

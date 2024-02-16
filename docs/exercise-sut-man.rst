@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date: 2024-02-09
+:Date: 2024-02-16
 
 .. contents::
    :depth: 3
@@ -209,7 +209,7 @@ OPTIONS *'exercise-sut* start'
 
 **--toolopts** *TOOLOPTS*
    Additional options to use for running the tool. The string
-   "__reportid__" will be replaced with generated report ID.
+   "\__reportid\_\_" will be replaced with generated report ID.
 
 **--outdir** *OUTDIR*, **-o** *OUTDIR*
    Path to directory to store the results at. Default is
@@ -275,7 +275,7 @@ OPTIONS *'exercise-sut* report'
 
 **--toolopts** *TOOLOPTS*
    Additional options to use for running the tool. The string
-   "__reportid__" will be replaced with generated report ID.
+   "\__reportid\_\_" will be replaced with generated report ID.
 
 **--outdir** *OUTDIR*, **-o** *OUTDIR*
    Path to directory to store the results at. Default is
