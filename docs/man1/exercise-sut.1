@@ -1,4 +1,4 @@
-.TH EXERCISE\-SUT "1" "2024\-02\-16" "wult" "Generated Python Manual"
+.TH EXERCISE\-SUT "1" "2024\-02\-21" "wult" "Generated Python Manual"
 .SH NAME
 exercise\-sut
 .SH SYNOPSIS
@@ -104,11 +104,13 @@ Comma\-separated list of turbo configurations to measure with. Supported values 
 
 .TP
 \fB\-\-freqs\fR \fI\,FREQS\/\fR
-Comma\-separated list of frequencies to be measured with. For more information, see '\-\-min\-freq' and '\-\-max\-freq' options of the 'pepc pstates config' command.
+Comma\-separated list of frequencies to be measured with. For more information, see '\-\-min\-freq' and '\-\-max\-freq' options of the 'pepc pstates config' command. Special value 'unl' can be used to measure with unlocked frequency (minimum
+frequency set to smallest supported value, and maximum frequency set to highest supported value.
 
 .TP
 \fB\-\-uncore\-freqs\fR \fI\,UNCORE_FREQS\/\fR
-Comma\-separated list of package uncore frequencies to measure with. For more information, see '\-\-min\-uncore\-freq' and '\-\-max\-uncore\-freq' options of the 'pepc pstates config' command.
+Comma\-separated list of package uncore frequencies to measure with. For more information, see '\-\-min\-uncore\-freq' and '\-\-max\-uncore\-freq' options of the 'pepc pstates config' command. Special value 'unl' can be used to measure with
+unlocked frequency (minimum frequency set to smallest supported value, and maximum frequency set to highest supported value.
 
 .TP
 \fB\-\-governor\fR \fI\,GOVERNOR\/\fR

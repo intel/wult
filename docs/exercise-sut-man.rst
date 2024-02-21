@@ -2,7 +2,7 @@
 EXERCISE-SUT
 ============
 
-:Date: 2024-02-16
+:Date: 2024-02-21
 
 .. contents::
    :depth: 3
@@ -123,12 +123,17 @@ OPTIONS *'exercise-sut* start'
 **--freqs** *FREQS*
    Comma-separated list of frequencies to be measured with. For more
    information, see '--min-freq' and '--max-freq' options of the 'pepc
-   pstates config' command.
+   pstates config' command. Special value 'unl' can be used to measure
+   with unlocked frequency (minimum frequency set to smallest supported
+   value, and maximum frequency set to highest supported value.
 
 **--uncore-freqs** *UNCORE_FREQS*
    Comma-separated list of package uncore frequencies to measure with.
    For more information, see '--min-uncore-freq' and '--max-uncore-freq'
-   options of the 'pepc pstates config' command.
+   options of the 'pepc pstates config' command. Special value 'unl' can
+   be used to measure with unlocked frequency (minimum frequency set to
+   smallest supported value, and maximum frequency set to highest
+   supported value.
 
 **--governor** *GOVERNOR*
    Name of the CPU frequency governor to measure with.
