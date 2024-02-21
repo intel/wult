@@ -48,6 +48,9 @@ def get_data_files(installdir, subdir, exclude=None):
 
     return list(files_dict.items())
 
+# Python helpers get installed as scripts. We exclude these scripts from being installed as data.
+_PYTHON_HELPERS = ["helpers/freq-helper/freq-helper"]
+
 setup(
     name="wult",
     description="Wake Up Latency Tracer tool",
@@ -56,10 +59,12 @@ setup(
     python_requires=">=3.7",
     version=get_version("wulttools/wult/ToolInfo.py"),
     data_files=get_data_files("share/man/man1", "docs/man1") + \
+               get_data_files("share/wult/helpers/freq-helper", "helpers/freq-helper",
+                              exclude=_PYTHON_HELPERS) + \
                get_data_files("share/wult/drivers", "drivers") + \
                get_data_files("share/wult/helpers", "helpers") + \
                get_data_files("share/wult/defs/wult", "defs/wult"),
-    scripts=_TOOLNAMES,
+    scripts=_TOOLNAMES + _PYTHON_HELPERS,
     packages=find_packages(),
     install_requires=["pepc>=1.5.5", "stats-collect>=1.0.21", "numpy", "pandas", "pyyaml",
                       "colorama"],
