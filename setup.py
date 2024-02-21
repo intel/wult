@@ -49,7 +49,7 @@ def get_data_files(installdir, subdir, exclude=None):
     return list(files_dict.items())
 
 # Python helpers get installed as scripts. We exclude these scripts from being installed as data.
-_PYTHON_HELPERS = ["helpers/freq-helper/freq-helper"]
+_PYTHON_HELPERS = ["helpers/wult-freq-helper/wult-freq-helper"]
 
 setup(
     name="wult",
@@ -59,7 +59,7 @@ setup(
     python_requires=">=3.7",
     version=get_version("wulttools/wult/ToolInfo.py"),
     data_files=get_data_files("share/man/man1", "docs/man1") + \
-               get_data_files("share/wult/helpers/freq-helper", "helpers/freq-helper",
+               get_data_files("share/wult/helpers/wult-freq-helper", "helpers/wult-freq-helper",
                               exclude=_PYTHON_HELPERS) + \
                get_data_files("share/wult/drivers", "drivers") + \
                get_data_files("share/wult/helpers", "helpers") + \

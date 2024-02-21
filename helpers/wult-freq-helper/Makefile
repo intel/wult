@@ -1,6 +1,6 @@
-PREFIX ?= /tmp/freq-helper
+PREFIX ?= /tmp/wult-freq-helper
 BINDIR := $(PREFIX)/bin
-TOOLNAME = freq-helper
+TOOLNAME = wult-freq-helper
 
 all:
 

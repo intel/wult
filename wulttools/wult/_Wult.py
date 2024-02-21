@@ -47,9 +47,9 @@ _WULT_DEPLOY_INFO = {
             "minkver"  : "5.15",
             "deployables" : ("wult-tdt-helper", ),
         },
-        "freq-helper" : {
+        "wult-freq-helper" : {
             "category" : "pyhelpers",
-            "deployables" : ("freq-helper", ),
+            "deployables" : ("wult-freq-helper", ),
         },
     },
 }

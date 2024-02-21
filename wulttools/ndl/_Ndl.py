@@ -40,9 +40,9 @@ _NDL_DEPLOY_INFO = {
             "category" : "shelpers",
             "deployables" : ("ndl-helper", ),
         },
-        "freq-helper" : {
+        "wult-freq-helper" : {
             "category" : "pyhelpers",
-            "deployables" : ("freq-helper", ),
+            "deployables" : ("wult-freq-helper", ),
         },
     },
 }

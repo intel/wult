@@ -20,7 +20,7 @@ class FreqNoise(ClassHelpers.SimpleCloseContext):
     """API to the frequency noise generator tool. See module documentation for more details."""
 
     def _build_cmdline(self, configs):
-        """Build command line string to be passed to the 'freq-helper'."""
+        """Build command line string to be passed to the 'wult-freq-helper'."""
 
         cmdline = ""
 
@@ -78,7 +78,7 @@ class FreqNoise(ClassHelpers.SimpleCloseContext):
         if not self._fnh_cmdline:
             return
 
-        cmd = f"freq-helper {self._fnh_cmdline}"
+        cmd = f"wult-freq-helper {self._fnh_cmdline}"
         self._fnh_proc = self._pman.run_async(cmd)
 
         # Make sure the process did not exit immediately.

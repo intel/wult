@@ -78,7 +78,7 @@ drivers are searched for in the following directories (and in the
 following order) on the local host: ./drivers/idle,
 $WULT_DATA_PATH/drivers/idle, $HOME/.local/share/wult/drivers/idle,
 /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle. The
-wult tool also depends on the following helpers: freq-helper,
+wult tool also depends on the following helpers: wult-freq-helper,
 wult-hrt-helper, wult-tdt-helper. These helpers will be compiled on the
 SUT and deployed to the SUT. The sources of the helpers are searched for
 in the following paths (and in the following order) on the local host:
