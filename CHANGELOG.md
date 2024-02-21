@@ -5,9 +5,11 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix 'wult deploy' crash, regression since v1.12.16.
 ### Added
 ### Removed
 ### Changed
+ - Rename 'freq-helper' to 'wult-freq-helper'.
 
 ## [1.12.16] - 2024-02-16
 ### Fixed
