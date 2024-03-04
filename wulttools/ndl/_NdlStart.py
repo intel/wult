@@ -14,7 +14,7 @@ import logging
 import contextlib
 from pathlib import Path
 from pepclibs import CPUInfo, CPUIdle, CStates
-from pepclibs.helperlibs import Logging, Trivial, ArgParse
+from pepclibs.helperlibs import Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.collector import StatsCollectBuilder
 from wulttools import _Common
@@ -52,7 +52,7 @@ def _get_local_cpus(pman, ifname):
     # The 'local_cpulist' file contains a string of comma-separated CPU numbers or ranges, smaller
     # CPU numbers go first. Example: "24-27,31-33,37-39". Only online CPUs are included. Parse the
     # string and turn into a list of integers.
-    cpus = ArgParse.parse_int_list(str_of_ranges, ints=True)
+    cpus = Trivial.split_csv_line_int(str_of_ranges, what=f"CPU numbers from '{path}'")
     if not cpus:
         raise Error(f"failed to find local CPUs for the '{ifname}' NIC:\n  no CPU numbers in "
                     f"'{path}'")
