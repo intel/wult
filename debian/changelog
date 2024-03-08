@@ -1,3 +1,10 @@
+wult (1.12.18) unstable; urgency=low
+
+  * No functional changes since 1.12.17, just updates to changed pepc project
+    APIs.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 08 Mar 2024 00:00:00 +0200
+
 wult (1.12.17) unstable; urgency=low
 
   * Fix 'wult deploy' crash, regression since v1.12.16.

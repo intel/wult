@@ -8,6 +8,9 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+
+## [1.12.18] - 2024-03-08
+### Changed
  - No functional changes since 1.12.17, just updates to changed pepc project
    APIs.
 
