@@ -354,3 +354,5 @@ class HelperRawDataProviderBase(RawDataProviderBase):
                 _LOG.warning(err)
             finally:
                 self._proc = None
+
+        super().close()
