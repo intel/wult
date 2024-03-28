@@ -71,9 +71,31 @@ enough to just install the kernel sources package provided by the OS, e.g.:
 Advanced users can provide custom kernel sources path via `wult deploy` command line options (see
 the `wult man page <https://github.com/intel/wult/blob/master/docs/wult-man.rst>`_).
 
+2.2 SUT kernel version
+----------------------
+
+Note that *wult* and *ndl* both have minimum kernel requirements. *ndl* requires that the SUT is
+running a kernel which is 'v5.2' or newer. For *wult*, the minimum kernel version depends on the
+method used. See the table below for details on which methods require which kernel version.
+
+.. list-table::
+   :widths: 25 50
+   :header-rows: 1
+
+   * - Method
+     - Min Kernel Version
+   * - hrt
+     - 5.6
+   * - tdt
+     - 5.6
+   * - bpf-hrt
+     - 5.15
+   * - bpf-tdt
+     - 5.15
+
 .. _os-packages:
 
-2.2 OS packages
+2.3 OS packages
 ---------------
 
 Here are the required OS packages.
