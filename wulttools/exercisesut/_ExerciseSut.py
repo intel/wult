@@ -170,7 +170,8 @@ _COLLECT_OPTIONS = {
     },
     "command" : {
         "help" : """Applicable only to 'stats-collect' tool. The command to that 'stats-collect'
-                    should run."""
+                    should run. The string "__reportid__" will be replaced with generated report ID
+                    and the string "__cpunum__" will be replaced with used CPU number."""
     },
     "stop_on_failure" : {
         "action" : "store_true",

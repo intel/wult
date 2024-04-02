@@ -791,6 +791,7 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
 
         if reportid:
             cmd += f" --reportid {reportid} -o {self._outdir}/{reportid}"
+            command = command.replace("__reportid__", reportid)
         else:
             cmd += f" -o {self._outdir}"
 
@@ -803,6 +804,7 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
 
         if cpu is not None:
             cmd += f" --cpunum {cpu}"
+            command = command.replace("__cpunum__", cpu)
 
         if self._hostname != "localhost":
             cmd += f" -H {self._hostname}"
