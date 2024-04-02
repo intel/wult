@@ -778,7 +778,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'stats-collect' commands."""
 
-    def _create_command(self, command, reportid=None):
+    def _create_command(self, command, cpu, reportid=None):
         """Create and return 'stats-collect' command."""
 
         cmd = f"{self.toolpath} "
@@ -801,6 +801,9 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
         if toolopts:
             cmd += f" {toolopts}"
 
+        if cpu is not None:
+            cmd += f" --cpunum {cpu}"
+
         if self._hostname != "localhost":
             cmd += f" -H {self._hostname}"
 
@@ -817,7 +820,7 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
           * kwargs - additional arguments necessary to format the command.
         """
 
-        return self._create_command(kwargs["command"], reportid=reportid)
+        return self._create_command(kwargs["command"], kwargs["cpu"], reportid=reportid)
 
 class _PbeCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'pbe' commands."""
