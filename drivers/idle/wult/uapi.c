@@ -69,7 +69,6 @@ static ssize_t dfs_write_bool_file(struct file *file,
 	int err;
 	bool val;
 	struct dentry *dent = file->f_path.dentry;
-	struct wult_info *wi = file->private_data;
 
 	err = kstrtobool_from_user(user_buf, count, &val);
 	if (err)
