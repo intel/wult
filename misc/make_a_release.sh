@@ -26,9 +26,9 @@ CHANGELOG_FILE="$BASEDIR/CHANGELOG.md"
 
 # Documentation directories and file paths.
 MAN_DIR="$BASEDIR/docs/man1/"
-WULT_RST_FILES="$BASEDIR/docs/wult-man.rst
-                $BASEDIR/docs/ndl-man.rst
-                $BASEDIR/docs/exercise-sut-man.rst"
+WULT_RST_FILES="$BASEDIR/docs/wult.rst
+                $BASEDIR/docs/ndl.rst
+                $BASEDIR/docs/exercise-sut.rst"
 
 # Path to 'pepc' project sources.
 PEPC_SRC_PATH="$BASEDIR/../pepc"
