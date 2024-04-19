@@ -26,7 +26,11 @@ CHANGELOG_FILE="$BASEDIR/CHANGELOG.md"
 
 # Documentation directories and file paths.
 MAN_DIR="$BASEDIR/docs/man1/"
-WULT_RST_FILES="$BASEDIR/docs/wult.rst
+WULT_RST_FILES="$BASEDIR/docs/wult-calc.rst
+                $BASEDIR/docs/wult-deploy.rst
+                $BASEDIR/docs/wult-filter.rst
+                $BASEDIR/docs/wult-scan.rst
+                $BASEDIR/docs/wult-start.rst
                 $BASEDIR/docs/ndl.rst
                 $BASEDIR/docs/exercise-sut.rst"
 
