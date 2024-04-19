@@ -95,6 +95,7 @@ def _build_arguments_parser():
     descr = """Start measuring and recording C-state latency."""
     subpars = subparsers.add_parser("start", help=text, description=descr)
     subpars.set_defaults(func=_start_command)
+    man_msg = "Please, refer to 'wult-start' manual page for more information."
 
     ArgParse.add_ssh_options(subpars)
 
@@ -104,13 +105,7 @@ def _build_arguments_parser():
                          help=_Common.TIME_LIMIT_DESCR)
     subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=_Common.EXCL_START_DESCR)
     subpars.add_argument("--include", action=ArgParse.OrderedArg, help=_Common.INCL_DESCR)
-    text = f"""{_Common.KEEP_FILTERED_DESCR} Here is an example. Suppose you want to collect
-               100000 datapoints where PC6 residency is greater than 0. In this case, you can use
-               these options: -c 100000 --exclude="PC6%% == 0". The result will contain 100000
-               datapoints, all of them will have non-zero PC6 residency. But what if you do not want
-               to simply discard the other datapoints, because they are also interesting? Well, add
-               the '--keep-filtered' option. The result will contain, say, 150000 datapoints, 100000
-               of which will have non-zero PC6 residency."""
+    text = f"{_Common.KEEP_FILTERED_DESCR} {man_msg}"
     subpars.add_argument("--keep-filtered", action="store_true", help=text)
 
     arg = subpars.add_argument("-o", "--outdir", type=Path, help=_Common.START_OUTDIR_DESCR)
@@ -127,43 +122,21 @@ def _build_arguments_parser():
     subpars.add_argument("--list-stats", action="store_true",
                          help=_Common.LIST_STATS_DESCR % TOOLNAME)
 
-    text = f"""This tool works by scheduling a delayed event, then sleeping and waiting for it to
-               happen. This step is referred to as a "measurement cycle" and it is usually repeated
-               many times. The launch distance defines how far in the future the delayed event is
-               scheduled. By default this tool randomly selects launch distance within a range. The
-               default range is [0,4ms], but you can override it with this option. Specify a
-               comma-separated range (e.g '--ldist 10,5000'), or a single value if you want launch
-               distance to be precisely that value all the time.  The default unit is microseconds,
-               but you can use the following specifiers as well: {_Common.DURATION_NS_SPECS_DESCR}.
-               For example, '--ldist 10us,5ms' would be a [10,5000] microseconds range. Too small
-               values may cause failures or prevent the SUT from reaching deep C-states. If the
-               range starts with 0, the minimum possible launch distance value allowed by the
-               delayed event source will be used. The optimal launch distance range is
-               system-specific."""
+    text = f"""The launch distance defines how far in the future the delayed event is scheduled. By
+               default this tool randomly selects launch distance within a range. The default range
+               is [0,4ms], but you can override it with this option. Specify a comma-separated range
+               (e.g '--ldist 10,5000'), or a single value if you want launch distance to be
+               precisely that value all the time. {man_msg}"""
     subpars.add_argument("-l", "--ldist", help=text, default="0,4000")
 
     text = """The logical CPU number to measure, default is CPU 0."""
     subpars.add_argument("--cpunum", help=text, type=int, default=0)
 
-    text = f"""{TOOLNAME.title()} receives raw datapoints from the driver, then processes them, and
-               then saves the processed datapoint in the 'datapoints.csv' file. The processing
-               involves converting TSC cycles to microseconds, so {TOOLNAME} needs SUT's TSC rate.
-               TSC rate is calculated from the datapoints, which come with TSC counters and
-               timestamps, so TSC rate can be calculated as "delta TSC / delta timestamp". In other
-               words, {TOOLNAME} needs two datapoints to calculate TSC rate. However, the datapoints
-               have to be far enough apart, and this option defines the distance between the
-               datapoints (in seconds). The default distance is 10 seconds, which means that
-               {TOOLNAME} will keep collecting and buffering datapoints for 10s without processing
-               them (because processing requires TSC rate to be known). After 10s, {TOOLNAME} will
-               start processing all the buffered datapoints, and then the newly collected
-               datapoints. Generally, longer TSC calculation time translates to better accuracy."""
+    text = f"""TSC calculation time, the default distance is 10 seconds. Generally, longer TSC
+               calculation time translates to better accuracy. {man_msg}"""
     subpars.add_argument("--tsc-cal-time", default="10s", help=text)
 
-    text = f"""{TOOLNAME.title()} receives raw datapoints from the driver, then processes them, and
-               then saves the processed datapoint in the 'datapoints.csv' file. In order to keep the
-               CSV file smaller, {TOOLNAME} keeps only the essential information, and drops the rest.
-               For example, raw timestamps are dropped. With this option, however, {TOOLNAME} saves
-               all the raw data to the CSV file, along with the processed data."""
+    text = f"""Save all raw and processed datapoints collected by {TOOLNAME.title()}. {man_msg}"""
     subpars.add_argument("--keep-raw-data", action="store_true", dest="keep_rawdp", help=text)
 
     text = f"""This option exists for debugging and troubleshooting purposes. Please, do not use
