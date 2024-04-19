@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2020-2021 Intel Corporation
+# Copyright (C) 2020-2024 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -24,13 +24,11 @@ SPEC_FILE="$BASEDIR/rpm/wult.spec"
 # The CHANGELOG.md file path.
 CHANGELOG_FILE="$BASEDIR/CHANGELOG.md"
 
-# Documentation file paths.
-WULT_MAN_FILE="$BASEDIR/docs/man1/wult.1"
-WULT_RST_FILE="$BASEDIR/docs/wult-man.rst"
-NDL_MAN_FILE="$BASEDIR/docs/man1/ndl.1"
-NDL_RST_FILE="$BASEDIR/docs/ndl-man.rst"
-EXERCISESUT_MAN_FILE="$BASEDIR/docs/man1/exercise-sut.1"
-EXERCISESUT_RST_FILE="$BASEDIR/docs/exercise-sut-man.rst"
+# Documentation directories and file paths.
+MAN_DIR="$BASEDIR/docs/man1/"
+WULT_RST_FILES="$BASEDIR/docs/wult-man.rst
+                $BASEDIR/docs/ndl-man.rst
+                $BASEDIR/docs/exercise-sut-man.rst"
 
 # Path to 'pepc' project sources.
 PEPC_SRC_PATH="$BASEDIR/../pepc"
@@ -157,22 +155,12 @@ sed -i -e "s/^VERSION = \"$VERSION_REGEX\"$/VERSION = \"$new_ver\"/" "$WULT_TOOL
 # Change RPM package version.
 sed -i -e "s/^Version:\(\s\+\)$VERSION_REGEX$/Version:\1$new_ver/" "$SPEC_FILE"
 
-# Update the man page.
-argparse-manpage --pyfile "$WULT_FILE" --function _build_arguments_parser \
-                 --project-name 'wult' --author 'Artem Bityutskiy' \
-                 --author-email 'dedekind1@gmail.com' --output "$WULT_MAN_FILE" \
-                 --url 'https://github.com/intel/wult'
-argparse-manpage --pyfile "$NDL_FILE" --function _build_arguments_parser \
-                 --project-name 'ndl' --author 'Artem Bityutskiy' \
-                 --author-email 'dedekind1@gmail.com' --output "$NDL_MAN_FILE" \
-                 --url 'https://github.com/intel/wult'
-argparse-manpage --pyfile "$EXERCISESUT_FILE" --function _build_arguments_parser \
-                 --project-name 'wult' --author 'Artem Bityutskiy' \
-                 --author-email 'dedekind1@gmail.com' --output "$EXERCISESUT_MAN_FILE" \
-                 --url 'https://github.com/intel/wult'
-pandoc --toc -t man -s "$WULT_MAN_FILE" -t rst -o "$WULT_RST_FILE"
-pandoc --toc -t man -s "$NDL_MAN_FILE"  -t rst -o "$NDL_RST_FILE"
-pandoc --toc -t man -s "$EXERCISESUT_MAN_FILE"  -t rst -o "$EXERCISESUT_RST_FILE"
+# Update the man pages.
+for file in $WULT_RST_FILES; do
+    manfile="${MAN_DIR}/$(basename "$file" ".rst").1"
+    pandoc --toc -f rst -s "$file" -t man -o "$manfile"
+    git add "$manfile"
+done
 
 # Commit the changes.
 git -C "$BASEDIR" commit -a -s -m "Release version $new_ver"
