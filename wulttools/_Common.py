@@ -734,29 +734,24 @@ def run_stats_collect_deploy(args, pman):
             _LOG.warning("falied to deploy statistics collectors%s", pman.hostmsg)
             _LOG.debug(str(err))
 
-def add_freq_noise_cmdline_args(subparser):
+def add_freq_noise_cmdline_args(subparser, man_msg):
     """
     Add the 'freq-noise' options to the 'argparse' data. The input arguments are as follows.
       * subparser - the 'argparse' subparser to add the 'freq-noise' options to.
+      * man_msg - the message to append to the help text pointing to the relevant man page.
     """
 
-    text = """Add frequency scaling noise to the measured system. This runs a background process
-              that repeatedly modifies CPU or uncore frequencies for given domains. The reason for
-              doing this is because frequency scaling is generally an expensive operation and is
-              known to impact system latency. 'FREQ_NOISE' is specified as 'TYPE:ID:MIN:MAX', where:
-              TYPE should be 'cpu' or 'uncore', specifies whether CPU or uncore frequency should be
-              modified; ID is either CPU number or uncore domain ID to modify the frequency for
-              (e.g. 'cpu:12:...' would target CPU12); MIN is the minimum CPU/uncore frequency value;
-              MAX is the maximum CPU/uncore frequency value. For example, to add frequency scaling
-              noise for CPU0, add '--freq-noise cpu:0:min:max'. To add uncore frequency noise for
-              uncore domain 0, add '--freq-noise uncore:0:min:max'. The parameter can be added
-              multiple times to specify multiple frequency noise domains."""
+    text = f"""Add frequency scaling noise to the measured system. 'FREQ_NOISE' is specified as
+               'TYPE:ID:MIN:MAX', where: TYPE should be 'cpu' or 'uncore', specifies whether CPU or
+               uncore frequency should be modified; ID is either CPU number or uncore domain ID to
+               modify the frequency for (e.g. 'cpu:12:...' would target CPU12); MIN is the minimum
+               CPU/uncore frequency value; MAX is the maximum CPU/uncore frequency value. 
+               {man_msg}"""
     subparser.add_argument("--freq-noise", action="append", help=text)
 
-    text = """Sleep between frequency noise operations. This time is added between every frequency
-              scaling operation executed by the 'freq-noise' feature. The default time unit is
-              microseconds, but it is possible to use time specifiers as well, ms - milliseconds,
-              us - microseconds, ns - nanoseconds. Default sleep time is 50ms."""
+    text = f"""Sleep between frequency noise operations. This time is added between every frequency
+               scaling operation executed by the 'freq-noise' feature. Default sleep time is 50ms.
+               {man_msg}"""
     subparser.add_argument("--freq-noise-sleep", help=text)
 
 def parse_freq_noise_cmdline_args(args):
