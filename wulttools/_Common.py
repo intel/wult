@@ -79,18 +79,11 @@ START_REPORT_DESCR = """Generate an HTML report for collected results (same as c
 
 # Description for the '--stats' option of the 'start' command.
 default_stnames = ", ".join(StatsCollectBuilder.DEFAULT_STNAMES)
-STATS_DESCR = f"""Comma-separated list of statistics to collect. The statistics are collected in
-                  parallel with measuring C-state latency. They are stored in the the "stats"
-                  sub-directory of the output directory. By default, only '{default_stnames}'
-                  statistics are collected. Use 'all' to collect all possible statistics. Use
-                  '--stats=""' or '--stats="none"' to disable statistics collection. If you know
-                  exactly what statistics you need, specify the comma-separated list of statistics
-                  to collect. For example, use 'turbostat,acpower' if you need only turbostat and AC
-                  power meter statistics. You can also specify the statistics you do not want to be
-                  collected by pre-pending the '!' symbol. For example, 'all,!turbostat' would mean:
-                  collect all the statistics supported by the SUT, except for 'turbostat'. Use the
-                  '--list-stats' option to get more information about available statistics. By
-                  default, only 'sysinfo' statistics are collected."""
+STATS_DESCR = f"""Comma-separated list of statistics to collect. By default, only
+                  '{default_stnames}' statistics are collected. Use 'all' to collect all possible
+                  statistics. Use '--stats=""' or '--stats="none"' to disable statistics collection.
+                  If you know exactly what statistics you need, specify the comma-separated list of
+                  statistics to collect."""
 
 # Description for the '--stat-intervals' option of the 'start' command.
 STAT_INTERVALS_DESCR = """The intervals for statistics. Statistics collection is based on doing

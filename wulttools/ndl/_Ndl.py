@@ -92,6 +92,7 @@ def _build_arguments_parser():
     descr = """Start measuring and recording the latency data."""
     subpars = subparsers.add_parser("start", help=text, description=descr)
     subpars.set_defaults(func=_start_command)
+    man_msg = "Please, refer to 'ndl-start' manual page for more information."
 
     ArgParse.add_ssh_options(subpars)
 
@@ -107,7 +108,7 @@ def _build_arguments_parser():
 
     subpars.add_argument("--reportid", help=_Common.START_REPORTID_DESCR)
 
-    subpars.add_argument("--stats", default="default", help=_Common.STATS_DESCR)
+    subpars.add_argument("--stats", default="default", help=f"{_Common.STATS_DESCR} {man_msg}")
 
     subpars.add_argument("--stats-intervals", help=_Common.STAT_INTERVALS_DESCR)
 
