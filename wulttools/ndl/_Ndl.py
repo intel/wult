@@ -115,38 +115,22 @@ def _build_arguments_parser():
     subpars.add_argument("--list-stats", action="store_true",
                          help=_Common.LIST_STATS_DESCR % TOOLNAME)
 
-    text = f"""The launch distance in microseconds. This tool works by scheduling a delayed network
-               packet, then sleeping and waiting for the packet to be sent. This step is referred to
-               as a "measurement cycle" and it is usually repeated many times. The launch distance
-               defines how far in the future the delayed network packets are scheduled. By
-               default this tool randomly selects launch distance in range of [5000, 50000]
-               microseconds (same as '--ldist 5000,50000'). Specify a comma-separated range or a
-               single value if you want launch distance to be precisely that value all the time. The
-               default unit is microseconds, but you can use the following specifiers as well:
-               {_Common.DURATION_NS_SPECS_DESCR}. For example, '--ldist 500us,100ms' would be a
-               [500,100000] microseconds range.  Note, too low values may cause failures or prevent
-               the SUT from reaching deep C-states. The optimal value is system-specific."""
+    text = f"""The launch distance in microseconds. By default this tool randomly selects launch
+               distance in range of [5000, 50000] microseconds (same as '--ldist 5000,50000').
+               Specify a comma-separated range or a single value if you want launch distance to be
+               precisely that value all the time. Note, too low values may cause failures or prevent
+               the SUT from reaching deep C-states. {man_msg}"""
     subpars.add_argument("-l", "--ldist", default="5000,50000", help=text)
 
-    text = """The CPU number to bind the helper to. The helper will use this CPU to send delayed
-              packets. In normal conditions this means that network packet buffers will be allocated
-              on the NUMA node local to the CPU, but not necessarily local to the network card. Use
-              this option to measure different packet memory locations on a NUMA system. Special
-              value 'local' can be used to specify a CPU with lowest CPU number local to the NIC,
-              and this is the default value.a Special value 'remote' can be used to specify a CPU
-              with the lowest number remote to the NIC."""
+    text = f"""The CPU number to bind the helper to. The helper will use this CPU to send delayed
+               packets. Special value 'local' can be used to specify a CPU with lowest CPU number
+               local to the NIC, and this is the default value. A special value 'remote' can be used
+               to specify a CPU with the lowest number remote to the NIC. {man_msg}"""
     subpars.add_argument("--cpunum", help=text, default="local")
 
-    subpars.add_argument("--exclude", action=ArgParse.OrderedArg,
-                         help=_Common.EXCL_START_DESCR)
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=_Common.EXCL_START_DESCR)
     subpars.add_argument("--include", action=ArgParse.OrderedArg, help=_Common.INCL_DESCR)
-    text = f"""{_Common.KEEP_FILTERED_DESCR} Here is an example. Suppose you want to collect
-               100000 datapoints where RTD is greater than 50 microseconds. In this case, you can
-               use these options: -c 100000 --exclude="RTD > 50". The result will contain 100000
-               datapoints, all of them will have RTD bigger than 50 microseconds. But what if you do
-               not want to simply discard the other datapoints, because they are also interesting?
-               Well, add the '--keep-filtered' option. The result will contain, say, 150000
-               datapoints, 100000 of which will have RTD value greater than 50."""
+    text = f"""{_Common.KEEP_FILTERED_DESCR} {man_msg}"""
     subpars.add_argument("--keep-filtered", action="store_true", help=text)
 
     text = """Generate an HTML report for collected results (same as calling 'report' command with
