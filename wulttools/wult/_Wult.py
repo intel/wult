@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2022 Intel Corporation
+# Copyright (C) 2019-2024 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -35,21 +35,21 @@ _WULT_DEPLOY_INFO = {
         "wult" : {
             "category" : "drivers",
             "minkver"  : "5.6",
-            "deployables" : ("wult", "wult_igb", "wult_tdt", "wult_hrt", ),
+            "deployables" : ("wult", "wult_igb", "wult_tdt", "wult_hrt",),
         },
         "wult-hrt-helper" : {
             "category" : "bpfhelpers",
             "minkver"  : "5.15",
-            "deployables" : ("wult-hrt-helper", ),
+            "deployables" : ("wult-hrt-helper",),
         },
         "wult-tdt-helper" : {
             "category" : "bpfhelpers",
             "minkver"  : "5.15",
-            "deployables" : ("wult-tdt-helper", ),
+            "deployables" : ("wult-tdt-helper",),
         },
         "wult-freq-helper" : {
             "category" : "pyhelpers",
-            "deployables" : ("wult-freq-helper", ),
+            "deployables" : ("wult-freq-helper",),
         },
     },
 }
@@ -66,7 +66,7 @@ def _build_arguments_parser():
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
     subparsers = parser.add_subparsers(title="commands", dest="a command")
-    subparsers.required = True
+    subparsers.required = True # pylint: disable=pepc-unused-variable
 
     #
     # Create parsers for the "deploy" command.
@@ -84,8 +84,7 @@ def _build_arguments_parser():
     descr = """Scan for available devices."""
     subpars = subparsers.add_parser("scan", help=text, description=descr)
     subpars.set_defaults(func=_Common.scan_command)
-    subpars.add_argument("--all", action="store_true",
-                         help=_Common.get_scan_all_descr(TOOLNAME))
+    subpars.add_argument("--all", action="store_true", help=_Common.get_scan_all_descr(TOOLNAME))
 
     ArgParse.add_ssh_options(subpars)
 
@@ -103,8 +102,7 @@ def _build_arguments_parser():
                          help=_Common.DATAPOINTS_DESCR)
     subpars.add_argument("--time-limit", dest="tlimit", metavar="LIMIT",
                          help=_Common.TIME_LIMIT_DESCR)
-    subpars.add_argument("--exclude", action=ArgParse.OrderedArg,
-                         help=_Common.EXCL_START_DESCR)
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=_Common.EXCL_START_DESCR)
     subpars.add_argument("--include", action=ArgParse.OrderedArg, help=_Common.INCL_DESCR)
     text = f"""{_Common.KEEP_FILTERED_DESCR} Here is an example. Suppose you want to collect
                100000 datapoints where PC6 residency is greater than 0. In this case, you can use
@@ -117,6 +115,7 @@ def _build_arguments_parser():
 
     arg = subpars.add_argument("-o", "--outdir", type=Path, help=_Common.START_OUTDIR_DESCR)
     if argcomplete:
+        # pylint: disable=pepc-unused-variable
         arg.completer = argcomplete.completers.DirectoriesCompleter()
 
     subpars.add_argument("--reportid", help=_Common.START_REPORTID_DESCR)
@@ -179,7 +178,7 @@ def _build_arguments_parser():
     text = """The ID of the device to use for measuring the latency. For example, it can be a PCI
               address of the Intel I210 device, or "tdt" for the TSC deadline timer block of the
               CPU. Use the 'scan' command to get supported devices."""
-    subpars.add_argument("devid", nargs= '?' if '--list-stats' in sys.argv else None, help=text)
+    subpars.add_argument("devid", nargs="?" if "--list-stats" in sys.argv else None, help=text)
 
     _Common.add_freq_noise_cmdline_args(subpars)
 
@@ -211,8 +210,7 @@ def _build_arguments_parser():
     subpars.add_argument("--reportids", help=_Common.REPORTIDS_DESCR)
     subpars.add_argument("--report-descr", help=_Common.REPORT_DESCR)
     subpars.add_argument("--relocatable", action="store_true", help=_Common.RELOCATABLE_DESCR)
-    subpars.add_argument("--list-metrics", action="store_true",
-                         help=_Common.LIST_METRICS_DESCR)
+    subpars.add_argument("--list-metrics", action="store_true", help=_Common.LIST_METRICS_DESCR)
 
     text = """Generate HTML report with a pre-defined set of diagrams and histograms. Possible
               values: 'small' or 'large'. This option is mutually exclusive with '--xaxes',
@@ -235,11 +233,9 @@ def _build_arguments_parser():
                          help=_Common.MEXCLUDE_DESCR)
     subpars.add_argument("--include-metrics", action=ArgParse.OrderedArg, dest="minclude",
                          help=_Common.MINCLUDE_DESCR)
-    subpars.add_argument("--human-readable", action="store_true",
-                         help=_Common.FILTER_HUMAN_DESCR)
+    subpars.add_argument("--human-readable", action="store_true", help=_Common.FILTER_HUMAN_DESCR)
     subpars.add_argument("-o", "--outdir", type=Path, help=_Common.FILTER_OUTDIR_DESCR)
-    subpars.add_argument("--list-metrics", action="store_true",
-                         help=_Common.LIST_METRICS_DESCR)
+    subpars.add_argument("--list-metrics", action="store_true", help=_Common.LIST_METRICS_DESCR)
     subpars.add_argument("--reportid", help=_Common.FILTER_REPORTID_DESCR)
 
     text = f"The {TOOLNAME} test result path to filter."
@@ -265,7 +261,7 @@ def _build_arguments_parser():
     subpars.add_argument("--list-metrics", action="store_true", help=_Common.LIST_METRICS_DESCR)
 
     text = f"""The {TOOLNAME} test result path to calculate summary functions for."""
-    subpars.add_argument("respath", type=Path, help=text, nargs='?')
+    subpars.add_argument("respath", type=Path, help=text, nargs="?")
 
     if argcomplete:
         argcomplete.autocomplete(parser)
@@ -315,7 +311,7 @@ def main():
         args = parse_arguments()
 
         if not getattr(args, "func", None):
-            _LOG.error("please, run '%s -h' for help.", TOOLNAME)
+            _LOG.error("please, run '%s -h' for help", TOOLNAME)
             return -1
 
         args.func(args)
