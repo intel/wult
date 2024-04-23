@@ -34,15 +34,15 @@ _NDL_DEPLOY_INFO = {
         "ndl" : {
             "category" : "drivers",
             "minkver"  : "5.2",
-            "deployables" : ("ndl", ),
+            "deployables" : ("ndl",),
         },
         "ndl-helper" : {
             "category" : "shelpers",
-            "deployables" : ("ndl-helper", ),
+            "deployables" : ("ndl-helper",),
         },
         "wult-freq-helper" : {
             "category" : "pyhelpers",
-            "deployables" : ("wult-freq-helper", ),
+            "deployables" : ("wult-freq-helper",),
         },
     },
 }
@@ -66,7 +66,7 @@ def _build_arguments_parser():
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
     subparsers = parser.add_subparsers(title="commands", dest="a command")
-    subparsers.required = True
+    subparsers.required = True # pylint: disable=pepc-unused-variable
 
     #
     # Create parsers for the "deploy" command.
@@ -81,8 +81,7 @@ def _build_arguments_parser():
     descr = """Scan for available devices."""
     subpars = subparsers.add_parser("scan", help=text, description=descr)
     subpars.set_defaults(func=_Common.scan_command)
-    subpars.add_argument("--all", action="store_true",
-                         help=_Common.get_scan_all_descr(TOOLNAME))
+    subpars.add_argument("--all", action="store_true", help=_Common.get_scan_all_descr(TOOLNAME))
 
     ArgParse.add_ssh_options(subpars)
 
@@ -103,6 +102,7 @@ def _build_arguments_parser():
 
     arg = subpars.add_argument("-o", "--outdir", type=Path, help=_Common.START_OUTDIR_DESCR)
     if argcomplete:
+        # pylint: disable=pepc-unused-variable
         arg.completer = argcomplete.completers.DirectoriesCompleter()
 
     subpars.add_argument("--reportid", help=_Common.START_REPORTID_DESCR)
@@ -183,17 +183,14 @@ def _build_arguments_parser():
     subpars.add_argument("--include", action=ArgParse.OrderedArg, help=_Common.INCL_DESCR)
     subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
                          help=_Common.EVEN_UP_DP_DESCR)
-    subpars.add_argument("-x", "--xaxes",
-                         help=_Common.XAXES_DESCR % _get_axes_default("xaxes"))
-    subpars.add_argument("-y", "--yaxes",
-                         help=_Common.YAXES_DESCR % _get_axes_default("yaxes"))
+    subpars.add_argument("-x", "--xaxes", help=_Common.XAXES_DESCR % _get_axes_default("xaxes"))
+    subpars.add_argument("-y", "--yaxes", help=_Common.YAXES_DESCR % _get_axes_default("yaxes"))
     subpars.add_argument("--hist", help=_Common.HIST_DESCR % _get_axes_default("hist"))
     subpars.add_argument("--chist", help=_Common.CHIST_DESCR % _get_axes_default("chist"))
     subpars.add_argument("--reportids", help=_Common.REPORTIDS_DESCR)
     subpars.add_argument("--report-descr", help=_Common.REPORT_DESCR)
     subpars.add_argument("--relocatable", action="store_true", help=_Common.RELOCATABLE_DESCR)
-    subpars.add_argument("--list-metrics", action="store_true",
-                         help=_Common.LIST_METRICS_DESCR)
+    subpars.add_argument("--list-metrics", action="store_true", help=_Common.LIST_METRICS_DESCR)
 
     text = f"""One or multiple {TOOLNAME} test result paths."""
     subpars.add_argument("respaths", nargs="+", type=Path, help=text)
@@ -211,11 +208,9 @@ def _build_arguments_parser():
                          help=_Common.MEXCLUDE_DESCR)
     subpars.add_argument("--include-metrics", action=ArgParse.OrderedArg, dest="minclude",
                          help=_Common.MINCLUDE_DESCR)
-    subpars.add_argument("--human-readable", action="store_true",
-                         help=_Common.FILTER_HUMAN_DESCR)
+    subpars.add_argument("--human-readable", action="store_true", help=_Common.FILTER_HUMAN_DESCR)
     subpars.add_argument("-o", "--outdir", type=Path, help=_Common.FILTER_OUTDIR_DESCR)
-    subpars.add_argument("--list-metrics", action="store_true",
-                         help=_Common.LIST_METRICS_DESCR)
+    subpars.add_argument("--list-metrics", action="store_true", help=_Common.LIST_METRICS_DESCR)
     subpars.add_argument("--reportid", help=_Common.FILTER_REPORTID_DESCR)
 
     text = f"The {TOOLNAME} test result path to filter."
@@ -241,7 +236,7 @@ def _build_arguments_parser():
     subpars.add_argument("--list-metrics", action="store_true", help=_Common.LIST_METRICS_DESCR)
 
     text = f"""The {TOOLNAME} test result path to calculate summary functions for."""
-    subpars.add_argument("respath", type=Path, help=text, nargs='?')
+    subpars.add_argument("respath", type=Path, help=text, nargs="?")
 
     if argcomplete:
         argcomplete.autocomplete(parser)
@@ -288,7 +283,7 @@ def main():
         args = parse_arguments()
 
         if not getattr(args, "func", None):
-            _LOG.error("please, run '%s -h' for help.", TOOLNAME)
+            _LOG.error("please, run '%s -h' for help", TOOLNAME)
             return -1
 
         args.func(args)
