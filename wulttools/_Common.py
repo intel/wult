@@ -195,26 +195,12 @@ FILT_DESCR = """Filter datapoints out of a test result by removing CSV rows and 
                 selector options ('--include', '--exclude-metrics', etc). The options may be
                 specified multiple times."""
 
-_EXCL_DESCR_BASE = """Datapoints to exclude: remove all the datapoints satisfying the expression
-                      'EXCLUDE'. Here is an example of an expression: '(WakeLatency < 10000) |
-                      (PC6%% < 1)'. This filter expression will remove all datapoints with
-                      'WakeLatency' smaller than 10000 nanoseconds or package C6 residency smaller
-                      than 1%%."""
-
-# Description for the '--exclude' option of the 'start' command.
-EXCL_START_DESCR = f"""{_EXCL_DESCR_BASE} You can use any metrics in the expression."""
-
-# Description for the '--exclude' option of the 'filter' command.
-EXCL_DESCR = f"""{_EXCL_DESCR_BASE} The detailed expression syntax can be found in the documentation
-                 for the 'eval()' function of Python 'pandas' module. You can use metrics in the
-                 expression, or the special word 'index' for the row number (0-based index) of a
-                 datapoint in the results. For example, expression 'index >= 10' will get rid of all
-                 datapoints except for the first 10 ones."""
+EXCL_DESCR = """Datapoints to exclude: remove all the datapoints satisfying the expression
+                'EXCLUDE'."""
 
 # Description for the '--include' option of the 'filter' command.
 INCL_DESCR = """Datapoints to include: remove all datapoints except for those satisfying the
-                expression 'INCLUDE'. In other words, this option is the inverse of '--exclude'.
-                This means, '--include expr' is the same as '--exclude "not (expr)"'."""
+                expression 'INCLUDE'. In other words, this option is the inverse of '--exclude'."""
 
 KEEP_FILTERED_DESCR = """If the '--exclude' / '--include' options are used, then the datapoints not
                          matching the selector or matching the filter are discarded. This is the

@@ -128,7 +128,7 @@ def _build_arguments_parser():
                to specify a CPU with the lowest number remote to the NIC. {man_msg}"""
     subpars.add_argument("--cpunum", help=text, default="local")
 
-    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=_Common.EXCL_START_DESCR)
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=_Common.EXCL_DESCR)
     subpars.add_argument("--include", action=ArgParse.OrderedArg, help=_Common.INCL_DESCR)
     text = f"""{_Common.KEEP_FILTERED_DESCR} {man_msg}"""
     subpars.add_argument("--keep-filtered", action="store_true", help=text)
@@ -161,11 +161,14 @@ def _build_arguments_parser():
     descr = """Create an HTML report for one or multiple test results."""
     subpars = subparsers.add_parser("report", help=text, description=descr)
     subpars.set_defaults(func=_report_command)
+    man_msg = "Please, refer to 'ndl-report' manual page for more information."
 
     subpars.add_argument("-o", "--outdir", type=Path,
                          help=_Common.get_report_outdir_descr(TOOLNAME))
-    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=_Common.EXCL_DESCR)
-    subpars.add_argument("--include", action=ArgParse.OrderedArg, help=_Common.INCL_DESCR)
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg,
+                         help=f"{_Common.EXCL_DESCR} {man_msg}")
+    subpars.add_argument("--include", action=ArgParse.OrderedArg,
+                         help=f"{_Common.INCL_DESCR} {man_msg}")
     subpars.add_argument("--even-up-dp-count", action="store_true", dest="even_dpcnt",
                          help=_Common.EVEN_UP_DP_DESCR)
     subpars.add_argument("-x", "--xaxes", help=_Common.XAXES_DESCR % _get_axes_default("xaxes"))

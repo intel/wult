@@ -103,7 +103,8 @@ def _build_arguments_parser():
                          help=_Common.DATAPOINTS_DESCR)
     subpars.add_argument("--time-limit", dest="tlimit", metavar="LIMIT",
                          help=_Common.TIME_LIMIT_DESCR)
-    subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=_Common.EXCL_START_DESCR)
+    subpars.add_argument("--exclude", action=ArgParse.OrderedArg,
+                         help=f"{_Common.EXCL_DESCR} {man_msg}")
     subpars.add_argument("--include", action=ArgParse.OrderedArg, help=_Common.INCL_DESCR)
     text = f"{_Common.KEEP_FILTERED_DESCR} {man_msg}"
     subpars.add_argument("--keep-filtered", action="store_true", help=text)
