@@ -35,13 +35,7 @@ _LOG = logging.getLogger()
 _REPORTID_ADDITIONAL_CHARS = ":"
 
 # Description for the '--datapoints' option of the 'start' command.
-DATAPOINTS_DESCR = """How many datapoints should the test result include, default is 1000000. Note,
-                      unless the '--start-over' option is used, the pre-existing datapoints are
-                      taken into account. For example, if the test result already has 6000
-                      datapoints and '-c 10000' is used, the tool will collect 4000 datapoints and
-                      exit. Warning: collecting too many datapoints may result in a very large test
-                      result file, which will be difficult to process later, because that would
-                      require a lot of memory."""
+DATAPOINTS_DESCR = """How many datapoints should the test result include, default is 1000000."""
 
 # Duration specifiers description.
 DURATION_SPECS_DESCR = "d - days, h - hours, m - minutes, s - seconds"
@@ -50,11 +44,7 @@ DURATION_NS_SPECS_DESCR = "ms - milliseconds, us - microseconds, ns - nanosecond
 # Description for the '--time-limit' option of the 'start' command.
 TIME_LIMIT_DESCR = f"""The measurement time limit, i.e., for how long the SUT should be measured.
                        The default unit is minute, but you can use the following handy specifiers
-                       as well: {DURATION_SPECS_DESCR}. For example '1h25m' would be 1 hour and 25
-                       minutes, or 10m5s would be 10 minutes and 5 seconds. Value '0' means "no time
-                       limit", and this is the default. If this option is used along with the
-                       '--datapoints' option, then measurements will stop as when either the time
-                       limit is reached, or the required amount of datapoints is collected."""
+                       as well: {DURATION_SPECS_DESCR}."""
 
 # Description for the '--start-over' option of the 'start' command.
 START_OVER_DESCR = """If the output directory already contains the datapoints CSV file with some

@@ -97,9 +97,9 @@ def _build_arguments_parser():
     ArgParse.add_ssh_options(subpars)
 
     subpars.add_argument("-c", "--datapoints", default=1000000, metavar="COUNT", dest="dpcnt",
-                         help=_Common.DATAPOINTS_DESCR)
+                         help=f"{_Common.DATAPOINTS_DESCR} {man_msg}")
     subpars.add_argument("--time-limit", dest="tlimit", metavar="LIMIT",
-                         help=_Common.TIME_LIMIT_DESCR)
+                         help=f"{_Common.TIME_LIMIT_DESCR} {man_msg}")
 
     arg = subpars.add_argument("-o", "--outdir", type=Path, help=_Common.START_OUTDIR_DESCR)
     if argcomplete:
