@@ -15,6 +15,9 @@ C-state latency in Linux.
 
 # Documentation
 
+Please, refer to the [documentation web pages](https://intel.github.io/wult) for detailed
+information on the 'wult' and 'ndl' tools, how they work and what they can be used to measure.
+
 Command-specific documentation is available for each command of the 'wult', 'ndl' and 'exercise-sut'
 tools.
 
@@ -40,8 +43,6 @@ tools.
 
  * `exercise-sut start` - [Documentation](docs/exercise-sut-start.rst)
  * `exercise-sut report` - [Documentation](docs/exercise-sut-report.rst)
-
-Please, refer to the [documentation web pages](https://intel.github.io/wult) for more information.
 
 # Authors and contributors
 
