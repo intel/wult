@@ -1,2 +1,3 @@
-docs/man1/ndl.1
-docs/man1/wult.1
+docs/man1/ndl-*.1
+docs/man1/wult-*.1
+docs/man1/exercise-sut-*.1

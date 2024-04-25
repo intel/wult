@@ -61,9 +61,8 @@ Wult Python libraries
 install -pDm755 helpers/ndl-helper/ndl-helper %{buildroot}%{_bindir}/ndl-helper
 install -pDm755 helpers/wult-hrt-helper/wult-hrt-helper %{buildroot}%{_bindir}/wult-hrt-helper
 install -pDm755 helpers/wult-tdt-helper/wult-tdt-helper %{buildroot}%{_bindir}/wult-tdt-helper
-install -pDm644 docs/man1/exercise-sut.1 %{buildroot}/%{_mandir}/man1/exercise-sut.1
-install -pDm644 docs/man1/ndl.1 %{buildroot}/%{_mandir}/man1/ndl.1
-install -pDm644 docs/man1/wult.1 %{buildroot}/%{_mandir}/man1/wult.1
+mkdir -p %{buildroot}/%{_mandir}/man1/wult
+install -pDm644 docs/man1/*.1 %{buildroot}/%{_mandir}/man1/wult
 
 %check
 %pytest -v
@@ -81,8 +80,9 @@ install -pDm644 docs/man1/wult.1 %{buildroot}/%{_mandir}/man1/wult.1
 %{_bindir}/wult-tdt-helper
 %{_datadir}/wult
 %{_mandir}/man1/exercise-sut.1*
-%{_mandir}/man1/ndl.1*
-%{_mandir}/man1/wult.1*
+%{_mandir}/man1/ndl-*.1
+%{_mandir}/man1/wult-*.1
+%{_mandir}/man1/exercise-sut-*.1
 
 %files -n python3-%{name} -f %{pyproject_files}
 
