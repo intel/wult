@@ -8,6 +8,9 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+
+## [1.12.19] - 2024-04-25
+### Changed
  - Split manual pages and simplify the '--help' output.
  - Require stats-collect v1.0.24 - there was a critival fix in turbostat
    statistics visualization code.
