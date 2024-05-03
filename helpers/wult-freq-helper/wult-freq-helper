@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2023 Intel Corporation
+# Copyright (C) 2023-2024 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Tero Kristo <tero.kristo@linux.intel.com>
@@ -11,13 +11,13 @@
 """wult-freq-helper - a helper for scaling CPU/uncore frequencies in a loop."""
 
 import argparse
+import contextlib
 import logging
-import os
-import re
 import sys
 import time
 from pathlib import Path
-from pepclibs.helperlibs import ArgParse, Logging, Trivial
+from pepclibs import CPUInfo, _UncoreFreq, _CPUFreq, _SysfsIO
+from pepclibs.helperlibs import ArgParse, Logging, Trivial, LocalProcessManager
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import Human
 
@@ -77,86 +77,24 @@ def sysfs_write(fname, val):
     with open(fname, "w", encoding="utf-8") as fobj:
         fobj.write(str(val))
 
-def get_path(args, freq_type, num):
+def parse_freq(freq_type, f, fmin, fmax):
     """
-    Validate the ID 'num' for frequency type 'freq_type' and return the path to the corresponding
-    sysfs directory.
+    Parse a frequency string and return it as an integer. Arguments are as follows.
+      * freq_type - type of frequency, 'cpu' or 'uncore'.
+      * f - frequency string to be parsed.
+      * fmin - minimum acceptable value for the frequency.
+      * fmax - maximum acceptable value for the frequency.
     """
 
-    if freq_type == "cpu":
-        max_id_path = CPU_SYSFS_BASE
-        max_id_pattern = r"cpu(\d+)"
-    elif freq_type == "uncore":
-        max_id_path = UNCORE_FREQ_SYSFS_BASE
-        if args.legacy:
-            max_id_pattern = r"package_.*_die_.*"
-        else:
-            max_id_pattern = r"uncore.*"
-    else:
-        return None
-
-    try:
-        files = os.listdir(max_id_path)
-    except FileNotFoundError as err:
-        if freq_type == "uncore":
-            raise Error("uncore support not detected") from err
-        raise Error("cpufreq support not detected") from err
-    max_num = 0
-    for f in files:
-        if re.match(max_id_pattern, f):
-            max_num += 1
-
-    if num < 0 or num >= max_num:
-        raise Error(f"bad ID {num} for {freq_type}: valid range is [0-{max_num - 1}]")
-
-    if freq_type == "cpu":
-        return CPU_SYSFS_BASE / f"cpu{num}/cpufreq"
-
-    if args.legacy:
-        return UNCORE_FREQ_SYSFS_BASE / files[num]
-
-    return UNCORE_FREQ_SYSFS_BASE / f"uncore{num:02d}"
-
-def get_freq_limits(args, freq_type, num):
-    """Get frequency limits for the specified frequency."""
-
-    if not "freq_limits" in args:
-        setattr(args, "freq_limits", {"cpu": {}, "uncore": {}})
-
-    freq_limits = getattr(args, "freq_limits")
-
-    if not num in freq_limits[freq_type]:
-        path = get_path(args, freq_type, num)
-        if freq_type == "cpu":
-            min_freq = sysfs_read(path / "cpuinfo_min_freq")
-            max_freq = sysfs_read(path / "cpuinfo_max_freq")
-        elif freq_type == "uncore":
-            min_freq = sysfs_read(path / "initial_min_freq_khz")
-            max_freq = sysfs_read(path / "initial_max_freq_khz")
-        else:
-            raise Error(f"type {freq_type}  not supported")
-
-        minf_human = Human.num2si(min_freq * 1000, unit="Hz")
-        maxf_human = Human.num2si(max_freq * 1000, unit="Hz")
-        _LOG.debug("detected frequency range for %s%d: %s-%s", freq_type, num, minf_human,
-                  maxf_human)
-        freq_limits[freq_type][num] = {"min": min_freq, "max": max_freq}
-        setattr(args, "freq_limits", freq_limits)
-
-    return freq_limits[freq_type][num]
-
-def parse_freq(args, freq_type, num, f):
-    """Parse frequency string 'f' for the specified frequency, and return it as integer."""
-
-    limits = get_freq_limits(args, freq_type, num)
-
-    if f in ("min", "max"):
-        f = limits[f]
+    if f == "min":
+        f = fmin
+    elif f == "max":
+        f = fmax
     else:
         f = int(Human.parse_human(f, unit="Hz", integer=True) / 1000)
 
-    if f < limits["min"] or f > limits["max"]:
-        raise Error(f"frequency {f} out of range [{limits['min']}-{limits['max']}] for {freq_type}")
+    if f < fmin or f > fmax:
+        raise Error(f"frequency {f} out of range [{fmin}-{fmax}] for {freq_type}")
 
     return f
 
@@ -169,37 +107,39 @@ def set_freq(args, spec, cfg):
     """
 
     f = spec[cfg]
+    obj = spec["obj"]
 
     if cfg == "min":
-        path1 = spec["paths"]["min"]
-        path2 = spec["paths"]["max"]
+        obj.set_min_freq(f, spec["id"])
+        obj.set_max_freq(f, spec["id"])
     else:
-        path1 = spec["paths"]["max"]
-        path2 = spec["paths"]["min"]
-
-    sysfs_write(path1, f)
-    sysfs_write(path2, f)
+        obj.set_max_freq(f, spec["id"])
+        obj.set_min_freq(f, spec["id"])
 
     if args.nowait:
         return
 
-    path = spec["paths"]["cur"]
     count = 0
 
     while True:
-        curf = sysfs_read(path)
+        curf = next(obj.get_cur_freq(spec["id"]))[-1]
         if f == curf:
             break
         count += 1
         if count > 100000 and (count % 100000) == 0:
-            _LOG.warning("waiting for %s to reach %d, loops=%d", path, f, count)
+            _LOG.warning("waiting for %s%d to reach %d, current %d, loops=%d", spec["type"],
+                         spec["num"], f, curf, count)
             if count > 500000:
-                raise Error(f"unable to change frequency of {spec['type']}{spec['id']} to {f}")
+                raise Error(f"unable to change frequency of {spec['type']}{spec['num']} to {f}")
 
-def parse_freq_specs(args):
+def parse_freq_specs(args, cpuinfo, ucfobj, cpufobj):
     """
-    Parse raw frequency specification data from 'args', and return an array of parsed frequency
-    specs.
+    Parse raw frequency specification data, and return an array of parsed frequency specs. Arguments
+    are as follows.
+      * args - raw frequency specification data.
+      * cpuinfo - 'CPUInfo' object.
+      * ucfobj - '_UncoreFreq' object.
+      * cpufobj - '_CPUFreq' object.
     """
 
     parsed_specs = []
@@ -215,65 +155,57 @@ def parse_freq_specs(args):
             raise Error(f"bad frequency type '{freq_type}'. Only 'cpu', 'uncore' are supported.")
 
         num = Trivial.str_to_int(tokens[1], what="frequency ID")
+        siblings = None
 
-        fmin = parse_freq(args, freq_type, num, tokens[2])
-        fmax = parse_freq(args, freq_type, num, tokens[3])
+        if freq_type == "cpu":
+            obj = cpufobj
+            spec_id = (num,)
+            fmin = next(obj.get_min_freq_limit(spec_id))[1]
+            fmax = next(obj.get_max_freq_limit(spec_id))[1]
+            siblings = cpuinfo.get_cpu_siblings(num, "core")
+        else:
+            obj = ucfobj
+            dies = obj.get_dies_info()
+            dies_map = []
+            for pkg in dies:
+                for die in dies[pkg]:
+                    dies_map += [{pkg: [die]}]
+            if num >= len(dies_map):
+                raise Error(f"bad ID {num} for uncore: valid range is [0-{len(dies_map)-1}]")
+            spec_id = dies_map[num]
+
+            fmin = next(obj.get_min_freq_limit_dies(spec_id))[2]
+            fmax = next(obj.get_max_freq_limit_dies(spec_id))[2]
+
+        fmin = parse_freq(freq_type, tokens[2], fmin, fmax)
+        fmax = parse_freq(freq_type, tokens[3], fmin, fmax)
 
         if fmin > fmax or fmin == fmax:
             raise Error(f"bad frequency range: [{fmin}-{fmax}]")
 
-        path = get_path(args, freq_type, num)
-        paths = {}
-        if freq_type == "cpu":
-            paths["min"] = path / "scaling_min_freq"
-            paths["max"] = path / "scaling_max_freq"
-            paths["cur"] = path / "scaling_cur_freq"
-        elif freq_type == "uncore":
-            paths["min"] = path / "min_freq_khz"
-            paths["max"] = path / "max_freq_khz"
-            paths["cur"] = path / "current_freq_khz"
-
-        parsed_specs.append({"min": fmin, "max": fmax, "type": freq_type, "id": num,
-                             "paths": paths})
+        parsed_specs.append({"min": fmin, "max": fmax, "type": freq_type, "id": spec_id,
+                             "num": num, "obj": obj, "siblings": siblings})
 
     return parsed_specs
 
-def sysfs_verify(path, val):
-    """
-    Verify that a specified sysfs file contains the value written there.
-    """
-
-    count = 3
-    while count > 0:
-        cur_val = sysfs_read(path)
-        if cur_val == val:
-            return
-        time.sleep(0.1)
-        count -= 1
-
-    raise Error(f"failed to set {path} to {val}, read back {cur_val}")
-
 def init_freq(spec):
     """
-    Initialize a frequency to a known state. We force the frequency to minimum limit provided by
-    the frequency specification.
+    Initialize a frequency specified in 'spec' to a known state. We force the frequency to minimum
+    limit provided by the frequency specification.
     """
 
     f = spec["min"]
-    paths = spec["paths"]
+    obj = spec["obj"]
 
-    # Linux kernel verifies the values written to the sysfs files for cpufreq/uncore to see if the
-    # value is outside acceptable limits. However, linux kernel does not return a failure when this
-    # happens, it will just not update the value, thus, no exception handling is required.
-    sysfs_write(paths["min"], f)
-    sysfs_write(paths["max"], f)
+    obj.set_min_freq(f, spec["id"])
+    obj.set_max_freq(f, spec["id"])
+    obj.set_min_freq(f, spec["id"])
 
-    # This third write is required for cases where f > max, and kernel ignores the first write to
-    # 'min' file above.
-    sysfs_write(paths["min"], f)
-
-    sysfs_verify(paths["min"], f)
-    sysfs_verify(paths["max"], f)
+    if spec["type"] == "cpu":
+        for sibling in spec["siblings"]:
+            obj.set_min_freq(f, (sibling,))
+            obj.set_max_freq(f, (sibling,))
+            obj.set_min_freq(f, (sibling,))
 
 def main():
     """
@@ -281,49 +213,63 @@ def main():
     in a loop by the given command line options.
     """
 
-    try:
-        args = parse_arguments()
+    with contextlib.ExitStack() as stack:
+        pman = LocalProcessManager.LocalProcessManager()
+        stack.enter_context(pman)
 
-        if args.print_module_paths:
-            return 0
+        cpuinfo = CPUInfo.CPUInfo(pman=pman)
+        stack.enter_context(cpuinfo)
 
-        args.legacy = False
+        sysfs_io = _SysfsIO.SysfsIO(pman, enable_cache=False)
+        stack.enter_context(sysfs_io)
 
-        if not args.specs:
-            raise Error("no frequency specs defined, nothing to do")
+        ucfobj = _UncoreFreq.UncoreFreq(cpuinfo, pman=pman, sysfs_io=sysfs_io, enable_cache=False)
+        stack.enter_context(ucfobj)
 
-        if not UNCORE_FREQ_SYSFS_BASE.joinpath("uncore00").is_dir():
-            args.legacy = True
-            _LOG.debug("legacy intel-uncore support detected")
+        cpufobj = _CPUFreq.CPUFreqSysfs(cpuinfo=cpuinfo, pman=pman, sysfs_io=sysfs_io,
+                                        enable_cache=False, verify=False)
+        stack.enter_context(cpufobj)
 
-        parsed_specs = parse_freq_specs(args)
-        if not parsed_specs:
-            return 0
+        ucfobj.set_min_freq = ucfobj.set_min_freq_dies
+        ucfobj.set_max_freq = ucfobj.set_max_freq_dies
+        ucfobj.get_cur_freq = ucfobj.get_cur_freq_dies
 
-        for spec in parsed_specs:
-            init_freq(spec)
+        try:
+            args = parse_arguments()
 
-        loops = 0
+            if args.print_module_paths:
+                return 0
 
-        if args.sleep:
-            args.sleep /= 1000000
+            if not args.specs:
+                raise Error("no frequency specs defined, nothing to do")
 
-        _LOG.info("Looping...")
-        while True:
+            parsed_specs = parse_freq_specs(args, cpuinfo, ucfobj, cpufobj)
+            if not parsed_specs:
+                return 0
+
             for spec in parsed_specs:
-                set_freq(args, spec, "max")
+                init_freq(spec)
+
+            loops = 0
+
             if args.sleep:
-                time.sleep(args.sleep)
-            for spec in parsed_specs:
-                set_freq(args, spec, "min")
-            loops += 1
-            if args.sleep:
-                time.sleep(args.sleep)
-    except KeyboardInterrupt:
-        _LOG.info("Loop terminated after %d loops.", loops)
-        return 1
-    except Error as err:
-        _LOG.error_out(err)
+                args.sleep /= 1000000
+
+            _LOG.info("Looping...")
+            while True:
+                for spec in parsed_specs:
+                    set_freq(args, spec, "max")
+                if args.sleep:
+                    time.sleep(args.sleep)
+                for spec in parsed_specs:
+                    set_freq(args, spec, "min")
+                loops += 1
+                if args.sleep:
+                    time.sleep(args.sleep)
+        except KeyboardInterrupt:
+            _LOG.info("Loop terminated after %d loops.", loops)
+        except Error as err:
+            _LOG.error_out(err)
 
     return 0
 
