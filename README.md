@@ -18,8 +18,16 @@ C-state latency in Linux.
 Please, refer to the [documentation web pages](https://intel.github.io/wult) for detailed
 information on the 'wult' and 'ndl' tools, how they work and what they can be used to measure.
 
+## Installation
+
+Steps to install the tools are included as part of the documentation web pages in the
+[installation guide](https://intel.github.io/wult/pages/install-local.html).
+
+## Usage
+
 Command-specific documentation is available for each command of the 'wult', 'ndl' and 'exercise-sut'
-tools.
+tools as listed below. For more general information on how to use the tools, see the
+[user guide](https://intel.github.io/wult/pages/user-guide.html).
 
 ### WULT
 
