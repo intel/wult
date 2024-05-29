@@ -53,6 +53,11 @@ OPTIONS *'ndl* deploy'
    If '--local-build' was used, then the path is considered to be on the
    local system, rather than the SUT.
 
+**--drivers-make-opts**
+   Options and variables to pass to 'make' when the drivers are built. For example, pass 'CC=clang
+   LLVM=1' to use clang and LLVM tools for building the drivers (required when the kernel was build
+   with clang/LLVM).
+
 **--local-build**
    Build helpers and drivers locally, instead of building on HOSTNAME
    (the SUT).

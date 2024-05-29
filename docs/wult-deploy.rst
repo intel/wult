@@ -54,6 +54,15 @@ OPTIONS *'wult* deploy'
    If '--local-build' was used, then the path is considered to be on the
    local system, rather than the SUT.
 
+**--drivers-make-opts**
+   Options and variables to pass to 'make' when the drivers are built. For example, pass 'CC=clang
+   LLVM=1' to use clang and LLVM tools for building the drivers (required when the kernel was build
+   with clang/LLVM).
+
+**--skip-drivers**
+   Deploy the eBPF helper, but do not deploy the drivers. This is a
+   debug and development option, do not use it for other purposes.
+
 **--rebuild-bpf**
    eBPF helpers sources consist of 2 components: the user-space
    component and the eBPF component. The user-space component is
@@ -91,7 +100,3 @@ OPTIONS *'wult* deploy'
 
 **-T** *TIMEOUT*, **--timeout** *TIMEOUT*
    SSH connect timeout in seconds, default is 8.
-
-**--skip-drivers**
-   Deploy the eBPF helper, but do not deploy the drivers. This is a
-   debug and development option, do not use it for other purposes.
