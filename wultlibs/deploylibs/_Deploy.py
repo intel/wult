@@ -34,7 +34,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
       * argcomplete - optional 'argcomplete' command-line arguments completer object.
     """
 
-    cats = {cat : [] for cat in DeployBase.CATEGORIES}
+    cats = {cat: [] for cat in DeployBase.CATEGORIES}
     for name, info in deploy_info["installables"].items():
         cats[info["category"]].append(name)
 
@@ -227,7 +227,6 @@ class DeployCheck(DeployBase.DeployCheckBase):
         self._kver = None
         self._time_delta = None
 
-
 class Deploy(DeployBase.DeployBase):
     """
     This class provides the 'deploy()' method which can be used for deploying the dependencies of
@@ -248,7 +247,7 @@ class Deploy(DeployBase.DeployBase):
         else:
             self._kver = KernelVersion.get_kver_ktree(self._ksrc, pman=self._bpman)
 
-        _LOG.debug("Kernel version: %s", self._kver)
+        _LOG.debug("kernel version: %s", self._kver)
         return self._kver
 
     def _get_ksrc(self):
@@ -266,7 +265,7 @@ class Deploy(DeployBase.DeployBase):
             raise ErrorNotFound(f"cannot find kernel sources: '{ksrc}' does not "
                                 f"exist{self._bpman.hostmsg}") from err
 
-        _LOG.debug("Kernel sources path: %s", self._ksrc)
+        _LOG.debug("kernel sources path: %s", self._ksrc)
         return self._ksrc
 
     def _deploy_bpf_helpers(self):
@@ -401,5 +400,5 @@ class Deploy(DeployBase.DeployBase):
     def close(self):
         """Uninitialize the object."""
 
-        ClassHelpers.close(self, close_attrs=("_btchk", ))
+        ClassHelpers.close(self, close_attrs=("_btchk",))
         super().close()
