@@ -18,9 +18,11 @@ def deploy_command(args):
 
     with _Common.get_pman(args) as pman:
         ksrc = getattr(args, "ksrc", None)
+        skip_drivers = getattr(args, "skip_drivers", None)
         rebuild_bpf = getattr(args, "rebuild_bpf", None)
+
         with _Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, ksrc=ksrc,
-                            lbuild=args.lbuild, rebuild_bpf=rebuild_bpf,
+                            lbuild=args.lbuild, skip_drivers=skip_drivers, rebuild_bpf=rebuild_bpf,
                             tmpdir_path=args.tmpdir_path, keep_tmpdir=args.keep_tmpdir,
                             debug=args.debug) as depl:
             depl.deploy()

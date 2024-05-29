@@ -73,9 +73,6 @@ def _build_arguments_parser():
     #
     subpars = _Deploy.add_deploy_cmdline_args(TOOLNAME, _WULT_DEPLOY_INFO, subparsers,
                                               _deploy_command, argcomplete=argcomplete)
-    text = """Deploy the eBPF helper, but do not deploy the drivers. This is a debug and development
-              option, do not use it for other purposes."""
-    subpars.add_argument("--skip-drivers", action="store_true", help=text)
 
     #
     # Create parsers for the "scan" command.
@@ -258,9 +255,6 @@ def _deploy_command(args):
     """Implements the 'wult deploy' command."""
 
     from wulttools.wult import _WultDeploy # pylint: disable=import-outside-toplevel
-
-    if args.skip_drivers:
-        del args.deploy_info["installables"]["wult"]
 
     _WultDeploy.deploy_command(args)
 

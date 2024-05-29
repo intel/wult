@@ -60,6 +60,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
                                                                 _DeployDrivers.DRIVERS_SRC_SUBDIR)
         descr += f""" The drivers are searched for in the following directories (and in the
                      following order) on the local host: {searchdirs}."""
+
     if cats["shelpers"] or cats["pyhelpers"]:
         searchdirs = ProjectFiles.get_project_data_search_descr("wult", HELPERS_SRC_SUBDIR)
         helpernames = ", ".join(cats["shelpers"] + cats["pyhelpers"] + cats["bpfhelpers"])
@@ -81,6 +82,11 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
         arg = parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text)
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
+
+    if cats["drivers"] and cats["bpfhelpers"]:
+        text = """Deploy the eBPF helper, but do not deploy the drivers. This is a debug and
+                  development option, do not use it for other purposes."""
+        parser.add_argument("--skip-drivers", action="store_true", help=text)
 
     if cats["bpfhelpers"]:
         text = """eBPF helpers sources consist of 2 components: the user-space component and the
@@ -344,14 +350,18 @@ class Deploy(DeployBase.DeployBase):
         requirements.
         """
 
+        if self._skip_drivers:
+            # Exclude all installables of the "drivers" category.
+            for installable in list(self._cats["drivers"]):
+                self._drop_installable(installable)
+
         # Python helpers need to be deployed only to a remote host. The local host should already
         # have them:
         #   * either deployed via 'setup.py'.
         #   * or if running from source code, present in the source code.
         if not self._spman.is_remote:
-            for installable in self._cats["pyhelpers"]:
-                del self._insts[installable]
-            self._cats["pyhelpers"] = {}
+            for installable in list(self._cats["pyhelpers"]):
+                self._drop_installable(installable)
 
         # Exclude installables with unsatisfied minimum kernel version requirements.
         for installable in list(self._insts):
@@ -363,20 +373,20 @@ class Deploy(DeployBase.DeployBase):
                 _LOG.notice(str(err))
                 _LOG.warning("the '%s' %s can't be installed", installable, cat_descr)
 
-                cat = self._insts[installable]["category"]
-                del self._insts[installable]
-                del self._cats[cat][installable]
+                self._drop_installable(installable)
 
-    def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False, rebuild_bpf=False,
-                 tmpdir_path=None, keep_tmpdir=False, debug=False):
+    def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False, skip_drivers=None,
+                 rebuild_bpf=False, tmpdir_path=None, keep_tmpdir=False, debug=False):
         """
         The class constructor. The arguments are the same as in 'DeployBase.__init__()' except for:
           * ksrc - path to the kernel sources to compile drivers against.
+          * skip_drivers - do not build drivers (drop the installables of the "drivers" category).
           * rebuild_bpf - if 'toolname' comes with an eBPF helper, re-build the the eBPF component
                            of the helper if this argument is 'True'. Do not re-build otherwise.
         """
 
         self._ksrc = ksrc
+        self._skip_drivers = skip_drivers
         self._rebuild_bpf = rebuild_bpf
         self._btchk = None
 
