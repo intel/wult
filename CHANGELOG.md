@@ -6,6 +6,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
+ - New wult/ndl deploy '--drivers-make-opts' option. Can be used to customize
+   the drivers build options, like adding 'CC=clang'.
 ### Removed
 ### Changed
 
