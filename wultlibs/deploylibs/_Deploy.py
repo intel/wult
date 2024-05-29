@@ -83,6 +83,11 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
         if argcomplete:
             arg.completer = argcomplete.completers.DirectoriesCompleter()
 
+    if cats["drivers"]:
+        text = """Options and variables to pass to 'make' when the drivers are built. For example,
+                  pass 'CC=clang LLVM=1' to use clang and LLVM tools for building the drivers."""
+        parser.add_argument("--drivers-make-opts", dest="drv_make_opts", help=text)
+
     if cats["drivers"] and cats["bpfhelpers"]:
         text = """Deploy the eBPF helper, but do not deploy the drivers. This is a debug and
                   development option, do not use it for other purposes."""
@@ -326,7 +331,8 @@ class Deploy(DeployBase.DeployBase):
             for dep in self._get_deployables("drivers"):
                 deps[dep] = _get_module_path(self._spman, dep)
 
-            depl.deploy(drivers, self._get_kver(), self._get_ksrc(), deps)
+            depl.deploy(drivers, self._get_kver(), self._get_ksrc(), deps,
+                        make_opts=self._drv_make_opts)
 
     def _deploy(self):
         """Deploy required installables to the SUT."""
@@ -376,17 +382,20 @@ class Deploy(DeployBase.DeployBase):
                 self._drop_installable(installable)
 
     def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False, skip_drivers=None,
-                 rebuild_bpf=False, tmpdir_path=None, keep_tmpdir=False, debug=False):
+                 drv_make_opts=None, rebuild_bpf=False, tmpdir_path=None, keep_tmpdir=False,
+                 debug=False):
         """
         The class constructor. The arguments are the same as in 'DeployBase.__init__()' except for:
           * ksrc - path to the kernel sources to compile drivers against.
           * skip_drivers - do not build drivers (drop the installables of the "drivers" category).
+          * drv_make_opts - options to add to the 'make' command when building the drivers.
           * rebuild_bpf - if 'toolname' comes with an eBPF helper, re-build the the eBPF component
                            of the helper if this argument is 'True'. Do not re-build otherwise.
         """
 
         self._ksrc = ksrc
         self._skip_drivers = skip_drivers
+        self._drv_make_opts = drv_make_opts
         self._rebuild_bpf = rebuild_bpf
         self._btchk = None
 

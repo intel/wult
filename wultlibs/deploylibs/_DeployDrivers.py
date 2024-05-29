@@ -24,13 +24,14 @@ _LOG = logging.getLogger()
 class DeployDrivers(DeployInstallableBase.DeployInstallableBase):
     """This class provides the API for deploying drivers."""
 
-    def deploy(self, drivers, kver, ksrc, deployables):
+    def deploy(self, drivers, kver, ksrc, deployables, make_opts=None):
         """
         Deploy drivers to the SUT. Arguments are as follows:
          * drivers - names of the drivers to deploy to the SUT.
          * kver - kernel version running on the SUT.
          * ksrc - path to the kernel sources to compile drivers against.
          * deployables - a dictionary in the format '{deployable:installed_module}'.
+         * make_opts - additional drivers compilation 'make' options (e.g., 'CC=clang').
         """
 
         if not drivers:
@@ -68,6 +69,8 @@ class DeployDrivers(DeployInstallableBase.DeployInstallableBase):
             cmd = f"make -C '{drvsrc}' KSRC='{ksrc}'"
             if self._debug:
                 cmd += " V=1"
+            if make_opts:
+                cmd += " " + make_opts
 
             stdout, stderr, exitcode = self._bpman.run(cmd)
             if exitcode != 0:
@@ -78,6 +81,8 @@ class DeployDrivers(DeployInstallableBase.DeployInstallableBase):
                 elif "objtool: No such file or directory" in stderr:
                     msg += "\n\nLooks like 'objtool' is missing, maybe your kernel needs to be " \
                            "prepared to build external modules. Try running 'make modules_prepare'."
+                elif "compiler differs" in stderr:
+                    msg += "\n\nConsider using driver compilation 'make' options such as 'CC='."
                 raise Error(msg)
 
             self._log_cmd_output(stdout, stderr)
