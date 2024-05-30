@@ -8,6 +8,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
  - New wult/ndl deploy '--drivers-make-opts' option. Can be used to customize
    the drivers build options, like adding 'CC=clang'.
+ - New 'pbe' tool. Can be used to find the power break-even points of C-states
+   on a system.
 ### Removed
 ### Changed
 
