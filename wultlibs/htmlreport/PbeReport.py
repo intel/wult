@@ -92,8 +92,7 @@ class PbeReport(_ReportBase.ReportBase):
             tab_cfgs = self._get_pbe_cfgs()
         return super().generate(tab_cfgs)
 
-    def __init__(self, rsts, outdir, report_descr=None, xaxes=None, yaxes=None, hist=None,
-                 chist=None):
+    def __init__(self, rsts, outdir, report_descr=None, xaxes=None, yaxes=None):
         """The class constructor. The arguments are the same as in 'HTMLReportBase()'."""
 
         args = {"xaxes": xaxes, "yaxes": yaxes}
