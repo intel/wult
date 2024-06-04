@@ -93,7 +93,10 @@ class PbeReport(_ReportBase.ReportBase):
         return super().generate(tab_cfgs)
 
     def __init__(self, rsts, outdir, report_descr=None, xaxes=None, yaxes=None):
-        """The class constructor. The arguments are the same as in 'HTMLReportBase()'."""
+        """
+        The class constructor. The arguments are the same as in
+        'wultlibs.htmlreport._ReportBase.ReportBase()'.
+        """
 
         args = {"xaxes": xaxes, "yaxes": yaxes}
 
