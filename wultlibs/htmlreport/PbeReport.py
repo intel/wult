@@ -92,7 +92,7 @@ class PbeReport(_ReportBase.ReportBase):
             tab_cfgs = self._get_pbe_cfgs()
         return super().generate(tab_cfgs)
 
-    def __init__(self, rsts, outdir, report_descr=None, xaxes=None, yaxes=None):
+    def __init__(self, rsts, outdir, report_descr=None, xaxes=None, yaxes=None, logpath=None):
         """
         The class constructor. The arguments are the same as in
         'wultlibs.htmlreport._ReportBase.ReportBase()'.
@@ -124,4 +124,4 @@ class PbeReport(_ReportBase.ReportBase):
 
         super().__init__(rsts, outdir, ToolInfo.TOOLNAME, ToolInfo.VERSION,
                          report_descr=report_descr, xaxes=args["xaxes"], yaxes=args["yaxes"],
-                         smry_funcs=PbeReportParams.SMRY_FUNCS)
+                         smry_funcs=PbeReportParams.SMRY_FUNCS, logpath=logpath)
