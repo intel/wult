@@ -103,7 +103,7 @@ class PbeReport(_ReportBase.ReportBase):
             if not args[name]:
                 args[name] = default.split(",")
 
-        labels_defs = PbeDefs.PbeDefs(ToolInfo.TOOLNAME)
+        labels_defs = PbeDefs.PbeDefs()
 
         # The 'WakePeriod' metric definition is used to build tab configurations for custom
         # statistics tabs. Assign it to a class property here so that the name does not need to be
