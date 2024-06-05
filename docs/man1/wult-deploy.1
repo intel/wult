@@ -69,6 +69,18 @@ The default is \[aq]/lib/modules/$(uname -r)/build\[aq] on the SUT.
 If \[aq]--local-build\[aq] was used, then the path is considered to be
 on the local system, rather than the SUT.
 .TP
+\f[B]--drivers-make-opts\f[R]
+Options and variables to pass to \[aq]make\[aq] when the drivers are
+built.
+For example, pass \[aq]CC=clang LLVM=1\[aq] to use clang and LLVM tools
+for building the drivers (required when the kernel was build with
+clang/LLVM).
+.TP
+\f[B]--skip-drivers\f[R]
+Deploy the eBPF helper, but do not deploy the drivers.
+This is a debug and development option, do not use it for other
+purposes.
+.TP
 \f[B]--rebuild-bpf\f[R]
 eBPF helpers sources consist of 2 components: the user-space component
 and the eBPF component.
@@ -110,8 +122,3 @@ By default the key is automatically found from standard paths like
 .TP
 \f[B]-T\f[R] \f[I]TIMEOUT\f[R], \f[B]--timeout\f[R] \f[I]TIMEOUT\f[R]
 SSH connect timeout in seconds, default is 8.
-.TP
-\f[B]--skip-drivers\f[R]
-Deploy the eBPF helper, but do not deploy the drivers.
-This is a debug and development option, do not use it for other
-purposes.

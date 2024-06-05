@@ -1,3 +1,12 @@
+wult (1.12.20) unstable; urgency=low
+
+  * New wult/ndl deploy '--drivers-make-opts' option. Can be used to customize
+    the drivers build options, like adding 'CC=clang'.
+  * New 'pbe' tool. Can be used to find the power break-even points of C-states
+    on a system.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 05 Jun 2024 00:00:00 +0200
+
 wult (1.12.19) unstable; urgency=low
 
   * Split manual pages and simplify the '--help' output.
