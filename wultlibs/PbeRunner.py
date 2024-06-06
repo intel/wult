@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2023 Intel Corporation
+# Copyright (C) 2019-2024 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -23,6 +23,9 @@ from wultlibs.helperlibs import Human
 from wulttools.pbe import ToolInfo
 
 _LOG = logging.getLogger()
+
+# The "lead CPU". This CPU sets timers and triggers interrupts to wake all other CPUs.
+_LCPU = 0
 
 class PbeRunner(ClassHelpers.SimpleCloseContext):
     """Run wake latency measurement experiments."""
@@ -218,7 +221,8 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
         self._wper_metric = "WakePeriod"
         self._time_metric = "Time"
 
-        self._prov = _PbeRawDataProvider.PbeRawDataProvider(dev, pman, wper, timeout=self._timeout)
+        self._prov = _PbeRawDataProvider.PbeRawDataProvider(dev, pman, wper, timeout=self._timeout,
+                                                            lcpu=_LCPU)
 
         self._wper = self._prov.ldist
         self._hwper = (Human.duration_ns(self._wper[0]), Human.duration_ns(self._wper[1]))
@@ -245,7 +249,8 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
             msg = Error(err).indent(2)
             raise Error(f"failed to create directory '{self._res.stats_path}':\n{msg}") from None
 
-        self._stats_res = WORawResult.WORawResult(self._res.reportid, self._res.stats_path)
+        self._stats_res = WORawResult.WORawResult(self._res.reportid, self._res.stats_path,
+                                                  cpunum=_LCPU)
         self._stcoll = self._build_stcoll()
         self._progress = _ProgressLine.PbeProgressLine()
 

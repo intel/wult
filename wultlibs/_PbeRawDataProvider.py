@@ -48,7 +48,7 @@ class PbeRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         super().prepare()
         super()._load_driver()
 
-    def __init__(self, dev, pman, wper, timeout=None):
+    def __init__(self, dev, pman, wper, timeout=None, lcpu=0):
         """
         Initialize a class instance. The arguments are as follows.
           * dev - the device object created with 'Devices.GetDevice()'.
@@ -56,9 +56,11 @@ class PbeRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
           * wper - a pair of numbers specifying the wake period range in nanoseconds.
           * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
                       seconds.
+          * lcpu - the lead CPU. This CPU will set timers and trigger interrupts to wake all other
+                   CPUs. By default, uses CPU 0.
         """
 
-        drvinfo = {dev.drvname: {"params": "cpunum=0"}}
+        drvinfo = {dev.drvname: {"params": f"cpunum={lcpu}"}}
         super().__init__(dev, pman, wper, drvinfo=drvinfo, timeout=timeout)
 
         self.started = False
