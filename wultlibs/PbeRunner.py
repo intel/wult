@@ -24,9 +24,6 @@ from wulttools.pbe import ToolInfo
 
 _LOG = logging.getLogger()
 
-# The "lead CPU". This CPU sets timers and triggers interrupts to wake all other CPUs.
-_LCPU = 0
-
 class PbeRunner(ClassHelpers.SimpleCloseContext):
     """Run wake latency measurement experiments."""
 
@@ -185,7 +182,8 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
         stcoll.configure()
         return stcoll
 
-    def __init__(self, pman, dev, res, wper, span, warmup, wper_step_pct=None, wper_step_ns=None):
+    def __init__(self, pman, dev, res, wper, span, warmup, wper_step_pct=None, wper_step_ns=None,
+                 lcpu=0):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
@@ -196,6 +194,8 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
           * warmup - the warm-up period in seconds.
           * wper_step_pct - the wake period step in percent.
           * wper_step_ns - the wake period step in nanoseconds.
+          * lcpu - the lead CPU. This CPU sets timers and triggers interrupts to wake all other
+                   CPUs.
         """
 
         self._pman = pman
@@ -222,7 +222,7 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
         self._time_metric = "Time"
 
         self._prov = _PbeRawDataProvider.PbeRawDataProvider(dev, pman, wper, timeout=self._timeout,
-                                                            lcpu=_LCPU)
+                                                            lcpu=lcpu)
 
         self._wper = self._prov.ldist
         self._hwper = (Human.duration_ns(self._wper[0]), Human.duration_ns(self._wper[1]))
@@ -250,7 +250,7 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
             raise Error(f"failed to create directory '{self._res.stats_path}':\n{msg}") from None
 
         self._stats_res = WORawResult.WORawResult(self._res.reportid, self._res.stats_path,
-                                                  cpunum=_LCPU)
+                                                  cpunum=lcpu)
         self._stcoll = self._build_stcoll()
         self._progress = _ProgressLine.PbeProgressLine()
 

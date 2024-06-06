@@ -115,6 +115,10 @@ def _build_arguments_parser():
 
     subpars.add_argument("--report", action="store_true", help=_Common.START_REPORT_DESCR)
 
+    text = """The lead CPU. This CPU will set timers and send interrupts to all other CPUs to wake
+              them when the timers expire. The default is CPU 0."""
+    subpars.add_argument("--lead-cpu", help=text, type=int, default=0)
+
     #
     # Create parsers for the "report" command.
     #

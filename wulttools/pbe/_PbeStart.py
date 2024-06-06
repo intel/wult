@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2022 Intel Corporation
+# Copyright (C) 2019-2024 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -13,8 +13,8 @@ This module includes the "start" 'wult' command implementation.
 import logging
 import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import Trivial, Logging
 from pepclibs import CPUInfo
+from pepclibs.helperlibs import Trivial, Logging
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs.helperlibs import Human
 from wultlibs.deploylibs import _Deploy
@@ -80,9 +80,10 @@ def start_command(args):
         with _Deploy.DeployCheck("wult", args.toolname, deploy_info, pman=pman) as depl:
             depl.check_deployment()
 
+        args.lead_cpu = cpuinfo.normalize_cpu(args.lead_cpu)
         runner = PbeRunner.PbeRunner(pman, dev, res, args.wakeperiod, span, warmup,
                                      wper_step_pct=wper_step_pct,
-                                     wper_step_ns=wper_step_ns)
+                                     wper_step_ns=wper_step_ns, lcpu=args.lead_cpu)
         stack.enter_context(runner)
 
         runner.prepare()

@@ -89,3 +89,7 @@ OPTIONS *'pbe* start'
 **--report**
    Generate an HTML report for collected results (same as calling
    'report' command with default arguments).
+
+**--lead-cpu**
+   The lead CPU. This is the CPU that will set timers and send interrupts
+   to all other CPUs to wake them when the timers expire. The default is CPU 0.
