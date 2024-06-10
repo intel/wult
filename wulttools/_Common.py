@@ -416,7 +416,7 @@ def scan_command(args):
         if not found_something:
             _LOG.info("No %s compatible devices found", args.toolname)
         else:
-            _LOG.info("There are compatible devices, but they are not supported by current %s "
+            _LOG.info("There are compatible devices, but they are not supported by the current %s "
                       "installation", args.toolname)
         return
 
