@@ -20,7 +20,7 @@ import re
 from pathlib import Path
 from pepclibs import ASPM
 from pepclibs.helperlibs import Trivial, YAML, ProcessManager
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
+from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.helperlibs import ReportID
 from statscollectlibs.collector import StatsCollectBuilder
 from wultlibs import Devices
@@ -391,7 +391,7 @@ def scan_command(args):
         with _Deploy.DeployCheck("wult", args.toolname, deploy_info, pman=pman) as depl:
             try:
                 depl.check_deployment()
-            except ErrorNotFound as err:
+            except (ErrorNotFound, ErrorNotSupported) as err:
                 if not getattr(args, "all", False):
                     _LOG.debug(err)
                     continue
