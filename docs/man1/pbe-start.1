@@ -101,3 +101,9 @@ The allowed characters are: ACSII alphanumeric, \[aq]-\[aq],
 \f[B]--report\f[R]
 Generate an HTML report for collected results (same as calling
 \[aq]report\[aq] command with default arguments).
+.TP
+\f[B]--lead-cpu\f[R]
+The lead CPU.
+This is the CPU that will set timers and send interrupts to all other
+CPUs to wake them when the timers expire.
+The default is CPU 0.

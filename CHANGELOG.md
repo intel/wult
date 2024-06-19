@@ -6,10 +6,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
- - Include report generaltion logs to pbe reports.
- - New 'pbe start --lead-cpu' option.
 ### Removed
 ### Changed
+
+## [1.12.21] - 2024-06-19
+### Added
+ - Include report generaltion logs to pbe reports.
+ - New 'pbe start --lead-cpu' option.
 
 ## [1.12.20] - 2024-06-05
 ### Added
