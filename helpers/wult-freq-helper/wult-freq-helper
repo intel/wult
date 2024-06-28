@@ -138,7 +138,7 @@ def parse_freq_specs(args, cpuinfo, ucfobj, cpufobj):
     are as follows.
       * args - raw frequency specification data.
       * cpuinfo - 'CPUInfo' object.
-      * ucfobj - '_UncoreFreq' object.
+      * ucfobj - '_UncoreFreqSysfs' object.
       * cpufobj - '_CPUFreq' object.
     """
 
@@ -223,7 +223,7 @@ def main():
         sysfs_io = _SysfsIO.SysfsIO(pman, enable_cache=False)
         stack.enter_context(sysfs_io)
 
-        ucfobj = _UncoreFreq.UncoreFreq(cpuinfo, pman=pman, sysfs_io=sysfs_io, enable_cache=False)
+        ucfobj = _UncoreFreq.UncoreFreqSysfs(cpuinfo, pman=pman, sysfs_io=sysfs_io, enable_cache=False)
         stack.enter_context(ucfobj)
 
         cpufobj = _CPUFreq.CPUFreqSysfs(cpuinfo=cpuinfo, pman=pman, sysfs_io=sysfs_io,
