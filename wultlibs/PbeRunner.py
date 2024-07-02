@@ -160,11 +160,8 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
         stcoll.set_disabled_stats("all")
         stcoll.set_info_logging(True)
 
-        required_stnames = {"acpower",}
-        stcoll.set_enabled_stats(required_stnames)
-
-        optional_stnames = {"sysinfo", "turbostat", "ipmi-oob"}
-        stcoll.set_enabled_stats(optional_stnames)
+        stnames = {"sysinfo", "acpower", "turbostat", "ipmi-oob"}
+        stcoll.set_enabled_stats(stnames)
 
         stcoll.set_prop("acpower", "devnode", self._pman.hostname)
 
@@ -172,11 +169,8 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
         stcoll.set_intervals(intervals)
 
         discovered = stcoll.discover()
-        for stname in required_stnames:
-            if stname not in discovered:
-                raise Error(f"the '{stname}' statistic collector was not found")
 
-        stcoll.set_disabled_stats(optional_stnames)
+        stcoll.set_disabled_stats(stnames)
         stcoll.set_enabled_stats(discovered)
 
         stcoll.configure()
