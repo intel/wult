@@ -72,12 +72,12 @@ class PbeReport(_ReportBase.ReportBase):
 
         def_tab_cfgs = self._stats_rep.get_default_tab_cfgs(self._stats_rsts)
         tab_cfgs = {}
-        tab_cfgs["acpower"] = self._get_acpower_cfg(def_tab_cfgs["acpower"])
-        tab_cfgs["turbostat"] = self._get_tstat_cfg(def_tab_cfgs["turbostat"])
-        try:
+        if "acpower" in def_tab_cfgs:
+            tab_cfgs["acpower"] = self._get_acpower_cfg(def_tab_cfgs["acpower"])
+        if "turbostat" in def_tab_cfgs:
+            tab_cfgs["turbostat"] = self._get_tstat_cfg(def_tab_cfgs["turbostat"])
+        if "ipmi-oob" in def_tab_cfgs:
             tab_cfgs["ipmi-oob"] = self._get_ipmi_cfg(def_tab_cfgs["ipmi-oob"])
-        except KeyError:
-            _LOG.debug("no 'ipmi-oob' data found so skipping 'ipmi' tab")
 
         return tab_cfgs
 
