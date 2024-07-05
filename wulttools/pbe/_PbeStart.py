@@ -26,7 +26,7 @@ _LOG = logging.getLogger()
 def _generate_report(args):
     """Implement the '--report' option for the 'start' command."""
 
-    from wultlibs.htmlreport import PbeReport
+    from wultlibs.htmlreport import PbeReport # pylint: disable=import-outside-toplevel
 
     rsts = _Common.open_raw_results([args.outdir], args.toolname)
     rep = PbeReport.PbeReport(rsts, args.outdir / "html-report", report_descr=args.reportid)
