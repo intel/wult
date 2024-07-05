@@ -6,6 +6,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
+ - Add the '--stats' option to the 'pbe' tool so that users can customise which
+   statistics are collected during 'pbe' data collection.
+ - Add the '--stats-intervals' option to the 'pbe' tool so that users can
+   customise the statistics intervals which are used during 'pbe' data
+   collection.
+ - Add the '--list-stats' option to the 'pbe' tool so that users can see which
+   statistics are available and can be specified with the '--stats' options.
 ### Removed
 ### Changed
 
