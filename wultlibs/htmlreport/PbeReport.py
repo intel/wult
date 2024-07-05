@@ -9,6 +9,7 @@
 """This module provides API for generating HTML reports for pbe test results."""
 
 import logging
+from statscollectlibs.htmlreport.tabs import TabConfig
 from wultlibs import PbeDefs
 from wultlibs.htmlreport import _ReportBase
 from wultlibs.htmlreport import PbeReportParams
@@ -19,67 +20,49 @@ _LOG = logging.getLogger()
 class PbeReport(_ReportBase.ReportBase):
     """This module provides API for generating HTML reports for pbe test results."""
 
-    def _get_acpower_cfg(self, def_acpower_cfg):
-        """Customise the default 'AC Power' tab configuration to show 'WakePeriod' on plot axes."""
-
-        new_plots = []
-        for plot in def_acpower_cfg.scatter_plots:
-            new_plots.append((self._wp_def, plot[1],))
-
-        def_acpower_cfg.scatter_plots = new_plots
-        return def_acpower_cfg
-
-    def _get_tstat_dtab_cfg(self, dtab_cfg):
-        """
-        Customise the default 'turbostat' data tab configuration to show 'WakePeriod' on plot axes.
-        """
+    def _get_dtab_cfg(self, dtab_cfg):
+        """Customise the data tab configuration to show 'WakePeriod' on plot axes."""
 
         new_plots = []
         for plot in dtab_cfg.scatter_plots:
             plot = (self._wp_def, plot[1],)
             new_plots.append(plot)
+
         dtab_cfg.scatter_plots = new_plots
         dtab_cfg.set_hover_defs({})
 
-    def _get_tstat_cfg(self, tab_cfg):
-        """Customise the default 'Turbostat' tab configuration to show 'WakePeriod' on plot axes."""
+    def _get_tab_cfg(self, tab_cfg):
+        """
+        Customise the tab configuration to show 'WakePeriod' on plot axes. Recurse through all
+        C-tabs and D-tabs to customise their configurations.
+        """
+
+        if isinstance(tab_cfg, TabConfig.DTabConfig):
+            self._get_dtab_cfg(tab_cfg)
+            return tab_cfg
 
         if hasattr(tab_cfg, "dtabs"):
             for dtab_cfg in tab_cfg.dtabs:
-                self._get_tstat_dtab_cfg(dtab_cfg)
+                self._get_dtab_cfg(dtab_cfg)
 
         if hasattr(tab_cfg, "ctabs"):
             for ctab_cfg in tab_cfg.ctabs:
-                self._get_tstat_cfg(ctab_cfg)
+                self._get_tab_cfg(ctab_cfg)
 
-        return tab_cfg
-
-    def _get_ipmi_cfg(self, tab_cfg):
-        """Customise the default 'IPMI' tab configuration to show 'WakePeriod' on plot axes."""
-
-        for ctab_cfg in tab_cfg.ctabs:
-            for dtab_cfg in ctab_cfg.dtabs:
-                new_plots = []
-                for plot in dtab_cfg.scatter_plots:
-                    p = (self._wp_def, plot[1],)
-                    new_plots.append(p)
-                dtab_cfg.scatter_plots = new_plots
-                dtab_cfg.set_hover_defs({})
         return tab_cfg
 
     def _get_pbe_cfgs(self):
-        """Get the 'pbe' statistics tab configurations."""
+        """
+        Get the 'pbe' statistics tab configurations. These configurations are based on the default
+        tab configuraions provided by 'stats-collect' but they are customised to show 'WakePeriod'
+        on the X-axes of plots in the data tabs.
+        """
 
-        def_tab_cfgs = self._stats_rep.get_default_tab_cfgs(self._stats_rsts)
-        tab_cfgs = {}
-        if "acpower" in def_tab_cfgs:
-            tab_cfgs["acpower"] = self._get_acpower_cfg(def_tab_cfgs["acpower"])
-        if "turbostat" in def_tab_cfgs:
-            tab_cfgs["turbostat"] = self._get_tstat_cfg(def_tab_cfgs["turbostat"])
-        if "ipmi-oob" in def_tab_cfgs:
-            tab_cfgs["ipmi-oob"] = self._get_ipmi_cfg(def_tab_cfgs["ipmi-oob"])
+        pbe_cfg = {}
+        for stname, tab_cfg in self._stats_rep.get_default_tab_cfgs(self._stats_rsts).items():
+            pbe_cfg[stname] = self._get_tab_cfg(tab_cfg)
 
-        return tab_cfgs
+        return pbe_cfg
 
     def generate(self, tab_cfgs=None):
         """Override 'super().generate()' to customise the statistics tabs in the report."""
