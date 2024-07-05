@@ -49,7 +49,7 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
             """Calculate and return the next wake period from the previous wake period."""
 
             if self._wper_step_pct:
-                return wper + int((wper * self._wper_step_pct)/100)
+                return wper + int((wper * self._wper_step_pct) / 100)
             return prev_wper + self._wper_step_ns
 
         wper = self._wper[0]
@@ -103,10 +103,10 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
                 with contextlib.suppress(Error):
                     self._finish_run()
             raise
-        else:
-            duration = Human.duration(self._progress.get_duration())
-            _LOG.info("Finished the measurements%s, lasted %s", self._pman.hostmsg, duration)
-            self._finish_run()
+
+        duration = Human.duration(self._progress.get_duration())
+        _LOG.info("Finished the measurements%s, lasted %s", self._pman.hostmsg, duration)
+        self._finish_run()
 
     def prepare(self):
         """Prepare for starting the measurements."""
