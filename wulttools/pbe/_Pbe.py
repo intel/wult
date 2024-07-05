@@ -181,7 +181,7 @@ def main():
         args = parse_arguments()
 
         if not getattr(args, "func", None):
-            _LOG.error("please, provide arguments, run '%s -h' for help.", TOOLNAME)
+            _LOG.error("please, provide arguments, run '%s -h' for help", TOOLNAME)
             return -1
 
         args.func(args)
