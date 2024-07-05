@@ -15,6 +15,7 @@ import contextlib
 from pathlib import Path
 from pepclibs import CPUInfo
 from pepclibs.helperlibs import Trivial, Logging
+from statscollectlibs.collector import StatsCollectBuilder
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs.helperlibs import Human
 from wultlibs.deploylibs import _Deploy
@@ -34,6 +35,10 @@ def _generate_report(args):
 
 def start_command(args):
     """Implements the 'start' command."""
+
+    if args.list_stats:
+        _Common.start_command_list_stats()
+        return
 
     with contextlib.ExitStack() as stack:
         pman = _Common.get_pman(args)
@@ -76,12 +81,26 @@ def start_command(args):
 
         Logging.setup_stdout_logging(args.toolname, res.logs_path)
 
+        args.lead_cpu = cpuinfo.normalize_cpu(args.lead_cpu)
+
+        stcoll_builder = StatsCollectBuilder.StatsCollectBuilder()
+        stack.enter_context(stcoll_builder)
+
+        if args.stats and args.stats != "none":
+            stcoll_builder.parse_stnames(args.stats)
+        if args.stats_intervals:
+            stcoll_builder.parse_intervals(args.stats_intervals)
+
+        stcoll = stcoll_builder.build_stcoll_nores(pman, args.reportid, cpunum=args.lead_cpu,
+                                                   local_outdir=res.stats_path)
+        if stcoll:
+            stack.enter_context(stcoll)
+
         deploy_info = _Common.reduce_installables(args.deploy_info, dev)
         with _Deploy.DeployCheck("wult", args.toolname, deploy_info, pman=pman) as depl:
             depl.check_deployment()
 
-        args.lead_cpu = cpuinfo.normalize_cpu(args.lead_cpu)
-        runner = PbeRunner.PbeRunner(pman, dev, res, args.wakeperiod, span, warmup,
+        runner = PbeRunner.PbeRunner(pman, dev, res, args.wakeperiod, span, warmup, stcoll,
                                      wper_step_pct=wper_step_pct,
                                      wper_step_ns=wper_step_ns, lcpu=args.lead_cpu)
         stack.enter_context(runner)

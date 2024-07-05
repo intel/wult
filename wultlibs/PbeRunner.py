@@ -16,8 +16,6 @@ import logging
 import contextlib
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs.collector import StatsCollect
-from statscollectlibs.rawresultlibs import WORawResult
 from wultlibs import _ProgressLine, _PbeRawDataProvider
 from wultlibs.helperlibs import Human
 from wulttools.pbe import ToolInfo
@@ -152,32 +150,8 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
             raise Error(f"too short span value '{self._hspan}'. It should be greater than "
                         f"{min_span} seconds.")
 
-    def _build_stcoll(self):
-        """Build and configure the statistics collector object."""
-
-        stcoll = StatsCollect.StatsCollect(self._pman, self._stats_res,
-                                           local_outdir=self._stats_res.dirpath)
-        stcoll.set_disabled_stats("all")
-        stcoll.set_info_logging(True)
-
-        stnames = {"sysinfo", "acpower", "turbostat", "ipmi-oob"}
-        stcoll.set_enabled_stats(stnames)
-
-        stcoll.set_prop("acpower", "devnode", self._pman.hostname)
-
-        intervals = {"acpower": 1, "turbostat": 5, "ipmi-oob": 30}
-        stcoll.set_intervals(intervals)
-
-        discovered = stcoll.discover()
-
-        stcoll.set_disabled_stats(stnames)
-        stcoll.set_enabled_stats(discovered)
-
-        stcoll.configure()
-        return stcoll
-
-    def __init__(self, pman, dev, res, wper, span, warmup, wper_step_pct=None, wper_step_ns=None,
-                 lcpu=0):
+    def __init__(self, pman, dev, res, wper, span, warmup, stcoll, wper_step_pct=None,
+                 wper_step_ns=None, lcpu=0):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
@@ -186,6 +160,7 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
           * wper - a pair of numbers specifying the wake period range in nanoseconds.
           * span - for how long to measure a single wake period in seconds.
           * warmup - the warm-up period in seconds.
+          * stcoll - the 'StatsCollect' object to use for collecting statistics.
           * wper_step_pct - the wake period step in percent.
           * wper_step_ns - the wake period step in nanoseconds.
           * lcpu - the lead CPU. This CPU sets timers and triggers interrupts to wake all other
@@ -198,13 +173,13 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
         self._wper = None
         self._span = span
         self._warmup = warmup
+        self._stcoll = stcoll
         self._wper_step_pct = wper_step_pct
         self._wper_step_ns = wper_step_ns
 
         self._timeout = 10
         self._prov = None
         self._progress = None
-        self._stcoll = None
 
         # The meausrement parameters in human-readable format.
         self._hspan = None
@@ -243,14 +218,11 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
             msg = Error(err).indent(2)
             raise Error(f"failed to create directory '{self._res.stats_path}':\n{msg}") from None
 
-        self._stats_res = WORawResult.WORawResult(self._res.reportid, self._res.stats_path,
-                                                  cpunum=lcpu)
-        self._stcoll = self._build_stcoll()
         self._progress = _ProgressLine.PbeProgressLine()
 
     def close(self):
         """Stop the measurements."""
 
-        close_attrs = ("_stcoll", "_prov", "_stats_res")
+        close_attrs = ("_stcoll", "_prov")
         unref_attrs = ("_res", "_dev", "_pman")
         ClassHelpers.close(self, close_attrs=close_attrs, unref_attrs=unref_attrs)

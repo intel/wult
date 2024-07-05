@@ -77,6 +77,7 @@ def _build_arguments_parser():
     descr = """Start measuring C-states power break even."""
     subpars = subparsers.add_parser("start", help=text, description=descr)
     subpars.set_defaults(func=_start_command)
+    man_msg = "Please, refer to 'pbe-start' manual page for more information."
 
     ArgParse.add_ssh_options(subpars)
 
@@ -112,6 +113,13 @@ def _build_arguments_parser():
         arg.completer = argcomplete.completers.DirectoriesCompleter()
 
     subpars.add_argument("--reportid", help=_Common.START_REPORTID_DESCR)
+
+    subpars.add_argument("--stats", default="default", help=f"{_Common.STATS_DESCR} {man_msg}")
+
+    subpars.add_argument("--stats-intervals", help=_Common.STAT_INTERVALS_DESCR)
+
+    subpars.add_argument("--list-stats", action="store_true",
+                         help=_Common.LIST_STATS_DESCR % TOOLNAME)
 
     subpars.add_argument("--report", action="store_true", help=_Common.START_REPORT_DESCR)
 
