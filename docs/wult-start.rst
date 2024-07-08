@@ -124,8 +124,7 @@ OPTIONS *'wult* start'
    not want to be collected by pre-pending the '!' symbol. For example,
    'all,!turbostat' would mean: collect all the statistics supported by
    the SUT, except for 'turbostat'. Use the '--list-stats' option to get
-   more information about available statistics. By default, only
-   'sysinfo' statistics are collected.
+   more information about available statistics.
 
 **--stats-intervals** *STATS_INTERVALS*
    The intervals for statistics. Statistics collection is based on doing
