@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2023 Intel Corporation
+# Copyright (C) 2023-2024 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Antti Laakso <antti.laakso@linux.intel.com>
@@ -786,6 +786,9 @@ class _PbeCmdFormatter(_ToolCmdFormatterBase):
         if _LOG.colored:
             cmd += " --force-color"
         cmd += " start"
+
+        if self._stats is not None:
+            cmd += f" --stats=\"{self._stats}\""
 
         if reportid:
             cmd += f" --reportid {reportid} -o {self._outdir}/{reportid}"

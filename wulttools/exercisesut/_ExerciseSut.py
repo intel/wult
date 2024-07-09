@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2023 Intel Corporation
+# Copyright (C) 2023-2024 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Antti Laakso <antti.laakso@linux.intel.com>
@@ -165,8 +165,8 @@ _COLLECT_OPTIONS = {
                      Comma-separated list of device IDs to run the tools with."""
     },
     "stats" : {
-        "help" : f"""Applicable to '{WULT_TOOLNAME}', '{NDL_TOOLNAME}' '{STC_TOOLNAME}'tools.
-                     Comma-separated list of statistics to collect."""
+        "help": f"""Applicable to '{WULT_TOOLNAME}', '{NDL_TOOLNAME}', '{PBE_TOOLNAME}' and
+                    '{STC_TOOLNAME}' tools. Comma-separated list of statistics to collect."""
     },
     "command" : {
         "help" : """Applicable only to 'stats-collect' tool. The command to that 'stats-collect'
