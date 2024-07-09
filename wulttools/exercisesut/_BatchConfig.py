@@ -746,11 +746,11 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
                                     cstate_filter=self._get_cstate_filter(props))
 
     def _c6p_exists(self):
-        """Check if requestable C-state C6P or C6S is supported by the SUT."""
+        """Check if requestable C-state C6P, C6S or C6SP is supported by the SUT."""
 
         for _, csinfo in self._cpuidle.get_cstates_info(csnames="all", cpus="all"):
             for csname in csinfo:
-                if csname in ("C6P", "C6S"):
+                if csname.startswith("C6") and csname != "C6":
                     return True
 
         return False
