@@ -18,6 +18,8 @@
 #include <linux/kstrtox.h>
 #include <linux/kthread.h>
 
+#include "compat.h"
+
 #define DRIVER_NAME "pbe"
 #define PBE_VERSION "1.0"
 
