@@ -5,6 +5,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.12.22] - 2024-07-12
+### Fixed
  - Fix 'pbe deploy' driver compilation issue with kernels older than v6.6.
 ### Added
  - Add the '--stats' option to the 'pbe' tool so that users can customise which
@@ -14,8 +20,6 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    collection.
  - Add the '--list-stats' option to the 'pbe' tool so that users can see which
    statistics are available and can be specified with the '--stats' options.
-### Removed
-### Changed
 
 ## [1.12.21] - 2024-06-19
 ### Added
