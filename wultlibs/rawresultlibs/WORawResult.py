@@ -66,13 +66,24 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
         """
         Mangle a python expression that we use for row filters and selectors. Some of the CSV
         file column names may have symbols like '%' (e.g., in 'CC1%'), which cannot be used in
-        python expressions, and this method solves the problem.
+        python expressions, and this method solves this problem.
+
+        Also, 'CC1%' are 'CC1Derived%' are effectively the same thing so make sure that if the
+        filter includes 'CC1%', but it is absent in the CSV, then 'CC1Derived%' is used instead (if
+        it is present in the CSV file).
         """
 
         if expr is None:
             return None
 
         expr = str(expr)
+
+        for replaced, replacement in (("CC1%", "CC1Derived%"), ("CC1Derived%", "CC1%")):
+            if replaced in expr and replaced not in self.csv.hdr:
+                expr = expr.replace(replaced, replacement)
+                _LOG.notice("metric '%s' was not found, replacing it with '%s', new filter: '%s'",
+                            replaced, replacement, expr)
+                break
 
         for colname in self.csv.hdr:
             expr = expr.replace(colname, f"dp['{colname}']")

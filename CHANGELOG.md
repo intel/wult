@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix 'execise-sut start --use-cstate-filters' failures on platforms that do
+   not have C1 counter and use 'DerivedCC1%' instead.
 ### Added
 ### Removed
 ### Changed
