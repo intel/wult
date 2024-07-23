@@ -667,7 +667,7 @@ def run_stats_collect_deploy(args, pman):
     # pylint: disable=import-outside-toplevel
     from pepclibs.helperlibs import ProjectFiles, LocalProcessManager
 
-    exe_path = ProjectFiles.find_project_helper("stat-collect", "stats-collect")
+    exe_path = ProjectFiles.find_project_helper("stats-collect", "stats-collect")
 
     cmd = str(exe_path)
 
