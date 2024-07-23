@@ -23,6 +23,7 @@ from pepclibs.helperlibs import Trivial, YAML, ProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.helperlibs import ReportID
 from statscollectlibs.collector import StatsCollectBuilder
+from statscollecttools import ToolInfo
 from wultlibs import Devices
 from wultlibs.deploylibs import _Deploy
 from wultlibs.helperlibs import Human
@@ -667,7 +668,7 @@ def run_stats_collect_deploy(args, pman):
     # pylint: disable=import-outside-toplevel
     from pepclibs.helperlibs import ProjectFiles, LocalProcessManager
 
-    exe_path = ProjectFiles.find_project_helper("stats-collect", "stats-collect")
+    exe_path = ProjectFiles.find_project_helper("stats-collect", ToolInfo.TOOLNAME)
 
     cmd = str(exe_path)
 
