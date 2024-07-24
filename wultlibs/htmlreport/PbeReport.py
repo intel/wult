@@ -100,6 +100,9 @@ class PbeReport(_ReportBase.ReportBase):
 
         for res in rsts:
             stats_res = res.stats_res
+            if not stats_res:
+                continue
+
             for stname in stats_res.info["stinfo"]:
                 try:
                     stats_res.info["stinfo"][stname]["paths"]["labels"]
