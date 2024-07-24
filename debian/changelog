@@ -1,3 +1,12 @@
+wult (1.12.23) unstable; urgency=low
+
+  * Fix 'execise-sut start --use-cstate-filters' failures on platforms that do
+    not have C1 counter and use 'DerivedCC1%' instead.
+  * Fix 'pbe report' crash when one of the raw results has no statistics
+    whatsoever.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 24 Jul 2024 00:00:00 +0200
+
 wult (1.12.22) unstable; urgency=low
 
   * Fix 'pbe deploy' driver compilation issue with kernels older than v6.6.
