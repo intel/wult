@@ -423,7 +423,12 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             handled_props.append(props)
 
     def __init__(self, pman, cpuinfo, cpuidle):
-        """The class constructor."""
+        """
+        The class constructor. The arguments are as follows.
+          * pman - the process manager object defining the system to measure.
+          * cpuinfo - 'CPUInfo' object for the measured system.
+          * cpuidle - the 'CPUIdle.CPUIdle()' object for the measured system.
+        """
 
         self._pman = pman
         self._cpuinfo = cpuinfo
@@ -521,7 +526,12 @@ class _PepcCmdFormatter(_PropIteratorBase):
         return ",".join(csnames)
 
     def get_commands(self, props, cpu=None):
-        """Yield list of 'pepc' commands to configure system according to properties 'props'."""
+        """
+        Yield list of 'pepc' commands to configure the system for measuring properties 'props'. The
+        arguments are as follows.
+          * props - a dictionary describing the measured properties.
+          * cpu - measured CPU number.
+        """
 
         if cpu is None:
             cpu = 0
@@ -556,7 +566,13 @@ class _PepcCmdFormatter(_PropIteratorBase):
             yield cmd
 
     def __init__(self, pman, cpuinfo, cpuidle, args):
-        """The class constructor."""
+        """
+        The class constructor. The arguments are as follows.
+          * pman - the process manager object defining the system to measure.
+          * cpuinfo - 'CPUInfo' object for the measured system.
+          * cpuidle - the 'CPUIdle.CPUIdle()' object for the measured system.
+          * args - input arguments, not clean, should be only_measured_cpu=False, etc kwargs (TODO).
+        """
 
         super().__init__(pman, cpuinfo, cpuidle)
 
@@ -613,7 +629,12 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
         return toolopts
 
     def get_command(self, props, reportid, **kwargs): # pylint: disable=unused-argument
-        """Create and return command to run the tool."""
+        """
+        Format and return measurement command. The arguments are as follows.
+          * props - a dictionary describing the measured properties.
+          * reportid - report ID of the measurement result.
+          * kwargs - additional arguments necessary to format the command.
+        """
 
         cmd = str(self.toolpath)
 
@@ -624,7 +645,10 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
         return cmd
 
     def __init__(self, args):
-        """The class constructor."""
+        """
+        The class constructor. The arguments are as follows.
+          * args - input arguments. Should be instead a bunch of args or kwargs (TODO).
+        """
 
         with LocalProcessManager.LocalProcessManager() as lpman:
             self.toolpath = lpman.which(args.toolpath)
@@ -695,7 +719,12 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         return cstate_filter
 
     def get_command(self, props, reportid, **kwargs):
-        """Create and return 'wult' or 'ndl' command."""
+        """
+        Format and return measurement command for 'wult' or 'ndl'. The arguments are as follows.
+          * props - a dictionary describing the measured properties.
+          * reportid - report ID of the measurement result.
+          * kwargs - additional arguments necessary for formatting the command.
+        """
 
         return self._create_command(kwargs["cpu"], kwargs["devid"], reportid=reportid,
                                     cstate_filter=self._get_cstate_filter(props))
@@ -711,7 +740,13 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         return False
 
     def __init__(self, pman, cpuinfo, cpuidle, args):
-        """The class constructor."""
+        """
+        The class constructor. The arguments are as follows.
+          * pman - the process manager object defining the system to measure.
+          * cpuinfo - 'CPUInfo' object for the measured system.
+          * cpuidle - the 'CPUIdle.CPUIdle()' object for the measured system.
+          * args - input arguments. Should be instead a bunch of args or kwargs (TODO).
+        """
 
         super().__init__(args)
 
@@ -762,12 +797,22 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
         return cmd
 
     def get_command(self, props, reportid, **kwargs):
-        """Create and return 'stats-collect' command."""
+        """
+        Format and return the 'stats-collect' measurement command. The arguments are as follows.
+          * props - a dictionary describing the measured properties. Unused. Should not be like
+                    this, should be instead part of "kwargs" (TODO).
+          * reportid - report ID of the measurement result.
+          * kwargs - additional arguments necessary to format the command.
+        """
 
         return self._create_command(kwargs["command"], reportid=reportid)
 
     def __init__(self, pman, args):
-        """The class constructor."""
+        """
+        The class constructor. The arguments are as follows.
+          * pman - the process manager object defining the system to measure.
+          * args - input arguments. Should be instead a bunch of args or kwargs (TODO).
+        """
 
         super().__init__(args)
 
@@ -810,12 +855,22 @@ class _PbeCmdFormatter(_ToolCmdFormatterBase):
         return cmd
 
     def get_command(self, props, reportid, **kwargs):
-        """Create and return 'pbe' command."""
+        """
+        Format and return the 'pbe' measurement command. The arguments are as follows.
+          * props - a dictionary describing the measured properties. Unused. Should not be like
+                    this, should be instead part of "kwargs" (TODO).
+          * reportid - report ID of the measurement result.
+          * kwargs - additional arguments necessary to format the command.
+        """
 
         return self._create_command(reportid=reportid)
 
     def __init__(self, pman, args):
-        """The class constructor."""
+        """
+        The class constructor. The arguments are as follows.
+          * pman - the process manager object defining the system to measure.
+          * args - input arguments. Should be instead a bunch of args or kwargs (TODO).
+        """
 
         super().__init__(args)
 
@@ -828,7 +883,7 @@ class _PbeCmdFormatter(_ToolCmdFormatterBase):
 class BatchConfig(_Common.CmdlineRunner):
     """
     Helper class for 'exercise-sut' tool to configure and exercise SUT with different system
-    configuration permutations.
+    configuration permutations (according to the input properties).
     """
 
     def deploy(self):
@@ -854,29 +909,50 @@ class BatchConfig(_Common.CmdlineRunner):
     def get_props_batch(self, inprops):
         """
         Yield dictionary with system properties, with property name as key and property value as
-        value.
+        value. The arguments are as follows.
+          * inprops - the input properties dictionary, descripting the proprties and the values that
+                      should be measured.
         """
 
         yield from self._pfmt.iter_props(inprops)
 
     def configure(self, props, cpu):
-        """Set properties 'props'."""
+        """
+        Configure the system for measurement. The arguments are as follows.
+          * props - the measured properties and their values.
+          * cpu - CPU number to configure.
+        """
 
         for cmd in self._pfmt.get_commands(props, cpu):
             self._run_command(cmd)
 
     def create_reportid(self, props, **kwargs):
-        """Create and return report ID."""
+        """
+        Create and return report ID. The arguments are as follows.
+          * props - the measured properties and their values.
+          * kwargs - additional parameters that may affect the report ID (TODO: why 'kwargs' should
+                     be used?)
+        """
+
         return self._wfmt.create_reportid(props, **kwargs)
 
     def run(self, props, reportid, **kwargs):
-        """Run workload command with system properties 'props'."""
+        """
+        Run the measurements. The arguments are as follows.
+          * props - the measured properties and their values.
+          * reportid - report ID of the measurement result.
+          * kwargs - additional parameters that may affect the report ID (TODO: why 'kwargs' should
+                     be used?)
+        """
 
-        cmd = self._wfmt.get_command(props, reportid=reportid, **kwargs)
+        cmd = self._wfmt.get_command(props, reportid, **kwargs)
         self._run_command(cmd)
 
     def __init__(self, args):
-        """The class constructor."""
+        """
+        The class constructor. The arguments are as follows.
+          * args - the 'exercise-sut' input command line arguments.
+        """
 
         self._pman = None
         self._cpuinfo = None
