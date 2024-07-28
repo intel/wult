@@ -134,9 +134,6 @@ def _get_workload_cmd_formatter(pman, cpuinfo, cpuidle, args):
     if toolname == STC_TOOLNAME:
         return _StatsCollectCmdFormatter(pman, args)
 
-    if toolname == "benchmark":
-        return _BenchmarkCmdFormatter(args)
-
     if toolname == PBE_TOOLNAME:
         return _PbeCmdFormatter(pman, args)
 
@@ -628,15 +625,6 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
 
         if not self._outdir:
             self._outdir = ReportID.format_reportid(prefix=self.toolpath.name)
-
-class _BenchmarkCmdFormatter(_ToolCmdFormatterBase):
-    """A Helper class for creating 'benchmark' commands."""
-
-    def get_command(self, props, reportid, **kwargs):
-        """Create and return command to run the 'benchmark' tool."""
-
-        cmd = super().get_command(props, reportid, **kwargs)
-        return f"{cmd} --reportid {reportid} -o {self._outdir}/{reportid}"
 
 class _WultCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'wult' or 'ndl' commands."""
