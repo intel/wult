@@ -137,19 +137,19 @@ def list_monikers():
         msg = f"{name:<{min_len}}: {moniker}"
         _LOG.info(msg)
 
-def _get_workload_cmd_formatter(pman, cpuinfo, cpuidle, args):
+def _get_workload_cmd_formatter(cpuinfo, cpuidle, args):
     """Create and return object for creating workload commands."""
 
     toolname = args.toolpath.name
 
     if toolname in (WULT_TOOLNAME, NDL_TOOLNAME):
-        return _WultCmdFormatter(pman, cpuinfo, cpuidle, args)
+        return _WultCmdFormatter(cpuinfo, cpuidle, args)
 
     if toolname == STC_TOOLNAME:
-        return _StatsCollectCmdFormatter(pman, args)
+        return _StatsCollectCmdFormatter(args)
 
     if toolname == PBE_TOOLNAME:
-        return _PbeCmdFormatter(pman, args)
+        return _PbeCmdFormatter(args)
 
     return _ToolCmdFormatterBase(args)
 
@@ -739,10 +739,9 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         return False
 
-    def __init__(self, pman, cpuinfo, cpuidle, args):
+    def __init__(self, cpuinfo, cpuidle, args):
         """
         The class constructor. The arguments are as follows.
-          * pman - the process manager object defining the system to measure.
           * cpuinfo - 'CPUInfo' object for the measured system.
           * cpuidle - the 'CPUIdle.CPUIdle()' object for the measured system.
           * args - input arguments. Should be instead a bunch of args or kwargs (TODO).
@@ -750,7 +749,6 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         super().__init__(args)
 
-        self._pman = pman
         self._cpuinfo = cpuinfo
         self._cpuidle = cpuidle
         self._datapoints = args.datapoints
@@ -761,7 +759,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
     def close(self):
         """Uninitialize the class objetc."""
-        ClassHelpers.close(self, unref_attrs=("_pman", "_cpuinfo", "_cpuidle", ))
+        ClassHelpers.close(self, unref_attrs=("_cpuinfo", "_cpuidle", ))
 
 class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'stats-collect' commands."""
@@ -807,21 +805,14 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
 
         return self._create_command(kwargs["command"], reportid=reportid)
 
-    def __init__(self, pman, args):
+    def __init__(self, args):
         """
         The class constructor. The arguments are as follows.
-          * pman - the process manager object defining the system to measure.
           * args - input arguments. Should be instead a bunch of args or kwargs (TODO).
         """
 
         super().__init__(args)
-
-        self._pman = pman
         self._datapoints = args.datapoints
-
-    def close(self):
-        """Uninitialize the class objetc."""
-        ClassHelpers.close(self, unref_attrs=("_pman",))
 
 class _PbeCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'pbe' commands."""
@@ -865,20 +856,13 @@ class _PbeCmdFormatter(_ToolCmdFormatterBase):
 
         return self._create_command(reportid=reportid)
 
-    def __init__(self, pman, args):
+    def __init__(self, args):
         """
         The class constructor. The arguments are as follows.
-          * pman - the process manager object defining the system to measure.
           * args - input arguments. Should be instead a bunch of args or kwargs (TODO).
         """
 
         super().__init__(args)
-
-        self._pman = pman
-
-    def close(self):
-        """Uninitialize the class object."""
-        ClassHelpers.close(self, unref_attrs=("_pman",))
 
 class BatchConfig(_Common.CmdlineRunner):
     """
@@ -967,7 +951,7 @@ class BatchConfig(_Common.CmdlineRunner):
         self._cpuinfo = CPUInfo.CPUInfo(pman=self._pman)
         self._cpuidle = CPUIdle.CPUIdle(pman=self._pman, cpuinfo=self._cpuinfo)
         self._pfmt = _PepcCmdFormatter(self._pman, self._cpuinfo, self._cpuidle, args)
-        self._wfmt = _get_workload_cmd_formatter(self._pman, self._cpuinfo, self._cpuidle, args)
+        self._wfmt = _get_workload_cmd_formatter(self._cpuinfo, self._cpuidle, args)
 
         self._systemctl = Systemctl.Systemctl(pman=self._pman)
         if self._systemctl.is_active("tuned"):
