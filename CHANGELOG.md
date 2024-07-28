@@ -6,12 +6,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
+ - Add 'exercise-sut start --skip-io-dies' option support.
 ### Removed
 ### Changed
 
 ## [1.12.23] - 2024-07-24
 ### Fixed
- - Fix 'execise-sut start --use-cstate-filters' failures on platforms that do
+ - Fix 'exercise-sut start --use-cstate-filters' failures on platforms that do
    not have C1 counter and use 'DerivedCC1%' instead.
  - Fix 'pbe report' crash when one of the raw results has no statistics
    whatsoever.
