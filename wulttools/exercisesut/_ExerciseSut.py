@@ -181,6 +181,12 @@ _COLLECT_OPTIONS = {
         "help" : """Change settings, for example CPU frequency and C-state limits, only for the
                     measured CPU. By default settings are applied to all CPUs."""
     },
+    "skip_io_dies" : {
+        "action" : "store_true",
+        "help" : """Skip I/O dies when changing die-scope settings, such as uncore frequency. Even
+                    though I/O dies do not have CPUs, by default they are configured the same way as
+                    compute dies."""
+    },
     "toolpath" : {
         "type" : Path,
         "default" : WULT_TOOLNAME,

@@ -477,11 +477,13 @@ class _PepcCmdFormatter(_PropIteratorBase):
         command when changing property 'pname'.
         """
 
-        if not self._only_measured_cpu:
-            return "--cpus all"
-
         sname = self._get_prop_sname(pname)
         if sname in (None, "global"):
+            return "--cpus all"
+
+        if not self._only_measured_cpu:
+            if sname == "die" and not self._skip_io_dies:
+                return "--packages all --dies all --cpus all"
             return "--cpus all"
 
         levels = self._cpuinfo.get_cpu_levels(cpu)
@@ -495,13 +497,24 @@ class _PepcCmdFormatter(_PropIteratorBase):
         if sname == "package":
             cpus = self._cpuinfo.packages_to_cpus(packages=levels["package"])
 
+        opts = ""
+
+        if sname == "die" and not self._skip_io_dies:
+            package = levels["package"]
+            io_dies = self._cpuinfo.get_dies(package=package, compute_dies=False, io_dies=True)
+            if io_dies:
+                # I/O dies have no CPUs, so '--cpus' does not cover them. Include them using
+                # '--dies'.
+                io_dies = Human.rangify(io_dies)
+                opts = f"--packages {package} --dies {io_dies} "
+
         if cpus is None:
             raise Error(f"unknown scope for property '{pname}'")
 
         if isinstance(cpus, list):
             cpus = Human.rangify(cpus)
 
-        return f"--cpus {cpus}"
+        return opts + f"--cpus {cpus}"
 
     def _csnames_to_enable(self, csname):
         """
@@ -579,6 +592,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
         super().__init__(pman, cpuinfo, cpuidle)
 
         self._only_measured_cpu = args.only_measured_cpu
+        self._skip_io_dies = args.skip_io_dies
         self._only_one_cstate = args.only_one_cstate
         self._cstates_always_enable = args.cstates_always_enable
 

@@ -152,8 +152,18 @@ OPTIONS *'exercise-sut* start'
    Stop if any of the steps fail, instead of continuing (default).
 
 **--only-measured-cpu**
-   Change settings, for example CPU frequency and C-state limits, only
-   for the measured CPU. By default settings are applied to all CPUs.
+   When changing settings, such as CPU or uncore frequency, change them only
+   for the measured CPU. Some settings have scope larger than "CPU", for
+   example C-states limit scope may be "package", uncore frequency scope may be
+   "die". In these cases, change only the package/die that inlcudes the
+   measured CPU. By default the settings are applied to all CPUs, packages,
+   dies. Note, this options does not exclude I/O dies, use '--skip-io-dies'
+   for that.
+
+**--skip-io-dies**
+    Skip I/O dies when changing die-scope settings, such as uncore frequency.
+    Even though I/O dies do not have CPUs, by default they are configured the
+    same way as compute dies.
 
 **--toolpath** *TOOLPATH*
    Path to the tool to run. Default is 'wult'.
