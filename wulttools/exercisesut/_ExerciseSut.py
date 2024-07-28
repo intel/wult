@@ -387,7 +387,7 @@ def _start_command(args):
                     kwargs["cpu"] = cpu
 
                     reportid = batchconfig.create_reportid(props, **kwargs)
-                    _LOG.notice(f"Measuring with properties: {batchconfig.props_to_str(props)}, "
+                    _LOG.notice(f"measuring with: {batchconfig.props_to_str(props)}, "
                                 f"report ID: '{reportid}'")
 
                     batchconfig.run(props, reportid, **kwargs)
