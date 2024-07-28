@@ -36,51 +36,65 @@ PROP_INFOS = {
     "cstates" : {
         "name" : "Requestable C-state",
         "sname" : "CPU",
-        "cmd" : "pepc cstates config --disable all --enable {} --cpus {scope}"},
+        "cmd" : "pepc cstates config --disable all --enable {} --cpus {scope}"
+    },
     "pcstates" : {
         "name" : "Package C-state",
         "sname" : "package",
-        "cmd" : "pepc cstates config --pkg-cstate-limit {} --cpus {scope}"},
+        "cmd" : "pepc cstates config --pkg-cstate-limit {} --cpus {scope}"
+    },
     "freqs" : {
         "name" : "CPU frequency",
         "sname" : "CPU",
-        "cmd" : "pepc pstates config --min-freq {} --max-freq {} --cpus {scope}"},
+        "cmd" : "pepc pstates config --min-freq {} --max-freq {} --cpus {scope}"
+    },
     "uncore_freqs" : {
         "name" : "Uncore frequency",
         "moniker" : "uf",
         "sname" : "die",
-        "cmd" : "pepc pstates config --min-uncore-freq {} --max-uncore-freq {} --cpus " \
-                "{scope}"},
+        "cmd" : "pepc pstates config --min-uncore-freq {} --max-uncore-freq {} --cpus "
+                "{scope}"
+    },
     "governor" : {
         "moniker" : "gov",
-        "cmd" : "pepc pstates config --governor {} --cpus {scope}"},
+        "cmd" : "pepc pstates config --governor {} --cpus {scope}"
+    },
     "aspm" : {
         "name" : "ASPM",
         "moniker" : "aspm",
-        "cmd" : "pepc aspm config --policy {}"},
+        "cmd" : "pepc aspm config --policy {}"
+    },
     "c1_demotion" : {
         "moniker" : "c1d",
-        "cmd" : "pepc cstates config --c1-demotion {} --cpus {scope}"},
+        "cmd" : "pepc cstates config --c1-demotion {} --cpus {scope}"
+    },
     "c1_undemotion" : {
         "moniker" : "c1und",
-        "cmd" : "pepc cstates config --c1-undemotion {} --cpus {scope}"},
+        "cmd" : "pepc cstates config --c1-undemotion {} --cpus {scope}"
+    },
     "c1e_autopromote" : {
         "moniker" : "autoc1e",
-        "cmd" : "pepc cstates config --c1e-autopromote {} --cpus {scope}"},
+        "cmd" : "pepc cstates config --c1e-autopromote {} --cpus {scope}"
+    },
     "cstate_prewake" : {
         "moniker" : "cpw",
-        "cmd" : "pepc cstates config --cstate-prewake {} --cpus {scope}"},
+        "cmd" : "pepc cstates config --cstate-prewake {} --cpus {scope}"
+    },
     "epp" : {
         "moniker" : "epp",
-        "cmd" : "pepc pstates config --epp {} --cpus {scope}"},
+        "cmd" : "pepc pstates config --epp {} --cpus {scope}"
+    },
     "epb" : {
         "moniker" : "epb",
-        "cmd" : "pepc pstates config --epb {} --cpus {scope}"},
+        "cmd" : "pepc pstates config --epb {} --cpus {scope}"
+    },
     "turbo" : {
         "moniker" : "turbo",
-        "cmd" : "pepc pstates config --turbo {}"},
+        "cmd" : "pepc pstates config --turbo {}"
+    },
     "online" : {
-        "cmd" : "pepc cpu-hotplug online --cpus {}"},
+        "cmd" : "pepc cpu-hotplug online --cpus {}"
+    },
 }
 
 PC0_ONLY_STATES = ("POLL", "C1", "C1E")
@@ -501,7 +515,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
         else:
             all_csnames = self._normalize_csnames("all")
             idx = all_csnames.index(csname)
-            csnames.update(all_csnames[:idx+1])
+            csnames.update(all_csnames[:idx + 1])
 
         csnames = self._normalize_csnames(csnames)
         return ",".join(csnames)
@@ -683,7 +697,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
     def get_command(self, props, reportid, **kwargs):
         """Create and return 'wult' or 'ndl' command."""
 
-        return self._create_command(kwargs["cpu"], kwargs["devid"], reportid=reportid, \
+        return self._create_command(kwargs["cpu"], kwargs["devid"], reportid=reportid,
                                     cstate_filter=self._get_cstate_filter(props))
 
     def _c6p_exists(self):
