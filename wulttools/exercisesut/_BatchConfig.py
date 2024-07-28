@@ -36,28 +36,27 @@ PROP_INFOS = {
     "cstates" : {
         "name" : "Requestable C-state",
         "sname" : "CPU",
-        "cmd" : "pepc cstates config --disable all --enable {} --cpus {scope}"
+        "cmd" : "pepc cstates config --disable all --enable {} {scope_opts}"
     },
     "pcstates" : {
         "name" : "Package C-state",
         "sname" : "package",
-        "cmd" : "pepc cstates config --pkg-cstate-limit {} --cpus {scope}"
+        "cmd" : "pepc cstates config --pkg-cstate-limit {} {scope_opts}"
     },
     "freqs" : {
         "name" : "CPU frequency",
         "sname" : "CPU",
-        "cmd" : "pepc pstates config --min-freq {} --max-freq {} --cpus {scope}"
+        "cmd" : "pepc pstates config --min-freq {} --max-freq {} {scope_opts}"
     },
     "uncore_freqs" : {
         "name" : "Uncore frequency",
         "moniker" : "uf",
         "sname" : "die",
-        "cmd" : "pepc pstates config --min-uncore-freq {} --max-uncore-freq {} --cpus "
-                "{scope}"
+        "cmd" : "pepc pstates config --min-uncore-freq {} --max-uncore-freq {} {scope_opts}"
     },
     "governor" : {
         "moniker" : "gov",
-        "cmd" : "pepc pstates config --governor {} --cpus {scope}"
+        "cmd" : "pepc pstates config --governor {} {scope_opts}"
     },
     "aspm" : {
         "name" : "ASPM",
@@ -66,34 +65,34 @@ PROP_INFOS = {
     },
     "c1_demotion" : {
         "moniker" : "c1d",
-        "cmd" : "pepc cstates config --c1-demotion {} --cpus {scope}"
+        "cmd" : "pepc cstates config --c1-demotion {} {scope_opts}"
     },
     "c1_undemotion" : {
         "moniker" : "c1und",
-        "cmd" : "pepc cstates config --c1-undemotion {} --cpus {scope}"
+        "cmd" : "pepc cstates config --c1-undemotion {} {scope_opts}"
     },
     "c1e_autopromote" : {
         "moniker" : "autoc1e",
-        "cmd" : "pepc cstates config --c1e-autopromote {} --cpus {scope}"
+        "cmd" : "pepc cstates config --c1e-autopromote {} {scope_opts}"
     },
     "cstate_prewake" : {
         "moniker" : "cpw",
-        "cmd" : "pepc cstates config --cstate-prewake {} --cpus {scope}"
+        "cmd" : "pepc cstates config --cstate-prewake {} {scope_opts}"
     },
     "epp" : {
         "moniker" : "epp",
-        "cmd" : "pepc pstates config --epp {} --cpus {scope}"
+        "cmd" : "pepc pstates config --epp {} {scope_opts}"
     },
     "epb" : {
         "moniker" : "epb",
-        "cmd" : "pepc pstates config --epb {} --cpus {scope}"
+        "cmd" : "pepc pstates config --epb {} {scope_opts}"
     },
     "turbo" : {
         "moniker" : "turbo",
         "cmd" : "pepc pstates config --turbo {}"
     },
     "online" : {
-        "cmd" : "pepc cpu-hotplug online --cpus {}"
+        "cmd" : "pepc cpu-hotplug online {scope_opts}"
     },
 }
 
@@ -467,20 +466,23 @@ class _PepcCmdFormatter(_PropIteratorBase):
 
         return sname
 
-    def _get_cpus_by_prop_scope(self, pname, cpu=0):
+    def _get_scope_opts(self, pname, cpu=0):
         """
-        Build and return a list of CPU number which includes 'cpu' plus all the other CPUs that
-        would be affected if property 'pname' was changed on CPU 'cpu'. In other words, property
-        'pname' has a scope (e.g., "package"), and the methods list of CPUs including 'cpu' and all
-        other CPU numbers corresponding to the scope.
+        Format and return a pepc "scope options" for the 'pepc' command, such as '--cpus',
+        '--packages', etc. The arguments are as follows.
+          * pname - measured property name.
+          * cpu - measured CPU number.
+
+        Figure out and return the necessary "scope options" that should be passed to the 'pepc'
+        command when changing property 'pname'.
         """
 
         if not self._only_measured_cpu:
-            return "all"
+            return "--cpus all"
 
         sname = self._get_prop_sname(pname)
         if sname in (None, "global"):
-            return "all"
+            return "--cpus all"
 
         levels = self._cpuinfo.get_cpu_levels(cpu)
 
@@ -499,7 +501,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
         if isinstance(cpus, list):
             cpus = Human.rangify(cpus)
 
-        return cpus
+        return f"--cpus {cpus}"
 
     def _csnames_to_enable(self, csname):
         """
@@ -549,7 +551,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
                 elif value == "off":
                     value = "performance"
 
-            scope = self._get_cpus_by_prop_scope(pname, cpu=cpu)
+            scope_opts = self._get_scope_opts(pname, cpu=cpu)
 
             # We use 'unl' keyword to express unlocked frequency value, and the frequency options
             # have two values.
@@ -558,7 +560,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
             else:
                 values = [value] * self.props[pname]["cmd"].count("{}")
 
-            cmd = self.props[pname]["cmd"].format(*values, scope=scope)
+            cmd = self.props[pname]["cmd"].format(*values, scope_opts=scope_opts)
 
             if self._pman.hostname != "localhost":
                 cmd += f" -H {self._pman.hostname}"
