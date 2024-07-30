@@ -86,7 +86,8 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
                                    name="stale 'phc2sys' processes", pman=self._pman)
 
         freq = 1.0 / sync_period
-        cmd = f"phc2sys -s CLOCK_REALTIME -c {self._ifname} -R {freq:.5} -O {tai_offset}"
+        cmd = f"{self._phc2sys_path} -s CLOCK_REALTIME -c {self._ifname} -R {freq:.5} -O " \
+              f"{tai_offset}"
         self._phc2sys_proc = self._pman.run_async(cmd)
 
         # Make sure the process did not exit immediately.
