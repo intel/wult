@@ -14,6 +14,7 @@ discipline).
 import re
 import logging
 from pepclibs.helperlibs import ToolChecker, LocalProcessManager, ClassHelpers, KernelVersion
+from pepclibs.helperlibs import KernelModule
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.helperlibs import ProcHelpers
 
@@ -40,6 +41,14 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
         if not stdout or "qdisc etf " not in stdout:
             return False
         return True
+
+    def _load_modules(self):
+        """Load required kernel modules."""
+
+        for modname in ("sch_etf", "sch_mqprio"):
+            modobj = KernelModule.KernelModule(modname, self._pman)
+            modobj.load()
+            self._loaded_modules.append(modobj)
 
     def _run_tc_cmd(self, cmd):
         """This is a helper for running a 'tc' command specified in 'cmd'."""
@@ -174,6 +183,8 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
         self._handover_delta = None
         self._old_tc_err_msg = None
 
+        self._loaded_modules = []
+
         if not self._pman:
             self._pman = LocalProcessManager.LocalProcessManager()
 
@@ -189,11 +200,16 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
                                f"version '181023' or greater.\nThe 'tc' tool is part of the " \
                                f"'iproute2' project. Run 'tc -V' to check its version."
 
+        self._load_modules()
+
     def close(self):
         """Stop the measurements."""
 
         if getattr(self, "_phc2sys_proc", None):
             self.stop_phc2sys()
             self._phc2sys_proc = None
+
+        for modobj in self._loaded_modules:
+            modobj.close()
 
         ClassHelpers.close(self, close_attrs=("_tchk", "_pman"))

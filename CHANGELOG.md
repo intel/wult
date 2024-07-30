@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix 'ndl' tool failure on system where 'sch_etf' and 'sch_mqprio' kernel
+   modules are not loaded.
 ### Added
  - Add 'exercise-sut start --skip-io-dies' option support.
 ### Removed
