@@ -64,7 +64,7 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
                           "* Earliest TxTime First (CONFIG_NET_SCH_ETF)\n"                         \
                           "* Netfilter (CONFIG_NETFILTER_NETLINK)\n\n"                             \
                           "Make sure these kernel modules are available: 'sch_etf', 'sch_mqprio'." \
-                          "Make sure you can load them, e.g., try 'modprobme sch_mqprio'."
+                          "Make sure you can load them, e.g., try 'modprobe sch_mqprio'."
 
             elif "Unknown qdisc \"etf\"" in stderr:
                 errmsg += self._old_tc_err_msg
