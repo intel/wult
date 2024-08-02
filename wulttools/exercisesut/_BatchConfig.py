@@ -819,15 +819,6 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
 
         return self._create_command(kwargs["command"], reportid=reportid)
 
-    def __init__(self, args):
-        """
-        The class constructor. The arguments are as follows.
-          * args - input arguments. Should be instead a bunch of args or kwargs (TODO).
-        """
-
-        super().__init__(args)
-        self._datapoints = args.datapoints
-
 class _PbeCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'pbe' commands."""
 

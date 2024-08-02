@@ -72,7 +72,7 @@ class BatchReport(_Common.CmdlineRunner):
             for moniker in Trivial.split_csv_line(exclude):
                 exclude_monikers.add(moniker.lower())
 
-        respaths= []
+        respaths = []
         for respath in self._respaths:
             path_monikers = [moniker.lower() for moniker in respath.name.split("-")]
 
@@ -223,7 +223,6 @@ class BatchReport(_Common.CmdlineRunner):
         super().__init__(dry_run=args.dry_run, stop_on_failure=args.stop_on_failure,
                          proc_count=args.jobs)
 
-        self._outdir = args.outdir
         self._toolopts = args.toolopts
         self._respaths = self._search_result_paths(args.respaths)
         self.toolpath = args.toolpath
