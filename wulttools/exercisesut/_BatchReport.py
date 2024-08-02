@@ -217,15 +217,21 @@ class BatchReport(_Common.CmdlineRunner):
 
         self._run_command(cmd)
 
-    def __init__(self, args):
-        """The class constructor."""
+    def __init__(self, respaths, dry_run=False, jobs=None, toolpath=None, toolopts=None):
+        """
+        The class constructor. The arguments are as follows:
+          * respaths - path to search results from.
+          * dry_run - if 'True', print the command instead of running it.
+          * jobs - number of processes to run in parallel.
+          * toolpath - path to the tool to generate report with.
+          * toolopts - options for the report generation tool.
+        """
 
-        super().__init__(dry_run=args.dry_run, stop_on_failure=args.stop_on_failure,
-                         proc_count=args.jobs)
+        super().__init__(dry_run=dry_run, proc_count=jobs)
 
-        self._toolopts = args.toolopts
-        self._respaths = self._search_result_paths(args.respaths)
-        self.toolpath = args.toolpath
+        self.toolpath = toolpath
+        self._toolopts = toolopts
+        self._respaths = self._search_result_paths(respaths)
 
         if not self.toolpath:
             self.toolpath = self._resolve_toolpath()
