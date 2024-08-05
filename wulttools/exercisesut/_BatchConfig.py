@@ -615,9 +615,6 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
             monikers.append(kwargs["devid"])
 
         for pname, val in props.items():
-            if pname in ("freqs", "uncore_freqs") and val == "unl":
-                continue
-
             moniker = PROP_INFOS[pname].get("moniker", "")
             if moniker:
                 moniker = f"{moniker}_"
