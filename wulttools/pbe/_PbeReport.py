@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2023 Intel Corporation
+# Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Adam Hawley <adam.james.hawley@intel.com>
@@ -11,7 +11,7 @@
 from pathlib import Path
 from pepclibs.helperlibs import Logging
 from wulttools import _Common
-from wulttools.wult import ToolInfo
+from wulttools.pbe import ToolInfo
 from wultlibs.htmlreport import PbeReport
 
 def report_command(args):
