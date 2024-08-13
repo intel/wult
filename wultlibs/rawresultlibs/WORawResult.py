@@ -17,6 +17,7 @@ import contextlib
 from pepclibs.helperlibs import YAML, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
 from statscollectlibs.helperlibs import FSHelpers
+from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import _CSV, _RawResultBase
 from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
 
@@ -115,7 +116,8 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
             passed = eval(dpfilter) # pylint: disable=eval-used
         except SyntaxError as err:
             raise Error(f"failed to evaluate expression '{dpfilter}'. Make sure you use correct "
-                        f"metric names, which are also case-sensitive.") from err
+                        f"metric names, which are also case-sensitive. The filter was failing on "
+                        f"datapoint:\n{Human.dict2str(dp)}") from err
 
         return passed
 
