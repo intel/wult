@@ -10,6 +10,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
  - Fix 'wult' tool missing the CC7 C-state counter on some client CPUs.
 ### Added
  - Add 'exercise-sut start --skip-io-dies' option support.
+ - Add C10 support for exercise-sut '--use-cstate-filters' option.
 ### Removed
 ### Changed
 

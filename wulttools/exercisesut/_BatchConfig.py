@@ -103,6 +103,7 @@ CSTATE_FILTERS = {
     "C1" : "(ReqCState == 'C1') & (CC1% > 0)",
     "C1E" : "(ReqCState == 'C1E') & (CC1% > 0)",
     "C6" : "(ReqCState == 'C6') & (CC6% > 0)",
+    "C10" : "(ReqCState == 'C10') & (CC7% > 0)",
     "C6P" : "(ReqCState == 'C6P') & (PC6% > 0)",
     "C6S" : "(ReqCState == 'C6S') & (MC6% > 0)",
     "C6SP" : "(ReqCState == 'C6SP') & (PC6% > 0)",
