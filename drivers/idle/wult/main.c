@@ -306,7 +306,7 @@ error:
 
 init_error:
 	wi->initialized = true;
-	wi->init_err = err;
+	wi->err = err;
 	wake_up(&wi->armer_wq);
 	return err;
 }
@@ -361,8 +361,8 @@ int wult_register(struct wult_device_info *wdi)
 
 	/* Wait for the armer thread to finish the initialization. */
 	wait_event(wi->armer_wq, wi->initialized);
-	if (wi->init_err) {
-		err = wi->init_err;
+	if (wi->err) {
+		err = wi->err;
 		goto err_tracer;
 	}
 

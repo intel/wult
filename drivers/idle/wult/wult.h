@@ -138,8 +138,8 @@ struct wult_info {
 	struct task_struct *armer;
 	/* Whether the armer thread initialization is done. */
 	bool initialized;
-	/* The armer thread initialization error code. */
-	int init_err;
+	/* The armer thread error code. */
+	int err;
 	/* The wait queue for the armer thread to wait on. */
 	wait_queue_head_t armer_wq;
 	/* How many delayed events have been armed. */
