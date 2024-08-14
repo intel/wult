@@ -227,14 +227,20 @@ static int armer_kthread(void *data)
 
 	wult_dbg("started on CPU%d", smp_processor_id());
 
+	err = wult_tracer_init(wi);
+	if (err) {
+		wult_err("failed to initialize the tracer, error %d", err);
+		goto err_wake;
+	}
+
 	err = check_armer_cpunum();
 	if (err)
-		goto init_error;
+		goto err_tracer;
 
 	/* Initialize the delayed event driver. */
 	err = delayed_event_device_init(wi->wdi, wi->cpunum);
 	if (err)
-		goto init_error;
+		goto err_tracer;
 
 	/* Indicate that the initialization is complete. */
 	wi->initialized = true;
@@ -249,14 +255,14 @@ static int armer_kthread(void *data)
 
 		err = check_armer_cpunum();
 		if (err)
-			goto error;
+			goto err_disable;
 
 		events_happened = atomic_read(&wi->events_happened);
 
 		ldist = pick_ldist();
 		err = wult_tracer_arm_event(wi, &ldist);
 		if (err)
-			goto error;
+			goto err_disable;
 
 		atomic_inc(&wi->events_armed);
 
@@ -270,18 +276,18 @@ static int armer_kthread(void *data)
 			if (err == 0) {
 				wult_err("delayed event timed out, waited %ums", timeout);
 				err = -EINVAL;
-				goto out_unlock;
+				goto err_unlock;
 			}
 
 			err = check_event();
 			if (err)
-				goto out_unlock;
+				goto err_unlock;
 
 			/* Send the last measurement data to user-space. */
 			err = wult_tracer_send_data(wi);
 			if (err) {
 				wult_err("failed to send data out, error %d", err);
-				goto out_unlock;
+				goto err_unlock;
 			}
 		}
 		mutex_unlock(&wi->enable_mutex);
@@ -291,9 +297,9 @@ static int armer_kthread(void *data)
 	wi->wdi->ops->exit(wi->wdi);
 	return 0;
 
-out_unlock:
+err_unlock:
 	mutex_unlock(&wi->enable_mutex);
-error:
+err_disable:
 	wult_disable();
 
 	/* Wait for the stop event. */
@@ -304,7 +310,9 @@ error:
 
 	wi->wdi->ops->exit(wi->wdi);
 
-init_error:
+err_tracer:
+	wult_tracer_exit(wi);
+err_wake:
 	wi->err = err;
 	if (!wi->initialized) {
 		wi->initialized = true;
@@ -344,18 +352,12 @@ int wult_register(struct wult_device_info *wdi)
 	init_wdi(wdi);
 	mutex_unlock(&wi->dev_mutex);
 
-	err = wult_tracer_init(wi);
-	if (err) {
-		wult_err("failed to initialize the tracer, error %d", err);
-		goto err_put;
-	}
-
 	wi->armer = kthread_create(armer_kthread, wi, WULT_KTHREAD_NAME);
 	if (IS_ERR(wi->armer)) {
 		err = PTR_ERR(wi->armer);
 		wult_err("failed to create the '%s' kernel thread, error %d",
 			 WULT_KTHREAD_NAME, err);
-		goto err_tracer;
+		goto err_put;
 	}
 
 	kthread_bind(wi->armer, wi->cpunum);
@@ -365,7 +367,7 @@ int wult_register(struct wult_device_info *wdi)
 	wait_event(wi->armer_wq, wi->initialized);
 	if (wi->err) {
 		err = wi->err;
-		goto err_tracer;
+		goto err_kthread;
 	}
 
 	err = wult_uapi_device_register(wi);
@@ -380,8 +382,6 @@ int wult_register(struct wult_device_info *wdi)
 
 err_kthread:
 	kthread_stop(wi->armer);
-err_tracer:
-	wult_tracer_exit(wi);
 err_put:
 	module_put(THIS_MODULE);
 	return err;
