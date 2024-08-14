@@ -321,8 +321,8 @@ static void init_wdi(struct wult_device_info *wdi)
 }
 
 /*
- * Register the delayed event device, which will be used for arming events in
- * the future in order to measure wake latency.
+ * Register the delayed event device and initialize resources necessary for
+ * measuring wake latency.
  */
 int wult_register(struct wult_device_info *wdi)
 {
@@ -359,7 +359,7 @@ int wult_register(struct wult_device_info *wdi)
 	kthread_bind(wi->armer, wi->cpunum);
 	wake_up_process(wi->armer);
 
-	/* Wait for the delayed event driver to finish initialization. */
+	/* Wait for the armer thread to finish the initialization. */
 	wait_event(wi->armer_wq, wi->initialized);
 	if (wi->init_err) {
 		err = wi->init_err;
@@ -386,7 +386,7 @@ err_put:
 }
 EXPORT_SYMBOL_GPL(wult_register);
 
-/* Unregister the delayed event source. */
+/* Unregister the delayed event source and uninitialize the resources. */
 void wult_unregister(void)
 {
 	wult_msg("unregistering device '%s'", wi->wdi->devname);
