@@ -7,6 +7,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
  - Fix 'ndl' tool failure on system where 'sch_etf' and 'sch_mqprio' kernel
    modules are not loaded.
+ - Fix 'wult' tool missing the CC7 C-state counter on some client CPUs.
 ### Added
  - Add 'exercise-sut start --skip-io-dies' option support.
 ### Removed
