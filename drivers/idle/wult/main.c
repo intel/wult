@@ -269,6 +269,7 @@ static int armer_kthread(void *data)
 		if (wi->enabled) {
 			if (err == 0) {
 				wult_err("delayed event timed out, waited %ums", timeout);
+				err = -EINVAL;
 				goto out_unlock;
 			}
 
@@ -302,12 +303,13 @@ error:
 	}
 
 	wi->wdi->ops->exit(wi->wdi);
-	return -EINVAL;
 
 init_error:
-	wi->initialized = true;
 	wi->err = err;
-	wake_up(&wi->armer_wq);
+	if (!wi->initialized) {
+		wi->initialized = true;
+		wake_up(&wi->armer_wq);
+	}
 	return err;
 }
 
