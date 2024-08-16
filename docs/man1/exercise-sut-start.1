@@ -165,9 +165,22 @@ The command to that \[aq]stats-collect\[aq] should run.
 Stop if any of the steps fail, instead of continuing (default).
 .TP
 \f[B]--only-measured-cpu\f[R]
-Change settings, for example CPU frequency and C-state limits, only for
-the measured CPU.
-By default settings are applied to all CPUs.
+When changing settings, such as CPU or uncore frequency, change them
+only for the measured CPU.
+Some settings have scope larger than \[dq]CPU\[dq], for example C-states
+limit scope may be \[dq]package\[dq], uncore frequency scope may be
+\[dq]die\[dq].
+In these cases, change only the package/die that inlcudes the measured
+CPU.
+By default the settings are applied to all CPUs, packages, dies.
+Note, this options does not exclude I/O dies, use
+\[aq]--skip-io-dies\[aq] for that.
+.TP
+\f[B]--skip-io-dies\f[R]
+Skip I/O dies when changing die-scope settings, such as uncore
+frequency.
+Even though I/O dies do not have CPUs, by default they are configured
+the same way as compute dies.
 .TP
 \f[B]--toolpath\f[R] \f[I]TOOLPATH\f[R]
 Path to the tool to run.

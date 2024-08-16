@@ -5,14 +5,18 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.12.24] - 2024-08-16
+### Fixed
  - Fix 'ndl' tool failure on system where 'sch_etf' and 'sch_mqprio' kernel
    modules are not loaded.
  - Fix 'wult' tool missing the CC7 C-state counter on some client CPUs.
 ### Added
  - Add 'exercise-sut start --skip-io-dies' option support.
  - Add C10 support for exercise-sut '--use-cstate-filters' option.
-### Removed
-### Changed
 
 ## [1.12.23] - 2024-07-24
 ### Fixed
