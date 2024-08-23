@@ -27,37 +27,37 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
 
     NSEC_PER_SEC = 1000000000
 
-    def _run_iteration(self, wper):
-        """Run a single measurement iteration using wake period 'wper'."""
+    def _run_iteration(self, ldist):
+        """Run a single measurement iteration using launch distance 'ldist'."""
 
         _LOG.debug("warm-up for %s", self._hwarmup)
         time.sleep(self._warmup)
 
         _LOG.debug("collect for %s", self._hspan)
-        self._stcoll.add_label("start", metrics={self._wper_metric: wper})
+        self._stcoll.add_label("start", metrics={self._ldist_metric: ldist})
         time.sleep(self._span)
         self._stcoll.add_label("skip")
 
-        self._res.add_csv_row({self._time_metric: time.time(), self._wper_metric: wper})
+        self._res.add_csv_row({self._time_metric: time.time(), self._ldist_metric: ldist})
 
-    def _get_wper(self):
-        """Yields all wake period values to measure."""
+    def _get_ldist(self):
+        """Yields all launch distance values to measure."""
 
-        def _calc_next_wper(prev_wper):
-            """Calculate and return the next wake period from the previous wake period."""
+        def _calc_next_ldist(prev_ldist):
+            """Calculate and return the next launch distance from the previous launch period."""
 
-            if self._wper_step_pct:
-                return wper + int((wper * self._wper_step_pct) / 100)
-            return prev_wper + self._wper_step_ns
+            if self._ldist_step_pct:
+                return ldist + int((ldist * self._ldist_step_pct) / 100)
+            return prev_ldist + self._ldist_step_ns
 
-        wper = self._wper[0]
-        yield wper
+        ldist = self._ldist[0]
+        yield ldist
 
         while True:
-            wper = _calc_next_wper(wper)
-            if wper > self._wper[1]:
+            ldist = _calc_next_ldist(ldist)
+            if ldist > self._ldist[1]:
                 return
-            yield wper
+            yield ldist
 
     def _finish_run(self):
         """
@@ -74,8 +74,8 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
 
         self._res.write_info()
 
-        _LOG.info("Will measure wake period range %s-%s, step %s, warmup %s, span %s",
-                  self._hwper[0], self._hwper[1], self._hwper_step,
+        _LOG.info("Will measure launch distance range %s-%s, step %s, warmup %s, span %s",
+                  self._hldist[0], self._hldist[1], self._hldist_step,
                   self._hwarmup, self._hspan)
 
         self._stcoll.add_label("skip")
@@ -83,12 +83,12 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
         self._progress.start()
 
         try:
-            self._prov.set_wper(self._wper[0])
+            self._prov.set_ldist(self._ldist[0])
             self._prov.start()
-            for wper in self._get_wper():
-                self._prov.set_wper(wper)
-                self._progress.update(wper)
-                self._run_iteration(wper)
+            for ldist in self._get_ldist():
+                self._prov.set_ldist(ldist)
+                self._progress.update(ldist)
+                self._run_iteration(ldist)
             self._prov.stop()
         except (KeyboardInterrupt, Error) as err:
             if self._prov.started:
@@ -111,58 +111,58 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
 
         self._prov.prepare()
 
-        self._res.csv.add_header([self._time_metric, self._wper_metric])
+        self._res.csv.add_header([self._time_metric, self._ldist_metric])
 
         self._res.info["date"] = time.strftime("%d %b %Y")
         self._res.info["devid"] = self._dev.info["devid"]
         self._res.info["devdescr"] = self._dev.info["descr"]
         self._res.info["resolution"] = self._dev.info["resolution"]
 
-    def _validate_wper_step(self):
-        """Validate 'self._wper_step_pct' and 'self._wper_step_ns'."""
+    def _validate_ldist_step(self):
+        """Validate 'self._ldist_step_pct' and 'self._ldist_step_ns'."""
 
-        if self._wper_step_pct is None and self._wper_step_ns is None:
-            raise Error("please provide the wake period step")
+        if self._ldist_step_pct is None and self._ldist_step_ns is None:
+            raise Error("please provide the launch distance step")
 
-        if self._wper_step_pct and self._wper_step_ns:
-            raise Error("please provide the wake period step either in percent or in nanoseconds, "
-                        "but not both")
+        if self._ldist_step_pct and self._ldist_step_ns:
+            raise Error("please provide the launch distance step either in percent or in "
+                        "nanoseconds, but not both")
 
-        if self._wper_step_pct is not None:
-            if self._wper_step_pct < 0 or self._wper_step_pct > 100:
-                raise Error(f"bad wake period step percent value '{self._wper_step_pct}', "
+        if self._ldist_step_pct is not None:
+            if self._ldist_step_pct < 0 or self._ldist_step_pct > 100:
+                raise Error(f"bad launch distance step percent value '{self._ldist_step_pct}', "
                             f"must be in the range of [0, 100%]")
 
-        if self._wper_step_ns is not None:
-            if self._wper_step_ns <= 0:
-                raise Error(f"bad wake period step value '{self._wper_step_ns}', must be "
+        if self._ldist_step_ns is not None:
+            if self._ldist_step_ns <= 0:
+                raise Error(f"bad launch distance step value '{self._ldist_step_ns}', must be "
                             f"greater than 0")
 
     def _validate_span(self):
         """Validate 'self._span'."""
 
-        if self._span * self.NSEC_PER_SEC < 100 * self._wper[1]:
+        if self._span * self.NSEC_PER_SEC < 100 * self._ldist[1]:
             raise Error(f"too short span value '{self._hspan}'. It should be at least 100 times "
-                        f"larger than max. wake period distance ({self._hwper[1]}).")
+                        f"larger than max. launch distance ({self._hldist[1]}).")
 
         min_span = 1
         if self._span < min_span:
             raise Error(f"too short span value '{self._hspan}'. It should be greater than "
                         f"{min_span} seconds.")
 
-    def __init__(self, pman, dev, res, wper, span, warmup, stcoll, wper_step_pct=None,
-                 wper_step_ns=None, lcpu=0):
+    def __init__(self, pman, dev, res, ldist, span, warmup, stcoll, ldist_step_pct=None,
+                 ldist_step_ns=None, lcpu=0):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
           * dev - the delayed event device object created by 'Devices.GetDevice()'.
           * res - the 'WORawResult' object to store the results at.
-          * wper - a pair of numbers specifying the wake period range in nanoseconds.
-          * span - for how long to measure a single wake period in seconds.
+          * ldist - a pair of numbers specifying the launch distance range in nanoseconds.
+          * span - for how long to measure a single launch distance in seconds.
           * warmup - the warm-up period in seconds.
           * stcoll - the 'StatsCollect' object to use for collecting statistics.
-          * wper_step_pct - the wake period step in percent.
-          * wper_step_ns - the wake period step in nanoseconds.
+          * ldist_step_pct - the launch distance step in percent.
+          * ldist_step_ns - the launch distance step in nanoseconds.
           * lcpu - the lead CPU. This CPU sets timers and triggers interrupts to wake all other
                    CPUs.
         """
@@ -170,12 +170,12 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
         self._pman = pman
         self._dev = dev
         self._res = res
-        self._wper = None
+        self._ldist = None
         self._span = span
         self._warmup = warmup
         self._stcoll = stcoll
-        self._wper_step_pct = wper_step_pct
-        self._wper_step_ns = wper_step_ns
+        self._ldist_step_pct = ldist_step_pct
+        self._ldist_step_ns = ldist_step_ns
 
         self._timeout = 10
         self._prov = None
@@ -184,31 +184,31 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
         # The measurement parameters in human-readable format.
         self._hspan = None
         self._hwarmup = None
-        self._hwper = None
-        self._hwper_step = None
+        self._hldist = None
+        self._hldist_step = None
 
-        self._wper_metric = "LDist"
+        self._ldist_metric = "LDist"
         self._time_metric = "Time"
 
-        self._prov = _PbeRawDataProvider.PbeRawDataProvider(dev, pman, wper, timeout=self._timeout,
+        self._prov = _PbeRawDataProvider.PbeRawDataProvider(dev, pman, ldist, timeout=self._timeout,
                                                             lcpu=lcpu)
 
-        self._wper = self._prov.ldist
-        self._hwper = (Human.duration_ns(self._wper[0]), Human.duration_ns(self._wper[1]))
+        self._ldist = self._prov.ldist
+        self._hldist = (Human.duration_ns(self._ldist[0]), Human.duration_ns(self._ldist[1]))
 
         self._hspan = Human.duration(self._span)
         self._hwarmup = Human.duration(self._warmup)
 
-        if self._wper_step_pct:
-            self._hwper_step = f"{self._wper_step_pct}%"
+        if self._ldist_step_pct:
+            self._hldist_step = f"{self._ldist_step_pct}%"
         else:
-            self._hwper_step = Human.duration_ns(self._wper_step_ns)
+            self._hldist_step = Human.duration_ns(self._ldist_step_ns)
 
         if res.info["toolname"] != ToolInfo.TOOLNAME:
             raise Error(f"unsupported non-pbe test result at {res.dirpath}.\nPlease, provide a "
                         f"pbe test result.")
 
-        self._validate_wper_step()
+        self._validate_ldist_step()
         self._validate_span()
 
         # Make sure the statistics directory exists.

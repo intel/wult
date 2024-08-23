@@ -101,8 +101,8 @@ def start_command(args):
             depl.check_deployment()
 
         runner = PbeRunner.PbeRunner(pman, dev, res, args.wakeperiod, span, warmup, stcoll,
-                                     wper_step_pct=wper_step_pct,
-                                     wper_step_ns=wper_step_ns, lcpu=args.lead_cpu)
+                                     ldist_step_pct=wper_step_pct,
+                                     ldist_step_ns=wper_step_ns, lcpu=args.lead_cpu)
         stack.enter_context(runner)
 
         runner.prepare()
