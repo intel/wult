@@ -81,26 +81,26 @@ def _build_arguments_parser():
 
     ArgParse.add_ssh_options(subpars)
 
-    text = f"""The wake period range to go through. The default range is [10us,10ms], but you can
-               override it with this option by specifying a comma-separated range. The default unit
-               is microseconds, but you can use the following specifiers as well:
-               {_Common.DURATION_NS_SPECS_DESCR}. For example, '--wakeperiod 20us,1ms' would be a
+    text = f"""The launch distance range to go through. The default range is [10us,10ms], but you
+               can override it with this option by specifying a comma-separated range. The default
+               unit is microseconds, but you can use the following specifiers as well:
+               {_Common.DURATION_NS_SPECS_DESCR}. For example, '--ldist 20us,1ms' would be a
                [20,1000] microseconds range."""
-    subpars.add_argument("-w", "--wakeperiod", help=text, default="10,10000")
+    subpars.add_argument("-l", "--ldist", help=text, default="10,10000")
 
-    text = f"""The wake period step. By default it is 1%%. You can specify a percent value or an
+    text = f"""The launch distance step. By default it is 1%%. You can specify a percent value or an
                absolute time value. In the latter case, you can use one of the following specifiers:
-               {_Common.DURATION_NS_SPECS_DESCR}. For example, '--wakeperiod-step=1ms' means that
-               wake period will be incremented by 1 millisecond on every iteration. If no unit was
+               {_Common.DURATION_NS_SPECS_DESCR}. For example, '--ldist-step=1ms' means that
+               launch distance will be incremented by 1 millisecond on every iteration. If no unit was
                specified, microseconds are assumed."""
-    subpars.add_argument("-S", "--wakeperiod-step", help=text, default="1%%")
+    subpars.add_argument("-S", "--ldist-step", help=text, default="1%%")
 
-    text = f"""For how long a single wake period value should be measured. By default, it is 1
+    text = f"""For how long a single launch distance value should be measured. By default, it is 1
                minute. Specify time value in minutes, or use one of the following specifiers:
                {_Common.DURATION_SPECS_DESCR}."""
     subpars.add_argument("--span", help=text, default="1m")
 
-    text = f"""When this tool starts measuring a new wake period value, first it lets the system
+    text = f"""When this tool starts measuring a new launch distance value, first it lets the system
                "warm up" for some amount of time, and starts collecting the data (e.g., power)
                only after the warm up period. This allows the system to get into the "steady state"
                (e.g., fans speed and CPU temperature stabilizes). By default, the warm up period is
