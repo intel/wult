@@ -211,13 +211,13 @@ static int handle_socket_errors(int sock, struct sockaddr_in *addr)
 
 	if (ltime != 0)
 		snprintf(errqueue_buf, ERRQUEUE_BUF_SIZE,
-			"the delayed packet with lauch time %llu got error %d, origin %u, type %u, code %u",
+			"the delayed packet with launch time %llu got error %d, origin %u, type %u, code %u",
 			(unsigned long long)ltime, serr->ee_errno,
 			(unsigned int)serr->ee_origin, (unsigned int)serr->ee_type,
 			(unsigned int)serr->ee_code);
 	else
 		snprintf(errqueue_buf, ERRQUEUE_BUF_SIZE,
-			"a packet with unknown lauch time got error %d, origin %u, type %u, code %u",
+			"a packet with unknown launch time got error %d, origin %u, type %u, code %u",
 			serr->ee_errno, (unsigned int)serr->ee_origin, (unsigned int)serr->ee_type,
 			(unsigned int)serr->ee_code);
 
