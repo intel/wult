@@ -164,7 +164,7 @@ static int delayed_event_device_init(struct wult_device_info *wdi,
 	}
 
 	if (wdi->ldist_gran > WULT_MAX_LDIST_GRANULARITY) {
-		wult_err("device '%s' lauch distance resolution is %u ns, wich is too coarse, max is %d ns",
+		wult_err("device '%s' launch distance resolution is %u ns, wich is too coarse, max is %d ns",
 			 wdi->devname, wdi->ldist_gran,
 			 WULT_MAX_LDIST_GRANULARITY);
 		wi->wdi->ops->exit(wi->wdi);
