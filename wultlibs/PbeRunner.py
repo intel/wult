@@ -181,7 +181,7 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
         self._prov = None
         self._progress = None
 
-        # The meausrement parameters in human-readable format.
+        # The measurement parameters in human-readable format.
         self._hspan = None
         self._hwarmup = None
         self._hwper = None
