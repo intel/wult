@@ -187,7 +187,7 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
         self._hwper = None
         self._hwper_step = None
 
-        self._wper_metric = "WakePeriod"
+        self._wper_metric = "LDist"
         self._time_metric = "Time"
 
         self._prov = _PbeRawDataProvider.PbeRawDataProvider(dev, pman, wper, timeout=self._timeout,

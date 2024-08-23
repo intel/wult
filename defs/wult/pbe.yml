@@ -3,8 +3,8 @@
 #
 # Definitions for pbe CSV file.
 
-WakePeriod:
-    title: "Wake Period"
+LDist:
+    title: "Launch Distance"
     descr: >-
         Time between CPU wake-up events.
     type: "float"
