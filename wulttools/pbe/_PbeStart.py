@@ -48,12 +48,12 @@ def start_command(args):
 
         args.wakeperiod = _Common.parse_ldist(args.wakeperiod, single_ok=False)
 
-        wper_step_pct, wper_step_ns = None, None
+        ldist_step_pct, ldist_step_ns = None, None
         if args.wakeperiod_step.endswith("%"):
-            wper_step_pct = Trivial.str_to_num(args.wakeperiod_step.rstrip("%"))
+            ldist_step_pct = Trivial.str_to_num(args.wakeperiod_step.rstrip("%"))
         else:
-            wper_step_ns = Human.parse_human(args.wakeperiod_step, unit="us", target_unit="ns",
-                                             name="wake period step")
+            ldist_step_ns = Human.parse_human(args.wakeperiod_step, unit="us", target_unit="ns",
+                                              name="launch distance step")
         if Trivial.is_num(args.span):
             args.span = f"{args.span}m"
         span = Human.parse_human(args.span, unit="s", integer=True, name="span")
@@ -101,8 +101,8 @@ def start_command(args):
             depl.check_deployment()
 
         runner = PbeRunner.PbeRunner(pman, dev, res, args.wakeperiod, span, warmup, stcoll,
-                                     ldist_step_pct=wper_step_pct,
-                                     ldist_step_ns=wper_step_ns, lcpu=args.lead_cpu)
+                                     ldist_step_pct=ldist_step_pct,
+                                     ldist_step_ns=ldist_step_ns, lcpu=args.lead_cpu)
         stack.enter_context(runner)
 
         runner.prepare()
