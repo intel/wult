@@ -20,14 +20,14 @@ class PbeRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     This class provides API for managing the 'pbe' driver and reading raw PBE datapoints.
     """
 
-    def set_wper(self, wper):
-        """Change wake period to 'wper'."""
+    def set_ldist(self, ldist):
+        """Change launch distance to 'ldist'."""
 
         with self._pman.open(self._basedir / "ldist_nsec", "w") as fobj:
-            fobj.write(f"{wper}")
+            fobj.write(f"{ldist}")
 
     def start(self):
-        """Start the measurements with wake period 'wper'."""
+        """Start the measurements."""
 
         with self._pman.open(self._enable_path, "w") as fobj:
             fobj.write("1")
@@ -48,12 +48,12 @@ class PbeRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         super().prepare()
         super()._load_driver()
 
-    def __init__(self, dev, pman, wper, timeout=None, lcpu=0):
+    def __init__(self, dev, pman, ldist, timeout=None, lcpu=0):
         """
         Initialize a class instance. The arguments are as follows.
           * dev - the device object created with 'Devices.GetDevice()'.
           * pman - the process manager object defining host to operate on.
-          * wper - a pair of numbers specifying the wake period range in nanoseconds.
+          * ldist - a pair of numbers specifying the launch distance range in nanoseconds.
           * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
                       seconds.
           * lcpu - the lead CPU. This CPU will set timers and trigger interrupts to wake all other
@@ -61,7 +61,7 @@ class PbeRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         """
 
         drvinfo = {dev.drvname: {"params": f"cpunum={lcpu}"}}
-        super().__init__(dev, pman, wper, drvinfo=drvinfo, timeout=timeout)
+        super().__init__(dev, pman, ldist, drvinfo=drvinfo, timeout=timeout)
 
         self.started = False
 
