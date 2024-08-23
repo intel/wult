@@ -23,7 +23,7 @@ from wulttools.pbe import ToolInfo
 _LOG = logging.getLogger()
 
 class PbeRunner(ClassHelpers.SimpleCloseContext):
-    """Run wake latency measurement experiments."""
+    """Run power break-even measurement experiments."""
 
     NSEC_PER_SEC = 1000000000
 
