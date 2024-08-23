@@ -22,7 +22,7 @@ class PbeReport(_ReportBase.ReportBase):
     """This module provides API for generating HTML reports for pbe test results."""
 
     def _customise_dtab_cfg(self, dtab_cfg):
-        """Customise the data tab configuration 'dtab_cfg' to show 'WakePeriod' on plot axes."""
+        """Customise the data tab configuration 'dtab_cfg' to show 'LDist' on plot axes."""
 
         new_plots = []
         for plot in dtab_cfg.scatter_plots:
@@ -34,7 +34,7 @@ class PbeReport(_ReportBase.ReportBase):
 
     def _customise_tab_cfg(self, tab_cfg):
         """
-        Customise the tab configuration 'tab_cfg' to show 'WakePeriod' on plot axes. Recurse through
+        Customise the tab configuration 'tab_cfg' to show 'LDist' on plot axes. Recurse through
         all C-tabs and D-tabs to customise their configurations.
         """
 
@@ -55,8 +55,8 @@ class PbeReport(_ReportBase.ReportBase):
     def _get_stats_tab_cfgs(self):
         """
         Get the 'pbe' statistics tab configurations. These configurations are based on the default
-        tab configuraions provided by 'stats-collect' but they are customised to show 'WakePeriod'
-        on the X-axes of plots in the data tabs.
+        tab configuraions provided by 'stats-collect' but they are customised to show 'LDist' on
+        the X-axes of plots in the data tabs.
         """
 
         pbe_cfg = {}
@@ -125,9 +125,9 @@ class PbeReport(_ReportBase.ReportBase):
 
         labels_defs = PbeDefs.PbeDefs()
 
-        # The 'WakePeriod' metric definition is used to build tab configurations for custom
-        # statistics tabs. Assign it to a class property here so that the name does not need to be
-        # hard-coded in multiple places.
+        # The 'LDist' metric definition is used to build tab configurations for custom statistcs
+        # tabs. Assign it to a class property here so that the name does not need to be hard-coded
+        # in multiple places.
         self._wp_def = labels_defs.info["LDist"]
 
         for res in rsts:
