@@ -8,6 +8,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Rename the "Wake Period" metric to "Launch Distance". This change includes
+   renaming the '--wakeperiod (-w)' and '--wakeperiod-step' options to '--ldist
+   (-l)' and '--ldist-step' accordingly. Note that the tool maintains
+   compatability with results collected on older versions of the tool, however
+   reports generated will represent data collected as "Wake Period" data as
+   "Launch Distance" data.
 
 ## [1.12.24] - 2024-08-16
 ### Fixed
