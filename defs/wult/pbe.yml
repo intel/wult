@@ -6,7 +6,9 @@
 LDist:
     title: "Launch Distance"
     descr: >-
-        Time between CPU wake-up events.
+        The interval used to schedule the waking of all CPUs. For example, a launch distance of
+        100us, will cause the 'pbe' driver to wake all CPUs then wait at least 100us before waking
+        them again.
     type: "float"
     unit: "nanosecond"
     short_unit: "ns"
