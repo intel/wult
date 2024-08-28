@@ -89,9 +89,13 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
         parser.add_argument("--drivers-make-opts", dest="drv_make_opts", help=text)
 
     if cats["drivers"] and cats["bpfhelpers"]:
-        text = """Deploy the eBPF helper, but do not deploy the drivers. This is a debug and
-                  development option, do not use it for other purposes."""
+        text = """Do not deploy the drivers. This is a debug and development option, do not use it
+                  for other purposes."""
         parser.add_argument("--skip-drivers", action="store_true", help=text)
+
+        text = """Do not deploy eBPF helpers. This is a debug and development option, do not use it
+                  for other purposes."""
+        parser.add_argument("--skip-bpf", action="store_true", help=text)
 
     if cats["bpfhelpers"]:
         text = """eBPF helpers sources consist of 2 components: the user-space component and the
@@ -356,8 +360,11 @@ class Deploy(DeployBase.DeployBase):
         requirements.
         """
 
+        if self._skip_bpf:
+            for installable in list(self._cats["bpfhelpers"]):
+                self._drop_installable(installable)
+
         if self._skip_drivers:
-            # Exclude all installables of the "drivers" category.
             for installable in list(self._cats["drivers"]):
                 self._drop_installable(installable)
 
@@ -381,19 +388,23 @@ class Deploy(DeployBase.DeployBase):
 
                 self._drop_installable(installable)
 
-    def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False, skip_drivers=None,
-                 drv_make_opts=None, rebuild_bpf=False, tmpdir_path=None, keep_tmpdir=False,
-                 debug=False):
+    def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False, skip_bpf=None,
+                 skip_drivers=None, drv_make_opts=None, rebuild_bpf=False, tmpdir_path=None,
+                 keep_tmpdir=False, debug=False):
         """
         The class constructor. The arguments are the same as in 'DeployBase.__init__()' except for:
           * ksrc - path to the kernel sources to compile drivers against.
-          * skip_drivers - do not build drivers (drop the installables of the "drivers" category).
+          * skip_bpf - do not build / deploy eBPF helpers (drop the installables of the "bpfhelpers"
+                       category).
+          * skip_drivers - do not build / deploy the drivers (drop the installables of the "drivers"
+                           category).
           * drv_make_opts - options to add to the 'make' command when building the drivers.
           * rebuild_bpf - if 'toolname' comes with an eBPF helper, re-build the the eBPF component
-                           of the helper if this argument is 'True'. Do not re-build otherwise.
+                          of the helper if this argument is 'True'. Do not re-build otherwise.
         """
 
         self._ksrc = ksrc
+        self._skip_bpf = skip_bpf
         self._skip_drivers = skip_drivers
         self._drv_make_opts = drv_make_opts
         self._rebuild_bpf = rebuild_bpf
