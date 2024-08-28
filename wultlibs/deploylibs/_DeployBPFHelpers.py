@@ -95,7 +95,7 @@ class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
                 # 'gcc-multilib' package is installed. Include this information to the error
                 # message.
                 btchk = self._get_btchk()
-                if header == "asm/types.h" and btchk.get_osname() == "Ubuntu":
+                if header == "asm/types.h" and btchk.get_osid() == "ubuntu":
                     err += "\nTry to install the 'gcc-multilib' Ubuntu package"
 
                 raise ErrorNotFound(err)
