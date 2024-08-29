@@ -6,8 +6,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
- - Add 'wult deploy --skip-bpf' option for skipping eBPF helpers deployment.
 ### Removed
+### Changed
+
+## [1.12.25] - 2024-08-29
+### Added
+ - Add 'wult deploy --skip-bpf' option for skipping eBPF helpers deployment.
 ### Changed
  - Rename the "Wake Period" metric to "Launch Distance". This change includes
    renaming the '--wakeperiod (-w)' and '--wakeperiod-step' options to '--ldist

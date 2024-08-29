@@ -1,3 +1,15 @@
+wult (1.12.25) unstable; urgency=low
+
+  * Add 'wult deploy --skip-bpf' option for skipping eBPF helpers deployment.
+  * Rename the "Wake Period" metric to "Launch Distance". This change includes
+    renaming the '--wakeperiod (-w)' and '--wakeperiod-step' options to '--ldist
+    (-l)' and '--ldist-step' accordingly. Note that the tool maintains
+    compatability with results collected on older versions of the tool, however
+    reports generated will represent data collected as "Wake Period" data as
+    "Launch Distance" data.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 29 Aug 2024 00:00:00 +0200
+
 wult (1.12.24) unstable; urgency=low
 
   * Fix 'ndl' tool failure on system where 'sch_etf' and 'sch_mqprio' kernel

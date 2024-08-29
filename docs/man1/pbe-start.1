@@ -19,8 +19,8 @@
 .SH COMMAND \f[I]\[aq]pbe\f[R] start\[aq]
 .PP
 usage: pbe start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
-[-T TIMEOUT] [-w WAKEPERIOD] [-S WAKEPERIOD_STEP] [--span SPAN]
-[--warmup WARMUP] [-o OUTDIR] [--reportid REPORTID] [--report]
+[-T TIMEOUT] [-l LDIST] [-S LDIST_STEP] [--span SPAN] [--warmup WARMUP]
+[-o OUTDIR] [--reportid REPORTID] [--report]
 .PP
 Start measuring C-states power break even.
 .SH OPTIONS \f[I]\[aq]pbe\f[R] start\[aq]
@@ -50,35 +50,35 @@ By default the key is automatically found from standard paths like
 \f[B]-T\f[R] \f[I]TIMEOUT\f[R], \f[B]--timeout\f[R] \f[I]TIMEOUT\f[R]
 SSH connect timeout in seconds, default is 8.
 .TP
-\f[B]-w\f[R] \f[I]WAKEPERIOD\f[R], \f[B]--wakeperiod\f[R] \f[I]WAKEPERIOD\f[R]
-The wake period range to go through.
+\f[B]-w\f[R] \f[I]LDIST\f[R], \f[B]--ldist\f[R] \f[I]LDIST\f[R]
+The launch distance range to go through.
 The default range is [10us,10ms], but you can override it with this
-option by specifying a comma- separated range.
+option by specifying a comma-separated range.
 The default unit is microseconds, but you can use the following
 specifiers as well: ms - milliseconds, us -microseconds, ns -
 nanoseconds.
-For example, \[aq]--wakeperiod 20us,1ms\[aq] would be a [20,1000]
+For example, \[aq]--ldist 20us,1ms\[aq] would be a [20,1000]
 microseconds range.
 .TP
-\f[B]-S\f[R] \f[I]WAKEPERIOD_STEP\f[R], \f[B]--wakeperiod-step\f[R] \f[I]WAKEPERIOD_STEP\f[R]
-The wake period step.
+\f[B]-S\f[R] \f[I]LDIST_STEP\f[R], \f[B]--ldist-step\f[R] \f[I]LDIST_STEP\f[R]
+The launch distance step.
 By default it is 1%.
 You can specify a percent value or an absolute time value.
 In the latter case, you can use one of the following specifiers: ms -
 milliseconds, us - microseconds, ns - nanoseconds.
-For example, \[aq]--wakeperiod-step=1ms\[aq] means that wake period will
+For example, \[aq]--ldist-step=1ms\[aq] means that launch distance will
 be incremented by 1 millisecond on every iteration.
 If no unit was specified, microseconds are assumed.
 .TP
 \f[B]--span\f[R] \f[I]SPAN\f[R]
-For how long a single wake period value should be measured.
+For how long a single launch distance value should be measured.
 By default, it is 1 minute.
 Specify time value in minutes, or use one of the following specifiers: d
 - days, h - hours, m - minutes, s -seconds.
 .TP
 \f[B]--warmup\f[R] \f[I]WARMUP\f[R]
-When this tool starts measuring a new wake period value, first it lets
-the system \[dq]warm up\[dq] for some amount of time, and starts
+When this tool starts measuring a new launch distance value, first it
+lets the system \[dq]warm up\[dq] for some amount of time, and starts
 collecting the data (e.g., power) only after the warm up period.
 This allows the system to get into the \[dq]steady state\[dq] (e.g.,
 fans speed and CPU temperature stabilizes).
