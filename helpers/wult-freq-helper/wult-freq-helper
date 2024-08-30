@@ -207,11 +207,32 @@ def init_freq(spec):
             obj.set_max_freq(f, (sibling,))
             obj.set_min_freq(f, (sibling,))
 
+def print_module_paths():
+    """
+    Print paths to all modules other than standard.
+    """
+
+    for mobj in sys.modules.values():
+        path = getattr(mobj, "__file__", None)
+        if not path:
+            continue
+
+        if not path.endswith(".py"):
+            continue
+
+        if "pepclibs/" in path or "statscollectlibs/" in path:
+            print(path)
+
 def main():
     """
     Implement the base functionality for the tool. Parses arguments and modifies the frequencies
     in a loop by the given command line options.
     """
+
+    args = parse_arguments()
+    if args.print_module_paths:
+        print_module_paths()
+        return 0
 
     with contextlib.ExitStack() as stack:
         pman = LocalProcessManager.LocalProcessManager()
@@ -235,11 +256,6 @@ def main():
         ucfobj.get_cur_freq = ucfobj.get_cur_freq_dies
 
         try:
-            args = parse_arguments()
-
-            if args.print_module_paths:
-                return 0
-
             if not args.specs:
                 raise Error("no frequency specs defined, nothing to do")
 
