@@ -156,7 +156,7 @@ class _PCIDevice(_DeviceBase):
         # * make the driver aware of the PCI ID.
         # * bind the device.
         path = f"{drvpath}/new_id"
-        val = f"{self._pci_info['vendorid']} {self._pci_info['devid']}"
+        val = f"{self._pci_info['vendorid']:x} {self._pci_info['devid']:x}"
         bound = True
 
         try:
@@ -266,7 +266,8 @@ class _PCIDevice(_DeviceBase):
             self.info["descr"] = "Unknown device"
 
         self.info["descr"] += f". PCI address {self._pci_info['pciaddr']}, Vendor ID " \
-                              f"{self._pci_info['vendorid']}, Device ID {self._pci_info['devid']}."
+                              f"{self._pci_info['vendorid']:#x}, " \
+                              f"Device ID {self._pci_info['devid']:#x}."
 
     def close(self):
         """Uninitialize the device."""
@@ -284,13 +285,13 @@ class _IntelI210Base(_PCIDevice):
     """
 
     supported_devices = {
-        "1533": "Intel I210 (copper)",
-        "1536": "Intel I210 (fiber)",
-        "1537": "Intel I210 (serdes)",
-        "1538": "Intel I210 (sgmii)",
-        "157b": "Intel I210 (copper flashless)",
-        "157c": "Intel I210 (serdes flashless)",
-        "1539": "Intel I211 (copper)"}
+        0x1533: "Intel I210 (copper)",
+        0x1536: "Intel I210 (fiber)",
+        0x1537: "Intel I210 (serdes)",
+        0x1538: "Intel I210 (sgmii)",
+        0x157b: "Intel I210 (copper flashless)",
+        0x157c: "Intel I210 (serdes flashless)",
+        0x1539: "Intel I211 (copper)"}
 
     def bind(self, drvname=None):
         """Bind the PCI device to driver 'drvname' (wult/ndl driver by default)."""
