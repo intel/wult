@@ -21,7 +21,6 @@ from pathlib import Path
 from collections import namedtuple
 from pepclibs.helperlibs import LocalProcessManager, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
-from pepclibs import LsPCI
 
 _LOG = logging.getLogger()
 
@@ -140,12 +139,6 @@ class NetIface(ClassHelpers.SimpleCloseContext):
             return None
 
         return value.strip() == "1"
-
-    def get_pci_info(self):
-        """Return network interface PCI information."""
-
-        with LsPCI.LsPCI(pman=self._pman) as lspci:
-            return lspci.get_info(self.hwaddr)
 
     def up(self): # pylint: disable=invalid-name
         """Bring the network interface up."""
