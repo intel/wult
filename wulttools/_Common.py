@@ -30,11 +30,6 @@ from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
 
-# By default 'ReportID' module does not allow for the ":" character, but it is part of the PCI
-# address, and we allow for PCI addresses as device IDs. Here are few constants that we use to
-# extend the default allowed report ID characters set.
-_REPORTID_ADDITIONAL_CHARS = ":"
-
 # Description for the '--datapoints' option of the 'start' command.
 DATAPOINTS_DESCR = """How many datapoints should the test result include, default is 1000000."""
 
@@ -57,7 +52,7 @@ START_OVER_DESCR = """If the output directory already contains the datapoints CS
 # Description for the '--outdir' option of the 'start' command.
 START_OUTDIR_DESCR = """Path to the directory to store the results at."""
 
-_REPORTID_CHARS_DESCR = ReportID.get_charset_descr(additional_chars=_REPORTID_ADDITIONAL_CHARS)
+_REPORTID_CHARS_DESCR = ReportID.get_charset_descr()
 START_REPORTID_DESCR = f"""Any string which may serve as an identifier of this run. By default
                            report ID is the current date, prefixed with the remote host name in case
                            the '-H' option was used: [hostname-]YYYYMMDD. For example, "20150323" is
@@ -540,7 +535,7 @@ def open_raw_results(respaths, toolname, reportids=None):
     rsts = []
     for respath, reportid in zip(respaths, reportids):
         if reportid:
-            ReportID.validate_reportid(reportid, additional_chars=_REPORTID_ADDITIONAL_CHARS)
+            ReportID.validate_reportid(reportid)
 
         res = RORawResult.RORawResult(respath, reportid=reportid)
         if toolname != res.info["toolname"]:
@@ -601,8 +596,7 @@ def start_command_reportid(args, pman):
         prefix = None
 
     return ReportID.format_reportid(prefix=prefix, reportid=args.reportid,
-                                    strftime=f"{args.toolname}-{args.devid}-%Y%m%d",
-                                    additional_chars=_REPORTID_ADDITIONAL_CHARS)
+                                    strftime=f"{args.toolname}-{args.devid}-%Y%m%d")
 
 def start_command_check_network(args, pman, netif):
     """
@@ -648,8 +642,7 @@ def report_command_outdir(args, rsts):
 
     if len(args.respaths) > 1:
         outdir = ReportID.format_reportid(prefix=f"{args.toolname}-report",
-                                          reportid=rsts[0].reportid,
-                                          additional_chars=_REPORTID_ADDITIONAL_CHARS)
+                                          reportid=rsts[0].reportid)
     else:
         outdir = args.respaths[0]
         # Don't create report in results directory, use 'html-report' subdirectory instead.
