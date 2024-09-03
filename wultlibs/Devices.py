@@ -246,7 +246,7 @@ class _PCIDevice(_DeviceBase):
 
         self._devpath = self._pman.abspath(path)
         with LsPCI.LsPCI(pman) as lspci:
-            self._pci_info = lspci.get_info(Path(self._devpath).name)
+            self._pci_info = lspci.get_info(self._devid)
 
         if self.supported_devices and self._pci_info["devid"] not in self.supported_devices:
             supported = [f"{key} - {val}" for key, val in self.supported_devices.items()]
