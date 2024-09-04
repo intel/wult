@@ -19,8 +19,7 @@ import time
 import logging
 import contextlib
 from pathlib import Path
-from pepclibs import LsPCI
-from pepclibs.helperlibs import Dmesg, ClassHelpers, Trivial
+from pepclibs.helperlibs import Dmesg, ClassHelpers, Trivial, PCI
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from wultlibs import NetIface
 
@@ -245,7 +244,7 @@ class _PCIDevice(_DeviceBase):
                                     f"path {path} does not exist")
 
         self._devpath = self._pman.abspath(path)
-        with LsPCI.LsPCI(pman) as lspci:
+        with PCI.LsPCI(pman) as lspci:
             self._pci_info = lspci.get_info(self._devid)
 
         if self.supported_devices and self._pci_info["devid"] not in self.supported_devices:
@@ -643,7 +642,7 @@ def scan_devices(toolname, pman):
     else:
         raise Error(f"BUG: bad tool name '{toolname}'")
 
-    with LsPCI.LsPCI(pman) as lspci:
+    with PCI.LsPCI(pman) as lspci:
         for pci_info in lspci.get_devices():
             cls = globals().get(clsname)
             if not cls.supported_devices.get(pci_info["devid"]):
