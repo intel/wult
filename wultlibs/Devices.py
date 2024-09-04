@@ -133,7 +133,7 @@ class _PCIDevice(_DeviceBase):
 
         _LOG.info("Binding device '%s' to driver '%s'", self.info["devid"], drvname)
 
-        failmsg = f"failed to bind device '{self._pci_info['pciaddr']}' to driver '{drvname}'" \
+        failmsg = f"failed to bind device '{self._pci_info['addr']}' to driver '{drvname}'" \
                   f"{self._pman.hostmsg}"
 
         drvpath = Path(f"/sys/bus/pci/drivers/{drvname}")
@@ -143,7 +143,7 @@ class _PCIDevice(_DeviceBase):
         cur_drvname = self._get_driver()[0]
         if cur_drvname == drvname:
             _LOG.debug("device '%s' is already bound to driver '%s'%s",
-                       self._pci_info["pciaddr"], drvname, self._pman.hostmsg)
+                       self._pci_info["addr"], drvname, self._pman.hostmsg)
             return
 
         if cur_drvname:
@@ -168,7 +168,7 @@ class _PCIDevice(_DeviceBase):
         if not bound:
             # Probably the driver already knows about this PCI ID. Use the 'bind' file in this case.
             path = f"{drvpath}/bind"
-            val = self._pci_info["pciaddr"]
+            val = self._pci_info["addr"]
             with self._pman.open(path, "wt") as fobj:
                 _LOG.debug("writing '%s' to file '%s'", val, path)
                 try:
@@ -180,7 +180,7 @@ class _PCIDevice(_DeviceBase):
         if not self._get_driver()[1]:
             raise Error(f"{failmsg}\n{self.get_new_dmesg()}")
 
-        _LOG.debug("binded device '%s' to driver '%s'%s\n%s", self._pci_info["pciaddr"], drvname,
+        _LOG.debug("binded device '%s' to driver '%s'%s\n%s", self._pci_info["addr"], drvname,
                    self._pman.hostmsg, self.get_new_dmesg())
 
     def unbind(self):
@@ -193,19 +193,19 @@ class _PCIDevice(_DeviceBase):
 
         if not drvname:
             _LOG.debug("device '%s' is not bound to any driver%s",
-                       self._pci_info["pciaddr"], self._pman.hostmsg)
+                       self._pci_info["addr"], self._pman.hostmsg)
             return drvname
 
         _LOG.debug("unbinding device '%s' from driver '%s'%s",
-                   self._pci_info["pciaddr"], drvname, self._pman.hostmsg)
+                   self._pci_info["addr"], drvname, self._pman.hostmsg)
 
-        failmsg = f"failed to unbind PCI device '{self._pci_info['pciaddr']}' from driver " \
+        failmsg = f"failed to unbind PCI device '{self._pci_info['addr']}' from driver " \
                   f"'{drvname}'{self._pman.hostmsg}"
 
         with self._pman.open(drvpath / "unbind", "wt") as fobj:
-            _LOG.debug("writing '%s' to '%s'", self._pci_info["pciaddr"], drvpath / "unbind")
+            _LOG.debug("writing '%s' to '%s'", self._pci_info["addr"], drvpath / "unbind")
             try:
-                fobj.write(self._pci_info["pciaddr"])
+                fobj.write(self._pci_info["addr"])
             except Error as err:
                 raise Error(f"{failmsg}:\n{err.indent(2)}\n{self.get_new_dmesg()}") from err
 
@@ -244,27 +244,26 @@ class _PCIDevice(_DeviceBase):
                                     f"path {path} does not exist")
 
         self._devpath = self._pman.abspath(path)
-        with PCI.LsPCI(pman) as lspci:
-            self._pci_info = lspci.get_info(self._devid)
+        self._pci_info = PCI.get_basic_info(self._devid)
 
         if self.supported_devices and self._pci_info["devid"] not in self.supported_devices:
             supported = [f"{key} - {val}" for key, val in self.supported_devices.items()]
             supported = "\n * ".join(supported)
             if drvname:
                 drvtext = f" by driver {self.drvname}"
-            raise ErrorNotSupported(f"PCI device '{self._pci_info['pciaddr']}' (PCI ID "
+            raise ErrorNotSupported(f"PCI device '{self._pci_info['addr']}' (PCI ID "
                                     f"{self._pci_info['devid']}) is not supported{drvtext}.\n"
                                     f"Here is the list of supported PCI IDs:\n* {supported}")
 
         self.is_pci = True
 
-        self.info["devid"] = self._pci_info["pciaddr"]
+        self.info["devid"] = self._pci_info["addr"]
         if self.supported_devices:
             self.info["descr"] = self.supported_devices[self._pci_info["devid"]]
         else:
             self.info["descr"] = "Unknown device"
 
-        self.info["descr"] += f". PCI address {self._pci_info['pciaddr']}, Vendor ID " \
+        self.info["descr"] += f". PCI address {self._pci_info['addr']}, Vendor ID " \
                               f"{self._pci_info['vendorid']:#x}, " \
                               f"Device ID {self._pci_info['devid']:#x}."
 
@@ -643,10 +642,10 @@ def scan_devices(toolname, pman):
         raise Error(f"BUG: bad tool name '{toolname}'")
 
     with PCI.LsPCI(pman) as lspci:
-        for pci_info in lspci.get_devices():
+        for pci_info in lspci.lspci():
             cls = globals().get(clsname)
             if not cls.supported_devices.get(pci_info["devid"]):
                 continue
             with contextlib.suppress(ErrorNotSupported):
-                with cls(pci_info["pciaddr"], pman, dmesg=False) as i210dev:
+                with cls(pci_info["addr"], pman, dmesg=False) as i210dev:
                     yield i210dev
