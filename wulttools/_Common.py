@@ -767,6 +767,6 @@ def check_aspm_setting(pman, dev, devname):
         return
 
     with ASPM.ASPM(pman=pman) as aspm:
-        if aspm.is_l1_aspm_enabled(dev.info["devid"]):
-            _LOG.notice("PCI ASPM is enabled for %s, and this typically increases the measured "
+        if aspm.is_l1_enabled(dev.info["devid"]):
+            _LOG.notice("PCI L1 ASPM is enabled for %s, and this typically increases the measured "
                         "latency", devname)
