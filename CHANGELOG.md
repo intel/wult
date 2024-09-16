@@ -5,10 +5,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix 'wult deploy' failing to deploy 'wult-freq-helper'.
 ### Added
 ### Removed
 ### Changed
+
+## [1.12.26] - 2024-09-16
+### Fixed
+ - Fix 'wult deploy' failing to deploy 'wult-freq-helper'.
 
 ## [1.12.25] - 2024-08-29
 ### Added

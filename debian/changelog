@@ -1,3 +1,9 @@
+wult (1.12.26) unstable; urgency=low
+
+  * Fix 'wult deploy' failing to deploy 'wult-freq-helper'.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 16 Sep 2024 00:00:00 +0200
+
 wult (1.12.25) unstable; urgency=low
 
   * Add 'wult deploy --skip-bpf' option for skipping eBPF helpers deployment.
