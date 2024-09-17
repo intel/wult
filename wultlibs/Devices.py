@@ -244,7 +244,7 @@ class _PCIDevice(_DeviceBase):
                                     f"path {path} does not exist")
 
         self._devpath = self._pman.abspath(path)
-        self._pci_info = PCI.get_basic_info(self._devid)
+        self._pci_info = PCI.get_basic_info(self._devid, pman=pman)
 
         if self.supported_devices and self._pci_info["devid"] not in self.supported_devices:
             supported = [f"{key} - {val}" for key, val in self.supported_devices.items()]
