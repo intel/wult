@@ -5,10 +5,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix running commands on remote host, e.g. 'ndl scan -H <SUT>'.
 ### Added
 ### Removed
 ### Changed
+
+## [1.12.27] - 2024-09-17
+### Fixed
+ - Fix running commands on remote host, e.g. 'ndl scan -H <SUT>'.
 
 ## [1.12.26] - 2024-09-16
 ### Fixed
