@@ -138,18 +138,26 @@ class BatchReport(_Common.CmdlineRunner):
         def _get_path_sortkey(path):
             """
             Method for sorting paths according to order of given diff monikers, or order of input
-            paths.
+            paths. Returns first diff moniker index found in monikers of given path 'path'.
             """
 
             path_monikers = path.name.split("-")
-            # If diff, sort according to diff monikers.
+            # First check only multi-part monikers.
+            # Example
+            # diff_monikers: ['c6', 'c6-pc6']
+            # We want to search 'c6-pc6' first, as 'c6' moniker would match to both paths:
+            # path1 monikers: ['spr0', 'hrt', 'c6', 'pc6', 'hfm', 'uf_2ghz']
+            # path2 monikers: ['spr0', 'hrt', 'c6', 'hfm', 'uf_2ghz']
             for moniker in diff_monikers:
-                # See if single or multi-part moniker is part of path monikers.
-                # Example, where both diff_monikers are found:
-                # path: "spr0-hrt-c6-hfm-uf_2ghz"
-                # path_monikers: ['spr0', 'hrt', 'c6', 'hfm', 'uf_2ghz']
-                # diff_monikers: ['spr0-hrt', 'hfm']
-                if moniker in path_monikers or set(moniker.split("-")).issubset(set(path_monikers)):
+                split = moniker.split("-")
+                if len(split) < 2:
+                    continue
+
+                if set(split).issubset(set(path_monikers)) and moniker in path.name:
+                    return diff_monikers.index(moniker)
+
+            for moniker in diff_monikers:
+                if moniker in path_monikers:
                     return diff_monikers.index(moniker)
 
             # Empty diff moniker is special, handle it after non-empty diff monikers.
