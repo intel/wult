@@ -98,4 +98,4 @@ class WultDefs(_WultDefsBase.WultDefsBase):
                              {"placeholder" : "MCx", "values" : mcnames},
                              {"placeholder" : "PCx", "values" : pcnames}]
 
-        super()._mangle_placeholders(placeholders_info)
+        super().mangle(metrics=hdr)

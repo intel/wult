@@ -79,47 +79,54 @@ ReqCState:
 CC0%:
     title: "Busy percent"
     descr: >-
-        Percent of the time spent in the C0 state over the idle period. Calculated as
+        Percent of the time spent in the C0 state during the idle period. Calculated as
         ('CC0Cyc' / 'TotCyc') * 100.
     type: "float"
     unit: "%"
     short_unit: "%"
 CC1Derived%:
-    title: "Derived CC1%"
+    title: "Derived C1 residency"
     descr: >-
-        Percent of the time spent in the CC1 state over the idle period. Calculated as
-        ('TotCyc' - 'CC0Cyc') / 'TotCyc' * 100.
+        Percent of the time spent in core C1 state during the idle period. Calculated as
+        ('TotCyc' - 'CC0Cyc' - 'sum(CC*Cyc)'') / 'TotCyc' * 100, where 'sum(CC*Cyc)' is a sum of all
+        core C-state cycles. In other word, it is calculated from C0 cycles minus all non-C1 cycles.
     type: "float"
     unit: "%"
     short_unit: "%"
     drop_empty: True
 CCx%:
-    title: "The CCx core C-state residency"
+    title: "C{groups[0]} residency"
     descr: >-
-        Percent of the time spent in the CCx core C-state state over the idle period. Calculated as
-        ('CCxCyc' / 'TotCyc') * 100.
+        Percent of the time spent in core {groups[0]} C-state during the idle period. Calculated as
+        ('C{groups[0]}Cyc' / 'TotCyc') * 100.
     type: "float"
     unit: "%"
     short_unit: "%"
     drop_empty: True
+    patterns:
+      - 'C(C\d+)'
 MCx%:
-    title: "The MCx module C-state residency"
+    title: "M{groups[0]} residency"
     descr: >-
-        Percent of the time spent in the MCx package state over the idle period. Calculated as
-        ('MCxCyc' / 'TotCyc') * 100.
+        Percent of the time spent in module {groups[0]} state during the idle period. Calculated
+        as ('M{groups[0]}Cyc' / 'TotCyc') * 100.
     type: "float"
     unit: "%"
     short_unit: "%"
     drop_empty: True
+    patterns:
+      - 'M(C\d+)'
 PCx%:
-    title: "The PCx package C-state residency"
+    title: "P{groups[0]} residency"
     descr: >-
-        Percent of the time spent in the PCx package state over the idle period. Calculated as
-        ('PCxCyc' / 'TotCyc') * 100.
+        Percent of the time spent in package {groups[0]} state during the idle period. Calculated
+        as ('P{groups[0]}Cyc' / 'TotCyc') * 100.
     type: "float"
     unit: "%"
     short_unit: "%"
     drop_empty: True
+    patterns:
+      - 'P(C\d+)'
 SMICnt:
     title: "SMI count while measuring 'WakeLatency' or 'IntrLatency'"
     descr: >-
