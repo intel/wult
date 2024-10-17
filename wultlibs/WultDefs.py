@@ -78,24 +78,4 @@ class WultDefs(_WultDefsBase.WultDefsBase):
 
         super().__init__("wult")
 
-        ccnames = []
-        mcnames = []
-        pcnames = []
-
-        for metric in hdr:
-            csname = get_csname(metric, must_get=False)
-            if not csname:
-                continue
-
-            if csname.startswith("CC"):
-                ccnames.append(csname)
-            elif csname.startswith("PC"):
-                pcnames.append(csname)
-            else:
-                mcnames.append(csname)
-
-        placeholders_info = [{"placeholder" : "CCx", "values" : ccnames},
-                             {"placeholder" : "MCx", "values" : mcnames},
-                             {"placeholder" : "PCx", "values" : pcnames}]
-
         super().mangle(metrics=hdr)
