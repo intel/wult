@@ -18,7 +18,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFou
 from statscollectlibs import DFSummary
 from statscollectlibs.rawresultlibs import RORawResult as StatsCollectRes
 from statscollectlibs.collector._STCAgent import STINFO
-from wultlibs import WultDefs, _WultDefsBase
+from wultlibs import WultDefs, PbeDefs, NdlDefs
 from wultlibs.rawresultlibs import _RawResultBase
 
 _LOG = logging.getLogger()
@@ -450,8 +450,12 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         if toolname == "wult":
             self.defs = WultDefs.WultDefs(metrics)
+        elif toolname == "pbe":
+            self.defs = PbeDefs.PbeDefs()
+        elif toolname == "ndl":
+            self.defs = NdlDefs.NdlDefs()
         else:
-            self.defs = _WultDefsBase.WultDefsBase(toolname)
+            raise Error(f"unknown tool '{toolname}'")
 
         # Exclude metrics which are not present in the definitions.
         self.metrics = []

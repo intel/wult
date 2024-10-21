@@ -18,3 +18,4 @@ class PbeDefs(_WultDefsBase.WultDefsBase):
         """The class constructor."""
 
         super().__init__(ToolInfo.TOOLNAME)
+        super().mangle()

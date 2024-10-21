@@ -77,5 +77,4 @@ class WultDefs(_WultDefsBase.WultDefsBase):
         """
 
         super().__init__("wult")
-
         super().mangle(metrics=hdr)
