@@ -5,11 +5,14 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix order of diff report created by exercise-sut.
- - exercise-sut: do not disable POLL.
 ### Added
 ### Removed
 ### Changed
+
+## [1.12.28] - 2024-10-21
+### Fixed
+ - Fix order of diff report created by exercise-sut.
+ - exercise-sut: do not disable POLL.
 
 ## [1.12.27] - 2024-09-17
 ### Fixed

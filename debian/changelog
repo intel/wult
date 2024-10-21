@@ -1,3 +1,10 @@
+wult (1.12.28) unstable; urgency=low
+
+  * Fix order of diff report created by exercise-sut.
+  * exercise-sut: do not disable POLL.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 21 Oct 2024 00:00:00 +0200
+
 wult (1.12.27) unstable; urgency=low
 
   * Fix running commands on remote host, e.g. 'ndl scan -H <SUT>'.
