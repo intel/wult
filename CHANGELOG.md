@@ -5,6 +5,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix ndl crash because of regression in v1.12.28 (silly mistake).
 ### Added
 ### Removed
 ### Changed
