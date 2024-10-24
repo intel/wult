@@ -33,7 +33,8 @@ class CmdlineRunner(ClassHelpers.SimpleCloseContext):
         """Yield completed command process objects."""
 
         for proc in self._procs:
-            if proc.poll() is None:
+            _, _, exitcode = proc.wait(1)
+            if exitcode is None:
                 continue
 
             yield proc
