@@ -51,6 +51,8 @@ class CmdlineRunner(ClassHelpers.SimpleCloseContext):
 
         if exitcode != 0:
             self._handle_error(proc.cmd)
+        else:
+            _LOG.notice("command completed:\n'%s'", proc.cmd)
 
     def _active_proc_count(self):
         """
