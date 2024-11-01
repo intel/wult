@@ -531,13 +531,10 @@ class _PepcCmdFormatter(_PropIteratorBase):
         if self._cstates_always_enable:
             csnames.update(self._cstates_always_enable)
 
-        all_csnames = self._normalize_csnames("all")
-
         if self._only_one_cstate:
-            if csname != "POLL" and "POLL" in all_csnames:
-                csnames.add("POLL")
             csnames.add(csname)
         else:
+            all_csnames = self._normalize_csnames("all")
             idx = all_csnames.index(csname)
             csnames.update(all_csnames[:idx + 1])
 

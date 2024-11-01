@@ -196,8 +196,8 @@ _COLLECT_OPTIONS = {
     "only_one_cstate" : {
         "action" : "store_true",
         "help" : """By default C-states deeper than measured C-state are disabled and other C-states
-                    are enabled. This option will disable all C-states, except for 'POLL' and the
-                    measured C-state."""
+                    are enabled. This option will disable all C-states, excluding the measured
+                    C-state."""
     },
     "cstates_always_enable" : {
         "help" : """Comma-separated list of always enabled C-states."""
