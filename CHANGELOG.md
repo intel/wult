@@ -7,6 +7,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 ### Added
 ### Removed
+ - Revert the change in '1.12.28' that keeps POLL enabled. The same can be
+   achieved using '--cstates-always-enable'.
 ### Changed
 
 ## [1.12.29] - 2024-10-22
