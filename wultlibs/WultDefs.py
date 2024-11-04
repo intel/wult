@@ -69,12 +69,29 @@ def get_csres_metric(csname):
 class WultDefs(_WultDefsBase.WultDefsBase):
     """This class provides API to wult metrics definitions (AKA 'defs')."""
 
+    def mangle(self, hdr=None):
+        """
+        Mangle the definitions dictionary and replace C-state residency patterns. The arguments are
+        as follows.
+          * hdr - a collection of wult datapoints CSV file header fields.
+        """
+
+        # Build the list of C-state residency metric names.
+        csres_metrics = []
+
+        for field in hdr:
+            csname = get_csname(field, must_get=False)
+            if not csname:
+                continue
+            csres_metrics.append(get_csres_metric(csname))
+
+        super().mangle(metrics = csres_metrics)
+
     def __init__(self, hdr):
         """
         The class constructor. The arguments are as follows.
-          * hdr - the wult datapoints CSV file header in form of a list. The header is basically a
-                  list of "raw" wult metrics.
+          * hdr - a collection of wult datapoints CSV file header fields.
         """
 
         super().__init__("wult")
-        super().mangle(metrics=hdr)
+        self.mangle(hdr=hdr)
