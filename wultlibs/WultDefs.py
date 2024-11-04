@@ -69,7 +69,7 @@ def get_csres_metric(csname):
 class WultDefs(_WultDefsBase.WultDefsBase):
     """This class provides API to wult metrics definitions (AKA 'defs')."""
 
-    def mangle(self, hdr=None):
+    def mangle(self, hdr=None): # pylint: disable=arguments-renamed
         """
         Mangle the definitions dictionary and replace C-state residency patterns. The arguments are
         as follows.
@@ -85,7 +85,7 @@ class WultDefs(_WultDefsBase.WultDefsBase):
                 continue
             csres_metrics.append(get_csres_metric(csname))
 
-        super().mangle(metrics = csres_metrics)
+        super().mangle(metrics=csres_metrics)
 
     def __init__(self, hdr):
         """
