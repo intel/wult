@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix regression that broke filtering by C-state residency (e.g.,
+   '--include="CC6% > 0"').
 ### Added
 ### Removed
  - Revert the change in '1.12.28' that keeps POLL enabled. The same can be
