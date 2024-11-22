@@ -15,9 +15,9 @@ COMMAND *'exercise-sut* start'
 usage: exercise-sut start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K
 PRIVKEY] [-T TIMEOUT] [--datapoints DATAPOINTS] [--reportid-prefix
 REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpunums CPUNUMS]
-[--cstates CSTATES] [--pcstates PCSTATES] [--turbo TURBO] [--freqs
-FREQS] [--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR] [--aspm ASPM]
-[--c1-demotion C1_DEMOTION] [--c1-undemotion C1_UNDEMOTION]
+[--cstates CSTATES] [--pcstates PCSTATES] [--turbo TURBO]
+[--freqs FREQS] [--uncore-freqs UNCORE_FREQS] [--cpufreq-governor GOVERNOR]
+[--aspm ASPM] [--c1-demotion C1_DEMOTION] [--c1-undemotion C1_UNDEMOTION]
 [--c1e-autopromote C1E_AUTOPROMOTE] [--cstate-prewake CSTATE_PREWAKE]
 [--epp EPP] [--epb EPB] [--state-reset] [--deploy] [--devids DEVIDS]
 [--stats STATS] [--command COMMAND] [--stop-on-failure]
@@ -93,7 +93,7 @@ OPTIONS *'exercise-sut* start'
    smallest supported value, and maximum frequency set to highest
    supported value.
 
-**--governor** *GOVERNOR*
+**--cpufreq-governor** *GOVERNOR*
    Name of the CPU frequency governor to measure with.
 
 **--aspm** *ASPM*

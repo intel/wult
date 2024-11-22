@@ -54,7 +54,7 @@ PROP_INFOS = {
         "sname" : "die",
         "cmd" : "pepc pstates config --min-uncore-freq {} --max-uncore-freq {} {scope_opts}"
     },
-    "governor" : {
+    "cpufreq_governor" : {
         "moniker" : "fgov",
         "pclass" : "PStates",
         "pclass_pname": "governor",

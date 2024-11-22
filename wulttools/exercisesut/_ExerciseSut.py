@@ -118,7 +118,7 @@ _COLLECT_OPTIONS = {
                     unlocked frequency (minimum frequency set to smallest supported value, and
                     maximum frequency set to highest supported value."""
     },
-    "governor" : {
+    "cpufreq-governor" : {
         "help" : """Name of the CPU frequency governor to measure with."""
     },
     "aspm" : {
