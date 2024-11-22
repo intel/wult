@@ -54,17 +54,23 @@ PROP_INFOS = {
         "sname" : "die",
         "cmd" : "pepc pstates config --min-uncore-freq {} --max-uncore-freq {} {scope_opts}"
     },
+    "aspm" : {
+        "name" : "ASPM",
+        "sname" : "global",
+        "moniker" : "aspm",
+        "cmd" : "pepc aspm config --policy {}"
+    },
     "cpufreq_governor" : {
         "moniker" : "fgov",
         "pclass" : "PStates",
         "pclass_pname": "governor",
         "cmd" : "pepc pstates config --governor {} {scope_opts}"
     },
-    "aspm" : {
-        "name" : "ASPM",
-        "sname" : "global",
-        "moniker" : "aspm",
-        "cmd" : "pepc aspm config --policy {}"
+    "idle_governor" : {
+        "moniker" : "igov",
+        "pclass" : "CStates",
+        "pclass_pname": "governor",
+        "cmd" : "pepc cstates config --governor {} {scope_opts}"
     },
     "c1_demotion" : {
         "moniker" : "c1d",

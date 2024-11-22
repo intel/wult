@@ -17,13 +17,14 @@ PRIVKEY] [-T TIMEOUT] [--datapoints DATAPOINTS] [--reportid-prefix
 REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpunums CPUNUMS]
 [--cstates CSTATES] [--pcstates PCSTATES] [--turbo TURBO]
 [--freqs FREQS] [--uncore-freqs UNCORE_FREQS] [--cpufreq-governor GOVERNOR]
-[--aspm ASPM] [--c1-demotion C1_DEMOTION] [--c1-undemotion C1_UNDEMOTION]
-[--c1e-autopromote C1E_AUTOPROMOTE] [--cstate-prewake CSTATE_PREWAKE]
-[--epp EPP] [--epb EPB] [--state-reset] [--deploy] [--devids DEVIDS]
-[--stats STATS] [--command COMMAND] [--stop-on-failure]
-[--only-measured-cpu] [--toolpath TOOLPATH] [--only-one-cstate]
-[--cstates-always-enable CSTATES_ALWAYS_ENABLE] [--use-cstate-filters]
-[--toolopts TOOLOPTS] [--outdir OUTDIR] [--dry-run] [--list-monikers]
+[--idle-governor GOVERNOR] [--aspm ASPM] [--c1-demotion C1_DEMOTION]
+[--c1-undemotion C1_UNDEMOTION] [--c1e-autopromote C1E_AUTOPROMOTE]
+[--cstate-prewake CSTATE_PREWAKE] [--epp EPP] [--epb EPB] [--state-reset]
+[--deploy] [--devids DEVIDS] [--stats STATS] [--command COMMAND]
+[--stop-on-failure] [--only-measured-cpu] [--toolpath TOOLPATH]
+[--only-one-cstate] [--cstates-always-enable CSTATES_ALWAYS_ENABLE]
+[--use-cstate-filters] [--toolopts TOOLOPTS] [--outdir OUTDIR] [--dry-run]
+[--list-monikers]
 
 Run a test tool or benchmark to collect test data.
 
@@ -95,6 +96,9 @@ OPTIONS *'exercise-sut* start'
 
 **--cpufreq-governor** *GOVERNOR*
    Name of the CPU frequency governor to measure with.
+
+**--idle-governor** *GOVERNOR*
+   Name of the idle governor to measure with.
 
 **--aspm** *ASPM*
    Comma-separated list of PCIe ASPM configurations to measure with.

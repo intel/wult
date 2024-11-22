@@ -121,6 +121,9 @@ _COLLECT_OPTIONS = {
     "cpufreq-governor" : {
         "help" : """Name of the CPU frequency governor to measure with."""
     },
+    "idle-governor" : {
+        "help" : """Name of the idle governor to measure with."""
+    },
     "aspm" : {
         "help" : """Comma-separated list of PCIe ASPM configurations to measure with. Supported
                     values are "on" and "off"."""
