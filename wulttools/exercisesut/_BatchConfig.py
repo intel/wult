@@ -270,7 +270,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
     def _is_prop_supported(self, pname):
         """Return 'True' if property 'pname' is supported, returns 'False' otherwise."""
 
-        if pname in ("cstates", "freqs", "online", "aspm"):
+        if pname in {"cstates", "freqs", "online", "aspm"}:
             return True
 
         if pname == "uncore_freqs":
