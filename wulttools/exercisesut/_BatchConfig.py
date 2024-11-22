@@ -128,9 +128,7 @@ def list_monikers():
         else:
             name = pinfo.get("name")
 
-        if len(name) > min_len:
-            min_len = len(name)
-
+        min_len = max(min_len, len(name))
         monikers[pinfo["moniker"]] = name
 
     for moniker, name in monikers.items():
