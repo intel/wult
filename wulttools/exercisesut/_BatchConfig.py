@@ -55,43 +55,55 @@ PROP_INFOS = {
         "cmd" : "pepc pstates config --min-uncore-freq {} --max-uncore-freq {} {scope_opts}"
     },
     "governor" : {
-        "moniker" : "gov",
+        "moniker" : "fgov",
+        "pclass" : "PStates",
+        "pclass_pname": "governor",
         "cmd" : "pepc pstates config --governor {} {scope_opts}"
     },
     "aspm" : {
         "name" : "ASPM",
+        "sname" : "global",
         "moniker" : "aspm",
         "cmd" : "pepc aspm config --policy {}"
     },
     "c1_demotion" : {
         "moniker" : "c1d",
+        "pclass" : "CStates",
         "cmd" : "pepc cstates config --c1-demotion {} {scope_opts}"
     },
     "c1_undemotion" : {
         "moniker" : "c1und",
+        "pclass" : "CStates",
         "cmd" : "pepc cstates config --c1-undemotion {} {scope_opts}"
     },
     "c1e_autopromote" : {
         "moniker" : "autoc1e",
+        "pclass" : "CStates",
         "cmd" : "pepc cstates config --c1e-autopromote {} {scope_opts}"
     },
     "cstate_prewake" : {
         "moniker" : "cpw",
+        "pclass" : "CStates",
         "cmd" : "pepc cstates config --cstate-prewake {} {scope_opts}"
     },
     "epp" : {
         "moniker" : "epp",
+        "pclass" : "PStates",
         "cmd" : "pepc pstates config --epp {} {scope_opts}"
     },
     "epb" : {
         "moniker" : "epb",
+        "pclass" : "PStates",
         "cmd" : "pepc pstates config --epb {} {scope_opts}"
     },
     "turbo" : {
         "moniker" : "turbo",
+        "pclass" : "PStates",
         "cmd" : "pepc pstates config --turbo {}"
     },
     "online" : {
+        "name" : "CPU online status",
+        "sname" : "CPU",
         "cmd" : "pepc cpu-hotplug online {scope_opts}"
     },
 }
@@ -154,7 +166,7 @@ def _get_workload_cmd_formatter(cpuidle, args):
 class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
     """Class to help iterating system property permutations."""
 
-    def _get_cstates(self):
+    def _get_csobj(self):
         """Return 'CStates.CStates()' object."""
 
         if not self._csobj:
@@ -162,12 +174,35 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
                                           cpuidle=self._cpuidle)
         return self._csobj
 
-    def _get_pstates(self):
+    def _get_psobj(self):
         """Return 'CStates.CStates()' object."""
 
         if not self._psobj:
             self._psobj = PStates.PStates(pman=self._pman, cpuinfo=self._cpuinfo)
         return self._psobj
+
+    def _get_pcsobj(self, pname, pinfo):
+        """
+        Return 'CStates.CStates()' or 'PStates.PStates()' for property 'pname', as well as name of
+        the property in the returned object.
+        """
+
+        pcsobj = None
+        if pinfo.get("pclass") == "PStates":
+            pcsobj = self._get_psobj()
+        elif pinfo.get("pclass") == "CStates":
+            pcsobj = self._get_csobj()
+        if not pcsobj:
+            raise Error(f"BUG: no class defined for property '{pname}'")
+
+        # Note, 'pname' is property name supported by this module. It may be the same as property
+        # name in the 'PStates'/'CStates' modules, or may be different.
+        if "pclass_pname" in pinfo:
+            pcsobj_pname = pinfo["pclass_pname"]
+        else:
+            pcsobj_pname = pname
+
+        return pcsobj, pcsobj_pname
 
     def props_to_str(self, props):
         """Convert property dictionary 'props' to human readable string."""
@@ -182,7 +217,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
     def _get_pcsinfo(self):
         """Helper to read package C-state information, returns a dictionary."""
 
-        cstates = self._get_cstates()
+        cstates = self._get_csobj()
         pcsinfo = {}
         cpu_to_pkg = {}
 
@@ -265,11 +300,16 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         return csnames
 
-    def _is_prop_supported(self, pname):
+    def _is_prop_supported(self, pname, pinfo=None):
         """Return 'True' if property 'pname' is supported, returns 'False' otherwise."""
 
         if pname in {"cstates", "freqs", "online", "aspm"}:
             return True
+
+        if not pinfo:
+            pinfo = self.props.get(pname)
+            if not pinfo:
+                raise Error(f"BUG: unknown property '{pname}'")
 
         if pname == "uncore_freqs":
             cmd = "pepc pstates info --min-uncore-freq --max-uncore-freq"
@@ -293,16 +333,11 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
             return True
 
-        pcsobj = None
-        if pname in self._get_pstates().props:
-            pcsobj = self._get_pstates()
-        elif pname in self._get_cstates().props:
-            pcsobj = self._get_cstates()
-
+        pcsobj, pcsobj_pname = self._get_pcsobj(pname, pinfo)
         if pcsobj is None:
-            raise Error("BUG: unknown property '{pname}'")
+            raise Error(f"BUG: unknown property '{pname}'")
 
-        for pvinfo in pcsobj.get_prop_cpus(pname, cpus="all"):
+        for pvinfo in pcsobj.get_prop_cpus(pcsobj_pname, cpus="all"):
             if not pvinfo["val"]:
                 _LOG.debug("property '%s' is not supported, skip configuring it", pname)
                 return False
@@ -313,24 +348,20 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         """Initialize 'props' dictionary."""
 
         for pname, pinfo in PROP_INFOS.items():
-            if not self._is_prop_supported(pname):
+
+            if not self._is_prop_supported(pname, pinfo=pinfo):
                 continue
 
-            self.props[pname] = {}
-            self.props[pname]["moniker"] = pinfo.get("moniker")
-            self.props[pname]["cmd"] = pinfo.get("cmd")
+            self.props[pname] = pinfo.copy()
 
-            sname = None
-            name = None
-            if pname in self._get_pstates().props:
-                sname = self._get_pstates().props[pname].get("sname")
-                name = self._get_pstates().props[pname].get("name")
-            elif pname in self._get_cstates().props:
-                sname = self._get_cstates().props[pname].get("sname")
-                name = self._get_cstates().props[pname].get("name")
+            name = sname = None
+            if "pclass" in pinfo:
+                pcsobj, pcsobj_pname = self._get_pcsobj(pname, pinfo)
+                name = pcsobj.props[pcsobj_pname]["name"]
+                sname = pcsobj.props[pcsobj_pname]["sname"]
             else:
-                sname = pinfo.get("sname")
-                name = pinfo.get("name")
+                name = pinfo["name"]
+                sname = pinfo["sname"]
 
             self.props[pname]["sname"] = sname
             self.props[pname]["name"] = name
@@ -344,7 +375,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         props = {}
         for pname, values in inprops.items():
             if not self._is_prop_supported(pname):
-                raise Error(f"The '{pname}' is not supported{self._pman.hostmsg}")
+                raise Error(f"the '{pname}' is not supported{self._pman.hostmsg}")
 
             if not isinstance(values, list):
                 values = Trivial.split_csv_line(values)
@@ -447,7 +478,7 @@ class _PepcCmdFormatter(_PropIteratorBase):
         """Get name of the scope for property 'pname'."""
 
         sname = None
-        for obj in (self._get_cstates(), self._get_pstates()):
+        for obj in (self._get_csobj(), self._get_psobj()):
             if pname in obj.props:
                 sname = obj.props[pname].get("sname")
 
