@@ -8,10 +8,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
  - Fix regression that broke filtering by C-state residency (e.g.,
    '--include="CC6% > 0"').
 ### Added
+ - Add '--idle-governor' option.
 ### Removed
  - Revert the change in '1.12.28' that keeps POLL enabled. The same can be
    achieved using '--cstates-always-enable'.
 ### Changed
+ - Rename '--governor' option to '--cpufreq-governor'.
 
 ## [1.12.29] - 2024-10-22
 ### Fixed
