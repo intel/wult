@@ -43,6 +43,9 @@ _RESET_PROPS = {
     "online" : {
         "value" : "all",
         "text" : "online all CPUs"},
+    "idle_governor" : {
+        "value" : "menu",
+        "text" : "set idle governor to 'menu'"},
     "cstates" : {
         "value" : "all",
         "text" : "enable all C-states"},
