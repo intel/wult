@@ -302,8 +302,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             pcsobj = self._get_cstates()
 
         if pcsobj is None:
-            _LOG.debug("property '%s' is not supported, skip configuring it", pname)
-            return False
+            raise Error("BUG: unknown property '{pname}'")
 
         for pvinfo in pcsobj.get_prop_cpus(pname, cpus="all"):
             if not pvinfo["val"]:
