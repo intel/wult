@@ -267,16 +267,8 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         return csnames
 
-    def _is_prop_supported(self, pname, warn=False):
-        """
-        Return 'True' if property 'pname' is supported, returns 'False' otherwise. Prints warning if
-        'warn' is 'True'.
-        """
-
-        if warn:
-            log_method = _LOG.warning
-        else:
-            log_method = _LOG.debug
+    def _is_prop_supported(self, pname):
+        """Return 'True' if property 'pname' is supported, returns 'False' otherwise."""
 
         if pname in ("cstates", "freqs", "online", "aspm"):
             return True
@@ -288,7 +280,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             uncore_supported = True
             for line in stdout.split("\n"):
                 if "not supported" in line:
-                    log_method(line)
+                    _LOG.debug(line)
                     uncore_supported = False
 
             return uncore_supported
@@ -298,7 +290,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             stdout, _ = self._pman.run_verify(cmd)
 
             if "not supported" in stdout:
-                log_method(stdout.strip())
+                _LOG.debug(stdout.strip())
                 return False
 
             return True
@@ -310,12 +302,12 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             pcsobj = self._get_cstates()
 
         if pcsobj is None:
-            log_method("property '%s' is not supported, skip configuring it", pname)
+            _LOG.debug("property '%s' is not supported, skip configuring it", pname)
             return False
 
         for pvinfo in pcsobj.get_prop_cpus(pname, cpus="all"):
             if not pvinfo["val"]:
-                log_method("property '%s' is not supported, skip configuring it", pname)
+                _LOG.debug("property '%s' is not supported, skip configuring it", pname)
                 return False
 
         return True
