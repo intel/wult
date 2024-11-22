@@ -443,8 +443,7 @@ def main():
         _LOG.info("\nInterrupted, exiting")
         return -1
     except Error as err:
-        _LOG.error(err)
-        return -1
+        _LOG.error_out(err)
 
     return 0
 
