@@ -33,99 +33,99 @@ STC_TOOLNAME = StcToolInfo.TOOLNAME
 WULT_TOOLNAME = WultToolInfo.TOOLNAME
 
 PROP_INFOS = {
-    "cstates" : {
-        "name" : "Requestable C-state",
-        "sname" : "CPU",
-        "cmd" : "pepc cstates config --disable all --enable {} {scope_opts}"
+    "cstates": {
+        "name": "Requestable C-state",
+        "sname": "CPU",
+        "cmd": "pepc cstates config --disable all --enable {} {scope_opts}"
     },
-    "pcstates" : {
-        "name" : "Package C-state",
-        "sname" : "package",
-        "cmd" : "pepc cstates config --pkg-cstate-limit {} {scope_opts}"
+    "pcstates": {
+        "name": "Package C-state",
+        "sname": "package",
+        "cmd": "pepc cstates config --pkg-cstate-limit {} {scope_opts}"
     },
-    "freqs" : {
-        "name" : "CPU frequency",
-        "sname" : "CPU",
-        "cmd" : "pepc pstates config --min-freq {} --max-freq {} {scope_opts}"
+    "freqs": {
+        "name": "CPU frequency",
+        "sname": "CPU",
+        "cmd": "pepc pstates config --min-freq {} --max-freq {} {scope_opts}"
     },
-    "uncore_freqs" : {
-        "name" : "Uncore frequency",
-        "moniker" : "uf",
-        "sname" : "die",
-        "cmd" : "pepc pstates config --min-uncore-freq {} --max-uncore-freq {} {scope_opts}"
+    "uncore_freqs": {
+        "name": "Uncore frequency",
+        "moniker": "uf",
+        "sname": "die",
+        "cmd": "pepc pstates config --min-uncore-freq {} --max-uncore-freq {} {scope_opts}"
     },
-    "aspm" : {
-        "name" : "ASPM",
-        "sname" : "global",
-        "moniker" : "aspm",
-        "cmd" : "pepc aspm config --policy {}"
+    "aspm": {
+        "name": "ASPM",
+        "sname": "global",
+        "moniker": "aspm",
+        "cmd": "pepc aspm config --policy {}"
     },
-    "cpufreq_governor" : {
-        "moniker" : "fgov",
-        "pclass" : "PStates",
+    "cpufreq_governor": {
+        "moniker": "fgov",
+        "pclass": "PStates",
         "pclass_pname": "governor",
-        "cmd" : "pepc pstates config --governor {} {scope_opts}"
+        "cmd": "pepc pstates config --governor {} {scope_opts}"
     },
-    "idle_governor" : {
-        "moniker" : "igov",
-        "pclass" : "CStates",
+    "idle_governor": {
+        "moniker": "igov",
+        "pclass": "CStates",
         "pclass_pname": "governor",
-        "cmd" : "pepc cstates config --governor {} {scope_opts}"
+        "cmd": "pepc cstates config --governor {} {scope_opts}"
     },
-    "c1_demotion" : {
-        "moniker" : "c1d",
-        "pclass" : "CStates",
-        "cmd" : "pepc cstates config --c1-demotion {} {scope_opts}"
+    "c1_demotion": {
+        "moniker": "c1d",
+        "pclass": "CStates",
+        "cmd": "pepc cstates config --c1-demotion {} {scope_opts}"
     },
-    "c1_undemotion" : {
-        "moniker" : "c1und",
-        "pclass" : "CStates",
-        "cmd" : "pepc cstates config --c1-undemotion {} {scope_opts}"
+    "c1_undemotion": {
+        "moniker": "c1und",
+        "pclass": "CStates",
+        "cmd": "pepc cstates config --c1-undemotion {} {scope_opts}"
     },
-    "c1e_autopromote" : {
-        "moniker" : "autoc1e",
-        "pclass" : "CStates",
-        "cmd" : "pepc cstates config --c1e-autopromote {} {scope_opts}"
+    "c1e_autopromote": {
+        "moniker": "autoc1e",
+        "pclass": "CStates",
+        "cmd": "pepc cstates config --c1e-autopromote {} {scope_opts}"
     },
-    "cstate_prewake" : {
-        "moniker" : "cpw",
-        "pclass" : "CStates",
-        "cmd" : "pepc cstates config --cstate-prewake {} {scope_opts}"
+    "cstate_prewake": {
+        "moniker": "cpw",
+        "pclass": "CStates",
+        "cmd": "pepc cstates config --cstate-prewake {} {scope_opts}"
     },
-    "epp" : {
-        "moniker" : "epp",
-        "pclass" : "PStates",
-        "cmd" : "pepc pstates config --epp {} {scope_opts}"
+    "epp": {
+        "moniker": "epp",
+        "pclass": "PStates",
+        "cmd": "pepc pstates config --epp {} {scope_opts}"
     },
-    "epb" : {
-        "moniker" : "epb",
-        "pclass" : "PStates",
-        "cmd" : "pepc pstates config --epb {} {scope_opts}"
+    "epb": {
+        "moniker": "epb",
+        "pclass": "PStates",
+        "cmd": "pepc pstates config --epb {} {scope_opts}"
     },
-    "turbo" : {
-        "moniker" : "turbo",
-        "pclass" : "PStates",
-        "cmd" : "pepc pstates config --turbo {}"
+    "turbo": {
+        "moniker": "turbo",
+        "pclass": "PStates",
+        "cmd": "pepc pstates config --turbo {}"
     },
-    "online" : {
-        "name" : "CPU online status",
-        "sname" : "CPU",
-        "cmd" : "pepc cpu-hotplug online {scope_opts}"
+    "online": {
+        "name": "CPU online status",
+        "sname": "CPU",
+        "cmd": "pepc cpu-hotplug online {scope_opts}"
     },
 }
 
 PC0_ONLY_STATES = ("POLL", "C1", "C1E")
 
 CSTATE_FILTERS = {
-    "POLL" : "ReqCState == 'POLL'",
-    "C1" : "(ReqCState == 'C1') & (CC1% > 0)",
-    "C1E" : "(ReqCState == 'C1E') & (CC1% > 0)",
-    "C6" : "(ReqCState == 'C6') & (CC6% > 0)",
-    "C10" : "(ReqCState == 'C10') & (CC7% > 0)",
-    "C6P" : "(ReqCState == 'C6P') & (PC6% > 0)",
-    "C6S" : "(ReqCState == 'C6S') & (MC6% > 0)",
-    "C6SP" : "(ReqCState == 'C6SP') & (PC6% > 0)",
-    "PC6" : "(PC6% > 0)"
+    "POLL": "ReqCState == 'POLL'",
+    "C1": "(ReqCState == 'C1') & (CC1% > 0)",
+    "C1E": "(ReqCState == 'C1E') & (CC1% > 0)",
+    "C6": "(ReqCState == 'C6') & (CC6% > 0)",
+    "C10": "(ReqCState == 'C10') & (CC7% > 0)",
+    "C6P": "(ReqCState == 'C6P') & (PC6% > 0)",
+    "C6S": "(ReqCState == 'C6S') & (MC6% > 0)",
+    "C6SP": "(ReqCState == 'C6SP') & (PC6% > 0)",
+    "PC6": "(PC6% > 0)"
 }
 
 def list_monikers():

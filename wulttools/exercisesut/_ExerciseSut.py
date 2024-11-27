@@ -40,234 +40,246 @@ Logging.setup_logger(prefix=TOOLNAME)
 _LOG = logging.getLogger()
 
 _RESET_PROPS = {
-    "online" : {
-        "value" : "all",
-        "text" : "online all CPUs"},
-    "idle_governor" : {
-        "value" : "menu",
-        "text" : "set idle governor to 'menu'"},
-    "cstates" : {
-        "value" : "all",
-        "text" : "enable all C-states"},
-    "c1_demotion" : {
-        "value" : "off",
-        "text" : "disable C1 demotion"},
-    "c1_undemotion" : {
-        "value" : "off",
-        "text" : "disable C1 undemotion"},
-    "c1e_autopromote" : {
-        "value" : "off",
-        "text" : "disable C1E autopromotion"},
-    "cstate_prewake" : {
-        "value" : "off",
-        "text" : "disable C-state prewake"},
-    "turbo" : {
-        "value" : "on",
-        "text" : "enable turbo"},
-    "freqs" : {
-        "value" : "unl",
-        "text" : "unlock CPU frequency"},
-    "uncore_freqs" : {
-        "value" : "unl",
-        "text" : "unlock uncore frequency"},
-    "epp" : {
-        "value" : "balance_performance",
-        "text" : "set EPP policy to 'balance_performance'"},
-    "epb" : {
-        "value" : "balance-performance",
-        "text" : "set EPB policy to 'balance-performance'"},
+    "online": {
+        "value": "all",
+        "text": "online all CPUs"
+    },
+    "idle_governor": {
+        "value": "menu",
+        "text": "set idle governor to 'menu'"
+    },
+    "cstates": {
+        "value": "all",
+        "text": "enable all C-states"
+    },
+    "c1_demotion": {
+        "value": "off",
+        "text": "disable C1 demotion"
+    },
+    "c1_undemotion": {
+        "value": "off",
+        "text": "disable C1 undemotion"
+    },
+    "c1e_autopromote": {
+        "value": "off",
+        "text": "disable C1E autopromotion"
+    },
+    "cstate_prewake": {
+        "value": "off",
+        "text": "disable C-state prewake"
+    },
+    "turbo": {
+        "value": "on",
+        "text": "enable turbo"
+    },
+    "freqs": {
+        "value": "unl",
+        "text": "unlock CPU frequency"
+    },
+    "uncore_freqs": {
+        "value": "unl",
+        "text": "unlock uncore frequency"
+    },
+    "epp": {
+        "value": "balance_performance",
+        "text": "set EPP policy to 'balance_performance'"
+    },
+    "epb": {
+        "value": "balance-performance",
+        "text": "set EPB policy to 'balance-performance'"
+    },
 }
 
 reset_actions_text = ", ".join([pinfo["text"] for pinfo in _RESET_PROPS.values()])
 
 _COLLECT_OPTIONS = {
-    "datapoints" : {
-        "short" : "-c",
-        "default" : 100000,
-        "help" : f"""Applicable only to '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools. Number of
-                     datapoints to collect per measurement. Default is 100000."""
+    "datapoints": {
+        "short": "-c",
+        "default": 100000,
+        "help": f"""Applicable only to '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools. Number of
+                    datapoints to collect per measurement. Default is 100000."""
     },
-    "reportid_prefix" : {
-        "help" : """String to prepend to the report ID."""
+    "reportid_prefix": {
+        "help": """String to prepend to the report ID."""
     },
-    "reportid_suffix" : {
-        "help" : """String to append to the report ID."""
+    "reportid_suffix": {
+        "help": """String to append to the report ID."""
     },
-    "cpunums" : {
-        "help" : f"""Applicable only to the '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools.
-                     Comma-separated list of CPU numbers to measure with."""
+    "cpunums": {
+        "help": f"""Applicable only to the '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools.
+                    Comma-separated list of CPU numbers to measure with."""
     },
-    "cstates" : {
-        "help" : """Comma-separated list of requestable C-states to measure with."""
+    "cstates": {
+        "help": """Comma-separated list of requestable C-states to measure with."""
     },
-    "pcstates" : {
-        "help" : """Comma-separated list of package C-states to measure with."""
+    "pcstates": {
+        "help": """Comma-separated list of package C-states to measure with."""
     },
-    "turbo" : {
-        "help" : """Comma-separated list of turbo configurations to measure with. Supported values
-                    are "on" and "off"."""
+    "turbo": {
+        "help": """Comma-separated list of turbo configurations to measure with. Supported values
+                   are "on" and "off"."""
     },
-    "freqs" : {
-        "help" : """Comma-separated list of frequencies to be measured with. For more information,
-                    see '--min-freq' and '--max-freq' options of the 'pepc pstates config' command.
-                    Special value 'unl' can be used to measure with unlocked frequency (minimum
-                    frequency set to smallest supported value, and maximum frequency set to highest
-                    supported value."""
+    "freqs": {
+        "help": """Comma-separated list of frequencies to be measured with. For more information,
+                   see '--min-freq' and '--max-freq' options of the 'pepc pstates config' command.
+                   Special value 'unl' can be used to measure with unlocked frequency (minimum
+                   frequency set to smallest supported value, and maximum frequency set to highest
+                   supported value."""
     },
-    "uncore_freqs" : {
-        "help" : """Comma-separated list of package uncore frequencies to measure with. For more
-                    information, see '--min-uncore-freq' and '--max-uncore-freq' options of the
-                    'pepc pstates config' command. Special value 'unl' can be used to measure with
-                    unlocked frequency (minimum frequency set to smallest supported value, and
-                    maximum frequency set to highest supported value."""
+    "uncore_freqs": {
+        "help": """Comma-separated list of package uncore frequencies to measure with. For more
+                   information, see '--min-uncore-freq' and '--max-uncore-freq' options of the
+                   'pepc pstates config' command. Special value 'unl' can be used to measure with
+                   unlocked frequency (minimum frequency set to smallest supported value, and
+                   maximum frequency set to highest supported value."""
     },
-    "cpufreq-governor" : {
-        "help" : """Name of the CPU frequency governor to measure with."""
+    "cpufreq-governor": {
+        "help": """Name of the CPU frequency governor to measure with."""
     },
-    "idle-governor" : {
-        "help" : """Name of the idle governor to measure with."""
+    "idle-governor": {
+        "help": """Name of the idle governor to measure with."""
     },
-    "aspm" : {
-        "help" : """Comma-separated list of PCIe ASPM configurations to measure with. Supported
-                    values are "on" and "off"."""
+    "aspm": {
+        "help": """Comma-separated list of PCIe ASPM configurations to measure with. Supported
+                   values are "on" and "off"."""
     },
-    "c1_demotion" : {
-        "help" : """Comma-separated list of C1 demotion configurations to measure with. Supported
-                    values are "on" and "off"."""
+    "c1_demotion": {
+        "help": """Comma-separated list of C1 demotion configurations to measure with. Supported
+                   values are "on" and "off"."""
     },
-    "c1_undemotion" : {
-        "help" : """Comma-separated list of C1 undemotion configurations to measure with. Supported
-                    values are "on" and "off"."""
+    "c1_undemotion": {
+        "help": """Comma-separated list of C1 undemotion configurations to measure with. Supported
+                   values are "on" and "off"."""
     },
-    "c1e_autopromote" : {
-        "help" : """Comma-separated list of C1E autopromote configurations to measure with.
-                    Supported values are "on" and "off"."""
+    "c1e_autopromote": {
+        "help": """Comma-separated list of C1E autopromote configurations to measure with.
+                   Supported values are "on" and "off"."""
     },
-    "cstate_prewake" : {
-        "help" : """Comma-separated list of C-state prewake configurations to measure with.
-                    Supported values are "on" and "off"."""
+    "cstate_prewake": {
+        "help": """Comma-separated list of C-state prewake configurations to measure with.
+                   Supported values are "on" and "off"."""
     },
-    "epp" : {
-        "help" : """Comma-separated list of EPP configurations to measure with. See 'pepc pstates
-                    config --epp' for more information.""",
+    "epp": {
+        "help": """Comma-separated list of EPP configurations to measure with. See 'pepc pstates
+                   config --epp' for more information.""",
     },
-    "epb" : {
-        "help" : """Comma-separated list of EPB configurations to measure with. See 'pepc pstates
-                    config --epb' for more information.""",
+    "epb": {
+        "help": """Comma-separated list of EPB configurations to measure with. See 'pepc pstates
+                   config --epb' for more information.""",
     },
-    "state_reset" : {
-        "action" : "store_true",
-        "help" : f"""Set SUT settings to default values before starting measurements. The default
-                     values are: {reset_actions_text}."""
+    "state_reset": {
+        "action": "store_true",
+        "help": f"""Set SUT settings to default values before starting measurements. The default
+                    values are: {reset_actions_text}."""
     },
-    "deploy" : {
-        "action" : "store_true",
-        "help" : f"""Applicable only to '{WULT_TOOLNAME}', '{NDL_TOOLNAME}', '{PBE_TOOLNAME}' and
-                     '{STC_TOOLNAME}' tools. Run the 'deploy' command before starting the
-                     measurements."""
+    "deploy": {
+        "action": "store_true",
+        "help": f"""Applicable only to '{WULT_TOOLNAME}', '{NDL_TOOLNAME}', '{PBE_TOOLNAME}' and
+                    '{STC_TOOLNAME}' tools. Run the 'deploy' command before starting the
+                    measurements."""
     },
-    "devids" : {
-        "help" : f"""Applicable only to '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools.
-                     Comma-separated list of device IDs to run the tools with."""
+    "devids": {
+        "help": f"""Applicable only to '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools.
+                    Comma-separated list of device IDs to run the tools with."""
     },
-    "stats" : {
+    "stats": {
         "help": f"""Applicable to '{WULT_TOOLNAME}', '{NDL_TOOLNAME}', '{PBE_TOOLNAME}' and
                     '{STC_TOOLNAME}' tools. Comma-separated list of statistics to collect."""
     },
-    "command" : {
-        "help" : """Applicable only to 'stats-collect' tool. The command to that 'stats-collect'
-                    should run. The string "__reportid__" will be replaced with generated report ID
-                    and the string "__cpunum__" will be replaced with used CPU number."""
+    "command": {
+        "help": """Applicable only to 'stats-collect' tool. The command to that 'stats-collect'
+                   should run. The string "__reportid__" will be replaced with generated report ID
+                   and the string "__cpunum__" will be replaced with used CPU number."""
     },
-    "stop_on_failure" : {
-        "action" : "store_true",
-        "help" : """Stop if any of the steps fail, instead of continuing (default)."""
+    "stop_on_failure": {
+        "action": "store_true",
+        "help": """Stop if any of the steps fail, instead of continuing (default)."""
     },
-    "only_measured_cpu" : {
-        "action" : "store_true",
-        "help" : """Change settings, for example CPU frequency and C-state limits, only for the
-                    measured CPU. By default settings are applied to all CPUs."""
+    "only_measured_cpu": {
+        "action": "store_true",
+        "help": """Change settings, for example CPU frequency and C-state limits, only for the
+                   measured CPU. By default settings are applied to all CPUs."""
     },
-    "skip_io_dies" : {
-        "action" : "store_true",
-        "help" : """Skip I/O dies when changing die-scope settings, such as uncore frequency. Even
-                    though I/O dies do not have CPUs, by default they are configured the same way as
-                    compute dies."""
+    "skip_io_dies": {
+        "action": "store_true",
+        "help": """Skip I/O dies when changing die-scope settings, such as uncore frequency. Even
+                   though I/O dies do not have CPUs, by default they are configured the same way as
+                   compute dies."""
     },
-    "toolpath" : {
-        "type" : Path,
-        "default" : WULT_TOOLNAME,
-        "help" : f"""Path to the tool to run. Default is '{WULT_TOOLNAME}'."""
+    "toolpath": {
+        "type": Path,
+        "default": WULT_TOOLNAME,
+        "help": f"""Path to the tool to run. Default is '{WULT_TOOLNAME}'."""
     },
-    "only_one_cstate" : {
-        "action" : "store_true",
-        "help" : """By default C-states deeper than measured C-state are disabled and other C-states
-                    are enabled. This option will disable all C-states, excluding the measured
-                    C-state."""
+    "only_one_cstate": {
+        "action": "store_true",
+        "help": """By default C-states deeper than measured C-state are disabled and other C-states
+                   are enabled. This option will disable all C-states, excluding the measured
+                   C-state."""
     },
-    "cstates_always_enable" : {
-        "help" : """Comma-separated list of always enabled C-states."""
+    "cstates_always_enable": {
+        "help": """Comma-separated list of always enabled C-states."""
     },
-    "use-cstate-filters" : {
-        "action" : "store_true",
-        "help" : f"""Applicable to '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools. Use filters to
-                     exclude datapoints with zero residency of measured C-state."""
+    "use-cstate-filters": {
+        "action": "store_true",
+        "help": f"""Applicable to '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools. Use filters to
+                    exclude datapoints with zero residency of measured C-state."""
     },
 }
 
 _GENERATE_OPTIONS = {
-    "diffs" : {
-        "help" : """Collected data is stored in directories, and each directory name is constructed
-                    from multiple monikers separated by dashes, e.g. 'hrt-c6-uf_max-autoc1e_off'.
-                    This option can be used to create diff reports by including multiple results in
-                    one report. Comma-separated list of monikers to select results to include in the
-                    diff report. This option can be used multiple times. If this option is not
-                    provided, reports with single result are generated.""",
-        "action" : "append",
+    "diffs": {
+        "help": """Collected data is stored in directories, and each directory name is constructed
+                   from multiple monikers separated by dashes, e.g. 'hrt-c6-uf_max-autoc1e_off'.
+                   This option can be used to create diff reports by including multiple results in
+                   one report. Comma-separated list of monikers to select results to include in the
+                   diff report. This option can be used multiple times. If this option is not
+                   provided, reports with single result are generated.""",
+        "action": "append",
     },
-    "include" : {
-        "help" : "Comma-separated list of monikers that must be found from the result path name."
+    "include": {
+        "help": "Comma-separated list of monikers that must be found from the result path name."
     },
-    "exclude" : {
-        "help" : """Comma-separated list of monikers that must not be found from the result path
-                    name."""
+    "exclude": {
+        "help": """Comma-separated list of monikers that must not be found from the result path
+                   name."""
     },
-    "jobs" : {
+    "jobs": {
         "short": "-j",
-        "type" : int,
-        "help" : """Number of threads to use for generating reports with."""
+        "type": int,
+        "help": """Number of threads to use for generating reports with."""
     },
-    "toolpath" : {
-        "type" : Path,
-        "help" : """By default, name of the report tool is resolved from the results. This option
-                    can be used to override the tool."""
+    "toolpath": {
+        "type": Path,
+        "help": """By default, name of the report tool is resolved from the results. This option
+                   can be used to override the tool."""
     },
 }
 
 _COMMON_OPTIONS = {
-    "toolopts" : {
-        "default" : "",
-        "help" : """Additional options to use for running the tool. The string "__reportid__" will
-                    be replaced with generated report ID."""
+    "toolopts": {
+        "default": "",
+        "help": """Additional options to use for running the tool. The string "__reportid__" will
+                   be replaced with generated report ID."""
     },
-    "outdir" : {
-        "short" : "-o",
-        "type" : Path,
-        "help" : """Path to directory to store the results at. Default is <toolname-date-time>."""
+    "outdir": {
+        "short": "-o",
+        "type": Path,
+        "help": """Path to directory to store the results at. Default is <toolname-date-time>."""
     },
-    "stop_on_failure" : {
-        "action" : "store_true",
-        "help" : """Stop if any of the steps fail, instead of continuing (default)."""
+    "stop_on_failure": {
+        "action": "store_true",
+        "help": """Stop if any of the steps fail, instead of continuing (default)."""
     },
-    "dry_run" : {
-        "action" : "store_true",
-        "help" : """Do not run any commands, only print them."""
+    "dry_run": {
+        "action": "store_true",
+        "help": """Do not run any commands, only print them."""
     },
-    "list_monikers" : {
-        "action" : "store_true",
-        "help" : f"""A moniker is an abbreviation for a setting. The '{TOOLNAME}' uses monikers to
-                     create directory names and report IDs for collected results. Use this option to
-                     list monikers assosiated with each settings, if any, and exit."""
+    "list_monikers": {
+        "action": "store_true",
+        "help": f"""A moniker is an abbreviation for a setting. The '{TOOLNAME}' uses monikers to
+                    create directory names and report IDs for collected results. Use this option to
+                    list monikers assosiated with each settings, if any, and exit."""
     },
 }
 
