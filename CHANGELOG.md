@@ -5,6 +5,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.12.30] - 2024-11-29
+### Fixed
  - Fix regression that broke filtering by C-state residency (e.g.,
    '--include="CC6% > 0"').
 ### Added

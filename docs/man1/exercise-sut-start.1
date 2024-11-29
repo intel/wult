@@ -26,14 +26,15 @@ usage: exercise-sut start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K
 PRIVKEY] [-T TIMEOUT] [--datapoints DATAPOINTS] [--reportid-prefix
 REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpunums CPUNUMS]
 [--cstates CSTATES] [--pcstates PCSTATES] [--turbo TURBO] [--freqs
-FREQS] [--uncore-freqs UNCORE_FREQS] [--governor GOVERNOR] [--aspm ASPM]
-[--c1-demotion C1_DEMOTION] [--c1-undemotion C1_UNDEMOTION]
-[--c1e-autopromote C1E_AUTOPROMOTE] [--cstate-prewake CSTATE_PREWAKE]
-[--epp EPP] [--epb EPB] [--state-reset] [--deploy] [--devids DEVIDS]
-[--stats STATS] [--command COMMAND] [--stop-on-failure]
-[--only-measured-cpu] [--toolpath TOOLPATH] [--only-one-cstate]
-[--cstates-always-enable CSTATES_ALWAYS_ENABLE] [--use-cstate-filters]
-[--toolopts TOOLOPTS] [--outdir OUTDIR] [--dry-run] [--list-monikers]
+FREQS] [--uncore-freqs UNCORE_FREQS] [--cpufreq-governor GOVERNOR]
+[--idle-governor GOVERNOR] [--aspm ASPM] [--c1-demotion C1_DEMOTION]
+[--c1-undemotion C1_UNDEMOTION] [--c1e-autopromote C1E_AUTOPROMOTE]
+[--cstate-prewake CSTATE_PREWAKE] [--epp EPP] [--epb EPB]
+[--state-reset] [--deploy] [--devids DEVIDS] [--stats STATS] [--command
+COMMAND] [--stop-on-failure] [--only-measured-cpu] [--toolpath TOOLPATH]
+[--only-one-cstate] [--cstates-always-enable CSTATES_ALWAYS_ENABLE]
+[--use-cstate-filters] [--toolopts TOOLOPTS] [--outdir OUTDIR]
+[--dry-run] [--list-monikers]
 .PP
 Run a test tool or benchmark to collect test data.
 .SS OPTIONS \f[I]\[aq]exercise-sut\f[R] start\[aq]
@@ -105,8 +106,11 @@ Special value \[aq]unl\[aq] can be used to measure with unlocked
 frequency (minimum frequency set to smallest supported value, and
 maximum frequency set to highest supported value.
 .TP
-\f[B]--governor\f[R] \f[I]GOVERNOR\f[R]
+\f[B]--cpufreq-governor\f[R] \f[I]GOVERNOR\f[R]
 Name of the CPU frequency governor to measure with.
+.TP
+\f[B]--idle-governor\f[R] \f[I]GOVERNOR\f[R]
+Name of the idle governor to measure with.
 .TP
 \f[B]--aspm\f[R] \f[I]ASPM\f[R]
 Comma-separated list of PCIe ASPM configurations to measure with.
