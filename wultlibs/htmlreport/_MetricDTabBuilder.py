@@ -75,7 +75,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                         val = res.smrys[mname][funcname]
                     else:
                         val = None
-                    self._smrytbl.add_smry_func(res.reportid, mdef["title"], funcname, val)
+                    self._smrytbl.add_smry_func(res.reportid, mdef["title"], val, funcname=funcname)
         try:
             self._smrytbl.generate(self.smry_path)
         except Error as err:
