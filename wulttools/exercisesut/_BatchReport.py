@@ -221,7 +221,7 @@ class BatchReport(_Common.CmdlineRunner):
             cmd += f"{toolopts} "
 
         res_str = " ".join([str(path) for path in respaths])
-        cmd += f"{res_str} -o {outdir}"
+        cmd += f"-o {outdir} {res_str}"
 
         self._run_command(cmd)
 
