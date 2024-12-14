@@ -183,7 +183,7 @@ class BatchReport(_Common.CmdlineRunner):
 
     def group_results(self, diffs=None, include=None, exclude=None):
         """
-        Find results and goup them according to arguments:
+        Find results and group them according to arguments:
           * diffs - List of lists of monikers to group results with.
           * include - Comma-separated list of monikers that must be found from the result path name.
           * exclude - Comma-separated list of monikers that must not be found from the result path
