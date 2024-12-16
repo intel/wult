@@ -120,11 +120,16 @@ CSTATE_FILTERS = {
     "POLL": "ReqCState == 'POLL'",
     "C1": "(ReqCState == 'C1') & (CC1% > 0)",
     "C1E": "(ReqCState == 'C1E') & (CC1% > 0)",
+    "C2": "(ReqCState == 'C2') & (CC6% > 0)",
+    "C3": "(ReqCState == 'C3') & (CC7% > 0)",
     "C6": "(ReqCState == 'C6') & (CC6% > 0)",
-    "C10": "(ReqCState == 'C10') & (CC7% > 0)",
     "C6P": "(ReqCState == 'C6P') & (PC6% > 0)",
     "C6S": "(ReqCState == 'C6S') & (MC6% > 0)",
     "C6SP": "(ReqCState == 'C6SP') & (PC6% > 0)",
+    "C10": "(ReqCState == 'C10') & (CC7% > 0)",
+    "C1_ACPI": "(ReqCState == 'C1_ACPI') & (CC1% > 0)",
+    "C2_ACPI": "(ReqCState == 'C2_ACPI') & (CC6% > 0)",
+    "C3_ACPI": "(ReqCState == 'C3_ACPI') & (CC7% > 0)",
     "PC6": "(PC6% > 0)"
 }
 
