@@ -48,6 +48,10 @@ _RESET_PROPS = {
         "value": "menu",
         "text": "set idle governor to 'menu'"
     },
+    "cpufreq_governors": {
+        "value": "powersave",
+        "text": "set CPU frequency governor to 'performance'"
+    },
     "cstates": {
         "value": "all",
         "text": "enable all C-states"
