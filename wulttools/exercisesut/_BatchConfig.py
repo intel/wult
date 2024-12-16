@@ -976,7 +976,7 @@ class BatchConfig(_Common.CmdlineRunner):
         self._wfmt = None
         self._systemctl = None
 
-        super().__init__(dry_run=args.dry_run, stop_on_failure=args.stop_on_failure)
+        super().__init__(dry_run=args.dry_run, ignore_errors=args.ignore_errors)
 
         self._pman = get_pman(args)
         self._cpuinfo = CPUInfo.CPUInfo(pman=self._pman)

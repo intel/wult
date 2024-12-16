@@ -23,11 +23,11 @@ class CmdlineRunner(ClassHelpers.SimpleCloseContext):
         """Handle error for running command 'cmd'."""
 
         msg = f"failed to run command:\n'{cmd}'"
-        if self._stop_on_failure:
+        if self._ignore_errors:
+            _LOG.error(msg)
+        else:
             msg += "\nstop processing more commands and exit"
             _LOG.error_out(msg)
-
-        _LOG.error(msg)
 
     def _get_completed_procs(self):
         """Yield completed command process objects."""
@@ -89,7 +89,7 @@ class CmdlineRunner(ClassHelpers.SimpleCloseContext):
     def _run_command(self, cmd):
         """
         Run command 'cmd' with process manager object 'pman'. If 'dry_run' is 'True', print the
-        command instad of running it. If any of the commands failed and 'stop_on_failure' is 'True',
+        command instad of running it. If any of the commands failed and 'ignore_errors' is 'False',
         print error and exit.
         """
 
@@ -112,16 +112,16 @@ class CmdlineRunner(ClassHelpers.SimpleCloseContext):
             time.sleep(1)
             continue
 
-    def __init__(self, dry_run=False, stop_on_failure=False, proc_count=None):
+    def __init__(self, dry_run=False, ignore_errors=False, proc_count=None):
         """
         The class constructor, arguments are as follows.
           * dry_run - if 'True', print the command instead of running it.
-          * stop_on_failure - if 'True', print error and terminate program execution.
+          * ignore_errors - if 'True', continue processing commands even if some of them fail.
           * proc_count - number of processes to run in parallel.
         """
 
         self._dry_run = dry_run
-        self._stop_on_failure = stop_on_failure
+        self._ignore_errors = ignore_errors
         self._proc_count = proc_count
 
         self._lpman = LocalProcessManager.LocalProcessManager()

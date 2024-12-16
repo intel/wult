@@ -191,10 +191,6 @@ _COLLECT_OPTIONS = {
                    should run. The string "__reportid__" will be replaced with generated report ID
                    and the string "__cpunum__" will be replaced with used CPU number."""
     },
-    "stop_on_failure": {
-        "action": "store_true",
-        "help": """Stop if any of the steps fail, instead of continuing (default)."""
-    },
     "only_measured_cpu": {
         "action": "store_true",
         "help": """Change settings, for example CPU frequency and C-state limits, only for the
@@ -268,9 +264,10 @@ _COMMON_OPTIONS = {
         "type": Path,
         "help": """Path to directory to store the results at. Default is <toolname-date-time>."""
     },
-    "stop_on_failure": {
+    "ignore_errors": {
         "action": "store_true",
-        "help": """Stop if any of the steps fail, instead of continuing (default)."""
+        "help": """Keep going even if any of the steps fail. Default is to stop processing commands
+                   on errors."""
     },
     "dry_run": {
         "action": "store_true",
