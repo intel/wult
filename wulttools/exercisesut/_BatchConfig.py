@@ -60,13 +60,13 @@ PROP_INFOS = {
         "moniker": "aspm",
         "cmd": "pepc aspm config --policy {}"
     },
-    "cpufreq_governor": {
+    "cpufreq_governors": {
         "moniker": "fgov",
         "pclass": "PStates",
         "pclass_pname": "governor",
         "cmd": "pepc pstates config --governor {} {scope_opts}"
     },
-    "idle_governor": {
+    "idle_governors": {
         "moniker": "igov",
         "pclass": "CStates",
         "pclass_pname": "governor",

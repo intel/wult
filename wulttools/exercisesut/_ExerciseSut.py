@@ -44,7 +44,7 @@ _RESET_PROPS = {
         "value": "all",
         "text": "online all CPUs"
     },
-    "idle_governor": {
+    "idle_governors": {
         "value": "menu",
         "text": "set idle governor to 'menu'"
     },
@@ -133,10 +133,10 @@ _COLLECT_OPTIONS = {
                    unlocked frequency (minimum frequency set to smallest supported value, and
                    maximum frequency set to highest supported value."""
     },
-    "cpufreq-governor": {
+    "cpufreq-governors": {
         "help": """Name of the CPU frequency governor to measure with."""
     },
-    "idle-governor": {
+    "idle-governors": {
         "help": """Name of the idle governor to measure with."""
     },
     "aspm": {
