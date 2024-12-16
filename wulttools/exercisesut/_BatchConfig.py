@@ -796,7 +796,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         self._cpuidle = cpuidle
         self._datapoints = args.datapoints
         self._stats = args.stats
-        self._use_cstate_filters = args.use_cstate_filters
+        self._use_cstate_filters = not args.no_cstate_filters
 
         self._c6_enters_pc6 = not self._c6p_exists()
 

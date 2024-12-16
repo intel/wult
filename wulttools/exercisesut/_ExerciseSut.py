@@ -220,10 +220,11 @@ _COLLECT_OPTIONS = {
     "cstates_always_enable": {
         "help": """Comma-separated list of always enabled C-states."""
     },
-    "use-cstate-filters": {
+    "no-cstate-filters": {
         "action": "store_true",
-        "help": f"""Applicable to '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools. Use filters to
-                    exclude datapoints with zero residency of measured C-state."""
+        "help": f"""Applicable to '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools. Do not use C-state
+                    filters. C-state filters are used to exclude datapoints with zero residency of
+                    measured C-state. By default C-state filters are enabled."""
     },
 }
 
