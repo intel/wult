@@ -79,7 +79,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         try:
             self._smrytbl.generate(self.smry_path)
         except Error as err:
-            raise Error("Failed to generate summary table.") from err
+            raise Error("failed to generate summary table") from err
 
     def _add_histogram(self, mdef, cumulative=False, xbins=None):
         """Extends 'super()._add_histogram()' by adding custom binning."""
