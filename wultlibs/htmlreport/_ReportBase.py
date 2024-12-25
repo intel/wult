@@ -54,7 +54,7 @@ class ReportBase:
             srcdir = res.dirpath
             dstdir = self.outdir / f"raw-{res.reportid}"
 
-            HTMLReport.copy_dir(srcdir, dstdir)
+            FSHelpers.copy_dir(srcdir, dstdir, exist_ok=True, ignore=["html-report"])
             logs_paths[res.reportid] = dstdir / res.logs_path.relative_to(res.dirpath)
 
             stats_path = dstdir / res.stats_path.relative_to(res.dirpath)
@@ -74,7 +74,7 @@ class ReportBase:
             try:
                 dstdir.mkdir(parents=True, exist_ok=True)
                 logs_path = res.logs_path.relative_to(res.dirpath)
-                HTMLReport.copy_dir(res.dirpath / logs_path, dstdir / logs_path)
+                FSHelpers.copy_dir(res.dirpath / logs_path, dstdir / logs_path, exist_ok=True)
                 logs_paths[res.reportid] = dstdir / res.logs_path.relative_to(res.dirpath)
             except (OSError, Error) as err:
                 _LOG.warning("unable to copy log files to the generated report: %s", err)
@@ -95,7 +95,7 @@ class ReportBase:
         for res in self.rsts:
             if res.stats_res:
                 logs_dst = logs_paths[res.reportid] / "stats-collect-logs"
-                HTMLReport.copy_dir(res.stats_res.logs_path, logs_dst)
+                FSHelpers.copy_dir(res.stats_res.logs_path, logs_dst, exist_ok=True)
 
         return stats_paths, logs_paths
 
