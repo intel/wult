@@ -49,7 +49,6 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
             try:
                 self.dirpath.mkdir(parents=True, exist_ok=True)
                 self._created_paths.append(self.dirpath)
-                FSHelpers.set_default_perm(self.dirpath)
                 _LOG.info("Created result directory '%s'", self.dirpath)
             except OSError as err:
                 raise Error(f"failed to create directory '{self.dirpath}':\n{err}") from None
