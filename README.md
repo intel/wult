@@ -62,7 +62,7 @@ tools as listed below. For more general information on how to use the tools, see
 
 * Artem Bityutskiy <dedekind1@gmail.com> - original author, project maintainer.
 * Antti Laakso <antti.laakso@linux.intel.com> - contributor, project maintainer.
-* Adam Hawley <adam.james.hawley@intel.com> - contributor, project maintainer.
+* Adam Hawley <adam.james.hawley@intel.com> - contributor.
 * Tero Kristo <tero.kristo@intel.com> - contributor.
 * Ali Erdinç Köroğlu <ali.erdinc.koroglu@intel.com> - contributor.
 * Dapeng Mi <dapeng1.mi@intel.com> - contributor.
