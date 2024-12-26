@@ -17,7 +17,6 @@ from pepclibs.helperlibs import YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
 from statscollectlibs import DFSummary
 from statscollectlibs.rawresultlibs import RORawResult as StatsCollectRes
-from statscollectlibs.collector._STCAgent import STINFO
 from wultlibs import WultDefs, PbeDefs, NdlDefs
 from wultlibs.rawresultlibs import _RawResultBase
 
@@ -193,7 +192,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         _LOG.info("Loading test result '%s'.", self.dp_path)
 
         # Enforce the types we expect.
-        dtype = {colname : colinfo["type"] for colname, colinfo in self.defs.info.items()}
+        dtype = {colname: colinfo["type"] for colname, colinfo in self.defs.info.items()}
 
         try:
             self.df = pandas.read_csv(self.dp_path, dtype=dtype, **kwargs)
@@ -237,8 +236,8 @@ class RORawResult(_RawResultBase.RawResultBase):
                 try:
                     expr = pandas.eval(dpfilter)
                 except ValueError as err:
-                    # For some reasons on some distros the default "numexpr" engine fails with
-                    # various errors, such as:
+                    # For some reasons on some Linux distributions the default "numexpr" engine
+                    # fails with various errors, such as:
                     #   * ValueError: data type must provide an itemsize
                     #   * ValueError: unknown type str128
                     #
@@ -357,34 +356,6 @@ class RORawResult(_RawResultBase.RawResultBase):
         path = dirpath.joinpath(self.dp_path.name)
         self.df.to_csv(path, index=False, header=True)
 
-    def _mock_stats_res(self):
-        """
-        Helper function for the class constructor. Some result directories with 'format_version'
-        '1.2', only contain raw statistics files and a 'stats-info.yml' file.
-
-        Populate 'self.stats_res' with a 'stats-collect' 'RORawResult' based on the contents of
-        'stats-info.yml'
-        """
-
-        tool = f"{self.info['toolname']} v{self.info['toolver']}"
-
-        stats_info_path = self.stats_path / "stats-info.yml"
-        self.stats_res = StatsCollectRes.RORawResult(self.dirpath, self.reportid)
-        self.stats_res.info_path = self.stats_path / "stats-info.yml"
-        self.stats_res.stats_path = self.stats_path
-
-        if stats_info_path.exists():
-            stinfo = YAML.load(self.stats_res.info_path)
-        else:
-            YAML.dump(STINFO, self.stats_path / "stats-info.yml")
-            stinfo = STINFO
-
-        self.stats_res.info = {}
-        self.stats_res.info["stinfo"] = stinfo
-
-        _LOG.warning("result '%s' was generated with '%s'. It is recommended that you downgrade to "
-                     "'%s' if you have any issues.", self.reportid, tool, tool)
-
     def __init__(self, dirpath, reportid=None):
         """
         The class constructor. The arguments are as follows.
@@ -419,6 +390,11 @@ class RORawResult(_RawResultBase.RawResultBase):
         self.metrics = []
         self.metrics_set = set()
 
+        # The raw result information dictionary.
+        self.info = None
+        # The statistics raw results object.
+        self.stats_res = None
+
         self.info = YAML.load(self.info_path)
         if reportid:
             # Note, we do not verify it here, the caller is supposed to verify.
@@ -438,7 +414,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         format_ver = self.info.get("format_version")
         if format_ver not in _SUPPORTED_FORMAT_VERSIONS:
             _LOG.warning("result '%s' has format version '%s' which is not supported by this "
-                         "version so may cause unexpected behavour. Please use '%s v%s'.",
+                         "version so may cause unexpected behavior. Please use '%s v%s'.",
                          self.reportid, format_ver, toolname, toolver)
 
         # Read the metrics from the column names in the CSV file.
@@ -465,23 +441,7 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self.metrics_set = set(self.metrics)
 
-        self.stats_res = None
         if not self.stats_path.exists():
             return
 
-        try:
-            self.stats_res = StatsCollectRes.RORawResult(self.stats_path, self.reportid)
-        except Error as err:
-            if self.info["format_version"] != "1.2":
-                raise err
-
-            # 'format_version 1.2' contained several forms of result. Some results contained
-            # statistics in a different way which can cause loading statistics to fail. Attempt to
-            # load the statistics as they used to be.
-            try:
-                self._mock_stats_res()
-            except Error:
-                # If the 'stats-collect' result is malformed. Load the result with no stats but warn
-                # the user that there was a problem.
-                _LOG.warning("unable to load statistics for '%s':\n%s", self.reportid,
-                             err.indent(2))
+        self.stats_res = StatsCollectRes.RORawResult(self.stats_path, self.reportid)
