@@ -73,9 +73,9 @@ class ReportBase:
 
             try:
                 dstdir.mkdir(parents=True, exist_ok=True)
-                logs_path = res.logs_path.relative_to(res.dirpath)
-                FSHelpers.copy_dir(res.dirpath / logs_path, dstdir / logs_path, exist_ok=True)
-                logs_paths[res.reportid] = dstdir / res.logs_path.relative_to(res.dirpath)
+                subdir = res.logs_path.relative_to(res.dirpath)
+                FSHelpers.copy_dir(res.dirpath / subdir, dstdir / subdir, exist_ok=True)
+                logs_paths[res.reportid] = dstdir / subdir
             except (OSError, Error) as err:
                 _LOG.warning("unable to copy log files to the generated report: %s", err)
 
