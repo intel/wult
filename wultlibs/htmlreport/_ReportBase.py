@@ -86,7 +86,7 @@ class ReportBase:
         Helper function for '_prepare_intro_table()'. Copies result data into the report directory.
         """
 
-        if self.relocatable:
+        if self.copy_raw:
             stats_paths, logs_paths = self._copy_results()
         else:
             logs_paths = self._copy_logs()
@@ -621,9 +621,8 @@ class ReportBase:
             if res.stats_res:
                 self._stats_rsts.append(res.stats_res)
 
-        # Users can change this to 'True' to make the reports relocatable. In which case the raw
-        # results files will be copied from the test result directories to the output directory.
-        self.relocatable = False
+        # Users can change this to 'True' to copy all the raw test results into the output directory.
+        self.copy_raw = False
 
         # The first result is the 'reference' result.
         self._refres = rsts[0]

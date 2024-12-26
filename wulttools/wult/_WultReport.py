@@ -62,6 +62,6 @@ def report_command(args):
     rep = WultReport.WultReport(rsts, args.outdir, report_descr=args.report_descr,
                                 xaxes=args.xaxes, yaxes=args.yaxes, hist=args.hist,
                                 chist=args.chist, logpath=logpath)
-    rep.relocatable = args.relocatable
+    rep.copy_raw = args.copy_raw
     rep.set_hover_metrics(_WultCommon.HOVER_METRIC_REGEXS)
     rep.generate()

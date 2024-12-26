@@ -167,10 +167,8 @@ REPORT_DESCR = """The report description - any text describing this report as wh
                   'platform A vs B comparison'. This text will be included into the very beginning
                   of the resulting HTML report."""
 
-# Description for the '--relocatable' option of the 'report' command.
-RELOCATABLE_DESCR = """Generate a report which contains a copy of the raw test results. With this
-                       option, viewers of the report will also be able to browse raw statistics
-                       files which are copied across with the raw test results."""
+# Description for the '--copy-raw' option of the 'report' command.
+COPY_RAW_DESCR = """Copy raw test results to the output directory."""
 
 # Description for the '--list-metrics' option of the 'report' and other commands.
 LIST_METRICS_DESCR = "Print the list of the available metrics and exit."

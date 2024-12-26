@@ -8,6 +8,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Rename wult/ndl report '--relocatable' option to to '--copy-raw'.
 
 ## [1.12.30] - 2024-11-29
 ### Fixed

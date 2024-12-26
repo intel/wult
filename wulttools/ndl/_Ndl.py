@@ -177,7 +177,7 @@ def _build_arguments_parser():
     subpars.add_argument("--chist", help=_Common.CHIST_DESCR % _get_axes_default("chist"))
     subpars.add_argument("--reportids", help=_Common.REPORTIDS_DESCR)
     subpars.add_argument("--report-descr", help=_Common.REPORT_DESCR)
-    subpars.add_argument("--relocatable", action="store_true", help=_Common.RELOCATABLE_DESCR)
+    subpars.add_argument("--copy-raw", action="store_true", help=_Common.COPY_RAW_DESCR)
     subpars.add_argument("--list-metrics", action="store_true", help=_Common.LIST_METRICS_DESCR)
 
     text = f"""One or multiple {TOOLNAME} test result paths."""

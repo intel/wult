@@ -15,7 +15,7 @@ COMMAND *'ndl* report'
 usage: ndl report [-h] [-q] [-d] [-o OUTDIR] [--exclude EXCLUDE]
 [--include INCLUDE] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist
 HIST] [--chist CHIST] [--reportids REPORTIDS] [--report-descr
-REPORT_DESCR] [--relocatable] [--list-metrics] respaths [respaths ...]
+REPORT_DESCR] [--copy-raw] [--list-metrics] respaths [respaths ...]
 
 Create an HTML report for one or multiple test results.
 
@@ -114,10 +114,9 @@ OPTIONS *'ndl* report'
    example, if the report compares platform A and platform B, the
    description could be something like
 
-**--relocatable**
-   Generate a report which contains a copy of the raw test results. With
-   this option, viewers of the report will also be able to browse raw
-   statistics files which are copied across with the raw test results.
+**--copy-raw**
+   Copy raw test results to the output directory (unless the output
+   direcory is already part of the raw result sub-directory).
 
 **--list-metrics**
    Print the list of the available metrics and exit.

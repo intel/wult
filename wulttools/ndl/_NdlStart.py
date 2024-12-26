@@ -32,7 +32,7 @@ def _generate_report(args):
 
     rsts = _Common.open_raw_results([args.outdir], args.toolname)
     rep = NdlReport.NdlReport(rsts, args.outdir / "html-report", report_descr=args.reportid)
-    rep.relocatable = False
+    rep.copy_raw = False
     rep.generate()
 
 def _get_local_cpus(pman, ifname):
