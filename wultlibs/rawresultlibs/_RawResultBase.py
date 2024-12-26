@@ -17,14 +17,14 @@ A raw test result is a directory containing the following files.
  * stats - optional directory containing various statistics, such as 'lscpu'.
 """
 
+from pathlib import Path
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs.rawresultlibs import _RawResultBase
 
 # The latest supported raw results format version. Note that version 1.2 incorrectly contained
 # multiple forms of the format.
 FORMAT_VERSION = "1.3"
 
-class RawResultBase(_RawResultBase.RawResultBase):
+class RawResultBase:
     """
     Base class for read-only and write-only test result classes, contains the common bits.
     """
@@ -86,7 +86,13 @@ class RawResultBase(_RawResultBase.RawResultBase):
     def __init__(self, dirpath):
         """The class constructor. The 'dirpath' argument is path raw test result directory."""
 
-        super().__init__(dirpath)
+        if not dirpath:
+            raise Error("raw test results directory path was not specified")
+
+        self.reportid = None
+        self.info = {} # This dictionary represents the info file.
+
+        self.dirpath = Path(dirpath)
 
         # The datapoint and metric filters.
         self._exclude = None
@@ -94,7 +100,21 @@ class RawResultBase(_RawResultBase.RawResultBase):
         self._include = None
         self._minclude = None
 
+        self.info_path = self.dirpath.joinpath("info.yml")
+        self.logs_path = self.dirpath.joinpath("logs")
+        self.stats_path = self.dirpath.joinpath("stats")
         self.dp_path = self.dirpath.joinpath("datapoints.csv")
+
+        if self.dirpath.exists() and not self.dirpath.is_dir():
+            raise Error(f"path '{self.dirpath}' is not a directory")
+
+        if self.info_path.exists() and not self.info_path.is_file():
+            raise Error(f"path '{self.info_path}' exists, but it is not a regular file")
+
+        for name in ("logs_path", "stats_path"):
+            path = getattr(self, name)
+            if path.exists() and not path.is_dir():
+                raise Error(f"path '{path}' exists, but it is not a directory")
 
         if self.dp_path.exists() and not self.dp_path.is_file():
             raise Error(f"path '{self.dp_path}' exists, but it is not a regular file")
