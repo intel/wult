@@ -34,9 +34,11 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
     def add_smrytbl(self, smry_funcs, defs):
         """
-        Overrides 'super().add_smrytbl()', refer to that method for more information. Results have
-        summaries pre-calculated therefore we do not have to calculate them in this method as the
-        parent class does.
+        Construct a summary table ('SummaryTable' object). Refer to '_DTabBuilder.add_smrytbl()'
+        for more information. The base class' 'add_smrytbl()' calculates summaries, while in this
+        class it is unnecessary, because the results have summaries pre-calculated.
+          * smry_funcs - same as in '_DTabBuilder.add_smrytbl()'.
+          * defs - same as in '_DTabBuilder.add_smrytbl()'.
         """
 
         # Summaries are calculated only for numeric metrics. Tab metric name is represented by
@@ -49,7 +51,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
 
         metrics += [metric for metric in smry_funcs if self._refres.is_numeric(metric)]
 
-        # Dedupe the list so that each metric only appears once.
+        # De-duplicate the list so that each metric only appears once.
         deduped_mdefs = [defs.info[metric] for metric in Trivial.list_dedup(metrics)]
 
         self._smrytbl = _SummaryTable.SummaryTable()
