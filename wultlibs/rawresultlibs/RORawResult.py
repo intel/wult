@@ -6,11 +6,12 @@
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
-"""This module provides API for reading raw test results."""
+"""API for reading wult, ndl, and pbe raw test results."""
 
-import builtins
 import re
+import shutil
 import logging
+import builtins
 from pathlib import Path
 import pandas
 from pepclibs.helperlibs import YAML
@@ -22,16 +23,16 @@ from wultlibs.rawresultlibs import _RawResultBase
 
 _LOG = logging.getLogger()
 
-# Format version '1.2' contained multiple format versions. It is planned to be removed from the list
-# of supported versions in 2025.
-_SUPPORTED_FORMAT_VERSIONS = {"1.2", "1.3"}
+_SUPPORTED_FORMAT_VERSIONS = {"1.3"}
 
 class RORawResult(_RawResultBase.RawResultBase):
-    """This class represents a read-only raw test result."""
+    """A read-only wult, ndl, or pbe raw test result."""
 
     def get_non_numeric_metrics(self, metrics=None):
         """
-        Returns the list of non-numeric metrics in the 'metrics' list (all metrics by default).
+        Return the list of non-numeric metrics in the 'metrics' list (all metrics by default). The
+        arguments are as follows.
+          * metrics - an iterable collection of metric names to return non-numeric metrics for.
         """
 
         if not metrics:
@@ -46,7 +47,10 @@ class RORawResult(_RawResultBase.RawResultBase):
 
     def get_numeric_metrics(self, metrics=None):
         """
-        Returns the list of numeric metrics in the 'metrics' list (all metrics by default).
+        Return the list of numeric metrics in the 'metrics' list (all metrics by default). The
+        arguments are as follows.
+          * metrics - an iterable collection of metric names to return numeric metrics for.
+
         """
 
         if not metrics:
@@ -60,7 +64,10 @@ class RORawResult(_RawResultBase.RawResultBase):
         return numeric
 
     def is_numeric(self, metric):
-        """Returns 'True' if metric 'metric' has numeric values, otherwise returns 'False'."""
+        """
+        Return 'True' if metric 'metric' has numeric values, otherwise returns 'False'. The metric
+        name to check.
+        """
         return metric in self.get_numeric_metrics(metrics=[metric])
 
     def _mangle_eval_expr(self, expr):
@@ -82,9 +89,10 @@ class RORawResult(_RawResultBase.RawResultBase):
 
     def set_exclude(self, exclude):
         """
-        Set the datapoints to exclude: the datapoints matching the 'exclude' expression will be
-        excluded from the 'pandas.DataFrame' during the next 'pandas.DataFrame' operation like
-        'load_df()'.
+        Set the datapoints exclude filter: the datapoints matching the 'exclude' expression will
+        be excluded from the 'pandas.DataFrame' during the next 'pandas.DataFrame' operation like
+        'load_df()'. The arguments are as follows.
+          * exclude - the datapoints exclude filter expression.
 
         The 'exclude' argument should be a valid pandas python expression that can be used in
         'pandas.eval()'. For example, the '(SilentTime < 10000) and (PC6% == 0)' filter will exclude
@@ -96,19 +104,22 @@ class RORawResult(_RawResultBase.RawResultBase):
 
     def set_include(self, include):
         """
-        Set the datapoints to include: only the datapoints matching the 'include' expression will be
-        added to the 'pandas.DataFrame' during the next 'pandas.DataFrame' operation like
-        'load_df()'. The 'include' argument is similar to the 'exclude' argument in the
-        'set_exclude()' method.
+        Set the datapoints include filter: only the datapoints matching the 'include' expression
+        will be added to the 'pandas.DataFrame' during the next 'pandas.DataFrame' operation like
+        'load_df()'.
+          * include - the datapoints include filter expression.
+
+        The 'include' argument is similar to the 'exclude' argument in the 'set_exclude()' method.
         """
 
         self._include = self._mangle_eval_expr(include)
 
     def set_mexclude(self, regexs):
         """
-        Set the metrics to exclude: the metrics with names in 'regexs' (or matching a regular
+        Set the metrics exclude filter: the metrics with names in 'regexs' (or matching a regular
         expression in 'regexs') will be excluded from the 'pandas.DataFrame' during the next
-        'pandas.DataFrame' operation like 'load_df()'.
+        'pandas.DataFrame' operation like 'load_df()'. The arguments are as follows.
+          * regex - the metrics exclude filter regular expression.
         """
 
         if regexs:
@@ -116,9 +127,10 @@ class RORawResult(_RawResultBase.RawResultBase):
 
     def set_minclude(self, regexs):
         """
-        Set the metrics to include: only the metrics with names in 'regexs' (or matching a regular
-        expression in 'regexs') will be included into the 'pandas.DataFrame' ('self.df') during the
-        next 'pandas.DataFrame' operation like 'load_df()'.
+        Set the metrics include filter: only the metrics with names in 'regexs' (or matching a
+        regular expression in 'regexs') will be included into the 'pandas.DataFrame' ('self.df')
+        during the next 'pandas.DataFrame' operation like 'load_df()'. The arguments are as follows.
+          * regex - the metrics include filter regular expression.
         """
 
         if regexs:
@@ -126,8 +138,8 @@ class RORawResult(_RawResultBase.RawResultBase):
 
     def _calc_smry(self, metric, funcnames):
         """
-        Helper function for 'calc_smrys()'. Calculate the summary functions in 'funcnames' for
-        'metric'. Returns a dictionary with function name - value pairs.
+        Calculate the summary functions in 'funcnames' for 'metric'. Return a dictionary with
+        function name - value pairs.
         """
 
         if not self.is_numeric(metric):
@@ -149,11 +161,11 @@ class RORawResult(_RawResultBase.RawResultBase):
     def calc_smrys(self, regexs=None, funcnames=None):
         """
         Calculate summary functions specified in 'funcnames' for metrics matching 'regexs', and save
-        the result in 'self.smrys'. By default this method calculates the summaries for all metrics
-        in the currently loaded 'pandas.DataFrame'.
-
-        The 'regexs' argument should be a list of metrics or regular expressions, which will be
-        applied to metrics. The 'funcnames' argument must be a list of function names.
+        the result in 'self.smrys'. By default calculate the summaries for all metrics in the
+        currently loaded 'pandas.DataFrame'. The arguments are as follows.
+          * regexs - an iterable collection of metrics or regular expressions, which will be applied
+            to metrics.
+          * funcnames - an iterable collection of function names to calculate.
 
         The result ('self.smrys') is a dictionary of dictionaries. The top level dictionary keys
         are metrics and the sub-dictionary keys are function names.
@@ -276,14 +288,17 @@ class RORawResult(_RawResultBase.RawResultBase):
         """
         If the datapoints CSV file has not been read yet ('self.df' is 'None'), read it into the
         'self.df' 'pandas.DataFrame'. Then apply all the configured filters and selectors to
-        'self.df'. The keyword arguments ('kwargs') are passed as is to 'pandas.read_csv()'.
+        'self.df'. The arguments are as follows.
+          * kwargs - passed as is to 'pandas.read_csv()'.
         """
 
         self._load_df(force_reload=False, **kwargs)
 
     def reload_df(self, **kwargs):
         """
-        Same as 'load_df()', but always reads the datapoints CSV file.
+        Same as 'load_df()', but unconditionally reads the datapoints CSV file. The arguments are as
+        follows.
+          * kwargs - passed as is to 'pandas.read_csv()'.
         """
 
         self._load_df(force_reload=True, **kwargs)
@@ -328,21 +343,97 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         return list(found.keys())
 
-    def save(self, dirpath, reportid=None):
+    def _copy(self, dirpath, files=None, dirs=None):
+        """Copy files from 'files' and dirs from 'dirs' to 'dirpath."""
+
+        if files:
+            for path in files:
+                try:
+                    shutil.copyfile(path, dirpath / path.name)
+                except (Error, shutil.Error) as err:
+                    errmsg = Error(err).indent(2)
+                    raise Error(f"failed to file '{path}' to '{dirpath}':\n{errmsg}") from err
+
+        if dirs:
+            for path in dirs:
+                try:
+                    shutil.copytree(path, dirpath / path.name, dirs_exist_ok=True,
+                                    copy_function=shutil.copy)
+                except (Error, shutil.Error) as err:
+                    errmsg = Error(err).indent(2)
+                    raise Error(f"failed to directory '{path}' to '{dirpath}':\n{errmsg}") from err
+
+    @staticmethod
+    def _check_info_yml(dirpath):
+        """Raise an exception if an 'info.yml' file exists in 'dstdir'."""
+
+        path = dirpath / "info.yml"
+
+        try:
+            exists = path.exists()
+        except OSError as err:
+            msg = Error(err).indent(2)
+            raise Error(f"failed to check if '{path}' exists:\n{msg}") from None
+
+        if not exists:
+            return
+
+        raise Error(f"the destination directory '{dirpath}' already contains 'info.yml', refusing "
+                    f"to overwrite an existing test result")
+
+    @staticmethod
+    def _mkdir(dirpath):
+        """Create a directory if it does not exist."""
+
+        try:
+            exists = dirpath.exists()
+            if exists and not dirpath.is_dir():
+                raise Error(f"path '{dirpath}' already exists and it is not a directory")
+        except OSError as err:
+            msg = Error(err).indent(2)
+            raise Error(f"failed to check if directory '{dirpath}' exists:\n{msg}") from None
+
+        if exists:
+            return
+
+        _LOG.debug("creating directory '%s", dirpath)
+
+        try:
+            dirpath.mkdir(parents=True, exist_ok=True)
+        except OSError as err:
+            msg = Error(err).indent(2)
+            raise Error(f"failed to create directory '{dirpath}':\n{msg}") from None
+
+    def copy(self, dirpath):
         """
-        Save the test result at path 'dirpath', optionally change the report ID with 'reportid'.
+        Copy the raw test result (self) to path 'dirpath'. The arguments are as follows.
+          * dirpath - path to the directory to copy the result to.
         """
 
         dirpath = Path(dirpath)
-        if not dirpath.exists():
-            _LOG.debug("creating directory '%s", dirpath)
-            try:
-                dirpath.mkdir(parents=True, exist_ok=False)
-            except OSError as err:
-                msg = Error(err).indent(2)
-                raise Error(f"failed to create directory '{dirpath}':\n{msg}") from None
-        elif not dirpath.is_dir():
-            raise Error(f"path '{dirpath}' exists and it is not a directory")
+        self._mkdir(dirpath)
+        self._check_info_yml(dirpath)
+
+        files = (self.info_path, self.dp_path)
+        dirs = []
+        if self.logs_path_exists:
+            dirs.append(self.logs_path)
+        if self.stats_path_exists:
+            dirs.append(self.stats_path)
+
+        self._copy(dirpath, files=files, dirs=dirs)
+
+    def save(self, dirpath, reportid=None):
+        """
+        Save the raw test result (self) at path 'dirpath', optionally change the report ID with
+        'reportid'. The arguments are as follows.
+          * dirpath - path to the directory to save the result at.
+          * reportid - new report ID.
+        """
+
+        dirpath = Path(dirpath)
+        self._mkdir(dirpath)
+        self._check_info_yml(dirpath)
 
         if reportid:
             info = self.info.copy()
@@ -355,6 +446,14 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         path = dirpath.joinpath(self.dp_path.name)
         self.df.to_csv(path, index=False, header=True)
+
+        dirs = []
+        if self.logs_path_exists:
+            dirs.append(self.logs_path)
+        if self.stats_path_exists:
+            dirs.append(self.stats_path)
+
+        self._copy(dirpath, dirs=dirs)
 
     def __init__(self, dirpath, reportid=None):
         """
@@ -441,7 +540,5 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self.metrics_set = set(self.metrics)
 
-        if not self.stats_path.exists():
-            return
-
-        self.stats_res = StatsCollectRes.RORawResult(self.stats_path, self.reportid)
+        if self.stats_path_exists:
+            self.stats_res = StatsCollectRes.RORawResult(self.stats_path, self.reportid)

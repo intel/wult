@@ -57,9 +57,11 @@ class ReportBase:
             FSHelpers.copy_dir(srcdir, dstdir, exist_ok=True, ignore=["html-report"])
             logs_paths[res.reportid] = dstdir / res.logs_path.relative_to(res.dirpath)
 
+            if not res.stats_path_exist:
+                continue
+
             stats_path = dstdir / res.stats_path.relative_to(res.dirpath)
-            if stats_path.exists():
-                stats_paths[res.reportid] = stats_path
+            stats_paths[res.reportid] = stats_path
 
         return stats_paths, logs_paths
 
@@ -73,6 +75,9 @@ class ReportBase:
 
             try:
                 dstdir.mkdir(parents=True, exist_ok=True)
+                if not res.logs_path_exists:
+                    continue
+
                 subdir = res.logs_path.relative_to(res.dirpath)
                 FSHelpers.copy_dir(res.dirpath / subdir, dstdir / subdir, exist_ok=True)
                 logs_paths[res.reportid] = dstdir / subdir

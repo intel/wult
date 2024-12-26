@@ -83,6 +83,30 @@ class RawResultBase:
 
         return result
 
+    def _init_and_validate_paths(self):
+        """Initialise and validate path-related information."""
+
+        try:
+            if self.dirpath.exists() and not self.dirpath.is_dir():
+                raise Error(f"path '{self.dirpath}' is not a directory")
+
+            if self.info_path.exists() and not self.info_path.is_file():
+                raise Error(f"path '{self.info_path}' exists, but it is not a regular file")
+
+            if self.dp_path.exists() and not self.dp_path.is_file():
+                raise Error(f"path '{self.dp_path}' exists, but it is not a regular file")
+
+            for name in ("logs_path", "stats_path"):
+                path = getattr(self, name)
+                if path.exists():
+                    if not path.is_dir():
+                        raise Error(f"path '{path}' exists, but it is not a directory")
+                    setattr(self, f"{name}_exists", True)
+
+        except OSError as err:
+            errmsg = Error(err).indent(2)
+            raise Error(f"a file-system operation on {self.dirpath} failed:\n{errmsg}") from err
+
     def __init__(self, dirpath):
         """The class constructor. The 'dirpath' argument is path raw test result directory."""
 
@@ -101,20 +125,14 @@ class RawResultBase:
         self._minclude = None
 
         self.info_path = self.dirpath.joinpath("info.yml")
-        self.logs_path = self.dirpath.joinpath("logs")
-        self.stats_path = self.dirpath.joinpath("stats")
         self.dp_path = self.dirpath.joinpath("datapoints.csv")
 
-        if self.dirpath.exists() and not self.dirpath.is_dir():
-            raise Error(f"path '{self.dirpath}' is not a directory")
+        # Note, logs and stats directories do not have to exist.
+        self.logs_path = self.dirpath.joinpath("logs")
+        self.stats_path = self.dirpath.joinpath("stats")
 
-        if self.info_path.exists() and not self.info_path.is_file():
-            raise Error(f"path '{self.info_path}' exists, but it is not a regular file")
+        # 'True' if logs/statistics sub-directories exist.
+        self.logs_path_exists = False
+        self.stats_path_exists = False
 
-        for name in ("logs_path", "stats_path"):
-            path = getattr(self, name)
-            if path.exists() and not path.is_dir():
-                raise Error(f"path '{path}' exists, but it is not a directory")
-
-        if self.dp_path.exists() and not self.dp_path.is_file():
-            raise Error(f"path '{self.dp_path}' exists, but it is not a regular file")
+        self._init_and_validate_paths()
