@@ -11,9 +11,9 @@
 This module provides the base class for generating HTML reports for raw test results.
 """
 
-import itertools
 import json
 import logging
+import itertools
 from pathlib import Path
 from pepclibs.helperlibs import Trivial, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error
@@ -30,7 +30,7 @@ class ReportBase:
     @staticmethod
     def _dump_json(obj, path, descr):
         """
-        Helper function wrapping 'json.dump' operation with a standardised error message so that the
+        Helper function wrapping 'json.dump' operation with a standardized error message so that the
         error messages are consistent. Arguments are as follows:
          * obj - Python object to dump to JSON.
          * path - path to create JSON file at.
@@ -43,66 +43,6 @@ class ReportBase:
             msg = Error(err).indent(2)
             raise Error(f"could not generate report: failed to JSON dump '{descr}' to '{path}':\n"
                         f"{msg}") from None
-
-    def _copy_results(self):
-        """Copies each result directory into the report directory."""
-
-        stats_paths = {}
-        logs_paths = {}
-
-        for res in self.rsts:
-            srcdir = res.dirpath
-            dstdir = self.outdir / f"raw-{res.reportid}"
-
-            FSHelpers.copy_dir(srcdir, dstdir, exist_ok=True, ignore=["html-report"])
-            logs_paths[res.reportid] = dstdir / res.logs_path.relative_to(res.dirpath)
-
-            if not res.stats_path_exist:
-                continue
-
-            stats_path = dstdir / res.stats_path.relative_to(res.dirpath)
-            stats_paths[res.reportid] = stats_path
-
-        return stats_paths, logs_paths
-
-    def _copy_logs(self):
-        """Copies the log files for each result into the report directory."""
-
-        logs_paths = {}
-
-        for res in self.rsts:
-            dstdir = self.outdir / f"raw-{res.reportid}"
-
-            try:
-                dstdir.mkdir(parents=True, exist_ok=True)
-                if not res.logs_path_exists:
-                    continue
-
-                subdir = res.logs_path.relative_to(res.dirpath)
-                FSHelpers.copy_dir(res.dirpath / subdir, dstdir / subdir, exist_ok=True)
-                logs_paths[res.reportid] = dstdir / subdir
-            except (OSError, Error) as err:
-                _LOG.warning("unable to copy log files to the generated report: %s", err)
-
-        return logs_paths
-
-    def _copy_raw_data(self):
-        """
-        Helper function for '_prepare_intro_table()'. Copies result data into the report directory.
-        """
-
-        if self.copy_raw:
-            stats_paths, logs_paths = self._copy_results()
-        else:
-            logs_paths = self._copy_logs()
-            stats_paths = {}
-
-        for res in self.rsts:
-            if res.stats_res:
-                logs_dst = logs_paths[res.reportid] / "stats-collect-logs"
-                FSHelpers.copy_dir(res.stats_res.logs_path, logs_dst, exist_ok=True)
-
-        return stats_paths, logs_paths
 
     def _add_intro_tbl_links(self, label, paths):
         """
@@ -181,8 +121,12 @@ class ReportBase:
                 devid_text += f" ({res.info['devdescr']})"
             devid_row.add_cell(res.reportid, devid_text)
 
-        # Add links to the stats directories.
-        self._add_intro_tbl_links("Statistics", self._raw_stats_paths)
+        # Add links to the raw directories.
+        if self.copy_raw:
+            self._add_intro_tbl_links("Raw result", self._raw_paths)
+
+        # Add links to the raw statistics directories.
+        self._add_intro_tbl_links("Raw statistics", self._raw_stats_paths)
 
         # Add links to the logs directories.
         self._add_intro_tbl_links("Logs", self._raw_logs_paths)
@@ -197,7 +141,7 @@ class ReportBase:
         """
 
         asset_path = ProjectFiles.find_project_data("wult", src, what=what)
-        FSHelpers.move_copy_link(asset_path, dst, "copy", exist_ok=True)
+        FSHelpers.move_copy_link(asset_path, dst, "copy")
 
     def _get_smry_funcs(self, smry_metrics):
         """
@@ -246,10 +190,10 @@ class ReportBase:
             tab_mdef = defs["LDist"]
             tab_config["title"] = "LDist"
         else:
-            _LOG.debug("skipping 'SilentTime/LDist' tab since neither metric is included as a tab.")
+            _LOG.debug("skipping 'SilentTime/LDist' tab since neither metric is included as a tab")
             return None
 
-        s_defs = [(defs[x], defs[y]) for x,y in tab_config["scatter"]]
+        s_defs = [(defs[x], defs[y]) for x, y in tab_config["scatter"]]
         h_defs = [defs[x] for x in tab_config["hist"]]
 
         dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, tab_mdef)
@@ -307,12 +251,12 @@ class ReportBase:
             smry_metrics = []
 
             # Only add plots which have the tab metric on one of the axes.
-            axes =  [xypair for xypair in plot_axes if metric in xypair]
+            axes = [xypair for xypair in plot_axes if metric in xypair]
             # Don't generate an empty tab if no diagrams will be generated.
             if not axes:
                 continue
 
-            tab_plots = [(defs[x], defs[y],) for x,y in axes]
+            tab_plots = [(defs[x], defs[y],) for x, y in axes]
 
             smry_metrics += list(set.union(*[set(xypair) for xypair in axes]))
             smry_metrics = Trivial.list_dedup(smry_metrics)
@@ -411,6 +355,37 @@ class ReportBase:
         # Some metrics from the axes lists could have been dropped, update the lists.
         self._drop_absent_metrics()
 
+    def _copy_raw_data(self):
+        """Copy raw test result or their parts to the output directory."""
+
+        logs_paths = {}
+        stats_paths = {}
+
+        for res in self.rsts:
+            dstdir = self._raw_paths[res.reportid]
+
+            if self.copy_raw:
+                res.copy(dstdir)
+            else:
+                res.copy_logs(dstdir)
+
+            if res.logs_path:
+                logs_paths[res.reportid] = dstdir / res.logs_path.name
+            if self.copy_raw and res.stats_path:
+                path = dstdir / res.stats_path.name / res.stats_res.stats_path.name
+                stats_paths[res.reportid] = path
+
+            if res.stats_res:
+                # Copy or link stats-collect logs to the wult logs directory.
+                logs_dst = logs_paths[res.reportid] / "stats-collect-logs"
+                if self.copy_raw:
+                    target = dstdir / res.stats_path.name / res.stats_res.logs_path.name
+                    FSHelpers.symlink(logs_dst, target, relative=True)
+                else:
+                    res.stats_res.copy_logs(logs_dst)
+
+        return logs_paths, stats_paths
+
     def generate(self, tab_cfgs=None):
         """
         Generate the HTML report and store the result in 'self.outdir'.
@@ -421,14 +396,16 @@ class ReportBase:
         configurations will be used so the default statistics tabs will be generated.
 
         Important note: this method will modify the input test results in 'self.rsts'. This is done
-        for effeciency purposes, to avoid copying the potentially large amounts of data
+        for efficiency purposes, to avoid copying the potentially large amounts of data
         (instances of 'pandas.DataFrame').
         """
 
         # Load the required datapoints into memory.
         self._load_results()
 
-        self._raw_stats_paths, self._raw_logs_paths = self._copy_raw_data()
+        for res in self.rsts:
+            self._raw_paths[res.reportid] = self.outdir / f"raw-{res.reportid}"
+        self._raw_logs_paths, self._raw_stats_paths = self._copy_raw_data()
 
         # Put together the final HTML report.
         self._generate_report(tab_cfgs)
@@ -598,7 +575,7 @@ class ReportBase:
                          summary functions to be calculated for metrics represented by the regular
                          expression 'regex'. Default value of 'None' will not generate any summary
                          tables.
-          * the path to the report generation log file.
+          * logpath - path to the report generation log file.
         """
 
         self.rsts = rsts
@@ -620,12 +597,13 @@ class ReportBase:
 
         self._stats_rsts = []
         for res in self.rsts:
-            if not res.stats_path.exists():
+            if not res.stats_path:
                 continue
             if res.stats_res:
                 self._stats_rsts.append(res.stats_res)
 
-        # Users can change this to 'True' to copy all the raw test results into the output directory.
+        # Users can change this to 'True' to copy all the raw test results into the output
+        # directory.
         self.copy_raw = False
 
         # The first result is the 'reference' result.
@@ -638,13 +616,15 @@ class ReportBase:
 
         # Dictionary in the format {'reportid': 'hov_metrics'} where 'hov_metrics' is a list of
         # metrics to include in the hover text of 'reportid' datapoints on scatter plots. By default
-        # only the x and y axis values are included, but can be modified using 'set_hover_metrics()'
+        # only the x and y axis values are included, but can be modified using
+        # 'set_hover_metrics()'.
         self._hov_metrics = {}
         # Additional metrics to load, if the results contain data for them.
         self._more_metrics = []
 
-        # Paths to raw test results log and statistics sub-directories (dictionaries indexed by
-        # report ID).
+        # Paths to (copied) raw test result directories in the output directory, and logs/statistics
+        # sub-directories in the output directory. The dictionary is indexed by report ID.
+        self._raw_paths = {}
         self._raw_logs_paths = {}
         self._raw_stats_paths = {}
 

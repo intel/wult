@@ -101,7 +101,8 @@ class RawResultBase:
                 if path.exists():
                     if not path.is_dir():
                         raise Error(f"path '{path}' exists, but it is not a directory")
-                    setattr(self, f"{name}_exists", True)
+                else:
+                    setattr(self, f"{name}", None)
 
         except OSError as err:
             errmsg = Error(err).indent(2)
@@ -127,12 +128,8 @@ class RawResultBase:
         self.info_path = self.dirpath.joinpath("info.yml")
         self.dp_path = self.dirpath.joinpath("datapoints.csv")
 
-        # Note, logs and stats directories do not have to exist.
+        # If logs / stats directories do not to exist, the below variables will be set to 'None'.
         self.logs_path = self.dirpath.joinpath("logs")
         self.stats_path = self.dirpath.joinpath("stats")
-
-        # 'True' if logs/statistics sub-directories exist.
-        self.logs_path_exists = False
-        self.stats_path_exists = False
 
         self._init_and_validate_paths()

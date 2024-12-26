@@ -9,7 +9,6 @@
 """API for reading wult, ndl, and pbe raw test results."""
 
 import re
-import shutil
 import logging
 import builtins
 from pathlib import Path
@@ -17,6 +16,7 @@ import pandas
 from pepclibs.helperlibs import YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
 from statscollectlibs import DFSummary
+from statscollectlibs.helperlibs import FSHelpers
 from statscollectlibs.rawresultlibs import RORawResult as StatsCollectRes
 from wultlibs import WultDefs, PbeDefs, NdlDefs
 from wultlibs.rawresultlibs import _RawResultBase
@@ -343,29 +343,9 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         return list(found.keys())
 
-    def _copy(self, dirpath, files=None, dirs=None):
-        """Copy files from 'files' and dirs from 'dirs' to 'dirpath."""
-
-        if files:
-            for path in files:
-                try:
-                    shutil.copyfile(path, dirpath / path.name)
-                except (Error, shutil.Error) as err:
-                    errmsg = Error(err).indent(2)
-                    raise Error(f"failed to file '{path}' to '{dirpath}':\n{errmsg}") from err
-
-        if dirs:
-            for path in dirs:
-                try:
-                    shutil.copytree(path, dirpath / path.name, dirs_exist_ok=True,
-                                    copy_function=shutil.copy)
-                except (Error, shutil.Error) as err:
-                    errmsg = Error(err).indent(2)
-                    raise Error(f"failed to directory '{path}' to '{dirpath}':\n{errmsg}") from err
-
     @staticmethod
     def _check_info_yml(dirpath):
-        """Raise an exception if an 'info.yml' file exists in 'dstdir'."""
+        """Raise an exception if an 'info.yml' file exists in 'dirdir'."""
 
         path = dirpath / "info.yml"
 
@@ -381,59 +361,55 @@ class RORawResult(_RawResultBase.RawResultBase):
         raise Error(f"the destination directory '{dirpath}' already contains 'info.yml', refusing "
                     f"to overwrite an existing test result")
 
-    @staticmethod
-    def _mkdir(dirpath):
-        """Create a directory if it does not exist."""
+    def copy_logs(self, dstpath):
+        """
+        Copy (own) raw test result logs to path 'dirpath'. The arguments are as follows.
+          * dstpath - path to the directory to copy the logs to.
+        """
 
-        try:
-            exists = dirpath.exists()
-            if exists and not dirpath.is_dir():
-                raise Error(f"path '{dirpath}' already exists and it is not a directory")
-        except OSError as err:
-            msg = Error(err).indent(2)
-            raise Error(f"failed to check if directory '{dirpath}' exists:\n{msg}") from None
+        dstpath = Path(dstpath)
 
-        if exists:
-            return
+        srcpaths = []
+        if self.logs_path:
+            srcpaths.append(self.logs_path)
 
-        _LOG.debug("creating directory '%s", dirpath)
+        for path in srcpaths:
+            FSHelpers.copy(path, dstpath / path.name, is_dir=True)
 
-        try:
-            dirpath.mkdir(parents=True, exist_ok=True)
-        except OSError as err:
-            msg = Error(err).indent(2)
-            raise Error(f"failed to create directory '{dirpath}':\n{msg}") from None
-
-    def copy(self, dirpath):
+    def copy(self, dstpath):
         """
         Copy the raw test result (self) to path 'dirpath'. The arguments are as follows.
-          * dirpath - path to the directory to copy the result to.
+          * dstpath - path to the directory to copy the result to.
         """
 
-        dirpath = Path(dirpath)
-        self._mkdir(dirpath)
-        self._check_info_yml(dirpath)
+        dstpath = Path(dstpath)
+        self._check_info_yml(dstpath)
 
-        files = (self.info_path, self.dp_path)
-        dirs = []
-        if self.logs_path_exists:
-            dirs.append(self.logs_path)
-        if self.stats_path_exists:
-            dirs.append(self.stats_path)
+        srcpaths = [self.info_path, self.dp_path]
+        if self.logs_path:
+            srcpaths.append(self.logs_path)
+        if self.stats_path:
+            srcpaths.append(self.stats_path)
 
-        self._copy(dirpath, files=files, dirs=dirs)
+        for path in srcpaths:
+            FSHelpers.copy(path, dstpath / path.name)
 
-    def save(self, dirpath, reportid=None):
+    def save(self, dstpath, reportid=None):
         """
         Save the raw test result (self) at path 'dirpath', optionally change the report ID with
         'reportid'. The arguments are as follows.
-          * dirpath - path to the directory to save the result at.
+          * dstpath - path to the directory to save the result at.
           * reportid - new report ID.
         """
 
-        dirpath = Path(dirpath)
-        self._mkdir(dirpath)
-        self._check_info_yml(dirpath)
+        dstpath = Path(dstpath)
+        try:
+            dstpath.mkdir(parents=True, exist_ok=True)
+        except OSError as err:
+            msg = Error(err).indent(2)
+            raise Error(f"failed to create directory '{dstpath}':\n{msg}") from None
+
+        self._check_info_yml(dstpath)
 
         if reportid:
             info = self.info.copy()
@@ -441,19 +417,58 @@ class RORawResult(_RawResultBase.RawResultBase):
         else:
             info = self.info
 
-        path = dirpath.joinpath(self.info_path.name)
+        path = dstpath.joinpath(self.info_path.name)
         YAML.dump(info, path)
 
-        path = dirpath.joinpath(self.dp_path.name)
+        path = dstpath.joinpath(self.dp_path.name)
         self.df.to_csv(path, index=False, header=True)
 
-        dirs = []
-        if self.logs_path_exists:
-            dirs.append(self.logs_path)
-        if self.stats_path_exists:
-            dirs.append(self.stats_path)
+        srcpaths = []
+        if self.logs_path:
+            srcpaths.append(self.logs_path)
+        if self.stats_path:
+            srcpaths.append(self.stats_path)
 
-        self._copy(dirpath, dirs=dirs)
+        for path in srcpaths:
+            FSHelpers.copy(path, dstpath / path.name, is_dir=True)
+
+    def _load_info_yml(self):
+        """Load the 'info.yml' file and do basic validation/initialization."""
+
+        # Check few special error cases upfront in order to provide a clear error message:
+        # the info and datapoint files should exist and be non-empty.
+        for name in ("info_path", "dp_path"):
+            attr = getattr(self, name)
+            try:
+                if not attr.is_file():
+                    raise ErrorNotFound(f"'{attr}' does not exist or it is not a regular file")
+                if not attr.stat().st_size:
+                    raise Error(f"file '{attr}' is empty")
+            except OSError as err:
+                msg = Error(err).indent(2)
+                raise Error(f"failed to access '{attr}':\n{msg}") from err
+
+        self.info = YAML.load(self.info_path)
+        if self._reportid:
+            # Note, we do not verify it here, the caller is supposed to verify.
+            self.info["reportid"] = self._reportid
+        if "reportid" not in self.info:
+            raise ErrorNotSupported(f"no 'reportid' key found in {self.info_path}")
+        self.reportid = self.info["reportid"]
+
+        self._toolname = self.info.get("toolname")
+        if not self._toolname:
+            raise Error(f"bad '{self.info_path}' format - the 'toolname' key is missing")
+
+        toolver = self.info.get("toolver")
+        if not toolver:
+            raise Error(f"bad '{self.info_path}' format - the 'toolver' key is missing")
+
+        format_ver = self.info.get("format_version")
+        if format_ver not in _SUPPORTED_FORMAT_VERSIONS:
+            _LOG.warning("result '%s' has format version '%s' which is not supported by this "
+                         "version so may cause unexpected behavior. Please use '%s v%s'.",
+                         self.reportid, format_ver, self._toolname, toolver)
 
     def __init__(self, dirpath, reportid=None):
         """
@@ -471,50 +486,19 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         super().__init__(dirpath)
 
-        # Check few special error cases upfront in order to provide a clear error message:
-        # the info and datapoint files should exist and be non-empty.
-        for name in ("info_path", "dp_path"):
-            attr = getattr(self, name)
-            try:
-                if not attr.is_file():
-                    raise ErrorNotFound(f"'{attr}' does not exist or it is not a regular file")
-                if not attr.stat().st_size:
-                    raise Error(f"file '{attr}' is empty")
-            except OSError as err:
-                msg = Error(err).indent(2)
-                raise Error(f"failed to access '{attr}':\n{msg}") from err
-
         self.df = None
         self.smrys = None
         self.metrics = []
         self.metrics_set = set()
 
         # The raw result information dictionary.
-        self.info = None
         # The statistics raw results object.
         self.stats_res = None
 
-        self.info = YAML.load(self.info_path)
-        if reportid:
-            # Note, we do not verify it here, the caller is supposed to verify.
-            self.info["reportid"] = reportid
-        if "reportid" not in self.info:
-            raise ErrorNotSupported(f"no 'reportid' key found in {self.info_path}")
-        self.reportid = self.info["reportid"]
+        self._reportid = reportid
+        self._toolname = []
 
-        toolname = self.info.get("toolname")
-        if not toolname:
-            raise Error(f"bad '{self.info_path}' format - the 'toolname' key is missing")
-
-        toolver = self.info.get("toolver")
-        if not toolver:
-            raise Error(f"bad '{self.info_path}' format - the 'toolver' key is missing")
-
-        format_ver = self.info.get("format_version")
-        if format_ver not in _SUPPORTED_FORMAT_VERSIONS:
-            _LOG.warning("result '%s' has format version '%s' which is not supported by this "
-                         "version so may cause unexpected behavior. Please use '%s v%s'.",
-                         self.reportid, format_ver, toolname, toolver)
+        self._load_info_yml()
 
         # Read the metrics from the column names in the CSV file.
         try:
@@ -523,14 +507,14 @@ class RORawResult(_RawResultBase.RawResultBase):
             msg = Error(err).indent(2)
             raise Error(f"failed to load CSV file {self.dp_path}:\n{msg}") from None
 
-        if toolname == "wult":
+        if self._toolname == "wult":
             self.defs = WultDefs.WultDefs(metrics)
-        elif toolname == "pbe":
+        elif self._toolname == "pbe":
             self.defs = PbeDefs.PbeDefs()
-        elif toolname == "ndl":
+        elif self._toolname == "ndl":
             self.defs = NdlDefs.NdlDefs()
         else:
-            raise Error(f"unknown tool '{toolname}'")
+            raise Error(f"unknown tool '{self._toolname}'")
 
         # Exclude metrics which are not present in the definitions.
         self.metrics = []
@@ -540,5 +524,5 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         self.metrics_set = set(self.metrics)
 
-        if self.stats_path_exists:
+        if self.stats_path:
             self.stats_res = StatsCollectRes.RORawResult(self.stats_path, self.reportid)
