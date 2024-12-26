@@ -176,13 +176,11 @@ class ReportBase:
                 devid_text += f" ({res.info['devdescr']})"
             devid_row.add_cell(res.reportid, devid_text)
 
-        stats_paths, logs_paths = self._copy_raw_data()
-
         # Add links to the stats directories.
-        self._add_intro_tbl_links("Statistics", stats_paths)
+        self._add_intro_tbl_links("Statistics", self._raw_stats_paths)
 
         # Add links to the logs directories.
-        self._add_intro_tbl_links("Logs", logs_paths)
+        self._add_intro_tbl_links("Logs", self._raw_logs_paths)
 
     @staticmethod
     def _copy_asset(src, what, dst):
@@ -425,9 +423,10 @@ class ReportBase:
         # Load the required datapoints into memory.
         self._load_results()
 
+        self._raw_stats_paths, self._raw_logs_paths = self._copy_raw_data()
+
         # Put together the final HTML report.
         self._generate_report(tab_cfgs)
-
 
     def set_hover_metrics(self, regexs):
         """
@@ -638,6 +637,11 @@ class ReportBase:
         self._hov_metrics = {}
         # Additional metrics to load, if the results contain data for them.
         self._more_metrics = []
+
+        # Paths to raw test results log and statistics sub-directories (dictionaries indexed by
+        # report ID).
+        self._raw_logs_paths = {}
+        self._raw_stats_paths = {}
 
         self._validate_init_args()
         self._init_metrics()
