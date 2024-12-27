@@ -7,14 +7,14 @@
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module contains the base class for the read-only and write-only raw test result classes.
+Provide the base class for the read-only and write-only raw test result classes.
 
 A raw test result is a directory containing the following files.
  * datapoints.csv - a CSV file named 'datapoints.csv' which keeps all the datapoints (one datapoint
                     per row). This file may be very large.
  * info.yml - a YAML file containing miscellaneous test information, such as the report ID.
  * logs - optional directory containing wult run logs.
- * stats - optional directory containing various statistics, such as 'lscpu'.
+ * stats - optional directory containing various statistics, such as turbostat'.
 """
 
 from pathlib import Path
@@ -26,7 +26,7 @@ FORMAT_VERSION = "1.3"
 
 class RawResultBase:
     """
-    Base class for read-only and write-only test result classes, contains the common bits.
+    Base class for read-only and write-only test result classes.
     """
 
     def clear_filts(self):
@@ -109,7 +109,10 @@ class RawResultBase:
             raise Error(f"a file-system operation on {self.dirpath} failed:\n{errmsg}") from err
 
     def __init__(self, dirpath):
-        """The class constructor. The 'dirpath' argument is path raw test result directory."""
+        """
+        The class constructor. The arguments are as follows.
+             * dirpath - the raw test result directory path.
+        """
 
         if not dirpath:
             raise Error("raw test results directory path was not specified")

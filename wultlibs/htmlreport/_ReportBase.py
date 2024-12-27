@@ -8,14 +8,13 @@
 #          Vladislav Govtva <vladislav.govtva@intel.com>
 
 """
-This module provides the base class for generating HTML reports for raw test results.
+Provide the base class for generating HTML reports.
 """
 
-import json
 import logging
 import itertools
 from pathlib import Path
-from pepclibs.helperlibs import Trivial, ProjectFiles
+from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.htmlreport import _IntroTable, HTMLReport
 from statscollectlibs.htmlreport.tabs import _Tabs
@@ -25,30 +24,13 @@ from wultlibs.htmlreport import _MetricDTabBuilder
 _LOG = logging.getLogger()
 
 class ReportBase:
-    """This is the base class for generating HTML reports for raw test results."""
-
-    @staticmethod
-    def _dump_json(obj, path, descr):
-        """
-        Helper function wrapping 'json.dump' operation with a standardized error message so that the
-        error messages are consistent. Arguments are as follows:
-         * obj - Python object to dump to JSON.
-         * path - path to create JSON file at.
-         * descr - description of object being dumped.
-        """
-        try:
-            with open(path, "w", encoding="utf-8") as fobj:
-                json.dump(obj, fobj, default=str)
-        except Exception as err:
-            msg = Error(err).indent(2)
-            raise Error(f"could not generate report: failed to JSON dump '{descr}' to '{path}':\n"
-                        f"{msg}") from None
+    """The base class for generating HTML reports."""
 
     def _add_intro_tbl_links(self, label, paths):
         """
-        Add links in 'paths' to the 'intro_tbl' dictionary. Arguments are as follows:
-         * label - the label that will be shown in the intro table for these links.
-         * paths - dictionary in the format {Report ID: Path to Link to}.
+        Add links in 'paths' to the 'intro_tbl' dictionary. The arguments are as follows.
+          * label - the label that will be shown in the intro table for these links.
+          * paths - dictionary in the format of '{Report ID: Path to Link to}'.
         """
 
         valid_paths = {}
@@ -131,22 +113,9 @@ class ReportBase:
         # Add links to the logs directories.
         self._add_intro_tbl_links("Logs", self._raw_logs_paths)
 
-    @staticmethod
-    def _copy_asset(src, what, dst):
-        """
-        Copy asset file to the output directory. Arguments are as follows:
-         * src - source path of the file to copy.
-         * what - a human-readable name for what is being copied.
-         * dst - where the file should be copied to.
-        """
-
-        asset_path = ProjectFiles.find_project_data("wult", src, what=what)
-        FSHelpers.move_copy_link(asset_path, dst, "copy")
-
     def _get_smry_funcs(self, smry_metrics):
         """
-        Helper function for '_generate_results_tabs()'. Returns a summary functions dictionary based
-        on the metrics in 'smry_metrics'.
+        Return the summary functions dictionary based on the metrics in 'smry_metrics'.
         """
 
         # Hard-code the order summary functions will appear in summary tables.
@@ -162,8 +131,8 @@ class ReportBase:
 
     def _gen_stime_ldist_tab(self, tab_metrics, hover_defs):
         """
-        Helper method for '_generate_results_tabs()'. Generate a tab for the 'SilentTime' and/or
-        'LDist' metrics. Returns 'None', if the tab had to be skipped for some reason.
+        Generate a tab for the 'SilentTime' and/or 'LDist' metrics. Return 'None', if the tab had to
+        be skipped for some reason.
         """
 
         defs = self._refres.defs.info
@@ -388,16 +357,15 @@ class ReportBase:
 
     def generate(self, tab_cfgs=None):
         """
-        Generate the HTML report and store the result in 'self.outdir'.
-
-        Optionally provide 'tab_cfgs', a dictionary in the format '{stname: TabConfig}',
-        where 'TabConfig' is an instance of 'statscollectlibs.htmlreport.tabs.TabConfig.CTabConfig',
-        to overwrite the tab configurations used to generate statistics tabs. By default, no custom
-        configurations will be used so the default statistics tabs will be generated.
+        Generate the HTML report. The arguments are as follows.
+          * tab_cfgs - a dictionary in the format of '{stname: TabConfig}', where 'TabConfig' is an
+                       instance of 'CTabConfig' for customizing tabs configurations. By default, no
+                       custom configurations will be used so the default statistics tabs will be
+                       generated.
 
         Important note: this method will modify the input test results in 'self.rsts'. This is done
-        for efficiency purposes, to avoid copying the potentially large amounts of data
-        (instances of 'pandas.DataFrame').
+        for efficiency purposes, to avoid copying the potentially large amounts of data (instances
+        of 'pandas.DataFrame').
         """
 
         # Load the required datapoints into memory.
@@ -412,11 +380,10 @@ class ReportBase:
 
     def set_hover_metrics(self, regexs):
         """
-        This methods allows for specifying metrics that have to be included to the hover text on the
-        scatter plot. The 'regexs' argument should be a list of hover text metric regular
-        expressions. In other words, each element of the list will be treated as a regular
-        expression. Every metric will be matched against this regular expression, and matched
-        metrics will be added to the hover text.
+        Set hover text metrics on the results scatter-plot. The arguments are as follows.
+          * regexs - an iterable collection of hover text metric regular expressions.  Every metric
+            are matched against these regular expressions, and matched metrics are added to the
+            hover text.
         """
 
         for res in self.rsts:
@@ -510,10 +477,11 @@ class ReportBase:
 
     def _init_smry_funcs(self, smry_funcs):
         """
-        Assign which summary functions to calculate and include for each metric. Stores the result
-        in 'self._smry_funcs'. 'smry_funcs' should be a dictionary containing 'regex':'smry_funcs'
-        pairs where 'smry_funcs' is a list of summary functions to calculate and include for
-        metrics represented by the regular expression 'regex'.
+        Assign which summary functions to calculate and include for each metric. Store the result
+        in 'self._smry_funcs'. The arguments are as follows.
+          * smry_funcs - a dictionary in the format of '{regex: funcs}', where 'funcs' is a list of
+                         summary function names to calculate and add to the summary table for the
+                         metrics matching the 'regex' regular expression.
         """
 
         self._smry_funcs = {}
