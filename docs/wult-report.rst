@@ -14,10 +14,10 @@ COMMAND *'wult* report'
 =======================
 
 usage: wult report [-h] [-q] [-d] [-o OUTDIR] [--exclude EXCLUDE]
-[--include INCLUDE] [--even-up-dp-count] [-x XAXES] [-y YAXES] [--hist
-HIST] [--chist CHIST] [--reportids REPORTIDS] [--report-descr
-REPORT_DESCR] [--copy-raw] [--list-metrics] [--size REPORT_SIZE]
-respaths [respaths ...]
+[--include INCLUDE] [--even-up-dp-count] [-x XAXES] [-y YAXES]
+[--hist HIST] [--chist CHIST] [--reportids REPORTIDS]
+[--report-descr REPORT_DESCR] [--copy-raw] [--list-metrics]
+[--size REPORT_SIZE] respaths [respaths ...]
 
 Create an HTML report for one or multiple test results.
 

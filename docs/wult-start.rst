@@ -12,12 +12,12 @@ WULT
 COMMAND *'wult* start'
 ======================
 
-usage: wult start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K
-PRIVKEY] [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--exclude
-EXCLUDE] [--include INCLUDE] [--keep-filtered] [-o OUTDIR] [--reportid
-REPORTID] [--stats STATS] [--stats-intervals STATS_INTERVALS]
-[--list-stats] [-l LDIST] [--cpunum CPUNUM] [--tsc-cal-time
-TSC_CAL_TIME] [--keep-raw-data] [--no-unload] [--report] [--force]
+usage: wult start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
+[-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--exclude EXCLUDE]
+[--include INCLUDE] [--keep-filtered] [-o OUTDIR] [--reportid REPORTID]
+[--stats STATS] [--stats-intervals STATS_INTERVALS] [--list-stats]
+[-l LDIST] [--cpunum CPUNUM] [--tsc-cal-time TSC_CAL_TIME]
+[--keep-raw-data] [--no-unload] [--report] [--force]
 [--freq-noise FREQ_NOISE] [--freq-noise-sleep FREQ_NOISE_SLEEP] devid
 
 Start measuring and recording C-state latency.

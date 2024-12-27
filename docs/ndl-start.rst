@@ -13,12 +13,12 @@ COMMAND *'ndl* start'
 =====================
 
 usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
-[-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid
-REPORTID] [--stats STATS] [--stats-intervals STATS_INTERVALS]
+[-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR]
+[--reportid REPORTID] [--stats STATS] [--stats-intervals STATS_INTERVALS]
 [--list-stats] [-l LDIST] [--cpunum CPUNUM] [--exclude EXCLUDE]
 [--include INCLUDE] [--keep-filtered] [--report] [--force]
-[--trash-cpu-cache] [--freq-noise FREQ_NOISE] [--freq-noise-sleep
-FREQ_NOISE_SLEEP] ifname
+[--trash-cpu-cache] [--freq-noise FREQ_NOISE]
+[--freq-noise-sleep FREQ_NOISE_SLEEP] ifname
 
 Start measuring and recording the latency data.
 
