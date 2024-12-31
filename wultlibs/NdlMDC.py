@@ -8,10 +8,10 @@
 
 """Provide the ndl metrics definition class."""
 
-from wultlibs import _WultDefsBase
+from wultlibs import _WultMDCBase
 from wulttools.ndl import ToolInfo
 
-class NdlMDC(_WultDefsBase.WultDefsBase):
+class NdlMDC(_WultMDCBase.WultMDCBase):
     """
     The ndl metrics definition class provides API to ndl metrics definitions, which describe the
     metrics provided by the ndl tool.

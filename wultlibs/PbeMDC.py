@@ -6,13 +6,16 @@
 #
 # Author: Adam Hawley <adam.james.hawley@intel.com>
 
-"""This module provides the class for pbe metrics definitions (AKA 'defs')."""
+"""Provide the pbe metrics definition class."""
 
-from wultlibs import _WultDefsBase
+from wultlibs import _WultMDCBase
 from wulttools.pbe import ToolInfo
 
-class PbeDefs(_WultDefsBase.WultDefsBase):
-    """The class for pbe metrics definitions (AKA 'defs')."""
+class PbeMDC(_WultMDCBase.WultMDCBase):
+    """
+    The pbe metrics definition class provides API to ndl metrics definitions, which describe the
+    metrics provided by the pbe tool.
+    """
 
     def __init__(self):
         """The class constructor."""

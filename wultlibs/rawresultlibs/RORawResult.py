@@ -18,7 +18,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFou
 from statscollectlibs import DFSummary
 from statscollectlibs.helperlibs import FSHelpers
 from statscollectlibs.rawresultlibs import RORawResult as StatsCollectRes
-from wultlibs import WultDefs, PbeDefs, NdlMDC
+from wultlibs import WultMDC, PbeMDC, NdlMDC
 from wultlibs.rawresultlibs import _RawResultBase
 
 _LOG = logging.getLogger()
@@ -508,9 +508,9 @@ class RORawResult(_RawResultBase.RawResultBase):
             raise Error(f"failed to load CSV file {self.dp_path}:\n{msg}") from None
 
         if self._toolname == "wult":
-            self.defs = WultDefs.WultDefs(metrics)
+            self.defs = WultMDC.WultMDC(metrics)
         elif self._toolname == "pbe":
-            self.defs = PbeDefs.PbeDefs()
+            self.defs = PbeMDC.PbeMDC()
         elif self._toolname == "ndl":
             self.defs = NdlMDC.NdlMDC()
         else:

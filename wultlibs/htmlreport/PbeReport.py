@@ -11,7 +11,7 @@
 import logging
 import pandas
 from statscollectlibs.htmlreport.tabs import TabConfig
-from wultlibs import PbeDefs
+from wultlibs import PbeMDC
 from wultlibs.htmlreport import _ReportBase
 from wultlibs.htmlreport import PbeReportParams
 from wulttools.pbe import ToolInfo
@@ -123,7 +123,7 @@ class PbeReport(_ReportBase.ReportBase):
             if not args[name]:
                 args[name] = default.split(",")
 
-        labels_defs = PbeDefs.PbeDefs()
+        labels_defs = PbeMDC.PbeMDC()
 
         # The 'LDist' metric definition is used to build tab configurations for custom statistcs
         # tabs. Assign it to a class property here so that the name does not need to be hard-coded

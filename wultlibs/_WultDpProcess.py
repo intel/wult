@@ -14,7 +14,7 @@ import logging
 from pepclibs import CPUIdle
 from pepclibs.helperlibs import ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs import WultDefs
+from wultlibs import WultMDC
 from wultlibs.helperlibs import Human
 
 _LOG = logging.getLogger()
@@ -380,7 +380,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         # Add the C-state percentages.
         for field in self._cs_fields:
-            cyc_field = WultDefs.get_cscyc_metric(WultDefs.get_csname(field))
+            cyc_field = WultMDC.get_cscyc_metric(WultMDC.get_csname(field))
 
             # In case of POLL state, calculate only CC0%.
             if self._is_poll_idle(dp) and cyc_field != "CC0Cyc":
@@ -390,7 +390,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             dp[field] = dp[cyc_field] / dp["TotCyc"] * 100.0
 
             if dp[field] > 100:
-                csname = WultDefs.get_csname(field)
+                csname = WultMDC.get_csname(field)
                 msg = f"too high '{csname}' C-state residency of {dp[field]:.1f}% for the " \
                       f"following datapoint:\n{Human.dict2str(dp)}"
 
@@ -417,7 +417,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
             non_cc1_cyc = 0
             for field in dp.keys():
-                if WultDefs.is_cscyc_metric(field) and WultDefs.get_csname(field) != "CC1":
+                if WultMDC.is_cscyc_metric(field) and WultMDC.get_csname(field) != "CC1":
                     non_cc1_cyc += dp[field]
 
             dp["CC1Derived%"] = (dp["TotCyc"] - non_cc1_cyc) / dp["TotCyc"] * 100.0
@@ -734,18 +734,18 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         raw_fields = list(rawdp.keys())
 
-        defs = WultDefs.WultDefs(raw_fields)
+        defs = WultMDC.WultMDC(raw_fields)
 
         self._cs_fields = []
         self._has_cstates = False
 
         for field in raw_fields:
-            csname = WultDefs.get_csname(field, must_get=False)
+            csname = WultMDC.get_csname(field, must_get=False)
             if not csname:
                 # Not a C-state field.
                 continue
             self._has_cstates = True
-            self._cs_fields.append(WultDefs.get_csres_metric(csname))
+            self._cs_fields.append(WultMDC.get_csres_metric(csname))
 
         self._us_fields_set = {field for field, vals in defs.info.items() \
                                if vals.get("unit") == "microsecond"}

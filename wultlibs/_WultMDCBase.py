@@ -6,14 +6,12 @@
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
-"""
-This module provides the base class for metrics definitions (AKA 'defs').
-"""
+"""Provide the wult metrics definition base class."""
 
-from statscollectlibs.defs import MDCBase
+from statscollectlibs.mdc import MDCBase
 
-class WultDefsBase(MDCBase.MDCBase):
-    """The base class for metrics definitions (AKA 'defs')."""
+class WultMDCBase(MDCBase.MDCBase):
+    """The wult metrics definition base class."""
 
     def __init__(self, toolname):
         """
