@@ -79,37 +79,6 @@ class PbeReport(_ReportBase.ReportBase):
             tab_cfgs = self._get_stats_tab_cfgs()
         return super().generate(tab_cfgs)
 
-    def _compat_wake_period(self, rsts):
-        """
-        Versions of 'pbe' <= 0.2.0 used "Wake Period" as the metric to represent what is now
-        known as "Launch Distance". Rename the "WakePeriod" column in 'rsts' to "LDist". Once
-        support for v0.2.0 results is dropped, this method can be removed.
-        """
-
-        for res in rsts:
-            wper_colname = "WakePeriod"
-            ldist_colname = "LDist"
-            colnames = list(pandas.read_csv(res.dp_path, nrows=0))
-
-            # The initial release of 'pbe' was version 0.2.0, so only 1 version is affected.
-            if res.info.get("toolver") != "0.2.0" or wper_colname not in colnames:
-                continue
-
-            _LOG.notice(f"renaming '{wper_colname}' to '{ldist_colname}' in the result at '%s'",
-                        res.dp_path)
-            res.metrics = []
-            for colname in colnames:
-                if colname == wper_colname:
-                    res.metrics.append(ldist_colname)
-                elif colname in res.mdo.info:
-                    res.metrics.append(colname)
-
-            res.metrics_set = set(res.metrics)
-            res.load_df()
-            res.df.rename(columns={wper_colname: ldist_colname}, inplace=True)
-
-        return rsts
-
     def __init__(self, rsts, outdir, report_descr=None, xaxes=None, yaxes=None, logpath=None):
         """
         The class constructor. The arguments are the same as in
@@ -142,8 +111,6 @@ class PbeReport(_ReportBase.ReportBase):
                     continue
 
                 stats_res.set_label_defs(stname, labels_mdo.info.values())
-
-        rsts = self._compat_wake_period(rsts)
 
         super().__init__(rsts, outdir, ToolInfo.TOOLNAME, ToolInfo.VERSION,
                          report_descr=report_descr, xaxes=args["xaxes"], yaxes=args["yaxes"],
