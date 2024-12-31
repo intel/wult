@@ -18,7 +18,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFou
 from statscollectlibs import DFSummary
 from statscollectlibs.helperlibs import FSHelpers
 from statscollectlibs.rawresultlibs import RORawResult as StatsCollectRes
-from wultlibs import WultDefs, PbeDefs, NdlDefs
+from wultlibs import WultDefs, PbeDefs, NdlMDC
 from wultlibs.rawresultlibs import _RawResultBase
 
 _LOG = logging.getLogger()
@@ -512,7 +512,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         elif self._toolname == "pbe":
             self.defs = PbeDefs.PbeDefs()
         elif self._toolname == "ndl":
-            self.defs = NdlDefs.NdlDefs()
+            self.defs = NdlMDC.NdlMDC()
         else:
             raise Error(f"unknown tool '{self._toolname}'")
 

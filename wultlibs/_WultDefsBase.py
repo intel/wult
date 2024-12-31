@@ -10,7 +10,7 @@
 This module provides the base class for metrics definitions (AKA 'defs').
 """
 
-from statscollectlibs.mdc import MDCBase
+from statscollectlibs.defs import MDCBase
 
 class WultDefsBase(MDCBase.MDCBase):
     """The base class for metrics definitions (AKA 'defs')."""
