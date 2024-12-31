@@ -8,13 +8,11 @@
 
 """
 This module provides the base class for metrics definitions (AKA 'defs').
-
-Extends 'statscollectlibs.DefsBase.DefsBase' by specifying the directory for wult definition files.
 """
 
-from statscollectlibs.defs import DefsBase
+from statscollectlibs.mdc import MDCBase
 
-class WultDefsBase(DefsBase.DefsBase):
+class WultDefsBase(MDCBase.MDCBase):
     """The base class for metrics definitions (AKA 'defs')."""
 
     def __init__(self, toolname):
