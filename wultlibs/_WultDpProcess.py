@@ -734,7 +734,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         raw_fields = list(rawdp.keys())
 
-        defs = WultMDC.WultMDC(raw_fields)
+        mdo = WultMDC.WultMDC(raw_fields)
 
         self._cs_fields = []
         self._has_cstates = False
@@ -747,13 +747,14 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             self._has_cstates = True
             self._cs_fields.append(WultMDC.get_csres_metric(csname))
 
-        self._us_fields_set = {field for field, vals in defs.info.items() \
+        self._us_fields_set = {field for field, vals in mdo.info.items() \
                                if vals.get("unit") == "microsecond"}
 
-        # Form the preliminary list of fields in processed datapoints. Fields from the "defs" file
-        # go first. The list (but we use dictionary in this case) will be amended later.
+        # Form the preliminary list of fields in processed datapoints. Fields from the metrics
+        # definition YAML file file go first. The list (but we use dictionary in this case) will be
+        # amended later.
         self._fields = {}
-        for field in defs.info:
+        for field in mdo.info:
             self._fields[field] = None
 
         if keep_rawdp:

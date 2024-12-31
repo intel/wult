@@ -32,13 +32,20 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
        * 'get_tab()'
     """
 
-    def add_smrytbl(self, smry_funcs, defs):
+    def add_smrytbl(self, smry_funcs, mdo):
         """
         Construct a summary table ('SummaryTable' object). Refer to '_DTabBuilder.add_smrytbl()'
         for more information. The base class' 'add_smrytbl()' calculates summaries, while in this
-        class it is unnecessary, because the results have summaries pre-calculated.
-          * smry_funcs - same as in '_DTabBuilder.add_smrytbl()'.
-          * defs - same as in '_DTabBuilder.add_smrytbl()'.
+        class it is unnecessary, because the results have summaries pre-calculated. The arguments
+        are as follows.
+          * smry_funcs - a dictionary in the format '{metric: summary_func}', for example:
+                         {Metric1: ["99.999%", "99.99%",...],
+                          Metric2: ["max", "min",...]}
+                         Note, 'summary_func' is allowed to be 'None', which means that no functions
+                         will be applied to the metric, and can be used for metrics that have only
+                         on value.
+          * mdo - the metrics definition objects (sub-class of 'MDCBase') containing the definitions
+                  for the metrics in 'smry_funcs'.
         """
 
         # Summaries are calculated only for numeric metrics. Tab metric name is represented by
@@ -52,7 +59,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         metrics += [metric for metric in smry_funcs if self._refres.is_numeric(metric)]
 
         # De-duplicate the list so that each metric only appears once.
-        deduped_mdefs = [defs.info[metric] for metric in Trivial.list_dedup(metrics)]
+        deduped_mdefs = [mdo.info[metric] for metric in Trivial.list_dedup(metrics)]
 
         self._smrytbl = _SummaryTable.SummaryTable()
 

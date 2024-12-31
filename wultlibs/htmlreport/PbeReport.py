@@ -101,7 +101,7 @@ class PbeReport(_ReportBase.ReportBase):
             for colname in colnames:
                 if colname == wper_colname:
                     res.metrics.append(ldist_colname)
-                elif colname in res.defs.info:
+                elif colname in res.mdo.info:
                     res.metrics.append(colname)
 
             res.metrics_set = set(res.metrics)

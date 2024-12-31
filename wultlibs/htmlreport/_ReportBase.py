@@ -135,7 +135,7 @@ class ReportBase:
         be skipped for some reason.
         """
 
-        defs = self._refres.defs.info
+        mdd = self._refres.mdo.info
 
         # Configure what should be included in the 'SilentTime/LDist' tab.
         tab_config = {
@@ -150,20 +150,20 @@ class ReportBase:
         tab_config["hist"] = [metric for metric in tab_config["hist"] if metric in tab_metrics]
 
         if ("SilentTime" in tab_metrics and "LDist" in tab_metrics):
-            tab_mdef = defs.get("SilentTime", defs["LDist"])
+            tab_mdef = mdd.get("SilentTime", mdd["LDist"])
             tab_config["title"] = "SilentTime/LDist"
         elif "SilentTime" in tab_metrics:
-            tab_mdef = defs["SilentTime"]
+            tab_mdef = mdd["SilentTime"]
             tab_config["title"] = "SilentTime"
         elif "LDist" in tab_metrics:
-            tab_mdef = defs["LDist"]
+            tab_mdef = mdd["LDist"]
             tab_config["title"] = "LDist"
         else:
             _LOG.debug("skipping 'SilentTime/LDist' tab since neither metric is included as a tab")
             return None
 
-        s_defs = [(defs[x], defs[y]) for x, y in tab_config["scatter"]]
-        h_defs = [defs[x] for x in tab_config["hist"]]
+        s_defs = [(mdd[x], mdd[y]) for x, y in tab_config["scatter"]]
+        h_defs = [mdd[x] for x in tab_config["hist"]]
 
         dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, tab_mdef)
         dtab_bldr.title = tab_config["title"]
@@ -173,7 +173,7 @@ class ReportBase:
         smry_funcs = self._get_smry_funcs(smry_metrics)
         # Only add a summary table if summary metrics were added to 'tab_smry_funcs'.
         if smry_funcs:
-            dtab_bldr.add_smrytbl(smry_funcs, self._refres.defs)
+            dtab_bldr.add_smrytbl(smry_funcs, self._refres.mdo)
 
         return dtab_bldr.get_tab()
 
@@ -184,7 +184,7 @@ class ReportBase:
         objects, such as 'DTabDC'.
         """
 
-        defs = self._refres.defs.info
+        mdd = self._refres.mdo.info
 
         for res in self.rsts:
             _LOG.debug("calculate summary functions for '%s'", res.reportid)
@@ -209,7 +209,7 @@ class ReportBase:
         hover_defs = {}
         reports = {res.reportid: res for res in self.rsts}
         for reportid, metrics in self._hov_metrics.items():
-            hover_defs[reportid] = [reports[reportid].defs.info[m] for m in metrics]
+            hover_defs[reportid] = [reports[reportid].mdo.info[m] for m in metrics]
 
         silenttime_ldist = ("SilentTime", "LDist")
         skip_silenttime_ldist = all(metric in tab_metrics for metric in silenttime_ldist)
@@ -225,21 +225,21 @@ class ReportBase:
             if not axes:
                 continue
 
-            tab_plots = [(defs[x], defs[y],) for x, y in axes]
+            tab_plots = [(mdd[x], mdd[y],) for x, y in axes]
 
             smry_metrics += list(set.union(*[set(xypair) for xypair in axes]))
             smry_metrics = Trivial.list_dedup(smry_metrics)
 
-            metric_def = self._refres.defs.info[metric]
+            metric_def = self._refres.mdo.info[metric]
             dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, metric_def)
 
             smry_funcs = self._get_smry_funcs(smry_metrics)
             # Only add a summary table if summary metrics were added to 'smry_funcs'.
             if smry_funcs:
-                dtab_bldr.add_smrytbl(smry_funcs, self._refres.defs)
+                dtab_bldr.add_smrytbl(smry_funcs, self._refres.mdo)
 
-            hist_defs = [defs[metric]] if metric in self.hist else []
-            chist_defs = [defs[metric]] if metric in self.chist else []
+            hist_defs = [mdd[metric]] if metric in self.hist else []
+            chist_defs = [mdd[metric]] if metric in self.chist else []
 
             dtab_bldr.add_plots(tab_plots, hist_defs, chist_defs, hover_defs)
             dtabs.append(dtab_bldr.get_tab())
@@ -284,14 +284,14 @@ class ReportBase:
         """
 
         for metric in res.df:
-            defs = res.defs.info.get(metric)
-            if not defs:
+            md = res.mdo.info.get(metric)
+            if not md:
                 continue
 
             # Some columns should be dropped from 'res.df' if they are "empty", i.e. contain only
             # zero values. For example, the C-state residency columns may be empty. This usually
             # means that the C-state was either disabled or just does not exist.
-            if defs.get("drop_empty") and not res.df[metric].any():
+            if md.get("drop_empty") and not res.df[metric].any():
                 _LOG.debug("dropping empty column '%s'", metric)
                 res.df.drop(metric, axis="columns", inplace=True)
                 res.metrics_set.remove(metric)
@@ -414,11 +414,11 @@ class ReportBase:
         for res in self.rsts:
             metrics = []
             for metric in self._hov_metrics[res.reportid]:
-                if metric in res.defs.info:
+                if metric in res.mdo.info:
                     metrics.append(metric)
                 else:
                     _LOG.notice("dropping metric '%s' from hover text because it is not present "
-                                "in the definitions file at '%s'", metric, res.defs.path)
+                                "in the definitions file at '%s'", metric, res.mdo.path)
             self._hov_metrics[res.reportid] = metrics
 
     def _init_metrics(self):

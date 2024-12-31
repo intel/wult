@@ -40,7 +40,7 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         non_numeric = []
         for metric in metrics:
-            if self.defs.info[metric]["type"] not in ("int", "float"):
+            if self.mdo.info[metric]["type"] not in ("int", "float"):
                 non_numeric.append(metric)
 
         return non_numeric
@@ -58,7 +58,7 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         numeric = []
         for metric in metrics:
-            if self.defs.info[metric]["type"] in ("int", "float"):
+            if self.mdo.info[metric]["type"] in ("int", "float"):
                 numeric.append(metric)
 
         return numeric
@@ -147,7 +147,7 @@ class RORawResult(_RawResultBase.RawResultBase):
 
         subdict = DFSummary.calc_col_smry(self.df, metric, funcnames)
 
-        mdef = self.defs.info[metric]
+        mdef = self.mdo.info[metric]
         restype = getattr(builtins, mdef["type"])
 
         for func, datum in subdict.items():
@@ -204,7 +204,7 @@ class RORawResult(_RawResultBase.RawResultBase):
         _LOG.info("Loading test result '%s'.", self.dp_path)
 
         # Enforce the types we expect.
-        dtype = {colname: colinfo["type"] for colname, colinfo in self.defs.info.items()}
+        dtype = {colname: colinfo["type"] for colname, colinfo in self.mdo.info.items()}
 
         try:
             self.df = pandas.read_csv(self.dp_path, dtype=dtype, **kwargs)
@@ -508,18 +508,18 @@ class RORawResult(_RawResultBase.RawResultBase):
             raise Error(f"failed to load CSV file {self.dp_path}:\n{msg}") from None
 
         if self._toolname == "wult":
-            self.defs = WultMDC.WultMDC(metrics)
+            self.mdo = WultMDC.WultMDC(metrics)
         elif self._toolname == "pbe":
-            self.defs = PbeMDC.PbeMDC()
+            self.mdo = PbeMDC.PbeMDC()
         elif self._toolname == "ndl":
-            self.defs = NdlMDC.NdlMDC()
+            self.mdo = NdlMDC.NdlMDC()
         else:
             raise Error(f"unknown tool '{self._toolname}'")
 
         # Exclude metrics which are not present in the definitions.
         self.metrics = []
         for metric in metrics:
-            if metric in self.defs.info:
+            if metric in self.mdo.info:
                 self.metrics.append(metric)
 
         self.metrics_set = set(self.metrics)

@@ -550,11 +550,11 @@ def list_result_metrics(rsts):
       * rsts - an iterable collection of test results to print the metrics for.
     """
 
-    for rst in rsts:
-        _LOG.info("Metrics in '%s':", rst.dirpath)
-        for metric in rst.metrics:
-            if metric in rst.defs.info:
-                _LOG.info("  * %s: %s", metric, rst.defs.info[metric]["title"])
+    for res in rsts:
+        _LOG.info("Metrics in '%s':", res.dirpath)
+        for metric in res.metrics:
+            if metric in res.mdo.info:
+                _LOG.info("  * %s: %s", metric, res.mdo.info[metric]["title"])
 
 def reduce_installables(deploy_info, dev):
     """
