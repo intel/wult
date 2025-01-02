@@ -59,7 +59,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
         metrics += [metric for metric in smry_funcs if self._refres.is_numeric(metric)]
 
         # De-duplicate the list so that each metric only appears once.
-        deduped_mdefs = [mdo.info[metric] for metric in Trivial.list_dedup(metrics)]
+        deduped_mdefs = [mdo.mdd[metric] for metric in Trivial.list_dedup(metrics)]
 
         self._smrytbl = _SummaryTable.SummaryTable()
 

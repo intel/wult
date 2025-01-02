@@ -135,7 +135,7 @@ class ReportBase:
         be skipped for some reason.
         """
 
-        mdd = self._refres.mdo.info
+        mdd = self._refres.mdo.mdd
 
         # Configure what should be included in the 'SilentTime/LDist' tab.
         tab_config = {
@@ -184,7 +184,7 @@ class ReportBase:
         objects, such as 'DTabDC'.
         """
 
-        mdd = self._refres.mdo.info
+        mdd = self._refres.mdo.mdd
 
         for res in self.rsts:
             _LOG.debug("calculate summary functions for '%s'", res.reportid)
@@ -209,7 +209,7 @@ class ReportBase:
         hover_defs = {}
         reports = {res.reportid: res for res in self.rsts}
         for reportid, metrics in self._hov_metrics.items():
-            hover_defs[reportid] = [reports[reportid].mdo.info[m] for m in metrics]
+            hover_defs[reportid] = [reports[reportid].mdo.mdd[m] for m in metrics]
 
         silenttime_ldist = ("SilentTime", "LDist")
         skip_silenttime_ldist = all(metric in tab_metrics for metric in silenttime_ldist)
@@ -230,7 +230,7 @@ class ReportBase:
             smry_metrics += list(set.union(*[set(xypair) for xypair in axes]))
             smry_metrics = Trivial.list_dedup(smry_metrics)
 
-            metric_def = self._refres.mdo.info[metric]
+            metric_def = self._refres.mdo.mdd[metric]
             dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, metric_def)
 
             smry_funcs = self._get_smry_funcs(smry_metrics)
@@ -284,7 +284,7 @@ class ReportBase:
         """
 
         for metric in res.df:
-            md = res.mdo.info.get(metric)
+            md = res.mdo.mdd.get(metric)
             if not md:
                 continue
 
@@ -414,7 +414,7 @@ class ReportBase:
         for res in self.rsts:
             metrics = []
             for metric in self._hov_metrics[res.reportid]:
-                if metric in res.mdo.info:
+                if metric in res.mdo.mdd:
                     metrics.append(metric)
                 else:
                     _LOG.notice("dropping metric '%s' from hover text because it is not present "

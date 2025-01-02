@@ -97,7 +97,7 @@ class PbeReport(_ReportBase.ReportBase):
         # The 'LDist' metric definition is used to build tab configurations for custom statistics
         # tabs. Assign it to a class property here so that the name does not need to be hard-coded
         # in multiple places.
-        self._wp_def = labels_mdo.info["LDist"]
+        self._wp_def = labels_mdo.mdd["LDist"]
 
         for res in rsts:
             stats_res = res.stats_res
@@ -110,7 +110,7 @@ class PbeReport(_ReportBase.ReportBase):
                 except KeyError:
                     continue
 
-                stats_res.set_label_defs(stname, labels_mdo.info.values())
+                stats_res.set_label_defs(stname, labels_mdo.mdd.values())
 
         super().__init__(rsts, outdir, ToolInfo.TOOLNAME, ToolInfo.VERSION,
                          report_descr=report_descr, xaxes=args["xaxes"], yaxes=args["yaxes"],

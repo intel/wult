@@ -553,8 +553,8 @@ def list_result_metrics(rsts):
     for res in rsts:
         _LOG.info("Metrics in '%s':", res.dirpath)
         for metric in res.metrics:
-            if metric in res.mdo.info:
-                _LOG.info("  * %s: %s", metric, res.mdo.info[metric]["title"])
+            if metric in res.mdo.mdd:
+                _LOG.info("  * %s: %s", metric, res.mdo.mdd[metric]["title"])
 
 def reduce_installables(deploy_info, dev):
     """
