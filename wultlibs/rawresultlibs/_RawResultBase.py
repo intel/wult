@@ -95,15 +95,6 @@ class RawResultBase:
 
             if self.dp_path.exists() and not self.dp_path.is_file():
                 raise Error(f"path '{self.dp_path}' exists, but it is not a regular file")
-
-            for name in ("logs_path", "stats_path"):
-                path = getattr(self, name)
-                if path.exists():
-                    if not path.is_dir():
-                        raise Error(f"path '{path}' exists, but it is not a directory")
-                else:
-                    setattr(self, f"{name}", None)
-
         except OSError as err:
             errmsg = Error(err).indent(2)
             raise Error(f"a file-system operation on {self.dirpath} failed:\n{errmsg}") from err

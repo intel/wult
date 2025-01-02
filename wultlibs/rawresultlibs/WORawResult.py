@@ -172,6 +172,7 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
         self.cpunum = cpunum
 
         super().__init__(outdir)
+        print(self.logs_path)
 
         # The writable CSV file object.
         self.csv = None

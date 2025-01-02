@@ -435,8 +435,17 @@ class RORawResult(_RawResultBase.RawResultBase):
     def _load_info_yml(self):
         """Load the 'info.yml' file and do basic validation/initialization."""
 
-        # Check few special error cases upfront in order to provide a clear error message:
-        # the info and datapoint files should exist and be non-empty.
+        if self.info_path.exists() and not self.info_path.is_file():
+            raise Error(f"path '{self.info_path}' exists, but it is not a regular file")
+
+        for name in ("logs_path", "stats_path"):
+            path = getattr(self, name)
+            if path.exists():
+                if not path.is_dir():
+                    raise Error(f"path '{path}' exists, but it is not a directory")
+            else:
+                setattr(self, f"{name}", None)
+
         for name in ("info_path", "dp_path"):
             attr = getattr(self, name)
             try:
