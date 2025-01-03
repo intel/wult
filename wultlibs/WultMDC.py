@@ -86,7 +86,7 @@ class WultMDC(_WultMDCBase.WultMDCBase):
                 continue
             metrics.append(get_csres_metric(csname))
 
-        super().mangle(metrics=metrics)
+        super().mangle(metrics=metrics, drop_missing=False)
 
     def __init__(self, hdr):
         """
