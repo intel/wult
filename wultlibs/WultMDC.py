@@ -77,16 +77,16 @@ class WultMDC(_WultMDCBase.WultMDCBase):
           * hdr - a collection of wult datapoints CSV file header fields.
         """
 
-        # Build the list of C-state residency metric names.
-        csres_metrics = []
+        metrics = list(hdr)
 
+        # Add the C-state residency metric names.
         for field in hdr:
             csname = get_csname(field, must_get=False)
             if not csname:
                 continue
-            csres_metrics.append(get_csres_metric(csname))
+            metrics.append(get_csres_metric(csname))
 
-        super().mangle(metrics=csres_metrics)
+        super().mangle(metrics=metrics)
 
     def __init__(self, hdr):
         """
