@@ -1,3 +1,9 @@
+wult (1.12.31) unstable; urgency=low
+
+  * Rename wult/ndl report '--relocatable' option to to '--copy-raw'.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Sun, 05 Jan 2025 00:00:00 +0200
+
 wult (1.12.30) unstable; urgency=low
 
   * Fix regression that broke filtering by C-state residency (e.g.,
