@@ -800,6 +800,17 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         """Uninitialize the class objetc."""
         ClassHelpers.close(self, unref_attrs=("_cpuidle",))
 
+class _NdlCmdFormatter(_WultCmdFormatter):
+    """A Helper class for creating 'ndl' commands."""
+
+    def __init__(self, cpuidle, args):
+        """The class constructor. The arguments are same as for _WultCmdFormatter class."""
+
+        super().__init__(cpuidle, args)
+
+        # The ndl doesn't support C-state filters.
+        self._use_cstate_filters = False
+
 class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
     """A Helper class for creating 'stats-collect' commands."""
 
