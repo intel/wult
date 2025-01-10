@@ -49,7 +49,9 @@ class FTraceLine():
         split = self.line.split(maxsplit=5)
         if len(split) == 6:
             procinfo, self.cpunum, self.flags, self.timestamp, self.func, self.msg = split
-            self.procname, self.pid = procinfo.split("-")
+            # Keep in mind, that the process name may have dashes, so do one split from the right,
+            # to capture the PID.
+            self.procname, self.pid = procinfo.rsplit("-", 1)
 
 class FTrace(ClassHelpers.SimpleCloseContext):
     """This class represents the Linux function trace buffer."""
