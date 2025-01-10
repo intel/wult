@@ -5,6 +5,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix crash when there are unrelated f-trace messages for a process with a
+   dash.
 ### Added
 ### Removed
 ### Changed
