@@ -1,3 +1,10 @@
+wult (1.12.32) unstable; urgency=low
+
+  * Fix crash when there are unrelated f-trace messages for a process with a
+    dash.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 10 Jan 2025 00:00:00 +0200
+
 wult (1.12.31) unstable; urgency=low
 
   * Rename wult/ndl report '--relocatable' option to to '--copy-raw'.
