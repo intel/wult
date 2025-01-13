@@ -83,6 +83,9 @@ def _get_remote_cpus(pman, ifname, cpuinfo):
     if new_rcpus:
         rcpus = new_rcpus
 
+    if not rcpus:
+        raise ErrorNotFound("no remote CPUs found to the NIC '{ifname}'{pman.hostmsg}")
+
     return list(rcpus)
 
 def _get_cbuf_size(args, cpuinfo):
