@@ -184,7 +184,7 @@ def start_command(args):
             args.cpu = rcpus[0]
             cpus_msg = f"Remote CPU numbers: {Human.rangify(rcpus)}"
         else:
-            raise Error(f"bad CPU number '{args.cpu}")
+            raise Error(f"bad CPU number '{args.cpu}'")
 
         res = WORawResult.WORawResult(args.toolname, args.toolver, args.reportid, args.outdir,
                                       cpu=args.cpu)
