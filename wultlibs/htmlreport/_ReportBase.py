@@ -135,7 +135,7 @@ class ReportBase:
         be skipped for some reason.
         """
 
-        mdd = self._refres.mdo.mdd
+        mdd = self._refmdd
 
         # Configure what should be included in the 'SilentTime/LDist' tab.
         tab_config = {
@@ -184,7 +184,7 @@ class ReportBase:
         objects, such as 'DTabDC'.
         """
 
-        mdd = self._refres.mdo.mdd
+        mdd = self._refmdd
 
         for res in self.rsts:
             _LOG.debug("calculate summary functions for '%s'", res.reportid)
@@ -207,9 +207,8 @@ class ReportBase:
 
         # Convert 'self._hov_metrics' to contain definitions for each metric.
         hover_defs = {}
-        reports = {res.reportid: res for res in self.rsts}
         for reportid, metrics in self._hov_metrics.items():
-            hover_defs[reportid] = [reports[reportid].mdo.mdd[m] for m in metrics]
+            hover_defs[reportid] = [self._mdds[reportid][m] for m in metrics]
 
         silenttime_ldist = ("SilentTime", "LDist")
         skip_silenttime_ldist = all(metric in tab_metrics for metric in silenttime_ldist)
@@ -230,7 +229,7 @@ class ReportBase:
             smry_metrics += list(set.union(*[set(xypair) for xypair in axes]))
             smry_metrics = Trivial.list_dedup(smry_metrics)
 
-            metric_def = self._refres.mdo.mdd[metric]
+            metric_def = self._refmdd[metric]
             dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, metric_def)
 
             smry_funcs = self._get_smry_funcs(smry_metrics)
@@ -276,15 +275,14 @@ class ReportBase:
                                         toolname=self.toolname, toolver=self.toolver,
                                         tab_cfgs=tab_cfgs)
 
-    @staticmethod
-    def _mangle_loaded_res(res):
+    def _mangle_loaded_res(self, res):
         """
         This method is called for every 'pandas.DataFrame' corresponding to the just loaded CSV
         file. The subclass can override this method to mangle the 'pandas.DataFrame'.
         """
 
         for metric in res.df:
-            md = res.mdo.mdd.get(metric)
+            md = self._mdds[res.reportid].get(metric)
             if not md:
                 continue
 
@@ -414,7 +412,7 @@ class ReportBase:
         for res in self.rsts:
             metrics = []
             for metric in self._hov_metrics[res.reportid]:
-                if metric in res.mdo.mdd:
+                if metric in self._mdds[res.reportid]:
                     metrics.append(metric)
                 else:
                     _LOG.notice("dropping metric '%s' from hover text because it is not present "
@@ -558,6 +556,14 @@ class ReportBase:
         self.hist = hist
         self.chist = chist
 
+        # The '_DTabBuilder' module requires the "colname" key in metric definitions.
+        self._mdds = {}
+        for res in rsts:
+            self._mdds[res.reportid] = mdd = {}
+            for metric, md in res.mdo.mdd.items():
+                mdd[metric] = md.copy()
+                mdd[metric]["colname"] = metric
+
         # This class is implemented by adding tabs to the 'HTMLReport' class provided by
         # 'stats-collect'. Instantiate 'stats_rep' now so that child classes can use features of
         # 'HTMLReport' specific to those reports.
@@ -576,6 +582,8 @@ class ReportBase:
 
         # The first result is the 'reference' result.
         self._refres = rsts[0]
+        self._refmdd = self._mdds[self._refres.reportid]
+
         # The raw reference result information.
         self._refinfo = self._refres.info
 
