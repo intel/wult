@@ -20,4 +20,4 @@ class WultMDCBase(MDCBase.MDCBase):
           * toolname - name of the tool to load the definitions for.
         """
 
-        super().__init__("wult", toolname, defsdir=Path("defs/wult"))
+        super().__init__("wult", Path(f"defs/wult/{toolname}.yml"))
