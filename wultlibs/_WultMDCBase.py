@@ -8,6 +8,7 @@
 
 """Provide the wult metrics definition base class."""
 
+from pathlib import Path
 from statscollectlibs.mdc import MDCBase
 
 class WultMDCBase(MDCBase.MDCBase):
@@ -19,4 +20,4 @@ class WultMDCBase(MDCBase.MDCBase):
           * toolname - name of the tool to load the definitions for.
         """
 
-        super().__init__("wult", toolname, defsdir="defs/wult")
+        super().__init__("wult", toolname, defsdir=Path("defs/wult"))
