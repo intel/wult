@@ -21,4 +21,3 @@ class NdlMDC(_WultMDCBase.WultMDCBase):
         """The class constructor."""
 
         super().__init__(ToolInfo.TOOLNAME)
-        super().mangle()
