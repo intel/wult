@@ -1,3 +1,9 @@
+wult (1.12.33) unstable; urgency=low
+
+  * Adjust to changed API in the 'stats-collect' project.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 23 Jan 2025 00:00:00 +0200
+
 wult (1.12.32) unstable; urgency=low
 
   * Fix crash when there are unrelated f-trace messages for a process with a
