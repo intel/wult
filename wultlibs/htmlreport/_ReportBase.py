@@ -290,9 +290,10 @@ class ReportBase:
             # zero values. For example, the C-state residency columns may be empty. This usually
             # means that the C-state was either disabled or just does not exist.
             if md.get("drop_empty") and not res.df[metric].any():
-                _LOG.debug("dropping empty column '%s'", metric)
+                _LOG.debug("dropping empty column '%s' fror result '%s'", metric, res.reportid)
                 res.df.drop(metric, axis="columns", inplace=True)
                 res.metrics_set.remove(metric)
+                del self._mdds[res.reportid][metric]
 
         return res.df
 
@@ -395,14 +396,14 @@ class ReportBase:
 
         lists = ("xaxes", "yaxes", "hist", "chist")
 
+        res_metrics = set()
+        for res in self.rsts:
+            res_metrics.update(res.metrics_set)
+
         for name in lists:
-            res_metrics = set()
-            for res in self.rsts:
-                res_metrics.update(res.metrics_set)
-            union = set(getattr(self, name)) | res_metrics
             metrics = []
             for metric in getattr(self, name):
-                if metric in union:
+                if metric in res_metrics:
                     metrics.append(metric)
                 else:
                     _LOG.notice("dropping metric '%s' from '%s' because it is not present in any "
@@ -412,11 +413,10 @@ class ReportBase:
         for res in self.rsts:
             metrics = []
             for metric in self._hov_metrics[res.reportid]:
-                if metric in self._mdds[res.reportid]:
+                if metric in self._mdds[res.reportid] and metric in res.metrics_set:
                     metrics.append(metric)
                 else:
-                    _LOG.notice("dropping metric '%s' from hover text because it is not present "
-                                "in the definitions file at '%s'", metric, res.mdo.path)
+                    _LOG.debug("dropping metric '%s' from hover text for result '%s'", metric, res.reportid)
             self._hov_metrics[res.reportid] = metrics
 
     def _init_metrics(self):
