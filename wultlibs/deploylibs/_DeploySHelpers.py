@@ -12,10 +12,10 @@ This module provides the API for deploying simple helpers. Refer to the 'DeployB
 docstring for more information.
 """
 
-import logging
+from pepclibs.helperlibs import Logging
 from statscollectlibs.deploylibs import DeployHelpersBase
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class DeploySHelpers(DeployHelpersBase.DeployHelpersBase):
     """This class provides the API for deploying simple helpers."""

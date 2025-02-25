@@ -12,13 +12,12 @@ discipline).
 """
 
 import re
-import logging
-from pepclibs.helperlibs import ToolChecker, LocalProcessManager, ClassHelpers, KernelVersion
-from pepclibs.helperlibs import KernelModule
+from pepclibs.helperlibs import Logging, ToolChecker, LocalProcessManager, ClassHelpers
+from pepclibs.helperlibs import KernelModule, KernelVersion
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.helperlibs import ProcHelpers
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class ETFQdisc(ClassHelpers.SimpleCloseContext):
     """

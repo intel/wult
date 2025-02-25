@@ -10,7 +10,6 @@
 This module includes the "start" 'wult' command implementation.
 """
 
-import logging
 import contextlib
 from pathlib import Path
 from pepclibs.helperlibs import Logging, Trivial
@@ -25,7 +24,7 @@ from wultlibs import Devices, WultRunner, _FreqNoise
 from wulttools import _Common
 from wulttools.wult import _WultCommon
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 def _check_settings(args, pman, dev, csinfo, cpuinfo):
     """
@@ -133,7 +132,7 @@ def start_command(args):
                                       cpunum=args.cpunum)
         stack.enter_context(res)
 
-        Logging.setup_stdout_logging(args.toolname, res.logs_path)
+        _Common.configure_log_file(res.logs_path, args.toolname)
         _Common.set_filters(args, res)
 
         stcoll_builder = StatsCollectBuilder.StatsCollectBuilder()

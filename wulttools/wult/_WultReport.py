@@ -11,7 +11,7 @@ This module includes the "report" 'wult' command implementation.
 """
 
 from pathlib import Path
-from pepclibs.helperlibs import Logging, Trivial
+from pepclibs.helperlibs import Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.htmlreport import WultReport
 from wulttools import _Common
@@ -56,7 +56,7 @@ def report_command(args):
 
     args.outdir = _Common.report_command_outdir(args, rsts)
 
-    logpath = Logging.setup_stdout_logging(ToolInfo.TOOLNAME, args.outdir)
+    logpath = _Common.configure_log_file(args.outdir, ToolInfo.TOOLNAME)
     logpath = Path(logpath).relative_to(args.outdir)
 
     rep = WultReport.WultReport(rsts, args.outdir, report_descr=args.report_descr,

@@ -10,11 +10,10 @@
 This module includes the "start" 'wult' command implementation.
 """
 
-import logging
 import contextlib
 from pathlib import Path
 from pepclibs import CPUInfo
-from pepclibs.helperlibs import Trivial, Logging
+from pepclibs.helperlibs import Logging, Trivial
 from statscollectlibs.collector import StatsCollectBuilder
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs.helperlibs import Human
@@ -22,7 +21,7 @@ from wultlibs.deploylibs import _Deploy
 from wultlibs import Devices, PbeRunner
 from wulttools import _Common
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 def _generate_report(args):
     """Implement the '--report' option for the 'start' command."""
@@ -79,7 +78,7 @@ def start_command(args):
         dev = Devices.GetDevice(args.toolname, args.devid, pman, dmesg=True)
         stack.enter_context(dev)
 
-        Logging.setup_stdout_logging(args.toolname, res.logs_path)
+        _Common.configure_log_file(res.logs_path, args.toolname)
 
         args.lead_cpu = cpuinfo.normalize_cpu(args.lead_cpu)
 

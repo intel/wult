@@ -11,7 +11,6 @@ wult - a tool for measuring C-state latency.
 """
 
 import sys
-import logging
 from pathlib import Path
 
 try:
@@ -20,7 +19,7 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
 
-from pepclibs.helperlibs import Logging, ArgParse
+from pepclibs.helperlibs import ArgParse
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.deploylibs import _Deploy
 from wulttools import _Common
@@ -54,8 +53,7 @@ _WULT_DEPLOY_INFO = {
     },
 }
 
-_LOG = logging.getLogger()
-Logging.setup_logger(prefix=TOOLNAME)
+_LOG = _Common.configure_logging(TOOLNAME)
 
 def _build_arguments_parser():
     """Build and return the arguments parser object."""

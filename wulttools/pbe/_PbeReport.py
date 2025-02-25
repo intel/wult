@@ -9,7 +9,6 @@
 """This module includes the "report" 'pbe' command implementation."""
 
 from pathlib import Path
-from pepclibs.helperlibs import Logging
 from wulttools import _Common
 from wulttools.pbe import ToolInfo
 from wultlibs.htmlreport import PbeReport
@@ -21,7 +20,7 @@ def report_command(args):
 
     args.outdir = _Common.report_command_outdir(args, rsts)
 
-    logpath = Logging.setup_stdout_logging(ToolInfo.TOOLNAME, args.outdir)
+    logpath = _Common.configure_log_file(args.outdir, ToolInfo.TOOLNAME)
     logpath = Path(logpath).relative_to(args.outdir)
 
     rep = PbeReport.PbeReport(rsts, args.outdir, report_descr=args.report_descr, logpath=logpath)

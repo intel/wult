@@ -13,16 +13,16 @@ A helper tool for exercising SUT, running workloads with various system setting 
 
 import sys
 import copy
-import logging
 from pathlib import Path
 try:
     import argcomplete
 except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
-from pepclibs.helperlibs import ArgParse, Logging, Trivial
+from pepclibs.helperlibs import ArgParse, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from statscollecttools import ToolInfo as StcToolInfo
+from wulttools import _Common
 from wulttools.exercisesut import _BatchConfig, _BatchReport, ToolInfo
 from wulttools.ndl import ToolInfo as NdlToolInfo
 from wulttools.pbe import ToolInfo as PbeToolInfo
@@ -36,8 +36,7 @@ WULT_TOOLNAME = WultToolInfo.TOOLNAME
 TOOLNAME = ToolInfo.TOOLNAME
 VERSION = ToolInfo.VERSION
 
-Logging.setup_logger(prefix=TOOLNAME)
-_LOG = logging.getLogger()
+_LOG = _Common.configure_logging(TOOLNAME)
 
 _RESET_PROPS = {
     "online": {

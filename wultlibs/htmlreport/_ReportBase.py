@@ -11,17 +11,16 @@
 Provide the base class for generating HTML reports.
 """
 
-import logging
 import itertools
 from pathlib import Path
-from pepclibs.helperlibs import Trivial
+from pepclibs.helperlibs import Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.htmlreport import _IntroTable, HTMLReport
 from statscollectlibs.htmlreport.tabs import _Tabs
 from statscollectlibs.helperlibs import FSHelpers
 from wultlibs.htmlreport import _MetricDTabBuilder
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class ReportBase:
     """The base class for generating HTML reports."""

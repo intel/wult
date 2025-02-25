@@ -12,15 +12,14 @@ results.
 """
 
 import time
-import logging
 import contextlib
-from pepclibs.helperlibs import ClassHelpers
+from pepclibs.helperlibs import Logging, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import _ProgressLine, _PbeRawDataProvider
 from wultlibs.helperlibs import Human
 from wulttools.pbe import ToolInfo
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class PbeRunner(ClassHelpers.SimpleCloseContext):
     """Run power break-even measurement experiments."""

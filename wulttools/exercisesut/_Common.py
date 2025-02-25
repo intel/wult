@@ -11,10 +11,9 @@
 
 import sys
 import time
-import logging
-from pepclibs.helperlibs import ClassHelpers, LocalProcessManager
+from pepclibs.helperlibs import Logging, ClassHelpers, LocalProcessManager
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class CmdlineRunner(ClassHelpers.SimpleCloseContext):
     """Helper class for running commandline commands."""

@@ -10,12 +10,11 @@
 This module provides API for reading raw wult datapoints, as well as initializing wult devices.
 """
 
-import logging
-from pepclibs.helperlibs import Trivial, ClassHelpers, Systemctl, KernelVersion
+from pepclibs.helperlibs import Logging, Trivial, ClassHelpers, Systemctl, KernelVersion
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut, ErrorNotFound
 from wultlibs import _FTrace, _RawDataProvider
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     """

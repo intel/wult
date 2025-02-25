@@ -10,7 +10,6 @@
 This module includes the "start" 'ndl' command implementation.
 """
 
-import logging
 import contextlib
 from pathlib import Path
 from pepclibs import CPUInfo, CPUIdle, CStates
@@ -23,7 +22,7 @@ from wultlibs.deploylibs import _Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 def _generate_report(args):
     """Implement the 'report' command for start."""
@@ -191,7 +190,7 @@ def start_command(args):
                                       cpunum=args.cpunum)
         stack.enter_context(res)
 
-        Logging.setup_stdout_logging(args.toolname, res.logs_path)
+        _Common.configure_log_file(res.logs_path, args.toolname)
 
         if cpus_msg:
             _LOG.info(cpus_msg)

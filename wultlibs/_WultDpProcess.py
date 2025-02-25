@@ -10,14 +10,13 @@
 This module provides the 'DatapointProcessor' class which implements raw datapoint processing.
 """
 
-import logging
 from pepclibs import CPUIdle
-from pepclibs.helperlibs import ClassHelpers
+from pepclibs.helperlibs import Logging, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import WultMDC
 from wultlibs.helperlibs import Human
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class _CStates(ClassHelpers.SimpleCloseContext):
     """

@@ -11,15 +11,14 @@ This module provides the API for deploying drivers. Refer to the 'DeployBase' mo
 docstring for more information.
 """
 
-import logging
 from pathlib import Path
+from pepclibs.helperlibs import Logging, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error
-from pepclibs.helperlibs import ProjectFiles
 from statscollectlibs.deploylibs import DeployInstallableBase
 
 DRIVERS_SRC_SUBDIR = Path("drivers/idle")
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class DeployDrivers(DeployInstallableBase.DeployInstallableBase):
     """This class provides the API for deploying drivers."""

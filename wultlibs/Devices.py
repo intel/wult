@@ -16,10 +16,9 @@ This module provides the following methods.
 """
 
 import time
-import logging
 import contextlib
 from pathlib import Path
-from pepclibs.helperlibs import Dmesg, ClassHelpers, Trivial, PCI
+from pepclibs.helperlibs import Logging, Dmesg, ClassHelpers, Trivial, PCI
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from wultlibs import NetIface
 
@@ -29,7 +28,7 @@ ALL_DRVNAMES = ("ndl", "wult_igb", "wult_hrt", "wult_tdt", "pbe")
 # The maximum expected device clock resolution in nanoseconds.
 _MAX_RESOLUTION = 100
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class _DeviceBase(ClassHelpers.SimpleCloseContext):
     """This is the base class for device classes."""

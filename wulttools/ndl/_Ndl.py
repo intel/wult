@@ -9,7 +9,6 @@
 """ndl - a tool for measuring memory access latency observed by a network card."""
 
 import sys
-import logging
 from pathlib import Path
 
 try:
@@ -18,7 +17,7 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
 
-from pepclibs.helperlibs import Logging, ArgParse
+from pepclibs.helperlibs import ArgParse
 from pepclibs.helperlibs.Exceptions import Error
 from wulttools import _Common
 from wulttools.ndl import ToolInfo
@@ -47,8 +46,7 @@ _NDL_DEPLOY_INFO = {
     },
 }
 
-_LOG = logging.getLogger()
-Logging.setup_logger(prefix=TOOLNAME)
+_LOG = _Common.configure_logging(TOOLNAME)
 
 def _get_axes_default(name):
     """Returns the default CSV column names for X- or Y-axes, as well as histograms."""

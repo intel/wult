@@ -12,12 +12,11 @@
 
 import argparse
 import contextlib
-import logging
 import sys
 import time
 from pathlib import Path
 from pepclibs import CPUInfo, _UncoreFreq, _CPUFreq, _SysfsIO
-from pepclibs.helperlibs import ArgParse, Logging, Trivial, LocalProcessManager
+from pepclibs.helperlibs import Logging, ArgParse, Trivial, LocalProcessManager
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.helperlibs import Human
 
@@ -27,8 +26,11 @@ VERSION = "1.0"
 CPU_SYSFS_BASE = Path("/sys/devices/system/cpu")
 UNCORE_FREQ_SYSFS_BASE = CPU_SYSFS_BASE / "intel_uncore_frequency"
 
-_LOG = logging.getLogger()
-Logging.setup_logger(prefix=TOOLNAME)
+# Configure the top-level logger for the "wult" project, as well as for the "pepc" projcect. This
+# way logging from "pepc" modules will use consistent style and prefix.
+Logging.getLogger("pepc").configure(prefix=TOOLNAME)
+_LOG = Logging.getLogger("wult")
+_LOG.configure(prefix=TOOLNAME)
 
 def parse_arguments():
     """Parse input arguments."""

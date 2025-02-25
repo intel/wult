@@ -12,14 +12,15 @@ single purpose this module serves, it is just a collection of shared code. Many 
 module require the 'args' object which represents the command-line arguments.
 """
 
+from __future__ import annotations # Remove when switching to Python 3.10+.
+
 # pylint: disable=no-member
 
 import sys
-import logging
 import re
 from pathlib import Path
 from pepclibs import ASPM
-from pepclibs.helperlibs import Trivial, YAML, ProcessManager
+from pepclibs.helperlibs import Logging, Trivial, YAML, ProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.helperlibs import ReportID
 from statscollectlibs.collector import StatsCollectBuilder
@@ -28,7 +29,7 @@ from wultlibs import Devices
 from wultlibs.deploylibs import _Deploy
 from wultlibs.helperlibs import Human
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 # Description for the '--datapoints' option of the 'start' command.
 DATAPOINTS_DESCR = """How many datapoints should the test result include, default is 1000000."""
@@ -225,6 +226,27 @@ FUNCS_DESCR = """Comma-separated list of summary functions to calculate. By defa
 
 # Description for the '--list-funcs' option of the 'calc' command.
 LIST_FUNCS_DESCR = "Print the list of the available summary functions."
+
+def configure_logging(toolname: str) -> Logging.Logger:
+    """
+    Configure logging for the 'wult' project and its dependencies.
+
+    Args:
+        toolname: The name of the tool to use as a prefix in the log messages.
+
+    Returns:
+        logger: The configured logger for the 'wult' project.
+    """
+
+    # Configure logging from the "pepc" and "stats-collect" projects as well. They are used by the
+    # "wult" project, and if they log something, they should use the right prefix and coloring too.
+    Logging.getLogger("pepc").configure(prefix=toolname)
+    Logging.getLogger("stats-collect").configure(prefix=toolname)
+
+    logger = Logging.getLogger("wult")
+    logger.configure(prefix=toolname)
+
+    return logger
 
 def get_pman(args):
     """
@@ -663,7 +685,7 @@ def run_stats_collect_deploy(args, pman):
 
     cmd = str(exe_path)
 
-    if _LOG.colored:
+    if Logging.getLogger("wult").colored:
         cmd += " --force-color deploy"
     else:
         cmd += " deploy"
@@ -768,3 +790,28 @@ def check_aspm_setting(pman, dev, devname):
         if aspm.is_l1_enabled(dev.info["devid"]):
             _LOG.notice("PCI L1 ASPM is enabled for %s, and this typically increases the measured "
                         "latency", devname)
+
+def configure_log_file(outdir: Path, toolname: str) -> Path:
+    """
+    Configure the logger to mirror all the standard output and standard error a log file.
+
+    Args:
+        outdir: the log file directory.
+        toolname: name of the tool to use in the log file name.
+
+    Returns:
+        Path: the path to the log file.
+    """
+
+    try:
+        outdir.mkdir(parents=True, exist_ok=True)
+    except OSError as err:
+        msg = Error(err).indent(2)
+        raise Error(f"Cannot create log directory '{outdir}':\n{msg}") from None
+
+    logpath = Path(outdir) / f"{toolname}.log.txt"
+    contents = f"Command line: {' '.join(sys.argv)}\n"
+    logger = Logging.getLogger(ToolInfo.TOOLNAME)
+    logger.configure_log_file(logpath, contents=contents)
+
+    return logpath

@@ -10,17 +10,25 @@
 This module implements the measurement progress line.
 """
 
+import sys
 import time
-import logging
+from pepclibs.helperlibs import Logging
 from wultlibs.helperlibs import Human
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class _ProgressLineBase:
     """This the base class for tool-specific progress line classes."""
 
     def start(self):
         """Start tracking the progress."""
+
+        # Make sure logging message are prefixed with a newline. E.g., if there is a warning, it
+        # starts with a new line.
+        main_logger = Logging.getLogger("wult")
+
+        self._prefix = main_logger.prefix
+        main_logger.set_prefix(f"\n{self._prefix}")
 
         self._start_ts = self._last_ts = time.time()
 
@@ -37,12 +45,8 @@ class _ProgressLineBase:
         if not self.enabled:
             return False
 
-        # Make sure logging message are prefixed with a newline. E.g., if there is a warning, it
-        # starts with a new line.
-        _LOG.force_tty_newline_prefix = True
-
         if final:
-            _LOG.force_tty_newline_prefix = False
+            Logging.getLogger("wult").set_prefix(self._prefix)
             if not self._printed:
                 return False
             self._end = "\n"
@@ -73,13 +77,16 @@ class _ProgressLineBase:
         self._printed = False
         # The ending of the progress line (empty line or '\n' for the final print).
         self._end = ""
+        # Saved logger prerix.
+        self._prefix = ""
 
-        # _LOG.colored means that the logger is allowed to send special teminal color values to the
-        # output. Therefore, we can assume it is OK to treat it as a terminal.
-        if _LOG.getEffectiveLevel() > logging.INFO or not _LOG.colored:
+        if _LOG.getEffectiveLevel() > Logging.INFO:
             self.enabled = False
         else:
-            self.enabled = True
+            if sys.stdout.isatty():
+                self.enabled = True
+            else:
+                _LOG.notice("Disabling progress line because standard output is not a terminal")
 
 class WultProgressLine(_ProgressLineBase):
     """

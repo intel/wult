@@ -12,16 +12,15 @@ saves the results.
 """
 
 import time
-import logging
 import contextlib
 from pepclibs import CPUIdle
+from pepclibs.helperlibs import Logging, ClassHelpers, KernelVersion
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from pepclibs.helperlibs import ClassHelpers, KernelVersion
 from statscollectlibs.deploylibs import DeployBase
 from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess
 from wultlibs.helperlibs import Human
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 # Maximum count of unexpected lines in the trace buffer we tolerate.
 _MAX_FTRACE_BAD_LINES = 10

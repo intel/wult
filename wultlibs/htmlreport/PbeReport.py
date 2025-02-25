@@ -8,15 +8,14 @@
 
 """This module provides API for generating HTML reports for pbe test results."""
 
-import logging
-import pandas
+from pepclibs.helperlibs import Logging
 from statscollectlibs.htmlreport.tabs import TabConfig
 from wultlibs import PbeMDC
 from wultlibs.htmlreport import _ReportBase
 from wultlibs.htmlreport import PbeReportParams
 from wulttools.pbe import ToolInfo
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class PbeReport(_ReportBase.ReportBase):
     """This module provides API for generating HTML reports for pbe test results."""

@@ -12,15 +12,14 @@ result.
 """
 
 import time
-import logging
 import contextlib
-from pepclibs.helperlibs import ClassHelpers
+from pepclibs.helperlibs import Logging, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.deploylibs import DeployBase
 from wultlibs import _ProgressLine, _NdlRawDataProvider
 from wultlibs.helperlibs import Human
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class NdlRunner(ClassHelpers.SimpleCloseContext):
     """Run the latency measurements."""

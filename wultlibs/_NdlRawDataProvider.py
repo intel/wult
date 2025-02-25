@@ -11,13 +11,12 @@ This module implements the "NdlRawDataProvider" class, which provides API for re
 data.
 """
 
-import logging
 import contextlib
 from pepclibs.helperlibs import Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs import _RawDataProvider, _ETFQdisc, _Nmcli
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
                          _RawDataProvider.HelperRawDataProviderBase):

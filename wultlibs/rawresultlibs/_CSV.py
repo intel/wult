@@ -11,12 +11,11 @@ This module provides API for reading and writing CSV files.
 """
 
 import csv
-import logging
 from pathlib import Path
-from pepclibs.helperlibs import ClassHelpers
+from pepclibs.helperlibs import Logging, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class WritableCSV(ClassHelpers.SimpleCloseContext):
     """This class represents a write-only CSV file."""

@@ -13,11 +13,11 @@ docstring for more information.
 """
 
 from pathlib import Path
-import logging
+from pepclibs.helperlibs import Logging 
 from pepclibs.helperlibs.Exceptions import ErrorNotFound
 from statscollectlibs.deploylibs import DeployHelpersBase
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
     """This class provides the API for deploying bpf helpers."""

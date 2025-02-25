@@ -11,14 +11,14 @@ This module provides API for deploying the tools coming with the 'wult' project.
 Note, "wult" is both name of the project and name of the tool in the project.
 """
 
-import logging
 from pathlib import Path
-from pepclibs.helperlibs import ClassHelpers, ArgParse, ProjectFiles, ToolChecker, KernelVersion
+from pepclibs.helperlibs import Logging, ClassHelpers, ArgParse, ProjectFiles, ToolChecker
+from pepclibs.helperlibs import KernelVersion
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.deploylibs import DeployBase, _DeployPyHelpers
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 HELPERS_DEPLOY_SUBDIR = Path(".local")
 HELPERS_SRC_SUBDIR = Path("helpers")

@@ -10,14 +10,13 @@
 This module implements the base class for raw data provider classes.
 """
 
-import logging
+from pepclibs.helperlibs import Logging, Trivial, ClassHelpers, KernelModule
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from pepclibs.helperlibs import Trivial, ClassHelpers, KernelModule
 from statscollectlibs.helperlibs import ProcHelpers, FSHelpers
 from wultlibs import Devices
 from wultlibs.helperlibs import Human
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class RawDataProviderBase(ClassHelpers.SimpleCloseContext):
     """
@@ -247,7 +246,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         """Start the helper program."""
 
         cmd = f"{self._helper_path} {self._helper_opts}"
-        if _LOG.getEffectiveLevel() == logging.DEBUG:
+        if _LOG.getEffectiveLevel() == Logging.DEBUG:
             cmd += " -v"
         self._proc = self._pman.run_async(cmd)
 

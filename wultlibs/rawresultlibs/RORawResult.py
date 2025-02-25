@@ -9,11 +9,10 @@
 """API for reading wult, ndl, and pbe raw test results."""
 
 import re
-import logging
 import builtins
 from pathlib import Path
 import pandas
-from pepclibs.helperlibs import YAML
+from pepclibs.helperlibs import Logging, YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
 from statscollectlibs import DFSummary
 from statscollectlibs.helperlibs import FSHelpers
@@ -21,7 +20,7 @@ from statscollectlibs.rawresultlibs import RORawResult as StatsCollectRes
 from wultlibs import WultMDC, PbeMDC, NdlMDC
 from wultlibs.rawresultlibs import _RawResultBase
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 _SUPPORTED_FORMAT_VERSIONS = {"1.3"}
 

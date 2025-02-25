@@ -11,9 +11,8 @@
 
 import os
 import re
-import logging
 from pathlib import Path
-from pepclibs.helperlibs import Trivial, YAML
+from pepclibs.helperlibs import Logging, Trivial, YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 from statscollecttools import ToolInfo as StcToolInfo
 from wulttools.exercisesut import _Common
@@ -21,7 +20,7 @@ from wulttools.ndl import ToolInfo as NdlToolInfo
 from wulttools.pbe import ToolInfo as PbeToolInfo
 from wulttools.wult import ToolInfo as WultToolInfo
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class BatchReport(_Common.CmdlineRunner):
     """Helper class for 'exercise-sut' tool to create reports for series of results."""

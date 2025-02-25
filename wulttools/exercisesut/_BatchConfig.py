@@ -12,10 +12,10 @@ A helper module for the 'exercise-sut' tool to configure target system with vari
 permutations.
 """
 
-import logging
 import itertools
 from pepclibs import CStates, PStates, CPUIdle, CPUInfo
-from pepclibs.helperlibs import ClassHelpers, Human, LocalProcessManager, Trivial, Systemctl
+from pepclibs.helperlibs import Logging, ClassHelpers, Human, LocalProcessManager, Trivial
+from pepclibs.helperlibs import Systemctl
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.helperlibs import ReportID
 from statscollecttools import ToolInfo as StcToolInfo
@@ -25,7 +25,7 @@ from wulttools.pbe import ToolInfo as PbeToolInfo
 from wulttools.wult import ToolInfo as WultToolInfo
 from wulttools.exercisesut import _Common
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 NDL_TOOLNAME = NdlToolInfo.TOOLNAME
 PBE_TOOLNAME = PbeToolInfo.TOOLNAME
@@ -716,7 +716,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         """Create and return 'wult' or 'ndl' command."""
 
         cmd = f"{self.toolpath} "
-        if _LOG.colored:
+        if Logging.getLogger("wult").colored:
             cmd += " --force-color"
         cmd += f" start -c {self._datapoints}"
 
@@ -811,7 +811,7 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
         """Create and return 'stats-collect' command."""
 
         cmd = f"{self.toolpath} "
-        if _LOG.colored:
+        if Logging.getLogger("wult").colored:
             cmd += " --force-color"
         cmd += " start"
 
@@ -860,7 +860,7 @@ class _PbeCmdFormatter(_ToolCmdFormatterBase):
         """Create and return 'pbe' command."""
 
         cmd = f"{self.toolpath} "
-        if _LOG.colored:
+        if Logging.getLogger("wult").colored:
             cmd += " --force-color"
         cmd += " start"
 

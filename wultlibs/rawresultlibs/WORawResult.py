@@ -10,18 +10,16 @@
 This module provides API for write-only raw test results.
 """
 
-import logging
 import os
 import shutil
 import contextlib
-from pepclibs.helperlibs import YAML, ClassHelpers
+from pepclibs.helperlibs import Logging, YAML, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
-from statscollectlibs.helperlibs import FSHelpers
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import _CSV, _RawResultBase
 from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext):
     """This class represents a write-only raw test result."""

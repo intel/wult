@@ -12,17 +12,16 @@ This module provides API for managing network interfaces in Linux.
 
 import re
 import stat
-import logging
 import ipaddress
 import random
 import time
 import contextlib
 from pathlib import Path
 from collections import namedtuple
-from pepclibs.helperlibs import LocalProcessManager, Trivial, ClassHelpers
+from pepclibs.helperlibs import Logging, LocalProcessManager, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 # Base path to the network information in the sysfs filesystem.
 _SYSFSBASE = Path("/sys/class/net")

@@ -10,14 +10,13 @@
 This module provides API for dealing with Linux function trace buffer.
 """
 
-import logging
 import contextlib
 import re
-from pepclibs.helperlibs import ClassHelpers, KernelVersion
+from pepclibs.helperlibs import Logging, ClassHelpers, KernelVersion
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorTimeOut
 from statscollectlibs.helperlibs import ProcHelpers, FSHelpers
 
-_LOG = logging.getLogger()
+_LOG = Logging.getLogger(f"wult.{__name__}")
 
 class FTraceLine():
     """
