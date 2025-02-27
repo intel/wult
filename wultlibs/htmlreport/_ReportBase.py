@@ -20,7 +20,7 @@ from statscollectlibs.htmlreport.tabs import _Tabs
 from statscollectlibs.helperlibs import FSHelpers
 from wultlibs.htmlreport import _MetricDTabBuilder
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class ReportBase:
     """The base class for generating HTML reports."""

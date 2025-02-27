@@ -17,7 +17,7 @@ from pepclibs.helperlibs import KernelModule, KernelVersion
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.helperlibs import ProcHelpers
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class ETFQdisc(ClassHelpers.SimpleCloseContext):
     """

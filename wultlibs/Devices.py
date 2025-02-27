@@ -28,7 +28,7 @@ ALL_DRVNAMES = ("ndl", "wult_igb", "wult_hrt", "wult_tdt", "pbe")
 # The maximum expected device clock resolution in nanoseconds.
 _MAX_RESOLUTION = 100
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class _DeviceBase(ClassHelpers.SimpleCloseContext):
     """This is the base class for device classes."""

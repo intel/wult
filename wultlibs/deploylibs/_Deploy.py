@@ -18,7 +18,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupport
 from statscollectlibs.deploylibs import DeployBase, _DeployPyHelpers
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 HELPERS_DEPLOY_SUBDIR = Path(".local")
 HELPERS_SRC_SUBDIR = Path("helpers")

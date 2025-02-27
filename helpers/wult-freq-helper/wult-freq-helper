@@ -26,11 +26,7 @@ VERSION = "1.0"
 CPU_SYSFS_BASE = Path("/sys/devices/system/cpu")
 UNCORE_FREQ_SYSFS_BASE = CPU_SYSFS_BASE / "intel_uncore_frequency"
 
-# Configure the top-level logger for the "wult" project, as well as for the "pepc" projcect. This
-# way logging from "pepc" modules will use consistent style and prefix.
-Logging.getLogger("pepc").configure(prefix=TOOLNAME)
-_LOG = Logging.getLogger("wult")
-_LOG.configure(prefix=TOOLNAME)
+_LOG = Logging.getLogger(Logging.MAIN_LOGGER_NAME).configure(prefix=TOOLNAME)
 
 def parse_arguments():
     """Parse input arguments."""

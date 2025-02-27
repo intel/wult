@@ -21,7 +21,7 @@ from collections import namedtuple
 from pepclibs.helperlibs import Logging, LocalProcessManager, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 # Base path to the network information in the sysfs filesystem.
 _SYSFSBASE = Path("/sys/class/net")

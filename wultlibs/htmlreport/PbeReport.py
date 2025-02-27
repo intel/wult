@@ -15,7 +15,7 @@ from wultlibs.htmlreport import _ReportBase
 from wultlibs.htmlreport import PbeReportParams
 from wulttools.pbe import ToolInfo
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class PbeReport(_ReportBase.ReportBase):
     """This module provides API for generating HTML reports for pbe test results."""

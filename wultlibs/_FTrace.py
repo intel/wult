@@ -16,7 +16,7 @@ from pepclibs.helperlibs import Logging, ClassHelpers, KernelVersion
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorTimeOut
 from statscollectlibs.helperlibs import ProcHelpers, FSHelpers
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class FTraceLine():
     """

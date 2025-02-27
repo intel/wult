@@ -16,7 +16,7 @@ from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import WultMDC
 from wultlibs.helperlibs import Human
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class _CStates(ClassHelpers.SimpleCloseContext):
     """

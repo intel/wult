@@ -15,7 +15,7 @@ from pathlib import Path
 from pepclibs.helperlibs import Logging, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class WritableCSV(ClassHelpers.SimpleCloseContext):
     """This class represents a write-only CSV file."""

@@ -18,7 +18,7 @@ from statscollectlibs.deploylibs import DeployInstallableBase
 
 DRIVERS_SRC_SUBDIR = Path("drivers/idle")
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class DeployDrivers(DeployInstallableBase.DeployInstallableBase):
     """This class provides the API for deploying drivers."""

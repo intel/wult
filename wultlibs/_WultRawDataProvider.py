@@ -14,7 +14,7 @@ from pepclibs.helperlibs import Logging, Trivial, ClassHelpers, Systemctl, Kerne
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut, ErrorNotFound
 from wultlibs import _FTrace, _RawDataProvider
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     """

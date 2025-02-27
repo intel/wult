@@ -19,7 +19,7 @@ from wultlibs import _ProgressLine, _PbeRawDataProvider
 from wultlibs.helperlibs import Human
 from wulttools.pbe import ToolInfo
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class PbeRunner(ClassHelpers.SimpleCloseContext):
     """Run power break-even measurement experiments."""

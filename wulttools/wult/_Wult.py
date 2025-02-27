@@ -19,7 +19,7 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
 
-from pepclibs.helperlibs import ArgParse
+from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
 from wultlibs.deploylibs import _Deploy
 from wulttools import _Common
@@ -53,7 +53,7 @@ _WULT_DEPLOY_INFO = {
     },
 }
 
-_LOG = _Common.configure_logging(TOOLNAME)
+_LOG = Logging.getLogger(Logging.MAIN_LOGGER_NAME).configure(prefix=ToolInfo.TOOLNAME)
 
 def _build_arguments_parser():
     """Build and return the arguments parser object."""

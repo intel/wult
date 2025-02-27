@@ -13,7 +13,7 @@ This module provides API for managing the 'pbe' driver and reading raw PBE datap
 from pepclibs.helperlibs import Logging
 from wultlibs import _RawDataProvider
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class PbeRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     """

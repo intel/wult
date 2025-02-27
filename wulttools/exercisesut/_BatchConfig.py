@@ -25,7 +25,7 @@ from wulttools.pbe import ToolInfo as PbeToolInfo
 from wulttools.wult import ToolInfo as WultToolInfo
 from wulttools.exercisesut import _Common
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 NDL_TOOLNAME = NdlToolInfo.TOOLNAME
 PBE_TOOLNAME = PbeToolInfo.TOOLNAME
@@ -716,7 +716,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
         """Create and return 'wult' or 'ndl' command."""
 
         cmd = f"{self.toolpath} "
-        if Logging.getLogger("wult").colored:
+        if Logging.getLogger(Logging.MAIN_LOGGER_NAME).colored:
             cmd += " --force-color"
         cmd += f" start -c {self._datapoints}"
 
@@ -811,7 +811,7 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
         """Create and return 'stats-collect' command."""
 
         cmd = f"{self.toolpath} "
-        if Logging.getLogger("wult").colored:
+        if Logging.getLogger(Logging.MAIN_LOGGER_NAME).colored:
             cmd += " --force-color"
         cmd += " start"
 
@@ -860,7 +860,7 @@ class _PbeCmdFormatter(_ToolCmdFormatterBase):
         """Create and return 'pbe' command."""
 
         cmd = f"{self.toolpath} "
-        if Logging.getLogger("wult").colored:
+        if Logging.getLogger(Logging.MAIN_LOGGER_NAME).colored:
             cmd += " --force-color"
         cmd += " start"
 

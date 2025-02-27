@@ -17,7 +17,7 @@ from pepclibs.helperlibs import Logging
 from pepclibs.helperlibs.Exceptions import ErrorNotFound
 from statscollectlibs.deploylibs import DeployHelpersBase
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
     """This class provides the API for deploying bpf helpers."""

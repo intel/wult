@@ -20,7 +20,7 @@ from statscollectlibs.deploylibs import DeployBase
 from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess
 from wultlibs.helperlibs import Human
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 # Maximum count of unexpected lines in the trace buffer we tolerate.
 _MAX_FTRACE_BAD_LINES = 10

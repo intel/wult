@@ -15,7 +15,7 @@ import time
 from pepclibs.helperlibs import Logging
 from wultlibs.helperlibs import Human
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class _ProgressLineBase:
     """This the base class for tool-specific progress line classes."""
@@ -25,7 +25,7 @@ class _ProgressLineBase:
 
         # Make sure logging message are prefixed with a newline. E.g., if there is a warning, it
         # starts with a new line.
-        main_logger = Logging.getLogger("wult")
+        main_logger = Logging.getLogger(Logging.MAIN_LOGGER_NAME)
 
         self._prefix = main_logger.prefix
         main_logger.set_prefix(f"\n{self._prefix}")
@@ -46,7 +46,7 @@ class _ProgressLineBase:
             return False
 
         if final:
-            Logging.getLogger("wult").set_prefix(self._prefix)
+            Logging.getLogger(Logging.MAIN_LOGGER_NAME).set_prefix(self._prefix)
             if not self._printed:
                 return False
             self._end = "\n"

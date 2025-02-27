@@ -21,7 +21,7 @@ from wultlibs.deploylibs import _Deploy
 from wultlibs import Devices, PbeRunner
 from wulttools import _Common
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 def _generate_report(args):
     """Implement the '--report' option for the 'start' command."""

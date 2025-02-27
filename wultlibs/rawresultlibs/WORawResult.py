@@ -19,7 +19,7 @@ from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import _CSV, _RawResultBase
 from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext):
     """This class represents a write-only raw test result."""

@@ -16,7 +16,7 @@ from statscollectlibs.helperlibs import ProcHelpers, FSHelpers
 from wultlibs import Devices
 from wultlibs.helperlibs import Human
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class RawDataProviderBase(ClassHelpers.SimpleCloseContext):
     """

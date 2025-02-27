@@ -19,10 +19,9 @@ try:
 except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
-from pepclibs.helperlibs import ArgParse, Trivial
+from pepclibs.helperlibs import Logging, ArgParse, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from statscollecttools import ToolInfo as StcToolInfo
-from wulttools import _Common
 from wulttools.exercisesut import _BatchConfig, _BatchReport, ToolInfo
 from wulttools.ndl import ToolInfo as NdlToolInfo
 from wulttools.pbe import ToolInfo as PbeToolInfo
@@ -36,7 +35,7 @@ WULT_TOOLNAME = WultToolInfo.TOOLNAME
 TOOLNAME = ToolInfo.TOOLNAME
 VERSION = ToolInfo.VERSION
 
-_LOG = _Common.configure_logging(TOOLNAME)
+_LOG = Logging.getLogger(Logging.MAIN_LOGGER_NAME).configure(prefix=ToolInfo.TOOLNAME)
 
 _RESET_PROPS = {
     "online": {

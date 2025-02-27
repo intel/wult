@@ -24,7 +24,7 @@ from wultlibs import Devices, WultRunner, _FreqNoise
 from wulttools import _Common
 from wulttools.wult import _WultCommon
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 def _check_settings(args, pman, dev, csinfo, cpuinfo):
     """

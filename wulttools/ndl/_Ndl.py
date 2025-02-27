@@ -17,7 +17,7 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
 
-from pepclibs.helperlibs import ArgParse
+from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
 from wulttools import _Common
 from wulttools.ndl import ToolInfo
@@ -46,7 +46,7 @@ _NDL_DEPLOY_INFO = {
     },
 }
 
-_LOG = _Common.configure_logging(TOOLNAME)
+_LOG = Logging.getLogger(Logging.MAIN_LOGGER_NAME).configure(prefix=ToolInfo.TOOLNAME)
 
 def _get_axes_default(name):
     """Returns the default CSV column names for X- or Y-axes, as well as histograms."""

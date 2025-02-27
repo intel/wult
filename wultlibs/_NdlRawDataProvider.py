@@ -12,11 +12,11 @@ data.
 """
 
 import contextlib
-from pepclibs.helperlibs import Trivial, ClassHelpers
+from pepclibs.helperlibs import Logging, Trivial, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from wultlibs import _RawDataProvider, _ETFQdisc, _Nmcli
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class NdlRawDataProvider(_RawDataProvider.DrvRawDataProviderBase,
                          _RawDataProvider.HelperRawDataProviderBase):

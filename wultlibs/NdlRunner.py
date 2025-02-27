@@ -19,7 +19,7 @@ from statscollectlibs.deploylibs import DeployBase
 from wultlibs import _ProgressLine, _NdlRawDataProvider
 from wultlibs.helperlibs import Human
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class NdlRunner(ClassHelpers.SimpleCloseContext):
     """Run the latency measurements."""

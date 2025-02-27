@@ -20,7 +20,7 @@ from wulttools.ndl import ToolInfo as NdlToolInfo
 from wulttools.pbe import ToolInfo as PbeToolInfo
 from wulttools.wult import ToolInfo as WultToolInfo
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class BatchReport(_Common.CmdlineRunner):
     """Helper class for 'exercise-sut' tool to create reports for series of results."""

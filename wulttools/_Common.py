@@ -29,7 +29,7 @@ from wultlibs import Devices
 from wultlibs.deploylibs import _Deploy
 from wultlibs.helperlibs import Human
 
-_LOG = Logging.getLogger(f"wult.{__name__}")
+_LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 # Description for the '--datapoints' option of the 'start' command.
 DATAPOINTS_DESCR = """How many datapoints should the test result include, default is 1000000."""
@@ -226,27 +226,6 @@ FUNCS_DESCR = """Comma-separated list of summary functions to calculate. By defa
 
 # Description for the '--list-funcs' option of the 'calc' command.
 LIST_FUNCS_DESCR = "Print the list of the available summary functions."
-
-def configure_logging(toolname: str) -> Logging.Logger:
-    """
-    Configure logging for the 'wult' project and its dependencies.
-
-    Args:
-        toolname: The name of the tool to use as a prefix in the log messages.
-
-    Returns:
-        logger: The configured logger for the 'wult' project.
-    """
-
-    # Configure logging from the "pepc" and "stats-collect" projects as well. They are used by the
-    # "wult" project, and if they log something, they should use the right prefix and coloring too.
-    Logging.getLogger("pepc").configure(prefix=toolname)
-    Logging.getLogger("stats-collect").configure(prefix=toolname)
-
-    logger = Logging.getLogger("wult")
-    logger.configure(prefix=toolname)
-
-    return logger
 
 def get_pman(args):
     """
@@ -685,7 +664,7 @@ def run_stats_collect_deploy(args, pman):
 
     cmd = str(exe_path)
 
-    if Logging.getLogger("wult").colored:
+    if Logging.getLogger(Logging.MAIN_LOGGER_NAME).colored:
         cmd += " --force-color deploy"
     else:
         cmd += " deploy"
@@ -811,7 +790,7 @@ def configure_log_file(outdir: Path, toolname: str) -> Path:
 
     logpath = Path(outdir) / f"{toolname}.log.txt"
     contents = f"Command line: {' '.join(sys.argv)}\n"
-    logger = Logging.getLogger(ToolInfo.TOOLNAME)
+    logger = Logging.getLogger(Logging.MAIN_LOGGER_NAME)
     logger.configure_log_file(logpath, contents=contents)
 
     return logpath
