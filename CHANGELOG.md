@@ -9,6 +9,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 ### Changed
 
+## [1.12.34] - 2025-02-27
+### Fixed
+ - Fix 'wult report --size large' option.
+
 ## [1.12.33] - 2025-01-23
 ### Changed
  - Adjust to changed API in the 'stats-collect' project.

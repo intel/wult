@@ -1,3 +1,9 @@
+wult (1.12.34) unstable; urgency=low
+
+  * Fix 'wult report --size large' option.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Thu, 27 Feb 2025 00:00:00 +0200
+
 wult (1.12.33) unstable; urgency=low
 
   * Adjust to changed API in the 'stats-collect' project.
