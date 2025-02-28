@@ -25,7 +25,7 @@ Date
 usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
 [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR] [--reportid
 REPORTID] [--stats STATS] [--stats-intervals STATS_INTERVALS]
-[--list-stats] [-l LDIST] [--cpunum CPUNUM] [--exclude EXCLUDE]
+[--list-stats] [-l LDIST] [--cpu CPU] [--exclude EXCLUDE]
 [--include INCLUDE] [--keep-filtered] [--report] [--force]
 [--trash-cpu-cache] [--freq-noise FREQ_NOISE] [--freq-noise-sleep
 FREQ_NOISE_SLEEP] ifname
@@ -150,7 +150,7 @@ Note, too low values may cause failures or prevent the SUT from reaching
 deep C-states.
 The optimal value is system-specific.
 .TP
-\f[B]--cpunum\f[R] \f[I]CPUNUM\f[R]
+\f[B]--cpu\f[R] \f[I]CPU\f[R]
 The CPU number to bind the helper to.
 The helper will use this CPU to send delayed packets.
 In normal conditions this means that network packet buffers will be

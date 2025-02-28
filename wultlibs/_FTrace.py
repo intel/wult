@@ -24,7 +24,7 @@ class FTraceLine():
     is split and the following attributes become available.
       * procname - process name.
       * pid - process PID.
-      * cpunum - logical CPU number.
+      * cpu - logical CPU number.
       * flags - trace flags.
       * timestamp - the trace timestamp.
       * func - name of the kernel function where the trace happened.
@@ -39,7 +39,7 @@ class FTraceLine():
         self.line = line.strip()
         self.procname = None
         self.pid = None
-        self.cpunum = None
+        self.cpu = None
         self.flags = None
         self.timestamp = None
         self.func = None
@@ -47,7 +47,7 @@ class FTraceLine():
 
         split = self.line.split(maxsplit=5)
         if len(split) == 6:
-            procinfo, self.cpunum, self.flags, self.timestamp, self.func, self.msg = split
+            procinfo, self.cpu, self.flags, self.timestamp, self.func, self.msg = split
             # Keep in mind, that the process name may have dashes, so do one split from the right,
             # to capture the PID.
             self.procname, self.pid = procinfo.rsplit("-", 1)
@@ -121,11 +121,11 @@ class FTrace(ClassHelpers.SimpleCloseContext):
                 self.raw_line = line.strip()
                 yield FTraceLine(line)
 
-    def __init__(self, pman, cpunum, timeout=30):
+    def __init__(self, pman, cpu, timeout=30):
         """
         Class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to operate on.
-          * cpunum - the CPU to read trace buffer for.
+          * cpu - the CPU to read trace buffer for.
           * timeout - longest time in seconds to wait for data in the trace buffer.
         """
 
@@ -143,7 +143,7 @@ class FTrace(ClassHelpers.SimpleCloseContext):
         self._debugfs_mntpoint, self._unmount_debugfs = FSHelpers.mount_debugfs(pman=self._pman)
         self._paths["trace"] = self._debugfs_mntpoint.joinpath("tracing/trace")
         self._paths["trace_pipe"] = \
-            self._debugfs_mntpoint.joinpath(f"tracing/per_cpu/cpu{cpunum}/trace_pipe")
+            self._debugfs_mntpoint.joinpath(f"tracing/per_cpu/cpu{cpu}/trace_pipe")
         self._paths["tracing_on"] = self._debugfs_mntpoint.joinpath("tracing/tracing_on")
         self._paths["current_tracer"] = self._debugfs_mntpoint.joinpath("tracing/current_tracer")
         self._paths["set_event"] = self._debugfs_mntpoint.joinpath("tracing/set_event")

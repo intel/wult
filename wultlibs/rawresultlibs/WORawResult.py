@@ -157,17 +157,17 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
 
         YAML.dump(self.info, self.info_path)
 
-    def __init__(self, toolname, toolver, reportid, outdir, cpunum=None):
+    def __init__(self, toolname, toolver, reportid, outdir, cpu=None):
         """
         The class constructor. The arguments are as follows.
           * toolname - name of the tool creating the report.
           * toolver - version of the tool creating the report.
           * reportid - reportid of the raw test result.
           * outdir - the output directory to store the raw results at.
-          * cpunum - CPU number associated with this test result (e.g., measured CPU number).
+          * cpu - CPU number associated with this test result (e.g., measured CPU number).
         """
 
-        self.cpunum = cpunum
+        self.cpu = cpu
 
         super().__init__(outdir)
 
@@ -182,8 +182,8 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
 
         self.info["toolname"] = toolname
         self.info["toolver"] = toolver
-        if cpunum is not None:
-            self.info["cpunum"] = self.cpunum
+        if cpu is not None:
+            self.info["cpu"] = self.cpu
         self.info["format_version"] = FORMAT_VERSION
         self.info["reportid"] = reportid
 

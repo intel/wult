@@ -35,7 +35,7 @@ class _CStates(ClassHelpers.SimpleCloseContext):
             if not info["disable"]:
                 break
         else:
-            raise Error(f"no idle states are enabled on CPU {self._cpunum}{self._pman.hostmsg}")
+            raise Error(f"no idle states are enabled on CPU {self._cpu}{self._pman.hostmsg}")
 
         for csname, cstate in self._rcsinfo.items():
             self._idx2name[cstate["index"]] = csname
@@ -176,15 +176,15 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         for csname in delete_csnames:
             del self._intr_order[csname]
 
-    def __init__(self, cpunum, pman, cpuidle=None):
+    def __init__(self, cpu, pman, cpuidle=None):
         """
         The class constructor. The arguments are as follows.
-          * cpunum - the measured CPU number.
+          * cpu - the measured CPU number.
           * pman - the process manager object that defines the host to run the measurements on.
           * cpuidle - the 'CPUIdle.CPUIdle()' object initialized for the measured system.
         """
 
-        self._cpunum = cpunum
+        self._cpu = cpu
         self._pman = pman
         self._cpuidle = cpuidle
 
@@ -207,7 +207,7 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         if not self._cpuidle:
             self._cpuidle = CPUIdle.CPUIdle(pman=self._pman)
 
-        self._rcsinfo = self._cpuidle.get_cpu_cstates_info(self._cpunum)
+        self._rcsinfo = self._cpuidle.get_cpu_cstates_info(self._cpu)
 
         self._init_idx2name()
 
@@ -760,17 +760,17 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             for field in raw_fields:
                 self._fields[field] = None
 
-    def __init__(self, cpunum, pman, drvname, tsc_cal_time=10, cpuidle=None):
+    def __init__(self, cpu, pman, drvname, tsc_cal_time=10, cpuidle=None):
         """
         The class constructor. The arguments are as follows.
-          * cpunum - the measured CPU number.
+          * cpu - the measured CPU number.
           * pman - the process manager object that defines the host to run the measurements on.
           * drvname - name of the driver providing the datapoints.
           * tsc_cal_time - amount of seconds to use for calculating TSC rate.
           * cpuidle - the 'CPUIdle.CPUIdle()' object initialized for the measured system.
         """
 
-        self._cpunum = cpunum
+        self._cpu = cpu
         self._pman = pman
         self._drvname = drvname
 
@@ -787,7 +787,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         self._cs_fields = None
         self._us_fields_set = None
 
-        self._csobj = _CStates(self._cpunum, self._pman, cpuidle=cpuidle)
+        self._csobj = _CStates(self._cpu, self._pman, cpuidle=cpuidle)
         self._tscrate = _TSCRate(tsc_cal_time)
 
     def close(self):

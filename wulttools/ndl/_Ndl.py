@@ -124,7 +124,7 @@ def _build_arguments_parser():
                packets. Special value 'local' can be used to specify a CPU with lowest CPU number
                local to the NIC, and this is the default value. A special value 'remote' can be used
                to specify a CPU with the lowest number remote to the NIC. {man_msg}"""
-    subpars.add_argument("--cpunum", help=text, default="local")
+    subpars.add_argument("--cpu", help=text, default="local")
 
     subpars.add_argument("--exclude", action=ArgParse.OrderedArg, help=_Common.EXCL_DESCR)
     subpars.add_argument("--include", action=ArgParse.OrderedArg, help=_Common.INCL_DESCR)

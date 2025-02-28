@@ -46,8 +46,8 @@ def _check_settings(args, pman, dev, csinfo, cpuinfo):
         # * A timer-based method is used.
 
         if dev.is_timer and "C6" in enabled_cstates and \
-           powerctl.is_cpu_feature_supported("cstate_prewake", args.cpunum) and \
-           powerctl.is_cpu_feature_enabled("cstate_prewake", args.cpunum):
+           powerctl.is_cpu_feature_supported("cstate_prewake", args.cpu) and \
+           powerctl.is_cpu_feature_enabled("cstate_prewake", args.cpu):
             _LOG.notice("C-state prewake is enabled, and this usually hides the real "
                         "latency when using '%s' as delayed event device", args.devid)
 
@@ -55,7 +55,7 @@ def _check_settings(args, pman, dev, csinfo, cpuinfo):
         # * C1 is enabled.
         # * C1E auto-promotion is enabled.
         if enabled_cstates in [["C1"], ["C1_ACPI"]]:
-            if powerctl.is_cpu_feature_enabled("c1e_autopromote", args.cpunum):
+            if powerctl.is_cpu_feature_enabled("c1e_autopromote", args.cpu):
                 _LOG.notice("C1E autopromote is enabled, all %s requests are converted to C1E",
                             enabled_cstates[0])
 
@@ -127,9 +127,9 @@ def start_command(args):
 
         _check_cpu_vendor(args, cpuinfo, pman)
 
-        args.cpunum = cpuinfo.normalize_cpu(args.cpunum)
+        args.cpu = cpuinfo.normalize_cpu(args.cpu)
         res = WORawResult.WORawResult(args.toolname, args.toolver, args.reportid, args.outdir,
-                                      cpunum=args.cpunum)
+                                      cpu=args.cpu)
         stack.enter_context(res)
 
         _Common.configure_log_file(res.logs_path, args.toolname)
@@ -143,12 +143,12 @@ def start_command(args):
         if args.stats_intervals:
             stcoll_builder.parse_intervals(args.stats_intervals)
 
-        stcoll = stcoll_builder.build_stcoll_nores(pman, args.reportid, cpunum=args.cpunum,
+        stcoll = stcoll_builder.build_stcoll_nores(pman, args.reportid, cpu=args.cpu,
                                                    local_outdir=res.stats_path)
         if stcoll:
             stack.enter_context(stcoll)
 
-        dev = Devices.GetDevice(args.toolname, args.devid, pman, cpunum=args.cpunum, dmesg=True)
+        dev = Devices.GetDevice(args.toolname, args.devid, pman, cpu=args.cpu, dmesg=True)
         stack.enter_context(dev)
 
         deploy_info = _Common.reduce_installables(args.deploy_info, dev)
@@ -159,7 +159,7 @@ def start_command(args):
             _Common.start_command_check_network(args, pman, dev.netif)
 
         cpuidle = CPUIdle.CPUIdle(pman=pman, cpuinfo=cpuinfo)
-        csinfo = cpuidle.get_cpu_cstates_info(res.cpunum)
+        csinfo = cpuidle.get_cpu_cstates_info(res.cpu)
 
         _check_settings(args, pman, dev, csinfo, cpuinfo)
 

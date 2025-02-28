@@ -317,7 +317,7 @@ static void hw_init(struct network_adapter *nic)
 	write32(nic, I210_EIxx_OTHER, I210_EIMS);
 }
 
-static int init_device(struct wult_device_info *wdi, int cpunum)
+static int init_device(struct wult_device_info *wdi, int cpu)
 {
 	struct network_adapter *nic = wdi_to_nic(wdi);
 	int err, vector;
@@ -335,9 +335,9 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 	vector = pci_irq_vector(nic->pdev, 0);
 
 #ifdef COMPAT_HAVE_SET_AFFINITY
-	err = irq_set_affinity(vector, get_cpu_mask(cpunum));
+	err = irq_set_affinity(vector, get_cpu_mask(cpu));
 #else
-	err = irq_set_affinity_hint(vector, get_cpu_mask(cpunum));
+	err = irq_set_affinity_hint(vector, get_cpu_mask(cpu));
 #endif
 	if (err)
 		goto err_irq;

@@ -15,7 +15,7 @@ COMMAND *'ndl* start'
 usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
 [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [-o OUTDIR]
 [--reportid REPORTID] [--stats STATS] [--stats-intervals STATS_INTERVALS]
-[--list-stats] [-l LDIST] [--cpunum CPUNUM] [--exclude EXCLUDE]
+[--list-stats] [-l LDIST] [--cpu CPU] [--exclude EXCLUDE]
 [--include INCLUDE] [--keep-filtered] [--report] [--force]
 [--trash-cpu-cache] [--freq-noise FREQ_NOISE]
 [--freq-noise-sleep FREQ_NOISE_SLEEP] ifname
@@ -126,7 +126,7 @@ OPTIONS *'ndl* start'
    low values may cause failures or prevent the SUT from reaching deep
    C-states. The optimal value is system-specific.
 
-**--cpunum** *CPUNUM*
+**--cpu** *CPU*
    The CPU number to bind the helper to. The helper will use this CPU to
    send delayed packets. In normal conditions this means that network
    packet buffers will be allocated on the NUMA node local to the CPU,

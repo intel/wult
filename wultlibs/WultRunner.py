@@ -131,7 +131,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         if self._fnobj:
             self._fnobj.start()
 
-        msg = f"Start measuring CPU {self._res.cpunum}{self._pman.hostmsg}, collecting {dpcnt} " \
+        msg = f"Start measuring CPU {self._res.cpu}{self._pman.hostmsg}, collecting {dpcnt} " \
               f"datapoints"
         if tlimit:
             msg += f", time limit is {Human.duration(tlimit)}"
@@ -164,7 +164,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._progress.update(self._progress.dpcnt, self._progress.maxlat, final=True)
         duration = Human.duration(self._progress.get_duration())
         _LOG.info("Finished measuring CPU %d%s, lasted %s",
-                  self._res.cpunum, self._pman.hostmsg, duration)
+                  self._res.cpu, self._pman.hostmsg, duration)
         self._stop_run()
 
         # Check if there were any bug/warning messages in 'dmesg'.
@@ -278,12 +278,12 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         else:
             helper_path = None
 
-        self._prov = _WultRawDataProvider.WultRawDataProvider(dev, pman, res.cpunum, self._ldist,
+        self._prov = _WultRawDataProvider.WultRawDataProvider(dev, pman, res.cpu, self._ldist,
                                                               helper_path=helper_path,
                                                               timeout=self._timeout,
                                                               unload=unload)
 
-        self._dpp = _WultDpProcess.DatapointProcessor(res.cpunum, pman, self._dev.drvname,
+        self._dpp = _WultDpProcess.DatapointProcessor(res.cpu, pman, self._dev.drvname,
                                                       tsc_cal_time=tsc_cal_time,
                                                       cpuidle=self._cpuidle)
 

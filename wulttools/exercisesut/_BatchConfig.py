@@ -724,7 +724,7 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
             cmd += f" --stats=\"{self._stats}\""
 
         if cpu is not None:
-            cmd += f" --cpunum {cpu}"
+            cmd += f" --cpu {cpu}"
 
         if cstate_filter:
             cmd += f" --include=\"{cstate_filter}\""
@@ -832,8 +832,8 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
             cmd += f" {toolopts}"
 
         if cpu is not None:
-            cmd += f" --cpunum {cpu}"
-            command = command.replace("__cpunum__", cpu)
+            cmd += f" --cpu {cpu}"
+            command = command.replace("__cpu__", cpu)
 
         if self._hostname != "localhost":
             cmd += f" -H {self._hostname}"

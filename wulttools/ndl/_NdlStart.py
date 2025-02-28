@@ -46,7 +46,7 @@ def _get_local_cpus(pman, ifname):
         str_of_ranges = pman.read(path).strip()
     except Error as err:
         raise Error(f"failed to find local CPUs for the '{ifname}' NIC.\n{err.indent(2)}.\n"
-                    f"Please specify CPU number, use '--cpunum'.") from err
+                    f"Please specify CPU number, use '--cpu'.") from err
 
     # The 'local_cpulist' file contains a string of comma-separated CPU numbers or ranges, smaller
     # CPU numbers go first. Example: "24-27,31-33,37-39". Only online CPUs are included. Parse the
@@ -113,11 +113,11 @@ def _check_settings(args, pman, dev, cpuinfo):
          CPUIdle.CPUIdle(pman=pman, cpuinfo=cpuinfo) as cpuidle, \
          CStates.CStates(pman=pman, cpuinfo=cpuinfo, cpuidle=cpuidle) as cstates:
 
-        pvinfo = cstates.get_cpu_prop("pkg_cstate_limit", args.cpunum)
+        pvinfo = cstates.get_cpu_prop("pkg_cstate_limit", args.cpu)
         if pvinfo["val"] == "PC0":
             return
 
-        csinfo = cpuidle.get_cpu_cstates_info(args.cpunum)
+        csinfo = cpuidle.get_cpu_cstates_info(args.cpu)
         for info in csinfo.values():
             if info["name"].startswith("C6") and not info["disable"]:
                 break
@@ -125,7 +125,7 @@ def _check_settings(args, pman, dev, cpuinfo):
             return
 
         for pname in ("c1_demotion", "cstate_prewake"):
-            pvinfo = cstates.get_cpu_prop(pname, args.cpunum)
+            pvinfo = cstates.get_cpu_prop(pname, args.cpu)
             if pvinfo["val"] == "on":
                 name = cstates.props[pname]["name"]
                 _LOG.notice("%s is enabled, this may lead to lower C6 residency. It is "
@@ -172,29 +172,29 @@ def start_command(args):
             raise ErrorNotFound(msg) from err
         stack.enter_context(dev)
 
-        if Trivial.is_int(args.cpunum):
-            args.cpunum = cpuinfo.normalize_cpu(int(args.cpunum))
+        if Trivial.is_int(args.cpu):
+            args.cpu = cpuinfo.normalize_cpu(int(args.cpu))
             cpus_msg = None
-        elif args.cpunum == "local":
+        elif args.cpu == "local":
             lcpus = _get_local_cpus(pman, dev.info["alias"])
-            args.cpunum = lcpus[0]
+            args.cpu = lcpus[0]
             cpus_msg = f"Local CPU numbers: {Human.rangify(lcpus)}"
-        elif args.cpunum == "remote":
+        elif args.cpu == "remote":
             rcpus = _get_remote_cpus(pman, dev.info["alias"], cpuinfo)
-            args.cpunum = rcpus[0]
+            args.cpu = rcpus[0]
             cpus_msg = f"Remote CPU numbers: {Human.rangify(rcpus)}"
         else:
-            raise Error(f"bad CPU number '{args.cpunum}")
+            raise Error(f"bad CPU number '{args.cpu}")
 
         res = WORawResult.WORawResult(args.toolname, args.toolver, args.reportid, args.outdir,
-                                      cpunum=args.cpunum)
+                                      cpu=args.cpu)
         stack.enter_context(res)
 
         _Common.configure_log_file(res.logs_path, args.toolname)
 
         if cpus_msg:
             _LOG.info(cpus_msg)
-        _LOG.info("Bind to CPU %d", args.cpunum)
+        _LOG.info("Bind to CPU %d", args.cpu)
 
         _Common.set_filters(args, res)
 
@@ -211,7 +211,7 @@ def start_command(args):
         if args.stats_intervals:
             stcoll_builder.parse_intervals(args.stats_intervals)
 
-        stcoll = stcoll_builder.build_stcoll_nores(pman, args.reportid, cpunum=args.cpunum,
+        stcoll = stcoll_builder.build_stcoll_nores(pman, args.reportid, cpu=args.cpu,
                                                    local_outdir=res.stats_path)
         if stcoll:
             stack.enter_context(stcoll)

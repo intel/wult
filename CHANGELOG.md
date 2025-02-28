@@ -8,6 +8,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Rename '--cpunum' option to '--cpu'.
 
 ## [1.12.34] - 2025-02-27
 ### Fixed

@@ -107,7 +107,7 @@ _COLLECT_OPTIONS = {
     "reportid_suffix": {
         "help": """String to append to the report ID."""
     },
-    "cpunums": {
+    "cpus": {
         "help": f"""Applicable only to the '{WULT_TOOLNAME}' and '{NDL_TOOLNAME}' tools.
                     Comma-separated list of CPU numbers to measure with."""
     },
@@ -191,7 +191,7 @@ _COLLECT_OPTIONS = {
     "command": {
         "help": """Applicable only to 'stats-collect' tool. The command to that 'stats-collect'
                    should run. The string "__reportid__" will be replaced with generated report ID
-                   and the string "__cpunum__" will be replaced with used CPU number."""
+                   and the string "__cpu__" will be replaced with used CPU number."""
     },
     "only_measured_cpu": {
         "action": "store_true",
@@ -341,8 +341,8 @@ def _start_check_args(args, inprops):
     arguments.
     """
 
-    if args.only_measured_cpu and args.cpunums is None:
-        _LOG.error_out("please provide CPU numbers with '--only-measured-cpu', use '--cpunums'")
+    if args.only_measured_cpu and args.cpus is None:
+        _LOG.error_out("please provide CPU numbers with '--only-measured-cpu', use '--cpus'")
 
     if not inprops:
         if args.state_reset:
@@ -378,10 +378,10 @@ def _start_command(args):
     else:
         devids = Trivial.split_csv_line(args.devids)
 
-    if not args.cpunums:
+    if not args.cpus:
         cpus = [None]
     else:
-        cpus = Trivial.split_csv_line(args.cpunums)
+        cpus = Trivial.split_csv_line(args.cpus)
 
     with _BatchConfig.BatchConfig(args) as batchconfig:
         if args.deploy:

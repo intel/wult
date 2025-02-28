@@ -60,7 +60,7 @@ class PbeRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                    CPUs. By default, uses CPU 0.
         """
 
-        drvinfo = {dev.drvname: {"params": f"cpunum={lcpu}"}}
+        drvinfo = {dev.drvname: {"params": f"cpu={lcpu}"}}
         super().__init__(dev, pman, ldist, drvinfo=drvinfo, timeout=timeout)
 
         self.started = False

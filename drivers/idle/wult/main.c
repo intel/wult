@@ -35,7 +35,7 @@
 /* TODO: this whole thing should use sysfs and bus/device model. */
 
 /* CPU number to measure wake latency on (module parameter). */
-static unsigned int cpunum;
+static unsigned int cpu;
 
 /* The wult driver information object. */
 static struct wult_info *wi;
@@ -152,11 +152,11 @@ static u64 pick_ldist(void)
 
 /* Initialize the delayed event device driver. */
 static int delayed_event_device_init(struct wult_device_info *wdi,
-		                     unsigned int cpunum)
+		                     unsigned int cpu)
 {
 	int err;
 
-	err = wdi->ops->init(wdi, cpunum);
+	err = wdi->ops->init(wdi, cpu);
 	if (err) {
 		wult_err("failed to initialize the delayed event device, error %d",
 			 err);
@@ -175,11 +175,11 @@ static int delayed_event_device_init(struct wult_device_info *wdi,
 }
 
 /* Check if the armer threads runs on the correct CPU. */
-static int check_armer_cpunum(void)
+static int check_armer_cpu(void)
 {
-	if (smp_processor_id() != wi->cpunum) {
+	if (smp_processor_id() != wi->cpu) {
 		wult_err("armer thread runs on CPU%u instead of CPU%u",
-			 smp_processor_id(), wi->cpunum);
+			 smp_processor_id(), wi->cpu);
 		return -EINVAL;
 	}
 	return 0;
@@ -192,9 +192,9 @@ static int check_event(void)
 
 	/* Check that the interrupt happend on the right CPU. */
 	event_cpu = READ_ONCE(wi->event_cpu);
-	if (event_cpu != wi->cpunum) {
+	if (event_cpu != wi->cpu) {
 		wult_err("delayed event happened on CPU%u instead of CPU%u, stop measuring",
-			 event_cpu, wi->cpunum);
+			 event_cpu, wi->cpu);
 		return -EINVAL;
 	}
 
@@ -233,12 +233,12 @@ static int armer_kthread(void *data)
 		goto err_wake;
 	}
 
-	err = check_armer_cpunum();
+	err = check_armer_cpu();
 	if (err)
 		goto err_tracer;
 
 	/* Initialize the delayed event driver. */
-	err = delayed_event_device_init(wi->wdi, wi->cpunum);
+	err = delayed_event_device_init(wi->wdi, wi->cpu);
 	if (err)
 		goto err_tracer;
 
@@ -253,7 +253,7 @@ static int armer_kthread(void *data)
 		if (kthread_should_stop())
 			break;
 
-		err = check_armer_cpunum();
+		err = check_armer_cpu();
 		if (err)
 			goto err_disable;
 
@@ -360,7 +360,7 @@ int wult_register(struct wult_device_info *wdi)
 		goto err_put;
 	}
 
-	kthread_bind(wi->armer, wi->cpunum);
+	kthread_bind(wi->armer, wi->cpu);
 	wake_up_process(wi->armer);
 
 	/* Wait for the armer thread to finish the initialization. */
@@ -420,8 +420,8 @@ static int __init wult_init(void)
 {
 	const struct x86_cpu_id *id;
 
-	if (cpunum >= NR_CPUS) {
-		wult_err("bad CPU number '%d', max. is %d", cpunum, NR_CPUS - 1);
+	if (cpu >= NR_CPUS) {
+		wult_err("bad CPU number '%d', max. is %d", cpu, NR_CPUS - 1);
 		return -EINVAL;
 	}
 
@@ -441,7 +441,7 @@ static int __init wult_init(void)
 		return -ENOMEM;
 
 	mutex_init(&wi->dev_mutex);
-	wi->cpunum = cpunum;
+	wi->cpu = cpu;
 	mutex_init(&wi->enable_mutex);
 	init_waitqueue_head(&wi->armer_wq);
 
@@ -456,8 +456,8 @@ static void __exit wult_exit(void)
 }
 module_exit(wult_exit);
 
-module_param(cpunum, uint, 0444);
-MODULE_PARM_DESC(cpunum, "CPU number to measure wake latency on, default is CPU0.");
+module_param(cpu, uint, 0444);
+MODULE_PARM_DESC(cpu, "CPU number to measure wake latency on, default is CPU0.");
 
 MODULE_VERSION(WULT_VERSION);
 MODULE_DESCRIPTION("wake up latency measurement driver.");

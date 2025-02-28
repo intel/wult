@@ -2,6 +2,6 @@ format_version: '1.0'
 reportid: testdata
 toolname: wult
 toolver: 1.7.2
-cpunum: 0
+cpu: 0
 devid: tdt
 devdescr: TSC deadline timer on CPU0

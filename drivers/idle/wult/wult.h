@@ -76,7 +76,7 @@ struct wult_device_ops {
 	/* Enable/disable the delayed event device. */
 	int (*enable)(struct wult_device_info *wdi, bool enable);
 	/* Initialize the delayed event device. */
-	int (*init)(struct wult_device_info *wdi, int cpunum);
+	int (*init)(struct wult_device_info *wdi, int cpu);
 	/* Deinitialize the delayed event device. */
 	void (*exit)(struct wult_device_info *wdi);
 };
@@ -118,7 +118,7 @@ struct wult_info {
 	/* Driver's root debugfs directory. */
 	struct dentry *dfsroot;
 	/* The measured CPU number. */
-	unsigned int cpunum;
+	unsigned int cpu;
 	/* Whether the measurement is enabled. */
 	bool enabled;
 	/*

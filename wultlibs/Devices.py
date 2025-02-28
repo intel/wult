@@ -397,20 +397,20 @@ class _WultTSCDeadlineTimer(_DeviceBase):
 
     supported_devices = {"tdt" : "TSC deadline timer"}
 
-    def __init__(self, devid, pman, cpunum=0, dmesg=None):
+    def __init__(self, devid, pman, cpu=0, dmesg=None):
         """
         The class constructor. The arguments are as follows.
           * devid - device ID.
           * pman - the process manager object defining the host to operate on.
-          * cpunum - measured CPU number.
+          * cpu - measured CPU number.
           * dmesg - 'True' to enable 'dmesg' output checks, 'False' to disable them.
         """
 
-        errmsg = f"device '{devid}' is not supported for CPU {cpunum}{pman.hostmsg}."
+        errmsg = f"device '{devid}' is not supported for CPU {cpu}{pman.hostmsg}."
         if devid not in self.supported_devices:
             raise ErrorNotSupported(f"{errmsg}")
 
-        path = Path(f"/sys/devices/system/clockevents/clockevent{cpunum}/current_device")
+        path = Path(f"/sys/devices/system/clockevents/clockevent{cpu}/current_device")
         with pman.open(path, "r") as fobj:
             clkname = fobj.read().strip()
             if clkname != "lapic-deadline":
@@ -555,20 +555,20 @@ class _PbeHRTimer(_HRTimerDeviceBase):
 
         self.info["descr"] = self.supported_devices["hrtimer"]
 
-def GetDevice(toolname, devid, pman, cpunum=0, dmesg=None):
+def GetDevice(toolname, devid, pman, cpu=0, dmesg=None):
     """
     The device object factory - creates and returns the correct type of device object
     depending on the tool and 'devid'. The arguments are as follows:
       * toolname - name of the tool to create a device object for ("wult" or "ndl").
       * devid - same as in '_DeviceBase.__init__()'.
       * pman - same as in '_DeviceBase.__init__()'.
-      * cpunum - measured CPU number.
+      * cpu - measured CPU number.
       * dmesg - 'True' to enable 'dmesg' output checks, 'False' to disable them.
     """
 
     if toolname == "wult":
         if devid in _WultTSCDeadlineTimer.supported_devices:
-            return _WultTSCDeadlineTimer(devid, pman, cpunum=cpunum, dmesg=dmesg)
+            return _WultTSCDeadlineTimer(devid, pman, cpu=cpu, dmesg=dmesg)
 
         if devid in _WultHRT.supported_devices:
             return _WultHRT(devid, pman, dmesg=dmesg)

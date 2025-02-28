@@ -71,7 +71,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         if self._fnobj:
             self._fnobj.start()
 
-        msg = f"Start measuring RTD by sending delayed packets from CPU {self._res.cpunum}" \
+        msg = f"Start measuring RTD by sending delayed packets from CPU {self._res.cpu}" \
               f"{self._pman.hostmsg}, collecting {dpcnt} datapoints"
         if tlimit:
             msg += f", time limit is {Human.duration(tlimit)}"
@@ -164,7 +164,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
         ndlhelper_path = DeployBase.get_installed_helper_path("ndl", "ndl", dev.helpername,
                                                               pman=pman)
-        self._prov = _NdlRawDataProvider.NdlRawDataProvider(dev, pman, res.cpunum, self._ldist,
+        self._prov = _NdlRawDataProvider.NdlRawDataProvider(dev, pman, res.cpu, self._ldist,
                                                             ndlhelper_path, timeout=self._timeout,
                                                             cbuf_size=cbuf_size)
 

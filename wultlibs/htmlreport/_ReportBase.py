@@ -88,11 +88,11 @@ class ReportBase:
         # Add measured CPU.
         mcpu_row = self._intro_tbl.create_row("Measured CPU")
         for res in self.rsts:
-            cpunum = res.info.get("cpunum")
-            if cpunum is not None:
-                cpunum = str(cpunum)
+            cpu = res.info.get("cpu")
+            if cpu is not None:
+                cpu = str(cpu)
 
-            mcpu_row.add_cell(res.reportid, cpunum)
+            mcpu_row.add_cell(res.reportid, cpu)
 
         # Add device ID.
         devid_row = self._intro_tbl.create_row("Device ID")

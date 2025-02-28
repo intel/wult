@@ -179,10 +179,10 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                 for service in ntp_services:
                     _LOG.info("Stopped the '%s' NTP service", service)
 
-    def __init__(self, dev, pman, cpunum, ldist, timeout=None, unload=True):
+    def __init__(self, dev, pman, cpu, ldist, timeout=None, unload=True):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
 
-        drvinfo = { "wult" : { "params" : f"cpunum={cpunum}" },
+        drvinfo = { "wult" : { "params" : f"cpu={cpu}" },
                      dev.drvname : { "params" : None }}
         super().__init__(dev, pman, ldist, drvinfo=drvinfo, timeout=timeout, unload=unload)
 
@@ -194,7 +194,7 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         self._enabled_path = None
         self._fields = None
 
-        self._ftrace = _FTrace.FTrace(pman=self._pman, cpunum=cpunum, timeout=self._timeout)
+        self._ftrace = _FTrace.FTrace(pman=self._pman, cpu=cpu, timeout=self._timeout)
 
         self._basedir = self.debugfs_mntpoint / "wult"
         self._enabled_path = self._basedir / "enabled"
@@ -297,18 +297,18 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
         super().prepare()
 
         ldist_str = ",".join([str(val) for val in self.ldist])
-        self._helper_opts = f"-c {self._cpunum} -l {ldist_str}"
+        self._helper_opts = f"-c {self._cpu} -l {ldist_str}"
 
-    def __init__(self, dev, pman, cpunum, ldist, helper_path, timeout=None):
+    def __init__(self, dev, pman, cpu, ldist, helper_path, timeout=None):
         """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
 
         super().__init__(dev, pman, ldist, helper_path=helper_path, timeout=timeout)
 
-        self._cpunum = cpunum
+        self._cpu = cpu
 
         self._wult_lines = None
 
-        self._ftrace = _FTrace.FTrace(pman=self._pman, cpunum=cpunum, timeout=self._timeout)
+        self._ftrace = _FTrace.FTrace(pman=self._pman, cpu=cpu, timeout=self._timeout)
 
         try:
             self._ftrace.enable_event("bpf_trace/bpf_trace_printk")
@@ -317,13 +317,13 @@ class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
                         f"Make sure you have 'CONFIG_BPF' enabled in the kernel"
                         f"{self._pman.hostmsg}") from err
 
-def WultRawDataProvider(dev, pman, cpunum, ldist, helper_path=None, timeout=None, unload=True):
+def WultRawDataProvider(dev, pman, cpu, ldist, helper_path=None, timeout=None, unload=True):
     """
     Create and return a raw data provider class suitable for a delayed event device 'dev'. The
     arguments are as follows.
       * dev - the device object created with 'Devices.GetDevice()'.
       * pman - the process manager object defining host to operate on.
-      * cpunum - the measured CPU number.
+      * cpu - the measured CPU number.
       * ldist - a pair of numbers specifying the launch distance range in nanoseconds.
       * helper_path - path to the 'wult-hrt-helper' program.
       * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
@@ -332,8 +332,8 @@ def WultRawDataProvider(dev, pman, cpunum, ldist, helper_path=None, timeout=None
     """
 
     if dev.drvname:
-        return _WultDrvRawDataProvider(dev, pman, cpunum, ldist, timeout=timeout, unload=unload)
+        return _WultDrvRawDataProvider(dev, pman, cpu, ldist, timeout=timeout, unload=unload)
     if not helper_path:
         raise Error("BUG: the 'wult-hrt-helper' program path was not specified")
 
-    return _WultBPFRawDataProvider(dev, pman, cpunum, ldist, helper_path, timeout=timeout)
+    return _WultBPFRawDataProvider(dev, pman, cpu, ldist, helper_path, timeout=timeout)

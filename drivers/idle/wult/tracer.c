@@ -73,7 +73,7 @@ static void before_idle(struct wult_info *wi)
 
 	WARN_ON(!irqs_disabled());
 	ti->smi_bi = get_smi_count();
-	ti->nmi_bi = per_cpu(irq_stat, wi->cpunum).__nmi_count;
+	ti->nmi_bi = per_cpu(irq_stat, wi->cpu).__nmi_count;
 
 	ti->bi_monotonic = ktime_get_ns();
 	ti->bi_cyc = rdtsc_ordered();
@@ -147,7 +147,7 @@ void wult_tracer_interrupt(struct wult_info *wi)
 	 * the measurements. Therefore, they have to be read last.
 	 * */
 	ti->smi_intr = get_smi_count();
-	ti->nmi_intr = per_cpu(irq_stat, wi->cpunum).__nmi_count;
+	ti->nmi_intr = per_cpu(irq_stat, wi->cpu).__nmi_count;
 }
 
 static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_id)
@@ -156,7 +156,7 @@ static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_
 	struct wult_tracer_info *ti = &wi->ti;
 	static bool bi_finished = false;
 
-	if (cpu_id != wi->cpunum)
+	if (cpu_id != wi->cpu)
 		/* Not the CPU we are measuring. */
 		return;
 

@@ -126,7 +126,7 @@ def _build_arguments_parser():
     subpars.add_argument("-l", "--ldist", help=text, default="0,4000")
 
     text = """The logical CPU number to measure, default is CPU 0."""
-    subpars.add_argument("--cpunum", help=text, type=int, default=0)
+    subpars.add_argument("--cpu", help=text, type=int, default=0)
 
     text = f"""TSC calculation time, the default distance is 10 seconds. Generally, longer TSC
                calculation time translates to better accuracy. {man_msg}"""

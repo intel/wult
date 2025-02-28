@@ -41,7 +41,7 @@ struct wult_tdt {
 	u64 intr_tsc;
 	struct tracepoint *msr_tp;
 	struct tracepoint *timer_tp;
-	int cpunum;
+	int cpu;
 	bool timer_armed;
 };
 
@@ -114,7 +114,7 @@ static void write_msr_hook(void *data, unsigned int msr, u64 val)
 {
 	struct wult_tdt *wt = data;
 
-	if (smp_processor_id() != wt->cpunum)
+	if (smp_processor_id() != wt->cpu)
 		/* Not the CPU we are measuring. */
 		return;
 
@@ -128,7 +128,7 @@ static void local_timer_entry_hook(void *data, int vector)
 {
 	struct wult_tdt *wt = data;
 
-	if (smp_processor_id() != wt->cpunum)
+	if (smp_processor_id() != wt->cpu)
 		/* Not the CPU we are measuring. */
 		return;
 
@@ -177,7 +177,7 @@ static int enable(struct wult_device_info *wdi, bool enable)
 	return 0;
 }
 
-static int init_device(struct wult_device_info *wdi, int cpunum)
+static int init_device(struct wult_device_info *wdi, int cpu)
 {
 	struct wult_tdt *wt = wdi_to_wt(wdi);
 
@@ -191,7 +191,7 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 	if (!wt->timer_tp)
 		return -EINVAL;
 
-	wt->cpunum = cpunum;
+	wt->cpu = cpu;
 	hrtimer_init(&wt->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL_PINNED_HARD);
 	wt->timer.function = &timer_interrupt;
 	return 0;

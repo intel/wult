@@ -16,7 +16,7 @@ usage: wult start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
 [-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--exclude EXCLUDE]
 [--include INCLUDE] [--keep-filtered] [-o OUTDIR] [--reportid REPORTID]
 [--stats STATS] [--stats-intervals STATS_INTERVALS] [--list-stats]
-[-l LDIST] [--cpunum CPUNUM] [--tsc-cal-time TSC_CAL_TIME]
+[-l LDIST] [--cpu CPU] [--tsc-cal-time TSC_CAL_TIME]
 [--keep-raw-data] [--no-unload] [--report] [--force]
 [--freq-noise FREQ_NOISE] [--freq-noise-sleep FREQ_NOISE_SLEEP] devid
 
@@ -156,7 +156,7 @@ OPTIONS *'wult* start'
    event source will be used. The optimal launch distance range is
    system-specific.
 
-**--cpunum** *CPUNUM*
+**--cpu** *CPU*
    The logical CPU number to measure, default is CPU 0.
 
 **--tsc-cal-time** *TSC_CAL_TIME*

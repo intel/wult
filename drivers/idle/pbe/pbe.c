@@ -43,7 +43,7 @@ static u64 ldist = LDIST_DEFAULT;
 static u64 ldist_min = LDIST_MIN;
 static u64 ldist_max = LDIST_MAX;
 static struct task_struct *thread;
-static unsigned int cpunum;
+static unsigned int cpu;
 
 static void pbe_wakeup(void)
 {
@@ -51,7 +51,7 @@ static void pbe_wakeup(void)
 
 	/* Initialize cpumask */
 	cpumask_copy(&mask, cpu_online_mask);
-	cpumask_andnot(&mask, &mask, cpumask_of(cpunum));
+	cpumask_andnot(&mask, &mask, cpumask_of(cpu));
 
 	__apic_send_IPI_mask(&mask, IPI_VECTOR);
 }
@@ -83,7 +83,7 @@ static ssize_t pbe_write_file_enable(struct file *file,
 		if (IS_ERR(thread))
 			return PTR_ERR(thread);
 
-		kthread_bind(thread, cpunum);
+		kthread_bind(thread, cpu);
 		wake_up_process(thread);
 		pbe_msg("thread started with launch distance %llu", ldist);
 	} else {
@@ -166,8 +166,8 @@ static const struct file_operations pbe_ro_fops = {
 /* Module initialization function. */
 static int __init pbe_init(void)
 {
-	if (cpunum >= NR_CPUS) {
-		pbe_err("bad CPU number '%d', max. is %d", cpunum, NR_CPUS - 1)
+	if (cpu >= NR_CPUS) {
+		pbe_err("bad CPU number '%d', max. is %d", cpu, NR_CPUS - 1)
 ;
 		return -EINVAL;
 	}
@@ -198,8 +198,8 @@ static void __exit pbe_exit(void)
 }
 module_exit(pbe_exit);
 
-module_param(cpunum, uint, 0444);
-MODULE_PARM_DESC(cpunum, "CPU number to run the pbe thread on, default is CPU0.");
+module_param(cpu, uint, 0444);
+MODULE_PARM_DESC(cpu, "CPU number to run the pbe thread on, default is CPU0.");
 
 MODULE_VERSION(PBE_VERSION);
 MODULE_DESCRIPTION("The pbe driver.");

@@ -14,7 +14,7 @@ COMMAND *'exercise-sut* start'
 
 usage: exercise-sut start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K
 PRIVKEY] [-T TIMEOUT] [--datapoints DATAPOINTS] [--reportid-prefix
-REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpunums CPUNUMS]
+REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpus CPUS]
 [--cstates CSTATES] [--pcstates PCSTATES] [--turbo TURBO]
 [--freqs FREQS] [--uncore-freqs UNCORE_FREQS] [--cpufreq-governor GOVERNOR]
 [--idle-governor GOVERNOR] [--aspm ASPM] [--c1-demotion C1_DEMOTION]
@@ -65,7 +65,7 @@ OPTIONS *'exercise-sut* start'
 **--reportid-suffix** *REPORTID_SUFFIX*
    String to append to the report ID.
 
-**--cpunums** *CPUNUMS*
+**--cpus** *CPUS*
    Applicable only to the 'wult' and 'ndl' tools. Comma-separated list
    of CPU numbers to measure with.
 

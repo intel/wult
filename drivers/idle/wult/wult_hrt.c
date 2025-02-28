@@ -30,7 +30,7 @@ struct wult_hrt {
 	struct wult_device_info wdi;
 	u64 ltime;
 	struct tracepoint *tp;
-	int cpunum;
+	int cpu;
 };
 
 static struct wult_hrt wult_hrt = {
@@ -79,7 +79,7 @@ static void hrtimer_expire_entry_hook(void *data, struct hrtimer *hrtimer, ktime
 {
 	struct wult_hrt *wt = data;
 
-	if (smp_processor_id() != wt->cpunum)
+	if (smp_processor_id() != wt->cpu)
 		/* Not the CPU we are measuring. */
 		return;
 
@@ -117,7 +117,7 @@ static int enable(struct wult_device_info *wdi, bool enable)
 	return 0;
 }
 
-static int init_device(struct wult_device_info *wdi, int cpunum)
+static int init_device(struct wult_device_info *wdi, int cpu)
 {
 	struct wult_hrt *wt = wdi_to_wt(wdi);
 
@@ -125,7 +125,7 @@ static int init_device(struct wult_device_info *wdi, int cpunum)
 	if (!wt->tp)
 		return -EINVAL;
 
-	wt->cpunum = cpunum;
+	wt->cpu = cpu;
 	hrtimer_init(&wt->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS_PINNED_HARD);
 	wt->timer.function = &timer_interrupt;
 	return 0;

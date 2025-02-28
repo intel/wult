@@ -478,6 +478,10 @@ class RORawResult(_RawResultBase.RawResultBase):
                          "version so may cause unexpected behavior. Please use '%s v%s'.",
                          self.reportid, format_ver, self._toolname, toolver)
 
+        # TODO: remove in 2026. Before version 1.12.34, the the key was named "cpunum".
+        if "cpunum" in self.info:
+            self.info["cpu"] = self.info.pop("cpunum")
+
     def __init__(self, dirpath, reportid=None):
         """
         The class constructor. The arguments are as follows.
