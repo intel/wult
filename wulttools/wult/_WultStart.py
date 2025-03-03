@@ -111,7 +111,7 @@ def start_command(args):
         if args.tlimit:
             if Trivial.is_num(args.tlimit):
                 args.tlimit = f"{args.tlimit}m"
-            args.tlimit = Human.parse_human(args.tlimit, unit="s", integer=True, name="time limit")
+            args.tlimit = Human.parse_human(args.tlimit, unit="s", integer=True, what="time limit")
 
         args.ldist = _Common.parse_ldist(args.ldist)
 
@@ -120,7 +120,7 @@ def start_command(args):
         args.dpcnt = int(args.dpcnt)
 
         args.tsc_cal_time = Human.parse_human(args.tsc_cal_time, unit="s",
-                                              name="TSC calculation time", integer=True)
+                                              what="TSC calculation time", integer=True)
 
         cpuinfo = CPUInfo.CPUInfo(pman=pman)
         stack.enter_context(cpuinfo)

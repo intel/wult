@@ -52,14 +52,14 @@ def start_command(args):
             ldist_step_pct = Trivial.str_to_num(args.ldist_step.rstrip("%"))
         else:
             ldist_step_ns = Human.parse_human(args.ldist_step, unit="us", target_unit="ns",
-                                              name="launch distance step")
+                                              what="launch distance step")
         if Trivial.is_num(args.span):
             args.span = f"{args.span}m"
-        span = Human.parse_human(args.span, unit="s", integer=True, name="span")
+        span = Human.parse_human(args.span, unit="s", integer=True, what="span")
 
         if Trivial.is_num(args.warmup):
             args.warmup = f"{args.warmup}m"
-        warmup = Human.parse_human(args.warmup, unit="s", integer=True, name="warm-up period")
+        warmup = Human.parse_human(args.warmup, unit="s", integer=True, what="warm-up period")
 
         if not args.outdir:
             args.outdir = Path(f"./{args.reportid}")

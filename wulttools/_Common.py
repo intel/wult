@@ -264,7 +264,7 @@ def _validate_range(rng, what, single_ok):
     vals = [None] * len(split_rng)
 
     for idx, val in enumerate(split_rng):
-        vals[idx] = Human.parse_human(val, unit="us", target_unit="ns", integer=True, name=what)
+        vals[idx] = Human.parse_human(val, unit="us", target_unit="ns", integer=True, what=what)
         if vals[idx] < 0:
             raise Error(f"bad {what} value '{split_rng[idx]}', should be greater than zero")
 
@@ -749,7 +749,7 @@ def parse_freq_noise_cmdline_args(args):
 
     if args.freq_noise_sleep:
         val = Human.parse_human(args.freq_noise_sleep, unit="s", target_unit="us", integer=True,
-                                name="frequency noise sleep time")
+                                what="frequency noise sleep time")
         specs += [{"type": "sleep", "val": val}]
 
     return specs
