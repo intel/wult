@@ -41,27 +41,6 @@ static int set_enabled(bool enabled)
 	return err;
 }
 
-/*
- * Set a boolean variable pointed to by 'boolptr' to value 'val'.
- */
-static int set_bool(struct wult_info *wi, bool *boolptr, bool val)
-{
-	int err = 0;
-
-	mutex_lock(&wi->enable_mutex);
-	if (*boolptr == val || !wi->enabled)
-		*boolptr = val;
-	else
-		/*
-		 * The measurements must be disabled in order to toggle the
-		 * interrupt focus mode.
-		 */
-		err = -EBUSY;
-	mutex_unlock(&wi->enable_mutex);
-
-	return err;
-}
-
 static ssize_t dfs_write_bool_file(struct file *file,
 				   const char __user *user_buf,
 				   size_t count, loff_t *ppos)
