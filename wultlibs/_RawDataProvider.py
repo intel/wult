@@ -43,10 +43,10 @@ class RawDataProviderBase(ClassHelpers.SimpleCloseContext):
             Trivial.validate_range(self.ldist[0], self.ldist[1], min_limit=ldist_min,
                                    max_limit=ldist_max, what="launch distance range in nanoseconds")
         except Error as err:
-            ldist0 = Human.duration_ns(self.ldist[0])
-            ldist1 = Human.duration_ns(self.ldist[1])
-            ldist_min = Human.duration_ns(ldist_min)
-            ldist_max = Human.duration_ns(ldist_max)
+            ldist0 = Human.num2si(self.ldist[0], unit="ns")
+            ldist1 = Human.num2si(self.ldist[1], unit="ns")
+            ldist_min = Human.num2si(ldist_min, unit="ns")
+            ldist_max = Human.num2si(ldist_max, unit="ns")
 
             msg = str(err)
             if self.ldist[0] == self.ldist[1]:

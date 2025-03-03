@@ -148,7 +148,7 @@ class PbeProgressLine(_ProgressLineBase):
         if not self._update(False, time_now):
             return
 
-        hldist = Human.duration_ns(ldist)
+        hldist = Human.num2si(ldist, unit="ns")
         rate = int(self.NSEC_PER_SEC / ldist)
         duration = Human.duration(self.get_duration())
 

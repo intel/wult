@@ -193,7 +193,8 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
                                                             lcpu=lcpu)
 
         self._ldist = self._prov.ldist
-        self._hldist = (Human.duration_ns(self._ldist[0]), Human.duration_ns(self._ldist[1]))
+        self._hldist = (Human.num2si(self._ldist[0], unit="ns"),
+                        Human.num2si(self._ldist[1], unit="ns"))
 
         self._hspan = Human.duration(self._span)
         self._hwarmup = Human.duration(self._warmup)
@@ -201,7 +202,7 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
         if self._ldist_step_pct:
             self._hldist_step = f"{self._ldist_step_pct}%"
         else:
-            self._hldist_step = Human.duration_ns(self._ldist_step_ns)
+            self._hldist_step = Human.num2si(self._ldist_step_ns, unit="ns")
 
         if res.info["toolname"] != ToolInfo.TOOLNAME:
             raise Error(f"unsupported non-pbe test result at {res.dirpath}.\nPlease, provide a "
