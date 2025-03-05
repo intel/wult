@@ -9,6 +9,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 ### Changed
 
+## [1.12.36] - 2025-03-05
+### Fixed
+ - Fix wult driver compilation with -Wall.
+
 ## [1.12.35] - 2025-03-05
 ### Changed
  - Rename '--cpunum' option to '--cpu'.
