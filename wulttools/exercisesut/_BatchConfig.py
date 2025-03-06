@@ -667,11 +667,7 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
     def _get_toolopts(self, reportid):
         """Get tool options, if any."""
 
-        toolopts = self._toolopts
-        if "__reportid__" in toolopts:
-            toolopts = toolopts.replace("__reportid__", reportid)
-
-        return toolopts
+        return self._toolopts.replace("{REPORTID}", reportid)
 
     def get_command(self, props, reportid, **kwargs): # pylint: disable=unused-argument
         """
@@ -820,7 +816,7 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
 
         if reportid:
             cmd += f" --reportid {reportid} -o {self._outdir}/{reportid}"
-            command = command.replace("__reportid__", reportid)
+            command = command.replace("{REPORTID}", reportid)
         else:
             cmd += f" -o {self._outdir}"
 
@@ -833,7 +829,7 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
 
         if cpu is not None:
             cmd += f" --cpu {cpu}"
-            command = command.replace("__cpu__", cpu)
+            command = command.replace("{CPU}", cpu)
 
         if self._hostname != "localhost":
             cmd += f" -H {self._hostname}"

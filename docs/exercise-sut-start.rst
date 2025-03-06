@@ -150,7 +150,9 @@ OPTIONS *'exercise-sut* start'
 
 **--command** *COMMAND*
    Applicable only to 'stats-collect' tool. The command to that
-   'stats-collect' should run.
+   'stats-collect' should run. String "{REPORTID}" in COMMAND will be
+   replaced with the report ID and string "{CPU}" in COMMAND will be replaced
+   with the CPU number.
 
 **--stop-on-failure**
    Stop if any of the steps fail, instead of continuing (default).

@@ -10,7 +10,6 @@
 """A helper module for the 'exercise-sut' tool for generating reports and diffs."""
 
 import os
-import re
 from pathlib import Path
 from pepclibs.helperlibs import Logging, Trivial, YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound
@@ -216,7 +215,7 @@ class BatchReport(_Common.CmdlineRunner):
             cmd += "report "
 
         if self._toolopts:
-            toolopts = re.sub("__reportid__", outdir.name, self._toolopts)
+            toolopts = self._toolopts.replace("{REPORTID}", outdir.name)
             cmd += f"{toolopts} "
 
         res_str = " ".join([str(path) for path in respaths])

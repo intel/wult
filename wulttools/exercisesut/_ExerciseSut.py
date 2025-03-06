@@ -190,8 +190,8 @@ _COLLECT_OPTIONS = {
     },
     "command": {
         "help": """Applicable only to 'stats-collect' tool. The command to that 'stats-collect'
-                   should run. The string "__reportid__" will be replaced with generated report ID
-                   and the string "__cpu__" will be replaced with used CPU number."""
+                   should run. String "{reportid}}" in COMMAND will be replaced with the report ID
+                   and the string "{CPU}" will be replaced with the CPU number."""
     },
     "only_measured_cpu": {
         "action": "store_true",
@@ -258,8 +258,8 @@ _GENERATE_OPTIONS = {
 _COMMON_OPTIONS = {
     "toolopts": {
         "default": "",
-        "help": """Additional options to use for running the tool. The string "__reportid__" will
-                   be replaced with generated report ID."""
+        "help": """Additional options to use for running the tool. The string "reportid" in 
+                   TOOLOPTS will be replaced with the report ID."""
     },
     "outdir": {
         "short": "-o",

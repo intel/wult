@@ -59,8 +59,8 @@ OPTIONS *'exercise-sut* report'
    This option can be used to override the tool.
 
 **--toolopts** *TOOLOPTS*
-   Additional options to use for running the tool. The string
-   "\__reportid\_\_" will be replaced with generated report ID.
+   Additional options to use for running the tool. String "{REPORTID}"
+   in TOOLOPTS will be replaced with the report ID.
 
 **--outdir** *OUTDIR*, **-o** *OUTDIR*
    Path to directory to store the results at. Default is
