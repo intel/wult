@@ -71,7 +71,6 @@ install -pDm644 docs/man1/*.1 %{buildroot}/%{_mandir}/man1/wult
 %doc README.md CHANGELOG.md
 %license LICENSE.md
 %{_bindir}/exercise-sut
-%{_bindir}/ipmi-helper
 %{_bindir}/ndl
 %{_bindir}/ndl-helper
 %{_bindir}/pbe
