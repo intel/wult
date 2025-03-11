@@ -9,6 +9,11 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 ### Changed
 
+## [1.12.37] - 2025-03-11
+### Changed
+ - Require fixed version of 'stats-collect' that does not crash on turbostat
+   files containing "(neg)" values.
+
 ## [1.12.36] - 2025-03-05
 ### Fixed
  - Fix wult driver compilation with -Wall.
