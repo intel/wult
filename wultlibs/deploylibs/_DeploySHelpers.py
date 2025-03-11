@@ -12,19 +12,27 @@ This module provides the API for deploying simple helpers. Refer to the 'DeployB
 docstring for more information.
 """
 
+# TODO: finish adding type hints to this module.
+from __future__ import annotations # Remove when switching to Python 3.10+.
+
+from pathlib import Path
 from pepclibs.helperlibs import Logging
 from statscollectlibs.deploylibs import DeployHelpersBase
+from statscollectlibs.deploylibs.DeployBase import InstallableInfoType
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class DeploySHelpers(DeployHelpersBase.DeployHelpersBase):
     """This class provides the API for deploying simple helpers."""
 
-    def _prepare(self, helpersrc, helpers):
+    def _prepare(self, insts_info: dict[str, InstallableInfoType], installables_basedir: Path):
         """
-        Build and prepare simple helpers for deployment. The arguments are as follows:
-          * helpersrc - path to the helpers base directory on the controller.
-          * helpers - simple helpers to build and prepare for deployment.
+        Build and prepare installables for deployment.
+
+        Args:
+            insts_info: The installables information dictionary.
+            installables_basedir: Path to the base directory that contains the installables on the
+                                  controller.
         """
 
         # Make sure 'cc' is available on the build host - it'll be executed by 'Makefile', so an
@@ -32,15 +40,15 @@ class DeploySHelpers(DeployHelpersBase.DeployHelpersBase):
         self._get_btchk().check_tool("cc")
 
         # Copy simple helpers to the temporary directory on the build host.
-        for shelper in helpers:
-            srcdir = helpersrc/ shelper
+        for shelper in insts_info:
+            srcdir = installables_basedir/ shelper
             _LOG.debug("copying simple helper '%s' to %s:\n  '%s' -> '%s'",
                        shelper, self._bpman.hostname, srcdir, self._btmpdir)
             self._bpman.rsync(srcdir, self._btmpdir, remotesrc=False,
                               remotedst=self._bpman.is_remote)
 
         # Build simple helpers.
-        for shelper in helpers:
+        for shelper in insts_info:
             _LOG.info("Compiling simple helper '%s'%s", shelper, self._bpman.hostmsg)
             helperpath = f"{self._btmpdir}/{shelper}"
             stdout, stderr = self._bpman.run_verify(f"make -C '{helperpath}'")

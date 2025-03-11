@@ -12,10 +12,14 @@ This module provides the API for deploying bpf helpers. Refer to the 'DeployBase
 docstring for more information.
 """
 
+# TODO: finish adding type hints to this module.
+from __future__ import annotations # Remove when switching to Python 3.10+.
+
 from pathlib import Path
-from pepclibs.helperlibs import Logging 
+from pepclibs.helperlibs import Logging
 from pepclibs.helperlibs.Exceptions import ErrorNotFound
 from statscollectlibs.deploylibs import DeployHelpersBase
+from statscollectlibs.deploylibs.DeployBase import InstallableInfoType
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
@@ -136,21 +140,24 @@ class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
         raise ErrorNotFound(f"{msg}\nCompiled 'libbpf.a', but it was still not found in " \
                             f"'{path}'{self._bpman.hostmsg}")
 
-    def _prepare(self, helpersrc, helpers):
+    def _prepare(self, insts_info: dict[str, InstallableInfoType], installables_basedir: Path):
         """
-        Build and prepare eBPF helpers for deployment. The arguments are as follows:
-          * helpersrc - path to the helpers base directory on the controller.
-          * helpers - bpf helpers to deploy.
+        Build and prepare installables for deployment.
+
+        Args:
+            insts_info: The installables information dictionary.
+            installables_basedir: Path to the base directory that contains the installables on the
+                                  controller.
         """
 
         btchk = self._get_btchk()
         btchk.check_tool("cc")
 
         # Copy eBPF helpers to the temporary directory on the build host.
-        for bpfhelper in helpers:
-            srcdir = helpersrc / bpfhelper
+        for installable in insts_info:
+            srcdir = installables_basedir / installable
             _LOG.debug("copying eBPF helper '%s' to %s:\n  '%s' -> '%s'",
-                       bpfhelper, self._bpman.hostname, srcdir, self._btmpdir)
+                       installable, self._bpman.hostname, srcdir, self._btmpdir)
             self._bpman.rsync(srcdir, self._btmpdir, remotesrc=False,
                               remotedst=self._bpman.is_remote)
 
@@ -182,9 +189,9 @@ class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
             bpf_inc = "-I " + " -I ".join([str(incdir) for incdir in incdirs])
 
             # Build the eBPF components of eBPF helpers.
-            for bpfhelper in helpers:
-                _LOG.info("Compiling the eBPF component of '%s'%s", bpfhelper, self._bpman.hostmsg)
-                cmd = f"make -C '{self._btmpdir}/{bpfhelper}' KSRC='{self._ksrc}' " \
+            for installable in insts_info:
+                _LOG.info("Compiling the eBPF component of '%s'%s", installable, self._bpman.hostmsg)
+                cmd = f"make -C '{self._btmpdir}/{installable}' KSRC='{self._ksrc}' " \
                       f"CLANG='{clang_path}' BPFTOOL='{bpftool_path}' BPF_INC='{bpf_inc}' bpf"
                 stdout, stderr = self._bpman.run_verify(cmd)
                 self._log_cmd_output(stdout, stderr)
@@ -203,9 +210,9 @@ class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
             self._check_for_shared_library("bpf")
 
         # Build eBPF helpers.
-        for bpfhelper in helpers:
-            _LOG.info("Compiling eBPF helper '%s'%s", bpfhelper, self._bpman.hostmsg)
-            cmd = f"make -C '{self._btmpdir}/{bpfhelper}'"
+        for installable in insts_info:
+            _LOG.info("Compiling eBPF helper '%s'%s", installable, self._bpman.hostmsg)
+            cmd = f"make -C '{self._btmpdir}/{installable}'"
             if libbpf_path:
                 # Note, in case of static libbpf library, we have to specify 'libelf' adn 'libz'
                 # linker flags, because 'libbpf.a' requires them.

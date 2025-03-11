@@ -162,8 +162,8 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
         self._progress = _ProgressLine.NdlProgressLine(period=1)
 
-        ndlhelper_path = DeployBase.get_installed_helper_path("ndl", "ndl", dev.helpername,
-                                                              pman=pman)
+        ndlhelper_path = DeployBase.get_installed_deployable_path("ndl", "ndl", dev.helpername,
+                                                                  pman=pman)
         self._prov = _NdlRawDataProvider.NdlRawDataProvider(dev, pman, res.cpu, self._ldist,
                                                             ndlhelper_path, timeout=self._timeout,
                                                             cbuf_size=cbuf_size)

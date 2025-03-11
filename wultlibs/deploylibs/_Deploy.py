@@ -286,7 +286,7 @@ class Deploy(DeployBase.DeployBase):
     def _deploy_bpf_helpers(self):
         """Deploy eBPF helpers to the SUT."""
 
-        bpfhelpers = self._cats.get("bpfhelpers")
+        bpfhelpers = self._cats["bpfhelpers"]
         if not bpfhelpers:
             return
 
@@ -299,7 +299,7 @@ class Deploy(DeployBase.DeployBase):
     def _deploy_shelpers(self):
         """Deploy simple helpers to the SUT."""
 
-        shelpers = self._cats.get("shelpers")
+        shelpers = self._cats["shelpers"]
         if not shelpers:
             return
 
@@ -311,15 +311,14 @@ class Deploy(DeployBase.DeployBase):
     def _deploy_pyhelpers(self):
         """Deploy python helpers to the SUT."""
 
-        pyhelpers = self._cats.get("pyhelpers")
-        if not pyhelpers:
+        if not self._cats["pyhelpers"]:
             return
 
-        with _DeployPyHelpers.DeployPyHelpers("wult", self._toolname, pyhelpers, self._spman,
-                                              self._bpman, self._cpman, self._get_stmpdir(),
-                                              self._get_btmpdir(), self._get_ctmpdir(),
+        with _DeployPyHelpers.DeployPyHelpers("wult", self._toolname, self._spman,
+                                              self._bpman, self._get_stmpdir(), self._get_btmpdir(),
+                                              cpman=self._cpman, ctmpdir=self._get_ctmpdir(),
                                               debug=self._debug) as depl:
-            depl.deploy(list(pyhelpers))
+            depl.deploy(self._cats["pyhelpers"])
 
     def _deploy_drivers(self):
         """Deploy drivers to the SUT."""
