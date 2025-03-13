@@ -79,15 +79,15 @@ def _build_arguments_parser():
 
     ArgParse.add_ssh_options(subpars)
 
-    text = f"""The launch distance range to go through. The default range is [10us,10ms], but you
-               can override it with this option by specifying a comma-separated range. The default
-               unit is microseconds, but you can use the following specifiers as well:
+    text = f"""The launch distance range to go through. The default range is [10us,10ms], but it can
+               be overriden with this option by specifying a comma-separated range. The default unit
+               is microseconds, but the following unit specifiers can be used:
                {_Common.DURATION_NS_SPECS_DESCR}. For example, '--ldist 20us,1ms' would be a
                [20,1000] microseconds range."""
     subpars.add_argument("-l", "--ldist", help=text, default="10,10000")
 
     text = f"""The launch distance step. By default it is 1%%. You can specify a percent value or an
-               absolute time value. In the latter case, you can use one of the following specifiers:
+               absolute time value. In the latter case, one of the following specifiers can be used:
                {_Common.DURATION_NS_SPECS_DESCR}. For example, '--ldist-step=1ms' means that
                launch distance will be incremented by 1 millisecond on every iteration. If no unit was
                specified, microseconds are assumed."""
