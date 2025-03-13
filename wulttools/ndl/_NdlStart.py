@@ -181,11 +181,11 @@ def start_command(args):
         elif args.cpu == "local":
             lcpus = _get_local_cpus(pman, dev.info["alias"])
             args.cpu = lcpus[0]
-            cpus_msg = f"Local CPU numbers: {Human.rangify(lcpus)}"
+            cpus_msg = f"Local CPU numbers: {Trivial.rangify(lcpus)}"
         elif args.cpu == "remote":
             rcpus = _get_remote_cpus(pman, dev.info["alias"], cpuinfo)
             args.cpu = rcpus[0]
-            cpus_msg = f"Remote CPU numbers: {Human.rangify(rcpus)}"
+            cpus_msg = f"Remote CPU numbers: {Trivial.rangify(rcpus)}"
         else:
             raise Error(f"bad CPU number '{args.cpu}'")
 

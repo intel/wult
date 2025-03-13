@@ -70,7 +70,7 @@ def start_command(args):
         offline_cpus = cpuinfo.get_offline_cpus()
         if offline_cpus:
             _LOG.notice(f"the following CPUs are offline and will not participate in measurements: "
-                        f"{Human.rangify(offline_cpus)}")
+                        f"{Trivial.rangify(offline_cpus)}")
 
         res = WORawResult.WORawResult(args.toolname, args.toolver, args.reportid, args.outdir)
         stack.enter_context(res)

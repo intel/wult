@@ -14,7 +14,7 @@ permutations.
 
 import itertools
 from pepclibs import CStates, PStates, CPUIdle, CPUInfo
-from pepclibs.helperlibs import Logging, ClassHelpers, Human, LocalProcessManager, Trivial
+from pepclibs.helperlibs import Logging, ClassHelpers, LocalProcessManager, Trivial
 from pepclibs.helperlibs import Systemctl
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.helperlibs import ReportID
@@ -537,14 +537,14 @@ class _PepcCmdFormatter(_PropIteratorBase):
             if io_dies:
                 # I/O dies have no CPUs, so '--cpus' does not cover them. Include them using
                 # '--dies'.
-                io_dies = Human.rangify(io_dies)
+                io_dies = Trivial.rangify(io_dies)
                 opts = f"--packages {package} --dies {io_dies} "
 
         if cpus is None:
             raise Error(f"unknown scope for property '{pname}'")
 
         if isinstance(cpus, list):
-            cpus = Human.rangify(cpus)
+            cpus = Trivial.rangify(cpus)
 
         return opts + f"--cpus {cpus}"
 
