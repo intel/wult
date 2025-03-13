@@ -12,6 +12,7 @@ single purpose this module serves, it is just a collection of shared code. Many 
 module require the 'args' object which represents the command-line arguments.
 """
 
+# TODO: finish adding type hints to this module.
 from __future__ import annotations # Remove when switching to Python 3.10+.
 
 # pylint: disable=no-member
@@ -246,53 +247,22 @@ def get_pman(args):
     return ProcessManager.get_pman(args.hostname, username=username, privkeypath=privkeypath,
                                    timeout=timeout)
 
-def _validate_range(rng, what, single_ok):
-    """Implement 'parse_ldist()'."""
-
-    if single_ok:
-        min_len = 1
-    else:
-        min_len = 2
-
-    split_rng = Trivial.split_csv_line(rng)
-
-    if len(split_rng) < min_len:
-        raise Error(f"bad {what} range '{rng}', it should include {min_len} numbers")
-    if len(split_rng) > 2:
-        raise Error(f"bad {what} range '{rng}', it should not include more than 2 numbers")
-
-    vals = [None] * len(split_rng)
-
-    for idx, val in enumerate(split_rng):
-        vals[idx] = Human.parse_human(val, unit="us", target_unit="ns", integer=True, what=what)
-        if vals[idx] < 0:
-            raise Error(f"bad {what} value '{split_rng[idx]}', should be greater than zero")
-
-    if len(vals) == 2:
-        if vals[1] - vals[0] < 0:
-            raise Error(f"bad {what} range '{rng}', first number cannot be greater than the second "
-                        f"number")
-        if not single_ok and vals[0] == vals[1]:
-            raise Error(f"bad {what} range '{rng}', first number cannot be the same as the second "
-                        f"number")
-    if len(vals) == 1:
-        vals.append(vals[0])
-
-    return vals
-
-def parse_ldist(ldist, single_ok=True):
+def parse_ldist(rng: str) -> tuple[int, int]:
     """
-    Parse and validate the launch distance range ('--ldist' option). The arguments are as follows.
-      * ldist - a string of single or two comma-separated launch distance values.
-      * single_ok - if 'True', raise an exception when 'ldist' contains only a single number
+    Parse and validate the launch distance range ('--ldist' option).
 
-    The default 'ldist' unit is 'microseconds', but the 'ldist' values are parsed with
-    'Human.parse_human()', so they can include specifiers like 'ms' or 'us'.
+    Args:
+        rng: A string of single or two comma-separated launch distance values.
 
-    Return launch distance range as a list of two integers in nanoseconds.
+    Returns:
+        Launch distance range as a tuple of two integers in nanoseconds.
     """
 
-    return _validate_range(ldist, "launch distance", single_ok)
+    ldist = Human.parse_human_range(rng, unit="us", target_unit="ns", what="launch distance")
+    if ldist[0] < 0 or ldist[1] < 0:
+        raise Error(f"bad launch distance range '{rng}', values cannot be negative")
+
+    return round(ldist[0]), round(ldist[1])
 
 def even_up_dpcnt(rsts):
     """

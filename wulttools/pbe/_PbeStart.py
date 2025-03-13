@@ -45,7 +45,7 @@ def start_command(args):
 
         args.reportid = _Common.start_command_reportid(args, pman)
 
-        args.ldist = _Common.parse_ldist(args.ldist, single_ok=False)
+        args.ldist = _Common.parse_ldist(args.ldist)
 
         ldist_step_pct, ldist_step_ns = None, None
         if args.ldist_step.endswith("%"):
