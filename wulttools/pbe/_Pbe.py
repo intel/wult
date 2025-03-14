@@ -15,9 +15,10 @@ from pathlib import Path
 
 try:
     import argcomplete
+    argcomplete_imported = True
 except ImportError:
     # We can live without argcomplete, we only lose tab completions.
-    argcomplete = None
+    argcomplete_imported = False
 
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
@@ -44,6 +45,11 @@ _LOG = Logging.getLogger(Logging.MAIN_LOGGER_NAME).configure(prefix=ToolInfo.TOO
 def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
+    if argcomplete_imported:
+        completer = argcomplete.completers.DirectoriesCompleter()
+    else:
+        completer = None
+
     text = f"{TOOLNAME} - a tool for measuring C-states power break even."
     parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
 
@@ -55,8 +61,7 @@ def _build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    _Deploy.add_deploy_cmdline_args(TOOLNAME, _PBE_DEPLOY_INFO, subparsers, _deploy_command,
-                                    argcomplete=argcomplete)
+    _Deploy.add_deploy_cmdline_args(TOOLNAME, _PBE_DEPLOY_INFO, subparsers, _deploy_command)
 
     #
     # Create parsers for the "scan" command.
@@ -106,9 +111,8 @@ def _build_arguments_parser():
                {_Common.DURATION_SPECS_DESCR}."""
     subpars.add_argument("--warmup", help=text, default="1m")
 
-    arg = subpars.add_argument("-o", "--outdir", type=Path, help=_Common.START_OUTDIR_DESCR)
-    if argcomplete:
-        arg.completer = argcomplete.completers.DirectoriesCompleter()
+    arg = subpars.add_argument("-o", "--outdir", type=Path,
+                               help=_Common.START_OUTDIR_DESCR).completer = completer
 
     subpars.add_argument("--reportid", help=_Common.START_REPORTID_DESCR)
 
@@ -141,7 +145,7 @@ def _build_arguments_parser():
     text = f"""One or multiple {TOOLNAME} test result paths."""
     subpars.add_argument("respaths", nargs="+", type=Path, help=text)
 
-    if argcomplete:
+    if argcomplete_imported:
         argcomplete.autocomplete(parser)
 
     return parser

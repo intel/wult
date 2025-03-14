@@ -11,6 +11,13 @@ This module provides API for deploying the tools coming with the 'wult' project.
 Note, "wult" is both name of the project and name of the tool in the project.
 """
 
+try:
+    import argcomplete
+    argcomplete_imported = True
+except ImportError:
+    # We can live without argcomplete, we only lose tab completions.
+    argcomplete_imported = False
+
 from pathlib import Path
 from pepclibs.helperlibs import Logging, ClassHelpers, ArgParse, ProjectFiles, ToolChecker
 from pepclibs.helperlibs import KernelVersion
@@ -23,7 +30,7 @@ _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 HELPERS_DEPLOY_SUBDIR = Path(".local")
 HELPERS_SRC_SUBDIR = Path("helpers")
 
-def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete=None):
+def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func):
     """
     Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
       * toolname - name of the tool to add the 'deploy' command for.
@@ -31,7 +38,6 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
                       'DeployBase.__init__()'.
       * subparsers - the 'argparse' subparsers to add the 'deploy' command to.
       * func - the 'deploy' command handling function.
-      * argcomplete - optional 'argcomplete' command-line arguments completer object.
     """
 
     cats = {cat: [] for cat in DeployBase.CATEGORIES}
@@ -48,6 +54,11 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
         what = "drivers"
     else:
         raise Error("BUG: no helpers and no drivers")
+
+    if argcomplete_imported:
+        completer = argcomplete.completers.DirectoriesCompleter()
+    else:
+        completer = None
 
     text = f"Compile and deploy {toolname} {what}."
     descr = f"""Compile and deploy {toolname} {what} to the SUT (System Under Test), which can be
@@ -79,9 +90,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
                   default is '/lib/modules/$(uname -r)/build' on the SUT. If '--local-build' was
                   used, then the path is considered to be on the local system, rather than the
                   SUT."""
-        arg = parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text)
-        if argcomplete:
-            arg.completer = argcomplete.completers.DirectoriesCompleter()
+        parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text).completer = completer
 
     if cats["drivers"]:
         text = """Options and variables to pass to 'make' when the drivers are built. For example,
@@ -112,9 +121,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func, argcomplete
     text = f"""When '{toolname}' is deployed, a random temporary directory is used. Use this option
                provide a custom path instead. It will be used as a temporary directory on both
                local and remote hosts. This option is meant for debugging purposes."""
-    arg = parser.add_argument("--tmpdir-path", help=text)
-    if argcomplete:
-        arg.completer = argcomplete.completers.DirectoriesCompleter()
+    parser.add_argument("--tmpdir-path", help=text).completer = completer
 
     text = f"""Do not remove the temporary directories created while deploying '{toolname}'. This
                option is meant for debugging purposes."""
@@ -188,11 +195,11 @@ class DeployCheck(DeployBase.DeployCheckBase):
             for deployable in self._get_deployables("drivers"):
                 dstpath = _get_module_path(self._spman, deployable)
                 if not dstpath:
-                    self._deployable_not_found(deployable)
+                    self._deployable_not_found(drvname, deployable)
                     break
 
                 if srcpath:
-                    self._check_deployable_up_to_date(deployable, srcpath, dstpath)
+                    self._check_deployable_up_to_date(drvname, deployable, srcpath, dstpath)
 
     def _check_helpers_deployment(self):
         """Check if simple and eBPF helpers are deployed and up-to-date."""
@@ -210,12 +217,14 @@ class DeployCheck(DeployBase.DeployCheckBase):
             for deployable in self._get_deployables("shelpers"):
                 deployable_path = self._get_installed_deployable_path(deployable)
                 if srcpath:
-                    self._check_deployable_up_to_date(deployable, srcpath, deployable_path)
+                    self._check_deployable_up_to_date(helpername, deployable, srcpath,
+                                                      deployable_path)
 
             for deployable in self._get_deployables("bpfhelpers"):
                 deployable_path = self._get_installed_deployable_path(deployable)
                 if srcpath:
-                    self._check_deployable_up_to_date(deployable, srcpath, deployable_path)
+                    self._check_deployable_up_to_date(helpername, deployable, srcpath,
+                                                      deployable_path)
 
     def _check_deployment(self):
         """

@@ -15,9 +15,10 @@ from pathlib import Path
 
 try:
     import argcomplete
+    argcomplete_imported = True
 except ImportError:
     # We can live without argcomplete, we only lose tab completions.
-    argcomplete = None
+    argcomplete_imported = False
 
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
@@ -58,6 +59,11 @@ _LOG = Logging.getLogger(Logging.MAIN_LOGGER_NAME).configure(prefix=ToolInfo.TOO
 def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
+    if argcomplete_imported:
+        completer = argcomplete.completers.DirectoriesCompleter()
+    else:
+        completer = None
+
     text = f"{TOOLNAME} - a tool for measuring C-state latency."
     parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
 
@@ -70,7 +76,7 @@ def _build_arguments_parser():
     # Create parsers for the "deploy" command.
     #
     subpars = _Deploy.add_deploy_cmdline_args(TOOLNAME, _WULT_DEPLOY_INFO, subparsers,
-                                              _deploy_command, argcomplete=argcomplete)
+                                              _deploy_command)
 
     #
     # Create parsers for the "scan" command.
@@ -104,10 +110,8 @@ def _build_arguments_parser():
     text = f"{_Common.KEEP_FILTERED_DESCR} {man_msg}"
     subpars.add_argument("--keep-filtered", action="store_true", help=text)
 
-    arg = subpars.add_argument("-o", "--outdir", type=Path, help=_Common.START_OUTDIR_DESCR)
-    if argcomplete:
-        # pylint: disable=pepc-unused-variable
-        arg.completer = argcomplete.completers.DirectoriesCompleter()
+    subpars.add_argument("-o", "--outdir", type=Path,
+                         help=_Common.START_OUTDIR_DESCR).completer = completer
 
     subpars.add_argument("--reportid", help=_Common.START_REPORTID_DESCR)
 
@@ -232,7 +236,7 @@ def _build_arguments_parser():
     text = f"""The {TOOLNAME} test result path to calculate summary functions for."""
     subpars.add_argument("respath", type=Path, help=text, nargs="?")
 
-    if argcomplete:
+    if argcomplete_imported:
         argcomplete.autocomplete(parser)
 
     return parser
