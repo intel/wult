@@ -9,6 +9,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 ### Changed
 
+## [1.12.38] - 2025-03-14
+### Changed
+ - Minor adjustments to support changes in 'pepc' project.
+
 ## [1.12.37] - 2025-03-11
 ### Changed
  - Require fixed version of 'stats-collect' that does not crash on turbostat
