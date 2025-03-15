@@ -18,14 +18,14 @@ from __future__ import annotations # Remove when switching to Python 3.10+.
 from pathlib import Path
 from pepclibs.helperlibs import Logging
 from statscollectlibs.deploylibs import DeployHelpersBase
-from statscollectlibs.deploylibs.DeployBase import InstallableInfoType
+from statscollectlibs.deploylibs.DeployBase import InstallableInfoTypedDict
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class DeploySHelpers(DeployHelpersBase.DeployHelpersBase):
     """This class provides the API for deploying simple helpers."""
 
-    def _prepare(self, insts_info: dict[str, InstallableInfoType], installables_basedir: Path):
+    def _prepare(self, insts_info: dict[str, InstallableInfoTypedDict], installables_basedir: Path):
         """
         Build and prepare installables for deployment.
 

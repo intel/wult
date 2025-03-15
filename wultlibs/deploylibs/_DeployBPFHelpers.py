@@ -19,7 +19,7 @@ from pathlib import Path
 from pepclibs.helperlibs import Logging
 from pepclibs.helperlibs.Exceptions import ErrorNotFound
 from statscollectlibs.deploylibs import DeployHelpersBase
-from statscollectlibs.deploylibs.DeployBase import InstallableInfoType
+from statscollectlibs.deploylibs.DeployBase import InstallableInfoTypedDict
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
@@ -140,7 +140,7 @@ class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
         raise ErrorNotFound(f"{msg}\nCompiled 'libbpf.a', but it was still not found in " \
                             f"'{path}'{self._bpman.hostmsg}")
 
-    def _prepare(self, insts_info: dict[str, InstallableInfoType], installables_basedir: Path):
+    def _prepare(self, insts_info: dict[str, InstallableInfoTypedDict], installables_basedir: Path):
         """
         Build and prepare installables for deployment.
 
