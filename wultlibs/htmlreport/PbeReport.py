@@ -25,7 +25,7 @@ class PbeReport(_ReportBase.ReportBase):
 
         new_plots = []
         for plot in dtab_cfg.scatter_plots:
-            plot = (self._wp_def, plot[1],)
+            plot = (self._ldist_def, plot[1],)
             new_plots.append(plot)
 
         dtab_cfg.scatter_plots = new_plots
@@ -96,7 +96,7 @@ class PbeReport(_ReportBase.ReportBase):
         # The 'LDist' metric definition is used to build tab configurations for custom statistics
         # tabs. Assign it to a class property here so that the name does not need to be hard-coded
         # in multiple places.
-        self._wp_def = labels_mdo.mdd["LDist"]
+        self._ldist_def = labels_mdo.mdd["LDist"]
 
         for res in rsts:
             stats_res = res.stats_res
