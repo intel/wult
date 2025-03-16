@@ -70,24 +70,6 @@ class WultMDC(_WultMDCBase.WultMDCBase):
     metrics provided by the wult tool.
     """
 
-    def mangle(self, hdr): # pylint: disable=arguments-renamed
-        """
-        Mangle the definitions dictionary and replace C-state residency patterns. The arguments are
-        as follows.
-          * hdr - a collection of wult datapoints CSV file header fields.
-        """
-
-        metrics = list(hdr)
-
-        # Add the C-state residency metric names.
-        for field in hdr:
-            csname = get_csname(field, must_get=False)
-            if not csname:
-                continue
-            metrics.append(get_csres_metric(csname))
-
-        super().mangle(metrics, drop_missing=False)
-
     def __init__(self, hdr):
         """
         The class constructor. The arguments are as follows.
