@@ -288,7 +288,7 @@ class ReportBase:
             # Some columns should be dropped from 'res.df' if they are "empty", i.e. contain only
             # zero values. For example, the C-state residency columns may be empty. This usually
             # means that the C-state was either disabled or just does not exist.
-            if md.get("drop_empty") and not res.df[metric].any():
+            if not res.df[metric].any():
                 _LOG.debug("dropping empty column '%s' fror result '%s'", metric, res.reportid)
                 res.df.drop(metric, axis="columns", inplace=True)
                 res.metrics_set.remove(metric)

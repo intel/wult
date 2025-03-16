@@ -17,7 +17,6 @@ WakeLatency:
     type: "float"
     unit: "microsecond"
     short_unit: "us"
-    drop_empty: True
 WakeLatencyRaw:
     title: "Raw (not adjusted) C-state wake latency"
     descr: >-
@@ -25,7 +24,6 @@ WakeLatencyRaw:
     type: "float"
     unit: "microsecond"
     short_unit: "us"
-    drop_empty: True
 SilentTime:
     title: "Silent Time"
     descr: >-
@@ -93,7 +91,6 @@ CC1Derived%:
     type: "float"
     unit: "%"
     short_unit: "%"
-    drop_empty: True
 CCx%:
     title: "C{groups[0]} residency"
     descr: >-
@@ -102,7 +99,6 @@ CCx%:
     type: "float"
     unit: "%"
     short_unit: "%"
-    drop_empty: True
     patterns:
       - 'C(C\d+)'
 MCx%:
@@ -113,7 +109,6 @@ MCx%:
     type: "float"
     unit: "%"
     short_unit: "%"
-    drop_empty: True
     patterns:
       - 'M(C\d+)'
 PCx%:
@@ -124,7 +119,6 @@ PCx%:
     type: "float"
     unit: "%"
     short_unit: "%"
-    drop_empty: True
     patterns:
       - 'P(C\d+)'
 SMICnt:
@@ -133,21 +127,18 @@ SMICnt:
         How many system management interupts (SMI) happened while measuring 'WakeLatency' and
         'IntrLatency'.
     type: "int"
-    drop_empty: True
 NMICnt:
     title: "NMI count while measuring 'WakeLatency' or 'IntrLatency'"
     descr: >-
         How many non-maskable interrupts (NMI) happened while measuring 'WakeLatency' and
         'IntrLatency'.
     type: "int"
-    drop_empty: True
 SWIRQCnt:
     title: "Count of unrelated software interrupts"
     descr: >-
         How many unrelated software interrupts happened before the scheduled delayed event.
         Unrelated software interrupts increase the measured 'WakeLatency' and 'IntrLatency'.
     type: "int"
-    drop_empty: True
 WarmupDelay:
     title: "The I210 NIC link warm up delay"
     descr: >-
