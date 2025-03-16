@@ -77,4 +77,4 @@ class WultMDC(_WultMDCBase.WultMDCBase):
         """
 
         super().__init__("wult")
-        self.mangle(hdr)
+        self.mangle(hdr, drop_missing=False)
