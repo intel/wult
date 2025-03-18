@@ -113,7 +113,13 @@ static u64 get_launch_time(struct wult_device_info *wdi)
 static void write_msr_hook(void *data, unsigned int msr, u64 val)
 {
 	struct wult_tdt *wt = data;
+	static bool dumped = false;
 
+	if (!dumped) {
+		dumped = true;
+		printk("write_msr_hook: wt-cpu %d, cpu = %d, msr=%lu, val=%llu\n", wt->cpu, smp_processor_id(), msr, val);
+		dump_stack();
+	}
 	if (smp_processor_id() != wt->cpu)
 		/* Not the CPU we are measuring. */
 		return;
@@ -138,6 +144,8 @@ static void local_timer_entry_hook(void *data, int vector)
 
 	wt->intr_tsc = rdtsc_ordered();
 	wt->ltime = wt->tsc_deadline;
+//	printk("local_timer_entry_hook: intr_tsc=%llu, ltime=%llu\n",
+//	       wt->intr_tsc, wt->ltime);
 }
 
 static int enable(struct wult_device_info *wdi, bool enable)
@@ -159,6 +167,7 @@ static int enable(struct wult_device_info *wdi, bool enable)
 				 " error %d", MSR_TRACEPOINT_NAME, err);
 			return err;
 		}
+		printk("registered %s\n", MSR_TRACEPOINT_NAME);
 
 		err = tracepoint_probe_register(wt->timer_tp,
 				(void *)local_timer_entry_hook, wt);
@@ -186,6 +195,7 @@ static int init_device(struct wult_device_info *wdi, int cpu)
 	wt->msr_tp = wult_tracer_find_tracepoint(MSR_TRACEPOINT_NAME);
 	if (!wt->msr_tp)
 		return -EINVAL;
+	printk("found %s\n", MSR_TRACEPOINT_NAME);
 
 	wt->timer_tp = wult_tracer_find_tracepoint(TIMER_TRACEPOINT_NAME);
 	if (!wt->timer_tp)
@@ -202,6 +212,7 @@ static void exit_device(struct wult_device_info *wdi)
 	struct wult_tdt *wt = wdi_to_wt(wdi);
 
 	hrtimer_cancel(&wt->timer);
+	printk("exit_device\n");
 	wt->msr_tp = NULL;
 	wt->timer_tp = NULL;
 }
