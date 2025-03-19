@@ -18,8 +18,8 @@ from __future__ import annotations # Remove when switching to Python 3.10+.
 from pathlib import Path
 from pepclibs.helperlibs import Logging
 from pepclibs.helperlibs.Exceptions import ErrorNotFound
-from statscollectlibs.deploylibs import DeployHelpersBase
-from statscollectlibs.deploylibs.DeployBase import InstallableInfoTypedDict
+from statscollectlibs.deploy import DeployHelpersBase
+from statscollectlibs.deploy.DeployBase import InstallableInfoTypedDict
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 

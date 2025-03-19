@@ -16,7 +16,7 @@ import contextlib
 from pepclibs import CPUIdle
 from pepclibs.helperlibs import Logging, ClassHelpers, KernelVersion
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from statscollectlibs.deploylibs import DeployBase
+from statscollectlibs.deploy import DeployBase
 from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess
 from wultlibs.helperlibs import Human
 

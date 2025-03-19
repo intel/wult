@@ -15,7 +15,7 @@ import time
 import contextlib
 from pepclibs.helperlibs import Logging, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs.deploylibs import DeployBase
+from statscollectlibs.deploy import DeployBase
 from wultlibs import _ProgressLine, _NdlRawDataProvider
 from wultlibs.helperlibs import Human
 

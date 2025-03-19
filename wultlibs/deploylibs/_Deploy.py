@@ -22,7 +22,7 @@ from pathlib import Path
 from pepclibs.helperlibs import Logging, ClassHelpers, ArgParse, ProjectFiles, ToolChecker
 from pepclibs.helperlibs import KernelVersion
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
-from statscollectlibs.deploylibs import DeployBase, _DeployPyHelpers
+from statscollectlibs.deploy import DeployBase, _DeployPyHelpers
 from wultlibs.deploylibs import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")

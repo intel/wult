@@ -14,7 +14,7 @@ docstring for more information.
 from pathlib import Path
 from pepclibs.helperlibs import Logging, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs.deploylibs import DeployInstallableBase
+from statscollectlibs.deploy import DeployInstallableBase
 
 DRIVERS_SRC_SUBDIR = Path("drivers/idle")
 
