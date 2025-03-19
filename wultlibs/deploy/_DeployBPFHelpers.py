@@ -190,7 +190,8 @@ class DeployBPFHelpers(DeployHelpersBase.DeployHelpersBase):
 
             # Build the eBPF components of eBPF helpers.
             for installable in insts_info:
-                _LOG.info("Compiling the eBPF component of '%s'%s", installable, self._bpman.hostmsg)
+                _LOG.info("Compiling the eBPF component of '%s'%s",
+                          installable, self._bpman.hostmsg)
                 cmd = f"make -C '{self._btmpdir}/{installable}' KSRC='{self._ksrc}' " \
                       f"CLANG='{clang_path}' BPFTOOL='{bpftool_path}' BPF_INC='{bpf_inc}' bpf"
                 stdout, stderr = self._bpman.run_verify(cmd)
