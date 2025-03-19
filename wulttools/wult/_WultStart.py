@@ -19,7 +19,7 @@ from pepclibs import CPUIdle, CPUInfo
 from statscollectlibs.collector import StatsCollectBuilder
 from wultlibs.deploy import _Deploy
 from wultlibs.helperlibs import Human
-from wultlibs.rawresultlibs import WORawResult
+from wultlibs.result import WORawResult
 from wultlibs import Devices, WultRunner, _FreqNoise
 from wulttools import _Common
 from wulttools.wult import _WultCommon

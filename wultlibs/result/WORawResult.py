@@ -16,8 +16,8 @@ import contextlib
 from pepclibs.helperlibs import Logging, YAML, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorExists
 from wultlibs.helperlibs import Human
-from wultlibs.rawresultlibs import _CSV, _RawResultBase
-from wultlibs.rawresultlibs._RawResultBase import FORMAT_VERSION
+from wultlibs.result import _CSV, _RawResultBase
+from wultlibs.result._RawResultBase import FORMAT_VERSION
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 

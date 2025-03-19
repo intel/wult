@@ -18,7 +18,7 @@ from statscollectlibs import DFSummary
 from statscollectlibs.helperlibs import FSHelpers
 from statscollectlibs.result import RORawResult as StatsCollectRes
 from wultlibs import WultMDC, PbeMDC, NdlMDC
-from wultlibs.rawresultlibs import _RawResultBase
+from wultlibs.result import _RawResultBase
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 

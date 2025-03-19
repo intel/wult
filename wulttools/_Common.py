@@ -400,7 +400,7 @@ def filter_command(args):
       * args - the command line arguments object.
     """
 
-    from wultlibs.rawresultlibs import RORawResult # pylint: disable=import-outside-toplevel
+    from wultlibs.result import RORawResult # pylint: disable=import-outside-toplevel
 
     res = RORawResult.RORawResult(args.respath)
 
@@ -441,7 +441,7 @@ def calc_command(args):
             _LOG.info("%s: %s", name, descr)
         return
 
-    from wultlibs.rawresultlibs import RORawResult # pylint: disable=import-outside-toplevel
+    from wultlibs.result import RORawResult # pylint: disable=import-outside-toplevel
 
     if args.funcs:
         funcnames = Trivial.split_csv_line(args.funcs)
@@ -486,7 +486,7 @@ def open_raw_results(respaths, toolname, reportids=None):
       * reportids - list of reportids to override report IDs in raw results.
     """
 
-    from wultlibs.rawresultlibs import RORawResult # pylint: disable=import-outside-toplevel
+    from wultlibs.result import RORawResult # pylint: disable=import-outside-toplevel
 
     if reportids:
         reportids = Trivial.split_csv_line(reportids)

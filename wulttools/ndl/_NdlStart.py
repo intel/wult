@@ -20,7 +20,7 @@ from wulttools import _Common
 from wultlibs import NdlRunner, Devices, _FreqNoise
 from wultlibs.deploy import _Deploy
 from wultlibs.helperlibs import Human
-from wultlibs.rawresultlibs import WORawResult
+from wultlibs.result import WORawResult
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
