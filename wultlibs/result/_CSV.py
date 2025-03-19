@@ -24,6 +24,7 @@ class WritableCSV(ClassHelpers.SimpleCloseContext):
         """Prepare to continue appending more data to an existing CSV file."""
 
         try:
+            # pylint: disable-next=consider-using-with
             self._fobj = self.path.open("r+", encoding="utf-8")
         except OSError as err:
             raise Error(f"failed to open file '{self.path}':\n{err}") from None
@@ -46,6 +47,7 @@ class WritableCSV(ClassHelpers.SimpleCloseContext):
         """Create the CSV file."""
 
         try:
+            # pylint: disable-next=consider-using-with
             self._fobj = self.path.open("tw+", encoding="utf-8")
         except OSError as err:
             raise Error(f"failed to create file '{self.path}':\n{err}") from None
