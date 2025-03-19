@@ -112,9 +112,11 @@ class DeployDrivers(DeployInstallableBase.DeployInstallableBase):
 
             # Deny automatic probing of all of our modules.
             with self._spman.open(f"/etc/modprobe.d/{self._toolname}-blacklist.conf", "w") as fobj:
-                fobj.write(f"# '{self._toolname}' is a system tracing tool, and its helper kernel modules should not be\n"
-                           "# automatically loaded by system. Instead, they shall be manually probed by the\n" \
-                           "# tool itself when used.\n\n");
+                fobj.write(f"# '{self._toolname}' is a system tracing tool, and its helper kernel "
+                           f"modules should not be\n"
+                           f"# automatically loaded by system. Instead, they shall be manually "
+                           f" probed by the\n"
+                           f"# tool itself when used.\n\n")
                 fobj.write("\n".join(denylist))
                 fobj.write("\n")
 
