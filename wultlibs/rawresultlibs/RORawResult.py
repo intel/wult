@@ -16,7 +16,7 @@ from pepclibs.helperlibs import Logging, YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
 from statscollectlibs import DFSummary
 from statscollectlibs.helperlibs import FSHelpers
-from statscollectlibs.rawresultlibs import RORawResult as StatsCollectRes
+from statscollectlibs.result import RORawResult as StatsCollectRes
 from wultlibs import WultMDC, PbeMDC, NdlMDC
 from wultlibs.rawresultlibs import _RawResultBase
 
