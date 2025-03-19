@@ -461,8 +461,6 @@ class ReportBase:
                              "2. %s: created by '%s' version '%s'",
                              self._refres.dirpath, rname, rver, res.dirpath, name, ver)
 
-        HTMLReport.reportids_dedup(self.rsts)
-
         if self.report_descr and Path(self.report_descr).is_file():
             try:
                 with open(self.report_descr, "r", encoding="UTF-8") as fobj:

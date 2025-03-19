@@ -400,7 +400,8 @@ def filter_command(args):
       * args - the command line arguments object.
     """
 
-    from wultlibs.result import RORawResult # pylint: disable=import-outside-toplevel
+    # pylint: disable=import-outside-toplevel
+    from wultlibs.result import RORawResult
 
     res = RORawResult.RORawResult(args.respath)
 
@@ -434,14 +435,16 @@ def calc_command(args):
       * args - the command line arguments object.
     """
 
+    # pylint: disable=import-outside-toplevel
+
     if args.list_funcs:
-        from statscollectlibs import DFSummary # pylint: disable=import-outside-toplevel
+        from statscollectlibs import DFSummary
 
         for name, descr in DFSummary.get_smry_funcs():
             _LOG.info("%s: %s", name, descr)
         return
 
-    from wultlibs.result import RORawResult # pylint: disable=import-outside-toplevel
+    from wultlibs.result import RORawResult
 
     if args.funcs:
         funcnames = Trivial.split_csv_line(args.funcs)
@@ -486,7 +489,8 @@ def open_raw_results(respaths, toolname, reportids=None):
       * reportids - list of reportids to override report IDs in raw results.
     """
 
-    from wultlibs.result import RORawResult # pylint: disable=import-outside-toplevel
+    # pylint: disable=import-outside-toplevel
+    from wultlibs.result import RORawResult
 
     if reportids:
         reportids = Trivial.split_csv_line(reportids)
@@ -511,6 +515,10 @@ def open_raw_results(respaths, toolname, reportids=None):
             raise Error(f"cannot generate '{toolname}' report, results are collected with the"
                         f"'{res.info['toolname']}':\n{respath}")
         rsts.append(res)
+
+    from statscollectlibs.result import RORawResult as StatsCollectRORawResult
+
+    StatsCollectRORawResult.reportids_dedup(rsts)
 
     return rsts
 
@@ -595,7 +603,9 @@ def start_command_check_network(args, pman, netif):
 def start_command_list_stats():
     """Implement the '--list-stats' command line option."""
 
-    from statscollectlibs.collector import StatsCollect # pylint: disable=import-outside-toplevel
+    # pylint: disable=import-outside-toplevel
+    from statscollectlibs.collector import StatsCollect
+
     StatsCollect.list_stats()
 
 def report_command_outdir(args, rsts):
