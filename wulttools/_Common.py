@@ -27,7 +27,7 @@ from statscollectlibs.helperlibs import ReportID
 from statscollectlibs.collector import StatsCollectBuilder
 from statscollecttools import ToolInfo
 from wultlibs import Devices
-from wultlibs.deploylibs import _Deploy
+from wultlibs.deploy import _Deploy
 from wultlibs.helperlibs import Human
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")

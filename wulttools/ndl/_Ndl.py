@@ -22,7 +22,7 @@ from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
 from wulttools import _Common
 from wulttools.ndl import ToolInfo
-from wultlibs.deploylibs import _Deploy
+from wultlibs.deploy import _Deploy
 from wultlibs.htmlreport import NdlReportParams
 
 VERSION = ToolInfo.VERSION

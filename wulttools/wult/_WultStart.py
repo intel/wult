@@ -17,7 +17,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs.msr import PowerCtl
 from pepclibs import CPUIdle, CPUInfo
 from statscollectlibs.collector import StatsCollectBuilder
-from wultlibs.deploylibs import _Deploy
+from wultlibs.deploy import _Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs import Devices, WultRunner, _FreqNoise

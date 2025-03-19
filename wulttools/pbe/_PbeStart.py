@@ -17,7 +17,7 @@ from pepclibs.helperlibs import Logging, Trivial
 from statscollectlibs.collector import StatsCollectBuilder
 from wultlibs.rawresultlibs import WORawResult
 from wultlibs.helperlibs import Human
-from wultlibs.deploylibs import _Deploy
+from wultlibs.deploy import _Deploy
 from wultlibs import Devices, PbeRunner
 from wulttools import _Common
 

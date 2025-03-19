@@ -11,7 +11,7 @@ This module includes the "deploy" 'ndl' command implementation.
 """
 
 from wulttools import _Common
-from wultlibs.deploylibs import _Deploy
+from wultlibs.deploy import _Deploy
 
 def deploy_command(args):
     """Implements the 'deploy' command."""

@@ -10,7 +10,7 @@
 This module includes the "deploy" 'pbe' command implementation.
 """
 
-from wultlibs.deploylibs import _Deploy
+from wultlibs.deploy import _Deploy
 from wulttools import _Common
 
 def deploy_command(args):

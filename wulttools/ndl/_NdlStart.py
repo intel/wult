@@ -18,7 +18,7 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupport
 from statscollectlibs.collector import StatsCollectBuilder
 from wulttools import _Common
 from wultlibs import NdlRunner, Devices, _FreqNoise
-from wultlibs.deploylibs import _Deploy
+from wultlibs.deploy import _Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.rawresultlibs import WORawResult
 
