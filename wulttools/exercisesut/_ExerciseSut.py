@@ -188,6 +188,10 @@ _COLLECT_OPTIONS = {
         "help": f"""Applicable to '{WULT_TOOLNAME}', '{NDL_TOOLNAME}', '{PBE_TOOLNAME}' and
                     '{STC_TOOLNAME}' tools. Comma-separated list of statistics to collect."""
     },
+    "stats_intervals": {
+        "help": f"""Applicable to '{WULT_TOOLNAME}', '{NDL_TOOLNAME}', '{PBE_TOOLNAME}' and
+                    '{STC_TOOLNAME}' tools. The intervals for statistics."""
+    },
     "command": {
         "help": """Applicable only to 'stats-collect' tool. The command to that 'stats-collect'
                    should run. String "{reportid}}" in COMMAND will be replaced with the report ID

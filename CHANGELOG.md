@@ -7,6 +7,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
  - Fix 'exercise-sut start --list-monikers' -option.
 ### Added
+ - Add 'exercise-sut start --stats-intervals' -option.
 ### Removed
 ### Changed
  - Print progress to non-terminals as well.

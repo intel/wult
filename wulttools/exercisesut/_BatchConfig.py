@@ -706,6 +706,7 @@ class _ToolCmdFormatterBase(ClassHelpers.SimpleCloseContext):
         self._hostname = args.hostname
         self._debug = args.debug
         self._stats = args.stats
+        self._stats_intervals = args.stats_intervals
 
         if not self._outdir:
             self._outdir = ReportID.format_reportid(prefix=self.toolpath.name)
@@ -723,6 +724,9 @@ class _WultCmdFormatter(_ToolCmdFormatterBase):
 
         if self._stats is not None:
             cmd += f" --stats=\"{self._stats}\""
+
+        if self._stats_intervals is not None:
+            cmd += f" --stats-intervals=\"{self._stats_intervals}\""
 
         if cpu is not None:
             cmd += f" --cpu {cpu}"
@@ -830,6 +834,9 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
         if self._stats is not None:
             cmd += f" --stats=\"{self._stats}\""
 
+        if self._stats_intervals is not None:
+            cmd += f" --stats-intervals=\"{self._stats_intervals}\""
+
         if reportid:
             cmd += f" --reportid {reportid} -o {self._outdir}/{reportid}"
             command = command.replace("{REPORTID}", reportid)
@@ -878,6 +885,9 @@ class _PbeCmdFormatter(_ToolCmdFormatterBase):
 
         if self._stats is not None:
             cmd += f" --stats=\"{self._stats}\""
+
+        if self._stats_intervals is not None:
+            cmd += f" --stats-intervals=\"{self._stats_intervals}\""
 
         if reportid:
             cmd += f" --reportid {reportid} -o {self._outdir}/{reportid}"
