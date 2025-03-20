@@ -8,6 +8,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Print progress to non-terminals as well.
 
 ## [1.12.38] - 2025-03-14
 ### Changed

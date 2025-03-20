@@ -67,7 +67,8 @@ class _ProgressLineBase:
         """
 
         self.period = period
-        self.enabled = None
+        self.enabled = True
+        self._isatty = sys.stdout.isatty()
 
         # Time when progress was last updated.
         self._last_ts = None
@@ -82,11 +83,6 @@ class _ProgressLineBase:
 
         if _LOG.getEffectiveLevel() > Logging.INFO:
             self.enabled = False
-        else:
-            if sys.stdout.isatty():
-                self.enabled = True
-            else:
-                _LOG.notice("Disabling progress line because standard output is not a terminal")
 
 class WultProgressLine(_ProgressLineBase):
     """
@@ -107,8 +103,12 @@ class WultProgressLine(_ProgressLineBase):
 
         self._last_ts = time_now
         rate = dpcnt / (self._last_ts - self._start_ts)
-        print(f"\rDatapoints: {dpcnt}, max. latency: {maxlat:.2f} us, "
-              f"rate: {rate:.2f} datapoints/sec", end=self._end, flush=True)
+
+        msg = f"Datapoints: {dpcnt}, max. latency: {maxlat:.2f} us, rate: {rate:.2f} datapoints/sec"
+        if self._isatty:
+            print("\r" + msg, end=self._end, flush=True)
+        else:
+            print(msg, flush=True)
 
         self._printed = True
         self.dpcnt = dpcnt
@@ -152,7 +152,11 @@ class PbeProgressLine(_ProgressLineBase):
         rate = int(self.NSEC_PER_SEC / ldist)
         duration = Human.duration(self.get_duration())
 
-        print(f"Tot. time: {duration}, ldist: {hldist} ({rate} intr/s)")
+        msg = f"Tot. time: {duration}, ldist: {hldist} ({rate} intr/s)"
+        if self._isatty:
+            print("\r" + msg, end=self._end, flush=True)
+        else:
+            print(msg, flush=True)
 
         self._printed = True
         self.ldist = ldist
@@ -160,7 +164,7 @@ class PbeProgressLine(_ProgressLineBase):
     def __init__(self):
         """The class constructor."""
 
-        super().__init__(period=0)
+        super().__init__(period=1)
 
         # Last printed launch distance.
         self.ldist = None
