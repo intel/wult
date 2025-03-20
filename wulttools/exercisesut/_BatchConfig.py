@@ -61,12 +61,14 @@ PROP_INFOS = {
         "cmd": "pepc aspm config --policy {}"
     },
     "cpufreq_governors": {
+        "name": "CPU frequency governor",
         "moniker": "fgov",
         "pclass": "PStates",
         "pclass_pname": "governor",
         "cmd": "pepc pstates config --governor {} {scope_opts}"
     },
     "idle_governors": {
+        "name": "Idle governor",
         "moniker": "igov",
         "pclass": "CStates",
         "pclass_pname": "governor",
@@ -150,6 +152,9 @@ def list_monikers():
             name = CStates.PROPS[pname].get("name")
         else:
             name = pinfo.get("name")
+
+        if not name:
+            raise Error(f"BUG: no name for property '{pname}'")
 
         min_len = max(min_len, len(name))
         monikers[pinfo["moniker"]] = name
