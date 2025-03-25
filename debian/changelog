@@ -1,3 +1,11 @@
+wult (1.12.39) unstable; urgency=low
+
+  * Fix 'exercise-sut start --list-monikers' -option.
+  * Add 'exercise-sut start --stats-intervals' -option.
+  * Print progress to non-terminals as well.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 25 Mar 2025 00:00:00 +0200
+
 wult (1.12.38) unstable; urgency=low
 
   * Minor adjustments to support changes in 'pepc' project.

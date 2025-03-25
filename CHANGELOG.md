@@ -5,10 +5,15 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.12.39] - 2025-03-25
+### Fixed
  - Fix 'exercise-sut start --list-monikers' -option.
 ### Added
  - Add 'exercise-sut start --stats-intervals' -option.
-### Removed
 ### Changed
  - Print progress to non-terminals as well.
 
