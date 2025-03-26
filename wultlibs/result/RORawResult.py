@@ -16,7 +16,8 @@ from pepclibs.helperlibs import Logging, YAML
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported, ErrorNotFound
 from statscollectlibs import DFSummary
 from statscollectlibs.helperlibs import FSHelpers
-from statscollectlibs.result import RORawResult as StatsCollectRes
+from statscollectlibs.result import RORawResult as STCRORawResult
+from statscollectlibs.result import LoadedResult as STCLoadedResult
 from wultlibs import WultMDC, PbeMDC, NdlMDC
 from wultlibs.result import _RawResultBase
 
@@ -503,9 +504,8 @@ class RORawResult(_RawResultBase.RawResultBase):
         self.metrics = []
         self.metrics_set = set()
 
-        # The raw result information dictionary.
-        # The statistics raw results object.
         self.stats_res = None
+        self.stats_lres = None
 
         self._reportid = reportid
         self._toolname = []
@@ -537,4 +537,8 @@ class RORawResult(_RawResultBase.RawResultBase):
         self.metrics_set = set(self.metrics)
 
         if self.stats_path:
-            self.stats_res = StatsCollectRes.RORawResult(self.stats_path, self.reportid)
+            self.stats_res = STCRORawResult.RORawResult(self.stats_path, self.reportid)
+            cpus = None
+            if "cpu" in self.info:
+                cpus = [self.info["cpu"]]
+            self.stats_lres = STCLoadedResult.LoadedResult(self.stats_res, cpus=cpus)

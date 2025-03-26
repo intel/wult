@@ -269,7 +269,7 @@ class ReportBase:
 
         toolname = self._refinfo["toolname"].title()
 
-        self._stats_rep.generate_report(tabs=tabs, rsts=self._stats_rsts, intro_tbl=self._intro_tbl,
+        self._stats_rep.generate_report(tabs=tabs, lrsts=self._stats_lrsts, intro_tbl=self._intro_tbl,
                                         title=f"{toolname} Report", descr=self.report_descr,
                                         toolname=self.toolname, toolver=self.toolver,
                                         tab_cfgs=tab_cfgs)
@@ -566,12 +566,12 @@ class ReportBase:
         # 'HTMLReport' specific to those reports.
         self._stats_rep = HTMLReport.HTMLReport(self.outdir, logpath=logpath)
 
-        self._stats_rsts = []
+        self._stats_lrsts = []
         for res in self.rsts:
             if not res.stats_path:
                 continue
-            if res.stats_res:
-                self._stats_rsts.append(res.stats_res)
+            if res.stats_lres:
+                self._stats_lrsts.append(res.stats_lres)
 
         # Users can change this to 'True' to copy all the raw test results into the output
         # directory.

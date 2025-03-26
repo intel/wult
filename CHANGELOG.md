@@ -9,6 +9,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 ### Changed
 
+## [1.12.40] - 2025-03-26
+### Fixed
+ - Fix 'pbe report' cras introduced in version 1.12.39.
+
 ## [1.12.39] - 2025-03-25
 ### Fixed
  - Fix 'exercise-sut start --list-monikers' -option.

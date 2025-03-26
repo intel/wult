@@ -25,7 +25,7 @@ class PbeReport(_ReportBase.ReportBase):
 
         new_plots = []
         for plot in dtab_cfg.scatter_plots:
-            plot = (self._ldist_def, plot[1],)
+            plot = (self._ldist_md, plot[1],)
             new_plots.append(plot)
 
         dtab_cfg.scatter_plots = new_plots
@@ -59,7 +59,7 @@ class PbeReport(_ReportBase.ReportBase):
         """
 
         pbe_cfg = {}
-        for stname, tab_cfg in self._stats_rep.get_default_tab_cfgs(self._stats_rsts).items():
+        for stname, tab_cfg in self._stats_rep.get_default_tab_cfgs(self._stats_lrsts).items():
             pbe_cfg[stname] = self._customise_tab_cfg(tab_cfg)
 
         return pbe_cfg
@@ -91,25 +91,18 @@ class PbeReport(_ReportBase.ReportBase):
             if not args[name]:
                 args[name] = default.split(",")
 
-        labels_mdo = PbeMDC.PbeMDC()
+        mdo = PbeMDC.PbeMDC()
 
         # The 'LDist' metric definition is used to build tab configurations for custom statistics
         # tabs. Assign it to a class property here so that the name does not need to be hard-coded
         # in multiple places.
-        self._ldist_def = labels_mdo.mdd["LDist"]
+        self._ldist_md = mdo.mdd["LDist"]
 
         for res in rsts:
-            stats_res = res.stats_res
-            if not stats_res:
+            if not res.stats_lres:
                 continue
 
-            for stname in stats_res.info["stinfo"]:
-                try:
-                    stats_res.info["stinfo"][stname]["paths"]["labels"]
-                except KeyError:
-                    continue
-
-                stats_res.set_label_defs(stname, labels_mdo.mdd.values())
+            res.stats_lres.set_ldd(mdo.mdd)
 
         super().__init__(rsts, outdir, ToolInfo.TOOLNAME, ToolInfo.VERSION,
                          report_descr=report_descr, xaxes=args["xaxes"], yaxes=args["yaxes"],
