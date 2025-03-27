@@ -249,7 +249,7 @@ class ReportBase:
 
         return dtabs
 
-    def _generate_report(self, tab_cfgs):
+    def _generate_report(self):
         """Put together the final HTML report."""
 
         _LOG.info("Generating the HTML report.")
@@ -267,8 +267,7 @@ class ReportBase:
 
         tabs = [_Tabs.CTabDC("Results", results_tabs)]
 
-        self._stats_rep.generate_report(tabs=tabs, intro_tbl=self._intro_tbl,
-                                        tab_cfgs=tab_cfgs)
+        self._stats_rep.generate_report(tabs=tabs, intro_tbl=self._intro_tbl)
 
     def _mangle_loaded_res(self, res):
         """
@@ -349,13 +348,9 @@ class ReportBase:
 
         return logs_paths, stats_paths
 
-    def generate(self, tab_cfgs=None):
+    def generate(self):
         """
-        Generate the HTML report. The arguments are as follows.
-          * tab_cfgs - a dictionary in the format of '{stname: TabConfig}', where 'TabConfig' is an
-                       instance of 'CTabConfig' for customizing tabs configurations. By default, no
-                       custom configurations will be used so the default statistics tabs will be
-                       generated.
+        Generate the HTML report.
 
         Important note: this method will modify the input test results in 'self.rsts'. This is done
         for efficiency purposes, to avoid copying the potentially large amounts of data (instances
@@ -370,7 +365,7 @@ class ReportBase:
         self._raw_logs_paths, self._raw_stats_paths = self._copy_raw_data()
 
         # Put together the final HTML report.
-        self._generate_report(tab_cfgs)
+        self._generate_report()
 
     def set_hover_metrics(self, regexs):
         """

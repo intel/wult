@@ -10,7 +10,6 @@
 
 from pepclibs.helperlibs import Logging
 from statscollectlibs.result import LoadedResult
-from statscollectlibs.htmlreport.tabs import TabConfig
 from statscollectlibs.htmlreport import HTMLReport
 from wultlibs import PbeMDC
 from wultlibs.htmlreport import _ReportBase
@@ -22,51 +21,7 @@ _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 class PbeReport(_ReportBase.ReportBase):
     """This module provides API for generating HTML reports for pbe test results."""
 
-    def _customise_dtab_cfg(self, dtab_cfg):
-        """Customise the data tab configuration 'dtab_cfg' to show 'LDist' on plot axes."""
-
-        new_plots = []
-        for plot in dtab_cfg.scatter_plots:
-            plot = ("LDist", plot[1],)
-            new_plots.append(plot)
-
-        dtab_cfg.scatter_plots = new_plots
-        dtab_cfg.set_hover_defs({})
-
-    def _customise_tab_cfg(self, tab_cfg):
-        """
-        Customise the tab configuration 'tab_cfg' to show 'LDist' on plot axes. Recurse through
-        all C-tabs and D-tabs to customise their configurations.
-        """
-
-        if isinstance(tab_cfg, TabConfig.DTabConfig):
-            self._customise_dtab_cfg(tab_cfg)
-            return tab_cfg
-
-        if hasattr(tab_cfg, "dtabs"):
-            for dtab_cfg in tab_cfg.dtabs:
-                self._customise_dtab_cfg(dtab_cfg)
-
-        if hasattr(tab_cfg, "ctabs"):
-            for ctab_cfg in tab_cfg.ctabs:
-                self._customise_tab_cfg(ctab_cfg)
-
-        return tab_cfg
-
-    def _get_stats_tab_cfgs(self):
-        """
-        Get the 'pbe' statistics tab configurations. These configurations are based on the default
-        tab configuraions provided by 'stats-collect' but they are customised to show 'LDist' on
-        the X-axes of plots in the data tabs.
-        """
-
-        pbe_cfg = {}
-        for stname, tab_cfg in self._stats_rep.get_default_tab_cfgs().items():
-            pbe_cfg[stname] = self._customise_tab_cfg(tab_cfg)
-
-        return pbe_cfg
-
-    def generate(self, tab_cfgs=None):
+    def generate(self):
         """
         Override 'super().generate()' to customise the statistics tabs in the report. Arguments are
         the same as in 'wultlibs.htmlreport._ReportBase.ReportBase()'.
@@ -76,9 +31,7 @@ class PbeReport(_ReportBase.ReportBase):
         for res in self.rsts:
             res.df["Time"] = res.df["Time"] - res.df["Time"].iloc[0]
 
-        if tab_cfgs is None:
-            tab_cfgs = self._get_stats_tab_cfgs()
-        return super().generate(tab_cfgs)
+        return super().generate()
 
     def __init__(self, rsts, outdir, report_descr=None, xaxes=None, yaxes=None, logpath=None):
         """
@@ -108,7 +61,7 @@ class PbeReport(_ReportBase.ReportBase):
         stats_rep = HTMLReport.HTMLReport(stats_lrsts, title, outdir,
                                           logpath=logpath, descr=report_descr,
                                           toolname=ToolInfo.TOOLNAME, toolver=ToolInfo.VERSION,
-                                          xmetric=args["xaxes"][0])
+                                          xmetric="LDist")
 
         # TODO: the "xaxes" and "yaxes" do not seem to be relevant to pbe. Somehow rework this.
         super().__init__(rsts, outdir, ToolInfo.TOOLNAME, ToolInfo.VERSION,
