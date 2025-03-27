@@ -494,9 +494,9 @@ class ReportBase:
                         if func not in self._smry_funcs[metric]:
                             self._smry_funcs[metric].append(func)
 
-    def __init__(self, rsts, outdir, toolname, toolver, report_descr=None, xaxes=None, yaxes=None,
-                 hist=None, chist=None, exclude_xaxes=None, exclude_yaxes=None, smry_funcs=None,
-                 logpath=None):
+    def __init__(self, rsts, outdir, toolname, toolver, report_descr=None, stats_rep=None,
+                 xaxes=None, yaxes=None, hist=None, chist=None, exclude_xaxes=None,
+                 exclude_yaxes=None, smry_funcs=None, logpath=None):
         """
         The class constructor. The arguments are as follows.
           * rsts - list of 'RORawResult' objects representing the raw test results to generate the
@@ -509,6 +509,8 @@ class ReportBase:
                            report. It should describe the report in general (e.g. it compares
                            platform A to platform B). By default no title description is added to
                            the HTML report.
+          * stats_rep: A 'statscollectlibs.HTMLReport.HTMLReport' object to use for generating
+                       statistics tabs.
           * xaxes - list of regular expressions matching metrics to use for the X-axis of scatter
                     plot diagrams. A scatter plot will be generated for each combination of 'xaxes'
                     and 'yaxes' metric pair (except for pairs from 'exclude_xaxes' and
@@ -595,14 +597,13 @@ class ReportBase:
         self._validate_init_args()
         self._init_metrics()
 
-        # This class is implemented by adding tabs to the 'HTMLReport' class provided by
-        # 'stats-collect'. Instantiate 'stats_rep' now so that child classes can use features of
-        # 'HTMLReport' specific to those reports.
-        title = f"{toolname} Report",
-        toolname = self._refinfo["toolname"].title()
-        self._stats_rep = HTMLReport.HTMLReport(self._stats_lrsts, title, self.outdir,
-                                                logpath=logpath, descr=self.report_descr,
-                                                toolname=toolname, toolver=self.toolver)
+        if not stats_rep:
+            title = f"{toolname} Report",
+            toolname = self._refinfo["toolname"].title()
+            stats_rep = HTMLReport.HTMLReport(self._stats_lrsts, title, self.outdir,
+                                              logpath=logpath, descr=self.report_descr,
+                                              toolname=toolname, toolver=self.toolver)
+        self._stats_rep = stats_rep
 
         # Dictionary in the format {'reportid': 'smry_metrics'} where 'smry_metrics is a list of
         # metrics to provide the summary function values for (e.g., median, 99th percentile). The
