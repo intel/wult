@@ -59,7 +59,7 @@ class PbeReport(_ReportBase.ReportBase):
         """
 
         pbe_cfg = {}
-        for stname, tab_cfg in self._stats_rep.get_default_tab_cfgs(self._stats_lrsts).items():
+        for stname, tab_cfg in self._stats_rep.get_default_tab_cfgs().items():
             pbe_cfg[stname] = self._customise_tab_cfg(tab_cfg)
 
         return pbe_cfg

@@ -267,11 +267,7 @@ class ReportBase:
 
         tabs = [_Tabs.CTabDC("Results", results_tabs)]
 
-        toolname = self._refinfo["toolname"].title()
-
-        self._stats_rep.generate_report(tabs=tabs, lrsts=self._stats_lrsts, intro_tbl=self._intro_tbl,
-                                        title=f"{toolname} Report", descr=self.report_descr,
-                                        toolname=self.toolname, toolver=self.toolver,
+        self._stats_rep.generate_report(tabs=tabs, intro_tbl=self._intro_tbl,
                                         tab_cfgs=tab_cfgs)
 
     def _mangle_loaded_res(self, res):
@@ -561,11 +557,6 @@ class ReportBase:
                 mdd[metric] = md.copy()
                 mdd[metric]["colname"] = metric
 
-        # This class is implemented by adding tabs to the 'HTMLReport' class provided by
-        # 'stats-collect'. Instantiate 'stats_rep' now so that child classes can use features of
-        # 'HTMLReport' specific to those reports.
-        self._stats_rep = HTMLReport.HTMLReport(self.outdir, logpath=logpath)
-
         self._stats_lrsts = []
         for res in self.rsts:
             if not res.stats_path:
@@ -603,6 +594,15 @@ class ReportBase:
 
         self._validate_init_args()
         self._init_metrics()
+
+        # This class is implemented by adding tabs to the 'HTMLReport' class provided by
+        # 'stats-collect'. Instantiate 'stats_rep' now so that child classes can use features of
+        # 'HTMLReport' specific to those reports.
+        title = f"{toolname} Report",
+        toolname = self._refinfo["toolname"].title()
+        self._stats_rep = HTMLReport.HTMLReport(self._stats_lrsts, title, self.outdir,
+                                                logpath=logpath, descr=self.report_descr,
+                                                toolname=toolname, toolver=self.toolver)
 
         # Dictionary in the format {'reportid': 'smry_metrics'} where 'smry_metrics is a list of
         # metrics to provide the summary function values for (e.g., median, 99th percentile). The
