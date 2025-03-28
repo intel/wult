@@ -857,7 +857,7 @@ class _StatsCollectCmdFormatter(_ToolCmdFormatterBase):
         if self._hostname != "localhost":
             cmd += f" -H {self._hostname}"
 
-        cmd += f" {command}"
+        cmd += f" '{command}'"
 
         return cmd
 
