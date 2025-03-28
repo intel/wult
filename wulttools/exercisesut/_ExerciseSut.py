@@ -434,7 +434,8 @@ def _report_command(args):
         _LOG.error_out("please, provide one or multiple paths to be searched for test results")
 
     with _BatchReport.BatchReport(args.respaths, dry_run=args.dry_run, jobs=args.jobs,
-                                  toolpath=args.toolpath, toolopts=args.toolopts) as batchreport:
+                                  toolpath=args.toolpath, toolopts=args.toolopts,
+                                  ignore_errors=args.ignore_errors) as batchreport:
         outdir = args.outdir
         if not outdir:
             outdir = Path(f"{batchreport.toolpath.name}-results")
