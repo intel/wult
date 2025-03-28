@@ -296,7 +296,7 @@ def _build_arguments_parser():
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
     subparsers = parser.add_subparsers(title="commands", dest="a command")
-    subparsers.required = True # pylint: disable=pepc-unused-variable
+    subparsers.required = True
 
     text = "Start collecting test data."
     descr = """Run a test tool or benchmark to collect test data."""
