@@ -9,6 +9,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - Increased verbosity of 'exercise-sut', now it prints all commands it runs.
 
 ## [1.12.40] - 2025-03-26
 ### Fixed

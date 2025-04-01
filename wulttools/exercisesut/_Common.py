@@ -92,11 +92,11 @@ class CmdlineRunner(ClassHelpers.SimpleCloseContext):
         print error and exit.
         """
 
+        _LOG.info("Running the following command:\n%s", cmd)
+
         if self._dry_run:
-            _LOG.info(cmd)
             return
 
-        _LOG.debug("running command: '%s'", cmd)
         if self._proc_count:
             self._run_async(cmd)
         else:
