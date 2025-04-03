@@ -15,7 +15,7 @@ import itertools
 from pathlib import Path
 from pepclibs.helperlibs import Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error
-from statscollectlibs.htmlreport import _IntroTable, HTMLReport
+from statscollectlibs.htmlreport import IntroTable, HTMLReport
 from statscollectlibs.htmlreport.tabs import _Tabs
 from statscollectlibs.helperlibs import FSHelpers
 from wultlibs.htmlreport import _MetricDTabBuilder
@@ -569,7 +569,7 @@ class ReportBase:
         self._refinfo = self._refres.info
 
         # The intro table which appears at the top of all reports.
-        self._intro_tbl = _IntroTable.IntroTable()
+        self._intro_tbl = IntroTable.IntroTable()
 
         # List of metric names to be inclued in the hover text of the scatter plots.
         self._hov_metrics = []
