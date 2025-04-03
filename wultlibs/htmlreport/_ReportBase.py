@@ -205,9 +205,11 @@ class ReportBase:
         tab_metrics = Trivial.list_dedup(tab_metrics)
 
         # Convert 'self._hov_metrics' to contain definitions for each metric.
-        hover_defs = {}
-        for reportid, metrics in self._hov_metrics.items():
-            hover_defs[reportid] = [self._mdds[reportid][m] for m in metrics]
+        hover_mds = []
+        for hover_metric in self._hov_metrics:
+            for res in self.rsts:
+                if hover_metric in self._mdds[res.reportid]:
+                    hover_mds.append(self._mdds[res.reportid][hover_metric])
 
         silenttime_ldist = ("SilentTime", "LDist")
         skip_silenttime_ldist = all(metric in tab_metrics for metric in silenttime_ldist)
@@ -239,11 +241,11 @@ class ReportBase:
             hist_defs = [mdd[metric]] if metric in self.hist else []
             chist_defs = [mdd[metric]] if metric in self.chist else []
 
-            dtab_bldr.add_plots(tab_plots, hist_defs, chist_defs, hover_defs)
+            dtab_bldr.add_plots(tab_plots, hist_defs, chist_defs, hover_mds)
             dtabs.append(dtab_bldr.get_tab())
 
         if skip_silenttime_ldist:
-            stime_ldist_tab = self._gen_stime_ldist_tab(tab_metrics, hover_defs)
+            stime_ldist_tab = self._gen_stime_ldist_tab(tab_metrics, hover_mds)
             if stime_ldist_tab is not None:
                 dtabs.append(stime_ldist_tab)
 
@@ -294,18 +296,17 @@ class ReportBase:
     def _load_results(self):
         """Load the test results from the CSV file and/or apply the metrics selector."""
 
+        _LOG.debug("hover metrics: %s", ", ".join(self._hov_metrics))
+
         for res in self.rsts:
             _LOG.debug("summaries will be calculated for these metrics: %s",
                        ", ".join(self._smry_metrics[res.reportid]))
             _LOG.debug("additional metrics: %s", ", ".join(self._more_metrics))
 
-            _LOG.debug("hover metrics: %s", ", ".join(self._hov_metrics[res.reportid]))
-
             # Metrics in 'self._more_metrics' are not guaranteed to be present in all results, so
             # filter the metrics for those present in 'res'.
             more_metrics = {metric for metric in self._more_metrics if metric in res.metrics_set}
-            minclude = more_metrics.union(self._hov_metrics[res.reportid],
-                                          self._smry_metrics[res.reportid])
+            minclude = more_metrics.union(self._hov_metrics, self._smry_metrics[res.reportid])
 
             res.set_minclude(minclude)
             res.load_df()
@@ -375,8 +376,13 @@ class ReportBase:
             hover text.
         """
 
+        # Note, it is OK if a metric in 'self._hov_metrics' is not present one of the results - it
+        # will be excluded from the hover text for that result.
+        metrics_set = set()
         for res in self.rsts:
-            self._hov_metrics[res.reportid] = res.find_metrics(regexs, must_find_any=False)
+            for metric in res.find_metrics(regexs, must_find_any=False):
+                if metric not in metrics_set and metric in self._mdds[res.reportid]:
+                    self._hov_metrics.append(metric)
 
     def _drop_absent_metrics(self):
         """
@@ -400,15 +406,6 @@ class ReportBase:
                                 "of the results", metric, name)
             setattr(self, name, metrics)
 
-        for res in self.rsts:
-            metrics = []
-            for metric in self._hov_metrics[res.reportid]:
-                if metric in self._mdds[res.reportid] and metric in res.metrics_set:
-                    metrics.append(metric)
-                else:
-                    _LOG.debug("dropping metric '%s' from hover text for result '%s'", metric, res.reportid)
-            self._hov_metrics[res.reportid] = metrics
-
     def _init_metrics(self):
         """
         Assign default values to the diagram/histogram metrics and remove possible duplication in
@@ -423,7 +420,6 @@ class ReportBase:
                 metrics = []
             setattr(self, name, metrics)
 
-        # Ensure '_hov_metrics' dictionary is initialized.
         self.set_hover_metrics(())
 
         self._drop_absent_metrics()
@@ -575,11 +571,8 @@ class ReportBase:
         # The intro table which appears at the top of all reports.
         self._intro_tbl = _IntroTable.IntroTable()
 
-        # Dictionary in the format {'reportid': 'hov_metrics'} where 'hov_metrics' is a list of
-        # metrics to include in the hover text of 'reportid' datapoints on scatter plots. By default
-        # only the x and y axis values are included, but can be modified using
-        # 'set_hover_metrics()'.
-        self._hov_metrics = {}
+        # List of metric names to be inclued in the hover text of the scatter plots.
+        self._hov_metrics = []
         # Additional metrics to load, if the results contain data for them.
         self._more_metrics = []
 
