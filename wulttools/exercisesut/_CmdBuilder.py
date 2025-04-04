@@ -29,6 +29,8 @@ PBE_TOOLNAME = PbeToolInfo.TOOLNAME
 STC_TOOLNAME = StcToolInfo.TOOLNAME
 WULT_TOOLNAME = WultToolInfo.TOOLNAME
 
+_DEPLOYABLE_TOOLS = (WULT_TOOLNAME, NDL_TOOLNAME, PBE_TOOLNAME, STC_TOOLNAME)
+
 PROP_INFOS = {
     "cstates": {
         "name": "Requestable C-state",
@@ -187,6 +189,19 @@ class _CmdBuilderBase(ClassHelpers.SimpleCloseContext):
         """Get tool options, if any."""
 
         return self._toolopts.replace("{REPORTID}", reportid)
+
+    def get_deploy_command(self):
+        """Return command to deploy the tool."""
+
+        if self.toolpath.name not in _DEPLOYABLE_TOOLS:
+            raise Error(f"deploy supported only by tools {', '.join(_DEPLOYABLE_TOOLS)}")
+
+        cmd = f"{self.toolpath} deploy"
+
+        if self._hostname != "localhost":
+            cmd += f" -H {self._hostname}"
+
+        return cmd
 
     def get_command(self, props, reportid, **kwargs): # pylint: disable=unused-argument
         """

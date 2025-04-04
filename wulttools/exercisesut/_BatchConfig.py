@@ -16,19 +16,10 @@ from pepclibs import CStates, PStates, CPUIdle, CPUInfo
 from pepclibs.helperlibs import Logging, ClassHelpers
 from pepclibs.helperlibs import Systemctl
 from pepclibs.helperlibs.Exceptions import Error
-from statscollecttools import ToolInfo as StcToolInfo
 from wulttools._Common import get_pman
-from wulttools.ndl import ToolInfo as NdlToolInfo
-from wulttools.pbe import ToolInfo as PbeToolInfo
-from wulttools.wult import ToolInfo as WultToolInfo
 from wulttools.exercisesut import _Common, _CmdBuilder
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
-
-NDL_TOOLNAME = NdlToolInfo.TOOLNAME
-PBE_TOOLNAME = PbeToolInfo.TOOLNAME
-STC_TOOLNAME = StcToolInfo.TOOLNAME
-WULT_TOOLNAME = WultToolInfo.TOOLNAME
 
 def list_monikers():
     """Helper to print moniker for each property, if any."""
@@ -65,18 +56,9 @@ class BatchConfig(_Common.CmdlineRunner):
     """
 
     def deploy(self):
-        """Deploy 'ndl', 'wult', 'pbe' or 'stats-collect' to the SUT."""
+        """Deploy workload tool to the target system. Raise Error if tool cannot be deployed."""
 
-        if self._wcb.toolpath.name not in (WULT_TOOLNAME, NDL_TOOLNAME, PBE_TOOLNAME,
-                                            STC_TOOLNAME):
-            raise Error(f"deploy supported only by tools '{WULT_TOOLNAME}', '{NDL_TOOLNAME}' and "
-                        f"'{STC_TOOLNAME}'")
-
-        deploy_cmd = f"{self._wcb.toolpath} deploy"
-
-        if self._pman.hostname != "localhost":
-            deploy_cmd += f" -H {self._pman.hostname}"
-
+        deploy_cmd = self._wcb.get_deploy_command()
         self._run_command(deploy_cmd)
 
     def props_to_str(self, props):
