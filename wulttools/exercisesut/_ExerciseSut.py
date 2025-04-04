@@ -22,7 +22,7 @@ except ImportError:
 from pepclibs.helperlibs import Logging, ArgParse, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from statscollecttools import ToolInfo as StcToolInfo
-from wulttools.exercisesut import _BatchConfig, _BatchReport, ToolInfo
+from wulttools.exercisesut import _BatchConfig, _BatchReport, _CmdBuilder, ToolInfo
 from wulttools.ndl import ToolInfo as NdlToolInfo
 from wulttools.pbe import ToolInfo as PbeToolInfo
 from wulttools.wult import ToolInfo as WultToolInfo
@@ -369,7 +369,7 @@ def _start_command(args):
         return
 
     inprops = {}
-    for pname in _BatchConfig.PROP_INFOS:
+    for pname in _CmdBuilder.PROP_INFOS:
         pvalues = getattr(args, pname, None)
         if not pvalues:
             continue
