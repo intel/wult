@@ -17,7 +17,7 @@ from pepclibs.helperlibs import Logging, ClassHelpers
 from pepclibs.helperlibs import Systemctl
 from pepclibs.helperlibs.Exceptions import Error
 from wulttools._Common import get_pman
-from wulttools.exercisesut import _Common, _CmdBuilder
+from wulttools.exercisesut import _Common, _CmdBuilder, _PepcCmdBuilder
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
@@ -27,7 +27,7 @@ def list_monikers():
     min_len = 0
     monikers = {}
 
-    for pname, pinfo in _CmdBuilder.PROP_INFOS.items():
+    for pname, pinfo in _PepcCmdBuilder.PROP_INFOS.items():
         if "moniker" not in pinfo:
             continue
 
@@ -126,7 +126,7 @@ class BatchConfig(_Common.CmdlineRunner):
         self._pman = get_pman(args)
         self._cpuinfo = CPUInfo.CPUInfo(pman=self._pman)
         self._cpuidle = CPUIdle.CPUIdle(pman=self._pman, cpuinfo=self._cpuinfo)
-        self._pcb = _CmdBuilder._PepcCmdBuilder(self._pman, self._cpuinfo, self._cpuidle, args)
+        self._pcb = _PepcCmdBuilder._PepcCmdBuilder(self._pman, self._cpuinfo, self._cpuidle, args)
         self._wcb = _CmdBuilder._get_workload_cmd_builder(self._cpuidle, args)
 
         self._systemctl = Systemctl.Systemctl(pman=self._pman)
