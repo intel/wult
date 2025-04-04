@@ -111,8 +111,8 @@ def _build_arguments_parser():
                {_Common.DURATION_SPECS_DESCR}."""
     subpars.add_argument("--warmup", help=text, default="1m")
 
-    arg = subpars.add_argument("-o", "--outdir", type=Path,
-                               help=_Common.START_OUTDIR_DESCR).completer = completer
+    subpars.add_argument("-o", "--outdir", type=Path,
+                         help=_Common.START_OUTDIR_DESCR).completer = completer
 
     subpars.add_argument("--reportid", help=_Common.START_REPORTID_DESCR)
 
