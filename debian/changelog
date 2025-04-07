@@ -1,3 +1,10 @@
+wult (1.12.41) unstable; urgency=low
+
+  * Fix '--ignore-errors' option for 'exercise-sut report' command.
+  * Increased verbosity of 'exercise-sut', now it prints all commands it runs.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 07 Apr 2025 00:00:00 +0200
+
 wult (1.12.40) unstable; urgency=low
 
   * Fix 'pbe report' cras introduced in version 1.12.39.
