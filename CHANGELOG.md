@@ -9,6 +9,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 ### Changed
 
+## [1.12.42] - 2025-04-07
+
 ## [1.12.41] - 2025-04-07
 ### Fixed
  - Fix '--ignore-errors' option for 'exercise-sut report' command.
