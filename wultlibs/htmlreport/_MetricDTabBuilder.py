@@ -20,7 +20,7 @@ from statscollectlibs.htmlreport.tabs import _DTabBuilder
 
 class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
     """
-    This class provides the functionality to build '_Tabs.DTabDC' instances which contain data
+    This class provides the functionality to build 'BuiltTab.BuiltDTab' instances which contain data
     for a given metric.
 
     Public methods overview:
@@ -28,7 +28,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
        * 'add_smrytbl()'
     2. Add plots to the tab.
        * 'add_plots()'
-    3. Generate '_Tabs.DTabDC' instance.
+    3. Generate 'BuiltTab.BuiltDTab' instance.
        * 'get_tab()'
     """
 
@@ -86,7 +86,7 @@ class MetricDTabBuilder(_DTabBuilder.DTabBuilder):
                         val = None
                     self._smrytbl.add_smry_func(res.reportid, mdef["title"], val, funcname=funcname)
         try:
-            self._smrytbl.generate(self.smry_path)
+            self._smrytbl.generate(self._smry_path)
         except Error as err:
             raise Error(f"failed to generate summary table:\n{err.indent(2)}") from err
 

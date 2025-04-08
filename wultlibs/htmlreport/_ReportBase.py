@@ -16,7 +16,7 @@ from pathlib import Path
 from pepclibs.helperlibs import Logging, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.htmlreport import IntroTable, HTMLReport
-from statscollectlibs.htmlreport.tabs import _Tabs
+from statscollectlibs.htmlreport.tabs import BuiltTab
 from statscollectlibs.helperlibs import FSHelpers
 from wultlibs.htmlreport import _MetricDTabBuilder
 
@@ -47,7 +47,7 @@ class ReportBase:
             # can be moved or copied without breaking the link.
             valid_paths[reportid] = path.relative_to(self.outdir)
 
-        row = self._intro_tbl.create_row(label)
+        row = self._intro_tbl.add_row(label)
 
         for reportid, path in valid_paths.items():
             row.add_cell(reportid, label, link=path)
@@ -59,34 +59,34 @@ class ReportBase:
         """
 
         # Add tool information.
-        tinfo_row = self._intro_tbl.create_row("Data Collection Tool")
+        tinfo_row = self._intro_tbl.add_row("Data Collection Tool")
         for res in self.rsts:
             tool_info = f"{res.info['toolname'].capitalize()} version {res.info['toolver']}"
             tinfo_row.add_cell(res.reportid, tool_info)
 
         # Add run date.
-        date_row = self._intro_tbl.create_row("Collection Date")
+        date_row = self._intro_tbl.add_row("Collection Date")
         for res in self.rsts:
             date_row.add_cell(res.reportid, res.info.get("date"))
 
         # Add datapoint counts.
-        dcount_row = self._intro_tbl.create_row("Datapoints Count")
+        dcount_row = self._intro_tbl.add_row("Datapoints Count")
         for res in self.rsts:
             dcount_row.add_cell(res.reportid, len(res.df.index))
 
         # Add run duration.
-        duration_row = self._intro_tbl.create_row("Duration")
+        duration_row = self._intro_tbl.add_row("Duration")
         for res in self.rsts:
             duration_row.add_cell(res.reportid, res.info.get("duration"))
 
         # Add measurement resolution.
         if all("resolution" in res.info for res in self.rsts):
-            dres_row = self._intro_tbl.create_row("Device Resolution")
+            dres_row = self._intro_tbl.add_row("Device Resolution")
             for res in self.rsts:
                 dres_row.add_cell(res.reportid, f"{res.info['resolution']}ns")
 
         # Add measured CPU.
-        mcpu_row = self._intro_tbl.create_row("Measured CPU")
+        mcpu_row = self._intro_tbl.add_row("Measured CPU")
         for res in self.rsts:
             cpu = res.info.get("cpu")
             if cpu is not None:
@@ -95,7 +95,7 @@ class ReportBase:
             mcpu_row.add_cell(res.reportid, cpu)
 
         # Add device ID.
-        devid_row = self._intro_tbl.create_row("Device ID")
+        devid_row = self._intro_tbl.add_row("Device ID")
         for res in self.rsts:
             devid_text = res.info.get("devid")
             if devid_text and "devdescr" in res.info:
@@ -174,13 +174,13 @@ class ReportBase:
         if smry_funcs:
             dtab_bldr.add_smrytbl(smry_funcs, self._refres.mdo)
 
-        return dtab_bldr.get_tab()
+        return dtab_bldr.build_tab()
 
     def _generate_results_tabs(self):
         """
         Generate and return a list of sub-tabs for the results tab. The results tab includes the
         main metrics, such as "WakeLatency". The elements of the returned list are tab dataclass
-        objects, such as 'DTabDC'.
+        objects, such as 'BuiltDTab'.
         """
 
         mdd = self._refmdd
@@ -242,7 +242,7 @@ class ReportBase:
             chist_defs = [mdd[metric]] if metric in self.chist else []
 
             dtab_bldr.add_plots(tab_plots, hist_defs, chist_defs, hover_mds)
-            dtabs.append(dtab_bldr.get_tab())
+            dtabs.append(dtab_bldr.build_tab())
 
         if skip_silenttime_ldist:
             stime_ldist_tab = self._gen_stime_ldist_tab(tab_metrics, hover_mds)
@@ -267,7 +267,7 @@ class ReportBase:
 
         results_tabs = self._generate_results_tabs()
 
-        tabs = [_Tabs.CTabDC("Results", results_tabs)]
+        tabs = [BuiltTab.BuiltCTab("Results", results_tabs)]
 
         self._stats_rep.generate_report(tabs=tabs, intro_tbl=self._intro_tbl)
 
