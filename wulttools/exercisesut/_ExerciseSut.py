@@ -19,10 +19,10 @@ try:
 except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     argcomplete = None
-from pepclibs.helperlibs import Logging, ArgParse, Trivial
+from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
 from statscollecttools import ToolInfo as StcToolInfo
-from wulttools.exercisesut import _BatchConfig, _BatchReport, _Common, ToolInfo
+from wulttools.exercisesut import _Common, ToolInfo
 from wulttools.ndl import ToolInfo as NdlToolInfo
 from wulttools.pbe import ToolInfo as PbeToolInfo
 from wulttools.wult import ToolInfo as WultToolInfo
@@ -294,30 +294,9 @@ def _start_command(args):
 def _report_command(args):
     """Implements the 'report' command."""
 
-    if args.list_monikers:
-        _BatchConfig.list_monikers()
-        return
+    from wulttools.exercisesut import _ExerciseSutReport # pylint: disable=import-outside-toplevel
 
-    if not args.respaths:
-        _LOG.error_out("please, provide one or multiple paths to be searched for test results")
-
-    with _BatchReport.BatchReport(args.respaths, dry_run=args.dry_run, jobs=args.jobs,
-                                  toolpath=args.toolpath, toolopts=args.toolopts,
-                                  ignore_errors=args.ignore_errors) as batchreport:
-        outdir = args.outdir
-        if not outdir:
-            outdir = Path(f"{batchreport.toolpath.name}-results")
-
-        diffs = []
-        if args.diffs:
-            for diff_csv_line in args.diffs:
-                diff_monikers = Trivial.split_csv_line(diff_csv_line, dedup=True, keep_empty=True)
-                diffs.append(diff_monikers)
-
-        for outpath, respaths in batchreport.group_results(diffs=diffs, include=args.include,
-                                                           exclude=args.exclude):
-            batchreport.generate_report(respaths, outdir / outpath)
-        batchreport.wait()
+    _ExerciseSutReport.report_command(args)
 
 def main():
     """Script entry point."""
