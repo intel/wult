@@ -15,6 +15,61 @@ from pepclibs.helperlibs import Logging, ClassHelpers, LocalProcessManager
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
+RESET_PROPS = {
+    "online": {
+        "value": "all",
+        "text": "online all CPUs"
+    },
+    "idle_governors": {
+        "value": "menu",
+        "text": "set idle governor to 'menu'"
+    },
+    "cpufreq_governors": {
+        "value": "powersave",
+        "text": "set CPU frequency governor to 'performance'"
+    },
+    "cstates": {
+        "value": "all",
+        "text": "enable all C-states"
+    },
+    "c1_demotion": {
+        "value": "off",
+        "text": "disable C1 demotion"
+    },
+    "c1_undemotion": {
+        "value": "off",
+        "text": "disable C1 undemotion"
+    },
+    "c1e_autopromote": {
+        "value": "off",
+        "text": "disable C1E autopromotion"
+    },
+    "cstate_prewake": {
+        "value": "off",
+        "text": "disable C-state prewake"
+    },
+    "turbo": {
+        "value": "on",
+        "text": "enable turbo"
+    },
+    "freqs": {
+        "value": "unl",
+        "text": "unlock CPU frequency"
+    },
+    "uncore_freqs": {
+        "value": "unl",
+        "text": "unlock uncore frequency"
+    },
+    "epp": {
+        "value": "balance_performance",
+        "text": "set EPP policy to 'balance_performance'"
+    },
+    "epb": {
+        "value": "balance-performance",
+        "text": "set EPB policy to 'balance-performance'"
+    },
+}
+
 class CmdlineRunner(ClassHelpers.SimpleCloseContext):
     """Helper class for running commandline commands."""
 

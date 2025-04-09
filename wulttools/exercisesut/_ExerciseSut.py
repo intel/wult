@@ -22,7 +22,7 @@ except ImportError:
 from pepclibs.helperlibs import Logging, ArgParse, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from statscollecttools import ToolInfo as StcToolInfo
-from wulttools.exercisesut import _BatchConfig, _BatchReport, _PepcCmdBuilder, ToolInfo
+from wulttools.exercisesut import _BatchConfig, _BatchReport, _Common, ToolInfo
 from wulttools.ndl import ToolInfo as NdlToolInfo
 from wulttools.pbe import ToolInfo as PbeToolInfo
 from wulttools.wult import ToolInfo as WultToolInfo
@@ -37,62 +37,7 @@ VERSION = ToolInfo.VERSION
 
 _LOG = Logging.getLogger(Logging.MAIN_LOGGER_NAME).configure(prefix=ToolInfo.TOOLNAME)
 
-_RESET_PROPS = {
-    "online": {
-        "value": "all",
-        "text": "online all CPUs"
-    },
-    "idle_governors": {
-        "value": "menu",
-        "text": "set idle governor to 'menu'"
-    },
-    "cpufreq_governors": {
-        "value": "powersave",
-        "text": "set CPU frequency governor to 'performance'"
-    },
-    "cstates": {
-        "value": "all",
-        "text": "enable all C-states"
-    },
-    "c1_demotion": {
-        "value": "off",
-        "text": "disable C1 demotion"
-    },
-    "c1_undemotion": {
-        "value": "off",
-        "text": "disable C1 undemotion"
-    },
-    "c1e_autopromote": {
-        "value": "off",
-        "text": "disable C1E autopromotion"
-    },
-    "cstate_prewake": {
-        "value": "off",
-        "text": "disable C-state prewake"
-    },
-    "turbo": {
-        "value": "on",
-        "text": "enable turbo"
-    },
-    "freqs": {
-        "value": "unl",
-        "text": "unlock CPU frequency"
-    },
-    "uncore_freqs": {
-        "value": "unl",
-        "text": "unlock uncore frequency"
-    },
-    "epp": {
-        "value": "balance_performance",
-        "text": "set EPP policy to 'balance_performance'"
-    },
-    "epb": {
-        "value": "balance-performance",
-        "text": "set EPB policy to 'balance-performance'"
-    },
-}
-
-reset_actions_text = ", ".join([pinfo["text"] for pinfo in _RESET_PROPS.values()])
+reset_actions_text = ", ".join([pinfo["text"] for pinfo in _Common.RESET_PROPS.values()])
 
 _COLLECT_OPTIONS = {
     "datapoints": {
@@ -339,89 +284,12 @@ def parse_arguments():
     parser = _build_arguments_parser()
     return parser.parse_args()
 
-def _start_check_args(args, inprops):
-    """
-    Check arguments and print error message and exit if we cannot proceed with provided
-    arguments.
-    """
-
-    if args.only_measured_cpu and args.cpus is None:
-        _LOG.error_out("please provide CPU numbers with '--only-measured-cpu', use '--cpus'")
-
-    if not inprops:
-        if args.state_reset:
-            return
-
-        _LOG.error("no commands to run. Please, specify system properties to collect test data "
-                   "with. See '%s start -h' for help.", TOOLNAME)
-
-    if args.toolpath.name in (WULT_TOOLNAME, NDL_TOOLNAME) and not args.devids:
-        _LOG.error_out("please, provide device ID to measure with, use '--devids'")
-
-    if args.toolpath.name == STC_TOOLNAME and not args.command:
-        _LOG.error_out("please, provide the command 'stats-collect' should run, use '--command'")
-
 def _start_command(args):
-    """Exercise SUT and run workload for each requested system configuration."""
+    """Implements the 'start' command."""
 
-    if args.list_monikers:
-        _BatchConfig.list_monikers()
-        return
+    from wulttools.exercisesut import _ExerciseSutStart # pylint: disable=import-outside-toplevel
 
-    inprops = {}
-    for pname in _PepcCmdBuilder.PROP_INFOS:
-        pvalues = getattr(args, pname, None)
-        if not pvalues:
-            continue
-        inprops[pname] = Trivial.split_csv_line(pvalues)
-
-    _start_check_args(args, inprops)
-
-    if not args.devids:
-        devids = [None]
-    else:
-        devids = Trivial.split_csv_line(args.devids)
-
-    if not args.cpus:
-        cpus = [None]
-    else:
-        cpus = Trivial.split_csv_line(args.cpus)
-
-    with _BatchConfig.BatchConfig(args) as batchconfig:
-        if args.deploy:
-            batchconfig.deploy()
-            _LOG.info("")
-
-        if args.state_reset:
-            reset_props = {pname: pinfo["value"] for pname, pinfo in _RESET_PROPS.items()}
-            if not args.only_measured_cpu:
-                batchconfig.configure(reset_props, "all")
-                _LOG.info("")
-
-        for cpu in cpus:
-            if args.state_reset and args.only_measured_cpu:
-                batchconfig.configure(reset_props, cpu)
-                _LOG.info("")
-
-            for props in batchconfig.get_props_batch(inprops):
-                batchconfig.configure(props, cpu)
-
-                for devid in devids:
-                    kwargs = {}
-                    if devid:
-                        kwargs["devid"] = devid
-                    if args.command:
-                        kwargs["command"] = args.command
-
-                    kwargs["cpu"] = cpu
-
-                    reportid = batchconfig.create_reportid(props, **kwargs)
-                    _LOG.notice(f"measuring with: {batchconfig.props_to_str(props)}, "
-                                f"report ID: '{reportid}'")
-
-                    batchconfig.run(props, reportid, **kwargs)
-
-                _LOG.info("")
+    _ExerciseSutStart.start_command(args)
 
 def _report_command(args):
     """Implements the 'report' command."""
