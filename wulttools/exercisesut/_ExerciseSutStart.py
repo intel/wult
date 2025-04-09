@@ -21,6 +21,18 @@ WULT_TOOLNAME = WultToolInfo.TOOLNAME
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
+def _prepare_props(args):
+    """Prepare dictionary where property name is key and list of property values is value."""
+
+    props = {}
+    for pname in _Common.PROP_INFOS:
+        pvalues = getattr(args, pname, None)
+        if not pvalues:
+            continue
+        props[pname] = Trivial.split_csv_line(pvalues)
+
+    return props
+
 def _check_args(args, inprops):
     """
     Check arguments and print error message and exit if we cannot proceed with provided
@@ -50,13 +62,7 @@ def start_command(args):
         _Common.list_monikers()
         return
 
-    inprops = {}
-    for pname in _Common.PROP_INFOS:
-        pvalues = getattr(args, pname, None)
-        if not pvalues:
-            continue
-        inprops[pname] = Trivial.split_csv_line(pvalues)
-
+    inprops = _prepare_props(args)
     _check_args(args, inprops)
 
     if not args.devids:
