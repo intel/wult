@@ -11,9 +11,95 @@
 
 import sys
 import time
+from pepclibs import CStates, PStates
 from pepclibs.helperlibs import Logging, ClassHelpers, LocalProcessManager
+from pepclibs.helperlibs.Exceptions import Error
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
+
+PROP_INFOS = {
+    "cstates": {
+        "name": "Requestable C-state",
+        "sname": "CPU",
+        "cmd": "pepc cstates config --disable all --enable {} {scope_opts}"
+    },
+    "pcstates": {
+        "name": "Package C-state",
+        "sname": "package",
+        "cmd": "pepc cstates config --pkg-cstate-limit {} {scope_opts}"
+    },
+    "freqs": {
+        "name": "CPU frequency",
+        "sname": "CPU",
+        "cmd": "pepc pstates config --min-freq {} --max-freq {} {scope_opts}"
+    },
+    "uncore_freqs": {
+        "name": "Uncore frequency",
+        "moniker": "uf",
+        "sname": "die",
+        "cmd": "pepc pstates config --min-uncore-freq {} --max-uncore-freq {} {scope_opts}"
+    },
+    "aspm": {
+        "name": "ASPM",
+        "sname": "global",
+        "moniker": "aspm",
+        "cmd": "pepc aspm config --policy {}"
+    },
+    "cpufreq_governors": {
+        "name": "CPU frequency governor",
+        "moniker": "fgov",
+        "pclass": "PStates",
+        "pclass_pname": "governor",
+        "cmd": "pepc pstates config --governor {} {scope_opts}"
+    },
+    "idle_governors": {
+        "name": "Idle governor",
+        "moniker": "igov",
+        "pclass": "CStates",
+        "pclass_pname": "governor",
+        "cmd": "pepc cstates config --governor {} {scope_opts}"
+    },
+    "c1_demotion": {
+        "moniker": "c1d",
+        "pclass": "CStates",
+        "cmd": "pepc cstates config --c1-demotion {} {scope_opts}"
+    },
+    "c1_undemotion": {
+        "moniker": "c1und",
+        "pclass": "CStates",
+        "cmd": "pepc cstates config --c1-undemotion {} {scope_opts}"
+    },
+    "c1e_autopromote": {
+        "moniker": "autoc1e",
+        "pclass": "CStates",
+        "cmd": "pepc cstates config --c1e-autopromote {} {scope_opts}"
+    },
+    "cstate_prewake": {
+        "moniker": "cpw",
+        "pclass": "CStates",
+        "cmd": "pepc cstates config --cstate-prewake {} {scope_opts}"
+    },
+    "epp": {
+        "moniker": "epp",
+        "pclass": "PStates",
+        "cmd": "pepc pstates config --epp {} {scope_opts}"
+    },
+    "epb": {
+        "moniker": "epb",
+        "pclass": "PStates",
+        "cmd": "pepc pstates config --epb {} {scope_opts}"
+    },
+    "turbo": {
+        "moniker": "turbo",
+        "pclass": "PStates",
+        "cmd": "pepc pstates config --turbo {}"
+    },
+    "online": {
+        "name": "CPU online status",
+        "sname": "CPU",
+        "cmd": "pepc cpu-hotplug online {scope_opts}"
+    },
+}
 
 RESET_PROPS = {
     "online": {
@@ -69,6 +155,34 @@ RESET_PROPS = {
         "text": "set EPB policy to 'balance-performance'"
     },
 }
+
+def list_monikers():
+    """Helper to print moniker for each property, if any."""
+
+    min_len = 0
+    monikers = {}
+
+    for pname, pinfo in PROP_INFOS.items():
+        if "moniker" not in pinfo:
+            continue
+
+        name = None
+        if pname in PStates.PROPS:
+            name = PStates.PROPS[pname].get("name")
+        elif pname in CStates.PROPS:
+            name = CStates.PROPS[pname].get("name")
+        else:
+            name = pinfo.get("name")
+
+        if not name:
+            raise Error(f"BUG: no name for property '{pname}'")
+
+        min_len = max(min_len, len(name))
+        monikers[pinfo["moniker"]] = name
+
+    for moniker, name in monikers.items():
+        msg = f"{name:<{min_len}}: {moniker}"
+        _LOG.info(msg)
 
 class CmdlineRunner(ClassHelpers.SimpleCloseContext):
     """Helper class for running commandline commands."""

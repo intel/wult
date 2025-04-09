@@ -11,7 +11,7 @@
 
 from pepclibs.helperlibs import Logging, Trivial
 from statscollecttools import ToolInfo as StcToolInfo
-from wulttools.exercisesut import _BatchConfig, _Common, _PepcCmdBuilder, ToolInfo
+from wulttools.exercisesut import _BatchConfig, _Common, ToolInfo
 from wulttools.ndl import ToolInfo as NdlToolInfo
 from wulttools.wult import ToolInfo as WultToolInfo
 
@@ -47,11 +47,11 @@ def start_command(args):
     """Exercise SUT and run workload for each requested system configuration."""
 
     if args.list_monikers:
-        _BatchConfig.list_monikers()
+        _Common.list_monikers()
         return
 
     inprops = {}
-    for pname in _PepcCmdBuilder.PROP_INFOS:
+    for pname in _Common.PROP_INFOS:
         pvalues = getattr(args, pname, None)
         if not pvalues:
             continue

@@ -19,7 +19,7 @@ from statscollecttools import ToolInfo as StcToolInfo
 from wulttools.ndl import ToolInfo as NdlToolInfo
 from wulttools.pbe import ToolInfo as PbeToolInfo
 from wulttools.wult import ToolInfo as WultToolInfo
-from wulttools.exercisesut import _PepcCmdBuilder
+from wulttools.exercisesut import _Common
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
@@ -81,7 +81,7 @@ class _CmdBuilderBase(ClassHelpers.SimpleCloseContext):
             monikers.append(kwargs["devid"])
 
         for pname, val in props.items():
-            moniker = _PepcCmdBuilder.PROP_INFOS[pname].get("moniker", "")
+            moniker = _Common.PROP_INFOS[pname].get("moniker", "")
             if moniker:
                 moniker = f"{moniker}_"
             moniker += f"{val}"

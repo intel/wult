@@ -15,92 +15,9 @@ import itertools
 from pepclibs.helperlibs import Logging, ClassHelpers, Trivial
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs import CStates, PStates
+from wulttools.exercisesut import _Common
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
-
-PROP_INFOS = {
-    "cstates": {
-        "name": "Requestable C-state",
-        "sname": "CPU",
-        "cmd": "pepc cstates config --disable all --enable {} {scope_opts}"
-    },
-    "pcstates": {
-        "name": "Package C-state",
-        "sname": "package",
-        "cmd": "pepc cstates config --pkg-cstate-limit {} {scope_opts}"
-    },
-    "freqs": {
-        "name": "CPU frequency",
-        "sname": "CPU",
-        "cmd": "pepc pstates config --min-freq {} --max-freq {} {scope_opts}"
-    },
-    "uncore_freqs": {
-        "name": "Uncore frequency",
-        "moniker": "uf",
-        "sname": "die",
-        "cmd": "pepc pstates config --min-uncore-freq {} --max-uncore-freq {} {scope_opts}"
-    },
-    "aspm": {
-        "name": "ASPM",
-        "sname": "global",
-        "moniker": "aspm",
-        "cmd": "pepc aspm config --policy {}"
-    },
-    "cpufreq_governors": {
-        "name": "CPU frequency governor",
-        "moniker": "fgov",
-        "pclass": "PStates",
-        "pclass_pname": "governor",
-        "cmd": "pepc pstates config --governor {} {scope_opts}"
-    },
-    "idle_governors": {
-        "name": "Idle governor",
-        "moniker": "igov",
-        "pclass": "CStates",
-        "pclass_pname": "governor",
-        "cmd": "pepc cstates config --governor {} {scope_opts}"
-    },
-    "c1_demotion": {
-        "moniker": "c1d",
-        "pclass": "CStates",
-        "cmd": "pepc cstates config --c1-demotion {} {scope_opts}"
-    },
-    "c1_undemotion": {
-        "moniker": "c1und",
-        "pclass": "CStates",
-        "cmd": "pepc cstates config --c1-undemotion {} {scope_opts}"
-    },
-    "c1e_autopromote": {
-        "moniker": "autoc1e",
-        "pclass": "CStates",
-        "cmd": "pepc cstates config --c1e-autopromote {} {scope_opts}"
-    },
-    "cstate_prewake": {
-        "moniker": "cpw",
-        "pclass": "CStates",
-        "cmd": "pepc cstates config --cstate-prewake {} {scope_opts}"
-    },
-    "epp": {
-        "moniker": "epp",
-        "pclass": "PStates",
-        "cmd": "pepc pstates config --epp {} {scope_opts}"
-    },
-    "epb": {
-        "moniker": "epb",
-        "pclass": "PStates",
-        "cmd": "pepc pstates config --epb {} {scope_opts}"
-    },
-    "turbo": {
-        "moniker": "turbo",
-        "pclass": "PStates",
-        "cmd": "pepc pstates config --turbo {}"
-    },
-    "online": {
-        "name": "CPU online status",
-        "sname": "CPU",
-        "cmd": "pepc cpu-hotplug online {scope_opts}"
-    },
-}
 
 PC0_ONLY_STATES = ("POLL", "C1", "C1E")
 
@@ -288,7 +205,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
     def _init_props_dict(self):
         """Initialize 'props' dictionary."""
 
-        for pname, pinfo in PROP_INFOS.items():
+        for pname, pinfo in _Common.PROP_INFOS.items():
 
             if not self._is_prop_supported(pname, pinfo=pinfo):
                 continue

@@ -11,7 +11,7 @@
 
 from pathlib import Path
 from pepclibs.helperlibs import Logging, Trivial
-from wulttools.exercisesut import _BatchConfig, _BatchReport
+from wulttools.exercisesut import _Common, _BatchReport
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
@@ -19,7 +19,7 @@ def report_command(args):
     """Implements the 'report' command."""
 
     if args.list_monikers:
-        _BatchConfig.list_monikers()
+        _Common.list_monikers()
         return
 
     if not args.respaths:

@@ -12,42 +12,13 @@ A helper module for the 'exercise-sut' tool to configure target system with vari
 permutations.
 """
 
-from pepclibs import CStates, PStates, CPUIdle, CPUInfo
+from pepclibs import CPUIdle, CPUInfo
 from pepclibs.helperlibs import Logging, ClassHelpers
 from pepclibs.helperlibs import Systemctl
-from pepclibs.helperlibs.Exceptions import Error
 from wulttools._Common import get_pman
 from wulttools.exercisesut import _Common, _CmdBuilder, _PepcCmdBuilder
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
-
-def list_monikers():
-    """Helper to print moniker for each property, if any."""
-
-    min_len = 0
-    monikers = {}
-
-    for pname, pinfo in _PepcCmdBuilder.PROP_INFOS.items():
-        if "moniker" not in pinfo:
-            continue
-
-        name = None
-        if pname in PStates.PROPS:
-            name = PStates.PROPS[pname].get("name")
-        elif pname in CStates.PROPS:
-            name = CStates.PROPS[pname].get("name")
-        else:
-            name = pinfo.get("name")
-
-        if not name:
-            raise Error(f"BUG: no name for property '{pname}'")
-
-        min_len = max(min_len, len(name))
-        monikers[pinfo["moniker"]] = name
-
-    for moniker, name in monikers.items():
-        msg = f"{name:<{min_len}}: {moniker}"
-        _LOG.info(msg)
 
 class BatchConfig(_Common.CmdlineRunner):
     """
