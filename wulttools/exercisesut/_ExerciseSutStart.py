@@ -15,7 +15,7 @@ from pepclibs import CPUIdle, CPUInfo
 from pepclibs.helperlibs import Logging, Trivial, Systemctl
 from statscollecttools import ToolInfo as StcToolInfo
 from wulttools._Common import get_pman
-from wulttools.exercisesut import _BatchConfig, _Common, ToolInfo, _CmdBuilder, _PepcCmdBuilder
+from wulttools.exercisesut import _Common, ToolInfo, _CmdBuilder, _PepcCmdBuilder
 from wulttools.ndl import ToolInfo as NdlToolInfo
 from wulttools.wult import ToolInfo as WultToolInfo
 
@@ -61,13 +61,26 @@ def _check_args(args, inprops):
     if args.toolpath.name == STC_TOOLNAME and not args.command:
         _LOG.error_out("please, provide the command 'stats-collect' should run, use '--command'")
 
-def _state_reset(batchconfig, args, cpu):
+def _deploy(wcb, runner):
+    """Deploy workload tool to the target system."""
+
+    deploy_cmd = wcb.get_deploy_command()
+    runner.run_command(deploy_cmd)
+    _LOG.info("")
+
+def _state_reset(pcb, runner, args, cpu):
 
     if not args.state_reset:
         return
 
-    batchconfig.configure(_RESET_PROPS, cpu)
+    _configure(pcb, runner, _RESET_PROPS, cpu)
     _LOG.info("")
+
+def _configure(pcb, runner, props, cpu):
+    """Configure the system for measurement."""
+
+    for cmd in pcb.get_commands(props, cpu):
+        runner.run_command(cmd)
 
 def start_command(args):
     """Exercise SUT and run workload for each requested system configuration."""
@@ -98,8 +111,8 @@ def start_command(args):
         wcb = _CmdBuilder.get_workload_cmd_builder(cpuidle, args)
         stack.enter_context(wcb)
 
-        batchconfig = _BatchConfig.BatchConfig(pcb, wcb, args)
-        stack.enter_context(batchconfig)
+        runner = _Common.CmdlineRunner(dry_run=args.dry_run, ignore_errors=args.ignore_errors)
+        stack.enter_context(runner)
 
         systemctl = Systemctl.Systemctl(pman=pman)
         stack.enter_context(systemctl)
@@ -108,13 +121,12 @@ def start_command(args):
             systemctl.stop("tuned", save=True)
 
         if args.deploy:
-            batchconfig.deploy()
-            _LOG.info("")
+            _deploy(wcb, runner)
 
         if not args.only_measured_cpu:
-            _state_reset(batchconfig, args, "all")
+            _state_reset(pcb, runner, args, "all")
 
-        for props in batchconfig.get_props_batch(inprops):
+        for props in pcb.iter_props(inprops):
             prev_cpu = None
 
             for cpu, devid in itertools.product(cpus, devids):
@@ -122,7 +134,7 @@ def start_command(args):
                     if args.only_measured_cpu:
                         _state_reset(pcb, runner, args, cpu)
 
-                    batchconfig.configure(props, cpu)
+                    _configure(pcb, runner, props, cpu)
 
                 kwargs = {}
                 if devid:
@@ -132,11 +144,11 @@ def start_command(args):
 
                 kwargs["cpu"] = cpu
 
-                reportid = batchconfig.create_reportid(props, **kwargs)
-                _LOG.notice(f"measuring with: {batchconfig.props_to_str(props)}, "
-                            f"report ID: '{reportid}'")
+                reportid = wcb.create_reportid(props, **kwargs)
+                _LOG.notice(f"measuring with: {pcb.props_to_str(props)}, report ID: '{reportid}'")
 
-                batchconfig.run(props, reportid, **kwargs)
+                cmd = wcb.get_command(props, reportid, **kwargs)
+                runner.run_command(cmd)
 
                 prev_cpu = cpu
                 _LOG.info("")
