@@ -69,6 +69,7 @@ def _deploy(wcb, runner):
     _LOG.info("")
 
 def _state_reset(pcb, runner, args, cpu):
+    """Reset the system to a known state."""
 
     if not args.state_reset:
         return
@@ -105,7 +106,9 @@ def start_command(args):
         cpuidle = CPUIdle.CPUIdle(pman=pman, cpuinfo=cpuinfo)
         stack.enter_context(cpuidle)
 
-        pcb = _PepcCmdBuilder.PepcCmdBuilder(pman, cpuinfo, cpuidle, args)
+        pcb = _PepcCmdBuilder.PepcCmdBuilder(pman, cpuinfo, cpuidle,
+                                             args.only_measured_cpu, args.skip_io_dies,
+                                             args.only_one_cstate, args.cstates_always_enable)
         stack.enter_context(pcb)
 
         wcb = _CmdBuilder.get_workload_cmd_builder(cpuidle, args)

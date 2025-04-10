@@ -459,21 +459,27 @@ class PepcCmdBuilder(_PropIteratorBase):
 
             yield cmd
 
-    def __init__(self, pman, cpuinfo, cpuidle, args):
+    def __init__(self, pman, cpuinfo, cpuidle, only_measured_cpu, skip_io_dies, only_one_cstate,
+                 cstates_always_enable):
         """
-        The class constructor. The arguments are as follows.
-          * pman - the process manager object defining the system to measure.
-          * cpuinfo - 'CPUInfo' object for the measured system.
-          * cpuidle - the 'CPUIdle.CPUIdle()' object for the measured system.
-          * args - input arguments, not clean, should be only_measured_cpu=False, etc kwargs (TODO).
+        The class constructor.
+
+        Args:
+            pman: The process manager object defining the system to measure.
+            cpuinfo: The 'CPUInfo' object for the measured system.
+            cpuidle: The 'CPUIdle.CPUIdle()' object for the measured system.
+            only_measured_cpu: If 'True', only the measured CPU is configured.
+            skip_io_dies: If 'True', skip configuration of I/O dies.
+            only_one_cstate: If 'True', only measured C-state is enabled.
+            cstates_always_enable: Comma-separated list of C-states to always enable.
         """
 
         super().__init__(pman, cpuinfo, cpuidle)
 
-        self._only_measured_cpu = args.only_measured_cpu
-        self._skip_io_dies = args.skip_io_dies
-        self._only_one_cstate = args.only_one_cstate
-        self._cstates_always_enable = args.cstates_always_enable
+        self._only_measured_cpu = only_measured_cpu
+        self._skip_io_dies = skip_io_dies
+        self._only_one_cstate = only_one_cstate
+        self._cstates_always_enable = cstates_always_enable
 
         if self._cstates_always_enable:
             csnames = Trivial.split_csv_line(self._cstates_always_enable)
