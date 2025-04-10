@@ -12,7 +12,6 @@ A helper module for the 'exercise-sut' tool to configure target system with vari
 permutations.
 """
 
-from pepclibs import CPUIdle, CPUInfo
 from pepclibs.helperlibs import Logging, ClassHelpers
 from pepclibs.helperlibs import Systemctl
 from wulttools.exercisesut import _Common, _CmdBuilder, _PepcCmdBuilder
@@ -78,26 +77,22 @@ class BatchConfig(_Common.CmdlineRunner):
         cmd = self._wcb.get_command(props, reportid, **kwargs)
         self._run_command(cmd)
 
-    def __init__(self, pman, args):
+    def __init__(self, pman, cpuinfo, cpuidle, args):
         """
         The class constructor. The arguments are as follows.
           * args - the 'exercise-sut' input command line arguments.
         """
 
-        self._cpuinfo = None
-        self._cpuidle = None
         self._pcb = None
         self._wcb = None
         self._systemctl = None
 
         super().__init__(dry_run=args.dry_run, ignore_errors=args.ignore_errors)
 
-        self._cpuinfo = CPUInfo.CPUInfo(pman)
-        self._cpuidle = CPUIdle.CPUIdle(pman, cpuinfo=self._cpuinfo)
-        self._pcb = _PepcCmdBuilder._PepcCmdBuilder(pman, self._cpuinfo, self._cpuidle, args)
-        self._wcb = _CmdBuilder._get_workload_cmd_builder(self._cpuidle, args)
+        self._pcb = _PepcCmdBuilder._PepcCmdBuilder(pman, cpuinfo, cpuidle, args)
+        self._wcb = _CmdBuilder._get_workload_cmd_builder(cpuidle, args)
 
-        self._systemctl = Systemctl.Systemctl(pman)
+        self._systemctl = Systemctl.Systemctl(pman=pman)
         if self._systemctl.is_active("tuned"):
             self._systemctl.stop("tuned", save=True)
 

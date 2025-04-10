@@ -11,6 +11,7 @@
 
 import contextlib
 import itertools
+from pepclibs import CPUIdle, CPUInfo
 from pepclibs.helperlibs import Logging, Trivial
 from statscollecttools import ToolInfo as StcToolInfo
 from wulttools._Common import get_pman
@@ -92,7 +93,13 @@ def start_command(args):
         pman = get_pman(args)
         stack.enter_context(pman)
 
-        batchconfig = _BatchConfig.BatchConfig(pman, args)
+        cpuinfo = CPUInfo.CPUInfo(pman)
+        stack.enter_context(cpuinfo)
+
+        cpuidle = CPUIdle.CPUIdle(pman=pman, cpuinfo=cpuinfo)
+        stack.enter_context(cpuidle)
+
+        batchconfig = _BatchConfig.BatchConfig(pman, cpuinfo, cpuidle, args)
         stack.enter_context(batchconfig)
 
         if args.deploy:
