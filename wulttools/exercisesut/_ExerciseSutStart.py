@@ -10,6 +10,7 @@
 """This module implements 'exercise-sut start' command."""
 
 import contextlib
+import itertools
 from pepclibs.helperlibs import Logging, Trivial
 from statscollecttools import ToolInfo as StcToolInfo
 from wulttools._Common import get_pman
@@ -22,6 +23,8 @@ STC_TOOLNAME = StcToolInfo.TOOLNAME
 WULT_TOOLNAME = WultToolInfo.TOOLNAME
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
+
+_RESET_PROPS = {pname: pinfo["value"] for pname, pinfo in _Common.RESET_PROPS.items()}
 
 def _prepare_props(args):
     """Prepare dictionary where property name is key and list of property values is value."""
@@ -57,6 +60,14 @@ def _check_args(args, inprops):
     if args.toolpath.name == STC_TOOLNAME and not args.command:
         _LOG.error_out("please, provide the command 'stats-collect' should run, use '--command'")
 
+def _state_reset(batchconfig, args, cpu):
+
+    if not args.state_reset:
+        return
+
+    batchconfig.configure(_RESET_PROPS, cpu)
+    _LOG.info("")
+
 def start_command(args):
     """Exercise SUT and run workload for each requested system configuration."""
 
@@ -88,33 +99,32 @@ def start_command(args):
             batchconfig.deploy()
             _LOG.info("")
 
-        if args.state_reset:
-            reset_props = {pname: pinfo["value"] for pname, pinfo in _Common.RESET_PROPS.items()}
-            if not args.only_measured_cpu:
-                batchconfig.configure(reset_props, "all")
-                _LOG.info("")
+        if not args.only_measured_cpu:
+            _state_reset(batchconfig, args, "all")
 
-        for cpu in cpus:
-            if args.state_reset and args.only_measured_cpu:
-                batchconfig.configure(reset_props, cpu)
-                _LOG.info("")
+        for props in batchconfig.get_props_batch(inprops):
+            prev_cpu = None
 
-            for props in batchconfig.get_props_batch(inprops):
-                batchconfig.configure(props, cpu)
+            for cpu, devid in itertools.product(cpus, devids):
+                if cpu is None or cpu != prev_cpu:
+                    if args.only_measured_cpu:
+                        _state_reset(pcb, runner, args, cpu)
 
-                for devid in devids:
-                    kwargs = {}
-                    if devid:
-                        kwargs["devid"] = devid
-                    if args.command:
-                        kwargs["command"] = args.command
+                    batchconfig.configure(props, cpu)
 
-                    kwargs["cpu"] = cpu
+                kwargs = {}
+                if devid:
+                    kwargs["devid"] = devid
+                if args.command:
+                    kwargs["command"] = args.command
 
-                    reportid = batchconfig.create_reportid(props, **kwargs)
-                    _LOG.notice(f"measuring with: {batchconfig.props_to_str(props)}, "
-                                f"report ID: '{reportid}'")
+                kwargs["cpu"] = cpu
 
-                    batchconfig.run(props, reportid, **kwargs)
+                reportid = batchconfig.create_reportid(props, **kwargs)
+                _LOG.notice(f"measuring with: {batchconfig.props_to_str(props)}, "
+                            f"report ID: '{reportid}'")
 
+                batchconfig.run(props, reportid, **kwargs)
+
+                prev_cpu = cpu
                 _LOG.info("")
