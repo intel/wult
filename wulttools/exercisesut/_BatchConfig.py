@@ -12,8 +12,8 @@ A helper module for the 'exercise-sut' tool to configure target system with vari
 permutations.
 """
 
-from pepclibs.helperlibs import Logging, ClassHelpers
-from wulttools.exercisesut import _Common, _CmdBuilder, _PepcCmdBuilder
+from pepclibs.helperlibs import Logging
+from wulttools.exercisesut import _Common
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
@@ -76,20 +76,13 @@ class BatchConfig(_Common.CmdlineRunner):
         cmd = self._wcb.get_command(props, reportid, **kwargs)
         self._run_command(cmd)
 
-    def __init__(self, pman, cpuinfo, cpuidle, args):
+    def __init__(self, pcb, wcb, args):
         """
         The class constructor. The arguments are as follows.
           * args - the 'exercise-sut' input command line arguments.
         """
 
-        self._pcb = None
-        self._wcb = None
+        self._pcb = pcb
+        self._wcb = wcb
 
         super().__init__(dry_run=args.dry_run, ignore_errors=args.ignore_errors)
-
-        self._pcb = _PepcCmdBuilder._PepcCmdBuilder(pman, cpuinfo, cpuidle, args)
-        self._wcb = _CmdBuilder._get_workload_cmd_builder(cpuidle, args)
-
-    def close(self):
-        """Uninitialize the class objetc."""
-        ClassHelpers.close(self, close_attrs=("_pcb", "_wcb"))

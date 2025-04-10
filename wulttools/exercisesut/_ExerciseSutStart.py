@@ -15,7 +15,7 @@ from pepclibs import CPUIdle, CPUInfo
 from pepclibs.helperlibs import Logging, Trivial, Systemctl
 from statscollecttools import ToolInfo as StcToolInfo
 from wulttools._Common import get_pman
-from wulttools.exercisesut import _BatchConfig, _Common, ToolInfo
+from wulttools.exercisesut import _BatchConfig, _Common, ToolInfo, _CmdBuilder, _PepcCmdBuilder
 from wulttools.ndl import ToolInfo as NdlToolInfo
 from wulttools.wult import ToolInfo as WultToolInfo
 
@@ -92,7 +92,13 @@ def start_command(args):
         cpuidle = CPUIdle.CPUIdle(pman=pman, cpuinfo=cpuinfo)
         stack.enter_context(cpuidle)
 
-        batchconfig = _BatchConfig.BatchConfig(pman, cpuinfo, cpuidle, args)
+        pcb = _PepcCmdBuilder.PepcCmdBuilder(pman, cpuinfo, cpuidle, args)
+        stack.enter_context(pcb)
+
+        wcb = _CmdBuilder.get_workload_cmd_builder(cpuidle, args)
+        stack.enter_context(wcb)
+
+        batchconfig = _BatchConfig.BatchConfig(pcb, wcb, args)
         stack.enter_context(batchconfig)
 
         systemctl = Systemctl.Systemctl(pman=pman)

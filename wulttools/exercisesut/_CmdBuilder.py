@@ -47,7 +47,7 @@ CSTATE_FILTERS = {
     "PC6": "(PC6% > 0)"
 }
 
-def _get_workload_cmd_builder(cpuidle, args):
+def get_workload_cmd_builder(cpuidle, args):
     """Create and return object for creating workload commands."""
 
     toolname = args.toolpath.name

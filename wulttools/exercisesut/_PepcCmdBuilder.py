@@ -329,7 +329,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         ClassHelpers.close(self, close_attrs={"_cpuidle", "_csobj", "_psobj"},
                            unref_attrs={"_cpuinfo", "_cpuidle", })
 
-class _PepcCmdBuilder(_PropIteratorBase):
+class PepcCmdBuilder(_PropIteratorBase):
     """A Helper class for creating 'pepc' commands."""
 
     def _get_prop_sname(self, pname):
