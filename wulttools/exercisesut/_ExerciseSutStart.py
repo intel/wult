@@ -9,8 +9,10 @@
 
 """This module implements 'exercise-sut start' command."""
 
+import contextlib
 from pepclibs.helperlibs import Logging, Trivial
 from statscollecttools import ToolInfo as StcToolInfo
+from wulttools._Common import get_pman
 from wulttools.exercisesut import _BatchConfig, _Common, ToolInfo
 from wulttools.ndl import ToolInfo as NdlToolInfo
 from wulttools.wult import ToolInfo as WultToolInfo
@@ -75,7 +77,13 @@ def start_command(args):
     else:
         cpus = Trivial.split_csv_line(args.cpus)
 
-    with _BatchConfig.BatchConfig(args) as batchconfig:
+    with contextlib.ExitStack() as stack:
+        pman = get_pman(args)
+        stack.enter_context(pman)
+
+        batchconfig = _BatchConfig.BatchConfig(pman, args)
+        stack.enter_context(batchconfig)
+
         if args.deploy:
             batchconfig.deploy()
             _LOG.info("")
