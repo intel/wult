@@ -12,7 +12,7 @@
 import contextlib
 import itertools
 from pepclibs import CPUIdle, CPUInfo
-from pepclibs.helperlibs import Logging, Trivial
+from pepclibs.helperlibs import Logging, Trivial, Systemctl
 from statscollecttools import ToolInfo as StcToolInfo
 from wulttools._Common import get_pman
 from wulttools.exercisesut import _BatchConfig, _Common, ToolInfo
@@ -95,6 +95,12 @@ def start_command(args):
         batchconfig = _BatchConfig.BatchConfig(pman, cpuinfo, cpuidle, args)
         stack.enter_context(batchconfig)
 
+        systemctl = Systemctl.Systemctl(pman=pman)
+        stack.enter_context(systemctl)
+
+        if systemctl.is_active("tuned"):
+            systemctl.stop("tuned", save=True)
+
         if args.deploy:
             batchconfig.deploy()
             _LOG.info("")
@@ -128,3 +134,6 @@ def start_command(args):
 
                 prev_cpu = cpu
                 _LOG.info("")
+
+        if systemctl:
+            systemctl.restore()
