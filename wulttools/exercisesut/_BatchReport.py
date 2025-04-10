@@ -221,7 +221,7 @@ class BatchReport(_Common.CmdlineRunner):
         res_str = " ".join([str(path) for path in respaths])
         cmd += f"-o {outdir} {res_str}"
 
-        self._run_command(cmd)
+        self.run_command(cmd)
 
     def __init__(self, respaths, dry_run=False, jobs=None, toolpath=None, toolopts=None,
                  ignore_errors=False):

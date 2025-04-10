@@ -27,7 +27,7 @@ class BatchConfig(_Common.CmdlineRunner):
         """Deploy workload tool to the target system. Raise Error if tool cannot be deployed."""
 
         deploy_cmd = self._wcb.get_deploy_command()
-        self._run_command(deploy_cmd)
+        self.run_command(deploy_cmd)
 
     def props_to_str(self, props):
         """Convert property dictionary 'props' to human readable string."""
@@ -52,7 +52,7 @@ class BatchConfig(_Common.CmdlineRunner):
         """
 
         for cmd in self._pcb.get_commands(props, cpu):
-            self._run_command(cmd)
+            self.run_command(cmd)
 
     def create_reportid(self, props, **kwargs):
         """
@@ -74,7 +74,7 @@ class BatchConfig(_Common.CmdlineRunner):
         """
 
         cmd = self._wcb.get_command(props, reportid, **kwargs)
-        self._run_command(cmd)
+        self.run_command(cmd)
 
     def __init__(self, pcb, wcb, args):
         """

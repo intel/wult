@@ -254,11 +254,13 @@ class CmdlineRunner(ClassHelpers.SimpleCloseContext):
         proc = self._lpman.run_async(cmd)
         self._procs.add(proc)
 
-    def _run_command(self, cmd):
+    def run_command(self, cmd):
         """
-        Run command 'cmd' with process manager object 'pman'. If 'dry_run' is 'True', print the
-        command instad of running it. If any of the commands failed and 'ignore_errors' is 'False',
-        print error and exit.
+        Run command 'cmd' with process manager object 'self._lpman'. If 'self._proc_count' is
+        non-zero, run the command asynchronously.
+
+        Args:
+            cmd: The command to run.
         """
 
         _LOG.info("Running the following command:\n%s", cmd)
