@@ -47,24 +47,24 @@ CSTATE_FILTERS = {
     "PC6": "(PC6% > 0)"
 }
 
-def get_workload_cmd_builder(cpuidle, args):
+def get_workload_cmd_builder(cpuidle, **kwargs):
     """Create and return object for creating workload commands."""
 
-    toolname = args.toolpath.name
+    toolname = kwargs["toolpath"].name
 
     if toolname == WULT_TOOLNAME:
-        return _WultCmdBuilder(cpuidle, args)
+        return _WultCmdBuilder(cpuidle, **kwargs)
 
     if toolname == NDL_TOOLNAME:
-        return _NdlCmdBuilder(cpuidle, args)
+        return _NdlCmdBuilder(cpuidle, **kwargs)
 
     if toolname == STC_TOOLNAME:
-        return _StatsCollectCmdBuilder(args)
+        return _StatsCollectCmdBuilder(**kwargs)
 
     if toolname == PBE_TOOLNAME:
-        return _PbeCmdBuilder(args)
+        return _PbeCmdBuilder(**kwargs)
 
-    return _CmdBuilderBase(args)
+    return _CmdBuilderBase(**kwargs)
 
 class _CmdBuilderBase(ClassHelpers.SimpleCloseContext):
     """A base class to help creating commands."""
@@ -132,23 +132,24 @@ class _CmdBuilderBase(ClassHelpers.SimpleCloseContext):
 
         return cmd
 
-    def __init__(self, args):
+    def __init__(self, **kwargs):
         """
-        The class constructor. The arguments are as follows.
-          * args - input arguments. Should be instead a bunch of args or kwargs (TODO).
+        The class constructor.
+            Args:
+                **kwargs: Input arguments passed down to workload tool.
         """
 
         with LocalProcessManager.LocalProcessManager() as lpman:
-            self.toolpath = lpman.which(args.toolpath)
+            self.toolpath = lpman.which(kwargs["toolpath"])
 
-        self._toolopts = args.toolopts
-        self._outdir = args.outdir
-        self._reportid_prefix = args.reportid_prefix
-        self._reportid_suffix = args.reportid_suffix
-        self._hostname = args.hostname
-        self._debug = args.debug
-        self._stats = args.stats
-        self._stats_intervals = args.stats_intervals
+        self._toolopts = kwargs["toolopts"]
+        self._outdir = kwargs["outdir"]
+        self._reportid_prefix = kwargs["reportid_prefix"]
+        self._reportid_suffix = kwargs["reportid_suffix"]
+        self._hostname = kwargs["hostname"]
+        self._debug = kwargs["debug"]
+        self._stats = kwargs["stats"]
+        self._stats_intervals = kwargs["stats_intervals"]
 
         if not self._outdir:
             self._outdir = ReportID.format_reportid(prefix=self.toolpath.name)
@@ -234,19 +235,19 @@ class _WultCmdBuilder(_CmdBuilderBase):
 
         return False
 
-    def __init__(self, cpuidle, args):
+    def __init__(self, cpuidle, **kwargs):
         """
         The class constructor. The arguments are as follows.
           * cpuidle - the 'CPUIdle.CPUIdle()' object for the measured system.
           * args - input arguments. Should be instead a bunch of args or kwargs (TODO).
         """
 
-        super().__init__(args)
+        super().__init__(**kwargs)
 
         self._cpuidle = cpuidle
-        self._datapoints = args.datapoints
-        self._stats = args.stats
-        self._use_cstate_filters = not args.no_cstate_filters
+        self._datapoints = kwargs["datapoints"]
+        self._stats = kwargs["stats"]
+        self._use_cstate_filters = not kwargs["no_cstate_filters"]
 
         self._c6_enters_pc6 = not self._c6p_exists()
 
@@ -257,10 +258,10 @@ class _WultCmdBuilder(_CmdBuilderBase):
 class _NdlCmdBuilder(_WultCmdBuilder):
     """A Helper class for creating 'ndl' commands."""
 
-    def __init__(self, cpuidle, args):
+    def __init__(self, cpuidle, **kwargs):
         """The class constructor. The arguments are same as for _WultCmdBuilder class."""
 
-        super().__init__(cpuidle, args)
+        super().__init__(cpuidle, **kwargs)
 
         # The ndl doesn't support C-state filters.
         self._use_cstate_filters = False

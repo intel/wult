@@ -111,7 +111,20 @@ def start_command(args):
                                              args.only_one_cstate, args.cstates_always_enable)
         stack.enter_context(pcb)
 
-        wcb = _CmdBuilder.get_workload_cmd_builder(cpuidle, args)
+        kwargs = {}
+        kwargs["toolpath"] = args.toolpath
+        kwargs["toolopts"] = args.toolopts
+        kwargs["outdir"] = args.outdir
+        kwargs["reportid_prefix"] = args.reportid_prefix
+        kwargs["reportid_suffix"] = args.reportid_suffix
+        kwargs["hostname"] = args.hostname
+        kwargs["debug"] = args.debug
+        kwargs["stats"] = args.stats
+        kwargs["stats_intervals"] = args.stats_intervals
+        kwargs["datapoints"] = args.datapoints
+        kwargs["no_cstate_filters"] = args.no_cstate_filters
+
+        wcb = _CmdBuilder.get_workload_cmd_builder(cpuidle, **kwargs)
         stack.enter_context(wcb)
 
         runner = _Common.CmdlineRunner(dry_run=args.dry_run, ignore_errors=args.ignore_errors)
