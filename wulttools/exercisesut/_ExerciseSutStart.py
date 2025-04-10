@@ -79,15 +79,8 @@ def start_command(args):
     inprops = _prepare_props(args)
     _check_args(args, inprops)
 
-    if not args.devids:
-        devids = [None]
-    else:
-        devids = Trivial.split_csv_line(args.devids)
-
-    if not args.cpus:
-        cpus = [None]
-    else:
-        cpus = Trivial.split_csv_line(args.cpus)
+    devids = Trivial.split_csv_line(args.devids) if args.devids else [None]
+    cpus = Trivial.split_csv_line(args.cpus) if args.cpus else [None]
 
     with contextlib.ExitStack() as stack:
         pman = get_pman(args)
