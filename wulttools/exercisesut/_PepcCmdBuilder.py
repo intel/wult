@@ -224,7 +224,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
             self.props[pname]["sname"] = sname
             self.props[pname]["name"] = name
 
-    def _normalize_inprops(self, inprops):
+    def normalize_inprops(self, inprops):
         """
         Normalize input properties 'inprops', and return it as a dictionary of property name as
         key and list of values as value.
@@ -286,7 +286,6 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         """
 
         handled_props = []
-        inprops = self._normalize_inprops(inprops)
         if not inprops:
             return
 

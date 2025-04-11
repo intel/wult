@@ -110,6 +110,7 @@ def start_command(args):
                                              args.only_measured_cpu, args.skip_io_dies,
                                              args.only_one_cstate, args.cstates_always_enable)
         stack.enter_context(pcb)
+        inprops = pcb.normalize_inprops(inprops)
 
         kwargs = {}
         kwargs["toolpath"] = args.toolpath
