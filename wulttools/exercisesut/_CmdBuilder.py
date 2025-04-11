@@ -269,7 +269,7 @@ class _NdlCmdBuilder(_WultCmdBuilder):
 class _StatsCollectCmdBuilder(_CmdBuilderBase):
     """A Helper class for creating 'stats-collect' commands."""
 
-    def _create_command(self, command, cpu, reportid=None):
+    def _create_command(self, command, reportid=None):
         """Create and return 'stats-collect' command."""
 
         cmd = f"{self.toolpath} "
@@ -296,10 +296,6 @@ class _StatsCollectCmdBuilder(_CmdBuilderBase):
         if toolopts:
             cmd += f" {toolopts}"
 
-        if cpu is not None:
-            cmd += f" --cpu {cpu}"
-            command = command.replace("{CPU}", cpu)
-
         if self._hostname != "localhost":
             cmd += f" -H {self._hostname}"
 
@@ -316,7 +312,7 @@ class _StatsCollectCmdBuilder(_CmdBuilderBase):
           * kwargs - additional arguments necessary to format the command.
         """
 
-        return self._create_command(kwargs["command"], kwargs["cpu"], reportid=reportid)
+        return self._create_command(kwargs["command"], reportid=reportid)
 
 class _PbeCmdBuilder(_CmdBuilderBase):
     """A Helper class for creating 'pbe' commands."""
