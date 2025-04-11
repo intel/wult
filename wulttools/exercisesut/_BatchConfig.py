@@ -168,8 +168,11 @@ def _get_workload_cmd_formatter(cpuidle, args):
 
     toolname = args.toolpath.name
 
-    if toolname in (WULT_TOOLNAME, NDL_TOOLNAME):
+    if toolname ==  WULT_TOOLNAME:
         return _WultCmdFormatter(cpuidle, args)
+
+    if toolname == NDL_TOOLNAME:
+        return _NdlCmdFormatter(cpuidle, args)
 
     if toolname == STC_TOOLNAME:
         return _StatsCollectCmdFormatter(args)
