@@ -100,7 +100,8 @@ CCx%:
     unit: "%"
     short_unit: "%"
     patterns:
-      - 'C(C\d+)'
+      - 'C(C\d+)Cyc'
+    key_substitute: "C{GROUPS[0]}%"
 MCx%:
     title: "M{groups[0]} residency"
     descr: >-
@@ -110,7 +111,8 @@ MCx%:
     unit: "%"
     short_unit: "%"
     patterns:
-      - 'M(C\d+)'
+      - 'M(C\d+)Cyc'
+    key_substitute: "M{GROUPS[0]}%"
 PCx%:
     title: "P{groups[0]} residency"
     descr: >-
@@ -120,7 +122,8 @@ PCx%:
     unit: "%"
     short_unit: "%"
     patterns:
-      - 'P(C\d+)'
+      - 'P(C\d+)Cyc'
+    key_substitute: "P{GROUPS[0]}%"
 SMICnt:
     title: "SMI count while measuring 'WakeLatency' or 'IntrLatency'"
     descr: >-
