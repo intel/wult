@@ -1,6 +1,13 @@
+wult (1.12.43) unstable; urgency=low
+
+  * Fix a regression since version v1.12.28 where C-state counters were
+    dropped.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 14 Apr 2025 00:00:00 +0200
+
 wult (1.12.42) unstable; urgency=low
 
-
+  * No real changes, release for testing the release scripts.
 
  -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 07 Apr 2025 00:00:00 +0200
 
