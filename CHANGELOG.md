@@ -5,11 +5,15 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix a regression since version v1.12.28 where C-state counters were
+   dropped.
 ### Added
 ### Removed
 ### Changed
 
 ## [1.12.42] - 2025-04-07
+### Changed
+ - No real changes, release for testing the release scripts.
 
 ## [1.12.41] - 2025-04-07
 ### Fixed
