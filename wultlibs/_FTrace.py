@@ -93,7 +93,7 @@ class FTrace(ClassHelpers.SimpleCloseContext):
             self._reader = self._pman.run_async(self._reader_cmd)
 
         while True:
-            stdout, stderr, exitcode = self._reader.wait(timeout=self.timeout, lines=[32, None],
+            stdout, stderr, exitcode = self._reader.wait(timeout=self.timeout, lines=[32, 0],
                                                          join=False)
 
             if not stdout and not stderr and exitcode is None:

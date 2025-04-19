@@ -209,7 +209,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         """Reads helper program 'stdout' output and yield it line by line."""
 
         while True:
-            stdout, stderr, exitcode = self._proc.wait(timeout=self._timeout, lines=[1, None],
+            stdout, stderr, exitcode = self._proc.wait(timeout=self._timeout, lines=[1, 0],
                                                        join=False)
             if exitcode is not None:
                 msg = self._proc.get_cmd_failure_msg(stdout, stderr, exitcode,
@@ -237,7 +237,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
     def _get_stderr(self):
         """Read and return standard error output of the helper program, if any."""
 
-        _, stderr, exitcode = self._proc.wait(timeout=1, lines=[None, None], join=True)
+        _, stderr, exitcode = self._proc.wait(timeout=1, lines=[0, 0], join=True)
         if exitcode is not None:
             return ""
         return stderr.strip()
