@@ -8,6 +8,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 ### Removed
 ### Changed
+ - exercise-sut: enhance module division based on functionality.
 
 ## [1.12.43] - 2025-04-14
 ### Fixed
