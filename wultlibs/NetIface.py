@@ -46,18 +46,18 @@ def _get_ifinfos(pman):
     * device HW address
     """
 
-    for ifname, path, mode in pman.lsdir(_SYSFSBASE):
-        if not stat.S_ISLNK(mode):
+    for entry in pman.lsdir(_SYSFSBASE):
+        if not stat.S_ISLNK(entry["mode"]):
             # We expect a symlink.
             continue
 
         devpath = None
         with contextlib.suppress(Error):
-            devpath = pman.abspath(path / "device")
+            devpath = pman.abspath(entry["path"] / "device")
         if not devpath:
             continue
 
-        yield ifname, devpath.name
+        yield entry["name"], devpath.name
 
 def _get_ifnames(pman):
     """
