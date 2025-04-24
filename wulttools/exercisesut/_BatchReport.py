@@ -9,6 +9,9 @@
 
 """A helper module for the 'exercise-sut' tool for generating reports and diffs."""
 
+# TODO: finish adding type hints to this module.
+from __future__ import annotations # Remove when switching to Python 3.10+.
+
 import os
 from pathlib import Path
 from pepclibs.helperlibs import Logging, Trivial, YAML
@@ -24,16 +27,32 @@ _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 class BatchReport(_Common.CmdlineRunner):
     """Helper class for 'exercise-sut' tool to create reports for series of results."""
 
-    def _resolve_toolpath(self):
-        """Find out tool name from results, and return full path to it."""
+    def _resolve_toolpath(self, respaths: list[Path]) -> Path:
+        """Find the tool name from the provided results and return its full path.
+
+        Args:
+            respaths: A list of Path objects pointing to test result directories.
+
+        Returns:
+            Path: The full path to the tool executable.
+
+        Raises:
+            ErrorNotFound: If the result information cannot be read or the tool name is missing.
+        """
 
         try:
-            infopath = self._respaths[0] / "info.yml"
+            infopath = respaths[0] / "info.yml"
             resinfo = YAML.load(infopath)
-            return self._lpman.which(resinfo["toolname"])
         except Error as err:
-            raise ErrorNotFound(f"failed to read toolname from '{infopath}', use '--toolpath' to "
-                                f"specify tool to generate reports\n{err}") from err
+            errormsg = Error(str(err)).indent(2)
+            raise ErrorNotFound(f"Failed to read result information from '{infopath}, the results "
+                                f"may be incomplete'\n{errormsg}") from err
+
+        if "toolname" not in resinfo:
+            raise ErrorNotFound(f"Failed to read toolname from '{infopath}'")
+
+        toolname = self._lpman.which(resinfo["toolname"])
+        return Path(toolname)
 
     def _search_result_paths(self, searchpaths):
         """Find all result paths in list of paths 'searchpaths'. Returns single list of paths."""
@@ -244,4 +263,4 @@ class BatchReport(_Common.CmdlineRunner):
         self._respaths = self._search_result_paths(respaths)
 
         if not self.toolpath:
-            self.toolpath = self._resolve_toolpath()
+            self.toolpath = self._resolve_toolpath(self._respaths)
