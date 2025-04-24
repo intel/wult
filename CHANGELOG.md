@@ -6,7 +6,9 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
+ - exercise-sut start: new option to configure C-states '--cstates-config-strategy'.
 ### Removed
+ - exercise-sut start: options '--only-measured-cstate', '--cstates-always-enable'.
 ### Changed
  - exercise-sut: enhance module division based on functionality.
 

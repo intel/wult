@@ -405,12 +405,12 @@ class PepcCmdBuilder(_PropIteratorBase):
         if csname == "all":
             return csname
 
-        if self._cstates_always_enable:
-            csnames.update(self._cstates_always_enable)
-
-        if self._only_one_cstate:
+        if self._cstate_strategy == "measured-only":
             csnames.add(csname)
-        else:
+        elif self._cstate_strategy == "measured-and-poll":
+            csnames.add(csname)
+            csnames.add("POLL")
+        elif self._cstate_strategy == "measured-and-shallower":
             all_csnames = self._normalize_csnames("all")
             idx = all_csnames.index(csname)
             csnames.update(all_csnames[:idx + 1])
@@ -458,8 +458,8 @@ class PepcCmdBuilder(_PropIteratorBase):
 
             yield cmd
 
-    def __init__(self, pman, cpuinfo, cpuidle, only_measured_cpu, skip_io_dies, only_one_cstate,
-                 cstates_always_enable):
+    def __init__(self, pman, cpuinfo, cpuidle, only_measured_cpu, skip_io_dies,
+                 cstates_config_strategy):
         """
         The class constructor.
 
@@ -469,17 +469,16 @@ class PepcCmdBuilder(_PropIteratorBase):
             cpuidle: The 'CPUIdle.CPUIdle()' object for the measured system.
             only_measured_cpu: If 'True', only the measured CPU is configured.
             skip_io_dies: If 'True', skip configuration of I/O dies.
-            only_one_cstate: If 'True', only measured C-state is enabled.
-            cstates_always_enable: Comma-separated list of C-states to always enable.
+            cstates_config_strategy: C-state configuration strategy, the options are:
+                'measured-only', 'measured-and-poll' and 'measured-and-shallower'.
         """
 
         super().__init__(pman, cpuinfo, cpuidle)
 
         self._only_measured_cpu = only_measured_cpu
         self._skip_io_dies = skip_io_dies
-        self._only_one_cstate = only_one_cstate
-        self._cstates_always_enable = cstates_always_enable
+        self._cstate_strategy = cstates_config_strategy
 
-        if self._cstates_always_enable:
-            csnames = Trivial.split_csv_line(self._cstates_always_enable)
-            self._cstates_always_enable = self._normalize_csnames(csnames)
+        if self._cstate_strategy not in _Common.CSTATES_CONFIG_STRATEGIES:
+            raise Error(f"unknown C-state configuration strategy '{self._cstate_strategy}', "
+                        f"use one of following {', '.join(_Common.CSTATES_CONFIG_STRATEGIES)}")

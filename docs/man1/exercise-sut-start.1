@@ -18,8 +18,8 @@ C1E_AUTOPROMOTE] [\-\-cstate\-prewake CSTATE_PREWAKE] [\-\-epp EPP]
 [\-\-epb EPB] [\-\-state\-reset] [\-\-deploy] [\-\-devids DEVIDS]
 [\-\-stats STATS] [\-\-command COMMAND] [\-\-stop\-on\-failure]
 [\-\-only\-measured\-cpu] [\-\-toolpath TOOLPATH]
-[\-\-only\-one\-cstate] [\-\-cstates\-always\-enable
-CSTATES_ALWAYS_ENABLE] [\-\-use\-cstate\-filters] [\-\-toolopts
+[\-\-cstates\-config\-strategy {measured\-only,measured\-and\-poll,
+measured\-and\-shallower}] [\-\-use\-cstate\-filters] [\-\-toolopts
 TOOLOPTS] [\-\-outdir OUTDIR] [\-\-dry\-run] [\-\-list\-monikers]
 .PP
 Run a test tool or benchmark to collect test data.
@@ -181,13 +181,9 @@ the same way as compute dies.
 Path to the tool to run.
 Default is \[aq]wult\[aq].
 .TP
-\f[B]\-\-only\-one\-cstate\f[R]
-By default C\-states deeper than measured C\-state are disabled and
-other C\-states are enabled.
-This option will disable all C\-states, excluding the measured C\-state.
-.TP
-\f[B]\-\-cstates\-always\-enable\f[R] \f[I]CSTATES_ALWAYS_ENABLE\f[R]
-Comma\-separated list of always enabled C\-states.
+\f[B]\-\-cstate\-config\-strategy\f[R] \f[I]{measured\-only,measured\-and\-poll,measured\-and\-shallower}\f[R]
+C\-state configuration strategy to use for measuring the system.
+The default is \[aq]measured\-only\[aq].
 .TP
 \f[B]\-\-use\-cstate\-filters\f[R]
 Applicable to \[aq]wult\[aq] and \[aq]ndl\[aq] tools.

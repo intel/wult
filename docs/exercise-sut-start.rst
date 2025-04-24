@@ -22,9 +22,9 @@ REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpus CPUS]
 [--cstate-prewake CSTATE_PREWAKE] [--epp EPP] [--epb EPB] [--state-reset]
 [--deploy] [--devids DEVIDS] [--stats STATS] [--command COMMAND]
 [--stop-on-failure] [--only-measured-cpu] [--toolpath TOOLPATH]
-[--only-one-cstate] [--cstates-always-enable CSTATES_ALWAYS_ENABLE]
-[--use-cstate-filters] [--toolopts TOOLOPTS] [--outdir OUTDIR] [--dry-run]
-[--list-monikers]
+[--cstates-config-strategy {measured-only,measured-and-poll,
+measured-and-shallower}] [--use-cstate-filters] [--toolopts TOOLOPTS]
+[--outdir OUTDIR] [--dry-run] [--list-monikers]
 
 Run a test tool or benchmark to collect test data.
 
@@ -174,13 +174,8 @@ OPTIONS *'exercise-sut* start'
 **--toolpath** *TOOLPATH*
    Path to the tool to run. Default is 'wult'.
 
-**--only-one-cstate**
-   By default C-states deeper than measured C-state are disabled and
-   other C-states are enabled. This option will disable all C-states,
-   excluding the measured C-state.
-
-**--cstates-always-enable** *CSTATES_ALWAYS_ENABLE*
-   Comma-separated list of always enabled C-states.
+**--cstate-config-strategy** *{measured-only,measured-and-poll,measured-and-shallower}*
+   C-state configuration strategy to use for measuring the system. The default is 'measured-only'.
 
 **--use-cstate-filters**
    Applicable to 'wult' and 'ndl' tools. Use filters to exclude

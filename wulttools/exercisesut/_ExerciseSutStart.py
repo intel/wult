@@ -108,7 +108,7 @@ def start_command(args):
 
         pcb = _PepcCmdBuilder.PepcCmdBuilder(pman, cpuinfo, cpuidle,
                                              args.only_measured_cpu, args.skip_io_dies,
-                                             args.only_one_cstate, args.cstates_always_enable)
+                                             args.cstates_config_strategy)
         stack.enter_context(pcb)
         inprops = pcb.normalize_inprops(inprops)
 

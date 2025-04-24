@@ -158,14 +158,11 @@ _COLLECT_OPTIONS = {
         "default": WULT_TOOLNAME,
         "help": f"""Path to the tool to run. Default is '{WULT_TOOLNAME}'."""
     },
-    "only_one_cstate": {
-        "action": "store_true",
-        "help": """By default C-states deeper than measured C-state are disabled and other C-states
-                   are enabled. This option will disable all C-states, excluding the measured
-                   C-state."""
-    },
-    "cstates_always_enable": {
-        "help": """Comma-separated list of always enabled C-states."""
+    "cstates_config_strategy": {
+        "help": f"""C-state configuration strategy to use for measuring the system. The default is
+                   '{_Common.CSTATES_CONFIG_STRATEGIES[0]}'.""",
+        "choices": _Common.CSTATES_CONFIG_STRATEGIES,
+        "default": _Common.CSTATES_CONFIG_STRATEGIES[0]
     },
     "no-cstate-filters": {
         "action": "store_true",

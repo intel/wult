@@ -17,6 +17,8 @@ from pepclibs.helperlibs.Exceptions import Error
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
+CSTATES_CONFIG_STRATEGIES = ('measured-only', 'measured-and-poll', 'measured-and-shallower')
+
 PROP_INFOS = {
     "cstates": {
         "name": "Requestable C-state",
