@@ -1,3 +1,11 @@
+wult (1.12.44) unstable; urgency=low
+
+  * exercise-sut start: new option to configure C-states '--cstates-config-strategy'.
+  * exercise-sut start: options '--only-measured-cstate', '--cstates-always-enable'.
+  * exercise-sut: enhance module division based on functionality.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 06 May 2025 00:00:00 +0200
+
 wult (1.12.43) unstable; urgency=low
 
   * Fix a regression since version v1.12.28 where C-state counters were

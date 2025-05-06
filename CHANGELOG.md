@@ -6,6 +6,11 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
+### Removed
+### Changed
+
+## [1.12.44] - 2025-05-06
+### Added
  - exercise-sut start: new option to configure C-states '--cstates-config-strategy'.
 ### Removed
  - exercise-sut start: options '--only-measured-cstate', '--cstates-always-enable'.
