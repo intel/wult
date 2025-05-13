@@ -43,7 +43,7 @@ def _get_local_cpus(pman, ifname):
     path = f"/sys/class/net/{ifname}/device/local_cpulist"
 
     try:
-        str_of_ranges = pman.read(path).strip()
+        str_of_ranges = pman.read_file(path).strip()
     except Error as err:
         raise Error(f"failed to find local CPUs for the '{ifname}' NIC.\n{err.indent(2)}.\n"
                     f"Please specify CPU number, use '--cpu'.") from err
