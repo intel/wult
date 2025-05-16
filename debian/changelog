@@ -1,3 +1,9 @@
+wult (1.12.45) unstable; urgency=low
+
+  * Adjust to changes in pepc API. No functional changes.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Fri, 16 May 2025 00:00:00 +0200
+
 wult (1.12.44) unstable; urgency=low
 
   * exercise-sut start: new option to configure C-states '--cstates-config-strategy'.
