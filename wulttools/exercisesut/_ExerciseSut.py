@@ -233,7 +233,7 @@ def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
     text = f"{TOOLNAME} - Run a test tool or benchmark to collect test data."
-    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
+    parser = ArgParse.ArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)

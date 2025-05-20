@@ -65,7 +65,7 @@ def _build_arguments_parser():
         completer = None
 
     text = "ndl - a tool for measuring memory access latency observed by a network card."
-    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
+    parser = ArgParse.ArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)

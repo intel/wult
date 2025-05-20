@@ -51,7 +51,7 @@ def _build_arguments_parser():
         completer = None
 
     text = f"{TOOLNAME} - a tool for measuring C-states power break even."
-    parser = ArgParse.SSHOptsAwareArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
+    parser = ArgParse.ArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
 
     text = "Force coloring of the text output."
     parser.add_argument("--force-color", action="store_true", help=text)
