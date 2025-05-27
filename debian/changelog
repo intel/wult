@@ -1,3 +1,11 @@
+wult (1.12.47) unstable; urgency=low
+
+  * Fix drivers compilation failur with kernel v6.15.
+  * Removed eBPF support, because I have no time to maintain it and it is not
+    used much.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Tue, 27 May 2025 00:00:00 +0200
+
 wult (1.12.46) unstable; urgency=low
 
   * Adjust to API changes in pepc project. No functional changes.

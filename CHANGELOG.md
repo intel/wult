@@ -5,12 +5,16 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix drivers compilation failur with kernel v6.15.
 ### Added
+### Removed
+### Changed
+
+## [1.12.47] - 2025-05-27
+### Fixed
+ - Fix drivers compilation failur with kernel v6.15.
 ### Removed
  - Removed eBPF support, because I have no time to maintain it and it is not
    used much.
-### Changed
 
 ## [1.12.46] - 2025-05-27
 ### Changed
