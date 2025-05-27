@@ -2,5 +2,3 @@ usr/bin
 README.md /usr/share/doc/wult
 usr/share/wult
 helpers/ndl-helper/ndl-helper usr/bin
-helpers/wult-hrt-helper/wult-hrt-helper usr/bin
-helpers/wult-tdt-helper/wult-tdt-helper usr/bin

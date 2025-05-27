@@ -23,7 +23,7 @@ from pepclibs.helperlibs import Logging, ClassHelpers, ArgParse, ProjectFiles, T
 from pepclibs.helperlibs import KernelVersion
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.deploy import DeployBase, _DeployPyHelpers
-from wultlibs.deploy import _DeployBPFHelpers, _DeployDrivers, _DeploySHelpers
+from wultlibs.deploy import _DeployDrivers, _DeploySHelpers
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
@@ -45,7 +45,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func):
         cats[info["category"]].append(name)
 
     what = ""
-    if cats["shelpers"] or cats["pyhelpers"] or cats["bpfhelpers"]:
+    if cats["shelpers"] or cats["pyhelpers"]:
         if cats["drivers"]:
             what = "helpers and drivers"
         else:
@@ -74,7 +74,7 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func):
 
     if cats["shelpers"] or cats["pyhelpers"]:
         searchdirs = ProjectFiles.get_project_data_search_descr("wult", HELPERS_SRC_SUBDIR)
-        helpernames = ", ".join(cats["shelpers"] + cats["pyhelpers"] + cats["bpfhelpers"])
+        helpernames = ", ".join(cats["shelpers"] + cats["pyhelpers"])
         descr += f""" The {toolname} tool also depends on the following helpers: {helpernames}.
                      These helpers will be compiled on the SUT and deployed to the SUT. The sources
                      of the helpers are searched for in the following paths (and in the following
@@ -85,35 +85,19 @@ def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func):
                      user 'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
     parser = subparsers.add_parser("deploy", help=text, description=descr)
 
-    if cats["drivers"] or cats["bpfhelpers"]:
-        text = """Path to the Linux kernel sources to build drivers and eBPF helpers against. The
-                  default is '/lib/modules/$(uname -r)/build' on the SUT. If '--local-build' was
-                  used, then the path is considered to be on the local system, rather than the
-                  SUT."""
+    if cats["drivers"]:
+        text = """Path to the Linux kernel sources to build drivers against. The default is
+                  '/lib/modules/$(uname -r)/build' on the SUT. If '--local-build' was used, then the
+                  path is considered to be on the local system, rather than the SUT."""
         parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text).completer = completer
 
-    if cats["drivers"]:
         text = """Options and variables to pass to 'make' when the drivers are built. For example,
                   pass 'CC=clang LLVM=1' to use clang and LLVM tools for building the drivers."""
         parser.add_argument("--drivers-make-opts", dest="drv_make_opts", help=text)
 
-    if cats["drivers"] and cats["bpfhelpers"]:
         text = """Do not deploy the drivers. This is a debug and development option, do not use it
                   for other purposes."""
         parser.add_argument("--skip-drivers", action="store_true", help=text)
-
-        text = """Do not deploy eBPF helpers. This is a debug and development option, do not use it
-                  for other purposes."""
-        parser.add_argument("--skip-bpf", action="store_true", help=text)
-
-    if cats["bpfhelpers"]:
-        text = """eBPF helpers sources consist of 2 components: the user-space component and the
-                  eBPF component. The user-space component is distributed as a source code, and must
-                  be compiled. The eBPF component is distributed as both source code and in binary
-                  (compiled) form. By default, the eBPF component is not re-compiled. This option is
-                  meant to be used by wult developers to re-compile the eBPF component if it was
-                  modified."""
-        parser.add_argument("--rebuild-bpf", action="store_true", help=text)
 
     text = f"""Build {what} locally, instead of building on HOSTNAME (the SUT)."""
     parser.add_argument("--local-build", dest="lbuild", action="store_true", help=text)
@@ -202,9 +186,9 @@ class DeployCheck(DeployBase.DeployCheckBase):
                     self._check_deployable_up_to_date(drvname, deployable, srcpath, dstpath)
 
     def _check_helpers_deployment(self):
-        """Check if simple and eBPF helpers are deployed and up-to-date."""
+        """Check if simple helpers are deployed and up-to-date."""
 
-        for helpername in list(self._cats["shelpers"]) + list(self._cats["bpfhelpers"]):
+        for helpername in list(self._cats["shelpers"]):
             _check_minkver(self._spman, self._insts[helpername], self._get_kver())
 
             try:
@@ -215,12 +199,6 @@ class DeployCheck(DeployBase.DeployCheckBase):
                 srcpath = None
 
             for deployable in self._get_deployables("shelpers"):
-                deployable_path = self._get_installed_deployable_path(deployable)
-                if srcpath:
-                    self._check_deployable_up_to_date(helpername, deployable, srcpath,
-                                                      deployable_path)
-
-            for deployable in self._get_deployables("bpfhelpers"):
                 deployable_path = self._get_installed_deployable_path(deployable)
                 if srcpath:
                     self._check_deployable_up_to_date(helpername, deployable, srcpath,
@@ -237,7 +215,7 @@ class DeployCheck(DeployBase.DeployCheckBase):
 
         if self._cats["drivers"]:
             self._check_drivers_deployment()
-        if self._cats["shelpers"] or self._cats["bpfhelpers"]:
+        if self._cats["shelpers"]:
             self._check_helpers_deployment()
 
     def __init__(self, prjname, toolname, deploy_info, pman=None):
@@ -292,19 +270,6 @@ class Deploy(DeployBase.DeployBase):
         _LOG.debug("kernel sources path: %s", self._ksrc)
         return self._ksrc
 
-    def _deploy_bpf_helpers(self):
-        """Deploy eBPF helpers to the SUT."""
-
-        bpfhelpers = self._cats["bpfhelpers"]
-        if not bpfhelpers:
-            return
-
-        with _DeployBPFHelpers.DeployBPFHelpers("wult", self._toolname, self._get_ksrc(),
-                                                self._rebuild_bpf, self._spman, self._bpman,
-                                                self._get_stmpdir(), self._get_btmpdir(),
-                                                btchk=self._btchk, debug=self._debug) as depl:
-            depl.deploy(list(bpfhelpers))
-
     def _deploy_shelpers(self):
         """Deploy simple helpers to the SUT."""
 
@@ -352,7 +317,6 @@ class Deploy(DeployBase.DeployBase):
         self._deploy_drivers()
         self._deploy_shelpers()
         self._deploy_pyhelpers()
-        self._deploy_bpf_helpers()
 
     def deploy(self):
         """Deploy all the required installables to the SUT (drivers, helpers, etc)."""
@@ -367,10 +331,6 @@ class Deploy(DeployBase.DeployBase):
         Drop the some installables, for example those that do not satisfy the minimum kernel version
         requirements.
         """
-
-        if self._skip_bpf:
-            for installable in list(self._cats["bpfhelpers"]):
-                self._drop_installable(installable)
 
         if self._skip_drivers:
             for installable in list(self._cats["drivers"]):
@@ -396,26 +356,20 @@ class Deploy(DeployBase.DeployBase):
 
                 self._drop_installable(installable)
 
-    def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False, skip_bpf=None,
-                 skip_drivers=None, drv_make_opts=None, rebuild_bpf=False, tmpdir_path=None,
-                 keep_tmpdir=False, debug=False):
+    def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False,
+                 skip_drivers=None, drv_make_opts=None, tmpdir_path=None, keep_tmpdir=False,
+                 debug=False):
         """
         The class constructor. The arguments are the same as in 'DeployBase.__init__()' except for:
           * ksrc - path to the kernel sources to compile drivers against.
-          * skip_bpf - do not build / deploy eBPF helpers (drop the installables of the "bpfhelpers"
-                       category).
           * skip_drivers - do not build / deploy the drivers (drop the installables of the "drivers"
                            category).
           * drv_make_opts - options to add to the 'make' command when building the drivers.
-          * rebuild_bpf - if 'toolname' comes with an eBPF helper, re-build the the eBPF component
-                          of the helper if this argument is 'True'. Do not re-build otherwise.
         """
 
         self._ksrc = ksrc
-        self._skip_bpf = skip_bpf
         self._skip_drivers = skip_drivers
         self._drv_make_opts = drv_make_opts
-        self._rebuild_bpf = rebuild_bpf
         self._btchk = None
 
         # Version of the kernel running on the SUT of version of the kernel to compile wult

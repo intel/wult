@@ -37,16 +37,6 @@ _WULT_DEPLOY_INFO = {
             "minkver"  : "5.6",
             "deployables" : ("wult", "wult_igb", "wult_tdt", "wult_hrt",),
         },
-        "wult-hrt-helper" : {
-            "category" : "bpfhelpers",
-            "minkver"  : "5.15",
-            "deployables" : ("wult-hrt-helper",),
-        },
-        "wult-tdt-helper" : {
-            "category" : "bpfhelpers",
-            "minkver"  : "5.15",
-            "deployables" : ("wult-tdt-helper",),
-        },
         "wult-freq-helper" : {
             "category" : "pyhelpers",
             "deployables" : ("wult-freq-helper",),

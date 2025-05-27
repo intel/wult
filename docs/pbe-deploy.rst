@@ -37,8 +37,8 @@ OPTIONS *'pbe* deploy'
    Print debugging information.
 
 **--kernel-src** *KSRC*
-   Path to the Linux kernel sources to build drivers and eBPF helpers
-   against. The default is '/lib/modules/$(uname -r)/build' on the SUT.
+   Path to the Linux kernel sources to build drivers against.
+   The default is '/lib/modules/$(uname -r)/build' on the SUT.
    If '--local-build' was used, then the path is considered to be on the
    local system, rather than the SUT.
 

@@ -16,7 +16,6 @@ import contextlib
 from pepclibs import CPUIdle
 from pepclibs.helperlibs import Logging, ClassHelpers, KernelVersion
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
-from statscollectlibs.deploy import DeployBase
 from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess
 from wultlibs.helperlibs import Human
 
@@ -272,14 +271,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
 
         self._progress = _ProgressLine.WultProgressLine(period=1)
 
-        if dev.helpername:
-            helper_path = DeployBase.get_installed_deployable_path("wult", "wult", dev.helpername,
-                                                                   pman=pman)
-        else:
-            helper_path = None
-
         self._prov = _WultRawDataProvider.WultRawDataProvider(dev, pman, res.cpu, self._ldist,
-                                                              helper_path=helper_path,
                                                               timeout=self._timeout,
                                                               unload=unload)
 

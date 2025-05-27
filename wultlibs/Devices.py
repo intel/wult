@@ -516,33 +516,6 @@ class _WultHRT(_HRTimerDeviceBase):
 
         self.info["descr"] = self.supported_devices["hrt"]
 
-class _WultHRTBPF(_HRTimerDeviceBase):
-    """The High Resolution Timers device controlled by the 'wult-hrt-helper' program."""
-
-    supported_devices = {"hrt_bpf" : "Linux High Resolution Timer via eBPF"}
-
-    def __init__(self, devid, pman, dmesg=None):
-        """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
-
-        super().__init__(devid, pman, helpername="wult-hrt-helper", dmesg=dmesg)
-
-        self.info["descr"] = self.supported_devices["hrt_bpf"]
-
-class _WultTDTBPF(_DeviceBase):
-    """TSC Deadline Timer device controlled by the 'wult-tdt-helper' program."""
-
-    supported_devices = {"tdt_bpf" : "TSC Deadline Timer via eBPF"}
-
-    def __init__(self, devid, pman, dmesg=None):
-        """The class constructor. The arguments are the same as in '_DeviceBase.__init__()'."""
-
-        super().__init__(devid, pman, helpername="wult-tdt-helper", dmesg=dmesg)
-
-        self.is_timer = True
-        self.info["devid"] = devid
-        self.info["descr"] = self.supported_devices["tdt_bpf"]
-        self.info["resolution"] = 1
-
 class _PbeHRTimer(_HRTimerDeviceBase):
     """The High Resolution Timers device controlled by 'pbe'."""
 
@@ -572,12 +545,6 @@ def GetDevice(toolname, devid, pman, cpu=0, dmesg=None):
 
         if devid in _WultHRT.supported_devices:
             return _WultHRT(devid, pman, dmesg=dmesg)
-
-        if devid in _WultHRTBPF.supported_devices:
-            return _WultHRTBPF(devid, pman, dmesg=dmesg)
-
-        if devid in _WultTDTBPF.supported_devices:
-            return _WultTDTBPF(devid, pman, dmesg=dmesg)
 
     if toolname == "pbe":
         if devid in _PbeHRTimer.supported_devices:
@@ -621,16 +588,6 @@ def scan_devices(toolname, pman):
         for devid in _WultHRT.supported_devices:
             with contextlib.suppress(Error):
                 with _WultHRT(devid, pman, dmesg=False) as timerdev:
-                    yield timerdev
-
-        for devid in _WultHRTBPF.supported_devices:
-            with contextlib.suppress(Error):
-                with _WultHRTBPF(devid, pman, dmesg=False) as timerdev:
-                    yield timerdev
-
-        for devid in _WultTDTBPF.supported_devices:
-            with contextlib.suppress(Error):
-                with _WultTDTBPF(devid, pman, dmesg=False) as timerdev:
                     yield timerdev
 
     if toolname == "wult":

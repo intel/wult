@@ -10,13 +10,13 @@
 This module provides API for reading raw wult datapoints, as well as initializing wult devices.
 """
 
-from pepclibs.helperlibs import Logging, Trivial, ClassHelpers, Systemctl, KernelVersion
+from pepclibs.helperlibs import Logging, Trivial, ClassHelpers, Systemctl
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut, ErrorNotFound
 from wultlibs import _FTrace, _RawDataProvider
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
-class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
+class WultRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     """
     The raw data provider class implementation for devices which are controlled by a wult kernel
     driver.
@@ -180,7 +180,16 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                     _LOG.info("Stopped the '%s' NTP service", service)
 
     def __init__(self, dev, pman, cpu, ldist, timeout=None, unload=True):
-        """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
+        """
+        Initialize a class instance. The arguments are as follows.
+          * dev - the device object created with 'Devices.GetDevice()'.
+          * pman - the process manager object defining host to operate on.
+          * cpu - the measured CPU number.
+          * ldist - a pair of numbers specifying the launch distance range in nanoseconds.
+          * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
+                      seconds.
+          * unload - whether or not to unload the kernel driver after finishing measurement.
+        """
 
         drvinfo = { "wult" : { "params" : f"cpu={cpu}" },
                      dev.drvname : { "params" : None }}
@@ -218,122 +227,3 @@ class _WultDrvRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
 
         ClassHelpers.close(self, close_attrs=("_sysctl", "_ftrace"))
         super().close()
-
-
-class _WultBPFRawDataProvider(_RawDataProvider.HelperRawDataProviderBase):
-    """
-    The raw data provider class implementation for devices which are controlled by the
-    'wult-hrt-helper' program, which includes eBPF code.
-    """
-
-    def get_datapoints(self):
-        """
-        This generator receives data from 'wult-hrt-helper' and yields datapoints in form of a
-        dictionary. The keys are metric names and values are metric values.
-        """
-
-        line = None
-        yielded_lines = 0
-        hdr = None
-        types = []
-
-        try:
-            for line in self._get_lines():
-                vals = Trivial.split_csv_line(line)
-                if not hdr:
-                    # The very first line is the CSV header.
-                    hdr = vals
-                    continue
-
-                if len(vals) != len(hdr):
-                    raise Error(f"unexpected line from '{self._helpername}'{self._pman.hostmsg}:\n"
-                                f"{line}")
-
-                if not types:
-                    # Figure out the types of various values.
-                    for val in vals:
-                        if Trivial.is_int(val):
-                            types.append(int)
-                        elif Trivial.is_float(val):
-                            types.append(float)
-                        else:
-                            types.append(str)
-
-                dp = dict(zip(hdr, [tp(val) for tp, val in zip(types, vals)]))
-                yielded_lines += 1
-                yield dp
-        except ErrorTimeOut as err:
-            msg = f"{err}\nCount of '{self._helpername}' lines read so far: {yielded_lines}"
-            if line:
-                msg = f"{msg}\nLast seen '{self._helpername}' line:\n{line}"
-            stderr = self._get_stderr()
-            if stderr:
-                stderr = Error(stderr).indent(2)
-                msg += f"\nStandard error output of '{self._helpername}'\n{stderr}"
-            raise ErrorTimeOut(msg) from err
-        except Error as err:
-            if "Error loading vmlinux BTF" in str(err):
-                kver = KernelVersion.get_kver(pman=self._pman)
-                if KernelVersion.kver_lt(kver, "5.18"):
-                    optname = "CONFIG_DEBUG_INFO"
-                else:
-                    optname = "CONFIG_DEBUG_INFO_BTF"
-
-                raise Error(f"{err}\nPlease, make sure that your kernel has the '{optname}' "
-                            f"configuration option enabled") from err
-            raise
-
-    def start(self):
-        """Start the measurements."""
-        super()._start_helper()
-
-    def stop(self):
-        """Stop the measurements."""
-        super()._exit_helper()
-
-    def prepare(self):
-        """Prepare to start the measurements."""
-
-        super().prepare()
-
-        ldist_str = ",".join([str(val) for val in self.ldist])
-        self._helper_opts = f"-c {self._cpu} -l {ldist_str}"
-
-    def __init__(self, dev, pman, cpu, ldist, helper_path, timeout=None):
-        """Initialize a class instance. The arguments are the same as in 'WultRawDataProvider'."""
-
-        super().__init__(dev, pman, ldist, helper_path=helper_path, timeout=timeout)
-
-        self._cpu = cpu
-
-        self._wult_lines = None
-
-        self._ftrace = _FTrace.FTrace(pman=self._pman, cpu=cpu, timeout=self._timeout)
-
-        try:
-            self._ftrace.enable_event("bpf_trace/bpf_trace_printk")
-        except Error as err:
-            raise Error(f"can't enable trace event 'bpf_trace_printk':\n{err.indent(2)}\n"
-                        f"Make sure you have 'CONFIG_BPF' enabled in the kernel"
-                        f"{self._pman.hostmsg}") from err
-
-def WultRawDataProvider(dev, pman, cpu, ldist, helper_path=None, timeout=None, unload=True):
-    """
-    Create and return a raw data provider class suitable for a delayed event device 'dev'. The
-    arguments are as follows.
-      * dev - the device object created with 'Devices.GetDevice()'.
-      * pman - the process manager object defining host to operate on.
-      * cpu - the measured CPU number.
-      * ldist - a pair of numbers specifying the launch distance range in nanoseconds.
-      * helper_path - path to the 'wult-hrt-helper' program.
-      * timeout - the maximum amount of seconds to wait for a raw datapoint. Default is 10
-                  seconds.
-      * unload - whether or not to unload the kernel driver after finishing measurement.
-    """
-
-    if dev.drvname:
-        return _WultDrvRawDataProvider(dev, pman, cpu, ldist, timeout=timeout, unload=unload)
-    if not helper_path:
-        raise Error("BUG: the 'wult-hrt-helper' program path was not specified")
-
-    return _WultBPFRawDataProvider(dev, pman, cpu, ldist, helper_path, timeout=timeout)

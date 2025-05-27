@@ -7,6 +7,8 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 ### Added
 ### Removed
+ - Removed eBPF support, because I have no time to maintain it and it is not
+   used much.
 ### Changed
 
 ## [1.12.46] - 2025-05-27

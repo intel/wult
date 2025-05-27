@@ -554,7 +554,7 @@ def reduce_installables(deploy_info, dev):
     for installable, info in deploy_info["installables"].items():
         if info["category"] == "drivers" and not dev.drvname:
             del result["installables"][installable]
-        elif info["category"] in ("shelpers", "bpfhelpers") and not dev.helpername:
+        elif info["category"] in ("shelpers",) and not dev.helpername:
             del result["installables"][installable]
 
     return result

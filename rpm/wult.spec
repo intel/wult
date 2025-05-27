@@ -13,12 +13,10 @@ Patch0:   exclude-dirs.patch
 # measuring C-state latency for Intel architectures
 ExclusiveArch:  x86_64
 
-BuildRequires:  bpftool
 BuildRequires:  clang
 BuildRequires:  gcc
 BuildRequires:  make
 BuildRequires:  kernel-devel
-BuildRequires:  libbpf-devel
 BuildRequires:  python3-devel
 BuildRequires:  python3-pytest
 Requires:		pciutils
@@ -51,16 +49,12 @@ Wult Python libraries
 %pyproject_wheel
 
 %make_build -C helpers/ndl-helper
-%make_build -C helpers/wult-hrt-helper
-%make_build -C helpers/wult-tdt-helper
 
 %install
 %pyproject_install
 %pyproject_save_files wultlibs wulttools
 
 install -pDm755 helpers/ndl-helper/ndl-helper %{buildroot}%{_bindir}/ndl-helper
-install -pDm755 helpers/wult-hrt-helper/wult-hrt-helper %{buildroot}%{_bindir}/wult-hrt-helper
-install -pDm755 helpers/wult-tdt-helper/wult-tdt-helper %{buildroot}%{_bindir}/wult-tdt-helper
 mkdir -p %{buildroot}/%{_mandir}/man1/wult
 install -pDm644 docs/man1/*.1 %{buildroot}/%{_mandir}/man1/wult
 
@@ -76,8 +70,6 @@ install -pDm644 docs/man1/*.1 %{buildroot}/%{_mandir}/man1/wult
 %{_bindir}/pbe
 %{_bindir}/stc-agent
 %{_bindir}/wult
-%{_bindir}/wult-hrt-helper
-%{_bindir}/wult-tdt-helper
 %{_datadir}/wult
 %{_mandir}/man1/exercise-sut.1*
 %{_mandir}/man1/ndl-*.1
