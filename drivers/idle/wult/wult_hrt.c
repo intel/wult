@@ -14,6 +14,7 @@
 #include <linux/time.h>
 #include <asm/msr.h>
 #include "wult.h"
+#include "compat.h"
 
 #define TRACEPOINT_NAME "hrtimer_expire_entry"
 
@@ -126,8 +127,8 @@ static int init_device(struct wult_device_info *wdi, int cpu)
 		return -EINVAL;
 
 	wt->cpu = cpu;
-	hrtimer_init(&wt->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS_PINNED_HARD);
-	wt->timer.function = &timer_interrupt;
+	hrtimer_setup(&wt->timer, &timer_interrupt, CLOCK_MONOTONIC,
+		      HRTIMER_MODE_ABS_PINNED_HARD);
 	return 0;
 }
 

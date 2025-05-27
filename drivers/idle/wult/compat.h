@@ -13,4 +13,12 @@
 #define COMPAT_HAVE_SET_AFFINITY
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 15, 0)
+#define hrtimer_setup(_timer, _func, _clock_id, _mode) \
+        do { \
+                hrtimer_init((_timer), (_clock_id), (_mode)); \
+                (_timer)->function = (_func); \
+        } while(0)
+#endif
+
 #endif /* _WULT_COMPAT_H_ */

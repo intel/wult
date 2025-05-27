@@ -21,6 +21,7 @@
 #include <asm/intel-family.h>
 #include <asm/msr.h>
 #include "wult.h"
+#include "compat.h"
 
 #define MSR_TRACEPOINT_NAME	"write_msr"
 #define TIMER_TRACEPOINT_NAME	"local_timer_entry"
@@ -192,8 +193,8 @@ static int init_device(struct wult_device_info *wdi, int cpu)
 		return -EINVAL;
 
 	wt->cpu = cpu;
-	hrtimer_init(&wt->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL_PINNED_HARD);
-	wt->timer.function = &timer_interrupt;
+	hrtimer_setup(&wt->timer, &timer_interrupt, CLOCK_MONOTONIC,
+		      HRTIMER_MODE_REL_PINNED_HARD);
 	return 0;
 }
 
