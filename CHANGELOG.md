@@ -9,6 +9,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 ### Changed
 
+## [1.12.46] - 2025-05-27
+### Changed
+ - Adjust to API changes in pepc project. No functional changes.
+
 ## [1.12.45] - 2025-05-16
 ### Changed
  - Adjust to changes in pepc API. No functional changes.
