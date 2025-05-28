@@ -125,8 +125,8 @@ RESET_PROPS = {
         "text": "disable C1 demotion"
     },
     "c1_undemotion": {
-        "value": "off",
-        "text": "disable C1 undemotion"
+        "value": "on",
+        "text": "enable C1 undemotion"
     },
     "c1e_autopromote": {
         "value": "off",
