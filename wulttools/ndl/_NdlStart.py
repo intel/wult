@@ -10,6 +10,7 @@
 This module includes the "start" 'ndl' command implementation.
 """
 
+import json
 import contextlib
 from pathlib import Path
 from pepclibs import CPUInfo, CPUIdle, CStates
@@ -88,7 +89,42 @@ def _get_remote_cpus(pman, ifname, cpuinfo):
 
     return list(rcpus)
 
-def _get_cbuf_size(args, cpuinfo):
+def _get_cache_info(pman):
+    """
+    Return a dictionary including CPU cache information. The dictionary keys and layout is
+    similar to what the following command provides: 'lscpu --json --caches'.
+    """
+
+    cmd = "lscpu --caches --json --bytes"
+    stdout, _ = pman.run_verify(cmd)
+
+    try:
+        json_output = json.loads(stdout)
+    except Exception as err:
+        msg = Error(str(err)).indent(2)
+        raise Error(f"Failed parse output of '{cmd}' command{pman.hostmsg}:\n{msg}\n"
+                    f"The output of the command was:\n{stdout}") from None
+
+    cacheinfo = {}
+
+    # Change dictionary structure from a list of dictionaries to a dictionary of dictionaries.
+    # TODO: why is this necessary?
+    for info in json_output["caches"]:
+        name = info["name"]
+        if name in cacheinfo:
+            raise Error(f"BUG: Multiple caches with name '{name}'")
+
+        cacheinfo[name] = {}
+        # Turn size values from strings to integers amount bytes.
+        for key, val in info.items():
+            if Trivial.is_int(val):
+                cacheinfo[name][key] = int(val)
+            else:
+                cacheinfo[name][key] = val
+
+    return cacheinfo
+
+def _get_cbuf_size(args, pman):
     """Calculate the CPU cache trashing buffer size."""
 
     if not args.trash_cpu_cache:
@@ -97,7 +133,7 @@ def _get_cbuf_size(args, cpuinfo):
     cbuf_size = 0
 
     # It should be enough to write to a buffer of size equivalent to sum of all CPU caches.
-    cacheinfo = cpuinfo.get_cache_info()
+    cacheinfo = _get_cache_info(pman)
     for cinfo in cacheinfo.values():
         if cinfo["type"] in ("Data", "Unified"):
             cbuf_size += cinfo["all-size"]
@@ -201,7 +237,7 @@ def start_command(args):
 
         _Common.set_filters(args, res)
 
-        cbuf_size = _get_cbuf_size(args, cpuinfo)
+        cbuf_size = _get_cbuf_size(args, pman)
         if cbuf_size:
             human_size = Human.bytesize(cbuf_size)
             _LOG.info("CPU cache trashing buffer size: %s", human_size)
