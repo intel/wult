@@ -72,9 +72,9 @@ def _get_remote_cpus(pman, ifname, cpuinfo):
     # Get list of NUMA node and package numbers the local CPUs belong to.
     lnodes, lpackages = set(), set()
     for lcpu in lcpus:
-        levels = cpuinfo.get_cpu_levels(lcpu, levels=("node", "package"))
-        lnodes.add(levels["node"])
-        lpackages.add(levels["package"])
+        tline = cpuinfo.get_tline_by_cpu(lcpu, snames=("node", "package"))
+        lnodes.add(tline["node"])
+        lpackages.add(tline["package"])
 
     # Try to exclude remote CPUs that are on the same NUMA node or package as local CPUs.
     new_rcpus = rcpus - set(cpuinfo.nodes_to_cpus(nodes=lnodes))

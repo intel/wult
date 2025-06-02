@@ -364,21 +364,21 @@ class PepcCmdBuilder(_PropIteratorBase):
                 return "--packages all --dies all --cpus all"
             return "--cpus all"
 
-        levels = self._cpuinfo.get_cpu_levels(cpu)
+        tline = self._cpuinfo.get_tline_by_cpu(cpu)
 
         cpus = None
         if sname == "CPU":
-            cpus = levels["CPU"]
+            cpus = tline["CPU"]
         if sname in ("core", "node", "die"):
             method = getattr(self._cpuinfo, f"{sname}s_to_cpus")
-            cpus = method(levels[sname], packages=levels["package"])
+            cpus = method(tline[sname], packages=tline["package"])
         if sname == "package":
-            cpus = self._cpuinfo.packages_to_cpus(packages=levels["package"])
+            cpus = self._cpuinfo.packages_to_cpus(packages=tline["package"])
 
         opts = ""
 
         if sname == "die" and not self._skip_io_dies:
-            package = levels["package"]
+            package = tline["package"]
             io_dies = self._cpuinfo.get_dies(package=package, compute_dies=False, io_dies=True)
             if io_dies:
                 # I/O dies have no CPUs, so '--cpus' does not cover them. Include them using
