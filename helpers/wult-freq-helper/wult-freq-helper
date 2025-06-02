@@ -160,7 +160,7 @@ def parse_freq_specs(args, cpuinfo, ucfobj, cpufobj):
             spec_id = (num,)
             fmin = next(obj.get_min_freq_limit(spec_id))[1]
             fmax = next(obj.get_max_freq_limit(spec_id))[1]
-            siblings = cpuinfo.get_cpu_siblings(num, "core")
+            siblings = cpuinfo.get_cpu_siblings(num, sname="core")
         else:
             obj = ucfobj
             dies = obj.get_dies_info()
