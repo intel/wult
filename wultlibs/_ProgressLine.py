@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2021 Intel Corporation
+# Copyright (C) 2019-2025 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module implements the measurement progress line.
+Provide an API for displaying measurement progress line.
 """
+
+from __future__ import annotations # Remove when switching to Python 3.10+.
 
 import sys
 import time
@@ -18,13 +20,42 @@ from wultlibs.helperlibs import Human
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 class _ProgressLineBase:
-    """This the base class for tool-specific progress line classes."""
+    """Base class for progress line implementations used by specific tools."""
+
+    def __init__(self, period: float = 1):
+        """
+        Initialize a class instance.
+
+        Args:
+            period: Interval in seconds between progress updates.
+
+        Disable progress updates if the logging level is higher than INFO.
+        """
+
+        self.period = period
+        self.enabled = True
+        self._isatty = sys.stdout.isatty()
+
+        # Time when progress was last updated.
+        self._last_ts = 0.0
+        # Time when the measurements have started.
+        self._start_ts = 0.0
+        # Whether progress information was printed at least once.
+        self._printed = False
+        # The ending of the progress line (empty line or '\n' for the final print).
+        self._end = ""
+        # Saved logger prerix.
+        self._prefix = ""
+
+        if _LOG.getEffectiveLevel() > Logging.INFO:
+            self.enabled = False
 
     def start(self):
-        """Start tracking the progress."""
+        """Begin tracking the progress line."""
 
         # Make sure logging message are prefixed with a newline. E.g., if there is a warning, it
         # starts with a new line.
+        # TODO: needed only in case of "\r"
         main_logger = Logging.getLogger(Logging.MAIN_LOGGER_NAME)
 
         self._prefix = main_logger.prefix
@@ -33,13 +64,20 @@ class _ProgressLineBase:
         self._start_ts = self._last_ts = time.time()
 
     def get_duration(self):
-        """Returns the overall measurements duration in seconds."""
+        """Return the total duration of the measurements in seconds."""
+
         return time.time() - self._start_ts
 
-    def _update(self, final, time_now=None):
+    def _update(self, final: bool, time_now: float | None = None) -> bool:
         """
-        The common part of the 'update()' method. Returns 'True' if the progress line update is
-        needed, returns 'fals otherwise.
+        Determine if the progress line should be updated.
+
+        Args:
+            final: Whether this is the final update.
+            time_now: The current time, or None to use the current system time.
+
+        Returns:
+            bool: True if the progress line should be updated, False otherwise.
         """
 
         if not self.enabled:
@@ -60,41 +98,31 @@ class _ProgressLineBase:
 
         return True
 
-    def __init__(self, period=1):
-        """
-        The class constructor. The arguments are as follows.
-          * period - how often the progress should be updated, seconds.
-        """
-
-        self.period = period
-        self.enabled = True
-        self._isatty = sys.stdout.isatty()
-
-        # Time when progress was last updated.
-        self._last_ts = None
-        # Time when the measurements have started.
-        self._start_ts = None
-        # Whether progress information was printed at least once.
-        self._printed = False
-        # The ending of the progress line (empty line or '\n' for the final print).
-        self._end = ""
-        # Saved logger prerix.
-        self._prefix = ""
-
-        if _LOG.getEffectiveLevel() > Logging.INFO:
-            self.enabled = False
-
 class WultProgressLine(_ProgressLineBase):
     """
-    Wult tool progress line.
+    Progress line class for the Wult tool.
     """
 
-    def update(self, dpcnt, maxlat, final=False):
+    def __init__(self, period=1):
         """
-        Update the progress. The arguments are as follows.
-          * dpcnt - how many datapoints were collected so far.
-          * maxlat - the maximum latency value so far.
-          * final - if 'True', all datapoints were collected and this is the last progress update.
+        The class constructor.
+        """
+
+        super().__init__(period=period)
+
+        # Last printed datapoints count.
+        self.dpcnt = 0
+        # Last printed latency.
+        self.maxlat = 0
+
+    def update(self, dpcnt: int, maxlat: float, final: bool = False):
+        """
+        Update the progress line with the current datapoint count and maximum latency.
+
+        Args:
+            dpcnt: Number of datapoints collected so far.
+            maxlat: Maximum latency value observed so far (in microseconds).
+            final: Set to True for the final progress update after all datapoints are collected.
         """
 
         time_now = time.time()
@@ -119,34 +147,34 @@ class WultProgressLine(_ProgressLineBase):
         self.dpcnt = dpcnt
         self.maxlat = maxlat
 
-    def __init__(self, period=1):
-        """
-        The class constructor. The arguments are the same as in '_ProgressLineBase().__init__()'.
-        """
-
-        super().__init__(period=period)
-
-        # Last printed datapoints count.
-        self.dpcnt = 0
-        # Last printed latency.
-        self.maxlat = 0
-
 class NdlProgressLine(WultProgressLine):
     """
-    Ndl tool progress line (same as 'wult' tool progress line).
+    Progress line class for the ndl tool.
     """
 
 class PbeProgressLine(_ProgressLineBase):
     """
-    Pbe tool progress line.
+    Progress line class for the pbe tool.
     """
+
+    def __init__(self):
+        """
+        The class constructor.
+        """
+
+        super().__init__(period=1)
+
+        # Last printed launch distance.
+        self.ldist = None
 
     NSEC_PER_SEC = 1000000000
 
-    def update(self, ldist):
+    def update(self, ldist: int):
         """
-        Update the progress. The arguments are as follows.
-          * ldist - the currently measured launch disatnce in nanoseconds.
+        Update the progress line with the current launch distance.
+
+        Args:
+            ldist: Current measured launch distance in nanoseconds.
         """
 
         time_now = time.time()
@@ -165,11 +193,3 @@ class PbeProgressLine(_ProgressLineBase):
 
         self._printed = True
         self.ldist = ldist
-
-    def __init__(self):
-        """The class constructor."""
-
-        super().__init__(period=1)
-
-        # Last printed launch distance.
-        self.ldist = None
