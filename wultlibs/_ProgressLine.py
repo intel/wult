@@ -105,7 +105,12 @@ class WultProgressLine(_ProgressLineBase):
         rate = dpcnt / (self._last_ts - self._start_ts)
 
         msg = f"Datapoints: {dpcnt}, max. latency: {maxlat:.2f} us, rate: {rate:.2f} datapoints/sec"
-        if self._isatty:
+
+        # Overwrite the previous progress line when printing to a terminal or if the logger uses
+        # colored output. Assume that the logger is connected to the same output stream as
+        # 'print()', and assume that if the output is colored, it is either a terminal or
+        # intentionally treated as a terminal.
+        if self._isatty or _LOG.colored:
             print("\r" + msg, end=self._end, flush=True)
         else:
             print(msg, flush=True)
@@ -153,7 +158,7 @@ class PbeProgressLine(_ProgressLineBase):
         duration = Human.duration(self.get_duration())
 
         msg = f"Tot. time: {duration}, ldist: {hldist} ({rate} intr/s)"
-        if self._isatty:
+        if self._isatty or _LOG.colored:
             print("\r" + msg, end=self._end, flush=True)
         else:
             print(msg, flush=True)
