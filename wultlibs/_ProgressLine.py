@@ -52,7 +52,7 @@ class _ProgressLineBase:
         # The ending of the progress line (empty line or '\n' for the final print).
         self._end = ""
         # Saved logger prerix.
-        self._prefix = ""
+        self._logger_prefix = ""
         # The maximum length of the progress line.
         self._max_length = 0
 
@@ -62,12 +62,13 @@ class _ProgressLineBase:
     def start(self):
         """Begin tracking the progress line."""
 
-        # Make sure logging message are prefixed with a newline. E.g., if there is a warning, it
-        # starts with a new line.
-        main_logger = Logging.getLogger(Logging.MAIN_LOGGER_NAME)
+        if self._is_terminal:
+            # Ensure that log messages start on a new line. For example, if a warning is printed,
+            # it will appear on a new line rather than being appended to the progress line.
+            main_logger = Logging.getLogger(Logging.MAIN_LOGGER_NAME)
 
-        self._prefix = main_logger.prefix
-        main_logger.set_prefix(f"\n{self._prefix}")
+            self._logger_prefix = main_logger.prefix
+            main_logger.set_prefix(f"\n{self._logger_prefix}")
 
         self._start_ts = self._last_ts = time.time()
 
@@ -92,7 +93,8 @@ class _ProgressLineBase:
             return False
 
         if final:
-            Logging.getLogger(Logging.MAIN_LOGGER_NAME).set_prefix(self._prefix)
+            if self._is_terminal:
+                Logging.getLogger(Logging.MAIN_LOGGER_NAME).set_prefix(self._logger_prefix)
             if not self._printed:
                 return False
             self._end = "\n"
