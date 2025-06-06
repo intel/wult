@@ -34,7 +34,14 @@ class _ProgressLineBase:
 
         self.period = period
         self.enabled = True
-        self._isatty = sys.stdout.isatty()
+
+        # Whether the standard output stream is a terminal or should be treated as one.
+        #
+        # The 'isatty()' check is straightforward. The '_LOG.colored' check assumes that if the
+        # logger uses colored output, it is either connected to a terminal or the output is intended
+        # for a terminal (e.g., piped to a terminal later). Remember, colored output uses ANSI
+        # escape sequences, which are typically supported by terminals.
+        self._is_terminal = sys.stdout.isatty() or _LOG.colored
 
         # Time when progress was last updated.
         self._last_ts = 0.0
@@ -46,6 +53,8 @@ class _ProgressLineBase:
         self._end = ""
         # Saved logger prerix.
         self._prefix = ""
+        # The maximum length of the progress line.
+        self._max_length = 0
 
         if _LOG.getEffectiveLevel() > Logging.INFO:
             self.enabled = False
@@ -55,7 +64,6 @@ class _ProgressLineBase:
 
         # Make sure logging message are prefixed with a newline. E.g., if there is a warning, it
         # starts with a new line.
-        # TODO: needed only in case of "\r"
         main_logger = Logging.getLogger(Logging.MAIN_LOGGER_NAME)
 
         self._prefix = main_logger.prefix
@@ -98,6 +106,24 @@ class _ProgressLineBase:
 
         return True
 
+    def _print(self, msg: str):
+        """
+        Print a message to the standard output.
+
+        Args:
+            msg: The message to print.
+        """
+
+        self._max_length = max(self._max_length, len(msg))
+
+        if self._is_terminal:
+            pad = " " * (self._max_length - len(msg))
+            print("\r" + msg + pad, end=self._end, flush=True)
+        else:
+            print(msg, flush=True)
+
+        self._printed = True
+
 class WultProgressLine(_ProgressLineBase):
     """
     Progress line class for the Wult tool.
@@ -113,7 +139,7 @@ class WultProgressLine(_ProgressLineBase):
         # Last printed datapoints count.
         self.dpcnt = 0
         # Last printed latency.
-        self.maxlat = 0
+        self.maxlat = 0.0
 
     def update(self, dpcnt: int, maxlat: float, final: bool = False):
         """
@@ -134,16 +160,8 @@ class WultProgressLine(_ProgressLineBase):
 
         msg = f"Datapoints: {dpcnt}, max. latency: {maxlat:.2f} us, rate: {rate:.2f} datapoints/sec"
 
-        # Overwrite the previous progress line when printing to a terminal or if the logger uses
-        # colored output. Assume that the logger is connected to the same output stream as
-        # 'print()', and assume that if the output is colored, it is either a terminal or
-        # intentionally treated as a terminal.
-        if self._isatty or _LOG.colored:
-            print("\r" + msg, end=self._end, flush=True)
-        else:
-            print(msg, flush=True)
+        self._print(msg)
 
-        self._printed = True
         self.dpcnt = dpcnt
         self.maxlat = maxlat
 
@@ -186,10 +204,6 @@ class PbeProgressLine(_ProgressLineBase):
         duration = Human.duration(self.get_duration())
 
         msg = f"Tot. time: {duration}, ldist: {hldist} ({rate} intr/s)"
-        if self._isatty or _LOG.colored:
-            print("\r" + msg, end=self._end, flush=True)
-        else:
-            print(msg, flush=True)
+        self._print(msg)
 
-        self._printed = True
         self.ldist = ldist
