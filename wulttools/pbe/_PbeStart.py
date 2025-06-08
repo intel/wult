@@ -72,15 +72,16 @@ def start_command(args):
             _LOG.notice(f"the following CPUs are offline and will not participate in measurements: "
                         f"{Trivial.rangify(offline_cpus)}")
 
-        res = WORawResult.WORawResult(args.toolname, args.toolver, args.reportid, args.outdir)
+        args.lead_cpu = cpuinfo.normalize_cpu(args.lead_cpu)
+
+        res = WORawResult.WORawResult(args.toolname, args.toolver, args.reportid, args.outdir,
+                                      cpu=args.lead_cpu)
         stack.enter_context(res)
 
         dev = Devices.GetDevice(args.toolname, args.devid, pman, dmesg=True)
         stack.enter_context(dev)
 
         _Common.configure_log_file(res.logs_path, args.toolname)
-
-        args.lead_cpu = cpuinfo.normalize_cpu(args.lead_cpu)
 
         stcoll_builder = StatsCollectBuilder.StatsCollectBuilder()
         stack.enter_context(stcoll_builder)
