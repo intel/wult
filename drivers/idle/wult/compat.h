@@ -21,4 +21,8 @@
         } while(0)
 #endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(6, 15, 0)
+#define rdmsrl_safe(_reg, _val) rdmsrq_safe((_reg), (_val))
+#endif
+
 #endif /* _WULT_COMPAT_H_ */

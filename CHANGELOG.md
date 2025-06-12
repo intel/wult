@@ -5,6 +5,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix wult driver compilation failure with kernel v6.16.
 ### Added
  - Provide pbe lead CPU statistics separately from system statistics.
 ### Removed
@@ -16,7 +17,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.12.47] - 2025-05-27
 ### Fixed
- - Fix drivers compilation failur with kernel v6.15.
+ - Fix drivers compilation failure with kernel v6.15.
 ### Removed
  - Removed eBPF support, because I have no time to maintain it and it is not
    used much.
