@@ -24,8 +24,8 @@ drivers are searched for in the following directories (and in the
 following order) on the local host: ./drivers/idle,
 $WULT_DATA_PATH/drivers/idle, $HOME/.local/share/wult/drivers/idle,
 /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle. The
-ndl tool also depends on the following helpers: ndl-helper,
-wult-freq-helper. These helpers will be compiled on the SUT and deployed
+ndl tool also depends on the the 'ndl-helper' program.
+Thes helper will be compiled on the SUT and deployed
 to the SUT. The sources of the helpers are searched for in the following
 paths (and in the following order) on the local host: ./helpers,
 $WULT_DATA_PATH/helpers, $HOME/.local/share/wult/helpers,

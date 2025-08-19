@@ -68,9 +68,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
             # Start collecting statistics.
             self._stcoll.start()
 
-        if self._fnobj:
-            self._fnobj.start()
-
         msg = f"Start measuring RTD by sending delayed packets from CPU {self._res.cpu}" \
               f"{self._pman.hostmsg}, collecting {dpcnt} datapoints"
         if tlimit:
@@ -96,9 +93,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
             with contextlib.suppress(Error):
                 self._prov.stop()
 
-                if self._fnobj:
-                    self._fnobj.stop()
-
                 if self._stcoll:
                     self._stcoll.stop(sysinfo=True)
                     self._stcoll.finalize()
@@ -121,9 +115,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
             self._res.write_info()
             self._prov.stop()
 
-            if self._fnobj:
-                self._fnobj.stop()
-
             if self._stcoll:
                 self._stcoll.stop(sysinfo=True)
                 self._stcoll.finalize()
@@ -133,7 +124,7 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
 
         self._prov.prepare()
 
-    def __init__(self, pman, dev, res, ldist, stcoll=None, cbuf_size=0, fnobj=None):
+    def __init__(self, pman, dev, res, ldist, stcoll=None, cbuf_size=0):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
@@ -145,7 +136,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
           * stcoll - the 'StatsCollect' object to use for collecting statistics. No statistics
                      are collected by default.
           * cbuf_size - CPU cache trashing buffer size.
-          * fnobj - 'FreqNoise' object for frequency noise generation.
         """
 
         self._pman = pman
@@ -153,7 +143,6 @@ class NdlRunner(ClassHelpers.SimpleCloseContext):
         self._res = res
         self._ldist = ldist
         self._stcoll = stcoll
-        self._fnobj = fnobj
 
         self._timeout = 10
         self._prov = None

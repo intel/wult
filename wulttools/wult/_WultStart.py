@@ -20,7 +20,7 @@ from statscollectlibs.collector import StatsCollectBuilder
 from wultlibs.deploy import _Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.result import WORawResult
-from wultlibs import Devices, WultRunner, _FreqNoise
+from wultlibs import Devices, WultRunner
 from wulttools import _Common
 from wulttools.wult import _WultCommon
 
@@ -163,12 +163,8 @@ def start_command(args):
 
         _check_settings(args, pman, dev, csinfo, cpuinfo)
 
-        fnobj = _FreqNoise.FreqNoise(_Common.parse_freq_noise_cmdline_args(args), pman=pman)
-        stack.enter_context(fnobj)
-
         runner = WultRunner.WultRunner(pman, dev, res, args.ldist, tsc_cal_time=args.tsc_cal_time,
-                                       cpuidle=cpuidle, stcoll=stcoll, unload=not args.no_unload,
-                                       fnobj=fnobj)
+                                       cpuidle=cpuidle, stcoll=stcoll, unload=not args.no_unload)
         stack.enter_context(runner)
 
         runner.prepare()

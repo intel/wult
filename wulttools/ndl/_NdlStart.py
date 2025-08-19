@@ -262,11 +262,7 @@ def start_command(args):
         _Common.start_command_check_network(args, pman, dev.netif)
         _check_settings(args, pman, dev, cpuinfo)
 
-        fnobj = _FreqNoise.FreqNoise(_Common.parse_freq_noise_cmdline_args(args), pman=pman)
-        stack.enter_context(fnobj)
-
-        runner = NdlRunner.NdlRunner(pman, dev, res, args.ldist, stcoll=stcoll, cbuf_size=cbuf_size,
-                                     fnobj=fnobj)
+        runner = NdlRunner.NdlRunner(pman, dev, res, args.ldist, stcoll=stcoll, cbuf_size=cbuf_size)
         stack.enter_context(runner)
 
         runner.prepare()

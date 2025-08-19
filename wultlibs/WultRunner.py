@@ -106,9 +106,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
 
         self._prov.stop()
 
-        if self._fnobj:
-            self._fnobj.stop()
-
         if self._stcoll:
             self._stcoll.stop(sysinfo=True)
             self._stcoll.finalize()
@@ -126,9 +123,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         if self._stcoll:
             # Start collecting statistics.
             self._stcoll.start()
-
-        if self._fnobj:
-            self._fnobj.start()
 
         msg = f"Start measuring CPU {self._res.cpu}{self._pman.hostmsg}, collecting {dpcnt} " \
               f"datapoints"
@@ -233,7 +227,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                         f"only the following drivers are supported: {supported}")
 
     def __init__(self, pman, dev, res, ldist, tsc_cal_time=10, cpuidle=None, stcoll=None,
-                 unload=True, fnobj=None):
+                 unload=True):
         """
         The class constructor. The arguments are as follows.
           * pman - the process manager object that defines the host to run the measurements on.
@@ -245,7 +239,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
           * stcoll - the 'StatsCollect' object to use for collecting statistics. No statistics
                      are collected by default.
           * unload - whether or not to unload the kernel driver after finishing measurement.
-          * fnobj - 'FreqNoise' object for frequency noise generation.
         """
 
         self._pman = pman
@@ -254,7 +247,6 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
         self._ldist = ldist
         self._cpuidle = cpuidle
         self._stcoll = stcoll
-        self._fnobj = fnobj
 
         self._close_cpuidle = cpuidle is None
 

@@ -332,10 +332,6 @@ class Deploy(DeployBase.DeployBase):
         requirements.
         """
 
-        if self._skip_drivers:
-            for installable in list(self._cats["drivers"]):
-                self._drop_installable(installable)
-
         # Python helpers need to be deployed only to a remote host. The local host should already
         # have them:
         #   * either deployed via 'setup.py'.
@@ -357,18 +353,14 @@ class Deploy(DeployBase.DeployBase):
                 self._drop_installable(installable)
 
     def __init__(self, toolname, deploy_info, pman=None, ksrc=None, lbuild=False,
-                 skip_drivers=None, drv_make_opts=None, tmpdir_path=None, keep_tmpdir=False,
-                 debug=False):
+                 drv_make_opts=None, tmpdir_path=None, keep_tmpdir=False, debug=False):
         """
         The class constructor. The arguments are the same as in 'DeployBase.__init__()' except for:
           * ksrc - path to the kernel sources to compile drivers against.
-          * skip_drivers - do not build / deploy the drivers (drop the installables of the "drivers"
-                           category).
           * drv_make_opts - options to add to the 'make' command when building the drivers.
         """
 
         self._ksrc = ksrc
-        self._skip_drivers = skip_drivers
         self._drv_make_opts = drv_make_opts
         self._btchk = None
 

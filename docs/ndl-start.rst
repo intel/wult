@@ -17,8 +17,7 @@ usage: ndl start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
 [--reportid REPORTID] [--stats STATS] [--stats-intervals STATS_INTERVALS]
 [--list-stats] [-l LDIST] [--cpu CPU] [--exclude EXCLUDE]
 [--include INCLUDE] [--keep-filtered] [--report] [--force]
-[--trash-cpu-cache] [--freq-noise FREQ_NOISE]
-[--freq-noise-sleep FREQ_NOISE_SLEEP] ifname
+[--trash-cpu-cache] ifname
 
 Start measuring and recording the latency data.
 
@@ -182,26 +181,3 @@ OPTIONS *'ndl* start'
    this should push out cached data to the memory. By default, the CPU
    cache trashing buffer size a sum of sizes of all caches on all CPUs
    (includes all levels, excludes instruction cache).
-
-**--freq-noise** *FREQ_NOISE*
-   Add frequency scaling noise to the measured system. This runs a
-   background process that repeatedly modifies CPU or uncore frequencies
-   for given domains. The reason for doing this is because frequency
-   scaling is generally an expensive operation and is known to impact
-   system latency. 'FREQ_NOISE' is specified as 'TYPE:ID:MIN:MAX',
-   where: TYPE should be 'cpu' or 'uncore', specifies whether CPU or
-   uncore frequency should be modified; ID is either CPU number or
-   uncore domain ID to modify the frequency for (e.g. 'cpu:12:...' would
-   target CPU12); MIN is the minimum CPU/uncore frequency value; MAX is
-   the maximum CPU/uncore frequency value. For example, to add frequency
-   scaling noise for CPU0, add '-- freq-noise cpu:0:min:max'. To add
-   uncore frequency noise for uncore domain 0, add '--freq-noise
-   uncore:0:min:max'. The parameter can be added multiple times to
-   specify multiple frequency noise domains.
-
-**--freq-noise-sleep** *FREQ_NOISE_SLEEP*
-   Sleep between frequency noise operations. This time is added between
-   every frequency scaling operation executed by the 'freq-noise'
-   feature. The default time unit is microseconds, but it is possible to
-   use time specifiers as well, ms - milliseconds, us - microseconds, ns
-   - nanoseconds. Default sleep time is 50ms.

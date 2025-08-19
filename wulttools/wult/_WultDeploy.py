@@ -18,13 +18,12 @@ def deploy_command(args):
 
     with _Common.get_pman(args) as pman:
         ksrc = getattr(args, "ksrc", None)
-        skip_drivers = getattr(args, "skip_drivers", None)
         drv_make_opts = getattr(args, "drv_make_opts", None)
 
         with _Deploy.Deploy(args.toolname, args.deploy_info, pman=pman, ksrc=ksrc,
-                            lbuild=args.lbuild, skip_drivers=skip_drivers,
-                            drv_make_opts=drv_make_opts, tmpdir_path=args.tmpdir_path,
-                            keep_tmpdir=args.keep_tmpdir, debug=args.debug) as depl:
+                            lbuild=args.lbuild, drv_make_opts=drv_make_opts,
+                            tmpdir_path=args.tmpdir_path, keep_tmpdir=args.keep_tmpdir,
+                            debug=args.debug) as depl:
             depl.deploy()
 
         _Common.run_stats_collect_deploy(args, pman)

@@ -15,26 +15,16 @@ COMMAND '*wult* deploy'
 
 usage: wult deploy [-h] [-q] [-d] [--kernel-src KSRC]
 [--local-build] [--tmpdir-path TMPDIR_PATH] [--keep-tmpdir] [-H
-HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT] [--skip-drivers]
+HOSTNAME] [-U USERNAME] [-K PRIVKEY] [-T TIMEOUT]
 
-Compile and deploy wult helpers and drivers to the SUT (System Under
+Compile and deploy wult drivers to the SUT (System Under
 Test), which can be can be either local or a remote host, depending on
 the '-H' option. By default, everything is built on the SUT, but the
 '--local-build' can be used for building on the local system. The
 drivers are searched for in the following directories (and in the
 following order) on the local host: ./drivers/idle,
 $WULT_DATA_PATH/drivers/idle, $HOME/.local/share/wult/drivers/idle,
-/usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle. The
-wult tool also depends on the following helpers: wult-freq-helper,
-These helpers will be compiled on the
-SUT and deployed to the SUT. The sources of the helpers are searched for
-in the following paths (and in the following order) on the local host:
-./helpers, $WULT_DATA_PATH/helpers, $HOME/.local/share/wult/helpers,
-/usr/local/share/wult/helpers, /usr/share/wult/helpers. By default,
-helpers are deployed to the path defined by the 'WULT_HELPERSPATH'
-environment variable. If the variable is not defined, helpers are
-deployed to '$HOME/.local/bin', where '$HOME' is the home directory of
-user 'USERNAME' on host 'HOST' (see '--host' and '--username' options).
+/usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.
 
 OPTIONS *'wult* deploy'
 =======================
@@ -59,13 +49,8 @@ OPTIONS *'wult* deploy'
    LLVM=1' to use clang and LLVM tools for building the drivers (required when the kernel was build
    with clang/LLVM).
 
-**--skip-drivers**
-   Deploy the eBPF helper, but do not deploy the drivers. This is a
-   debug and development option, do not use it for other purposes.
-
 **--local-build**
-   Build helpers and drivers locally, instead of building on HOSTNAME
-   (the SUT).
+   Build drivers locally, instead of building on HOSTNAME (the SUT).
 
 **--tmpdir-path** *TMPDIR_PATH*
    When 'wult' is deployed, a random temporary directory is used. Use
