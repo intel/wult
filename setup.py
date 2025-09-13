@@ -59,7 +59,7 @@ setup(
                get_data_files("share/wult/drivers", "drivers") + \
                get_data_files("share/wult/helpers", "helpers") + \
                get_data_files("share/wult/defs/wult", "defs/wult"),
-    scripts=_TOOLNAMES + _PYTHON_HELPERS,
+    scripts=_TOOLNAMES,
     packages=find_packages(),
     install_requires=["pepc>=1.5.36", "stats-collect>=1.0.58", "numpy", "pandas", "pyyaml",
                       "colorama"],
