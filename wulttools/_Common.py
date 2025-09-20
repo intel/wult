@@ -18,7 +18,6 @@ from __future__ import annotations # Remove when switching to Python 3.10+.
 # pylint: disable=no-member
 
 import sys
-import re
 from pathlib import Path
 from pepclibs import ASPM
 from pepclibs.helperlibs import Logging, Trivial, YAML, ProcessManager

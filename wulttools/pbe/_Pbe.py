@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2023 Intel Corporation
+# Copyright (C) 2019-2025 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -10,15 +10,18 @@
 pbe - a tool for measuring C-states power break even.
 """
 
-import sys
+# TODO: finish adding type hints to this module.
+from __future__ import annotations # Remove when switching to Python 3.10+.
+
+import typing
 from pathlib import Path
 
 try:
     import argcomplete
-    argcomplete_imported = True
+    _ARGCOMPLETE_AVAILABLE = True
 except ImportError:
     # We can live without argcomplete, we only lose tab completions.
-    argcomplete_imported = False
+    _ARGCOMPLETE_AVAILABLE = False
 
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
@@ -26,11 +29,14 @@ from wultlibs.deploy import _Deploy
 from wulttools import _Common
 from wulttools.pbe import ToolInfo
 
+if typing.TYPE_CHECKING:
+    from statscollectlibs.deploy.DeployBase import DeployInfoTypedDict
+
 VERSION = ToolInfo.VERSION
 TOOLNAME = ToolInfo.TOOLNAME
 
 # The deployment information dictionary. See 'DeployBase.__init__()' for details.
-_PBE_DEPLOY_INFO = {
+_PBE_DEPLOY_INFO: DeployInfoTypedDict = {
     "installables" : {
         "pbe": {
             "category": "drivers",
@@ -45,7 +51,7 @@ _LOG = Logging.getLogger(Logging.MAIN_LOGGER_NAME).configure(prefix=ToolInfo.TOO
 def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
-    if argcomplete_imported:
+    if _ARGCOMPLETE_AVAILABLE:
         completer = argcomplete.completers.DirectoriesCompleter()
     else:
         completer = None
@@ -53,8 +59,6 @@ def _build_arguments_parser():
     text = f"{TOOLNAME} - a tool for measuring C-states power break even."
     parser = ArgParse.ArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
 
-    text = "Force coloring of the text output."
-    parser.add_argument("--force-color", action="store_true", help=text)
     subparsers = parser.add_subparsers(title="commands", metavar="")
     subparsers.required = True
 
@@ -145,7 +149,7 @@ def _build_arguments_parser():
     text = f"""One or multiple {TOOLNAME} test result paths."""
     subpars.add_argument("respaths", nargs="+", type=Path, help=text)
 
-    if argcomplete_imported:
+    if _ARGCOMPLETE_AVAILABLE:
         argcomplete.autocomplete(parser)
 
     return parser
@@ -159,16 +163,15 @@ def parse_arguments():
     args.devid = "hrtimer"
     args.toolname = TOOLNAME
     args.toolver = VERSION
-    args.deploy_info = _PBE_DEPLOY_INFO
 
     return args
 
 def _deploy_command(args):
     """Implements the 'deploy' command."""
 
-    from wulttools.pbe import _PbeDeploy # pylint: disable=import-outside-toplevel
+    from wulttools import _ToolDeploy # pylint: disable=import-outside-toplevel
 
-    _PbeDeploy.deploy_command(args)
+    _ToolDeploy.deploy_command(args, _PBE_DEPLOY_INFO)
 
 def _start_command(args):
     """Implements the 'start' command."""
@@ -191,18 +194,17 @@ def main():
         args = parse_arguments()
 
         if not getattr(args, "func", None):
-            _LOG.error("please, provide arguments, run '%s -h' for help", TOOLNAME)
+            _LOG.error("Please, run '%s -h' for help", TOOLNAME)
             return -1
 
         args.func(args)
     except KeyboardInterrupt:
-        _LOG.info("Interrupted, exiting")
+        _LOG.info("\nInterrupted, exiting")
         return -1
-    except Error as err:
-        _LOG.error_out(err)
+    except Error as _err:
+        _LOG.error_out(_err)
 
     return 0
 
-# The script entry point.
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

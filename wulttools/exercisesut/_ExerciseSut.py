@@ -11,14 +11,14 @@
 A helper tool for exercising SUT, running workloads with various system setting permutations.
 """
 
-import sys
 import copy
 from pathlib import Path
 try:
     import argcomplete
+    _ARGCOMPLETE_AVAILABLE = True
 except ImportError:
     # We can live without argcomplete, we only lose tab completions.
-    argcomplete = None
+    _ARGCOMPLETE_AVAILABLE = False
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
 from statscollecttools import ToolInfo as StcToolInfo
@@ -235,8 +235,6 @@ def _build_arguments_parser():
     text = f"{TOOLNAME} - Run a test tool or benchmark to collect test data."
     parser = ArgParse.ArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
 
-    text = "Force coloring of the text output."
-    parser.add_argument("--force-color", action="store_true", help=text)
     subparsers = parser.add_subparsers(title="commands", dest="a command")
     subparsers.required = True
 
@@ -270,7 +268,7 @@ def _build_arguments_parser():
     text = """One or multiple paths to be searched for test results."""
     subpars.add_argument("respaths", nargs="*", type=Path, help=text)
 
-    if argcomplete:
+    if _ARGCOMPLETE_AVAILABLE:
         argcomplete.autocomplete(parser)
 
     return parser
@@ -302,7 +300,7 @@ def main():
         args = parse_arguments()
 
         if not getattr(args, "func", None):
-            _LOG.error("please, run '%s -h' for help", TOOLNAME)
+            _LOG.error("Please, run '%s -h' for help", TOOLNAME)
             return -1
 
         args.func(args)
@@ -315,4 +313,4 @@ def main():
     return 0
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

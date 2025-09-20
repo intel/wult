@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2024 Intel Corporation
+# Copyright (C) 2019-2025 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
@@ -10,15 +10,19 @@
 wult - a tool for measuring C-state latency.
 """
 
+# TODO: finish adding type hints to this module.
+from __future__ import annotations # Remove when switching to Python 3.10+.
+
 import sys
+import typing
 from pathlib import Path
 
 try:
     import argcomplete
-    argcomplete_imported = True
+    _ARGCOMPLETE_AVAILABLE = True
 except ImportError:
     # We can live without argcomplete, we only lose tab completions.
-    argcomplete_imported = False
+    _ARGCOMPLETE_AVAILABLE = False
 
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
@@ -26,11 +30,14 @@ from wultlibs.deploy import _Deploy
 from wulttools import _Common
 from wulttools.wult import _WultCommon, ToolInfo
 
+if typing.TYPE_CHECKING:
+    from statscollectlibs.deploy.DeployBase import DeployInfoTypedDict
+
 VERSION = ToolInfo.VERSION
 TOOLNAME = ToolInfo.TOOLNAME
 
 # The deployment information dictionary. See 'DeployBase.__init__()' for details.
-_WULT_DEPLOY_INFO = {
+_WULT_DEPLOY_INFO: DeployInfoTypedDict = {
     "installables" : {
         "wult" : {
             "category" : "drivers",
@@ -45,7 +52,7 @@ _LOG = Logging.getLogger(Logging.MAIN_LOGGER_NAME).configure(prefix=ToolInfo.TOO
 def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
-    if argcomplete_imported:
+    if _ARGCOMPLETE_AVAILABLE:
         completer = argcomplete.completers.DirectoriesCompleter()
     else:
         completer = None
@@ -53,10 +60,8 @@ def _build_arguments_parser():
     text = f"{TOOLNAME} - a tool for measuring C-state latency."
     parser = ArgParse.ArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
 
-    text = "Force coloring of the text output."
-    parser.add_argument("--force-color", action="store_true", help=text)
     subparsers = parser.add_subparsers(title="commands", dest="a command")
-    subparsers.required = True # pylint: disable=pepc-unused-variable
+    subparsers.required = True
 
     #
     # Create parsers for the "deploy" command.
@@ -220,7 +225,7 @@ def _build_arguments_parser():
     text = f"""The {TOOLNAME} test result path to calculate summary functions for."""
     subpars.add_argument("respath", type=Path, help=text, nargs="?")
 
-    if argcomplete_imported:
+    if _ARGCOMPLETE_AVAILABLE:
         argcomplete.autocomplete(parser)
 
     return parser
@@ -231,18 +236,18 @@ def parse_arguments():
     parser = _build_arguments_parser()
 
     args = parser.parse_args()
+    # TODO: There is a mix of 'args.toolname' and 'ToolInfo.TOOLNAME' in the code, clean it up.
     args.toolname = TOOLNAME
     args.toolver = VERSION
-    args.deploy_info = _WULT_DEPLOY_INFO
 
     return args
 
 def _deploy_command(args):
     """Implements the 'wult deploy' command."""
 
-    from wulttools.wult import _WultDeploy # pylint: disable=import-outside-toplevel
+    from wulttools import _ToolDeploy # pylint: disable=import-outside-toplevel
 
-    _WultDeploy.deploy_command(args)
+    _ToolDeploy.deploy_command(args, _WULT_DEPLOY_INFO)
 
 def _start_command(args):
     """Implements the 'wult start' command."""
@@ -261,22 +266,22 @@ def _report_command(args):
 def main():
     """Script entry point."""
 
-    try:
-        args = parse_arguments()
+    args = parse_arguments()
 
-        if not getattr(args, "func", None):
-            _LOG.error("please, run '%s -h' for help", TOOLNAME)
-            return -1
-
-        args.func(args)
-    except KeyboardInterrupt:
-        _LOG.info("Interrupted, exiting")
+    if not getattr(args, "func", None):
+        _LOG.error("please, run '%s -h' for help", TOOLNAME)
         return -1
-    except Error as err:
-        _LOG.error_out(err)
 
+    args.func(args)
     return 0
 
-# The script entry point.
 if __name__ == "__main__":
-    sys.exit(main())
+    _exitcode = -1
+    try:
+        _exitcode = main()
+    except KeyboardInterrupt:
+        _LOG.info("\nInterrupted, exiting")
+    except Error as _err:
+        _LOG.error_out(_err)
+
+    raise SystemExit(_exitcode)

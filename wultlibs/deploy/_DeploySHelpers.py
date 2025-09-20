@@ -15,10 +15,13 @@ docstring for more information.
 # TODO: finish adding type hints to this module.
 from __future__ import annotations # Remove when switching to Python 3.10+.
 
+import typing
 from pathlib import Path
 from pepclibs.helperlibs import Logging
 from statscollectlibs.deploy import DeployHelpersBase
-from statscollectlibs.deploy.DeployBase import InstallableInfoTypedDict
+
+if typing.TYPE_CHECKING:
+    from statscollectlibs.deploy.DeployBase import InstallableInfoTypedDict
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 

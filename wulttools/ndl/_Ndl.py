@@ -8,15 +8,18 @@
 
 """ndl - a tool for measuring memory access latency observed by a network card."""
 
-import sys
+# TODO: finish adding type hints to this module.
+from __future__ import annotations # Remove when switching to Python 3.10+.
+
+import typing
 from pathlib import Path
 
 try:
     import argcomplete
-    argcomplete_imported = True
+    _ARGCOMPLETE_AVAILABLE = True
 except ImportError:
     # We can live without argcomplete, we only lose tab completions.
-    argcomplete_imported = False
+    _ARGCOMPLETE_AVAILABLE = False
 
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
@@ -25,11 +28,14 @@ from wulttools.ndl import ToolInfo
 from wultlibs.deploy import _Deploy
 from wultlibs.htmlreport import NdlReportParams
 
+if typing.TYPE_CHECKING:
+    from statscollectlibs.deploy.DeployBase import DeployInfoTypedDict
+
 VERSION = ToolInfo.VERSION
 TOOLNAME = ToolInfo.TOOLNAME
 
 # The deployment information dictionary. See 'DeployBase.__init__()' for details.
-_NDL_DEPLOY_INFO = {
+_NDL_DEPLOY_INFO: DeployInfoTypedDict = {
     "installables" : {
         "ndl" : {
             "category" : "drivers",
@@ -55,7 +61,7 @@ def _get_axes_default(name):
 def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
-    if argcomplete_imported:
+    if _ARGCOMPLETE_AVAILABLE:
         completer = argcomplete.completers.DirectoriesCompleter()
     else:
         completer = None
@@ -63,8 +69,6 @@ def _build_arguments_parser():
     text = "ndl - a tool for measuring memory access latency observed by a network card."
     parser = ArgParse.ArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
 
-    text = "Force coloring of the text output."
-    parser.add_argument("--force-color", action="store_true", help=text)
     subparsers = parser.add_subparsers(title="commands", dest="a command")
     subparsers.required = True # pylint: disable=pepc-unused-variable
 
@@ -221,7 +225,7 @@ def _build_arguments_parser():
     text = f"""The {TOOLNAME} test result path to calculate summary functions for."""
     subpars.add_argument("respath", type=Path, help=text, nargs="?")
 
-    if argcomplete_imported:
+    if _ARGCOMPLETE_AVAILABLE:
         argcomplete.autocomplete(parser)
 
     return parser
@@ -234,16 +238,15 @@ def parse_arguments():
     args = parser.parse_args()
     args.toolname = TOOLNAME
     args.toolver = VERSION
-    args.deploy_info = _NDL_DEPLOY_INFO
 
     return args
 
 def _deploy_command(args):
     """Implements the 'ndl deploy' command."""
 
-    from wulttools.ndl import _NdlDeploy # pylint: disable=import-outside-toplevel
+    from wulttools import _ToolDeploy # pylint: disable=import-outside-toplevel
 
-    _NdlDeploy.deploy_command(args)
+    _ToolDeploy.deploy_command(args, _NDL_DEPLOY_INFO)
 
 def _start_command(args):
     """Implements the 'ndl start' command."""
@@ -266,18 +269,17 @@ def main():
         args = parse_arguments()
 
         if not getattr(args, "func", None):
-            _LOG.error("please, run '%s -h' for help", TOOLNAME)
+            _LOG.error("Please, run '%s -h' for help", TOOLNAME)
             return -1
 
         args.func(args)
     except KeyboardInterrupt:
-        _LOG.info("Interrupted, exiting")
+        _LOG.info("\nInterrupted, exiting")
         return -1
     except Error as err:
         _LOG.error_out(err)
 
     return 0
 
-# The script entry point.
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
