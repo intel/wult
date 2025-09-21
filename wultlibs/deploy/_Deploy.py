@@ -11,15 +11,8 @@ This module provides API for deploying the tools coming with the 'wult' project.
 Note, "wult" is both name of the project and name of the tool in the project.
 """
 
-try:
-    import argcomplete
-    argcomplete_imported = True
-except ImportError:
-    # We can live without argcomplete, we only lose tab completions.
-    argcomplete_imported = False
-
 from pathlib import Path
-from pepclibs.helperlibs import Logging, ClassHelpers, ArgParse, ProjectFiles, ToolChecker
+from pepclibs.helperlibs import Logging, ClassHelpers, ProjectFiles, ToolChecker
 from pepclibs.helperlibs import KernelVersion
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.deploy import DeployBase, _DeployPyHelpers
@@ -29,92 +22,6 @@ _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 HELPERS_DEPLOY_SUBDIR = Path(".local")
 HELPERS_SRC_SUBDIR = Path("helpers")
-
-def add_deploy_cmdline_args(toolname, deploy_info, subparsers, func):
-    """
-    Add the the 'deploy' command to 'argparse' data. The input arguments are as follows.
-      * toolname - name of the tool to add the 'deploy' command for.
-      * deploy_info - a dictionary describing the tool to deploy, same as in
-                      'DeployBase.__init__()'.
-      * subparsers - the 'argparse' subparsers to add the 'deploy' command to.
-      * func - the 'deploy' command handling function.
-    """
-
-    cats = {cat: [] for cat in DeployBase.CATEGORIES}
-    for name, info in deploy_info["installables"].items():
-        cats[info["category"]].append(name)
-
-    what = ""
-    if cats["shelpers"] or cats["pyhelpers"]:
-        if cats["drivers"]:
-            what = "helpers and drivers"
-        else:
-            what = "helpers"
-    elif cats["drivers"]:
-        what = "drivers"
-    else:
-        raise Error("BUG: no helpers and no drivers")
-
-    if argcomplete_imported:
-        completer = argcomplete.completers.DirectoriesCompleter()
-    else:
-        completer = None
-
-    text = f"Compile and deploy {toolname} {what}."
-    descr = f"""Compile and deploy {toolname} {what} to the SUT (System Under Test), which can be
-                can be either local or a remote host, depending on the '-H' option. By default,
-                everything is built on the SUT, but the '--local-build' can be used for building
-                on the local system."""
-
-    if cats["drivers"]:
-        searchdirs = ProjectFiles.get_project_data_search_descr("wult",
-                                                                _DeployDrivers.DRIVERS_SRC_SUBDIR)
-        descr += f""" The drivers are searched for in the following directories (and in the
-                     following order) on the local host: {searchdirs}."""
-
-    if cats["shelpers"] or cats["pyhelpers"]:
-        searchdirs = ProjectFiles.get_project_data_search_descr("wult", HELPERS_SRC_SUBDIR)
-        helpernames = ", ".join(cats["shelpers"] + cats["pyhelpers"])
-        descr += f""" The {toolname} tool also depends on the following helpers: {helpernames}.
-                     These helpers will be compiled on the SUT and deployed to the SUT. The sources
-                     of the helpers are searched for in the following paths (and in the following
-                     order) on the local host: {searchdirs}. By default, helpers are deployed to
-                     the path defined by the 'WULT_HELPERSPATH' environment variable. If the
-                     variable is not defined, helpers are deployed to
-                     '$HOME/{HELPERS_DEPLOY_SUBDIR}/bin', where '$HOME' is the home directory of
-                     user 'USERNAME' on host 'HOST' (see '--host' and '--username' options)."""
-    parser = subparsers.add_parser("deploy", help=text, description=descr)
-
-    if cats["drivers"]:
-        text = """Path to the Linux kernel sources to build drivers against. The default is
-                  '/lib/modules/$(uname -r)/build' on the SUT. If '--local-build' was used, then the
-                  path is considered to be on the local system, rather than the SUT."""
-        parser.add_argument("--kernel-src", dest="ksrc", type=Path, help=text).completer = completer
-
-        text = """Options and variables to pass to 'make' when the drivers are built. For example,
-                  pass 'CC=clang LLVM=1' to use clang and LLVM tools for building the drivers."""
-        parser.add_argument("--drivers-make-opts", dest="drv_make_opts", help=text)
-
-        text = """Do not deploy the drivers. This is a debug and development option, do not use it
-                  for other purposes."""
-        parser.add_argument("--skip-drivers", action="store_true", help=text)
-
-    text = f"""Build {what} locally, instead of building on HOSTNAME (the SUT)."""
-    parser.add_argument("--local-build", dest="lbuild", action="store_true", help=text)
-
-    text = f"""When '{toolname}' is deployed, a random temporary directory is used. Use this option
-               provide a custom path instead. It will be used as a temporary directory on both
-               local and remote hosts. This option is meant for debugging purposes."""
-    parser.add_argument("--tmpdir-path", help=text).completer = completer
-
-    text = f"""Do not remove the temporary directories created while deploying '{toolname}'. This
-               option is meant for debugging purposes."""
-    parser.add_argument("--keep-tmpdir", action="store_true", help=text)
-
-    ArgParse.add_ssh_options(parser)
-
-    parser.set_defaults(func=func)
-    return parser
 
 def _check_minkver(pman, instinfo, kver):
     """

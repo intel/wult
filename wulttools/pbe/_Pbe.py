@@ -25,8 +25,7 @@ except ImportError:
 
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.deploy import _Deploy
-from wulttools import _Common
+from wulttools import _Common, _ToolDeploy
 from wulttools.pbe import ToolInfo
 
 if typing.TYPE_CHECKING:
@@ -65,7 +64,8 @@ def _build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    _Deploy.add_deploy_cmdline_args(TOOLNAME, _PBE_DEPLOY_INFO, subparsers, _deploy_command)
+    subpars = _ToolDeploy.add_deploy_cmdline_args(TOOLNAME, _PBE_DEPLOY_INFO, subparsers,
+                                                  _deploy_command)
 
     #
     # Create parsers for the "scan" command.
@@ -169,16 +169,18 @@ def parse_arguments():
 def _deploy_command(args):
     """Implements the 'deploy' command."""
 
-    from wulttools import _ToolDeploy # pylint: disable=import-outside-toplevel
-
     _ToolDeploy.deploy_command(args, _PBE_DEPLOY_INFO)
 
 def _start_command(args):
     """Implements the 'start' command."""
 
+    if args.list_stats:
+        _Common.start_command_list_stats()
+        return
+
     from wulttools.pbe import _PbeStart # pylint: disable=import-outside-toplevel
 
-    _PbeStart.start_command(args)
+    _PbeStart.start_command(args, _PBE_DEPLOY_INFO)
 
 def _report_command(args):
     """Implements the 'report' command."""

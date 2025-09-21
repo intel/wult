@@ -15,19 +15,44 @@ module require the 'args' object which represents the command-line arguments.
 # TODO: finish adding type hints to this module.
 from __future__ import annotations # Remove when switching to Python 3.10+.
 
-# pylint: disable=no-member
-
+# TODO: Consider splitting this module into smaller modules. E.g., add _ToolStart.py,
+# _ToolReport.py, etc - similar to existing _ToolDeploy.py.
 import sys
+import typing
 from pathlib import Path
 from pepclibs import ASPM
 from pepclibs.helperlibs import Logging, Trivial, YAML, ProcessManager, ArgParse
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.helperlibs import ReportID
 from statscollectlibs.collector import StatsCollectBuilder
-from statscollecttools import ToolInfo
 from wultlibs import Devices
 from wultlibs.deploy import _Deploy
 from wultlibs.helperlibs import Human
+
+if typing.TYPE_CHECKING:
+    import argparse
+    from typing import cast
+    from pepclibs.helperlibs.ArgParse import SSHArgsTypedDict
+    from pepclibs.helperlibs.ProcessManager import ProcessManagerType
+
+    class StartCmdlArgsTypedDict(SSHArgsTypedDict, total=False):
+        """
+        Typed dictionary for the "wult start" command-line arguments.
+
+        Attributes:
+            (All attributes from 'SSHArgsTypedDict')
+            toolname: Name of the tool.
+            devid: Device ID used for measurements.
+            reportid: The report ID ('--reportid' option). Empty string if not specified.
+            outdir: Path to the output directory ('--outdir' option). Defaults to 'reportid'
+                    sub-directory in the current directory.
+        """
+
+        toolname: str
+        devid: str
+        reportid: str
+        outdir: Path
+        ldist: tuple[int, int]
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
@@ -227,6 +252,72 @@ FUNCS_DESCR = """Comma-separated list of summary functions to calculate. By defa
 # Description for the '--list-funcs' option of the 'calc' command.
 LIST_FUNCS_DESCR = "Print the list of the available summary functions."
 
+def _init_reportid(cmdl: StartCmdlArgsTypedDict):
+    """
+    Initialize the report ID if it is not specified by the user.
+
+    Args:
+        cmdl: The command line arguments dictionary.
+    """
+
+    if not cmdl["reportid"] and cmdl["hostname"] != "localhost":
+        prefix = cmdl["hostname"]
+    else:
+        prefix = ""
+
+    strftime = f"{cmdl['toolname']}-{cmdl['devid']}-%Y%m%d"
+    cmdl["reportid"] = ReportID.format_reportid(prefix=prefix, reportid=cmdl["reportid"],
+                                                strftime=strftime)
+
+def _init_ldist(cmdl: StartCmdlArgsTypedDict, ldist_str: str):
+    """
+    Parse and intialize the launch distance range.
+
+    Args:
+        cmdl: The command line arguments dictionary.
+        ldist_str: A string of two comma-separated launch distance values.
+
+    Returns:
+        Launch distance range as a tuple of two integers in nanoseconds.
+    """
+
+    ldist = Human.parse_human_range(ldist_str, unit="us", target_unit="ns", what="launch distance")
+    if ldist[0] < 0 or ldist[1] < 0:
+        raise Error(f"Bad launch distance range '{ldist_str}', values cannot be negative")
+
+    cmdl["ldist"] = int(ldist[0]), int(ldist[1])
+
+def format_start_command_args(args: argparse.Namespace, toolname: str) -> StartCmdlArgsTypedDict:
+    """
+    Build and return a typed dictionary containing the formatted command-line arguments.
+
+    Args:
+        args: The command-line arguments.
+        toolname: Name of the tool.
+
+    Returns:
+        StartCmdlArgsTypedDict: A typed dictionary containing the formatted arguments.
+    """
+
+    if typing.TYPE_CHECKING:
+        cmdl = cast(StartCmdlArgsTypedDict, ArgParse.format_ssh_args(args))
+    else:
+        cmdl = ArgParse.format_ssh_args(args)
+
+    cmdl["toolname"] = toolname
+    cmdl["reportid"] = getattr(args, "reportid", "")
+    cmdl["devid"] = args.devid
+
+    if getattr(args, "outdir", ""):
+        cmdl["outdir"] = args.outdir
+    else:
+        cmdl["outdir"] = Path(f"./{cmdl['reportid']}")
+
+    _init_reportid(cmdl)
+    _init_ldist(cmdl, args.ldist)
+
+    return cmdl
+
 def get_pman(args):
     """
     Return the process manager object for host 'hostname'. The arguments are as follows.
@@ -239,23 +330,6 @@ def get_pman(args):
     cmdl = ArgParse.format_ssh_args(args)
     return ProcessManager.get_pman(cmdl["hostname"], cmdl["username"],
                                    privkeypath=cmdl["privkey"], timeout=cmdl["timeout"])
-
-def parse_ldist(rng: str) -> tuple[int, int]:
-    """
-    Parse and validate the launch distance range ('--ldist' option).
-
-    Args:
-        rng: A string of single or two comma-separated launch distance values.
-
-    Returns:
-        Launch distance range as a tuple of two integers in nanoseconds.
-    """
-
-    ldist = Human.parse_human_range(rng, unit="us", target_unit="ns", what="launch distance")
-    if ldist[0] < 0 or ldist[1] < 0:
-        raise Error(f"bad launch distance range '{rng}', values cannot be negative")
-
-    return round(ldist[0]), round(ldist[1])
 
 def even_up_dpcnt(rsts):
     """
@@ -273,8 +347,8 @@ def even_up_dpcnt(rsts):
         try:
             size = res.dp_path.stat().st_size
         except OSError as err:
-            msg = Error(err).indent(2)
-            raise Error(f"'stat()' failed for '{res.dp_path}':\n{msg}") from None
+            errmsg = Error(str(err)).indent(2)
+            raise Error(f"'stat()' failed for '{res.dp_path}':\n{errmsg}") from None
         if min_size is None or size < min_size:
             min_size = size
             min_res = res
@@ -552,22 +626,6 @@ def reduce_installables(deploy_info, dev):
 
     return result
 
-def start_command_reportid(args, pman):
-    """
-    Validate and return user-provided report ID. If not report ID was provided, generate and return
-    the default report ID. The arguments are as follows.
-      * args - the command line arguments object.
-      * pman - the process manager object that defines the host to measure.
-    """
-
-    if not args.reportid and pman.is_remote:
-        prefix = pman.hostname
-    else:
-        prefix = None
-
-    return ReportID.format_reportid(prefix=prefix, reportid=args.reportid,
-                                    strftime=f"{args.toolname}-{args.devid}-%Y%m%d")
-
 def start_command_check_network(args, pman, netif):
     """
     In case the device that is used for measurement is a network card, check that it is not in the
@@ -623,52 +681,6 @@ def report_command_outdir(args, rsts):
     _LOG.info("Report output directory: %s", outdir)
     return Path(outdir)
 
-def run_stats_collect_deploy(args, pman):
-    """
-    Run the 'stats-collect deploy' command. The arguments are as follows.
-      * args - the command line arguments object.
-      * pman - the process manager object that defines the host to run on.
-    """
-
-    # pylint: disable=import-outside-toplevel
-    from pepclibs.helperlibs import ProjectFiles, LocalProcessManager
-
-    exe_path = ProjectFiles.find_project_helper("stats-collect", ToolInfo.TOOLNAME)
-
-    cmd = str(exe_path)
-
-    if Logging.getLogger(Logging.MAIN_LOGGER_NAME).colored:
-        cmd += " --force-color deploy"
-    else:
-        cmd += " deploy"
-
-    if args.debug:
-        cmd += " -d"
-    if args.quiet:
-        cmd += " -q"
-
-    if args.hostname != "localhost":
-        cmd += f" -H {args.hostname}"
-        if args.username:
-            cmd += f" -U {args.username}"
-        if args.privkey:
-            cmd += f" -K {args.privkey}"
-        if args.timeout:
-            cmd += f" -T {args.timeout}"
-
-    _LOG.info("Deploying statistics collectors%s", pman.hostmsg)
-
-    with LocalProcessManager.LocalProcessManager() as lpman:
-        try:
-            if args.debug:
-                kwargs = {"output_fobjs" : (sys.stdout, sys.stderr)}
-            else:
-                kwargs = {}
-            lpman.run_verify(cmd, **kwargs)
-        except Error as err:
-            _LOG.warning("falied to deploy statistics collectors%s", pman.hostmsg)
-            _LOG.debug(str(err))
-
 def check_aspm_setting(pman, dev, devname):
     """
     If PCI ASPM is enabled for a device, print a notice message. The arguments are as follows.
@@ -700,8 +712,8 @@ def configure_log_file(outdir: Path, toolname: str) -> Path:
     try:
         outdir.mkdir(parents=True, exist_ok=True)
     except OSError as err:
-        msg = Error(err).indent(2)
-        raise Error(f"Cannot create log directory '{outdir}':\n{msg}") from None
+        errmsg = Error(str(err)).indent(2)
+        raise Error(f"Cannot create log directory '{outdir}':\n{errmsg}") from None
 
     logpath = Path(outdir) / f"{toolname}.log.txt"
     contents = f"Command line: {' '.join(sys.argv)}\n"

@@ -23,9 +23,8 @@ except ImportError:
 
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
-from wulttools import _Common
+from wulttools import _Common, _ToolDeploy
 from wulttools.ndl import ToolInfo
-from wultlibs.deploy import _Deploy
 from wultlibs.htmlreport import NdlReportParams
 
 if typing.TYPE_CHECKING:
@@ -70,12 +69,13 @@ def _build_arguments_parser():
     parser = ArgParse.ArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
 
     subparsers = parser.add_subparsers(title="commands", dest="a command")
-    subparsers.required = True # pylint: disable=pepc-unused-variable
+    subparsers.required = True
 
     #
     # Create parsers for the "deploy" command.
     #
-    _Deploy.add_deploy_cmdline_args(TOOLNAME, _NDL_DEPLOY_INFO, subparsers, _deploy_command)
+    subpars = _ToolDeploy.add_deploy_cmdline_args(TOOLNAME, _NDL_DEPLOY_INFO, subparsers,
+                                                  _deploy_command)
 
     #
     # Create parsers for the "scan" command.
@@ -244,16 +244,18 @@ def parse_arguments():
 def _deploy_command(args):
     """Implements the 'ndl deploy' command."""
 
-    from wulttools import _ToolDeploy # pylint: disable=import-outside-toplevel
-
     _ToolDeploy.deploy_command(args, _NDL_DEPLOY_INFO)
 
 def _start_command(args):
     """Implements the 'ndl start' command."""
 
+    if args.list_stats:
+        _Common.start_command_list_stats()
+        return
+
     from wulttools.ndl import _NdlStart # pylint: disable=import-outside-toplevel
 
-    _NdlStart.start_command(args)
+    _NdlStart.start_command(args, _NDL_DEPLOY_INFO)
 
 def _report_command(args):
     """Implements the 'ndl report' command."""

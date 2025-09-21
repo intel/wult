@@ -26,8 +26,7 @@ except ImportError:
 
 from pepclibs.helperlibs import Logging, ArgParse
 from pepclibs.helperlibs.Exceptions import Error
-from wultlibs.deploy import _Deploy
-from wulttools import _Common
+from wulttools import _Common, _ToolDeploy
 from wulttools.wult import _WultCommon, ToolInfo
 
 if typing.TYPE_CHECKING:
@@ -66,8 +65,8 @@ def _build_arguments_parser():
     #
     # Create parsers for the "deploy" command.
     #
-    subpars = _Deploy.add_deploy_cmdline_args(TOOLNAME, _WULT_DEPLOY_INFO, subparsers,
-                                              _deploy_command)
+    subpars = _ToolDeploy.add_deploy_cmdline_args(TOOLNAME, _WULT_DEPLOY_INFO, subparsers,
+                                                  _deploy_command)
 
     #
     # Create parsers for the "scan" command.
@@ -236,7 +235,7 @@ def parse_arguments():
     parser = _build_arguments_parser()
 
     args = parser.parse_args()
-    # TODO: There is a mix of 'args.toolname' and 'ToolInfo.TOOLNAME' in the code, clean it up.
+    # TODO: These 2 should be removed.
     args.toolname = TOOLNAME
     args.toolver = VERSION
 
@@ -245,16 +244,18 @@ def parse_arguments():
 def _deploy_command(args):
     """Implements the 'wult deploy' command."""
 
-    from wulttools import _ToolDeploy # pylint: disable=import-outside-toplevel
-
     _ToolDeploy.deploy_command(args, _WULT_DEPLOY_INFO)
 
 def _start_command(args):
     """Implements the 'wult start' command."""
 
+    if args.list_stats:
+        _Common.start_command_list_stats()
+        return
+
     from wulttools.wult import _WultStart # pylint: disable=import-outside-toplevel
 
-    _WultStart.start_command(args)
+    _WultStart.start_command(args, _WULT_DEPLOY_INFO)
 
 def _report_command(args):
     """Implements the 'wult report' command."""

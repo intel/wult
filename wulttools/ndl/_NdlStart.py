@@ -1,38 +1,81 @@
 # -*- coding: utf-8 -*-
-# vim: ts=4 sw=4 tw=100 et ai si
+#dfvim: ts=4 sw=4 tw=100 et ai si
 #
-# Copyright (C) 2019-2023 Intel Corporation
+# Copyright (C) 2019-2025 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 """
-This module includes the "start" 'ndl' command implementation.
+Implement 'ndl start' command.
 """
 
+# TODO: finish adding type hints to this module.
+from __future__ import annotations # Remove when switching to Python 3.10+.
+
 import json
+import typing
 import contextlib
-from pathlib import Path
 from pepclibs import CPUInfo, CPUIdle, CStates
-from pepclibs.helperlibs import Logging, Trivial
+from pepclibs.helperlibs import Logging, Trivial, ProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.collector import StatsCollectBuilder
-from wulttools import _Common
-from wultlibs import NdlRunner, Devices, _FreqNoise
+from wultlibs import NdlRunner, Devices
 from wultlibs.deploy import _Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.result import WORawResult
+from wulttools import _Common
+from wulttools.ndl import ToolInfo
+
+if typing.TYPE_CHECKING:
+    import argparse
+    from typing import cast
+    from wulttools._Common import StartCmdlArgsTypedDict
+    from pepclibs.helperlibs.ProcessManager import ProcessManagerType
+    from statscollectlibs.deploy.DeployBase import DeployInfoTypedDict
+
+    class NdlStartCmdlArgsTypedDict(StartCmdlArgsTypedDict, total=False):
+        """
+        Typed dictionary for the "wult start" command-line arguments.
+
+        Attributes:
+            (All attributes from 'StartCmdlArgsTypedDict')
+        """
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
-def _generate_report(args):
-    """Implement the 'report' command for start."""
+def _format_args(args: argparse.Namespace) -> NdlStartCmdlArgsTypedDict:
+    """
+    Build and return a typed dictionary containing the formatted command-line arguments.
+
+    Args:
+        args: The command-line arguments.
+
+    Returns:
+        NdlStartCmdlArgsTypedDict: A typed dictionary containing the formatted arguments.
+    """
+
+    if typing.TYPE_CHECKING:
+        cmdl = cast(NdlStartCmdlArgsTypedDict,
+                    _Common.format_start_command_args(args, ToolInfo.TOOLNAME))
+    else:
+        cmdl = _Common.format_start_command_args(args, ToolInfo.TOOLNAME)
+
+    return cmdl
+
+def _generate_report(cmdl: StartCmdlArgsTypedDict):
+    """
+    Generate an HTML report from the raw results in "html-report" subdirectory of the raw results
+    directory.
+
+    Args:
+        cmdl: The command-line arguments.
+    """
 
     from wultlibs.htmlreport import NdlReport # pylint: disable=import-outside-toplevel
 
-    rsts = _Common.open_raw_results([args.outdir], args.toolname)
-    rep = NdlReport.NdlReport(rsts, args.outdir / "html-report", report_descr=args.reportid)
-    rep.copy_raw = False
+    rsts = _Common.open_raw_results([cmdl["outdir"]], ToolInfo.TOOLNAME)
+    rep = NdlReport.NdlReport(rsts, cmdl["outdir"] / "html-report", report_descr=cmdl["reportid"])
     rep.generate()
 
 def _get_local_cpus(pman, ifname):
@@ -170,30 +213,30 @@ def _check_settings(args, pman, dev, cpuinfo):
                 _LOG.notice("%s is enabled, this may lead to lower C6 residency. It is "
                             "recommended to disable %s.", name, name)
 
-def start_command(args):
+def start_command(args: argparse.Namespace, deploy_info: DeployInfoTypedDict):
     """
-    Implement the 'start' command. The arguments are as follows.
-      * args - the command line arguments object.
+    Implement the 'ndl start' command.
+
+    Args:
+        args: The command-line arguments.
+        deploy_info: The deployment information dictionary, used for checking the tool deployment.
     """
 
-    if args.list_stats:
-        _Common.start_command_list_stats()
-        return
+    cmdl = _format_args(args)
+    if typing.TYPE_CHECKING:
+        _cmdl = cast(StartCmdlArgsTypedDict, cmdl)
+    else:
+        _cmdl = cmdl
 
     with contextlib.ExitStack() as stack:
-        pman = _Common.get_pman(args)
+        pman = ProcessManager.get_pman(cmdl["hostname"], username=cmdl["username"],
+                                       privkeypath=cmdl["privkey"], timeout=cmdl["timeout"])
         stack.enter_context(pman)
 
-        args.reportid = _Common.start_command_reportid(args, pman)
-
-        if not args.outdir:
-            args.outdir = Path(f"./{args.reportid}")
         if args.tlimit:
             if Trivial.is_num(args.tlimit):
                 args.tlimit = f"{args.tlimit}m"
             args.tlimit = Human.parse_human(args.tlimit, unit="s", integer=True, what="time limit")
-
-        args.ldist = _Common.parse_ldist(args.ldist)
 
         if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
             raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
@@ -203,7 +246,7 @@ def start_command(args):
         stack.enter_context(cpuinfo)
 
         try:
-            dev = Devices.GetDevice(args.toolname, args.devid, pman, dmesg=True)
+            dev = Devices.GetDevice(ToolInfo.TOOLNAME, args.devid, pman, dmesg=True)
         except ErrorNotFound as err:
             msg = f"{err}\nTo list all usable network interfaces, please run: ndl scan"
             if pman.is_remote:
@@ -225,11 +268,11 @@ def start_command(args):
         else:
             raise Error(f"bad CPU number '{args.cpu}'")
 
-        res = WORawResult.WORawResult(args.toolname, args.toolver, args.reportid, args.outdir,
-                                      cpu=args.cpu)
+        res = WORawResult.WORawResult(ToolInfo.TOOLNAME, ToolInfo.VERSION, cmdl["reportid"],
+                                      cmdl["outdir"], cpu=args.cpu)
         stack.enter_context(res)
 
-        _Common.configure_log_file(res.logs_path, args.toolname)
+        _Common.configure_log_file(res.logs_path, ToolInfo.TOOLNAME)
 
         if cpus_msg:
             _LOG.info(cpus_msg)
@@ -250,23 +293,23 @@ def start_command(args):
         if args.stats_intervals:
             stcoll_builder.parse_intervals(args.stats_intervals)
 
-        stcoll = stcoll_builder.build_stcoll_nores(pman, args.reportid, cpus=(args.cpu,),
+        stcoll = stcoll_builder.build_stcoll_nores(pman, cmdl["reportid"], cpus=(args.cpu,),
                                                    local_outdir=res.stats_path)
         if stcoll:
             stack.enter_context(stcoll)
 
-        deploy_info = _Common.reduce_installables(args.deploy_info, dev)
-        with _Deploy.DeployCheck("wult", args.toolname, deploy_info, pman=pman) as depl:
+        deploy_info = _Common.reduce_installables(deploy_info, dev)
+        with _Deploy.DeployCheck("wult", ToolInfo.TOOLNAME, deploy_info, pman=pman) as depl:
             depl.check_deployment()
 
         _Common.start_command_check_network(args, pman, dev.netif)
         _check_settings(args, pman, dev, cpuinfo)
 
-        runner = NdlRunner.NdlRunner(pman, dev, res, args.ldist, stcoll=stcoll, cbuf_size=cbuf_size)
+        runner = NdlRunner.NdlRunner(pman, dev, res, cmdl["ldist"], stcoll=stcoll, cbuf_size=cbuf_size)
         stack.enter_context(runner)
 
         runner.prepare()
         runner.run(dpcnt=args.dpcnt, tlimit=args.tlimit)
 
     if args.report:
-        _generate_report(args)
+        _generate_report(_cmdl)
