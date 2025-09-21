@@ -266,22 +266,21 @@ def _report_command(args):
 def main():
     """Script entry point."""
 
-    args = parse_arguments()
-
-    if not getattr(args, "func", None):
-        _LOG.error("please, run '%s -h' for help", TOOLNAME)
-        return -1
-
-    args.func(args)
-    return 0
-
-if __name__ == "__main__":
-    _exitcode = -1
     try:
-        _exitcode = main()
+        args = parse_arguments()
+
+        if not getattr(args, "func", None):
+            _LOG.error("Please, run '%s -h' for help", TOOLNAME)
+            return -1
+
+        args.func(args)
     except KeyboardInterrupt:
         _LOG.info("\nInterrupted, exiting")
+        return -1
     except Error as _err:
         _LOG.error_out(_err)
 
-    raise SystemExit(_exitcode)
+    return 0
+
+if __name__ == "__main__":
+    raise SystemExit(main())

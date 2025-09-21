@@ -20,7 +20,7 @@ from __future__ import annotations # Remove when switching to Python 3.10+.
 import sys
 from pathlib import Path
 from pepclibs import ASPM
-from pepclibs.helperlibs import Logging, Trivial, YAML, ProcessManager
+from pepclibs.helperlibs import Logging, Trivial, YAML, ProcessManager, ArgParse
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.helperlibs import ReportID
 from statscollectlibs.collector import StatsCollectBuilder
@@ -236,15 +236,9 @@ def get_pman(args):
     'close()' method.
     """
 
-    if args.hostname == "localhost":
-        username = privkeypath = timeout = None
-    else:
-        username = args.username
-        privkeypath = args.privkey
-        timeout = args.timeout
-
-    return ProcessManager.get_pman(args.hostname, username=username, privkeypath=privkeypath,
-                                   timeout=timeout)
+    cmdl = ArgParse.format_ssh_args(args)
+    return ProcessManager.get_pman(cmdl["hostname"], cmdl["username"],
+                                   privkeypath=cmdl["privkey"], timeout=cmdl["timeout"])
 
 def parse_ldist(rng: str) -> tuple[int, int]:
     """
