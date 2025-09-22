@@ -8,8 +8,7 @@ EXCLUDE] [\-\-include INCLUDE] [\-\-keep\-filtered] [\-o OUTDIR]
 [\-\-reportid REPORTID] [\-\-stats STATS] [\-\-stats\-intervals
 STATS_INTERVALS] [\-\-list\-stats] [\-l LDIST] [\-\-cpu CPU]
 [\-\-tsc\-cal\-time TSC_CAL_TIME] [\-\-keep\-raw\-data] [\-\-no\-unload]
-[\-\-report] [\-\-force] [\-\-freq\-noise FREQ_NOISE]
-[\-\-freq\-noise\-sleep FREQ_NOISE_SLEEP] devid
+[\-\-report] [\-\-force] devid
 .PP
 Start measuring and recording C\-state latency.
 .TP
@@ -218,31 +217,3 @@ is used by a Linux network interface and the interface is in an active
 state, such as \[dq]up\[dq].
 Use \[aq]\-\-force\[aq] to disable this safety mechanism.
 Use it with caution.
-.TP
-\f[B]\-\-freq\-noise\f[R] \f[I]FREQ_NOISE\f[R]
-Add frequency scaling noise to the measured system.
-This runs a background process that repeatedly modifies CPU or uncore
-frequencies for given domains.
-The reason for doing this is because frequency scaling is generally an
-expensive operation and is known to impact system latency.
-\[aq]FREQ_NOISE\[aq] is specified as \[aq]TYPE:ID:MIN:MAX\[aq], where:
-TYPE should be \[aq]cpu\[aq] or \[aq]uncore\[aq], specifies whether CPU
-or uncore frequency should be modified; ID is either CPU number or
-uncore domain ID to modify the frequency for (e.g.
-\[aq]cpu:12:...\[aq] would target CPU12); MIN is the minimum CPU/uncore
-frequency value; MAX is the maximum CPU/uncore frequency value.
-For example, to add frequency scaling noise for CPU0, add \[aq]\-\-
-freq\-noise cpu:0:min:max\[aq].
-To add uncore frequency noise for uncore domain 0, add
-\[aq]\-\-freq\-noise uncore:0:min:max\[aq].
-The parameter can be added multiple times to specify multiple frequency
-noise domains.
-.TP
-\f[B]\-\-freq\-noise\-sleep\f[R] \f[I]FREQ_NOISE_SLEEP\f[R]
-Sleep between frequency noise operations.
-This time is added between every frequency scaling operation executed by
-the \[aq]freq\-noise\[aq] feature.
-The default time unit is microseconds, but it is possible to use time
-specifiers as well, ms \- milliseconds, us \- microseconds, ns \-
-nanoseconds.
-Default sleep time is 50ms.

@@ -13,27 +13,15 @@ usage: wult deploy [\-h] [\-q] [\-d] [\-\-kernel\-src KSRC]
 [\-\-local\-build] [\-\-tmpdir\-path TMPDIR_PATH] [\-\-keep\-tmpdir]
 [\-H HOSTNAME] [\-U USERNAME] [\-K PRIVKEY] [\-T TIMEOUT]
 .PP
-Compile and deploy wult helpers and drivers to the SUT (System Under
-Test), which can be can be either local or a remote host, depending on
-the \[aq]\-H\[aq] option.
+Compile and deploy wult drivers to the SUT (System Under Test), which
+can be can be either local or a remote host, depending on the
+\[aq]\-H\[aq] option.
 By default, everything is built on the SUT, but the
 \[aq]\-\-local\-build\[aq] can be used for building on the local system.
 The drivers are searched for in the following directories (and in the
 following order) on the local host: ./drivers/idle,
 $WULT_DATA_PATH/drivers/idle, $HOME/.local/share/wult/drivers/idle,
 /usr/local/share/wult/drivers/idle, /usr/share/wult/drivers/idle.
-The wult tool also depends on the following helpers: wult\-freq\-helper,
-These helpers will be compiled on the SUT and deployed to the SUT.
-The sources of the helpers are searched for in the following paths (and
-in the following order) on the local host: ./helpers,
-$WULT_DATA_PATH/helpers, $HOME/.local/share/wult/helpers,
-/usr/local/share/wult/helpers, /usr/share/wult/helpers.
-By default, helpers are deployed to the path defined by the
-\[aq]WULT_HELPERSPATH\[aq] environment variable.
-If the variable is not defined, helpers are deployed to
-\[aq]$HOME/.local/bin\[aq], where \[aq]$HOME\[aq] is the home directory
-of user \[aq]USERNAME\[aq] on host \[aq]HOST\[aq] (see
-\[aq]\-\-host\[aq] and \[aq]\-\-username\[aq] options).
 .SS OPTIONS \f[I]\[aq]wult\f[R] deploy\[aq]
 .TP
 \f[B]\-h\f[R]
@@ -58,14 +46,8 @@ For example, pass \[aq]CC=clang LLVM=1\[aq] to use clang and LLVM tools
 for building the drivers (required when the kernel was build with
 clang/LLVM).
 .TP
-\f[B]\-\-skip\-drivers\f[R]
-Deploy the eBPF helper, but do not deploy the drivers.
-This is a debug and development option, do not use it for other
-purposes.
-.TP
 \f[B]\-\-local\-build\f[R]
-Build helpers and drivers locally, instead of building on HOSTNAME (the
-SUT).
+Build drivers locally, instead of building on HOSTNAME (the SUT).
 .TP
 \f[B]\-\-tmpdir\-path\f[R] \f[I]TMPDIR_PATH\f[R]
 When \[aq]wult\[aq] is deployed, a random temporary directory is used.

@@ -5,11 +5,15 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.12.49] - 2025-09-22
+### Fixed
  - Fix wult driver compilation failure with kernel v6.16.
 ### Added
  - Provide pbe lead CPU statistics separately from system statistics.
-### Removed
-### Changed
 
 ## [1.12.48] - 2025-06-06
 ### Changed
