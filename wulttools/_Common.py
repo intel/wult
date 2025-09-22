@@ -308,12 +308,13 @@ def format_start_command_args(args: argparse.Namespace, toolname: str) -> StartC
     cmdl["reportid"] = getattr(args, "reportid", "")
     cmdl["devid"] = args.devid
 
+    _init_reportid(cmdl)
+
     if getattr(args, "outdir", ""):
         cmdl["outdir"] = args.outdir
     else:
         cmdl["outdir"] = Path(f"./{cmdl['reportid']}")
 
-    _init_reportid(cmdl)
     _init_ldist(cmdl, args.ldist)
 
     return cmdl
