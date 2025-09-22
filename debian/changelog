@@ -1,3 +1,10 @@
+wult (1.12.51) unstable; urgency=low
+
+  * Fix default output directory path.
+  * Support Intel CPUs other than family 6.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Mon, 22 Sep 2025 00:00:00 +0200
+
 wult (1.12.50) unstable; urgency=low
 
   * Fix stats-collect version dependency.
