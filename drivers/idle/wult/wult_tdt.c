@@ -220,7 +220,7 @@ static struct wult_device_ops wult_tdt_ops = {
 };
 
 static const struct x86_cpu_id intel_cpu_ids[] = {
-	X86_MATCH_VENDOR_FAM_FEATURE(INTEL, 6, X86_FEATURE_TSC_DEADLINE_TIMER, NULL),
+	X86_MATCH_VENDOR_FAM_FEATURE(INTEL, X86_FAMILY_ANY, X86_FEATURE_TSC_DEADLINE_TIMER, NULL),
 	{}
 };
 MODULE_DEVICE_TABLE(x86cpu, intel_cpu_ids);
