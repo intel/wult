@@ -170,7 +170,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
                 raise Error(f"BUG: unknown property '{pname}'")
 
         if pname == "uncore_freqs":
-            cmd = "pepc pstates info --min-uncore-freq --max-uncore-freq"
+            cmd = "pepc uncore info --min-freq --max-freq"
             stdout, _ = self._pman.run_verify(cmd)
 
             uncore_supported = True

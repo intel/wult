@@ -39,7 +39,7 @@ PROP_INFOS = {
         "name": "Uncore frequency",
         "moniker": "uf",
         "sname": "die",
-        "cmd": "pepc pstates config --min-uncore-freq {} --max-uncore-freq {} {scope_opts}"
+        "cmd": "pepc uncore config --min-freq {} --max-freq {} {scope_opts}"
     },
     "aspm": {
         "name": "ASPM",
