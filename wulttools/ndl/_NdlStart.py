@@ -167,6 +167,7 @@ def _get_cache_info(pman):
 
     return cacheinfo
 
+# TODO: Remove the cbuf stuff.
 def _get_cbuf_size(args, pman):
     """Calculate the CPU cache trashing buffer size."""
 
