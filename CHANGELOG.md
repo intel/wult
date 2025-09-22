@@ -5,10 +5,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix stats-collect version dependency.
 ### Added
 ### Removed
 ### Changed
+
+## [1.12.50] - 2025-09-22
+### Fixed
+ - Fix stats-collect version dependency.
 
 ## [1.12.49] - 2025-09-22
 ### Fixed
