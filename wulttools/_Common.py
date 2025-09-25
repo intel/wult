@@ -34,6 +34,7 @@ if typing.TYPE_CHECKING:
     from typing import cast
     from pepclibs.helperlibs.ArgParse import SSHArgsTypedDict
     from pepclibs.helperlibs.ProcessManager import ProcessManagerType
+    from statscollectlibs.deploy.DeployBase import DeployInfoTypedDict
 
     class StartCmdlArgsTypedDict(SSHArgsTypedDict, total=False):
         """
@@ -405,10 +406,13 @@ def apply_filters(args, res):
     set_filters(args, res)
     res.load_df()
 
-def scan_command(args):
+def scan_command(args: argparse.Namespace, deploy_info: DeployInfoTypedDict):
     """
-    Implement the 'scan' command for the 'wult' and 'ndl' tools. The arguments are as follows.
-      * args - the command line arguments object.
+    Implement 'wult scan' command.
+
+    Args:
+        args: The command-line arguments.
+        deploy_info: The deployment information dictionary, used for checking the tool deployment.
     """
 
     pman = get_pman(args)
@@ -420,7 +424,7 @@ def scan_command(args):
         err_msg = None
         found_something = True
 
-        deploy_info = reduce_installables(args.deploy_info, dev)
+        deploy_info = reduce_installables(deploy_info, dev)
         with _Deploy.DeployCheck("wult", args.toolname, deploy_info, pman=pman) as depl:
             try:
                 depl.check_deployment()

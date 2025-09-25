@@ -78,7 +78,7 @@ def _generate_report(cmdl: StartCmdlArgsTypedDict):
 
 def start_command(args: argparse.Namespace, deploy_info: DeployInfoTypedDict):
     """
-    Implement the 'pbe start' command.
+    Implement 'pbe start' command.
 
     Args:
         args: The command-line arguments.

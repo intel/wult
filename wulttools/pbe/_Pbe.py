@@ -73,7 +73,7 @@ def _build_arguments_parser():
     text = "Scan for device id."
     descr = """Scan for compatible devices."""
     subpars = subparsers.add_parser("scan", help=text, description=descr)
-    subpars.set_defaults(func=_Common.scan_command)
+    subpars.set_defaults(func=_scan_command)
 
     ArgParse.add_ssh_options(subpars)
 
@@ -170,6 +170,11 @@ def _deploy_command(args):
     """Implements the 'deploy' command."""
 
     _ToolDeploy.deploy_command(args, _PBE_DEPLOY_INFO)
+
+def _scan_command(args):
+    """Implements the 'pbe scan' command."""
+
+    _Common.scan_command(args, _PBE_DEPLOY_INFO)
 
 def _start_command(args):
     """Implements the 'start' command."""

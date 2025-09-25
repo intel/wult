@@ -216,7 +216,7 @@ def _check_settings(args, pman, dev, cpuinfo):
 
 def start_command(args: argparse.Namespace, deploy_info: DeployInfoTypedDict):
     """
-    Implement the 'ndl start' command.
+    Implement 'ndl start' command.
 
     Args:
         args: The command-line arguments.

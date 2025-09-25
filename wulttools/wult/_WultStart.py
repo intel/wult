@@ -36,7 +36,7 @@ if typing.TYPE_CHECKING:
 
     class WultStartCmdlArgsTypedDict(StartCmdlArgsTypedDict, total=False):
         """
-        Typed dictionary for the "wult start" command-line arguments.
+        Typed dictionary for "wult start" command-line arguments.
 
         Attributes:
             (All attributes from 'StartCmdlArgsTypedDict')
@@ -134,7 +134,7 @@ def _check_cpu_vendor(args, cpuinfo, pman):
 
 def start_command(args: argparse.Namespace, deploy_info: DeployInfoTypedDict):
     """
-    Implement the 'wult start' command.
+    Implement 'wult start' command.
 
     Args:
         args: The command-line arguments.
