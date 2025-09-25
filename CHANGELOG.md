@@ -5,10 +5,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix 'wult scan' failure.
 ### Added
 ### Removed
 ### Changed
+
+## [1.12.52] - 2025-09-25
+### Fixed
+ - Fix 'wult scan' failure.
 
 ## [1.12.51] - 2025-09-22
 ### Fixed
