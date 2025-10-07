@@ -5,10 +5,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix wult/ndl failure when PCIe ASPM status cannot be checked.
 ### Added
 ### Removed
 ### Changed
+
+## [1.12.53] - 2025-10-07
+### Fixed
+ - Fix wult/ndl failure when PCIe ASPM status cannot be checked.
 
 ## [1.12.52] - 2025-09-25
 ### Fixed
