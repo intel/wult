@@ -698,9 +698,15 @@ def check_aspm_setting(pman, dev, devname):
         return
 
     with ASPM.ASPM(pman=pman) as aspm:
-        if aspm.is_l1_enabled(dev.info["devid"]):
-            _LOG.notice("PCI L1 ASPM is enabled for %s, and this typically increases the measured "
-                        "latency", devname)
+        try:
+            if aspm.is_l1_enabled(dev.info["devid"]):
+                _LOG.notice("PCI L1 ASPM is enabled for %s, and this typically increases the "
+                            "measured latency", devname)
+        except Error as err:
+            _LOG.notice("Cannot check PCI L1 ASPM settings for %s%s",
+                        devname, pman.hostmsg)
+            _LOG.debug("Failed to check PCI ASPM settings for %s%s:\n%s",
+                       devname, pman.hostmsg, err.indent(2))
 
 def configure_log_file(outdir: Path, toolname: str) -> Path:
     """
