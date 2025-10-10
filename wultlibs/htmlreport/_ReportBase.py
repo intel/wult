@@ -206,10 +206,14 @@ class ReportBase:
 
         # Convert 'self._hov_metrics' to contain definitions for each metric.
         hover_mds = []
+        hover_metrics_set = set()
         for hover_metric in self._hov_metrics:
             for res in self.rsts:
+                if hover_metric in hover_metrics_set:
+                    continue
                 if hover_metric in self._mdds[res.reportid]:
                     hover_mds.append(self._mdds[res.reportid][hover_metric])
+                    hover_metrics_set.add(hover_metric)
 
         silenttime_ldist = ("SilentTime", "LDist")
         skip_silenttime_ldist = all(metric in tab_metrics for metric in silenttime_ldist)
@@ -303,10 +307,11 @@ class ReportBase:
                        ", ".join(self._smry_metrics[res.reportid]))
             _LOG.debug("additional metrics: %s", ", ".join(self._more_metrics))
 
-            # Metrics in 'self._more_metrics' are not guaranteed to be present in all results, so
-            # filter the metrics for those present in 'res'.
+            # Metrics in 'self._more_metrics' and 'self._hov_metrics' are not guaranteed to be
+            # present in all results, so filter the metrics for those present in 'res'.
             more_metrics = {metric for metric in self._more_metrics if metric in res.metrics_set}
-            minclude = more_metrics.union(self._hov_metrics, self._smry_metrics[res.reportid])
+            hov_metrics = {metric for metric in self._hov_metrics if metric in res.metrics_set}
+            minclude = more_metrics.union(more_metrics, hov_metrics, self._smry_metrics[res.reportid])
 
             res.set_minclude(minclude)
             res.load_df()
@@ -378,10 +383,14 @@ class ReportBase:
 
         # Note, it is OK if a metric in 'self._hov_metrics' is not present one of the results - it
         # will be excluded from the hover text for that result.
+        metrics_set = set()
         for res in self.rsts:
             for metric in res.find_metrics(regexs, must_find_any=False):
+                if metric in metrics_set:
+                    continue
                 if metric in self._mdds[res.reportid]:
                     self._hov_metrics.append(metric)
+                    metrics_set.add(metric)
 
     def _drop_absent_metrics(self):
         """
