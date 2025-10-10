@@ -1,5 +1,5 @@
 Name:     wult
-Version:  1.12.53
+Version:  1.12.54
 Release:  %autorelease
 Summary:  A tool for measuring C-state latency in Linux
 
