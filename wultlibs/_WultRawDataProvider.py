@@ -22,7 +22,7 @@ class WultRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     driver.
     """
 
-    def _validate_datapoint(self, fields, vals):
+    def _validate_datapoint(self, fields, vals, raw_line):
         """
         This is a helper function for 'get_datapoints()' which checks that every raw datapoint
         from the trace buffer has the same fields in the same order.
@@ -38,7 +38,7 @@ class WultRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                         f"New datapoint fields count: {len(self._fields)}\n"
                         f"Fist datapoint fields:\n{old_fields}\n"
                         f"New datapoint fields:\n{new_fields}\n\n"
-                        f"New datapoint full ftrace line:\n{self._ftrace.raw_line}")
+                        f"New datapoint full ftrace line:\n{raw_line}")
 
     def get_datapoints(self):
         """
@@ -69,7 +69,7 @@ class WultRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
                 last_line = line.msg
 
                 if self._fields:
-                    self._validate_datapoint(fields, vals)
+                    self._validate_datapoint(fields, vals, line)
                 else:
                     self._fields = fields
 

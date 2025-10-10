@@ -118,7 +118,6 @@ class FTrace(ClassHelpers.SimpleCloseContext):
             for line in stdout:
                 if line.startswith("#"):
                     continue
-                self.raw_line = line.strip()
                 yield FTraceLine(line)
 
     def __init__(self, pman, cpu, timeout=30):
@@ -138,7 +137,6 @@ class FTrace(ClassHelpers.SimpleCloseContext):
         self._debugfs_mntpoint = None
         self._unmount_debugfs = None
         self._disable_tracing = None
-        self.raw_line = None
 
         self._debugfs_mntpoint, self._unmount_debugfs = FSHelpers.mount_debugfs(pman=self._pman)
         self._paths["trace"] = self._debugfs_mntpoint.joinpath("tracing/trace")
