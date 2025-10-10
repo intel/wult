@@ -11,6 +11,7 @@ This module provides API for managing the 'pbe' driver and reading raw PBE datap
 """
 
 from pepclibs.helperlibs import Logging
+from pepclibs.helperlibs.Exceptions import Error
 from wultlibs import _RawDataProvider
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
@@ -23,22 +24,34 @@ class PbeRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
     def set_ldist(self, ldist):
         """Change launch distance to 'ldist'."""
 
-        with self._pman.open(self._basedir / "ldist_nsec", "w") as fobj:
-            fobj.write(f"{ldist}")
+        try:
+            with self._pman.open(self._basedir / "ldist_nsec", "w") as fobj:
+                fobj.write(f"{ldist}")
+        except Exception as err:
+            errmsg = Error(str(err)).indent(2)
+            raise type(err)(f"Failed to set launch distance to value '{ldist}':\n{errmsg}") from err
 
     def start(self):
         """Start the measurements."""
 
-        with self._pman.open(self._enable_path, "w") as fobj:
-            fobj.write("1")
+        try:
+            with self._pman.open(self._enable_path, "w") as fobj:
+                fobj.write("1")
+        except Error as err:
+            errmsg = err.indent(2)
+            raise type(err)(f"Failed to start the measurements:\n{errmsg}") from err
 
         self.started = True
 
     def stop(self):
         """Stop the measurements."""
 
-        with self._pman.open(self._enable_path, "w") as fobj:
-            fobj.write("0")
+        try:
+            with self._pman.open(self._enable_path, "w") as fobj:
+                fobj.write("0")
+        except Error as err:
+            errmsg = err.indent(2)
+            raise type(err)(f"Failed to stop the measurements:\n{errmsg}") from err
 
         self.started = False
 
