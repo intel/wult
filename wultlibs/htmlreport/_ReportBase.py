@@ -378,10 +378,9 @@ class ReportBase:
 
         # Note, it is OK if a metric in 'self._hov_metrics' is not present one of the results - it
         # will be excluded from the hover text for that result.
-        metrics_set = set()
         for res in self.rsts:
             for metric in res.find_metrics(regexs, must_find_any=False):
-                if metric not in metrics_set and metric in self._mdds[res.reportid]:
+                if metric in self._mdds[res.reportid]:
                     self._hov_metrics.append(metric)
 
     def _drop_absent_metrics(self):
