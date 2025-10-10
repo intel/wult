@@ -317,13 +317,16 @@ class _StatsCollectCmdBuilder(_CmdBuilderBase):
 class _PbeCmdBuilder(_CmdBuilderBase):
     """A Helper class for creating 'pbe' commands."""
 
-    def _create_command(self, reportid=None):
+    def _create_command(self, cpu, reportid=None):
         """Create and return 'pbe' command."""
 
         cmd = f"{self.toolpath} "
         if Logging.getLogger(Logging.MAIN_LOGGER_NAME).colored:
             cmd += " --force-color"
         cmd += " start"
+
+        if cpu is not None:
+            cmd += f" --lead-cpu {cpu}"
 
         if self._stats is not None:
             cmd += f" --stats=\"{self._stats}\""
@@ -357,4 +360,4 @@ class _PbeCmdBuilder(_CmdBuilderBase):
           * kwargs - additional arguments necessary to format the command.
         """
 
-        return self._create_command(reportid=reportid)
+        return self._create_command(kwargs["cpu"], reportid=reportid)
