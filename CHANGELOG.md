@@ -5,11 +5,14 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix duplicate entries in hover text.
- - Fix exercise-sut failure when the SUT does not have pepc installed.
 ### Added
 ### Removed
 ### Changed
+
+## [1.12.55] - 2025-10-22
+### Fixed
+ - Fix duplicate entries in hover text.
+ - Fix exercise-sut failure when the SUT does not have pepc installed.
 
 ## [1.12.54] - 2025-10-10
 ### Fixed

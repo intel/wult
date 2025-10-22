@@ -1,3 +1,10 @@
+wult (1.12.55) unstable; urgency=low
+
+  * Fix duplicate entries in hover text.
+  * Fix exercise-sut failure when the SUT does not have pepc installed.
+
+ -- Artem Bityutskiy <artem.bityutskiy@intel.com>  Wed, 22 Oct 2025 00:00:00 +0200
+
 wult (1.12.54) unstable; urgency=low
 
   * Fix C-state residency infromation in wult scatter plot hover text.
