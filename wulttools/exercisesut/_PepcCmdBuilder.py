@@ -12,7 +12,7 @@ A helper module for the 'exercise-sut' -tool to create 'pepc' tool commands.
 """
 
 import itertools
-from pepclibs.helperlibs import Logging, ClassHelpers, Trivial
+from pepclibs.helperlibs import Logging, ClassHelpers, Trivial, LocalProcessManager
 from pepclibs.helperlibs.Exceptions import Error
 from pepclibs import CStates, PStates
 from wulttools.exercisesut import _Common
@@ -158,6 +158,19 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         return csnames
 
+    def _run_pepc_cmd(self, cmd):
+        """
+        Run a 'pepc' command 'cmd' on the local system and return its output.
+        """
+
+        if self._pman.hostname != "localhost":
+            cmd += f" -H {self._pman.hostname}"
+
+        with LocalProcessManager.LocalProcessManager() as lpman:
+            stdout, _ = lpman.run_verify(cmd)
+
+        return stdout
+
     def _is_prop_supported(self, pname, pinfo=None):
         """Return 'True' if property 'pname' is supported, returns 'False' otherwise."""
 
@@ -171,7 +184,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         if pname == "uncore_freqs":
             cmd = "pepc uncore info --min-freq --max-freq"
-            stdout, _ = self._pman.run_verify(cmd)
+            stdout = self._run_pepc_cmd(cmd)
 
             uncore_supported = True
             for line in stdout.split("\n"):
@@ -183,7 +196,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
 
         if pname == "pcstates":
             cmd = "pepc cstates info --pkg-cstate-limit"
-            stdout, _ = self._pman.run_verify(cmd)
+            stdout = self._run_pepc_cmd(cmd)
 
             if "not supported" in stdout:
                 _LOG.debug(stdout.strip())
@@ -326,7 +339,7 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         """Uninitialize the class object."""
 
         ClassHelpers.close(self, close_attrs={"_cpuidle", "_csobj", "_psobj"},
-                           unref_attrs={"_cpuinfo", "_cpuidle", })
+                           unref_attrs={"_cpuinfo", "_cpuidle", "_pman"})
 
 class PepcCmdBuilder(_PropIteratorBase):
     """A Helper class for creating 'pepc' commands."""
