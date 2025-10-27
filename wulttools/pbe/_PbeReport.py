@@ -24,4 +24,5 @@ def report_command(args):
     logpath = Path(logpath).relative_to(args.outdir)
 
     rep = PbeReport.PbeReport(rsts, args.outdir, report_descr=args.report_descr, logpath=logpath)
+    rep.copy_raw = args.copy_raw
     rep.generate()

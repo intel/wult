@@ -145,6 +145,7 @@ def _build_arguments_parser():
                          help=_Common.get_report_outdir_descr(TOOLNAME))
     subpars.add_argument("--reportids", help=_Common.REPORTIDS_DESCR)
     subpars.add_argument("--report-descr", help=_Common.REPORT_DESCR)
+    subpars.add_argument("--copy-raw", action="store_true", help=_Common.COPY_RAW_DESCR)
 
     text = f"""One or multiple {TOOLNAME} test result paths."""
     subpars.add_argument("respaths", nargs="+", type=Path, help=text)
