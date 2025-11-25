@@ -1,5 +1,53 @@
-[tool.ruff.lint]
+[project]
+name = "wult"
+version = "1.12.56"
+description = "Tools for measuring C-state latency and power break even."
+authors = [
+    { name = "Artem Bityutskiy", email = "dedekind@gmail.com" }
+]
+requires-python = ">=3.9"
+license = "BSD-3-Clause"
+license-files = ["LICENSE.md"]
+readme = "README.md"
+keywords = ["linux", "latency", "C-state", "power"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: System :: Hardware",
+    "Topic :: System :: Operating System Kernels :: Linux",
+    "Programming Language :: Python :: 3 :: Only",
+]
+dependencies = [
+    "argcomplete",
+    "colorama",
+    "pyyaml",
+    "numpy",
+    "pandas>=2.1.0",
+    "pepc>=1.6.10",
+    "stats-collect>=1.0.62",
+]
 
+[tool.setuptools.packages.find]
+exclude = ["tests*", "misc*"]
+
+[tool.setuptools.package-data]
+wultdata = ["**"]
+
+[project.scripts]
+wult = "wulttools.wult._Wult:main"
+ndl = "wulttools.ndl._Ndl:main"
+pbe = "wulttools.pbe._Pbe:main"
+exercise-sut = "wulttools.exercisesut._ExerciseSut:main"
+
+[project.urls]
+Documentation = "https://github.com/intel/wult/blob/main/README.md"
+Repository = "https://github.com/intel/wult"
+Changelog = "https://github.com/intel/wult/blob/main/CHANGELOG.md"
+
+[tool.uv]
+package = false
+
+[tool.ruff.lint]
 # F401 = unused-import, disable because pylint checks for this too, and it is
 # more convenient to add exceptions for pylint than for ruff.
 ignore = ["F401"]
