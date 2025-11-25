@@ -15,6 +15,7 @@ from __future__ import annotations # Remove when switching to Python 3.10+.
 
 import sys
 import typing
+import argparse
 from pathlib import Path
 
 try:
@@ -24,12 +25,13 @@ except ImportError:
     # We can live without argcomplete, we only lose tab completions.
     _ARGCOMPLETE_AVAILABLE = False
 
-from pepclibs.helperlibs import Logging, ArgParse
+from pepclibs.helperlibs import Logging, ArgParse, ProjectFiles
 from pepclibs.helperlibs.Exceptions import Error
 from wulttools import _Common, _ToolDeploy
 from wulttools.wult import _WultCommon, ToolInfo
 
 if typing.TYPE_CHECKING:
+    from typing import Any, Sequence
     from statscollectlibs.deploy.DeployBase import DeployInfoTypedDict
 
 VERSION = ToolInfo.VERSION
@@ -48,6 +50,22 @@ _WULT_DEPLOY_INFO: DeployInfoTypedDict = {
 
 _LOG = Logging.getLogger(Logging.MAIN_LOGGER_NAME).configure(prefix=ToolInfo.TOOLNAME)
 
+class _PrintManPathAction(argparse.Action):
+    """
+    Custom argparse action class to print the path to the manual pages directory and exit.
+    """
+
+    def __call__(self,
+                 parser: argparse.ArgumentParser,
+                 namespace: argparse.Namespace,
+                 values: str | Sequence[Any] | None,
+                 option_string: str | None = None):
+        """Print the path to the manual pages directory and exit."""
+
+        manpath = ProjectFiles.find_project_data(ToolInfo.TOOLNAME, "man")
+        _LOG.info("%s", manpath)
+        parser.exit()
+
 def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
@@ -62,6 +80,10 @@ def _build_arguments_parser():
     subparsers = parser.add_subparsers(title="commands", dest="a command")
     subparsers.required = True
 
+    text = f"""Print path to {ToolInfo.TOOLNAME} manual pages directory and exit. This path can be
+               added to the 'MANPATH' environment variable to make the manual pages available to the
+              'man' tool."""
+    parser.add_argument("--print-man-path", action=_PrintManPathAction, nargs=0, help=text)
     #
     # Create parsers for the "deploy" command.
     #
