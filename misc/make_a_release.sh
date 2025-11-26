@@ -17,39 +17,41 @@ VERSION_REGEX='\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)'
 # File paths containing the version number that we'll have to adjust.
 WULT_TOOLINFO="$BASEDIR/wulttools/wult/ToolInfo.py"
 WULT_FILE="$BASEDIR/wulttools/wult/_Wult.py"
+PBE_FILE="$BASEDIR/wulttools/wult/_Pbe.py"
 NDL_FILE="$BASEDIR/wulttools/ndl/_Ndl.py"
 EXERCISESUT_FILE="$BASEDIR/wulttools/exercisesut/_ExerciseSut.py"
 SPEC_FILE="$BASEDIR/rpm/wult.spec"
+
+# The python packaging file.
+PYPROJECT_TOML="$BASEDIR/pyproject.toml"
 
 # The CHANGELOG.md file path.
 CHANGELOG_FILE="$BASEDIR/CHANGELOG.md"
 
 # Documentation directories and file paths.
-MAN_DIR="$BASEDIR/docs/man1/"
-WULT_RST_FILES="$BASEDIR/docs/wult-calc.rst
-                $BASEDIR/docs/wult-deploy.rst
-                $BASEDIR/docs/wult-filter.rst
-                $BASEDIR/docs/wult-scan.rst
-                $BASEDIR/docs/wult-start.rst
-                $BASEDIR/docs/ndl-calc.rst
-                $BASEDIR/docs/ndl-deploy.rst
-                $BASEDIR/docs/ndl-filter.rst
-                $BASEDIR/docs/ndl-report.rst
-                $BASEDIR/docs/ndl-scan.rst
-                $BASEDIR/docs/ndl-start.rst
-                $BASEDIR/docs/exercise-sut-start.rst
-                $BASEDIR/docs/exercise-sut-report.rst
-                $BASEDIR/docs/pbe-deploy.rst
-                $BASEDIR/docs/pbe-report.rst
-                $BASEDIR/docs/pbe-scan.rst
-                $BASEDIR/docs/pbe-start.rst"
+MAN_DIR="$BASEDIR/wultdata/man/man1/"
+RST_FILES="$BASEDIR/docs/wult-calc.rst
+           $BASEDIR/docs/wult-deploy.rst
+           $BASEDIR/docs/wult-filter.rst
+           $BASEDIR/docs/wult-scan.rst
+           $BASEDIR/docs/wult-start.rst
+           $BASEDIR/docs/ndl-calc.rst
+           $BASEDIR/docs/ndl-deploy.rst
+           $BASEDIR/docs/ndl-filter.rst
+           $BASEDIR/docs/ndl-report.rst
+           $BASEDIR/docs/ndl-scan.rst
+           $BASEDIR/docs/ndl-start.rst
+           $BASEDIR/docs/exercise-sut-start.rst
+           $BASEDIR/docs/exercise-sut-report.rst
+           $BASEDIR/docs/pbe-deploy.rst
+           $BASEDIR/docs/pbe-report.rst
+           $BASEDIR/docs/pbe-scan.rst
+           $BASEDIR/docs/pbe-start.rst"
 
-# Path to 'pepc' project sources.
-PEPC_SRC_PATH="$BASEDIR/../pepc"
 # Path to the script converting CHANGELOG.md into debian changelog.
-CHANGELOG_MD_TO_DEBIAN="$PEPC_SRC_PATH/misc/changelog_md_to_debian"
+CHANGELOG_MD_TO_DEBIAN="$BASEDIR/misc/changelog_md_to_debian"
 # Path to the script that prepares CHANGELOG.md for the release.
-PREPARE_CHENGELOG_MD="$PEPC_SRC_PATH/misc/prepare_changelog_md"
+PREPARE_CHENGELOG_MD="$BASEDIR/misc/prepare_changelog_md"
 
 fatal() {
         printf "$PROG: error: %s\n" "$1" >&2
@@ -111,7 +113,7 @@ if [ $# -eq 1 ]; then
     new_ver="$1"; shift
     # Validate the new version.
     printf "%s" "$new_ver" | grep -q -x "$VERSION_REGEX" ||
-           fatal "please, provide new version in X.Y.Z format"
+           fatal "Provide new version in X.Y.Z format"
 elif [ $# -eq 0 ]; then
     # The new version was not provided, increment the current version umber.
     sed_regex="^VERSION = \"$VERSION_REGEX\"$"
@@ -127,7 +129,7 @@ echo "New wult version: $new_ver"
 
 # Validate the new version.
 printf "%s" "$new_ver" | grep -q -x "$VERSION_REGEX" ||
-         fatal "please, provide new version in X.Y.Z format"
+         fatal "Provide new version in X.Y.Z format"
 
 pepc_ver="$(sed -n -e "s/.*pepc\s*>=\s*\($VERSION_REGEX\).*/\1/p" "$BASEDIR/setup.py")"
 stcoll_ver="$(sed -n -e "s/.*stats-collect\s*>=\s*\($VERSION_REGEX\).*/\1/p" "$BASEDIR/setup.py")"
@@ -137,14 +139,14 @@ echo "Dependency: stats-collect version >= $stcoll_ver"
 
 # Validate 'pepc' and 'stats-collect' versions.
 printf "%s" "$pepc_ver" | grep -q -x "$VERSION_REGEX" ||
-         fatal "bad 'pepc' version '$pepc_ver' in '$BASEDIR/setup.py'"
+         fatal "Bad 'pepc' version '$pepc_ver' in '$BASEDIR/setup.py'"
 printf "%s" "$stcoll_ver" | grep -q -x "$VERSION_REGEX" ||
-         fatal "bad 'stats-collect' version '$stcoll_ver' in '$BASEDIR/setup.py'"
+         fatal "Bad 'stats-collect' version '$stcoll_ver' in '$BASEDIR/setup.py'"
 
 # Make sure that the current branch is 'main' or 'release'.
 current_branch="$(git -C "$BASEDIR" branch | sed -n -e '/^*/ s/^* //p')"
 if [ "$current_branch" != "main" -a "$current_branch" != "release" ]; then
-	fatal "current branch is '$current_branch' but must be 'main' or 'release'"
+	fatal "Current branch is '$current_branch' but must be 'main' or 'release'"
 fi
 
 # Remind the maintainer about various important things.
@@ -170,7 +172,7 @@ sed -i -e "s/^VERSION = \"$VERSION_REGEX\"$/VERSION = \"$new_ver\"/" "$WULT_TOOL
 sed -i -e "s/^Version:\(\s\+\)$VERSION_REGEX$/Version:\1$new_ver/" "$SPEC_FILE"
 
 # Update the man pages.
-for file in $WULT_RST_FILES; do
+for file in $RST_FILES; do
     manfile="${MAN_DIR}/$(basename "$file" ".rst").1"
     pandoc --toc -f rst -s "$file" -t man -o "$manfile"
     git add "$manfile"
