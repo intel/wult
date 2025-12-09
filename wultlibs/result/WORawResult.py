@@ -111,7 +111,7 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
         try:
             # The 'eval()' expressions use the datapoint argument 'dp'.
             passed = eval(dpfilter) # pylint: disable=eval-used
-        except SyntaxError as err:
+        except Exception as err:
             raise Error(f"failed to evaluate expression '{dpfilter}'. Make sure you use correct "
                         f"metric names, which are also case-sensitive. The filter was failing on "
                         f"datapoint:\n{Human.dict2str(dp)}") from err
