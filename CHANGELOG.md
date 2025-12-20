@@ -9,6 +9,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 ### Changed
 
+## [1.12.57] - 2025-12-20
+### Changed
+ - Modernize packaging: get rid of setup.py.
+
 ## [1.12.56] - 2025-10-26
 ### Fixed
  - Fix filters failures.

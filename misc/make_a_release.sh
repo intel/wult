@@ -49,9 +49,9 @@ RST_FILES="$BASEDIR/docs/wult-calc.rst
            $BASEDIR/docs/pbe-start.rst"
 
 # Path to the script converting CHANGELOG.md into debian changelog.
-CHANGELOG_MD_TO_DEBIAN="$BASEDIR/misc/changelog_md_to_debian"
+CHANGELOG_MD_TO_DEBIAN="$BASEDIR/../pepc/misc/changelog_md_to_debian"
 # Path to the script that prepares CHANGELOG.md for the release.
-PREPARE_CHENGELOG_MD="$BASEDIR/misc/prepare_changelog_md"
+PREPARE_CHENGELOG_MD="$BASEDIR/../pepc/misc/prepare_changelog_md"
 
 fatal() {
         printf "$PROG: error: %s\n" "$1" >&2
@@ -131,17 +131,17 @@ echo "New wult version: $new_ver"
 printf "%s" "$new_ver" | grep -q -x "$VERSION_REGEX" ||
          fatal "Provide new version in X.Y.Z format"
 
-pepc_ver="$(sed -n -e "s/.*pepc\s*>=\s*\($VERSION_REGEX\).*/\1/p" "$BASEDIR/setup.py")"
-stcoll_ver="$(sed -n -e "s/.*stats-collect\s*>=\s*\($VERSION_REGEX\).*/\1/p" "$BASEDIR/setup.py")"
+pepc_ver="$(sed -n -e "s/.*pepc\s*>=\s*\($VERSION_REGEX\).*/\1/p" "$BASEDIR/pyproject.toml")"
+stcoll_ver="$(sed -n -e "s/.*stats-collect\s*>=\s*\($VERSION_REGEX\).*/\1/p" "$BASEDIR/pyproject.toml")"
 
 echo "Dependency: pepc version >= $pepc_ver"
 echo "Dependency: stats-collect version >= $stcoll_ver"
 
 # Validate 'pepc' and 'stats-collect' versions.
 printf "%s" "$pepc_ver" | grep -q -x "$VERSION_REGEX" ||
-         fatal "Bad 'pepc' version '$pepc_ver' in '$BASEDIR/setup.py'"
+         fatal "Bad 'pepc' version '$pepc_ver' in '$BASEDIR/pyproject.toml'"
 printf "%s" "$stcoll_ver" | grep -q -x "$VERSION_REGEX" ||
-         fatal "Bad 'stats-collect' version '$stcoll_ver' in '$BASEDIR/setup.py'"
+         fatal "Bad 'stats-collect' version '$stcoll_ver' in '$BASEDIR/pyproject.toml'"
 
 # Make sure that the current branch is 'main' or 'release'.
 current_branch="$(git -C "$BASEDIR" branch | sed -n -e '/^*/ s/^* //p')"
