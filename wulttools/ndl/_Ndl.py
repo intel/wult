@@ -30,6 +30,7 @@ from wultlibs.htmlreport import NdlReportParams
 
 if typing.TYPE_CHECKING:
     from typing import Any, Sequence
+    from pepclibs.helperlibs.ProcessManager import ProcessManagerType
     from statscollectlibs.deploy.DeployBase import DeployInfoTypedDict
 
 VERSION = ToolInfo.VERSION
@@ -78,11 +79,6 @@ class _PrintManPathAction(argparse.Action):
 def _build_arguments_parser():
     """Build and return the arguments parser object."""
 
-    if _ARGCOMPLETE_AVAILABLE:
-        completer = argcomplete.completers.DirectoriesCompleter()
-    else:
-        completer = None
-
     text = "ndl - a tool for measuring memory access latency observed by a network card."
     parser = ArgParse.ArgsParser(description=text, prog=TOOLNAME, ver=VERSION)
 
@@ -127,8 +123,9 @@ def _build_arguments_parser():
     subpars.add_argument("--time-limit", dest="tlimit", metavar="LIMIT",
                          help=f"{_Common.TIME_LIMIT_DESCR} {man_msg}")
 
-    subpars.add_argument("-o", "--outdir", type=Path,
-                          help=_Common.START_OUTDIR_DESCR).completer = completer
+    arg = subpars.add_argument("-o", "--outdir", type=Path, help=_Common.START_OUTDIR_DESCR)
+    if _ARGCOMPLETE_AVAILABLE:
+        setattr(arg, "completer", argcomplete.completers.DirectoriesCompleter())
 
     subpars.add_argument("--reportid", help=_Common.START_REPORTID_DESCR)
 
@@ -292,17 +289,29 @@ def _report_command(args):
 
     _NdlReport.report_command(args)
 
+def do_main(pman: ProcessManagerType | None = None):
+    """
+    Implement the tool.
+
+    Args:
+        pman: Optional process manager object. If specified, the tool will use this process
+              manager instead of creating its own. Used for testing purposes.
+    """
+
+    assert pman is None
+    args = parse_arguments()
+
+    if not getattr(args, "func", None):
+        _LOG.error(f"Please, run '{TOOLNAME} -h' for help")
+        return -1
+
+    args.func(args)
+
 def main():
     """Script entry point."""
 
     try:
-        args = parse_arguments()
-
-        if not getattr(args, "func", None):
-            _LOG.error("Please, run '%s -h' for help", TOOLNAME)
-            return -1
-
-        args.func(args)
+        do_main()
     except KeyboardInterrupt:
         _LOG.info("\nInterrupted, exiting")
         return -1
