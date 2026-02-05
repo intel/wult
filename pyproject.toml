@@ -1,6 +1,6 @@
 [project]
 name = "wult"
-version = "1.12.56"
+version = "1.12.59"
 description = "Tools for measuring C-state latency and power break even."
 authors = [
     { name = "Artem Bityutskiy", email = "dedekind@gmail.com" }

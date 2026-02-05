@@ -16,6 +16,8 @@ VERSION_REGEX='\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)'
 
 # File paths containing the version number that we'll have to adjust.
 WULT_TOOLINFO="$BASEDIR/wulttools/wult/ToolInfo.py"
+NDL_TOOLINFO="$BASEDIR/wulttools/ndl/ToolInfo.py"
+PBE_TOOLINFO="$BASEDIR/wulttools/pbe/ToolInfo.py"
 WULT_FILE="$BASEDIR/wulttools/wult/_Wult.py"
 PBE_FILE="$BASEDIR/wulttools/wult/_Pbe.py"
 NDL_FILE="$BASEDIR/wulttools/ndl/_Ndl.py"
@@ -60,7 +62,7 @@ fatal() {
 
 usage() {
         cat <<EOF
-Usage: ${0##*/} [optins] <new_ver>
+Usage: ${0##*/} <new_ver>
 
 <new_ver> - new tool version to make in X.Y.Z format. The X.Y.(Z+1) version
             will be used by default.
@@ -153,22 +155,20 @@ fi
 ask_question "Did you run tests"
 ask_question "Did you update 'CHANGELOG.md'"
 
-# Update 'pepc' version.
-sed -i -e "s/\(pepc\s*>=\s*\)$VERSION_REGEX/\1$pepc_ver/g" "$BASEDIR/rpm/wult.spec"
-sed -i -e "s/^\(\s\+pepc\s*(>=\s*\)$VERSION_REGEX)/\1$pepc_ver)/g" "$BASEDIR/debian/control"
-# Update 'stats-collect' version.
-sed -i -e "s/\(stats-collect\s*>=\s*\)$VERSION_REGEX/\1$stcoll_ver/g" "$BASEDIR/rpm/wult.spec"
-sed -i -e "s/^\(\s\+stats-collect\s*(>=\s*\)$VERSION_REGEX)/\1$stcoll_ver)/g" "$BASEDIR/debian/control"
-
 # Update CHANGELOG.md.
 "$PREPARE_CHENGELOG_MD" "$new_ver" "$CHANGELOG_FILE"
-# Update debian changelog.
-"$CHANGELOG_MD_TO_DEBIAN" -o "$BASEDIR/debian/changelog" -p "wult" -n "Artem Bityutskiy" \
-                          -e "artem.bityutskiy@intel.com" "$CHANGELOG_FILE"
 
-# Change the tool version.
+# Update dependency versions.
+sed -i -e "s/\(pepc\s*>=\s*\)$VERSION_REGEX/\1$pepc_ver/g" "$BASEDIR/rpm/wult.spec"
+sed -i -e "s/\(stats-collect\s*>=\s*\)$VERSION_REGEX/\1$stcoll_ver/g" "$BASEDIR/rpm/wult.spec"
+
+# Update the project version.
+sed -i -e "s/^version = \"$VERSION_REGEX\"$/version = \"$new_ver\"/" "$PYPROJECT_TOML"
+# Update the tools version.
 sed -i -e "s/^VERSION = \"$VERSION_REGEX\"$/VERSION = \"$new_ver\"/" "$WULT_TOOLINFO"
-# Change RPM package version.
+sed -i -e "s/^VERSION = \"$VERSION_REGEX\"$/VERSION = \"$new_ver\"/" "$NDL_TOOLINFO"
+sed -i -e "s/^VERSION = \"$VERSION_REGEX\"$/VERSION = \"$new_ver\"/" "$PBE_TOOLINFO"
+# Update RPM package version.
 sed -i -e "s/^Version:\(\s\+\)$VERSION_REGEX$/Version:\1$new_ver/" "$SPEC_FILE"
 
 # Update the man pages.
