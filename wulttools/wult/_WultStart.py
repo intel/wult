@@ -18,7 +18,7 @@ import contextlib
 from pepclibs.helperlibs import Logging, Trivial, ProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs.msr import PowerCtl
-from pepclibs import CPUIdle, CPUInfo
+from pepclibs import CPUIdle, CPUInfo, CPUModels
 from statscollectlibs.collector import StatsCollectBuilder
 from wultlibs.deploy import _Deploy
 from wultlibs.helperlibs import Human
@@ -117,13 +117,15 @@ def _check_cpu_vendor(args, cpuinfo, pman):
     Check if the CPU vendor is compatible with the requested measurement method.
     """
 
-    vendor = cpuinfo.info["vendor"]
-    if vendor == "GenuineIntel":
+    proc_cpuinfo = cpuinfo.get_proc_cpuinfo()
+    vendor = proc_cpuinfo["vendor"]
+
+    if vendor == CPUModels.VENDOR_INTEL:
         # Every method supports at least some Intel CPUs.
         return
 
-    if vendor != "AuthenticAMD":
-        raise ErrorNotSupported(f"unsupported CPU vendor '{vendor}'{pman.hostmsg}.\nOnly Intel and "
+    if vendor != CPUModels.VENDOR_AMD:
+        raise ErrorNotSupported(f"Unsupported CPU vendor '{vendor}'{pman.hostmsg}.\nOnly Intel and "
                                 f"AMD CPUs are currently supported.")
 
     # In case of AMD CPU the TDT-based methods are not currently supported, other methods are

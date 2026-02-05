@@ -23,7 +23,7 @@ dependencies = [
     "pyyaml",
     "numpy",
     "pandas>=2.1.0",
-    "pepc>=1.6.13",
+    "pepc>=1.6.23",
     "stats-collect>=1.0.66",
 ]
 
