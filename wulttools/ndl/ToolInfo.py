@@ -11,5 +11,5 @@ This module provides constants for information about the 'ndl' tool, such as ver
 and tool name.
 """
 
-VERSION = "1.4.0"
+VERSION = "1.12.60"
 TOOLNAME = "ndl"
