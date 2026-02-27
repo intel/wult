@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2019-2021 Intel Corporation
+ * Copyright (C) 2019-2026 Intel Corporation
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
 
@@ -31,14 +31,11 @@
 
 static int set_enabled(bool enabled)
 {
-	int err = 0;
-
 	if (enabled)
-		err = wult_enable();
-	else
-		wult_disable();
+		return wult_enable();
 
-	return err;
+	wult_disable();
+	return 0;
 }
 
 static ssize_t dfs_write_bool_file(struct file *file,
@@ -162,13 +159,12 @@ static ssize_t dfs_read_rw_u64_file(struct file *file, char __user *user_buf,
 		return err;
 
 	mutex_lock(&wi->enable_mutex);
-	if (!strcmp(dent->d_name.name, LDIST_FROM_FNAME)) {
+	if (!strcmp(dent->d_name.name, LDIST_FROM_FNAME))
 		val = wi->ldist_from;
-	} else if (!strcmp(dent->d_name.name, LDIST_TO_FNAME)) {
+	else if (!strcmp(dent->d_name.name, LDIST_TO_FNAME))
 		val = wi->ldist_to;
-	} else {
+	else
 		err = -EINVAL;
-	}
 	mutex_unlock(&wi->enable_mutex);
 
 	if (err) {

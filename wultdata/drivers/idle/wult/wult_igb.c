@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2019-2021 Intel Corporation
+ * Copyright (C) 2019-2026 Intel Corporation
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
 
@@ -194,7 +194,6 @@ static int arm_irq(struct wult_device_info *wdi, u64 *ldist)
 
 static bool event_has_happened(struct wult_device_info *wdi)
 {
-
 	struct network_adapter *nic = wdi_to_nic(wdi);
 
 	return nic->irq_pending;
@@ -264,7 +263,7 @@ static int nic_reset(const struct network_adapter *nic)
 	 */
 	usleep_range(3000, 5000);
 
-	/* Disable interrupts again as the datasheed suggests. */
+	/* Disable interrupts again as the datasheet suggests. */
 	mask_interrupts(nic);
 
 	/* Wait for the NIC to be done with reading its flash memory. */
@@ -311,7 +310,7 @@ static void hw_init(struct network_adapter *nic)
 	read32(nic, I210_EICR);
 	read32(nic, I210_TSICR);
 
-	/* Enable the interrupts that we are giong to use. */
+	/* Enable the interrupts that we are going to use. */
 	write32(nic, I210_Ixx_TIME_SYNC, I210_IMS);
 	write32(nic, I210_TSIxx_TT0, I210_TSIM);
 	write32(nic, I210_EIxx_OTHER, I210_EIMS);

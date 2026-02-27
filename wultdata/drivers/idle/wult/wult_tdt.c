@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2019-2021 Intel Corporation
+ * Copyright (C) 2019-2026 Intel Corporation
  * Authors: Antti Laakso <antti.laakso@intel.com>
  *          Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  *
@@ -156,16 +156,16 @@ static int enable(struct wult_device_info *wdi, bool enable)
 		err = tracepoint_probe_register(wt->msr_tp,
 				(void *)write_msr_hook, wt);
 		if (err) {
-			wult_err("failed to register the '%s' tracepoint probe,"
-				 " error %d", MSR_TRACEPOINT_NAME, err);
+			wult_err("failed to register the '%s' tracepoint probe, error %d",
+				 MSR_TRACEPOINT_NAME, err);
 			return err;
 		}
 
 		err = tracepoint_probe_register(wt->timer_tp,
 				(void *)local_timer_entry_hook, wt);
 		if (err) {
-			wult_err("failed to register the '%s' tracepoint probe,"
-				 " error %d", TIMER_TRACEPOINT_NAME, err);
+			wult_err("failed to register the '%s' tracepoint probe, error %d",
+				 TIMER_TRACEPOINT_NAME, err);
 			return err;
 		}
 	} else {
@@ -182,7 +182,7 @@ static int init_device(struct wult_device_info *wdi, int cpu)
 {
 	struct wult_tdt *wt = wdi_to_wt(wdi);
 
-	/* TODO: ensure that hrtimers are backed by the TSC dealine timer. */
+	/* TODO: ensure that hrtimers are backed by the TSC deadline timer. */
 
 	wt->msr_tp = wult_tracer_find_tracepoint(MSR_TRACEPOINT_NAME);
 	if (!wt->msr_tp)

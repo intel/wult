@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2019-2021 Intel Corporation
+ * Copyright (C) 2019-2026 Intel Corporation
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
 
@@ -15,7 +15,11 @@
 struct wult_info;
 
 /*
- * Wult tracer information.
+ * Wult tracer information. Abbreviations:
+ *  - bi: before idle
+ *  - ai: after idle
+ *  - intr: interrupt
+ *  - ldist: launch distance
  */
 struct wult_tracer_info {
 	/* C-state information. */
@@ -33,7 +37,7 @@ struct wult_tracer_info {
 	u64 tintr;
 	/* Interrupt time adjustment in nanoseconds. */
 	u64 tintr_adj;
-	/* Launch distance. */
+	/* Time from arming the event until it fires. */
 	u64 ldist;
 	/* The requested C-state index. */
 	int req_cstate;
@@ -41,13 +45,13 @@ struct wult_tracer_info {
 	u32 smi_bi, nmi_bi;
 	/* SMI and NMI counters collected in the interrupt handler. */
 	u32 smi_intr, nmi_intr;
-	/* Monotonic time at the beginning and the end of 'after_idle(). */
+	/* Monotonic time at the beginning and the end of 'after_idle()'. */
 	u64 ai_ts1, ai_ts2;
 	/* Monotonic time at the beginning and at the end of IRQ handler. */
 	u64 intr_ts1, intr_ts2;
-	/* APERF value at the time before-idle and in-interrupt. */
+	/* APERF value at the time after idle and in-interrupt. */
 	u64 ai_aperf, intr_aperf;
-	/* MPERF value at the time before-idle and in-interrupt. */
+	/* MPERF value at the time after idle and in-interrupt. */
 	u64 ai_mperf, intr_mperf;
 	/* 'true' if an event has been armed, but did not happen yet. */
 	bool armed;
@@ -67,7 +71,7 @@ void wult_tracer_exit(struct wult_info *wi);
 int wult_tracer_enable(struct wult_info *wi);
 void wult_tracer_disable(struct wult_info *wi);
 
-struct tracepoint* wult_tracer_find_tracepoint(const char *tp_name);
+struct tracepoint *wult_tracer_find_tracepoint(const char *tp_name);
 int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist);
 int wult_tracer_send_data(struct wult_info *wi);
 

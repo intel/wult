@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2019-2021 Intel Corporation
+ * Copyright (C) 2019-2026 Intel Corporation
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
 
@@ -62,7 +62,7 @@ struct wult_device_ops {
 	u64 (*get_time_before_idle)(struct wult_device_info *wdi, u64 *adj);
 	/* Read time after idle. */
 	u64 (*get_time_after_idle)(struct wult_device_info *wdi, u64 *adj);
-	/* Read intr time. */
+	/* Read interrupt time. */
 	u64 (*get_intr_time)(struct wult_device_info *wdi, u64 *adj);
 	/* Arm a delayed event 'ldist' nanoseconds away. */
 	int (*arm)(struct wult_device_info *wdi, u64 *ldist);
@@ -90,7 +90,7 @@ struct wult_device_info {
 	 * nanoseconds.
 	 */
 	u64 ldist_min, ldist_max;
-	/* The launch distance resolution, nanoseconds. */
+	/* Launch distance granularity in nanoseconds. */
 	u32 ldist_gran;
 	/* The delayed event device driver operations. */
 	const struct wult_device_ops *ops;
@@ -103,10 +103,7 @@ struct wult_device_info {
 struct dentry;
 struct task_struct;
 
-/*
- * This data structure represents this driver and the wake latency functionality
- * it provides.
- */
+/* Wult driver information and state. */
 struct wult_info {
 	/* Wult delayed event device driver information. */
 	struct wult_device_info *wdi;

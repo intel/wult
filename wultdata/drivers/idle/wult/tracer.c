@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2019-2021 Intel Corporation
+ * Copyright (C) 2019-2026 Intel Corporation
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
 
@@ -66,7 +66,7 @@ static inline unsigned int get_smi_count(void)
 	return smicnt;
 }
 
-/* Get measurement data before idle .*/
+/* Get measurement data before idle. */
 static void before_idle(struct wult_info *wi)
 {
 	struct wult_tracer_info *ti = &wi->ti;
@@ -86,7 +86,7 @@ static void before_idle(struct wult_info *wi)
 	ti->tbi = wi->wdi->ops->get_time_before_idle(wi->wdi, &ti->tbi_adj);
 }
 
-/* Get measurement data after idle .*/
+/* Get measurement data after idle. */
 static void after_idle(struct wult_info *wi)
 {
 	struct wult_tracer_info *ti = &wi->ti;
@@ -97,7 +97,7 @@ static void after_idle(struct wult_info *wi)
 	ti->tai = wdi->ops->get_time_after_idle(wdi, &ti->tai_adj);
 
 	/*
-	 * Record APERF amd MPERF value at after-idle point to
+	 * Record APERF and MPERF value at after-idle point to
 	 * calculate the CPU frequency.
 	 */
 	ti->ai_aperf = __rdmsr(MSR_IA32_APERF);
@@ -126,7 +126,7 @@ void wult_tracer_interrupt(struct wult_info *wi)
 	ti->tintr = wdi->ops->get_intr_time(wdi, &ti->tintr_adj);
 
 	/*
-	 * Record APERF amd MPERF value at in-interrupt point to
+	 * Record APERF and MPERF value at in-interrupt point to
 	 * calculate the CPU frequency.
 	 */
 	ti->intr_aperf = __rdmsr(MSR_IA32_APERF);
@@ -145,7 +145,7 @@ void wult_tracer_interrupt(struct wult_info *wi)
 	/*
 	 * NMI/SMI counters are used for checking if an SMI/NMI happen during
 	 * the measurements. Therefore, they have to be read last.
-	 * */
+	 */
 	ti->smi_intr = get_smi_count();
 	ti->nmi_intr = per_cpu(irq_stat, wi->cpu).__nmi_count;
 }
@@ -186,7 +186,7 @@ int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist)
 	ti->event_happened = false;
 	err = wi->wdi->ops->arm(wi->wdi, ldist);
 	if (err) {
-		wult_err("failed to arm a delayed event %llu nsec away, error %d",
+		wult_err("failed to arm a delayed event %lluns away, error %d",
 			 *ldist, err);
 		return err;
 	}
@@ -299,12 +299,12 @@ int wult_tracer_send_data(struct wult_info *wi)
 	err = synth_event_add_next_val(ti->intr_mperf, &trace_state);
 	if (err)
 		goto out_end;
-        err = synth_event_add_next_val(ti->bi_cyc, &trace_state);
-        if (err)
-                goto out_end;
-        err = synth_event_add_next_val(ti->bi_monotonic, &trace_state);
-        if (err)
-                goto out_end;
+	err = synth_event_add_next_val(ti->bi_cyc, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->bi_monotonic, &trace_state);
+	if (err)
+		goto out_end;
 
 	/* Add C-state cycle counter values. */
 	for_each_cstate(&ti->csinfo, csi) {
@@ -373,11 +373,11 @@ static void match_tracepoint(struct tracepoint *tp, void *priv)
 		tp_info->tp = tp;
 }
 
-struct tracepoint* wult_tracer_find_tracepoint(const char *tp_name)
+struct tracepoint *wult_tracer_find_tracepoint(const char *tp_name)
 {
 	struct tracepoint_info tp_info = {
-		 .name = tp_name,
-		 .tp = NULL,
+		.name = tp_name,
+		.tp = NULL,
 	};
 
 	for_each_kernel_tracepoint(&match_tracepoint, &tp_info);
@@ -394,7 +394,8 @@ static int wult_synth_event_init(struct wult_info *wi)
 	struct wult_trace_data_info *p, *tdata;
 	struct cstate_info *csi;
 	struct dynevent_cmd cmd;
-	char *cmd_buf, name_buf[64], name_len;
+	char *cmd_buf, name_buf[64];
+	int name_len;
 	int err;
 
 	cmd_buf = kzalloc(MAX_DYNEVENT_CMD_LEN, GFP_KERNEL);

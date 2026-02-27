@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2019-2021 Intel Corporation
+ * Copyright (C) 2019-2026 Intel Corporation
  * Authors: Antti Laakso <antti.laakso@intel.com>
  *          Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
@@ -169,7 +169,7 @@ static void __exit wult_hrt_exit(void)
 }
 module_exit(wult_hrt_exit);
 
-MODULE_DESCRIPTION("Wult delayed event driver based Linux high resolution timer");
+MODULE_DESCRIPTION("Wult delayed event driver based on Linux high-resolution timer");
 MODULE_AUTHOR("Artem Bityutskiy");
 MODULE_AUTHOR("Antti Laakso");
 MODULE_LICENSE("GPL v2");

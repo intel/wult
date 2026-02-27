@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2024 Intel Corporation
+ * Copyright (C) 2024-2026 Intel Corporation
  * Author: Adam Hawley <adam.james.hawley@intel.com>
  */
 
@@ -49,7 +49,7 @@ static void pbe_wakeup(void)
 {
 	struct cpumask mask;
 
-	/* Initialize cpumask */
+	/* Wake all CPUs except the one we are running on. */
 	cpumask_copy(&mask, cpu_online_mask);
 	cpumask_andnot(&mask, &mask, cpumask_of(cpu));
 
@@ -69,29 +69,33 @@ static ssize_t pbe_write_file_enable(struct file *file,
 				     const char __user *user_buf,
 				     size_t count, loff_t *ppos)
 {
+	bool val;
 	int ret;
 
-	ret = kstrtobool_from_user(user_buf, count, &enable);
+	ret = kstrtobool_from_user(user_buf, count, &val);
 	if (ret)
 		return ret;
 
-	if (enable) {
+	if (val) {
 		if (thread)
 			return -EBUSY;
 
 	        thread = kthread_create(pbe_thread, NULL, "pbe");
-		if (IS_ERR(thread))
-			return PTR_ERR(thread);
+		if (IS_ERR(thread)) {
+			ret = PTR_ERR(thread);
+			thread = NULL;
+			return ret;
+		}
 
+		enable = true;
 		kthread_bind(thread, cpu);
 		wake_up_process(thread);
-		pbe_msg("thread started with launch distance %llu", ldist);
+		pbe_msg("thread started with launch distance %lluus", ldist);
 	} else {
 		if (!thread)
 			return -ENODEV;
 
 		enable = false;
-
 		kthread_stop(thread);
 		thread = NULL;
 		pbe_msg("thread stopped");
@@ -115,7 +119,6 @@ static int pbe_val_set(void *data, u64 val)
 		return -EINVAL;
 
 	*(u64 *)data = val;
-
 	return 0;
 }
 
@@ -167,8 +170,7 @@ static const struct file_operations pbe_ro_fops = {
 static int __init pbe_init(void)
 {
 	if (cpu >= NR_CPUS) {
-		pbe_err("bad CPU number '%d', max. is %d", cpu, NR_CPUS - 1)
-;
+		pbe_err("bad CPU number '%d', max. is %d", cpu, NR_CPUS - 1);
 		return -EINVAL;
 	}
 
@@ -188,7 +190,7 @@ module_init(pbe_init);
 /* Module exit function. */
 static void __exit pbe_exit(void)
 {
-	if (enable) {
+	if (thread) {
 		enable = false;
 		kthread_stop(thread);
 		pbe_msg("thread stopped");
@@ -202,6 +204,6 @@ module_param(cpu, uint, 0444);
 MODULE_PARM_DESC(cpu, "CPU number to run the pbe thread on, default is CPU0.");
 
 MODULE_VERSION(PBE_VERSION);
-MODULE_DESCRIPTION("The pbe driver.");
+MODULE_DESCRIPTION("C-states power break even measurement driver");
 MODULE_AUTHOR("Adam Hawley");
 MODULE_LICENSE("GPL v2");

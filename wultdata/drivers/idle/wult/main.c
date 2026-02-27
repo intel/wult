@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2019-2021 Intel Corporation
+ * Copyright (C) 2019-2026 Intel Corporation
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
 
@@ -40,14 +40,14 @@ static unsigned int cpu;
 /* The wult driver information object. */
 static struct wult_info *wi;
 
-static int device_enable(struct wult_device_info* wdi)
+static int device_enable(struct wult_device_info *wdi)
 {
 	if (wdi->ops->enable)
 		return wdi->ops->enable(wdi, true);
 	return 0;
 }
 
-static void device_disable(struct wult_device_info* wdi)
+static void device_disable(struct wult_device_info *wdi)
 {
 	if (wdi->ops->enable)
 		wdi->ops->enable(wdi, false);
@@ -72,6 +72,7 @@ int wult_enable(void)
 	err = wult_tracer_enable(wi);
 	if (err) {
 		wult_err("failed to enable the tracer, error %d", err);
+		device_disable(wi->wdi);
 		goto out_unlock;
 	}
 
@@ -124,7 +125,7 @@ EXPORT_SYMBOL_GPL(wult_interrupt_finish);
 /* Pick random launch distance. */
 static u64 pick_ldist(void)
 {
-	u64 ldist;
+	u64 ldist, ldist_from, ldist_to;
 
 	/*
 	 * Note, we do not grab the 'wi->enable_mutex' here because no one can
@@ -132,13 +133,16 @@ static u64 pick_ldist(void)
 	 * going on.
 	 */
 
-	if (wi->ldist_from > wi->ldist_to)
-		wi->ldist_from = wi->ldist_to;
+	ldist_from = wi->ldist_from;
+	ldist_to = wi->ldist_to;
+
+	if (ldist_from > ldist_to)
+		ldist_from = ldist_to;
 
 	/* Get random ldist within the range. */
 	ldist = get_random_u64();
-	ldist = do_div(ldist, wi->ldist_to - wi->ldist_from + 1);
-	ldist += wi->ldist_from;
+	ldist = do_div(ldist, ldist_to - ldist_from + 1);
+	ldist += ldist_from;
 
 	/* Ensure the ldist_gran. */
 	if (wi->wdi->ldist_gran > 1) {
@@ -164,7 +168,7 @@ static int delayed_event_device_init(struct wult_device_info *wdi,
 	}
 
 	if (wdi->ldist_gran > WULT_MAX_LDIST_GRANULARITY) {
-		wult_err("device '%s' launch distance resolution is %u ns, wich is too coarse, max is %d ns",
+		wult_err("device '%s' launch distance resolution is %uns, which is too coarse, max is %dns",
 			 wdi->devname, wdi->ldist_gran,
 			 WULT_MAX_LDIST_GRANULARITY);
 		wi->wdi->ops->exit(wi->wdi);
@@ -190,7 +194,7 @@ static int check_event(void)
 {
 	unsigned int events_happened, events_armed, event_cpu, irq_err;
 
-	/* Check that the interrupt happend on the right CPU. */
+	/* Check that the interrupt happened on the right CPU. */
 	event_cpu = READ_ONCE(wi->event_cpu);
 	if (event_cpu != wi->cpu) {
 		wult_err("delayed event happened on CPU%u instead of CPU%u, stop measuring",
@@ -309,6 +313,7 @@ err_disable:
 	}
 
 	wi->wdi->ops->exit(wi->wdi);
+	return err;
 
 err_tracer:
 	wult_tracer_exit(wi);
@@ -376,7 +381,7 @@ int wult_register(struct wult_device_info *wdi)
 		goto err_kthread;
 	}
 
-	wult_msg("registered device '%s', resolution: %u ns",
+	wult_msg("registered device '%s', resolution: %uns",
 		 wdi->devname, wdi->ldist_gran);
 	return 0;
 
@@ -409,7 +414,6 @@ EXPORT_SYMBOL_GPL(wult_unregister);
 
 static const struct x86_cpu_id stable_tsc_cpu_ids[] = {
 	X86_MATCH_VENDOR_FAM_FEATURE(INTEL, X86_FAMILY_ANY, X86_FEATURE_CONSTANT_TSC, NULL),
-	X86_MATCH_VENDOR_FAM_FEATURE(AMD, X86_FAMILY_ANY, X86_FEATURE_CONSTANT_TSC, NULL),
 	X86_MATCH_VENDOR_FAM_FEATURE(AMD, X86_FAMILY_ANY, X86_FEATURE_CONSTANT_TSC, NULL),
 	{}
 };

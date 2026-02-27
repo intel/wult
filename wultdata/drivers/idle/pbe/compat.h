@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2024 Intel Corporation
+ * Copyright (C) 2024-2026 Intel Corporation
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
 
-#ifndef _WULT_COMPAT_H_
-#define _WULT_COMPAT_H_
+#ifndef _PBE_COMPAT_H_
+#define _PBE_COMPAT_H_
 
 #include <linux/version.h>
 
@@ -13,5 +13,5 @@
 #define __apic_send_IPI_mask(mask, vector) apic->send_IPI_mask(mask, vector)
 #endif
 
-#endif /* _WULT_COMPAT_H_ */
+#endif /* _PBE_COMPAT_H_ */
 

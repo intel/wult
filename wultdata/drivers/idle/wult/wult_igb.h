@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2019-2021 Intel Corporation
+ * Copyright (C) 2019-2026 Intel Corporation
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
 
@@ -64,7 +64,7 @@
 
 /* Time Sync Interrupt Cause Register. */
 #define I210_TSICR 0xB66C
-/* Time Sync Interrupt Masc Register. */
+/* Time Sync Interrupt Mask Register. */
 #define I210_TSIM 0xB674
 /* The 'Target Time 0 Trigger' bit. */
 #define I210_TSIxx_TT0 BIT(3)
@@ -85,14 +85,14 @@
 /* The 'Enable Target Time 0' bit. */
 #define I210_TSAUXC_EN_TT0 BIT(0)
 
-/* The Managebility EEPROM-Mode Control Register. */
+/* The Manageability EEPROM-Mode Control Register. */
 #define I210_EEMNGCTL 0x12030
 /* The 'Manageability Configuration Cycle of the Port Completed' bit. */
 #define I210_EEMNGCTL_CFG_DONE BIT(18)
 
 /* The Firmware Semaphore Register. */
 #define I210_FWSM 0x5B54
-/* The 'External Error Indication' bits (24:19).*/
+/* The 'External Error Indication' bits (24:19). */
 #define I210_FWSM_EXT_ERR_IND 0x1F80000
 /* The 'PCIe Configuration Error Indication' bit. */
 #define I210_FWSM_PCIE_CONFIG_ERR_IND BIT(25)
@@ -106,7 +106,7 @@
 
 /* NIC reset timeout in milliseconds. */
 #define I210_RESET_TIMEOUT 100
-/* NIC bus master disable timeout milliseconds. */
+/* NIC bus master disable timeout in milliseconds. */
 #define I210_BUS_MASTER_TIMEOUT 100
 
 /* PCI IDs of NICs supported by this driver. */
@@ -146,4 +146,4 @@ struct network_adapter {
 	bool irq_pending;
 };
 
-#endif
+#endif /* _WULT_IGB_H_ */

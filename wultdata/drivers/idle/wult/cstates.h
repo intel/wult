@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2019-2021 Intel Corporation
+ * Copyright (C) 2019-2026 Intel Corporation
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
 
 #ifndef _WULT_CSTATE_H_
 #define _WULT_CSTATE_H_
 
-/* Maximum C-state cycles snapsots count. */
+/* Maximum C-state cycles snapshots count. */
 #define MAX_CSTATE_SNAPSHOTS 2
 
 /* Iterate over every valid C-state. */
@@ -25,12 +25,12 @@ struct cstate_info {
 	bool absent;
 	/* C-state counter snapshots.  */
 	u64 cyc[MAX_CSTATE_SNAPSHOTS];
-	/* Delta between between any two C-state counter snapshots. */
+	/* Delta between any two C-state counter snapshots. */
 	u64 dcyc;
 };
 
 /*
- * Infromation about C-states.
+ * Information about C-states.
  */
 struct wult_cstates_info {
 	/* Information about every C-state on this platform. */

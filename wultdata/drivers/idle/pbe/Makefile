@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
-# Copyright (C) 2024 Intel Corporation
+# Copyright (C) 2024-2026 Intel Corporation
 # Authors: Adam Hawley <adam.james.hawley@intel.com>
 
 ifneq ($(KERNELRELEASE),)
@@ -30,5 +30,5 @@ help:
 	@echo "  KSRC  - Path to the kernel tree to build against"
 	@echo
 	@echo "You can also use any standard kernel variable like 'V=1'.  Please, run "
-	@echo "'make help' in kernel source tree form more information."
+	@echo "'make help' in kernel source tree for more information."
 endif

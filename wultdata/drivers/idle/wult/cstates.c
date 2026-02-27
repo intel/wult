@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2019-2021 Intel Corporation
+ * Copyright (C) 2019-2026 Intel Corporation
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
 
@@ -44,18 +44,18 @@ void wult_cstates_calc(struct wult_cstates_info *csinfo,
 }
 
 static struct cstate_info intel_cstates[] = {
-	{.name = "CC1", MSR_CORE_C1_RES},
-	{.name = "CC3", MSR_CORE_C3_RESIDENCY},
-	{.name = "CC6", MSR_CORE_C6_RESIDENCY},
-	{.name = "CC7", MSR_CORE_C7_RESIDENCY},
-	{.name = "MC6", MSR_MODULE_C6_RES_MS},
-	{.name = "PC2", MSR_PKG_C2_RESIDENCY},
-	{.name = "PC3", MSR_PKG_C3_RESIDENCY},
-	{.name = "PC6", MSR_PKG_C6_RESIDENCY},
-	{.name = "PC7", MSR_PKG_C7_RESIDENCY},
-	{.name = "PC8", MSR_PKG_C8_RESIDENCY},
-	{.name = "PC9", MSR_PKG_C9_RESIDENCY},
-	{.name = "PC10", MSR_PKG_C10_RESIDENCY},
+	{.name = "CC1", .msr = MSR_CORE_C1_RES},
+	{.name = "CC3", .msr = MSR_CORE_C3_RESIDENCY},
+	{.name = "CC6", .msr = MSR_CORE_C6_RESIDENCY},
+	{.name = "CC7", .msr = MSR_CORE_C7_RESIDENCY},
+	{.name = "MC6", .msr = MSR_MODULE_C6_RES_MS},
+	{.name = "PC2", .msr = MSR_PKG_C2_RESIDENCY},
+	{.name = "PC3", .msr = MSR_PKG_C3_RESIDENCY},
+	{.name = "PC6", .msr = MSR_PKG_C6_RESIDENCY},
+	{.name = "PC7", .msr = MSR_PKG_C7_RESIDENCY},
+	{.name = "PC8", .msr = MSR_PKG_C8_RESIDENCY},
+	{.name = "PC9", .msr = MSR_PKG_C9_RESIDENCY},
+	{.name = "PC10", .msr = MSR_PKG_C10_RESIDENCY},
 	{}
 };
 
@@ -69,7 +69,7 @@ static int intel_cstate_init(struct wult_cstates_info *csinfo)
 
 	csinfo->cstates = intel_cstates;
 	for_each_cstate(csinfo, csi) {
-		if (rdmsrl_safe(csi->msr, &reg))
+		if (rdmsrq_safe(csi->msr, &reg))
 			/* We got an exception while reading the MSR. */
 			csi->absent = true;
 		else if (!reg) {
@@ -96,12 +96,9 @@ static struct cstate_info no_cstates[] = {
  */
 int wult_cstates_init(struct wult_cstates_info *csinfo)
 {
-	int err = 0;
-
 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
-		err = intel_cstate_init(csinfo);
-	else
-		csinfo->cstates = no_cstates;
+		return intel_cstate_init(csinfo);
 
-	return err;
+	csinfo->cstates = no_cstates;
+	return 0;
 }

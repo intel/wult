@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2019-2021 Intel Corporation
+ * Copyright (C) 2019-2026 Intel Corporation
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
 
@@ -21,8 +21,8 @@
         } while(0)
 #endif
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(6, 15, 0)
-#define rdmsrl_safe(_reg, _val) rdmsrq_safe((_reg), (_val))
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 16, 0)
+#define rdmsrq_safe(_reg, _val) rdmsrl_safe((_reg), (_val))
 #endif
 
 #endif /* _WULT_COMPAT_H_ */

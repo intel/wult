@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2019-2021 Intel Corporation
+ * Copyright (C) 2019-2026 Intel Corporation
  * Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
  */
 
@@ -56,7 +56,7 @@ static ssize_t dfs_read_file(struct file *file, char __user *user_buf,
 
 	rtd = readl(&i210_iomem[I210_RR2DCDELAY]);
 	rtd *= I210_RR2DCDELAY_INCR;
-	snprintf(buf, sizeof(buf), "%llu", rtd);
+	snprintf(buf, sizeof(buf), "%llu\n", rtd);
 	debugfs_file_put(dent);
 
 	return simple_read_from_buffer(user_buf, count, ppos, buf, strlen(buf));
@@ -79,7 +79,7 @@ static int dfs_create(void)
 	dent = debugfs_create_file("rtd", 0444, dfsroot, NULL, &dfs_ops);
 	if (IS_ERR(dent)) {
 		debugfs_remove(dfsroot);
-		return PTR_ERR(dfsroot);
+		return PTR_ERR(dent);
 	}
 
 	return 0;
@@ -102,7 +102,7 @@ static void dma_coalescing_disable(void)
 	}
 }
 
-/* Restore previously saved DMA coalescing value. */
+/* Restore previously saved DMA coalescing values. */
 static void dma_coalescing_restore(void)
 {
 	int i;
@@ -120,10 +120,10 @@ static struct pci_dev * __init find_pci_device(const struct net_device *ndev)
 {
 	struct pci_dev *pdev = NULL;
 
-	while ((pdev = pci_get_device(PCI_VENDOR_ID_INTEL, PCI_ANY_ID, pdev))
-	       != NULL) {
+	while ((pdev = pci_get_device(PCI_VENDOR_ID_INTEL,
+				      PCI_ANY_ID, pdev)) != NULL) {
+		/* I210 devices are managed by the 'igb' driver. */
 		if (!pdev->driver || strcmp(pdev->driver->name, "igb"))
-			/* I210 devices are managed by the 'igb' driver. */
 			continue;
 		if (pci_get_drvdata(pdev) == ndev)
 			break;
@@ -137,7 +137,7 @@ static int ndl_do_init(void)
 	int err;
 
 	if (i210_ndev)
-		return NOTIFY_DONE;
+		return 0;
 
 	i210_ndev = dev_get_by_name(&init_net, ifname);
 	if (!i210_ndev) {
@@ -153,8 +153,14 @@ static int ndl_do_init(void)
 		goto error_put_ndev;
 	}
 
-	/* Get the base IO memory address. */
+	/* Map the device's I/O memory. */
 	i210_iomem = pci_ioremap_bar(i210_pdev, 0);
+	if (!i210_iomem) {
+		pr_err("failed to map I/O memory for device '%s'\n",
+		       i210_ndev->name);
+		err = -ENOMEM;
+		goto error_put_pdev;
+	}
 
 	err = dfs_create();
 	if (err)
@@ -165,8 +171,9 @@ static int ndl_do_init(void)
 	return 0;
 
 error_put_pdev:
+	if (i210_iomem)
+		pci_iounmap(i210_pdev, i210_iomem);
 	pci_dev_put(i210_pdev);
-	pci_iounmap(i210_pdev, i210_iomem);
 error_put_ndev:
 	dev_put(i210_ndev);
 	i210_ndev = NULL;
@@ -197,14 +204,14 @@ static int ndl_netdevice_event(struct notifier_block *notifier,
 	case NETDEV_REGISTER:
 		err = ndl_do_init();
 		if (err)
-			pr_err("init failed:%d\n", err);
+			pr_err("init failed: %d\n", err);
 		break;
 	case NETDEV_UNREGISTER:
 		ndl_do_exit();
 		break;
 	default:
 		break;
-	};
+	}
 
 	return NOTIFY_DONE;
 }
@@ -250,9 +257,9 @@ static void __exit ndl_exit(void)
 module_exit(ndl_exit);
 
 module_param(ifname, charp, 0644);
-MODULE_PARM_DESC(ifname, "name of the network interface to use.");
+MODULE_PARM_DESC(ifname, "Name of the network interface to use");
 
 MODULE_VERSION(NDL_VERSION);
-MODULE_DESCRIPTION("the ndl driver.");
+MODULE_DESCRIPTION("Intel I210 network device latency measurement driver");
 MODULE_AUTHOR("Artem Bityutskiy");
 MODULE_LICENSE("GPL v2");
