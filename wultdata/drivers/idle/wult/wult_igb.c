@@ -278,12 +278,12 @@ static int nic_reset(const struct network_adapter *nic)
 
 	/* Check various bits as it is required by the HW specification. */
 	reg = read32(nic, I210_STATUS);
-	if (!(reg | I210_STATUS_PF_RST_DONE)) {
+	if (!(reg & I210_STATUS_PF_RST_DONE)) {
 		wult_err("NIC software reset failed: I210_STATUS_PF_RST_DONE bit");
 		return -EINVAL;
 	}
 	reg = read32(nic, I210_EEMNGCTL);
-	if (!(reg | I210_EEMNGCTL_CFG_DONE)) {
+	if (!(reg & I210_EEMNGCTL_CFG_DONE)) {
 		wult_err("NIC software reset failed: I210_EEMNGCTL_CFG_DONE bit");
 		return -EINVAL;
 	}
