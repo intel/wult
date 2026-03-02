@@ -27,7 +27,7 @@ WakeLatencyRaw:
 SilentTime:
     title: "Silent Time"
     descr: >-
-        Time spent in a C-state before the the launch time (the moment the delayed event is
+        Time spent in a C-state before the launch time (the moment the delayed event is
         generated). Or to put it differently, 'SilentTime' is time before idle minus launch time.
     type: "float"
     unit: "microsecond"
@@ -127,7 +127,7 @@ PCx%:
 SMICnt:
     title: "SMI count while measuring 'WakeLatency' or 'IntrLatency'"
     descr: >-
-        How many system management interupts (SMI) happened while measuring 'WakeLatency' and
+        How many system management interrupts (SMI) happened while measuring 'WakeLatency' and
         'IntrLatency'.
     type: "int"
 NMICnt:
@@ -145,11 +145,11 @@ SWIRQCnt:
 WarmupDelay:
     title: "The I210 NIC link warm up delay"
     descr: >-
-        When the CPU wakes up from the C-state, wult first warms up the PCIe link(s) by reading the
-        I210 NIC status register. This read will make sure the PCIe link(s) are ready for the time
-        after idle read operation. For example, if the link(s) were in an L1 state due to ASPM, they
-        will be woken up from this state. 'WarmupDelay' is the time it takes to read the I210 NIC
-        status register. It is measured using TSC, and gets subtracted it from the "time after
+        When the CPU wakes up from the C-state, wult first warms up the PCIe link(s) by reading
+        the I210 NIC status register. This read ensures the PCIe link(s) are ready for the time
+        after idle read operation. For example, if the link(s) were in an L1 state due to ASPM,
+        they will be brought out of this state. 'WarmupDelay' is the time it takes to read the
+        I210 NIC status register. It is measured using TSC, and is subtracted from the "time after
         idle" timestamp that is read later. In other words, 'WakeLatency' does not include
         'WarmupDelay'.
     type: "float"
@@ -158,13 +158,13 @@ WarmupDelay:
 LatchDelay:
     title: "The I210 NIC time latch delay"
     descr: >-
-        When the CPU wakes up from the C-state, wult first reads the status register to warm up the
-        link (see 'WarmupDelay'), and right after that it latches I210 NIC time by reading the
+        When the CPU wakes up from the C-state, wult first reads the status register to warm up
+        the link (see 'WarmupDelay'), and right after that it latches I210 NIC time by reading the
         "System Time Residue Register" ('SYSTIMR', 0xB6F8). 'LatchDelay' is the time it takes to
-        read the 'SYSTIMR' register. It is measured using TSC. The I210 NIC latches the time when it
-        sees the 'SYSTIMR' read operation. The assumption is that it will take half of the
+        read the 'SYSTIMR' register. It is measured using TSC. The I210 NIC latches the time when
+        it sees the 'SYSTIMR' read operation. The assumption is that it will take half of the
         'LatchDelay' for the 'SYSTIMR' read request to propagate from the CPU to the I210 NIC.
-        Therefore, half of 'LatchDelay' later gets subtracted from 'WakeLatency'.
+        Therefore, half of 'LatchDelay' is later subtracted from 'WakeLatency'.
     type: "float"
     unit: "microsecond"
     short_unit: "us"
