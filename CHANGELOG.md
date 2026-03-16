@@ -6,10 +6,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
 ### Added
+ - exercise-sut: Add C6A support.
 ### Removed
 ### Changed
 
 ## [1.12.60] - 2026-02-05
+### Changed
+ - Adjust to changed API in a dependency (pepc 1.6.23+).
 
 ## [1.12.59] - 2026-02-05
 ### Changed
