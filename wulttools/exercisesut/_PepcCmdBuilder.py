@@ -142,7 +142,8 @@ class _PropIteratorBase(ClassHelpers.SimpleCloseContext):
         """Normalize and validate list of requestable C-state names 'csnames'."""
 
         allcsnames = []
-        for _, csinfo in self._cpuidle.get_cstates_info(csnames="all", cpus="all"):
+        allcpus = self._cpuidle.get_cpus()
+        for _, csinfo in self._cpuidle.get_cstates_info(allcpus, csnames="all"):
             for csname in csinfo:
                 if csname not in allcsnames:
                     allcsnames.append(csname.upper())

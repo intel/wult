@@ -229,7 +229,8 @@ class _WultCmdBuilder(_CmdBuilderBase):
     def _c6p_exists(self):
         """Check if requestable C-state C6P, C6S or C6SP is supported by the SUT."""
 
-        for _, csinfo in self._cpuidle.get_cstates_info(csnames="all", cpus="all"):
+        allcpus = self._cpuidle.get_cpus()
+        for _, csinfo in self._cpuidle.get_cstates_info(allcpus, csnames="all"):
             for csname in csinfo:
                 if csname.startswith("C6") and csname != "C6":
                     return True
