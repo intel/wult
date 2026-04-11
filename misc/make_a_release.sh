@@ -22,7 +22,6 @@ WULT_FILE="$BASEDIR/wulttools/wult/_Wult.py"
 PBE_FILE="$BASEDIR/wulttools/wult/_Pbe.py"
 NDL_FILE="$BASEDIR/wulttools/ndl/_Ndl.py"
 EXERCISESUT_FILE="$BASEDIR/wulttools/exercisesut/_ExerciseSut.py"
-SPEC_FILE="$BASEDIR/rpm/wult.spec"
 
 # The python packaging file.
 PYPROJECT_TOML="$BASEDIR/pyproject.toml"
@@ -50,8 +49,6 @@ RST_FILES="$BASEDIR/docs/wult-calc.rst
            $BASEDIR/docs/pbe-scan.rst
            $BASEDIR/docs/pbe-start.rst"
 
-# Path to the script converting CHANGELOG.md into debian changelog.
-CHANGELOG_MD_TO_DEBIAN="$BASEDIR/../pepc/misc/changelog_md_to_debian"
 # Path to the script that prepares CHANGELOG.md for the release.
 PREPARE_CHENGELOG_MD="$BASEDIR/../pepc/misc/prepare_changelog_md"
 
@@ -158,18 +155,12 @@ ask_question "Did you update 'CHANGELOG.md'"
 # Update CHANGELOG.md.
 "$PREPARE_CHENGELOG_MD" "$new_ver" "$CHANGELOG_FILE"
 
-# Update dependency versions.
-sed -i -e "s/\(pepc\s*>=\s*\)$VERSION_REGEX/\1$pepc_ver/g" "$BASEDIR/rpm/wult.spec"
-sed -i -e "s/\(stats-collect\s*>=\s*\)$VERSION_REGEX/\1$stcoll_ver/g" "$BASEDIR/rpm/wult.spec"
-
 # Update the project version.
 sed -i -e "s/^version = \"$VERSION_REGEX\"$/version = \"$new_ver\"/" "$PYPROJECT_TOML"
 # Update the tools version.
 sed -i -e "s/^VERSION = \"$VERSION_REGEX\"$/VERSION = \"$new_ver\"/" "$WULT_TOOLINFO"
 sed -i -e "s/^VERSION = \"$VERSION_REGEX\"$/VERSION = \"$new_ver\"/" "$NDL_TOOLINFO"
 sed -i -e "s/^VERSION = \"$VERSION_REGEX\"$/VERSION = \"$new_ver\"/" "$PBE_TOOLINFO"
-# Update RPM package version.
-sed -i -e "s/^Version:\(\s\+\)$VERSION_REGEX$/Version:\1$new_ver/" "$SPEC_FILE"
 
 # Update the man pages.
 for file in $RST_FILES; do
