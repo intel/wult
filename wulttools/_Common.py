@@ -331,7 +331,7 @@ def get_pman(args):
 
     cmdl = ArgParse.format_ssh_args(args)
     return ProcessManager.get_pman(cmdl["hostname"], cmdl["username"],
-                                   privkeypath=cmdl["privkey"], timeout=cmdl["timeout"])
+                                   privkeypath=cmdl["privkey"])
 
 def even_up_dpcnt(rsts):
     """

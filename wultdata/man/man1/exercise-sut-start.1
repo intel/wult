@@ -7,7 +7,7 @@ Date
 2024\-03\-08
 .SH COMMAND \f[I]\[aq]exercise\-sut\f[R] start\[aq]
 usage: exercise\-sut start [\-h] [\-q] [\-d] [\-H HOSTNAME] [\-U
-USERNAME] [\-K PRIVKEY] [\-T TIMEOUT] [\-\-datapoints DATAPOINTS]
+USERNAME] [\-K PRIVKEY] [\-\-datapoints DATAPOINTS]
 [\-\-reportid\-prefix REPORTID_PREFIX] [\-\-reportid\-suffix
 REPORTID_SUFFIX] [\-\-cpus CPUS] [\-\-cstates CSTATES] [\-\-pcstates
 PCSTATES] [\-\-turbo TURBO] [\-\-freqs FREQS] [\-\-uncore\-freqs
@@ -46,9 +46,6 @@ Path to the private SSH key that should be used for logging into the
 remote host.
 By default the key is automatically found from standard paths like
 \[aq]\[ti]/.ssh\[aq].
-.TP
-\f[B]\-T\f[R] \f[I]TIMEOUT\f[R], \f[B]\-\-timeout\f[R] \f[I]TIMEOUT\f[R]
-SSH connect timeout in seconds, default is 8.
 .TP
 \f[B]\-\-datapoints\f[R] \f[I]DATAPOINTS\f[R], \f[B]\-c\f[R] \f[I]DATAPOINTS\f[R]
 Applicable only to \[aq]wult\[aq] and \[aq]ndl\[aq] tools.

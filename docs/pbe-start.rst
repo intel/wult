@@ -12,7 +12,7 @@ COMMAND *'pbe* start'
 =====================
 
 usage: pbe start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
-[-T TIMEOUT] [-l LDIST] [-S LDIST_STEP] [--span SPAN]
+[-l LDIST] [-S LDIST_STEP] [--span SPAN]
 [--warmup WARMUP] [-o OUTDIR] [--reportid REPORTID] [--report]
 
 Start measuring C-states power break even.
@@ -40,9 +40,6 @@ OPTIONS *'pbe* start'
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
    paths like '~/.ssh'.
-
-**-T** *TIMEOUT*, **--timeout** *TIMEOUT*
-   SSH connect timeout in seconds, default is 8.
 
 **-w** *LDIST*, **--ldist** *LDIST*
    The launch distance range to go through. The default range is

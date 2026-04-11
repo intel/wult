@@ -3,7 +3,7 @@
 .TH "PBE" "" "2024\-05\-28" ""
 .SH COMMAND \f[I]\[aq]pbe\f[R] scan\[aq]
 usage: pbe scan [\-h] [\-q] [\-d] [\-H HOSTNAME] [\-U USERNAME] [\-K
-PRIVKEY] [\-T TIMEOUT]
+PRIVKEY]
 .PP
 Scan for compatible devices.
 .SH OPTIONS \f[I]\[aq]pbe\f[R] scan\[aq]
@@ -29,6 +29,3 @@ Path to the private SSH key that should be used for logging into the
 remote host.
 By default the key is automatically found from standard paths like
 \[aq]\[ti]/.ssh\[aq].
-.TP
-\f[B]\-T\f[R] \f[I]TIMEOUT\f[R], \f[B]\-\-timeout\f[R] \f[I]TIMEOUT\f[R]
-SSH connect timeout in seconds, default is 8.

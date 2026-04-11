@@ -93,7 +93,7 @@ def start_command(args: argparse.Namespace, deploy_info: DeployInfoTypedDict):
 
     with contextlib.ExitStack() as stack:
         pman = ProcessManager.get_pman(cmdl["hostname"], username=cmdl["username"],
-                                       privkeypath=cmdl["privkey"], timeout=cmdl["timeout"])
+                                       privkeypath=cmdl["privkey"])
         stack.enter_context(pman)
 
         ldist_step_pct, ldist_step_ns = None, None

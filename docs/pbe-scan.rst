@@ -13,7 +13,6 @@ COMMAND *'pbe* scan'
 ====================
 
 usage: pbe scan [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
-[-T TIMEOUT]
 
 Scan for compatible devices.
 
@@ -40,6 +39,3 @@ OPTIONS *'pbe* scan'
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
    paths like '~/.ssh'.
-
-**-T** *TIMEOUT*, **--timeout** *TIMEOUT*
-   SSH connect timeout in seconds, default is 8.

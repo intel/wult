@@ -13,7 +13,7 @@ COMMAND *'wult* start'
 ======================
 
 usage: wult start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K PRIVKEY]
-[-T TIMEOUT] [-c COUNT] [--time-limit LIMIT] [--exclude EXCLUDE]
+[-c COUNT] [--time-limit LIMIT] [--exclude EXCLUDE]
 [--include INCLUDE] [--keep-filtered] [-o OUTDIR] [--reportid REPORTID]
 [--stats STATS] [--stats-intervals STATS_INTERVALS] [--list-stats]
 [-l LDIST] [--cpu CPU] [--tsc-cal-time TSC_CAL_TIME]
@@ -50,9 +50,6 @@ OPTIONS *'wult* start'
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
    paths like '~/.ssh'.
-
-**-T** *TIMEOUT*, **--timeout** *TIMEOUT*
-   SSH connect timeout in seconds, default is 8.
 
 **-c** *COUNT*, **--datapoints** *COUNT*
    How many datapoints should the test result include, default is

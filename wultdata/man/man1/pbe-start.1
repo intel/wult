@@ -3,7 +3,7 @@
 .TH "PBE" "" "2024\-05\-28" ""
 .SH COMMAND \f[I]\[aq]pbe\f[R] start\[aq]
 usage: pbe start [\-h] [\-q] [\-d] [\-H HOSTNAME] [\-U USERNAME] [\-K
-PRIVKEY] [\-T TIMEOUT] [\-l LDIST] [\-S LDIST_STEP] [\-\-span SPAN]
+PRIVKEY] [\-l LDIST] [\-S LDIST_STEP] [\-\-span SPAN]
 [\-\-warmup WARMUP] [\-o OUTDIR] [\-\-reportid REPORTID] [\-\-report]
 .PP
 Start measuring C\-states power break even.
@@ -30,9 +30,6 @@ Path to the private SSH key that should be used for logging into the
 remote host.
 By default the key is automatically found from standard paths like
 \[aq]\[ti]/.ssh\[aq].
-.TP
-\f[B]\-T\f[R] \f[I]TIMEOUT\f[R], \f[B]\-\-timeout\f[R] \f[I]TIMEOUT\f[R]
-SSH connect timeout in seconds, default is 8.
 .TP
 \f[B]\-w\f[R] \f[I]LDIST\f[R], \f[B]\-\-ldist\f[R] \f[I]LDIST\f[R]
 The launch distance range to go through.

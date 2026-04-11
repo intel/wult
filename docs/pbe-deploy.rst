@@ -13,7 +13,7 @@ COMMAND *'pbe* deploy'
 
 usage: pbe deploy [-h] [-q] [-d] [--kernel-src KSRC] [--local-build]
 [--tmpdir-path TMPDIR_PATH] [--keep-tmpdir] [-H HOSTNAME] [-U USERNAME]
-[-K PRIVKEY] [-T TIMEOUT]
+[-K PRIVKEY]
 
 Compile and deploy pbe drivers to the SUT (System Under Test), which can
 be can be either local or a remote host, depending on the '-H' option.
@@ -71,6 +71,3 @@ OPTIONS *'pbe* deploy'
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
    paths like '~/.ssh'.
-
-**-T** *TIMEOUT*, **--timeout** *TIMEOUT*
-   SSH connect timeout in seconds, default is 8.

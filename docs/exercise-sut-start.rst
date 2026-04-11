@@ -13,7 +13,7 @@ COMMAND *'exercise-sut* start'
 ==============================
 
 usage: exercise-sut start [-h] [-q] [-d] [-H HOSTNAME] [-U USERNAME] [-K
-PRIVKEY] [-T TIMEOUT] [--datapoints DATAPOINTS] [--reportid-prefix
+PRIVKEY] [--datapoints DATAPOINTS] [--reportid-prefix
 REPORTID_PREFIX] [--reportid-suffix REPORTID_SUFFIX] [--cpus CPUS]
 [--cstates CSTATES] [--pcstates PCSTATES] [--turbo TURBO]
 [--freqs FREQS] [--uncore-freqs UNCORE_FREQS] [--cpufreq-governor GOVERNOR]
@@ -51,9 +51,6 @@ OPTIONS *'exercise-sut* start'
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
    paths like '~/.ssh'.
-
-**-T** *TIMEOUT*, **--timeout** *TIMEOUT*
-   SSH connect timeout in seconds, default is 8.
 
 **--datapoints** *DATAPOINTS*, **-c** *DATAPOINTS*
    Applicable only to 'wult' and 'ndl' tools. Number of datapoints to

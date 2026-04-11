@@ -8,7 +8,7 @@ Date
 .SH COMMAND \f[I]\[aq]ndl\f[R] deploy\[aq]
 usage: ndl deploy [\-h] [\-q] [\-d] [\-\-kernel\-src KSRC]
 [\-\-local\-build] [\-\-tmpdir\-path TMPDIR_PATH] [\-\-keep\-tmpdir]
-[\-H HOSTNAME] [\-U USERNAME] [\-K PRIVKEY] [\-T TIMEOUT]
+[\-H HOSTNAME] [\-U USERNAME] [\-K PRIVKEY]
 .PP
 Compile and deploy ndl helpers and drivers to the SUT (System Under
 Test), which can be can be either local or a remote host, depending on
@@ -82,6 +82,3 @@ Path to the private SSH key that should be used for logging into the
 remote host.
 By default the key is automatically found from standard paths like
 \[aq]\[ti]/.ssh\[aq].
-.TP
-\f[B]\-T\f[R] \f[I]TIMEOUT\f[R], \f[B]\-\-timeout\f[R] \f[I]TIMEOUT\f[R]
-SSH connect timeout in seconds, default is 8.

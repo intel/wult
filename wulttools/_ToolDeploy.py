@@ -120,8 +120,6 @@ def _run_stats_collect_deploy(cmdl: _DeployCmdlArgsTypedDict, pman: ProcessManag
             cmd += f" -U {cmdl['username']}"
         if cmdl["privkey"]:
             cmd += f" -K {cmdl['privkey']}"
-        if cmdl["timeout"]:
-            cmd += f" -T {cmdl['timeout']}"
 
     _LOG.info("Deploying statistics collectors%s", pman.hostmsg)
 
@@ -148,7 +146,7 @@ def deploy_command(args: argparse.Namespace, deploy_info: DeployInfoTypedDict):
     cmdl = _format_args(args)
 
     with ProcessManager.get_pman(cmdl["hostname"], username=cmdl["username"],
-                                 privkeypath=cmdl["privkey"], timeout=cmdl["timeout"]) as pman:
+                                 privkeypath=cmdl["privkey"]) as pman:
         with _Deploy.Deploy(cmdl["toolname"], deploy_info, pman=pman, ksrc=cmdl["ksrc"],
                             lbuild=cmdl["lbuild"], drv_make_opts=cmdl["drv_make_opts"],
                             tmpdir_path=cmdl["tmpdir_path"], keep_tmpdir=cmdl["keep_tmpdir"],

@@ -13,7 +13,7 @@ COMMAND *'ndl* scan'
 ====================
 
 usage: ndl scan [-h] [-q] [-d] [--all] [-H HOSTNAME] [-U USERNAME] [-K
-PRIVKEY] [-T TIMEOUT]
+PRIVKEY]
 
 Scan for available devices.
 
@@ -45,6 +45,3 @@ OPTIONS *'ndl* scan'
    Path to the private SSH key that should be used for logging into the
    remote host. By default the key is automatically found from standard
    paths like '~/.ssh'.
-
-**-T** *TIMEOUT*, **--timeout** *TIMEOUT*
-   SSH connect timeout in seconds, default is 8.

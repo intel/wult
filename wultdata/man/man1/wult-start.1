@@ -3,7 +3,7 @@
 .TH "START" "" "2024\-03\-08" ""
 .SH COMMAND \f[I]\[aq]wult\f[R] start\[aq]
 usage: wult start [\-h] [\-q] [\-d] [\-H HOSTNAME] [\-U USERNAME] [\-K
-PRIVKEY] [\-T TIMEOUT] [\-c COUNT] [\-\-time\-limit LIMIT] [\-\-exclude
+PRIVKEY] [\-c COUNT] [\-\-time\-limit LIMIT] [\-\-exclude
 EXCLUDE] [\-\-include INCLUDE] [\-\-keep\-filtered] [\-o OUTDIR]
 [\-\-reportid REPORTID] [\-\-stats STATS] [\-\-stats\-intervals
 STATS_INTERVALS] [\-\-list\-stats] [\-l LDIST] [\-\-cpu CPU]
@@ -40,9 +40,6 @@ Path to the private SSH key that should be used for logging into the
 remote host.
 By default the key is automatically found from standard paths like
 \[aq]\[ti]/.ssh\[aq].
-.TP
-\f[B]\-T\f[R] \f[I]TIMEOUT\f[R], \f[B]\-\-timeout\f[R] \f[I]TIMEOUT\f[R]
-SSH connect timeout in seconds, default is 8.
 .TP
 \f[B]\-c\f[R] \f[I]COUNT\f[R], \f[B]\-\-datapoints\f[R] \f[I]COUNT\f[R]
 How many datapoints should the test result include, default is 1000000.
