@@ -269,7 +269,7 @@ def _deploy_command(args):
 def _scan_command(args):
     """Implements the 'ndl scan' command."""
 
-    _Common.scan_command(args, _NDL_DEPLOY_INFO)
+    _Common.scan_command(args)
 
 def _start_command(args):
     """Implements the 'ndl start' command."""
@@ -280,7 +280,7 @@ def _start_command(args):
 
     from wulttools.ndl import _NdlStart # pylint: disable=import-outside-toplevel
 
-    _NdlStart.start_command(args, _NDL_DEPLOY_INFO)
+    _NdlStart.start_command(args)
 
 def _report_command(args):
     """Implements the 'ndl report' command."""

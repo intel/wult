@@ -268,7 +268,7 @@ def _deploy_command(args):
 def _scan_command(args):
     """Implements the 'wult scan' command."""
 
-    _Common.scan_command(args, _WULT_DEPLOY_INFO)
+    _Common.scan_command(args)
 
 def _start_command(args):
     """Implements the 'wult start' command."""
@@ -279,7 +279,7 @@ def _start_command(args):
 
     from wulttools.wult import _WultStart # pylint: disable=import-outside-toplevel
 
-    _WultStart.start_command(args, _WULT_DEPLOY_INFO)
+    _WultStart.start_command(args)
 
 def _report_command(args):
     """Implements the 'wult report' command."""

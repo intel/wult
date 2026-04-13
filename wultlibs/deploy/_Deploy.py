@@ -12,7 +12,7 @@ Note, "wult" is both name of the project and name of the tool in the project.
 """
 
 from pathlib import Path
-from pepclibs.helperlibs import Logging, ClassHelpers, ProjectFiles, ToolChecker
+from pepclibs.helperlibs import Logging, ClassHelpers, ToolChecker
 from pepclibs.helperlibs import KernelVersion
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.deploy import DeployBase, _DeployPyHelpers
@@ -55,86 +55,6 @@ def _get_module_path(pman, name):
     if pman.is_file(modpath):
         return modpath
     return None
-
-class DeployCheck(DeployBase.DeployCheckBase):
-    """
-    This class provides the 'check_deployment()' method which can be used for verifying whether all
-    the required installables are available on the SUT.
-    """
-
-    def _get_kver(self):
-        """Returns version of the kernel running on the SUT."""
-
-        if not self._kver:
-            self._kver = KernelVersion.get_kver(pman=self._spman)
-
-        return self._kver
-
-    def _check_drivers_deployment(self):
-        """Check if drivers are deployed and up-to-date."""
-
-        for drvname, instinfo in self._cats["drivers"].items():
-            _check_minkver(self._spman, instinfo, self._get_kver())
-
-            try:
-                subpath = _DeployDrivers.DRIVERS_SRC_SUBDIR / self._toolname
-                what = f"the '{drvname}' driver"
-                srcpath = ProjectFiles.find_project_data("wult", subpath, what=what)
-            except ErrorNotFound:
-                srcpath = None
-
-            for deployable in self._get_deployables("drivers"):
-                dstpath = _get_module_path(self._spman, deployable)
-                if not dstpath:
-                    self._deployable_not_found(drvname, deployable)
-                    break
-
-                if srcpath:
-                    self._check_deployable_up_to_date(drvname, deployable, srcpath, dstpath)
-
-    def _check_helpers_deployment(self):
-        """Check if simple helpers are deployed and up-to-date."""
-
-        for helpername in list(self._cats["shelpers"]):
-            _check_minkver(self._spman, self._insts[helpername], self._get_kver())
-
-            try:
-                subpath = HELPERS_SRC_SUBDIR / helpername
-                what = f"the '{helpername}' helper program"
-                srcpath = ProjectFiles.find_project_data("wult", subpath, what=what)
-            except ErrorNotFound:
-                srcpath = None
-
-            for deployable in self._get_deployables("shelpers"):
-                deployable_path = self._get_installed_deployable_path(deployable)
-                if srcpath:
-                    self._check_deployable_up_to_date(helpername, deployable, srcpath,
-                                                      deployable_path)
-
-    def _check_deployment(self):
-        """
-        Wult and other tools require additional helper programs and drivers to be installed on the
-        SUT. This method checks whether the required drivers and helper programs are installed on
-        the SUT and are up-to-date.
-        """
-
-        self._time_delta = None
-
-        if self._cats["drivers"]:
-            self._check_drivers_deployment()
-        if self._cats["shelpers"]:
-            self._check_helpers_deployment()
-
-    def __init__(self, prjname, toolname, deploy_info, pman=None):
-        """
-        The class constructor. The arguments are the same as in 'DeployCheckBase.__init__()'.
-        """
-
-        super().__init__(prjname, toolname, deploy_info, pman=pman)
-
-        # Version of the kernel running on the SUT, or version of the kernel to compile against.
-        self._kver = None
-        self._time_delta = None
 
 class Deploy(DeployBase.DeployBase):
     """

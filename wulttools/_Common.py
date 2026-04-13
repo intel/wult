@@ -22,11 +22,10 @@ import typing
 from pathlib import Path
 from pepclibs import ASPM
 from pepclibs.helperlibs import Logging, Trivial, YAML, ProcessManager, ArgParse
-from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
+from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.helperlibs import ReportID
 from statscollectlibs.collector import StatsCollectBuilder
 from wultlibs import Devices
-from wultlibs.deploy import _Deploy
 from wultlibs.helperlibs import Human
 
 if typing.TYPE_CHECKING:
@@ -34,7 +33,6 @@ if typing.TYPE_CHECKING:
     from typing import cast
     from pepclibs.helperlibs.ArgParse import SSHArgsTypedDict
     from pepclibs.helperlibs.ProcessManager import ProcessManagerType
-    from statscollectlibs.deploy.DeployBase import DeployInfoTypedDict
 
     class StartCmdlArgsTypedDict(SSHArgsTypedDict, total=False):
         """
@@ -406,65 +404,28 @@ def apply_filters(args, res):
     set_filters(args, res)
     res.load_df()
 
-def scan_command(args: argparse.Namespace, deploy_info: DeployInfoTypedDict):
-    """
-    Implement 'wult scan' command.
-
-    Args:
-        args: The command-line arguments.
-        deploy_info: The deployment information dictionary, used for checking the tool deployment.
-    """
+def scan_command(args: argparse.Namespace):
+    """Implement 'wult scan' command."""
 
     pman = get_pman(args)
 
-    found_something = False
-    supported_msgs = unsupported_msgs = ""
+    msgs = ""
 
     for dev in Devices.scan_devices(args.toolname, pman):
-        err_msg = None
-        found_something = True
-
-        deploy_info = reduce_installables(deploy_info, dev)
-        with _Deploy.DeployCheck("wult", args.toolname, deploy_info, pman=pman) as depl:
-            try:
-                depl.check_deployment()
-            except (ErrorNotFound, ErrorNotSupported) as err:
-                if not getattr(args, "all", False):
-                    _LOG.debug(err)
-                    continue
-                err_msg = str(err)
-
         msg = f"* Device ID: {dev.info['devid']}\n"
         if dev.info.get("alias"):
             msg += f"   - Alias: {dev.info['alias']}\n"
-        if err_msg:
-            # The error message may include newlines, align them to match our indentation.
-            err_msg = err_msg.replace("\n", "\n            ")
-            msg += f"   - Error: {err_msg}\n"
         msg += f"   - Resolution: {dev.info['resolution']} ns\n"
         msg += f"   - Description: {dev.info['descr']}\n"
 
-        if err_msg:
-            unsupported_msgs += msg
-        else:
-            supported_msgs += msg
+        msgs += msg
 
-    if not supported_msgs and not unsupported_msgs:
-        if not found_something:
-            _LOG.info("No %s compatible devices found", args.toolname)
-        else:
-            _LOG.info("There are compatible devices, but they are not supported by the current %s "
-                      "installation", args.toolname)
+    if not msgs:
+        _LOG.info("No %s compatible devices found", args.toolname)
         return
 
-    if supported_msgs:
-        _LOG.info("Compatible and supported device(s)%s:", pman.hostmsg)
-        _LOG.info("%s", supported_msgs.strip())
-    if unsupported_msgs:
-        if supported_msgs:
-            _LOG.info("")
-        _LOG.info("Compatible, but unsupported device(s)%s:", pman.hostmsg)
-        _LOG.info("%s", unsupported_msgs.strip())
+    _LOG.info("Compatible device(s)%s:", pman.hostmsg)
+    _LOG.info("%s", msgs.strip())
 
 def filter_command(args):
     """
@@ -606,30 +567,6 @@ def list_result_metrics(rsts):
         for metric in res.metrics:
             if metric in res.mdo.mdd:
                 _LOG.info("  * %s: %s", metric, res.mdo.mdd[metric]["title"])
-
-def reduce_installables(deploy_info, dev):
-    """
-    Reduce full deployment information 'deploy_info' so that it includes only the installables
-    required for using device 'dev'. The arguments are as follows.
-      * deploy_info - full deployment information dictionary. Check the 'DeployBase.__init__()'
-                      docstring for the format of the dictionary.
-      * dev - the device object created by 'Devices.GetDevice()'.
-
-    Return the reduced version of 'deploy_info'.
-    """
-
-    # Copy the original dictionary, 2 levels are enough.
-    result = {}
-    for key, value in deploy_info.items():
-        result[key] = value.copy()
-
-    for installable, info in deploy_info["installables"].items():
-        if info["category"] == "drivers" and not dev.drvname:
-            del result["installables"][installable]
-        elif info["category"] in ("shelpers",) and not dev.helpername:
-            del result["installables"][installable]
-
-    return result
 
 def start_command_check_network(args, pman, netif):
     """

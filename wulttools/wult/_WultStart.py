@@ -20,7 +20,6 @@ from pepclibs.helperlibs.Exceptions import Error, ErrorNotSupported
 from pepclibs.msr import PowerCtl
 from pepclibs import CPUIdle, CPUInfo, CPUModels
 from statscollectlibs.collector import StatsCollectBuilder
-from wultlibs.deploy import _Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.result import WORawResult
 from wultlibs import Devices, WultRunner
@@ -32,7 +31,6 @@ if typing.TYPE_CHECKING:
     from typing import cast
     from wulttools._Common import StartCmdlArgsTypedDict
     from pepclibs.helperlibs.ProcessManager import ProcessManagerType
-    from statscollectlibs.deploy.DeployBase import DeployInfoTypedDict
 
     class WultStartCmdlArgsTypedDict(StartCmdlArgsTypedDict, total=False):
         """
@@ -134,13 +132,12 @@ def _check_cpu_vendor(args, cpuinfo, pman):
         raise ErrorNotSupported("methods based on TSC deadline timer (TDT) support only Intel "
                                 "CPUs.\nPlease, use a non-TDT method for measuring AMD CPUs.")
 
-def start_command(args: argparse.Namespace, deploy_info: DeployInfoTypedDict):
+def start_command(args: argparse.Namespace):
     """
     Implement 'wult start' command.
 
     Args:
         args: The command-line arguments.
-        deploy_info: The deployment information dictionary, used for checking the tool deployment.
     """
 
     cmdl = _format_args(args)
@@ -194,10 +191,6 @@ def start_command(args: argparse.Namespace, deploy_info: DeployInfoTypedDict):
 
         dev = Devices.GetDevice(ToolInfo.TOOLNAME, args.devid, pman, cpu=args.cpu, dmesg=True)
         stack.enter_context(dev)
-
-        deploy_info = _Common.reduce_installables(deploy_info, dev)
-        with _Deploy.DeployCheck("wult", ToolInfo.TOOLNAME, deploy_info, pman=pman) as depl:
-            depl.check_deployment()
 
         if getattr(dev, "netif", None):
             _Common.start_command_check_network(args, pman, dev.netif)

@@ -20,7 +20,6 @@ from pepclibs.helperlibs import Logging, Trivial, ProcessManager
 from statscollectlibs.collector import StatsCollectBuilder
 from wultlibs.result import WORawResult
 from wultlibs.helperlibs import Human
-from wultlibs.deploy import _Deploy
 from wultlibs import Devices, PbeRunner
 from wulttools import _Common
 from wulttools.pbe import ToolInfo
@@ -30,7 +29,6 @@ if typing.TYPE_CHECKING:
     from typing import cast
     from wulttools._Common import StartCmdlArgsTypedDict
     from pepclibs.helperlibs.ProcessManager import ProcessManagerType
-    from statscollectlibs.deploy.DeployBase import DeployInfoTypedDict
 
     class PbeStartCmdlArgsTypedDict(StartCmdlArgsTypedDict, total=False):
         """
@@ -76,13 +74,12 @@ def _generate_report(cmdl: StartCmdlArgsTypedDict):
     rep = PbeReport.PbeReport(rsts, cmdl["outdir"] / "html-report", report_descr=cmdl["reportid"])
     rep.generate()
 
-def start_command(args: argparse.Namespace, deploy_info: DeployInfoTypedDict):
+def start_command(args: argparse.Namespace):
     """
     Implement 'pbe start' command.
 
     Args:
         args: The command-line arguments.
-        deploy_info: The deployment information dictionary, used for checking the tool deployment.
     """
 
     cmdl = _format_args(args)
@@ -141,10 +138,6 @@ def start_command(args: argparse.Namespace, deploy_info: DeployInfoTypedDict):
                                                    local_outdir=res.stats_path)
         if stcoll:
             stack.enter_context(stcoll)
-
-        deploy_info = _Common.reduce_installables(deploy_info, dev)
-        with _Deploy.DeployCheck("wult", ToolInfo.TOOLNAME, deploy_info, pman=pman) as depl:
-            depl.check_deployment()
 
         runner = PbeRunner.PbeRunner(pman, dev, res, cmdl["ldist"], span, warmup, stcoll,
                                      ldist_step_pct=ldist_step_pct,

@@ -21,7 +21,6 @@ from pepclibs.helperlibs import Logging, Trivial, ProcessManager
 from pepclibs.helperlibs.Exceptions import Error, ErrorNotFound, ErrorNotSupported
 from statscollectlibs.collector import StatsCollectBuilder
 from wultlibs import NdlRunner, Devices
-from wultlibs.deploy import _Deploy
 from wultlibs.helperlibs import Human
 from wultlibs.result import WORawResult
 from wulttools import _Common
@@ -32,7 +31,6 @@ if typing.TYPE_CHECKING:
     from typing import cast
     from wulttools._Common import StartCmdlArgsTypedDict
     from pepclibs.helperlibs.ProcessManager import ProcessManagerType
-    from statscollectlibs.deploy.DeployBase import DeployInfoTypedDict
 
     class NdlStartCmdlArgsTypedDict(StartCmdlArgsTypedDict, total=False):
         """
@@ -214,13 +212,12 @@ def _check_settings(args, pman, dev, cpuinfo):
                 _LOG.notice("%s is enabled, this may lead to lower C6 residency. It is "
                             "recommended to disable %s.", name, name)
 
-def start_command(args: argparse.Namespace, deploy_info: DeployInfoTypedDict):
+def start_command(args: argparse.Namespace):
     """
     Implement 'ndl start' command.
 
     Args:
         args: The command-line arguments.
-        deploy_info: The deployment information dictionary, used for checking the tool deployment.
     """
 
     cmdl = _format_args(args)
@@ -298,10 +295,6 @@ def start_command(args: argparse.Namespace, deploy_info: DeployInfoTypedDict):
                                                    local_outdir=res.stats_path)
         if stcoll:
             stack.enter_context(stcoll)
-
-        deploy_info = _Common.reduce_installables(deploy_info, dev)
-        with _Deploy.DeployCheck("wult", ToolInfo.TOOLNAME, deploy_info, pman=pman) as depl:
-            depl.check_deployment()
 
         _Common.start_command_check_network(args, pman, dev.netif)
         _check_settings(args, pman, dev, cpuinfo)

@@ -195,7 +195,7 @@ def _deploy_command(args):
 def _scan_command(args):
     """Implements the 'pbe scan' command."""
 
-    _Common.scan_command(args, _PBE_DEPLOY_INFO)
+    _Common.scan_command(args)
 
 def _start_command(args):
     """Implements the 'start' command."""
@@ -206,7 +206,7 @@ def _start_command(args):
 
     from wulttools.pbe import _PbeStart # pylint: disable=import-outside-toplevel
 
-    _PbeStart.start_command(args, _PBE_DEPLOY_INFO)
+    _PbeStart.start_command(args)
 
 def _report_command(args):
     """Implements the 'report' command."""
