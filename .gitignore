@@ -1,9 +1,10 @@
-*.pyc
-node_modules
 *.o
 *.ko
 *.mod
 *.cmd
 Module.symvers
 modules.order
+node_modules
+*.pyc
+.mypy_cache
 .vscode
