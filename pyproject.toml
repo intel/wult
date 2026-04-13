@@ -67,3 +67,4 @@ mypy_path = "../pepc:../stats-collect"
 [tool.pyright]
 # Disable the warning that makes it very hard working with typed dicts.
 reportTypedDictNotRequiredAccess = false
+extraPaths = ["../pepc", "../stats-collect"]
