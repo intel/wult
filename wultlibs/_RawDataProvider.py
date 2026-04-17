@@ -279,7 +279,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         if exitcode is None:
             _LOG.warning("the '%s' program PID %d%s failed to exit, killing it",
                          self._helpername, self._proc.pid, self._pman.hostmsg)
-            ProcHelpers.kill_pids(self._proc.pid, kill_children=True, must_die=False,
+            ProcHelpers.kill_pids((self._proc.pid,), kill_children=True, must_die=False,
                                   pman=self._pman)
 
         self._proc.close()

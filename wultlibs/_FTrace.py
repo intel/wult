@@ -173,7 +173,7 @@ class FTrace(ClassHelpers.SimpleCloseContext):
             if getattr(self._reader, "pid", None):
                 _LOG.debug("killing the function trace reader process PID %d%s",
                            self._reader.pid, self._pman.hostmsg)
-                ProcHelpers.kill_pids(self._reader.pid, kill_children=True, must_die=False,
+                ProcHelpers.kill_pids((self._reader.pid,), kill_children=True, must_die=False,
                                       pman=self._pman)
             self._reader.close()
 
