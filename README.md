@@ -20,8 +20,7 @@ information on the 'wult' and 'ndl' tools, how they work and what they can be us
 
 ## Installation
 
-Steps to install the tools are included as part of the documentation web pages in the
-[installation guide](https://intel.github.io/wult/pages/install-local.html).
+See the [installation guide](docs/guide-install.md).
 
 ## Usage
 
@@ -57,14 +56,3 @@ tools as listed below. For more general information on how to use the tools, see
  * `pbe deploy` - [Documentation](docs/pbe-deploy.rst)
  * `pbe start` - [Documentation](docs/pbe-start.rst)
  * `pbe report` - [Documentation](docs/pbe-report.rst)
-
-# Authors and contributors
-
-* Artem Bityutskiy <dedekind1@gmail.com> - original author, project maintainer.
-* Antti Laakso <antti.laakso@linux.intel.com> - contributor, project maintainer.
-* Adam Hawley <adam.james.hawley@intel.com> - contributor.
-* Tero Kristo <tero.kristo@intel.com> - contributor.
-* Ali Erdinç Köroğlu <ali.erdinc.koroglu@intel.com> - contributor.
-* Dapeng Mi <dapeng1.mi@intel.com> - contributor.
-* Juha Haapakorpi <juha.haapakorpi@intel.com> - contributor.
-* Vladislav Govtva <vlad.govtva@gmail.com> - contributor.
