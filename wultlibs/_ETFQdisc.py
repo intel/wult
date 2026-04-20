@@ -90,7 +90,7 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
         """
 
         # Kill a possibly stale 'phc2sys' process.
-        ProcHelpers.kill_processes(r"^phc2sys .*", kill_children=True, log=True,
+        ProcHelpers.signal_processes(r"^phc2sys .*", include_children=True, log=True,
                                    name="stale 'phc2sys' processes", pman=self._pman)
 
         freq = 1.0 / sync_period
@@ -109,7 +109,7 @@ class ETFQdisc(ClassHelpers.SimpleCloseContext):
 
         _LOG.debug("killing the the phc2sys process PID %d%s",
                    self._phc2sys_proc.pid, self._pman.hostmsg)
-        ProcHelpers.kill_pids((self._phc2sys_proc.pid,), kill_children=True, must_die=False,
+        ProcHelpers.signal_pids((self._phc2sys_proc.pid,), include_children=True, must_die=False,
                               pman=self._pman)
         self._phc2sys_proc.close()
         self._phc2sys_proc = None

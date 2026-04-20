@@ -152,7 +152,7 @@ class FTrace(ClassHelpers.SimpleCloseContext):
 
         self._reader_cmd = f"cat {self._paths['trace_pipe']}"
         name = "stale wult function trace reader process"
-        ProcHelpers.kill_processes(self._reader_cmd, kill_children=True, log=True, name=name,
+        ProcHelpers.signal_processes(self._reader_cmd, include_children=True, log=True, name=name,
                                    pman=self._pman)
 
         self._reset_state()
@@ -173,7 +173,7 @@ class FTrace(ClassHelpers.SimpleCloseContext):
             if getattr(self._reader, "pid", None):
                 _LOG.debug("killing the function trace reader process PID %d%s",
                            self._reader.pid, self._pman.hostmsg)
-                ProcHelpers.kill_pids((self._reader.pid,), kill_children=True, must_die=False,
+                ProcHelpers.signal_pids((self._reader.pid,), include_children=True, must_die=False,
                                       pman=self._pman)
             self._reader.close()
 

@@ -279,7 +279,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
         if exitcode is None:
             _LOG.warning("the '%s' program PID %d%s failed to exit, killing it",
                          self._helpername, self._proc.pid, self._pman.hostmsg)
-            ProcHelpers.kill_pids((self._proc.pid,), kill_children=True, must_die=False,
+            ProcHelpers.signal_pids((self._proc.pid,), include_children=True, must_die=False,
                                   pman=self._pman)
 
         self._proc.close()
@@ -290,7 +290,7 @@ class HelperRawDataProviderBase(RawDataProviderBase):
 
         # Kill stale helper process, if any.
         regex = f"^.*{self._helper_path} .*$"
-        ProcHelpers.kill_processes(regex, log=True, name=f"stale '{self._helpername}' process",
+        ProcHelpers.signal_processes(regex, log=True, name=f"stale '{self._helpername}' process",
                                    pman=self._pman)
 
     def _get_ldist_limits(self):
