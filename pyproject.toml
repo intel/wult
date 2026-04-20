@@ -23,8 +23,8 @@ dependencies = [
     "pyyaml",
     "numpy",
     "pandas>=2.1.0",
-    "pepc>=1.6.23",
-    "stats-collect>=1.0.66",
+    "pepc>=2.0.0",
+    "stats-collect>=1.0.67",
 ]
 
 [tool.setuptools.packages.find]

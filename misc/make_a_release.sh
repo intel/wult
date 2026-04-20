@@ -50,7 +50,7 @@ RST_FILES="$BASEDIR/docs/wult-calc.rst
            $BASEDIR/docs/pbe-start.rst"
 
 # Path to the script that prepares CHANGELOG.md for the release.
-PREPARE_CHENGELOG_MD="$BASEDIR/../pepc/misc/prepare_changelog_md"
+PREPARE_CHENGELOG_MD="$BASEDIR/../stats-collect/misc/prepare_changelog_md"
 
 fatal() {
         printf "$PROG: error: %s\n" "$1" >&2
