@@ -1,6 +1,6 @@
 [project]
 name = "wult"
-version = "1.12.61"
+version = "1.12.62"
 description = "Tools for measuring C-state latency and power break even."
 authors = [
     { name = "Artem Bityutskiy", email = "dedekind@gmail.com" }
@@ -23,8 +23,8 @@ dependencies = [
     "pyyaml",
     "numpy",
     "pandas>=2.1.0",
-    "pepc>=2.0.0",
-    "stats-collect>=1.0.67",
+    "pepc>=2.0.1",
+    "stats-collect>=1.0.68",
 ]
 
 [tool.setuptools.packages.find]
