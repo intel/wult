@@ -10,7 +10,45 @@
 
 """ndl - a tool for measuring memory access latency observed by a network card."""
 
-from wulttools.ndl._Ndl import main
+import sys
+from pathlib import Path
+
+_prjroot = Path(__file__).parent
+
+# This script can be run in two ways:
+#   1. From a source tree - the script resides in the project root alongside the 'wulttools'
+#      directory. The 'pepc' and 'stats-collect' projects are expected to be checked out next to
+#      the project root.
+#   2. From an installation - the script is installed (e.g., under '/usr/bin'), and
+#      'wulttools', 'statscollecttools', and 'pepclibs' are installed as regular Python packages.
+#
+# In case 1, we need to add the project root and the 'pepc' and 'stats-collect' project
+# directories to 'sys.path' before importing anything, so that Python resolves 'wulttools',
+# 'statscollecttools', and 'pepclibs' from the source tree. This must be done upfront - before
+# any import - to prevent Python from finding and partially importing a system-installed version
+# first, and then mixing it with the source version.
+if (_prjroot / "wulttools").is_dir():
+    _pepcroot = _prjroot.parent / "pepc"
+    if not _pepcroot.is_dir():
+        print(f"Error: 'wulttools' source found at '{_prjroot}' but the 'pepc' project "
+              f"directory was not found at '{_pepcroot}'", file=sys.stderr)
+        raise SystemExit(1)
+    _stcroot = _prjroot.parent / "stats-collect"
+    if not _stcroot.is_dir():
+        print(f"Error: 'wulttools' source found at '{_prjroot}' but the 'stats-collect' project "
+              f"directory was not found at '{_stcroot}'", file=sys.stderr)
+        raise SystemExit(1)
+    sys.path.insert(0, str(_stcroot))
+    sys.path.insert(0, str(_pepcroot))
+    sys.path.insert(0, str(_prjroot))
+
+try:
+    from wulttools.ndl._Ndl import main
+except ImportError as err:
+    print(f"Error: Cannot import 'wulttools': {err}", file=sys.stderr)
+    print("Make sure 'wulttools' is installed, or run the script from its source tree",
+          file=sys.stderr)
+    raise SystemExit(1) from None
 
 if __name__ == "__main__":
     raise SystemExit(main())
