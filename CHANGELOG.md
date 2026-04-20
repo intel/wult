@@ -5,11 +5,15 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.12.61] - 2026-04-20
+### Fixed
  - Fix scatter plot visualization: remove vertical bands.
 ### Added
  - exercise-sut: Add C6A support.
-### Removed
-### Changed
 
 ## [1.12.60] - 2026-02-05
 ### Changed
