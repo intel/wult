@@ -35,10 +35,6 @@ ARTICLE_EXCLUDES = ["results"]
 
 MENUITEMS = (
     ("How it works", "/pages/how-it-works.html"),
-    ("Install", [
-        ("Local usage (standard case)", "/pages/install-local.html"),
-        ("Remote usage", "/pages/install-remote.html"),
-    ]),
     ("Use", "/pages/user-guide.html"),
     ("Howto", [
         ("Creating HTML reports", "/pages/howto-create-reports.html"),
