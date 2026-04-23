@@ -214,19 +214,17 @@ Two `~/.bashrc` snippets are provided below for quick reference.
 **Option 1: refresh**
 
 The alias pre-authorizes `sudo` credentials before invoking the tool. Requires passwordless `sudo`
-or prompts once per session.
+or prompts once per session. Supported by `pepc` (and is its default), but not yet supported by
+the wult tools. Refresh support for the wult tools is planned for a future release.
 
 ```bash
 alias pepc='sudo -v && pepc'
-alias wult='sudo -v && wult'
-alias ndl='sudo -v && ndl'
-alias pbe='sudo -v && pbe'
-alias exercise-sut='sudo -v && exercise-sut'
 ```
 
 **Option 2: wrap**
 
-The alias passes the virtual environment variables to `sudo` explicitly.
+The alias passes the virtual environment variables to `sudo` explicitly. This is the only supported
+option for the wult tools. It also works for `pepc`.
 
 ```bash
 VENV="$HOME/.pmtools"
@@ -275,8 +273,9 @@ man wult-start
 
 ### Example of .bashrc
 
-The example below is for a `pip`-based installation into `~/.pmtools`, using the `refresh` sudo
-approach. Adjust paths and the sudo alias as needed for your setup.
+The example below is for a `pip`-based installation into `~/.pmtools`. `pepc` uses the `refresh`
+sudo style (its default). The wult tools use the `wrap` style (the only style currently
+supported). Adjust paths and the sudo aliases as needed for your setup.
 
 ```bash
 # === pepc, stats-collect, and wult settings ===
@@ -286,12 +285,13 @@ VENV_BIN="$VENV/bin"
 # Ensure the virtual environment's bin directory is in the PATH.
 export PATH="$PATH:$VENV_BIN"
 
-# Sudo aliases: pre-authorize sudo credentials before invoking the tools.
+# Sudo alias for pepc: pre-authorize sudo credentials (refresh style).
 alias pepc='sudo -v && pepc'
-alias wult='sudo -v && wult'
-alias ndl='sudo -v && ndl'
-alias pbe='sudo -v && pbe'
-alias exercise-sut='sudo -v && exercise-sut'
+# Sudo aliases for wult tools: pass virtual environment to sudo (wrap style).
+alias wult="sudo PATH=$PATH VIRTUAL_ENV=$VENV $VENV_BIN/wult"
+alias ndl="sudo PATH=$PATH VIRTUAL_ENV=$VENV $VENV_BIN/ndl"
+alias pbe="sudo PATH=$PATH VIRTUAL_ENV=$VENV $VENV_BIN/pbe"
+alias exercise-sut="sudo PATH=$PATH VIRTUAL_ENV=$VENV $VENV_BIN/exercise-sut"
 
 # Enable tab completion for all wult tools.
 eval "$($VENV_BIN/register-python-argcomplete wult)"
