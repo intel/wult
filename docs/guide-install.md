@@ -71,7 +71,7 @@ Run `tools/install-wult` without arguments. It fetches and installs the latest `
 `stats-collect`, and `wult` releases directly from GitHub.
 
 ```bash
-./tools/install-wult
+sudo -v && ./tools/install-wult
 ```
 
 **Install from local clones**
@@ -80,17 +80,30 @@ Use `--src-path` to install from the local clones instead. The script automatica
 `pepc` and `stats-collect` in the sibling directories (`../pepc` and `../stats-collect`).
 
 ```bash
-./tools/install-wult --src-path .
+sudo -v && ./tools/install-wult --src-path .
 ```
 
-The script adds `wult` configuration to your `~/.bashrc`. Re-login or source `~/.bashrc` to apply
-the changes.
+**Note**: the script runs most steps as the current user, but it requires `sudo` for installing OS
+dependencies. The `sudo -v` pre-authorizes `sudo` credentials so the script can install
+dependencies without prompting for a password.
 
-```bash
-. ~/.bashrc
-```
+**What the script does**
 
-`tools/install-wult` has additional options to tune the installation (e.g. the installation path),
+The script performs the steps described below in the [Manual Installation](#manual-installation)
+section. Here is a high-level overview:
+
+- Install OS dependencies using the system package manager (`dnf` or `apt`).
+- Create a Python virtual environment in `~/.pmtools` and install `pepc`, `stats-collect`, `wult`,
+  and their Python dependencies there.
+- Create `~/.pmtools/.pepc-rc.sh`, `~/.pmtools/.stats-collect-rc.sh`, and
+  `~/.pmtools/.wult-rc.sh` with all the necessary configuration and add lines to `~/.bashrc` to
+  source them. The configuration includes the following:
+  - Add `~/.pmtools/bin` to `PATH`.
+  - Configure tab completions.
+  - Configure manual pages.
+  - Create `sudo` aliases for all the tools (`wult`, `pepc`, etc.).
+
+`tools/install-wult` has additional options to tune the installation (e.g., the installation path),
 install `wult` on a remote host over SSH, and control `sudo` alias creation and style. Run
 `./tools/install-wult --help` to see all available options.
 
