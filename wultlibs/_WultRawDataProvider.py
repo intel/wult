@@ -11,7 +11,7 @@ This module provides API for reading raw wult datapoints, as well as initializin
 """
 
 from pepclibs.helperlibs import Logging, Trivial, ClassHelpers, Systemctl
-from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut, ErrorNotFound
+from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut, ErrorNotSupported
 from wultlibs import _FTrace, _RawDataProvider
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
@@ -153,9 +153,9 @@ class WultRawDataProvider(_RawDataProvider.DrvRawDataProviderBase):
         try:
             self._sysctl = Systemctl.Systemctl(pman=self._pman)
             msg_fmt = ""
-        except ErrorNotFound:
+        except ErrorNotSupported:
             msg_fmt = f"cannot check if %s service is active, because the 'systemctl' tool " \
-                         f"was not found{self._pman.hostmsg}."
+                      f"was not found{self._pman.hostmsg}."
 
         if self.dev.drvname == "wult_igb":
             # The 'irqbalance' service usually causes problems by binding the delayed events (NIC

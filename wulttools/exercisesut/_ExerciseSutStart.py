@@ -13,6 +13,7 @@ import contextlib
 import itertools
 from pepclibs import CPUIdle, CPUInfo
 from pepclibs.helperlibs import Logging, Trivial, Systemctl
+from pepclibs.helperlibs.Exceptions import ErrorNotSupported
 from statscollecttools import ToolInfo as StcToolInfo
 from wulttools._Common import get_pman
 from wulttools.exercisesut import _Common, ToolInfo, _CmdBuilder, _PepcCmdBuilder
@@ -131,11 +132,15 @@ def start_command(args):
         runner = _Common.CmdlineRunner(dry_run=args.dry_run, ignore_errors=args.ignore_errors)
         stack.enter_context(runner)
 
-        systemctl = Systemctl.Systemctl(pman=pman)
-        stack.enter_context(systemctl)
+        try:
+            systemctl = Systemctl.Systemctl(pman=pman)
+        except ErrorNotSupported:
+            systemctl = None
 
-        if systemctl.is_active("tuned"):
-            systemctl.stop("tuned", save=True)
+        if systemctl is not None:
+            stack.enter_context(systemctl)
+            if systemctl.is_active("tuned"):
+                systemctl.stop("tuned", save=True)
 
         if args.deploy:
             _deploy(wcb, runner)
@@ -170,5 +175,5 @@ def start_command(args):
                 prev_cpu = cpu
                 _LOG.info("")
 
-        if systemctl:
+        if systemctl is not None:
             systemctl.restore()
