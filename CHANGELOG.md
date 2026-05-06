@@ -9,6 +9,10 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 ### Changed
 
+## [1.12.63] - 2026-05-06
+### Fixed
+ - wult: Fix failure when not finiding systemctl.
+
 ## [1.12.62] - 2026-04-20
 ### Fixed
  - Fix failure generating report due to missing data.
