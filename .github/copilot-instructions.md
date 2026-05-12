@@ -1,0 +1,1 @@
+../../pepc/.github/copilot-instructions.md
