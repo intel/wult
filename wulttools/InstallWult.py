@@ -74,7 +74,6 @@ WULT_GIT_INSTALL_SRC: Final[str] = "git+https://github.com/intel/wult.git@releas
 
 # The tools wult relies on to be installed and to operate.
 WULT_DEPENDENCIES: Final[tuple[str, ...]] = (
-    "virtualenv",
     "pip3",
     "cat",
     "id",
