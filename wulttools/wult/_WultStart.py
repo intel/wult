@@ -156,9 +156,9 @@ def start_command(args: argparse.Namespace):
                 args.tlimit = f"{args.tlimit}m"
             args.tlimit = Human.parse_human(args.tlimit, unit="s", integer=True, what="time limit")
 
-        if not Trivial.is_int(args.dpcnt) or int(args.dpcnt) <= 0:
+        if not Trivial.is_int(args.dpcnt) or Trivial.str_to_int(args.dpcnt) <= 0:
             raise Error(f"bad datapoints count '{args.dpcnt}', should be a positive integer")
-        args.dpcnt = int(args.dpcnt)
+        args.dpcnt = Trivial.str_to_int(args.dpcnt)
 
         args.tsc_cal_time = Human.parse_human(args.tsc_cal_time, unit="s",
                                               what="TSC calculation time", integer=True)
