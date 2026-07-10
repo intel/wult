@@ -25,4 +25,13 @@
 #define rdmsrq_safe(_reg, _val) rdmsrl_safe((_reg), (_val))
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(7, 2, 0)
+#define get_nmi_count(wi) per_cpu(irq_stat, (wi)->cpu).__nmi_count
+#ifndef rdmsrq
+#define rdmsrq(_reg, _val) rdmsrl((_reg), (_val))
+#endif
+#else
+#define get_nmi_count(wi) per_cpu(irq_stat, (wi)->cpu).counts[IRQ_COUNT_NMI]
+#endif
+
 #endif /* _WULT_COMPAT_H_ */

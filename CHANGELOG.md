@@ -5,6 +5,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix wult driver compilation issues with kernel v7.2-rc2.
 ### Added
 ### Removed
 ### Changed
