@@ -147,7 +147,7 @@ void wult_tracer_interrupt(struct wult_info *wi)
 	 * the measurements. Therefore, they have to be read last.
 	 */
 	ti->smi_intr = get_smi_count();
-	ti->nmi_bi = get_nmi_count(wi);
+	ti->nmi_intr = get_nmi_count(wi);
 }
 
 static void cpu_idle_hook(void *data, unsigned int req_cstate, unsigned int cpu_id)
