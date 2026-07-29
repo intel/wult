@@ -14,8 +14,6 @@ Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 ## Table of Contents
 
-- [Wult Packages](#wult-packages)
-- [Running From Source](#running-from-source)
 - [Installation Script](#installation-script)
 - [Manual Installation](#manual-installation)
   - [Wult Package Dependencies](#wult-package-dependencies)
@@ -25,29 +23,7 @@ Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
   - [Tab completions](#tab-completions)
   - [Man pages](#man-pages)
   - [Example of .bashrc](#example-of-bashrc)
-
-## Wult Packages
-
-Some Linux distributions provide `wult` as an installable package. However, these packages are out
-of date, do not use them.
-
-## Running From Source
-
-The wult project provides four tools: `wult`, `ndl`, `pbe`, and `exercise-sut`. You can run them
-directly from the source code without installation. Clone all three repositories (`pepc` and
-`stats-collect` are required as dependencies), and run the tools from the cloned directory.
-
-```bash
-git clone https://github.com/intel/pepc.git
-git clone https://github.com/intel/stats-collect.git
-git clone https://github.com/intel/wult.git
-cd wult
-./wult --help
-```
-
-This method is not recommended for regular use. For regular use, a proper installation is
-recommended: it configures shell tab completions and man pages, so commands like `man wult-start`
-work out of the box.
+- [Running From Source](#running-from-source)
 
 ## Installation Script
 
@@ -55,6 +31,9 @@ The `tools/install-wult` script is the simplest way to install `wult`. It takes 
 everything: installing `pepc` and `stats-collect` (required dependencies), installing OS
 dependencies, creating the Python virtual environment, configuring shell tab completions, man
 pages, and adding `sudo` aliases if needed.
+
+**Note**: Some Linux distributions provide `wult` as an installable package, but those packages
+are out of date. Do not use them.
 
 Clone all three repositories. The installation script spans all of them:
 
@@ -304,3 +283,21 @@ eval "$($VENV_BIN/register-python-argcomplete exercise-sut)"
 export MANPATH="$MANPATH:$($VENV_BIN/wult --print-man-path)"
 # === end of pepc, stats-collect, and wult settings ===
 ```
+
+## Running From Source
+
+The wult project provides four tools: `wult`, `ndl`, `pbe`, and `exercise-sut`. You can run them
+directly from the source code without installation. Clone all three repositories (`pepc` and
+`stats-collect` are required as dependencies), and run the tools from the cloned directory.
+
+```bash
+git clone https://github.com/intel/pepc.git
+git clone https://github.com/intel/stats-collect.git
+git clone https://github.com/intel/wult.git
+cd wult
+./wult --help
+```
+
+This method is not recommended for regular use. For regular use, a proper installation is
+recommended: it configures shell tab completions and man pages, so commands like `man wult-start`
+work out of the box.
