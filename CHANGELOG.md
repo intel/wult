@@ -5,6 +5,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.12.66] - 2026-07-29
+### Fixed
  - Remove pepc and stats-collect from pip dependencies to prevent a dependency
    confusion attack.
  - No tool functionality changes, just packaging and installation improvements.

@@ -11,5 +11,5 @@ This module provides constants for information about the 'pbe' tool, such as ver
 and tool name.
 """
 
-VERSION = "1.12.65"
+VERSION = "1.12.66"
 TOOLNAME = "pbe"
