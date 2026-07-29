@@ -17,14 +17,19 @@ classifiers = [
     "Topic :: System :: Operating System Kernels :: Linux",
     "Programming Language :: Python :: 3 :: Only",
 ]
+# Requires: pepc>=2.0.1
+# Requires: stats-collect>=1.0.68
+#
+# pepc (https://github.com/intel/pepc) and stats-collect
+# (https://github.com/intel/stats-collect) are not listed as pip dependencies to prevent a
+# dependency confusion attack: neither is on PyPI, so an attacker could register malicious packages
+# under the same names. Install pepc and stats-collect separately before installing wult.
 dependencies = [
     "argcomplete",
     "colorama",
     "pyyaml",
     "numpy",
     "pandas>=2.1.0",
-    "pepc>=2.0.1",
-    "stats-collect>=1.0.68",
 ]
 
 [tool.setuptools.packages.find]
