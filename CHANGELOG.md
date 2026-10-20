@@ -5,6 +5,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+ - Fix minor bug where --ldist X,X (same value) was rejected.
 ### Added
 ### Removed
 ### Changed
