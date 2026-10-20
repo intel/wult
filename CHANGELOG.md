@@ -5,10 +5,13 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
- - Fix minor bug where --ldist X,X (same value) was rejected.
 ### Added
 ### Removed
 ### Changed
+
+## [1.12.68] - 2026-10-20
+### Fixed
+ - Fix minor bug where --ldist X,X (same value) was rejected.
 
 ## [1.12.67] - 2026-08-14
 ### Fixed
