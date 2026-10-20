@@ -280,7 +280,8 @@ def _init_ldist(cmdl: StartCmdlArgsTypedDict, ldist_str: str):
         Launch distance range as a tuple of two integers in nanoseconds.
     """
 
-    ldist = Human.parse_human_range(ldist_str, unit="us", target_unit="ns", what="launch distance")
+    ldist = Human.parse_human_range(ldist_str, unit="us", target_unit="ns", what="launch distance",
+                                    allow_equal=True)
     if ldist[0] < 0 or ldist[1] < 0:
         raise Error(f"Bad launch distance range '{ldist_str}', values cannot be negative")
 
