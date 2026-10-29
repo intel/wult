@@ -128,7 +128,7 @@ class ReportBase:
 
         return smry_funcs
 
-    def _gen_stime_ldist_tab(self, tab_metrics, hover_defs):
+    def _gen_stime_ldist_tab(self, tab_metrics, hover_mds):
         """
         Generate a tab for the 'SilentTime' and/or 'LDist' metrics. Return 'None', if the tab had to
         be skipped for some reason.
@@ -166,7 +166,7 @@ class ReportBase:
 
         dtab_bldr = _MetricDTabBuilder.MetricDTabBuilder(self.rsts, self.outdir, tab_mdef)
         dtab_bldr.title = tab_config["title"]
-        dtab_bldr.add_plots(s_defs, h_defs, hover_defs=hover_defs)
+        dtab_bldr.add_plots(s_defs, h_defs, hover_mds=hover_mds)
 
         smry_metrics = [metric for metric in tab_config["smry_metrics"] if metric in tab_metrics]
         smry_funcs = self._get_smry_funcs(smry_metrics)
