@@ -78,9 +78,7 @@ The methods work similarly, but the data they generate differs slightly. The tim
 - `LDist`: Launch distance, the time in nanoseconds from arming the event to when it should fire.
 - `LTime`: Launch time, the absolute time the event was scheduled for.
 - `TBI`: Time before idle, read with interrupts disabled just before entering idle.
-- `TAI`: Time after idle, read in the after-idle code that follows the `MWAIT` instruction. It is
-  not read right after exiting idle if the interrupt handler runs first. See
-  [After-Idle Code and Interrupt Handler](#after-idle-code-and-interrupt-handler).
+- `TAI`: Time after idle, read in the after-idle code that follows the `MWAIT` instruction.
 - `TIntr`: Time read in the interrupt handler.
 
 The picture below illustrates these metrics. It shows the most common case, when the after-idle code
