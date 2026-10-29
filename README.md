@@ -8,15 +8,30 @@ SPDX-License-Identifier: BSD-3-Clause
 Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 -->
 
-# Introduction
+# Wult, Ndl, Pbe
 
-Wult stands for "Wake Up Latency Tracer", and this is a project that provides tools for measuring
-C-state latency in Linux.
+Wult stands for "Wake Up Latency Tracer", and this is both project name and one of the tool names in
+the project.
 
-# Documentation
+I do not actively work on this project. But I fix bugs.
 
-Please, refer to the [documentation web pages](https://intel.github.io/wult) for detailed
-information on the 'wult' and 'ndl' tools, how they work and what they can be used to measure.
+## Tabel of Contents
+
+- [Wult, Ndl, Pbe](#wult-ndl-pbe)
+  - [Tabel of Contents](#tabel-of-contents)
+  - [Documentation](#documentation)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Wult](#wult)
+    - [Ndl](#ndl)
+    - [Pbe](#pbe)
+    - [Exercise-sut](#exercise-sut)
+
+## Documentation
+
+Please, refer to the [documentation web pages](https://intel.github.io/wult) for documentation.
+
+The data that `wult` collects and stores is described in [Wult Data](docs/wult-data.md).
 
 ## Installation
 
@@ -24,35 +39,37 @@ See the [installation guide](docs/guide-install.md).
 
 ## Usage
 
-Command-specific documentation is available for each command of the 'wult', 'ndl' and 'exercise-sut'
-tools as listed below. For more general information on how to use the tools, see the
+Some documentation can be found in the
 [user guide](https://intel.github.io/wult/pages/user-guide.html).
 
-### WULT
+Below are manual pages, auto-generated from help text of the tools.
 
- * `wult scan` - [Documentation](docs/wult-scan.rst)
- * `wult deploy` - [Documentation](docs/wult-deploy.rst)
- * `wult start` - [Documentation](docs/wult-start.rst)
- * `wult report` - [Documentation](docs/wult-report.rst)
- * `wult filter` - [Documentation](docs/wult-filter.rst)
- * `wult calc` - [Documentation](docs/wult-calc.rst)
+### Wult
 
-### NDL
+- `wult scan` - [Documentation](docs/wult-scan.rst)
+- `wult deploy` - [Documentation](docs/wult-deploy.rst)
+- `wult start` - [Documentation](docs/wult-start.rst)
+- `wult report` - [Documentation](docs/wult-report.rst)
+- `wult filter` - [Documentation](docs/wult-filter.rst)
+- `wult calc` - [Documentation](docs/wult-calc.rst)
 
- * `ndl scan` - [Documentation](docs/ndl-scan.rst)
- * `ndl deploy` - [Documentation](docs/ndl-deploy.rst)
- * `ndl start` - [Documentation](docs/ndl-start.rst)
- * `ndl report` - [Documentation](docs/ndl-report.rst)
- * `ndl filter` - [Documentation](docs/ndl-filter.rst)
- * `ndl calc` - [Documentation](docs/ndl-calc.rst)
+### Ndl
 
-### Exercise-Sut
+- `ndl scan` - [Documentation](docs/ndl-scan.rst)
+- `ndl deploy` - [Documentation](docs/ndl-deploy.rst)
+- `ndl start` - [Documentation](docs/ndl-start.rst)
+- `ndl report` - [Documentation](docs/ndl-report.rst)
+- `ndl filter` - [Documentation](docs/ndl-filter.rst)
+- `ndl calc` - [Documentation](docs/ndl-calc.rst)
 
- * `exercise-sut start` - [Documentation](docs/exercise-sut-start.rst)
- * `exercise-sut report` - [Documentation](docs/exercise-sut-report.rst)
+### Pbe
 
-### PBE
- * `pbe scan` - [Documentation](docs/pbe-scan.rst)
- * `pbe deploy` - [Documentation](docs/pbe-deploy.rst)
- * `pbe start` - [Documentation](docs/pbe-start.rst)
- * `pbe report` - [Documentation](docs/pbe-report.rst)
+- `pbe scan` - [Documentation](docs/pbe-scan.rst)
+- `pbe deploy` - [Documentation](docs/pbe-deploy.rst)
+- `pbe start` - [Documentation](docs/pbe-start.rst)
+- `pbe report` - [Documentation](docs/pbe-report.rst)
+
+### Exercise-sut
+
+- `exercise-sut start` - [Documentation](docs/exercise-sut-start.rst)
+- `exercise-sut report` - [Documentation](docs/exercise-sut-report.rst)
