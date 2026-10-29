@@ -46,8 +46,7 @@ The data is produced and stored in the following steps.
    points, and sends them to user-space via the `wult_cpu_idle` synthetic trace event.
 2. User-space receives the driver data.
 3. User-space calculates the final metrics based on the driver data.
-4. User-space saves the metrics in the `datapoints.csv` file. Each row of the file is one
-   datapoint.
+4. User-space saves the metrics in the `datapoints.csv` file. Each row of the file is one datapoint.
 
 By default, `wult start` strips the `datapoints.csv` file to keep it small. Most of the data
 produced by the kernel driver, for example the raw time-stamps, are dropped, and only the processed
@@ -59,36 +58,43 @@ metrics are saved. To save all the driver data, use the `--keep-raw-data` option
 
 There are 3 measurement methods, each with its own driver.
 
-- `tdt` (driver `wult_tdt`) - Uses TSC as the time source. Events are armed with an hrtimer, and
-  the launch time is taken from the x86 TSC deadline timer register (`MSR_IA32_TSC_DEADLINE`, 0x6E0)
-  for higher precision.
+- `tdt` (driver `wult_tdt`) - Uses TSC as the time source. Events are armed with an hrtimer, and the
+  launch time is taken from the x86 TSC deadline timer register (`MSR_IA32_TSC_DEADLINE`, 0x6E0) for
+  higher precision.
 - `hrt` (driver `wult_hrt`) - Uses the Linux `CLOCK_MONOTONIC` clock as the time source and an
   hrtimer as the event.
 - `i210` (driver `wult_igb`) - Uses the Intel I210 NIC clock as the time source and a NIC interrupt
   as the event.
 
 The methods work similarly, but the data they generate differs slightly. The time metrics (`LTime`,
-`TBI`, `TAI` and `TIntr`) are in TSC cycles for `tdt` and in nanoseconds for the other methods.
+`TBI`, `TAI` and `TIntr`) have the following values:
+
+- `tdt`: TSC counter value of the measured CPU, in TSC cycles.
+- `hrt`: `CLOCK_MONOTONIC` value, in nanoseconds.
+- `i210`: NIC clock value, in nanoseconds.
 
 ### Core Metrics
 
 - `LDist`: Launch distance, the time in nanoseconds from arming the event to when it should fire.
 - `LTime`: Launch time, the absolute time the event was scheduled for.
-  - `tdt`: TSC counter value of the measured CPU.
-  - `hrt`: `CLOCK_MONOTONIC` value, in nanoseconds.
-  - `i210`: NIC clock value, in nanoseconds.
 - `TBI`: Time before idle, read with interrupts disabled just before entering idle.
-  - `tdt`: TSC counter value of the measured CPU.
-  - `hrt`: `CLOCK_MONOTONIC` value, in nanoseconds.
-  - `i210`: NIC clock value, in nanoseconds.
-- `TAI`: Time after idle, read right after exiting idle.
-  - `tdt`: TSC counter value of the measured CPU.
-  - `hrt`: `CLOCK_MONOTONIC` value, in nanoseconds.
-  - `i210`: NIC clock value, in nanoseconds.
+- `TAI`: Time after idle, read in the after-idle code that follows the `MWAIT` instruction. It is
+  not read right after exiting idle if the interrupt handler runs first. See
+  [After-Idle Code and Interrupt Handler](#after-idle-code-and-interrupt-handler).
 - `TIntr`: Time read in the interrupt handler.
-  - `tdt`: TSC counter value of the measured CPU.
-  - `hrt`: `CLOCK_MONOTONIC` value, in nanoseconds.
-  - `i210`: NIC clock value, in nanoseconds.
+
+The picture below illustrates these metrics. It shows the most common case, when the after-idle code
+runs before the interrupt handler. See
+[After-Idle Code and Interrupt Handler](#after-idle-code-and-interrupt-handler) for details.
+
+```text
+    | set up |      CPU is in C-state       | C-state exit | after-idle code | interrupt handler |
+    +--------+------------------------------+--------------+-----------------+-------------------+
+    ^        ^                              ^               ^                 ^
+    arm      TBI                            LTime           TAI               TIntr
+    |<--------------- LDist --------------->|
+```
+
 - `ReqCState`: Index of the C-state requested by the idle governor. It is the `<index>` in the
   `/sys/devices/system/cpu/cpu*/cpuidle/state<index>` sysfs directory of the C-state.
 - `AITS1`, `AITS2`: `CLOCK_MONOTONIC` time in nanoseconds at the start and at the end of the
@@ -97,22 +103,18 @@ The methods work similarly, but the data they generate differs slightly. The tim
   interrupt handler. See [Overhead](#overhead).
 - `TotCyc`: Total TSC cycles in the measurement interval. See
   [C-State Residency](#c-state-residency).
-- `CC0Cyc`: Cycles the CPU spent in C0, counted by `MPERF` in the measurement interval. See
-  [C-State Residency](#c-state-residency).
-  - All methods: `MPERF` cycles, which tick at a rate close to the TSC rate.
+- `CC0Cyc`: Cycles the CPU spent in C0, counted by `MPERF` in the measurement interval. `MPERF`
+  ticks at a rate close to the TSC rate. See [C-State Residency](#c-state-residency).
 - `SMICnt`: Number of SMIs that happened between before idle and the interrupt, read from
   `MSR_SMI_COUNT` (0x34). Intel only, zero on other CPUs.
 - `NMICnt`: Number of NMIs that happened between before idle and the interrupt.
-- `AIAperf`, `IntrAperf`: Raw `APERF` value after idle and in the interrupt handler. See
-  [CPU Frequency](#cpu-frequency).
-  - All methods: `APERF` cycles, which tick at the actual core clock rate.
-- `AIMperf`, `IntrMperf`: Raw `MPERF` value after idle and in the interrupt handler. See
-  [CPU Frequency](#cpu-frequency).
-  - All methods: `MPERF` cycles, which tick at a rate close to the TSC rate.
-- `BICyc`: TSC value read before idle, taken close to `BIMonotonic`. See [TSC Rate](#tsc-rate).
-  - All methods: TSC counter value of the measured CPU.
-- `BIMonotonic`: `CLOCK_MONOTONIC` time in nanoseconds read before idle. See
+- `AIAperf`, `IntrAperf`: Raw `APERF` value after idle and in the interrupt handler. `APERF` ticks
+  at the actual core clock rate. See [CPU Frequency](#cpu-frequency).
+- `AIMperf`, `IntrMperf`: Raw `MPERF` value after idle and in the interrupt handler. `MPERF` ticks
+  at a rate close to the TSC rate. See [CPU Frequency](#cpu-frequency).
+- `BICyc`: TSC counter value of the measured CPU read before idle, taken close to `BIMonotonic`. See
   [TSC Rate](#tsc-rate).
+- `BIMonotonic`: `CLOCK_MONOTONIC` time in nanoseconds read before idle. See [TSC Rate](#tsc-rate).
 
 ### C-State Residency Metrics
 
@@ -141,15 +143,15 @@ initialization time. The possible metrics are:
 
 ### i210-Specific Metrics
 
-These metrics are specific to the `i210` method. The other methods always set the `*Adj` metrics
-to zero, and do not provide the other metrics. The `*Adj` metrics are described in
+These metrics are specific to the `i210` method. The other methods always set the `*Adj` metrics to
+zero, and do not provide the other metrics. The `*Adj` metrics are described in
 [Adjustments](#adjustments-i210-only).
 
 - `TBIAdj`: Adjustment for the error of `TBI`, in nanoseconds.
 - `TAIAdj`: Adjustment for the error of `TAI`, in nanoseconds.
 - `TIntrAdj`: Adjustment for the error of `TIntr`, in nanoseconds.
-- `WarmupDelay`: Duration of the PCI "warm up" read of the pending IRQ status (`ICS`, 0x1504)
-  after idle, in `CLOCK_MONOTONIC` nanoseconds. See [The Mitigation](#the-mitigation-1).
+- `WarmupDelay`: Duration of the PCI "warm up" read of the pending IRQ status (`ICS`, 0x1504) after
+  idle, in `CLOCK_MONOTONIC` nanoseconds. See [The Mitigation](#the-mitigation-1).
 - `LatchDelay`: Duration of the NIC time latch read (`SYSTIMR`, 0xB6F8) after idle, in
   `CLOCK_MONOTONIC` nanoseconds. See [How the NIC Time Is Read](#how-the-nic-time-is-read).
 
@@ -188,9 +190,8 @@ In reality, user-space applies 2 corrections to the metrics:
 
 - Measurement overhead (all methods): One Wult code block delays the other, which inflates one of
   the latencies. See [Overhead](#overhead) for details.
-- Time-stamp error (`i210` only): Reading the NIC time is slow, so `TBI`, `TAI` and `TIntr` are
-  off. The driver estimates the errors in the `*Adj` metrics. See
-  [Adjustments](#adjustments-i210-only).
+- Time-stamp error (`i210` only): Reading the NIC time is slow, so `TBI`, `TAI` and `TIntr` are off.
+  The driver estimates the errors in the `*Adj` metrics. See [Adjustments](#adjustments-i210-only).
 
 The latencies before the corrections are also saved, in the metrics with the `Raw` suffix. Here are
 the full formulas, where `IntrOff` tells which code block runs first. See
@@ -237,8 +238,8 @@ After the CPU wakes up, the driver takes measurements in two places:
 They run one after the other, and the order depends on the C-state and the platform.
 
 - `TAI`, then `TIntr` - The C-state is entered with interrupts disabled. This is the order in the
-  vast majority of cases. The after-idle code runs first, and the interrupt handler runs after
-  the kernel re-enables interrupts.
+  vast majority of cases. The after-idle code runs first, and the interrupt handler runs after the
+  kernel re-enables interrupts.
 - `TIntr`, then `TAI` - The C-state is entered with interrupts enabled. This is rare. The examples
   are POLL on all platforms, and C1 on Ice Lake Xeon with current Linux kernels. The interrupt
   handler runs first, and the after-idle code runs after it.
@@ -266,13 +267,13 @@ TIntr, then TAI:
                            TIntr                       TAI
 ```
 
-Within the `wult` driver, each path does more than read its time-stamp. For example, both paths
-also do the following:
+Within the `wult` driver, each path does more than read its time-stamp. For example, both paths also
+do the following:
 
 - Read the `APERF` and `MPERF` counters, which are used for calculating the CPU frequency. See
   [CPU Frequency](#cpu-frequency).
-- Check if the event has already happened. If it has, take the TSC and `MPERF` snapshots,
-  which are used for the C-state residency metrics.
+- Check if the event has already happened. If it has, take the TSC and `MPERF` snapshots, which are
+  used for the C-state residency metrics.
 
 In the `i210` method, reading the time-stamp is relatively slow because it requires several PCI
 register reads.
@@ -292,8 +293,7 @@ measurement code.
 
 ### The Problem
 
-Wult-specific overhead occurs when one measurement block delays the other. This affects all
-methods.
+Wult-specific overhead occurs when one measurement block delays the other. This affects all methods.
 
 - `TAI` first - The interrupt handler starts after the after-idle code ends, so `IntrLatency` is
   greater than `WakeLatency`. The measured `IntrLatency` includes the duration of the after-idle
@@ -316,8 +316,8 @@ The picture below shows the first, most common case in more detail.
 
 The driver records these `CLOCK_MONOTONIC` time-stamps:
 
-- `AITS1` and `AITS2`: Mark the start and end of the after-idle code. Their difference measures
-  time spent in that code, including the `TAI` read.
+- `AITS1` and `AITS2`: Mark the start and end of the after-idle code. Their difference measures time
+  spent in that code, including the `TAI` read.
 - `IntrTS1` and `IntrTS2`: Mark the start and end of the Wult interrupt measurement. Their
   difference measures time spent in that code.
 
@@ -388,8 +388,8 @@ Here are the metrics that the `wult` driver sends to user-space.
   in cycles at a rate close to the TSC rate. Each counter ticks only in the corresponding C-state,
   and does not tick in C0. See [C-State Residency Metrics](#c-state-residency-metrics).
 
-**Note**: Since the C-state residency counters do not tick in C0, snapshot 3 can be taken later
-than snapshot 2. The driver takes it when all the other measurements are done and it prepares the
+**Note**: Since the C-state residency counters do not tick in C0, snapshot 3 can be taken later than
+snapshot 2. The driver takes it when all the other measurements are done and it prepares the
 datapoint for sending to user-space. This happens in the context of a separate kernel thread, the
 armer thread, so it does not affect the measurements.
 
@@ -406,12 +406,12 @@ similar metrics.
 There are a few special cases:
 
 - POLL - Only `CC0%` is calculated. The other percentages are set to zero.
-- `CC1Derived%`: Not every Intel platform has a hardware CC1 counter, so user-space also derives
-  the CC1 residency. It is `TotCyc` minus the cycles of all the other C-states, including C0,
-  divided by `TotCyc`, in percent. Negative results are set to zero, and the value is zero for POLL.
+- `CC1Derived%`: Not every Intel platform has a hardware CC1 counter, so user-space also derives the
+  CC1 residency. It is `TotCyc` minus the cycles of all the other C-states, including C0, divided by
+  `TotCyc`, in percent. Negative results are set to zero, and the value is zero for POLL.
 
-The C-state residency counters are not always precise, especially for short sleeps. Because of
-that, a calculated C-state residency percentage may be greater than 100%:
+The C-state residency counters are not always precise, especially for short sleeps. Because of that,
+a calculated C-state residency percentage may be greater than 100%:
 
 - If it is smaller than 300%, it is set to 100%.
 - If it is 300% or greater, the datapoint is dropped.
@@ -425,29 +425,28 @@ User-space finds out the order from the incoming datapoints, separately for each
 
 - It compares `TAI` and `TIntr` of each incoming datapoint, counts the datapoints for each order,
   and holds the datapoints back without processing them.
-- There is no fixed window. It accumulates the statistics until one order outnumbers the other by
-  a factor of 100. For example, 100 datapoints with one order and none with the other, or 200
-  and 1. Then it fixes the case for that C-state, processes the held datapoints that agree with the
-  order, and drops the others.
+- There is no fixed window. It accumulates the statistics until one order outnumbers the other by a
+  factor of 100. For example, 100 datapoints with one order and none with the other, or 200 and 1.
+  Then it fixes the case for that C-state, processes the held datapoints that agree with the order,
+  and drops the others.
 - After the order is fixed, new datapoints of the C-state are no longer held back. They are
   processed as they come, and those that disagree with the order are dropped.
 - The exception is POLL, which is always treated as interrupts enabled.
 
 One datapoint is not enough. The driver tries to filter out the datapoints where the CPU was woken
-up by something other than the event, but this is best effort. For example, the scheduler
-may write to the memory address monitored by the `MWAIT` instruction just before the event
-fires. In this case the after-idle code runs first even if interrupts were enabled.
+up by something other than the event, but this is best effort. For example, the scheduler may write
+to the memory address monitored by the `MWAIT` instruction just before the event fires. In this case
+the after-idle code runs first even if interrupts were enabled.
 
 User-space saves the result in the `IntrOff` metric of every datapoint. It is true when interrupts
 were disabled (`TAI`, then `TIntr`), and false when they were enabled (`TIntr`, then `TAI`).
 
 ## TSC Rate
 
-User-space needs the TSC rate to convert TSC cycles to nanoseconds. It measures the rate as
-follows:
+User-space needs the TSC rate to convert TSC cycles to nanoseconds. It measures the rate as follows:
 
-- The driver reads the TSC and `CLOCK_MONOTONIC` one after the other with interrupts disabled
-  before idle, and sends the values as `BICyc` and `BIMonotonic` with every datapoint.
+- The driver reads the TSC and `CLOCK_MONOTONIC` one after the other with interrupts disabled before
+  idle, and sends the values as `BICyc` and `BIMonotonic` with every datapoint.
 - User-space takes these values from the first datapoint, and from the first datapoint that is at
   least the calibration time later. The default calibration time is 10 seconds, and the
   `--tsc-cal-time` option can be used to change it. A longer time makes the rate more accurate.
@@ -459,9 +458,8 @@ follows:
 
 ## CPU Frequency
 
-The `CPUFreq` metric is the CPU frequency after wake-up, in MHz. It is the average frequency
-between the two measurement points after the wake-up: the after-idle code and the interrupt
-handler.
+The `CPUFreq` metric is the CPU frequency after wake-up, in MHz. It is the average frequency between
+the two measurement points after the wake-up: the after-idle code and the interrupt handler.
 
 There are 2 variants: the after-idle code runs first and the interrupt handler runs after it, or the
 other way around. See
@@ -471,8 +469,8 @@ The driver reads the `APERF` and `MPERF` counters in both places. It sends the v
 after-idle code as `AIAperf` and `AIMperf`, and the values of the interrupt handler as `IntrAperf`
 and `IntrMperf`.
 
-User-space calculates the counter deltas between the two measurement points. Which point comes
-first depends on `IntrOff`. See [Interrupt Order Detection](#interrupt-order-detection).
+User-space calculates the counter deltas between the two measurement points. Which point comes first
+depends on `IntrOff`. See [Interrupt Order Detection](#interrupt-order-detection).
 
 - `IntrOff` is true: The after-idle code runs first. Δ`APERF` is `IntrAperf` - `AIAperf`, and
   Δ`MPERF` is `IntrMperf` - `AIMperf`.
@@ -480,8 +478,8 @@ first depends on `IntrOff`. See [Interrupt Order Detection](#interrupt-order-det
   Δ`MPERF` is `AIMperf` - `IntrMperf`.
 
 `APERF` ticks at the actual core clock rate, and `MPERF` ticks at a rate close to the TSC rate. So
-Δ`APERF` / Δ`MPERF` is the actual frequency relative to the TSC rate. Multiplying it by the TSC
-rate in MHz gives the frequency in MHz:
+Δ`APERF` / Δ`MPERF` is the actual frequency relative to the TSC rate. Multiplying it by the TSC rate
+in MHz gives the frequency in MHz:
 
 `CPUFreq` = TSC rate * Δ`APERF` / Δ`MPERF`
 
@@ -497,10 +495,10 @@ other methods always set them to zero.
 The `i210` method reads the time from the NIC clock. The NIC is behind the PCI bus, so the driver
 does it with a sequence of register reads in two steps:
 
-1. Latch - Read the `SYSTIMR` register (0xB6F8). This latches the current NIC time, which means
-   the NIC takes a snapshot of its running clock and saves it in the `SYSTIML` and `SYSTIMH`
-   registers. The snapshot stays unchanged while the clock keeps running. The snapshot is taken at
-   the moment the `SYSTIMR` read request reaches the NIC.
+1. Latch - Read the `SYSTIMR` register (0xB6F8). This latches the current NIC time, which means the
+   NIC takes a snapshot of its running clock and saves it in the `SYSTIML` and `SYSTIMH` registers.
+   The snapshot stays unchanged while the clock keeps running. The snapshot is taken at the moment
+   the `SYSTIMR` read request reaches the NIC.
 2. Read - Read the latched time from the `SYSTIML` register (0xB600, nanoseconds) and the `SYSTIMH`
    register (0xB604, seconds).
 
@@ -514,9 +512,9 @@ different from the moment the driver wants to measure, and the difference is a m
 calculating the wake latency (`WakeLatency`), which is `TAI` - `LTime`. Since `LTime` is the NIC
 clock time of the event, `TAI` has to be the NIC clock time too.
 
-Here is how the problem affects `TAI`. The CPU starts waking up at `LTime`, when the event
-fires. Exiting the C-state takes some time. Only then the CPU starts executing instructions, and
-the driver starts reading the NIC time to get the `TAI` time-stamp of that moment.
+Here is how the problem affects `TAI`. The CPU starts waking up at `LTime`, when the event fires.
+Exiting the C-state takes some time. Only then the CPU starts executing instructions, and the driver
+starts reading the NIC time to get the `TAI` time-stamp of that moment.
 
 To read the NIC time, the driver first has to latch it by reading the `SYSTIMR` register. Since the
 NIC is behind the PCI bus, it takes some time for the read request to reach the NIC, so the NIC
@@ -535,9 +533,9 @@ demonstrates this. Time flows from left to right.
                                   |<---- error ----->|
 ```
 
-`TBI` (time before idle) is the time-stamp taken right before the CPU enters a C-state. It is
-needed for calculating the silent time (`SilentTime`), which is `LTime` - `TBI`, the time the CPU
-spent in the C-state before the event (`LTime`).
+`TBI` (time before idle) is the time-stamp taken right before the CPU enters a C-state. It is needed
+for calculating the silent time (`SilentTime`), which is `LTime` - `TBI`, the time the CPU spent in
+the C-state before the event (`LTime`).
 
 Here is how the problem affects `TBI`. The CPU reads `SYSTIMR`, and the NIC latches the time when
 the read request reaches it. After that, the CPU still has to get the response and read the latched
@@ -556,11 +554,11 @@ silent time. The picture below demonstrates this.
                    |<------------ error ------------->|
 ```
 
-`TIntr` is the time-stamp taken at the start of the interrupt handler of the event. It is
-needed for calculating the interrupt latency (`IntrLatency`), which is `TIntr` - `LTime`. It is
-read the same way as `TAI`, so it has the same problem: the NIC latches the time with a delay after
-the interrupt handler starts, so the measured interrupt latency (`TIntr` - `LTime`) is longer than
-the actual interrupt latency.
+`TIntr` is the time-stamp taken at the start of the interrupt handler of the event. It is needed for
+calculating the interrupt latency (`IntrLatency`), which is `TIntr` - `LTime`. It is read the same
+way as `TAI`, so it has the same problem: the NIC latches the time with a delay after the interrupt
+handler starts, so the measured interrupt latency (`TIntr` - `LTime`) is longer than the actual
+interrupt latency.
 
 ### The Mitigation
 
@@ -575,15 +573,15 @@ The sequence of reads in [How the NIC Time Is Read](#how-the-nic-time-is-read) i
 actual sequence has an additional warm-up read before the latch.
 
 The reason is the assumption, explained below, that the NIC latches the time in the middle of the
-`SYSTIMR` read. It holds only if the PCIe link(s) between the CPU and the NIC are awake. They may
-be in a low-power state (for example L1 with ASPM), and a read that finds the link asleep is
-delayed on its way to the NIC, so the latch does not happen in the middle of the read. So, before
-latching, the driver does a warm-up read, which takes this delay instead of the `SYSTIMR` read.
+`SYSTIMR` read. It holds only if the PCIe link(s) between the CPU and the NIC are awake. They may be
+in a low-power state (for example L1 with ASPM), and a read that finds the link asleep is delayed on
+its way to the NIC, so the latch does not happen in the middle of the read. So, before latching, the
+driver does a warm-up read, which takes this delay instead of the `SYSTIMR` read.
 
 The actual sequence of reads is:
 
-- Before idle: `STATUS` (0x0008, warm-up), `SYSTIMR`, `SYSTIML`, `SYSTIMH`.
-- After idle and in the interrupt handler: `ICS` (0x1504, warm-up), `SYSTIMR`, `SYSTIML`,
+- Before idle: `STATUS` register (warm-up), `SYSTIMR`, `SYSTIML`, `SYSTIMH`.
+- After idle and in the interrupt handler: `ICS` register (warm-up), `SYSTIMR`, `SYSTIML`,
   `SYSTIMH`.
 
 **Note**: The `WarmupDelay` and `LatchDelay` metrics show whether the warm-up read was really
