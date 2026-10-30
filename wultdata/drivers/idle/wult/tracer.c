@@ -212,12 +212,11 @@ int wult_tracer_send_data(struct wult_info *wi)
 		 */
 		return -EINVAL;
 
-	if (!ti->event_happened)
-		/*
-		 * The wake up was not because of the event we armed. It was
-		 * probably a different, but close event.
-		 */
-		return 0;
+	if (!ti->event_happened) {
+		wult_err("delayed event driver reported that the armed event "
+			 "had not happened");
+		return -EINVAL;
+	}
 
 	ltime = wdi->ops->get_launch_time(wdi);
 
