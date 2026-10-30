@@ -485,9 +485,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         dp["WakeLatency"] = dp["TAI"] - dp["LTime"]
         dp["IntrLatency"] = dp["TIntr"] - dp["LTime"]
 
-        dp["WakeLatencyRaw"] = dp["WakeLatency"]
-        dp["IntrLatencyRaw"] = dp["IntrLatency"]
-
         for metric in ("LDist", "SilentTime", "IntrLatency", "WakeLatency"):
             if dp.get(metric, 0) < 0:
                 raise Error(f"negative or missing '{metric}' value. The datapoint is:\n"
@@ -497,6 +494,9 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             # In case of 'wult_tdt' driver the time is in TSC cycles, convert to nanoseconds.
             for key in ("SilentTime", "WakeLatency", "IntrLatency"):
                 dp[key] = self._tscrate.cyc_to_ns(dp[key])
+
+        dp["WakeLatencyRaw"] = dp["WakeLatency"]
+        dp["IntrLatencyRaw"] = dp["IntrLatency"]
 
         if not self._apply_time_adjustments(dp):
             return None
