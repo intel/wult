@@ -45,9 +45,9 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                             f"6.4-6.6 kernels is known to be bugged, please upgrade your "
                             f"kernel to latest stable or 6.6-rc2.")
 
-        raise ErrorTimeOut(f"no datapoints accepted for {timeout} seconds. While the "
-                           f"driver does produce them, they are being rejected. One "
-                           f"possible reason is that they do not pass filters/selectors.")
+        raise ErrorTimeOut(f"no datapoints accepted for {timeout} seconds. Either the driver "
+                           f"dropped the events, or user-space rejected them, for example because "
+                           f"they did not pass filters/selectors.")
 
     def _collect(self, dpcnt, tlimit, keep_rawdp):
         """
@@ -75,13 +75,19 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
             self._dpp.add_raw_datapoint(rawdp)
 
             for dp in self._dpp.get_datapoints():
+                dropped = self._dpp.is_dropped(dp)
+
                 if not self._res.csv.hdr:
                     # Add the first CSV header.
                     self._res.csv.add_header(dp.keys())
 
-                # Add the data to the CSV file.
-                if not self._res.add_csv_row(dp):
+                # Add the data to the CSV file. Filters do not apply to dropped events.
+                if not self._res.add_csv_row(dp, apply_filters=not dropped):
                     # The data point has not been added (e.g., because it did not pass row filters).
+                    continue
+
+                if dropped:
+                    # Dropped events are saved, but they are not counted.
                     continue
 
                 # Interrupt latency and wake latency are measured one after another, and the order

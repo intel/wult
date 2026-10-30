@@ -133,20 +133,20 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
 
         return row
 
-    def add_csv_row(self, dp):
+    def add_csv_row(self, dp, apply_filters=True):
         """
         Apply filters to the 'dp' datapoint and possibly add it to the CSV file. The 'dp' argument
         should be a dictionary with keys being the CSV column names, and values being the column
         value. If 'self.keep_filtered' is 'False', the datapoint is added to the CSV file only if it
         passes the filters ('dp' does not match the filter expression). If 'self.keep_filtered' is
         'True', the datapoint is added to the CSV file regardless of whether it passes the filters
-        or not.
+        or not. If 'apply_filters' is 'False', the filters are not applied and 'dp' is always added.
 
         The return value is the same as in 'try_filters()' function: returns 'True' if 'dp' passes
         the filters, otherwise returns 'False'.
         """
 
-        passed = self._try_filters(dp)
+        passed = self._try_filters(dp) if apply_filters else True
         if passed or self.keep_filtered:
             self.csv.add_row(self._get_csv_row(dp))
 

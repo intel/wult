@@ -59,6 +59,13 @@ struct wult_tracer_info {
 	bool irqs_disabled;
 	/* 'true' if the armed event has happened. */
 	bool event_happened;
+	/* Count of idle entries since the event was armed. */
+	u64 idle_cnt;
+	/*
+	 * Time after idle of the previous idle exit. It belongs to the same
+	 * event only if 'idle_cnt' is greater than 1.
+	 */
+	u64 prev_tai;
 	/* The tracepoint we hook to. */
 	struct tracepoint *tp;
 	/* The wult trace event file. */

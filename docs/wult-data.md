@@ -20,6 +20,7 @@ Author: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
     - [Core Metrics](#core-metrics)
     - [C-State Residency Metrics](#c-state-residency-metrics)
     - [i210-Specific Metrics](#i210-specific-metrics)
+    - [Debug Metrics](#debug-metrics)
   - [Data From User-Space](#data-from-user-space)
     - [Time Metrics](#time-metrics)
     - [Other Metrics](#other-metrics)
@@ -152,6 +153,42 @@ zero, and do not provide the other metrics. The `*Adj` metrics are described in
   idle, in `CLOCK_MONOTONIC` nanoseconds. See [The Mitigation](#the-mitigation-1).
 - `LatchDelay`: Duration of the NIC time latch read (`SYSTIMR`, 0xB6F8) after idle, in
   `CLOCK_MONOTONIC` nanoseconds. See [How the NIC Time Is Read](#how-the-nic-time-is-read).
+
+### Debug Metrics
+
+These metrics are for troubleshooting and debugging.
+
+- `IdleCnt`: Number of times the CPU entered idle after the event was armed. It is greater than 1 if
+  the CPU woke up before the event and went to sleep again.
+- `PrevTAI`: Time after idle of the previous idle exit, in the same units as `TAI`. It belongs to
+  the same event only if `IdleCnt` is greater than 1, otherwise it is the `TAI` of an earlier event.
+- `DropNoIdle`: `True` if the event was dropped because the CPU never entered idle after the event
+  was armed, `False` otherwise. If there was no idle entry, most other metrics are set to 0 and
+  `ReqCState` holds the C-state index of the last idle entry.
+- `DropEarlyWake`: `True` if the event was dropped because the CPU woke up before the launch time
+  and did not go to sleep again, `False` otherwise.
+- `DropLateIdle`: `True` if the event was dropped because the CPU entered idle for the last time
+  after the launch time, `False` otherwise.
+- `DropEarlyIntr`: `True` if the event was dropped because the interrupt was handled before the
+  launch time, `False` otherwise.
+
+**Terminology Note**: There are 2 kinds of datapoints (rows in `datapoints.csv`), depending on the
+`Drop*` metrics:
+
+- **Dropped** datapoint: One of the `Drop*` metrics is `True`.
+- **Accepted** datapoint: All the `Drop*` metrics are `False`.
+
+**Note**: `DropNoIdle`, `DropEarlyWake` and `DropLateIdle` can happen in normal operation. For
+example, the CPU may be busy or woken up by something else when the event fires. `DropEarlyIntr`
+should never happen, because the interrupt should not be handled before the launch time.
+
+The driver sends the debug metrics with every datapoint. By default, user-space discards the
+dropped datapoints and removes the debug metrics from `datapoints.csv`. With `--keep-raw-data`,
+user-space keeps the debug metrics and saves the dropped datapoints. They do not count toward the
+`--datapoints` limit of `wult start`, and the metrics that user-space calculates are 0 for them.
+Even with `--keep-raw-data`, user-space discards the dropped datapoints that arrive before the first
+accepted datapoint is processed, which happens after the TSC rate calibration. It also discards the
+dropped datapoints of C-states with undecided [interrupt order](#interrupt-order-detection).
 
 ## Data From User-Space
 

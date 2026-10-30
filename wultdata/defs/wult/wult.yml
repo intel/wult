@@ -168,3 +168,37 @@ LatchDelay:
     type: "float"
     unit: "microsecond"
     short_unit: "us"
+IdleCnt:
+    title: "Idle entries count"
+    descr: >-
+        How many times the measured CPU entered idle after the delayed event was armed. It is
+        greater than 1 if the CPU woke up before the event and went to sleep again.
+    type: "int"
+PrevTAI:
+    title: "Previous time after idle"
+    descr: >-
+        Time after idle of the previous idle exit, in the same units as 'TAI'. It belongs to the
+        same event only if 'IdleCnt' is greater than 1.
+    type: "int"
+DropNoIdle:
+    title: "Dropped: no idle"
+    descr: >-
+        The event was dropped because the measured CPU did not enter idle after the event was armed.
+    type: "bool"
+DropEarlyWake:
+    title: "Dropped: early wake"
+    descr: >-
+        The event was dropped because the measured CPU woke up before the launch time and did not
+        go to sleep again.
+    type: "bool"
+DropLateIdle:
+    title: "Dropped: late idle"
+    descr: >-
+        The event was dropped because the measured CPU entered idle for the last time after the
+        launch time.
+    type: "bool"
+DropEarlyIntr:
+    title: "Dropped: early interrupt"
+    descr: >-
+        The event was dropped because the interrupt was handled before the launch time.
+    type: "bool"

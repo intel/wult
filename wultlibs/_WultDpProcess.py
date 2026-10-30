@@ -8,6 +8,17 @@
 
 """
 This module provides the 'DatapointProcessor' class which implements raw datapoint processing.
+
+Terminology:
+  * Raw datapoint - a datapoint as provided by the driver, before the user-space processing.
+  * Processed datapoint - a datapoint after the user-space processing: the final metrics are
+                          calculated, and unneeded raw fields are removed (unless 'keep_rawdp').
+  * Discarded datapoint - a datapoint that fails the user-space processing checks, for example
+                          because the timing is inconsistent. It is never yielded.
+  * Dropped datapoint - a datapoint the driver considers invalid and would drop, but sends for
+                        debugging purposes. The datapoint has one of the 'Drop*' metrics set to
+                        'True'.
+  * Accepted datapoint - the opposite of the dropped datapoint: all the 'Drop*' metrics are 'False'.
 """
 
 import collections
@@ -26,6 +37,16 @@ _INTR_NOISE_MAX = 100
 # Consecutive "off" datapoints (the interrupt handler did not run before 'after_idle()'), without
 # any "on" datapoint, after which a C-state is decided to be requested with interrupts disabled.
 _INTR_OFF_CONFIRM = 10
+
+# Datapoint fields that the driver sets to 'True' for dropped datapoints.
+_DROP_FIELDS = ("DropNoIdle", "DropEarlyWake", "DropLateIdle", "DropEarlyIntr")
+# Debug metrics, saved only with 'keep_rawdp'.
+_DEBUG_FIELDS = ("IdleCnt", "PrevTAI") + _DROP_FIELDS
+
+def _is_dropped(dp):
+    """Return 'True' if 'dp' is a dropped datapoint."""
+
+    return any(dp.get(key) for key in _DROP_FIELDS)
 
 class _CStates(ClassHelpers.SimpleCloseContext):
     """
@@ -122,8 +143,9 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         loses fewer than '_INTR_OFF_CONFIRM' datapoints per C-state, but keeps the datapoint order
         and does not hold back datapoints of other C-states. The decision is final, so the output
         never has datapoints with different interrupt orders for the same C-state. Datapoints
-        contradicting the decision are dropped as noise. If '_INTR_NOISE_MAX' of them come in a
-        row, the decision was wrong, and an error is raised.
+        contradicting the decision are discarded as noise. If '_INTR_NOISE_MAX' of them come in a
+        row, the decision was wrong, and an error is raised. Dropped datapoints are not used for
+        detecting the interrupt order.
 
         The actions depending on the decision and on the added datapoint:
 
@@ -132,15 +154,15 @@ class _CStates(ClassHelpers.SimpleCloseContext):
           none     on        Decide "on", accept.
           none     off       Discard, decide "off" and accept after '_INTR_OFF_CONFIRM' in a row.
           on       on        Accept.
-          on       off       Drop as noise, fail after '_INTR_NOISE_MAX' in a row.
+          on       off       Discard as noise, fail after '_INTR_NOISE_MAX' in a row.
           off      off       Accept.
-          off      on        Drop as noise, fail after '_INTR_NOISE_MAX' in a row.
+          off      on        Discard as noise, fail after '_INTR_NOISE_MAX' in a row.
         """
 
         csname = rawdp["ReqCState"] = self.get_req_cstate_name(rawdp)
 
         # The 'POLL' state is always requested with interrupts enabled.
-        if csname != "POLL":
+        if csname != "POLL" and not _is_dropped(rawdp):
             self._update_intr_order(csname, rawdp["TIntr"] < rawdp["TAI"])
 
         self._queue.append(rawdp)
@@ -149,7 +171,8 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         """
         This generator yields the raw datapoints saved by 'add_raw_datapoint()', in the order they
         were added. The 'IntrOff' field is set, and the datapoints of C-states with undecided
-        interrupt order and the datapoints failing the timing check are discarded.
+        interrupt order and the datapoints failing the timing check are discarded. Dropped
+        datapoints skip the timing check.
         """
 
         while self._queue:
@@ -165,7 +188,7 @@ class _CStates(ClassHelpers.SimpleCloseContext):
                 continue
 
             rawdp["IntrOff"] = self._introff[csname]
-            if self._check_rawdp_timing(rawdp):
+            if _is_dropped(rawdp) or self._check_rawdp_timing(rawdp):
                 yield rawdp
 
     def _decide(self, csname, intr_off):
@@ -314,7 +337,8 @@ class _TSCRate:
         held and for new datapoints.
         """
 
-        if not self.tsc_mhz:
+        # Dropped datapoints may have zero 'BICyc' and 'BIMonotonic'.
+        if not self.tsc_mhz and not _is_dropped(rawdp):
             self._calculate_tsc_rate(rawdp)
 
         self._rawdps.append(rawdp)
@@ -697,7 +721,36 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             if field in self._us_fields_set:
                 dp[field] /= 1000.0
 
-        return self._finalize_dp(dp)
+        dp = self._finalize_dp(dp)
+        if self._processed_fields is None:
+            self._processed_fields = list(dp)
+
+        return dp
+
+    @staticmethod
+    def is_dropped(dp):
+        """Return 'True' if 'dp' is a dropped datapoint."""
+
+        return _is_dropped(dp)
+
+    def _get_dropped_dp(self, rawdp):
+        """
+        Turn a dropped raw datapoint into a datapoint to save. The fields are the same as in the
+        processed datapoints. The values are not validated, and the metrics calculated by
+        user-space are set to zero.
+        """
+
+        dp = {field: rawdp.get(field, 0) for field in self._processed_fields}
+
+        for field in self._us_fields_set:
+            if field in dp:
+                dp[field] /= 1000.0
+
+        for field in self._bool_fields:
+            if field in dp and field not in rawdp:
+                dp[field] = False
+
+        return dp
 
     def add_raw_datapoint(self, rawdp):
         """
@@ -709,17 +762,36 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         processing it. Therefore, the caller should not use 'rawdp' after calling this method.
         """
 
-        rawdp = self._filter_out_noise(rawdp)
-        if rawdp:
-            self._tscrate.add_raw_datapoint(rawdp)
+        # The driver sends the drop flags as 0 or 1. Use booleans, same as for 'IntrOff'.
+        for field in _DROP_FIELDS:
+            if field in rawdp:
+                rawdp[field] = bool(rawdp[field])
+
+        if self.is_dropped(rawdp):
+            # Without 'keep_rawdp' the 'Drop*' metrics are not saved, so dropped datapoints would
+            # look like accepted ones. Do not keep them in this case.
+            if not self._keep_rawdp:
+                return
+        else:
+            rawdp = self._filter_out_noise(rawdp)
+            if not rawdp:
+                return
+
+        self._tscrate.add_raw_datapoint(rawdp)
 
     def get_datapoints(self):
-        """Yield processed datapoints."""
+        """Yield processed and dropped datapoints."""
 
         for rawdp in self._tscrate.get_raw_datapoint():
             self._csobj.add_raw_datapoint(rawdp)
 
         for rawdp in self._csobj.get_raw_datapoint():
+            if self.is_dropped(rawdp):
+                # The fields of dropped datapoints are defined by the first processed datapoint.
+                if self._processed_fields is not None:
+                    yield self._get_dropped_dp(rawdp)
+                continue
+
             dp = self._process_datapoint(rawdp)
             if dp:
                 yield dp
@@ -738,6 +810,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         raw_fields = list(rawdp.keys())
 
+        self._keep_rawdp = keep_rawdp
         mdo = WultMDC.WultMDC(raw_fields)
 
         self._cs_fields = []
@@ -753,6 +826,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         self._us_fields_set = {field for field, vals in mdo.mdd.items() \
                                if vals.get("unit") == "microsecond"}
+        self._bool_fields = {field for field, vals in mdo.mdd.items() if vals.get("type") == "bool"}
 
         # Form the preliminary list of fields in processed datapoints. Fields from the metrics
         # definition YAML file file go first. The list (but we use dictionary in this case) will be
@@ -764,6 +838,9 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         if keep_rawdp:
             for field in raw_fields:
                 self._allowed_fields[field] = None
+        else:
+            for field in _DEBUG_FIELDS:
+                self._allowed_fields.pop(field, None)
 
     def __init__(self, cpu, pman, drvname, tsc_cal_time=10, cpuidle=None):
         """
@@ -787,9 +864,13 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         # Fields allowed in processed datapoints, may include fields that are never produced.
         self._allowed_fields = None
 
+        # Field names of processed datapoints, all of which have the same fields.
+        self._processed_fields = None
+        self._keep_rawdp = False
         self._has_cstates = None
         self._cs_fields = None
         self._us_fields_set = None
+        self._bool_fields = None
 
         self._csobj = _CStates(self._cpu, self._pman, cpuidle=cpuidle)
         self._tscrate = _TSCRate(tsc_cal_time)

@@ -25,6 +25,10 @@ _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
 
 _SUPPORTED_FORMAT_VERSIONS = {"1.3"}
 
+# Columns flagging events that the wult driver dropped. They are present only in results collected
+# with '--keep-raw-data'.
+_DROP_COLS = ("DropNoIdle", "DropEarlyWake", "DropLateIdle", "DropEarlyIntr")
+
 class RORawResult(_RawResultBase.RawResultBase):
     """A read-only wult, ndl, or pbe raw test result."""
 
@@ -206,11 +210,24 @@ class RORawResult(_RawResultBase.RawResultBase):
         # Enforce the types we expect.
         dtype = {colname: colinfo["type"] for colname, colinfo in self.mdo.mdd.items()}
 
+        # The columns flagging dropped events are needed for excluding them, even if they are not
+        # among the columns the caller asked for.
+        extra_cols = []
+        if kwargs.get("usecols"):
+            hdr = pandas.read_csv(self.dp_path, nrows=0).columns
+            extra_cols = [col for col in _DROP_COLS if col in hdr and col not in kwargs["usecols"]]
+            kwargs["usecols"] = list(kwargs["usecols"]) + extra_cols
+
         try:
             self.df = pandas.read_csv(self.dp_path, dtype=dtype, **kwargs)
         except Exception as err:
             msg = Error(err).indent(2)
             raise Error(f"failed to load CSV file {self.dp_path}:\n{msg}") from None
+
+        drop_cols = [col for col in _DROP_COLS if col in self.df]
+        if drop_cols:
+            self.df = self.df[(self.df[drop_cols] == 0).all(axis=1)].reset_index(drop=True)
+            self.df = self.df.drop(columns=extra_cols)
 
         # Check datapoints for too few values.
         if self.df.isnull().values.any():

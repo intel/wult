@@ -55,6 +55,12 @@ static struct synth_field_desc common_fields[] = {
 	{ .type = "u64", .name = "IntrMperf" },
 	{ .type = "u64", .name = "BICyc" },
 	{ .type = "u64", .name = "BIMonotonic" },
+	{ .type = "u64", .name = "IdleCnt" },
+	{ .type = "u64", .name = "PrevTAI" },
+	{ .type = "u64", .name = "DropNoIdle" },
+	{ .type = "u64", .name = "DropEarlyWake" },
+	{ .type = "u64", .name = "DropLateIdle" },
+	{ .type = "u64", .name = "DropEarlyIntr" },
 };
 
 static inline unsigned int get_smi_count(void)
@@ -72,6 +78,7 @@ static void before_idle(struct wult_info *wi)
 	struct wult_tracer_info *ti = &wi->ti;
 
 	WARN_ON(!irqs_disabled());
+	ti->idle_cnt += 1;
 	ti->smi_bi = get_smi_count();
 	ti->nmi_bi = get_nmi_count(wi);
 
@@ -94,6 +101,7 @@ static void after_idle(struct wult_info *wi)
 
 	ti->ai_ts1 = ktime_get_ns();
 
+	ti->prev_tai = ti->tai;
 	ti->tai = wdi->ops->get_time_after_idle(wdi, &ti->tai_adj);
 
 	/*
@@ -182,6 +190,7 @@ int wult_tracer_arm_event(struct wult_info *wi, u64 *ldist)
 	int err;
 	struct wult_tracer_info *ti = &wi->ti;
 
+	ti->idle_cnt = 0;
 	ti->armed = true;
 	ti->event_happened = false;
 	err = wi->wdi->ops->arm(wi->wdi, ldist);
@@ -202,8 +211,14 @@ int wult_tracer_send_data(struct wult_info *wi)
 	struct wult_trace_data_info *tdata = NULL;
 	struct synth_event_trace_state trace_state;
 	struct cstate_info *csi;
+	bool drop_no_idle = false;
+	bool drop_early_wake = false;
+	bool drop_late_idle = false;
+	bool drop_early_intr = false;
 	u64 ltime;
-	int err, err_after_send = 0;
+	bool idle = ti->idle_cnt;
+	int err_after_send = 0;
+	int err;
 
 	if (WARN_ON(ti->armed))
 		/*
@@ -220,15 +235,34 @@ int wult_tracer_send_data(struct wult_info *wi)
 
 	ltime = wdi->ops->get_launch_time(wdi);
 
-	/* Check if the expected IRQ time is within the sleep time. */
-	if (ltime <= ti->tbi || ltime >= ti->tai || ltime >= ti->tintr)
-		return 0;
+	/*
+	 * Check if the expected IRQ time is within the sleep time. Events that
+	 * do not pass the check are sent too, with the reason flagged in the
+	 * 'Drop*' fields.
+	 */
+	if (!idle)
+		/* 'tbi' and 'tai' are from a previous event. */
+		drop_no_idle = true;
+	else if (ltime >= ti->tai)
+		drop_early_wake = true;
+	else if (ltime <= ti->tbi)
+		drop_late_idle = true;
+	else if (ltime >= ti->tintr)
+		drop_early_intr = true;
 
-	if (WARN_ON(ti->csinfo.tsc[0] > ti->csinfo.tsc[1]))
-		err_after_send = -EINVAL;
+	if (idle) {
+		if (WARN_ON(ti->csinfo.tsc[0] > ti->csinfo.tsc[1]))
+			err_after_send = -EINVAL;
 
-	wult_cstates_snap_cst(&ti->csinfo, 1);
-	wult_cstates_calc(&ti->csinfo, 0, 1);
+		wult_cstates_snap_cst(&ti->csinfo, 1);
+		wult_cstates_calc(&ti->csinfo, 0, 1);
+	}
+
+	/*
+	 * Note: 'idle' will be 'false' if the event happened, but the CPU did not
+	 * enter idle after the event was armed because CPU was running something.
+	 * Send the event anyway, with the idle-related fields set to 0.
+	 */
 
 	err = synth_event_trace_start(ti->event_file, &trace_state);
 	if (err)
@@ -241,16 +275,16 @@ int wult_tracer_send_data(struct wult_info *wi)
 	err = synth_event_add_next_val(ltime, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->tbi, &trace_state);
+	err = synth_event_add_next_val(idle ? ti->tbi : 0, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->tbi_adj, &trace_state);
+	err = synth_event_add_next_val(idle ? ti->tbi_adj : 0, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->tai, &trace_state);
+	err = synth_event_add_next_val(idle ? ti->tai : 0, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->tai_adj, &trace_state);
+	err = synth_event_add_next_val(idle ? ti->tai_adj : 0, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->tintr, &trace_state);
@@ -262,10 +296,10 @@ int wult_tracer_send_data(struct wult_info *wi)
 	err = synth_event_add_next_val(ti->req_cstate, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->ai_ts1, &trace_state);
+	err = synth_event_add_next_val(idle ? ti->ai_ts1 : 0, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->ai_ts2, &trace_state);
+	err = synth_event_add_next_val(idle ? ti->ai_ts2 : 0, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->intr_ts1, &trace_state);
@@ -274,40 +308,61 @@ int wult_tracer_send_data(struct wult_info *wi)
 	err = synth_event_add_next_val(ti->intr_ts2, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->csinfo.dtsc, &trace_state);
+	err = synth_event_add_next_val(idle ? ti->csinfo.dtsc : 0, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->csinfo.dmperf, &trace_state);
+	err = synth_event_add_next_val(idle ? ti->csinfo.dmperf : 0, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->smi_intr - ti->smi_bi, &trace_state);
+	err = synth_event_add_next_val(idle ? ti->smi_intr - ti->smi_bi : 0,
+				       &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->nmi_intr - ti->nmi_bi, &trace_state);
+	err = synth_event_add_next_val(idle ? ti->nmi_intr - ti->nmi_bi : 0,
+				       &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->ai_aperf, &trace_state);
+	err = synth_event_add_next_val(idle ? ti->ai_aperf : 0, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->intr_aperf, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->ai_mperf, &trace_state);
+	err = synth_event_add_next_val(idle ? ti->ai_mperf : 0, &trace_state);
 	if (err)
 		goto out_end;
 	err = synth_event_add_next_val(ti->intr_mperf, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->bi_cyc, &trace_state);
+	err = synth_event_add_next_val(idle ? ti->bi_cyc : 0, &trace_state);
 	if (err)
 		goto out_end;
-	err = synth_event_add_next_val(ti->bi_monotonic, &trace_state);
+	err = synth_event_add_next_val(idle ? ti->bi_monotonic : 0,
+				       &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->idle_cnt, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(ti->prev_tai, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(drop_no_idle, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(drop_early_wake, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(drop_late_idle, &trace_state);
+	if (err)
+		goto out_end;
+	err = synth_event_add_next_val(drop_early_intr, &trace_state);
 	if (err)
 		goto out_end;
 
 	/* Add C-state cycle counter values. */
 	for_each_cstate(&ti->csinfo, csi) {
-		err = synth_event_add_next_val(csi->dcyc, &trace_state);
+		err = synth_event_add_next_val(idle ? csi->dcyc : 0, &trace_state);
 		if (err)
 			goto out_end;
 	}
