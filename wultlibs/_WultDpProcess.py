@@ -40,7 +40,7 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         for csname, cstate in self._rcsinfo.items():
             self._idx2name[cstate["index"]] = csname
 
-    def _get_req_cstate_name(self, rawdp):
+    def get_req_cstate_name(self, rawdp):
         """Returns requestable C-state name for raw datapoint 'rawdp'."""
 
         try:
@@ -108,7 +108,7 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         are yielded by 'get_raw_datapoint()'.
         """
 
-        csname = rawdp["ReqCState"] = self._get_req_cstate_name(rawdp)
+        csname = rawdp["ReqCState"] = self.get_req_cstate_name(rawdp)
 
         if csname == "POLL":
             # This is an optimization. The 'POLL' state is always requested with interrupts enabled.
