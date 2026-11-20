@@ -66,7 +66,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
 
             self._dpp.add_raw_datapoint(rawdp)
 
-            for dp in self._dpp.get_processed_datapoints():
+            for dp in self._dpp.get_datapoints():
                 if not self._res.csv.hdr:
                     # Add the first CSV header.
                     self._res.csv.add_header(dp.keys())

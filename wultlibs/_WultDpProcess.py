@@ -673,7 +673,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         Notice: for efficiency purposes this function does not make a copy of the 'rawdp'
         dictionary. Instead, it extends and modifies it in-pace, and saves in an internal list. The
-        dictionary will be yielded later by 'get_processed_datapoints()'. Therefore, the caller
+        dictionary will be yielded later by 'get_datapoints()'. Therefore, the caller
         should not use 'rawdp' after calling this method.
         """
 
@@ -696,10 +696,8 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         self._dps.append(dp)
 
-    def get_processed_datapoints(self):
-        """
-        This generator yields the processed datapoints.
-        """
+    def get_datapoints(self):
+        """Yield processed datapoints."""
 
         if self._tscrate:
             for rawdp in self._tscrate.get_raw_datapoint():
