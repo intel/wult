@@ -138,9 +138,9 @@ class WultProgressLine(_ProgressLineBase):
 
         super().__init__(period=period)
 
-        # Last printed datapoints count.
+        # Last datapoints count.
         self.dpcnt = 0
-        # Last printed latency.
+        # Last latency.
         self.maxlat = 0.0
 
     def update(self, dpcnt: int, maxlat: float, final: bool = False):
@@ -153,6 +153,9 @@ class WultProgressLine(_ProgressLineBase):
             final: Set to True for the final progress update after all datapoints are collected.
         """
 
+        self.dpcnt = dpcnt
+        self.maxlat = maxlat
+
         time_now = time.time()
         if not self._update(final, time_now):
             return
@@ -163,9 +166,6 @@ class WultProgressLine(_ProgressLineBase):
         msg = f"Datapoints: {dpcnt}, max. latency: {maxlat:.2f} us, rate: {rate:.2f} datapoints/sec"
 
         self._print(msg)
-
-        self.dpcnt = dpcnt
-        self.maxlat = maxlat
 
 class NdlProgressLine(WultProgressLine):
     """

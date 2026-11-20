@@ -94,10 +94,10 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                 else:
                     latency = dp["WakeLatency"]
                 max_latency = max(latency, max_latency)
+                collected_cnt += 1
                 self._progress.update(collected_cnt, max_latency)
                 last_rawdp_time = time.time()
 
-                collected_cnt += 1
                 if collected_cnt >= dpcnt:
                     break
 
