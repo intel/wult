@@ -626,7 +626,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         """Remove extra fields from the processed data point."""
 
         for field in list(dp):
-            if field not in self._fields:
+            if field not in self._allowed_fields:
                 del dp[field]
 
         return dp
@@ -752,13 +752,13 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         # Form the preliminary list of fields in processed datapoints. Fields from the metrics
         # definition YAML file file go first. The list (but we use dictionary in this case) will be
         # amended later.
-        self._fields = {}
+        self._allowed_fields = {}
         for field in mdo.mdd:
-            self._fields[field] = None
+            self._allowed_fields[field] = None
 
         if keep_rawdp:
             for field in raw_fields:
-                self._fields[field] = None
+                self._allowed_fields[field] = None
 
     def __init__(self, cpu, pman, drvname, tsc_cal_time=10, cpuidle=None):
         """
@@ -779,8 +779,8 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         # A '_TSCRate' class object.
         self._tscrate = None
 
-        # Processed datapoint field names.
-        self._fields = None
+        # Fields allowed in processed datapoints, may include fields that are never produced.
+        self._allowed_fields = None
 
         self._dps = []
         self._has_cstates = None
