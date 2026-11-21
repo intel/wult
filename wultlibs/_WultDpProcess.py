@@ -10,6 +10,7 @@
 This module provides the 'DatapointProcessor' class which implements raw datapoint processing.
 """
 
+import collections
 from pepclibs import CPUIdle
 from pepclibs.helperlibs import Logging, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error
@@ -17,6 +18,14 @@ from wultlibs import WultMDC
 from wultlibs.helperlibs import Human
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
+
+# Consecutive datapoints contradicting the decided interrupt order of a C-state, after which the
+# C-state is considered inconsistent.
+_INTR_NOISE_MAX = 100
+
+# Consecutive "off" datapoints (the interrupt handler did not run before 'after_idle()'), without
+# any "on" datapoint, after which a C-state is decided to be requested with interrupts disabled.
+_INTR_OFF_CONFIRM = 10
 
 class _CStates(ClassHelpers.SimpleCloseContext):
     """
@@ -73,9 +82,9 @@ class _CStates(ClassHelpers.SimpleCloseContext):
 
     def add_raw_datapoint(self, rawdp):
         """
-        Add a raw datapoint 'rawdp' and use it for detecting interrupt order. Returns 'rawdp' if
-        interrupt order for the requested C-state in 'rawdp' is already known. Returns 'None'
-        otherwise.
+        Add a raw datapoint 'rawdp' and use it for detecting interrupt order. The datapoint is
+        yielded by 'get_raw_datapoint()' if the interrupt order of its C-state is decided by then,
+        and discarded otherwise.
 
         About requestable C-states interrupt order. Most C-states are requested with local CPU
         interrupts disabled. This means that when the event armed by 'wult' happens, the CPU exits
@@ -95,86 +104,108 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         datapoints and check what happened first: the interrupt handler or 'after_idle()'.
 
         The complication here is that when interrupts are enabled, the interrupt handler is not
-        guaranteed to happened earlier than 'after_idle()'. In some cases, when the CPU was woken up
+        guaranteed to happen earlier than 'after_idle()'. In some cases, when the CPU was woken up
         by a non-interrupt event (e.g., because the Linux scheduler woke us up by writing to the
         memory address monitored by the 'mwait' instruction), 'after_idle()' happens first. And if
         this non-interrupt event happened just before wult interrupt, the interrupt handler may run
-        right after 'after_idle()'. So it may look the CPU woke up because of a wult event, and
+        right after 'after_idle()'. So it may look like the CPU woke up because of a wult event, and
         'after_idle()' ran before the interrupt handler.
 
-        To overcome this complication, we collect many datapoints for requestable C-states, and
-        look at the "interrupt handler vs 'after_idle()" order of the majority of datapoints. The
-        datapoints are held back and stored in this class until we have enough of them. Then they
-        are yielded by 'get_raw_datapoint()'.
+        To overcome this complication, use the asymmetry: the interrupt handler can run before
+        'after_idle()' only if the C-state is requested with interrupts enabled. Call a datapoint
+        "on" if the interrupt handler ran before 'after_idle()', and "off" otherwise. A single
+        "on" datapoint proves that interrupts are enabled. "Off" datapoints prove nothing, but
+        noise is rare, so '_INTR_OFF_CONFIRM' "off" datapoints in a row, without any "on" datapoint,
+        are taken as evidence that interrupts are disabled.
+
+        Until the interrupt order of a C-state is decided, its datapoints are discarded. This
+        loses fewer than '_INTR_OFF_CONFIRM' datapoints per C-state, but keeps the datapoint order
+        and does not hold back datapoints of other C-states. The decision is final, so the output
+        never has datapoints with different interrupt orders for the same C-state. Datapoints
+        contradicting the decision are dropped as noise. If '_INTR_NOISE_MAX' of them come in a
+        row, the decision was wrong, and an error is raised.
+
+        The actions depending on the decision and on the added datapoint:
+
+          Decided  Observed  Action
+          -------  --------  ----------------------------------------------------------
+          none     on        Decide "on", accept.
+          none     off       Discard, decide "off" and accept after '_INTR_OFF_CONFIRM' in a row.
+          on       on        Accept.
+          on       off       Drop as noise, fail after '_INTR_NOISE_MAX' in a row.
+          off      off       Accept.
+          off      on        Drop as noise, fail after '_INTR_NOISE_MAX' in a row.
         """
 
         csname = rawdp["ReqCState"] = self.get_req_cstate_name(rawdp)
 
-        if csname == "POLL":
-            # This is an optimization. The 'POLL' state is always requested with interrupts enabled.
-            rawdp["IntrOff"] = False
-            return rawdp
+        # The 'POLL' state is always requested with interrupts enabled.
+        if csname != "POLL":
+            self._update_intr_order(csname, rawdp["TIntr"] < rawdp["TAI"])
 
-        if csname in self._introff:
-            rawdp["IntrOff"] = self._introff[csname]
-            return self._check_rawdp_timing(rawdp)
-
-        if csname not in self._intr_order:
-            self._intr_order[csname] = {"intr_on" : [], "intr_off" : [] }
-            _LOG.debug("figuring out interrupt order for the %s requestable C-state", csname)
-
-        _intr_order = self._intr_order[csname]
-
-        if rawdp["TIntr"] < rawdp["TAI"]:
-            _intr_order["intr_on"].append(rawdp)
-        else:
-            _intr_order["intr_off"].append(rawdp)
-
-        # Check if we have enough "statistics" to judge whether interrupts were enabled or disabled.
-        # Find the "interrupts on" vs "interrupts off" ratio (the "+ 1" part is to avoid division by
-        # zero).
-        ratio = float((len(_intr_order["intr_on"]) + 1)) / (len(_intr_order["intr_off"]) + 1)
-
-        # Ratio 100:1 is good enough to make the final conclusion about the order.
-        if ratio > 100:
-            intr_off = False
-        elif 1 / ratio > 100:
-            intr_off = True
-        else:
-            intr_off = None
-
-        if intr_off is not None:
-            self._introff[csname] = intr_off
-            _LOG.debug("figured out interrupt order for %s: requested with interrupts %s",
-                       csname, "disabled" if intr_off else "enabled")
-
-        return None
+        self._queue.append(rawdp)
 
     def get_raw_datapoint(self):
         """
-        This generator yields the raw datapoints saved by 'add_raw_datapoint()' when C-states
-        interrupt order is figured out.
+        This generator yields the raw datapoints saved by 'add_raw_datapoint()', in the order they
+        were added. The 'IntrOff' field is set, and the datapoints of C-states with undecided
+        interrupt order and the datapoints failing the timing check are discarded.
         """
 
-        if not self._intr_order:
-            return
-        if not self._introff:
+        while self._queue:
+            rawdp = self._queue.popleft()
+            csname = rawdp["ReqCState"]
+
+            if csname == "POLL":
+                rawdp["IntrOff"] = False
+                yield rawdp
+                continue
+
+            if csname not in self._introff:
+                continue
+
+            rawdp["IntrOff"] = self._introff[csname]
+            if self._check_rawdp_timing(rawdp):
+                yield rawdp
+
+    def _decide(self, csname, intr_off):
+        """Decide that C-state 'csname' is requested with interrupts disabled if 'intr_off'."""
+
+        self._introff[csname] = intr_off
+        self._noise_cnt[csname] = 0
+        _LOG.debug("interrupt order for %s: requested with interrupts %s",
+                   csname, "disabled" if intr_off else "enabled")
+
+    def _update_intr_order(self, csname, intr_on):
+        """
+        Update and verify the interrupt order of C-state 'csname' using a datapoint where the
+        interrupt handler ran first if 'intr_on' is 'True'.
+        """
+
+        introff = self._introff.get(csname)
+
+        if introff is None:
+            if intr_on:
+                self._decide(csname, False)
+                return
+
+            self._off_cnt[csname] = self._off_cnt.get(csname, 0) + 1
+            if self._off_cnt[csname] >= _INTR_OFF_CONFIRM:
+                self._decide(csname, True)
             return
 
-        delete_csnames = []
-        for csname, intr_order in self._intr_order.items():
-            if csname in self._introff:
-                if self._introff[csname]:
-                    key = "intr_off"
-                else:
-                    key = "intr_on"
-                for rawdp in intr_order[key]:
-                    rawdp["IntrOff"] = self._introff[csname]
-                    yield rawdp
-                delete_csnames.append(csname)
+        if intr_on != introff:
+            # The datapoint is consistent with the decided interrupt order.
+            self._noise_cnt[csname] = 0
+            return
 
-        for csname in delete_csnames:
-            del self._intr_order[csname]
+        self._noise_cnt[csname] += 1
+        if self._noise_cnt[csname] >= _INTR_NOISE_MAX:
+            state = "disabled" if introff else "enabled"
+            raise Error(f"inconsistent interrupt order for the {csname} requestable C-state: it "
+                        f"was decided to be requested with interrupts {state}, but the last "
+                        f"{_INTR_NOISE_MAX} datapoints show the opposite order of the interrupt "
+                        f"handler and 'after_idle()'")
 
     def __init__(self, cpu, pman, cpuidle=None):
         """
@@ -195,14 +226,19 @@ class _CStates(ClassHelpers.SimpleCloseContext):
         # C-state index -> C-state name dictionary..
         self._idx2name = {}
 
-        # A dictionary indexed by C-state names, used for storing temporary data while figuring out
-        # C-states interrupt order.
-        self._intr_order = {}
-        # Interrupt status of requestable C-states. Dictionary keys are C-state names, the values
-        # are:
+        # Count of consecutive "off" datapoints for C-states with undecided interrupt order.
+        # Dictionary keys are C-state names.
+        self._off_cnt = {}
+        # Count of consecutive datapoints contradicting the decided interrupt order. Dictionary
+        # keys are C-state names.
+        self._noise_cnt = {}
+        # Interrupt status of requestable C-states with decided interrupt order. Dictionary keys are
+        # C-state names, the values are:
         #   * 'True' if the C-state is requested with interrupts disabled.
         #   * 'False' if the C-state is requested with interrupts enabled.
         self._introff = {}
+        # Raw datapoints waiting for the interrupt order decision, in the order they were added.
+        self._queue = collections.deque()
 
         if not self._cpuidle:
             self._cpuidle = CPUIdle.CPUIdle(pman=self._pman)
@@ -268,28 +304,25 @@ class _TSCRate:
 
     def add_raw_datapoint(self, rawdp):
         """
-        Add a raw datapoint 'rawdp' and use it for calculating TSC rate. Returns 'rawdp' if TSC
-        rate has already been calculated and no more raw datapoints are required. Returns 'None'
-        otherwise.
+        Add a raw datapoint 'rawdp' and use it for calculating TSC rate. The datapoint is held back
+        in a queue, and 'get_raw_datapoint()' yields it, in the order the datapoints were added, as
+        soon as the TSC rate is known.
 
         The idea here is that we need to collect raw datapoints for 'self._tsc_cal_time' seconds,
         and hold them on. After 'self._tsc_cal_time' seconds worth of datapoints are available, we
         can calculate TSC rate. Then the TSC rate can be used for processing the datapoints that we
-        held and for new datapoints. The held datapoints will be yielded by 'get_raw_datapoint()'.
+        held and for new datapoints.
         """
 
-        if self.tsc_mhz:
-            # TSC rate is already known, skip the calculations.
-            return rawdp
+        if not self.tsc_mhz:
+            self._calculate_tsc_rate(rawdp)
 
-        self._calculate_tsc_rate(rawdp)
         self._rawdps.append(rawdp)
-        return None
 
     def get_raw_datapoint(self):
         """
-        This generator yields the raw datapoints saved by 'add_raw_datapoint()' when TSC
-        rate has been calculated.
+        This generator yields the raw datapoints saved by 'add_raw_datapoint()', in the order they
+        were added, when TSC rate has been calculated.
         """
 
         if self.tsc_mhz:
@@ -668,54 +701,28 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
     def add_raw_datapoint(self, rawdp):
         """
-        Add and process a raw datapoint. The arguments are as follows.
-          * rawdp - the raw datapoint to add and process.
+        Add a raw datapoint. The arguments are as follows.
+          * rawdp - the raw datapoint to add.
 
         Notice: for efficiency purposes this function does not make a copy of the 'rawdp'
-        dictionary. Instead, it extends and modifies it in-pace, and saves in an internal list. The
-        dictionary will be yielded later by 'get_datapoints()'. Therefore, the caller
-        should not use 'rawdp' after calling this method.
+        dictionary. Instead, 'get_datapoints()' extends and modifies the dictionary in-place when
+        processing it. Therefore, the caller should not use 'rawdp' after calling this method.
         """
 
         rawdp = self._filter_out_noise(rawdp)
-        if not rawdp:
-            return
-
-        if self._tscrate:
-            rawdp = self._tscrate.add_raw_datapoint(rawdp)
-            if not rawdp:
-                return
-
-        rawdp = self._csobj.add_raw_datapoint(rawdp)
-        if not rawdp:
-            return
-
-        dp = self._process_datapoint(rawdp)
-        if not dp:
-            return
-
-        self._dps.append(dp)
+        if rawdp:
+            self._tscrate.add_raw_datapoint(rawdp)
 
     def get_datapoints(self):
         """Yield processed datapoints."""
 
-        if self._tscrate:
-            for rawdp in self._tscrate.get_raw_datapoint():
-                rawdp = self._csobj.add_raw_datapoint(rawdp)
-                if rawdp:
-                    dp = self._process_datapoint(rawdp)
-                    if dp:
-                        yield dp
+        for rawdp in self._tscrate.get_raw_datapoint():
+            self._csobj.add_raw_datapoint(rawdp)
 
         for rawdp in self._csobj.get_raw_datapoint():
             dp = self._process_datapoint(rawdp)
             if dp:
                 yield dp
-
-        for dp in self._dps:
-            yield dp
-
-        self._dps = []
 
     def prepare(self, rawdp, keep_rawdp):
         """
@@ -780,7 +787,6 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         # Fields allowed in processed datapoints, may include fields that are never produced.
         self._allowed_fields = None
 
-        self._dps = []
         self._has_cstates = None
         self._cs_fields = None
         self._us_fields_set = None

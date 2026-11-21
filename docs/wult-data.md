@@ -419,22 +419,26 @@ a calculated C-state residency percentage may be greater than 100%:
 There are 2 cases: the after-idle code runs before the interrupt handler, or the other way around.
 User-space needs to distinguish them to do the [overhead](#overhead) math correctly.
 
-User-space finds out the order from the incoming datapoints, separately for each C-state:
+User-space finds out the order from the incoming datapoints, separately for each C-state. It
+compares `TAI` and `TIntr` of each datapoint. The 2 orders are not equally reliable:
 
-- It compares `TAI` and `TIntr` of each incoming datapoint, counts the datapoints for each order,
-  and holds the datapoints back without processing them.
-- There is no fixed window. It accumulates the statistics until one order outnumbers the other by a
-  factor of 100. For example, 100 datapoints with one order and none with the other, or 200 and 1.
-  Then it fixes the case for that C-state, processes the held datapoints that agree with the order,
-  and drops the others.
-- After the order is fixed, new datapoints of the C-state are no longer held back. They are
-  processed as they come, and those that disagree with the order are dropped.
+- `TIntr`, then `TAI` - Possible only if interrupts were enabled. One such datapoint is enough to
+  decide that the C-state is entered with interrupts enabled.
+- `TAI`, then `TIntr` - The usual order for interrupts disabled, but it also happens with interrupts
+  enabled when the CPU was woken up by something other than the event. For example, the scheduler
+  may write to the memory address monitored by the `MWAIT` instruction just before the event fires.
+
+Therefore, user-space applies these rules:
+
+- The first datapoint with `TIntr`, then `TAI` decides that the C-state is entered with interrupts
+  enabled.
+- After 10 datapoints with `TAI`, then `TIntr` in a row, and none with the other order, the C-state
+  is decided to be entered with interrupts disabled.
+- Until the order is decided, user-space discards the datapoints of the C-state. This loses fewer
+  than 10 datapoints per C-state, and does not hold back datapoints of other C-states.
+- The decision is final. Datapoints that disagree with it are dropped as noise, and 100 of them in
+  a row is an error.
 - The exception is POLL, which is always treated as interrupts enabled.
-
-One datapoint is not enough. The driver tries to filter out the datapoints where the CPU was woken
-up by something other than the event, but this is best effort. For example, the scheduler may write
-to the memory address monitored by the `MWAIT` instruction just before the event fires. In this case
-the after-idle code runs first even if interrupts were enabled.
 
 User-space saves the result in the `IntrOff` metric of every datapoint. It is true when interrupts
 were disabled (`TAI`, then `TIntr`), and false when they were enabled (`TIntr`, then `TAI`).
