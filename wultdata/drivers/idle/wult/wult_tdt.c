@@ -93,8 +93,9 @@ static int arm_event(struct wult_device_info *wdi, u64 *ldist)
 	 * timer. But we arm our timer anyway to make sure there is at least
 	 * some timer there and we won't sleep forever.
 	 */
-	hrtimer_start(&wt->timer, ns_to_ktime(*ldist), HRTIMER_MODE_REL_PINNED_HARD);
+	/* Set before arming, the timer may fire right away. */
 	wt->timer_armed = true;
+	hrtimer_start(&wt->timer, ns_to_ktime(*ldist), HRTIMER_MODE_REL_PINNED_HARD);
 
 	return 0;
 }
