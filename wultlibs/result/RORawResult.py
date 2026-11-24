@@ -85,8 +85,13 @@ class RORawResult(_RawResultBase.RawResultBase):
             return None
 
         expr = str(expr)
-        for colname in self.metrics:
-            expr = expr.replace(colname, f"self.df['{colname}']")
+        # Replace all metric names in one pass, longest names first. Replacing them one by one
+        # breaks metrics whose name starts with another metric's name: 'WakeLatencyRaw' would
+        # become 'self.df['WakeLatency']Raw'.
+        if self.metrics:
+            regex = "|".join(re.escape(name) for name in sorted(self.metrics, key=len,
+                                                                 reverse=True))
+            expr = re.sub(regex, lambda mobj: f"self.df['{mobj.group(0)}']", expr)
         # The special 'index' name represents the row number (first data row has index '0').
         expr = re.sub("(?!')index(?!')", "self.df.index", expr)
         return expr

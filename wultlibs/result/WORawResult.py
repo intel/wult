@@ -11,6 +11,7 @@ This module provides API for write-only raw test results.
 """
 
 import os
+import re
 import shutil
 import contextlib
 from pepclibs.helperlibs import Logging, YAML, ClassHelpers
@@ -83,8 +84,12 @@ class WORawResult(_RawResultBase.RawResultBase, ClassHelpers.SimpleCloseContext)
                             replaced, replacement, expr)
                 break
 
-        for colname in self.csv.hdr:
-            expr = expr.replace(colname, f"dp['{colname}']")
+        # Replace all metric names in one pass, longest names first (see the comment in
+        # 'RORawResult._mangle_eval_expr()').
+        if self.csv.hdr:
+            regex = "|".join(re.escape(name) for name in sorted(self.csv.hdr, key=len,
+                                                                 reverse=True))
+            expr = re.sub(regex, lambda mobj: f"dp['{mobj.group(0)}']", expr)
         return expr
 
     def _get_dp_filter(self):
