@@ -733,6 +733,30 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
         return _is_dropped(dp)
 
+    def reset_stats(self):
+        """Reset the datapoint counters used by 'get_timeout_reason()'."""
+
+        self._raw_cnt = self._dropped_cnt = self._yielded_cnt = 0
+
+    def get_timeout_reason(self):
+        """
+        Return a message explaining why no datapoints were accepted since the last
+        'reset_stats()' call.
+        """
+
+        if not self._raw_cnt:
+            return "the driver did not send any events"
+        if self._dropped_cnt == self._raw_cnt:
+            return f"the driver dropped all {self._raw_cnt} events"
+        if not self._tscrate.tsc_mhz:
+            return "TSC rate calibration is not finished"
+
+        if self._yielded_cnt:
+            return f"{self._yielded_cnt} datapoints did not pass filters/selectors"
+
+        return f"the driver sent {self._raw_cnt} events and dropped {self._dropped_cnt} of " \
+               f"them, user-space checks rejected the rest"
+
     def _get_dropped_dp(self, rawdp):
         """
         Turn a dropped raw datapoint into a datapoint to save. The fields are the same as in the
@@ -767,7 +791,9 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
             if field in rawdp:
                 rawdp[field] = bool(rawdp[field])
 
+        self._raw_cnt += 1
         if self.is_dropped(rawdp):
+            self._dropped_cnt += 1
             # Without 'keep_rawdp' the 'Drop*' metrics are not saved, so dropped datapoints would
             # look like accepted ones. Do not keep them in this case.
             if not self._keep_rawdp:
@@ -794,6 +820,7 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
 
             dp = self._process_datapoint(rawdp)
             if dp:
+                self._yielded_cnt += 1
                 yield dp
 
     def prepare(self, rawdp, keep_rawdp):
@@ -871,6 +898,11 @@ class DatapointProcessor(ClassHelpers.SimpleCloseContext):
         self._cs_fields = None
         self._us_fields_set = None
         self._bool_fields = None
+
+        # Counts of raw, dropped, and yielded accepted datapoints since the last 'reset_stats()'.
+        self._raw_cnt = 0
+        self._dropped_cnt = 0
+        self._yielded_cnt = 0
 
         self._csobj = _CStates(self._cpu, self._pman, cpuidle=cpuidle)
         self._tscrate = _TSCRate(tsc_cal_time)

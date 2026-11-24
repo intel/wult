@@ -45,9 +45,8 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                             f"6.4-6.6 kernels is known to be bugged, please upgrade your "
                             f"kernel to latest stable or 6.6-rc2.")
 
-        raise ErrorTimeOut(f"no datapoints accepted for {timeout} seconds. Either the driver "
-                           f"dropped the events, or user-space rejected them, for example because "
-                           f"they did not pass filters/selectors.")
+        raise ErrorTimeOut(f"no datapoints accepted for {timeout} seconds: "
+                           f"{self._dpp.get_timeout_reason()}")
 
     def _collect(self, dpcnt, tlimit, keep_rawdp):
         """
@@ -103,6 +102,7 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
                 collected_cnt += 1
                 self._progress.update(collected_cnt, max_latency)
                 last_rawdp_time = time.time()
+                self._dpp.reset_stats()
 
                 if collected_cnt >= dpcnt:
                     break
