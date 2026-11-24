@@ -90,6 +90,7 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
                 self._run_iteration(ldist)
             self._prov.stop()
         except (KeyboardInterrupt, Error) as err:
+            self._progress.update(self._progress.ldist, final=True)
             if self._prov.started:
                 self._prov.stop()
             if isinstance(err, KeyboardInterrupt):
@@ -101,6 +102,7 @@ class PbeRunner(ClassHelpers.SimpleCloseContext):
                     self._finish_run()
             raise
 
+        self._progress.update(self._progress.ldist, final=True)
         duration = Human.duration(self._progress.get_duration())
         _LOG.info("Finished the measurements%s, lasted %s", self._pman.hostmsg, duration)
         self._finish_run()

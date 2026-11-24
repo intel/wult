@@ -189,16 +189,19 @@ class PbeProgressLine(_ProgressLineBase):
 
     NSEC_PER_SEC = 1000000000
 
-    def update(self, ldist: int):
+    def update(self, ldist: int, final: bool = False):
         """
         Update the progress line with the current launch distance.
 
         Args:
             ldist: Current measured launch distance in nanoseconds.
+            final: Set to True for the final progress update after the measurements are done.
         """
 
+        self.ldist = ldist
+
         time_now = time.time()
-        if not self._update(False, time_now):
+        if not self._update(final, time_now):
             return
 
         hldist = Human.num2si(ldist, unit="ns")
@@ -207,5 +210,3 @@ class PbeProgressLine(_ProgressLineBase):
 
         msg = f"Tot. time: {duration}, ldist: {hldist} ({rate} intr/s)"
         self._print(msg)
-
-        self.ldist = ldist
