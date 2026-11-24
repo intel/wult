@@ -9,10 +9,6 @@
 
 #include <linux/version.h>
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
-#define COMPAT_HAVE_SET_AFFINITY
-#endif
-
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 15, 0)
 #define hrtimer_setup(_timer, _func, _clock_id, _mode) \
         do { \

@@ -333,11 +333,7 @@ static int init_device(struct wult_device_info *wdi, int cpu)
 
 	vector = pci_irq_vector(nic->pdev, 0);
 
-#ifdef COMPAT_HAVE_SET_AFFINITY
 	err = irq_set_affinity(vector, get_cpu_mask(cpu));
-#else
-	err = irq_set_affinity_hint(vector, get_cpu_mask(cpu));
-#endif
 	if (err)
 		goto err_irq;
 

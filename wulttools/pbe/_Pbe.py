@@ -42,7 +42,7 @@ _PBE_DEPLOY_INFO: DeployInfoTypedDict = {
     "installables" : {
         "pbe": {
             "category": "drivers",
-            "minkver": "5.2",
+            "minkver": "6.6",
             "deployables": ("pbe",)
         },
     },

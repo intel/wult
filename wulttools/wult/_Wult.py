@@ -43,7 +43,7 @@ _WULT_DEPLOY_INFO: DeployInfoTypedDict = {
     "installables" : {
         "wult" : {
             "category" : "drivers",
-            "minkver"  : "5.6",
+            "minkver"  : "6.6",
             "deployables" : ("wult", "wult_igb", "wult_tdt", "wult_hrt",),
         },
     },

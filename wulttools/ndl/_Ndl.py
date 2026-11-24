@@ -41,7 +41,7 @@ _NDL_DEPLOY_INFO: DeployInfoTypedDict = {
     "installables" : {
         "ndl" : {
             "category" : "drivers",
-            "minkver"  : "5.2",
+            "minkver"  : "6.6",
             "deployables" : ("ndl",),
         },
         "ndl-helper" : {

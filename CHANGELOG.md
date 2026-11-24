@@ -8,6 +8,7 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
  - Fix crashes with --size=large.
 ### Added
 ### Removed
+ - Remove support for kernels older than v6.6.
 ### Changed
 
 ## [1.12.68] - 2026-10-20

@@ -14,7 +14,7 @@ saves the results.
 import time
 import contextlib
 from pepclibs import CPUIdle
-from pepclibs.helperlibs import Logging, ClassHelpers, KernelVersion
+from pepclibs.helperlibs import Logging, ClassHelpers
 from pepclibs.helperlibs.Exceptions import Error, ErrorTimeOut
 from wultlibs import _WultRawDataProvider, _ProgressLine, _WultDpProcess
 from wultlibs.helperlibs import Human
@@ -26,27 +26,6 @@ _MAX_FTRACE_BAD_LINES = 10
 
 class WultRunner(ClassHelpers.SimpleCloseContext):
     """Run wake latency measurement experiments."""
-
-    def _raise_timeout(self, timeout, rawdp):
-        """
-        Raise an exception explaining why no datapoints were accepted for 'timeout' seconds. The
-        'rawdp' argument is the last raw datapoint.
-        """
-
-        # 6.4+ kernels have a bug where synthetic trace events passed from kernel print out
-        # pointer values instead of the value itself. Detect the situation by checking for
-        # ridiculously high SMICnt which can never happen, and additionally checking that we
-        # have running pointer values in the adjacent data values (in the wult drivers,
-        # address of the NMICnt is SMICnt + 8 as the data type is u64.)
-        if rawdp['SMICnt'] > 1000000 and rawdp['SMICnt'] + 8 == rawdp['NMICnt']:
-            kver = KernelVersion.get_kver(pman=self._pman)
-            if KernelVersion.kver_ge(kver, "6.4") and KernelVersion.kver_lt(kver, "6.7"):
-                raise Error(f"kernel bug detected with kernel {kver}. Trace subsystem with "
-                            f"6.4-6.6 kernels is known to be bugged, please upgrade your "
-                            f"kernel to latest stable or 6.6-rc2.")
-
-        raise ErrorTimeOut(f"no datapoints accepted for {timeout} seconds: "
-                           f"{self._dpp.get_timeout_reason()}")
 
     def _collect(self, dpcnt, tlimit, keep_rawdp):
         """
@@ -69,7 +48,8 @@ class WultRunner(ClassHelpers.SimpleCloseContext):
 
         for rawdp in datapoints:
             if time.time() - last_rawdp_time > timeout:
-                self._raise_timeout(timeout, rawdp)
+                raise ErrorTimeOut(f"no datapoints accepted for {timeout} seconds: "
+                                   f"{self._dpp.get_timeout_reason()}")
 
             self._dpp.add_raw_datapoint(rawdp)
 
