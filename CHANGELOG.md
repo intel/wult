@@ -6,10 +6,23 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
  - Fix crashes with --size=large.
+ - wult: fix 'WakeLatencyRaw' and 'IntrLatencyRaw' being in TSC cycles
+   instead of nanoseconds with the 'tdt' method.
+ - wult: fix the final datapoints count in the progress line.
+ - wult: fix datapoints reordering in 'datapoints.csv'.
 ### Added
+ - wult: add debug metrics 'IdleCnt', 'PrevTAI', and 'Drop*' explaining
+   why the driver dropped an event. With '--keep-raw-data', dropped
+   datapoints are also saved in 'datapoints.csv'.
 ### Removed
  - Remove support for kernels older than v6.6.
 ### Changed
+ - wult: faster C-state interrupt order detection: one datapoint is
+   enough to decide that interrupts are enabled, 10 are needed to decide
+   that they are disabled.
+ - wult: the "no datapoints accepted" error now tells the actual reason.
+ - wult: the driver now fails if the delayed event did not happen,
+   instead of silently dropping the datapoint.
 
 ## [1.12.68] - 2026-10-20
 ### Fixed
