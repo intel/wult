@@ -17,6 +17,7 @@ import typing
 import contextlib
 from pepclibs import CPUInfo
 from pepclibs.helperlibs import Logging, Trivial, ProcessManager
+from pepclibs.helperlibs.Exceptions import Error
 from statscollectlibs.collector import StatsCollectBuilder
 from wultlibs.result import WORawResult
 from wultlibs.helperlibs import Human
@@ -39,6 +40,9 @@ if typing.TYPE_CHECKING:
         """
 
 _LOG = Logging.getLogger(f"{Logging.MAIN_LOGGER_NAME}.wult.{__name__}")
+
+# Statistics collectors providing power data, pbe needs at least one of them.
+_POWER_STNAMES = ("turbostat", "acpower")
 
 def _format_args(args: argparse.Namespace) -> PbeStartCmdlArgsTypedDict:
     """
@@ -136,8 +140,11 @@ def start_command(args: argparse.Namespace):
 
         stcoll = stcoll_builder.build_stcoll_nores(pman, cmdl["reportid"], cpus=(args.lead_cpu,),
                                                    local_outdir=res.stats_path)
-        if stcoll:
-            stack.enter_context(stcoll)
+        if not stcoll or not set(stcoll.get_enabled_stats()) & set(_POWER_STNAMES):
+            stnames = ", ".join(f"'{stname}'" for stname in _POWER_STNAMES)
+            raise Error(f"pbe needs power statistics, please enable at least one of these "
+                        f"statistics collectors: {stnames}")
+        stack.enter_context(stcoll)
 
         runner = PbeRunner.PbeRunner(pman, dev, res, cmdl["ldist"], span, warmup, stcoll,
                                      ldist_step_pct=ldist_step_pct,

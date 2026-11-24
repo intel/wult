@@ -140,7 +140,11 @@ def _build_arguments_parser():
 
     subpars.add_argument("--reportid", help=_Common.START_REPORTID_DESCR)
 
-    subpars.add_argument("--stats", default="default", help=f"{_Common.STATS_DESCR} {man_msg}")
+    text = f"""Comma-separated list of statistics to collect. {TOOLNAME} needs power statistics, so
+               the list must include 'turbostat', 'acpower', or both. By default, only
+               '{_Common.default_stnames}' statistics are collected. Use 'all' to collect all
+               possible statistics. {man_msg}"""
+    subpars.add_argument("--stats", default="default", help=text)
 
     subpars.add_argument("--stats-intervals", help=_Common.STAT_INTERVALS_DESCR)
 

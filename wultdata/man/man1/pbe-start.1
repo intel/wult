@@ -74,20 +74,20 @@ Path to the directory to store the results at.
 Comma\-separated list of statistics to collect.
 The statistics are collected in parallel with power break\-even data
 collection.
-They are stored in the the \[dq]stats\[dq] sub\-directory of the output
+They are stored in the \[dq]stats\[dq] sub\-directory of the output
 directory.
+pbe needs power statistics, so the list must include
+\[aq]turbostat\[aq], \[aq]acpower\[aq], or both.
 By default, only \[aq]turbostat, sysinfo\[aq] statistics are collected.
 Use \[aq]all\[aq] to collect all possible statistics.
-Use \[aq]\-\-stats=\[dq]\[dq]\[aq] or \[aq]\-\-stats=\[dq]none\[dq]\[aq]
-to disable statistics collection.
 If you know exactly what statistics you need, specify the
 comma\-separated list of statistics to collect.
 For example, use \[aq]turbostat,acpower\[aq] if you need only turbostat
 and AC power meter statistics.
 You can also specify the statistics you do not want to be collected by
 pre\-pending the \[aq]!\[aq] symbol.
-For example, \[aq]all,!turbostat\[aq] would mean: collect all the
-statistics supported by the SUT, except for \[aq]turbostat\[aq].
+For example, \[aq]all,!acpower\[aq] would mean: collect all the
+statistics supported by the SUT, except for \[aq]acpower\[aq].
 Use the \[aq]\-\-list\-stats\[aq] option to get more information about
 available statistics.
 .TP

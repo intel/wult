@@ -78,16 +78,16 @@ OPTIONS *'pbe* start'
 **--stats** *STATS*
    Comma-separated list of statistics to collect. The statistics are
    collected in parallel with power break-even data collection. They are stored
-   in the the "stats" sub-directory of the output directory. By default,
-   only 'turbostat, sysinfo' statistics are collected. Use 'all' to
-   collect all possible statistics. Use '--stats=""' or '--stats="none"'
-   to disable statistics collection. If you know exactly what statistics
+   in the "stats" sub-directory of the output directory. pbe needs power
+   statistics, so the list must include 'turbostat', 'acpower', or both. By
+   default, only 'turbostat, sysinfo' statistics are collected. Use 'all' to
+   collect all possible statistics. If you know exactly what statistics
    you need, specify the comma-separated list of statistics to collect.
    For example, use 'turbostat,acpower' if you need only turbostat and
    AC power meter statistics. You can also specify the statistics you do
    not want to be collected by pre-pending the '!' symbol. For example,
-   'all,!turbostat' would mean: collect all the statistics supported by
-   the SUT, except for 'turbostat'. Use the '--list-stats' option to get
+   'all,!acpower' would mean: collect all the statistics supported by
+   the SUT, except for 'acpower'. Use the '--list-stats' option to get
    more information about available statistics.
 
 **--stats-intervals** *STATS_INTERVALS*
