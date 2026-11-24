@@ -10,6 +10,11 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
    instead of nanoseconds with the 'tdt' method.
  - wult: fix the final datapoints count in the progress line.
  - wult: fix datapoints reordering in 'datapoints.csv'.
+ - wult: fix wrong launch and interrupt times of some dropped events with
+   the 'tdt' method and very short launch distances.
+ - pbe: fix crash with '--stats none'. pbe now requires 'turbostat' or
+   'acpower' statistics and fails with a clear error otherwise.
+ - pbe: fix the progress line not ending with a newline.
 ### Added
  - wult: add debug metrics 'IdleCnt', 'PrevTAI', and 'Drop*' explaining
    why the driver dropped an event. With '--keep-raw-data', dropped
