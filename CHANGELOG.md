@@ -5,6 +5,12 @@ Versioning practices: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [ADD NEW VERSION HERE] - ADD DATE HERE
 ### Fixed
+### Added
+### Removed
+### Changed
+
+## [1.12.69] - 2026-11-24
+### Fixed
  - Fix crashes with --size=large.
  - wult: fix 'WakeLatencyRaw' and 'IntrLatencyRaw' being in TSC cycles
    instead of nanoseconds with the 'tdt' method.
